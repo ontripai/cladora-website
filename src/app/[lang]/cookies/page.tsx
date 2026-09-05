@@ -8,10 +8,11 @@ import { Cookie } from 'lucide-react';
 
 
 
+import { getLegalDocumentDate } from '@/config/legal';
+
 export async function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'ro' }, { lang: 'fa' }];
 }
-
 
 export async function generateMetadata(
   props: {
@@ -25,6 +26,7 @@ export async function generateMetadata(
 export default async function CookiesPage(props: { params: Promise<{ lang: Language }> }) {
   const params = await props.params;
   const { lang } = params;
+  const docDate = getLegalDocumentDate(lang);
 
   return (
     <main className="min-h-screen pt-32 pb-24 bg-[#F6F9FC]">
@@ -50,7 +52,7 @@ export default async function CookiesPage(props: { params: Promise<{ lang: Langu
                 {lang === 'ro' ? 'Politica privind Modulele Cookie' : lang === 'fa' ? 'سیاست استفاده از کوکی‌ها و حافظه مرورگر' : 'Cookie Policy'}
               </h1>
               <p className="text-xs text-[#7B8A9A]">
-                {lang === 'ro' ? 'Actualizat: Octombrie 2026' : lang === 'fa' ? 'آخرین به‌روزرسانی: اکتبر ۲۰۲۶' : 'Last updated: October 2026'}
+                {lang === 'ro' ? `Actualizat: ${docDate}` : lang === 'fa' ? `آخرین به‌روزرسانی: ${docDate}` : `Last updated: ${docDate}`}
               </p>
             </div>
           </div>

@@ -5,7 +5,7 @@
 
 export const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
-  'https://cladora-website.vercel.app';
+  'https://cladora.ro';
 
 export const getSiteUrl = (): string => {
   return siteUrl.replace(/\/+$/, '');

@@ -49,15 +49,15 @@ export default async function TrustPage(
     },
     {
       title: isRo 
-        ? 'Conformitate GDPR & Drepturile Locatarilor' 
+        ? 'Arhitectură GDPR & Minimizarea Datelor' 
         : isFa 
-        ? 'انطباق با مقررات GDPR و به حداقل‌رسانی داده‌ها' 
-        : 'GDPR Compliance & Purpose Minimization',
+        ? 'انطباق با استانداردهای GDPR و به حداقل‌رسانی داده‌ها' 
+        : 'GDPR Architecture & Purpose Minimization',
       desc: isRo
-        ? 'Fără afișare publică a numelor debitorilor. Datele de contact și istoricul de acces sunt accesate strict pe bază de rol și scop justificat.'
+        ? 'Conceput pentru respectarea confidențialității locatarilor. Datele de contact și istoricul de acces sunt accesate strict pe bază de rol și scop justificat.'
         : isFa
-        ? 'عدم نمایش عمومی اطلاعات و بدهی ساکنان. دسترسی به سوابق صرفاً بر اساس نقش سازمانی تعریف‌شده و با اهداف مشخص قانونی انجام می‌پذیرد.'
-        : 'No public exposure of resident debt lists. Contact details and access trails are strictly governed by purpose-bound ABAC grants.',
+        ? 'طراحی‌شده منطبق بر اصول حفظ حریم خصوصی ساکنان. دسترسی به سوابق صرفاً بر اساس نقش سازمانی تعریف‌شده و اهداف مشخص قانونی انجام می‌پذیرد.'
+        : 'Designed to support GDPR principles. Contact details and access trails are strictly governed by purpose-bound role permissions.',
       icon: ShieldCheck,
     },
     {
@@ -75,15 +75,15 @@ export default async function TrustPage(
     },
     {
       title: isRo 
-        ? 'Disponibilitate 99.9% & Backup Continuu' 
+        ? 'Redundanță Cloud & Recuperare Asistată' 
         : isFa 
-        ? 'پایداری ۹۹.۹٪ و پشتیبان‌گیری پیوسته اطلاعات' 
-        : '99.9% Uptime & Point-in-Time Recovery',
+        ? 'تاب‌آوری ابری و پشتیبان‌گیری پیوسته اطلاعات' 
+        : 'Cloud Resilience & Point-in-Time Recovery',
       desc: isRo
-        ? 'Infrastructură cloud de nivel enterprise cu backup-uri automate la fiecare 15 minute (RPO < 15 min) și plan de recuperare în caz de dezastru (RTO < 4 ore).'
+        ? 'Infrastructură cloud găzduită în regiuni europene, cu politici automate de backup și proceduri documentate de recuperare în caz de incident.'
         : isFa
-        ? 'زیرساخت ابری سازمانی با تهیه خودکار نسخه‌های پشتیبان هر ۱۵ دقیقه یک‌بار و برنامه بازیابی سریع بحران.'
-        : 'Enterprise cloud infrastructure with point-in-time recovery (RPO < 15 min) and automated disaster recovery runbooks (RTO < 4 hours).',
+        ? 'زیرساخت ابری سازمانی مستقر در دیتاسنترهای اتحادیه اروپا همراه با نسخه‌برداری خودکار و دستورالعمل‌های مدون بازیابی سوابق.'
+        : 'Enterprise cloud infrastructure deployed in EU regions, featuring automated backup policies and recovery runbooks.',
       icon: Scale,
     },
   ];

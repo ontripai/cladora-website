@@ -4,18 +4,18 @@
 
 ## Core Capabilities & Documentation
 
-- [CLADORA Homepage (Română)](https://cladora-website.vercel.app/ro): Platform overview, 3 operating modes, 17 logical cores, and live simulators.
-- [CLADORA Homepage (English)](https://cladora-website.vercel.app/en): Global platform overview and architecture.
-- [Association OS](https://cladora-website.vercel.app/ro/association): Complete Romanian Law 196/2018 compliance, maintenance quota calculations, Cenzor portal, and digital AGMs.
-- [Owner Portfolio OS](https://cladora-website.vercel.app/ro/portfolio): Multi-property landlord cockpit, 4-way owner-tenant cost split, lease tracking, and net yield analytics.
-- [Management Company OS](https://cladora-website.vercel.app/ro/manager): Scalable multi-association administration, mass month-end billing (10,000 units in under 30 minutes), and work order dispatching.
-- [Financial Truth Core](https://cladora-website.vercel.app/ro/financial-truth): True double-entry general ledger (GL), cryptographic month-end locking, and 4-way cost allocation model.
-- [Building DNA & Engineering](https://cladora-website.vercel.app/ro/building-dna): 8 Building archetypes (A1-A8), envelope condition scoring, and capital reserve planning.
-- [Smart Metering & AI OCR](https://cladora-website.vercel.app/ro/meters): Multi-method ingestion (Photo AI OCR, QR/NFC physical tags, LoRaWAN/M-Bus radio sensors, and riser leakage detection).
-- [Shadow Ledger Migration](https://cladora-website.vercel.app/ro/migration): Automated risk-free migration from legacy systems (Xisoft/BlocManager, Aviziero, Platformis, Excel).
-- [Pricing & Interactive Calculator](https://cladora-website.vercel.app/ro/pricing): Transparent pricing tiers with 20% annual discount and live unit cost estimator.
-- [Pilot Program (Bucharest & Ilfov)](https://cladora-website.vercel.app/ro/pilot): Cohort onboarding application for 5 associations, 20 landlords, and 2 management companies.
-- [Trust, Security & GDPR](https://cladora-website.vercel.app/ro/trust): End-to-end encryption, tenant isolation, immutable tamper-evident audit trails, and 99.9% uptime SLO.
+- [CLADORA Homepage (Română)](https://cladora.ro/ro): Platform overview, 3 operating modes, 17 logical cores, and live simulators.
+- [CLADORA Homepage (English)](https://cladora.ro/en): Global platform overview and architecture.
+- [Association OS](https://cladora.ro/ro/association): Complete Romanian Law 196/2018 compliance, maintenance quota calculations, Cenzor portal, and digital AGMs.
+- [Owner Portfolio OS](https://cladora.ro/ro/portfolio): Multi-property landlord cockpit, 4-way owner-tenant cost split, lease tracking, and net yield analytics.
+- [Management Company OS](https://cladora.ro/ro/manager): Scalable multi-association administration, mass month-end billing (10,000 units in under 30 minutes), and work order dispatching.
+- [Financial Truth Core](https://cladora.ro/ro/financial-truth): True double-entry general ledger (GL), cryptographic month-end locking, and 4-way cost allocation model.
+- [Building DNA & Engineering](https://cladora.ro/ro/building-dna): 8 Building archetypes (A1-A8), envelope condition scoring, and capital reserve planning.
+- [Smart Metering & AI OCR](https://cladora.ro/ro/meters): Multi-method ingestion (Photo AI OCR, QR/NFC physical tags, LoRaWAN/M-Bus radio sensors, and riser leakage detection).
+- [Shadow Ledger Migration](https://cladora.ro/ro/migration): Automated risk-free migration from legacy systems (Xisoft/BlocManager, Aviziero, Platformis, Excel).
+- [Pricing & Interactive Calculator](https://cladora.ro/ro/pricing): Transparent pricing tiers with 20% annual discount and live unit cost estimator.
+- [Pilot Program (Bucharest & Ilfov)](https://cladora.ro/ro/pilot): Cohort onboarding application for 5 associations, 20 landlords, and 2 management companies.
+- [Trust, Security & GDPR](https://cladora.ro/ro/trust): End-to-end encryption, tenant isolation, immutable tamper-evident audit trails, and 99.9% uptime SLO.
 
 ## Architecture Specifications
 - **Master Plan Code**: `CLD-PMP-001`

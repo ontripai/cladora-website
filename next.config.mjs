@@ -11,6 +11,9 @@ const securityHeaders = [
       "img-src 'self' data: blob: https://images.unsplash.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com",
       "frame-ancestors 'none'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
     ].join('; '),
   },
   {
@@ -71,6 +74,10 @@ const sensitiveAuthHeaders = [
 ];
 
 const sensitiveAuthRoutes = [
+  '/:lang(ro|en|fa)/app/:path*',
+  '/:lang(ro|en|fa)/platform/:path*',
+  '/:lang(ro|en|fa)/mfa/:path*',
+  '/:lang(ro|en|fa)/accept-invitation',
   '/:lang(ro|en|fa)/login',
   '/:lang(ro|en|fa)/forgot-password',
   '/:lang(ro|en|fa)/reset-password',
@@ -80,6 +87,11 @@ const sensitiveAuthRoutes = [
   '/:lang(ro|en|fa)/invitation-continuation',
   '/:lang(ro|en|fa)/set-password',
   '/:lang(ro|en|fa)/invitation-result',
+  '/:lang(ro|en|fa)/prototype',
+  '/:lang(ro|en|fa)/user-testing',
+  '/:lang(ro|en|fa)/wireframes/:path*',
+  '/:lang(ro|en|fa)/ui/:path*',
+  '/:lang(ro|en|fa)/information-architecture',
 ];
 
 const nextConfig = {

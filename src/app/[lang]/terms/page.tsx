@@ -8,10 +8,11 @@ import { FileText, ShieldAlert } from 'lucide-react';
 
 
 
+import { getLegalDocumentDate } from '@/config/legal';
+
 export async function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'ro' }, { lang: 'fa' }];
 }
-
 
 export async function generateMetadata(
   props: {
@@ -24,11 +25,12 @@ export async function generateMetadata(
 
 export default async function TermsPage(props: { params: Promise<{ lang: Language }> }) {
   const params = await props.params;
-  const { lang } = params;
+  const lang = params.lang;
+  const docDate = getLegalDocumentDate(lang);
 
   return (
     <main className="min-h-screen pt-32 pb-24 bg-[#F6F9FC]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         
         {/* Breadcrumbs */}
         <div className="flex items-center gap-2 text-xs text-[#52667A] mb-8 font-medium">
@@ -51,7 +53,7 @@ export default async function TermsPage(props: { params: Promise<{ lang: Languag
                 {lang === 'ro' ? 'Termeni și Condiții de Utilizare' : lang === 'fa' ? 'شرایط و قوانین استفاده از خدمات کلادورا' : 'Terms of Service'}
               </h1>
               <p className="text-xs text-[#7B8A9A]">
-                {lang === 'ro' ? 'Versiunea 1.2 · Octombrie 2026' : lang === 'fa' ? 'نسخه ۱.۲ · اکتبر ۲۰۲۶' : 'Version 1.2 · October 2026'}
+                {lang === 'ro' ? `Versiunea 1.2 · Actualizat la ${docDate}` : lang === 'fa' ? `نسخه ۱.۲ · آخرین به‌روزرسانی: ${docDate}` : `Version 1.2 · Last updated ${docDate}`}
               </p>
             </div>
           </div>

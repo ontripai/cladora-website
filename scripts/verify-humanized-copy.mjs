@@ -93,7 +93,7 @@ async function verify() {
   // Canonical & Reciprocal hreflang on /ro/migration
   const roMigration = await fetchPage('/ro/migration');
   console.log(`\n[RO Migration] Status: ${roMigration.statusCode}`);
-  const hasSelfCanonical = roMigration.body.includes('rel="canonical" href="https://cladora-website.vercel.app/ro/migration"');
+  const hasSelfCanonical = roMigration.body.includes('rel="canonical" href="https://cladora.ro/ro/migration"');
   const hasHreflangRo = /hreflang="ro"/i.test(roMigration.body);
   const hasHreflangEn = /hreflang="en"/i.test(roMigration.body);
   const hasHreflangFa = /hreflang="fa"/i.test(roMigration.body);

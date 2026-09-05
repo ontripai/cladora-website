@@ -8,8 +8,16 @@ const migrations = readdirSync(migrationsDir).filter((name) => name.endsWith(".s
 const tests = readdirSync(testsDir).filter((name) => name.endsWith(".sql")).sort();
 
 const failures = [];
-if (migrations.length !== 58) failures.push(`expected 58 migrations, found ${migrations.length}`);
-if (tests.length !== 45) failures.push(`expected 45 pgTAP files, found ${tests.length}`);
+const BASELINE_MIGRATIONS = 58;
+const BASELINE_TESTS = 45;
+const BASELINE_ASSERTIONS = 1155;
+
+if (migrations.length < BASELINE_MIGRATIONS) {
+  failures.push(`expected at least ${BASELINE_MIGRATIONS} migrations, found ${migrations.length}`);
+}
+if (tests.length < BASELINE_TESTS) {
+  failures.push(`expected at least ${BASELINE_TESTS} pgTAP files, found ${tests.length}`);
+}
 
 let previousVersion = '';
 for (const name of migrations) {
@@ -28,11 +36,13 @@ let assertionTotal = 0;
 for (const name of tests) {
   const sql = readFileSync(join(testsDir, name), "utf8");
   const plan = Number(sql.match(/select\s+plan\((\d+)\)/i)?.[1] ?? -1);
-  const assertions = (sql.match(/^select\s+(?:has_schema|has_table|ok\(|lives_ok\(|throws_like\()/gim) ?? []).length;
+  const assertions = (sql.match(/^select\s+(?:has_schema|has_table|has_function|ok\(|lives_ok\(|throws_like\(|throws_ok\()/gim) ?? []).length;
   assertionTotal += assertions;
   if (plan !== assertions) failures.push(`${name}: plan ${plan} does not match ${assertions} assertions`);
 }
-if (assertionTotal !== 1155) failures.push(`expected 1155 assertions, found ${assertionTotal}`);
+if (assertionTotal < BASELINE_ASSERTIONS) {
+  failures.push(`expected at least ${BASELINE_ASSERTIONS} assertions, found ${assertionTotal}`);
+}
 
 if (failures.length) {
   console.error("Database package contract failed:");

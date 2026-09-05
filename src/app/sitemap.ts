@@ -4,7 +4,7 @@ import { getSiteUrl } from '@/config/site';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl();
   const languages = ['ro', 'en', 'fa'] as const;
-  const staticLastMod = new Date('2026-08-23T00:00:00.000Z');
+  const staticLastMod = new Date('2026-09-05T00:00:00.000Z');
 
   const publicRoutes = [
     '',
@@ -15,7 +15,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/contact',
     '/cookies',
     '/financial-truth',
-    '/login',
     '/manager',
     '/meters',
     '/migration',

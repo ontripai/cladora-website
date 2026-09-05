@@ -1,7 +1,7 @@
 import https from 'https';
 import assert from 'assert';
 
-const BASE_URL = 'https://cladora-website.vercel.app';
+const BASE_URL = process.env.TARGET_URL || 'https://cladora.ro';
 
 function fetchUrl(path) {
   return new Promise((resolve, reject) => {
@@ -100,14 +100,14 @@ async function runLiveVerification() {
   const robots = await fetchUrl('/robots.txt');
   console.log(`- robots.txt Status: ${robots.statusCode}`);
   assert.strictEqual(robots.statusCode, 200);
-  assert.ok(robots.body.includes('https://cladora-website.vercel.app/sitemap.xml'), 'robots.txt references correct sitemap');
+  assert.ok(robots.body.includes('https://cladora.ro/sitemap.xml'), 'robots.txt references correct sitemap');
 
   const sitemap = await fetchUrl('/sitemap.xml');
   console.log(`- sitemap.xml Status: ${sitemap.statusCode}`);
   assert.strictEqual(sitemap.statusCode, 200);
-  assert.ok(sitemap.body.includes('https://cladora-website.vercel.app/ro'), 'sitemap contains /ro');
-  assert.ok(sitemap.body.includes('https://cladora-website.vercel.app/en'), 'sitemap contains /en');
-  assert.ok(sitemap.body.includes('https://cladora-website.vercel.app/fa'), 'sitemap contains /fa');
+  assert.ok(sitemap.body.includes('https://cladora.ro/ro'), 'sitemap contains /ro');
+  assert.ok(sitemap.body.includes('https://cladora.ro/en'), 'sitemap contains /en');
+  assert.ok(sitemap.body.includes('https://cladora.ro/fa'), 'sitemap contains /fa');
   // 8. Task 008 Production Hardening Live Assertions: Security Headers & Page-Specific SEO
   console.log(`\n[8] Testing Security Response Headers & Page-Specific SEO on Live Production...`);
   
@@ -125,7 +125,7 @@ async function runLiveVerification() {
 
   // B. Page-specific canonical and reciprocal hreflang on /ro/migration
   const roMig = await fetchUrl('/ro/migration');
-  assert.ok(roMig.body.includes('rel="canonical" href="https://cladora-website.vercel.app/ro/migration"'), 'ro/migration self canonical');
+  assert.ok(roMig.body.includes('rel="canonical" href="https://cladora.ro/ro/migration"'), 'ro/migration self canonical');
   assert.ok(/hreflang="ro"/i.test(roMig.body), 'ro/migration hreflang ro');
   assert.ok(/hreflang="en"/i.test(roMig.body), 'ro/migration hreflang en');
   assert.ok(/hreflang="fa"/i.test(roMig.body), 'ro/migration hreflang fa');

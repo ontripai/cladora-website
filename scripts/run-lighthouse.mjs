@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
-const BASE_URL = process.env.BASE_URL || 'https://cladora-website.vercel.app';
+const BASE_URL = process.env.BASE_URL || 'https://cladora.ro';
 const OUT_DIR_NAME = process.env.OUT_DIR || 'production-acceptance';
 const REPORTS_DIR = path.resolve('reports', OUT_DIR_NAME);
 

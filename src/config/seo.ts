@@ -65,11 +65,26 @@ export function buildPageMetadata({
       siteName: 'CLADORA Asset OS',
       locale: intlLocale,
       type: ogType,
+      images: [
+        {
+          url: `${baseUrl}/brand/cladora-og.png`,
+          width: 1200,
+          height: 630,
+          alt:
+            lang === 'ro'
+              ? 'CLADORA — Sistem de operare pentru active rezidențiale'
+              : lang === 'fa'
+              ? 'کلادورا — سیستم عامل مدیریت دارایی‌های مسکونی'
+              : 'CLADORA — Residential Asset Operating System',
+          type: 'image/png',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: formattedTitle,
       description,
+      images: [`${baseUrl}/brand/cladora-og.png`],
     },
     robots: {
       index: !noIndex,

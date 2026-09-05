@@ -238,9 +238,9 @@ it('No Shetab / شتاب in any CLADORA locale dictionary or pricing', () => {
   assert.ok(true);
 });
 
-it('siteUrl configuration defaults to https://cladora-website.vercel.app', () => {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://cladora-website.vercel.app';
-  assert.strictEqual(siteUrl, 'https://cladora-website.vercel.app');
+it('siteUrl configuration defaults to https://cladora.ro', () => {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://cladora.ro';
+  assert.strictEqual(siteUrl, 'https://cladora.ro');
 });
 
 it('formatAllocationMethod maps all raw allocation codes to localized labels', () => {

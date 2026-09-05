@@ -37,7 +37,7 @@ Authorization remains entirely in database roles, memberships, context grants, a
 Production dispatch remains fail-closed until both environment values are configured securely:
 
 - `SUPABASE_SECRET_KEY`
-- `APP_ORIGIN=https://cladora-website.vercel.app`
+- `APP_ORIGIN=https://cladora.ro` (historical staging deployment: `https://cladora-website.vercel.app`)
 
 The Supabase Auth redirect allowlist must include each localized callback route. Production email delivery requires verified custom SMTP and reviewed localized invitation templates. No real invitation may be sent as part of implementation or CI.
 

@@ -8,10 +8,11 @@ import { ShieldCheck, Lock, FileText } from 'lucide-react';
 
 
 
+import { getLegalDocumentDate, getLegalOperatorName } from '@/config/legal';
+
 export async function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'ro' }, { lang: 'fa' }];
 }
-
 
 export async function generateMetadata(
   props: {
@@ -25,6 +26,8 @@ export async function generateMetadata(
 export default async function PrivacyPage(props: { params: Promise<{ lang: Language }> }) {
   const params = await props.params;
   const { lang } = params;
+  const docDate = getLegalDocumentDate(lang);
+  const operatorName = getLegalOperatorName(lang);
 
   return (
     <main className="min-h-screen pt-32 pb-24 bg-[#F6F9FC]">
@@ -51,7 +54,7 @@ export default async function PrivacyPage(props: { params: Promise<{ lang: Langu
                 {lang === 'ro' ? 'Politica de Confidențialitate & GDPR' : lang === 'fa' ? 'سیاست حفظ حریم خصوصی و انطباق با مقررات GDPR' : 'Privacy Policy & GDPR Compliance'}
               </h1>
               <p className="text-xs text-[#7B8A9A]">
-                {lang === 'ro' ? 'Actualizat: Octombrie 2026' : lang === 'fa' ? 'آخرین به‌روزرسانی: اکتبر ۲۰۲۶' : 'Last updated: October 2026'}
+                {lang === 'ro' ? `Actualizat: ${docDate}` : lang === 'fa' ? `آخرین به‌روزرسانی: ${docDate}` : `Last updated: ${docDate}`}
               </p>
             </div>
           </div>
@@ -62,10 +65,10 @@ export default async function PrivacyPage(props: { params: Promise<{ lang: Langu
             </h2>
             <p>
               {lang === 'ro'
-                ? 'CLADORA Technologies respectă confidențialitatea utilizatorilor săi și se angajează să protejeze datele cu caracter personal prelucrate prin intermediul platformei în conformitate cu Regulamentul (UE) 2016/679 (GDPR) și legislația aplicabilă din România.'
+                ? `${operatorName} respectă confidențialitatea utilizatorilor săi și se angajează să protejeze datele cu caracter personal prelucrate prin intermediul platformei în conformitate cu Regulamentul (UE) 2016/679 (GDPR) și legislația aplicabilă din România.`
                 : lang === 'fa'
-                ? 'کلادورا به حریم خصوصی کلیه کاربران، مالکان و ساکنان احترام کامل می‌گذارد و متعهد به حفاظت از داده‌های شخصی پردازش‌شده در سامانه بر اساس مقررات عمومی حفاظت از داده‌های اتحادیه اروپا (GDPR) است.'
-                : 'CLADORA Technologies respects your privacy and is committed to protecting personal data processed via our operating platform in accordance with Regulation (EU) 2016/679 (GDPR).'}
+                ? `${operatorName} به حریم خصوصی کلیه کاربران، مالکان و ساکنان احترام کامل می‌گذارد و متعهد به حفاظت از داده‌های شخصی پردازش‌شده در سامانه بر اساس مقررات عمومی حفاظت از داده‌های اتحادیه اروپا (GDPR) است.`
+                : `${operatorName} respects your privacy and is committed to protecting personal data processed via our operating platform in accordance with Regulation (EU) 2016/679 (GDPR).`}
             </p>
 
             <h2 className="text-base font-bold text-[#102A43]">
