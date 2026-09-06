@@ -1,13 +1,13 @@
 import { notFound } from 'next/navigation';
 import { isSupportedLocale, Language } from '@/types';
-import { CustomerMonthClose } from '@/components/customer/CustomerMonthClose';
+import { CustomerFinancialReports } from '@/components/customer/CustomerFinancialReports';
 
-export default async function MonthClosePage({
+export default async function FinancialReportsPage({
   params,
 }: {
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
   if (!isSupportedLocale(lang)) notFound();
-  return <CustomerMonthClose lang={lang as Language} />;
+  return <CustomerFinancialReports lang={lang as Language} />;
 }

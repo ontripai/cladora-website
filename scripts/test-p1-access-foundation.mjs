@@ -216,7 +216,6 @@ const root = process.cwd();
   // Fail-closed mock routes list
   assert.ok(content.includes('/app/portfolio'), 'Must block /app/portfolio');
   assert.ok(content.includes('/app/settings'), 'Must block /app/settings');
-  assert.ok(content.includes('/app/accounting/month-close'), 'Must block /app/accounting/month-close');
   assert.ok(content.includes('/app/migration/shadow-ledger'), 'Must block /app/migration/shadow-ledger');
 
   // Explicitly allowed routes
@@ -229,11 +228,10 @@ const root = process.cwd();
   assert.ok(content.includes('دسترسی محدود شده است'), 'FA restricted title');
   assert.ok(content.includes('/app/dashboard'), 'Link back to dashboard required');
 
-  // Verify the 4 mock pages themselves fail-closed without mock data
+  // Verify the 3 remaining mock pages themselves fail-closed without mock data
   const mockPages = [
     'src/app/[lang]/app/portfolio/page.tsx',
     'src/app/[lang]/app/settings/page.tsx',
-    'src/app/[lang]/app/accounting/month-close/page.tsx',
     'src/app/[lang]/app/migration/shadow-ledger/page.tsx',
   ];
 
@@ -574,11 +572,14 @@ const root = process.cwd();
   assert.equal(classifyCustomerRoute('/app/dashboard')?.status, 'explicitly allowed');
   assert.equal(classifyCustomerRoute('/app/onboarding')?.status, 'pre-context allowed');
 
-  // - Four mock routes must be explicitly unavailable
+  // - Three mock routes must be explicitly unavailable
   assert.equal(classifyCustomerRoute('/app/portfolio')?.status, 'explicitly unavailable');
   assert.equal(classifyCustomerRoute('/app/settings')?.status, 'explicitly unavailable');
-  assert.equal(classifyCustomerRoute('/app/accounting/month-close')?.status, 'explicitly unavailable');
   assert.equal(classifyCustomerRoute('/app/migration/shadow-ledger')?.status, 'explicitly unavailable');
+
+  // - month-close and reports are permission protected
+  assert.equal(classifyCustomerRoute('/app/accounting/month-close')?.status, 'permission protected');
+  assert.equal(classifyCustomerRoute('/app/accounting/reports')?.status, 'permission protected');
 
   // - Requirement 1 routes checks:
   //   /app/invoices and /app/receivables: billing.receivables.read + module billing

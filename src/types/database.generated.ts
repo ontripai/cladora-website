@@ -1147,6 +1147,31 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_close_readiness: {
+        Args: {
+          p_context_id: string;
+          p_period_id: string;
+        };
+        Returns: Json;
+      };
+      get_customer_financial_report: {
+        Args: {
+          p_context_id: string;
+          p_report_type: string;
+          p_from: string;
+          p_to: string;
+          p_currency: string;
+        };
+        Returns: Json;
+      };
+      close_accounting_period: {
+        Args: {
+          p_context_id: string;
+          p_period_id: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       account_type: 'asset' | 'liability' | 'equity' | 'income' | 'expense';

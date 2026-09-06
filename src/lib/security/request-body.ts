@@ -60,6 +60,11 @@ export async function parseJsonWithLimit<T>(
       if (value) {
         bytesRead += value.length;
         if (bytesRead > maxBytes) {
+          try {
+            await reader.cancel();
+          } catch {
+            // Ignore cancel errors
+          }
           return {
             errorResponse: NextResponse.json(
               {

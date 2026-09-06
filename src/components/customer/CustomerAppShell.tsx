@@ -3,10 +3,12 @@
 import React from "react";
 import Link from "next/link";
 import {
+  BarChart3,
   Bell,
   Boxes,
   BriefcaseBusiness,
   Building2,
+  CalendarCheck,
   CreditCard,
   FileSpreadsheet,
   FileText,
@@ -36,9 +38,11 @@ import { isRouteAllowedForPersona } from "@/lib/customer/access-matrix";
 
 const copy = {
   ro: {
-    dashboard: "Tablou principal",
+    dashboard: "Panou principal",
     accounting: "Registru contabil",
-    allocations: "Alocări și drepturi",
+    allocations: "Alocări și cote",
+    reports: "Rapoarte financiare",
+    monthClose: "Închidere de lună",
     utilities: "Contoare și utilități",
     assets: "Active",
     maintenance: "Mentenanță",
@@ -63,6 +67,8 @@ const copy = {
     dashboard: "Dashboard",
     accounting: "Accounting ledger",
     allocations: "Allocations & rights",
+    reports: "Financial reports",
+    monthClose: "Month close",
     utilities: "Meters & utilities",
     assets: "Assets",
     maintenance: "Maintenance",
@@ -87,6 +93,8 @@ const copy = {
     dashboard: "داشبورد",
     accounting: "دفتر کل حسابداری",
     allocations: "تسهیم و حقوق مالی",
+    reports: "گزارش‌های مالی",
+    monthClose: "بستن ماه",
     utilities: "کنتورها و خدمات",
     assets: "دارایی‌ها",
     maintenance: "نگهداری",
@@ -133,6 +141,8 @@ function Shell({
 
   const accounting = hasMod("accounting") && hasPerm("finance.ledger.read"),
     allocations = hasPerm("finance.allocations.read"),
+    reports = hasMod("accounting") && hasPerm("finance.reports.read"),
+    monthClose = hasMod("accounting") && hasPerm("finance.periods.read"),
     billing = hasMod("billing") && hasPerm("billing.receivables.read"),
     payments = hasMod("payments") && hasPerm("payments.reconciliation.read"),
     reconciliation = hasMod("payments") && hasPerm("payments.reconciliation.read"),
@@ -160,6 +170,8 @@ function Shell({
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
     { href: `/${lang}/app/accounting`, label: t.accounting, icon: FileSpreadsheet, visible: accounting },
     { href: `/${lang}/app/accounting/allocations`, label: t.allocations, icon: Scale, visible: allocations },
+    { href: `/${lang}/app/accounting/reports`, label: t.reports, icon: BarChart3, visible: reports },
+    { href: `/${lang}/app/accounting/month-close`, label: t.monthClose, icon: CalendarCheck, visible: monthClose },
     { href: `/${lang}/app/meters`, label: t.utilities, icon: Gauge, visible: utilities },
     { href: `/${lang}/app/assets`, label: t.assets, icon: Boxes, visible: assets },
     { href: `/${lang}/app/maintenance`, label: t.maintenance, icon: Wrench, visible: maintenance },

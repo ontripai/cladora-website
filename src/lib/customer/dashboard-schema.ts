@@ -41,10 +41,7 @@ export const dashboardKpisSchema = z
   })
   .strict();
 
-export const isoDateStringSchema = z.string().refine(
-  (val) => typeof val === 'string' && val.length > 0 && !Number.isNaN(Date.parse(val)),
-  { message: 'Invalid ISO date string' }
-);
+export const isoDateStringSchema = z.iso.datetime();
 
 export const dashboardRpcResponseSchema = z
   .object({

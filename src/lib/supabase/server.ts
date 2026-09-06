@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import type { Database } from '@/types/database.generated';
-import { getPublicSupabaseEnv } from './env';
+import { cookies } from 'next/headers.js';
+import type { Database } from '../../types/database.generated.ts';
+import { getPublicSupabaseEnv } from './env.ts';
 
 export async function createClient() {
   const { url, publishableKey } = getPublicSupabaseEnv();
