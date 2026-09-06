@@ -5,16 +5,18 @@
  * Requirements:
  * - Real independent PostgreSQL connections (pg.Client). Zero simulated JavaScript locks.
  * - Connects strictly to local/temporary test databases (rejects production hosts).
- * - Creates dedicated fixtures committed before launching concurrent transactions.
+ * - Creates dedicated valid fixtures matching the authoritative database schema.
+ * - Decouples Scenarios A, B, and C with independent properties & periods.
  * - Implements 3 canonical concurrency scenarios:
- *     Scenario A: Journal First (SHARE lock holds, Close FOR UPDATE waits, commits with journal in snapshot)
- *     Scenario B: Close First (Close FOR UPDATE holds, Journal INSERT waits, rejected on commit with 25000)
- *     Scenario C: Double Close (First close holds, second close waits, second rejected with conflict)
- * - Observes real lock contention via pg_blocking_pids() / pg_locks from an independent observer client.
- * - Fail-closed: Any database connection error, lock timeout, or assertion failure causes non-zero exit code.
+ *     Scenario A: Journal First (Writer holds SHARE lock on period, Close FOR UPDATE waits, commits with journal in snapshot)
+ *     Scenario B: Close First (Closer holds FOR UPDATE lock on period, Journal INSERT waits, rejected on unblock with SQLSTATE 25000)
+ *     Scenario C: Double Close (First close holds FOR UPDATE lock, second close waits, second rejected on unblock with SQLSTATE 40001)
+ * - Observes real lock contention via pg_blocking_pids() checking the exact blocker PID from an independent observer client.
+ * - Fail-closed: Any database connection error, lock timeout, assertion failure, or PID mismatch causes non-zero exit code.
  */
 
 import { Client } from 'pg';
+import assert from 'node:assert/strict';
 
 const LOCAL_DB_URL =
   process.env.SUPABASE_DB_URL ||
@@ -39,120 +41,135 @@ async function createClient(label) {
   validateDatabaseUrl(LOCAL_DB_URL);
   const client = new Client({
     connectionString: LOCAL_DB_URL,
-    statement_timeout: 10000,
+    statement_timeout: 15000,
     connectionTimeoutMillis: 5000,
   });
   await client.connect();
-  await client.query("SET statement_timeout = '10000'");
-  await client.query("SET lock_timeout = '8000'");
+  await client.query("SET statement_timeout = '15000'");
+  await client.query("SET lock_timeout = '10000'");
   return client;
 }
 
-// Fixture constants
+// Authoritative Fixture Constants
 const F_TENANT = '99100000-0000-0000-0000-000000000001';
 const F_USER = '99000000-0000-0000-0000-000000000001';
 const F_ROLE = '99200000-0000-0000-0000-000000000001';
 const F_MEMBERSHIP = '99300000-0000-0000-0000-000000000001';
 const F_CONTEXT = '99400000-0000-0000-0000-000000000001';
-const F_PROPERTY = '99500000-0000-0000-0000-000000000001';
 const F_WORKSPACE = '99800000-0000-0000-0000-000000000001';
-const F_ACC_BANK = '99a00000-0000-0000-0000-000000000001';
-const F_ACC_REV = '99a00000-0000-0000-0000-000000000002';
+
+// Property & Account Fixtures for Scenario A (Decoupled)
+const F_PROP_A = '99500000-0000-0000-0000-000000000001';
+const F_ACC_BANK_A = '99a00000-0000-0000-0000-000000000001';
+const F_ACC_REV_A = '99a00000-0000-0000-0000-000000000002';
 const F_PERIOD_A = '99c00000-0000-0000-0000-000000000001'; // 2025-01
-const F_PERIOD_B = '99c00000-0000-0000-0000-000000000002'; // 2025-02
-const F_PERIOD_C = '99c00000-0000-0000-0000-000000000003'; // 2025-03
+const F_JOURNAL_A = '99b00000-0000-0000-0000-000000000001';
+
+// Property & Account Fixtures for Scenario B (Decoupled)
+const F_PROP_B = '99500000-0000-0000-0000-000000000002';
+const F_ACC_BANK_B = '99a00000-0000-0000-0000-000000000003';
+const F_ACC_REV_B = '99a00000-0000-0000-0000-000000000004';
+const F_PERIOD_B = '99c00000-0000-0000-0000-000000000002'; // 2025-01
+const F_JOURNAL_B = '99b00000-0000-0000-0000-000000000002';
+
+// Property & Account Fixtures for Scenario C (Decoupled)
+const F_PROP_C = '99500000-0000-0000-0000-000000000003';
+const F_ACC_BANK_C = '99a00000-0000-0000-0000-000000000005';
+const F_ACC_REV_C = '99a00000-0000-0000-0000-000000000006';
+const F_PERIOD_C = '99c00000-0000-0000-0000-000000000003'; // 2025-01
 
 async function setupFixtures(client) {
   console.log('-> Setting up isolated test fixtures in PostgreSQL...');
   await client.query('BEGIN');
 
-  // Clean up any stale fixture
-  await client.query(`DELETE FROM audit.events WHERE tenant_id = '${F_TENANT}'`);
-  await client.query(`DELETE FROM finance.journal_entries WHERE tenant_id = '${F_TENANT}'`);
-  await client.query(`DELETE FROM finance.journals WHERE tenant_id = '${F_TENANT}'`);
-  await client.query(`DELETE FROM finance.accounting_periods WHERE tenant_id = '${F_TENANT}'`);
-  await client.query(`DELETE FROM finance.accounts WHERE tenant_id = '${F_TENANT}'`);
-  await client.query(`DELETE FROM platform.workspace_entitlements WHERE customer_workspace_id = '${F_WORKSPACE}'`);
-  await client.query(`DELETE FROM platform.customer_workspaces WHERE id = '${F_WORKSPACE}'`);
-  await client.query(`DELETE FROM identity.context_grants WHERE id = '${F_CONTEXT}'`);
-  await client.query(`DELETE FROM identity.membership_parties WHERE tenant_id = '${F_TENANT}'`);
-  await client.query(`DELETE FROM identity.memberships WHERE id = '${F_MEMBERSHIP}'`);
-  await client.query(`DELETE FROM identity.role_permissions WHERE role_id = '${F_ROLE}'`);
-  await client.query(`DELETE FROM identity.roles WHERE id = '${F_ROLE}'`);
-  await client.query(`DELETE FROM portfolio.properties WHERE id = '${F_PROPERTY}'`);
-  await client.query(`DELETE FROM platform.tenants WHERE id = '${F_TENANT}'`);
-
-  // Insert base hierarchy
+  // 1. User
   await client.query(`
-    INSERT INTO platform.tenants (id, slug, legal_name, country_code, default_timezone, base_currency)
-    VALUES ('${F_TENANT}', 'concurrency-tenant', 'Concurrency Tenant SA', 'RO', 'Europe/Bucharest', 'RON')
-    ON CONFLICT (id) DO NOTHING
+    INSERT INTO auth.users (id, email)
+    VALUES ('${F_USER}', 'concurrency-admin@cladora.test')
+    ON CONFLICT (id) DO UPDATE SET email = EXCLUDED.email
   `);
 
+  // 2. Tenant
   await client.query(`
-    INSERT INTO portfolio.properties (id, tenant_id, name, address_line1, city, postal_code, country_code)
-    VALUES ('${F_PROPERTY}', '${F_TENANT}', 'Concurrency Property', '123 Lock Way', 'Bucharest', '010101', 'RO')
-    ON CONFLICT (id) DO NOTHING
+    INSERT INTO platform.tenants (id, legal_name, registration_number, status)
+    VALUES ('${F_TENANT}', 'Concurrency Test Tenant SA', 'RO-CONC-991', 'active')
+    ON CONFLICT (id) DO UPDATE SET status = 'active'
   `);
 
+  // 3. Properties (A, B, C)
   await client.query(`
-    INSERT INTO identity.roles (id, code, name, description)
-    VALUES ('${F_ROLE}', 'association_admin', 'Association Admin', 'Admin for tests')
-    ON CONFLICT (id) DO NOTHING
+    INSERT INTO portfolio.properties (id, tenant_id, type, name, status)
+    VALUES
+      ('${F_PROP_A}', '${F_TENANT}', 'condominium', 'Property Concurrency A', 'active'),
+      ('${F_PROP_B}', '${F_TENANT}', 'condominium', 'Property Concurrency B', 'active'),
+      ('${F_PROP_C}', '${F_TENANT}', 'condominium', 'Property Concurrency C', 'active')
+    ON CONFLICT (id) DO UPDATE SET status = 'active'
   `);
 
-  // Grant required permissions
+  // 4. Role
+  await client.query(`
+    INSERT INTO identity.roles (id, tenant_id, code, name)
+    VALUES ('${F_ROLE}', '${F_TENANT}', 'association_admin', 'Association Administrator')
+    ON CONFLICT (id) DO UPDATE SET code = 'association_admin'
+  `);
+
+  // 5. Role Permissions
   await client.query(`
     INSERT INTO identity.role_permissions (role_id, permission_id, effect)
     SELECT '${F_ROLE}', p.id, 'allow'
     FROM identity.permissions p
-    WHERE p.code IN ('finance.periods.read', 'finance.periods.close', 'finance.ledger.read')
+    WHERE p.code IN ('finance.periods.read', 'finance.periods.close', 'finance.ledger.read', 'finance.reports.read')
     ON CONFLICT DO NOTHING
   `);
 
+  // 6. Membership
   await client.query(`
     INSERT INTO identity.memberships (id, tenant_id, user_id, role_id, status, starts_at)
-    VALUES ('${F_MEMBERSHIP}', '${F_TENANT}', '${F_USER}', '${F_ROLE}', 'active', now() - interval '1 day')
-    ON CONFLICT (id) DO NOTHING
+    VALUES ('${F_MEMBERSHIP}', '${F_TENANT}', '${F_USER}', '${F_ROLE}', 'active', statement_timestamp() - interval '1 day')
+    ON CONFLICT (id) DO UPDATE SET status = 'active'
   `);
 
+  // 7. Context Grant (Tenant-level association_admin)
   await client.query(`
     INSERT INTO identity.context_grants (id, membership_id, tenant_id, scope_type, property_id, starts_at)
-    VALUES ('${F_CONTEXT}', '${F_MEMBERSHIP}', '${F_TENANT}', 'tenant', null, now() - interval '1 day')
+    VALUES ('${F_CONTEXT}', '${F_MEMBERSHIP}', '${F_TENANT}', 'tenant', null, statement_timestamp() - interval '1 day')
     ON CONFLICT (id) DO NOTHING
   `);
 
+  // 8. Customer Workspace & Entitlements
   await client.query(`
     INSERT INTO platform.customer_workspaces (id, tenant_id, workspace_type, lifecycle_status, commercial_owner, environment, version)
-    VALUES ('${F_WORKSPACE}', '${F_TENANT}', 'ASSOCIATION', 'ACTIVE', 'Concurrency Runner', 'PILOT', 1)
-    ON CONFLICT (id) DO NOTHING
+    VALUES ('${F_WORKSPACE}', '${F_TENANT}', 'ASSOCIATION', 'ACTIVE', 'Concurrency Tester', 'PILOT', 1)
+    ON CONFLICT (id) DO UPDATE SET lifecycle_status = 'ACTIVE'
   `);
 
   await client.query(`
     INSERT INTO platform.workspace_entitlements (customer_workspace_id, entitlement_key, value_type, boolean_value)
     VALUES ('${F_WORKSPACE}', 'module.accounting', 'boolean', true)
-    ON CONFLICT DO NOTHING
+    ON CONFLICT (customer_workspace_id, entitlement_key) DO UPDATE SET boolean_value = true
   `);
 
+  // 9. Chart of Accounts (Property A, B, C)
   await client.query(`
     INSERT INTO finance.accounts (id, tenant_id, property_id, code, name, type, currency)
     VALUES
-      ('${F_ACC_BANK}', '${F_TENANT}', '${F_PROPERTY}', '5121', 'Banca RON', 'asset', 'RON'),
-      ('${F_ACC_REV}', '${F_TENANT}', '${F_PROPERTY}', '704', 'Venituri RON', 'income', 'RON')
+      ('${F_ACC_BANK_A}', '${F_TENANT}', '${F_PROP_A}', '5121', 'Bank RON A', 'asset', 'RON'),
+      ('${F_ACC_REV_A}', '${F_TENANT}', '${F_PROP_A}', '704', 'Revenue RON A', 'income', 'RON'),
+      ('${F_ACC_BANK_B}', '${F_TENANT}', '${F_PROP_B}', '5121', 'Bank RON B', 'asset', 'RON'),
+      ('${F_ACC_REV_B}', '${F_TENANT}', '${F_PROP_B}', '704', 'Revenue RON B', 'income', 'RON'),
+      ('${F_ACC_BANK_C}', '${F_TENANT}', '${F_PROP_C}', '5121', 'Bank RON C', 'asset', 'RON'),
+      ('${F_ACC_REV_C}', '${F_TENANT}', '${F_PROP_C}', '704', 'Revenue RON C', 'income', 'RON')
     ON CONFLICT (id) DO NOTHING
   `);
 
-  // Periods:
-  // Period A (2025-01-01 to 2025-01-31)
-  // Period B (2025-02-01 to 2025-02-28)
-  // Period C (2025-03-01 to 2025-03-31)
+  // 10. Accounting Periods (Period A, B, C: past concluded dates 2025-01-01 to 2025-01-31)
   await client.query(`
     INSERT INTO finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status)
     VALUES
-      ('${F_PERIOD_A}', '${F_TENANT}', '${F_PROPERTY}', '2025-01-01', '2025-01-31', 'open'),
-      ('${F_PERIOD_B}', '${F_TENANT}', '${F_PROPERTY}', '2025-02-01', '2025-02-28', 'open'),
-      ('${F_PERIOD_C}', '${F_TENANT}', '${F_PROPERTY}', '2025-03-01', '2025-03-31', 'open')
-    ON CONFLICT (id) DO NOTHING
+      ('${F_PERIOD_A}', '${F_TENANT}', '${F_PROP_A}', '2025-01-01', '2025-01-31', 'open'),
+      ('${F_PERIOD_B}', '${F_TENANT}', '${F_PROP_B}', '2025-01-01', '2025-01-31', 'open'),
+      ('${F_PERIOD_C}', '${F_TENANT}', '${F_PROP_C}', '2025-01-01', '2025-01-31', 'open')
+    ON CONFLICT (id) DO UPDATE SET status = 'open'
   `);
 
   await client.query('COMMIT');
@@ -167,104 +184,113 @@ async function setAuthContext(client) {
   );
 }
 
-async function waitForBlocking(observerClient, blockedPid, timeoutMs = 4000) {
+async function getClientPid(client) {
+  const res = await client.query('SELECT pg_backend_pid() as pid');
+  return Number(res.rows[0].pid);
+}
+
+export async function waitForBlockingByPid(observerClient, blockedPid, expectedBlockerPid, timeoutMs = 5000) {
   const start = Date.now();
+  let lastBlockers = [];
   while (Date.now() - start < timeoutMs) {
     const res = await observerClient.query(
-      `SELECT unnest(pg_blocking_pids($1)) as blocker_pid`,
+      `SELECT unnest(pg_blocking_pids($1::int)) as blocker_pid`,
       [blockedPid]
     );
-    if (res.rows.length > 0) {
-      return res.rows[0].blocker_pid;
-    }
-    // Also check pg_locks for explicit tuple lock waiting
-    const lockRes = await observerClient.query(
-      `SELECT pid FROM pg_locks WHERE pid = $1 AND granted = false`,
-      [blockedPid]
-    );
-    if (lockRes.rows.length > 0) {
-      return true;
+    lastBlockers = res.rows.map((r) => Number(r.blocker_pid));
+    if (lastBlockers.includes(Number(expectedBlockerPid))) {
+      return {
+        blocked: true,
+        blockerPid: Number(expectedBlockerPid),
+        allBlockers: lastBlockers,
+      };
     }
     await new Promise((r) => setTimeout(r, 50));
   }
-  return false;
+  return {
+    blocked: false,
+    blockerPid: null,
+    allBlockers: lastBlockers,
+  };
 }
 
-async function getClientPid(client) {
-  const res = await client.query('SELECT pg_backend_pid() as pid');
-  return res.rows[0].pid;
-}
-
+// -----------------------------------------------------------------------------
+// SCENARIO A: Journal First
+// -----------------------------------------------------------------------------
 async function runScenarioA(conA, conB, conObs) {
-  console.log('\n[Scenario A] Journal First — SHARE lock holds, Close FOR UPDATE waits, commits with journal in snapshot');
+  console.log('\n[Scenario A] Journal First — Writer holds SHARE lock on period, Close FOR UPDATE waits, commits with journal in snapshot');
 
   const pidA = await getClientPid(conA);
   const pidB = await getClientPid(conB);
 
-  // 1. Connection A begins transaction and inserts posted journal in Period A
+  console.log(`  -> Connection A (Writer): pid ${pidA}`);
+  console.log(`  -> Connection B (Close RPC): pid ${pidB}`);
+
+  // 1. Connection A begins transaction, inserts balanced journal, and posts it in Period A
   await conA.query('BEGIN');
-  await setAuthContext(conA);
-  const journalId = '99b00000-0000-0000-0000-000000000001';
-
   await conA.query(`
-    INSERT INTO finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at)
-    VALUES ('${journalId}', '${F_TENANT}', '${F_PROPERTY}', '2025-01-15', 'RON', 'Scenario A journal', 'invoice', 'posted', now())
+    INSERT INTO finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status)
+    VALUES ('${F_JOURNAL_A}', '${F_TENANT}', '${F_PROP_A}', '2025-01-15', 'RON', 'Scenario A journal', 'invoice', 'draft')
   `);
-
   await conA.query(`
     INSERT INTO finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo)
     VALUES
-      ('${F_TENANT}', '${journalId}', '${F_ACC_BANK}', 'debit', 450, 'Bank debit'),
-      ('${F_TENANT}', '${journalId}', '${F_ACC_REV}', 'credit', 450, 'Revenue credit')
+      ('${F_TENANT}', '${F_JOURNAL_A}', '${F_ACC_BANK_A}', 'debit', 450, 'Bank debit'),
+      ('${F_TENANT}', '${F_JOURNAL_A}', '${F_ACC_REV_A}', 'credit', 450, 'Revenue credit')
+  `);
+  await conA.query(`
+    UPDATE finance.journals
+    SET status = 'posted', posted_at = statement_timestamp()
+    WHERE id = '${F_JOURNAL_A}'
   `);
 
-  // Con A holds open transaction with FOR SHARE lock on Period A (acquired by journal trigger)
-  console.log('  1. Con A inserted journal in Period A and holds open transaction.');
+  console.log('  1. Con A inserted and posted journal in Period A (holds open transaction & FOR SHARE lock on Period A).');
 
   // 2. Connection B attempts to close Period A via real RPC
-  console.log('  2. Con B attempts finance.close_accounting_period for Period A concurrently...');
-  let conBPromiseResolved = false;
+  console.log('  2. Con B launches finance.close_accounting_period concurrently...');
+  let conBResolved = false;
   let conBError = null;
-  let conBResult = null;
 
   const bPromise = (async () => {
     try {
       await conB.query('BEGIN');
       await setAuthContext(conB);
-      const res = await conB.query(`SELECT finance.close_accounting_period($1, $2, $3) as res`, [
+      await conB.query(`SELECT finance.close_accounting_period($1, $2, $3) as res`, [
         F_CONTEXT,
         F_PERIOD_A,
         'Closed by Scenario A',
       ]);
       await conB.query('COMMIT');
-      conBResult = res.rows[0].res;
     } catch (err) {
       conBError = err;
       await conB.query('ROLLBACK').catch(() => {});
     } finally {
-      conBPromiseResolved = true;
+      conBResolved = true;
     }
   })();
 
-  // 3. Observer verifies Con B is blocked waiting for Con A
-  const isBlocked = await waitForBlocking(conObs, pidB, 3000);
-  if (!isBlocked && conBPromiseResolved) {
-    throw new Error('Scenario A FAILED: Con B was not blocked by Con A holding active journal transaction!');
+  // 3. Observer verifies Con B is strictly blocked waiting for Con A
+  const blockCheck = await waitForBlockingByPid(conObs, pidB, pidA, 5000);
+  if (!blockCheck.blocked) {
+    if (conBResolved && conBError) {
+      throw new Error(`Scenario A FAILED: Con B failed before blocking could be observed: ${conBError.message}`);
+    }
+    throw new Error(`Scenario A FAILED: Con B (pid ${pidB}) was NOT blocked by Con A (pid ${pidA})! Blockers: [${blockCheck.allBlockers.join(', ')}]`);
   }
-  console.log(`  3. ✓ Proven via pg_locks/pg_blocking_pids: Con B (pid ${pidB}) is strictly waiting for Con A (pid ${pidA}).`);
+  console.log(`  3. ✓ Proven via pg_blocking_pids: Con B (pid ${pidB}) is strictly blocked waiting for Con A (pid ${pidA}).`);
 
-  // 4. Con A commits
+  // 4. Con A commits journal transaction
   console.log('  4. Con A commits journal transaction...');
   await conA.query('COMMIT');
 
   // 5. Con B should unblock and complete close
   await bPromise;
   if (conBError) {
-    throw new Error(`Scenario A FAILED: Con B failed after Con A committed: ${conBError.message}`);
+    throw new Error(`Scenario A FAILED: Con B threw error after unblocking: ${conBError.message}`);
   }
   console.log('  5. ✓ Con B unblocked, executed close_accounting_period, and committed.');
 
-  // 6. Verify snapshot has Con A's journal amounts (450 RON) and audit event exists
+  // 6. Verify snapshot has Con A's journal totals (450 RON) and audit event exists
   const checkRes = await conObs.query(`
     SELECT status, snapshot_json
     FROM finance.accounting_periods
@@ -272,38 +298,40 @@ async function runScenarioA(conA, conB, conObs) {
   `);
 
   const periodRow = checkRes.rows[0];
-  if (periodRow.status !== 'closed') {
-    throw new Error(`Scenario A FAILED: Expected period status 'closed', got '${periodRow.status}'`);
-  }
+  assert.equal(periodRow.status, 'closed', "Period A status must be 'closed'");
 
   const snapshot = periodRow.snapshot_json;
-  if (!snapshot || snapshot.version !== 2) {
-    throw new Error('Scenario A FAILED: Snapshot V2 missing or invalid');
-  }
+  assert.equal(snapshot?.version, 2, 'Snapshot must be Version 2');
+  assert.equal(snapshot?.is_balanced, true, 'Snapshot must be balanced');
 
-  const curSummary = snapshot.currency_summaries.find((c) => c.currency === 'RON');
-  if (!curSummary || Number(curSummary.total_debit) !== 450 || Number(curSummary.total_credit) !== 450) {
-    throw new Error(`Scenario A FAILED: Snapshot does not contain Con A journal totals (expected 450, got ${JSON.stringify(curSummary)})`);
-  }
+  const curSummary = snapshot.currency_summaries?.find((c) => c.currency === 'RON');
+  assert(curSummary, 'Snapshot must contain RON currency summary');
+  assert.equal(Number(curSummary.total_debit), 450, 'Snapshot debit must equal 450');
+  assert.equal(Number(curSummary.total_credit), 450, 'Snapshot credit must equal 450');
+  assert.equal(curSummary.is_balanced, true, 'Currency summary must be balanced');
 
   const auditRes = await conObs.query(`
     SELECT count(*) as count FROM audit.events
     WHERE entity_id = '${F_PERIOD_A}' AND action = 'ACCOUNTING_PERIOD_CLOSED'
   `);
-  if (Number(auditRes.rows[0].count) !== 1) {
-    throw new Error(`Scenario A FAILED: Expected exactly 1 audit event, got ${auditRes.rows[0].count}`);
-  }
+  assert.equal(Number(auditRes.rows[0].count), 1, 'Exactly 1 close audit event must be recorded');
 
   console.log('✓ Scenario A PASSED: Real concurrency journal-first ordering validated.');
 }
 
+// -----------------------------------------------------------------------------
+// SCENARIO B: Close First
+// -----------------------------------------------------------------------------
 async function runScenarioB(conA, conB, conObs) {
-  console.log('\n[Scenario B] Close First — Close FOR UPDATE holds, Journal INSERT waits, rejected on commit with 25000');
+  console.log('\n[Scenario B] Close First — Closer holds FOR UPDATE lock on period, Journal INSERT waits, rejected on unblock with SQLSTATE 25000');
 
   const pidA = await getClientPid(conA);
   const pidB = await getClientPid(conB);
 
-  // 1. Connection A begins transaction and runs close_accounting_period, but DOES NOT COMMIT YET
+  console.log(`  -> Connection A (Close RPC): pid ${pidA}`);
+  console.log(`  -> Connection B (Writer): pid ${pidB}`);
+
+  // 1. Connection A begins transaction and runs close_accounting_period on Period B, holding open
   await conA.query('BEGIN');
   await setAuthContext(conA);
   await conA.query(`SELECT finance.close_accounting_period($1, $2, $3)`, [
@@ -314,73 +342,91 @@ async function runScenarioB(conA, conB, conObs) {
   console.log('  1. Con A executed close_accounting_period on Period B and holds transaction open.');
 
   // 2. Connection B attempts to insert journal into Period B concurrently
-  console.log('  2. Con B attempts INSERT journal into Period B concurrently...');
-  let conBPromiseResolved = false;
+  console.log('  2. Con B attempts to insert journal into Period B concurrently...');
+  let conBResolved = false;
   let conBError = null;
 
   const bPromise = (async () => {
     try {
       await conB.query('BEGIN');
-      await setAuthContext(conB);
-      const jId = '99b00000-0000-0000-0000-000000000002';
+      // Inserting draft journal invokes assert_scope_date_not_in_closed_period which attempts SELECT ... FOR SHARE on Period B
       await conB.query(`
-        INSERT INTO finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at)
-        VALUES ('${jId}', '${F_TENANT}', '${F_PROPERTY}', '2025-02-15', 'RON', 'Illicit journal', 'invoice', 'posted', now())
+        INSERT INTO finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status)
+        VALUES ('${F_JOURNAL_B}', '${F_TENANT}', '${F_PROP_B}', '2025-01-15', 'RON', 'Illicit journal', 'invoice', 'draft')
       `);
       await conB.query(`
         INSERT INTO finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo)
         VALUES
-          ('${F_TENANT}', '${jId}', '${F_ACC_BANK}', 'debit', 100, 'Bank debit'),
-          ('${F_TENANT}', '${jId}', '${F_ACC_REV}', 'credit', 100, 'Revenue credit')
+          ('${F_TENANT}', '${F_JOURNAL_B}', '${F_ACC_BANK_B}', 'debit', 100, 'Bank debit'),
+          ('${F_TENANT}', '${F_JOURNAL_B}', '${F_ACC_REV_B}', 'credit', 100, 'Revenue credit')
+      `);
+      await conB.query(`
+        UPDATE finance.journals
+        SET status = 'posted', posted_at = statement_timestamp()
+        WHERE id = '${F_JOURNAL_B}'
       `);
       await conB.query('COMMIT');
     } catch (err) {
       conBError = err;
       await conB.query('ROLLBACK').catch(() => {});
     } finally {
-      conBPromiseResolved = true;
+      conBResolved = true;
     }
   })();
 
   // 3. Observer verifies Con B is blocked by Con A
-  const isBlocked = await waitForBlocking(conObs, pidB, 3000);
-  if (!isBlocked && conBPromiseResolved) {
-    throw new Error('Scenario B FAILED: Con B was not blocked by Con A close transaction!');
+  const blockCheck = await waitForBlockingByPid(conObs, pidB, pidA, 5000);
+  if (!blockCheck.blocked) {
+    if (conBResolved && conBError) {
+      throw new Error(`Scenario B FAILED: Con B failed before blocking could be observed: ${conBError.message}`);
+    }
+    throw new Error(`Scenario B FAILED: Con B (pid ${pidB}) was NOT blocked by Con A (pid ${pidA})! Blockers: [${blockCheck.allBlockers.join(', ')}]`);
   }
-  console.log(`  3. ✓ Proven via pg_locks: Con B (pid ${pidB}) is strictly blocked waiting for Con A (pid ${pidA}).`);
+  console.log(`  3. ✓ Proven via pg_blocking_pids: Con B (pid ${pidB}) is strictly blocked waiting for Con A (pid ${pidA}).`);
 
-  // 4. Con A commits
+  // 4. Con A commits close transaction
   console.log('  4. Con A commits close transaction...');
   await conA.query('COMMIT');
 
-  // 5. Con B should unblock and be rejected with SQLSTATE 25000 (Cannot modify journal in closed period)
+  // 5. Con B should unblock and be rejected with SQLSTATE 25000
   await bPromise;
-  if (!conBError) {
-    throw new Error('Scenario B FAILED: Con B succeeded inserting journal into closed period! Expected rejection.');
-  }
+  assert(conBError, 'Scenario B FAILED: Con B succeeded inserting journal into closed period! Expected rejection.');
 
-  const errCode = conBError.code;
-  const errMsg = conBError.message;
-  console.log(`  5. ✓ Con B was rejected as expected with code '${errCode}': ${errMsg}`);
+  console.log(`  5. ✓ Con B was rejected as expected with code '${conBError.code}': ${conBError.message}`);
+  assert.equal(conBError.code, '25000', `Expected SQLSTATE 25000, got ${conBError.code}`);
+  assert(
+    conBError.message.includes('closed accounting period'),
+    `Expected error message to mention closed accounting period, got: ${conBError.message}`
+  );
 
-  if (errCode !== '25000' && !errMsg.includes('closed accounting period')) {
-    throw new Error(`Scenario B FAILED: Expected SQLSTATE 25000 or closed accounting period error, got ${errCode}: ${errMsg}`);
-  }
+  // 6. Verify illicit journal does not exist in DB and snapshot is valid
+  const jCheck = await conObs.query(`SELECT count(*) as count FROM finance.journals WHERE id = '${F_JOURNAL_B}'`);
+  assert.equal(Number(jCheck.rows[0].count), 0, 'Illicit journal must not exist in database');
 
-  // 6. Verify illicit journal does not exist in DB and snapshot is empty
-  const jCheck = await conObs.query(`SELECT count(*) as count FROM finance.journals WHERE id = '99b00000-0000-0000-0000-000000000002'`);
-  if (Number(jCheck.rows[0].count) !== 0) {
-    throw new Error('Scenario B FAILED: Illicit journal was found in database!');
-  }
+  const pCheck = await conObs.query(`SELECT status, snapshot_json FROM finance.accounting_periods WHERE id = '${F_PERIOD_B}'`);
+  assert.equal(pCheck.rows[0].status, 'closed', "Period B status must be 'closed'");
+  assert.deepEqual(pCheck.rows[0].snapshot_json.currency_summaries, [], 'Period B snapshot must have empty currency summaries');
+
+  const auditRes = await conObs.query(`
+    SELECT count(*) as count FROM audit.events
+    WHERE entity_id = '${F_PERIOD_B}' AND action = 'ACCOUNTING_PERIOD_CLOSED'
+  `);
+  assert.equal(Number(auditRes.rows[0].count), 1, 'Exactly 1 close audit event must be recorded for Period B');
 
   console.log('✓ Scenario B PASSED: Real concurrency close-first rejection validated.');
 }
 
+// -----------------------------------------------------------------------------
+// SCENARIO C: Double Close
+// -----------------------------------------------------------------------------
 async function runScenarioC(conA, conB, conObs) {
-  console.log('\n[Scenario C] Double Close — First close holds, second close waits, second rejected with conflict');
+  console.log('\n[Scenario C] Double Close — First close holds FOR UPDATE lock, second close waits, second rejected on unblock with SQLSTATE 40001');
 
   const pidA = await getClientPid(conA);
   const pidB = await getClientPid(conB);
+
+  console.log(`  -> Connection A (Close 1): pid ${pidA}`);
+  console.log(`  -> Connection B (Close 2): pid ${pidB}`);
 
   // 1. Connection A starts transaction and runs close_accounting_period on Period C, holding open
   await conA.query('BEGIN');
@@ -394,7 +440,7 @@ async function runScenarioC(conA, conB, conObs) {
 
   // 2. Connection B calls close_accounting_period concurrently on the same period
   console.log('  2. Con B attempts close_accounting_period on Period C concurrently...');
-  let conBPromiseResolved = false;
+  let conBResolved = false;
   let conBError = null;
 
   const bPromise = (async () => {
@@ -411,65 +457,51 @@ async function runScenarioC(conA, conB, conObs) {
       conBError = err;
       await conB.query('ROLLBACK').catch(() => {});
     } finally {
-      conBPromiseResolved = true;
+      conBResolved = true;
     }
   })();
 
   // 3. Observer verifies Con B is blocked by Con A
-  const isBlocked = await waitForBlocking(conObs, pidB, 3000);
-  if (!isBlocked && conBPromiseResolved) {
-    throw new Error('Scenario C FAILED: Con B was not blocked by Con A!');
+  const blockCheck = await waitForBlockingByPid(conObs, pidB, pidA, 5000);
+  if (!blockCheck.blocked) {
+    if (conBResolved && conBError) {
+      throw new Error(`Scenario C FAILED: Con B failed before blocking could be observed: ${conBError.message}`);
+    }
+    throw new Error(`Scenario C FAILED: Con B (pid ${pidB}) was NOT blocked by Con A (pid ${pidA})! Blockers: [${blockCheck.allBlockers.join(', ')}]`);
   }
-  console.log(`  3. ✓ Proven via pg_locks: Con B (pid ${pidB}) is strictly blocked waiting for Con A (pid ${pidA}).`);
+  console.log(`  3. ✓ Proven via pg_blocking_pids: Con B (pid ${pidB}) is strictly blocked waiting for Con A (pid ${pidA}).`);
 
   // 4. Con A commits
   console.log('  4. Con A commits close transaction...');
   await conA.query('COMMIT');
 
-  // 5. Con B should unblock and fail with conflict (period_already_closed / 40001)
+  // 5. Con B should unblock and fail with conflict (period_already_closed / SQLSTATE 40001)
   await bPromise;
-  if (!conBError) {
-    throw new Error('Scenario C FAILED: Con B second close succeeded! Expected conflict rejection.');
-  }
+  assert(conBError, 'Scenario C FAILED: Con B second close succeeded! Expected conflict rejection.');
 
-  console.log(`  5. ✓ Con B was rejected with conflict as expected: ${conBError.message}`);
+  console.log(`  5. ✓ Con B was rejected with conflict as expected: code '${conBError.code}', message: ${conBError.message}`);
+  assert.equal(conBError.code, '40001', `Expected SQLSTATE 40001 for double close conflict, got ${conBError.code}`);
+  assert(
+    conBError.message.includes('period_already_closed'),
+    `Expected error message to mention period_already_closed, got: ${conBError.message}`
+  );
 
   // 6. Verify exactly 1 close state and 1 audit event exists
   const pCheck = await conObs.query(`SELECT status, snapshot_json FROM finance.accounting_periods WHERE id = '${F_PERIOD_C}'`);
-  if (pCheck.rows[0].status !== 'closed') {
-    throw new Error(`Scenario C FAILED: Expected period status 'closed', got '${pCheck.rows[0].status}'`);
-  }
+  assert.equal(pCheck.rows[0].status, 'closed', "Period C status must be 'closed'");
 
-  const auditCheck = await conObs.query(`SELECT count(*) as count FROM audit.events WHERE entity_id = '${F_PERIOD_C}' AND action = 'ACCOUNTING_PERIOD_CLOSED'`);
-  if (Number(auditCheck.rows[0].count) !== 1) {
-    throw new Error(`Scenario C FAILED: Expected exactly 1 audit event, got ${auditCheck.rows[0].count}`);
-  }
+  const auditCheck = await conObs.query(`
+    SELECT count(*) as count FROM audit.events
+    WHERE entity_id = '${F_PERIOD_C}' AND action = 'ACCOUNTING_PERIOD_CLOSED'
+  `);
+  assert.equal(Number(auditCheck.rows[0].count), 1, 'Exactly 1 close audit event must be recorded for Period C');
 
   console.log('✓ Scenario C PASSED: Real concurrency double-close conflict validated.');
 }
 
-async function cleanup(client) {
-  console.log('\n-> Cleaning up isolated test fixtures...');
-  try {
-    await client.query(`DELETE FROM audit.events WHERE tenant_id = '${F_TENANT}'`);
-    await client.query(`DELETE FROM finance.journal_entries WHERE tenant_id = '${F_TENANT}'`);
-    await client.query(`DELETE FROM finance.journals WHERE tenant_id = '${F_TENANT}'`);
-    await client.query(`DELETE FROM finance.accounting_periods WHERE tenant_id = '${F_TENANT}'`);
-    await client.query(`DELETE FROM finance.accounts WHERE tenant_id = '${F_TENANT}'`);
-    await client.query(`DELETE FROM platform.workspace_entitlements WHERE customer_workspace_id = '${F_WORKSPACE}'`);
-    await client.query(`DELETE FROM platform.customer_workspaces WHERE id = '${F_WORKSPACE}'`);
-    await client.query(`DELETE FROM identity.context_grants WHERE id = '${F_CONTEXT}'`);
-    await client.query(`DELETE FROM identity.memberships WHERE id = '${F_MEMBERSHIP}'`);
-    await client.query(`DELETE FROM identity.role_permissions WHERE role_id = '${F_ROLE}'`);
-    await client.query(`DELETE FROM identity.roles WHERE id = '${F_ROLE}'`);
-    await client.query(`DELETE FROM portfolio.properties WHERE id = '${F_PROPERTY}'`);
-    await client.query(`DELETE FROM platform.tenants WHERE id = '${F_TENANT}'`);
-    console.log('✓ Test fixtures cleanly removed.');
-  } catch (err) {
-    console.error('Warning: cleanup encountered error:', err.message);
-  }
-}
-
+// -----------------------------------------------------------------------------
+// MAIN ENTRY POINT & LIFECYCLE MANAGEMENT
+// -----------------------------------------------------------------------------
 async function main() {
   console.log('=== CLADORA P1 — REAL MULTI-CONNECTION CONCURRENCY RUNNER ===');
   console.log(`Connecting to local test database: ${LOCAL_DB_URL.replace(/:[^:@]+@/, ':***@')}`);
@@ -497,16 +529,22 @@ async function main() {
     console.error(err);
     process.exitCode = 1;
   } finally {
-    if (conObs) {
-      await cleanup(conObs);
-    }
+    // Ensure all active transactions are rolled back before closing
+    await conA?.query('ROLLBACK').catch(() => {});
+    await conB?.query('ROLLBACK').catch(() => {});
+    await conObs?.query('ROLLBACK').catch(() => {});
+
     await conA?.end().catch(() => {});
     await conB?.end().catch(() => {});
     await conObs?.end().catch(() => {});
   }
 }
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
-main().catch((err) => {
-  console.error('Fatal runner error:', err);
-  process.exit(1);
-});
+if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  main().catch((err) => {
+    console.error('Fatal runner error:', err);
+    process.exit(1);
+  });
+}

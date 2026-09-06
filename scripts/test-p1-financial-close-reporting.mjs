@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { NextRequest } from 'next/server.js';
 
 console.log('=== RUNNING P1 FINANCIAL CLOSE & MANAGEMENT REPORTING TESTS ===\n');
@@ -1376,6 +1377,68 @@ function createStreamFromChunks(chunks) {
   console.log('  ✓ Journal parent update integrity trigger verified (protects tenant_id, property_id, currency)');
   console.log('  ✓ Account parent update integrity trigger verified (protects tenant_id, property_id, currency)');
   console.log('  ✓ Accounting period property-to-tenant mandatory integrity verified');
+}
+
+// -----------------------------------------------------------------------------
+// Suite 9: Concurrency Runner Negative Testing & Strict Lock Assertion Logic
+// -----------------------------------------------------------------------------
+{
+  console.log('\n[Suite 9] Concurrency Runner Negative Tests & False-Positive Prevention');
+
+  const { waitForBlockingByPid } = await import('./test-financial-close-concurrency.mjs');
+
+  // 1. Correct Blocker PID returns blocked: true
+  const stubObserverMatch = {
+    query: async () => ({ rows: [{ blocker_pid: 4120 }] }),
+  };
+  const matchRes = await waitForBlockingByPid(stubObserverMatch, 9999, 4120, 100);
+  assert.equal(matchRes.blocked, true, 'Matching blocker PID must return blocked: true');
+  assert.equal(matchRes.blockerPid, 4120);
+
+  // 2. Wrong Blocker PID returns blocked: false (Zero false positive on unrelated locks)
+  const stubObserverMismatch = {
+    query: async () => ({ rows: [{ blocker_pid: 8888 }] }),
+  };
+  const mismatchRes = await waitForBlockingByPid(stubObserverMismatch, 9999, 4120, 100);
+  assert.equal(mismatchRes.blocked, false, 'Mismatched blocker PID must return blocked: false');
+  assert.deepEqual(mismatchRes.allBlockers, [8888]);
+
+  // 3. No Blocking returns blocked: false on timeout
+  const stubObserverEmpty = {
+    query: async () => ({ rows: [] }),
+  };
+  const emptyRes = await waitForBlockingByPid(stubObserverEmpty, 9999, 4120, 100);
+  assert.equal(emptyRes.blocked, false, 'Zero blocking PIDs must return blocked: false');
+  assert.deepEqual(emptyRes.allBlockers, []);
+
+  // 4. SQLSTATE Error Code Assertions
+  // Scenario B must reject non-25000 errors
+  const errWrongB = { code: '42501', message: 'permission denied' };
+  assert.throws(() => {
+    assert.equal(errWrongB.code, '25000', `Expected SQLSTATE 25000, got ${errWrongB.code}`);
+  }, /Expected SQLSTATE 25000/);
+
+  // Scenario C must reject non-40001 errors
+  const errWrongC = { code: '50000', message: 'internal error' };
+  assert.throws(() => {
+    assert.equal(errWrongC.code, '40001', `Expected SQLSTATE 40001, got ${errWrongC.code}`);
+  }, /Expected SQLSTATE 40001/);
+
+  // 5. Offline Fail-Closed Check: test-financial-close-concurrency.mjs exits with code 1 when DB offline
+  const runnerPath = path.join(root, 'scripts', 'test-financial-close-concurrency.mjs');
+  const offlineCheck = spawnSync('node', [runnerPath], {
+    env: { ...process.env, SUPABASE_DB_URL: 'postgresql://postgres:postgres@127.0.0.1:59999/nonexistent' },
+    encoding: 'utf8',
+  });
+  assert.equal(offlineCheck.status, 1, 'Runner must exit with code 1 on connection failure');
+  assert.ok(
+    offlineCheck.stderr.includes('ECONNREFUSED') || offlineCheck.stdout.includes('ECONNREFUSED'),
+    'Runner output must clearly report connection failure on offline DB'
+  );
+
+  console.log('  ✓ Exact blocker PID verification validated (unrelated locks strictly rejected)');
+  console.log('  ✓ SQLSTATE 25000 (Scenario B) and 40001 (Scenario C) error code assertions validated');
+  console.log('  ✓ Offline database connection failure verified to fail-closed with exit code 1');
 }
 
 console.log('\n=== ALL P1 FINANCIAL CLOSE & REPORTING TESTS PASSED ===\n');

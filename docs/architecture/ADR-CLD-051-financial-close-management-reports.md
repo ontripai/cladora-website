@@ -271,12 +271,23 @@ Following independent audit findings on readiness schema compatibility, ledger d
 - Resident contexts are strictly limited to journals touching their assigned `unit_id` and party.
 - Any non-existent or out-of-scope journal uniformly raises SQLSTATE `P0002` / `ledger_journal_not_found`, which the API maps to HTTP 404 (`LEDGER_JOURNAL_NOT_FOUND`) with zero disclosure of out-of-scope journal existence.
 
-#### 4. Real Independent Multi-Connection Concurrency Runner
-- Concurrency testing is implemented in `scripts/test-financial-close-concurrency.mjs` using real independent PostgreSQL connections (`pg.Client`):
-  - **Scenario A (Journal First)**: Connection A holds `FOR SHARE` on period; Connection B's close `FOR UPDATE` is observed waiting via `pg_locks`/`pg_blocking_pids`; Connection A commits; Connection B unblocks, completes close, and includes the new journal in snapshot.
-  - **Scenario B (Close First)**: Connection A holds close transaction open; Connection B's journal insert is observed waiting; Connection A commits; Connection B unblocks and fails with SQLSTATE `25000` (zero illicit journals committed).
-  - **Scenario C (Double Close)**: Connection A holds close open; Connection B attempts close concurrently; Connection B waits and receives conflict upon Connection A commit (exactly 1 close snapshot and 1 audit event).
-- The runner is integrated directly into CI (`Database tests / postgres-runtime`) and fails closed on any connection error or assertion mismatch.
+#### 4. Real Independent Multi-Connection Concurrency Runner (`scripts/test-financial-close-concurrency.mjs`)
+- **Authoritative Fixture Architecture**:
+  - Sets up complete entity hierarchy in PostgreSQL before launching scenarios: `auth.users`, `platform.tenants`, `portfolio.properties` (A, B, C), `identity.roles`, `identity.role_permissions`, `identity.memberships`, `identity.context_grants`, `platform.customer_workspaces`, `platform.workspace_entitlements`, `finance.accounts`, and `finance.accounting_periods`.
+  - Decoupled properties and past-concluded accounting periods (2025-01-01 to 2025-01-31) guarantee that each scenario executes independently without false failures from preceding periods.
+- **Connection Roles & Execution Paths**:
+  - **Internal Writer Connection**: Executes backend journal creation and posting within an isolated transaction (Draft Journal $\to$ Balanced Entries $\to$ Post Journal $\to$ Commit), acquiring and holding a `FOR SHARE` lock on the accounting period.
+  - **Authenticated Closer Connection**: Sets session context to role `authenticated` with claims `{ sub: F_USER, role: 'authenticated', aal: 'aal2' }`, invoking the real `finance.close_accounting_period` RPC which acquires a `FOR UPDATE` lock on the accounting period.
+  - **Independent Observer Connection**: Continuously inspects `pg_blocking_pids($1)` with strict PID matching (`blockers.includes(expectedBlockerPid)`), preventing any false-positive pass on unrelated locks.
+- **Strict Scenario Specifications & Exact SQLSTATEs**:
+  - **Scenario A (Journal First)**: Writer holds `FOR SHARE` on period; Close `FOR UPDATE` is observed waiting with exact PID; Writer commits; Close unblocks, seals the period, produces a Version 2 snapshot with the 450 RON total, and records exactly 1 close audit event.
+  - **Scenario B (Close First)**: Closer executes RPC and holds transaction open (`FOR UPDATE`); Writer attempts draft journal insertion and is observed waiting on `FOR SHARE`; Closer commits; Writer unblocks and is rejected with exact SQLSTATE `25000` (`Cannot modify journal in closed period`); zero illicit journals persist.
+  - **Scenario C (Double Close)**: Closer 1 executes RPC and holds open; Closer 2 attempts close concurrently; Observer proves Closer 2 is waiting behind Closer 1; Closer 1 commits; Closer 2 unblocks and is rejected with exact SQLSTATE `40001` (`period_already_closed`); exactly 1 snapshot and 1 audit event remain.
+- **Ephemeral Database Lifecycle & CI Integration**:
+  - Executed in `.github/workflows/database-tests.yml` (`postgres-runtime` job) after migrations are applied against a dedicated ephemeral database container.
+  - Clean rollback is executed on all connections in `finally`, followed by `supabase stop` teardown on `if: always()`.
+  - **Fail-Closed & Negative Verification**: Offline runs fail immediately with exit code 1 (`ECONNREFUSED`); connection failure is strictly isolated from concurrency validation; assertion logic rejects mismatched PIDs, invalid error codes, or altered audit counts.
+
 
 ---
 

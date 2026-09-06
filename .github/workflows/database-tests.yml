@@ -66,3 +66,6 @@ jobs:
       - name: Show service status on failure
         if: failure()
         run: supabase status || true
+      - name: Stop ephemeral database
+        if: always()
+        run: supabase stop || true
