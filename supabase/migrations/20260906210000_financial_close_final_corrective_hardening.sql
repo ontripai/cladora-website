@@ -326,15 +326,16 @@ begin
           else false end);
 
   if p_journal_id is not null then
-    select jsonb_build_object('journal',jsonb_build_object('id',j.id,'journal_no',j.journal_no,'occurred_on',j.occurred_on,
-      'currency',j.currency,'description',j.description,'source_type',j.source_type,'status',j.status,'posted_at',j.posted_at,
-      'entries',coalesce((select jsonb_agg(jsonb_build_object('id',e.id,'account_id',e.account_id,'account_code',a.code,'account_name',a.name,
-        'side',e.side,'amount',e.amount,'memo',e.memo,'unit_id',e.unit_id,'party_id',e.party_id)
-        order by e.created_at,e.id) from finance.journal_entries e join finance.accounts a on a.id=e.account_id where e.journal_id=j.id),'[]'::jsonb)))
-    into v_detail from visible_journals j where j.id=p_journal_id;
+    select coalesce(jsonb_agg(jsonb_build_object('id',e.id,'account_code',a.code,'account_name',a.name,
+      'side',e.side,'amount',e.amount,'memo',e.memo,'unit_id',e.unit_id) order by e.created_at,e.id),'[]'::jsonb)
+    into v_detail from finance.journal_entries e join finance.accounts a on a.id=e.account_id
+    where e.journal_id=p_journal_id
+      and (not v_is_resident or (e.unit_id=v.unit_id and (not v_is_tenant or e.party_id is null or e.party_id=v_party)));
   end if;
 
-  return jsonb_build_object('total',v_total,'journals',v_journals,'accounts',v_accounts,'periods',v_periods,'trial_balance',v_trial,'detail',v_detail);
+  return jsonb_build_object('context',jsonb_build_object('id',v.id,'tenant_name',v.tenant_name,'role_code',v.role_code,'scope_type',v.scope_type),
+    'total',v_total,'journals',v_journals,'accounts',v_accounts,'periods',v_periods,'trial_balance',v_trial,
+    'detail',coalesce(v_detail,'[]'::jsonb),'limit',p_limit,'offset',p_offset,'read_only',true,'generated_at',statement_timestamp());
 end;
 $$;
 
@@ -709,28 +710,37 @@ begin
   -- Log atomic audit event in audit.events (if this fails, transaction rolls back completely)
   insert into audit.events (
     tenant_id,
-    workspace_id,
+    actor_id,
+    actor_role,
     action,
     entity_type,
     entity_id,
-    actor_id,
-    actor_role,
-    context_id,
     reason,
-    before_state,
-    after_state
+    before_snapshot,
+    after_snapshot,
+    occurred_at
   ) values (
     v_context.tenant_id,
-    v_context.workspace_id,
+    auth.uid(),
+    v_context.role_code,
     'ACCOUNTING_PERIOD_CLOSED',
     'accounting_period',
     v_period.id,
-    auth.uid(),
-    v_context.role_code,
-    p_context_id,
     v_sanitized_reason,
-    jsonb_build_object('status', 'open'),
-    jsonb_build_object('status', 'closed', 'snapshot_version', 2)
+    jsonb_build_object('id', v_period.id, 'status', 'open', 'ends_on', v_period.ends_on),
+    jsonb_build_object(
+      'id', v_period.id,
+      'status', 'closed',
+      'closed_at', v_now,
+      'closed_by', auth.uid(),
+      'context_id', p_context_id,
+      'property_id', v_period.property_id,
+      'workspace_id', v_context.workspace_id,
+      'starts_on', v_period.starts_on,
+      'ends_on', v_period.ends_on,
+      'snapshot_version', 2
+    ),
+    v_now
   );
 
   return jsonb_build_object(
