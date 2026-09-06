@@ -63,6 +63,9 @@ const copy = {
     errorBlocked: 'Închiderea a fost respinsă de server: există jurnale draft sau dezechilibrate.',
     successClosed: 'Perioada contabilă a fost închisă cu succes!',
     refresh: 'Actualizează',
+    noJournals: 'Nu există înregistrări contabile în această perioadă.',
+    reasonLabel: 'Motiv / Notă închidere (opțional)',
+    reasonPlaceholder: 'ex: Închidere contabilă ordinară de sfârșit de lună',
   },
   en: {
     title: 'Month close',
@@ -100,6 +103,9 @@ const copy = {
     errorBlocked: 'Period close rejected: open draft or unbalanced journals exist.',
     successClosed: 'Accounting period closed and sealed successfully!',
     refresh: 'Refresh',
+    noJournals: 'No ledger entries recorded in this period.',
+    reasonLabel: 'Close reason / Note (optional)',
+    reasonPlaceholder: 'e.g. Regular monthly financial close',
   },
   fa: {
     title: 'بستن دوره حسابداری ماهانه',
@@ -116,7 +122,7 @@ const copy = {
     totalDebit: 'جمع بدهکار',
     totalCredit: 'جمع بستانکار',
     difference: 'اختلاف تراز',
-    currencies: 'ارزهای موجود در دوره',
+    currencies: 'تفکیک ارزهای دوره',
     warnings: 'هشدارهای مالی',
     blockingReasons: 'موانع بستن دوره',
     canCloseReady: 'دوره کاملاً متوازن و آماده بستن است',
@@ -137,6 +143,9 @@ const copy = {
     errorBlocked: 'بستن دوره ناموفق بود: اسناد پیش‌نویس یا نامتوازن وجود دارند.',
     successClosed: 'دوره حسابداری با موفقیت بسته و اسنپ‌شات غیرقابل‌تغییر ذخیره شد!',
     refresh: 'به‌روزرسانی',
+    noJournals: 'هیچ سندی در این دوره ثبت نشده است.',
+    reasonLabel: 'علت / یادداشت بستن دوره (اختیاری)',
+    reasonPlaceholder: 'مثال: بستن عادی پایان دوره مالی',
   },
 };
 
@@ -165,6 +174,7 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
   const [loadingReadiness, setLoadingReadiness] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const [closeReason, setCloseReason] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -245,6 +255,7 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
     setSuccessMessage(null);
 
     try {
+      const trimmedReason = closeReason.trim();
       const res = await fetch(
         `/api/customer/v1/accounting/periods/${selectedPeriodId}/close`,
         {
@@ -254,7 +265,7 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
           },
           body: JSON.stringify({
             context_id: active.context_id,
-            reason: 'Executed via CLADORA Month Close dashboard',
+            reason: trimmedReason.length > 0 ? trimmedReason : undefined,
           }),
         }
       );
@@ -263,6 +274,7 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
         const result = (await res.json()) as ClosePeriodResponse;
         setSuccessMessage(t.successClosed);
         setModalOpen(false);
+        setCloseReason('');
         // Refresh period readiness and period list
         await loadReadiness(selectedPeriodId);
         await loadPeriods();
@@ -500,34 +512,60 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
                   </div>
                 </div>
 
-                {/* Ledger Totals */}
-                <div className="mt-4 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-xs">
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <div>
-                      <span className="text-[#52667A]">{t.totalDebit}:</span>{' '}
-                      <strong className="font-mono text-[#102A43]">
-                        {formatMoney(readiness.total_debit, 'RON', lang)}
-                      </strong>
+                {/* Multi-Currency Ledger Summaries */}
+                <div className="mt-4 space-y-3">
+                  <h3 className="text-xs font-bold text-[#102A43]">{t.currencies}</h3>
+                  {readiness.currency_summaries && readiness.currency_summaries.length > 0 ? (
+                    <div className="space-y-2">
+                      {readiness.currency_summaries.map((cs) => (
+                        <div
+                          key={cs.currency}
+                          className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-xs"
+                        >
+                          <div className="mb-2 flex items-center justify-between border-b border-[#E2E8F0] pb-1.5">
+                            <span className="rounded-md bg-[#0E9F8E]/10 px-2 py-0.5 font-mono text-[11px] font-bold text-[#0A6E62]">
+                              {cs.currency}
+                            </span>
+                            <span
+                              className={`font-mono text-[11px] font-bold ${
+                                cs.difference === 0 ? 'text-[#0A6E62]' : 'text-red-600'
+                              }`}
+                            >
+                              {cs.difference === 0 ? '✓' : `Δ ${formatMoney(cs.difference, cs.currency, lang)}`}
+                            </span>
+                          </div>
+                          <div className="grid gap-3 sm:grid-cols-3">
+                            <div>
+                              <span className="text-[#52667A]">{t.totalDebit}:</span>{' '}
+                              <strong className="font-mono text-[#102A43]">
+                                {formatMoney(cs.total_debit, cs.currency, lang)}
+                              </strong>
+                            </div>
+                            <div>
+                              <span className="text-[#52667A]">{t.totalCredit}:</span>{' '}
+                              <strong className="font-mono text-[#102A43]">
+                                {formatMoney(cs.total_credit, cs.currency, lang)}
+                              </strong>
+                            </div>
+                            <div>
+                              <span className="text-[#52667A]">{t.difference}:</span>{' '}
+                              <strong
+                                className={`font-mono ${
+                                  cs.difference === 0 ? 'text-[#0A6E62]' : 'text-red-600'
+                                }`}
+                              >
+                                {formatMoney(cs.difference, cs.currency, lang)}
+                              </strong>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div>
-                      <span className="text-[#52667A]">{t.totalCredit}:</span>{' '}
-                      <strong className="font-mono text-[#102A43]">
-                        {formatMoney(readiness.total_credit, 'RON', lang)}
-                      </strong>
+                  ) : (
+                    <div className="rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] p-4 text-xs text-[#52667A]">
+                      {t.noJournals}
                     </div>
-                    <div>
-                      <span className="text-[#52667A]">{t.difference}:</span>{' '}
-                      <strong
-                        className={`font-mono ${
-                          readiness.difference === 0
-                            ? 'text-[#0A6E62]'
-                            : 'text-red-600'
-                        }`}
-                      >
-                        {formatMoney(readiness.difference, 'RON', lang)}
-                      </strong>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Warnings / Blocking Reasons */}
@@ -627,6 +665,24 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
                 {selectedPeriod.starts_on} — {selectedPeriod.ends_on}
               </div>
             )}
+
+            <div className="mt-4">
+              <label
+                htmlFor="close-period-reason"
+                className="block text-xs font-semibold text-[#102A43]"
+              >
+                {t.reasonLabel}
+              </label>
+              <input
+                id="close-period-reason"
+                type="text"
+                value={closeReason}
+                onChange={(e) => setCloseReason(e.target.value)}
+                placeholder={t.reasonPlaceholder}
+                maxLength={500}
+                className="mt-1 w-full rounded-xl border border-[#CBD5E1] bg-white px-3 py-2 text-xs text-[#102A43] placeholder-[#94A3B8] focus:border-[#0E9F8E] focus:outline-none"
+              />
+            </div>
 
             <div className="mt-6 flex justify-end gap-3">
               <button

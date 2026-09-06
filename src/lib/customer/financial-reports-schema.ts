@@ -8,8 +8,8 @@ export const financialReportQuerySchema = z
   .object({
     context_id: uuidSchema,
     report_type: z.enum(REPORT_TYPES),
-    from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
-    to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+    from: z.iso.date('Invalid start date format (must be YYYY-MM-DD calendar date)'),
+    to: z.iso.date('Invalid end date format (must be YYYY-MM-DD calendar date)'),
     currency: z
       .string()
       .trim()
@@ -54,6 +54,19 @@ export const balanceSheetRowSchema = z
     debit: z.number(),
     credit: z.number(),
     amount: z.number(),
+  })
+  .strict();
+
+export const currencySummarySchema = z
+  .object({
+    currency: z.string().length(3),
+    posted_journals_count: z.number().optional(),
+    draft_journals_count: z.number().optional(),
+    total_debit: z.number(),
+    total_credit: z.number(),
+    difference: z.number(),
+    is_balanced: z.boolean().optional(),
+    trial_balance: z.array(trialBalanceRowSchema).optional(),
   })
   .strict();
 
@@ -112,7 +125,7 @@ export const periodSnapshotSchema = z
 
 export const closeReadinessResponseSchema = z
   .object({
-    version: z.literal(1),
+    version: z.union([z.literal(1), z.literal(2)]),
     period: periodSnapshotSchema,
     tenant_id: uuidSchema,
     property_id: uuidSchema.nullable(),
@@ -121,11 +134,12 @@ export const closeReadinessResponseSchema = z
     draft_journals_count: z.number(),
     unbalanced_journals_count: z.number(),
     posted_journals_count: z.number(),
-    total_debit: z.number(),
-    total_credit: z.number(),
-    is_balanced: z.boolean(),
-    difference: z.number(),
+    total_debit: z.number().optional(),
+    total_credit: z.number().optional(),
     currencies: z.array(z.string()),
+    currency_summaries: z.array(currencySummarySchema).optional(),
+    is_balanced: z.boolean(),
+    difference: z.number().optional(),
     warnings: z.array(z.string()),
     can_close: z.boolean(),
     blocking_reasons: z.array(z.string()),
@@ -142,7 +156,7 @@ export const closePeriodRequestSchema = z
 
 export const closePeriodResponseSchema = z
   .object({
-    version: z.literal(1),
+    version: z.union([z.literal(1), z.literal(2)]),
     success: z.literal(true),
     period_id: uuidSchema,
     status: z.literal('closed'),
@@ -154,6 +168,7 @@ export const closePeriodResponseSchema = z
 
 export type FinancialReportQuery = z.infer<typeof financialReportQuerySchema>;
 export type FinancialReportResponse = z.infer<typeof financialReportResponseSchema>;
+export type CurrencySummary = z.infer<typeof currencySummarySchema>;
 export type CloseReadinessResponse = z.infer<typeof closeReadinessResponseSchema>;
 export type ClosePeriodRequest = z.infer<typeof closePeriodRequestSchema>;
 export type ClosePeriodResponse = z.infer<typeof closePeriodResponseSchema>;

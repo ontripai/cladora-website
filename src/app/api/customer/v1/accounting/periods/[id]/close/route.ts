@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
+import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 import {
   closePeriodRequestSchema,
   closePeriodResponseSchema,
@@ -14,7 +15,7 @@ const HEADERS = {
   Vary: 'Cookie',
 };
 
-const MAX_BODY_BYTES = 10 * 1024; // 10 KB limit
+const MAX_BODY_BYTES = 10 * 1024; // 10 KB stream byte limit
 
 const paramsSchema = z.object({
   id: uuidSchema,
@@ -32,24 +33,26 @@ export async function POST(
     );
   }
 
-  // 2. Content-Type Check
-  const contentType = request.headers.get('content-type') || '';
-  if (!contentType.toLowerCase().includes('application/json')) {
+  // 2. Strict Content-Type Check
+  const contentType = request.headers.get('content-type');
+  if (!isApplicationJson(contentType)) {
     return NextResponse.json(
       { error: { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'Content-Type must be application/json' } },
       { status: 415, headers: HEADERS }
     );
   }
 
-  // 3. Body Size Limitation
-  const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
-  if (contentLength > MAX_BODY_BYTES) {
+  // 3. Stream & Byte-Limited JSON Parsing (10KB limit)
+  const { data: rawBody, errorResponse } = await parseJsonWithLimit(request, MAX_BODY_BYTES);
+  if (errorResponse) {
+    const errorData = await errorResponse.json();
     return NextResponse.json(
-      { error: { code: 'PAYLOAD_TOO_LARGE', message: 'Payload exceeds maximum allowed size (10KB)' } },
-      { status: 413, headers: HEADERS }
+      { error: { code: errorData.code || 'INVALID_REQUEST', message: errorData.message || 'Request body processing failed' } },
+      { status: errorResponse.status, headers: HEADERS }
     );
   }
 
+  // 4. Validate URL Parameters
   const rawParams = await context.params;
   const parsedParams = paramsSchema.safeParse(rawParams);
 
@@ -60,31 +63,14 @@ export async function POST(
     );
   }
 
-  let bodyJson: unknown;
-  try {
-    const rawBody = await request.text();
-    if (rawBody.length > MAX_BODY_BYTES) {
-      return NextResponse.json(
-        { error: { code: 'PAYLOAD_TOO_LARGE', message: 'Payload exceeds maximum allowed size' } },
-        { status: 413, headers: HEADERS }
-      );
-    }
-    bodyJson = JSON.parse(rawBody);
-  } catch {
-    return NextResponse.json(
-      { error: { code: 'MALFORMED_JSON', message: 'Body contains invalid JSON' } },
-      { status: 400, headers: HEADERS }
-    );
-  }
-
-  const parsedBody = closePeriodRequestSchema.safeParse(bodyJson);
+  // 5. Validate Body Payload with Sanitized Error (no Zod internal error details exposed)
+  const parsedBody = closePeriodRequestSchema.safeParse(rawBody);
   if (!parsedBody.success) {
     return NextResponse.json(
       {
         error: {
           code: 'INVALID_REQUEST_PAYLOAD',
-          message: 'Invalid close period payload',
-          details: parsedBody.error.format(),
+          message: 'Invalid close period payload format',
         },
       },
       { status: 400, headers: HEADERS }
@@ -92,9 +78,9 @@ export async function POST(
   }
 
   const periodId = parsedParams.data.id;
-  const { context_id } = parsedBody.data;
+  const { context_id, reason } = parsedBody.data;
 
-  // 4. Authenticated Supabase User Client (never service role)
+  // 6. Authenticated Supabase User Client (never service role)
   const supabase = await createClient();
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
 
@@ -105,11 +91,13 @@ export async function POST(
     );
   }
 
+  // 7. Invoke Security Definer Close Period RPC
   const { data, error: rpcError } = await supabase
     .schema('finance')
     .rpc('close_accounting_period', {
       p_context_id: context_id,
       p_period_id: periodId,
+      p_reason: reason ? reason.trim() : null,
     });
 
   if (rpcError) {
@@ -136,7 +124,7 @@ export async function POST(
       status = 404;
     } else if (isBadRequest) {
       code = 'PERIOD_CLOSE_BLOCKED';
-      message = rpcError.message || 'Period cannot be closed due to open draft or unbalanced journals';
+      message = rpcError.message || 'Period cannot be closed due to open draft, unbalanced journals, or invalid sequence';
       status = 400;
     }
 
@@ -146,6 +134,7 @@ export async function POST(
     );
   }
 
+  // 8. Authoritative Response Contract Validation
   const validated = closePeriodResponseSchema.safeParse(data);
   if (!validated.success) {
     return NextResponse.json(

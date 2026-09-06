@@ -1,5 +1,5 @@
 begin;
-select plan(48);
+select plan(60);
 
 -- 1. Schema & Privilege verifications
 select ok(to_regprocedure('finance.get_close_readiness(uuid,uuid)') is not null, 'finance.get_close_readiness RPC exists');
@@ -10,11 +10,16 @@ select ok(to_regprocedure('finance.get_customer_financial_report(uuid,text,date,
 select ok(has_function_privilege('authenticated', 'finance.get_customer_financial_report(uuid,text,date,date,text)', 'EXECUTE'), 'authenticated may execute get_customer_financial_report');
 select ok(not has_function_privilege('anon', 'finance.get_customer_financial_report(uuid,text,date,date,text)', 'EXECUTE'), 'anon is revoked from executing get_customer_financial_report');
 
-select ok(to_regprocedure('finance.close_accounting_period(uuid,uuid)') is not null, 'finance.close_accounting_period RPC exists');
-select ok(has_function_privilege('authenticated', 'finance.close_accounting_period(uuid,uuid)', 'EXECUTE'), 'authenticated may execute close_accounting_period');
-select ok(not has_function_privilege('anon', 'finance.close_accounting_period(uuid,uuid)', 'EXECUTE'), 'anon is revoked from executing close_accounting_period');
+select ok(to_regprocedure('finance.close_accounting_period(uuid,uuid)') is not null, 'finance.close_accounting_period(uuid,uuid) RPC exists');
+select ok(has_function_privilege('authenticated', 'finance.close_accounting_period(uuid,uuid)', 'EXECUTE'), 'authenticated may execute close_accounting_period(uuid,uuid)');
+select ok(not has_function_privilege('anon', 'finance.close_accounting_period(uuid,uuid)', 'EXECUTE'), 'anon is revoked from executing close_accounting_period(uuid,uuid)');
 
--- 2. Column closed_by check
+select ok(to_regprocedure('finance.close_accounting_period(uuid,uuid,text)') is not null, 'finance.close_accounting_period(uuid,uuid,text) RPC exists');
+select ok(has_function_privilege('authenticated', 'finance.close_accounting_period(uuid,uuid,text)', 'EXECUTE'), 'authenticated may execute close_accounting_period(uuid,uuid,text)');
+
+select ok(to_regprocedure('app_private.resolve_financial_context_scope(uuid)') is not null, 'app_private.resolve_financial_context_scope helper exists');
+
+-- 2. Columns & Permissions check
 select ok(exists(
   select 1 from information_schema.columns
   where table_schema = 'finance'
@@ -22,12 +27,11 @@ select ok(exists(
     and column_name = 'closed_by'
 ), 'finance.accounting_periods has closed_by column');
 
--- 3. Permissions check
 select ok(exists(select 1 from identity.permissions where code = 'finance.reports.read'), 'finance.reports.read exists');
 select ok(exists(select 1 from identity.permissions where code = 'finance.periods.read'), 'finance.periods.read exists');
 select ok(exists(select 1 from identity.permissions where code = 'finance.periods.close'), 'finance.periods.close exists');
 
--- 4. Setup Test Data
+-- 3. Setup Test Data
 do $$
 declare
   perm_rep uuid;
@@ -72,21 +76,16 @@ begin
 
   -- Role Permissions
   insert into identity.role_permissions (role_id, permission_id, effect) values
-    -- association_admin: all 3
     (role_admin, perm_rep, 'allow'),
     (role_admin, perm_prd_read, 'allow'),
     (role_admin, perm_prd_close, 'allow'),
-    -- property_manager: all 3
     (role_manager, perm_rep, 'allow'),
     (role_manager, perm_prd_read, 'allow'),
     (role_manager, perm_prd_close, 'allow'),
-    -- president: read only
     (role_pres, perm_rep, 'allow'),
     (role_pres, perm_prd_read, 'allow'),
-    -- censor: read only
     (role_censor, perm_rep, 'allow'),
     (role_censor, perm_prd_read, 'allow'),
-    -- other admin: all 3
     (role_other, perm_rep, 'allow'),
     (role_other, perm_prd_read, 'allow'),
     (role_other, perm_prd_close, 'allow');
@@ -113,15 +112,20 @@ begin
     ('23700000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', '23600000-0000-0000-0000-000000000001', 'U1', 'active');
 
   -- Context Grants
-  insert into identity.context_grants (id, membership_id, tenant_id, scope_type, unit_id, starts_at, ends_at) values
-    ('23400000-0000-0000-0000-000000000001', '23300000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', 'tenant', null, statement_timestamp() - interval '1 day', null),
-    ('23400000-0000-0000-0000-000000000002', '23300000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', 'tenant', null, statement_timestamp() - interval '1 day', null),
-    ('23400000-0000-0000-0000-000000000003', '23300000-0000-0000-0000-000000000003', '23100000-0000-0000-0000-000000000001', 'tenant', null, statement_timestamp() - interval '1 day', null),
-    ('23400000-0000-0000-0000-000000000004', '23300000-0000-0000-0000-000000000004', '23100000-0000-0000-0000-000000000001', 'tenant', null, statement_timestamp() - interval '1 day', null),
-    ('23400000-0000-0000-0000-000000000005', '23300000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', 'unit', '23700000-0000-0000-0000-000000000001', statement_timestamp() - interval '1 day', null),
-    ('23400000-0000-0000-0000-000000000006', '23300000-0000-0000-0000-000000000006', '23100000-0000-0000-0000-000000000001', 'unit', '23700000-0000-0000-0000-000000000001', statement_timestamp() - interval '1 day', null),
-    ('23400000-0000-0000-0000-000000000007', '23300000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', 'tenant', null, statement_timestamp() - interval '3 days', statement_timestamp() - interval '1 day'),
-    ('23400000-0000-0000-0000-000000000008', '23300000-0000-0000-0000-000000000007', '23100000-0000-0000-0000-000000000002', 'tenant', null, statement_timestamp() - interval '1 day', null);
+  insert into identity.context_grants (id, membership_id, tenant_id, scope_type, property_id, building_id, unit_id, starts_at, ends_at) values
+    ('23400000-0000-0000-0000-000000000001', '23300000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    ('23400000-0000-0000-0000-000000000002', '23300000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    ('23400000-0000-0000-0000-000000000003', '23300000-0000-0000-0000-000000000003', '23100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    ('23400000-0000-0000-0000-000000000004', '23300000-0000-0000-0000-000000000004', '23100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    ('23400000-0000-0000-0000-000000000005', '23300000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', 'unit', null, null, '23700000-0000-0000-0000-000000000001', statement_timestamp() - interval '1 day', null),
+    ('23400000-0000-0000-0000-000000000006', '23300000-0000-0000-0000-000000000006', '23100000-0000-0000-0000-000000000001', 'unit', null, null, '23700000-0000-0000-0000-000000000001', statement_timestamp() - interval '1 day', null),
+    ('23400000-0000-0000-0000-000000000007', '23300000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '3 days', statement_timestamp() - interval '1 day'),
+    ('23400000-0000-0000-0000-000000000008', '23300000-0000-0000-0000-000000000007', '23100000-0000-0000-0000-000000000002', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    -- Property-scoped context grant for Property Manager:
+    ('23400000-0000-0000-0000-000000000009', '23300000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', 'property', '23500000-0000-0000-0000-000000000001', null, null, statement_timestamp() - interval '1 day', null),
+    -- Tenant-scoped context grants for Owner and Resident (to test role-denial separate from unit-scope rejection):
+    ('23400000-0000-0000-0000-000000000010', '23300000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    ('23400000-0000-0000-0000-000000000011', '23300000-0000-0000-0000-000000000006', '23100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null);
 
   -- Workspaces & Entitlements
   insert into platform.customer_workspaces (id, tenant_id, workspace_type, lifecycle_status, commercial_owner, environment, version) values
@@ -143,13 +147,14 @@ begin
     ('23a00000-0000-0000-0000-000000000007', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '5124', 'Conturi la banci in valuta', 'asset', 'EUR'),
     ('23a00000-0000-0000-0000-000000000008', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '7042', 'Venituri valuta', 'income', 'EUR');
 
-  -- Accounting Periods: Period 1 (Jan 2026) and Period 2 (Feb 2026)
+  -- Accounting Periods: Period 1 (Jan 2026), Period 2 (Feb 2026), Period 3 (Future)
   insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status) values
     ('23c00000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-01', '2026-01-31', 'open'),
-    ('23c00000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-02-01', '2026-02-28', 'open');
+    ('23c00000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-02-01', '2026-02-28', 'open'),
+    ('23c00000-0000-0000-0000-000000000003', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', current_date, current_date + interval '30 days', 'open');
 
   -- Journals in Period 1:
-  -- Journal 1: Draft in Period 1
+  -- Journal 1: Draft in Period 1 (500 RON)
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
     ('23b00000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-15', 'RON', 'Maintenance revenue draft', 'invoice', 'draft');
 
@@ -171,15 +176,31 @@ begin
 
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000007', 'debit', 50, 'EUR Bank debit'),
-    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000008', 'credit', 50, 'EUR Revenue credit');
+    ('23100000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000008', 'credit', 50, 'EUR Revenue credit');
 
   -- Post Journal 2 and 3
   update finance.journals
   set status = 'posted', posted_at = statement_timestamp()
   where id in ('23b00000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000003');
+
+  -- Journal 4: 200 RON Posted in Period 1
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
+    ('23b00000-0000-0000-0000-000000000004', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-28', 'RON', 'Original journal to reverse', 'invoice', 'posted', statement_timestamp());
+
+  insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000004', '23a00000-0000-0000-0000-000000000001', 'debit', 200, 'Bank debit'),
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000004', '23a00000-0000-0000-0000-000000000006', 'credit', 200, 'Revenue credit');
+
+  -- Journal 5: Reversal compensating journal for Journal 4 (status = 'reversed', reversal_of_id set)
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, reversal_of_id, posted_at) values
+    ('23b00000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-29', 'RON', 'Reversal of J4', 'reversal', 'reversed', '23b00000-0000-0000-0000-000000000004', statement_timestamp());
+
+  insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000005', '23a00000-0000-0000-0000-000000000006', 'debit', 200, 'Revenue reversal debit'),
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000005', '23a00000-0000-0000-0000-000000000001', 'credit', 200, 'Bank reversal credit');
 end $$;
 
--- 5. Role & Claims Security Execution
+-- 4. Role & Claims Security Execution
 set local role authenticated;
 
 -- Test AAL1 rejection
@@ -205,7 +226,22 @@ select throws_like(
   'Cross-tenant context is denied'
 );
 
--- 6. Close Readiness Inspection with Draft Blocker
+-- Test Unit Context rejection on get_close_readiness (fail-closed)
+select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000005","role":"authenticated","aal":"aal2"}', true);
+select throws_like(
+  $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000005', '23c00000-0000-0000-0000-000000000001') $$,
+  '%financial_reporting_requires_property_or_association_scope%',
+  'Unit scope is rejected from close readiness (fail-closed)'
+);
+
+-- Test Unit Context rejection on get_customer_financial_report (fail-closed)
+select throws_like(
+  $$ select finance.get_customer_financial_report('23400000-0000-0000-0000-000000000005', 'trial_balance', '2026-01-01', '2026-01-31', 'RON') $$,
+  '%financial_reporting_requires_property_or_association_scope%',
+  'Unit scope is rejected from financial reports (fail-closed)'
+);
+
+-- 5. Close Readiness Inspection with Draft Blocker
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
 select ok(
   (finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001')->>'can_close')::boolean = false,
@@ -214,6 +250,10 @@ select ok(
 select ok(
   (finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001')->>'draft_journals_count')::int = 1,
   'Readiness identifies 1 draft journal'
+);
+select ok(
+  (finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001')->'currency_summaries') is not null,
+  'Readiness returns currency_summaries array'
 );
 
 -- Censor and President can read readiness
@@ -229,22 +269,22 @@ select ok(
   'Censor can inspect close readiness'
 );
 
--- Residents (Owner, Resident) are denied from readiness inspection
+-- Residents (Owner, Resident) are denied from readiness inspection even with tenant context
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000005","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
-  $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000005', '23c00000-0000-0000-0000-000000000001') $$,
+  $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000010', '23c00000-0000-0000-0000-000000000001') $$,
   '%periods_role_denied%',
   'Owner cannot inspect period close readiness'
 );
 
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000006","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
-  $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000006', '23c00000-0000-0000-0000-000000000001') $$,
+  $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000011', '23c00000-0000-0000-0000-000000000001') $$,
   '%periods_role_denied%',
   'Resident cannot inspect period close readiness'
 );
 
--- 7. Close Period Mutation Checks
+-- 6. Close Period Mutation Checks
 -- Attempt to close with draft journal -> rejected
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
@@ -268,6 +308,13 @@ select throws_like(
   'Closing period out of sequence fails'
 );
 
+-- Attempt to close Future Period 3 -> rejected (period_not_ended)
+select throws_like(
+  $$ select finance.close_accounting_period('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000003') $$,
+  '%period_not_ended%',
+  'Closing future period fails with period_not_ended'
+);
+
 -- Role prohibition: President and Censor cannot close period
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000003","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
@@ -283,11 +330,11 @@ select throws_like(
   'Censor cannot execute close period mutation'
 );
 
--- Successful Close Execution by Admin
+-- Successful Close Execution by Admin with optional reason
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
 select ok(
-  (finance.close_accounting_period('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001')->>'success')::boolean = true,
-  'Admin successfully closes Period 1'
+  (finance.close_accounting_period('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001', 'Monthly close verification')->>'success')::boolean = true,
+  'Admin successfully closes Period 1 with reason'
 );
 
 -- Verify immutable closed state
@@ -298,19 +345,34 @@ select ok(
   'Period 1 status is closed with closed_by and closed_at set'
 );
 
--- Verify snapshot stored
+-- Verify Version 2 snapshot stored
 select ok(
-  (select (snapshot_json->'summary'->>'is_balanced')::boolean
+  (select (snapshot_json->>'snapshot_version')::int = 2
    from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000001'),
-  'Period 1 has valid balanced snapshot stored'
+  'Period 1 snapshot has snapshot_version = 2'
 );
 
--- Verify audit event logged
+-- Verify multi-currency segregation in snapshot
+select ok(
+  (select jsonb_array_length(snapshot_json->'currency_summaries') >= 2
+   from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000001'),
+  'Period 1 snapshot contains multi-currency segregated summaries (RON and EUR)'
+);
+
+-- Verify close_reason preserved in snapshot
+select ok(
+  (select snapshot_json->>'close_reason' = 'Monthly close verification'
+   from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000001'),
+  'Period 1 snapshot contains close_reason'
+);
+
+-- Verify atomic audit event logged in audit.events
 select ok(
   (select count(*) = 1 from audit.events
    where action = 'ACCOUNTING_PERIOD_CLOSED'
+     and entity_type = 'accounting_period'
      and entity_id = '23c00000-0000-0000-0000-000000000001'::uuid),
-  'Audit event recorded for period close'
+  'Atomic audit event recorded for period close in audit.events'
 );
 set local role authenticated;
 
@@ -321,7 +383,7 @@ select throws_like(
   'Closing an already closed period fails with conflict'
 );
 
--- 8. Management Financial Reports
+-- 7. Management Financial Reports
 -- Trial Balance in RON
 select ok(
   (finance.get_customer_financial_report(
@@ -341,8 +403,8 @@ select ok(
     '2026-01-01',
     '2026-01-31',
     'RON'
-  )->'totals'->>'total_debit')::numeric = 600,
-  'RON Trial Balance total debit is 600'
+  )->'totals'->>'total_debit')::numeric = 1000,
+  'RON Trial Balance total debit includes posted and reversed journals (1000 RON)'
 );
 
 -- Multi-currency segregation: EUR report
@@ -355,6 +417,16 @@ select ok(
     'EUR'
   )->'totals'->>'total_debit')::numeric = 50,
   'EUR Trial Balance isolates EUR currency only'
+);
+
+-- Reversed journal fixture check: Net profit/loss on 704 revenue reflects cancellation
+select ok(
+  (select (elem->>'net_balance')::numeric = -500
+   from jsonb_array_elements(finance.get_customer_financial_report(
+     '23400000-0000-0000-0000-000000000001', 'trial_balance', '2026-01-01', '2026-01-31', 'RON'
+   )->'accounts') elem
+   where elem->>'code' = '704'),
+  'Reversed journal net balance cancels out on revenue account 704'
 );
 
 -- Profit & Loss in RON
@@ -428,11 +500,11 @@ select ok(
   'Censor can generate financial reports'
 );
 
--- Residents cannot run reports
+-- Residents cannot run reports even with tenant context
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000005","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
   $$ select finance.get_customer_financial_report(
-    '23400000-0000-0000-0000-000000000005',
+    '23400000-0000-0000-0000-000000000010',
     'trial_balance',
     '2026-01-01',
     '2026-01-31',
@@ -445,7 +517,7 @@ select throws_like(
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000006","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
   $$ select finance.get_customer_financial_report(
-    '23400000-0000-0000-0000-000000000006',
+    '23400000-0000-0000-0000-000000000011',
     'balance_sheet',
     '2026-01-01',
     '2026-01-31',
@@ -480,6 +552,28 @@ select throws_like(
   ) $$,
   '%invalid_report_type%',
   'Unknown report type fails with invalid_report_type'
+);
+
+-- 8. Property-Scoped Context Isolation
+select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000002","role":"authenticated","aal":"aal2"}', true);
+select ok(
+  finance.get_customer_financial_report(
+    '23400000-0000-0000-0000-000000000009',
+    'trial_balance',
+    '2026-01-01',
+    '2026-01-31',
+    'RON'
+  ) is not null,
+  'Property-scoped context can access report for own property'
+);
+
+select throws_like(
+  $$ select finance.get_close_readiness(
+    '23400000-0000-0000-0000-000000000009',
+    '23c00000-0000-0000-0000-000000000099'
+  ) $$,
+  '%accounting_period_not_found%',
+  'Property-scoped context cannot access non-existent or cross-property period'
 );
 
 -- 9. Role Permissions Matrix Direct Asserts

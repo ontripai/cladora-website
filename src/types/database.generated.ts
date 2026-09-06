@@ -1168,6 +1168,7 @@ export type Database = {
         Args: {
           p_context_id: string;
           p_period_id: string;
+          p_reason?: string | null;
         };
         Returns: Json;
       };
