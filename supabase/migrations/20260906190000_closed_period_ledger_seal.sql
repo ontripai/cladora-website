@@ -1,6 +1,6 @@
 begin;
 
-set local search_path = finance, platform, properties, extensions, public;
+set local search_path = finance, platform, portfolio, extensions, public;
 
 -- =============================================================================
 -- 1. PREFLIGHT DATA VALIDATION
@@ -95,7 +95,7 @@ begin
   -- Check 1g: Structural integrity: journal property belongs to same tenant
   select count(*) into v_count
   from finance.journals j
-  join properties.properties p on p.id = j.property_id
+  join portfolio.properties p on p.id = j.property_id
   where j.tenant_id <> p.tenant_id;
 
   if v_count > 0 then
@@ -107,7 +107,7 @@ begin
   select count(*) into v_count
   from finance.journal_entries e
   join finance.journals j on j.id = e.journal_id
-  join properties.units u on u.id = e.unit_id
+  join portfolio.units u on u.id = e.unit_id
   where u.tenant_id <> e.tenant_id
      or (j.property_id is not null and u.property_id <> j.property_id);
 
@@ -259,7 +259,7 @@ $$;
 create or replace function finance.assert_journal_not_in_closed_period()
 returns trigger
 language plpgsql
-set search_path = finance, properties, platform, public
+set search_path = finance, portfolio, platform, public
 as $$
 declare
   v_p_tenant_id uuid;
@@ -267,7 +267,7 @@ begin
   if tg_op = 'INSERT' then
     -- Verify property belongs to journal tenant
     if new.property_id is not null then
-      select tenant_id into v_p_tenant_id from properties.properties where id = new.property_id;
+      select tenant_id into v_p_tenant_id from portfolio.properties where id = new.property_id;
       if v_p_tenant_id is null or v_p_tenant_id <> new.tenant_id then
         raise exception 'Cross-tenant property denied: property % does not belong to tenant %', new.property_id, new.tenant_id
           using errcode = '42501';
@@ -288,7 +288,7 @@ begin
 
     -- Verify property belongs to journal tenant on NEW
     if new.property_id is not null then
-      select tenant_id into v_p_tenant_id from properties.properties where id = new.property_id;
+      select tenant_id into v_p_tenant_id from portfolio.properties where id = new.property_id;
       if v_p_tenant_id is null or v_p_tenant_id <> new.tenant_id then
         raise exception 'Cross-tenant property denied: property % does not belong to tenant %', new.property_id, new.tenant_id
           using errcode = '42501';
@@ -393,7 +393,7 @@ execute function finance.assert_journal_entry_closed_period();
 create or replace function finance.assert_journal_entry_integrity()
 returns trigger
 language plpgsql
-set search_path = finance, properties, platform, public
+set search_path = finance, portfolio, platform, public
 as $$
 declare
   v_j record;
@@ -445,7 +445,7 @@ begin
   if new.unit_id is not null then
     select id, tenant_id, property_id
     into v_u
-    from properties.units
+    from portfolio.units
     where id = new.unit_id;
 
     if not found then
