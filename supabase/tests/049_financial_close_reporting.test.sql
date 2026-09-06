@@ -176,7 +176,7 @@ begin
 
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000007', 'debit', 50, 'EUR Bank debit'),
-    ('23100000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000008', 'credit', 50, 'EUR Revenue credit');
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000008', 'credit', 50, 'EUR Revenue credit');
 
   -- Post Journal 2 and 3
   update finance.journals
