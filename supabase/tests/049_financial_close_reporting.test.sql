@@ -777,7 +777,7 @@ select ok(
 -- Resident (unit context) is rejected with 42501 from list_customer_accounting_periods
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000006","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
-  $$ select finance.list_customer_accounting_periods('23400000-0000-0000-0000-000000000011') $$,
+  $$ select finance.list_customer_accounting_periods('23400000-0000-0000-0000-000000000006') $$,
   '%financial_reporting_requires_property_or_association_scope%',
   'Resident in unit context is strictly fail-closed from listing accounting periods'
 );
@@ -861,6 +861,9 @@ select ok(
 );
 
 -- 15. Atomic Audit Event Rollback Verification
+-- Clean up temporary test journal 23b...98 created for date moving verification
+delete from finance.journals where id = '23b00000-0000-0000-0000-000000000098';
+
 -- Post the draft journal 23b...50 so period 2 is balanced and ready
 update finance.journals
 set status = 'posted', posted_at = statement_timestamp()

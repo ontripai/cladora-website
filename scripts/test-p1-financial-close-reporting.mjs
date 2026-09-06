@@ -1188,7 +1188,8 @@ function createStreamFromChunks(chunks) {
 
   // Journal parent update checks
   assert.ok(
-    sql.includes('create trigger a_assert_journal_parent_update_integrity') &&
+    (sql.includes('create trigger a_00_assert_journal_parent_update_integrity') ||
+      sql.includes('create trigger a_assert_journal_parent_update_integrity')) &&
       sql.includes('before update of tenant_id, property_id, currency on finance.journals'),
     'Journal trigger must intercept updates of tenant_id, property_id, currency'
   );
@@ -1199,7 +1200,8 @@ function createStreamFromChunks(chunks) {
 
   // Account parent update checks
   assert.ok(
-    sql.includes('create trigger a_assert_account_parent_update_integrity') &&
+    (sql.includes('create trigger a_00_assert_account_parent_update_integrity') ||
+      sql.includes('create trigger a_assert_account_parent_update_integrity')) &&
       sql.includes('before update of tenant_id, property_id, currency on finance.accounts'),
     'Account trigger must intercept updates of tenant_id, property_id, currency'
   );

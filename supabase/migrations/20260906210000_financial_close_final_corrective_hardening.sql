@@ -105,20 +105,7 @@ begin
     if exists (
       select 1
       from finance.journal_entries e
-      join finance.accounts a on a.id = e.account_id
-      left join portfolio.units u on u.id = e.unit_id
-      left join portfolio.buildings b on b.id = u.building_id
       where e.journal_id = new.id
-        and (
-          e.tenant_id <> new.tenant_id
-          or a.tenant_id <> new.tenant_id
-          or a.property_id is distinct from new.property_id
-          or a.currency <> new.currency
-          or (e.unit_id is not null and (
-              u.tenant_id <> new.tenant_id
-              or (new.property_id is not null and b.property_id <> new.property_id)
-          ))
-        )
     ) then
       raise exception 'Cannot update journal tenant, property, or currency because existing entries or accounts would become inconsistent'
         using errcode = '42501';
@@ -129,7 +116,8 @@ end;
 $$;
 
 drop trigger if exists a_assert_journal_parent_update_integrity on finance.journals;
-create trigger a_assert_journal_parent_update_integrity
+drop trigger if exists a_00_assert_journal_parent_update_integrity on finance.journals;
+create trigger a_00_assert_journal_parent_update_integrity
 before update of tenant_id, property_id, currency on finance.journals
 for each row
 execute function finance.assert_journal_parent_update_integrity();
@@ -148,14 +136,7 @@ begin
     if exists (
       select 1
       from finance.journal_entries e
-      join finance.journals j on j.id = e.journal_id
       where e.account_id = new.id
-        and (
-          e.tenant_id <> new.tenant_id
-          or j.tenant_id <> new.tenant_id
-          or new.property_id is distinct from j.property_id
-          or new.currency <> j.currency
-        )
     ) then
       raise exception 'Cannot update account tenant, property, or currency because existing journal entries would become inconsistent'
         using errcode = '42501';
@@ -166,7 +147,8 @@ end;
 $$;
 
 drop trigger if exists a_assert_account_parent_update_integrity on finance.accounts;
-create trigger a_assert_account_parent_update_integrity
+drop trigger if exists a_00_assert_account_parent_update_integrity on finance.accounts;
+create trigger a_00_assert_account_parent_update_integrity
 before update of tenant_id, property_id, currency on finance.accounts
 for each row
 execute function finance.assert_account_parent_update_integrity();
