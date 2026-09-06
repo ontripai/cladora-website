@@ -32,7 +32,7 @@ import {
   CustomerContextProvider,
   useCustomerContext,
 } from "./CustomerContextProvider";
-import { getPersonaMatrix } from "@/lib/customer/access-matrix";
+import { isRouteAllowedForPersona } from "@/lib/customer/access-matrix";
 
 const copy = {
   ro: {
@@ -154,11 +154,7 @@ function Shell({
     audit = hasPerm("audit.events.read");
 
   const roleCode = state.dashboard?.context?.role_code;
-  const matrix = getPersonaMatrix(roleCode);
-  const isForbiddenByPersona = (path: string) =>
-    matrix?.forbiddenNavLinks?.some(
-      (f) => path === f || path.startsWith(`${f}/`)
-    ) ?? false;
+  const isAllowedForRole = (path: string) => isRouteAllowedForPersona(roleCode, path);
 
   const navItems = [
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
@@ -183,7 +179,7 @@ function Shell({
   ].filter(
     (item) =>
       Boolean(item.visible) &&
-      !isForbiddenByPersona(item.href.replace(/^\/(?:ro|en|fa)/, ""))
+      isAllowedForRole(item.href.replace(/^\/(?:ro|en|fa)/, ""))
   );
 
   return (

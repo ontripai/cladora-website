@@ -7,8 +7,15 @@
  *
  * Note: Authorization decisions are server/database authoritative.
  * This client-side matrix enforces presentation alignment, UI gating,
- * and automated security testing.
+ * route allowlisting, and automated security testing.
  */
+
+export const EXPLICITLY_UNAVAILABLE_ROUTES = [
+  '/app/portfolio',
+  '/app/settings',
+  '/app/accounting/month-close',
+  '/app/migration/shadow-ledger',
+] as const;
 
 export const CANONICAL_ROLES = [
   'association_admin',
@@ -39,15 +46,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     role: 'association_admin',
     personaTitle: 'Association Administrator',
     isReadOnly: false,
-    allowedSections: [
-      'operations',
-      'financials',
-      'maintenance',
-      'communications',
-      'documents',
-      'modules',
-      'audit',
-    ],
+    allowedSections: ['operations', 'financials', 'audit'],
     forbiddenSections: [
       'my_residence',
       'my_expenses',
@@ -55,22 +54,19 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'my_tickets',
       'my_voting',
       'my_units',
+      'financial_controls',
     ],
     allowedCapabilities: [
       'can_view_operations',
       'can_view_financials',
-      'can_view_accounting',
-      'can_view_maintenance',
-      'can_manage_work_orders',
-      'can_view_communications',
-      'can_view_documents',
       'can_view_audit',
     ],
     forbiddenCapabilities: [
       'can_view_my_residence',
       'can_view_my_consumption',
+      'is_read_only',
     ],
-    forbiddenData: [],
+    forbiddenData: ['cross_tenant_data'],
     allowedNavLinks: [
       '/app/dashboard',
       '/app/accounting',
@@ -78,16 +74,29 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/meters',
       '/app/assets',
       '/app/maintenance',
+      '/app/procurement',
       '/app/vendors',
+      '/app/purchase-orders',
+      '/app/vendor-contracts',
+      '/app/vendor-sla',
       '/app/governance',
       '/app/meetings',
       '/app/communications',
       '/app/notifications',
       '/app/documents',
+      '/app/documents/[id]',
       '/app/occupancy',
+      '/app/occupancy/[id]',
+      '/app/residents',
       '/app/ownership',
+      '/app/leases',
       '/app/security-access',
+      '/app/access-logs',
+      '/app/credentials',
+      '/app/visitors',
       '/app/billing',
+      '/app/invoices',
+      '/app/receivables',
       '/app/payments',
       '/app/reconciliation',
       '/app/audit',
@@ -99,15 +108,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     role: 'property_manager',
     personaTitle: 'Property Manager',
     isReadOnly: false,
-    allowedSections: [
-      'operations',
-      'financials',
-      'maintenance',
-      'communications',
-      'documents',
-      'modules',
-      'audit',
-    ],
+    allowedSections: ['operations', 'financials', 'audit'],
     forbiddenSections: [
       'my_residence',
       'my_expenses',
@@ -115,22 +116,19 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'my_tickets',
       'my_voting',
       'my_units',
+      'financial_controls',
     ],
     allowedCapabilities: [
       'can_view_operations',
       'can_view_financials',
-      'can_view_accounting',
-      'can_view_maintenance',
-      'can_manage_work_orders',
-      'can_view_communications',
-      'can_view_documents',
       'can_view_audit',
     ],
     forbiddenCapabilities: [
       'can_view_my_residence',
       'can_view_my_consumption',
+      'is_read_only',
     ],
-    forbiddenData: [],
+    forbiddenData: ['cross_tenant_data'],
     allowedNavLinks: [
       '/app/dashboard',
       '/app/accounting',
@@ -138,16 +136,29 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/meters',
       '/app/assets',
       '/app/maintenance',
+      '/app/procurement',
       '/app/vendors',
+      '/app/purchase-orders',
+      '/app/vendor-contracts',
+      '/app/vendor-sla',
       '/app/governance',
       '/app/meetings',
       '/app/communications',
       '/app/notifications',
       '/app/documents',
+      '/app/documents/[id]',
       '/app/occupancy',
+      '/app/occupancy/[id]',
+      '/app/residents',
       '/app/ownership',
+      '/app/leases',
       '/app/security-access',
+      '/app/access-logs',
+      '/app/credentials',
+      '/app/visitors',
       '/app/billing',
+      '/app/invoices',
+      '/app/receivables',
       '/app/payments',
       '/app/reconciliation',
       '/app/audit',
@@ -159,27 +170,22 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     role: 'president',
     personaTitle: 'Association President',
     isReadOnly: true,
-    allowedSections: [
-      'governance',
-      'financial_summary',
-      'contracts',
-      'operations_summary',
-      'audit',
-    ],
+    allowedSections: ['governance', 'financial_summary', 'audit'],
     forbiddenSections: [
       'operations',
+      'maintenance',
+      'financial_controls',
       'my_residence',
       'my_expenses',
       'my_consumption',
       'my_tickets',
       'my_voting',
       'my_units',
+      'security_access',
     ],
     allowedCapabilities: [
       'can_view_governance',
       'can_view_financial_summary',
-      'can_view_contracts',
-      'can_view_operations_summary',
       'can_view_audit',
       'is_read_only',
     ],
@@ -187,42 +193,67 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_manage_work_orders',
       'can_view_my_residence',
       'can_view_my_consumption',
+      'can_view_credentials',
+      'can_view_access_logs',
     ],
-    forbiddenData: [],
+    forbiddenData: [
+      'security_credentials',
+      'access_logs',
+      'other_units_private_info',
+    ],
     allowedNavLinks: [
       '/app/dashboard',
       '/app/governance',
       '/app/meetings',
       '/app/documents',
+      '/app/documents/[id]',
       '/app/vendors',
-      '/app/audit',
+      '/app/vendor-contracts',
+      '/app/vendor-sla',
       '/app/communications',
       '/app/notifications',
+      '/app/accounting',
+      '/app/billing',
+      '/app/invoices',
+      '/app/receivables',
+      '/app/audit',
     ],
-    forbiddenNavLinks: [],
+    forbiddenNavLinks: [
+      '/app/security-access',
+      '/app/access-logs',
+      '/app/credentials',
+      '/app/visitors',
+      '/app/maintenance',
+      '/app/assets',
+      '/app/purchase-orders',
+      '/app/procurement',
+      '/app/occupancy',
+      '/app/occupancy/[id]',
+      '/app/residents',
+      '/app/ownership',
+      '/app/leases',
+      '/app/reconciliation',
+    ],
   },
 
   censor: {
     role: 'censor',
     personaTitle: 'Financial Censor / Auditor',
     isReadOnly: true,
-    allowedSections: [
-      'financial_controls',
-      'control_documents',
-      'discrepancies',
-      'audit_trail',
-    ],
+    allowedSections: ['financial_controls', 'audit'],
     forbiddenSections: [
       'operations',
       'maintenance',
+      'governance',
       'my_residence',
       'my_expenses',
       'my_units',
+      'my_consumption',
       'service_requests',
+      'security_access',
     ],
     allowedCapabilities: [
       'can_view_financial_controls',
-      'can_view_documents',
       'can_view_audit',
       'is_read_only',
     ],
@@ -232,48 +263,71 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_approve_requests',
       'can_register_items',
     ],
-    forbiddenData: [],
+    forbiddenData: [
+      'resident_directory',
+      'security_credentials',
+      'access_logs',
+    ],
     allowedNavLinks: [
       '/app/dashboard',
       '/app/accounting',
       '/app/accounting/allocations',
+      '/app/billing',
+      '/app/invoices',
+      '/app/receivables',
+      '/app/payments',
+      '/app/reconciliation',
       '/app/documents',
+      '/app/documents/[id]',
       '/app/audit',
     ],
-    forbiddenNavLinks: [],
+    forbiddenNavLinks: [
+      '/app/governance',
+      '/app/meetings',
+      '/app/maintenance',
+      '/app/assets',
+      '/app/vendors',
+      '/app/procurement',
+      '/app/purchase-orders',
+      '/app/vendor-contracts',
+      '/app/vendor-sla',
+      '/app/meters',
+      '/app/communications',
+      '/app/notifications',
+      '/app/occupancy',
+      '/app/occupancy/[id]',
+      '/app/residents',
+      '/app/ownership',
+      '/app/leases',
+      '/app/security-access',
+      '/app/access-logs',
+      '/app/credentials',
+      '/app/visitors',
+    ],
   },
 
   owner: {
     role: 'owner',
     personaTitle: 'Property Owner',
     isReadOnly: false,
-    allowedSections: [
-      'my_units',
-      'my_financials',
-      'my_documents',
-      'my_voting',
-      'service_requests',
-    ],
+    allowedSections: ['my_units', 'my_financials'],
     forbiddenSections: [
       'operations',
       'maintenance',
       'audit',
-      'audit_trail',
       'financial_controls',
-      'contracts',
+      'financial_summary',
       'credentials',
       'access_logs',
       'residents_directory',
       'all_units',
       'my_residence',
+      'my_expenses',
       'my_consumption',
     ],
     allowedCapabilities: [
       'can_view_my_units',
       'can_view_my_financials',
-      'can_view_my_documents',
-      'can_view_my_voting',
-      'can_view_service_requests',
     ],
     forbiddenCapabilities: [
       'can_view_audit',
@@ -294,11 +348,16 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedNavLinks: [
       '/app/dashboard',
       '/app/documents',
+      '/app/documents/[id]',
       '/app/governance',
+      '/app/meetings',
       '/app/communications',
       '/app/notifications',
       '/app/billing',
+      '/app/invoices',
+      '/app/receivables',
       '/app/payments',
+      '/app/meters',
     ],
     forbiddenNavLinks: [
       '/app/audit',
@@ -306,6 +365,21 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/access-logs',
       '/app/credentials',
       '/app/visitors',
+      '/app/occupancy',
+      '/app/occupancy/[id]',
+      '/app/residents',
+      '/app/ownership',
+      '/app/leases',
+      '/app/accounting',
+      '/app/accounting/allocations',
+      '/app/reconciliation',
+      '/app/assets',
+      '/app/maintenance',
+      '/app/procurement',
+      '/app/vendors',
+      '/app/purchase-orders',
+      '/app/vendor-contracts',
+      '/app/vendor-sla',
     ],
   },
 
@@ -313,20 +387,13 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     role: 'tenant_resident',
     personaTitle: 'Tenant / Resident',
     isReadOnly: false,
-    allowedSections: [
-      'my_residence',
-      'my_expenses',
-      'my_payments',
-      'my_consumption',
-      'my_tickets',
-      'resident_notices',
-    ],
+    allowedSections: ['my_residence', 'my_expenses', 'my_consumption'],
     forbiddenSections: [
       'operations',
       'maintenance',
       'audit',
-      'audit_trail',
       'financial_controls',
+      'financial_summary',
       'contracts',
       'governance',
       'ownership',
@@ -340,10 +407,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedCapabilities: [
       'can_view_my_residence',
       'can_view_my_expenses',
-      'can_view_my_payments',
       'can_view_my_consumption',
-      'can_view_my_tickets',
-      'can_view_resident_notices',
     ],
     forbiddenCapabilities: [
       'can_view_audit',
@@ -366,24 +430,60 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     ],
     allowedNavLinks: [
       '/app/dashboard',
-      '/app/meters',
+      '/app/documents',
+      '/app/documents/[id]',
       '/app/communications',
       '/app/notifications',
-      '/app/documents',
       '/app/billing',
+      '/app/invoices',
+      '/app/receivables',
       '/app/payments',
+      '/app/meters',
     ],
     forbiddenNavLinks: [
+      '/app/governance',
+      '/app/meetings',
       '/app/audit',
-      '/app/ownership',
       '/app/security-access',
       '/app/access-logs',
       '/app/credentials',
       '/app/visitors',
-      '/app/governance',
+      '/app/occupancy',
+      '/app/occupancy/[id]',
+      '/app/residents',
+      '/app/ownership',
+      '/app/leases',
+      '/app/accounting',
+      '/app/accounting/allocations',
+      '/app/reconciliation',
+      '/app/assets',
+      '/app/maintenance',
+      '/app/procurement',
+      '/app/vendors',
+      '/app/purchase-orders',
+      '/app/vendor-contracts',
+      '/app/vendor-sla',
     ],
   },
 };
+
+/**
+ * Validates whether a route pattern matches a clean URL path.
+ * Supports exact paths (e.g. '/app/documents') and dynamic parameters
+ * (e.g. '/app/documents/[id]' matching '/app/documents/123').
+ * Strictly prevents prefix matching bugs (e.g. '/app/audit-malicious').
+ */
+export function matchesRoutePattern(pattern: string, path: string): boolean {
+  if (pattern === path) return true;
+  if (pattern.endsWith('/[id]')) {
+    const base = pattern.slice(0, -5);
+    if (path.startsWith(`${base}/`)) {
+      const rest = path.slice(base.length + 1);
+      return rest.length > 0 && !rest.includes('/');
+    }
+  }
+  return false;
+}
 
 /**
  * Validates whether a role code is one of the 6 canonical roles.
@@ -400,6 +500,51 @@ export function isCanonicalRole(role: string | null | undefined): role is Canoni
 export function getPersonaMatrix(role: string | null | undefined): PersonaMatrixDefinition | null {
   if (!role || !isCanonicalRole(role)) return null;
   return PERSONA_ACCESS_MATRIX[role.toLowerCase() as CanonicalRole] ?? null;
+}
+
+/**
+ * Authoritative client-side route allowlist check for a persona.
+ * Enforces:
+ * 1. Role must be canonical.
+ * 2. Route must be in the persona's allowedNavLinks allowlist.
+ * 3. Route must not be an unreleased/mock route.
+ * 4. Route must not be in the persona's forbiddenNavLinks.
+ * 5. Prefix/fake routes are rejected.
+ */
+export function isRouteAllowedForPersona(
+  role: string | null | undefined,
+  path: string
+): boolean {
+  if (!role || !isCanonicalRole(role)) return false;
+  const matrix = getPersonaMatrix(role);
+  if (!matrix) return false;
+
+  // Clean path (strip language prefix if present, strip trailing slash)
+  const normalized = path.replace(/^\/(?:ro|en|fa)/, '');
+  const cleanPath = normalized === '/' ? normalized : normalized.replace(/\/$/, '');
+
+  // 1. Explicitly unavailable routes are always denied
+  if (
+    EXPLICITLY_UNAVAILABLE_ROUTES.some((mock) =>
+      matchesRoutePattern(mock, cleanPath)
+    )
+  ) {
+    return false;
+  }
+
+  // 2. Extra defense-in-depth: check forbidden list
+  if (
+    matrix.forbiddenNavLinks.some((forbidden) =>
+      matchesRoutePattern(forbidden, cleanPath)
+    )
+  ) {
+    return false;
+  }
+
+  // 3. Must be explicitly contained in allowedNavLinks
+  return matrix.allowedNavLinks.some((allowed) =>
+    matchesRoutePattern(allowed, cleanPath)
+  );
 }
 
 /**

@@ -2,11 +2,14 @@ begin;
 
 create or replace function platform.get_customer_dashboard(p_context_id uuid)
 returns jsonb language plpgsql stable security definer
-set search_path=pg_catalog,platform,identity,portfolio,maintenance,billing,communications
+set search_path=pg_catalog,platform,identity,portfolio,maintenance,billing,communications,occupancy
 as $$
 declare
   v record;
   v_workspace uuid;
+  v_party_id uuid;
+  v_ownership_id uuid;
+  v_lease_id uuid;
   v_entitlements jsonb;
   v_permissions jsonb;
   v_modules jsonb;
@@ -73,13 +76,21 @@ begin
     raise exception 'workspace_inactive' using errcode = '42501';
   end if;
 
-  -- 6. Server-authoritative entitlements and permissions extraction
+  -- 6. Server-authoritative entitlements and permissions extraction with full override semantics
   select coalesce(jsonb_agg(e.entitlement_key order by e.entitlement_key), '[]'::jsonb)
   into v_entitlements
   from platform.workspace_entitlements e
   where e.customer_workspace_id = v_workspace
     and e.valid_from <= statement_timestamp()
-    and (e.valid_until is null or e.valid_until > statement_timestamp());
+    and (e.valid_until is null or e.valid_until > statement_timestamp())
+    and (
+      case
+        when e.override_value_json is not null
+         and e.override_expires_at > statement_timestamp()
+        then e.override_value_json = 'true'::jsonb
+        else e.boolean_value is true
+      end
+    );
 
   select coalesce(jsonb_agg(distinct p.code order by p.code), '[]'::jsonb)
   into v_permissions
@@ -87,7 +98,7 @@ begin
   join identity.permissions p on p.id = rp.permission_id
   where rp.role_id = v.role_id and rp.effect = 'allow';
 
-  -- 7. Server-authoritative module visibility derivation (no client or API guessing)
+  -- 7. Server-authoritative module visibility derivation (intersection of permission + active entitlement)
   select coalesce(jsonb_agg(m order by m), '[]'::jsonb)
   into v_modules
   from (
@@ -118,13 +129,76 @@ begin
     select 'audit' where (v_permissions ? 'audit.events.read')
   ) t;
 
-  -- 8. Role-aware Persona matrix, sections, capabilities, and isolated KPIs
+  -- 8. Deep Resident Validation (owner and tenant_resident)
+  if v.role_code in ('owner', 'tenant_resident') then
+    -- 8.1 Unit context requirement: scope_type must be unit and unit_id not null
+    if v.scope_type <> 'unit' or v.unit_id is null then
+      raise exception 'unit_context_required' using errcode = '42501';
+    end if;
+
+    -- 8.2 Party mapping requirement
+    select mp.party_id into v_party_id
+    from identity.membership_parties mp
+    where mp.membership_id = v.membership_key
+      and mp.tenant_id = v.tenant_id;
+
+    if v_party_id is null then
+      raise exception 'resident_party_mapping_required' using errcode = '42501';
+    end if;
+
+    -- 8.3 Owner validation: active ownership record
+    if v.role_code = 'owner' then
+      select o.id into v_ownership_id
+      from portfolio.ownerships o
+      where o.tenant_id = v.tenant_id
+        and o.unit_id = v.unit_id
+        and o.party_id = v_party_id
+        and o.valid_from <= current_date
+        and (o.valid_to is null or o.valid_to > current_date)
+      limit 1;
+
+      if v_ownership_id is null then
+        raise exception 'ownership_required' using errcode = '42501';
+      end if;
+
+    -- 8.4 Tenant-resident validation: active lease
+    elsif v.role_code = 'tenant_resident' then
+      select l.id into v_lease_id
+      from occupancy.leases l
+      where l.tenant_id = v.tenant_id
+        and l.unit_id = v.unit_id
+        and l.tenant_party_id = v_party_id
+        and l.status = 'active'
+        and l.starts_on <= current_date
+        and (l.ends_on is null or l.ends_on > current_date)
+      limit 1;
+
+      if v_lease_id is null then
+        raise exception 'active_lease_required' using errcode = '42501';
+      end if;
+    end if;
+  end if;
+
+  -- 9. Role-aware Persona matrix, sections, capabilities, and isolated KPIs
   if v.role_code in ('association_admin', 'property_manager') then
     v_persona := v.role_code;
-    v_sections := jsonb_build_array('operations', 'financials', 'maintenance', 'communications', 'documents', 'modules')
-      || (case when v_permissions ? 'audit.events.read' then jsonb_build_array('audit') else '[]'::jsonb end);
-    v_capabilities := jsonb_build_array('can_view_operations', 'can_view_financials', 'can_view_accounting', 'can_view_maintenance', 'can_manage_work_orders', 'can_view_communications', 'can_view_documents')
-      || (case when v_permissions ? 'audit.events.read' then jsonb_build_array('can_view_audit') else '[]'::jsonb end);
+    v_sections := '[]'::jsonb;
+    v_capabilities := '[]'::jsonb;
+
+    if (v_permissions ? 'maintenance.assets.read') and (v_entitlements ? 'module.maintenance') then
+      v_sections := v_sections || jsonb_build_array('operations');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_operations');
+    end if;
+
+    if (v_permissions ? 'billing.receivables.read') and (v_entitlements ? 'module.billing') then
+      v_sections := v_sections || jsonb_build_array('financials');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_financials');
+    end if;
+
+    if v_permissions ? 'audit.events.read' then
+      v_sections := v_sections || jsonb_build_array('audit');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_audit');
+    end if;
 
     v_kpis := jsonb_build_object(
       'properties', (select count(*) from portfolio.properties p where p.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or p.id = v.property_id or p.id = (select b.property_id from portfolio.buildings b where b.id = v.building_id) or p.id = (select b.property_id from portfolio.units u join portfolio.buildings b on b.id = u.building_id where u.id = v.unit_id))),
@@ -137,10 +211,23 @@ begin
 
   elsif v.role_code = 'president' then
     v_persona := 'president';
-    v_sections := jsonb_build_array('governance', 'financial_summary', 'contracts', 'operations_summary')
-      || (case when v_permissions ? 'audit.events.read' then jsonb_build_array('audit') else '[]'::jsonb end);
-    v_capabilities := jsonb_build_array('can_view_governance', 'can_view_financial_summary', 'can_view_contracts', 'can_view_operations_summary', 'is_read_only')
-      || (case when v_permissions ? 'audit.events.read' then jsonb_build_array('can_view_audit') else '[]'::jsonb end);
+    v_sections := '[]'::jsonb;
+    v_capabilities := jsonb_build_array('is_read_only');
+
+    if (v_permissions ? 'governance.meetings.read') and (v_entitlements ? 'module.governance') then
+      v_sections := v_sections || jsonb_build_array('governance');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_governance');
+    end if;
+
+    if (v_permissions ? 'billing.receivables.read' or v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.billing' or v_entitlements ? 'module.accounting') then
+      v_sections := v_sections || jsonb_build_array('financial_summary');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_financial_summary');
+    end if;
+
+    if v_permissions ? 'audit.events.read' then
+      v_sections := v_sections || jsonb_build_array('audit');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_audit');
+    end if;
 
     v_kpis := jsonb_build_object(
       'buildings', (select count(*) from portfolio.buildings b where b.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or b.property_id = v.property_id or b.id = v.building_id)),
@@ -153,10 +240,18 @@ begin
 
   elsif v.role_code = 'censor' then
     v_persona := 'censor';
-    v_sections := jsonb_build_array('financial_controls', 'control_documents', 'discrepancies')
-      || (case when v_permissions ? 'audit.events.read' then jsonb_build_array('audit_trail') else '[]'::jsonb end);
-    v_capabilities := jsonb_build_array('can_view_financial_controls', 'can_view_documents', 'is_read_only')
-      || (case when v_permissions ? 'audit.events.read' then jsonb_build_array('can_view_audit') else '[]'::jsonb end);
+    v_sections := '[]'::jsonb;
+    v_capabilities := jsonb_build_array('is_read_only');
+
+    if (v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.accounting') then
+      v_sections := v_sections || jsonb_build_array('financial_controls');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_financial_controls');
+    end if;
+
+    if v_permissions ? 'audit.events.read' then
+      v_sections := v_sections || jsonb_build_array('audit');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_audit');
+    end if;
 
     v_kpis := jsonb_build_object(
       'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id)),
@@ -167,29 +262,49 @@ begin
 
   elsif v.role_code = 'owner' then
     v_persona := 'owner';
-    v_sections := jsonb_build_array('my_units', 'my_financials', 'my_documents', 'my_voting', 'service_requests');
-    v_capabilities := jsonb_build_array('can_view_my_units', 'can_view_my_financials', 'can_view_my_documents', 'can_view_my_voting', 'can_view_service_requests');
+    v_sections := '[]'::jsonb;
+    v_capabilities := '[]'::jsonb;
 
+    v_sections := v_sections || jsonb_build_array('my_units');
+    v_capabilities := v_capabilities || jsonb_build_array('can_view_my_units');
+
+    if (v_permissions ? 'billing.receivables.read') and (v_entitlements ? 'module.billing') then
+      v_sections := v_sections || jsonb_build_array('my_financials');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_my_financials');
+    end if;
+
+    -- Strict unit-only isolation: unit_id matches the validated ownership unit!
     v_kpis := jsonb_build_object(
-      'my_units_count', (select count(*) from portfolio.units u where u.tenant_id = v.tenant_id and (case when v.scope_type = 'unit' then u.id = v.unit_id else (u.id = v.unit_id or (v.scope_type = 'property' and u.building_id in (select b.id from portfolio.buildings b where b.property_id = v.property_id))) end)),
-      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and (case when v.scope_type = 'unit' then i.unit_id = v.unit_id else (i.unit_id = v.unit_id or (v.scope_type = 'property' and i.property_id = v.property_id)) end)),
+      'my_units_count', (select count(*) from portfolio.ownerships o where o.tenant_id = v.tenant_id and o.unit_id = v.unit_id and o.party_id = v_party_id and o.valid_from <= current_date and (o.valid_to is null or o.valid_to > current_date)),
+      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and i.unit_id = v.unit_id),
       'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null),
-      'my_open_requests', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (case when v.scope_type = 'unit' then w.unit_id = v.unit_id else (w.unit_id = v.unit_id or (v.scope_type = 'property' and w.property_id = v.property_id)) end))
+      'my_open_requests', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.unit_id = v.unit_id and w.status not in ('completed','verified','cancelled'))
     );
 
   elsif v.role_code = 'tenant_resident' then
     v_persona := 'tenant_resident';
-    v_sections := jsonb_build_array('my_residence', 'my_expenses', 'my_payments', 'my_consumption', 'my_tickets', 'resident_notices');
-    v_capabilities := jsonb_build_array('can_view_my_residence', 'can_view_my_expenses', 'can_view_my_payments', 'can_view_my_consumption', 'can_view_my_tickets', 'can_view_resident_notices');
+    v_sections := jsonb_build_array('my_residence');
+    v_capabilities := jsonb_build_array('can_view_my_residence');
 
+    if (v_permissions ? 'billing.receivables.read') and (v_entitlements ? 'module.billing') then
+      v_sections := v_sections || jsonb_build_array('my_expenses');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_my_expenses');
+    end if;
+
+    if (v_permissions ? 'utilities.metering.read') and (v_entitlements ? 'module.utilities') then
+      v_sections := v_sections || jsonb_build_array('my_consumption');
+      v_capabilities := v_capabilities || jsonb_build_array('can_view_my_consumption');
+    end if;
+
+    -- Strict unit & tenant party isolation!
     v_kpis := jsonb_build_object(
-      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and (case when v.unit_id is not null then i.unit_id = v.unit_id else false end)),
-      'my_open_tickets', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (case when v.unit_id is not null then w.unit_id = v.unit_id else false end)),
+      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and i.unit_id = v.unit_id and (i.liable_party_id is null or i.liable_party_id = v_party_id)),
+      'my_open_tickets', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.unit_id = v.unit_id and w.status not in ('completed','verified','cancelled')),
       'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null)
     );
   end if;
 
-  -- 9. Explicit versioned response construction
+  -- 10. Explicit versioned response construction
   return jsonb_build_object(
     'version', 1,
     'persona', v_persona,

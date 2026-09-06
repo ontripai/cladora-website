@@ -3,21 +3,16 @@
 import React from 'react';
 import Link from 'next/link';
 import {
-  AlertTriangle,
-  ArrowRight,
   ArrowLeft,
-  Bell,
-  Boxes,
+  ArrowRight,
   Building2,
   CheckCircle2,
   CreditCard,
   Eye,
-  FileCheck2,
   FileSpreadsheet,
   FileText,
   Gavel,
   Home,
-  Layers3,
   Loader2,
   Lock,
   Megaphone,
@@ -26,7 +21,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   TrendingUp,
-  UserCheck,
   UsersRound,
   Wallet,
   Wrench,
@@ -56,6 +50,16 @@ const copy = {
     ownerBadge: 'Panou Proprietar',
     residentBadge: 'Panou Rezident / Chiriaș',
     managementBadge: 'Panou Operativ & Administrare',
+    supervisoryOversight: 'Supraveghere — Exclusiv Citire',
+    activeMeters: 'Contoare active',
+    auditEncryption: 'Criptat AAL2',
+    buildingsUnits: (b: string | number, u: string | number) => `${b} clădiri · ${u} unități`,
+    scopes: {
+      tenant: 'Asociație',
+      property: 'Proprietate',
+      building: 'Clădire',
+      unit: 'Unitate',
+    },
     kpis: {
       properties: 'Proprietăți în context',
       buildings: 'Clădiri în context',
@@ -81,8 +85,6 @@ const copy = {
       financialSummaryDesc: 'Raport sintetic al activelor, colectărilor și angajamentelor financiare.',
       financialControls: 'Controale Financiare & Cenzorat',
       financialControlsDesc: 'Inspecție nealterabilă a registrelor contabile, jurnalelor și reconcilierilor.',
-      contracts: 'Contracte Furnizori & SLA',
-      contractsDesc: 'Evidența acordurilor comerciale, prestărilor de servicii și conformității.',
       myUnits: 'Proprietățile Mele',
       myUnitsDesc: 'Unitățile deținute conform actelor de proprietate înregistrate.',
       myFinancials: 'Situația Mea Financiară',
@@ -93,25 +95,17 @@ const copy = {
       myExpensesDesc: 'Detalierea cheltuielilor de întreținere și a consumurilor de utilități.',
       myConsumption: 'Contoare & Consumuri Individuale',
       myConsumptionDesc: 'Indexurile contoarelor de apă, energie și termie asociate unității.',
-      myDocuments: 'Documente & Acte',
-      myDocumentsDesc: 'Contracte, adeverințe și documente oficiale emise pentru dumneavoastră.',
-      serviceRequests: 'Cereri de Mentenanță & Suport',
-      serviceRequestsDesc: 'Transmiteți și urmăriți intervențiile tehnice pentru spațiul dumneavoastră.',
       audit: 'Jurnal de Audit Securizat',
       auditDesc: 'Urmărirea evenimentelor administrative cu trasabilitate criptografică.',
-      modules: 'Module Active în Spațiu',
-      modulesDesc: 'Capabilitățile licențiate și activate pentru acest complex rezidențial.',
     },
     actions: {
       viewDetails: 'Vizualizează detalii',
-      manageWork: 'Gestionează intervenții',
+      viewWorkOrders: 'Vezi comenzi de lucru',
       viewInvoices: 'Vezi facturi & creanțe',
       inspectLedger: 'Inspectează registru contabil',
       viewGovernance: 'Vezi hotărâri asociație',
-      submitRequest: 'Trimite cerere service',
       viewMeters: 'Vezi contoare & consum',
       viewAudit: 'Consultă jurnal audit',
-      payNow: 'Plătește securizat',
     },
   },
   en: {
@@ -127,6 +121,16 @@ const copy = {
     ownerBadge: 'Owner Portal',
     residentBadge: 'Resident / Tenant Portal',
     managementBadge: 'Operations & Management Portal',
+    supervisoryOversight: 'ReadOnly Oversight',
+    activeMeters: 'Active meters',
+    auditEncryption: 'AAL2 Encrypted',
+    buildingsUnits: (b: string | number, u: string | number) => `${b} buildings · ${u} units`,
+    scopes: {
+      tenant: 'Association',
+      property: 'Property',
+      building: 'Building',
+      unit: 'Unit',
+    },
     kpis: {
       properties: 'Properties in context',
       buildings: 'Buildings in context',
@@ -152,8 +156,6 @@ const copy = {
       financialSummaryDesc: 'Executive overview of assets, collections, and financial commitments.',
       financialControls: 'Financial Controls & Censor Audit',
       financialControlsDesc: 'Immutable inspection of general ledger journals and reconciliation checks.',
-      contracts: 'Vendor Contracts & SLAs',
-      contractsDesc: 'Register of commercial agreements, supplier performance, and compliance.',
       myUnits: 'My Properties',
       myUnitsDesc: 'Units owned according to recorded property registry titles.',
       myFinancials: 'My Financial Account',
@@ -164,25 +166,17 @@ const copy = {
       myExpensesDesc: 'Itemized maintenance charges and utility consumption shares.',
       myConsumption: 'Individual Meters & Consumption',
       myConsumptionDesc: 'Meter readings for water, electricity, and heating for your unit.',
-      myDocuments: 'Documents & Records',
-      myDocumentsDesc: 'Contracts, certificates, and official documents issued for your context.',
-      serviceRequests: 'Maintenance & Service Requests',
-      serviceRequestsDesc: 'Submit and track technical requests for your private premises.',
       audit: 'Cryptographic Audit Trail',
       auditDesc: 'Chronological tracking of administrative actions and compliance logs.',
-      modules: 'Active Workspace Modules',
-      modulesDesc: 'Entitled capabilities enabled for this residential community.',
     },
     actions: {
       viewDetails: 'View details',
-      manageWork: 'Manage work orders',
+      viewWorkOrders: 'View work orders',
       viewInvoices: 'View invoices & receivables',
       inspectLedger: 'Inspect ledger',
       viewGovernance: 'View governance records',
-      submitRequest: 'Submit service request',
       viewMeters: 'View meters & readings',
       viewAudit: 'View audit trail',
-      payNow: 'Pay securely',
     },
   },
   fa: {
@@ -198,6 +192,16 @@ const copy = {
     ownerBadge: 'پنل اختصاصی مالک',
     residentBadge: 'پنل اختصاصی ساکن / مستأجر',
     managementBadge: 'پنل مدیریت و عملیات',
+    supervisoryOversight: 'نظارت حاکمیتی — صرفاً خواندنی',
+    activeMeters: 'کنتورهای فعال',
+    auditEncryption: 'رمزنگاری‌شده AAL2',
+    buildingsUnits: (b: string | number, u: string | number) => `${b} ساختمان · ${u} واحد`,
+    scopes: {
+      tenant: 'انجمن',
+      property: 'مجتمع',
+      building: 'ساختمان',
+      unit: 'واحد',
+    },
     kpis: {
       properties: 'املاک در این زمینه',
       buildings: 'ساختمان‌های فعال',
@@ -223,8 +227,6 @@ const copy = {
       financialSummaryDesc: 'نمای راهبردی دریافت‌ها، پرداخت‌ها و بودجه مصوب.',
       financialControls: 'کنترل‌های مالی و بازرسی (بازرس)',
       financialControlsDesc: 'بازرسی مستقل دفاتر کل، اسناد حسابداری و تطبیق‌های مالی بدون امکان تغییر.',
-      contracts: 'قراردادها و پیمانکاران',
-      contractsDesc: 'فهرست قراردادهای خدماتی، توافق‌نامه‌ها و شاخص‌های کیفی.',
       myUnits: 'واحدهای من',
       myUnitsDesc: 'مشخصات واحدهای ثبت‌شده تحت مالکیت شما.',
       myFinancials: 'وضعیت مالی واحد من',
@@ -235,25 +237,17 @@ const copy = {
       myExpensesDesc: 'ریز هزینه‌های شارژ، خدمات و سهم مصرفی واحد.',
       myConsumption: 'کنتورها و مصارف اختصاصی',
       myConsumptionDesc: 'ثبت و پیگیری ارقام کنتورهای آب، برق و گاز اختصاصی.',
-      myDocuments: 'اسناد و مدارک',
-      myDocumentsDesc: 'اسناد مالکیت، صورتجلسات و مدارک رسمی مرتبط.',
-      serviceRequests: 'درخواست‌های خدمات و نگهداری',
-      serviceRequestsDesc: 'ثبت درخواست‌های فنی و پیگیری روند رفع ایرادات واحد.',
       audit: 'ردیابی و بازرسی امنیتی',
       auditDesc: 'لاگ دقیق رویدادها و تصمیمات مدیریتی با قابلیت اعتبارسنجی.',
-      modules: 'ماژول‌های فعال مجتمع',
-      modulesDesc: 'سرویس‌ها و ماژول‌های فعال‌شده در فضای کاری این مجتمع.',
     },
     actions: {
       viewDetails: 'مشاهده جزئیات',
-      manageWork: 'مدیریت سفارش‌ها',
+      viewWorkOrders: 'مشاهده دستور کارها',
       viewInvoices: 'مشاهده صورتحساب‌ها',
       inspectLedger: 'بازرسی دفاتر کل',
       viewGovernance: 'مشاهده مصوبات',
-      submitRequest: 'ثبت درخواست جدید',
       viewMeters: 'مشاهده کنتورها',
       viewAudit: 'مشاهده گزارش بازرسی',
-      payNow: 'پرداخت امن',
     },
   },
 } as const;
@@ -296,10 +290,25 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
     );
   }
 
-  const roleCode = (dashboard.context.role_code || '').toLowerCase();
+  // 1. Version enforcement: payload must be version 1
+  if (dashboard.version !== 1) {
+    return <AccessRestrictedCard lang={lang} reason="unknown" />;
+  }
 
-  // Fail-closed if role is non-canonical or unauthenticated
+  const roleCode = (dashboard.context?.role_code || '').toLowerCase();
+
+  // 2. Canonical role enforcement
   if (!isCanonicalRole(roleCode)) {
+    return <AccessRestrictedCard lang={lang} reason="unknown" />;
+  }
+
+  // 3. Persona / context role consistency enforcement
+  if (!dashboard.persona || dashboard.persona.toLowerCase() !== roleCode) {
+    return <AccessRestrictedCard lang={lang} reason="unknown" />;
+  }
+
+  // 4. Arrays integrity enforcement
+  if (!Array.isArray(dashboard.sections) || !Array.isArray(dashboard.capabilities)) {
     return <AccessRestrictedCard lang={lang} reason="unknown" />;
   }
 
@@ -319,284 +328,242 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
     ).format(numeric);
   };
 
-  // Helper formatting for integer counters
-  const formatInt = (val: number | string | undefined) => {
-    const numeric = typeof val === 'number' ? val : Number(val) || 0;
+  // Helper formatting for integer quantities
+  const formatInt = (amount: number | string | undefined) => {
+    const numeric = typeof amount === 'number' ? amount : Number(amount) || 0;
     return new Intl.NumberFormat(
       lang === 'fa' ? 'fa-IR' : lang === 'ro' ? 'ro-RO' : 'en-US'
     ).format(numeric);
   };
 
-  // ---------------------------------------------------------------------------
-  // KPI Definitions based on Authoritative Persona
-  // ---------------------------------------------------------------------------
-  const renderKpis = () => {
-    if (role === 'association_admin' || role === 'property_manager') {
-      return (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.properties}</span>
-              <Home className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.properties)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.buildings}</span>
-              <Building2 className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.buildings)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.units}</span>
-              <Layers3 className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.units)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.work}</span>
-              <Wrench className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.open_work_orders)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.notifications}</span>
-              <Bell className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.unread_notifications)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.receivables}</span>
-              <Wallet className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatCurrency(k.outstanding_amount)}</div>
-          </div>
-        </div>
-      );
-    }
-
-    if (role === 'president') {
-      return (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.buildings}</span>
-              <Building2 className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.buildings)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.units}</span>
-              <Layers3 className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.units)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.work}</span>
-              <Wrench className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.open_work_orders)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.pendingApprovals}</span>
-              <Gavel className="h-5 w-5 text-[#D97706]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#D97706]">{formatInt(k.pending_approvals)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.notifications}</span>
-              <Bell className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.unread_notifications)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.receivables}</span>
-              <Wallet className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatCurrency(k.outstanding_amount)}</div>
-          </div>
-        </div>
-      );
-    }
-
-    if (role === 'censor') {
-      return (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.receivables}</span>
-              <Scale className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatCurrency(k.outstanding_amount)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.work}</span>
-              <Wrench className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.open_work_orders)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.financialRecords}</span>
-              <FileSpreadsheet className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.financial_records)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.notifications}</span>
-              <Bell className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.unread_notifications)}</div>
-          </div>
-        </div>
-      );
-    }
-
-    if (role === 'owner') {
-      return (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.myUnits}</span>
-              <Home className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.my_units_count ?? 1)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.receivables}</span>
-              <CreditCard className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatCurrency(k.outstanding_amount)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.myOpenRequests}</span>
-              <Wrench className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.my_open_requests)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.notifications}</span>
-              <Bell className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.unread_notifications)}</div>
-          </div>
-        </div>
-      );
-    }
-
-    if (role === 'tenant_resident') {
-      return (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.outstandingCharges}</span>
-              <CreditCard className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatCurrency(k.outstanding_amount)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.myOpenTickets}</span>
-              <Wrench className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.my_open_tickets)}</div>
-          </div>
-
-          <div className="card-proptech rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#52667A]">{t.kpis.notifications}</span>
-              <Bell className="h-5 w-5 text-[#0E9F8E]" />
-            </div>
-            <div className="mt-3 text-2xl font-extrabold text-[#102A43]">{formatInt(k.unread_notifications)}</div>
-          </div>
-        </div>
-      );
-    }
-
-    return null;
+  /**
+   * Safe, server-authoritative section check.
+   * Section must be allowed in local matrix AND returned by the server RPC response.
+   */
+  const canRenderDashboardSection = (
+    section: string,
+    requiredCapability?: string,
+    requiredModule?: string,
+    requiredPermission?: string
+  ) => {
+    if (!isSectionAllowed(role, section)) return false;
+    const serverSections = dashboard.sections ?? [];
+    if (!serverSections.includes(section)) return false;
+    if (requiredCapability && !capabilities.includes(requiredCapability)) return false;
+    if (requiredModule && !modules.includes(requiredModule)) return false;
+    if (requiredPermission && !permissions.includes(requiredPermission)) return false;
+    return true;
   };
 
-  // ---------------------------------------------------------------------------
-  // Persona Badges & Headers
-  // ---------------------------------------------------------------------------
   const getBadge = () => {
-    if (role === 'censor') {
+    if (isReadOnly) {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-800">
-          <Eye className="h-3.5 w-3.5 text-amber-600" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 border border-amber-200 px-2.5 py-0.5 text-[10px] font-bold text-amber-800 uppercase tracking-wider">
+          <Eye className="h-3 w-3" />
           {t.readOnlyBadge}
         </span>
       );
     }
     if (role === 'president') {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-800">
-          <Gavel className="h-3.5 w-3.5 text-blue-600" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+          <Gavel className="h-3 w-3" />
           {t.governanceBadge}
         </span>
       );
     }
     if (role === 'owner') {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-[11px] font-bold text-teal-800">
-          <Home className="h-3.5 w-3.5 text-teal-600" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200 px-2.5 py-0.5 text-[10px] font-bold text-teal-700 uppercase tracking-wider">
+          <Home className="h-3 w-3" />
           {t.ownerBadge}
         </span>
       );
     }
     if (role === 'tenant_resident') {
       return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-[11px] font-bold text-purple-800">
-          <UserCheck className="h-3.5 w-3.5 text-purple-600" />
+        <span className="inline-flex items-center gap-1 rounded-full bg-purple-50 border border-purple-200 px-2.5 py-0.5 text-[10px] font-bold text-purple-700 uppercase tracking-wider">
+          <UsersRound className="h-3 w-3" />
           {t.residentBadge}
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-bold text-emerald-800">
-        <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
+        <Building2 className="h-3 w-3" />
         {t.managementBadge}
       </span>
     );
   };
 
+  const renderKpis = () => {
+    switch (role) {
+      case 'association_admin':
+      case 'property_manager':
+        return (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.buildings}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
+                {formatInt(k.buildings)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">
+                {t.buildingsUnits(formatInt(k.buildings), formatInt(k.units))}
+              </span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.work}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#0E9F8E]">
+                {formatInt(k.open_work_orders)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Active maintenance</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.receivables}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
+                {formatCurrency(k.outstanding_amount)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Total community dues</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
+                {formatInt(k.unread_notifications)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Unread notices</span>
+            </div>
+          </div>
+        );
+
+      case 'president':
+        return (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.pendingApprovals}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#D97706]">
+                {formatInt(k.pending_approvals)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Governance oversight</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.receivables}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
+                {formatCurrency(k.outstanding_amount)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Association receivables</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.work}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#0E9F8E]">
+                {formatInt(k.open_work_orders)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">In-progress jobs</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
+                {formatInt(k.unread_notifications)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Board dispatches</span>
+            </div>
+          </div>
+        );
+
+      case 'censor':
+        return (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
+              <span className="text-xs font-semibold text-amber-900">{t.kpis.financialRecords}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-amber-950">
+                {formatInt(k.financial_records)}
+              </div>
+              <span className="text-[11px] text-amber-800">Ledger audit corpus</span>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
+              <span className="text-xs font-semibold text-amber-900">{t.kpis.receivables}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-amber-950">
+                {formatCurrency(k.outstanding_amount)}
+              </div>
+              <span className="text-[11px] text-amber-800">Reconciled balance</span>
+            </div>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
+              <span className="text-xs font-semibold text-amber-900">{t.kpis.notifications}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-amber-950">
+                {formatInt(k.unread_notifications)}
+              </div>
+              <span className="text-[11px] text-amber-800">Audit alerts</span>
+            </div>
+          </div>
+        );
+
+      case 'owner':
+        return (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myUnits}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
+                {formatInt(k.my_units_count ?? 0)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Title-registered units</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.outstandingCharges}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
+                {formatCurrency(k.outstanding_amount)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Maintenance & reserve dues</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myOpenRequests}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#0E9F8E]">
+                {formatInt(k.my_open_requests)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Technical tickets</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
+                {formatInt(k.unread_notifications)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Building notices</span>
+            </div>
+          </div>
+        );
+
+      case 'tenant_resident':
+        return (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.outstandingCharges}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
+                {formatCurrency(k.outstanding_amount)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Assigned utilities & maintenance</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myOpenTickets}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#9333EA]">
+                {formatInt(k.my_open_tickets)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Active maintenance issues</span>
+            </div>
+            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
+                {formatInt(k.unread_notifications)}
+              </div>
+              <span className="text-[11px] text-[#52667A]">Residential updates</span>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
-    <section aria-label={t.title} className="space-y-6">
-      {/* Header Banner */}
-      <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <section className="space-y-6" dir={isRtl ? 'rtl' : 'ltr'}>
+      {/* Context & Role Header Banner */}
+      <div className="rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-sm sm:p-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold font-display text-[#102A43]">{t.title}</h1>
@@ -616,8 +583,8 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
           <span>{dashboard.context.role_name}</span>
           <span>•</span>
           <span>
-            {dashboard.context.scope_type}
-            {dashboard.context.unit_id ? ` · unit` : ''}
+            {t.scopes[dashboard.context.scope_type as keyof typeof t.scopes] || dashboard.context.scope_type}
+            {dashboard.context.unit_id ? ` · ${t.scopes.unit}` : ''}
           </span>
         </div>
       </div>
@@ -626,11 +593,11 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
       {renderKpis()}
 
       {/* --------------------------------------------------------------------- */}
-      {/* Persona-Specific Scoped Sections (Hard Security: Unallowed not emitted) */}
+      {/* Persona-Specific Scoped Sections (Server Authoritative: Unallowed omitted) */}
       {/* --------------------------------------------------------------------- */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* SECTION: Operations & Assets (association_admin & property_manager) */}
-        {isSectionAllowed(role, 'operations') && (
+        {canRenderDashboardSection('operations', 'can_view_operations', 'maintenance', 'maintenance.assets.read') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EAF8F5] p-2.5 text-[#0E9F8E]">
@@ -643,7 +610,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#52667A]">
-                {formatInt(k.buildings)} clădiri · {formatInt(k.units)} unități
+                {t.buildingsUnits(formatInt(k.buildings), formatInt(k.units))}
               </span>
               <Link
                 href={`/${lang}/app/assets`}
@@ -657,7 +624,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: Financials & Receivables (association_admin, property_manager) */}
-        {isSectionAllowed(role, 'financials') && (
+        {canRenderDashboardSection('financials', 'can_view_financials', 'billing', 'billing.receivables.read') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -684,7 +651,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: Governance & Approvals (president) */}
-        {isSectionAllowed(role, 'governance') && (
+        {canRenderDashboardSection('governance', 'can_view_governance', 'governance', 'governance.meetings.read') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#FEF3C7] p-2.5 text-[#D97706]">
@@ -711,7 +678,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: Supervisory Financial Summary (president) */}
-        {isSectionAllowed(role, 'financial_summary') && (
+        {canRenderDashboardSection('financial_summary', 'can_view_financial_summary') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -726,13 +693,13 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
               <span className="text-xs font-bold text-[#102A43]">
                 {formatCurrency(k.outstanding_amount)}
               </span>
-              <span className="text-xs text-[#52667A] italic">ReadOnly Oversight</span>
+              <span className="text-xs text-[#52667A] italic">{t.supervisoryOversight}</span>
             </div>
           </div>
         )}
 
-        {/* SECTION: Financial Controls & Censor Audit (censor) */}
-        {isSectionAllowed(role, 'financial_controls') && (
+        {/* SECTION: Financial Controls & Censor Audit (censor) - Strictly Read-Only */}
+        {canRenderDashboardSection('financial_controls', 'can_view_financial_controls', 'accounting', 'finance.ledger.read') && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-amber-100 p-2.5 text-amber-800">
@@ -762,7 +729,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: My Units (owner) */}
-        {isSectionAllowed(role, 'my_units') && (
+        {canRenderDashboardSection('my_units', 'can_view_my_units') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EAF8F5] p-2.5 text-[#0E9F8E]">
@@ -775,7 +742,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#102A43]">
-                {formatInt(k.my_units_count ?? 1)} {t.kpis.myUnits}
+                {formatInt(k.my_units_count ?? 0)} {t.kpis.myUnits}
               </span>
               <Link
                 href={`/${lang}/app/documents`}
@@ -789,7 +756,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: My Financials (owner) */}
-        {isSectionAllowed(role, 'my_financials') && (
+        {canRenderDashboardSection('my_financials', 'can_view_my_financials', 'billing', 'billing.receivables.read') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -806,17 +773,17 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
               </span>
               <Link
                 href={`/${lang}/app/billing`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#102A43] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#243B53]"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:underline"
               >
-                <CreditCard className="h-3.5 w-3.5" />
-                <span>{t.actions.payNow}</span>
+                <span>{t.actions.viewInvoices}</span>
+                <NextArrow className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
         )}
 
         {/* SECTION: My Residence (tenant_resident) */}
-        {isSectionAllowed(role, 'my_residence') && (
+        {canRenderDashboardSection('my_residence', 'can_view_my_residence') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#FAF5FF] p-2.5 text-[#9333EA]">
@@ -843,7 +810,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: My Expenses (tenant_resident) */}
-        {isSectionAllowed(role, 'my_expenses') && (
+        {canRenderDashboardSection('my_expenses', 'can_view_my_expenses', 'billing', 'billing.receivables.read') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -860,16 +827,17 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
               </span>
               <Link
                 href={`/${lang}/app/billing`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#102A43] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[#243B53]"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:underline"
               >
-                <span>{t.actions.payNow}</span>
+                <span>{t.actions.viewInvoices}</span>
+                <NextArrow className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
         )}
 
-        {/* SECTION: Consumption & Meters (tenant_resident & managers) */}
-        {isSectionAllowed(role, 'my_consumption') && (
+        {/* SECTION: Consumption & Meters (tenant_resident) */}
+        {canRenderDashboardSection('my_consumption', 'can_view_my_consumption', 'utilities', 'utilities.metering.read') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#ECFDF5] p-2.5 text-[#059669]">
@@ -881,7 +849,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
               </div>
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
-              <span className="text-xs font-semibold text-[#52667A]">Active meters</span>
+              <span className="text-xs font-semibold text-[#52667A]">{t.activeMeters}</span>
               <Link
                 href={`/${lang}/app/meters`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#059669] hover:underline"
@@ -893,8 +861,8 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
           </div>
         )}
 
-        {/* SECTION: Audit Trail (Only rendered if capability is held!) */}
-        {isSectionAllowed(role, 'audit') && capabilities.includes('can_view_audit') && (
+        {/* SECTION: Audit Trail (Requires capability and audit section) */}
+        {canRenderDashboardSection('audit', 'can_view_audit', undefined, 'audit.events.read') && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#F1F5F9] p-2.5 text-[#334155]">
@@ -906,7 +874,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
               </div>
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
-              <span className="text-xs font-semibold text-[#52667A]">AAL2 Encrypted</span>
+              <span className="text-xs font-semibold text-[#52667A]">{t.auditEncryption}</span>
               <Link
                 href={`/${lang}/app/audit`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#334155] hover:underline"
