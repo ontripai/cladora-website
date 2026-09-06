@@ -152,7 +152,9 @@ begin
     ('23a00000-0000-0000-0000-000000000007', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '5124', 'Conturi la banci in valuta', 'asset', 'EUR'),
     ('23a00000-0000-0000-0000-000000000008', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '7042', 'Venituri valuta', 'income', 'EUR'),
     ('23a00000-0000-0000-0000-000000000009', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '5121', 'Property 3 Bank', 'asset', 'RON'),
-    ('23a00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '5121', 'Tenant 2 Bank', 'asset', 'RON');
+    ('23a00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '5121', 'Tenant 2 Bank', 'asset', 'RON'),
+    ('23a00000-0000-0000-0000-000000000011', '23100000-0000-0000-0000-000000000001', null, '5121', 'Tenant 1 Bank', 'asset', 'RON'),
+    ('23a00000-0000-0000-0000-000000000012', '23100000-0000-0000-0000-000000000001', null, '704', 'Tenant 1 Revenue', 'income', 'RON');
 
   -- Accounting Periods: Period 1 (Jan 2026), Period 2 (Feb 2026), Period 3 (Future)
   insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status) values
@@ -218,8 +220,8 @@ begin
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
     ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2026-01-10', 'RON', 'Tenant wide journal', 'invoice', 'posted', statement_timestamp());
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
-    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000001', 'debit', 50, 'Tenant debit'),
-    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000006', 'credit', 50, 'Tenant credit');
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000011', 'debit', 50, 'Tenant debit'),
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000012', 'credit', 50, 'Tenant credit');
 
   -- Cross-Tenant journal in Tenant 2 / Property 2: 100 RON
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
