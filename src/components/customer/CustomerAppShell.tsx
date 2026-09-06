@@ -32,6 +32,7 @@ import {
   CustomerContextProvider,
   useCustomerContext,
 } from "./CustomerContextProvider";
+import { isRouteAllowedForPersona } from "@/lib/customer/access-matrix";
 
 const copy = {
   ro: {
@@ -152,6 +153,9 @@ function Shell({
     security = hasEnt("module.security") && hasPerm("security.access.read"),
     audit = hasPerm("audit.events.read");
 
+  const roleCode = state.dashboard?.context?.role_code;
+  const isAllowedForRole = (path: string) => isRouteAllowedForPersona(roleCode, path);
+
   const navItems = [
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
     { href: `/${lang}/app/accounting`, label: t.accounting, icon: FileSpreadsheet, visible: accounting },
@@ -172,7 +176,11 @@ function Shell({
     { href: `/${lang}/app/payments`, label: t.payments, icon: CreditCard, visible: payments },
     { href: `/${lang}/app/reconciliation`, label: t.reconciliation, icon: Landmark, visible: reconciliation },
     { href: `/${lang}/app/audit`, label: t.audit, icon: ShieldCheck, visible: audit },
-  ].filter((item) => Boolean(item.visible));
+  ].filter(
+    (item) =>
+      Boolean(item.visible) &&
+      isAllowedForRole(item.href.replace(/^\/(?:ro|en|fa)/, ""))
+  );
 
   return (
     <div

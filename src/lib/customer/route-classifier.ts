@@ -1,14 +1,13 @@
 export const EXPLICITLY_ALLOWED_ROUTES = [
   '/app/dashboard',
-  '/app/onboarding',
 ] as const;
 
-export const EXPLICITLY_UNAVAILABLE_ROUTES = [
-  '/app/portfolio',
-  '/app/settings',
-  '/app/accounting/month-close',
-  '/app/migration/shadow-ledger',
-] as const;
+import {
+  EXPLICITLY_UNAVAILABLE_ROUTES,
+  PRE_CONTEXT_ALLOWED_ROUTES,
+  isPreContextRoute,
+} from './access-matrix.ts';
+export { EXPLICITLY_UNAVAILABLE_ROUTES, PRE_CONTEXT_ALLOWED_ROUTES, isPreContextRoute };
 
 export interface RouteRequirement {
   pathPrefix: string;
@@ -189,6 +188,7 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
 
 export type RouteStatus =
   | 'explicitly allowed'
+  | 'pre-context allowed'
   | 'permission protected'
   | 'explicitly unavailable';
 
@@ -206,7 +206,12 @@ export function classifyCustomerRoute(
     return { status: 'explicitly unavailable' };
   }
 
-  // 2. Check explicitly allowed routes (dashboard, onboarding)
+  // 2. Check pre-context allowed routes (e.g. /app/onboarding exact match)
+  if (isPreContextRoute(cleanPath)) {
+    return { status: 'pre-context allowed' };
+  }
+
+  // 3. Check explicitly allowed routes (dashboard)
   if (
     EXPLICITLY_ALLOWED_ROUTES.some(
       (allowed) => cleanPath === allowed || cleanPath.startsWith(`${allowed}/`)

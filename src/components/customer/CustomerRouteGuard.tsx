@@ -15,6 +15,11 @@ import {
   type RouteRequirement,
   type RouteStatus,
 } from '@/lib/customer/route-classifier';
+import {
+  isCanonicalRole,
+  isRouteAllowedForPersona,
+  isPreContextRoute,
+} from '@/lib/customer/access-matrix';
 
 export {
   EXPLICITLY_ALLOWED_ROUTES,
@@ -24,6 +29,14 @@ export {
   type RouteRequirement,
   type RouteStatus,
 };
+
+/**
+ * Authoritative fail-closed unavailable routes (defined in access-matrix):
+ * - /app/portfolio
+ * - /app/settings
+ * - /app/accounting/month-close
+ * - /app/migration/shadow-ledger
+ */
 
 
 const copy = {
@@ -164,12 +177,28 @@ export function CustomerRouteGuard({
     );
   }
 
-  // 4. Context requirement (all customer routes except onboarding require an assigned context)
-  if (!state.active && !state.loading && appPath !== '/app/onboarding') {
+  // 4. Pre-context route policy check (e.g. onboarding before context assignment)
+  if (classification.status === 'pre-context allowed') {
+    return <>{children}</>;
+  }
+
+  // 5. Context requirement (all other customer routes require an assigned context)
+  if (!state.active || !state.dashboard) {
     return <AccessRestrictedCard lang={lang} reason="context" />;
   }
 
-  // 5. Explicitly allowed routes (e.g. dashboard, onboarding) pass through once context is confirmed
+  // 6. Role-aware Persona canonical check
+  const roleCode = state.dashboard.context?.role_code;
+  if (!roleCode || !isCanonicalRole(roleCode)) {
+    return <AccessRestrictedCard lang={lang} reason="unknown" />;
+  }
+
+  // 7. Persona route allowlist check (routes outside allowlist are strictly rejected)
+  if (!isRouteAllowedForPersona(roleCode, appPath)) {
+    return <AccessRestrictedCard lang={lang} reason="permission" />;
+  }
+
+  // 8. Explicitly allowed routes (e.g. dashboard) pass through once persona allowlist is confirmed
   if (classification.status === 'explicitly allowed') {
     return <>{children}</>;
   }
