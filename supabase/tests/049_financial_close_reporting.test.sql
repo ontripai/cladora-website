@@ -37,6 +37,7 @@ declare
   perm_rep uuid;
   perm_prd_read uuid;
   perm_prd_close uuid;
+  perm_ledger uuid;
   role_admin uuid := '23200000-0000-0000-0000-000000000001';
   role_manager uuid := '23200000-0000-0000-0000-000000000002';
   role_pres uuid := '23200000-0000-0000-0000-000000000003';
@@ -48,6 +49,7 @@ begin
   select id into perm_rep from identity.permissions where code = 'finance.reports.read';
   select id into perm_prd_read from identity.permissions where code = 'finance.periods.read';
   select id into perm_prd_close from identity.permissions where code = 'finance.periods.close';
+  select id into perm_ledger from identity.permissions where code = 'finance.ledger.read';
 
   -- Users
   insert into auth.users (id, email) values
@@ -79,9 +81,11 @@ begin
     (role_admin, perm_rep, 'allow'),
     (role_admin, perm_prd_read, 'allow'),
     (role_admin, perm_prd_close, 'allow'),
+    (role_admin, perm_ledger, 'allow'),
     (role_manager, perm_rep, 'allow'),
     (role_manager, perm_prd_read, 'allow'),
     (role_manager, perm_prd_close, 'allow'),
+    (role_manager, perm_ledger, 'allow'),
     (role_pres, perm_rep, 'allow'),
     (role_pres, perm_prd_read, 'allow'),
     (role_censor, perm_rep, 'allow'),
