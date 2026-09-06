@@ -157,21 +157,26 @@ begin
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000001', '23a00000-0000-0000-0000-000000000001', 'debit', 500, 'Bank debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000001', '23a00000-0000-0000-0000-000000000006', 'credit', 500, 'Revenue credit');
 
-  -- Journal 2: Posted in Period 1 (Expense 100 RON)
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
-    ('23b00000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-20', 'RON', 'Electricity invoice', 'vendor_bill', 'posted', statement_timestamp());
+  -- Journal 2: in Period 1 (Expense 100 RON)
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
+    ('23b00000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-20', 'RON', 'Electricity invoice', 'vendor_bill', 'draft');
 
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000002', '23a00000-0000-0000-0000-000000000005', 'debit', 100, 'Utility expense'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000002', '23a00000-0000-0000-0000-000000000003', 'credit', 100, 'Supplier payable');
 
-  -- Journal 3: Posted EUR in Period 1 (50 EUR)
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
-    ('23b00000-0000-0000-0000-000000000003', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-25', 'EUR', 'Foreign service', 'invoice', 'posted', statement_timestamp());
+  -- Journal 3: in Period 1 (50 EUR)
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
+    ('23b00000-0000-0000-0000-000000000003', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-25', 'EUR', 'Foreign service', 'invoice', 'draft');
 
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000007', 'debit', 50, 'EUR Bank debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000003', '23a00000-0000-0000-0000-000000000008', 'credit', 50, 'EUR Revenue credit');
+
+  -- Post Journal 2 and 3
+  update finance.journals
+  set status = 'posted', posted_at = statement_timestamp()
+  where id in ('23b00000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000003');
 end $$;
 
 -- 5. Role & Claims Security Execution
