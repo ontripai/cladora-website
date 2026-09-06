@@ -415,7 +415,7 @@ begin
       using errcode = '23503';
   end if;
 
-  select id, tenant_id, property_id, currency, is_active
+  select id, tenant_id, property_id, currency, status
   into v_a
   from finance.accounts
   where id = new.account_id;
