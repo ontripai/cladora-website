@@ -153,8 +153,8 @@ begin
     ('23a00000-0000-0000-0000-000000000008', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '7042', 'Venituri valuta', 'income', 'EUR'),
     ('23a00000-0000-0000-0000-000000000009', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '5121', 'Property 3 Bank', 'asset', 'RON'),
     ('23a00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '5121', 'Tenant 2 Bank', 'asset', 'RON'),
-    ('23a00000-0000-0000-0000-000000000011', '23100000-0000-0000-0000-000000000001', null, '5121', 'Tenant 1 Bank', 'asset', 'RON'),
-    ('23a00000-0000-0000-0000-000000000012', '23100000-0000-0000-0000-000000000001', null, '704', 'Tenant 1 Revenue', 'income', 'RON');
+    ('23a00000-0000-0000-0000-000000000011', '23100000-0000-0000-0000-000000000001', null, '51219', 'Tenant 1 Bank', 'asset', 'RON'),
+    ('23a00000-0000-0000-0000-000000000012', '23100000-0000-0000-0000-000000000001', null, '7049', 'Tenant 1 Revenue', 'income', 'RON');
 
   -- Accounting Periods: Period 1 (Jan 2026), Period 2 (Feb 2026), Period 3 (Future)
   insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status) values
@@ -216,25 +216,25 @@ begin
   set status = 'reversed', reversal_of_id = '23b00000-0000-0000-0000-000000000004', posted_at = statement_timestamp()
   where id = '23b00000-0000-0000-0000-000000000005';
 
-  -- Tenant-wide journal in Tenant 1 (property_id is NULL): 50 RON
+  -- Tenant-wide journal in Tenant 1 (property_id is NULL): 50 RON (May 2025)
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2026-01-10', 'RON', 'Tenant wide journal', 'invoice', 'draft');
+    ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2025-05-10', 'RON', 'Tenant wide journal', 'invoice', 'draft');
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000011', 'debit', 50, 'Tenant debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000012', 'credit', 50, 'Tenant credit');
   update finance.journals set status = 'posted', posted_at = statement_timestamp() where id = '23b00000-0000-0000-0000-000000000010';
 
-  -- Cross-Tenant journal in Tenant 2 / Property 2: 100 RON
+  -- Cross-Tenant journal in Tenant 2 / Property 2: 100 RON (May 2025)
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000020', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '2026-01-10', 'RON', 'Tenant 2 journal', 'invoice', 'draft');
+    ('23b00000-0000-0000-0000-000000000020', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '2025-05-10', 'RON', 'Tenant 2 journal', 'invoice', 'draft');
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'debit', 100, 'T2 debit'),
     ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'credit', 100, 'T2 credit');
   update finance.journals set status = 'posted', posted_at = statement_timestamp() where id = '23b00000-0000-0000-0000-000000000020';
 
-  -- Cross-Property journal in Tenant 1 / Property 3: 70 RON
+  -- Cross-Property journal in Tenant 1 / Property 3: 70 RON (May 2025)
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000030', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2026-01-10', 'RON', 'Property 3 journal', 'invoice', 'draft');
+    ('23b00000-0000-0000-0000-000000000030', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2025-05-10', 'RON', 'Property 3 journal', 'invoice', 'draft');
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'debit', 70, 'P3 debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'credit', 70, 'P3 credit');
