@@ -6,12 +6,18 @@ on:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
       - "scripts/check-database-package.mjs"
+      - "scripts/test-financial-close-concurrency.mjs"
+      - "package.json"
+      - "package-lock.json"
   push:
     branches: [main]
     paths:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
       - "scripts/check-database-package.mjs"
+      - "scripts/test-financial-close-concurrency.mjs"
+      - "package.json"
+      - "package-lock.json"
   workflow_dispatch:
 
 permissions:
@@ -44,6 +50,17 @@ jobs:
         run: supabase start
       - name: Run pgTAP database tests
         run: supabase test db
+      - name: Setup Node.js for real concurrency tests
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Run real multi-connection financial close concurrency tests
+        run: node scripts/test-financial-close-concurrency.mjs
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run local database security and performance advisors
         run: supabase db lint --local --level warning
       - name: Show service status on failure

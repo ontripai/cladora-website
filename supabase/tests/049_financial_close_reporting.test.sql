@@ -1,5 +1,5 @@
 begin;
-select plan(101);
+select plan(112);
 
 -- 1. Schema & Privilege verifications
 select ok(to_regprocedure('finance.get_close_readiness(uuid,uuid)') is not null, 'finance.get_close_readiness RPC exists');
@@ -213,6 +213,31 @@ begin
   update finance.journals
   set status = 'reversed', reversal_of_id = '23b00000-0000-0000-0000-000000000004', posted_at = statement_timestamp()
   where id = '23b00000-0000-0000-0000-000000000005';
+
+  -- Tenant-wide journal in Tenant 1 (property_id is NULL): 50 RON
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
+    ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2026-01-10', 'RON', 'Tenant wide journal', 'invoice', 'posted');
+  insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000001', 'debit', 50, 'Tenant debit'),
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000006', 'credit', 50, 'Tenant credit');
+
+  -- Cross-Tenant journal in Tenant 2 / Property 2: 100 RON
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
+    ('23b00000-0000-0000-0000-000000000020', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '2026-01-10', 'RON', 'Tenant 2 journal', 'invoice', 'posted');
+  insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
+    ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'debit', 100, 'T2 debit'),
+    ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'credit', 100, 'T2 credit');
+
+  -- Cross-Property journal in Tenant 1 / Property 3: 70 RON
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
+    ('23b00000-0000-0000-0000-000000000030', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2026-01-10', 'RON', 'Property 3 journal', 'invoice', 'posted');
+  insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'debit', 70, 'P3 debit'),
+    ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'credit', 70, 'P3 credit');
+
+  -- Empty Accounting Period for Empty Close Policy Testing (Period in Nov 2025)
+  insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status) values
+    ('23c00000-0000-0000-0000-000000000088', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2025-11-01', '2025-11-30', 'open');
 end $$;
 
 -- 4. Role & Claims Security Execution
@@ -913,79 +938,97 @@ select ok(
 drop trigger trg_test_fail_audit on audit.events;
 drop function test_fail_audit_trigger_fn();
 
--- 16. Multi-Connection Concurrency Mutual Exclusion Verification
--- Verify PostgreSQL lock table semantics directly against finance.accounting_periods row-level locks:
-create or replace function finance.test_multi_connection_concurrency()
-returns boolean
-language plpgsql
-as $$
-declare
-  v_dblink_avail boolean := false;
-  v_conflict_proven boolean := false;
-  v_conn text := 'concurrency_test_worker';
-begin
-  -- Check if dblink can be used for a second independent PostgreSQL connection
-  begin
-    create extension if not exists dblink with schema extensions;
-    begin
-      perform extensions.dblink_connect(v_conn, 'dbname=' || current_database());
-      v_dblink_avail := true;
-    exception when others then
-      begin
-        perform extensions.dblink_connect(v_conn, 'host=localhost port=' || inet_server_port() || ' dbname=' || current_database() || ' user=postgres password=postgres');
-        v_dblink_avail := true;
-      exception when others then
-        v_dblink_avail := false;
-      end;
-    end;
-  exception when others then
-    v_dblink_avail := false;
-  end;
-
-  if v_dblink_avail then
-    -- Real Connection 2 begins an independent transaction
-    perform extensions.dblink_exec(v_conn, 'begin');
-    -- Real Connection 2 acquires FOR UPDATE exclusive lock on Period 2
-    perform extensions.dblink_exec(v_conn, 'select id from finance.accounting_periods where id = ''23c00000-0000-0000-0000-000000000002'' for update');
-
-    -- Connection 1 (this transaction) attempts to acquire FOR SHARE NOWAIT on the exact same row:
-    -- In PostgreSQL, FOR UPDATE (ExclusiveLock) and FOR SHARE (ShareLock) on the same tuple conflict!
-    begin
-      perform id from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000002' for share nowait;
-      v_conflict_proven := false;
-    exception when lock_not_available then
-      -- Real PostgreSQL lock manager raised 55P03: lock conflict between 2 real connections verified!
-      v_conflict_proven := true;
-    end;
-
-    -- Clean up Connection 2
-    perform extensions.dblink_exec(v_conn, 'rollback');
-    perform extensions.dblink_disconnect(v_conn);
-  else
-    -- Fallback for environments where dblink cannot open local sockets:
-    -- Verify PostgreSQL lock table conflict definition in system catalog
-    v_conflict_proven := true;
-  end if;
-
-  return v_conflict_proven;
-end;
-$$;
-
--- Direction A (Journal SHARE lock vs Close UPDATE lock):
-select ok(
-  (select count(*) = 0 from pg_locks where mode in ('ShareLock', 'RowShareLock') and granted = false),
-  'PostgreSQL lock manager has zero deadlocks in active transaction'
+-- 16. Authoritative Ledger Detail Scope & Zero-Disclosure Verification
+-- 16a. Tenant 1 Admin attempting to read Tenant 2 journal detail is rejected with P0002
+select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
+select throws_like(
+  $$ select finance.get_customer_ledger('23400000-0000-0000-0000-000000000001', null, null, null, null, null, 25, 0, '23b00000-0000-0000-0000-000000000020') $$,
+  '%ledger_journal_not_found%',
+  'Tenant 1 context reading Tenant 2 journal detail throws P0002 ledger_journal_not_found'
 );
 
--- Direction B (Real PostgreSQL multi-connection lock conflict verification):
-select ok(
-  finance.test_multi_connection_concurrency(),
-  'Real PostgreSQL multi-connection row-level lock conflict strictly blocks concurrent mutations'
+-- 16b. Property 1 Manager attempting to read Property 3 journal detail is rejected with P0002
+select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000002","role":"authenticated","aal":"aal2"}', true);
+select throws_like(
+  $$ select finance.get_customer_ledger('23400000-0000-0000-0000-000000000009', null, null, null, null, null, 25, 0, '23b00000-0000-0000-0000-000000000030') $$,
+  '%ledger_journal_not_found%',
+  'Property 1 context reading Property 3 journal detail throws P0002 ledger_journal_not_found'
 );
 
-drop function if exists finance.test_multi_connection_concurrency();
+-- 16c. Property 1 Manager attempting to read Tenant-wide journal detail (property_id is NULL) is rejected with P0002
+select throws_like(
+  $$ select finance.get_customer_ledger('23400000-0000-0000-0000-000000000009', null, null, null, null, null, 25, 0, '23b00000-0000-0000-0000-000000000010') $$,
+  '%ledger_journal_not_found%',
+  'Property 1 context reading tenant-wide journal detail throws P0002 ledger_journal_not_found'
+);
 
--- Direction C (Atomic serialization on period status update):
+-- 16d. Property 1 Manager reading authorized Property 1 journal detail succeeds and returns entries
+select ok(
+  jsonb_array_length(finance.get_customer_ledger('23400000-0000-0000-0000-000000000009', null, null, null, null, null, 25, 0, '23b00000-0000-0000-0000-000000000001')->'detail') = 2,
+  'Property 1 context reading authorized Property 1 journal detail returns exact 2 entries'
+);
+
+-- 16e. Non-existent random journal UUID throws identical P0002 ledger_journal_not_found
+select throws_like(
+  $$ select finance.get_customer_ledger('23400000-0000-0000-0000-000000000009', null, null, null, null, null, 25, 0, '23b00000-0000-0000-0000-000000000099') $$,
+  '%ledger_journal_not_found%',
+  'Non-existent journal UUID throws identical P0002 ledger_journal_not_found'
+);
+
+-- 16f. Resident in unit context attempting to read non-resident journal detail is rejected with P0002
+select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000006","role":"authenticated","aal":"aal2"}', true);
+select throws_like(
+  $$ select finance.get_customer_ledger('23400000-0000-0000-0000-000000000006', null, null, null, null, null, 25, 0, '23b00000-0000-0000-0000-000000000001') $$,
+  '%ledger_journal_not_found%',
+  'Resident attempting to read non-resident journal detail throws P0002 ledger_journal_not_found'
+);
+
+-- 17. Empty Accounting Period Close & Snapshot V2 Verification
+-- 17a. Readiness check for empty period in past returns can_close = true
+select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
+select ok(
+  (finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000088')->>'can_close')::boolean = true,
+  'Empty eligible accounting period has can_close = true'
+);
+
+-- 17b. Readiness check for empty period returns empty currency_summaries array
+select ok(
+  jsonb_array_length(finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000088')->'currency_summaries') = 0,
+  'Empty eligible accounting period has empty currency_summaries array in readiness'
+);
+
+-- 17c. Closing empty accounting period succeeds
+select ok(
+  (finance.close_accounting_period('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000088', 'Close empty period')->>'success')::boolean = true,
+  'Closing empty accounting period succeeds with success: true'
+);
+
+-- 17d. Closed empty period snapshot has empty currency_summaries array
+select ok(
+  jsonb_array_length((select snapshot_json->'currency_summaries' from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000088')) = 0,
+  'Closed empty period snapshot has empty currency_summaries array'
+);
+
+-- 17e. Closed empty period snapshot is_balanced is true
+select ok(
+  (select (snapshot_json->>'is_balanced')::boolean from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000088') = true,
+  'Closed empty period snapshot is_balanced is true'
+);
+
+-- 17f. Re-closing empty period fails with period_already_closed
+select throws_like(
+  $$ select finance.close_accounting_period('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000088') $$,
+  '%period_already_closed%',
+  'Re-closing already closed empty period fails with conflict'
+);
+
+-- 17g. Readiness after closing empty period returns valid closed status
+select ok(
+  (finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000088')->>'status') = 'closed',
+  'Readiness check on closed empty period returns status closed'
+);
+
+-- 18. Atomic Serialization on Period Close & Snapshot Integrity
 select ok(
   (select count(*) = 1 from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000001' and status = 'closed'),
   'Period 1 has exactly one authoritative closed state with single snapshot'

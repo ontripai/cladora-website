@@ -240,10 +240,43 @@ Following independent audit findings, the following definitive corrective harden
   4. `readiness.status === 'open'`
   5. `readiness.can_close === true`
 
-#### 7. Byte-Based 10KB Stream Defense & Real Concurrency
+#### 7. Byte-Based 10KB Stream Defense
 - `parseJsonWithLimit` enforces 10KB limit with immediate stream reader cancellation (`await reader.cancel()`).
 - Tests cover multi-byte UTF-8, missing/spoofed/invalid Content-Length.
-- Concurrency and lock contention verified using real PostgreSQL locks (`FOR SHARE` vs `FOR UPDATE`) and atomic audit event rollback in pgTAP.
+- Atomic audit event rollback verified in pgTAP.
+
+---
+
+### I. Readiness Contract, Ledger Detail Scope & Independent Concurrency Runner (Migration `20260906220000_financial_ledger_detail_scope_correction.sql`)
+
+Following independent audit findings on readiness schema compatibility, ledger detail scope, and concurrency validation:
+
+#### 1. Contract Separation: Readiness Summary vs Snapshot Summary
+- **Readiness Summary (`readinessCurrencySummarySchema`)**:
+  - Validates `finance.get_close_readiness` output: `currency`, `posted_journals_count`, `draft_journals_count`, `total_debit`, `total_credit`, `difference`, `is_balanced`.
+  - Top-level `is_balanced` boolean is explicitly required.
+  - `trial_balance` is omitted from readiness (readiness is pre-close inspection check).
+- **Snapshot Summary (`snapshotCurrencySummarySchema`)**:
+  - Validates immutable close snapshot: includes mandatory `trial_balance` array (Romanian chart of accounts compliant) and excludes `draft_journals_count` (drafts are prohibited in closed periods).
+
+#### 2. Empty Accounting Period Close Policy
+- Closing an empty eligible accounting period (0 journals) is fully permitted.
+- `snapshotVersion2Schema` accepts `currency_summaries: []` with `is_balanced: true`.
+- Zero synthetic amounts or placeholder currencies are injected.
+- Re-closing an empty period is rejected with conflict (`period_already_closed`).
+
+#### 3. Authoritative Ledger Detail Scope & Zero Disclosure
+- In `finance.get_customer_ledger`, passing `p_journal_id` invokes an authoritative scope check before reading child entries.
+- Property context is strictly limited to `property_id = context.property_id` (rejecting cross-property and tenant-wide `property_id IS NULL` journals).
+- Resident contexts are strictly limited to journals touching their assigned `unit_id` and party.
+- Any non-existent or out-of-scope journal uniformly raises SQLSTATE `P0002` / `ledger_journal_not_found`, which the API maps to HTTP 404 (`LEDGER_JOURNAL_NOT_FOUND`) with zero disclosure of out-of-scope journal existence.
+
+#### 4. Real Independent Multi-Connection Concurrency Runner
+- Concurrency testing is implemented in `scripts/test-financial-close-concurrency.mjs` using real independent PostgreSQL connections (`pg.Client`):
+  - **Scenario A (Journal First)**: Connection A holds `FOR SHARE` on period; Connection B's close `FOR UPDATE` is observed waiting via `pg_locks`/`pg_blocking_pids`; Connection A commits; Connection B unblocks, completes close, and includes the new journal in snapshot.
+  - **Scenario B (Close First)**: Connection A holds close transaction open; Connection B's journal insert is observed waiting; Connection A commits; Connection B unblocks and fails with SQLSTATE `25000` (zero illicit journals committed).
+  - **Scenario C (Double Close)**: Connection A holds close open; Connection B attempts close concurrently; Connection B waits and receives conflict upon Connection A commit (exactly 1 close snapshot and 1 audit event).
+- The runner is integrated directly into CI (`Database tests / postgres-runtime`) and fails closed on any connection error or assertion mismatch.
 
 ---
 

@@ -57,7 +57,19 @@ export const balanceSheetRowSchema = z
   })
   .strict();
 
-export const currencySummarySchema = z
+export const readinessCurrencySummarySchema = z
+  .object({
+    currency: z.string().length(3),
+    posted_journals_count: z.number().int().nonnegative(),
+    draft_journals_count: z.number().int().nonnegative(),
+    total_debit: z.number(),
+    total_credit: z.number(),
+    difference: z.number(),
+    is_balanced: z.boolean(),
+  })
+  .strict();
+
+export const snapshotCurrencySummarySchema = z
   .object({
     currency: z.string().length(3),
     posted_journals_count: z.number().int().nonnegative(),
@@ -68,6 +80,8 @@ export const currencySummarySchema = z
     trial_balance: z.array(trialBalanceRowSchema),
   })
   .strict();
+
+export const currencySummarySchema = snapshotCurrencySummarySchema;
 
 export const reportTotalsSchema = z
   .object({
@@ -121,7 +135,7 @@ export const snapshotVersion2Schema = z
     closed_at: z.iso.datetime(),
     closed_by: uuidSchema,
     closed_by_role: z.string(),
-    currency_summaries: z.array(currencySummarySchema).min(1),
+    currency_summaries: z.array(snapshotCurrencySummarySchema),
     is_balanced: z.boolean(),
   })
   .strict();
@@ -152,7 +166,8 @@ export const closeReadinessResponseSchema = z
     unbalanced_journals_count: z.number().int().nonnegative(),
     posted_journals_count: z.number().int().nonnegative(),
     currencies: z.array(z.string().length(3)),
-    currency_summaries: z.array(currencySummarySchema),
+    currency_summaries: z.array(readinessCurrencySummarySchema),
+    is_balanced: z.boolean(),
     warnings: z.array(z.string()),
     can_close: z.boolean(),
     blocking_reasons: z.array(z.string()),
@@ -208,7 +223,9 @@ export const listPeriodsResponseSchema = z
 
 export type FinancialReportQuery = z.infer<typeof financialReportQuerySchema>;
 export type FinancialReportResponse = z.infer<typeof financialReportResponseSchema>;
-export type CurrencySummary = z.infer<typeof currencySummarySchema>;
+export type ReadinessCurrencySummary = z.infer<typeof readinessCurrencySummarySchema>;
+export type SnapshotCurrencySummary = z.infer<typeof snapshotCurrencySummarySchema>;
+export type CurrencySummary = SnapshotCurrencySummary;
 export type SnapshotVersion2 = z.infer<typeof snapshotVersion2Schema>;
 export type CloseReadinessResponse = z.infer<typeof closeReadinessResponseSchema>;
 export type ClosePeriodRequest = z.infer<typeof closePeriodRequestSchema>;

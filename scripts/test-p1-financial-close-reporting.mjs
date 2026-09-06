@@ -146,6 +146,8 @@ function createStreamFromChunks(chunks) {
   const schemaModule = await import('../src/lib/customer/financial-reports-schema.ts');
   const {
     financialReportQuerySchema,
+    readinessCurrencySummarySchema,
+    snapshotCurrencySummarySchema,
     closeReadinessResponseSchema,
     closePeriodRequestSchema,
     closePeriodResponseSchema,
@@ -217,7 +219,7 @@ function createStreamFromChunks(chunks) {
     /Invalid/
   );
 
-  // 2. Strict Snapshot Version 2 Validation
+  // 2. Strict Snapshot Version 2 Validation (Populated Period)
   const validSnapshotV2 = {
     version: 2,
     snapshot_version: 2,
@@ -256,6 +258,14 @@ function createStreamFromChunks(chunks) {
 
   assert.doesNotThrow(() => snapshotVersion2Schema.parse(validSnapshotV2));
 
+  // Empty period snapshot is VALID (empty currency_summaries: [], is_balanced: true)
+  const emptyPeriodSnapshot = {
+    ...validSnapshotV2,
+    currency_summaries: [],
+    is_balanced: true,
+  };
+  assert.doesNotThrow(() => snapshotVersion2Schema.parse(emptyPeriodSnapshot));
+
   // Reject Version 1 snapshot structure
   assert.throws(
     () =>
@@ -267,17 +277,7 @@ function createStreamFromChunks(chunks) {
     /Invalid/
   );
 
-  // Reject missing currency_summaries (must have min 1)
-  assert.throws(
-    () =>
-      snapshotVersion2Schema.parse({
-        ...validSnapshotV2,
-        currency_summaries: [],
-      }),
-    /Too small/
-  );
-
-  // Reject missing trial_balance inside currency summary
+  // Reject missing trial_balance inside snapshot currency summary
   assert.throws(
     () =>
       snapshotVersion2Schema.parse({
@@ -297,7 +297,7 @@ function createStreamFromChunks(chunks) {
     /Invalid/
   );
 
-  // Reject extra unmodeled keys (.strict())
+  // Reject extra unmodeled keys in snapshot (.strict())
   assert.throws(
     () =>
       snapshotVersion2Schema.parse({
@@ -307,7 +307,72 @@ function createStreamFromChunks(chunks) {
     /unrecognized_keys/
   );
 
-  // 3. Close Period Response Schema
+  // 3. Strict Close Readiness Response Schema Validation (Exact SQL RPC Output)
+  const validReadinessResponse = {
+    version: 2,
+    period: {
+      id: '11111111-1111-1111-1111-111111111111',
+      tenant_id: '22222222-2222-2222-2222-222222222222',
+      property_id: '33333333-3333-3333-3333-333333333333',
+      starts_on: '2026-01-01',
+      ends_on: '2026-01-31',
+      status: 'open',
+      closed_at: null,
+      closed_by: null,
+      snapshot_json: null,
+    },
+    tenant_id: '22222222-2222-2222-2222-222222222222',
+    property_id: '33333333-3333-3333-3333-333333333333',
+    scope_type: 'property',
+    status: 'open',
+    draft_journals_count: 0,
+    unbalanced_journals_count: 0,
+    posted_journals_count: 5,
+    currencies: ['RON'],
+    currency_summaries: [
+      {
+        currency: 'RON',
+        posted_journals_count: 5,
+        draft_journals_count: 0,
+        total_debit: 1500,
+        total_credit: 1500,
+        difference: 0,
+        is_balanced: true,
+      },
+    ],
+    is_balanced: true,
+    warnings: [],
+    can_close: true,
+    blocking_reasons: [],
+    generated_at: '2026-09-06T12:00:00.000Z',
+  };
+
+  assert.doesNotThrow(() => closeReadinessResponseSchema.parse(validReadinessResponse));
+
+  // Empty period readiness is VALID
+  const emptyPeriodReadiness = {
+    ...validReadinessResponse,
+    draft_journals_count: 0,
+    unbalanced_journals_count: 0,
+    posted_journals_count: 0,
+    currencies: [],
+    currency_summaries: [],
+    is_balanced: true,
+    can_close: true,
+  };
+  assert.doesNotThrow(() => closeReadinessResponseSchema.parse(emptyPeriodReadiness));
+
+  // Reject readiness with unmodeled keys
+  assert.throws(
+    () =>
+      closeReadinessResponseSchema.parse({
+        ...validReadinessResponse,
+        unknown_key: 'invalid',
+      }),
+    /unrecognized_keys/
+  );
+
+  // 4. Close Period Response Schema
   assert.doesNotThrow(() =>
     closePeriodResponseSchema.parse({
       version: 2,
@@ -320,7 +385,7 @@ function createStreamFromChunks(chunks) {
     })
   );
 
-  // 4. List Periods Query and Response Schemas
+  // 5. List Periods Query and Response Schemas
   assert.doesNotThrow(() =>
     listPeriodsQuerySchema.parse({
       context_id: '11111111-1111-1111-1111-111111111111',
@@ -347,8 +412,8 @@ function createStreamFromChunks(chunks) {
   );
 
   console.log('  ✓ financialReportQuerySchema strictly enforces calendar dates & ordering');
-  console.log('  ✓ snapshotVersion2Schema strictly enforces Version 2 and rejects Version 1');
-  console.log('  ✓ currency_summaries and trial_balance arrays strictly required (no unmodeled keys)');
+  console.log('  ✓ snapshotVersion2Schema strictly enforces Version 2 and allows empty period close');
+  console.log('  ✓ closeReadinessResponseSchema strictly matches PostgreSQL RPC output (including top-level is_balanced and currency draft counts)');
   console.log('  ✓ closePeriodResponseSchema and listPeriodsResponseSchema validated');
 }
 
@@ -499,36 +564,45 @@ function createStreamFromChunks(chunks) {
   assert.ok(fs.existsSync(prevMigration1), 'Migration 20260906150000 must exist');
   assert.ok(fs.existsSync(prevMigration2), 'Migration 20260906190000 must exist');
 
-  // Verify forward corrective hardening migration
-  const fwdMigration = path.join(root, 'supabase', 'migrations', '20260906210000_financial_close_final_corrective_hardening.sql');
-  assert.ok(fs.existsSync(fwdMigration), 'Forward migration 20260906210000 must exist');
-  const fwdSql = fs.readFileSync(fwdMigration, 'utf8');
+  // Verify forward corrective hardening migrations
+  const fwdMigration1 = path.join(root, 'supabase', 'migrations', '20260906210000_financial_close_final_corrective_hardening.sql');
+  const fwdMigration2 = path.join(root, 'supabase', 'migrations', '20260906220000_financial_ledger_detail_scope_correction.sql');
+  assert.ok(fs.existsSync(fwdMigration1), 'Forward migration 20260906210000 must exist');
+  assert.ok(fs.existsSync(fwdMigration2), 'Forward migration 20260906220000 must exist');
+  const fwdSql1 = fs.readFileSync(fwdMigration1, 'utf8');
+  const fwdSql2 = fs.readFileSync(fwdMigration2, 'utf8');
 
   // Forward migration checks:
-  assert.ok(fwdSql.includes('PREFLIGHT DATA VALIDATION'), 'Forward migration contains non-destructive preflight checks');
-  assert.ok(!fwdSql.includes('delete from finance.'), 'Preflight must NEVER delete existing data');
-  assert.ok(fwdSql.includes('finance.list_customer_accounting_periods'), 'Defines finance.list_customer_accounting_periods RPC');
-  assert.ok(fwdSql.includes('a_assert_accounting_period_property_tenant'), 'Defines period property tenant integrity trigger');
-  assert.ok(fwdSql.includes('a_assert_journal_parent_update_integrity'), 'Defines journal parent update integrity trigger');
-  assert.ok(fwdSql.includes('a_assert_account_parent_update_integrity'), 'Defines account parent update integrity trigger');
-  assert.ok(fwdSql.includes('app_private.redact_audit_text'), 'Defines authoritative reason redaction helper');
-  assert.ok(fwdSql.includes('p.property_id = v.property_id'), 'Fixes periods scope leak in legacy get_customer_ledger');
+  assert.ok(fwdSql1.includes('PREFLIGHT DATA VALIDATION'), 'Forward migration contains non-destructive preflight checks');
+  assert.ok(!fwdSql1.includes('delete from finance.'), 'Preflight must NEVER delete existing data');
+  assert.ok(fwdSql1.includes('finance.list_customer_accounting_periods'), 'Defines finance.list_customer_accounting_periods RPC');
+  assert.ok(fwdSql1.includes('a_assert_accounting_period_property_tenant'), 'Defines period property tenant integrity trigger');
+  assert.ok(fwdSql1.includes('a_00_assert_journal_parent_update_integrity'), 'Defines journal parent update integrity trigger');
+  assert.ok(fwdSql1.includes('a_00_assert_account_parent_update_integrity'), 'Defines account parent update integrity trigger');
+  assert.ok(fwdSql1.includes('app_private.redact_audit_text'), 'Defines authoritative reason redaction helper');
+  assert.ok(fwdSql2.includes('ledger_journal_not_found'), 'Forward migration 20260906220000 fixes journal detail scope leak with P0002 zero disclosure');
+
+  // Concurrency runner file check
+  const concurrencyRunner = path.join(root, 'scripts', 'test-financial-close-concurrency.mjs');
+  assert.ok(fs.existsSync(concurrencyRunner), 'Real PostgreSQL multi-connection concurrency runner must exist');
 
   // pgTAP test file verification
   const pgtapFile = path.join(root, 'supabase', 'tests', '049_financial_close_reporting.test.sql');
   assert.ok(fs.existsSync(pgtapFile), 'pgTAP test file must exist');
   const pgtapSql = fs.readFileSync(pgtapFile, 'utf8');
 
-  assert.ok(pgtapSql.includes('select plan(101);'), 'pgTAP test file must plan exactly 101 assertions');
+  assert.ok(pgtapSql.includes('select plan(112);'), 'pgTAP test file must plan exactly 112 assertions');
   assert.ok(pgtapSql.includes('test_fail_audit_trigger_fn'), 'pgTAP contains atomic audit rollback test');
-  assert.ok(pgtapSql.includes('test_multi_connection_concurrency'), 'pgTAP contains real multi-connection concurrency test');
+  assert.ok(pgtapSql.includes('Empty Accounting Period Close & Snapshot V2 Verification'), 'pgTAP contains empty period close tests');
+  assert.ok(pgtapSql.includes('Authoritative Ledger Detail Scope & Zero-Disclosure Verification'), 'pgTAP contains ledger detail scope tests');
 
-  console.log('  ✓ Previous migrations untouched; all hardening in 20260906210000 forward migration');
-  console.log('  ✓ pgTAP test 049 verified with 101 assertions covering audit rollback and multi-connection concurrency');
+  console.log('  ✓ Previous migrations untouched; hardening in forward migrations 20260906210000 & 20260906220000');
+  console.log('  ✓ pgTAP test 049 verified with 112 assertions covering audit rollback, ledger detail scope, and empty period close');
+  console.log('  ✓ Independent real multi-connection PostgreSQL concurrency runner verified');
 }
 
 // -----------------------------------------------------------------------------
-// Suite 6: Direct Route Handler Invocations across All 4 Routes
+// Suite 6: Direct Route Handler Invocations across Customer API Routes
 // -----------------------------------------------------------------------------
 {
   console.log('\n[Suite 6] Direct Route Handler Invocations (Full HTTP Status Matrix)');
@@ -537,12 +611,14 @@ function createStreamFromChunks(chunks) {
   const validContextId = '11111111-1111-1111-1111-111111111111';
   const validPeriodId = '22222222-2222-2222-2222-222222222222';
   const validTenantId = '33333333-3333-3333-3333-333333333333';
+  const validJournalId = '44444444-4444-4444-4444-444444444444';
 
-  // Import all 4 route handlers
+  // Import route handlers
   const { handleGetFinancialReport } = await import('../src/app/api/customer/v1/financial-reports/route.ts');
   const { handleGetPeriods } = await import('../src/app/api/customer/v1/accounting/periods/route.ts');
   const { handleGetCloseReadiness } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close-readiness/route.ts');
   const { handlePostClose } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close/route.ts');
+  const { handleGetLedger } = await import('../src/app/api/customer/v1/accounting/route.ts');
 
   // ---------------------------------------------------------------------------
   // Route 1: GET /api/customer/v1/financial-reports
@@ -725,7 +801,7 @@ function createStreamFromChunks(chunks) {
     const json500 = await res500.json();
     assert.equal(json500.error.code, 'READINESS_CHECK_FAILED');
 
-    // 200 Success: Valid readiness payload
+    // 200 Success: Valid readiness payload matching exact PostgreSQL RPC schema
     const client200 = createStubSupabaseClient({
       rpcData: {
         version: 2,
@@ -751,13 +827,14 @@ function createStreamFromChunks(chunks) {
           {
             currency: 'RON',
             posted_journals_count: 10,
+            draft_journals_count: 0,
             total_debit: 5000,
             total_credit: 5000,
             difference: 0,
             is_balanced: true,
-            trial_balance: [],
           },
         ],
+        is_balanced: true,
         warnings: [],
         can_close: true,
         blocking_reasons: [],
@@ -798,8 +875,8 @@ function createStreamFromChunks(chunks) {
     const jsonUntrusted = await resUntrusted.json();
     assert.equal(jsonUntrusted.error.code, 'UNTRUSTED_ORIGIN');
 
-    // 415 Unsupported Media Type: non-JSON MIME
-    const req415 = makePostRequest({ contentType: 'text/plain', body: 'hello' });
+    // 415 Unsupported Media Type
+    const req415 = makePostRequest({ contentType: 'text/plain' });
     const res415 = await handlePostClose(req415, { id: validPeriodId });
     assert.equal(res415.status, 415, 'text/plain must return 415');
     const json415 = await res415.json();
@@ -906,7 +983,7 @@ function createStreamFromChunks(chunks) {
     assert.equal(json500.error.code, 'PERIOD_CLOSE_FAILED');
     assert.ok(!JSON.stringify(json500).includes('/data'), 'Must not leak database internals');
 
-    // 200 Success: Valid close returning Version 2 snapshot
+    // 200 Success: Valid close returning Version 2 snapshot (supports empty period snapshot)
     const validSnapshotData = {
       version: 2,
       snapshot_version: 2,
@@ -952,13 +1029,91 @@ function createStreamFromChunks(chunks) {
     assert.equal(json200.snapshot.snapshot_version, 2);
   }
 
-  console.log('  ✓ All 4 Route Handlers directly tested with real NextRequest instances');
+  // ---------------------------------------------------------------------------
+  // Route 5: GET /api/customer/v1/accounting (Ledger & Journal Detail)
+  // ---------------------------------------------------------------------------
+  {
+    console.log('  -> Testing handleGetLedger:');
+
+    // 400 Bad Request: Missing context UUID
+    const req400 = new NextRequest(`${baseOrigin}/api/customer/v1/accounting?context_id=invalid`);
+    const res400 = await handleGetLedger(req400);
+    assert.equal(res400.status, 400, 'Invalid context_id must return 400');
+    const json400 = await res400.json();
+    assert.equal(json400.error.code, 'INVALID_LEDGER_QUERY');
+
+    // 401 Unauthorized: Missing claims
+    const reqValid = new NextRequest(`${baseOrigin}/api/customer/v1/accounting?context_id=${validContextId}`);
+    const client401 = createStubSupabaseClient({ claims: null });
+    const res401 = await handleGetLedger(reqValid, client401);
+    assert.equal(res401.status, 401, 'Missing claims must return 401');
+
+    // 403 Forbidden: 42501 error
+    const client403 = createStubSupabaseClient({
+      rpcError: { code: '42501', message: 'ledger_permission_required' },
+    });
+    const res403 = await handleGetLedger(reqValid, client403);
+    assert.equal(res403.status, 403, '42501 must return 403');
+    const json403 = await res403.json();
+    assert.equal(json403.error.code, 'LEDGER_ACCESS_DENIED');
+
+    // 404 Not Found: P0002 journal not found or out-of-scope (Zero-disclosure)
+    const reqDetail = new NextRequest(
+      `${baseOrigin}/api/customer/v1/accounting?context_id=${validContextId}&journal_id=${validJournalId}`
+    );
+    const client404 = createStubSupabaseClient({
+      rpcError: { code: 'P0002', message: 'ledger_journal_not_found' },
+    });
+    const res404 = await handleGetLedger(reqDetail, client404);
+    assert.equal(res404.status, 404, 'P0002 out-of-scope journal must return 404');
+    const json404 = await res404.json();
+    assert.equal(json404.error.code, 'LEDGER_JOURNAL_NOT_FOUND');
+
+    // 500 Sanitized: Database internal error
+    const client500 = createStubSupabaseClient({
+      rpcError: { code: 'XX000', message: 'unexpected db crash' },
+    });
+    const res500 = await handleGetLedger(reqValid, client500);
+    assert.equal(res500.status, 500, 'Internal error must return 500');
+    const json500 = await res500.json();
+    assert.equal(json500.error.code, 'LEDGER_QUERY_FAILED');
+
+    // 200 Success: Valid ledger detail response
+    const client200 = createStubSupabaseClient({
+      rpcData: {
+        context: { id: validContextId, role_code: 'property_manager', scope_type: 'property' },
+        total: 1,
+        journals: [],
+        accounts: [],
+        periods: [],
+        trial_balance: { debit: 100, credit: 100, balanced: true },
+        detail: [
+          {
+            id: '55555555-5555-5555-5555-555555555555',
+            account_code: '5121',
+            account_name: 'Bank',
+            side: 'debit',
+            amount: 100,
+            memo: 'Test entry',
+            unit_id: null,
+          },
+        ],
+        limit: 25,
+        offset: 0,
+        read_only: true,
+        generated_at: '2026-09-06T12:00:00.000Z',
+      },
+    });
+    const res200 = await handleGetLedger(reqDetail, client200);
+    assert.equal(res200.status, 200, 'Valid ledger query must return 200');
+  }
+
+  console.log('  ✓ All Customer Route Handlers directly tested with real NextRequest instances');
   console.log('  ✓ Complete HTTP status matrix verified: 200, 400, 401, 403, 404, 409, 413, 415, 500 Sanitized');
 }
 
 // -----------------------------------------------------------------------------
 // Suite 7: Byte-Based 10KB Stream Defense Direct Handler Tests
-// -----------------------------------------------------------------------------
 {
   console.log('\n[Suite 7] Byte-Based 10KB Stream Defense Verification');
 
