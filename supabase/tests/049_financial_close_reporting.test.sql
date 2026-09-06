@@ -196,15 +196,15 @@ begin
   where id = '23b00000-0000-0000-0000-000000000004';
 
   -- Journal 5: Reversal compensating journal for Journal 4 (status = 'reversed', reversal_of_id set)
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, reversal_of_id) values
-    ('23b00000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-29', 'RON', 'Reversal of J4', 'reversal', 'draft', '23b00000-0000-0000-0000-000000000004');
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
+    ('23b00000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-29', 'RON', 'Reversal of J4', 'reversal', 'draft');
 
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000005', '23a00000-0000-0000-0000-000000000006', 'debit', 200, 'Revenue reversal debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000005', '23a00000-0000-0000-0000-000000000001', 'credit', 200, 'Bank reversal credit');
 
   update finance.journals
-  set status = 'reversed', posted_at = statement_timestamp()
+  set status = 'reversed', reversal_of_id = '23b00000-0000-0000-0000-000000000004', posted_at = statement_timestamp()
   where id = '23b00000-0000-0000-0000-000000000005';
 end $$;
 
