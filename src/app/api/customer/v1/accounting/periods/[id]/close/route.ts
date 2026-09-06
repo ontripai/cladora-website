@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server.js';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
-import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
-import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
+import { createClient } from '../../../../../../../../lib/supabase/server.ts';
+import { hasTrustedMutationOrigin } from '../../../../../../../../lib/security/same-origin.ts';
+import { isApplicationJson, parseJsonWithLimit } from '../../../../../../../../lib/security/request-body.ts';
 import {
   closePeriodRequestSchema,
   closePeriodResponseSchema,
-} from '@/lib/customer/financial-reports-schema';
-import { uuidSchema } from '@/lib/customer/dashboard-schema';
+} from '../../../../../../../../lib/customer/financial-reports-schema.ts';
+import { uuidSchema } from '../../../../../../../../lib/customer/dashboard-schema.ts';
 
 const HEADERS = {
   'Cache-Control': 'no-store, private',
@@ -102,9 +102,11 @@ export async function POST(
 
   if (rpcError) {
     const isForbidden = rpcError.code === '42501';
+    const isClosed = rpcError.code === '25000' || rpcError.message?.includes('closed');
+    const isOverlap = rpcError.code === '23P01';
     const isConflict = rpcError.code === '40001' || rpcError.message?.includes('already_closed');
     const isNotFound = rpcError.code === 'P0002';
-    const isBadRequest = rpcError.code === '22023';
+    const isBadRequest = rpcError.code === '22023' || rpcError.code === '23514';
 
     let code = 'PERIOD_CLOSE_FAILED';
     let message = 'Failed to close accounting period';
@@ -112,8 +114,16 @@ export async function POST(
 
     if (isForbidden) {
       code = 'PERIOD_CLOSE_DENIED';
-      message = rpcError.message || 'Permission denied to close accounting period';
+      message = 'Permission denied to close accounting period';
       status = 403;
+    } else if (isClosed) {
+      code = 'ACCOUNTING_PERIOD_CLOSED';
+      message = 'Accounting period is already closed or locked against modification';
+      status = 409;
+    } else if (isOverlap) {
+      code = 'ACCOUNTING_PERIOD_OVERLAP';
+      message = 'Accounting period dates overlap with an existing period';
+      status = 409;
     } else if (isConflict) {
       code = 'PERIOD_ALREADY_CLOSED';
       message = 'Accounting period is already closed';
@@ -124,7 +134,7 @@ export async function POST(
       status = 404;
     } else if (isBadRequest) {
       code = 'PERIOD_CLOSE_BLOCKED';
-      message = rpcError.message || 'Period cannot be closed due to open draft, unbalanced journals, or invalid sequence';
+      message = 'Period cannot be closed due to open draft, unbalanced journals, or invalid sequence';
       status = 400;
     }
 

@@ -141,6 +141,58 @@ Draft entries (`status = 'draft'`) are excluded from reports and act as blockers
 
 ---
 
+### G. Closed Period Ledger Seal, GiST Overlap Constraints & Concurrency Lock Protocol
+
+To eliminate race conditions and guarantee immutable accounting integrity at the database storage engine layer (implemented in migration `20260906190000_closed_period_ledger_seal.sql`):
+
+#### 1. Physical GiST Exclusion Constraints
+- **Property Periods**: `accounting_periods_property_no_overlap` enforces `EXCLUDE USING gist (tenant_id WITH =, property_id WITH =, (daterange(starts_on, ends_on, '[]'::text)) WITH &&) WHERE (property_id IS NOT NULL)`.
+- **Tenant-Wide Periods**: `accounting_periods_tenant_no_overlap` enforces `EXCLUDE USING gist (tenant_id WITH =, (daterange(starts_on, ends_on, '[]'::text)) WITH &&) WHERE (property_id IS NULL)`.
+- **Cross-Scope Overlap Policy**:
+  - A Tenant-Wide period (`property_id IS NULL`) cannot overlap with any tenant or property period of the same tenant.
+  - Property periods of **different properties** can be concurrent.
+  - Serialization is enforced by locking the parent `platform.tenants` row `FOR UPDATE` in `finance.assert_accounting_period_no_overlap()`, preventing concurrent insertion races across tenant-wide and property scopes.
+
+#### 2. Row-Level Concurrency Locking Protocol (`FOR SHARE` vs `FOR UPDATE`)
+- When creating, updating, or deleting journals or entries, `finance.assert_scope_date_not_in_closed_period()` locks covering periods using `FOR SHARE`.
+- `finance.close_accounting_period()` locks the target period row using `FOR UPDATE`.
+- Mutual exclusion guarantees:
+  - **Journal first**: Holds `FOR SHARE` lock $\implies$ Close's `FOR UPDATE` query blocks and waits $\implies$ once Journal commits, Close unblocks and captures the new Journal in its authoritative snapshot.
+  - **Close first**: Holds `FOR UPDATE` lock $\implies$ Journal's `FOR SHARE` query blocks and waits $\implies$ once Close commits and sets `status = 'closed'`, Journal unblocks, re-evaluates the committed row, and fails-closed with SQLSTATE `25000` (`cannot_modify_journal_in_closed_period`).
+- **Fail-Closed Matching**: For any journal date, at most one period may match. If multiple periods match (`v_total_matching > 1`), the system aborts fail-closed with SQLSTATE `23P01` (never picking a period with `LIMIT 1`).
+
+#### 3. Complete Trigger Coverage on Journals and Entries
+- `finance.journals`: Trigger `trg_assert_journal_not_in_closed_period` covers `BEFORE INSERT OR UPDATE OR DELETE`:
+  - On `INSERT`: Validates `NEW.occurred_on` and validates property belongs to tenant.
+  - On `DELETE`: Validates `OLD.occurred_on`.
+  - On `UPDATE`: Validates **both** `OLD.occurred_on` and `NEW.occurred_on` (and validates property belongs to tenant on `NEW`).
+- `finance.journal_entries`: Trigger `trg_assert_journal_entry_closed_period` covers `BEFORE INSERT OR UPDATE OR DELETE`:
+  - On `INSERT`: Validates parent journal for `NEW.journal_id`.
+  - On `DELETE`: Validates parent journal for `OLD.journal_id`.
+  - On `UPDATE`: Validates parent journal for `OLD.journal_id` and, if `journal_id` changed, validates `NEW.journal_id`.
+
+#### 4. Structural Integrity Enforcement (`trg_assert_journal_entry_integrity`)
+- `entry.tenant_id = journal.tenant_id = account.tenant_id` (SQLSTATE `42501`: `Cross-tenant journal entry denied`)
+- `account.property_id IS NOT DISTINCT FROM journal.property_id` (SQLSTATE `42501`: `Cross-property journal entry denied`)
+- `account.currency = journal.currency` (SQLSTATE `42501`: `Journal currency mismatch`)
+- Property belongs to same tenant (`properties.tenant_id = journal.tenant_id`)
+- Unit belongs to same tenant and journal property (`units.property_id = journal.property_id`)
+
+#### 5. Deterministic Aggregation
+- `finance.get_close_readiness` and `finance.close_accounting_period` enforce `ORDER BY cs.currency ASC` inside `jsonb_agg(...)`, guaranteeing deterministic ordering of `currency_summaries` arrays across calls.
+
+#### 6. API Error Mapping and Sanitization
+- Database SQLSTATE exceptions are mapped cleanly in the Route Handler:
+  - `25000` $\to$ `ACCOUNTING_PERIOD_CLOSED` (HTTP 409)
+  - `23P01` $\to$ `ACCOUNTING_PERIOD_OVERLAP` (HTTP 409)
+  - `42501` $\to$ `PERIOD_CLOSE_DENIED` (HTTP 403)
+  - `P0002` $\to$ `PERIOD_NOT_FOUND` (HTTP 404)
+  - `22023` / `23514` $\to$ `PERIOD_CLOSE_BLOCKED` (HTTP 400)
+  - `40001` $\to$ `PERIOD_ALREADY_CLOSED` (HTTP 409)
+- Raw PostgreSQL exception messages are strictly prevented from leaking to API clients.
+
+---
+
 ## 3. Explicit Boundaries (Out of Scope)
 
 The following items are intentionally excluded from this P1 foundation:

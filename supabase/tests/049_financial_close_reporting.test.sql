@@ -1,5 +1,5 @@
 begin;
-select plan(60);
+select plan(75);
 
 -- 1. Schema & Privilege verifications
 select ok(to_regprocedure('finance.get_close_readiness(uuid,uuid)') is not null, 'finance.get_close_readiness RPC exists');
@@ -103,7 +103,8 @@ begin
   -- Portfolio Structure
   insert into portfolio.properties (id, tenant_id, type, name, status) values
     ('23500000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', 'condominium', 'Property 049', 'active'),
-    ('23500000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000002', 'condominium', 'Property 049 B', 'active');
+    ('23500000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000002', 'condominium', 'Property 049 B', 'active'),
+    ('23500000-0000-0000-0000-000000000003', '23100000-0000-0000-0000-000000000001', 'condominium', 'Property 049 C', 'active');
 
   insert into portfolio.buildings (id, tenant_id, property_id, code, name, status) values
     ('23600000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', 'B1', 'Building 1', 'active');
@@ -145,7 +146,9 @@ begin
     ('23a00000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '605', 'Cheltuieli privind utilitatile', 'expense', 'RON'),
     ('23a00000-0000-0000-0000-000000000006', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '704', 'Venituri din servicii prestate', 'income', 'RON'),
     ('23a00000-0000-0000-0000-000000000007', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '5124', 'Conturi la banci in valuta', 'asset', 'EUR'),
-    ('23a00000-0000-0000-0000-000000000008', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '7042', 'Venituri valuta', 'income', 'EUR');
+    ('23a00000-0000-0000-0000-000000000008', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '7042', 'Venituri valuta', 'income', 'EUR'),
+    ('23a00000-0000-0000-0000-000000000009', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '5121', 'Property 3 Bank', 'asset', 'RON'),
+    ('23a00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '5121', 'Tenant 2 Bank', 'asset', 'RON');
 
   -- Accounting Periods: Period 1 (Jan 2026), Period 2 (Feb 2026), Period 3 (Future)
   insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status) values
@@ -381,6 +384,123 @@ select ok(
      and entity_type = 'accounting_period'
      and entity_id = '23c00000-0000-0000-0000-000000000001'::uuid),
   'Atomic audit event recorded for period close in audit.events'
+);
+
+-- 6b. Closed Period Ledger Seal & Integrity Verifications
+-- 1. Inserting journal inside closed period is rejected
+select throws_like(
+  $$ insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status)
+     values ('23b00000-0000-0000-0000-000000000099', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-10', 'RON', 'Late journal in closed period', 'invoice', 'draft') $$,
+  '%Cannot modify journal or entry in closed accounting period%',
+  'Inserting journal inside closed accounting period is strictly rejected'
+);
+
+-- 2. Updating journal inside closed period is rejected
+select throws_like(
+  $$ update finance.journals set description = 'Tampered description' where id = '23b00000-0000-0000-0000-000000000002' $$,
+  '%Cannot modify journal or entry in closed accounting period%',
+  'Updating journal inside closed accounting period is strictly rejected'
+);
+
+-- 3. Moving journal date from open into closed period is rejected
+insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status)
+values ('23b00000-0000-0000-0000-000000000098', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-02-15', 'RON', 'Feb journal', 'invoice', 'draft');
+
+select throws_like(
+  $$ update finance.journals set occurred_on = '2026-01-20' where id = '23b00000-0000-0000-0000-000000000098' $$,
+  '%Cannot modify journal or entry in closed accounting period%',
+  'Moving journal date into closed accounting period is strictly rejected'
+);
+
+-- 4. Deleting journal inside closed period is rejected
+select throws_like(
+  $$ delete from finance.journals where id = '23b00000-0000-0000-0000-000000000002' $$,
+  '%Cannot modify journal or entry in closed accounting period%',
+  'Deleting journal inside closed accounting period is strictly rejected'
+);
+
+-- 5. Inserting entry on journal in closed period is rejected
+select throws_like(
+  $$ insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo)
+     values ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000002', '23a00000-0000-0000-0000-000000000001', 'debit', 50, 'Late entry') $$,
+  '%Cannot modify journal or entry in closed accounting period%',
+  'Inserting entry on journal in closed accounting period is strictly rejected'
+);
+
+-- 6. Updating entry on journal in closed period is rejected
+select throws_like(
+  $$ update finance.journal_entries set amount = 999 where journal_id = '23b00000-0000-0000-0000-000000000002' $$,
+  '%Cannot modify journal or entry in closed accounting period%',
+  'Updating entry on journal in closed accounting period is strictly rejected'
+);
+
+-- 7. Deleting entry on journal in closed period is rejected
+select throws_like(
+  $$ delete from finance.journal_entries where journal_id = '23b00000-0000-0000-0000-000000000002' $$,
+  '%Cannot modify journal or entry in closed accounting period%',
+  'Deleting entry on journal in closed accounting period is strictly rejected'
+);
+
+-- 8. Overlapping period for same property is rejected by GiST exclusion constraint
+select throws_like(
+  $$ insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status)
+     values ('23c00000-0000-0000-0000-000000000091', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-15', '2026-02-15', 'open') $$,
+  '%accounting_periods_property_no_overlap%',
+  'Overlapping period for same property is rejected by GiST exclusion constraint'
+);
+
+-- 9. Tenant-wide period overlapping existing property period is rejected
+select throws_like(
+  $$ insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status)
+     values ('23c00000-0000-0000-0000-000000000092', '23100000-0000-0000-0000-000000000001', null, '2026-01-10', '2026-01-20', 'open') $$,
+  '%Tenant-wide accounting period cannot overlap%',
+  'Tenant-wide period overlapping property period is rejected'
+);
+
+-- 10. Concurrent periods across different properties for same tenant succeed
+select lives_ok(
+  $$ insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status)
+     values ('23c00000-0000-0000-0000-000000000093', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2026-01-01', '2026-01-31', 'open') $$,
+  'Concurrent periods across different properties for same tenant succeed'
+);
+
+-- 11. Closed period on Property 1 does not seal Property 3
+select lives_ok(
+  $$ insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status)
+     values ('23b00000-0000-0000-0000-000000000097', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2026-01-15', 'RON', 'Property 3 concurrent journal', 'invoice', 'draft') $$,
+  'Closed period on Property 1 does not seal Property 3 journals on same dates'
+);
+
+-- 12. Cross-tenant journal entry is strictly rejected
+select throws_like(
+  $$ insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo)
+     values ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000098', '23a00000-0000-0000-0000-000000000010', 'debit', 100, 'Cross tenant attack') $$,
+  '%Cross-tenant journal entry denied%',
+  'Cross-tenant account in journal entry is strictly rejected'
+);
+
+-- 13. Currency mismatch between account and journal is strictly rejected
+select throws_like(
+  $$ insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo)
+     values ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000098', '23a00000-0000-0000-0000-000000000007', 'debit', 100, 'Currency mismatch attack') $$,
+  '%Journal currency mismatch%',
+  'Currency mismatch between account and journal is strictly rejected'
+);
+
+-- 14. Journal with property belonging to another tenant is strictly rejected
+select throws_like(
+  $$ insert into finance.journals (tenant_id, property_id, occurred_on, currency, description, source_type, status)
+     values ('23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000002', '2026-02-15', 'RON', 'Cross-tenant property journal', 'invoice', 'draft') $$,
+  '%Cross-tenant property denied%',
+  'Journal with property belonging to another tenant is strictly rejected'
+);
+
+-- 15. Period 1 snapshot currency summaries are stably sorted ascending (EUR, then RON)
+select ok(
+  (select (snapshot_json->'currency_summaries'->0->>'currency' = 'EUR') and
+          (snapshot_json->'currency_summaries'->1->>'currency' = 'RON')
+   from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000001'),
+  'Period 1 snapshot currency summaries are stably sorted: EUR first, then RON'
 );
 set local role authenticated;
 
