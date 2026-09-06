@@ -90,6 +90,8 @@ begin
     (role_pres, perm_prd_read, 'allow'),
     (role_censor, perm_rep, 'allow'),
     (role_censor, perm_prd_read, 'allow'),
+    (role_owner, perm_ledger, 'allow'),
+    (role_resident, perm_ledger, 'allow'),
     (role_other, perm_rep, 'allow'),
     (role_other, perm_prd_read, 'allow'),
     (role_other, perm_prd_close, 'allow');
@@ -103,6 +105,15 @@ begin
     ('23300000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23000000-0000-0000-0000-000000000005', role_owner, 'active', statement_timestamp() - interval '1 day'),
     ('23300000-0000-0000-0000-000000000006', '23100000-0000-0000-0000-000000000001', '23000000-0000-0000-0000-000000000006', role_resident, 'active', statement_timestamp() - interval '1 day'),
     ('23300000-0000-0000-0000-000000000007', '23100000-0000-0000-0000-000000000002', '23000000-0000-0000-0000-000000000007', role_other, 'active', statement_timestamp() - interval '1 day');
+
+  -- Parties & Membership Parties
+  insert into portfolio.parties (id, tenant_id, type, legal_name) values
+    ('23900000-0000-0000-0000-000000000001', '23100000-0000-0000-0000-000000000001', 'person', 'Owner Party 049'),
+    ('23900000-0000-0000-0000-000000000002', '23100000-0000-0000-0000-000000000001', 'person', 'Resident Party 049');
+
+  insert into identity.membership_parties (membership_id, tenant_id, party_id) values
+    ('23300000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23900000-0000-0000-0000-000000000001'),
+    ('23300000-0000-0000-0000-000000000006', '23100000-0000-0000-0000-000000000001', '23900000-0000-0000-0000-000000000002');
 
   -- Portfolio Structure
   insert into portfolio.properties (id, tenant_id, type, name, status) values
@@ -216,28 +227,29 @@ begin
   set status = 'reversed', reversal_of_id = '23b00000-0000-0000-0000-000000000004', posted_at = statement_timestamp()
   where id = '23b00000-0000-0000-0000-000000000005';
 
-  -- Tenant-wide journal in Tenant 1 (property_id is NULL): 50 RON (May 2025)
+  -- Tenant-wide journal in Tenant 1 (property_id is NULL): 50 RON (May 2026)
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2025-05-10', 'RON', 'Tenant wide journal', 'invoice', 'draft');
+    ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2026-05-10', 'RON', 'Tenant wide journal', 'invoice', 'draft');
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000011', 'debit', 50, 'Tenant debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000012', 'credit', 50, 'Tenant credit');
   update finance.journals set status = 'posted', posted_at = statement_timestamp() where id = '23b00000-0000-0000-0000-000000000010';
 
-  -- Cross-Tenant journal in Tenant 2 / Property 2: 100 RON (May 2025)
+  -- Cross-Tenant journal in Tenant 2 / Property 2: 100 RON (May 2026)
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000020', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '2025-05-10', 'RON', 'Tenant 2 journal', 'invoice', 'draft');
+    ('23b00000-0000-0000-0000-000000000020', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '2026-05-10', 'RON', 'Tenant 2 journal', 'invoice', 'draft');
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'debit', 100, 'T2 debit'),
     ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'credit', 100, 'T2 credit');
   update finance.journals set status = 'posted', posted_at = statement_timestamp() where id = '23b00000-0000-0000-0000-000000000020';
 
-  -- Cross-Property journal in Tenant 1 / Property 3: 70 RON (May 2025)
+  -- Cross-Property journal in Tenant 1 / Property 3: 70 RON (May 2026)
   insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000030', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2025-05-10', 'RON', 'Property 3 journal', 'invoice', 'draft');
+    ('23b00000-0000-0000-0000-000000000030', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2026-05-10', 'RON', 'Property 3 journal', 'invoice', 'draft');
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'debit', 70, 'P3 debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'credit', 70, 'P3 credit');
+  update finance.journals set status = 'posted', posted_at = statement_timestamp() where id = '23b00000-0000-0000-0000-000000000030';
   update finance.journals set status = 'posted', posted_at = statement_timestamp() where id = '23b00000-0000-0000-0000-000000000030';
 
   -- Empty Accounting Period for Empty Close Policy Testing (Period in Nov 2025 on Property 3)
