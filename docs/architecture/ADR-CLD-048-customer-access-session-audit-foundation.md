@@ -22,23 +22,29 @@ Prior to this architectural change:
 - Implements visual loading states and accessible trilingual ARIA live region error alerts (`ro`, `en`, `fa`).
 - Removed all legacy mock Exit links in `PlatformShell.tsx` and `CustomerAppShell.tsx`.
 
-### 2. Presentation Route Guard & Mock Isolation (`CustomerRouteGuard`)
-- Implemented `CustomerRouteGuard` (`src/components/customer/CustomerRouteGuard.tsx`) wrapping customer app content.
-- Enforces route permissions, module entitlements, and active customer context:
-  - `accounting` -> `finance.ledger.read`
+### 2. Presentation Route Guard & Mock Isolation (`CustomerRouteGuard` & `route-classifier.ts`)
+- Implemented centralized route classification in `src/lib/customer/route-classifier.ts` and `CustomerRouteGuard`:
+  - `/app/invoices` & `/app/receivables` -> `billing.receivables.read` + module `billing`
+  - `/app/purchase-orders`, `/app/vendor-contracts` & `/app/vendor-sla` -> `maintenance.procurement.read` + `module.maintenance`
+  - `/app/residents` & `/app/leases` -> `occupancy.registry.read` + `module.occupancy`
+  - `/app/access-logs`, `/app/credentials` & `/app/visitors` -> `security.access.read` + `module.security`
+  - `accounting` -> `finance.ledger.read` + module `accounting`
   - `accounting/allocations` -> `finance.allocations.read`
-  - `billing` / `billing/receivables` -> `billing.receivables.read`
-  - `payments` / `reconciliation` -> `payments.reconciliation.read`
+  - `billing` -> `billing.receivables.read` + module `billing`
+  - `payments` & `reconciliation` -> `payments.reconciliation.read` + module `payments`
   - `meters` -> `utilities.metering.read` + `module.utilities`
-  - `assets` / `maintenance` -> `maintenance.assets.read` + `module.maintenance`
-  - `procurement` / `vendors` -> `maintenance.procurement.read` + `module.maintenance`
-  - `governance` / `meetings` -> `governance.meetings.read` + `module.governance`
-  - `communications` / `notifications` -> `communications.feed.read` + `module.communications`
+  - `assets` & `maintenance` -> `maintenance.assets.read` + `module.maintenance`
+  - `procurement` & `vendors` -> `maintenance.procurement.read` + `module.maintenance`
+  - `governance` & `meetings` -> `governance.meetings.read` + `module.governance`
+  - `communications` & `notifications` -> `communications.feed.read` + `module.communications`
   - `documents` -> `documents.vault.read` + `module.documents`
-  - `occupancy` / `ownership` -> `occupancy.registry.read` + `module.occupancy`
+  - `occupancy` & `ownership` -> `occupancy.registry.read` + `module.occupancy`
   - `security-access` -> `security.access.read` + `module.security`
   - `audit` -> `audit.events.read`
-- Fail-closed isolation: Unimplemented preview pages (`/app/portfolio`, `/app/settings`, `/app/accounting/month-close`, `/app/migration/shadow-ledger`) are blocked fail-closed, rendering a trilingual `AccessRestrictedCard` with a return link to `/${lang}/app/dashboard`.
+- Explicitly allowed routes: `/app/dashboard` and `/app/onboarding` (pass through once active context is confirmed).
+- Explicitly unavailable routes: `/app/portfolio`, `/app/settings`, `/app/accounting/month-close`, and `/app/migration/shadow-ledger` remain blocked fail-closed, rendering a trilingual `AccessRestrictedCard` with a return link to `/${lang}/app/dashboard`.
+- Fail-closed default: Any unknown or unclassified route under `/app` fails closed by default (`reason="unknown"`).
+- Navigation synchronization: `CustomerAppShell` synchronizes navigation item visibility with both module/entitlement and permission predicates (accounting requires module + ledger permission; allocations requires allocations permission; billing requires module + receivables permission; payments requires module + reconciliation permission; all other items require both entitlement and permission).
 - Public demo pages under `/demo` remain untouched.
 
 ### 3. Mobile Navigation Architecture

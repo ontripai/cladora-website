@@ -123,6 +123,22 @@ const root = process.cwd();
     content.includes('/app/audit'),
     'CustomerAppShell must include /app/audit navigation link'
   );
+  assert.ok(
+    content.includes('hasMod("accounting") && hasPerm("finance.ledger.read")'),
+    'CustomerAppShell must gate accounting with module accounting and finance.ledger.read'
+  );
+  assert.ok(
+    content.includes('hasPerm("finance.allocations.read")'),
+    'CustomerAppShell must gate allocations with finance.allocations.read'
+  );
+  assert.ok(
+    content.includes('hasMod("billing") && hasPerm("billing.receivables.read")'),
+    'CustomerAppShell must gate billing with module billing and billing.receivables.read'
+  );
+  assert.ok(
+    content.includes('hasMod("payments") && hasPerm("payments.reconciliation.read")'),
+    'CustomerAppShell must gate payments with module payments and payments.reconciliation.read'
+  );
 
   console.log('  ✓ Mobile horizontal scrollable navigation present');
   console.log('  ✓ Desktop sidebar structure preserved');
@@ -138,20 +154,30 @@ const root = process.cwd();
   const guardFile = path.join(root, 'src', 'components', 'customer', 'CustomerRouteGuard.tsx');
   assert.ok(fs.existsSync(guardFile), 'CustomerRouteGuard component must exist');
 
-  const content = fs.readFileSync(guardFile, 'utf8');
+  const classifierFile = path.join(root, 'src', 'lib', 'customer', 'route-classifier.ts');
+  assert.ok(fs.existsSync(classifierFile), 'Route classifier module must exist');
+
+  const guardContent = fs.readFileSync(guardFile, 'utf8');
+  const classifierContent = fs.readFileSync(classifierFile, 'utf8');
+  const content = guardContent + '\n' + classifierContent;
 
   // Route rules mapping
   const expectedMappings = [
     { route: '/app/accounting/allocations', perm: 'finance.allocations.read' },
-    { route: '/app/accounting', perm: 'finance.ledger.read' },
-    { route: '/app/billing', perm: 'billing.receivables.read' },
-    { route: '/app/payments', perm: 'payments.reconciliation.read' },
-    { route: '/app/reconciliation', perm: 'payments.reconciliation.read' },
+    { route: '/app/accounting', perm: 'finance.ledger.read', mod: 'accounting' },
+    { route: '/app/billing', perm: 'billing.receivables.read', mod: 'billing' },
+    { route: '/app/invoices', perm: 'billing.receivables.read', mod: 'billing' },
+    { route: '/app/receivables', perm: 'billing.receivables.read', mod: 'billing' },
+    { route: '/app/payments', perm: 'payments.reconciliation.read', mod: 'payments' },
+    { route: '/app/reconciliation', perm: 'payments.reconciliation.read', mod: 'payments' },
     { route: '/app/meters', perm: 'utilities.metering.read', ent: 'module.utilities' },
     { route: '/app/assets', perm: 'maintenance.assets.read', ent: 'module.maintenance' },
     { route: '/app/maintenance', perm: 'maintenance.assets.read', ent: 'module.maintenance' },
     { route: '/app/procurement', perm: 'maintenance.procurement.read', ent: 'module.maintenance' },
     { route: '/app/vendors', perm: 'maintenance.procurement.read', ent: 'module.maintenance' },
+    { route: '/app/purchase-orders', perm: 'maintenance.procurement.read', ent: 'module.maintenance' },
+    { route: '/app/vendor-contracts', perm: 'maintenance.procurement.read', ent: 'module.maintenance' },
+    { route: '/app/vendor-sla', perm: 'maintenance.procurement.read', ent: 'module.maintenance' },
     { route: '/app/governance', perm: 'governance.meetings.read', ent: 'module.governance' },
     { route: '/app/meetings', perm: 'governance.meetings.read', ent: 'module.governance' },
     { route: '/app/communications', perm: 'communications.feed.read', ent: 'module.communications' },
@@ -159,7 +185,12 @@ const root = process.cwd();
     { route: '/app/documents', perm: 'documents.vault.read', ent: 'module.documents' },
     { route: '/app/occupancy', perm: 'occupancy.registry.read', ent: 'module.occupancy' },
     { route: '/app/ownership', perm: 'occupancy.registry.read', ent: 'module.occupancy' },
+    { route: '/app/residents', perm: 'occupancy.registry.read', ent: 'module.occupancy' },
+    { route: '/app/leases', perm: 'occupancy.registry.read', ent: 'module.occupancy' },
     { route: '/app/security-access', perm: 'security.access.read', ent: 'module.security' },
+    { route: '/app/access-logs', perm: 'security.access.read', ent: 'module.security' },
+    { route: '/app/credentials', perm: 'security.access.read', ent: 'module.security' },
+    { route: '/app/visitors', perm: 'security.access.read', ent: 'module.security' },
     { route: '/app/audit', perm: 'audit.events.read' },
   ];
 
@@ -174,6 +205,12 @@ const root = process.cwd();
         `CustomerRouteGuard must map route to entitlement ${item.ent}`
       );
     }
+    if (item.mod) {
+      assert.ok(
+        content.includes(item.mod),
+        `CustomerRouteGuard must map route to module ${item.mod}`
+      );
+    }
   }
 
   // Fail-closed mock routes list
@@ -181,6 +218,10 @@ const root = process.cwd();
   assert.ok(content.includes('/app/settings'), 'Must block /app/settings');
   assert.ok(content.includes('/app/accounting/month-close'), 'Must block /app/accounting/month-close');
   assert.ok(content.includes('/app/migration/shadow-ledger'), 'Must block /app/migration/shadow-ledger');
+
+  // Explicitly allowed routes
+  assert.ok(content.includes('/app/dashboard'), 'Must include /app/dashboard');
+  assert.ok(content.includes('/app/onboarding'), 'Must include /app/onboarding');
 
   // Trilingual Access Restricted message and return to dashboard
   assert.ok(content.includes('Acces Restricționat'), 'RO restricted title');
@@ -215,7 +256,8 @@ const root = process.cwd();
     'Public /demo route must not be deleted'
   );
 
-  console.log('  ✓ All 13 route permission/entitlement rules mapped correctly');
+  console.log(`  ✓ All ${expectedMappings.length} route permission/entitlement rules mapped correctly`);
+  console.log('  ✓ Explicitly allowed routes (/app/dashboard, /app/onboarding) configured');
   console.log('  ✓ Fail-closed blocking for /app/portfolio, /app/settings, /app/accounting/month-close, /app/migration/shadow-ledger');
   console.log('  ✓ Trilingual Access Restricted UI with back to Dashboard link');
   console.log('  ✓ Public /demo preserved');
@@ -446,6 +488,151 @@ const root = process.cwd();
   console.log('  ✓ Invalid UUID format rejected');
   console.log('  ✓ Default pagination (limit=25, offset=0) verified');
   console.log('  ✓ Pagination bounds (1..100, offset >= 0) enforced');
+}
+
+// -----------------------------------------------------------------------------
+// Suite 7: Automated Customer Route Classification Audit (src/app/[lang]/app/**/page.tsx)
+// -----------------------------------------------------------------------------
+{
+  console.log('\n[Suite 7] Automated Scan & Classification Audit of all src/app/[lang]/app/**/page.tsx');
+
+  const { classifyCustomerRoute, EXPLICITLY_ALLOWED_ROUTES, EXPLICITLY_UNAVAILABLE_ROUTES } =
+    await import('../src/lib/customer/route-classifier.ts');
+
+  const customerPagesDir = path.join(root, 'src', 'app', '[lang]', 'app');
+  assert.ok(fs.existsSync(customerPagesDir), 'src/app/[lang]/app must exist');
+
+  function collectPageFiles(dir, baseDir = dir) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    const pages = [];
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        pages.push(...collectPageFiles(fullPath, baseDir));
+      } else if (entry.isFile() && entry.name === 'page.tsx') {
+        const relativeSubdir = path.relative(baseDir, dir).replace(/\\/g, '/');
+        const routePath = relativeSubdir ? `/app/${relativeSubdir}` : '/app';
+        pages.push({ fullPath, routePath });
+      }
+    }
+    return pages;
+  }
+
+  const allCustomerPages = collectPageFiles(customerPagesDir);
+  assert.ok(
+    allCustomerPages.length >= 30,
+    `Expected at least 30 customer page routes, found ${allCustomerPages.length}`
+  );
+
+  const VALID_STATUSES = new Set([
+    'explicitly allowed',
+    'permission protected',
+    'explicitly unavailable',
+  ]);
+
+  const classificationCounts = {
+    'explicitly allowed': 0,
+    'permission protected': 0,
+    'explicitly unavailable': 0,
+  };
+  const unclassifiedRoutes = [];
+  const routeAuditLog = [];
+
+  for (const { fullPath, routePath } of allCustomerPages) {
+    // Also test concrete path if route contains parameter (e.g. /app/documents/[id] -> /app/documents/doc-sample-123)
+    const testRoutes = [routePath];
+    if (routePath.includes('[id]')) {
+      testRoutes.push(routePath.replace('[id]', 'sample-id-123'));
+    }
+
+    for (const testPath of testRoutes) {
+      const result = classifyCustomerRoute(testPath);
+      if (!result || !VALID_STATUSES.has(result.status)) {
+        unclassifiedRoutes.push({
+          testPath,
+          fullPath,
+          status: result?.status ?? 'unclassified',
+        });
+      } else {
+        classificationCounts[result.status]++;
+        routeAuditLog.push({ route: testPath, status: result.status });
+      }
+    }
+  }
+
+  // 1. Zero unclassified routes allowed
+  assert.equal(
+    unclassifiedRoutes.length,
+    0,
+    `Found unclassified customer routes: ${JSON.stringify(unclassifiedRoutes, null, 2)}`
+  );
+
+  // 2. Exact requirement checks:
+  // - /app/dashboard & /app/onboarding must be explicitly allowed
+  assert.equal(classifyCustomerRoute('/app/dashboard')?.status, 'explicitly allowed');
+  assert.equal(classifyCustomerRoute('/app/onboarding')?.status, 'explicitly allowed');
+
+  // - Four mock routes must be explicitly unavailable
+  assert.equal(classifyCustomerRoute('/app/portfolio')?.status, 'explicitly unavailable');
+  assert.equal(classifyCustomerRoute('/app/settings')?.status, 'explicitly unavailable');
+  assert.equal(classifyCustomerRoute('/app/accounting/month-close')?.status, 'explicitly unavailable');
+  assert.equal(classifyCustomerRoute('/app/migration/shadow-ledger')?.status, 'explicitly unavailable');
+
+  // - Requirement 1 routes checks:
+  //   /app/invoices and /app/receivables: billing.receivables.read + module billing
+  const invoicesClass = classifyCustomerRoute('/app/invoices');
+  assert.equal(invoicesClass?.status, 'permission protected');
+  assert.ok(invoicesClass?.requirement?.permissions?.includes('billing.receivables.read'));
+  assert.ok(invoicesClass?.requirement?.modules?.includes('billing'));
+
+  const receivablesClass = classifyCustomerRoute('/app/receivables');
+  assert.equal(receivablesClass?.status, 'permission protected');
+  assert.ok(receivablesClass?.requirement?.permissions?.includes('billing.receivables.read'));
+  assert.ok(receivablesClass?.requirement?.modules?.includes('billing'));
+
+  //   /app/purchase-orders, /app/vendor-contracts and /app/vendor-sla: maintenance.procurement.read + module.maintenance
+  for (const poRoute of ['/app/purchase-orders', '/app/vendor-contracts', '/app/vendor-sla']) {
+    const poClass = classifyCustomerRoute(poRoute);
+    assert.equal(poClass?.status, 'permission protected');
+    assert.ok(poClass?.requirement?.permissions?.includes('maintenance.procurement.read'));
+    assert.ok(poClass?.requirement?.entitlements?.includes('module.maintenance'));
+  }
+
+  //   /app/residents and /app/leases: occupancy.registry.read + module.occupancy
+  for (const occRoute of ['/app/residents', '/app/leases']) {
+    const occClass = classifyCustomerRoute(occRoute);
+    assert.equal(occClass?.status, 'permission protected');
+    assert.ok(occClass?.requirement?.permissions?.includes('occupancy.registry.read'));
+    assert.ok(occClass?.requirement?.entitlements?.includes('module.occupancy'));
+  }
+
+  //   /app/access-logs, /app/credentials and /app/visitors: security.access.read + module.security
+  for (const secRoute of ['/app/access-logs', '/app/credentials', '/app/visitors']) {
+    const secClass = classifyCustomerRoute(secRoute);
+    assert.equal(secClass?.status, 'permission protected');
+    assert.ok(secClass?.requirement?.permissions?.includes('security.access.read'));
+    assert.ok(secClass?.requirement?.entitlements?.includes('module.security'));
+  }
+
+  // - Any unknown route under /app must fail-closed (return null)
+  const unknownRoutes = [
+    '/app/unknown-route',
+    '/app/admin-panel',
+    '/app/users/bypass',
+    '/app/secret-settings',
+  ];
+  for (const unk of unknownRoutes) {
+    const res = classifyCustomerRoute(unk);
+    assert.equal(res, null, `Unknown route ${unk} must return null (fail-closed)`);
+  }
+
+  console.log(`  ✓ Successfully scanned ${allCustomerPages.length} customer page.tsx files under src/app/[lang]/app`);
+  console.log(`  ✓ Route classification breakdown:`);
+  console.log(`    - explicitly allowed: ${classificationCounts['explicitly allowed']}`);
+  console.log(`    - permission protected: ${classificationCounts['permission protected']}`);
+  console.log(`    - explicitly unavailable: ${classificationCounts['explicitly unavailable']}`);
+  console.log(`  ✓ Exactly 0 unclassified customer routes found (100% classified)`);
+  console.log(`  ✓ Fail-closed confirmed on unknown routes`);
 }
 
 console.log('\n=== ALL P1 ACCESS, SESSION & AUDIT FOUNDATION TESTS PASSED ===\n');

@@ -118,42 +118,59 @@ function Shell({
   const state = useCustomerContext();
   const t = copy[lang];
 
-  const accounting = state.dashboard?.modules.includes("accounting"),
-    billing = state.dashboard?.modules.includes("billing"),
-    payments = state.dashboard?.modules.includes("payments"),
-    utilities = state.dashboard?.entitlements.includes("module.utilities"),
-    maintenance = state.dashboard?.entitlements.includes("module.maintenance"),
+  const permissions = state.dashboard?.permissions ?? [];
+  const entitlements = state.dashboard?.entitlements ?? [];
+  const modules = state.dashboard?.modules ?? [];
+
+  const hasPerm = (p: string) => permissions.includes(p);
+  const hasEnt = (e: string) =>
+    entitlements.includes(e) || modules.includes(e.replace(/^module\./, ''));
+  const hasMod = (m: string) =>
+    modules.includes(m) ||
+    entitlements.includes(m) ||
+    entitlements.includes(`module.${m}`);
+
+  const accounting = hasMod("accounting") && hasPerm("finance.ledger.read"),
+    allocations = hasPerm("finance.allocations.read"),
+    billing = hasMod("billing") && hasPerm("billing.receivables.read"),
+    payments = hasMod("payments") && hasPerm("payments.reconciliation.read"),
+    reconciliation = hasMod("payments") && hasPerm("payments.reconciliation.read"),
+    utilities = hasEnt("module.utilities") && hasPerm("utilities.metering.read"),
+    assets = hasEnt("module.maintenance") && hasPerm("maintenance.assets.read"),
+    maintenance = hasEnt("module.maintenance") && hasPerm("maintenance.assets.read"),
     procurement =
-      maintenance &&
-      state.dashboard?.permissions.includes("maintenance.procurement.read"),
-    governance = state.dashboard?.entitlements.includes("module.governance"),
-    communications = state.dashboard?.entitlements.includes(
-      "module.communications",
-    ),
-    documents = state.dashboard?.entitlements.includes("module.documents"),
-    occupancy = state.dashboard?.entitlements.includes("module.occupancy"),
-    security = state.dashboard?.entitlements.includes("module.security"),
-    audit = state.dashboard?.permissions.includes("audit.events.read");
+      hasEnt("module.maintenance") && hasPerm("maintenance.procurement.read"),
+    governance = hasEnt("module.governance") && hasPerm("governance.meetings.read"),
+    meetings = hasEnt("module.governance") && hasPerm("governance.meetings.read"),
+    communications =
+      hasEnt("module.communications") && hasPerm("communications.feed.read"),
+    notifications =
+      hasEnt("module.communications") && hasPerm("communications.feed.read"),
+    documents = hasEnt("module.documents") && hasPerm("documents.vault.read"),
+    occupancy = hasEnt("module.occupancy") && hasPerm("occupancy.registry.read"),
+    ownership = hasEnt("module.occupancy") && hasPerm("occupancy.registry.read"),
+    security = hasEnt("module.security") && hasPerm("security.access.read"),
+    audit = hasPerm("audit.events.read");
 
   const navItems = [
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
     { href: `/${lang}/app/accounting`, label: t.accounting, icon: FileSpreadsheet, visible: accounting },
-    { href: `/${lang}/app/accounting/allocations`, label: t.allocations, icon: Scale, visible: accounting },
+    { href: `/${lang}/app/accounting/allocations`, label: t.allocations, icon: Scale, visible: allocations },
     { href: `/${lang}/app/meters`, label: t.utilities, icon: Gauge, visible: utilities },
-    { href: `/${lang}/app/assets`, label: t.assets, icon: Boxes, visible: maintenance },
+    { href: `/${lang}/app/assets`, label: t.assets, icon: Boxes, visible: assets },
     { href: `/${lang}/app/maintenance`, label: t.maintenance, icon: Wrench, visible: maintenance },
     { href: `/${lang}/app/vendors`, label: t.procurement, icon: BriefcaseBusiness, visible: procurement },
     { href: `/${lang}/app/governance`, label: t.governance, icon: Gavel, visible: governance },
-    { href: `/${lang}/app/meetings`, label: t.meetings, icon: UsersRound, visible: governance },
+    { href: `/${lang}/app/meetings`, label: t.meetings, icon: UsersRound, visible: meetings },
     { href: `/${lang}/app/communications`, label: t.communications, icon: Megaphone, visible: communications },
-    { href: `/${lang}/app/notifications`, label: t.notifications, icon: Bell, visible: communications },
+    { href: `/${lang}/app/notifications`, label: t.notifications, icon: Bell, visible: notifications },
     { href: `/${lang}/app/documents`, label: t.documents, icon: FileText, visible: documents },
     { href: `/${lang}/app/occupancy`, label: t.occupancy, icon: UsersRound, visible: occupancy },
-    { href: `/${lang}/app/ownership`, label: t.ownership, icon: Landmark, visible: occupancy },
+    { href: `/${lang}/app/ownership`, label: t.ownership, icon: Landmark, visible: ownership },
     { href: `/${lang}/app/security-access`, label: t.security, icon: KeyRound, visible: security },
     { href: `/${lang}/app/billing`, label: t.billing, icon: ReceiptText, visible: billing },
     { href: `/${lang}/app/payments`, label: t.payments, icon: CreditCard, visible: payments },
-    { href: `/${lang}/app/reconciliation`, label: t.reconciliation, icon: Landmark, visible: payments },
+    { href: `/${lang}/app/reconciliation`, label: t.reconciliation, icon: Landmark, visible: reconciliation },
     { href: `/${lang}/app/audit`, label: t.audit, icon: ShieldCheck, visible: audit },
   ].filter((item) => Boolean(item.visible));
 

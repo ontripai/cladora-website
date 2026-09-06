@@ -7,111 +7,24 @@ import { ArrowLeft, ArrowRight, Loader2, ShieldAlert } from 'lucide-react';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
 
-const MOCK_ROUTES = [
-  '/app/portfolio',
-  '/app/settings',
-  '/app/accounting/month-close',
-  '/app/migration/shadow-ledger',
-] as const;
+import {
+  EXPLICITLY_ALLOWED_ROUTES,
+  EXPLICITLY_UNAVAILABLE_ROUTES,
+  ROUTE_REQUIREMENTS,
+  classifyCustomerRoute,
+  type RouteRequirement,
+  type RouteStatus,
+} from '@/lib/customer/route-classifier';
 
-interface RouteRequirement {
-  pathPrefix: string;
-  exactOnly?: boolean;
-  permissions?: string[];
-  entitlements?: string[];
-}
+export {
+  EXPLICITLY_ALLOWED_ROUTES,
+  EXPLICITLY_UNAVAILABLE_ROUTES,
+  ROUTE_REQUIREMENTS,
+  classifyCustomerRoute,
+  type RouteRequirement,
+  type RouteStatus,
+};
 
-export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
-  {
-    pathPrefix: '/app/accounting/allocations',
-    permissions: ['finance.allocations.read'],
-  },
-  {
-    pathPrefix: '/app/accounting',
-    permissions: ['finance.ledger.read'],
-  },
-  {
-    pathPrefix: '/app/billing',
-    permissions: ['billing.receivables.read'],
-  },
-  {
-    pathPrefix: '/app/payments',
-    permissions: ['payments.reconciliation.read'],
-  },
-  {
-    pathPrefix: '/app/reconciliation',
-    permissions: ['payments.reconciliation.read'],
-  },
-  {
-    pathPrefix: '/app/meters',
-    permissions: ['utilities.metering.read'],
-    entitlements: ['module.utilities'],
-  },
-  {
-    pathPrefix: '/app/assets',
-    permissions: ['maintenance.assets.read'],
-    entitlements: ['module.maintenance'],
-  },
-  {
-    pathPrefix: '/app/maintenance',
-    permissions: ['maintenance.assets.read'],
-    entitlements: ['module.maintenance'],
-  },
-  {
-    pathPrefix: '/app/procurement',
-    permissions: ['maintenance.procurement.read'],
-    entitlements: ['module.maintenance'],
-  },
-  {
-    pathPrefix: '/app/vendors',
-    permissions: ['maintenance.procurement.read'],
-    entitlements: ['module.maintenance'],
-  },
-  {
-    pathPrefix: '/app/governance',
-    permissions: ['governance.meetings.read'],
-    entitlements: ['module.governance'],
-  },
-  {
-    pathPrefix: '/app/meetings',
-    permissions: ['governance.meetings.read'],
-    entitlements: ['module.governance'],
-  },
-  {
-    pathPrefix: '/app/communications',
-    permissions: ['communications.feed.read'],
-    entitlements: ['module.communications'],
-  },
-  {
-    pathPrefix: '/app/notifications',
-    permissions: ['communications.feed.read'],
-    entitlements: ['module.communications'],
-  },
-  {
-    pathPrefix: '/app/documents',
-    permissions: ['documents.vault.read'],
-    entitlements: ['module.documents'],
-  },
-  {
-    pathPrefix: '/app/occupancy',
-    permissions: ['occupancy.registry.read'],
-    entitlements: ['module.occupancy'],
-  },
-  {
-    pathPrefix: '/app/ownership',
-    permissions: ['occupancy.registry.read'],
-    entitlements: ['module.occupancy'],
-  },
-  {
-    pathPrefix: '/app/security-access',
-    permissions: ['security.access.read'],
-    entitlements: ['module.security'],
-  },
-  {
-    pathPrefix: '/app/audit',
-    permissions: ['audit.events.read'],
-  },
-];
 
 const copy = {
   ro: {
@@ -123,6 +36,8 @@ const copy = {
       'Nu aveți permisiunile sau drepturile de modul necesare pentru a accesa această secțiune în contextul selectat.',
     noContextMessage:
       'Nu aveți un context activ alocat pentru această acțiune. Selectați un context valid din antet.',
+    unknownMessage:
+      'Această pagină nu este configurată sau accesul este restricționat conform politicilor de securitate.',
     backToDashboard: 'Înapoi la Tabloul principal',
     verifying: 'Se verifică autorizarea...',
   },
@@ -135,6 +50,8 @@ const copy = {
       'You do not have the required role permissions or module entitlements to access this section in the current context.',
     noContextMessage:
       'No active customer context is assigned for this operation. Please select a valid context in the header.',
+    unknownMessage:
+      'This route is unconfigured or access is restricted by security policy.',
     backToDashboard: 'Back to Dashboard',
     verifying: 'Verifying authorization...',
   },
@@ -147,6 +64,8 @@ const copy = {
       'شما مجوزها یا دسترسی‌های لازم ماژول را برای مشاهده این بخش در زمینه کاری فعلی ندارید.',
     noContextMessage:
       'هیچ زمینه کاری فعالی برای این عملیات تعیین نشده است. لطفاً از نوار بالا یک مجتمع/واحد را انتخاب کنید.',
+    unknownMessage:
+      'این مسیر تعریف‌نشده است یا دسترسی به آن بر اساس سیاست‌های امنیتی مسدود می‌باشد.',
     backToDashboard: 'بازگشت به داشبورد',
     verifying: 'در حال بررسی سطوح دسترسی...',
   },
@@ -157,7 +76,7 @@ export function AccessRestrictedCard({
   reason = 'permission',
 }: {
   lang: Language;
-  reason?: 'mock' | 'permission' | 'context';
+  reason?: 'mock' | 'permission' | 'context' | 'unknown';
 }) {
   const t = copy[lang] ?? copy.ro;
   const isRtl = lang === 'fa';
@@ -167,6 +86,8 @@ export function AccessRestrictedCard({
       ? t.mockMessage
       : reason === 'context'
       ? t.noContextMessage
+      : reason === 'unknown'
+      ? t.unknownMessage
       : t.permissionMessage;
 
   return (
@@ -214,18 +135,22 @@ export function CustomerRouteGuard({
   const t = copy[lang] ?? copy.ro;
 
   // Normalize path by stripping language prefix e.g. /ro/app/accounting -> /app/accounting
-  const appPath = pathname.replace(/^\/(?:ro|en|fa)/, '');
+  const rawPath = pathname.replace(/^\/(?:ro|en|fa)/, '');
+  const appPath = rawPath === '/app' ? '/app/dashboard' : rawPath;
 
-  // 1. Fail-closed on mock / preview pages in production panel
-  const isMockRoute = MOCK_ROUTES.some(
-    (mockPath) => appPath === mockPath || appPath.startsWith(`${mockPath}/`)
-  );
+  const classification = classifyCustomerRoute(appPath);
 
-  if (isMockRoute) {
+  // 1. Fail-closed on unknown routes under /app by default
+  if (!classification) {
+    return <AccessRestrictedCard lang={lang} reason="unknown" />;
+  }
+
+  // 2. Fail-closed on explicitly unavailable mock / preview routes
+  if (classification.status === 'explicitly unavailable') {
     return <AccessRestrictedCard lang={lang} reason="mock" />;
   }
 
-  // 2. Loading state while customer context is resolving
+  // 3. Loading state while customer context is resolving
   if (state.loading && !state.dashboard) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center">
@@ -239,43 +164,52 @@ export function CustomerRouteGuard({
     );
   }
 
-  // 3. Ensure active context exists for all customer sub-routes
-  if (!state.active && !state.loading) {
+  // 4. Context requirement (all customer routes except onboarding require an assigned context)
+  if (!state.active && !state.loading && appPath !== '/app/onboarding') {
     return <AccessRestrictedCard lang={lang} reason="context" />;
   }
 
-  // 4. Route-level permissions and entitlements
+  // 5. Explicitly allowed routes (e.g. dashboard, onboarding) pass through once context is confirmed
+  if (classification.status === 'explicitly allowed') {
+    return <>{children}</>;
+  }
+
+  // 6. Permission protected routes: verify modules, entitlements, and permissions
+  const req = classification.requirement!;
   const userPermissions = state.dashboard?.permissions ?? [];
   const userEntitlements = state.dashboard?.entitlements ?? [];
+  const userModules = state.dashboard?.modules ?? [];
 
-  // Find matching requirement (longest matching prefix first)
-  const sortedRequirements = [...ROUTE_REQUIREMENTS].sort(
-    (a, b) => b.pathPrefix.length - a.pathPrefix.length
-  );
-
-  const matchedRequirement = sortedRequirements.find((req) =>
-    req.exactOnly
-      ? appPath === req.pathPrefix
-      : appPath === req.pathPrefix || appPath.startsWith(`${req.pathPrefix}/`)
-  );
-
-  if (matchedRequirement) {
-    if (matchedRequirement.permissions) {
-      const hasAllPermissions = matchedRequirement.permissions.every((p) =>
-        userPermissions.includes(p)
-      );
-      if (!hasAllPermissions) {
-        return <AccessRestrictedCard lang={lang} reason="permission" />;
-      }
+  if (req.modules) {
+    const hasModules = req.modules.every(
+      (m: string) =>
+        userModules.includes(m) ||
+        userEntitlements.includes(m) ||
+        userEntitlements.includes(`module.${m}`)
+    );
+    if (!hasModules) {
+      return <AccessRestrictedCard lang={lang} reason="permission" />;
     }
+  }
 
-    if (matchedRequirement.entitlements) {
-      const hasAllEntitlements = matchedRequirement.entitlements.every((e) =>
-        userEntitlements.includes(e)
-      );
-      if (!hasAllEntitlements) {
-        return <AccessRestrictedCard lang={lang} reason="permission" />;
-      }
+  if (req.entitlements) {
+    const hasEntitlements = req.entitlements.every(
+      (e: string) =>
+        userEntitlements.includes(e) ||
+        userModules.includes(e) ||
+        userModules.includes(e.replace(/^module\./, ''))
+    );
+    if (!hasEntitlements) {
+      return <AccessRestrictedCard lang={lang} reason="permission" />;
+    }
+  }
+
+  if (req.permissions) {
+    const hasPermissions = req.permissions.every((p: string) =>
+      userPermissions.includes(p)
+    );
+    if (!hasPermissions) {
+      return <AccessRestrictedCard lang={lang} reason="permission" />;
     }
   }
 
