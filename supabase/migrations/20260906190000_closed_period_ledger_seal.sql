@@ -108,8 +108,9 @@ begin
   from finance.journal_entries e
   join finance.journals j on j.id = e.journal_id
   join portfolio.units u on u.id = e.unit_id
+  join portfolio.buildings b on b.id = u.building_id
   where u.tenant_id <> e.tenant_id
-     or (j.property_id is not null and u.property_id <> j.property_id);
+     or (j.property_id is not null and b.property_id <> j.property_id);
 
   if v_count > 0 then
     raise exception 'Migration preflight check failed: % journal entries with cross-property/cross-tenant unit found', v_count
@@ -443,10 +444,11 @@ begin
 
   -- 4. If unit_id is provided, unit must belong to journal tenant and property
   if new.unit_id is not null then
-    select id, tenant_id, property_id
+    select u.id, u.tenant_id, b.property_id
     into v_u
-    from portfolio.units
-    where id = new.unit_id;
+    from portfolio.units u
+    join portfolio.buildings b on b.id = u.building_id
+    where u.id = new.unit_id;
 
     if not found then
       raise exception 'Unit % not found', new.unit_id
