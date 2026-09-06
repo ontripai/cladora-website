@@ -215,22 +215,22 @@ begin
   where id = '23b00000-0000-0000-0000-000000000005';
 
   -- Tenant-wide journal in Tenant 1 (property_id is NULL): 50 RON
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2026-01-10', 'RON', 'Tenant wide journal', 'invoice', 'posted');
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
+    ('23b00000-0000-0000-0000-000000000010', '23100000-0000-0000-0000-000000000001', null, '2026-01-10', 'RON', 'Tenant wide journal', 'invoice', 'posted', statement_timestamp());
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000001', 'debit', 50, 'Tenant debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000010', '23a00000-0000-0000-0000-000000000006', 'credit', 50, 'Tenant credit');
 
   -- Cross-Tenant journal in Tenant 2 / Property 2: 100 RON
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000020', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '2026-01-10', 'RON', 'Tenant 2 journal', 'invoice', 'posted');
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
+    ('23b00000-0000-0000-0000-000000000020', '23100000-0000-0000-0000-000000000002', '23500000-0000-0000-0000-000000000002', '2026-01-10', 'RON', 'Tenant 2 journal', 'invoice', 'posted', statement_timestamp());
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'debit', 100, 'T2 debit'),
     ('23100000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000020', '23a00000-0000-0000-0000-000000000010', 'credit', 100, 'T2 credit');
 
   -- Cross-Property journal in Tenant 1 / Property 3: 70 RON
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
-    ('23b00000-0000-0000-0000-000000000030', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2026-01-10', 'RON', 'Property 3 journal', 'invoice', 'posted');
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
+    ('23b00000-0000-0000-0000-000000000030', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2026-01-10', 'RON', 'Property 3 journal', 'invoice', 'posted', statement_timestamp());
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'debit', 70, 'P3 debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'credit', 70, 'P3 credit');
