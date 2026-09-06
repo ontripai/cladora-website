@@ -610,11 +610,12 @@ $$;
 
 -- 7. RPC: finance.close_accounting_period
 drop function if exists finance.close_accounting_period(uuid, uuid);
+drop function if exists finance.close_accounting_period(uuid, uuid, text);
 
 create or replace function finance.close_accounting_period(
   p_context_id uuid,
   p_period_id uuid,
-  p_reason text default null
+  p_reason text
 )
 returns jsonb
 language plpgsql
