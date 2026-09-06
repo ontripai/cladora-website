@@ -97,7 +97,7 @@ begin
   -- 4. Scope-Type Validation
   -- Building and Unit scopes are strictly Fail-Closed in this phase
   if v_grant.grant_scope_type in ('building', 'unit') then
-    raise exception 'financial_scope_denied: %', v_grant.grant_scope_type using errcode = '42501';
+    raise exception 'financial_reporting_requires_property_or_association_scope' using errcode = '42501';
   end if;
 
   if v_grant.grant_scope_type not in ('tenant', 'property') then
@@ -140,7 +140,7 @@ begin
     v_grant.grant_id,
     v_grant.grant_tenant_id,
     v_workspace,
-    v_grant.grant_scope_type,
+    v_grant.grant_scope_type::text,
     v_grant.grant_property_id,
     v_grant.membership_id,
     v_grant.user_id,
