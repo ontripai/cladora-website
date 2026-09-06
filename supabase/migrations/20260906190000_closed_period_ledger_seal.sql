@@ -227,18 +227,22 @@ begin
   -- This shared lock coordinates with close_accounting_period's FOR UPDATE lock:
   -- - If Journal runs first: holds SHARE lock -> Close blocks and waits -> Close unblocks and sees Journal.
   -- - If Close runs first: holds UPDATE lock -> Journal blocks and waits -> Journal unblocks and is rejected.
+  with locked_periods as (
+    select id, status
+    from finance.accounting_periods
+    where tenant_id = p_tenant_id
+      and (
+        (p_property_id is null and property_id is null)
+        or
+        (p_property_id is not null and (property_id = p_property_id or property_id is null))
+      )
+      and daterange(starts_on, ends_on, '[]') @> p_occurred_on
+    for share
+  )
   select count(*),
          count(*) filter (where status = 'closed')
   into v_total_matching, v_closed_matching
-  from finance.accounting_periods
-  where tenant_id = p_tenant_id
-    and (
-      (p_property_id is null and property_id is null)
-      or
-      (p_property_id is not null and (property_id = p_property_id or property_id is null))
-    )
-    and daterange(starts_on, ends_on, '[]') @> p_occurred_on
-  for share;
+  from locked_periods;
 
   -- Fail-closed if multiple periods match: at most one period may match any journal date
   if v_total_matching > 1 then
