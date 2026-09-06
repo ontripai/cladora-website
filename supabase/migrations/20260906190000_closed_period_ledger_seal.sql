@@ -310,7 +310,8 @@ end;
 $$;
 
 drop trigger if exists trg_assert_journal_not_in_closed_period on finance.journals;
-create trigger trg_assert_journal_not_in_closed_period
+drop trigger if exists a_assert_journal_not_in_closed_period on finance.journals;
+create trigger a_assert_journal_not_in_closed_period
 before insert or update or delete on finance.journals
 for each row
 execute function finance.assert_journal_not_in_closed_period();
@@ -381,7 +382,8 @@ end;
 $$;
 
 drop trigger if exists trg_assert_journal_entry_closed_period on finance.journal_entries;
-create trigger trg_assert_journal_entry_closed_period
+drop trigger if exists a_assert_journal_entry_closed_period on finance.journal_entries;
+create trigger a_assert_journal_entry_closed_period
 before insert or update or delete on finance.journal_entries
 for each row
 execute function finance.assert_journal_entry_closed_period();
@@ -477,7 +479,8 @@ end;
 $$;
 
 drop trigger if exists trg_assert_journal_entry_integrity on finance.journal_entries;
-create trigger trg_assert_journal_entry_integrity
+drop trigger if exists a_assert_journal_entry_integrity on finance.journal_entries;
+create trigger a_assert_journal_entry_integrity
 before insert or update on finance.journal_entries
 for each row
 execute function finance.assert_journal_entry_integrity();
