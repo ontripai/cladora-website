@@ -169,9 +169,18 @@ async function setupFixtures(client) {
 
 async function setAuthContext(client) {
   await client.query('SET LOCAL ROLE authenticated');
+
   await client.query(
     `SELECT set_config('request.jwt.claims', $1, true)`,
-    [JSON.stringify({ sub: F_USER, role: 'authenticated', aal: 'aal2' })]
+    [
+      JSON.stringify({
+        sub: F_USER,
+        role: 'authenticated',
+        aal: 'aal2',
+        active_tenant_id: F_TENANT,
+        active_context_id: F_CONTEXT,
+      }),
+    ]
   );
 }
 
@@ -294,7 +303,15 @@ async function runScenarioA(conA, conB, conObs) {
       await conB.query('COMMIT');
     } catch (err) {
       conBError = err;
-      await conB.query('ROLLBACK').catch(() => {});
+
+      try {
+        await conB.query('ROLLBACK');
+      } catch (rollbackError) {
+        conBError = new AggregateError(
+          [err, rollbackError],
+          'Connection B operation failed and rollback also failed'
+        );
+      }
     } finally {
       conBResolved = true;
     }
@@ -391,7 +408,15 @@ async function runScenarioB(conA, conB, conObs) {
       await conB.query('COMMIT');
     } catch (err) {
       conBError = err;
-      await conB.query('ROLLBACK').catch(() => {});
+
+      try {
+        await conB.query('ROLLBACK');
+      } catch (rollbackError) {
+        conBError = new AggregateError(
+          [err, rollbackError],
+          'Connection B operation failed and rollback also failed'
+        );
+      }
     } finally {
       conBResolved = true;
     }
@@ -487,7 +512,15 @@ async function runScenarioC(conA, conB, conObs) {
       await conB.query('COMMIT');
     } catch (err) {
       conBError = err;
-      await conB.query('ROLLBACK').catch(() => {});
+
+      try {
+        await conB.query('ROLLBACK');
+      } catch (rollbackError) {
+        conBError = new AggregateError(
+          [err, rollbackError],
+          'Connection B operation failed and rollback also failed'
+        );
+      }
     } finally {
       conBResolved = true;
     }
@@ -550,14 +583,33 @@ async function main() {
 
     await setupFixtures(conObs);
 
-    // Preflight check of committed fixtures from independent observer connection
-    const preflightCheck = await conObs.query(
-      `SELECT id, status FROM finance.accounting_periods WHERE id = ANY($1::uuid[])`,
-      [[F_PERIOD_A, F_PERIOD_B, F_PERIOD_C]]
-    );
-    assert.equal(preflightCheck.rowCount, 3, 'All 3 fixture accounting periods must exist in database');
-    for (const row of preflightCheck.rows) {
-      assert.equal(row.status, 'open', `Fixture period ${row.id} must be in 'open' status`);
+    await conA.query('BEGIN');
+
+    try {
+      await setAuthContext(conA);
+
+      const preflightCheck = await conA.query(
+        `SELECT id, status
+           FROM finance.accounting_periods
+          WHERE id = ANY($1::uuid[])`,
+        [[F_PERIOD_A, F_PERIOD_B, F_PERIOD_C]]
+      );
+
+      assert.equal(
+        preflightCheck.rowCount,
+        3,
+        'Authenticated closer must see all three fixture periods through RLS'
+      );
+
+      for (const row of preflightCheck.rows) {
+        assert.equal(
+          row.status,
+          'open',
+          `Fixture period ${row.id} must be open`
+        );
+      }
+    } finally {
+      await conA.query('ROLLBACK');
     }
 
     await runScenarioA(conA, conB, conObs);
