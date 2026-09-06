@@ -191,7 +191,8 @@ begin
       v_capabilities := v_capabilities || jsonb_build_array('can_view_operations');
     end if;
 
-    if (v_permissions ? 'billing.receivables.read') and (v_entitlements ? 'module.billing') then
+    if ((v_permissions ? 'billing.receivables.read' and v_entitlements ? 'module.billing') or
+        (v_permissions ? 'finance.ledger.read' and v_entitlements ? 'module.accounting')) then
       v_sections := v_sections || jsonb_build_array('financials');
       v_capabilities := v_capabilities || jsonb_build_array('can_view_financials');
     end if;
@@ -216,7 +217,8 @@ begin
       v_kpis := v_kpis || jsonb_build_object('unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null));
     end if;
 
-    if (v_permissions ? 'billing.receivables.read' or v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.billing' or v_entitlements ? 'module.accounting') then
+    if ((v_permissions ? 'billing.receivables.read' and v_entitlements ? 'module.billing') or
+        (v_permissions ? 'finance.ledger.read' and v_entitlements ? 'module.accounting')) then
       v_kpis := v_kpis || jsonb_build_object('outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id or u.id = v.unit_id)));
     end if;
 
@@ -230,7 +232,8 @@ begin
       v_capabilities := v_capabilities || jsonb_build_array('can_view_governance');
     end if;
 
-    if (v_permissions ? 'billing.receivables.read' or v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.billing' or v_entitlements ? 'module.accounting') then
+    if ((v_permissions ? 'billing.receivables.read' and v_entitlements ? 'module.billing') or
+        (v_permissions ? 'finance.ledger.read' and v_entitlements ? 'module.accounting')) then
       v_sections := v_sections || jsonb_build_array('financial_summary');
       v_capabilities := v_capabilities || jsonb_build_array('can_view_financial_summary');
     end if;
@@ -254,7 +257,8 @@ begin
       v_kpis := v_kpis || jsonb_build_object('unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null));
     end if;
 
-    if (v_permissions ? 'billing.receivables.read' or v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.billing' or v_entitlements ? 'module.accounting') then
+    if ((v_permissions ? 'billing.receivables.read' and v_entitlements ? 'module.billing') or
+        (v_permissions ? 'finance.ledger.read' and v_entitlements ? 'module.accounting')) then
       v_kpis := v_kpis || jsonb_build_object('outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id)));
     end if;
 

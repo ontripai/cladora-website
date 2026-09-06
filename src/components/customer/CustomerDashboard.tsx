@@ -372,22 +372,42 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
   const permissions = dashboard.permissions ?? [];
   const modules = dashboard.modules ?? [];
   const capabilities = dashboard.capabilities ?? [];
+  const entitlements = dashboard.entitlements ?? [];
+
+  const isValidNumber = (val: unknown): val is number =>
+    typeof val === 'number' && Number.isFinite(val);
+
+  const hasMaintenance =
+    permissions.includes('maintenance.assets.read') &&
+    entitlements.includes('module.maintenance');
+
+  const hasBillingAccess =
+    permissions.includes('billing.receivables.read') &&
+    entitlements.includes('module.billing');
+
+  const hasAccountingAccess =
+    permissions.includes('finance.ledger.read') &&
+    entitlements.includes('module.accounting');
+
+  const hasFinancial = hasBillingAccess || hasAccountingAccess;
+
+  const hasCommunications =
+    permissions.includes('communications.feed.read') &&
+    entitlements.includes('module.communications');
 
   // Helper formatting for currency amounts
-  const formatCurrency = (amount: number | string | undefined) => {
-    const numeric = typeof amount === 'number' ? amount : Number(amount) || 0;
+  const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat(
       lang === 'fa' ? 'fa-IR' : lang === 'ro' ? 'ro-RO' : 'en-US',
       { maximumFractionDigits: 2, minimumFractionDigits: 2 }
-    ).format(numeric);
+    ).format(amount);
   };
 
   // Helper formatting for integer quantities
-  const formatInt = (amount: number | string | undefined) => {
-    const numeric = typeof amount === 'number' ? amount : Number(amount) || 0;
+  const formatInt = (amount: number) => {
     return new Intl.NumberFormat(
       lang === 'fa' ? 'fa-IR' : lang === 'ro' ? 'ro-RO' : 'en-US'
-    ).format(numeric);
+    ).format(amount);
   };
 
   /**
@@ -452,24 +472,11 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
 
   const renderKpis = () => {
     const cards: React.ReactNode[] = [];
-    const perms = dashboard.permissions ?? [];
-    const ents = dashboard.entitlements ?? [];
-
-    const hasMaintenance =
-      (perms.includes('maintenance.assets.read') || role === 'association_admin') &&
-      ents.includes('module.maintenance');
-    const hasFinancial =
-      (perms.includes('billing.receivables.read') ||
-        perms.includes('finance.ledger.read') ||
-        role === 'association_admin') &&
-      (ents.includes('module.billing') || ents.includes('module.accounting'));
-    const hasCommunications =
-      perms.includes('communications.feed.read') && ents.includes('module.communications');
 
     switch (role) {
       case 'association_admin':
       case 'property_manager':
-        if (k.buildings !== undefined) {
+        if (isValidNumber(k.buildings)) {
           cards.push(
             <div key="buildings" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.buildings}</span>
@@ -477,12 +484,12 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {formatInt(k.buildings)}
               </div>
               <span className="text-[11px] text-[#52667A]">
-                {t.buildingsUnits(formatInt(k.buildings), k.units !== undefined ? formatInt(k.units) : '-')}
+                {t.buildingsUnits(formatInt(k.buildings), isValidNumber(k.units) ? formatInt(k.units) : '-')}
               </span>
             </div>
           );
         }
-        if (k.open_work_orders !== undefined && hasMaintenance) {
+        if (isValidNumber(k.open_work_orders) && hasMaintenance) {
           cards.push(
             <div key="work" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.work}</span>
@@ -493,7 +500,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.outstanding_amount !== undefined && hasFinancial) {
+        if (isValidNumber(k.outstanding_amount) && hasFinancial) {
           cards.push(
             <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.receivables}</span>
@@ -504,7 +511,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.unread_notifications !== undefined && hasCommunications) {
+        if (isValidNumber(k.unread_notifications) && hasCommunications) {
           cards.push(
             <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
@@ -518,7 +525,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         break;
 
       case 'president':
-        if (k.buildings !== undefined) {
+        if (isValidNumber(k.buildings)) {
           cards.push(
             <div key="buildings" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.buildings}</span>
@@ -526,12 +533,12 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {formatInt(k.buildings)}
               </div>
               <span className="text-[11px] text-[#52667A]">
-                {t.buildingsUnits(formatInt(k.buildings), k.units !== undefined ? formatInt(k.units) : '-')}
+                {t.buildingsUnits(formatInt(k.buildings), isValidNumber(k.units) ? formatInt(k.units) : '-')}
               </span>
             </div>
           );
         }
-        if (k.outstanding_amount !== undefined && hasFinancial) {
+        if (isValidNumber(k.outstanding_amount) && hasFinancial) {
           cards.push(
             <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.receivables}</span>
@@ -542,7 +549,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.open_work_orders !== undefined && hasMaintenance) {
+        if (isValidNumber(k.open_work_orders) && hasMaintenance) {
           cards.push(
             <div key="work" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.work}</span>
@@ -553,7 +560,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.unread_notifications !== undefined && hasCommunications) {
+        if (isValidNumber(k.unread_notifications) && hasCommunications) {
           cards.push(
             <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
@@ -567,7 +574,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         break;
 
       case 'censor':
-        if (k.financial_records !== undefined && ents.includes('module.accounting')) {
+        if (isValidNumber(k.financial_records) && hasAccountingAccess) {
           cards.push(
             <div key="financial_records" className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
               <span className="text-xs font-semibold text-amber-900">{t.kpis.financialRecords}</span>
@@ -578,7 +585,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.outstanding_amount !== undefined && ents.includes('module.accounting')) {
+        if (isValidNumber(k.outstanding_amount) && hasAccountingAccess) {
           cards.push(
             <div key="receivables" className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
               <span className="text-xs font-semibold text-amber-900">{t.kpis.receivables}</span>
@@ -589,7 +596,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.unread_notifications !== undefined && hasCommunications) {
+        if (isValidNumber(k.unread_notifications) && hasCommunications) {
           cards.push(
             <div key="notifications" className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
               <span className="text-xs font-semibold text-amber-900">{t.kpis.notifications}</span>
@@ -603,7 +610,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         break;
 
       case 'owner':
-        if (k.my_units_count !== undefined) {
+        if (isValidNumber(k.my_units_count)) {
           cards.push(
             <div key="my_units" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myUnits}</span>
@@ -614,7 +621,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.outstanding_amount !== undefined && hasFinancial) {
+        if (isValidNumber(k.outstanding_amount) && hasFinancial) {
           cards.push(
             <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.outstandingCharges}</span>
@@ -625,7 +632,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.my_open_requests !== undefined && hasMaintenance) {
+        if (isValidNumber(k.my_open_requests) && hasMaintenance) {
           cards.push(
             <div key="my_requests" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myOpenRequests}</span>
@@ -636,7 +643,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.unread_notifications !== undefined && hasCommunications) {
+        if (isValidNumber(k.unread_notifications) && hasCommunications) {
           cards.push(
             <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
@@ -650,7 +657,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         break;
 
       case 'tenant_resident':
-        if (k.outstanding_amount !== undefined && hasFinancial) {
+        if (isValidNumber(k.outstanding_amount) && hasFinancial) {
           cards.push(
             <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.outstandingCharges}</span>
@@ -661,7 +668,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.my_open_tickets !== undefined && hasMaintenance) {
+        if (isValidNumber(k.my_open_tickets) && hasMaintenance) {
           cards.push(
             <div key="my_tickets" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myOpenTickets}</span>
@@ -672,7 +679,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
           );
         }
-        if (k.unread_notifications !== undefined && hasCommunications) {
+        if (isValidNumber(k.unread_notifications) && hasCommunications) {
           cards.push(
             <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
@@ -747,7 +754,10 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#52667A]">
-                {t.buildingsUnits(formatInt(k.buildings), formatInt(k.units))}
+                {t.buildingsUnits(
+                  isValidNumber(k.buildings) ? formatInt(k.buildings) : '-',
+                  isValidNumber(k.units) ? formatInt(k.units) : '-'
+                )}
               </span>
               <Link
                 href={`/${lang}/app/assets`}
@@ -761,7 +771,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: Financials & Receivables (association_admin, property_manager) */}
-        {canRenderDashboardSection('financials', 'can_view_financials', 'billing', 'billing.receivables.read') && (
+        {canRenderDashboardSection('financials', 'can_view_financials') && hasFinancial && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -774,7 +784,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#102A43]">
-                {formatCurrency(k.outstanding_amount)}
+                {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <Link
                 href={`/${lang}/app/billing`}
@@ -815,7 +825,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: Supervisory Financial Summary (president) */}
-        {canRenderDashboardSection('financial_summary', 'can_view_financial_summary') && (
+        {canRenderDashboardSection('financial_summary', 'can_view_financial_summary') && hasFinancial && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -828,7 +838,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#102A43]">
-                {formatCurrency(k.outstanding_amount)}
+                {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <span className="text-xs text-[#52667A] italic">{t.supervisoryOversight}</span>
             </div>
@@ -836,7 +846,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: Financial Controls & Censor Audit (censor) - Strictly Read-Only */}
-        {canRenderDashboardSection('financial_controls', 'can_view_financial_controls', 'accounting', 'finance.ledger.read') && (
+        {canRenderDashboardSection('financial_controls', 'can_view_financial_controls', 'accounting', 'finance.ledger.read') && hasAccountingAccess && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-amber-100 p-2.5 text-amber-800">
@@ -852,7 +862,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-amber-200 pt-4">
               <span className="text-xs font-bold text-amber-900">
-                {formatInt(k.financial_records)} {t.kpis.financialRecords}
+                {isValidNumber(k.financial_records) ? `${formatInt(k.financial_records)} ${t.kpis.financialRecords}` : '-'}
               </span>
               <Link
                 href={`/${lang}/app/accounting`}
@@ -879,7 +889,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#102A43]">
-                {k.my_units_count !== undefined ? `${formatInt(k.my_units_count)} ${t.kpis.myUnits}` : t.sections.myUnits}
+                {isValidNumber(k.my_units_count) ? `${formatInt(k.my_units_count)} ${t.kpis.myUnits}` : t.sections.myUnits}
               </span>
               <Link
                 href={`/${lang}/app/documents`}
@@ -893,7 +903,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: My Financials (owner) */}
-        {canRenderDashboardSection('my_financials', 'can_view_my_financials', 'billing', 'billing.receivables.read') && (
+        {canRenderDashboardSection('my_financials', 'can_view_my_financials', 'billing', 'billing.receivables.read') && hasBillingAccess && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -906,7 +916,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#102A43]">
-                {formatCurrency(k.outstanding_amount)}
+                {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <Link
                 href={`/${lang}/app/billing`}
@@ -947,7 +957,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         )}
 
         {/* SECTION: My Expenses (tenant_resident) */}
-        {canRenderDashboardSection('my_expenses', 'can_view_my_expenses', 'billing', 'billing.receivables.read') && (
+        {canRenderDashboardSection('my_expenses', 'can_view_my_expenses', 'billing', 'billing.receivables.read') && hasBillingAccess && (
           <div className="rounded-2xl border border-[#E2E8F0] bg-white p-6 shadow-sm">
             <div className="flex items-center gap-3 text-[#102A43]">
               <div className="rounded-xl bg-[#EFF6FF] p-2.5 text-[#2563EB]">
@@ -960,7 +970,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#102A43]">
-                {formatCurrency(k.outstanding_amount)}
+                {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <Link
                 href={`/${lang}/app/billing`}

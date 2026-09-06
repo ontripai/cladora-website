@@ -400,7 +400,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
 
   // 5. Pre-Context centralized route policy: /app/onboarding
   assert.equal(isPreContextRoute('/app/onboarding'), true);
-  assert.equal(isPreContextRoute('/app/onboarding/step-1'), true);
+  assert.equal(isPreContextRoute('/app/onboarding/step-1'), false);
   assert.equal(isPreContextRoute('/app/dashboard'), false);
   assert.ok(PRE_CONTEXT_ALLOWED_ROUTES.includes('/app/onboarding'));
 
@@ -663,10 +663,76 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     kpis: {
       open_work_orders: 2,
     },
+    generated_at: new Date().toISOString(),
   };
 
   const validParse = dashboardRpcResponseSchema.safeParse(validPayload);
   assert.equal(validParse.success, true, 'Valid RPC payload must pass Zod schema');
+  assert.equal(validParse.data.generated_at, validPayload.generated_at, 'generated_at must be preserved after safeParse');
+
+  // Mandatory Schema Rejection Tests (Strict KPI allowlist)
+  // 1. Arbitrary / secret object in KPIs
+  const rejectArbitrarySecret = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    kpis: { arbitrary_secret: { token: 'leak' } },
+  });
+  assert.equal(rejectArbitrarySecret.success, false, 'arbitrary_secret object in KPIs must be rejected');
+
+  // 2. null outstanding_amount
+  const rejectNullOutstanding = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    kpis: { outstanding_amount: null },
+  });
+  assert.equal(rejectNullOutstanding.success, false, 'null outstanding_amount in KPIs must be rejected');
+
+  // 3. String 'not-a-number' in KPIs
+  const rejectStringKpi = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    kpis: { open_work_orders: 'not-a-number' },
+  });
+  assert.equal(rejectStringKpi.success, false, 'string KPI value must be rejected');
+
+  // 4. pending_approvals in KPIs
+  const rejectPendingApprovals = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    kpis: { pending_approvals: 1 },
+  });
+  assert.equal(rejectPendingApprovals.success, false, 'pending_approvals in KPIs must be rejected');
+
+  // 5. NaN in KPIs
+  const rejectNaNKpi = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    kpis: { outstanding_amount: NaN },
+  });
+  assert.equal(rejectNaNKpi.success, false, 'NaN in KPIs must be rejected');
+
+  // 6. Unknown root keys (strict root)
+  const rejectUnknownRoot = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    arbitrary_root_field: 'unauthorized',
+  });
+  assert.equal(rejectUnknownRoot.success, false, 'Unknown root key must be rejected by .strict()');
+
+  // 7. Unknown context keys (strict context)
+  const rejectUnknownContext = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    context: { ...validPayload.context, leaked_internal_token: 'secret' },
+  });
+  assert.equal(rejectUnknownContext.success, false, 'Unknown context key must be rejected by .strict()');
+
+  // 8. Invalid scope_type
+  const rejectInvalidScope = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    context: { ...validPayload.context, scope_type: 'invalid_scope' },
+  });
+  assert.equal(rejectInvalidScope.success, false, 'Invalid scope_type must fail Zod schema');
+
+  // 9. Invalid generated_at
+  const rejectInvalidGeneratedAt = dashboardRpcResponseSchema.safeParse({
+    ...validPayload,
+    generated_at: 'invalid-iso-date',
+  });
+  assert.equal(rejectInvalidGeneratedAt.success, false, 'Invalid generated_at must fail Zod schema');
 
   // Malformed: version !== 1
   const invalidVersion = dashboardRpcResponseSchema.safeParse({ ...validPayload, version: 2 });
@@ -682,12 +748,16 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
 
   // Mismatch checks in route handler logic
   assert.ok(
-    apiSrc.includes('validated.data.contextId !== parsed.data.context_id'),
-    'Route must verify contextId matches query parameter'
+    apiSrc.includes('requestedContextId = parsed.data.context_id.toLowerCase().trim()'),
+    'Route must normalize requested context_id before comparison'
   );
   assert.ok(
-    apiSrc.includes('validated.data.context.id !== parsed.data.context_id'),
-    'Route must verify context.id matches query parameter'
+    apiSrc.includes('validated.data.contextId.toLowerCase().trim() !== requestedContextId'),
+    'Route must verify contextId matches query parameter with case-insensitive normalization'
+  );
+  assert.ok(
+    apiSrc.includes('validated.data.context.id.toLowerCase().trim() !== requestedContextId'),
+    'Route must verify context.id matches query parameter with case-insensitive normalization'
   );
   assert.ok(
     apiSrc.includes('validated.data.persona !== validated.data.context.role_code'),
@@ -701,7 +771,9 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
   console.log('  ✓ API route uses authenticated client (no service role)');
   console.log('  ✓ Error translation 42501 -> 403 verified');
   console.log('  ✓ Cache-Control header verified');
-  console.log('  ✓ Strict Zod response schema tested (version 1, canonical persona, UUIDs)');
+  console.log('  ✓ Strict Zod response schema tested (version 1, canonical persona, UUIDs, generated_at)');
+  console.log('  ✓ Strict KPI allowlist verified: arbitrary secrets, nulls, strings, pending_approvals, NaN rejected');
+  console.log('  ✓ Case-insensitive UUID comparison verified in API route');
   console.log('  ✓ Fail-closed Persona and Context ID mismatch verified');
 }
 
@@ -754,8 +826,22 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     'Censor must be excluded from operational work orders'
   );
 
+  // Financial pairing in migration (no insecure cross-pair logic)
+  assert.ok(
+    migSrc.includes("(v_permissions ? 'billing.receivables.read' and v_entitlements ? 'module.billing')"),
+    'Migration must require matching billing permission and entitlement'
+  );
+  assert.ok(
+    migSrc.includes("(v_permissions ? 'finance.ledger.read' and v_entitlements ? 'module.accounting')"),
+    'Migration must require matching accounting permission and entitlement'
+  );
+  assert.ok(
+    !migSrc.includes('(permission_billing OR permission_accounting)'),
+    'Insecure cross-pairing logic must be absent'
+  );
+
   // Test checks
-  assert.ok(testSrc.includes('select plan(61);'), 'pgTAP test plan must be 61');
+  assert.ok(testSrc.includes('select plan(73);'), 'pgTAP test plan must be 73');
   assert.ok(
     testSrc.trim().endsWith('rollback;'),
     'pgTAP test file must terminate with rollback; for isolation'
@@ -766,9 +852,108 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
   assert.ok(testSrc.includes('censor does not receive open_work_orders kpi without maintenance permission'));
   assert.ok(testSrc.includes('president does not receive unauthoritative pending_approvals kpi'));
   assert.ok(testSrc.includes('tenant resident does not receive community-wide open_work_orders kpi'));
+  assert.ok(testSrc.includes('pairing case 1: billing perm + billing ent allows financials section'));
+  assert.ok(testSrc.includes('pairing case 4 (cross-pair): accounting perm + billing ent blocks financials section'));
+  assert.ok(testSrc.includes('pairing case 3 (cross-pair): billing perm + accounting ent blocks financials section'));
+  assert.ok(testSrc.includes('pairing case 2: accounting perm + accounting ent allows financials section'));
 
   console.log('  ✓ Migration contains active workspace selection, override semantics, and conditional KPIs');
-  console.log('  ✓ pgTAP test covers active+archived, no workspace, KPI omissions, and ends with rollback');
+  console.log('  ✓ Strict financial permission + entitlement matching pairs enforced in SQL migration');
+  console.log('  ✓ pgTAP test covers 73 assertions: active+archived, 4 financial pairing states, KPI isolation');
+}
+
+// -----------------------------------------------------------------------------
+// Suite 9: UI Financial Pairing & Zero-Fallback Verification
+// -----------------------------------------------------------------------------
+{
+  console.log('\n[Suite 9] UI Financial Pairing & Zero-Fallback Verification');
+
+  const dashboardSrc = fs.readFileSync(
+    path.join(root, 'src/components/customer/CustomerDashboard.tsx'),
+    'utf8'
+  );
+
+  // 1. Pairing logic assertions
+  assert.ok(
+    dashboardSrc.includes("permissions.includes('billing.receivables.read') &&"),
+    'CustomerDashboard must check billing permission'
+  );
+  assert.ok(
+    dashboardSrc.includes("entitlements.includes('module.billing')"),
+    'CustomerDashboard must check billing entitlement'
+  );
+  assert.ok(
+    dashboardSrc.includes("permissions.includes('finance.ledger.read') &&"),
+    'CustomerDashboard must check accounting permission'
+  );
+  assert.ok(
+    dashboardSrc.includes("entitlements.includes('module.accounting')"),
+    'CustomerDashboard must check accounting entitlement'
+  );
+  assert.ok(
+    dashboardSrc.includes('const hasFinancial = hasBillingAccess || hasAccountingAccess;'),
+    'CustomerDashboard must combine only matching pairs'
+  );
+
+  // 2. Shortcut removal: role === 'association_admin' must NOT bypass financial permissions
+  assert.ok(
+    !dashboardSrc.includes("role === 'association_admin'"),
+    "role === 'association_admin' shortcut must be completely removed"
+  );
+
+  // 3. Fallback removal: Number(amount) || 0 must NOT be present
+  assert.ok(
+    !dashboardSrc.includes('Number(amount) || 0'),
+    'Number(amount) || 0 fallback pattern must be completely removed'
+  );
+  assert.ok(
+    !dashboardSrc.includes('|| 0'),
+    'Any || 0 fallback must be absent from CustomerDashboard'
+  );
+
+  // 4. Functional simulation of the 4 financial pairing states
+  const evaluateFinancialAccess = (permissions, entitlements) => {
+    const hasBillingAccess =
+      permissions.includes('billing.receivables.read') &&
+      entitlements.includes('module.billing');
+    const hasAccountingAccess =
+      permissions.includes('finance.ledger.read') &&
+      entitlements.includes('module.accounting');
+    return hasBillingAccess || hasAccountingAccess;
+  };
+
+  // State 1: Billing Perm + Billing Ent -> ALLOWED
+  assert.equal(
+    evaluateFinancialAccess(['billing.receivables.read'], ['module.billing']),
+    true,
+    'State 1: Billing perm + Billing ent must allow financial access'
+  );
+
+  // State 2: Accounting Perm + Accounting Ent -> ALLOWED
+  assert.equal(
+    evaluateFinancialAccess(['finance.ledger.read'], ['module.accounting']),
+    true,
+    'State 2: Accounting perm + Accounting ent must allow financial access'
+  );
+
+  // State 3: Billing Perm + Accounting Ent (Cross-Pair) -> BLOCKED
+  assert.equal(
+    evaluateFinancialAccess(['billing.receivables.read'], ['module.accounting']),
+    false,
+    'State 3 (cross-pair): Billing perm + Accounting ent must block financial access'
+  );
+
+  // State 4: Accounting Perm + Billing Ent (Cross-Pair) -> BLOCKED
+  assert.equal(
+    evaluateFinancialAccess(['finance.ledger.read'], ['module.billing']),
+    false,
+    'State 4 (cross-pair): Accounting perm + Billing ent must block financial access'
+  );
+
+  console.log('  ✓ UI financial access strictly matches corresponding permission/entitlement pairs');
+  console.log('  ✓ Association admin role shortcut removed (no role-only financial bypass)');
+  console.log('  ✓ Zero fallback Number(amount) || 0 removed, strict number formatting enforced');
+  console.log('  ✓ 4 independent financial pairing states validated (2 allowed, 2 cross-pair blocked)');
 }
 
 console.log('\n=== ALL P1 ROLE-AWARE DASHBOARD TESTS PASSED SUCCESSFULLY ===');

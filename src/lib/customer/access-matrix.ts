@@ -20,7 +20,7 @@ export const EXPLICITLY_UNAVAILABLE_ROUTES = [
 export const PRE_CONTEXT_ALLOWED_ROUTES = ['/app/onboarding'] as const;
 
 export function isPreContextRoute(pathname: string): boolean {
-  return pathname === '/app/onboarding' || pathname.startsWith('/app/onboarding/');
+  return pathname === '/app/onboarding';
 }
 
 export const CANONICAL_ROLES = [

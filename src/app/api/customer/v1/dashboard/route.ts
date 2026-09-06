@@ -57,10 +57,12 @@ export async function GET(request: NextRequest) {
 
   // Authoritative response schema validation & Persona match verification
   const validated = dashboardRpcResponseSchema.safeParse(data);
+  const requestedContextId = parsed.data.context_id.toLowerCase().trim();
+
   if (
     !validated.success ||
-    validated.data.contextId !== parsed.data.context_id ||
-    validated.data.context.id !== parsed.data.context_id ||
+    validated.data.contextId.toLowerCase().trim() !== requestedContextId ||
+    validated.data.context.id.toLowerCase().trim() !== requestedContextId ||
     validated.data.persona !== validated.data.context.role_code
   ) {
     return NextResponse.json(

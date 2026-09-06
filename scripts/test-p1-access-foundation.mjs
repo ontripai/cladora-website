@@ -526,12 +526,14 @@ const root = process.cwd();
 
   const VALID_STATUSES = new Set([
     'explicitly allowed',
+    'pre-context allowed',
     'permission protected',
     'explicitly unavailable',
   ]);
 
   const classificationCounts = {
     'explicitly allowed': 0,
+    'pre-context allowed': 0,
     'permission protected': 0,
     'explicitly unavailable': 0,
   };
@@ -568,9 +570,9 @@ const root = process.cwd();
   );
 
   // 2. Exact requirement checks:
-  // - /app/dashboard & /app/onboarding must be explicitly allowed
+  // - /app/dashboard is explicitly allowed; /app/onboarding is pre-context allowed
   assert.equal(classifyCustomerRoute('/app/dashboard')?.status, 'explicitly allowed');
-  assert.equal(classifyCustomerRoute('/app/onboarding')?.status, 'explicitly allowed');
+  assert.equal(classifyCustomerRoute('/app/onboarding')?.status, 'pre-context allowed');
 
   // - Four mock routes must be explicitly unavailable
   assert.equal(classifyCustomerRoute('/app/portfolio')?.status, 'explicitly unavailable');
@@ -629,6 +631,7 @@ const root = process.cwd();
   console.log(`  ✓ Successfully scanned ${allCustomerPages.length} customer page.tsx files under src/app/[lang]/app`);
   console.log(`  ✓ Route classification breakdown:`);
   console.log(`    - explicitly allowed: ${classificationCounts['explicitly allowed']}`);
+  console.log(`    - pre-context allowed: ${classificationCounts['pre-context allowed']}`);
   console.log(`    - permission protected: ${classificationCounts['permission protected']}`);
   console.log(`    - explicitly unavailable: ${classificationCounts['explicitly unavailable']}`);
   console.log(`  ✓ Exactly 0 unclassified customer routes found (100% classified)`);

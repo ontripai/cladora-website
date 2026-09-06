@@ -1,5 +1,5 @@
 begin;
-select plan(61);
+select plan(73);
 
 select ok(to_regprocedure('platform.get_customer_dashboard(uuid)') is not null, 'platform.get_customer_dashboard RPC exists');
 select ok(has_function_privilege('authenticated', 'platform.get_customer_dashboard(uuid)', 'EXECUTE'), 'authenticated may execute dashboard RPC');
@@ -33,21 +33,29 @@ begin
     ('21000000-0000-0000-0000-000000000014', 'owner-noparty-048@cladora.test'),
     ('21000000-0000-0000-0000-000000000020', 'tenant-b-admin-048@cladora.test'),
     ('21000000-0000-0000-0000-000000000030', 'tenant-gamma-admin-048@cladora.test'),
-    ('21000000-0000-0000-0000-000000000040', 'tenant-delta-admin-048@cladora.test');
+    ('21000000-0000-0000-0000-000000000040', 'tenant-delta-admin-048@cladora.test'),
+    ('21000000-0000-0000-0000-000000000050', 'admin-bb-048@cladora.test'),
+    ('21000000-0000-0000-0000-000000000051', 'admin-ab-048@cladora.test'),
+    ('21000000-0000-0000-0000-000000000060', 'admin-ba-048@cladora.test'),
+    ('21000000-0000-0000-0000-000000000061', 'admin-aa-048@cladora.test');
 
   -- 2. Tenants
   insert into platform.tenants (id, legal_name, registration_number, status) values
     ('21100000-0000-0000-0000-000000000001', 'Tenant Alpha', 'RO-ENG-048-A', 'active'),
     ('21100000-0000-0000-0000-000000000002', 'Tenant Beta', 'RO-ENG-048-B', 'active'),
     ('21100000-0000-0000-0000-000000000003', 'Tenant Gamma', 'RO-ENG-048-G', 'active'),
-    ('21100000-0000-0000-0000-000000000004', 'Tenant Delta', 'RO-ENG-048-D', 'active');
+    ('21100000-0000-0000-0000-000000000004', 'Tenant Delta', 'RO-ENG-048-D', 'active'),
+    ('21100000-0000-0000-0000-000000000005', 'Tenant Epsilon', 'RO-ENG-048-E', 'active'),
+    ('21100000-0000-0000-0000-000000000006', 'Tenant Zeta', 'RO-ENG-048-Z', 'active');
 
   -- 3. Workspaces
   insert into platform.customer_workspaces (id, tenant_id, workspace_type, lifecycle_status, commercial_owner, environment, version) values
     ('21800000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', 'ASSOCIATION', 'ACTIVE', 'Admin Alpha', 'PILOT', 1),
     ('21800000-0000-0000-0000-000000000004', '21100000-0000-0000-0000-000000000001', 'ASSOCIATION', 'ARCHIVED', 'Admin Alpha Archived', 'PILOT', 1),
     ('21800000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', 'ASSOCIATION', 'ACTIVE', 'Admin Beta', 'PILOT', 1),
-    ('21800000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000003', 'ASSOCIATION', 'SUSPENDED', 'Admin Gamma', 'PILOT', 1);
+    ('21800000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000003', 'ASSOCIATION', 'SUSPENDED', 'Admin Gamma', 'PILOT', 1),
+    ('21800000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000005', 'ASSOCIATION', 'ACTIVE', 'Admin Epsilon', 'PILOT', 1),
+    ('21800000-0000-0000-0000-000000000006', '21100000-0000-0000-0000-000000000006', 'ASSOCIATION', 'ACTIVE', 'Admin Zeta', 'PILOT', 1);
 
   -- 4. Entitlements with Override Scenarios
   insert into platform.workspace_entitlements (customer_workspace_id, entitlement_key, value_type, boolean_value, valid_from, valid_until, override_value_json, override_expires_at) values
@@ -56,6 +64,10 @@ begin
     ('21800000-0000-0000-0000-000000000001', 'module.governance', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
     ('21800000-0000-0000-0000-000000000001', 'module.accounting', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
     ('21800000-0000-0000-0000-000000000001', 'module.utilities', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
+    -- Epsilon: ONLY module.billing
+    ('21800000-0000-0000-0000-000000000005', 'module.billing', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
+    -- Zeta: ONLY module.accounting
+    ('21800000-0000-0000-0000-000000000006', 'module.accounting', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
     -- Entitlement on archived workspace: should never be loaded
     ('21800000-0000-0000-0000-000000000004', 'module.archived_only', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
     -- Disabled: boolean_value = false
@@ -82,7 +94,11 @@ begin
     ('21200000-0000-0000-0000-000000000007', '21100000-0000-0000-0000-000000000001', 'contractor', 'Contractor Unknown'),
     ('21200000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'association_admin', 'Admin Beta'),
     ('21200000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'association_admin', 'Admin Gamma'),
-    ('21200000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', 'association_admin', 'Admin Delta');
+    ('21200000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', 'association_admin', 'Admin Delta'),
+    ('21200000-0000-0000-0000-000000000050', '21100000-0000-0000-0000-000000000005', 'association_admin', 'Admin Billing Epsilon'),
+    ('21200000-0000-0000-0000-000000000051', '21100000-0000-0000-0000-000000000005', 'association_admin', 'Admin Accounting Epsilon'),
+    ('21200000-0000-0000-0000-000000000060', '21100000-0000-0000-0000-000000000006', 'association_admin', 'Admin Billing Zeta'),
+    ('21200000-0000-0000-0000-000000000061', '21100000-0000-0000-0000-000000000006', 'association_admin', 'Admin Accounting Zeta');
 
   -- 6. Permissions and Role Assignments
   select id into perm_assets from identity.permissions where code = 'maintenance.assets.read';
@@ -127,7 +143,12 @@ begin
   -- Beta Admin permissions
   insert into identity.role_permissions (role_id, permission_id, effect) values
     ('21200000-0000-0000-0000-000000000020', perm_assets, 'allow'),
-    ('21200000-0000-0000-0000-000000000020', perm_billing, 'allow');
+    ('21200000-0000-0000-0000-000000000020', perm_billing, 'allow'),
+    -- Epsilon & Zeta test permissions for pairing matrix
+    ('21200000-0000-0000-0000-000000000050', perm_billing, 'allow'),
+    ('21200000-0000-0000-0000-000000000051', perm_accounting, 'allow'),
+    ('21200000-0000-0000-0000-000000000060', perm_billing, 'allow'),
+    ('21200000-0000-0000-0000-000000000061', perm_accounting, 'allow');
 
   -- 7. Memberships
   insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at, ends_at) values
@@ -147,23 +168,33 @@ begin
     ('21300000-0000-0000-0000-000000000014', '21100000-0000-0000-0000-000000000001', '21000000-0000-0000-0000-000000000014', '21200000-0000-0000-0000-000000000005', 'active', statement_timestamp() - interval '1 day', null),
     ('21300000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', '21000000-0000-0000-0000-000000000020', '21200000-0000-0000-0000-000000000020', 'active', statement_timestamp() - interval '1 day', null),
     ('21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', '21000000-0000-0000-0000-000000000030', '21200000-0000-0000-0000-000000000030', 'active', statement_timestamp() - interval '1 day', null),
-    ('21300000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', '21000000-0000-0000-0000-000000000040', '21200000-0000-0000-0000-000000000040', 'active', statement_timestamp() - interval '1 day', null);
+    ('21300000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', '21000000-0000-0000-0000-000000000040', '21200000-0000-0000-0000-000000000040', 'active', statement_timestamp() - interval '1 day', null),
+    ('21300000-0000-0000-0000-000000000050', '21100000-0000-0000-0000-000000000005', '21000000-0000-0000-0000-000000000050', '21200000-0000-0000-0000-000000000050', 'active', statement_timestamp() - interval '1 day', null),
+    ('21300000-0000-0000-0000-000000000051', '21100000-0000-0000-0000-000000000005', '21000000-0000-0000-0000-000000000051', '21200000-0000-0000-0000-000000000051', 'active', statement_timestamp() - interval '1 day', null),
+    ('21300000-0000-0000-0000-000000000060', '21100000-0000-0000-0000-000000000006', '21000000-0000-0000-0000-000000000060', '21200000-0000-0000-0000-000000000060', 'active', statement_timestamp() - interval '1 day', null),
+    ('21300000-0000-0000-0000-000000000061', '21100000-0000-0000-0000-000000000006', '21000000-0000-0000-0000-000000000061', '21200000-0000-0000-0000-000000000061', 'active', statement_timestamp() - interval '1 day', null);
 
   -- 8. Portfolio Structure: 2 Properties, 2 Buildings, 3 Units
   insert into portfolio.properties (id, tenant_id, type, name, status) values
     ('21500000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', 'condominium', 'Property Alpha', 'active'),
-    ('21500000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', 'condominium', 'Property Beta', 'active');
+    ('21500000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', 'condominium', 'Property Beta', 'active'),
+    ('21500000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000005', 'condominium', 'Property Epsilon', 'active'),
+    ('21500000-0000-0000-0000-000000000006', '21100000-0000-0000-0000-000000000006', 'condominium', 'Property Zeta', 'active');
 
   insert into portfolio.buildings (id, tenant_id, property_id, code, name, status) values
     ('21600000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', '21500000-0000-0000-0000-000000000001', 'BA1', 'Building Alpha 1', 'active'),
-    ('21600000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', '21500000-0000-0000-0000-000000000002', 'BB1', 'Building Beta 1', 'active');
+    ('21600000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', '21500000-0000-0000-0000-000000000002', 'BB1', 'Building Beta 1', 'active'),
+    ('21600000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000005', '21500000-0000-0000-0000-000000000005', 'BE1', 'Building Epsilon 1', 'active'),
+    ('21600000-0000-0000-0000-000000000006', '21100000-0000-0000-0000-000000000006', '21500000-0000-0000-0000-000000000006', 'BZ1', 'Building Zeta 1', 'active');
 
   insert into portfolio.units (id, tenant_id, building_id, code, status) values
     ('21700000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA1', 'active'),
     ('21700000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA2', 'active'),
     ('21700000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000002', '21600000-0000-0000-0000-000000000002', 'UB1', 'active'),
     ('21700000-0000-0000-0000-000000000004', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA3', 'active'),
-    ('21700000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA4', 'active');
+    ('21700000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA4', 'active'),
+    ('21700000-0000-0000-0000-000000000055', '21100000-0000-0000-0000-000000000005', '21600000-0000-0000-0000-000000000005', 'UE1', 'active'),
+    ('21700000-0000-0000-0000-000000000066', '21100000-0000-0000-0000-000000000006', '21600000-0000-0000-0000-000000000006', 'UZ1', 'active');
 
   -- 9. Parties and Party Mappings
   insert into portfolio.parties (id, tenant_id, type, legal_name) values
@@ -173,7 +204,9 @@ begin
     ('21900000-0000-0000-0000-000000000004', '21100000-0000-0000-0000-000000000001', 'person', 'Tenant Alpha 2 Party'),
     ('21900000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000001', 'person', 'Owner Expired Party'),
     ('21900000-0000-0000-0000-000000000006', '21100000-0000-0000-0000-000000000001', 'person', 'Tenant Expired Party'),
-    ('21900000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'person', 'Beta Admin Party');
+    ('21900000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'person', 'Beta Admin Party'),
+    ('21900000-0000-0000-0000-000000000050', '21100000-0000-0000-0000-000000000005', 'person', 'Epsilon Admin Party'),
+    ('21900000-0000-0000-0000-000000000060', '21100000-0000-0000-0000-000000000006', 'person', 'Zeta Admin Party');
 
   insert into identity.membership_parties (membership_id, tenant_id, party_id) values
     ('21300000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000001'),
@@ -200,12 +233,16 @@ begin
   insert into billing.invoices (id, tenant_id, property_id, unit_id, liable_party_id, period_start, period_end, issued_on, due_on, currency, subtotal, tax_total, status) values
     ('21c00000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', '21500000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000003', current_date - 30, current_date, current_date - 1, current_date + 5, 'RON', 100, 0, 'issued'),
     ('21c00000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000001', '21500000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000002', '21900000-0000-0000-0000-000000000004', current_date - 30, current_date, current_date - 1, current_date + 5, 'RON', 200, 0, 'issued'),
-    ('21c00000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000002', '21500000-0000-0000-0000-000000000002', '21700000-0000-0000-0000-000000000003', '21900000-0000-0000-0000-000000000020', current_date - 30, current_date, current_date - 1, current_date + 5, 'RON', 500, 0, 'issued');
+    ('21c00000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000002', '21500000-0000-0000-0000-000000000002', '21700000-0000-0000-0000-000000000003', '21900000-0000-0000-0000-000000000020', current_date - 30, current_date, current_date - 1, current_date + 5, 'RON', 500, 0, 'issued'),
+    ('21c00000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000005', '21500000-0000-0000-0000-000000000005', '21700000-0000-0000-0000-000000000055', '21900000-0000-0000-0000-000000000050', current_date - 30, current_date, current_date - 1, current_date + 5, 'RON', 100, 0, 'issued'),
+    ('21c00000-0000-0000-0000-000000000006', '21100000-0000-0000-0000-000000000006', '21500000-0000-0000-0000-000000000006', '21700000-0000-0000-0000-000000000066', '21900000-0000-0000-0000-000000000060', current_date - 30, current_date, current_date - 1, current_date + 5, 'RON', 100, 0, 'issued');
 
   insert into billing.receivables (tenant_id, invoice_id, original_amount, paid_amount) values
     ('21100000-0000-0000-0000-000000000001', '21c00000-0000-0000-0000-000000000001', 100, 25), -- 75 outstanding
     ('21100000-0000-0000-0000-000000000001', '21c00000-0000-0000-0000-000000000002', 200, 0),  -- 200 outstanding
-    ('21100000-0000-0000-0000-000000000002', '21c00000-0000-0000-0000-000000000003', 500, 0);  -- 500 outstanding in Beta
+    ('21100000-0000-0000-0000-000000000002', '21c00000-0000-0000-0000-000000000003', 500, 0),  -- 500 outstanding in Beta
+    ('21100000-0000-0000-0000-000000000005', '21c00000-0000-0000-0000-000000000005', 100, 20), -- 80 outstanding in Epsilon
+    ('21100000-0000-0000-0000-000000000006', '21c00000-0000-0000-0000-000000000006', 100, 10); -- 90 outstanding in Zeta
 
   -- 13. Work Orders
   insert into maintenance.work_orders (id, tenant_id, property_id, building_id, unit_id, title, priority, status) values
@@ -259,7 +296,15 @@ begin
     -- Gamma Admin Context (Suspended Workspace)
     ('21400000-0000-0000-0000-000000000030', '21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
     -- Delta Admin Context (No Workspace)
-    ('21400000-0000-0000-0000-000000000040', '21300000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null);
+    ('21400000-0000-0000-0000-000000000040', '21300000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    -- Epsilon Admin (Billing perm) Context
+    ('21400000-0000-0000-0000-000000000050', '21300000-0000-0000-0000-000000000050', '21100000-0000-0000-0000-000000000005', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    -- Epsilon Admin (Accounting perm) Context
+    ('21400000-0000-0000-0000-000000000051', '21300000-0000-0000-0000-000000000051', '21100000-0000-0000-0000-000000000005', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    -- Zeta Admin (Billing perm) Context
+    ('21400000-0000-0000-0000-000000000060', '21300000-0000-0000-0000-000000000060', '21100000-0000-0000-0000-000000000006', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    -- Zeta Admin (Accounting perm) Context
+    ('21400000-0000-0000-0000-000000000061', '21300000-0000-0000-0000-000000000061', '21100000-0000-0000-0000-000000000006', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null);
 end $$;
 
 set local role authenticated;
@@ -582,6 +627,67 @@ select throws_like(
   $$select platform.get_customer_dashboard('21400000-0000-0000-0000-000000000040')$$,
   '%workspace_inactive%',
   'tenant without any workspace is denied fail-closed'
+);
+
+-- 11. Financial Permission and Entitlement Pairing Matrix (4 states)
+-- Case 1: Billing Permission + Billing Entitlement -> ALLOWED
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-0000-0000-000000000050","role":"authenticated","aal":"aal2"}', true);
+select ok(
+  (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000050')->'sections') ? 'financials',
+  'pairing case 1: billing perm + billing ent allows financials section'
+);
+select ok(
+  (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000050')->'capabilities') ? 'can_view_financials',
+  'pairing case 1: billing perm + billing ent allows can_view_financials capability'
+);
+select ok(
+  (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000050')->'kpis') ? 'outstanding_amount',
+  'pairing case 1: billing perm + billing ent includes outstanding_amount KPI'
+);
+
+-- Case 4: Accounting Permission + Billing Entitlement (Cross-Pair) -> BLOCKED
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-0000-0000-000000000051","role":"authenticated","aal":"aal2"}', true);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000051')->'sections') ? 'financials'),
+  'pairing case 4 (cross-pair): accounting perm + billing ent blocks financials section'
+);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000051')->'capabilities') ? 'can_view_financials'),
+  'pairing case 4 (cross-pair): accounting perm + billing ent blocks can_view_financials capability'
+);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000051')->'kpis') ? 'outstanding_amount'),
+  'pairing case 4 (cross-pair): accounting perm + billing ent excludes outstanding_amount KPI'
+);
+
+-- Case 3: Billing Permission + Accounting Entitlement (Cross-Pair) -> BLOCKED
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-0000-0000-000000000060","role":"authenticated","aal":"aal2"}', true);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000060')->'sections') ? 'financials'),
+  'pairing case 3 (cross-pair): billing perm + accounting ent blocks financials section'
+);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000060')->'capabilities') ? 'can_view_financials'),
+  'pairing case 3 (cross-pair): billing perm + accounting ent blocks can_view_financials capability'
+);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000060')->'kpis') ? 'outstanding_amount'),
+  'pairing case 3 (cross-pair): billing perm + accounting ent excludes outstanding_amount KPI'
+);
+
+-- Case 2: Accounting Permission + Accounting Entitlement -> ALLOWED
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-0000-0000-000000000061","role":"authenticated","aal":"aal2"}', true);
+select ok(
+  (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000061')->'sections') ? 'financials',
+  'pairing case 2: accounting perm + accounting ent allows financials section'
+);
+select ok(
+  (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000061')->'capabilities') ? 'can_view_financials',
+  'pairing case 2: accounting perm + accounting ent allows can_view_financials capability'
+);
+select ok(
+  (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000061')->'kpis') ? 'outstanding_amount',
+  'pairing case 2: accounting perm + accounting ent includes outstanding_amount KPI'
 );
 
 rollback;

@@ -178,7 +178,7 @@ export function CustomerRouteGuard({
   }
 
   // 4. Pre-context route policy check (e.g. onboarding before context assignment)
-  if (isPreContextRoute(appPath)) {
+  if (classification.status === 'pre-context allowed') {
     return <>{children}</>;
   }
 
