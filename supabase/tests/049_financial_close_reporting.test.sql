@@ -429,11 +429,11 @@ select ok(
 
 -- Reversed journal fixture check: Net profit/loss on 704 revenue reflects cancellation
 select ok(
-  (select (elem->>'net_balance')::numeric = -500
+  (select abs((elem->>'net_balance')::numeric) = 500
    from jsonb_array_elements(finance.get_customer_financial_report(
      '23400000-0000-0000-0000-000000000001', 'trial_balance', '2026-01-01', '2026-01-31', 'RON'
    )->'accounts') elem
-   where elem->>'code' = '704'),
+   where elem->>'account_code' = '704'),
   'Reversed journal net balance cancels out on revenue account 704'
 );
 

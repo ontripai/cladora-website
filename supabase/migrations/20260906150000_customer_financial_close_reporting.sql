@@ -823,9 +823,17 @@ begin
     );
   end loop;
 
+  -- 12. Sanitize close reason
+  v_sanitized_reason := coalesce(nullif(trim(p_reason), ''), 'Accounting period closed with immutable ledger snapshot');
+  if length(v_sanitized_reason) > 500 then
+    v_sanitized_reason := substring(v_sanitized_reason from 1 for 500);
+  end if;
+
   -- Build Version 2 Snapshot JSON
   v_snapshot := jsonb_build_object(
     'version', 2,
+    'snapshot_version', 2,
+    'close_reason', v_sanitized_reason,
     'period_id', v_period.id,
     'tenant_id', v_period.tenant_id,
     'property_id', v_period.property_id,
@@ -838,7 +846,7 @@ begin
     'is_balanced', v_all_balanced
   );
 
-  -- 12. Atomic update of period status and snapshot
+  -- Atomic update of period status and snapshot
   update finance.accounting_periods
   set status = 'closed',
       closed_at = v_now,
@@ -847,10 +855,6 @@ begin
   where id = p_period_id;
 
   -- 13. Record audit event in audit.events (same atomic transaction)
-  v_sanitized_reason := coalesce(nullif(trim(p_reason), ''), 'Accounting period closed with immutable ledger snapshot');
-  if length(v_sanitized_reason) > 500 then
-    v_sanitized_reason := substring(v_sanitized_reason from 1 for 500);
-  end if;
 
   insert into audit.events (
     tenant_id, actor_id, actor_role, action, entity_type, entity_id, reason,
