@@ -891,15 +891,30 @@ begin
 end;
 $$;
 
+-- 2-argument overload for backwards compatibility and callers without reason
+create or replace function finance.close_accounting_period(
+  p_context_id uuid,
+  p_period_id uuid
+)
+returns jsonb
+language sql
+security definer
+set search_path = pg_catalog, finance, platform, identity, audit, app_private
+as $$
+  select finance.close_accounting_period(p_context_id, p_period_id, null::text);
+$$;
+
 -- 8. Secure Privileges
 revoke all on function app_private.resolve_financial_context_scope(uuid) from public, anon;
 revoke all on function finance.get_close_readiness(uuid, uuid) from public, anon;
 revoke all on function finance.get_customer_financial_report(uuid, text, date, date, text) from public, anon;
+revoke all on function finance.close_accounting_period(uuid, uuid) from public, anon;
 revoke all on function finance.close_accounting_period(uuid, uuid, text) from public, anon;
 
 grant execute on function app_private.resolve_financial_context_scope(uuid) to authenticated, service_role;
 grant execute on function finance.get_close_readiness(uuid, uuid) to authenticated, service_role;
 grant execute on function finance.get_customer_financial_report(uuid, text, date, date, text) to authenticated, service_role;
+grant execute on function finance.close_accounting_period(uuid, uuid) to authenticated, service_role;
 grant execute on function finance.close_accounting_period(uuid, uuid, text) to authenticated, service_role;
 
 commit;
