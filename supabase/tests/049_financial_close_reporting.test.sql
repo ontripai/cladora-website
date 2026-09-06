@@ -184,20 +184,28 @@ begin
   where id in ('23b00000-0000-0000-0000-000000000002', '23b00000-0000-0000-0000-000000000003');
 
   -- Journal 4: 200 RON Posted in Period 1
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, posted_at) values
-    ('23b00000-0000-0000-0000-000000000004', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-28', 'RON', 'Original journal to reverse', 'invoice', 'posted', statement_timestamp());
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status) values
+    ('23b00000-0000-0000-0000-000000000004', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-28', 'RON', 'Original journal to reverse', 'invoice', 'draft');
 
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000004', '23a00000-0000-0000-0000-000000000001', 'debit', 200, 'Bank debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000004', '23a00000-0000-0000-0000-000000000006', 'credit', 200, 'Revenue credit');
 
+  update finance.journals
+  set status = 'posted', posted_at = statement_timestamp()
+  where id = '23b00000-0000-0000-0000-000000000004';
+
   -- Journal 5: Reversal compensating journal for Journal 4 (status = 'reversed', reversal_of_id set)
-  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, reversal_of_id, posted_at) values
-    ('23b00000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-29', 'RON', 'Reversal of J4', 'reversal', 'reversed', '23b00000-0000-0000-0000-000000000004', statement_timestamp());
+  insert into finance.journals (id, tenant_id, property_id, occurred_on, currency, description, source_type, status, reversal_of_id) values
+    ('23b00000-0000-0000-0000-000000000005', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2026-01-29', 'RON', 'Reversal of J4', 'reversal', 'draft', '23b00000-0000-0000-0000-000000000004');
 
   insert into finance.journal_entries (tenant_id, journal_id, account_id, side, amount, memo) values
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000005', '23a00000-0000-0000-0000-000000000006', 'debit', 200, 'Revenue reversal debit'),
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000005', '23a00000-0000-0000-0000-000000000001', 'credit', 200, 'Bank reversal credit');
+
+  update finance.journals
+  set status = 'reversed', posted_at = statement_timestamp()
+  where id = '23b00000-0000-0000-0000-000000000005';
 end $$;
 
 -- 4. Role & Claims Security Execution
