@@ -15,6 +15,7 @@ do $$ begin
  insert into identity.context_grants(id,membership_id,tenant_id,scope_type,starts_at) values('18400000-0000-0000-0000-000000000001','18300000-0000-0000-0000-000000000001','18100000-0000-0000-0000-000000000001','tenant',statement_timestamp()-interval '1 day'),('18400000-0000-0000-0000-000000000002','18300000-0000-0000-0000-000000000002','18100000-0000-0000-0000-000000000002','tenant',statement_timestamp()-interval '1 day');
  insert into identity.context_grants(id,membership_id,tenant_id,scope_type,starts_at,ends_at) values('18400000-0000-0000-0000-000000000003','18300000-0000-0000-0000-000000000001','18100000-0000-0000-0000-000000000001','tenant',statement_timestamp()-interval '2 day',statement_timestamp()-interval '1 day');
  insert into portfolio.properties(id,tenant_id,type,name,status) values('18500000-0000-0000-0000-000000000001','18100000-0000-0000-0000-000000000001','condominium','One Property','active'),('18500000-0000-0000-0000-000000000002','18100000-0000-0000-0000-000000000002','condominium','Other Property','active');
+ insert into platform.customer_workspaces(id,tenant_id,workspace_type,lifecycle_status,commercial_owner,environment) values('18800000-0000-0000-0000-000000000001','18100000-0000-0000-0000-000000000001','ASSOCIATION','ACTIVE','Commercial 018','PILOT');
 end $$;
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"18000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}',true);

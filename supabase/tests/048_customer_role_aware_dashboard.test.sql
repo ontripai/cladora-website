@@ -115,12 +115,14 @@ begin
 
   -- Owner permissions
   insert into identity.role_permissions (role_id, permission_id, effect) values
-    ('21200000-0000-0000-0000-000000000005', perm_billing, 'allow');
+    ('21200000-0000-0000-0000-000000000005', perm_billing, 'allow'),
+    ('21200000-0000-0000-0000-000000000005', perm_assets, 'allow');
 
   -- Tenant permissions
   insert into identity.role_permissions (role_id, permission_id, effect) values
     ('21200000-0000-0000-0000-000000000006', perm_billing, 'allow'),
-    ('21200000-0000-0000-0000-000000000006', perm_utilities, 'allow');
+    ('21200000-0000-0000-0000-000000000006', perm_utilities, 'allow'),
+    ('21200000-0000-0000-0000-000000000006', perm_assets, 'allow');
 
   -- Beta Admin permissions
   insert into identity.role_permissions (role_id, permission_id, effect) values
