@@ -15,6 +15,7 @@ import {
   type RouteRequirement,
   type RouteStatus,
 } from '@/lib/customer/route-classifier';
+import { isCanonicalRole, getPersonaMatrix } from '@/lib/customer/access-matrix';
 
 export {
   EXPLICITLY_ALLOWED_ROUTES,
@@ -167,6 +168,17 @@ export function CustomerRouteGuard({
   // 4. Context requirement (all customer routes except onboarding require an assigned context)
   if (!state.active && !state.loading && appPath !== '/app/onboarding') {
     return <AccessRestrictedCard lang={lang} reason="context" />;
+  }
+
+  // 4b. Role-aware Persona fail-closed check
+  const roleCode = state.dashboard?.context?.role_code;
+  if (roleCode && !isCanonicalRole(roleCode)) {
+    return <AccessRestrictedCard lang={lang} reason="unknown" />;
+  }
+
+  const matrix = getPersonaMatrix(roleCode);
+  if (matrix?.forbiddenNavLinks?.some((f) => appPath === f || appPath.startsWith(`${f}/`))) {
+    return <AccessRestrictedCard lang={lang} reason="permission" />;
   }
 
   // 5. Explicitly allowed routes (e.g. dashboard, onboarding) pass through once context is confirmed
