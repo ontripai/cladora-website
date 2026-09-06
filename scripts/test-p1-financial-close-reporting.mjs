@@ -1385,9 +1385,74 @@ function createStreamFromChunks(chunks) {
 {
   console.log('\n[Suite 9] Concurrency Runner Negative Tests & False-Positive Prevention');
 
-  const { waitForBlockingByPid } = await import('./test-financial-close-concurrency.mjs');
+  const { assertExpectedSqlState, assertSnapshotUnchanged, waitForBlockingByPid } =
+    await import('./test-financial-close-concurrency.mjs');
 
-  // 1. Correct Blocker PID returns blocked: true
+  // 1. Direct unit verification of assertExpectedSqlState
+  for (const expectedCode of ['25000', '40001']) {
+    assert.doesNotThrow(() =>
+      assertExpectedSqlState(
+        { code: expectedCode },
+        expectedCode,
+        'Expected rejection'
+      )
+    );
+
+    assert.throws(() =>
+      assertExpectedSqlState(null, expectedCode, 'Unexpected success')
+    );
+
+    for (const wrongCode of ['42501', '57014', '55P03', 'XX000']) {
+      assert.throws(() =>
+        assertExpectedSqlState(
+          { code: wrongCode },
+          expectedCode,
+          'Unrelated failure'
+        )
+      );
+    }
+  }
+
+  // 2. Direct unit verification of assertSnapshotUnchanged
+  const baseSnapshot = {
+    version: 2,
+    is_balanced: true,
+    currency_summaries: [
+      {
+        currency: 'RON',
+        posted_journals_count: 1,
+        total_debit: 450,
+        total_credit: 450,
+        difference: 0,
+        is_balanced: true,
+        trial_balance: [],
+      },
+    ],
+  };
+
+  assert.doesNotThrow(() =>
+    assertSnapshotUnchanged(baseSnapshot, structuredClone(baseSnapshot), 'Unchanged test')
+  );
+
+  const changedAmount = structuredClone(baseSnapshot);
+  changedAmount.currency_summaries[0].total_debit = 500;
+  assert.throws(() =>
+    assertSnapshotUnchanged(baseSnapshot, changedAmount, 'Changed amount')
+  );
+
+  const changedCurrency = structuredClone(baseSnapshot);
+  changedCurrency.currency_summaries[0].currency = 'EUR';
+  assert.throws(() =>
+    assertSnapshotUnchanged(baseSnapshot, changedCurrency, 'Changed currency')
+  );
+
+  const changedVersion = structuredClone(baseSnapshot);
+  changedVersion.version = 1;
+  assert.throws(() =>
+    assertSnapshotUnchanged(baseSnapshot, changedVersion, 'Changed version')
+  );
+
+  // 3. Correct Blocker PID returns blocked: true
   const stubObserverMatch = {
     query: async () => ({ rows: [{ blocker_pid: 4120 }] }),
   };
@@ -1395,7 +1460,7 @@ function createStreamFromChunks(chunks) {
   assert.equal(matchRes.blocked, true, 'Matching blocker PID must return blocked: true');
   assert.equal(matchRes.blockerPid, 4120);
 
-  // 2. Wrong Blocker PID returns blocked: false (Zero false positive on unrelated locks)
+  // 4. Wrong Blocker PID returns blocked: false (Zero false positive on unrelated locks)
   const stubObserverMismatch = {
     query: async () => ({ rows: [{ blocker_pid: 8888 }] }),
   };
@@ -1403,7 +1468,7 @@ function createStreamFromChunks(chunks) {
   assert.equal(mismatchRes.blocked, false, 'Mismatched blocker PID must return blocked: false');
   assert.deepEqual(mismatchRes.allBlockers, [8888]);
 
-  // 3. No Blocking returns blocked: false on timeout
+  // 5. No Blocking returns blocked: false on timeout
   const stubObserverEmpty = {
     query: async () => ({ rows: [] }),
   };
@@ -1411,20 +1476,7 @@ function createStreamFromChunks(chunks) {
   assert.equal(emptyRes.blocked, false, 'Zero blocking PIDs must return blocked: false');
   assert.deepEqual(emptyRes.allBlockers, []);
 
-  // 4. SQLSTATE Error Code Assertions
-  // Scenario B must reject non-25000 errors
-  const errWrongB = { code: '42501', message: 'permission denied' };
-  assert.throws(() => {
-    assert.equal(errWrongB.code, '25000', `Expected SQLSTATE 25000, got ${errWrongB.code}`);
-  }, /Expected SQLSTATE 25000/);
-
-  // Scenario C must reject non-40001 errors
-  const errWrongC = { code: '50000', message: 'internal error' };
-  assert.throws(() => {
-    assert.equal(errWrongC.code, '40001', `Expected SQLSTATE 40001, got ${errWrongC.code}`);
-  }, /Expected SQLSTATE 40001/);
-
-  // 5. Offline Fail-Closed Check: test-financial-close-concurrency.mjs exits with code 1 when DB offline
+  // 6. Offline Fail-Closed Check: test-financial-close-concurrency.mjs exits with code 1 when DB offline
   const runnerPath = path.join(root, 'scripts', 'test-financial-close-concurrency.mjs');
   const offlineCheck = spawnSync('node', [runnerPath], {
     env: { ...process.env, SUPABASE_DB_URL: 'postgresql://postgres:postgres@127.0.0.1:59999/nonexistent' },
@@ -1436,8 +1488,9 @@ function createStreamFromChunks(chunks) {
     'Runner output must clearly report connection failure on offline DB'
   );
 
+  console.log('  ✓ assertExpectedSqlState strictly verified against 25000, 40001, null, and unrelated error codes');
+  console.log('  ✓ assertSnapshotUnchanged strictly verified for equal snapshots and rejecting mutations in amounts, currencies, and version');
   console.log('  ✓ Exact blocker PID verification validated (unrelated locks strictly rejected)');
-  console.log('  ✓ SQLSTATE 25000 (Scenario B) and 40001 (Scenario C) error code assertions validated');
   console.log('  ✓ Offline database connection failure verified to fail-closed with exit code 1');
 }
 

@@ -58,7 +58,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Run real multi-connection financial close concurrency tests
-        run: node scripts/test-financial-close-concurrency.mjs
+        run: timeout 60s node scripts/test-financial-close-concurrency.mjs
         env:
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run local database security and performance advisors
@@ -68,4 +68,4 @@ jobs:
         run: supabase status || true
       - name: Stop ephemeral database
         if: always()
-        run: supabase stop || true
+        run: timeout 60s supabase stop --no-backup
