@@ -19,8 +19,9 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import type { PlatformAuthContext, PlatformRole } from '@/types/platform';
-import { isRtlLocale } from '@/types';
+import { isRtlLocale, type Language } from '@/types';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
+import { SignOutButton } from '@/components/auth/SignOutButton';
 
 interface PlatformShellProps {
   children: React.ReactNode;
@@ -223,14 +224,7 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
                 FA
               </Link>
             </div>
-            <Link
-              href={`/${lang}/login`}
-              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-rose-400 transition"
-              title="Sign Out / Switch Context"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Exit</span>
-            </Link>
+            <SignOutButton lang={lang as Language} variant="platform" />
           </div>
         </header>
 

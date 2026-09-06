@@ -1,4 +1,6 @@
 "use client";
+
+import React from "react";
 import Link from "next/link";
 import {
   Bell,
@@ -13,7 +15,6 @@ import {
   Home,
   KeyRound,
   Landmark,
-  LogOut,
   Megaphone,
   ReceiptText,
   RefreshCw,
@@ -25,10 +26,13 @@ import {
 import type { Language } from "@/types";
 import { CladoraBrand } from "@/components/brand/CladoraBrand";
 import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import { CustomerRouteGuard } from "./CustomerRouteGuard";
 import {
   CustomerContextProvider,
   useCustomerContext,
 } from "./CustomerContextProvider";
+
 const copy = {
   ro: {
     dashboard: "Tablou principal",
@@ -49,6 +53,7 @@ const copy = {
     billing: "Facturi și creanțe",
     payments: "Plăți",
     reconciliation: "Reconciliere",
+    audit: "Jurnal audit",
     context: "Context activ",
     empty: "Nu există niciun context activ alocat.",
     secure: "Context verificat de server",
@@ -72,6 +77,7 @@ const copy = {
     billing: "Billing & receivables",
     payments: "Payments",
     reconciliation: "Reconciliation",
+    audit: "Audit log",
     context: "Active context",
     empty: "No active assigned context is available.",
     secure: "Server-verified context",
@@ -95,11 +101,13 @@ const copy = {
     billing: "صورتحساب‌ها و مطالبات",
     payments: "پرداخت‌ها",
     reconciliation: "تطبیق بانکی",
+    audit: "گزارش بازرسی",
     context: "زمینه فعال",
     empty: "هیچ زمینه تخصیص‌یافته فعالی وجود ندارد.",
     secure: "زمینه تأییدشده توسط سرور",
   },
 };
+
 function Shell({
   children,
   lang,
@@ -107,21 +115,48 @@ function Shell({
   children: React.ReactNode;
   lang: Language;
 }) {
-  const state = useCustomerContext(),
-    t = copy[lang];
+  const state = useCustomerContext();
+  const t = copy[lang];
+
   const accounting = state.dashboard?.modules.includes("accounting"),
     billing = state.dashboard?.modules.includes("billing"),
     payments = state.dashboard?.modules.includes("payments"),
     utilities = state.dashboard?.entitlements.includes("module.utilities"),
     maintenance = state.dashboard?.entitlements.includes("module.maintenance"),
-    procurement = maintenance && state.dashboard?.permissions.includes("maintenance.procurement.read"),
+    procurement =
+      maintenance &&
+      state.dashboard?.permissions.includes("maintenance.procurement.read"),
     governance = state.dashboard?.entitlements.includes("module.governance"),
     communications = state.dashboard?.entitlements.includes(
       "module.communications",
     ),
     documents = state.dashboard?.entitlements.includes("module.documents"),
     occupancy = state.dashboard?.entitlements.includes("module.occupancy"),
-    security = state.dashboard?.entitlements.includes("module.security");
+    security = state.dashboard?.entitlements.includes("module.security"),
+    audit = state.dashboard?.permissions.includes("audit.events.read");
+
+  const navItems = [
+    { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
+    { href: `/${lang}/app/accounting`, label: t.accounting, icon: FileSpreadsheet, visible: accounting },
+    { href: `/${lang}/app/accounting/allocations`, label: t.allocations, icon: Scale, visible: accounting },
+    { href: `/${lang}/app/meters`, label: t.utilities, icon: Gauge, visible: utilities },
+    { href: `/${lang}/app/assets`, label: t.assets, icon: Boxes, visible: maintenance },
+    { href: `/${lang}/app/maintenance`, label: t.maintenance, icon: Wrench, visible: maintenance },
+    { href: `/${lang}/app/vendors`, label: t.procurement, icon: BriefcaseBusiness, visible: procurement },
+    { href: `/${lang}/app/governance`, label: t.governance, icon: Gavel, visible: governance },
+    { href: `/${lang}/app/meetings`, label: t.meetings, icon: UsersRound, visible: governance },
+    { href: `/${lang}/app/communications`, label: t.communications, icon: Megaphone, visible: communications },
+    { href: `/${lang}/app/notifications`, label: t.notifications, icon: Bell, visible: communications },
+    { href: `/${lang}/app/documents`, label: t.documents, icon: FileText, visible: documents },
+    { href: `/${lang}/app/occupancy`, label: t.occupancy, icon: UsersRound, visible: occupancy },
+    { href: `/${lang}/app/ownership`, label: t.ownership, icon: Landmark, visible: occupancy },
+    { href: `/${lang}/app/security-access`, label: t.security, icon: KeyRound, visible: security },
+    { href: `/${lang}/app/billing`, label: t.billing, icon: ReceiptText, visible: billing },
+    { href: `/${lang}/app/payments`, label: t.payments, icon: CreditCard, visible: payments },
+    { href: `/${lang}/app/reconciliation`, label: t.reconciliation, icon: Landmark, visible: payments },
+    { href: `/${lang}/app/audit`, label: t.audit, icon: ShieldCheck, visible: audit },
+  ].filter((item) => Boolean(item.visible));
+
   return (
     <div
       className="min-h-screen bg-[#F6F9FC] text-[#102A43]"
@@ -164,160 +199,47 @@ function Shell({
             />
           </button>
           <LanguageSwitcher currentLang={lang} variant="header" />
-          <Link
-            href={`/${lang}`}
-            aria-label="Exit"
-            className="rounded-xl border border-[#E2E8F0] p-2"
-          >
-            <LogOut className="h-4 w-4" />
-          </Link>
+          <SignOutButton lang={lang} variant="customer" />
         </div>
       </header>
+
+      {/* Mobile Horizontal Navigation Bar */}
+      <nav
+        aria-label="Mobile Navigation"
+        className="flex md:hidden items-center gap-2 overflow-x-auto border-b border-[#E2E8F0] bg-white px-3 py-2.5 text-xs font-semibold whitespace-nowrap shadow-sm"
+      >
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-1.5 text-xs font-bold text-[#102A43] hover:bg-[#F1F5F9] shrink-0"
+            >
+              <Icon className="h-3.5 w-3.5 text-[#0E9F8E]" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
       <div className="flex">
+        {/* Desktop Sidebar Navigation */}
         <aside className="hidden min-h-[calc(100vh-4rem)] w-64 border-e border-[#E2E8F0] bg-white p-4 md:block">
           <nav className="space-y-1">
-            <Link
-              href={`/${lang}/app/dashboard`}
-              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-            >
-              <Home className="h-4 w-4 text-[#0E9F8E]" />
-              {t.dashboard}
-            </Link>
-            {accounting ? (
-              <>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              return (
                 <Link
-                  href={`/${lang}/app/accounting`}
+                  key={item.href}
+                  href={item.href}
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
                 >
-                  <FileSpreadsheet className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.accounting}
+                  <Icon className="h-4 w-4 text-[#0E9F8E]" />
+                  {item.label}
                 </Link>
-                <Link
-                  href={`/${lang}/app/accounting/allocations`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-                >
-                  <Scale className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.allocations}
-                </Link>
-              </>
-            ) : null}
-            {utilities ? (
-              <Link
-                href={`/${lang}/app/meters`}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-              >
-                <Gauge className="h-4 w-4 text-[#0E9F8E]" />
-                {t.utilities}
-              </Link>
-            ) : null}
-            {maintenance ? (
-              <>
-                <Link
-                  href={`/${lang}/app/assets`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-                >
-                  <Boxes className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.assets}
-                </Link>
-                <Link
-                  href={`/${lang}/app/maintenance`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-                >
-                  <Wrench className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.maintenance}
-                </Link>
-              </>
-            ) : null}
-            {procurement ? (
-              <Link
-                href={`/${lang}/app/vendors`}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-              >
-                <BriefcaseBusiness className="h-4 w-4 text-[#0E9F8E]" />
-                {t.procurement}
-              </Link>
-            ) : null}
-            {governance ? (
-              <>
-                <Link
-                  href={`/${lang}/app/governance`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-                >
-                  <Gavel className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.governance}
-                </Link>
-                <Link
-                  href={`/${lang}/app/meetings`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-                >
-                  <UsersRound className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.meetings}
-                </Link>
-              </>
-            ) : null}
-            {communications ? (
-              <>
-                <Link href={`/${lang}/app/communications`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]">
-                  <Megaphone className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.communications}
-                </Link>
-                <Link href={`/${lang}/app/notifications`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]">
-                  <Bell className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.notifications}
-                </Link>
-              </>
-            ) : null}
-            {documents ? (
-              <Link href={`/${lang}/app/documents`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]">
-                <FileText className="h-4 w-4 text-[#0E9F8E]" />
-                {t.documents}
-              </Link>
-            ) : null}
-            {occupancy ? (
-              <>
-                <Link href={`/${lang}/app/occupancy`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]">
-                  <UsersRound className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.occupancy}
-                </Link>
-                <Link href={`/${lang}/app/ownership`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]">
-                  <Landmark className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.ownership}
-                </Link>
-              </>
-            ) : null}
-            {security ? (
-              <Link href={`/${lang}/app/security-access`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]">
-                <KeyRound className="h-4 w-4 text-[#0E9F8E]" />
-                {t.security}
-              </Link>
-            ) : null}
-            {billing ? (
-              <Link
-                href={`/${lang}/app/billing`}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-              >
-                <ReceiptText className="h-4 w-4 text-[#0E9F8E]" />
-                {t.billing}
-              </Link>
-            ) : null}
-            {payments ? (
-              <>
-                <Link
-                  href={`/${lang}/app/payments`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-                >
-                  <CreditCard className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.payments}
-                </Link>
-                <Link
-                  href={`/${lang}/app/reconciliation`}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
-                >
-                  <Landmark className="h-4 w-4 text-[#0E9F8E]" />
-                  {t.reconciliation}
-                </Link>
-              </>
-            ) : null}
+              );
+            })}
           </nav>
           <div className="mt-6 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs text-[#0A6E62]">
             <div className="flex items-center gap-2 font-bold">
@@ -331,11 +253,16 @@ function Shell({
             ) : null}
           </div>
         </aside>
-        <main className="min-w-0 flex-1 p-4 sm:p-8">{children}</main>
+
+        {/* Main Content protected by CustomerRouteGuard */}
+        <main className="min-w-0 flex-1 p-4 sm:p-8">
+          <CustomerRouteGuard lang={lang}>{children}</CustomerRouteGuard>
+        </main>
       </div>
     </div>
   );
 }
+
 export function CustomerAppShell({
   children,
   lang,
