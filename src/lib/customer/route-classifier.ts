@@ -24,6 +24,16 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     permissions: ['finance.allocations.read'],
   },
   {
+    pathPrefix: '/app/accounting/reports',
+    permissions: ['finance.reports.read'],
+    modules: ['accounting'],
+  },
+  {
+    pathPrefix: '/app/accounting/month-close',
+    permissions: ['finance.periods.read'],
+    modules: ['accounting'],
+  },
+  {
     pathPrefix: '/app/accounting',
     permissions: ['finance.ledger.read'],
     modules: ['accounting'],

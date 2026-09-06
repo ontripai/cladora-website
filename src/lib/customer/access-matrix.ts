@@ -13,7 +13,6 @@
 export const EXPLICITLY_UNAVAILABLE_ROUTES = [
   '/app/portfolio',
   '/app/settings',
-  '/app/accounting/month-close',
   '/app/migration/shadow-ledger',
 ] as const;
 
@@ -66,6 +65,9 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_view_operations',
       'can_view_financials',
       'can_view_audit',
+      'can_view_financial_reports',
+      'can_view_close_readiness',
+      'can_close_period',
     ],
     forbiddenCapabilities: [
       'can_view_my_residence',
@@ -77,6 +79,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/dashboard',
       '/app/accounting',
       '/app/accounting/allocations',
+      '/app/accounting/reports',
+      '/app/accounting/month-close',
       '/app/meters',
       '/app/assets',
       '/app/maintenance',
@@ -128,6 +132,9 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_view_operations',
       'can_view_financials',
       'can_view_audit',
+      'can_view_financial_reports',
+      'can_view_close_readiness',
+      'can_close_period',
     ],
     forbiddenCapabilities: [
       'can_view_my_residence',
@@ -139,6 +146,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/dashboard',
       '/app/accounting',
       '/app/accounting/allocations',
+      '/app/accounting/reports',
+      '/app/accounting/month-close',
       '/app/meters',
       '/app/assets',
       '/app/maintenance',
@@ -194,6 +203,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_view_governance',
       'can_view_financial_summary',
       'can_view_audit',
+      'can_view_financial_reports',
+      'can_view_close_readiness',
       'is_read_only',
     ],
     forbiddenCapabilities: [
@@ -202,6 +213,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_view_my_consumption',
       'can_view_credentials',
       'can_view_access_logs',
+      'can_close_period',
     ],
     forbiddenData: [
       'security_credentials',
@@ -221,6 +233,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/notifications',
       '/app/accounting',
       '/app/accounting/allocations',
+      '/app/accounting/reports',
+      '/app/accounting/month-close',
       '/app/billing',
       '/app/invoices',
       '/app/receivables',
@@ -264,6 +278,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedCapabilities: [
       'can_view_financial_controls',
       'can_view_audit',
+      'can_view_financial_reports',
+      'can_view_close_readiness',
       'is_read_only',
     ],
     forbiddenCapabilities: [
@@ -271,6 +287,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_mutate_financials',
       'can_approve_requests',
       'can_register_items',
+      'can_close_period',
     ],
     forbiddenData: [
       'resident_directory',
@@ -281,6 +298,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/dashboard',
       '/app/accounting',
       '/app/accounting/allocations',
+      '/app/accounting/reports',
+      '/app/accounting/month-close',
       '/app/billing',
       '/app/invoices',
       '/app/receivables',
@@ -346,6 +365,9 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_view_credentials',
       'can_manage_work_orders',
       'can_view_financial_controls',
+      'can_view_financial_reports',
+      'can_view_close_readiness',
+      'can_close_period',
     ],
     forbiddenData: [
       'other_units_private_info',
@@ -381,6 +403,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/leases',
       '/app/accounting',
       '/app/accounting/allocations',
+      '/app/accounting/reports',
+      '/app/accounting/month-close',
       '/app/reconciliation',
       '/app/assets',
       '/app/maintenance',
@@ -427,6 +451,9 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       'can_view_access_logs',
       'can_view_credentials',
       'can_view_governance_votes',
+      'can_view_financial_reports',
+      'can_view_close_readiness',
+      'can_close_period',
     ],
     forbiddenData: [
       'owner_equity_capital',
@@ -464,6 +491,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/leases',
       '/app/accounting',
       '/app/accounting/allocations',
+      '/app/accounting/reports',
+      '/app/accounting/month-close',
       '/app/reconciliation',
       '/app/assets',
       '/app/maintenance',

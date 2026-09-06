@@ -30,12 +30,13 @@ const {
   dashboardRpcResponseSchema,
 } = await import('../src/lib/customer/dashboard-schema.ts');
 
-// All 37 customer portal routes
-const ALL_37_CUSTOMER_ROUTES = [
+// All 38 customer portal routes
+const ALL_38_CUSTOMER_ROUTES = [
   '/app/access-logs',
   '/app/accounting',
   '/app/accounting/allocations',
   '/app/accounting/month-close',
+  '/app/accounting/reports',
   '/app/assets',
   '/app/audit',
   '/app/billing',
@@ -77,7 +78,8 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/access-logs': true,
     '/app/accounting': true,
     '/app/accounting/allocations': true,
-    '/app/accounting/month-close': false,
+    '/app/accounting/month-close': true,
+    '/app/accounting/reports': true,
     '/app/assets': true,
     '/app/audit': true,
     '/app/billing': true,
@@ -116,7 +118,8 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/access-logs': true,
     '/app/accounting': true,
     '/app/accounting/allocations': true,
-    '/app/accounting/month-close': false,
+    '/app/accounting/month-close': true,
+    '/app/accounting/reports': true,
     '/app/assets': true,
     '/app/audit': true,
     '/app/billing': true,
@@ -155,7 +158,8 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/access-logs': false,
     '/app/accounting': true,
     '/app/accounting/allocations': true, // ALLOWED per matrix contract
-    '/app/accounting/month-close': false,
+    '/app/accounting/month-close': true,
+    '/app/accounting/reports': true,
     '/app/assets': false,
     '/app/audit': true,
     '/app/billing': true,
@@ -194,7 +198,8 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/access-logs': false,
     '/app/accounting': true,
     '/app/accounting/allocations': true,
-    '/app/accounting/month-close': false,
+    '/app/accounting/month-close': true,
+    '/app/accounting/reports': true,
     '/app/assets': false,
     '/app/audit': true,
     '/app/billing': true,
@@ -234,6 +239,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/accounting': false,
     '/app/accounting/allocations': false,
     '/app/accounting/month-close': false,
+    '/app/accounting/reports': false,
     '/app/assets': false,
     '/app/audit': false,
     '/app/billing': false, // BLOCKED per matrix contract
@@ -273,6 +279,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/accounting': false,
     '/app/accounting/allocations': false,
     '/app/accounting/month-close': false,
+    '/app/accounting/reports': false,
     '/app/assets': false,
     '/app/audit': false,
     '/app/billing': false, // BLOCKED per matrix contract
@@ -346,16 +353,16 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
 }
 
 // -----------------------------------------------------------------------------
-// Suite 2: Independent 6 x 37 Expected Matrix Verification
+// Suite 2: Independent 6 x 38 Expected Matrix Verification
 // -----------------------------------------------------------------------------
 {
-  console.log('\n[Suite 2] Independent 6 x 37 Expected Matrix Verification');
+  console.log('\n[Suite 2] Independent 6 x 38 Expected Matrix Verification');
 
-  assert.equal(ALL_37_CUSTOMER_ROUTES.length, 37, 'Must evaluate exactly 37 customer routes');
+  assert.equal(ALL_38_CUSTOMER_ROUTES.length, 38, 'Must evaluate exactly 38 customer routes');
 
   let evaluatedCells = 0;
   for (const role of CANONICAL_ROLES) {
-    for (const route of ALL_37_CUSTOMER_ROUTES) {
+    for (const route of ALL_38_CUSTOMER_ROUTES) {
       const expectedAllowed = EXPECTED_ROUTE_ACCESS_MATRIX[role][route];
       assert.notEqual(
         expectedAllowed,
@@ -373,7 +380,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     }
   }
 
-  assert.equal(evaluatedCells, 6 * 37, 'Must evaluate exactly 222 matrix cells');
+  assert.equal(evaluatedCells, 6 * 38, 'Must evaluate exactly 228 matrix cells');
 
   // Explicit contract checks
   // 1. Property manager blocked from governance and meetings
@@ -405,18 +412,18 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
   assert.ok(PRE_CONTEXT_ALLOWED_ROUTES.includes('/app/onboarding'));
 
   // 6. Unknown role fails closed on ALL routes
-  for (const route of ALL_37_CUSTOMER_ROUTES) {
+  for (const route of ALL_38_CUSTOMER_ROUTES) {
     assert.equal(isRouteAllowedForPersona('contractor', route), false, `Unknown role must fail closed on ${route}`);
     assert.equal(isRouteAllowedForPersona(null, route), false, `Null role must fail closed on ${route}`);
   }
 
-  console.log(`  ✓ All ${evaluatedCells} (6x37) route cells match independent expected contract`);
+  console.log(`  ✓ All ${evaluatedCells} (6x38) route cells match independent expected contract`);
   console.log('  ✓ Property Manager governance/meetings blocked');
   console.log('  ✓ President allocations/payments/reconciliation allowed');
   console.log('  ✓ Owner ownership allowed; billing/receivables/meters blocked');
   console.log('  ✓ Tenant Resident billing/receivables blocked; invoices/payments/meters allowed');
   console.log('  ✓ Pre-Context /app/onboarding policy validated');
-  console.log('  ✓ Unknown role rejected across all 37 routes');
+  console.log('  ✓ Unknown role rejected across all 38 routes');
 }
 
 // -----------------------------------------------------------------------------
