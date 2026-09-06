@@ -186,7 +186,7 @@ set local role authenticated;
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal1"}', true);
 select throws_like(
   $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001') $$,
-  '%aal2_required%',
+  '%mfa_required%',
   'AAL1 fails close readiness check'
 );
 
@@ -208,7 +208,7 @@ select throws_like(
 -- 6. Close Readiness Inspection with Draft Blocker
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
 select ok(
-  (finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001')->>'is_ready')::boolean = false,
+  (finance.get_close_readiness('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001')->>'can_close')::boolean = false,
   'Period 1 is not ready while draft journal exists'
 );
 select ok(
@@ -233,14 +233,14 @@ select ok(
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000005","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
   $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000005', '23c00000-0000-0000-0000-000000000001') $$,
-  '%finance_periods_permission_required%',
+  '%periods_role_denied%',
   'Owner cannot inspect period close readiness'
 );
 
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000006","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
   $$ select finance.get_close_readiness('23400000-0000-0000-0000-000000000006', '23c00000-0000-0000-0000-000000000001') $$,
-  '%finance_periods_permission_required%',
+  '%periods_role_denied%',
   'Resident cannot inspect period close readiness'
 );
 
@@ -249,7 +249,7 @@ select throws_like(
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
   $$ select finance.close_accounting_period('23400000-0000-0000-0000-000000000001', '23c00000-0000-0000-0000-000000000001') $$,
-  '%period_has_draft_journals%',
+  '%cannot_close_period_with_draft_journals%',
   'Closing period with draft journals fails'
 );
 
@@ -272,14 +272,14 @@ select throws_like(
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000003","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
   $$ select finance.close_accounting_period('23400000-0000-0000-0000-000000000003', '23c00000-0000-0000-0000-000000000001') $$,
-  '%finance_close_permission_required%',
+  '%period_close_forbidden_for_role%',
   'President cannot execute close period mutation'
 );
 
 select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-000000000004","role":"authenticated","aal":"aal2"}', true);
 select throws_like(
   $$ select finance.close_accounting_period('23400000-0000-0000-0000-000000000004', '23c00000-0000-0000-0000-000000000001') $$,
-  '%finance_close_permission_required%',
+  '%period_close_forbidden_for_role%',
   'Censor cannot execute close period mutation'
 );
 
@@ -291,6 +291,7 @@ select ok(
 );
 
 -- Verify immutable closed state
+reset role;
 select ok(
   (select status = 'closed' and closed_by = '23000000-0000-0000-0000-000000000001'::uuid and closed_at is not null
    from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000001'),
@@ -299,7 +300,7 @@ select ok(
 
 -- Verify snapshot stored
 select ok(
-  (select (snapshot_json->'trial_balance'->>'balanced')::boolean
+  (select (snapshot_json->'summary'->>'is_balanced')::boolean
    from finance.accounting_periods where id = '23c00000-0000-0000-0000-000000000001'),
   'Period 1 has valid balanced snapshot stored'
 );
@@ -311,6 +312,7 @@ select ok(
      and entity_id = '23c00000-0000-0000-0000-000000000001'::uuid),
   'Audit event recorded for period close'
 );
+set local role authenticated;
 
 -- Conflict / Idempotency check: Closing already closed period fails
 select throws_like(
@@ -328,7 +330,7 @@ select ok(
     '2026-01-01',
     '2026-01-31',
     'RON'
-  )->'summary'->>'balanced')::boolean = true,
+  )->>'is_balanced')::boolean = true,
   'RON Trial Balance is balanced'
 );
 
@@ -339,7 +341,7 @@ select ok(
     '2026-01-01',
     '2026-01-31',
     'RON'
-  )->'summary'->>'total_debit')::numeric = 600,
+  )->'totals'->>'total_debit')::numeric = 600,
   'RON Trial Balance total debit is 600'
 );
 
@@ -351,7 +353,7 @@ select ok(
     '2026-01-01',
     '2026-01-31',
     'EUR'
-  )->'summary'->>'total_debit')::numeric = 50,
+  )->'totals'->>'total_debit')::numeric = 50,
   'EUR Trial Balance isolates EUR currency only'
 );
 
@@ -359,33 +361,33 @@ select ok(
 select ok(
   (finance.get_customer_financial_report(
     '23400000-0000-0000-0000-000000000001',
-    'profit_loss',
+    'profit_and_loss',
     '2026-01-01',
     '2026-01-31',
     'RON'
-  )->'summary'->>'total_revenues')::numeric = 500,
+  )->'totals'->>'total_income')::numeric = 500,
   'RON P&L shows 500 revenue'
 );
 
 select ok(
   (finance.get_customer_financial_report(
     '23400000-0000-0000-0000-000000000001',
-    'profit_loss',
+    'profit_and_loss',
     '2026-01-01',
     '2026-01-31',
     'RON'
-  )->'summary'->>'total_expenses')::numeric = 100,
+  )->'totals'->>'total_expense')::numeric = 100,
   'RON P&L shows 100 expense'
 );
 
 select ok(
   (finance.get_customer_financial_report(
     '23400000-0000-0000-0000-000000000001',
-    'profit_loss',
+    'profit_and_loss',
     '2026-01-01',
     '2026-01-31',
     'RON'
-  )->'summary'->>'net_surplus_deficit')::numeric = 400,
+  )->'totals'->>'net_profit_loss')::numeric = 400,
   'RON P&L calculates net surplus of 400'
 );
 
@@ -397,7 +399,7 @@ select ok(
     '2026-01-01',
     '2026-01-31',
     'RON'
-  )->'summary'->>'total_assets')::numeric = 500,
+  )->'totals'->>'total_assets')::numeric = 500,
   'RON Balance Sheet total assets equals 500'
 );
 
@@ -418,7 +420,7 @@ select set_config('request.jwt.claims', '{"sub":"23000000-0000-0000-0000-0000000
 select ok(
   finance.get_customer_financial_report(
     '23400000-0000-0000-0000-000000000004',
-    'profit_loss',
+    'profit_and_loss',
     '2026-01-01',
     '2026-01-31',
     'RON'
@@ -436,7 +438,7 @@ select throws_like(
     '2026-01-31',
     'RON'
   ) $$,
-  '%finance_reports_permission_required%',
+  '%reports_role_denied%',
   'Owner cannot generate financial reports'
 );
 
@@ -449,7 +451,7 @@ select throws_like(
     '2026-01-31',
     'RON'
   ) $$,
-  '%finance_reports_permission_required%',
+  '%reports_role_denied%',
   'Resident cannot generate financial reports'
 );
 
@@ -481,6 +483,7 @@ select throws_like(
 );
 
 -- 9. Role Permissions Matrix Direct Asserts
+reset role;
 select ok(exists(
   select 1 from identity.role_permissions rp
   join identity.roles r on r.id = rp.role_id

@@ -609,6 +609,17 @@ begin
     raise exception 'period_already_closed' using errcode = '40001';
   end if;
 
+  -- Preceding open periods check
+  if exists (
+    select 1 from finance.accounting_periods p
+    where p.tenant_id = v_context.tenant_id
+      and (v_period.property_id is null or p.property_id is null or p.property_id = v_period.property_id)
+      and p.ends_on < v_period.starts_on
+      and p.status = 'open'
+  ) then
+    raise exception 'preceding_periods_unclosed' using errcode = '22023';
+  end if;
+
   -- 8. Block if draft journals exist in period
   select count(*) into v_draft_count
   from finance.journals j
