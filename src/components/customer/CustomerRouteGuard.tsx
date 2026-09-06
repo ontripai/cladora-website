@@ -15,7 +15,11 @@ import {
   type RouteRequirement,
   type RouteStatus,
 } from '@/lib/customer/route-classifier';
-import { isCanonicalRole, isRouteAllowedForPersona } from '@/lib/customer/access-matrix';
+import {
+  isCanonicalRole,
+  isRouteAllowedForPersona,
+  isPreContextRoute,
+} from '@/lib/customer/access-matrix';
 
 export {
   EXPLICITLY_ALLOWED_ROUTES,
@@ -25,6 +29,14 @@ export {
   type RouteRequirement,
   type RouteStatus,
 };
+
+/**
+ * Authoritative fail-closed unavailable routes (defined in access-matrix):
+ * - /app/portfolio
+ * - /app/settings
+ * - /app/accounting/month-close
+ * - /app/migration/shadow-ledger
+ */
 
 
 const copy = {
@@ -165,8 +177,8 @@ export function CustomerRouteGuard({
     );
   }
 
-  // 4. Onboarding flow exception
-  if (appPath === '/app/onboarding') {
+  // 4. Pre-context route policy check (e.g. onboarding before context assignment)
+  if (isPreContextRoute(appPath)) {
     return <>{children}</>;
   }
 

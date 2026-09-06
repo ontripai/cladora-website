@@ -1,5 +1,5 @@
 begin;
-select plan(55);
+select plan(61);
 
 select ok(to_regprocedure('platform.get_customer_dashboard(uuid)') is not null, 'platform.get_customer_dashboard RPC exists');
 select ok(has_function_privilege('authenticated', 'platform.get_customer_dashboard(uuid)', 'EXECUTE'), 'authenticated may execute dashboard RPC');
@@ -32,17 +32,20 @@ begin
     ('21000000-0000-0000-0000-000000000013', 'tenant-expired-048@cladora.test'),
     ('21000000-0000-0000-0000-000000000014', 'owner-noparty-048@cladora.test'),
     ('21000000-0000-0000-0000-000000000020', 'tenant-b-admin-048@cladora.test'),
-    ('21000000-0000-0000-0000-000000000030', 'tenant-gamma-admin-048@cladora.test');
+    ('21000000-0000-0000-0000-000000000030', 'tenant-gamma-admin-048@cladora.test'),
+    ('21000000-0000-0000-0000-000000000040', 'tenant-delta-admin-048@cladora.test');
 
   -- 2. Tenants
   insert into platform.tenants (id, legal_name, registration_number, status) values
     ('21100000-0000-0000-0000-000000000001', 'Tenant Alpha', 'RO-ENG-048-A', 'active'),
     ('21100000-0000-0000-0000-000000000002', 'Tenant Beta', 'RO-ENG-048-B', 'active'),
-    ('21100000-0000-0000-0000-000000000003', 'Tenant Gamma', 'RO-ENG-048-G', 'active');
+    ('21100000-0000-0000-0000-000000000003', 'Tenant Gamma', 'RO-ENG-048-G', 'active'),
+    ('21100000-0000-0000-0000-000000000004', 'Tenant Delta', 'RO-ENG-048-D', 'active');
 
   -- 3. Workspaces
   insert into platform.customer_workspaces (id, tenant_id, workspace_type, lifecycle_status, commercial_owner, environment, version) values
     ('21800000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', 'ASSOCIATION', 'ACTIVE', 'Admin Alpha', 'PILOT', 1),
+    ('21800000-0000-0000-0000-000000000004', '21100000-0000-0000-0000-000000000001', 'ASSOCIATION', 'ARCHIVED', 'Admin Alpha Archived', 'PILOT', 1),
     ('21800000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', 'ASSOCIATION', 'ACTIVE', 'Admin Beta', 'PILOT', 1),
     ('21800000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000003', 'ASSOCIATION', 'SUSPENDED', 'Admin Gamma', 'PILOT', 1);
 
@@ -53,6 +56,8 @@ begin
     ('21800000-0000-0000-0000-000000000001', 'module.governance', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
     ('21800000-0000-0000-0000-000000000001', 'module.accounting', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
     ('21800000-0000-0000-0000-000000000001', 'module.utilities', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
+    -- Entitlement on archived workspace: should never be loaded
+    ('21800000-0000-0000-0000-000000000004', 'module.archived_only', 'boolean', true, statement_timestamp() - interval '1 day', null, null, null),
     -- Disabled: boolean_value = false
     ('21800000-0000-0000-0000-000000000001', 'module.disabled_mod', 'boolean', false, statement_timestamp() - interval '1 day', null, null, null),
     -- Valid Override TRUE: boolean_value = false, override = true
@@ -76,7 +81,8 @@ begin
     ('21200000-0000-0000-0000-000000000006', '21100000-0000-0000-0000-000000000001', 'tenant_resident', 'Tenant Alpha'),
     ('21200000-0000-0000-0000-000000000007', '21100000-0000-0000-0000-000000000001', 'contractor', 'Contractor Unknown'),
     ('21200000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'association_admin', 'Admin Beta'),
-    ('21200000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'association_admin', 'Admin Gamma');
+    ('21200000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'association_admin', 'Admin Gamma'),
+    ('21200000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', 'association_admin', 'Admin Delta');
 
   -- 6. Permissions and Role Assignments
   select id into perm_assets from identity.permissions where code = 'maintenance.assets.read';
@@ -138,7 +144,8 @@ begin
     ('21300000-0000-0000-0000-000000000013', '21100000-0000-0000-0000-000000000001', '21000000-0000-0000-0000-000000000013', '21200000-0000-0000-0000-000000000006', 'active', statement_timestamp() - interval '1 day', null),
     ('21300000-0000-0000-0000-000000000014', '21100000-0000-0000-0000-000000000001', '21000000-0000-0000-0000-000000000014', '21200000-0000-0000-0000-000000000005', 'active', statement_timestamp() - interval '1 day', null),
     ('21300000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', '21000000-0000-0000-0000-000000000020', '21200000-0000-0000-0000-000000000020', 'active', statement_timestamp() - interval '1 day', null),
-    ('21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', '21000000-0000-0000-0000-000000000030', '21200000-0000-0000-0000-000000000030', 'active', statement_timestamp() - interval '1 day', null);
+    ('21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', '21000000-0000-0000-0000-000000000030', '21200000-0000-0000-0000-000000000030', 'active', statement_timestamp() - interval '1 day', null),
+    ('21300000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', '21000000-0000-0000-0000-000000000040', '21200000-0000-0000-0000-000000000040', 'active', statement_timestamp() - interval '1 day', null);
 
   -- 8. Portfolio Structure: 2 Properties, 2 Buildings, 3 Units
   insert into portfolio.properties (id, tenant_id, type, name, status) values
@@ -248,7 +255,9 @@ begin
     -- Beta Admin Context
     ('21400000-0000-0000-0000-000000000020', '21300000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
     -- Gamma Admin Context (Suspended Workspace)
-    ('21400000-0000-0000-0000-000000000030', '21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null);
+    ('21400000-0000-0000-0000-000000000030', '21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    -- Delta Admin Context (No Workspace)
+    ('21400000-0000-0000-0000-000000000040', '21300000-0000-0000-0000-000000000040', '21100000-0000-0000-0000-000000000004', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null);
 end $$;
 
 set local role authenticated;
@@ -342,6 +351,10 @@ select ok(
   (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000003')->'capabilities') ? 'is_read_only',
   'president receives is_read_only capability'
 );
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000003')->'kpis') ? 'pending_approvals'),
+  'president does not receive unauthoritative pending_approvals kpi'
+);
 
 -- Set JWT for censor
 select set_config('request.jwt.claims', '{"sub":"21000000-0000-0000-0000-000000000004","role":"authenticated","aal":"aal2"}', true);
@@ -362,6 +375,10 @@ select ok(
 select ok(
   not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000004')->'capabilities') ? 'can_manage_work_orders'),
   'censor has no mutating work order capability'
+);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000004')->'kpis') ? 'open_work_orders'),
+  'censor does not receive open_work_orders kpi without maintenance permission'
 );
 
 -- Set JWT for Owner 1 (Unit UA1)
@@ -425,6 +442,10 @@ select ok(
   not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000007')->'sections') ? 'audit'),
   'tenant does not receive audit section'
 );
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000007')->'kpis') ? 'open_work_orders'),
+  'tenant resident does not receive community-wide open_work_orders kpi'
+);
 
 -- Tenant rejections
 select throws_like(
@@ -464,6 +485,14 @@ select ok(
 select ok(
   not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000001')->'entitlements') ? 'module.other_workspace'),
   'entitlement from another workspace is not applied'
+);
+select ok(
+  (platform.get_customer_dashboard('21400000-0000-0000-0000-000000000001')->>'workspace_id')::uuid = '21800000-0000-0000-0000-000000000001'::uuid,
+  'active workspace selected when tenant also has archived workspace'
+);
+select ok(
+  not ((platform.get_customer_dashboard('21400000-0000-0000-0000-000000000001')->'entitlements') ? 'module.archived_only'),
+  'entitlements read only from active workspace, not archived'
 );
 
 -- 9. Tenant Isolation & Cross-Tenant Rejection
@@ -545,4 +574,12 @@ select throws_like(
   'inactive workspace is denied fail-closed'
 );
 
-commit;
+-- Tenant without any workspace rejection
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-0000-0000-000000000040","role":"authenticated","aal":"aal2"}', true);
+select throws_like(
+  $$select platform.get_customer_dashboard('21400000-0000-0000-0000-000000000040')$$,
+  '%workspace_inactive%',
+  'tenant without any workspace is denied fail-closed'
+);
+
+rollback;

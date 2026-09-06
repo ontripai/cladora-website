@@ -67,12 +67,30 @@ const copy = {
       work: 'Lucrări deschise',
       notifications: 'Notificări necitite',
       receivables: 'Sold restant',
-      pendingApprovals: 'Aprobări în așteptare',
       financialRecords: 'Înregistrări financiare',
       myUnits: 'Unitățile mele',
       myOpenRequests: 'Cereri active de service',
       myOpenTickets: 'Tichete deschise',
       outstandingCharges: 'Cote & cheltuieli restante',
+    },
+    kpiSubtitles: {
+      activeMaintenance: 'Lucrări active de mentenanță',
+      totalCommunityDues: 'Total creanțe asociație',
+      unreadNotices: 'Înștiințări necitite',
+      governanceOversight: 'Supraveghere guvernanță',
+      associationReceivables: 'Creanțe asociație',
+      inProgressJobs: 'Lucrări în derulare',
+      boardDispatches: 'Comunicări comitet',
+      ledgerAuditCorpus: 'Registru general pentru audit',
+      reconciledBalance: 'Sold reconciliat',
+      auditAlerts: 'Alerte de audit',
+      titleRegisteredUnits: 'Unități înregistrate cu titlu',
+      maintenanceReserveDues: 'Întreținere & fond rulment',
+      technicalTickets: 'Tichete tehnice',
+      buildingNotices: 'Înștiințări imobil',
+      assignedUtilitiesMaintenance: 'Utilități & cotă întreținere',
+      activeMaintenanceIssues: 'Probleme tehnice active',
+      residentialUpdates: 'Actualizări rezidențiale',
     },
     sections: {
       operations: 'Operațiuni & Patrimoniu',
@@ -138,12 +156,30 @@ const copy = {
       work: 'Open work orders',
       notifications: 'Unread notifications',
       receivables: 'Outstanding balance',
-      pendingApprovals: 'Pending approvals',
       financialRecords: 'Financial records',
       myUnits: 'My units',
       myOpenRequests: 'My service requests',
       myOpenTickets: 'Open repair tickets',
       outstandingCharges: 'Outstanding charges',
+    },
+    kpiSubtitles: {
+      activeMaintenance: 'Active maintenance',
+      totalCommunityDues: 'Total community dues',
+      unreadNotices: 'Unread notices',
+      governanceOversight: 'Governance oversight',
+      associationReceivables: 'Association receivables',
+      inProgressJobs: 'In-progress jobs',
+      boardDispatches: 'Board dispatches',
+      ledgerAuditCorpus: 'Ledger audit corpus',
+      reconciledBalance: 'Reconciled balance',
+      auditAlerts: 'Audit alerts',
+      titleRegisteredUnits: 'Title-registered units',
+      maintenanceReserveDues: 'Maintenance & reserve dues',
+      technicalTickets: 'Technical tickets',
+      buildingNotices: 'Building notices',
+      assignedUtilitiesMaintenance: 'Assigned utilities & maintenance',
+      activeMaintenanceIssues: 'Active maintenance issues',
+      residentialUpdates: 'Residential updates',
     },
     sections: {
       operations: 'Operations & Assets',
@@ -209,12 +245,30 @@ const copy = {
       work: 'کارهای باز نگهداری',
       notifications: 'اعلان‌های خوانده‌نشده',
       receivables: 'مانده کل مطالبات',
-      pendingApprovals: 'موارد نیازمند بررسی / مصوبه',
       financialRecords: 'اسناد مالی ثبت‌شده',
       myUnits: 'واحدهای تحت مالکیت من',
       myOpenRequests: 'درخواست‌های باز من',
       myOpenTickets: 'تیکت‌های باز تعمیرات',
       outstandingCharges: 'مانده بدهی جاری واحد',
+    },
+    kpiSubtitles: {
+      activeMaintenance: 'کارهای نگهداری فعال',
+      totalCommunityDues: 'کل مطالبات مجتمع',
+      unreadNotices: 'اعلان‌های جدید',
+      governanceOversight: 'نظارت بر تصمیمات و مصوبات',
+      associationReceivables: 'مطالبات دریافتنی انجمن',
+      inProgressJobs: 'کارهای در دست اقدام',
+      boardDispatches: 'مکاتبات هیئت‌مدیره',
+      ledgerAuditCorpus: 'مجموعه اسناد دفتر کل',
+      reconciledBalance: 'مانده تطبیق‌یافته حساب‌ها',
+      auditAlerts: 'هشدارهای ثبت بازرسی',
+      titleRegisteredUnits: 'واحدهای ثبت‌شده با سند',
+      maintenanceReserveDues: 'شارژ نگهداری و اندوخته',
+      technicalTickets: 'درخواست‌های فنی ثبت‌شده',
+      buildingNotices: 'اطلاعیه‌های ساختمان',
+      assignedUtilitiesMaintenance: 'سهم شارژ و قبوض تخصیصی',
+      activeMaintenanceIssues: 'موارد فعال تعمیراتی',
+      residentialUpdates: 'اطلاعیه‌های سکونت',
     },
     sections: {
       operations: 'عملیات و دارایی‌ها',
@@ -397,166 +451,249 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
   };
 
   const renderKpis = () => {
+    const cards: React.ReactNode[] = [];
+    const perms = dashboard.permissions ?? [];
+    const ents = dashboard.entitlements ?? [];
+
+    const hasMaintenance =
+      (perms.includes('maintenance.assets.read') || role === 'association_admin') &&
+      ents.includes('module.maintenance');
+    const hasFinancial =
+      (perms.includes('billing.receivables.read') ||
+        perms.includes('finance.ledger.read') ||
+        role === 'association_admin') &&
+      (ents.includes('module.billing') || ents.includes('module.accounting'));
+    const hasCommunications =
+      perms.includes('communications.feed.read') && ents.includes('module.communications');
+
     switch (role) {
       case 'association_admin':
       case 'property_manager':
-        return (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+        if (k.buildings !== undefined) {
+          cards.push(
+            <div key="buildings" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.buildings}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
                 {formatInt(k.buildings)}
               </div>
               <span className="text-[11px] text-[#52667A]">
-                {t.buildingsUnits(formatInt(k.buildings), formatInt(k.units))}
+                {t.buildingsUnits(formatInt(k.buildings), k.units !== undefined ? formatInt(k.units) : '-')}
               </span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.open_work_orders !== undefined && hasMaintenance) {
+          cards.push(
+            <div key="work" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.work}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#0E9F8E]">
                 {formatInt(k.open_work_orders)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Active maintenance</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.activeMaintenance}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.outstanding_amount !== undefined && hasFinancial) {
+          cards.push(
+            <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.receivables}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
                 {formatCurrency(k.outstanding_amount)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Total community dues</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.totalCommunityDues}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.unread_notifications !== undefined && hasCommunications) {
+          cards.push(
+            <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
                 {formatInt(k.unread_notifications)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Unread notices</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.unreadNotices}</span>
             </div>
-          </div>
-        );
+          );
+        }
+        break;
 
       case 'president':
-        return (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
-              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.pendingApprovals}</span>
-              <div className="mt-2 text-2xl font-bold font-display text-[#D97706]">
-                {formatInt(k.pending_approvals)}
+        if (k.buildings !== undefined) {
+          cards.push(
+            <div key="buildings" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+              <span className="text-xs font-semibold text-[#52667A]">{t.kpis.buildings}</span>
+              <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
+                {formatInt(k.buildings)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Governance oversight</span>
+              <span className="text-[11px] text-[#52667A]">
+                {t.buildingsUnits(formatInt(k.buildings), k.units !== undefined ? formatInt(k.units) : '-')}
+              </span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.outstanding_amount !== undefined && hasFinancial) {
+          cards.push(
+            <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.receivables}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
                 {formatCurrency(k.outstanding_amount)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Association receivables</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.associationReceivables}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.open_work_orders !== undefined && hasMaintenance) {
+          cards.push(
+            <div key="work" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.work}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#0E9F8E]">
                 {formatInt(k.open_work_orders)}
               </div>
-              <span className="text-[11px] text-[#52667A]">In-progress jobs</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.inProgressJobs}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.unread_notifications !== undefined && hasCommunications) {
+          cards.push(
+            <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
                 {formatInt(k.unread_notifications)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Board dispatches</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.boardDispatches}</span>
             </div>
-          </div>
-        );
+          );
+        }
+        break;
 
       case 'censor':
-        return (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
+        if (k.financial_records !== undefined && ents.includes('module.accounting')) {
+          cards.push(
+            <div key="financial_records" className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
               <span className="text-xs font-semibold text-amber-900">{t.kpis.financialRecords}</span>
               <div className="mt-2 text-2xl font-bold font-display text-amber-950">
                 {formatInt(k.financial_records)}
               </div>
-              <span className="text-[11px] text-amber-800">Ledger audit corpus</span>
+              <span className="text-[11px] text-amber-800">{t.kpiSubtitles.ledgerAuditCorpus}</span>
             </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
+          );
+        }
+        if (k.outstanding_amount !== undefined && ents.includes('module.accounting')) {
+          cards.push(
+            <div key="receivables" className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
               <span className="text-xs font-semibold text-amber-900">{t.kpis.receivables}</span>
               <div className="mt-2 text-2xl font-bold font-display text-amber-950">
                 {formatCurrency(k.outstanding_amount)}
               </div>
-              <span className="text-[11px] text-amber-800">Reconciled balance</span>
+              <span className="text-[11px] text-amber-800">{t.kpiSubtitles.reconciledBalance}</span>
             </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
+          );
+        }
+        if (k.unread_notifications !== undefined && hasCommunications) {
+          cards.push(
+            <div key="notifications" className="rounded-2xl border border-amber-200 bg-amber-50/40 p-5 shadow-sm">
               <span className="text-xs font-semibold text-amber-900">{t.kpis.notifications}</span>
               <div className="mt-2 text-2xl font-bold font-display text-amber-950">
                 {formatInt(k.unread_notifications)}
               </div>
-              <span className="text-[11px] text-amber-800">Audit alerts</span>
+              <span className="text-[11px] text-amber-800">{t.kpiSubtitles.auditAlerts}</span>
             </div>
-          </div>
-        );
+          );
+        }
+        break;
 
       case 'owner':
-        return (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+        if (k.my_units_count !== undefined) {
+          cards.push(
+            <div key="my_units" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myUnits}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
-                {formatInt(k.my_units_count ?? 0)}
+                {formatInt(k.my_units_count)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Title-registered units</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.titleRegisteredUnits}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.outstanding_amount !== undefined && hasFinancial) {
+          cards.push(
+            <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.outstandingCharges}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
                 {formatCurrency(k.outstanding_amount)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Maintenance & reserve dues</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.maintenanceReserveDues}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.my_open_requests !== undefined && hasMaintenance) {
+          cards.push(
+            <div key="my_requests" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myOpenRequests}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#0E9F8E]">
                 {formatInt(k.my_open_requests)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Technical tickets</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.technicalTickets}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.unread_notifications !== undefined && hasCommunications) {
+          cards.push(
+            <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
                 {formatInt(k.unread_notifications)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Building notices</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.buildingNotices}</span>
             </div>
-          </div>
-        );
+          );
+        }
+        break;
 
       case 'tenant_resident':
-        return (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+        if (k.outstanding_amount !== undefined && hasFinancial) {
+          cards.push(
+            <div key="receivables" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.outstandingCharges}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#102A43]">
                 {formatCurrency(k.outstanding_amount)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Assigned utilities & maintenance</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.assignedUtilitiesMaintenance}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.my_open_tickets !== undefined && hasMaintenance) {
+          cards.push(
+            <div key="my_tickets" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.myOpenTickets}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#9333EA]">
                 {formatInt(k.my_open_tickets)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Active maintenance issues</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.activeMaintenanceIssues}</span>
             </div>
-            <div className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
+          );
+        }
+        if (k.unread_notifications !== undefined && hasCommunications) {
+          cards.push(
+            <div key="notifications" className="rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm">
               <span className="text-xs font-semibold text-[#52667A]">{t.kpis.notifications}</span>
               <div className="mt-2 text-2xl font-bold font-display text-[#243B53]">
                 {formatInt(k.unread_notifications)}
               </div>
-              <span className="text-[11px] text-[#52667A]">Residential updates</span>
+              <span className="text-[11px] text-[#52667A]">{t.kpiSubtitles.residentialUpdates}</span>
             </div>
-          </div>
-        );
+          );
+        }
+        break;
     }
+
+    if (cards.length === 0) return null;
+
+    const gridCols =
+      role === 'censor' || role === 'tenant_resident'
+        ? 'sm:grid-cols-2 lg:grid-cols-3'
+        : 'sm:grid-cols-2 lg:grid-cols-4';
+
+    return <div className={`grid gap-4 ${gridCols}`}>{cards}</div>;
   };
 
   return (
@@ -664,7 +801,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#D97706]">
-                {formatInt(k.pending_approvals)} {t.kpis.pendingApprovals}
+                {t.sections.governance}
               </span>
               <Link
                 href={`/${lang}/app/governance`}
@@ -742,7 +879,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
             </div>
             <div className="mt-4 flex items-center justify-between border-t border-[#F1F5F9] pt-4">
               <span className="text-xs font-bold text-[#102A43]">
-                {formatInt(k.my_units_count ?? 0)} {t.kpis.myUnits}
+                {k.my_units_count !== undefined ? `${formatInt(k.my_units_count)} ${t.kpis.myUnits}` : t.sections.myUnits}
               </span>
               <Link
                 href={`/${lang}/app/documents`}

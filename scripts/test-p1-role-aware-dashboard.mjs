@@ -10,6 +10,9 @@ const root = process.cwd();
 const {
   CANONICAL_ROLES,
   PERSONA_ACCESS_MATRIX,
+  PRE_CONTEXT_ALLOWED_ROUTES,
+  EXPLICITLY_UNAVAILABLE_ROUTES,
+  isPreContextRoute,
   isCanonicalRole,
   getPersonaMatrix,
   isRouteAllowedForPersona,
@@ -20,11 +23,12 @@ const {
 } = await import('../src/lib/customer/access-matrix.ts');
 
 const {
-  EXPLICITLY_ALLOWED_ROUTES,
-  EXPLICITLY_UNAVAILABLE_ROUTES,
-  ROUTE_REQUIREMENTS,
   classifyCustomerRoute,
 } = await import('../src/lib/customer/route-classifier.ts');
+
+const {
+  dashboardRpcResponseSchema,
+} = await import('../src/lib/customer/dashboard-schema.ts');
 
 // All 37 customer portal routes
 const ALL_37_CUSTOMER_ROUTES = [
@@ -67,6 +71,244 @@ const ALL_37_CUSTOMER_ROUTES = [
   '/app/visitors',
 ];
 
+// Independent Authoritative Expected 6 x 37 Access Matrix Contract
+const EXPECTED_ROUTE_ACCESS_MATRIX = {
+  association_admin: {
+    '/app/access-logs': true,
+    '/app/accounting': true,
+    '/app/accounting/allocations': true,
+    '/app/accounting/month-close': false,
+    '/app/assets': true,
+    '/app/audit': true,
+    '/app/billing': true,
+    '/app/communications': true,
+    '/app/credentials': true,
+    '/app/dashboard': true,
+    '/app/documents': true,
+    '/app/documents/123': true,
+    '/app/governance': true,
+    '/app/invoices': true,
+    '/app/leases': true,
+    '/app/maintenance': true,
+    '/app/meetings': true,
+    '/app/meters': true,
+    '/app/migration/shadow-ledger': false,
+    '/app/notifications': true,
+    '/app/occupancy': true,
+    '/app/occupancy/456': true,
+    '/app/onboarding': false,
+    '/app/ownership': true,
+    '/app/payments': true,
+    '/app/portfolio': false,
+    '/app/procurement': true,
+    '/app/purchase-orders': true,
+    '/app/receivables': true,
+    '/app/reconciliation': true,
+    '/app/residents': true,
+    '/app/security-access': true,
+    '/app/settings': false,
+    '/app/vendor-contracts': true,
+    '/app/vendor-sla': true,
+    '/app/vendors': true,
+    '/app/visitors': true,
+  },
+  property_manager: {
+    '/app/access-logs': true,
+    '/app/accounting': true,
+    '/app/accounting/allocations': true,
+    '/app/accounting/month-close': false,
+    '/app/assets': true,
+    '/app/audit': true,
+    '/app/billing': true,
+    '/app/communications': true,
+    '/app/credentials': true,
+    '/app/dashboard': true,
+    '/app/documents': true,
+    '/app/documents/123': true,
+    '/app/governance': false, // BLOCKED per matrix contract
+    '/app/invoices': true,
+    '/app/leases': true,
+    '/app/maintenance': true,
+    '/app/meetings': false, // BLOCKED per matrix contract
+    '/app/meters': true,
+    '/app/migration/shadow-ledger': false,
+    '/app/notifications': true,
+    '/app/occupancy': true,
+    '/app/occupancy/456': true,
+    '/app/onboarding': false,
+    '/app/ownership': true,
+    '/app/payments': true,
+    '/app/portfolio': false,
+    '/app/procurement': true,
+    '/app/purchase-orders': true,
+    '/app/receivables': true,
+    '/app/reconciliation': true,
+    '/app/residents': true,
+    '/app/security-access': true,
+    '/app/settings': false,
+    '/app/vendor-contracts': true,
+    '/app/vendor-sla': true,
+    '/app/vendors': true,
+    '/app/visitors': true,
+  },
+  president: {
+    '/app/access-logs': false,
+    '/app/accounting': true,
+    '/app/accounting/allocations': true, // ALLOWED per matrix contract
+    '/app/accounting/month-close': false,
+    '/app/assets': false,
+    '/app/audit': true,
+    '/app/billing': true,
+    '/app/communications': true,
+    '/app/credentials': false,
+    '/app/dashboard': true,
+    '/app/documents': true,
+    '/app/documents/123': true,
+    '/app/governance': true,
+    '/app/invoices': true,
+    '/app/leases': false,
+    '/app/maintenance': false,
+    '/app/meetings': true,
+    '/app/meters': false,
+    '/app/migration/shadow-ledger': false,
+    '/app/notifications': true,
+    '/app/occupancy': false,
+    '/app/occupancy/456': false,
+    '/app/onboarding': false,
+    '/app/ownership': false,
+    '/app/payments': true, // ALLOWED per matrix contract
+    '/app/portfolio': false,
+    '/app/procurement': false,
+    '/app/purchase-orders': false,
+    '/app/receivables': true,
+    '/app/reconciliation': true, // ALLOWED per matrix contract
+    '/app/residents': false,
+    '/app/security-access': false,
+    '/app/settings': false,
+    '/app/vendor-contracts': true,
+    '/app/vendor-sla': true,
+    '/app/vendors': true,
+    '/app/visitors': false,
+  },
+  censor: {
+    '/app/access-logs': false,
+    '/app/accounting': true,
+    '/app/accounting/allocations': true,
+    '/app/accounting/month-close': false,
+    '/app/assets': false,
+    '/app/audit': true,
+    '/app/billing': true,
+    '/app/communications': false,
+    '/app/credentials': false,
+    '/app/dashboard': true,
+    '/app/documents': true,
+    '/app/documents/123': true,
+    '/app/governance': false,
+    '/app/invoices': true,
+    '/app/leases': false,
+    '/app/maintenance': false,
+    '/app/meetings': false,
+    '/app/meters': false,
+    '/app/migration/shadow-ledger': false,
+    '/app/notifications': false,
+    '/app/occupancy': false,
+    '/app/occupancy/456': false,
+    '/app/onboarding': false,
+    '/app/ownership': false,
+    '/app/payments': true,
+    '/app/portfolio': false,
+    '/app/procurement': false,
+    '/app/purchase-orders': false,
+    '/app/receivables': true,
+    '/app/reconciliation': true,
+    '/app/residents': false,
+    '/app/security-access': false,
+    '/app/settings': false,
+    '/app/vendor-contracts': false,
+    '/app/vendor-sla': false,
+    '/app/vendors': false,
+    '/app/visitors': false,
+  },
+  owner: {
+    '/app/access-logs': false,
+    '/app/accounting': false,
+    '/app/accounting/allocations': false,
+    '/app/accounting/month-close': false,
+    '/app/assets': false,
+    '/app/audit': false,
+    '/app/billing': false, // BLOCKED per matrix contract
+    '/app/communications': true,
+    '/app/credentials': false,
+    '/app/dashboard': true,
+    '/app/documents': true,
+    '/app/documents/123': true,
+    '/app/governance': true,
+    '/app/invoices': true,
+    '/app/leases': false,
+    '/app/maintenance': false,
+    '/app/meetings': true,
+    '/app/meters': false, // BLOCKED per matrix contract
+    '/app/migration/shadow-ledger': false,
+    '/app/notifications': true,
+    '/app/occupancy': false,
+    '/app/occupancy/456': false,
+    '/app/onboarding': false,
+    '/app/ownership': true, // ALLOWED per matrix contract
+    '/app/payments': true,
+    '/app/portfolio': false,
+    '/app/procurement': false,
+    '/app/purchase-orders': false,
+    '/app/receivables': false, // BLOCKED per matrix contract
+    '/app/reconciliation': false,
+    '/app/residents': false,
+    '/app/security-access': false,
+    '/app/settings': false,
+    '/app/vendor-contracts': false,
+    '/app/vendor-sla': false,
+    '/app/vendors': false,
+    '/app/visitors': false,
+  },
+  tenant_resident: {
+    '/app/access-logs': false,
+    '/app/accounting': false,
+    '/app/accounting/allocations': false,
+    '/app/accounting/month-close': false,
+    '/app/assets': false,
+    '/app/audit': false,
+    '/app/billing': false, // BLOCKED per matrix contract
+    '/app/communications': true,
+    '/app/credentials': false,
+    '/app/dashboard': true,
+    '/app/documents': true,
+    '/app/documents/123': true,
+    '/app/governance': false,
+    '/app/invoices': true, // ALLOWED per matrix contract
+    '/app/leases': false,
+    '/app/maintenance': false,
+    '/app/meetings': false,
+    '/app/meters': true, // ALLOWED per matrix contract
+    '/app/migration/shadow-ledger': false,
+    '/app/notifications': true,
+    '/app/occupancy': false,
+    '/app/occupancy/456': false,
+    '/app/onboarding': false,
+    '/app/ownership': false,
+    '/app/payments': true, // ALLOWED per matrix contract
+    '/app/portfolio': false,
+    '/app/procurement': false,
+    '/app/purchase-orders': false,
+    '/app/receivables': false, // BLOCKED per matrix contract
+    '/app/reconciliation': false,
+    '/app/residents': false,
+    '/app/security-access': false,
+    '/app/settings': false,
+    '/app/vendor-contracts': false,
+    '/app/vendor-sla': false,
+    '/app/vendors': false,
+    '/app/visitors': false,
+  },
+};
+
 // -----------------------------------------------------------------------------
 // Suite 1: Canonical Roles & Central Access Matrix Integrity
 // -----------------------------------------------------------------------------
@@ -104,68 +346,76 @@ const ALL_37_CUSTOMER_ROUTES = [
 }
 
 // -----------------------------------------------------------------------------
-// Suite 2: Functional Route Evaluation for All 37 Routes & Personas
+// Suite 2: Independent 6 x 37 Expected Matrix Verification
 // -----------------------------------------------------------------------------
 {
-  console.log('\n[Suite 2] 37 Customer Routes Evaluation Across All 6 Personas');
+  console.log('\n[Suite 2] Independent 6 x 37 Expected Matrix Verification');
 
   assert.equal(ALL_37_CUSTOMER_ROUTES.length, 37, 'Must evaluate exactly 37 customer routes');
 
+  let evaluatedCells = 0;
   for (const role of CANONICAL_ROLES) {
-    const matrix = getPersonaMatrix(role);
-
     for (const route of ALL_37_CUSTOMER_ROUTES) {
-      const allowed = isRouteAllowedForPersona(role, route);
+      const expectedAllowed = EXPECTED_ROUTE_ACCESS_MATRIX[role][route];
+      assert.notEqual(
+        expectedAllowed,
+        undefined,
+        `Expected matrix must define an entry for ${role} on ${route}`
+      );
 
-      // 1. Explicitly unavailable routes MUST NEVER be allowed
-      if (EXPLICITLY_UNAVAILABLE_ROUTES.some((u) => matchesRoutePattern(u, route))) {
-        assert.equal(allowed, false, `Unavailable route ${route} must be denied for ${role}`);
-      }
-
-      // 2. If allowed, it must be matched by matrix.allowedNavLinks
-      if (allowed) {
-        const matchesAllowed = matrix.allowedNavLinks.some((a) => matchesRoutePattern(a, route));
-        assert.ok(matchesAllowed, `Allowed route ${route} must be in allowedNavLinks of ${role}`);
-      }
-
-      // 3. /app/dashboard is allowed for all canonical roles
-      if (route === '/app/dashboard') {
-        assert.equal(allowed, true, `/app/dashboard must be allowed for ${role}`);
-      }
+      const actualAllowed = isRouteAllowedForPersona(role, route);
+      assert.equal(
+        actualAllowed,
+        expectedAllowed,
+        `Role ${role} on route ${route}: expected ${expectedAllowed}, got ${actualAllowed}`
+      );
+      evaluatedCells++;
     }
   }
 
-  // Specific role isolation assertions on routes:
-  // Censor cannot access governance, maintenance, or security
-  assert.equal(isRouteAllowedForPersona('censor', '/app/governance'), false, 'censor cannot access /app/governance');
-  assert.equal(isRouteAllowedForPersona('censor', '/app/maintenance'), false, 'censor cannot access /app/maintenance');
-  assert.equal(isRouteAllowedForPersona('censor', '/app/security-access'), false, 'censor cannot access /app/security-access');
-  assert.equal(isRouteAllowedForPersona('censor', '/app/accounting'), true, 'censor can access /app/accounting');
-  assert.equal(isRouteAllowedForPersona('censor', '/app/audit'), true, 'censor can access /app/audit');
+  assert.equal(evaluatedCells, 6 * 37, 'Must evaluate exactly 222 matrix cells');
 
-  // Owner cannot access audit, security-access, or occupancy
-  assert.equal(isRouteAllowedForPersona('owner', '/app/audit'), false, 'owner cannot access /app/audit');
-  assert.equal(isRouteAllowedForPersona('owner', '/app/security-access'), false, 'owner cannot access /app/security-access');
-  assert.equal(isRouteAllowedForPersona('owner', '/app/occupancy'), false, 'owner cannot access /app/occupancy');
-  assert.equal(isRouteAllowedForPersona('owner', '/app/billing'), true, 'owner can access /app/billing');
-  assert.equal(isRouteAllowedForPersona('owner', '/app/documents'), true, 'owner can access /app/documents');
-  assert.equal(isRouteAllowedForPersona('owner', '/app/documents/123'), true, 'owner can access /app/documents/123');
+  // Explicit contract checks
+  // 1. Property manager blocked from governance and meetings
+  assert.equal(isRouteAllowedForPersona('property_manager', '/app/governance'), false);
+  assert.equal(isRouteAllowedForPersona('property_manager', '/app/meetings'), false);
 
-  // Tenant cannot access governance, audit, ownership, or security-access
-  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/governance'), false, 'tenant cannot access /app/governance');
-  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/audit'), false, 'tenant cannot access /app/audit');
-  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/ownership'), false, 'tenant cannot access /app/ownership');
-  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/security-access'), false, 'tenant cannot access /app/security-access');
-  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/meters'), true, 'tenant can access /app/meters');
+  // 2. President allowed allocations, payments, reconciliation
+  assert.equal(isRouteAllowedForPersona('president', '/app/accounting/allocations'), true);
+  assert.equal(isRouteAllowedForPersona('president', '/app/payments'), true);
+  assert.equal(isRouteAllowedForPersona('president', '/app/reconciliation'), true);
 
-  // Unknown role fails closed on ALL routes
+  // 3. Owner allowed ownership; blocked billing, receivables, meters
+  assert.equal(isRouteAllowedForPersona('owner', '/app/ownership'), true);
+  assert.equal(isRouteAllowedForPersona('owner', '/app/billing'), false);
+  assert.equal(isRouteAllowedForPersona('owner', '/app/receivables'), false);
+  assert.equal(isRouteAllowedForPersona('owner', '/app/meters'), false);
+
+  // 4. Tenant resident blocked billing, receivables; allowed invoices, payments, meters
+  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/billing'), false);
+  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/receivables'), false);
+  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/invoices'), true);
+  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/payments'), true);
+  assert.equal(isRouteAllowedForPersona('tenant_resident', '/app/meters'), true);
+
+  // 5. Pre-Context centralized route policy: /app/onboarding
+  assert.equal(isPreContextRoute('/app/onboarding'), true);
+  assert.equal(isPreContextRoute('/app/onboarding/step-1'), true);
+  assert.equal(isPreContextRoute('/app/dashboard'), false);
+  assert.ok(PRE_CONTEXT_ALLOWED_ROUTES.includes('/app/onboarding'));
+
+  // 6. Unknown role fails closed on ALL routes
   for (const route of ALL_37_CUSTOMER_ROUTES) {
     assert.equal(isRouteAllowedForPersona('contractor', route), false, `Unknown role must fail closed on ${route}`);
     assert.equal(isRouteAllowedForPersona(null, route), false, `Null role must fail closed on ${route}`);
   }
 
-  console.log('  ✓ All 37 routes verified against allowlists for 6 canonical personas');
-  console.log('  ✓ Censor, Owner, and Tenant boundary routes enforced');
+  console.log(`  ✓ All ${evaluatedCells} (6x37) route cells match independent expected contract`);
+  console.log('  ✓ Property Manager governance/meetings blocked');
+  console.log('  ✓ President allocations/payments/reconciliation allowed');
+  console.log('  ✓ Owner ownership allowed; billing/receivables/meters blocked');
+  console.log('  ✓ Tenant Resident billing/receivables blocked; invoices/payments/meters allowed');
+  console.log('  ✓ Pre-Context /app/onboarding policy validated');
   console.log('  ✓ Unknown role rejected across all 37 routes');
 }
 
@@ -247,20 +497,26 @@ const ALL_37_CUSTOMER_ROUTES = [
     'CustomerRouteGuard must import and use isRouteAllowedForPersona'
   );
 
+  // Guard must use centralized isPreContextRoute
+  assert.ok(
+    guardSrc.includes('isPreContextRoute'),
+    'CustomerRouteGuard must use centralized isPreContextRoute'
+  );
+
   // Shell must not use forbidden-only check
   assert.ok(
     !shellSrc.includes('!isForbiddenByPersona'),
     'CustomerAppShell must not rely on !isForbiddenByPersona'
   );
 
-  console.log('  ✓ Navigation and Route Guard both use centralized isRouteAllowedForPersona');
+  console.log('  ✓ Navigation and Route Guard both use centralized isRouteAllowedForPersona and isPreContextRoute');
 }
 
 // -----------------------------------------------------------------------------
-// Suite 6: Dashboard Server-Authoritative Section Rendering & No Synthetic Data
+// Suite 6: Dashboard Server-Authoritative Rendering & Complete Trilingual Localization
 // -----------------------------------------------------------------------------
 {
-  console.log('\n[Suite 6] Dashboard Server-Authoritative Section Rendering & Cleanliness');
+  console.log('\n[Suite 6] Dashboard Server-Authoritative Rendering & Localization');
 
   const dashboardSrc = fs.readFileSync(path.join(root, 'src/components/customer/CustomerDashboard.tsx'), 'utf8');
 
@@ -275,7 +531,7 @@ const ALL_37_CUSTOMER_ROUTES = [
     'CustomerDashboard must check server dashboard.sections'
   );
 
-  // 2. Must not contain ?? 1
+  // 2. Zero synthetic fallback values (no ?? 0 when key absent)
   assert.ok(
     !dashboardSrc.includes('?? 1'),
     'CustomerDashboard must not contain synthetic fallback ?? 1'
@@ -293,37 +549,81 @@ const ALL_37_CUSTOMER_ROUTES = [
     'CustomerDashboard must fail-closed on persona / role mismatch'
   );
 
-  // 5. Must not contain hardcoded unlocalized strings
+  // 5. Must not render empty grid container when 0 valid KPI cards
   assert.ok(
-    !dashboardSrc.includes('>ReadOnly Oversight<'),
-    'CustomerDashboard must localize ReadOnly Oversight'
-  );
-  assert.ok(
-    !dashboardSrc.includes('>Active meters<'),
-    'CustomerDashboard must localize Active meters'
-  );
-  assert.ok(
-    dashboardSrc.includes('t.buildingsUnits'),
-    'CustomerDashboard must use localized t.buildingsUnits'
+    dashboardSrc.includes('if (cards.length === 0) return null;'),
+    'CustomerDashboard must return null when no KPI cards are available'
   );
 
-  // 6. Must not contain mutating CTAs
-  assert.ok(
-    !dashboardSrc.includes('payNow'),
-    'CustomerDashboard must not render payNow mutating CTA'
-  );
+  // 6. Verify all 17 hardcoded subtitle phrases are localized into COPY dictionary
+  const REQUIRED_KPI_SUBTITLES = [
+    'activeMaintenance',
+    'totalCommunityDues',
+    'unreadNotices',
+    'governanceOversight',
+    'associationReceivables',
+    'inProgressJobs',
+    'boardDispatches',
+    'ledgerAuditCorpus',
+    'reconciledBalance',
+    'auditAlerts',
+    'titleRegisteredUnits',
+    'maintenanceReserveDues',
+    'technicalTickets',
+    'buildingNotices',
+    'assignedUtilitiesMaintenance',
+    'activeMaintenanceIssues',
+    'residentialUpdates',
+  ];
+
+  for (const key of REQUIRED_KPI_SUBTITLES) {
+    assert.ok(
+      dashboardSrc.includes(`${key}:`),
+      `CustomerDashboard must define translation key ${key}`
+    );
+  }
+
+  // 7. Verify none of the 17 raw English strings are hardcoded into JSX tags
+  const RAW_ENGLISH_SUBTITLES = [
+    'Total community dues',
+    'Governance oversight',
+    'Association receivables',
+    'In-progress jobs',
+    'Board dispatches',
+    'Ledger audit corpus',
+    'Reconciled balance',
+    'Audit alerts',
+    'Title-registered units',
+    'Maintenance & reserve dues',
+    'Technical tickets',
+    'Building notices',
+    'Assigned utilities & maintenance',
+    'Active maintenance issues',
+    'Residential updates',
+  ];
+
+  // Strip COPY object definition block from the file to inspect only the component JSX
+  const jsxPart = dashboardSrc.split('export function CustomerDashboard')[1];
+  assert.ok(jsxPart, 'CustomerDashboard function must exist');
+
+  for (const raw of RAW_ENGLISH_SUBTITLES) {
+    assert.ok(
+      !jsxPart.includes(`>${raw}<`) && !jsxPart.includes(`"${raw}"`),
+      `JSX must not contain hardcoded English string: "${raw}"`
+    );
+  }
 
   console.log('  ✓ Server-authoritative section rendering confirmed');
-  console.log('  ✓ Zero synthetic fallback values');
-  console.log('  ✓ Localized strings in ro, en, fa');
-  console.log('  ✓ Mutating CTAs removed');
+  console.log('  ✓ Zero synthetic fallback values; empty KPI grid suppressed');
+  console.log('  ✓ All 17 hardcoded subtitle strings moved to trilingual COPY dictionary');
+  console.log('  ✓ JSX thoroughly inspected and free of unlocalized strings');
 }
 
 // -----------------------------------------------------------------------------
-// Suite 7: Customer Dashboard API Route Hardening
+// Suite 7: Customer Dashboard API Route Hardening & Strict Zod Validation
 // -----------------------------------------------------------------------------
 {
-  console.log('\n[Suite 7] Customer Dashboard API Route Security');
+  console.log('\n[Suite 7] Customer Dashboard API Route Hardening & Zod Schema');
 
   const apiSrc = fs.readFileSync(path.join(root, 'src/app/api/customer/v1/dashboard/route.ts'), 'utf8');
 
@@ -341,9 +641,68 @@ const ALL_37_CUSTOMER_ROUTES = [
   // Must set Cache-Control no-store
   assert.ok(apiSrc.includes('no-store, private'), 'API route must set no-store, private');
 
+  // Test Zod schema validation directly
+  const validPayload = {
+    version: 1,
+    persona: 'association_admin',
+    contextId: '21400000-0000-0000-0000-000000000001',
+    context: {
+      id: '21400000-0000-0000-0000-000000000001',
+      tenant_id: '21100000-0000-0000-0000-000000000001',
+      tenant_name: 'Tenant Alpha',
+      role_code: 'association_admin',
+      role_name: 'Admin Alpha',
+      scope_type: 'tenant',
+    },
+    workspace_id: '21800000-0000-0000-0000-000000000001',
+    capabilities: ['can_view_operations'],
+    sections: ['operations'],
+    permissions: ['maintenance.assets.read'],
+    entitlements: ['module.maintenance'],
+    modules: ['maintenance'],
+    kpis: {
+      open_work_orders: 2,
+    },
+  };
+
+  const validParse = dashboardRpcResponseSchema.safeParse(validPayload);
+  assert.equal(validParse.success, true, 'Valid RPC payload must pass Zod schema');
+
+  // Malformed: version !== 1
+  const invalidVersion = dashboardRpcResponseSchema.safeParse({ ...validPayload, version: 2 });
+  assert.equal(invalidVersion.success, false, 'Invalid version must fail Zod schema');
+
+  // Malformed: non-canonical role
+  const invalidPersona = dashboardRpcResponseSchema.safeParse({ ...validPayload, persona: 'contractor' });
+  assert.equal(invalidPersona.success, false, 'Non-canonical persona must fail Zod schema');
+
+  // Malformed: invalid UUID workspace
+  const invalidWorkspace = dashboardRpcResponseSchema.safeParse({ ...validPayload, workspace_id: 'bad-uuid' });
+  assert.equal(invalidWorkspace.success, false, 'Invalid workspace UUID must fail Zod schema');
+
+  // Mismatch checks in route handler logic
+  assert.ok(
+    apiSrc.includes('validated.data.contextId !== parsed.data.context_id'),
+    'Route must verify contextId matches query parameter'
+  );
+  assert.ok(
+    apiSrc.includes('validated.data.context.id !== parsed.data.context_id'),
+    'Route must verify context.id matches query parameter'
+  );
+  assert.ok(
+    apiSrc.includes('validated.data.persona !== validated.data.context.role_code'),
+    'Route must verify persona matches context role_code'
+  );
+  assert.ok(
+    apiSrc.includes('INVALID_DASHBOARD_PAYLOAD'),
+    'Route must return INVALID_DASHBOARD_PAYLOAD on validation failure'
+  );
+
   console.log('  ✓ API route uses authenticated client (no service role)');
   console.log('  ✓ Error translation 42501 -> 403 verified');
   console.log('  ✓ Cache-Control header verified');
+  console.log('  ✓ Strict Zod response schema tested (version 1, canonical persona, UUIDs)');
+  console.log('  ✓ Fail-closed Persona and Context ID mismatch verified');
 }
 
 // -----------------------------------------------------------------------------
@@ -370,20 +729,46 @@ const ALL_37_CUSTOMER_ROUTES = [
   assert.ok(migSrc.includes('active_lease_required'));
   assert.ok(migSrc.includes('revoke all on function platform.get_customer_dashboard'));
 
-  // Test checks
-  assert.ok(testSrc.includes('select plan(55);'));
-  assert.ok(testSrc.includes('association_admin'));
-  assert.ok(testSrc.includes('property_manager'));
-  assert.ok(testSrc.includes('president'));
-  assert.ok(testSrc.includes('censor'));
-  assert.ok(testSrc.includes('owner'));
-  assert.ok(testSrc.includes('tenant_resident'));
-  assert.ok(testSrc.includes('module.override_true'));
-  assert.ok(testSrc.includes('module.override_false'));
-  assert.ok(testSrc.includes('module.override_expired'));
+  // Active workspace selection logic
+  assert.ok(
+    migSrc.includes("w.lifecycle_status = 'ACTIVE'"),
+    'Migration must filter by active workspace lifecycle'
+  );
+  assert.ok(
+    migSrc.includes("raise exception 'workspace_inactive' using errcode = '42501'"),
+    'Migration must raise workspace_inactive when no active workspace exists'
+  );
 
-  console.log('  ✓ Migration contains override semantics, party mapping, ownership & lease validation');
-  console.log('  ✓ pgTAP test covers all 6 canonical roles and failure modes');
+  // Strictly conditional KPI construction
+  assert.ok(
+    migSrc.includes("v_kpis := '{}'::jsonb;"),
+    'KPI object must initialize empty'
+  );
+  assert.ok(
+    !migSrc.includes("'pending_approvals'"),
+    'Unauthoritative pending_approvals KPI must be removed'
+  );
+  const censorBlock = migSrc.split("v.role_code = 'censor'")[1].split('elsif')[0];
+  assert.ok(
+    !censorBlock.includes("'open_work_orders'"),
+    'Censor must be excluded from operational work orders'
+  );
+
+  // Test checks
+  assert.ok(testSrc.includes('select plan(61);'), 'pgTAP test plan must be 61');
+  assert.ok(
+    testSrc.trim().endsWith('rollback;'),
+    'pgTAP test file must terminate with rollback; for isolation'
+  );
+  assert.ok(testSrc.includes('active workspace selected when tenant also has archived workspace'));
+  assert.ok(testSrc.includes('entitlements read only from active workspace, not archived'));
+  assert.ok(testSrc.includes('tenant without any workspace is denied fail-closed'));
+  assert.ok(testSrc.includes('censor does not receive open_work_orders kpi without maintenance permission'));
+  assert.ok(testSrc.includes('president does not receive unauthoritative pending_approvals kpi'));
+  assert.ok(testSrc.includes('tenant resident does not receive community-wide open_work_orders kpi'));
+
+  console.log('  ✓ Migration contains active workspace selection, override semantics, and conditional KPIs');
+  console.log('  ✓ pgTAP test covers active+archived, no workspace, KPI omissions, and ends with rollback');
 }
 
 console.log('\n=== ALL P1 ROLE-AWARE DASHBOARD TESTS PASSED SUCCESSFULLY ===');

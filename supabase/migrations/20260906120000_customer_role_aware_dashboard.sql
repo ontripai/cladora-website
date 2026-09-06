@@ -64,28 +64,16 @@ begin
     raise exception 'unknown_role' using errcode = '42501';
   end if;
 
-  -- 5. Customer workspace validation: inactive workspace fails closed
-  if exists (
-    select 1
-    from platform.customer_workspaces w
-    where w.tenant_id = v.tenant_id
-      and w.lifecycle_status <> 'ACTIVE'
-  ) then
-    raise exception 'workspace_inactive' using errcode = '42501';
-  end if;
-
-  select w.id into v_workspace
+  -- 5. Customer workspace validation: active workspace must be present
+  select w.id
+  into v_workspace
   from platform.customer_workspaces w
   where w.tenant_id = v.tenant_id
     and w.lifecycle_status = 'ACTIVE'
   order by w.id
   limit 1;
 
-  if v_workspace is null and exists (
-    select 1
-    from platform.customer_workspaces w
-    where w.tenant_id = v.tenant_id
-  ) then
+  if v_workspace is null then
     raise exception 'workspace_inactive' using errcode = '42501';
   end if;
 
@@ -213,14 +201,24 @@ begin
       v_capabilities := v_capabilities || jsonb_build_array('can_view_audit');
     end if;
 
-    v_kpis := jsonb_build_object(
+    v_kpis := '{}'::jsonb;
+    v_kpis := v_kpis || jsonb_build_object(
       'properties', (select count(*) from portfolio.properties p where p.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or p.id = v.property_id or p.id = (select b.property_id from portfolio.buildings b where b.id = v.building_id) or p.id = (select b.property_id from portfolio.units u join portfolio.buildings b on b.id = u.building_id where u.id = v.unit_id))),
       'buildings', (select count(*) from portfolio.buildings b where b.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or b.property_id = v.property_id or b.id = v.building_id or b.id = (select u.building_id from portfolio.units u where u.id = v.unit_id))),
-      'units', (select count(*) from portfolio.units u join portfolio.buildings b on b.id = u.building_id where u.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or b.property_id = v.property_id or u.building_id = v.building_id or u.id = v.unit_id)),
-      'open_work_orders', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id or w.unit_id = v.unit_id)),
-      'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null),
-      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id or u.id = v.unit_id))
+      'units', (select count(*) from portfolio.units u join portfolio.buildings b on b.id = u.building_id where u.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or b.property_id = v.property_id or u.building_id = v.building_id or u.id = v.unit_id))
     );
+
+    if (v_permissions ? 'maintenance.assets.read') and (v_entitlements ? 'module.maintenance') then
+      v_kpis := v_kpis || jsonb_build_object('open_work_orders', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id or w.unit_id = v.unit_id)));
+    end if;
+
+    if (v_permissions ? 'communications.feed.read') and (v_entitlements ? 'module.communications') then
+      v_kpis := v_kpis || jsonb_build_object('unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null));
+    end if;
+
+    if (v_permissions ? 'billing.receivables.read' or v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.billing' or v_entitlements ? 'module.accounting') then
+      v_kpis := v_kpis || jsonb_build_object('outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id or u.id = v.unit_id)));
+    end if;
 
   elsif v.role_code = 'president' then
     v_persona := 'president';
@@ -242,14 +240,23 @@ begin
       v_capabilities := v_capabilities || jsonb_build_array('can_view_audit');
     end if;
 
-    v_kpis := jsonb_build_object(
+    v_kpis := '{}'::jsonb;
+    v_kpis := v_kpis || jsonb_build_object(
       'buildings', (select count(*) from portfolio.buildings b where b.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or b.property_id = v.property_id or b.id = v.building_id)),
-      'units', (select count(*) from portfolio.units u join portfolio.buildings b on b.id = u.building_id where u.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or b.property_id = v.property_id or u.building_id = v.building_id)),
-      'open_work_orders', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id)),
-      'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null),
-      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id)),
-      'pending_approvals', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status in ('draft', 'scheduled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id))
+      'units', (select count(*) from portfolio.units u join portfolio.buildings b on b.id = u.building_id where u.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or b.property_id = v.property_id or u.building_id = v.building_id))
     );
+
+    if (v_permissions ? 'maintenance.assets.read') and (v_entitlements ? 'module.maintenance') then
+      v_kpis := v_kpis || jsonb_build_object('open_work_orders', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id)));
+    end if;
+
+    if (v_permissions ? 'communications.feed.read') and (v_entitlements ? 'module.communications') then
+      v_kpis := v_kpis || jsonb_build_object('unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null));
+    end if;
+
+    if (v_permissions ? 'billing.receivables.read' or v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.billing' or v_entitlements ? 'module.accounting') then
+      v_kpis := v_kpis || jsonb_build_object('outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id)));
+    end if;
 
   elsif v.role_code = 'censor' then
     v_persona := 'censor';
@@ -266,12 +273,18 @@ begin
       v_capabilities := v_capabilities || jsonb_build_array('can_view_audit');
     end if;
 
-    v_kpis := jsonb_build_object(
-      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id)),
-      'open_work_orders', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id)),
-      'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null),
-      'financial_records', (select count(*) from billing.invoices i where i.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id))
-    );
+    v_kpis := '{}'::jsonb;
+
+    if (v_permissions ? 'finance.ledger.read') and (v_entitlements ? 'module.accounting') then
+      v_kpis := v_kpis || jsonb_build_object(
+        'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id)),
+        'financial_records', (select count(*) from billing.invoices i where i.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id))
+      );
+    end if;
+
+    if (v_permissions ? 'communications.feed.read') and (v_entitlements ? 'module.communications') then
+      v_kpis := v_kpis || jsonb_build_object('unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null));
+    end if;
 
   elsif v.role_code = 'owner' then
     v_persona := 'owner';
@@ -287,12 +300,22 @@ begin
     end if;
 
     -- Strict unit-only isolation: unit_id matches the validated ownership unit!
-    v_kpis := jsonb_build_object(
-      'my_units_count', (select count(*) from portfolio.ownerships o where o.tenant_id = v.tenant_id and o.unit_id = v.unit_id and o.party_id = v_party_id and o.valid_from <= current_date and (o.valid_to is null or o.valid_to > current_date)),
-      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and i.unit_id = v.unit_id),
-      'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null),
-      'my_open_requests', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.unit_id = v.unit_id and w.status not in ('completed','verified','cancelled'))
+    v_kpis := '{}'::jsonb;
+    v_kpis := v_kpis || jsonb_build_object(
+      'my_units_count', (select count(*) from portfolio.ownerships o where o.tenant_id = v.tenant_id and o.unit_id = v.unit_id and o.party_id = v_party_id and o.valid_from <= current_date and (o.valid_to is null or o.valid_to > current_date))
     );
+
+    if (v_permissions ? 'billing.receivables.read') and (v_entitlements ? 'module.billing') then
+      v_kpis := v_kpis || jsonb_build_object('outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and i.unit_id = v.unit_id));
+    end if;
+
+    if (v_permissions ? 'communications.feed.read') and (v_entitlements ? 'module.communications') then
+      v_kpis := v_kpis || jsonb_build_object('unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null));
+    end if;
+
+    if (v_permissions ? 'maintenance.assets.read') and (v_entitlements ? 'module.maintenance') then
+      v_kpis := v_kpis || jsonb_build_object('my_open_requests', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.unit_id = v.unit_id and w.status not in ('completed','verified','cancelled')));
+    end if;
 
   elsif v.role_code = 'tenant_resident' then
     v_persona := 'tenant_resident';
@@ -310,11 +333,19 @@ begin
     end if;
 
     -- Strict unit & tenant party isolation!
-    v_kpis := jsonb_build_object(
-      'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and i.unit_id = v.unit_id and (i.liable_party_id is null or i.liable_party_id = v_party_id)),
-      'my_open_tickets', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.unit_id = v.unit_id and w.status not in ('completed','verified','cancelled')),
-      'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null)
-    );
+    v_kpis := '{}'::jsonb;
+
+    if (v_permissions ? 'billing.receivables.read') and (v_entitlements ? 'module.billing') then
+      v_kpis := v_kpis || jsonb_build_object('outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id where rc.tenant_id = v.tenant_id and i.unit_id = v.unit_id and (i.liable_party_id is null or i.liable_party_id = v_party_id)));
+    end if;
+
+    if (v_permissions ? 'maintenance.assets.read') and (v_entitlements ? 'module.maintenance') then
+      v_kpis := v_kpis || jsonb_build_object('my_open_tickets', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.unit_id = v.unit_id and w.status not in ('completed','verified','cancelled')));
+    end if;
+
+    if (v_permissions ? 'communications.feed.read') and (v_entitlements ? 'module.communications') then
+      v_kpis := v_kpis || jsonb_build_object('unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null));
+    end if;
   end if;
 
   -- 10. Explicit versioned response construction

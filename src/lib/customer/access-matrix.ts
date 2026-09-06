@@ -17,6 +17,12 @@ export const EXPLICITLY_UNAVAILABLE_ROUTES = [
   '/app/migration/shadow-ledger',
 ] as const;
 
+export const PRE_CONTEXT_ALLOWED_ROUTES = ['/app/onboarding'] as const;
+
+export function isPreContextRoute(pathname: string): boolean {
+  return pathname === '/app/onboarding' || pathname.startsWith('/app/onboarding/');
+}
+
 export const CANONICAL_ROLES = [
   'association_admin',
   'property_manager',
@@ -141,8 +147,6 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/purchase-orders',
       '/app/vendor-contracts',
       '/app/vendor-sla',
-      '/app/governance',
-      '/app/meetings',
       '/app/communications',
       '/app/notifications',
       '/app/documents',
@@ -163,7 +167,10 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/reconciliation',
       '/app/audit',
     ],
-    forbiddenNavLinks: [],
+    forbiddenNavLinks: [
+      '/app/governance',
+      '/app/meetings',
+    ],
   },
 
   president: {
@@ -213,9 +220,12 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/communications',
       '/app/notifications',
       '/app/accounting',
+      '/app/accounting/allocations',
       '/app/billing',
       '/app/invoices',
       '/app/receivables',
+      '/app/payments',
+      '/app/reconciliation',
       '/app/audit',
     ],
     forbiddenNavLinks: [
@@ -232,7 +242,6 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/residents',
       '/app/ownership',
       '/app/leases',
-      '/app/reconciliation',
     ],
   },
 
@@ -353,13 +362,14 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/meetings',
       '/app/communications',
       '/app/notifications',
-      '/app/billing',
       '/app/invoices',
-      '/app/receivables',
       '/app/payments',
-      '/app/meters',
+      '/app/ownership',
     ],
     forbiddenNavLinks: [
+      '/app/billing',
+      '/app/receivables',
+      '/app/meters',
       '/app/audit',
       '/app/security-access',
       '/app/access-logs',
@@ -368,7 +378,6 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/occupancy',
       '/app/occupancy/[id]',
       '/app/residents',
-      '/app/ownership',
       '/app/leases',
       '/app/accounting',
       '/app/accounting/allocations',
@@ -434,13 +443,13 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/documents/[id]',
       '/app/communications',
       '/app/notifications',
-      '/app/billing',
       '/app/invoices',
-      '/app/receivables',
       '/app/payments',
       '/app/meters',
     ],
     forbiddenNavLinks: [
+      '/app/billing',
+      '/app/receivables',
       '/app/governance',
       '/app/meetings',
       '/app/audit',

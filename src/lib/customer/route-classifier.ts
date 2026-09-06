@@ -3,12 +3,8 @@ export const EXPLICITLY_ALLOWED_ROUTES = [
   '/app/onboarding',
 ] as const;
 
-export const EXPLICITLY_UNAVAILABLE_ROUTES = [
-  '/app/portfolio',
-  '/app/settings',
-  '/app/accounting/month-close',
-  '/app/migration/shadow-ledger',
-] as const;
+import { EXPLICITLY_UNAVAILABLE_ROUTES } from './access-matrix.ts';
+export { EXPLICITLY_UNAVAILABLE_ROUTES };
 
 export interface RouteRequirement {
   pathPrefix: string;

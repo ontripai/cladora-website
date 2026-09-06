@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { dashboardRpcResponseSchema, uuidSchema } from '@/lib/customer/dashboard-schema';
 
 const HEADERS = {
   'Cache-Control': 'no-store, private',
@@ -9,7 +10,7 @@ const HEADERS = {
 };
 
 const querySchema = z.object({
-  context_id: z.string().uuid(),
+  context_id: uuidSchema,
 });
 
 export async function GET(request: NextRequest) {
@@ -54,5 +55,19 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  return NextResponse.json(data, { headers: HEADERS });
+  // Authoritative response schema validation & Persona match verification
+  const validated = dashboardRpcResponseSchema.safeParse(data);
+  if (
+    !validated.success ||
+    validated.data.contextId !== parsed.data.context_id ||
+    validated.data.context.id !== parsed.data.context_id ||
+    validated.data.persona !== validated.data.context.role_code
+  ) {
+    return NextResponse.json(
+      { error: { code: 'INVALID_DASHBOARD_PAYLOAD' } },
+      { status: 500, headers: HEADERS }
+    );
+  }
+
+  return NextResponse.json(validated.data, { headers: HEADERS });
 }
