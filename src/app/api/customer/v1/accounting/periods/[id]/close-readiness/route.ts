@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server.js';
 import { z } from 'zod';
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '../../../../../../../../lib/supabase/server.ts';
 import {
   closeReadinessResponseSchema,
-} from '@/lib/customer/financial-reports-schema';
-import { uuidSchema } from '@/lib/customer/dashboard-schema';
+} from '../../../../../../../../lib/customer/financial-reports-schema.ts';
+import { uuidSchema } from '../../../../../../../../lib/customer/dashboard-schema.ts';
 
 const HEADERS = {
   'Cache-Control': 'no-store, private',
@@ -20,16 +20,15 @@ const querySchema = z.object({
   context_id: uuidSchema,
 });
 
-export async function GET(
+export async function handleGetCloseReadiness(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  rawParams: { id: string },
+  supabaseClient?: any
 ) {
-  const rawParams = await context.params;
   const parsedParams = paramsSchema.safeParse(rawParams);
-
   if (!parsedParams.success) {
     return NextResponse.json(
-      { error: { code: 'INVALID_PERIOD_ID', message: 'Invalid period UUID format' } },
+      { error: { code: 'INVALID_READINESS_REQUEST', message: 'Invalid close readiness request' } },
       { status: 400, headers: HEADERS }
     );
   }
@@ -39,7 +38,7 @@ export async function GET(
 
   if (!parsedQuery.success) {
     return NextResponse.json(
-      { error: { code: 'INVALID_CONTEXT_ID', message: 'Valid context_id is required' } },
+      { error: { code: 'INVALID_READINESS_REQUEST', message: 'Invalid close readiness request' } },
       { status: 400, headers: HEADERS }
     );
   }
@@ -47,8 +46,8 @@ export async function GET(
   const periodId = parsedParams.data.id;
   const contextId = parsedQuery.data.context_id;
 
-  // Authenticated user client (never service role)
-  const supabase = await createClient();
+  // Authenticated user client (never service role; injectable for testing)
+  const supabase = supabaseClient ?? (await createClient());
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
 
   if (claimsError || !claims?.claims?.sub) {
@@ -84,7 +83,7 @@ export async function GET(
       status = 404;
     } else if (isBadRequest) {
       code = 'INVALID_READINESS_REQUEST';
-      message = rpcError.message || 'Invalid request';
+      message = 'Invalid close readiness request';
       status = 400;
     }
 
@@ -103,4 +102,12 @@ export async function GET(
   }
 
   return NextResponse.json(validated.data, { headers: HEADERS });
+}
+
+export async function GET(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const rawParams = await context.params;
+  return handleGetCloseReadiness(request, rawParams);
 }

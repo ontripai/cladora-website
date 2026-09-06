@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server.js';
-import { createClient } from '../../../../../lib/supabase/server.ts';
+import { createClient } from '../../../../../../lib/supabase/server.ts';
 import {
-  financialReportQuerySchema,
-  financialReportResponseSchema,
-} from '../../../../../lib/customer/financial-reports-schema.ts';
+  listPeriodsQuerySchema,
+  listPeriodsResponseSchema,
+} from '../../../../../../lib/customer/financial-reports-schema.ts';
 
 const HEADERS = {
   'Cache-Control': 'no-store, private',
@@ -11,23 +11,23 @@ const HEADERS = {
   Vary: 'Cookie',
 };
 
-export async function handleGetFinancialReport(request: NextRequest, supabaseClient?: any) {
+export async function handleGetPeriods(request: NextRequest, supabaseClient?: any) {
   const searchParams = Object.fromEntries(request.nextUrl.searchParams.entries());
-  const parsed = financialReportQuerySchema.safeParse(searchParams);
+  const parsed = listPeriodsQuerySchema.safeParse(searchParams);
 
   if (!parsed.success) {
     return NextResponse.json(
       {
         error: {
-          code: 'INVALID_REPORT_REQUEST',
-          message: 'Invalid financial report request',
+          code: 'INVALID_QUERY_PARAMETERS',
+          message: 'Invalid query parameters',
         },
       },
       { status: 400, headers: HEADERS }
     );
   }
 
-  const { context_id, report_type, from, to, currency } = parsed.data;
+  const { context_id } = parsed.data;
 
   // Supabase User Client (never service role; injectable for testing)
   const supabase = supabaseClient ?? (await createClient());
@@ -42,29 +42,25 @@ export async function handleGetFinancialReport(request: NextRequest, supabaseCli
 
   const { data, error: rpcError } = await supabase
     .schema('finance')
-    .rpc('get_customer_financial_report', {
+    .rpc('list_customer_accounting_periods', {
       p_context_id: context_id,
-      p_report_type: report_type,
-      p_from: from,
-      p_to: to,
-      p_currency: currency,
     });
 
   if (rpcError) {
     const isForbidden = rpcError.code === '42501';
     const isBadRequest = rpcError.code === '22023';
 
-    let code = 'REPORT_QUERY_FAILED';
-    let message = 'Failed to generate financial report';
+    let code = 'PERIODS_QUERY_FAILED';
+    let message = 'Failed to retrieve accounting periods';
     let status = 500;
 
     if (isForbidden) {
-      code = 'REPORT_ACCESS_DENIED';
-      message = 'Access denied to financial report';
+      code = 'PERIODS_ACCESS_DENIED';
+      message = 'Access denied to accounting periods';
       status = 403;
     } else if (isBadRequest) {
-      code = 'INVALID_REPORT_REQUEST';
-      message = 'Invalid financial report request';
+      code = 'INVALID_REQUEST';
+      message = 'Invalid request parameters';
       status = 400;
     }
 
@@ -74,10 +70,10 @@ export async function handleGetFinancialReport(request: NextRequest, supabaseCli
     );
   }
 
-  const validated = financialReportResponseSchema.safeParse(data);
+  const validated = listPeriodsResponseSchema.safeParse(data);
   if (!validated.success) {
     return NextResponse.json(
-      { error: { code: 'REPORT_CONTRACT_VIOLATION', message: 'Internal report format error' } },
+      { error: { code: 'PERIODS_CONTRACT_VIOLATION', message: 'Internal periods format error' } },
       { status: 500, headers: HEADERS }
     );
   }
@@ -86,5 +82,5 @@ export async function handleGetFinancialReport(request: NextRequest, supabaseCli
 }
 
 export async function GET(request: NextRequest) {
-  return handleGetFinancialReport(request);
+  return handleGetPeriods(request);
 }

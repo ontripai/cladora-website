@@ -21,9 +21,10 @@ const paramsSchema = z.object({
   id: uuidSchema,
 });
 
-export async function POST(
+export async function handlePostClose(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  rawParams: { id: string },
+  supabaseClient?: any
 ) {
   // 1. Same-Origin Verification
   if (!hasTrustedMutationOrigin(request)) {
@@ -53,7 +54,6 @@ export async function POST(
   }
 
   // 4. Validate URL Parameters
-  const rawParams = await context.params;
   const parsedParams = paramsSchema.safeParse(rawParams);
 
   if (!parsedParams.success) {
@@ -80,8 +80,8 @@ export async function POST(
   const periodId = parsedParams.data.id;
   const { context_id, reason } = parsedBody.data;
 
-  // 6. Authenticated Supabase User Client (never service role)
-  const supabase = await createClient();
+  // 6. Authenticated Supabase User Client (never service role; injectable for testing)
+  const supabase = supabaseClient ?? (await createClient());
   const { data: claims, error: claimsError } = await supabase.auth.getClaims();
 
   if (claimsError || !claims?.claims?.sub) {
@@ -102,9 +102,9 @@ export async function POST(
 
   if (rpcError) {
     const isForbidden = rpcError.code === '42501';
-    const isClosed = rpcError.code === '25000' || rpcError.message?.includes('closed');
-    const isOverlap = rpcError.code === '23P01';
     const isConflict = rpcError.code === '40001' || rpcError.message?.includes('already_closed');
+    const isClosed = rpcError.code === '25000';
+    const isOverlap = rpcError.code === '23P01';
     const isNotFound = rpcError.code === 'P0002';
     const isBadRequest = rpcError.code === '22023' || rpcError.code === '23514';
 
@@ -116,6 +116,10 @@ export async function POST(
       code = 'PERIOD_CLOSE_DENIED';
       message = 'Permission denied to close accounting period';
       status = 403;
+    } else if (isConflict) {
+      code = 'PERIOD_ALREADY_CLOSED';
+      message = 'Accounting period is already closed';
+      status = 409;
     } else if (isClosed) {
       code = 'ACCOUNTING_PERIOD_CLOSED';
       message = 'Accounting period is already closed or locked against modification';
@@ -123,10 +127,6 @@ export async function POST(
     } else if (isOverlap) {
       code = 'ACCOUNTING_PERIOD_OVERLAP';
       message = 'Accounting period dates overlap with an existing period';
-      status = 409;
-    } else if (isConflict) {
-      code = 'PERIOD_ALREADY_CLOSED';
-      message = 'Accounting period is already closed';
       status = 409;
     } else if (isNotFound) {
       code = 'PERIOD_NOT_FOUND';
@@ -154,4 +154,12 @@ export async function POST(
   }
 
   return NextResponse.json(validated.data, { headers: HEADERS });
+}
+
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const rawParams = await context.params;
+  return handlePostClose(request, rawParams);
 }

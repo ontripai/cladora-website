@@ -181,13 +181,26 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
   const roleCode = dashboard?.context?.role_code;
   // ONLY association_admin and property_manager have mutate rights
   const canMutateRole = roleCode === 'association_admin' || roleCode === 'property_manager';
+  const hasAccountingPermission = Boolean(
+    dashboard?.permissions?.includes('finance.periods.close')
+  );
+  const isAccountingEntitled = Boolean(
+    dashboard?.entitlements?.includes('module.accounting')
+  );
+  const canRenderCloseAction = Boolean(
+    canMutateRole &&
+    hasAccountingPermission &&
+    isAccountingEntitled &&
+    readiness?.status === 'open' &&
+    readiness?.can_close === true
+  );
 
-  // 1. Fetch periods list from accounting ledger endpoint
+  // 1. Fetch periods list from dedicated accounting periods endpoint
   const loadPeriods = useCallback(async () => {
     if (!active?.context_id) return;
     setLoadingPeriods(true);
     try {
-      const res = await fetch(`/api/customer/v1/accounting?context_id=${active.context_id}&limit=1`, {
+      const res = await fetch(`/api/customer/v1/accounting/periods?context_id=${active.context_id}`, {
         headers: { 'Cache-Control': 'no-cache' },
       });
       if (res.ok) {
@@ -580,8 +593,8 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
                   </div>
                 )}
 
-                {/* Mutation Control: ONLY rendered for association_admin & property_manager */}
-                {canMutateRole && readiness.status === 'open' && (
+                {/* Mutation Control: ONLY rendered when canRenderCloseAction is true */}
+                {canRenderCloseAction && (
                   <div className="mt-6 flex justify-end border-t border-[#E2E8F0] pt-4">
                     <button
                       type="button"
@@ -634,7 +647,7 @@ export function CustomerMonthClose({ lang }: { lang: Language }) {
       </div>
 
       {/* Confirmation Modal */}
-      {modalOpen && canMutateRole && (
+      {modalOpen && canRenderCloseAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div
             role="dialog"

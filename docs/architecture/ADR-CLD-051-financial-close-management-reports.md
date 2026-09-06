@@ -193,6 +193,60 @@ To eliminate race conditions and guarantee immutable accounting integrity at the
 
 ---
 
+### H. Financial Close Final Corrective Hardening (Migration `20260906210000_financial_close_final_corrective_hardening.sql`)
+
+Following independent audit findings, the following definitive corrective hardening was enacted:
+
+#### 1. Scope Isolation & Period Listing Endpoint
+- **Dedicated Period List RPC (`finance.list_customer_accounting_periods`)**:
+  - Association/Tenant scope: returns periods of the active tenant.
+  - Property scope: strictly returns `property_id = context.property_id` (zero tenant-wide or cross-property leakage).
+  - Building/Unit scopes: fail-closed with SQLSTATE `42501`.
+- **Dedicated Route (`GET /api/customer/v1/accounting/periods`)**:
+  - Validates `context_id` UUID, verifies authenticated claims, invokes `finance.list_customer_accounting_periods`, and formats response via strict schema.
+  - Replaces legacy ledger period listing in `CustomerMonthClose.tsx`.
+- **Legacy Ledger Periods Leak Remediation**:
+  - In `finance.get_customer_ledger`, property scope is updated in the forward migration to strictly match `p.property_id = v.property_id` (never `property_id IS NULL`).
+
+#### 2. Period Property-to-Tenant Mandatory Integrity
+- Trigger `a_assert_accounting_period_property_tenant` on `finance.accounting_periods`:
+  - Executes `BEFORE INSERT OR UPDATE OF tenant_id, property_id`.
+  - Asserts that if `property_id IS NOT NULL`, `properties.tenant_id = accounting_periods.tenant_id`.
+  - Rejects mismatches with SQLSTATE `42501`.
+
+#### 3. Parent-Update Structural Integrity Triggers
+- Trigger `a_assert_journal_parent_update_integrity` on `finance.journals`:
+  - Intercepts updates of `tenant_id`, `property_id`, `currency`.
+  - Rejects updates if child `finance.journal_entries` exist.
+- Trigger `a_assert_account_parent_update_integrity` on `finance.accounts`:
+  - Intercepts updates of `tenant_id`, `property_id`, `currency`.
+  - Rejects updates if child `finance.journal_entries` exist.
+
+#### 4. Authoritative Reason Redaction (`app_private.redact_audit_text`)
+- Sanitizes reasons before insertion into `snapshot_json` and `audit.events`.
+- Trims control characters and applies regex filtering against sensitive patterns: passwords, bearer tokens, cookies, authorization headers, API keys, and service-role secrets (returning `[REDACTED]`).
+- Caps maximum text length at 500 characters.
+
+#### 5. Strict Snapshot Version 2 Schema & Error Sanitization
+- `snapshotVersion2Schema`: Enforces exact JSON structure from `finance.close_accounting_period`.
+- Rejects Version 1 snapshots, untyped records, and optional fields for mandatory properties.
+- Full route error sanitization across all 4 endpoints (`financial-reports`, `periods`, `close-readiness`, `close`), never exposing raw database errors or stack traces to clients.
+
+#### 6. Complete DOM Mutation Gating (`canRenderCloseAction`)
+- In `CustomerMonthClose.tsx`, the Close button, modal dialog, confirmation form, and reason input only enter the DOM when:
+  1. `role ∈ {'association_admin', 'property_manager'}`
+  2. `finance.periods.close` permission exists
+  3. `module.accounting` entitlement is active
+  4. `readiness.status === 'open'`
+  5. `readiness.can_close === true`
+
+#### 7. Byte-Based 10KB Stream Defense & Real Concurrency
+- `parseJsonWithLimit` enforces 10KB limit with immediate stream reader cancellation (`await reader.cancel()`).
+- Tests cover multi-byte UTF-8, missing/spoofed/invalid Content-Length.
+- Concurrency and lock contention verified using real PostgreSQL locks (`FOR SHARE` vs `FOR UPDATE`) and atomic audit event rollback in pgTAP.
+
+---
+
 ## 3. Explicit Boundaries (Out of Scope)
 
 The following items are intentionally excluded from this P1 foundation:

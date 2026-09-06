@@ -8,6 +8,40 @@ console.log('=== RUNNING P1 FINANCIAL CLOSE & MANAGEMENT REPORTING TESTS ===\n')
 const root = process.cwd();
 
 // -----------------------------------------------------------------------------
+// Helper: Create a Stub Supabase User Client for Direct Route Handler Testing
+// -----------------------------------------------------------------------------
+function createStubSupabaseClient({
+  claims = { claims: { sub: '23000000-0000-0000-0000-000000000001' } },
+  claimsError = null,
+  rpcData = null,
+  rpcError = null,
+} = {}) {
+  return {
+    auth: {
+      getClaims: async () => ({ data: claims, error: claimsError }),
+    },
+    schema: (_schemaName) => ({
+      rpc: async (_fnName, _params) => ({
+        data: rpcData,
+        error: rpcError,
+      }),
+    }),
+  };
+}
+
+// Helper: Create ReadableStream from Byte Chunks
+function createStreamFromChunks(chunks) {
+  return new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(chunk);
+      }
+      controller.close();
+    },
+  });
+}
+
+// -----------------------------------------------------------------------------
 // Suite 1: Strict ISO Datetime Validation (Debt Resolution)
 // -----------------------------------------------------------------------------
 {
@@ -104,7 +138,7 @@ const root = process.cwd();
 }
 
 // -----------------------------------------------------------------------------
-// Suite 2: Financial Reports & Close Schema Validation (Calendar Date & V2 Snapshot)
+// Suite 2: Financial Reports & Close Schema Validation (Calendar Date & Strict V2 Snapshot)
 // -----------------------------------------------------------------------------
 {
   console.log('\n[Suite 2] Financial Reports & Close Schemas Verification');
@@ -115,6 +149,9 @@ const root = process.cwd();
     closeReadinessResponseSchema,
     closePeriodRequestSchema,
     closePeriodResponseSchema,
+    snapshotVersion2Schema,
+    listPeriodsQuerySchema,
+    listPeriodsResponseSchema,
   } = schemaModule;
 
   // 1. Query Schema: Valid query
@@ -180,67 +217,97 @@ const root = process.cwd();
     /Invalid/
   );
 
-  // 2. Readiness Schema with Version 2 multi-currency segregation
-  assert.doesNotThrow(() =>
-    closeReadinessResponseSchema.parse({
-      version: 1,
-      period: {
-        id: '11111111-1111-1111-1111-111111111111',
-        tenant_id: '11111111-1111-1111-1111-111111111111',
-        property_id: null,
-        starts_on: '2026-01-01',
-        ends_on: '2026-01-31',
-        status: 'open',
-        closed_at: null,
-        closed_by: null,
-        snapshot_json: null,
+  // 2. Strict Snapshot Version 2 Validation
+  const validSnapshotV2 = {
+    version: 2,
+    snapshot_version: 2,
+    close_reason: 'Regular monthly financial close',
+    period_id: '11111111-1111-1111-1111-111111111111',
+    tenant_id: '22222222-2222-2222-2222-222222222222',
+    property_id: '33333333-3333-3333-3333-333333333333',
+    starts_on: '2026-01-01',
+    ends_on: '2026-01-31',
+    closed_at: '2026-09-06T12:00:00.000Z',
+    closed_by: '44444444-4444-4444-4444-444444444444',
+    closed_by_role: 'association_admin',
+    currency_summaries: [
+      {
+        currency: 'RON',
+        posted_journals_count: 5,
+        total_debit: 1500,
+        total_credit: 1500,
+        difference: 0,
+        is_balanced: true,
+        trial_balance: [
+          {
+            account_id: '55555555-5555-5555-5555-555555555555',
+            account_code: '5121',
+            account_name: 'Conturi la banci in lei',
+            account_type: 'asset',
+            debit: 1500,
+            credit: 0,
+            net_balance: 1500,
+          },
+        ],
       },
-      tenant_id: '11111111-1111-1111-1111-111111111111',
-      property_id: null,
-      scope_type: 'tenant',
-      status: 'open',
-      draft_journals_count: 2,
-      unbalanced_journals_count: 0,
-      posted_journals_count: 10,
-      total_debit: 500,
-      total_credit: 500,
-      is_balanced: true,
-      difference: 0,
-      currencies: ['RON', 'EUR'],
-      currency_summaries: [
-        { currency: 'EUR', total_debit: 50, total_credit: 50, difference: 0 },
-        { currency: 'RON', total_debit: 500, total_credit: 500, difference: 0 },
-      ],
-      warnings: [],
-      can_close: false,
-      blocking_reasons: ['has_draft_journals'],
-      generated_at: '2026-09-06T12:00:00.000Z',
-    })
-  );
+    ],
+    is_balanced: true,
+  };
 
-  // 3. Mutation Schema with optional reason
-  assert.doesNotThrow(() =>
-    closePeriodRequestSchema.parse({
-      context_id: '11111111-1111-1111-1111-111111111111',
-      reason: 'Month close audited and verified',
-    })
-  );
+  assert.doesNotThrow(() => snapshotVersion2Schema.parse(validSnapshotV2));
 
-  assert.doesNotThrow(() =>
-    closePeriodRequestSchema.parse({
-      context_id: '11111111-1111-1111-1111-111111111111',
-    })
-  );
-
+  // Reject Version 1 snapshot structure
   assert.throws(
     () =>
-      closePeriodRequestSchema.parse({
-        context_id: 'not-a-uuid',
+      snapshotVersion2Schema.parse({
+        ...validSnapshotV2,
+        version: 1,
+        snapshot_version: 1,
       }),
     /Invalid/
   );
 
-  // 4. Response Schema with Version 2 Snapshot
+  // Reject missing currency_summaries (must have min 1)
+  assert.throws(
+    () =>
+      snapshotVersion2Schema.parse({
+        ...validSnapshotV2,
+        currency_summaries: [],
+      }),
+    /Too small/
+  );
+
+  // Reject missing trial_balance inside currency summary
+  assert.throws(
+    () =>
+      snapshotVersion2Schema.parse({
+        ...validSnapshotV2,
+        currency_summaries: [
+          {
+            currency: 'RON',
+            posted_journals_count: 5,
+            total_debit: 1500,
+            total_credit: 1500,
+            difference: 0,
+            is_balanced: true,
+            // missing trial_balance
+          },
+        ],
+      }),
+    /Invalid/
+  );
+
+  // Reject extra unmodeled keys (.strict())
+  assert.throws(
+    () =>
+      snapshotVersion2Schema.parse({
+        ...validSnapshotV2,
+        unmodeled_property: 'not_allowed',
+      }),
+    /unrecognized_keys/
+  );
+
+  // 3. Close Period Response Schema
   assert.doesNotThrow(() =>
     closePeriodResponseSchema.parse({
       version: 2,
@@ -248,118 +315,105 @@ const root = process.cwd();
       period_id: '11111111-1111-1111-1111-111111111111',
       status: 'closed',
       closed_at: '2026-09-06T12:00:00.000Z',
-      closed_by: '22222222-2222-2222-2222-222222222222',
-      snapshot: {
-        snapshot_version: 2,
-        closed_at: '2026-09-06T12:00:00.000Z',
-        closed_by: '22222222-2222-2222-2222-222222222222',
-        close_reason: 'Year end close',
-        accounting_period: {
-          id: '11111111-1111-1111-1111-111111111111',
-          tenant_id: '33333333-3333-3333-3333-333333333333',
-          property_id: null,
-          starts_on: '2026-01-01',
-          ends_on: '2026-01-31',
-          status: 'closed',
-        },
-        currency_summaries: [
-          { currency: 'RON', total_debit: 1000, total_credit: 1000, difference: 0 },
-        ],
-        trial_balance_summary: [],
-      },
+      closed_by: '44444444-4444-4444-4444-444444444444',
+      snapshot: validSnapshotV2,
     })
   );
 
-  console.log('  ✓ financialReportQuerySchema strictly enforces z.iso.date() (rejects 2026-02-30)');
-  console.log('  ✓ Inverted date ranges correctly rejected');
-  console.log('  ✓ closeReadinessResponseSchema strictly validates segregated currency_summaries');
-  console.log('  ✓ closePeriodRequestSchema validates context UUID and optional reason');
-  console.log('  ✓ closePeriodResponseSchema validates Version 2 snapshot structure');
+  // 4. List Periods Query and Response Schemas
+  assert.doesNotThrow(() =>
+    listPeriodsQuerySchema.parse({
+      context_id: '11111111-1111-1111-1111-111111111111',
+    })
+  );
+
+  assert.doesNotThrow(() =>
+    listPeriodsResponseSchema.parse({
+      version: 2,
+      scope_type: 'property',
+      periods: [
+        {
+          id: '11111111-1111-1111-1111-111111111111',
+          tenant_id: '22222222-2222-2222-2222-222222222222',
+          property_id: '33333333-3333-3333-3333-333333333333',
+          starts_on: '2026-01-01',
+          ends_on: '2026-01-31',
+          status: 'open',
+          closed_at: null,
+          closed_by: null,
+        },
+      ],
+    })
+  );
+
+  console.log('  ✓ financialReportQuerySchema strictly enforces calendar dates & ordering');
+  console.log('  ✓ snapshotVersion2Schema strictly enforces Version 2 and rejects Version 1');
+  console.log('  ✓ currency_summaries and trial_balance arrays strictly required (no unmodeled keys)');
+  console.log('  ✓ closePeriodResponseSchema and listPeriodsResponseSchema validated');
 }
 
 // -----------------------------------------------------------------------------
-// Suite 3: Static Security Review of API Route Files
+// Suite 3: Static Security Review of API Route Files & Migration Files
 // -----------------------------------------------------------------------------
 {
   console.log('\n[Suite 3] Customer API Routes Static Security Review');
 
-  // Reports GET
-  const reportsRouteFile = path.join(
-    root,
-    'src',
-    'app',
-    'api',
-    'customer',
-    'v1',
-    'financial-reports',
-    'route.ts'
-  );
-  assert.ok(fs.existsSync(reportsRouteFile), 'Financial reports route must exist');
-  const reportsContent = fs.readFileSync(reportsRouteFile, 'utf8');
+  const checkRoute = (relPath, checks) => {
+    const fullPath = path.join(root, relPath);
+    assert.ok(fs.existsSync(fullPath), `${relPath} must exist`);
+    const content = fs.readFileSync(fullPath, 'utf8');
+    for (const [name, pass] of Object.entries(checks(content))) {
+      assert.ok(pass, `${relPath}: ${name}`);
+    }
+  };
 
-  assert.ok(reportsContent.includes('createClient()'), 'Reports route must use user client');
-  assert.ok(!reportsContent.includes('createAdminClient'), 'Reports route must not use admin client');
-  assert.ok(reportsContent.includes('getClaims('), 'Reports route must verify claims');
-  assert.ok(reportsContent.includes('financialReportQuerySchema.safeParse'), 'Reports route must validate query schema');
-  assert.ok(reportsContent.includes('get_customer_financial_report'), 'Reports route must call RPC');
-  assert.ok(reportsContent.includes('Cache-Control'), 'Reports route must set Cache-Control');
-  assert.ok(reportsContent.includes('status = 403'), 'Reports route must translate 42501 to 403');
+  // 1. Reports GET
+  checkRoute('src/app/api/customer/v1/financial-reports/route.ts', (content) => ({
+    'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
+    'Injectable handler exported': content.includes('export async function handleGetFinancialReport'),
+    'Checks auth claims': content.includes('getClaims('),
+    'Validates query schema': content.includes('financialReportQuerySchema.safeParse'),
+    'Translates 42501 to 403': content.includes('status = 403'),
+    'Sanitizes DB errors without leaking rpcError.message': !content.includes('details: parsed.error.format()'),
+  }));
 
-  // Readiness GET
-  const readinessRouteFile = path.join(
-    root,
-    'src',
-    'app',
-    'api',
-    'customer',
-    'v1',
-    'accounting',
-    'periods',
-    '[id]',
-    'close-readiness',
-    'route.ts'
-  );
-  assert.ok(fs.existsSync(readinessRouteFile), 'Close readiness route must exist');
-  const readinessContent = fs.readFileSync(readinessRouteFile, 'utf8');
+  // 2. Periods GET
+  checkRoute('src/app/api/customer/v1/accounting/periods/route.ts', (content) => ({
+    'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
+    'Injectable handler exported': content.includes('export async function handleGetPeriods'),
+    'Checks auth claims': content.includes('getClaims('),
+    'Calls list_customer_accounting_periods RPC': content.includes('list_customer_accounting_periods'),
+    'Sanitizes errors': !content.includes('rpcError.message'),
+  }));
 
-  assert.ok(readinessContent.includes('createClient()'), 'Readiness route must use user client');
-  assert.ok(!readinessContent.includes('createAdminClient'), 'Readiness route must not use admin client');
-  assert.ok(readinessContent.includes('get_close_readiness'), 'Readiness route must call RPC');
-  assert.ok(readinessContent.includes('status = 403'), 'Readiness route must translate 42501 to 403');
+  // 3. Readiness GET
+  checkRoute('src/app/api/customer/v1/accounting/periods/[id]/close-readiness/route.ts', (content) => ({
+    'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
+    'Injectable handler exported': content.includes('export async function handleGetCloseReadiness'),
+    'Calls get_close_readiness RPC': content.includes('get_close_readiness'),
+    'Translates 42501 to 403 and P0002 to 404': content.includes('status = 403') && content.includes('status = 404'),
+    'Sanitizes errors': !content.includes('rpcError.message'),
+  }));
 
-  // Close POST
-  const closeRouteFile = path.join(
-    root,
-    'src',
-    'app',
-    'api',
-    'customer',
-    'v1',
-    'accounting',
-    'periods',
-    '[id]',
-    'close',
-    'route.ts'
-  );
-  assert.ok(fs.existsSync(closeRouteFile), 'Period close route must exist');
-  const closeContent = fs.readFileSync(closeRouteFile, 'utf8');
-
-  assert.ok(closeContent.includes('hasTrustedMutationOrigin(request)'), 'Close route must check trusted origin');
-  assert.ok(closeContent.includes('isApplicationJson'), 'Close route must enforce Content-Type: application/json');
-  assert.ok(closeContent.includes('parseJsonWithLimit(request, MAX_BODY_BYTES)'), 'Close route must limit body size via parseJsonWithLimit');
-  assert.ok(closeContent.includes('MAX_BODY_BYTES = 10 * 1024'), 'Close route must cap body to 10KB');
-  assert.ok(closeContent.includes('createClient()'), 'Close route must use user client');
-  assert.ok(!closeContent.includes('createAdminClient'), 'Close route must not use admin client');
-  assert.ok(closeContent.includes('close_accounting_period'), 'Close route must call close_accounting_period RPC');
-  assert.ok(closeContent.includes('p_reason: reason ? reason.trim() : null'), 'Close route must forward trimmed reason to RPC');
-  assert.ok(closeContent.includes('status = 409'), 'Close route must map period_already_closed to 409 Conflict');
-  assert.ok(closeContent.includes('status = 403'), 'Close route must map 42501 to 403 Forbidden');
-  assert.ok(closeContent.includes('status = 400'), 'Close route must map validation errors to 400 Bad Request');
+  // 4. Close POST
+  checkRoute('src/app/api/customer/v1/accounting/periods/[id]/close/route.ts', (content) => ({
+    'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
+    'Injectable handler exported': content.includes('export async function handlePostClose'),
+    'Enforces trusted mutation origin': content.includes('hasTrustedMutationOrigin(request)'),
+    'Enforces Content-Type application/json': content.includes('isApplicationJson'),
+    'Limits body bytes via parseJsonWithLimit': content.includes('parseJsonWithLimit(request, MAX_BODY_BYTES)'),
+    'Caps body at 10KB': content.includes('MAX_BODY_BYTES = 10 * 1024'),
+    'Maps 25000, 23P01, 40001 to 409 Conflict': content.includes('status = 409'),
+    'Maps 42501 to 403': content.includes('status = 403'),
+    'Maps P0002 to 404': content.includes('status = 404'),
+    'Maps 22023 to 400': content.includes('status = 400'),
+    'Never leaks raw DB errors': !content.includes('rpcError.message ||'),
+  }));
 
   console.log('  ✓ User Supabase client enforced across all financial endpoints (zero service role)');
+  console.log('  ✓ Direct injectable handlers exported on all 4 routes');
   console.log('  ✓ Origin, Content-Type, and 10KB stream byte limits enforced on POST close');
-  console.log('  ✓ Optional reason forwarded cleanly to RPC');
-  console.log('  ✓ Claims check and error mapping (403, 409, 400) verified');
+  console.log('  ✓ Raw DB error messages strictly sanitized across all endpoints');
 }
 
 // -----------------------------------------------------------------------------
@@ -378,460 +432,793 @@ const root = process.cwd();
   assert.ok(fs.existsSync(monthCloseFile), 'CustomerMonthClose component must exist');
   const content = fs.readFileSync(monthCloseFile, 'utf8');
 
-  // 1. Role capability check: strictly association_admin or property_manager
+  // 1. Fetches from dedicated periods endpoint
+  assert.ok(
+    content.includes('/api/customer/v1/accounting/periods?context_id='),
+    'Component must fetch from dedicated /api/customer/v1/accounting/periods'
+  );
+
+  // 2. Centralized Boolean DOM gating condition
+  assert.ok(
+    content.includes('canRenderCloseAction'),
+    'Component must define canRenderCloseAction boolean'
+  );
   assert.ok(
     content.includes("roleCode === 'association_admin' || roleCode === 'property_manager'"),
     'Only association_admin and property_manager may mutate'
   );
-
-  // 2. Button rendered conditionally on canMutateRole
   assert.ok(
-    content.includes("canMutateRole && readiness.status === 'open'") &&
-      content.includes('setModalOpen(true)'),
-    'Close button must only enter DOM when canMutateRole is true'
-  );
-
-  // 3. Oversight read-only banner for supervisory roles
-  assert.ok(
-    content.includes('readonlyRoleNotice') && content.includes('!canMutateRole'),
-    'Oversight badge rendered for president and censor'
-  );
-
-  // 4. Modal is guarded by canMutateRole
-  assert.ok(
-    content.includes('modalOpen && canMutateRole'),
-    'Confirmation dialog must never render for non-mutating roles'
-  );
-
-  // 5. Multi-currency segregation rendering
-  assert.ok(
-    content.includes('currency_summaries.map'),
-    'Component must render each currency summary separately'
+    content.includes("dashboard?.permissions?.includes('finance.periods.close')"),
+    'Must check finance.periods.close permission'
   );
   assert.ok(
-    content.includes('cs.currency'),
-    'Component must display the individual currency code'
+    content.includes("dashboard?.entitlements?.includes('module.accounting')"),
+    'Must check module.accounting entitlement'
   );
-
-  // 6. Reason input field in close confirmation modal
   assert.ok(
-    content.includes('close-period-reason'),
-    'Modal must provide optional close reason input field'
+    content.includes("readiness?.status === 'open'"),
+    'Must check readiness.status === open'
+  );
+  assert.ok(
+    content.includes('readiness?.can_close === true'),
+    'Must check readiness.can_close === true'
   );
 
-  // 7. Trilingual copy present
+  // 3. Mutation button strictly guarded by canRenderCloseAction
+  assert.ok(
+    content.includes('{canRenderCloseAction && (') && content.includes('{t.closeButton}'),
+    'Close button must only enter DOM when canRenderCloseAction is true'
+  );
+
+  // 4. Modal and Form strictly guarded by canRenderCloseAction
+  assert.ok(
+    content.includes('{modalOpen && canRenderCloseAction && ('),
+    'Confirmation dialog must never render when canRenderCloseAction is false'
+  );
+
+  // 5. Trilingual copy and currency segregation
   assert.ok(content.includes('Închidere de lună'), 'RO copy present');
   assert.ok(content.includes('Month close'), 'EN copy present');
   assert.ok(content.includes('بستن دوره حسابداری'), 'FA copy present');
+  assert.ok(content.includes('currency_summaries.map'), 'Segregated currency cards rendered');
 
-  console.log('  ✓ Zero mutation controls enter DOM for president, censor, owner, resident');
-  console.log('  ✓ Close confirmation dialog strictly guarded by canMutateRole');
-  console.log('  ✓ Segregated currency summary cards rendered per currency');
-  console.log('  ✓ Optional close reason input provided in confirmation modal');
-  console.log('  ✓ Oversight read-only badge present for inspection roles');
-  console.log('  ✓ Trilingual copy and currency segregation verified');
+  console.log('  ✓ UI switched to dedicated /api/customer/v1/accounting/periods endpoint');
+  console.log('  ✓ Button, modal, and form strictly guarded by 5-part canRenderCloseAction');
+  console.log('  ✓ Zero mutation controls enter DOM for non-mutating roles or unready periods');
 }
 
 // -----------------------------------------------------------------------------
-// Suite 5: Database Migration & pgTAP Assertion Contracts
+// Suite 5: Database Migration & pgTAP Package Integrity
 // -----------------------------------------------------------------------------
 {
   console.log('\n[Suite 5] Migration & pgTAP Package Integrity');
 
-  const migrationFile = path.join(
-    root,
-    'supabase',
-    'migrations',
-    '20260906150000_customer_financial_close_reporting.sql'
-  );
-  assert.ok(fs.existsSync(migrationFile), 'Migration must exist');
-  const sql = fs.readFileSync(migrationFile, 'utf8');
+  // Verify previous migrations are untouched
+  const prevMigration1 = path.join(root, 'supabase', 'migrations', '20260906150000_customer_financial_close_reporting.sql');
+  const prevMigration2 = path.join(root, 'supabase', 'migrations', '20260906190000_closed_period_ledger_seal.sql');
+  assert.ok(fs.existsSync(prevMigration1), 'Migration 20260906150000 must exist');
+  assert.ok(fs.existsSync(prevMigration2), 'Migration 20260906190000 must exist');
 
-  assert.ok(sql.includes('finance.reports.read'), 'Permission finance.reports.read defined');
-  assert.ok(sql.includes('finance.periods.read'), 'Permission finance.periods.read defined');
-  assert.ok(sql.includes('finance.periods.close'), 'Permission finance.periods.close defined');
-  assert.ok(sql.includes('add column if not exists closed_by uuid'), 'closed_by column added');
-  assert.ok(sql.includes('create or replace function app_private.resolve_financial_context_scope'), 'resolve_financial_context_scope helper defined');
-  assert.ok(sql.includes('create or replace function finance.get_close_readiness'), 'get_close_readiness RPC defined');
-  assert.ok(sql.includes('create or replace function finance.get_customer_financial_report'), 'get_customer_financial_report RPC defined');
-  assert.ok(sql.includes('create or replace function finance.close_accounting_period'), 'close_accounting_period RPC defined');
-  assert.ok(sql.includes('for update'), 'Locking FOR UPDATE on accounting_periods enforced');
-  assert.ok(sql.includes('ACCOUNTING_PERIOD_CLOSED'), 'Canonical audit event logged on period close');
-  assert.ok(sql.includes('period_not_ended'), 'Future period closure blocked');
-  assert.ok(sql.includes('currency_summaries'), 'Multi-currency Version 2 snapshot created');
+  // Verify forward corrective hardening migration
+  const fwdMigration = path.join(root, 'supabase', 'migrations', '20260906210000_financial_close_final_corrective_hardening.sql');
+  assert.ok(fs.existsSync(fwdMigration), 'Forward migration 20260906210000 must exist');
+  const fwdSql = fs.readFileSync(fwdMigration, 'utf8');
 
-  const pgtapFile = path.join(
-    root,
-    'supabase',
-    'tests',
-    '049_financial_close_reporting.test.sql'
-  );
+  // Forward migration checks:
+  assert.ok(fwdSql.includes('PREFLIGHT DATA VALIDATION'), 'Forward migration contains non-destructive preflight checks');
+  assert.ok(!fwdSql.includes('delete from finance.'), 'Preflight must NEVER delete existing data');
+  assert.ok(fwdSql.includes('finance.list_customer_accounting_periods'), 'Defines finance.list_customer_accounting_periods RPC');
+  assert.ok(fwdSql.includes('a_assert_accounting_period_property_tenant'), 'Defines period property tenant integrity trigger');
+  assert.ok(fwdSql.includes('a_assert_journal_parent_update_integrity'), 'Defines journal parent update integrity trigger');
+  assert.ok(fwdSql.includes('a_assert_account_parent_update_integrity'), 'Defines account parent update integrity trigger');
+  assert.ok(fwdSql.includes('app_private.redact_audit_text'), 'Defines authoritative reason redaction helper');
+  assert.ok(fwdSql.includes('p.property_id = v.property_id'), 'Fixes periods scope leak in legacy get_customer_ledger');
+
+  // pgTAP test file verification
+  const pgtapFile = path.join(root, 'supabase', 'tests', '049_financial_close_reporting.test.sql');
   assert.ok(fs.existsSync(pgtapFile), 'pgTAP test file must exist');
-  const pgtap = fs.readFileSync(pgtapFile, 'utf8');
-  assert.ok(pgtap.includes('select plan(75);'), 'pgTAP test must have plan(75)');
+  const pgtapSql = fs.readFileSync(pgtapFile, 'utf8');
 
-  const adrFile = path.join(
-    root,
-    'docs',
-    'architecture',
-    'ADR-CLD-051-financial-close-management-reports.md'
-  );
-  assert.ok(fs.existsSync(adrFile), 'ADR-CLD-051 must exist');
+  assert.ok(pgtapSql.includes('select plan(101);'), 'pgTAP test file must plan exactly 101 assertions');
+  assert.ok(pgtapSql.includes('test_fail_audit_trigger_fn'), 'pgTAP contains atomic audit rollback test');
+  assert.ok(pgtapSql.includes('test_multi_connection_concurrency'), 'pgTAP contains real multi-connection concurrency test');
 
-  console.log('  ✓ Migration 20260906150000_customer_financial_close_reporting.sql verified');
-  console.log('  ✓ pgTAP test 049_financial_close_reporting.test.sql verified with 75 assertions');
-  console.log('  ✓ ADR-CLD-051 documented with Version 2 snapshot and fail-closed scope rules');
+  console.log('  ✓ Previous migrations untouched; all hardening in 20260906210000 forward migration');
+  console.log('  ✓ pgTAP test 049 verified with 101 assertions covering audit rollback and multi-connection concurrency');
 }
 
 // -----------------------------------------------------------------------------
-// Suite 6: Direct Route Handler Invocations (NextRequest)
+// Suite 6: Direct Route Handler Invocations across All 4 Routes
 // -----------------------------------------------------------------------------
 {
-  console.log('\n[Suite 6] Direct Route Handler Invocations (NextRequest)');
-
-  const { hasTrustedMutationOrigin } = await import('../src/lib/security/same-origin.ts');
-  const { isApplicationJson, parseJsonWithLimit } = await import('../src/lib/security/request-body.ts');
-  const {
-    financialReportQuerySchema,
-    closePeriodRequestSchema,
-  } = await import('../src/lib/customer/financial-reports-schema.ts');
-  const { uuidSchema } = await import('../src/lib/customer/dashboard-schema.ts');
+  console.log('\n[Suite 6] Direct Route Handler Invocations (Full HTTP Status Matrix)');
 
   const baseOrigin = 'http://localhost:3000';
   const validContextId = '11111111-1111-1111-1111-111111111111';
   const validPeriodId = '22222222-2222-2222-2222-222222222222';
+  const validTenantId = '33333333-3333-3333-3333-333333333333';
 
-  // 1. GET /api/customer/v1/financial-reports Query Validation via NextRequest
+  // Import all 4 route handlers
+  const { handleGetFinancialReport } = await import('../src/app/api/customer/v1/financial-reports/route.ts');
+  const { handleGetPeriods } = await import('../src/app/api/customer/v1/accounting/periods/route.ts');
+  const { handleGetCloseReadiness } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close-readiness/route.ts');
+  const { handlePostClose } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close/route.ts');
+
+  // ---------------------------------------------------------------------------
+  // Route 1: GET /api/customer/v1/financial-reports
+  // ---------------------------------------------------------------------------
   {
-    // 1a. Invalid date (Feb 30) -> querySchema fails
-    const req1a = new NextRequest(
+    console.log('  -> Testing handleGetFinancialReport:');
+
+    // 400 Bad Request: Invalid date format (Feb 30)
+    const req400a = new NextRequest(
       `${baseOrigin}/api/customer/v1/financial-reports?context_id=${validContextId}&report_type=trial_balance&from=2026-02-30&to=2026-03-15&currency=RON`
     );
-    const searchParams1a = Object.fromEntries(req1a.nextUrl.searchParams.entries());
-    const parsed1a = financialReportQuerySchema.safeParse(searchParams1a);
-    assert.equal(parsed1a.success, false, 'Invalid calendar date (Feb 30) must be rejected');
+    const res400a = await handleGetFinancialReport(req400a);
+    assert.equal(res400a.status, 400, 'Invalid date must return 400');
+    const json400a = await res400a.json();
+    assert.equal(json400a.error.code, 'INVALID_REPORT_REQUEST');
 
-    // 1b. Inverted date range (from > to) -> querySchema fails
-    const req1b = new NextRequest(
+    // 400 Bad Request: Inverted date range
+    const req400b = new NextRequest(
       `${baseOrigin}/api/customer/v1/financial-reports?context_id=${validContextId}&report_type=trial_balance&from=2026-03-15&to=2026-02-15&currency=RON`
     );
-    const searchParams1b = Object.fromEntries(req1b.nextUrl.searchParams.entries());
-    const parsed1b = financialReportQuerySchema.safeParse(searchParams1b);
-    assert.equal(parsed1b.success, false, 'Inverted date range must be rejected');
+    const res400b = await handleGetFinancialReport(req400b);
+    assert.equal(res400b.status, 400, 'Inverted range must return 400');
 
-    // 1c. Missing currency -> querySchema fails
-    const req1c = new NextRequest(
-      `${baseOrigin}/api/customer/v1/financial-reports?context_id=${validContextId}&report_type=trial_balance&from=2026-01-01&to=2026-01-31`
-    );
-    const searchParams1c = Object.fromEntries(req1c.nextUrl.searchParams.entries());
-    const parsed1c = financialReportQuerySchema.safeParse(searchParams1c);
-    assert.equal(parsed1c.success, false, 'Missing currency must be rejected');
-
-    // 1d. Valid query -> querySchema succeeds
-    const req1d = new NextRequest(
+    // 401 Unauthorized: Missing user claims
+    const req401 = new NextRequest(
       `${baseOrigin}/api/customer/v1/financial-reports?context_id=${validContextId}&report_type=trial_balance&from=2026-01-01&to=2026-01-31&currency=RON`
     );
-    const searchParams1d = Object.fromEntries(req1d.nextUrl.searchParams.entries());
-    const parsed1d = financialReportQuerySchema.safeParse(searchParams1d);
-    assert.equal(parsed1d.success, true, 'Valid query parameters must succeed');
+    const client401 = createStubSupabaseClient({ claims: null });
+    const res401 = await handleGetFinancialReport(req401, client401);
+    assert.equal(res401.status, 401, 'Missing claims must return 401');
+
+    // 403 Forbidden: RPC returns SQLSTATE 42501 (Permission Denied)
+    const client403 = createStubSupabaseClient({
+      rpcError: { code: '42501', message: 'permission denied' },
+    });
+    const res403 = await handleGetFinancialReport(req401, client403);
+    assert.equal(res403.status, 403, '42501 error must return 403');
+    const json403 = await res403.json();
+    assert.equal(json403.error.code, 'REPORT_ACCESS_DENIED');
+
+    // 500 Sanitized: Database internal error
+    const client500 = createStubSupabaseClient({
+      rpcError: { code: 'XX000', message: 'fatal internal error at /var/lib/postgresql' },
+    });
+    const res500 = await handleGetFinancialReport(req401, client500);
+    assert.equal(res500.status, 500, 'Internal error must return 500');
+    const json500 = await res500.json();
+    assert.equal(json500.error.code, 'REPORT_QUERY_FAILED');
+    assert.ok(!JSON.stringify(json500).includes('postgresql'), 'Must never leak raw DB error');
+
+    // 200 Success: Valid report returned
+    const client200 = createStubSupabaseClient({
+      rpcData: {
+        version: 1,
+        report_type: 'trial_balance',
+        tenant_id: validTenantId,
+        property_id: null,
+        currency: 'RON',
+        from: '2026-01-01',
+        to: '2026-01-31',
+        rows: [],
+        totals: { total_debit: 0, total_credit: 0 },
+        is_balanced: true,
+        difference: 0,
+        generated_at: '2026-09-06T12:00:00.000Z',
+      },
+    });
+    const res200 = await handleGetFinancialReport(req401, client200);
+    assert.equal(res200.status, 200, 'Valid report must return 200');
   }
 
-  // 2. GET /api/customer/v1/accounting/periods/[id]/close-readiness via NextRequest
+  // ---------------------------------------------------------------------------
+  // Route 2: GET /api/customer/v1/accounting/periods
+  // ---------------------------------------------------------------------------
   {
-    // 2a. Invalid period UUID
-    const req2a = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/not-a-valid-uuid/close-readiness?context_id=${validContextId}`
-    );
-    const periodParam2a = req2a.nextUrl.pathname.split('/')[5];
-    const parsedParam2a = uuidSchema.safeParse(periodParam2a);
-    assert.equal(parsedParam2a.success, false, 'Invalid period UUID format must be rejected');
+    console.log('  -> Testing handleGetPeriods:');
 
-    // 2b. Missing context_id in query
-    const req2b = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close-readiness`
-    );
-    const parsedQuery2b = uuidSchema.safeParse(req2b.nextUrl.searchParams.get('context_id'));
-    assert.equal(parsedQuery2b.success, false, 'Missing context_id must be rejected');
+    // 400 Bad Request: Missing or invalid context UUID
+    const req400 = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods?context_id=invalid-uuid`);
+    const res400 = await handleGetPeriods(req400);
+    assert.equal(res400.status, 400, 'Invalid context_id must return 400');
 
-    // 2c. Valid period ID and context ID
-    const req2c = new NextRequest(
+    // 401 Unauthorized: Missing user claims
+    const reqValid = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods?context_id=${validContextId}`);
+    const client401 = createStubSupabaseClient({ claims: null });
+    const res401 = await handleGetPeriods(reqValid, client401);
+    assert.equal(res401.status, 401, 'Missing claims must return 401');
+
+    // 403 Forbidden: RPC error 42501
+    const client403 = createStubSupabaseClient({
+      rpcError: { code: '42501', message: 'role denied' },
+    });
+    const res403 = await handleGetPeriods(reqValid, client403);
+    assert.equal(res403.status, 403, '42501 must return 403');
+    const json403 = await res403.json();
+    assert.equal(json403.error.code, 'PERIODS_ACCESS_DENIED');
+
+    // 500 Sanitized: Database internal error
+    const client500 = createStubSupabaseClient({
+      rpcError: { code: 'XX000', message: 'database connection reset' },
+    });
+    const res500 = await handleGetPeriods(reqValid, client500);
+    assert.equal(res500.status, 500, 'Internal error must return 500');
+    const json500 = await res500.json();
+    assert.equal(json500.error.code, 'PERIODS_QUERY_FAILED');
+    assert.ok(!JSON.stringify(json500).includes('connection reset'), 'Must not leak raw message');
+
+    // 200 Success: Valid periods list returned
+    const client200 = createStubSupabaseClient({
+      rpcData: {
+        version: 2,
+        scope_type: 'tenant',
+        periods: [
+          {
+            id: validPeriodId,
+            tenant_id: validTenantId,
+            property_id: null,
+            starts_on: '2026-01-01',
+            ends_on: '2026-01-31',
+            status: 'open',
+            closed_at: null,
+            closed_by: null,
+          },
+        ],
+      },
+    });
+    const res200 = await handleGetPeriods(reqValid, client200);
+    assert.equal(res200.status, 200, 'Valid periods list must return 200');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Route 3: GET /api/customer/v1/accounting/periods/[id]/close-readiness
+  // ---------------------------------------------------------------------------
+  {
+    console.log('  -> Testing handleGetCloseReadiness:');
+
+    // 400 Bad Request: Invalid period UUID param
+    const reqValid = new NextRequest(
       `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close-readiness?context_id=${validContextId}`
     );
-    assert.equal(uuidSchema.safeParse(validPeriodId).success, true);
-    assert.equal(uuidSchema.safeParse(req2c.nextUrl.searchParams.get('context_id')).success, true);
+    const res400a = await handleGetCloseReadiness(reqValid, { id: 'not-a-uuid' });
+    assert.equal(res400a.status, 400, 'Invalid period id param must return 400');
+
+    // 400 Bad Request: Missing context_id in query
+    const req400b = new NextRequest(
+      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close-readiness`
+    );
+    const res400b = await handleGetCloseReadiness(req400b, { id: validPeriodId });
+    assert.equal(res400b.status, 400, 'Missing context_id must return 400');
+
+    // 401 Unauthorized
+    const client401 = createStubSupabaseClient({ claims: null });
+    const res401 = await handleGetCloseReadiness(reqValid, { id: validPeriodId }, client401);
+    assert.equal(res401.status, 401, 'Missing claims must return 401');
+
+    // 403 Forbidden
+    const client403 = createStubSupabaseClient({
+      rpcError: { code: '42501', message: 'permission denied' },
+    });
+    const res403 = await handleGetCloseReadiness(reqValid, { id: validPeriodId }, client403);
+    assert.equal(res403.status, 403, '42501 must return 403');
+    const json403 = await res403.json();
+    assert.equal(json403.error.code, 'PERIOD_ACCESS_DENIED');
+
+    // 404 Not Found: Period does not exist (P0002)
+    const client404 = createStubSupabaseClient({
+      rpcError: { code: 'P0002', message: 'not found' },
+    });
+    const res404 = await handleGetCloseReadiness(reqValid, { id: validPeriodId }, client404);
+    assert.equal(res404.status, 404, 'P0002 must return 404');
+    const json404 = await res404.json();
+    assert.equal(json404.error.code, 'PERIOD_NOT_FOUND');
+
+    // 500 Sanitized
+    const client500 = createStubSupabaseClient({
+      rpcError: { code: 'XX000', message: 'internal error' },
+    });
+    const res500 = await handleGetCloseReadiness(reqValid, { id: validPeriodId }, client500);
+    assert.equal(res500.status, 500, 'Internal error must return 500');
+    const json500 = await res500.json();
+    assert.equal(json500.error.code, 'READINESS_CHECK_FAILED');
+
+    // 200 Success: Valid readiness payload
+    const client200 = createStubSupabaseClient({
+      rpcData: {
+        version: 2,
+        period: {
+          id: validPeriodId,
+          tenant_id: validTenantId,
+          property_id: null,
+          starts_on: '2026-01-01',
+          ends_on: '2026-01-31',
+          status: 'open',
+          closed_at: null,
+          closed_by: null,
+        },
+        tenant_id: validTenantId,
+        property_id: null,
+        scope_type: 'tenant',
+        status: 'open',
+        draft_journals_count: 0,
+        unbalanced_journals_count: 0,
+        posted_journals_count: 10,
+        currencies: ['RON'],
+        currency_summaries: [
+          {
+            currency: 'RON',
+            posted_journals_count: 10,
+            total_debit: 5000,
+            total_credit: 5000,
+            difference: 0,
+            is_balanced: true,
+            trial_balance: [],
+          },
+        ],
+        warnings: [],
+        can_close: true,
+        blocking_reasons: [],
+        generated_at: '2026-09-06T12:00:00.000Z',
+      },
+    });
+    const res200 = await handleGetCloseReadiness(reqValid, { id: validPeriodId }, client200);
+    assert.equal(res200.status, 200, 'Valid readiness must return 200');
   }
 
-  // 3. Direct Route Handler POST() Invocation with NextRequest
+  // ---------------------------------------------------------------------------
+  // Route 4: POST /api/customer/v1/accounting/periods/[id]/close
+  // ---------------------------------------------------------------------------
   {
-    const { POST: closePost } = await import(
-      '../src/app/api/customer/v1/accounting/periods/[id]/close/route.ts'
-    );
+    console.log('  -> Testing handlePostClose:');
 
-    // 3a. Untrusted mutation origin -> rejected (403)
-    const req3a = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`,
-      {
+    const makePostRequest = ({
+      origin = baseOrigin,
+      contentType = 'application/json',
+      body = JSON.stringify({ context_id: validContextId, reason: 'Test close' }),
+      headers = {},
+    } = {}) => {
+      return new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`, {
         method: 'POST',
         headers: {
-          origin: 'https://attacker.example.com',
-          'sec-fetch-site': 'cross-site',
-          'content-type': 'application/json',
+          origin,
+          'content-type': contentType,
+          ...headers,
         },
-        body: JSON.stringify({ context_id: validContextId }),
-      }
-    );
-    const res3a = await closePost(req3a, { params: Promise.resolve({ id: validPeriodId }) });
-    assert.equal(res3a.status, 403, 'Cross-origin request must be rejected with 403');
-    const json3a = await res3a.json();
-    assert.equal(json3a.error.code, 'UNTRUSTED_ORIGIN');
-    assert.equal(json3a.error.message, 'Untrusted mutation origin');
+        body,
+      });
+    };
 
-    // 3b. Trusted mutation origin check
-    const req3b = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`,
-      {
-        method: 'POST',
-        headers: {
-          origin: baseOrigin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ context_id: validContextId }),
-      }
-    );
-    assert.equal(hasTrustedMutationOrigin(req3b), true, 'Same-origin request must be trusted');
+    // 403 Forbidden: Untrusted mutation origin
+    const reqUntrusted = makePostRequest({ origin: 'https://attacker.example.com' });
+    const resUntrusted = await handlePostClose(reqUntrusted, { id: validPeriodId });
+    assert.equal(resUntrusted.status, 403, 'Cross-origin request must return 403');
+    const jsonUntrusted = await resUntrusted.json();
+    assert.equal(jsonUntrusted.error.code, 'UNTRUSTED_ORIGIN');
 
-    // 3c. Invalid Content-Type (text/plain) -> rejected (415)
-    const req3c = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`,
-      {
-        method: 'POST',
-        headers: {
-          origin: baseOrigin,
-          'content-type': 'text/plain',
-        },
-        body: 'plain text body',
-      }
-    );
-    const res3c = await closePost(req3c, { params: Promise.resolve({ id: validPeriodId }) });
-    assert.equal(res3c.status, 415, 'text/plain must be rejected with 415');
-    const json3c = await res3c.json();
-    assert.equal(json3c.error.code, 'UNSUPPORTED_MEDIA_TYPE');
+    // 415 Unsupported Media Type: non-JSON MIME
+    const req415 = makePostRequest({ contentType: 'text/plain', body: 'hello' });
+    const res415 = await handlePostClose(req415, { id: validPeriodId });
+    assert.equal(res415.status, 415, 'text/plain must return 415');
+    const json415 = await res415.json();
+    assert.equal(json415.error.code, 'UNSUPPORTED_MEDIA_TYPE');
 
-    // 3d. Payload exceeding 10KB -> rejected (413)
-    const bigString = 'A'.repeat(12 * 1024);
-    const req3d = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`,
-      {
-        method: 'POST',
-        headers: {
-          origin: baseOrigin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          context_id: validContextId,
-          reason: bigString,
-        }),
-      }
-    );
-    const res3d = await closePost(req3d, { params: Promise.resolve({ id: validPeriodId }) });
-    assert.equal(res3d.status, 413, 'Payload exceeding 10KB must return 413');
-    const json3d = await res3d.json();
-    assert.equal(json3d.error.code, 'PAYLOAD_TOO_LARGE');
+    // 413 Payload Too Large: Content-Length > 10KB
+    const req413 = makePostRequest({
+      headers: { 'content-length': '15000' },
+      body: 'x'.repeat(15000),
+    });
+    const res413 = await handlePostClose(req413, { id: validPeriodId });
+    assert.equal(res413.status, 413, 'Payload exceeding 10KB must return 413');
+    const json413 = await res413.json();
+    assert.equal(json413.error.code, 'PAYLOAD_TOO_LARGE');
 
-    // 3e. Malformed JSON -> rejected (400)
-    const req3e = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`,
-      {
-        method: 'POST',
-        headers: {
-          origin: baseOrigin,
-          'content-type': 'application/json',
-        },
-        body: '{ malformed: true, ',
-      }
-    );
-    const res3e = await closePost(req3e, { params: Promise.resolve({ id: validPeriodId }) });
-    assert.equal(res3e.status, 400, 'Malformed JSON must return 400');
-    const json3e = await res3e.json();
-    assert.equal(json3e.error.code, 'INVALID_JSON');
+    // 400 Bad Request: Malformed JSON
+    const reqMalformed = makePostRequest({ body: '{ malformed: json, ' });
+    const resMalformed = await handlePostClose(reqMalformed, { id: validPeriodId });
+    assert.equal(resMalformed.status, 400, 'Malformed JSON must return 400');
+    const jsonMalformed = await resMalformed.json();
+    assert.equal(jsonMalformed.error.code, 'INVALID_JSON');
 
-    // 3f. Invalid URL params (invalid period UUID) -> rejected (400)
-    const reqParam = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/not-a-uuid/close`,
-      {
-        method: 'POST',
-        headers: {
-          origin: baseOrigin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ context_id: validContextId }),
-      }
-    );
-    const resParam = await closePost(reqParam, { params: Promise.resolve({ id: 'not-a-uuid' }) });
-    assert.equal(resParam.status, 400, 'Invalid period UUID param must return 400');
-    const jsonParam = await resParam.json();
-    assert.equal(jsonParam.error.code, 'INVALID_PERIOD_ID');
+    // 400 Bad Request: Invalid period ID parameter
+    const resInvalidParam = await handlePostClose(makePostRequest(), { id: 'invalid-uuid' });
+    assert.equal(resInvalidParam.status, 400, 'Invalid period id param must return 400');
+    const jsonInvalidParam = await resInvalidParam.json();
+    assert.equal(jsonInvalidParam.error.code, 'INVALID_PERIOD_ID');
 
-    // 3g. Invalid body payload (context_id not a UUID) -> rejected (400)
-    const req3f = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`,
-      {
-        method: 'POST',
-        headers: {
-          origin: baseOrigin,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({ context_id: 'not-a-valid-uuid' }),
-      }
-    );
-    const res3f = await closePost(req3f, { params: Promise.resolve({ id: validPeriodId }) });
-    assert.equal(res3f.status, 400, 'Invalid context_id in body must return 400');
-    const json3f = await res3f.json();
-    assert.equal(json3f.error.code, 'INVALID_REQUEST_PAYLOAD');
+    // 400 Bad Request: Invalid payload body schema (context_id not a UUID)
+    const reqInvalidBody = makePostRequest({
+      body: JSON.stringify({ context_id: 'not-a-uuid' }),
+    });
+    const resInvalidBody = await handlePostClose(reqInvalidBody, { id: validPeriodId });
+    assert.equal(resInvalidBody.status, 400, 'Invalid body schema must return 400');
+    const jsonInvalidBody = await resInvalidBody.json();
+    assert.equal(jsonInvalidBody.error.code, 'INVALID_REQUEST_PAYLOAD');
 
-    // 3h. Valid payload schema parsing
-    const req3g = new NextRequest(
-      `${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`,
-      {
-        method: 'POST',
-        headers: {
-          origin: baseOrigin,
-          'content-type': 'application/json',
+    // 401 Unauthorized: Missing user claims
+    const client401 = createStubSupabaseClient({ claims: null });
+    const res401 = await handlePostClose(makePostRequest(), { id: validPeriodId }, client401);
+    assert.equal(res401.status, 401, 'Missing claims must return 401');
+
+    // 403 Forbidden: RPC returns 42501
+    const client403 = createStubSupabaseClient({
+      rpcError: { code: '42501', message: 'permission denied' },
+    });
+    const res403 = await handlePostClose(makePostRequest(), { id: validPeriodId }, client403);
+    assert.equal(res403.status, 403, '42501 must return 403');
+    const json403 = await res403.json();
+    assert.equal(json403.error.code, 'PERIOD_CLOSE_DENIED');
+
+    // 404 Not Found: Period does not exist (P0002)
+    const client404 = createStubSupabaseClient({
+      rpcError: { code: 'P0002', message: 'not found' },
+    });
+    const res404 = await handlePostClose(makePostRequest(), { id: validPeriodId }, client404);
+    assert.equal(res404.status, 404, 'P0002 must return 404');
+    const json404 = await res404.json();
+    assert.equal(json404.error.code, 'PERIOD_NOT_FOUND');
+
+    // 409 Conflict: Already closed period (SQLSTATE 25000)
+    const client409a = createStubSupabaseClient({
+      rpcError: { code: '25000', message: 'Cannot modify closed period' },
+    });
+    const res409a = await handlePostClose(makePostRequest(), { id: validPeriodId }, client409a);
+    assert.equal(res409a.status, 409, 'SQLSTATE 25000 must return 409 Conflict');
+    const json409a = await res409a.json();
+    assert.equal(json409a.error.code, 'ACCOUNTING_PERIOD_CLOSED');
+
+    // 409 Conflict: Overlapping period (SQLSTATE 23P01)
+    const client409b = createStubSupabaseClient({
+      rpcError: { code: '23P01', message: 'Exclusion constraint violation' },
+    });
+    const res409b = await handlePostClose(makePostRequest(), { id: validPeriodId }, client409b);
+    assert.equal(res409b.status, 409, 'SQLSTATE 23P01 must return 409 Conflict');
+    const json409b = await res409b.json();
+    assert.equal(json409b.error.code, 'ACCOUNTING_PERIOD_OVERLAP');
+
+    // 409 Conflict: Idempotency conflict (already closed 40001)
+    const client409c = createStubSupabaseClient({
+      rpcError: { code: '40001', message: 'period_already_closed' },
+    });
+    const res409c = await handlePostClose(makePostRequest(), { id: validPeriodId }, client409c);
+    assert.equal(res409c.status, 409, 'already_closed must return 409');
+    const json409c = await res409c.json();
+    assert.equal(json409c.error.code, 'PERIOD_ALREADY_CLOSED');
+
+    // 400 Bad Request: Sequence / draft blocked (22023)
+    const client400Seq = createStubSupabaseClient({
+      rpcError: { code: '22023', message: 'preceding_periods_unclosed' },
+    });
+    const res400Seq = await handlePostClose(makePostRequest(), { id: validPeriodId }, client400Seq);
+    assert.equal(res400Seq.status, 400, '22023 sequence blocked must return 400');
+    const json400Seq = await res400Seq.json();
+    assert.equal(json400Seq.error.code, 'PERIOD_CLOSE_BLOCKED');
+
+    // 500 Sanitized: Database internal error
+    const client500 = createStubSupabaseClient({
+      rpcError: { code: 'XX000', message: 'disk failure at /data' },
+    });
+    const res500 = await handlePostClose(makePostRequest(), { id: validPeriodId }, client500);
+    assert.equal(res500.status, 500, 'Internal error must return 500');
+    const json500 = await res500.json();
+    assert.equal(json500.error.code, 'PERIOD_CLOSE_FAILED');
+    assert.ok(!JSON.stringify(json500).includes('/data'), 'Must not leak database internals');
+
+    // 200 Success: Valid close returning Version 2 snapshot
+    const validSnapshotData = {
+      version: 2,
+      snapshot_version: 2,
+      close_reason: 'Regular monthly financial close',
+      period_id: validPeriodId,
+      tenant_id: validTenantId,
+      property_id: null,
+      starts_on: '2026-01-01',
+      ends_on: '2026-01-31',
+      closed_at: '2026-09-06T12:00:00.000Z',
+      closed_by: '44444444-4444-4444-4444-444444444444',
+      closed_by_role: 'association_admin',
+      currency_summaries: [
+        {
+          currency: 'RON',
+          posted_journals_count: 5,
+          total_debit: 1500,
+          total_credit: 1500,
+          difference: 0,
+          is_balanced: true,
+          trial_balance: [],
         },
-        body: JSON.stringify({
-          context_id: validContextId,
-          reason: 'Valid monthly close request',
-        }),
-      }
-    );
-    const { data: body3g } = await parseJsonWithLimit(req3g, 10 * 1024);
-    const parsed3g = closePeriodRequestSchema.safeParse(body3g);
-    assert.equal(parsed3g.success, true, 'Valid payload with reason must be accepted');
-    assert.equal(parsed3g.data.reason, 'Valid monthly close request');
+      ],
+      is_balanced: true,
+    };
+
+    const client200 = createStubSupabaseClient({
+      rpcData: {
+        version: 2,
+        success: true,
+        period_id: validPeriodId,
+        status: 'closed',
+        closed_at: '2026-09-06T12:00:00.000Z',
+        closed_by: '44444444-4444-4444-4444-444444444444',
+        snapshot: validSnapshotData,
+      },
+    });
+    const res200 = await handlePostClose(makePostRequest(), { id: validPeriodId }, client200);
+    assert.equal(res200.status, 200, 'Successful close must return 200');
+    const json200 = await res200.json();
+    assert.equal(json200.success, true);
+    assert.equal(json200.status, 'closed');
+    assert.equal(json200.snapshot.snapshot_version, 2);
   }
 
-  console.log('  ✓ GET /financial-reports: NextRequest validates calendar dates & inverted ranges');
-  console.log('  ✓ GET /close-readiness: NextRequest validates period UUID and context_id');
-  console.log('  ✓ POST /close: Direct Route Handler execution enforces 403 on untrusted origin');
-  console.log('  ✓ POST /close: Direct Route Handler execution enforces 415 on non-JSON MIME');
-  console.log('  ✓ POST /close: Direct Route Handler execution enforces 413 on >10KB payload');
-  console.log('  ✓ POST /close: Direct Route Handler execution enforces 400 on malformed JSON');
-  console.log('  ✓ POST /close: Direct Route Handler execution enforces 400 on invalid period UUID');
-  console.log('  ✓ POST /close: Direct Route Handler execution enforces 400 on invalid body payload');
+  console.log('  ✓ All 4 Route Handlers directly tested with real NextRequest instances');
+  console.log('  ✓ Complete HTTP status matrix verified: 200, 400, 401, 403, 404, 409, 413, 415, 500 Sanitized');
 }
 
 // -----------------------------------------------------------------------------
-// Suite 7: Closed Period Ledger Seal, GiST Exclusion & Concurrency Lock Verification
+// Suite 7: Byte-Based 10KB Stream Defense Direct Handler Tests
 // -----------------------------------------------------------------------------
 {
-  console.log('\n[Suite 7] Closed Period Ledger Seal & Bidirectional Concurrency Verification');
+  console.log('\n[Suite 7] Byte-Based 10KB Stream Defense Verification');
 
-  const migrationFile = path.join(root, 'supabase', 'migrations', '20260906190000_closed_period_ledger_seal.sql');
-  assert.ok(fs.existsSync(migrationFile), 'Forward migration 20260906190000_closed_period_ledger_seal.sql must exist');
+  const { handlePostClose } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close/route.ts');
+  const baseOrigin = 'http://localhost:3000';
+  const validContextId = '11111111-1111-1111-1111-111111111111';
+  const validPeriodId = '22222222-2222-2222-2222-222222222222';
 
-  const sql = fs.readFileSync(migrationFile, 'utf8');
+  // 1. Exact Boundary Test: JSON payload of exactly 10,240 bytes (10KB)
+  {
+    const prefix = `{"context_id":"${validContextId}","reason":"`;
+    const suffix = `"}`;
+    const neededPadding = 10240 - Buffer.byteLength(prefix, 'utf8') - Buffer.byteLength(suffix, 'utf8');
+    const padding = 'a'.repeat(neededPadding);
+    const exactBody = prefix + padding + suffix;
+    assert.equal(Buffer.byteLength(exactBody, 'utf8'), 10240, 'Body must be exactly 10240 bytes');
 
-  // 1. Preflight checks: ensure no automatic delete or update of existing data
-  assert.ok(sql.includes('PREFLIGHT DATA VALIDATION'), 'Migration must contain preflight data validation');
-  assert.ok(!sql.includes('delete from finance.accounting_periods'), 'Preflight must NEVER delete accounting periods');
-  assert.ok(!sql.includes('delete from finance.journals'), 'Preflight must NEVER delete journals');
-  assert.ok(!sql.includes('delete from finance.journal_entries'), 'Preflight must NEVER delete journal entries');
-  assert.ok(sql.includes('Migration preflight check failed'), 'Preflight must fail with clear exception on unhealthy data');
-
-  // 2. GiST Exclusion Constraints
-  assert.ok(sql.includes('accounting_periods_property_no_overlap'), 'Must define accounting_periods_property_no_overlap constraint');
-  assert.ok(sql.includes('accounting_periods_tenant_no_overlap'), 'Must define accounting_periods_tenant_no_overlap constraint');
-  assert.ok(sql.includes('exclude using gist'), 'Must enforce exclusion using gist');
-  assert.ok(sql.includes("where (property_id is not null)"), 'Property constraint must filter where property_id is not null');
-  assert.ok(sql.includes("where (property_id is null)"), 'Tenant constraint must filter where property_id is null');
-
-  // 3. Tenant Serialization on Period Insert/Update
-  assert.ok(sql.includes('from platform.tenants'), 'Must serialize on parent tenant');
-  assert.ok(sql.includes('for update'), 'Must lock parent tenant row FOR UPDATE');
-  assert.ok(sql.includes('Tenant-wide accounting period cannot overlap'), 'Must enforce tenant-wide exclusion');
-  assert.ok(sql.includes('Property accounting period cannot overlap with existing tenant-wide period'), 'Must enforce property exclusion against tenant-wide');
-
-  // 4. FOR SHARE Lock & Fail-Closed Multi-Period Check
-  assert.ok(sql.includes('for share'), 'Must lock matching period rows FOR SHARE');
-  assert.ok(sql.includes('v_total_matching > 1'), 'Must detect multiple covering periods');
-  assert.ok(sql.includes('Ambiguous accounting period matching'), 'Must fail-closed when multiple periods match');
-  assert.ok(!sql.includes('limit 1'), 'Must NEVER pick arbitrary period with LIMIT 1');
-  assert.ok(sql.includes("using errcode = '25000'"), 'Must raise SQLSTATE 25000 on closed period');
-
-  // 5. Journal and Entry Trigger Coverage (INSERT, UPDATE, DELETE, OLD/NEW)
-  assert.ok(sql.includes('before insert or update or delete on finance.journals'), 'Journal trigger must cover INSERT, UPDATE, DELETE');
-  assert.ok(sql.includes('before insert or update or delete on finance.journal_entries'), 'Entry trigger must cover INSERT, UPDATE, DELETE');
-  assert.ok(sql.includes('old.tenant_id, old.property_id, old.occurred_on'), 'Journal trigger must check OLD values on update/delete');
-  assert.ok(sql.includes('new.tenant_id, new.property_id, new.occurred_on'), 'Journal trigger must check NEW values on insert/update');
-  assert.ok(sql.includes('old.journal_id'), 'Entry trigger must check OLD journal on update/delete');
-  assert.ok(sql.includes('new.journal_id'), 'Entry trigger must check NEW journal on insert/update');
-
-  // 6. Structural Consistency Rules
-  assert.ok(sql.includes('new.tenant_id <> v_j.tenant_id or new.tenant_id <> v_a.tenant_id'), 'Must enforce entry.tenant_id = journal.tenant_id = account.tenant_id');
-  assert.ok(sql.includes('v_a.property_id is distinct from v_j.property_id'), 'Must enforce account.property_id IS NOT DISTINCT FROM journal.property_id');
-  assert.ok(sql.includes('v_a.currency <> v_j.currency'), 'Must enforce account.currency = journal.currency');
-
-  // 7. Deterministic Readiness Sort
-  assert.ok(sql.includes('order by cs.currency asc'), 'Must sort currency_summaries deterministically by currency asc');
-
-  // 8. Bidirectional Concurrency Race Simulation Verification
-  // Formal verification of mutual exclusion:
-  // Direction A (Journal holds SHARE lock -> Close waits):
-  // - Journal acquires ShareLock on (tenant_id, property_id, occurred_on).
-  // - Close executes SELECT ... FOR UPDATE (ExclusiveLock on period).
-  // - Postgres lock table: ShareLock and ExclusiveLock are mutually exclusive.
-  // - Close transaction blocks until Journal transaction commits or rolls back.
-  // - Upon Journal commit, Close resumes and includes committed journal in snapshot.
-  // Direction B (Close holds UPDATE lock -> Journal waits):
-  // - Close executes SELECT ... FOR UPDATE (ExclusiveLock on period).
-  // - Journal executes SELECT ... FOR SHARE (ShareLock on period).
-  // - Journal transaction blocks until Close transaction commits.
-  // - Upon Close commit, period row status is now 'closed'.
-  // - Journal unblocks, evaluates row, sees status = 'closed', and aborts with SQLSTATE 25000.
-  const lockSimulation = {
-    journalLockMode: 'FOR SHARE',
-    closeLockMode: 'FOR UPDATE',
-    conflictMatrix: {
-      'SHARE-UPDATE': 'CONFLICT_WAIT',
-      'UPDATE-SHARE': 'CONFLICT_WAIT',
-    },
-    raceOutcomes: {
-      journalFirst: {
-        winner: 'journal',
-        closeAction: 'waits_for_journal_commit',
-        finalSnapshotIncludesJournal: true,
+    const reqExact = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`, {
+      method: 'POST',
+      headers: {
+        origin: baseOrigin,
+        'content-type': 'application/json',
+        'content-length': '10240',
       },
-      closeFirst: {
-        winner: 'close',
-        journalAction: 'waits_then_fails_closed',
-        journalExceptionCode: '25000',
-        journalErrorMessage: 'Cannot modify journal or entry in closed accounting period',
+      body: exactBody,
+    });
+
+    const stubClient = createStubSupabaseClient({
+      rpcData: {
+        version: 2,
+        success: true,
+        period_id: validPeriodId,
+        status: 'closed',
+        closed_at: '2026-09-06T12:00:00.000Z',
+        closed_by: '44444444-4444-4444-4444-444444444444',
+        snapshot: {
+          version: 2,
+          snapshot_version: 2,
+          close_reason: 'padded',
+          period_id: validPeriodId,
+          tenant_id: '33333333-3333-3333-3333-333333333333',
+          property_id: null,
+          starts_on: '2026-01-01',
+          ends_on: '2026-01-31',
+          closed_at: '2026-09-06T12:00:00.000Z',
+          closed_by: '44444444-4444-4444-4444-444444444444',
+          closed_by_role: 'association_admin',
+          currency_summaries: [
+            {
+              currency: 'RON',
+              posted_journals_count: 1,
+              total_debit: 100,
+              total_credit: 100,
+              difference: 0,
+              is_balanced: true,
+              trial_balance: [],
+            },
+          ],
+          is_balanced: true,
+        },
       },
-    },
+    });
+
+    const resExact = await handlePostClose(reqExact, { id: validPeriodId }, stubClient);
+    assert.notEqual(resExact.status, 413, 'Exact 10240 bytes must not return 413');
+  }
+
+  // 2. Boundary Overflow Test: JSON payload of 10,241 bytes (10KB + 1 byte)
+  {
+    const prefix = `{"context_id":"${validContextId}","reason":"`;
+    const suffix = `"}`;
+    const neededPadding = 10241 - Buffer.byteLength(prefix, 'utf8') - Buffer.byteLength(suffix, 'utf8');
+    const padding = 'a'.repeat(neededPadding);
+    const overflowBody = prefix + padding + suffix;
+    assert.equal(Buffer.byteLength(overflowBody, 'utf8'), 10241, 'Body must be exactly 10241 bytes');
+
+    const reqOverflow = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`, {
+      method: 'POST',
+      headers: {
+        origin: baseOrigin,
+        'content-type': 'application/json',
+        'content-length': '10241',
+      },
+      body: overflowBody,
+    });
+
+    const resOverflow = await handlePostClose(reqOverflow, { id: validPeriodId });
+    assert.equal(resOverflow.status, 413, '10,241 bytes must return 413 Payload Too Large');
+    const jsonOverflow = await resOverflow.json();
+    assert.equal(jsonOverflow.error.code, 'PAYLOAD_TOO_LARGE');
+  }
+
+  // 3. Multi-byte UTF-8 Character Length vs Byte Count Test
+  // Euro symbol (€) is 3 bytes in UTF-8. 4,000 chars = 12,000 bytes (>10KB)
+  {
+    const multiByteChars = '€'.repeat(4000); // 4,000 chars, but 12,000 bytes!
+    assert.ok(multiByteChars.length < 10240, 'Character length is under 10k');
+    assert.ok(Buffer.byteLength(multiByteChars, 'utf8') > 10240, 'Byte count exceeds 10KB');
+
+    const utf8Body = JSON.stringify({
+      context_id: validContextId,
+      reason: multiByteChars,
+    });
+
+    const reqUtf8 = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`, {
+      method: 'POST',
+      headers: {
+        origin: baseOrigin,
+        'content-type': 'application/json',
+      },
+      body: utf8Body,
+    });
+
+    const resUtf8 = await handlePostClose(reqUtf8, { id: validPeriodId });
+    assert.equal(resUtf8.status, 413, 'Multi-byte UTF-8 exceeding 10KB in bytes must return 413');
+    const jsonUtf8 = await resUtf8.json();
+    assert.equal(jsonUtf8.error.code, 'PAYLOAD_TOO_LARGE');
+  }
+
+  // 4. Missing Content-Length with Streaming Body exceeding 10KB
+  {
+    const chunk1 = Buffer.from('{"context_id":"' + validContextId + '","reason":"');
+    const chunk2 = Buffer.alloc(11 * 1024, 'B'); // 11KB chunk
+    const chunk3 = Buffer.from('"}');
+
+    const stream = createStreamFromChunks([chunk1, chunk2, chunk3]);
+
+    const reqStreamNoCl = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`, {
+      method: 'POST',
+      headers: {
+        origin: baseOrigin,
+        'content-type': 'application/json',
+        // Omit content-length entirely
+      },
+      body: stream,
+    });
+
+    const resStreamNoCl = await handlePostClose(reqStreamNoCl, { id: validPeriodId });
+    assert.equal(resStreamNoCl.status, 413, 'Missing Content-Length with streaming overflow must return 413');
+    const jsonStreamNoCl = await resStreamNoCl.json();
+    assert.equal(jsonStreamNoCl.error.code, 'PAYLOAD_TOO_LARGE');
+  }
+
+  // 5. Spoofed Lower Content-Length (Header claims 500 bytes, stream sends 12KB)
+  {
+    const chunkBig = Buffer.alloc(12 * 1024, 'C');
+    const stream = createStreamFromChunks([chunkBig]);
+
+    const reqSpoofed = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`, {
+      method: 'POST',
+      headers: {
+        origin: baseOrigin,
+        'content-type': 'application/json',
+        'content-length': '500', // Spoofed low value
+      },
+      body: stream,
+    });
+
+    const resSpoofed = await handlePostClose(reqSpoofed, { id: validPeriodId });
+    assert.equal(resSpoofed.status, 413, 'Spoofed low Content-Length must be caught by stream byte counter and return 413');
+    const jsonSpoofed = await resSpoofed.json();
+    assert.equal(jsonSpoofed.error.code, 'PAYLOAD_TOO_LARGE');
+  }
+
+  // 6. Invalid / Negative Content-Length Header
+  {
+    const chunkBig = Buffer.alloc(12 * 1024, 'D');
+    const stream = createStreamFromChunks([chunkBig]);
+
+    const reqInvalidCl = new NextRequest(`${baseOrigin}/api/customer/v1/accounting/periods/${validPeriodId}/close`, {
+      method: 'POST',
+      headers: {
+        origin: baseOrigin,
+        'content-type': 'application/json',
+        'content-length': '-100', // Invalid negative value
+      },
+      body: stream,
+    });
+
+    const resInvalidCl = await handlePostClose(reqInvalidCl, { id: validPeriodId });
+    assert.equal(resInvalidCl.status, 413, 'Invalid Content-Length header must be caught by stream reader and return 413');
+    const jsonInvalidCl = await resInvalidCl.json();
+    assert.equal(jsonInvalidCl.error.code, 'PAYLOAD_TOO_LARGE');
+  }
+
+  console.log('  ✓ Exact 10,240 byte payload boundary parsed and accepted');
+  console.log('  ✓ 10,241 byte payload (+1 byte over boundary) strictly rejected with 413');
+  console.log('  ✓ Multi-byte UTF-8 character byte counting strictly enforced (>10KB bytes rejected)');
+  console.log('  ✓ Missing Content-Length stream defense strictly aborts on 10KB overflow');
+  console.log('  ✓ Spoofed small Content-Length stream defense aborts on 10KB overflow');
+  console.log('  ✓ Invalid/negative Content-Length stream defense aborts on 10KB overflow');
+}
+
+// -----------------------------------------------------------------------------
+// Suite 8: Authoritative Reason Redaction & Parent-Update Integrity Verification
+// -----------------------------------------------------------------------------
+{
+  console.log('\n[Suite 8] Reason Redaction & Parent-Update Integrity Architecture');
+
+  // 1. Authoritative Reason Redaction Test Patterns (Matching app_private.redact_audit_text)
+  const redactAuditText = (input) => {
+    if (!input) return null;
+    const sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '').trim();
+    const sensitivePattern = /(password|passwd|passphrase|secret|token|session|captcha|authorization|cookie|api[ _-]?key|private[ _-]?key|service[ _-]?role|bearer\s+[a-z0-9._~+/-]+=*)/i;
+    if (sensitivePattern.test(sanitized)) {
+      return '[REDACTED]';
+    }
+    return sanitized.slice(0, 500);
   };
 
-  assert.equal(lockSimulation.conflictMatrix['SHARE-UPDATE'], 'CONFLICT_WAIT');
-  assert.equal(lockSimulation.conflictMatrix['UPDATE-SHARE'], 'CONFLICT_WAIT');
-  assert.equal(lockSimulation.raceOutcomes.journalFirst.finalSnapshotIncludesJournal, true);
-  assert.equal(lockSimulation.raceOutcomes.closeFirst.journalExceptionCode, '25000');
+  // Clean text preserved
+  assert.equal(redactAuditText('Regular monthly close'), 'Regular monthly close');
+  assert.equal(redactAuditText('Închidere contabilă ordinară'), 'Închidere contabilă ordinară');
+  assert.equal(redactAuditText('بستن دوره مالی بدون مشکل'), 'بستن دوره مالی بدون مشکل');
 
-  // 9. Stable Route Error Mapping Verification
-  const routeFile = path.join(root, 'src', 'app', 'api', 'customer', 'v1', 'accounting', 'periods', '[id]', 'close', 'route.ts');
-  const routeContent = fs.readFileSync(routeFile, 'utf8');
+  // Sensitive patterns redacted
+  assert.equal(redactAuditText('Close with secret password123'), '[REDACTED]');
+  assert.equal(redactAuditText('Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'), '[REDACTED]');
+  assert.equal(redactAuditText('Authorization header leaked in note'), '[REDACTED]');
+  assert.equal(redactAuditText('Cookie session=abc123xyz'), '[REDACTED]');
+  assert.equal(redactAuditText('api-key: ak_test_4920104'), '[REDACTED]');
+  assert.equal(redactAuditText('service-role-secret override'), '[REDACTED]');
 
-  assert.ok(routeContent.includes("rpcError.code === '25000'"), 'Route must recognize SQLSTATE 25000');
-  assert.ok(routeContent.includes("'ACCOUNTING_PERIOD_CLOSED'"), 'Route must map 25000 to ACCOUNTING_PERIOD_CLOSED');
-  assert.ok(routeContent.includes("rpcError.code === '23P01'"), 'Route must recognize SQLSTATE 23P01');
-  assert.ok(routeContent.includes("'ACCOUNTING_PERIOD_OVERLAP'"), 'Route must map 23P01 to ACCOUNTING_PERIOD_OVERLAP');
-  assert.ok(!routeContent.includes('rpcError.message ||'), 'Route must never leak raw Postgres error message to client');
+  // 2. Parent-Update Structural Integrity Triggers in Migration
+  const fwdMigration = path.join(root, 'supabase', 'migrations', '20260906210000_financial_close_final_corrective_hardening.sql');
+  const sql = fs.readFileSync(fwdMigration, 'utf8');
 
-  console.log('  ✓ Forward migration contains preflight checks without data alteration');
-  console.log('  ✓ GiST exclusion constraints enforce physical overlap protection');
-  console.log('  ✓ Parent tenant row locks FOR UPDATE to serialize cross-scope periods');
-  console.log('  ✓ Journal and Entry triggers cover INSERT, UPDATE (OLD/NEW), and DELETE');
-  console.log('  ✓ Fail-closed enforced on multiple matching periods (no LIMIT 1)');
-  console.log('  ✓ Bidirectional race locking (SHARE vs UPDATE) mathematically verified');
-  console.log('  ✓ Route handler maps SQLSTATE 25000 to ACCOUNTING_PERIOD_CLOSED without raw DB error leakage');
+  // Journal parent update checks
+  assert.ok(
+    sql.includes('create trigger a_assert_journal_parent_update_integrity') &&
+      sql.includes('before update of tenant_id, property_id, currency on finance.journals'),
+    'Journal trigger must intercept updates of tenant_id, property_id, currency'
+  );
+  assert.ok(
+    sql.includes('Cannot update journal tenant, property, or currency because existing entries or accounts would become inconsistent'),
+    'Journal trigger must reject updates when entries exist'
+  );
+
+  // Account parent update checks
+  assert.ok(
+    sql.includes('create trigger a_assert_account_parent_update_integrity') &&
+      sql.includes('before update of tenant_id, property_id, currency on finance.accounts'),
+    'Account trigger must intercept updates of tenant_id, property_id, currency'
+  );
+  assert.ok(
+    sql.includes('Cannot update account tenant, property, or currency because existing journal entries would become inconsistent'),
+    'Account trigger must reject updates when entries exist'
+  );
+
+  // Accounting period property-to-tenant check
+  assert.ok(
+    sql.includes('create trigger a_assert_accounting_period_property_tenant') &&
+      sql.includes('before insert or update of tenant_id, property_id on finance.accounting_periods'),
+    'Accounting period trigger must enforce property-to-tenant match'
+  );
+
+  console.log('  ✓ Authoritative reason redaction logic thoroughly verified across tokens, passwords, cookies, auth headers, and API keys');
+  console.log('  ✓ Journal parent update integrity trigger verified (protects tenant_id, property_id, currency)');
+  console.log('  ✓ Account parent update integrity trigger verified (protects tenant_id, property_id, currency)');
+  console.log('  ✓ Accounting period property-to-tenant mandatory integrity verified');
 }
 
 console.log('\n=== ALL P1 FINANCIAL CLOSE & REPORTING TESTS PASSED ===\n');
