@@ -240,9 +240,9 @@ begin
     ('23100000-0000-0000-0000-000000000001', '23b00000-0000-0000-0000-000000000030', '23a00000-0000-0000-0000-000000000009', 'credit', 70, 'P3 credit');
   update finance.journals set status = 'posted', posted_at = statement_timestamp() where id = '23b00000-0000-0000-0000-000000000030';
 
-  -- Empty Accounting Period for Empty Close Policy Testing (Period in Nov 2025)
+  -- Empty Accounting Period for Empty Close Policy Testing (Period in Nov 2025 on Property 3)
   insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status) values
-    ('23c00000-0000-0000-0000-000000000088', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000001', '2025-11-01', '2025-11-30', 'open');
+    ('23c00000-0000-0000-0000-000000000088', '23100000-0000-0000-0000-000000000001', '23500000-0000-0000-0000-000000000003', '2025-11-01', '2025-11-30', 'open');
 end $$;
 
 -- 4. Role & Claims Security Execution
