@@ -1,5 +1,5 @@
 begin;
-select plan(54);
+select plan(55);
 
 select ok(to_regprocedure('platform.get_customer_dashboard(uuid)') is not null, 'platform.get_customer_dashboard RPC exists');
 select ok(has_function_privilege('authenticated', 'platform.get_customer_dashboard(uuid)', 'EXECUTE'), 'authenticated may execute dashboard RPC');
@@ -31,17 +31,20 @@ begin
     ('21000000-0000-0000-0000-000000000012', 'owner-expired-048@cladora.test'),
     ('21000000-0000-0000-0000-000000000013', 'tenant-expired-048@cladora.test'),
     ('21000000-0000-0000-0000-000000000014', 'owner-noparty-048@cladora.test'),
-    ('21000000-0000-0000-0000-000000000020', 'tenant-b-admin-048@cladora.test');
+    ('21000000-0000-0000-0000-000000000020', 'tenant-b-admin-048@cladora.test'),
+    ('21000000-0000-0000-0000-000000000030', 'tenant-gamma-admin-048@cladora.test');
 
   -- 2. Tenants
   insert into platform.tenants (id, legal_name, registration_number, status) values
     ('21100000-0000-0000-0000-000000000001', 'Tenant Alpha', 'RO-ENG-048-A', 'active'),
-    ('21100000-0000-0000-0000-000000000002', 'Tenant Beta', 'RO-ENG-048-B', 'active');
+    ('21100000-0000-0000-0000-000000000002', 'Tenant Beta', 'RO-ENG-048-B', 'active'),
+    ('21100000-0000-0000-0000-000000000003', 'Tenant Gamma', 'RO-ENG-048-G', 'active');
 
   -- 3. Workspaces
   insert into platform.customer_workspaces (id, tenant_id, workspace_type, lifecycle_status, commercial_owner, environment, version) values
     ('21800000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', 'ASSOCIATION', 'ACTIVE', 'Admin Alpha', 'PILOT', 1),
-    ('21800000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', 'ASSOCIATION', 'ACTIVE', 'Admin Beta', 'PILOT', 1);
+    ('21800000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000002', 'ASSOCIATION', 'ACTIVE', 'Admin Beta', 'PILOT', 1),
+    ('21800000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000003', 'ASSOCIATION', 'SUSPENDED', 'Admin Gamma', 'PILOT', 1);
 
   -- 4. Entitlements with Override Scenarios
   insert into platform.workspace_entitlements (customer_workspace_id, entitlement_key, value_type, boolean_value, valid_from, valid_until, override_value_json, override_expires_at) values
@@ -72,7 +75,8 @@ begin
     ('21200000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000001', 'owner', 'Owner Alpha'),
     ('21200000-0000-0000-0000-000000000006', '21100000-0000-0000-0000-000000000001', 'tenant_resident', 'Tenant Alpha'),
     ('21200000-0000-0000-0000-000000000007', '21100000-0000-0000-0000-000000000001', 'contractor', 'Contractor Unknown'),
-    ('21200000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'association_admin', 'Admin Beta');
+    ('21200000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'association_admin', 'Admin Beta'),
+    ('21200000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'association_admin', 'Admin Gamma');
 
   -- 6. Permissions and Role Assignments
   select id into perm_assets from identity.permissions where code = 'maintenance.assets.read';
@@ -133,7 +137,8 @@ begin
     ('21300000-0000-0000-0000-000000000012', '21100000-0000-0000-0000-000000000001', '21000000-0000-0000-0000-000000000012', '21200000-0000-0000-0000-000000000005', 'active', statement_timestamp() - interval '1 day', null),
     ('21300000-0000-0000-0000-000000000013', '21100000-0000-0000-0000-000000000001', '21000000-0000-0000-0000-000000000013', '21200000-0000-0000-0000-000000000006', 'active', statement_timestamp() - interval '1 day', null),
     ('21300000-0000-0000-0000-000000000014', '21100000-0000-0000-0000-000000000001', '21000000-0000-0000-0000-000000000014', '21200000-0000-0000-0000-000000000005', 'active', statement_timestamp() - interval '1 day', null),
-    ('21300000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', '21000000-0000-0000-0000-000000000020', '21200000-0000-0000-0000-000000000020', 'active', statement_timestamp() - interval '1 day', null);
+    ('21300000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', '21000000-0000-0000-0000-000000000020', '21200000-0000-0000-0000-000000000020', 'active', statement_timestamp() - interval '1 day', null),
+    ('21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', '21000000-0000-0000-0000-000000000030', '21200000-0000-0000-0000-000000000030', 'active', statement_timestamp() - interval '1 day', null);
 
   -- 8. Portfolio Structure: 2 Properties, 2 Buildings, 3 Units
   insert into portfolio.properties (id, tenant_id, type, name, status) values
@@ -147,7 +152,9 @@ begin
   insert into portfolio.units (id, tenant_id, building_id, code, status) values
     ('21700000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA1', 'active'),
     ('21700000-0000-0000-0000-000000000002', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA2', 'active'),
-    ('21700000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000002', '21600000-0000-0000-0000-000000000002', 'UB1', 'active');
+    ('21700000-0000-0000-0000-000000000003', '21100000-0000-0000-0000-000000000002', '21600000-0000-0000-0000-000000000002', 'UB1', 'active'),
+    ('21700000-0000-0000-0000-000000000004', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA3', 'active'),
+    ('21700000-0000-0000-0000-000000000005', '21100000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', 'UA4', 'active');
 
   -- 9. Parties and Party Mappings
   insert into portfolio.parties (id, tenant_id, type, legal_name) values
@@ -170,13 +177,14 @@ begin
   insert into portfolio.ownerships (tenant_id, unit_id, party_id, share, valid_from, valid_to) values
     ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000001', 1.0, current_date - 10, null),
     ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000002', '21900000-0000-0000-0000-000000000002', 1.0, current_date - 10, null),
-    ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000005', 1.0, current_date - 30, current_date - 5);
+    ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000004', '21900000-0000-0000-0000-000000000005', 1.0, current_date - 30, current_date - 5),
+    ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000005', '21900000-0000-0000-0000-000000000001', 1.0, current_date - 40, null);
 
   -- 11. Leases
   insert into occupancy.leases (tenant_id, unit_id, landlord_party_id, tenant_party_id, starts_on, ends_on, status) values
     ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000003', current_date - 10, null, 'active'),
     ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000002', '21900000-0000-0000-0000-000000000002', '21900000-0000-0000-0000-000000000004', current_date - 10, null, 'active'),
-    ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000006', current_date - 30, current_date - 5, 'active');
+    ('21100000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000005', '21900000-0000-0000-0000-000000000001', '21900000-0000-0000-0000-000000000006', current_date - 30, current_date - 5, 'active');
 
   -- 12. Invoices & Receivables
   insert into billing.invoices (id, tenant_id, property_id, unit_id, liable_party_id, period_start, period_end, due_on, currency, subtotal, tax_total, status) values
@@ -231,13 +239,15 @@ begin
     -- expired context grant
     ('21400000-0000-0000-0000-000000000015', '21300000-0000-0000-0000-000000000001', '21100000-0000-0000-0000-000000000001', 'tenant', null, null, null, statement_timestamp() - interval '5 days', statement_timestamp() - interval '1 day'),
     -- owner expired ownership
-    ('21400000-0000-0000-0000-000000000012', '21300000-0000-0000-0000-000000000012', '21100000-0000-0000-0000-000000000001', 'unit', '21500000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', statement_timestamp() - interval '1 day', null),
+    ('21400000-0000-0000-0000-000000000012', '21300000-0000-0000-0000-000000000012', '21100000-0000-0000-0000-000000000001', 'unit', '21500000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000004', statement_timestamp() - interval '1 day', null),
     -- tenant expired lease
-    ('21400000-0000-0000-0000-000000000013', '21300000-0000-0000-0000-000000000013', '21100000-0000-0000-0000-000000000001', 'unit', '21500000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', statement_timestamp() - interval '1 day', null),
+    ('21400000-0000-0000-0000-000000000013', '21300000-0000-0000-0000-000000000013', '21100000-0000-0000-0000-000000000001', 'unit', '21500000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000005', statement_timestamp() - interval '1 day', null),
     -- owner without party mapping
     ('21400000-0000-0000-0000-000000000014', '21300000-0000-0000-0000-000000000014', '21100000-0000-0000-0000-000000000001', 'unit', '21500000-0000-0000-0000-000000000001', '21600000-0000-0000-0000-000000000001', '21700000-0000-0000-0000-000000000001', statement_timestamp() - interval '1 day', null),
     -- Beta Admin Context
-    ('21400000-0000-0000-0000-000000000020', '21300000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null);
+    ('21400000-0000-0000-0000-000000000020', '21300000-0000-0000-0000-000000000020', '21100000-0000-0000-0000-000000000002', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null),
+    -- Gamma Admin Context (Suspended Workspace)
+    ('21400000-0000-0000-0000-000000000030', '21300000-0000-0000-0000-000000000030', '21100000-0000-0000-0000-000000000003', 'tenant', null, null, null, statement_timestamp() - interval '1 day', null);
 end $$;
 
 set local role authenticated;
@@ -524,6 +534,14 @@ select throws_like(
   $$select platform.get_customer_dashboard('21400000-0000-0000-0000-000000000014')$$,
   '%resident_party_mapping_required%',
   'owner without party mapping is denied'
+);
+
+-- Inactive workspace rejection
+select set_config('request.jwt.claims', '{"sub":"21000000-0000-0000-0000-000000000030","role":"authenticated","aal":"aal2"}', true);
+select throws_like(
+  $$select platform.get_customer_dashboard('21400000-0000-0000-0000-000000000030')$$,
+  '%workspace_inactive%',
+  'inactive workspace is denied fail-closed'
 );
 
 commit;

@@ -64,7 +64,16 @@ begin
     raise exception 'unknown_role' using errcode = '42501';
   end if;
 
-  -- 5. Active workspace check (fail-closed if no active workspace exists)
+  -- 5. Customer workspace validation: inactive workspace fails closed
+  if exists (
+    select 1
+    from platform.customer_workspaces w
+    where w.tenant_id = v.tenant_id
+      and w.lifecycle_status <> 'ACTIVE'
+  ) then
+    raise exception 'workspace_inactive' using errcode = '42501';
+  end if;
+
   select w.id into v_workspace
   from platform.customer_workspaces w
   where w.tenant_id = v.tenant_id
@@ -72,7 +81,11 @@ begin
   order by w.id
   limit 1;
 
-  if v_workspace is null then
+  if v_workspace is null and exists (
+    select 1
+    from platform.customer_workspaces w
+    where w.tenant_id = v.tenant_id
+  ) then
     raise exception 'workspace_inactive' using errcode = '42501';
   end if;
 

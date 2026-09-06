@@ -371,7 +371,7 @@ const ALL_37_CUSTOMER_ROUTES = [
   assert.ok(migSrc.includes('revoke all on function platform.get_customer_dashboard'));
 
   // Test checks
-  assert.ok(testSrc.includes('select plan(54);'));
+  assert.ok(testSrc.includes('select plan(55);'));
   assert.ok(testSrc.includes('association_admin'));
   assert.ok(testSrc.includes('property_manager'));
   assert.ok(testSrc.includes('president'));
