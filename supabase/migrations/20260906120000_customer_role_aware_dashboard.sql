@@ -248,7 +248,7 @@ begin
       'open_work_orders', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status not in ('completed','verified','cancelled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id)),
       'unread_notifications', (select count(*) from communications.notifications n where n.tenant_id = v.tenant_id and n.membership_id = v.membership_key and n.read_at is null),
       'outstanding_amount', (select coalesce(sum(rc.outstanding_amount), 0) from billing.receivables rc join billing.invoices i on i.id = rc.invoice_id join portfolio.units u on u.id = i.unit_id join portfolio.buildings b on b.id = u.building_id where rc.tenant_id = v.tenant_id and (v.scope_type = 'tenant' or i.property_id = v.property_id or u.building_id = v.building_id)),
-      'pending_approvals', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status in ('submitted', 'in_review') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id))
+      'pending_approvals', (select count(*) from maintenance.work_orders w where w.tenant_id = v.tenant_id and w.status in ('draft', 'scheduled') and (v.scope_type = 'tenant' or w.property_id = v.property_id or w.building_id = v.building_id))
     );
 
   elsif v.role_code = 'censor' then
