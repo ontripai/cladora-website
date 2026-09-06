@@ -30,6 +30,8 @@ on conflict (role_id, permission_id) do update set effect = 'allow';
 alter table finance.accounting_periods
   add column if not exists closed_by uuid references auth.users(id) on delete restrict;
 
+create index if not exists accounting_periods_closed_by_idx on finance.accounting_periods(closed_by);
+
 -- 4. RPC: finance.get_close_readiness
 create or replace function finance.get_close_readiness(
   p_context_id uuid,
