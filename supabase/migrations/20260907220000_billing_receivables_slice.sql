@@ -381,7 +381,7 @@ begin
     'journal', v_journal,
     'limit', p_limit,
     'offset', p_offset,
-    'read_only', (lower(v.role_code) in ('president', 'censor', 'owner', 'tenant_resident')),
+    'read_only', true,
     'generated_at', statement_timestamp()
   );
 end $function$;

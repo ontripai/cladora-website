@@ -645,7 +645,8 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
     );
   }
 
-  const isReadOnly = data?.read_only ?? true;
+  const isManagement = active.role_code === 'association_admin' || active.role_code === 'property_manager';
+  const isReadOnly = !isManagement;
   const isResidentView = active.role_code === 'owner' || active.role_code === 'tenant_resident';
 
   return (
