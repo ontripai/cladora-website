@@ -36,10 +36,10 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Call authoritative role-aware dashboard RPC
+  // Call Customer API Gateway dashboard RPC (delegates to platform.get_customer_dashboard)
   const { data, error: queryError } = await supabase
-    .schema('platform')
-    .rpc('get_customer_dashboard', {
+    .schema('customer_api')
+    .rpc('get_dashboard_v1', {
       p_context_id: parsed.data.context_id,
     });
 

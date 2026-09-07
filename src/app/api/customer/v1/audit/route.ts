@@ -67,9 +67,10 @@ export async function GET(request: NextRequest) {
     parsedUntil = d.toISOString();
   }
 
+  // Customer API Gateway: delegates to audit rpc('get_customer_events')
   const { data, error: rpcError } = await supabase
-    .schema('audit')
-    .rpc('get_customer_events', {
+    .schema('customer_api')
+    .rpc('get_audit_events_v1', {
       p_context_id: p.context_id,
       p_limit: p.limit,
       p_offset: p.offset,
