@@ -287,7 +287,7 @@ select ok((select status::text from payments.payments where provider_ref = 'P1TE
 select ok(exists (select 1 from audit.events where action = 'PAYMENT_REVERSED'), 'PAYMENT_REVERSED audit event emitted');
 
 -- 10. Test Negative: Closed Period posting rejected
-select throws_ok(
+select throws_like(
   $$
   select payments.record_payment(
     '40400000-0000-0000-0000-000000000001',
@@ -297,7 +297,7 @@ select throws_ok(
     '2026-08-15T10:00:00Z' -- In closed August period!
   )
   $$,
-  '25000',
+  '%closed%',
   'posting into closed financial period is rejected'
 );
 

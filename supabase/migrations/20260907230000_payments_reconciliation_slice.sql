@@ -27,6 +27,12 @@ create unique index if not exists payments_tenant_idempotency_idx
 create index if not exists payments_tenant_status_paid_idx
   on payments.payments (tenant_id, status, paid_at desc, id desc);
 
+create index if not exists payments_reversal_journal_id_idx
+  on payments.payments (reversal_journal_id);
+
+create index if not exists payments_reversed_by_idx
+  on payments.payments (reversed_by);
+
 -- Create payments.payment_allocations for Payment <-> Bill/Receivable allocations
 create table if not exists payments.payment_allocations (
   id uuid primary key default gen_random_uuid(),
@@ -47,11 +53,20 @@ create unique index if not exists payment_allocations_tenant_idempotency_idx
   on payments.payment_allocations (tenant_id, idempotency_key)
   where idempotency_key is not null;
 
+create index if not exists payment_allocations_tenant_id_idx
+  on payments.payment_allocations (tenant_id);
+
 create index if not exists payment_allocations_payment_idx
   on payments.payment_allocations (payment_id, status);
 
 create index if not exists payment_allocations_receivable_idx
   on payments.payment_allocations (receivable_id, status);
+
+create index if not exists payment_allocations_created_by_idx
+  on payments.payment_allocations (created_by);
+
+create index if not exists payment_allocations_reversed_by_idx
+  on payments.payment_allocations (reversed_by);
 
 alter table payments.payment_allocations enable row level security;
 
@@ -94,6 +109,12 @@ create table if not exists payments.reconciliation_sessions (
 
 create index if not exists reconciliation_sessions_bank_account_idx
   on payments.reconciliation_sessions (tenant_id, bank_account_id, period_start, period_end);
+
+create index if not exists reconciliation_sessions_bank_account_id_idx
+  on payments.reconciliation_sessions (bank_account_id);
+
+create index if not exists reconciliation_sessions_reconciled_by_idx
+  on payments.reconciliation_sessions (reconciled_by);
 
 alter table payments.reconciliation_sessions enable row level security;
 
@@ -193,8 +214,15 @@ begin
       raise exception 'terminal_invoice_is_immutable';
     end if;
 
-    if tg_op = 'UPDATE' and old.status = 'paid' and new.status not in ('paid', 'partially_paid', 'issued') then
-      raise exception 'terminal_invoice_is_immutable';
+    if tg_op = 'UPDATE' and old.status = 'paid' then
+      if new.status not in ('paid', 'partially_paid', 'issued') then
+        raise exception 'terminal_invoice_is_immutable';
+      end if;
+      if (new.tenant_id, new.property_id, new.unit_id, new.liable_party_id, new.period_start, new.period_end, new.due_on, new.currency, new.subtotal, new.tax_total)
+         is distinct from
+         (old.tenant_id, old.property_id, old.unit_id, old.liable_party_id, old.period_start, old.period_end, old.due_on, old.currency, old.subtotal, old.tax_total) then
+        raise exception 'terminal_invoice_is_immutable';
+      end if;
     end if;
 
     if tg_op = 'UPDATE' and old.status <> 'draft' and
@@ -1397,10 +1425,8 @@ declare
   v_journal jsonb;
   v_allocations jsonb;
 begin
-  if auth.uid() is null then raise exception 'authentication_required' using errcode = '42501'; end if;
-  if app_private.customer_mfa_required() and coalesce(auth.jwt()->>'aal', 'aal1') <> 'aal2' then
-    raise exception 'mfa_required' using errcode = '42501';
-  end if;
+  if auth.uid() is null then raise exception 'authentication_required' using errcode='42501'; end if;
+  if coalesce(auth.jwt()->>'aal','aal1')<>'aal2' then raise exception 'mfa_required' using errcode='42501'; end if;
 
   if p_view not in ('payments', 'reconciliation') or p_limit < 1 or p_limit > 100 or p_offset < 0 then
     raise exception 'invalid_query' using errcode = '22023';
@@ -1424,7 +1450,7 @@ begin
   if not exists (
     select 1 from identity.role_permissions rp
     join identity.permissions p on p.id = rp.permission_id
-    where rp.role_id = v.role_id and rp.effect = 'allow' and p.code = 'payments.reconciliation.read'
+    where rp.role_id = v.role_id and rp.effect = 'allow' and p.code='payments.reconciliation.read'
   ) then
     raise exception 'payment_permission_required' using errcode = '42501';
   end if;
@@ -1435,7 +1461,7 @@ begin
   if v_workspace is null or not exists (
     select 1 from platform.workspace_entitlements e
     where e.customer_workspace_id = v_workspace
-      and e.entitlement_key = 'module.payments'
+      and e.entitlement_key='module.payments'
       and e.valid_from <= statement_timestamp()
       and (e.valid_until is null or e.valid_until > statement_timestamp())
       and (case when e.override_value_json is not null and e.override_expires_at > statement_timestamp()
@@ -1454,13 +1480,13 @@ begin
     if v_party is null then raise exception 'resident_party_mapping_required' using errcode = '42501'; end if;
     if not v_tenant and not exists (
       select 1 from portfolio.ownerships o
-      where o.tenant_id = v.tenant_id and o.unit_id = v.unit_id and o.party_id = v_party
+      where o.tenant_id = v.tenant_id and o.unit_id = v.unit_id and o.party_id=v_party
         and o.valid_from <= current_date and (o.valid_to is null or o.valid_to > current_date)
     ) then raise exception 'ownership_required' using errcode = '42501'; end if;
     if v_tenant and not exists (
       select 1 from occupancy.leases l
       where l.tenant_id = v.tenant_id and l.unit_id = v.unit_id and l.tenant_party_id = v_party
-        and l.status = 'active' and l.starts_on <= current_date and (l.ends_on is null or l.ends_on > current_date)
+        and l.status='active' and l.starts_on <= current_date and (l.ends_on is null or l.ends_on > current_date)
     ) then raise exception 'active_lease_required' using errcode = '42501'; end if;
   end if;
 
@@ -1475,7 +1501,7 @@ begin
     left join finance.journals j on j.id = p.journal_id and j.tenant_id = p.tenant_id
     where p.tenant_id = v.tenant_id
       and (v.scope_type = 'tenant' or p.property_id = v.property_id or p.property_id = (select b.property_id from portfolio.buildings b where b.id = v.building_id and b.tenant_id = v.tenant_id) or (v.scope_type = 'unit' and p.unit_id = v.unit_id))
-      and (not v_resident or (p.unit_id = v.unit_id and (not v_tenant or p.payer_party_id = v_party)))
+      and (not v_resident or (p.unit_id = v.unit_id and (not v_tenant or p.payer_party_id=v_party)))
   ),
   filtered as (
     select * from visible x
