@@ -1725,6 +1725,50 @@ export type Database = {
         };
         Returns: Json;
       };
+      create_bill_v1: {
+        Args: {
+          p_context_id: string;
+          p_property_id: string;
+          p_unit_id: string;
+          p_liable_party_id: string;
+          p_period_start: string;
+          p_period_end: string;
+          p_due_on: string;
+          p_currency?: string;
+          p_lines?: Json;
+          p_idempotency_key?: string | null;
+        };
+        Returns: Json;
+      };
+      update_bill_v1: {
+        Args: {
+          p_context_id: string;
+          p_invoice_id: string;
+          p_due_on?: string | null;
+          p_period_start?: string | null;
+          p_period_end?: string | null;
+          p_liable_party_id?: string | null;
+          p_lines?: Json | null;
+        };
+        Returns: Json;
+      };
+      issue_bill_v1: {
+        Args: {
+          p_context_id: string;
+          p_invoice_id: string;
+          p_issued_on?: string | null;
+          p_idempotency_key?: string | null;
+        };
+        Returns: Json;
+      };
+      cancel_bill_v1: {
+        Args: {
+          p_context_id: string;
+          p_invoice_id: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       [key: string]: string;
