@@ -3,7 +3,7 @@
 ## 1. Context & Release Scope
 - **Task Reference**: CLADORA-P1-CLOSE-009
 - **Migration File**: `supabase/migrations/20260907200000_customer_api_gateway.sql`
-- **Migration SHA-256**: `27a4d4ad1e6b2d0a3dfe62e38f7f68b4d0c0049a8e19263a1e053171731252d6`
+- **Migration SHA-256**: `5382532675623d93e33e57f3912ea7fb2987bafba7e067c16f03190341cc47af`
 - **Target Project Ref**: `jyomlehahwlyqzoacrvp`
 - **Release Status**: `REMOTE-INTEGRATION-PENDING-RELEASE`
 
@@ -21,7 +21,7 @@ Before applying Migration 66 to Remote:
 1. Verify PR has been reviewed and merged into `main`.
 2. Confirm working tree is clean and HEAD commit matches merged PR.
 3. Compute SHA-256 of `supabase/migrations/20260907200000_customer_api_gateway.sql` and verify it equals:
-   `27a4d4ad1e6b2d0a3dfe62e38f7f68b4d0c0049a8e19263a1e053171731252d6`
+   `5382532675623d93e33e57f3912ea7fb2987bafba7e067c16f03190341cc47af`
 4. Confirm remote database is online and accessible.
 
 ---

@@ -108,7 +108,8 @@ assert.ok(migrationSql.includes('create schema if not exists customer_api;'), 'M
 
 // Revokes public and anon on schema
 assert.ok(migrationSql.includes('revoke all on schema customer_api from public, anon;'), 'Must revoke schema permissions from public and anon');
-assert.ok(migrationSql.includes('grant usage on schema customer_api to authenticated, service_role;'), 'Must grant USAGE on customer_api to authenticated and service_role');
+assert.ok(migrationSql.includes('grant usage on schema customer_api to authenticated;'), 'Must grant USAGE on customer_api to authenticated strictly');
+assert.ok(!migrationSql.includes('to service_role;'), 'service_role must not be granted permissions on customer_api schema or functions');
 
 // No wildcard function grants or revokes
 assert.ok(!migrationSql.includes('on all functions in schema customer_api'), 'Wildcard function grant/revoke is strictly prohibited');

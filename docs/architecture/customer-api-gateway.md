@@ -35,7 +35,7 @@ All gateway wrapper functions are created with `SECURITY INVOKER`.
   REVOKE ALL ON FUNCTION customer_api.function_name(...) FROM public;
   REVOKE ALL ON FUNCTION customer_api.function_name(...) FROM anon;
   GRANT EXECUTE ON FUNCTION customer_api.function_name(...) TO authenticated;
-  GRANT EXECUTE ON FUNCTION customer_api.function_name(...) TO service_role;
+  -- service_role is granted ONLY if a documented server-side consumer requires it.
   ```
 
 ---
