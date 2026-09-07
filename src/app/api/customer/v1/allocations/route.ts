@@ -19,7 +19,8 @@ export async function GET(request:NextRequest){
   if(error||!claims?.claims?.sub)return NextResponse.json({error:{code:'UNAUTHORIZED'}},{status:401,headers:HEADERS});
 
   const p=parsed.data;
-  const{data,error:queryError}=await supabase.schema('finance').rpc('get_customer_allocations',{
+  // Customer API Gateway: delegates to finance.get_customer_allocations
+  const{data,error:queryError}=await supabase.schema('customer_api').rpc('get_allocations_v1',{
     p_context_id:p.context_id,p_view:p.view,p_query:p.query??null,p_status:p.status??null,p_method:p.method??null,
     p_from:p.from??null,p_to:p.to??null,p_limit:p.limit,p_offset:p.offset,p_id:p.id??null
   });

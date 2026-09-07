@@ -40,9 +40,10 @@ export async function handleGetPeriods(request: NextRequest, supabaseClient?: an
     );
   }
 
+  // Customer API Gateway: delegates to finance.list_customer_accounting_periods
   const { data, error: rpcError } = await supabase
-    .schema('finance')
-    .rpc('list_customer_accounting_periods', {
+    .schema('customer_api')
+    .rpc('list_accounting_periods_v1', {
       p_context_id: context_id,
     });
 

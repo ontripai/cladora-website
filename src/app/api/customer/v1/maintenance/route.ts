@@ -8,6 +8,8 @@ const schema=z.object({context_id:z.string().uuid(),view:z.enum(['assets','compo
 export async function GET(request:NextRequest){
  const parsed=schema.safeParse(Object.fromEntries(request.nextUrl.searchParams));if(!parsed.success)return NextResponse.json({error:{code:'INVALID_MAINTENANCE_QUERY'}},{status:400,headers:HEADERS});
  const supabase=await createClient();const{data:claims,error}=await supabase.auth.getClaims();if(error||!claims?.claims?.sub)return NextResponse.json({error:{code:'UNAUTHORIZED'}},{status:401,headers:HEADERS});
- const p=parsed.data;const{data,error:queryError}=await supabase.schema('maintenance').rpc('get_customer_maintenance',{p_context_id:p.context_id,p_view:p.view,p_query:p.query??null,p_status:p.status??null,p_priority:p.priority??null,p_from:p.from??null,p_to:p.to??null,p_limit:p.limit,p_offset:p.offset,p_id:p.id??null});
+ const p=parsed.data;
+ // Customer API Gateway: delegates to maintenance.get_customer_maintenance
+ const{data,error:queryError}=await supabase.schema('customer_api').rpc('get_maintenance_v1',{p_context_id:p.context_id,p_view:p.view,p_query:p.query??null,p_status:p.status??null,p_priority:p.priority??null,p_from:p.from??null,p_to:p.to??null,p_limit:p.limit,p_offset:p.offset,p_id:p.id??null});
  if(queryError)return NextResponse.json({error:{code:queryError.code==='42501'?'MAINTENANCE_ACCESS_DENIED':'MAINTENANCE_QUERY_FAILED'}},{status:queryError.code==='42501'?403:500,headers:HEADERS});return NextResponse.json(data,{headers:HEADERS});
 }

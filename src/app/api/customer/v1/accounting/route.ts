@@ -34,7 +34,8 @@ export async function handleGetLedger(request: NextRequest, client?: any) {
   }
 
   const p = parsed.data;
-  const { data, error: queryError } = await supabase.schema('finance').rpc('get_customer_ledger', {
+  // Customer API Gateway: delegates to finance.get_customer_ledger
+  const { data, error: queryError } = await supabase.schema('customer_api').rpc('get_ledger_v1', {
     p_context_id: p.context_id,
     p_query: p.query ?? null,
     p_status: p.status ?? null,

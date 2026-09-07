@@ -40,9 +40,10 @@ export async function handleGetFinancialReport(request: NextRequest, supabaseCli
     );
   }
 
+  // Customer API Gateway: delegates to finance.get_customer_financial_report
   const { data, error: rpcError } = await supabase
-    .schema('finance')
-    .rpc('get_customer_financial_report', {
+    .schema('customer_api')
+    .rpc('get_financial_report_v1', {
       p_context_id: context_id,
       p_report_type: report_type,
       p_from: from,

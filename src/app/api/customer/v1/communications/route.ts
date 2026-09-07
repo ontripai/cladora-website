@@ -47,9 +47,10 @@ export async function GET(request: NextRequest) {
     );
 
   const p = parsed.data;
+  // Customer API Gateway: delegates to communications.get_customer_communications
   const { data, error: queryError } = await supabase
-    .schema("communications")
-    .rpc("get_customer_communications", {
+    .schema("customer_api")
+    .rpc("get_communications_v1", {
       p_context_id: p.context_id,
       p_view: p.view,
       p_query: p.query ?? null,

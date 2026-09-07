@@ -8,9 +8,9 @@ const migrations = readdirSync(migrationsDir).filter((name) => name.endsWith(".s
 const tests = readdirSync(testsDir).filter((name) => name.endsWith(".sql")).sort();
 
 const failures = [];
-const BASELINE_MIGRATIONS = 58;
-const BASELINE_TESTS = 45;
-const BASELINE_ASSERTIONS = 1155;
+const BASELINE_MIGRATIONS = 66;
+const BASELINE_TESTS = 50;
+const BASELINE_ASSERTIONS = 1518;
 
 if (migrations.length < BASELINE_MIGRATIONS) {
   failures.push(`expected at least ${BASELINE_MIGRATIONS} migrations, found ${migrations.length}`);

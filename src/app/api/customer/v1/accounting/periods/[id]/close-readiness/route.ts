@@ -57,9 +57,10 @@ export async function handleGetCloseReadiness(
     );
   }
 
+  // Customer API Gateway: delegates to finance.get_close_readiness
   const { data, error: rpcError } = await supabase
-    .schema('finance')
-    .rpc('get_close_readiness', {
+    .schema('customer_api')
+    .rpc('get_close_readiness_v1', {
       p_context_id: contextId,
       p_period_id: periodId,
     });

@@ -38,9 +38,10 @@ export default async function AppLayout(
   const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
   if (factorsError) redirect(`/${lang}/login?reason=security`);
   const hasVerifiedFactor = factors.totp.some((factor) => factor.status === 'verified');
+  // Customer API Gateway: delegates to platform.my_customer_mfa_requirement
   const { data: mfaRequired, error: requirementError } = await supabase
-    .schema('platform')
-    .rpc('my_customer_mfa_requirement');
+    .schema('customer_api')
+    .rpc('my_mfa_requirement_v1');
   if (requirementError) redirect(`/${lang}/login?reason=security`);
   if (mfaRequired && !hasVerifiedFactor) {
     redirect(`/${lang}/mfa/setup?reason=customer_required`);

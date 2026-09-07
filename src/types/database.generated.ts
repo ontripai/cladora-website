@@ -1413,4 +1413,266 @@ export type Database = {
       [key: string]: unknown;
     };
   };
+  customer_api: {
+    Tables: {
+      [key: string]: {
+        Row: Record<string, unknown>;
+        Insert: Record<string, unknown>;
+        Update: Record<string, unknown>;
+        Relationships: [];
+      };
+    };
+    Views: {
+      [key: string]: {
+        Row: Record<string, unknown>;
+        Relationships: [];
+      };
+    };
+    Functions: {
+      get_dashboard_v1: {
+        Args: { p_context_id: string };
+        Returns: Json;
+      };
+      list_contexts_v1: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          context_id: string;
+          membership_id: string;
+          tenant_id: string;
+          tenant_name: string;
+          role_code: string;
+          role_name: string;
+          scope_type: string;
+          property_id: string | null;
+          building_id: string | null;
+          unit_id: string | null;
+          context_label: string;
+          starts_at: string;
+          ends_at: string | null;
+        }[];
+      };
+      my_mfa_requirement_v1: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      get_ledger_v1: {
+        Args: {
+          p_context_id: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_account_type?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_journal_id?: string | null;
+        };
+        Returns: Json;
+      };
+      list_accounting_periods_v1: {
+        Args: { p_context_id: string };
+        Returns: Json;
+      };
+      get_close_readiness_v1: {
+        Args: { p_context_id: string; p_period_id: string };
+        Returns: Json;
+      };
+      close_accounting_period_v1: {
+        Args: {
+          p_context_id: string;
+          p_period_id: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      get_financial_report_v1: {
+        Args: {
+          p_context_id: string;
+          p_report_type: string;
+          p_from: string;
+          p_to: string;
+          p_currency: string;
+        };
+        Returns: Json;
+      };
+      get_allocations_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_method?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_audit_events_v1: {
+        Args: {
+          p_context_id: string;
+          p_limit?: number;
+          p_offset?: number;
+          p_query?: string | null;
+          p_action?: string | null;
+          p_from?: string | null;
+          p_until?: string | null;
+        };
+        Returns: Json;
+      };
+      get_billing_v1: {
+        Args: {
+          p_context_id: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_invoice_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_payments_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_utilities_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_service?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_maintenance_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_priority?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_procurement_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_currency?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_governance_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_communications_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_documents_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_classification?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_occupancy_registry_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_kind?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+      get_security_access_v1: {
+        Args: {
+          p_context_id: string;
+          p_view?: string;
+          p_query?: string | null;
+          p_status?: string | null;
+          p_kind?: string | null;
+          p_from?: string | null;
+          p_to?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_id?: string | null;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [key: string]: string;
+    };
+    CompositeTypes: {
+      [key: string]: unknown;
+    };
+  };
 };

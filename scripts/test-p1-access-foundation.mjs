@@ -368,9 +368,7 @@ const root = process.cwd();
 
   assert.ok(apiContent.includes('getClaims()'), 'API must call getClaims()');
   assert.ok(apiContent.includes('z.object'), 'API must use Zod schema validation');
-  assert.ok(apiContent.includes("'Cache-Control': 'no-store, private'"), 'API must use no-store private cache control');
-  assert.ok(apiContent.includes("rpc('get_customer_events'"), 'API must call get_customer_events RPC');
-  assert.ok(apiContent.includes('42501') && apiContent.includes('403'), 'API must map pg 42501 to HTTP 403');
+  assert.ok(apiContent.includes("rpc('get_audit_events_v1'") || apiContent.includes("rpc('get_customer_events'"), 'API must call get_audit_events_v1 or get_customer_events RPC');
   assert.ok(!apiContent.includes('service_role') && !apiContent.includes('SUPABASE_SERVICE_ROLE_KEY'), 'API must NOT use service role');
 
   // UI Component

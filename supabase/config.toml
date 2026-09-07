@@ -3,7 +3,7 @@ project_id = "cladora-local"
 [api]
 enabled = true
 port = 54321
-schemas = ["public", "platform", "identity", "portfolio", "occupancy", "finance", "billing", "payments", "utilities", "assets", "maintenance", "governance", "communications", "documents", "migration_hub", "audit"]
+schemas = ["public", "graphql_public", "customer_api"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 

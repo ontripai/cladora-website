@@ -91,10 +91,10 @@ export async function handlePostClose(
     );
   }
 
-  // 7. Invoke Security Definer Close Period RPC
+  // 7. Invoke Customer API Gateway Close Period RPC (delegates to finance.close_accounting_period)
   const { data, error: rpcError } = await supabase
-    .schema('finance')
-    .rpc('close_accounting_period', {
+    .schema('customer_api')
+    .rpc('close_accounting_period_v1', {
       p_context_id: context_id,
       p_period_id: periodId,
       p_reason: reason ? reason.trim() : null,
