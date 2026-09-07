@@ -1667,6 +1667,64 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_unit_occupancy_detail_v1: {
+        Args: {
+          p_context_id: string;
+          p_unit_id: string;
+        };
+        Returns: Json;
+      };
+      create_occupancy_v1: {
+        Args: {
+          p_context_id: string;
+          p_unit_id: string;
+          p_kind: string;
+          p_starts_at: string;
+          p_ends_at?: string | null;
+          p_occupant_party_ids?: string[] | null;
+          p_role?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      update_occupancy_v1: {
+        Args: {
+          p_context_id: string;
+          p_occupancy_id: string;
+          p_ends_at?: string | null;
+          p_status?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      end_occupancy_v1: {
+        Args: {
+          p_context_id: string;
+          p_occupancy_id: string;
+          p_ended_at?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      renew_occupancy_v1: {
+        Args: {
+          p_context_id: string;
+          p_occupancy_id: string;
+          p_new_ends_at: string;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
+      transfer_occupancy_v1: {
+        Args: {
+          p_context_id: string;
+          p_occupancy_id: string;
+          p_to_unit_id: string;
+          p_effective_at?: string | null;
+          p_reason?: string | null;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       [key: string]: string;
