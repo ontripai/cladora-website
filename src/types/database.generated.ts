@@ -1769,6 +1769,98 @@ export type Database = {
         };
         Returns: Json;
       };
+      record_payment_v1: {
+        Args: {
+          p_context_id: string;
+          p_property_id: string;
+          p_amount: number;
+          p_currency?: string | null;
+          p_received_at?: string | null;
+          p_unit_id?: string | null;
+          p_payer_party_id?: string | null;
+          p_method?: string | null;
+          p_provider_ref?: string | null;
+          p_description?: string | null;
+          p_idempotency_key?: string | null;
+        };
+        Returns: Json;
+      };
+      allocate_payment_v1: {
+        Args: {
+          p_context_id: string;
+          p_payment_id: string;
+          p_allocations: Json;
+          p_idempotency_key?: string | null;
+        };
+        Returns: Json;
+      };
+      unallocate_payment_v1: {
+        Args: {
+          p_context_id: string;
+          p_allocation_id: string;
+          p_reason: string;
+        };
+        Returns: Json;
+      };
+      reverse_payment_v1: {
+        Args: {
+          p_context_id: string;
+          p_payment_id: string;
+          p_reason: string;
+        };
+        Returns: Json;
+      };
+      list_bank_transactions_v1: {
+        Args: {
+          p_context_id: string;
+          p_bank_account_id?: string | null;
+          p_status?: string | null;
+          p_from_date?: string | null;
+          p_to_date?: string | null;
+          p_limit?: number | null;
+          p_offset?: number | null;
+        };
+        Returns: Json;
+      };
+      match_bank_transaction_v1: {
+        Args: {
+          p_context_id: string;
+          p_bank_transaction_id: string;
+          p_payment_id?: string | null;
+          p_receivable_id?: string | null;
+          p_amount?: number | null;
+          p_notes?: string | null;
+        };
+        Returns: Json;
+      };
+      unmatch_bank_transaction_v1: {
+        Args: {
+          p_context_id: string;
+          p_match_id: string;
+          p_reason: string;
+        };
+        Returns: Json;
+      };
+      get_reconciliation_summary_v1: {
+        Args: {
+          p_context_id: string;
+          p_bank_account_id?: string | null;
+          p_from_date?: string | null;
+          p_to_date?: string | null;
+        };
+        Returns: Json;
+      };
+      finalize_bank_reconciliation_v1: {
+        Args: {
+          p_context_id: string;
+          p_bank_account_id: string;
+          p_period_start: string;
+          p_period_end: string;
+          p_closing_balance: number;
+          p_notes?: string | null;
+        };
+        Returns: Json;
+      };
     };
     Enums: {
       [key: string]: string;
