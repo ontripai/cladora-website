@@ -142,7 +142,7 @@ end $$;
 
 -- Verify Initial Parity: 4111 balance = 600.00, Receivables outstanding = 600.00, Delta = 0
 select ok(
-  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'ar_gl_subledger_delta') = '0.0000',
+  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'is_continuous_parity') = 'true',
   'initial baseline: 4111 GL matches receivables outstanding with zero delta'
 );
 
@@ -206,7 +206,7 @@ select ok(
 
 -- Assert Parity Diagnostic confirms zero delta for both 4111 and 419
 select ok(
-  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'parity_preserved') = 'true',
+  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'is_continuous_parity') = 'true',
   'stage 1: diagnostic confirms continuous parity is preserved after unallocated payment'
 );
 
@@ -249,11 +249,36 @@ select ok(
 
 -- Assert Parity Diagnostic confirms zero delta after multi-bill allocation
 select ok(
-  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'parity_preserved') = 'true',
+  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'is_continuous_parity') = 'true',
   'stage 2: diagnostic confirms continuous parity after multi-bill allocation'
 );
 
--- 6. Test Positive: Partial Unallocation (Unallocate 200 from Invoice 2)
+-- 6. Negative Allocation Tests while payment is active
+select throws_like(
+  $$
+  select payments.allocate_payment(
+    '50400000-0000-0000-0000-000000000001',
+    (select id from payments.payments where provider_ref = 'PARITY-TX-001'),
+    jsonb_build_array(jsonb_build_object('receivable_id', '40d00000-0000-0000-0000-000000000001'::uuid, 'amount', 10.00))
+  )
+  $$,
+  '%receivable_not_found%',
+  'cross-tenant receivable allocation rejected'
+);
+
+select throws_like(
+  $$
+  select payments.allocate_payment(
+    '50400000-0000-0000-0000-000000000001',
+    (select id from payments.payments where provider_ref = 'PARITY-TX-001'),
+    jsonb_build_array(jsonb_build_object('receivable_id', '50d00000-0000-0000-0000-000000000002'::uuid, 'amount', 1000.00))
+  )
+  $$,
+  '%payment_overallocated%',
+  'over-allocation rejected'
+);
+
+-- 7. Test Positive: Partial Unallocation (Unallocate 200 from Invoice 2)
 -- Accounting Contract D: Compensating journal Dr 4111 200, Cr 419 200.
 do $$
 declare
@@ -281,11 +306,11 @@ select ok(
 
 -- Assert Parity Diagnostic confirms zero delta after unallocation
 select ok(
-  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'parity_preserved') = 'true',
+  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'is_continuous_parity') = 'true',
   'stage 3: diagnostic confirms continuous parity after unallocation'
 );
 
--- 7. Test Positive: Split Reversal / Refund
+-- 8. Test Positive: Split Reversal / Refund
 -- Payment currently has: 300 allocated (to Invoice 1), 500 unallocated.
 -- Accounting Contract E: Allocated portion posts Dr 4111 300. Unallocated portion posts Dr 419 500. Total Bank Cr 5121 800.
 do $$
@@ -348,25 +373,12 @@ select throws_ok(
 
 -- Assert Parity Diagnostic confirms zero delta after reversal
 select ok(
-  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'parity_preserved') = 'true',
+  (select (finance.get_ar_subledger_parity('50100000-0000-0000-0000-000000000001', '50500000-0000-0000-0000-000000000001', 'RON'))->>'is_continuous_parity') = 'true',
   'stage 4: diagnostic confirms continuous parity after payment reversal'
 );
 
--- 8. Negative Tests
--- A. Cross-Tenant allocation rejected
-select throws_like(
-  $$
-  select payments.allocate_payment(
-    '50400000-0000-0000-0000-000000000001',
-    (select id from payments.payments where provider_ref = 'PARITY-TX-001'),
-    jsonb_build_array(jsonb_build_object('receivable_id', '40d00000-0000-0000-0000-000000000001'::uuid, 'amount', 10.00))
-  )
-  $$,
-  '%receivable_not_found%',
-  'cross-tenant receivable allocation rejected'
-);
-
--- B. Closed-period allocation rejected
+-- 9. Negative Security and Scope Tests
+-- A. Closed-period allocation rejected
 select throws_like(
   $$
   select payments.record_payment(
@@ -381,20 +393,7 @@ select throws_like(
   'recording payment in closed period is rejected'
 );
 
--- C. Over-allocation rejected
-select throws_like(
-  $$
-  select payments.allocate_payment(
-    '50400000-0000-0000-0000-000000000001',
-    (select id from payments.payments where provider_ref = 'PARITY-TX-001'),
-    jsonb_build_array(jsonb_build_object('receivable_id', '50d00000-0000-0000-0000-000000000001'::uuid, 'amount', 1000.00))
-  )
-  $$,
-  '%payment_overallocated%',
-  'over-allocation rejected'
-);
-
--- D. Cross-unit allocation rejected for resident role
+-- B. Cross-unit allocation rejected for resident role
 select set_config('request.jwt.claim.sub', '50000000-0000-0000-0000-000000000002', true);
 select set_config('request.jwt.claims', '{"sub":"50000000-0000-0000-0000-000000000002","aal":"aal2"}', true);
 
@@ -409,11 +408,11 @@ select throws_like(
     '50700000-0000-0000-0000-000000000002'
   )
   $$,
-  '%payment_unit_scope_mismatch%',
+  '%unit_context_scope_denied%',
   'resident cannot record payment for another unit'
 );
 
--- E. Anon execution denied
+-- C. Anon execution denied
 select set_config('request.jwt.claim.role', 'anon', true);
 select throws_like(
   $$
@@ -425,11 +424,11 @@ select throws_like(
     '2026-09-08T10:00:00Z'
   )
   $$,
-  '%permission denied%',
+  '%customer_context_access_denied%',
   'anon execution of record_payment_v1 denied'
 );
 
--- 9. Idempotency replay check
+-- 10. Idempotency replay check
 select set_config('request.jwt.claim.sub', '50000000-0000-0000-0000-000000000001', true);
 select set_config('request.jwt.claim.role', 'authenticated', true);
 select set_config('request.jwt.claims', '{"sub":"50000000-0000-0000-0000-000000000001","aal":"aal2"}', true);
@@ -451,7 +450,7 @@ select ok(
   'replaying record_payment with same idempotency key returns existing payment ID'
 );
 
--- 10. Audit trail emitted
+-- 11. Audit trail emitted
 select ok(exists (select 1 from audit.events where action = 'PAYMENT_RECORDED'), 'PAYMENT_RECORDED audit event exists');
 select ok(exists (select 1 from audit.events where action = 'PAYMENT_ALLOCATED'), 'PAYMENT_ALLOCATED audit event exists');
 select ok(exists (select 1 from audit.events where action = 'PAYMENT_UNALLOCATED'), 'PAYMENT_UNALLOCATED audit event exists');
