@@ -74,6 +74,11 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     permissions: ['utilities.metering.read'],
     entitlements: ['module.utilities'],
   },
+  {
+    pathPrefix: '/app/utilities',
+    permissions: ['utilities.metering.read'],
+    entitlements: ['module.utilities'],
+  },
 
   // Maintenance & Assets
   {

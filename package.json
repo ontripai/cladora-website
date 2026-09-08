@@ -11,7 +11,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
-    "test:unit": "node scripts/test-currency-unit.mjs && node scripts/test-auth-email-callback.mjs && node scripts/test-tokenless-workspace-invitation.mjs && node scripts/test-public-apis.mjs && node scripts/test-p1-access-foundation.mjs && node scripts/test-p1-role-aware-dashboard.mjs && node scripts/test-p1-financial-close-reporting.mjs && node scripts/test-customer-api-gateway.mjs && node scripts/test-customer-occupancy-slice.mjs && node scripts/test-customer-billing-slice.mjs && node scripts/test-customer-payments-slice.mjs",
+    "test:unit": "node scripts/test-currency-unit.mjs && node scripts/test-auth-email-callback.mjs && node scripts/test-tokenless-workspace-invitation.mjs && node scripts/test-public-apis.mjs && node scripts/test-p1-access-foundation.mjs && node scripts/test-p1-role-aware-dashboard.mjs && node scripts/test-p1-financial-close-reporting.mjs && node scripts/test-customer-api-gateway.mjs && node scripts/test-customer-occupancy-slice.mjs && node scripts/test-customer-billing-slice.mjs && node scripts/test-customer-payments-slice.mjs && node scripts/test-customer-utilities-slice.mjs",
     "test:i18n": "node scripts/audit-untranslated-copy.mjs",
     "test:db:static": "node scripts/check-database-package.mjs",
     "test:app-foundation": "node scripts/test-supabase-foundation.mjs",
