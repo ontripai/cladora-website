@@ -147,3 +147,13 @@ export const approvePurchaseOrderSchema = z.object({
   context_id: z.string().uuid(),
   reason: z.string().trim().max(500).optional().nullable(),
 });
+
+export const requestPurchaseOrderSchema = z.object({
+  context_id: z.string().uuid(),
+  notes: z.string().trim().max(500).optional().nullable(),
+});
+
+export const receivePurchaseOrderSchema = z.object({
+  context_id: z.string().uuid(),
+});
+
