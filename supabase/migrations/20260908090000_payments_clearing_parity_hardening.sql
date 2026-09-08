@@ -423,23 +423,7 @@ begin
     raise exception 'ar_gl_account_not_found' using errcode = '22023';
   end if;
 
-  -- Create Allocation Journal: Debit Clearing (419) for total allocating amount
-  insert into finance.journals (
-    tenant_id, property_id, occurred_on, currency, description, source_type, source_id, status
-  ) values (
-    v.tenant_id, v_payment.property_id, current_date, v_payment.currency,
-    'Payment allocation: Payment ' || v_payment.id::text,
-    'payments.payment_allocation', p_payment_id, 'draft'
-  ) returning id, journal_no into v_allocation_journal_id, v_allocation_journal_no;
-
-  insert into finance.journal_entries (
-    tenant_id, journal_id, account_id, unit_id, party_id, side, amount, memo
-  ) values (
-    v.tenant_id, v_allocation_journal_id, v_clearing_account_id, v_payment.unit_id, v_payment.payer_party_id,
-    'debit', v_total_allocating, 'Clearing advance balance for bill allocation'
-  );
-
-  -- Process each allocation item
+  -- Pre-validate each allocation item before creating draft journal
   for v_alloc_item in select * from jsonb_array_elements(p_allocations) loop
     v_rec_id := (v_alloc_item->>'receivable_id')::uuid;
     v_alloc_amount := (v_alloc_item->>'amount')::numeric(20,4);
@@ -463,6 +447,36 @@ begin
     if v_alloc_amount > v_receivable.outstanding_amount then
       raise exception 'receivable_overallocated' using errcode = '22023';
     end if;
+  end loop;
+
+  -- Create Allocation Journal: Debit Clearing (419) for total allocating amount
+  v_allocation_journal_id := gen_random_uuid();
+
+  insert into finance.journals (
+    id, tenant_id, property_id, occurred_on, currency, description, source_type, source_id, status
+  ) values (
+    v_allocation_journal_id, v.tenant_id, v_payment.property_id, current_date, v_payment.currency,
+    'Payment allocation: Payment ' || v_payment.id::text,
+    'payments.payment_allocation', v_allocation_journal_id, 'draft'
+  ) returning journal_no into v_allocation_journal_no;
+
+  insert into finance.journal_entries (
+    tenant_id, journal_id, account_id, unit_id, party_id, side, amount, memo
+  ) values (
+    v.tenant_id, v_allocation_journal_id, v_clearing_account_id, v_payment.unit_id, v_payment.payer_party_id,
+    'debit', v_total_allocating, 'Clearing advance balance for bill allocation'
+  );
+
+  -- Process each allocation item
+  for v_alloc_item in select * from jsonb_array_elements(p_allocations) loop
+    v_rec_id := (v_alloc_item->>'receivable_id')::uuid;
+    v_alloc_amount := (v_alloc_item->>'amount')::numeric(20,4);
+
+    select * into v_receivable from billing.receivables
+    where id = v_rec_id and tenant_id = v.tenant_id for update;
+
+    select * into v_invoice from billing.invoices
+    where id = v_receivable.invoice_id and tenant_id = v.tenant_id;
 
     -- Credit AR for this specific receivable
     insert into finance.journal_entries (

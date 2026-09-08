@@ -408,8 +408,8 @@ select throws_like(
     '50700000-0000-0000-0000-000000000002'
   )
   $$,
-  '%unit_context_scope_denied%',
-  'resident cannot record payment for another unit'
+  '%payment_permission_denied%',
+  'resident cannot record payment'
 );
 
 -- C. Anon execution denied
