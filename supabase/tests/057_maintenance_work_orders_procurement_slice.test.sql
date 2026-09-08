@@ -200,6 +200,15 @@ begin
   perform set_config('request.jwt.claim.role', 'authenticated', true);
   perform set_config('request.jwt.claims', jsonb_build_object('sub', v_admin_id::text, 'role', 'authenticated', 'aal', 'aal2')::text, true);
 
+  -- Insert explicit test SLA policies for P1TEST fixture
+  insert into maintenance.sla_policies (
+    tenant_id, property_id, name, category, priority,
+    response_target_hours, attendance_target_hours, resolution_target_hours,
+    timezone, effective_from, status, version
+  ) values
+    (v_tenant_id, v_prop_id, 'P1TEST Normal SLA', 'Plumbing', 'normal'::maintenance.priority, 24, 48, 120, 'Europe/Bucharest', '2026-01-01', 'active', 1),
+    (v_tenant_id, v_prop_id, 'P1TEST Emergency SLA', 'Plumbing', 'emergency'::maintenance.priority, 1, 2, 4, 'Europe/Bucharest', '2026-01-01', 'active', 1);
+
   -- 2. Create Normal Request (SLA 120h)
   v_req_norm := maintenance.create_maintenance_request(
     v_ctx_admin_id, v_prop_id, v_bldg_id, v_unit_id,
