@@ -17,25 +17,30 @@ export function mapMaintenanceRpcError(error: { code?: string; message?: string 
     msg.includes("access_denied") ||
     msg.includes("mfa_required") ||
     msg.includes("maintenance_permission_required") ||
+    msg.includes("procurement_permission_required") ||
+    msg.includes("procurement_role_denied") ||
     msg.includes("maintenance_entitlement_required") ||
+    msg.includes("procurement_entitlement_required") ||
     msg.includes("creator_cannot_self_approve_dual_control") ||
     msg.includes("same_user_cannot_perform_dual_approval_step") ||
     msg.includes("platform_auditor_denied") ||
-    msg.includes("scope_violation")
+    msg.includes("scope_violation") ||
+    msg.includes("customer_context_access_denied")
   ) {
+    const isMfa = msg.includes("mfa_required");
     const isDual = msg.includes("creator_cannot_self_approve_dual_control") || msg.includes("same_user_cannot_perform_dual_approval_step");
     return {
       status: 403,
       body: {
         error: {
-          code: isDual ? "DUAL_CONTROL_VIOLATION" : "MAINTENANCE_FORBIDDEN",
-          message: isDual ? "Dual control requires an independent authorized approver." : "Action forbidden or requires elevation.",
+          code: isMfa ? "MFA_REQUIRED" : isDual ? "DUAL_CONTROL_VIOLATION" : "FORBIDDEN",
+          message: isMfa ? "MFA elevation required." : isDual ? "Dual control requires an independent authorized approver." : "Action forbidden or requires elevation.",
         },
       },
     };
   }
 
-  if (code === "42501" && msg.includes("authentication_required")) {
+  if ((code === "42501" || code === "401") && (msg.includes("authentication_required") || msg.includes("UNAUTHORIZED"))) {
     return {
       status: 401,
       body: { error: { code: "UNAUTHORIZED", message: "Authentication required" } },
@@ -55,6 +60,12 @@ export function mapMaintenanceRpcError(error: { code?: string; message?: string 
   }
 
   if (
+    msg.includes("purchase_order_must_be_draft_to_request") ||
+    msg.includes("purchase_order_must_be_requested_to_approve") ||
+    msg.includes("purchase_order_must_be_approved_to_issue") ||
+    msg.includes("purchase_order_must_be_ordered_to_receive") ||
+    msg.includes("invalid_purchase_order_transition") ||
+    msg.includes("approved_purchase_order_is_immutable") ||
     msg.includes("duplicate_vendor_invoice_reference") ||
     msg.includes("payable_already_exists_for_work_order") ||
     msg.includes("work_order_must_be_verified_for_payable") ||
