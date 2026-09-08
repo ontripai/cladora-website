@@ -119,13 +119,18 @@ export const approveConsumptionSchema = z.object({
 
 export const createTariffSchema = z.object({
   context_id: z.string().uuid(),
-  property_id: z.string().uuid(),
+  property_id: z.string().uuid().optional().nullable(),
   service_type: z.enum(SERVICE_TYPES),
   tariff_code: z.string().trim().min(1).max(50),
   name: z.string().trim().min(1).max(100),
-  unit_rate: z.coerce.number().min(0),
+  unit_rate: z.coerce.number({ message: "invalid_unit_rate" }).min(0, { message: "invalid_unit_rate" }),
   fixed_charge: z.coerce.number().min(0).default(0),
-  tax_rate: z.coerce.number().min(0).max(1).default(0.19),
+  tax_rate: z.preprocess(
+    (val) => (val === undefined || val === null || val === "" ? undefined : Number(val)),
+    z.number({ message: "tax_rate_required" })
+      .refine((v) => !Number.isNaN(v), { message: "tax_rate_required" })
+      .refine((v) => v >= 0 && v <= 1, { message: "tax_rate_out_of_range" })
+  ),
   currency: z.string().trim().length(3).default("RON"),
   valid_from: z.string().optional(),
   valid_to: z.string().optional().nullable(),

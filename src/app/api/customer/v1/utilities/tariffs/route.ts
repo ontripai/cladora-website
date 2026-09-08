@@ -45,7 +45,14 @@ export async function POST(request: NextRequest) {
 
   const parsed = createTariffSchema.safeParse(bodyJson);
   if (!parsed.success) {
-    return NextResponse.json({ error: { code: "INVALID_REQUEST", message: parsed.error.issues[0]?.message || "Validation failed" } }, { status: 400, headers: HEADERS });
+    const issue = parsed.error.issues[0];
+    const msg = issue?.message || "Validation failed";
+    const code = msg === "tax_rate_required"
+      ? "TAX_RATE_REQUIRED"
+      : msg === "tax_rate_out_of_range"
+      ? "TAX_RATE_OUT_OF_RANGE"
+      : "INVALID_REQUEST";
+    return NextResponse.json({ error: { code, message: msg } }, { status: 400, headers: HEADERS });
   }
 
   const supabase = await createClient();
