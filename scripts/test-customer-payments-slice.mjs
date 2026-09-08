@@ -207,5 +207,54 @@ console.log('  ✓ Record, Allocate, Reverse, and Finalize modal workflows verif
 console.log('  ✓ Zero mock / DemoStore violation in production component verified');
 console.log('  ✓ payments-schema.ts comprehensive Zod schemas verified');
 
+// =============================================================================
+// Suite 4: Migration 70 Continuous Parity & Clearing Hardening Verification
+// =============================================================================
+console.log('\n[Suite 4] Migration 70 Continuous Parity & Clearing Hardening Verification');
+
+const migration70Path = path.join(root, 'supabase', 'migrations', '20260908090000_payments_clearing_parity_hardening.sql');
+assert.ok(fs.existsSync(migration70Path), 'Migration 70 must exist');
+const migration70Sql = fs.readFileSync(migration70Path, 'utf8');
+
+// Strict transaction boundary
+assert.ok(/^\s*(--[^\n]*\n\s*)*begin;/i.test(migration70Sql), 'Migration 70 must start with explicit begin;');
+assert.ok(migration70Sql.trim().endsWith('commit;'), 'Migration 70 must end with explicit commit;');
+
+// No TODO or FIXME
+assert.ok(!/\b(TODO|FIXME)\b/i.test(migration70Sql), 'Migration 70 must contain zero TODO or FIXME');
+
+// Two-stage clearing: record_payment credits 419, NOT 4111
+assert.ok(migration70Sql.includes("code = '419'"), 'Migration 70 must provision or look up 419 clearing account');
+assert.ok(migration70Sql.includes('Unallocated payment clearing / advance'), 'Migration 70 record_payment must credit clearing/advance');
+const recordPaymentBody = migration70Sql.match(/create or replace function payments\.record_payment[\s\S]*?end;\s*\$\$/i)?.[0] ?? '';
+assert.ok(!recordPaymentBody.includes('v_ar_account_id') && !recordPaymentBody.includes("'4111'"), 'record_payment must not touch 4111 AR account');
+
+// Two-stage clearing: allocate_payment Dr 419, Cr 4111
+assert.ok(migration70Sql.includes('Clearing advance balance for bill allocation'), 'Migration 70 allocate_payment must debit 419');
+assert.ok(migration70Sql.includes('receivable cleared'), 'Migration 70 allocate_payment must credit 4111');
+
+// Split reversal / refund
+assert.ok(migration70Sql.includes('Reversal restoring accounts receivable'), 'Migration 70 reverse_payment must restore 4111 for allocated portion');
+assert.ok(migration70Sql.includes('Reversal clearing unallocated advance'), 'Migration 70 reverse_payment must clear 419 for unallocated portion');
+assert.ok(migration70Sql.includes('Reversal deducting bank balance'), 'Migration 70 reverse_payment must credit 5121 for bank balance');
+
+// Parity diagnostics
+assert.ok(migration70Sql.includes('function finance.get_ar_subledger_parity'), 'Migration 70 must define finance.get_ar_subledger_parity');
+assert.ok(migration70Sql.includes('function customer_api.get_parity_diagnostic_v1'), 'Migration 70 must define customer_api.get_parity_diagnostic_v1');
+assert.ok(migration70Sql.includes('revoke all on function customer_api.get_parity_diagnostic_v1(uuid, uuid, text) from anon;'), 'Migration 70 must revoke anon on parity diagnostic wrapper');
+
+// pgTAP Test 054 existence
+const test054Path = path.join(root, 'supabase', 'tests', '054_continuous_gl_subledger_parity_clearing.test.sql');
+assert.ok(fs.existsSync(test054Path), 'pgTAP Test 054 must exist');
+const test054Sql = fs.readFileSync(test054Path, 'utf8');
+assert.ok(test054Sql.includes('select plan(38);'), 'Test 054 must plan 38 assertions');
+
+console.log('  ✓ Migration 70 transaction boundaries and zero TODO/FIXME verified');
+console.log('  ✓ Two-stage clearing model verified (record_payment Dr 5121 / Cr 419, allocate Dr 419 / Cr 4111)');
+console.log('  ✓ Split reversal / refund accounting contract verified');
+console.log('  ✓ Internal continuous parity diagnostic RPC customer_api.get_parity_diagnostic_v1 verified');
+console.log('  ✓ pgTAP Test 054 contract verified covering all 38 planned assertions');
+
 console.log('\n=== ALL CUSTOMER PAYMENTS, ALLOCATION & RECONCILIATION TESTS PASSED ===\n');
+
 

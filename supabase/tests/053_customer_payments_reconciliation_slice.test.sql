@@ -115,7 +115,8 @@ begin
   -- GL Accounts
   insert into finance.accounts (id, tenant_id, property_id, code, name, type, currency) values
     ('40a00000-0000-0000-0000-000000000001', '40100000-0000-0000-0000-000000000001', '40500000-0000-0000-0000-000000000001', '4111', 'Test AR', 'asset', 'RON'),
-    ('40a00000-0000-0000-0000-000000000002', '40100000-0000-0000-0000-000000000001', '40500000-0000-0000-0000-000000000001', '5121', 'Test Bank', 'asset', 'RON');
+    ('40a00000-0000-0000-0000-000000000002', '40100000-0000-0000-0000-000000000001', '40500000-0000-0000-0000-000000000001', '5121', 'Test Bank', 'asset', 'RON'),
+    ('40a00000-0000-0000-0000-000000000003', '40100000-0000-0000-0000-000000000001', '40500000-0000-0000-0000-000000000001', '419', 'Test Clearing', 'liability', 'RON');
 
   -- Accounting Periods: September open, August closed
   insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status, closed_at, snapshot_json) values
