@@ -207,12 +207,40 @@ create unique index if not exists vendor_payables_tenant_idemp_idx
 -- Indexes for fast scoped queries and zero leakage
 create index if not exists tickets_tenant_status_idx on maintenance.tickets(tenant_id, status, priority);
 create index if not exists tickets_tenant_property_idx on maintenance.tickets(tenant_id, property_id, unit_id);
+create index if not exists tickets_assigned_vendor_id_idx on maintenance.tickets(assigned_vendor_id);
+create index if not exists tickets_reported_by_membership_id_idx on maintenance.tickets(reported_by_membership_id);
+
+create index if not exists ticket_status_history_tenant_id_idx on maintenance.ticket_status_history(tenant_id);
+create index if not exists ticket_status_history_ticket_id_idx on maintenance.ticket_status_history(ticket_id);
+create index if not exists ticket_status_history_actor_id_idx on maintenance.ticket_status_history(actor_id);
+
+create index if not exists rfqs_tenant_idx on maintenance.rfqs(tenant_id, status);
+create index if not exists rfqs_tenant_id_idx on maintenance.rfqs(tenant_id);
+create index if not exists rfqs_work_order_id_idx on maintenance.rfqs(work_order_id);
+create index if not exists rfqs_ticket_id_idx on maintenance.rfqs(ticket_id);
+create index if not exists rfqs_created_by_idx on maintenance.rfqs(created_by);
+
+create index if not exists vendor_quotes_rfq_id_idx on maintenance.vendor_quotes(rfq_id);
+create index if not exists vendor_quotes_selected_by_idx on maintenance.vendor_quotes(selected_by);
+create index if not exists vendor_quotes_captured_by_idx on maintenance.vendor_quotes(captured_by);
+
 create index if not exists work_orders_tenant_status_idx on maintenance.work_orders(tenant_id, status, priority);
 create index if not exists work_orders_vendor_idx on maintenance.work_orders(vendor_id) where vendor_id is not null;
-create index if not exists vendor_payables_tenant_work_order_idx on maintenance.vendor_payables(tenant_id, work_order_id);
-create index if not exists vendor_payables_journal_idx on maintenance.vendor_payables(journal_id);
-create index if not exists rfqs_tenant_idx on maintenance.rfqs(tenant_id, status);
+create index if not exists work_orders_vendor_id_idx on maintenance.work_orders(vendor_id);
+create index if not exists work_orders_quote_id_idx on maintenance.work_orders(quote_id);
+create index if not exists work_orders_verified_by_idx on maintenance.work_orders(verified_by);
+
 create index if not exists approval_records_entity_idx on maintenance.approval_records(tenant_id, entity_type, entity_id);
+create index if not exists approval_records_approver_id_idx on maintenance.approval_records(approver_id);
+
+create index if not exists vendor_payables_tenant_work_order_idx on maintenance.vendor_payables(tenant_id, work_order_id);
+create index if not exists vendor_payables_tenant_id_idx on maintenance.vendor_payables(tenant_id);
+create index if not exists vendor_payables_work_order_id_idx on maintenance.vendor_payables(work_order_id);
+create index if not exists vendor_payables_purchase_order_id_idx on maintenance.vendor_payables(purchase_order_id);
+create index if not exists vendor_payables_vendor_id_idx on maintenance.vendor_payables(vendor_id);
+create index if not exists vendor_payables_journal_idx on maintenance.vendor_payables(journal_id);
+create index if not exists vendor_payables_journal_id_idx on maintenance.vendor_payables(journal_id);
+create index if not exists vendor_payables_created_by_idx on maintenance.vendor_payables(created_by);
 
 -- Enable RLS on all tables
 alter table maintenance.ticket_status_history enable row level security;
@@ -321,13 +349,20 @@ begin
     end if;
     return new;
   elsif tg_table_schema='maintenance' and tg_table_name='work_order_costs' then
-    if tg_op='DELETE' then
-      select * into w from maintenance.work_orders where id=old.work_order_id and tenant_id=old.tenant_id;
-      if w.status in ('completed','verified') then raise exception 'final_work_order_is_immutable'; end if;
-      return old;
-    end if;
+    if tg_op='DELETE' then raise exception 'work_order_cost_snapshot_is_immutable'; end if;
     select * into w from maintenance.work_orders where id=new.work_order_id and tenant_id=new.tenant_id;
-    if not found then raise exception 'cost_scope_invalid'; end if;
+    if not found then raise exception 'work_order_cost_scope_invalid'; end if;
+    if new.purchase_order_id is not null and not exists(select 1 from maintenance.purchase_orders po where po.id=new.purchase_order_id and po.tenant_id=new.tenant_id and po.work_order_id=new.work_order_id and po.currency=new.currency) then raise exception 'work_order_cost_purchase_order_invalid'; end if;
+    if new.invoice_id is not null and not exists(select 1 from billing.invoices i where i.id=new.invoice_id and i.tenant_id=new.tenant_id and i.currency=new.currency) then raise exception 'work_order_cost_invoice_invalid'; end if;
+    if new.journal_id is not null and not exists(select 1 from finance.journals j where j.id=new.journal_id and j.tenant_id=new.tenant_id) then raise exception 'work_order_cost_journal_invalid'; end if;
+    if tg_op='UPDATE' and new is distinct from old
+      and (old.journal_id is not null or (to_jsonb(new)-'journal_id') is distinct from (to_jsonb(old)-'journal_id'))
+    then raise exception 'work_order_cost_snapshot_is_immutable'; end if;
+    return new;
+  elsif tg_table_schema='assets' and tg_table_name='asset_history' then
+    if tg_op<>'INSERT' then raise exception 'asset_history_is_append_only'; end if;
+    select * into a from assets.assets where id=new.asset_id and tenant_id=new.tenant_id;
+    if not found then raise exception 'asset_history_scope_invalid'; end if;
     return new;
   end if;
   return case when tg_op='DELETE' then old else new end;
@@ -378,7 +413,7 @@ begin
     end if;
     -- Verified is terminal except for audit correction
     if old.status = 'verified' and new.status <> 'verified' then
-      raise exception 'verified_work_order_is_terminal';
+      raise exception 'invalid_work_order_transition: verified_work_order_is_terminal';
     end if;
   end if;
 
