@@ -577,7 +577,11 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
       else if (tab === 'anomalies')
         endpoint = `/api/customer/v1/utilities/anomalies?${queryParams}`;
 
-      const res = await fetch(endpoint, { cache: 'no-store' });
+      // Authorized evidence views: 'meters','readings','periods','contracts','invoices','comparisons','anomalies'
+      const res = await fetch(endpoint || `/api/customer/v1/utilities?${queryParams}`, {
+        cache:'no-store',
+        credentials:'same-origin',
+      });
       if (!res.ok) throw new Error('FETCH_FAILED');
       const json = await res.json();
 

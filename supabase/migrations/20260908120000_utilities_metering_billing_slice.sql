@@ -1881,19 +1881,87 @@ begin
 end;
 $$;
 
--- Revoke and grant for added routines
-revoke all on function utilities.update_meter from public, anon;
-revoke all on function utilities.import_readings from public, anon;
-revoke all on function utilities.get_utilities_summary from public, anon;
-grant execute on function utilities.update_meter to authenticated;
-grant execute on function utilities.import_readings to authenticated;
-grant execute on function utilities.get_utilities_summary to authenticated;
+-- Covering indexes for all added foreign keys in utilities (for constraint performance and 022 FK check)
+create index if not exists meters_replaces_meter_id_fk_idx on utilities.meters (replaces_meter_id);
+create index if not exists meters_replaced_by_meter_id_fk_idx on utilities.meters (replaced_by_meter_id);
 
+create index if not exists consumption_periods_approved_by_fk_idx on utilities.consumption_periods (approved_by);
+create index if not exists consumption_periods_invoice_id_fk_idx on utilities.consumption_periods (invoice_id);
+create index if not exists consumption_periods_invoice_line_id_fk_idx on utilities.consumption_periods (invoice_line_id);
+create index if not exists consumption_periods_tariff_id_fk_idx on utilities.consumption_periods (tariff_id);
+create index if not exists consumption_periods_billed_by_fk_idx on utilities.consumption_periods (billed_by);
+
+create index if not exists tariffs_tenant_id_fk_idx on utilities.tariffs (tenant_id);
+create index if not exists tariffs_property_id_fk_idx on utilities.tariffs (property_id);
+create index if not exists tariffs_provider_id_fk_idx on utilities.tariffs (provider_id);
+
+-- Explicit Revokes and Grants on all customer_api utilities routines
+revoke all on function customer_api.create_meter_v1 from public, anon;
 revoke all on function customer_api.update_meter_v1 from public, anon;
+revoke all on function customer_api.replace_meter_v1 from public, anon;
+revoke all on function customer_api.decommission_meter_v1 from public, anon;
+revoke all on function customer_api.capture_reading_v1 from public, anon;
 revoke all on function customer_api.import_readings_v1 from public, anon;
+revoke all on function customer_api.create_ocr_candidate_v1 from public, anon;
+revoke all on function customer_api.approve_reading_v1 from public, anon;
+revoke all on function customer_api.reject_reading_v1 from public, anon;
+revoke all on function customer_api.correct_reading_v1 from public, anon;
+revoke all on function customer_api.calculate_consumption_v1 from public, anon;
+revoke all on function customer_api.approve_consumption_v1 from public, anon;
+revoke all on function customer_api.create_tariff_v1 from public, anon;
+revoke all on function customer_api.bill_consumption_v1 from public, anon;
+revoke all on function customer_api.get_meter_variance_v1 from public, anon;
 revoke all on function customer_api.get_utilities_summary_v1 from public, anon;
+
+grant execute on function customer_api.create_meter_v1 to authenticated;
 grant execute on function customer_api.update_meter_v1 to authenticated;
+grant execute on function customer_api.replace_meter_v1 to authenticated;
+grant execute on function customer_api.decommission_meter_v1 to authenticated;
+grant execute on function customer_api.capture_reading_v1 to authenticated;
 grant execute on function customer_api.import_readings_v1 to authenticated;
+grant execute on function customer_api.create_ocr_candidate_v1 to authenticated;
+grant execute on function customer_api.approve_reading_v1 to authenticated;
+grant execute on function customer_api.reject_reading_v1 to authenticated;
+grant execute on function customer_api.correct_reading_v1 to authenticated;
+grant execute on function customer_api.calculate_consumption_v1 to authenticated;
+grant execute on function customer_api.approve_consumption_v1 to authenticated;
+grant execute on function customer_api.create_tariff_v1 to authenticated;
+grant execute on function customer_api.bill_consumption_v1 to authenticated;
+grant execute on function customer_api.get_meter_variance_v1 to authenticated;
 grant execute on function customer_api.get_utilities_summary_v1 to authenticated;
+
+revoke all on function utilities.create_meter from public, anon;
+revoke all on function utilities.update_meter from public, anon;
+revoke all on function utilities.replace_meter from public, anon;
+revoke all on function utilities.decommission_meter from public, anon;
+revoke all on function utilities.capture_reading from public, anon;
+revoke all on function utilities.import_readings from public, anon;
+revoke all on function utilities.create_ocr_candidate from public, anon;
+revoke all on function utilities.approve_reading from public, anon;
+revoke all on function utilities.reject_reading from public, anon;
+revoke all on function utilities.correct_reading from public, anon;
+revoke all on function utilities.calculate_consumption from public, anon;
+revoke all on function utilities.approve_consumption from public, anon;
+revoke all on function utilities.create_tariff from public, anon;
+revoke all on function utilities.bill_consumption from public, anon;
+revoke all on function utilities.get_meter_variance from public, anon;
+revoke all on function utilities.get_utilities_summary from public, anon;
+
+grant execute on function utilities.create_meter to authenticated;
+grant execute on function utilities.update_meter to authenticated;
+grant execute on function utilities.replace_meter to authenticated;
+grant execute on function utilities.decommission_meter to authenticated;
+grant execute on function utilities.capture_reading to authenticated;
+grant execute on function utilities.import_readings to authenticated;
+grant execute on function utilities.create_ocr_candidate to authenticated;
+grant execute on function utilities.approve_reading to authenticated;
+grant execute on function utilities.reject_reading to authenticated;
+grant execute on function utilities.correct_reading to authenticated;
+grant execute on function utilities.calculate_consumption to authenticated;
+grant execute on function utilities.approve_consumption to authenticated;
+grant execute on function utilities.create_tariff to authenticated;
+grant execute on function utilities.bill_consumption to authenticated;
+grant execute on function utilities.get_meter_variance to authenticated;
+grant execute on function utilities.get_utilities_summary to authenticated;
 
 commit;
