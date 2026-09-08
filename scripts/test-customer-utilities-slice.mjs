@@ -158,6 +158,65 @@ assert.ok(fs.existsSync(demoAppPath), 'Demo app page must exist');
 
 console.log('✓ Route classification and portal isolation verified\n');
 
+// =============================================================================
+// Suite 5: CLADORA-P2-UTIL-002 Explicit Tax Policy Contract Hardening
+// =============================================================================
+console.log('[Suite 5] Explicit Tax Policy & Tariff Contract Hardening Verification');
+
+const migration72Path = path.join(root, 'supabase/migrations/20260908150000_explicit_tax_policy_tariff_contract.sql');
+assert.ok(fs.existsSync(migration72Path), 'Migration 72 must exist');
+const migration72Sql = fs.readFileSync(migration72Path, 'utf8');
+
+assert.ok(
+  migration72Sql.includes('alter column tax_rate drop default;') && migration72Sql.includes('utilities.tariffs'),
+  'Migration 72 must drop table default on tax_rate'
+);
+assert.ok(
+  migration72Sql.includes('tax_rate_required') && migration72Sql.includes('tax_rate_out_of_range'),
+  'Migration 72 routines must enforce tax_rate_required and tax_rate_out_of_range'
+);
+assert.ok(
+  migration72Sql.includes('protect_tariff_immutability'),
+  'Migration 72 must enforce protect_tariff_immutability trigger on billed tariffs'
+);
+assert.ok(
+  !migration72Sql.includes('default 0.19') && !migration72Sql.includes('default 0.21'),
+  'Migration 72 must not introduce any legal rate default'
+);
+
+const test056Path = path.join(root, 'supabase/tests/056_explicit_tax_policy_tariff_contract.test.sql');
+assert.ok(fs.existsSync(test056Path), 'Test 056 must exist');
+const test056Sql = fs.readFileSync(test056Path, 'utf8');
+assert.ok(
+  test056Sql.includes('plan(12)'),
+  'Test 056 must plan 12 assertions'
+);
+
+const schemaPath = path.join(root, 'src/lib/customer/utilities-schema.ts');
+const schemaSql = fs.readFileSync(schemaPath, 'utf8');
+assert.ok(
+  !schemaSql.includes('default(0.19)') && !schemaSql.includes('default(0.21)'),
+  'Utilities schema must have zero implicit legal VAT default'
+);
+assert.ok(
+  schemaSql.includes('tax_rate_required') && schemaSql.includes('tax_rate_out_of_range'),
+  'Utilities schema must enforce tax_rate_required and tax_rate_out_of_range'
+);
+
+const dashboardPath = path.join(root, 'src/components/customer/CustomerUtilitiesDashboard.tsx');
+const dashboardContent = fs.readFileSync(dashboardPath, 'utf8');
+assert.ok(
+  !dashboardContent.includes("useState<number>(19)") && !dashboardContent.includes("useState(19)"),
+  'Dashboard UI must not default tax rate to 19%'
+);
+assert.ok(
+  dashboardContent.includes("taxRateRequired"),
+  'Dashboard UI must enforce tax rate input before submission'
+);
+
+console.log('✓ Migration 72, Test 056, Zod schema, and Dashboard UI explicit tax contract verified\n');
+
 console.log('=======================================================');
-console.log('ALL CUSTOMER UTILITIES CONTRACT TESTS PASSED (4/4 SUITES)');
+console.log('ALL CUSTOMER UTILITIES CONTRACT TESTS PASSED (5/5 SUITES)');
 console.log('=======================================================\n');
+

@@ -99,14 +99,20 @@ interface ConsumptionItem {
 
 interface TariffItem {
   id: string;
-  utility_type: string;
+  utility_type?: string;
+  service_type?: string;
+  tariff_code?: string;
+  name?: string;
   provider_name?: string | null;
   currency: string;
-  effective_from: string;
+  effective_from?: string;
+  valid_from?: string;
   effective_to?: string | null;
+  valid_to?: string | null;
   unit_rate: number;
   fixed_charge: number;
-  vat_rate: number;
+  vat_rate?: number;
+  tax_rate?: number;
   tier_structure?: Record<string, unknown> | null;
 }
 
@@ -225,6 +231,9 @@ const copy = {
       humanReviewBoundary: 'Human Approval Boundary Enforced',
       humanReviewNote: 'OCR candidate extractions never convert automatically into readings or bills without authorized human sign-off.',
       readOnlyNotice: 'Read-only mode. Mutation actions require authorized management role (association_admin / property_manager) with AAL2 authentication.',
+      taxPolicyNotice: 'Tax rate must be explicitly set according to the Association accounting policy. No implicit default is assumed.',
+      noTax: '0% (Exempt / Non-taxable)',
+      taxRateRequired: 'Tax rate is required (0% - 100%)',
     },
     services: {
       water: 'Water',
@@ -320,6 +329,9 @@ const copy = {
       humanReviewBoundary: 'Barieră de verificare umană activă',
       humanReviewNote: 'Rezultatele OCR nu se convertesc automat în citiri definitive sau facturi fără aprobarea unui operator uman autorizat.',
       readOnlyNotice: 'Mod doar citire. Acțiunile de modificare necesită rol de administrare autorizat cu autentificare AAL2.',
+      taxPolicyNotice: 'Cota de taxă trebuie stabilită explicit conform politicii contabile a Asociației. Nicio cotă implicită nu este aplicată.',
+      noTax: '0% (Scutit / Fără taxă)',
+      taxRateRequired: 'Cota de taxă este obligatorie (0% - 100%)',
     },
     services: {
       water: 'Apă',
@@ -415,6 +427,9 @@ const copy = {
       humanReviewBoundary: 'مرز تأیید انسانی فعال است',
       humanReviewNote: 'نتایج خوانش خودکار تصویری هرگز به صورت خودکار به قرائت قطعی یا صورتحساب تبدیل نمی‌شوند و حتماً نیازمند بررسی و امضای مجاز اپراتور هستند.',
       readOnlyNotice: 'دسترسی فقط خواندنی است. عملیات تغییر نیازمند نقش مدیر ساختمان با احراز هویت دو مرحله‌ای معتبر است.',
+      taxPolicyNotice: 'نرخ مالیات باید طبق سیاست حسابداری انجمن صریحاً تعیین شود. هیچ نرخ پیش‌فرضی لحاظ نمی‌شود.',
+      noTax: '۰٪ (معاف از مالیات / بدون مالیات)',
+      taxRateRequired: 'تعیین نرخ مالیات الزامی است (۰٪ تا ۱۰۰٪)',
     },
     services: {
       water: 'آب',
@@ -511,12 +526,14 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
   const [billConsumptionTarget, setBillConsumptionTarget] = useState<ConsumptionItem | null>(null);
   const [formBillDueDate, setFormBillDueDate] = useState('2026-10-15');
 
-  // Tariff form
+  // Tariff form (No implicit defaults for rates/tax)
   const [formTariffService, setFormTariffService] = useState('water');
-  const [formTariffRate, setFormTariffRate] = useState<number>(8.5);
-  const [formTariffFixed, setFormTariffFixed] = useState<number>(0);
-  const [formTariffVat, setFormTariffVat] = useState<number>(19);
-  const [formTariffFrom, setFormTariffFrom] = useState('2026-09-01');
+  const [formTariffRate, setFormTariffRate] = useState<string>('');
+  const [formTariffFixed, setFormTariffFixed] = useState<string>('0');
+  const [formTariffVat, setFormTariffVat] = useState<string>('');
+  const [formTariffCode, setFormTariffCode] = useState<string>('');
+  const [formTariffName, setFormTariffName] = useState<string>('');
+  const [formTariffFrom, setFormTariffFrom] = useState('');
 
   // Role permissions
   const roleCode = (active?.role_code || '').toLowerCase();
@@ -863,6 +880,25 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
   const handleCreateTariff = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!active?.context_id) return;
+
+    if (formTariffVat.trim() === '') {
+      setActionError(t.labels.taxRateRequired);
+      return;
+    }
+
+    const vatNum = Number(formTariffVat);
+    if (Number.isNaN(vatNum) || vatNum < 0 || vatNum > 100) {
+      setActionError('tax_rate_out_of_range');
+      return;
+    }
+
+    const unitRateNum = Number(formTariffRate);
+    if (Number.isNaN(unitRateNum) || unitRateNum < 0) {
+      setActionError('invalid_unit_rate');
+      return;
+    }
+
+    const taxRateDecimal = vatNum / 100;
     setActionLoading(true);
     setActionError(null);
     try {
@@ -871,11 +907,14 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           context_id: active.context_id,
-          utility_type: formTariffService,
-          unit_rate: Number(formTariffRate),
-          fixed_charge: Number(formTariffFixed),
-          vat_rate: Number(formTariffVat),
-          effective_from: formTariffFrom,
+          property_id: (active as unknown as { property_id?: string })?.property_id || undefined,
+          service_type: formTariffService,
+          tariff_code: formTariffCode.trim() || `${formTariffService.toUpperCase()}-RATE-${Date.now().toString().slice(-4)}`,
+          name: formTariffName.trim() || `${formTariffService} Tariff`,
+          unit_rate: unitRateNum,
+          fixed_charge: Number(formTariffFixed) || 0,
+          tax_rate: taxRateDecimal,
+          valid_from: formTariffFrom || undefined,
           currency: 'RON',
         }),
       });
@@ -1468,7 +1507,8 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
                       tariffs.map((tf) => (
                         <tr key={tf.id} className="hover:bg-slate-50/50">
                           <td className="p-3 font-semibold text-slate-900">
-                            {t.services[tf.utility_type as keyof typeof t.services] ||
+                            {t.services[(tf.service_type || tf.utility_type) as keyof typeof t.services] ||
+                              tf.service_type ||
                               tf.utility_type}
                           </td>
                           <td className="p-3 font-mono font-bold text-emerald-700">
@@ -1477,9 +1517,15 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
                           <td className="p-3 font-mono">
                             {tf.fixed_charge} {tf.currency}
                           </td>
-                          <td className="p-3 font-mono">{tf.vat_rate}%</td>
-                          <td className="p-3 text-slate-600">{tf.effective_from}</td>
-                          <td className="p-3 text-slate-600">{tf.effective_to || '—'}</td>
+                          <td className="p-3 font-mono">
+                            {tf.tax_rate != null
+                              ? `${(Number(tf.tax_rate) * 100).toFixed(2).replace(/\.00$/, '')}%`
+                              : tf.vat_rate != null
+                              ? `${tf.vat_rate}%`
+                              : '0%'}
+                          </td>
+                          <td className="p-3 text-slate-600">{tf.valid_from || tf.effective_from || '—'}</td>
+                          <td className="p-3 text-slate-600">{tf.valid_to || tf.effective_to || '—'}</td>
                         </tr>
                       ))
                     )}
@@ -2391,7 +2437,7 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
                     step="0.0001"
                     required
                     value={formTariffRate}
-                    onChange={(e) => setFormTariffRate(Number(e.target.value))}
+                    onChange={(e) => setFormTariffRate(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs"
                   />
                 </div>
@@ -2404,31 +2450,45 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
                     step="0.01"
                     required
                     value={formTariffFixed}
-                    onChange={(e) => setFormTariffFixed(Number(e.target.value))}
+                    onChange={(e) => setFormTariffFixed(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">
-                    {t.labels.vatRate}
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      {t.labels.vatRate} *
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setFormTariffVat('0')}
+                      className="text-[10px] font-semibold text-emerald-600 hover:underline"
+                    >
+                      {t.labels.noTax}
+                    </button>
+                  </div>
                   <input
                     type="number"
                     step="0.01"
+                    min="0"
+                    max="100"
                     required
+                    placeholder="e.g. 0, 9, 19"
                     value={formTariffVat}
-                    onChange={(e) => setFormTariffVat(Number(e.target.value))}
+                    onChange={(e) => setFormTariffVat(e.target.value)}
                     className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs"
                   />
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    {t.labels.taxPolicyNotice}
+                  </p>
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700">
-                  Effective From
+                  {t.labels.periodStart}
                 </label>
                 <input
                   type="date"
-                  required
                   value={formTariffFrom}
                   onChange={(e) => setFormTariffFrom(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs"

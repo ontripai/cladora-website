@@ -35,7 +35,8 @@ export function mapUtilitiesRpcError(error: { code?: string; message?: string })
   if (
     msg.includes("duplicate_meter_serial") ||
     msg.includes("consumption_already_billed") ||
-    msg.includes("meter_already_inactive")
+    msg.includes("meter_already_inactive") ||
+    msg.includes("tariff_immutable_after_billing")
   ) {
     return {
       status: 409,
@@ -43,17 +44,26 @@ export function mapUtilitiesRpcError(error: { code?: string; message?: string })
     };
   }
   if (
+    code === "22004" ||
+    code === "22003" ||
     code === "22023" ||
     code === "23505" ||
     code === "23503" ||
+    msg.includes("tax_rate_required") ||
+    msg.includes("tax_rate_out_of_range") ||
     msg.includes("out_of_order") ||
     msg.includes("negative") ||
     msg.includes("invalid") ||
     msg.includes("start_reading_must_precede_end")
   ) {
+    const errCode = msg.includes("tax_rate_required")
+      ? "TAX_RATE_REQUIRED"
+      : msg.includes("tax_rate_out_of_range")
+      ? "TAX_RATE_OUT_OF_RANGE"
+      : "INVALID_UTILITY_REQUEST";
     return {
       status: 400,
-      body: { error: { code: "INVALID_UTILITY_REQUEST", message: msg || "Invalid utility request parameters." } },
+      body: { error: { code: errCode, message: msg || "Invalid utility request parameters." } },
     };
   }
   return {
