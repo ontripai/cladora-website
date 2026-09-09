@@ -1653,4 +1653,33 @@ $$;
 revoke all on function customer_api.list_notice_deliveries_v1(uuid, uuid, integer, integer) from public, anon;
 grant execute on function customer_api.list_notice_deliveries_v1(uuid, uuid, integer, integer) to authenticated;
 
+-- ----------------------------------------------------------------------------
+-- 11. Covering Foreign Key Indexes (Invariant 023)
+-- ----------------------------------------------------------------------------
+create index if not exists official_notices_approved_by_idx on communications.official_notices(approved_by);
+create index if not exists official_notices_building_id_idx on communications.official_notices(building_id);
+create index if not exists official_notices_cancelled_by_idx on communications.official_notices(cancelled_by);
+create index if not exists official_notices_created_by_idx on communications.official_notices(created_by);
+create index if not exists official_notices_property_id_idx on communications.official_notices(property_id);
+create index if not exists official_notices_published_by_idx on communications.official_notices(published_by);
+create index if not exists official_notices_template_version_id_idx on communications.official_notices(template_version_id);
+create index if not exists official_notices_unit_id_idx on communications.official_notices(unit_id);
+
+create index if not exists notice_recipients_party_id_idx on communications.notice_recipients(party_id);
+create index if not exists notice_recipients_tenant_id_idx on communications.notice_recipients(tenant_id);
+create index if not exists notice_recipients_unit_id_idx on communications.notice_recipients(unit_id);
+
+create index if not exists delivery_attempts_recipient_id_idx on communications.delivery_attempts(recipient_id);
+
+create index if not exists notice_acknowledgements_membership_id_idx on communications.notice_acknowledgements(membership_id);
+create index if not exists notice_acknowledgements_recipient_id_idx on communications.notice_acknowledgements(recipient_id);
+create index if not exists notice_acknowledgements_tenant_id_idx on communications.notice_acknowledgements(tenant_id);
+
+create index if not exists statutory_evidence_captured_by_idx on communications.statutory_evidence(captured_by);
+create index if not exists statutory_evidence_document_id_idx on communications.statutory_evidence(document_id);
+create index if not exists statutory_evidence_tenant_id_idx on communications.statutory_evidence(tenant_id);
+create index if not exists statutory_evidence_verified_by_idx on communications.statutory_evidence(verified_by);
+
+create index if not exists notice_suppressions_membership_id_idx on communications.notice_suppressions(membership_id);
+
 commit;
