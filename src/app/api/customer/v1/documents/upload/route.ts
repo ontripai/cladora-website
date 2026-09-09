@@ -32,10 +32,15 @@ export async function POST(request: NextRequest) {
   let declaredMime = "application/pdf";
   let fileStream: ReadableStream<Uint8Array> | null = null;
 
+  let objectPath = "";
+  let bucketId = "document-vault";
+
   if (contentType.includes("multipart/form-data")) {
     const formData = await request.formData();
     contextId = (formData.get("context_id") as string) || "";
     intentId = (formData.get("intent_id") as string) || "";
+    objectPath = (formData.get("object_path") as string) || "";
+    bucketId = (formData.get("bucket_id") as string) || "document-vault";
     title = (formData.get("title") as string) || "";
     documentType = (formData.get("document_type") as string) || "general";
     classification = (formData.get("classification") as string) || "internal";
@@ -53,6 +58,8 @@ export async function POST(request: NextRequest) {
     // Stream directly via headers
     contextId = request.headers.get("x-cladora-context-id") || "";
     intentId = request.headers.get("x-cladora-intent-id") || "";
+    objectPath = request.headers.get("x-cladora-object-path") || "";
+    bucketId = request.headers.get("x-cladora-bucket-id") || "document-vault";
     title = request.headers.get("x-cladora-title") || "";
     documentType = request.headers.get("x-cladora-document-type") || "general";
     classification = request.headers.get("x-cladora-classification") || "internal";
@@ -90,15 +97,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 2. Fetch upload intent to verify path and authorization
-  const { data: intentData } = await (supabase.schema("documents") as any)
-    .from("upload_intents")
-    .select("object_path, bucket_id, status, max_size_bytes")
-    .eq("id", intentId)
-    .single();
-
-  const objectPath: string = String(intentData?.object_path || `documents/${intentId}/file`);
-  const bucketId: string = String(intentData?.bucket_id || "document-vault");
+  if (!objectPath) {
+    objectPath = `${claims.claims.sub}/${intentId}/v1.bin`;
+  }
 
   // 3. Upload bytes to storage bucket using authenticated client
   // Flatten chunks into Buffer
