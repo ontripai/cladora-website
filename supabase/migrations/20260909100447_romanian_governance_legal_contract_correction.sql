@@ -175,7 +175,10 @@ create table if not exists governance.statutory_officers (
 );
 
 create index if not exists statutory_officers_lookup_idx on governance.statutory_officers(tenant_id, property_id, office_type, status);
-create index if not exists statutory_officers_party_idx on governance.statutory_officers(party_id);
+create index if not exists statutory_officers_tenant_id_idx on governance.statutory_officers(tenant_id);
+create index if not exists statutory_officers_property_id_idx on governance.statutory_officers(property_id);
+create index if not exists statutory_officers_party_id_idx on governance.statutory_officers(party_id);
+create index if not exists statutory_officers_user_id_idx on governance.statutory_officers(user_id);
 
 create table if not exists governance.statutory_officer_relationships (
   id uuid primary key default gen_random_uuid(),
@@ -191,7 +194,9 @@ create table if not exists governance.statutory_officer_relationships (
 );
 
 create index if not exists statutory_relationships_lookup_idx on governance.statutory_officer_relationships(tenant_id, officer_id, related_party_id);
-create index if not exists statutory_relationships_party_idx on governance.statutory_officer_relationships(related_party_id);
+create index if not exists statutory_relationships_tenant_id_idx on governance.statutory_officer_relationships(tenant_id);
+create index if not exists statutory_relationships_officer_id_idx on governance.statutory_officer_relationships(officer_id);
+create index if not exists statutory_relationships_related_party_id_idx on governance.statutory_officer_relationships(related_party_id);
 
 -- Consistency trigger ensuring statutory officers match property & party tenant
 create or replace function governance.check_statutory_officer_tenant_integrity()
@@ -245,6 +250,8 @@ create table if not exists governance.motion_electorate_snapshots (
 
 create index if not exists motion_snapshots_meeting_idx on governance.motion_electorate_snapshots(meeting_id);
 create index if not exists motion_snapshots_agenda_idx on governance.motion_electorate_snapshots(agenda_item_id);
+create index if not exists motion_snapshots_tenant_id_idx on governance.motion_electorate_snapshots(tenant_id);
+create index if not exists motion_snapshots_rule_id_idx on governance.motion_electorate_snapshots(legal_decision_rule_id);
 
 -- ----------------------------------------------------------------------------
 -- 5. Minutes Attendee Signature Register Table (Art. 49(5))
@@ -265,6 +272,9 @@ create table if not exists governance.minutes_attendee_signatures (
 );
 
 create index if not exists minutes_signatures_meeting_idx on governance.minutes_attendee_signatures(meeting_id, signature_status);
+create index if not exists minutes_signatures_tenant_id_idx on governance.minutes_attendee_signatures(tenant_id);
+create index if not exists minutes_signatures_party_id_idx on governance.minutes_attendee_signatures(party_id);
+create index if not exists minutes_signatures_user_id_idx on governance.minutes_attendee_signatures(user_id);
 
 -- ----------------------------------------------------------------------------
 -- 6. Table Extensions (Meetings, Agenda, Votes, Ballots, Minutes)
@@ -282,6 +292,9 @@ alter table governance.meetings
   add column if not exists publication_deadline_at timestamptz,
   add column if not exists conservative_notice_compliance_policy text not null default 'PRODUCT-CONSERVATIVE-COMPLIANCE-POLICY / LEGAL-REVIEW-REQUIRED';
 
+create index if not exists meetings_elected_secretary_party_id_idx on governance.meetings(elected_secretary_party_id);
+create index if not exists meetings_elected_secretary_user_id_idx on governance.meetings(elected_secretary_user_id);
+
 alter table governance.agenda_items
   add column if not exists legal_decision_rule_id uuid references governance.legal_decision_rules(id) on delete restrict,
   add column if not exists decision_category text,
@@ -291,6 +304,8 @@ alter table governance.agenda_items
   add column if not exists legal_decision_rule_snapshot jsonb,
   add column if not exists bylaw_custom_threshold jsonb;
 
+create index if not exists agenda_items_legal_decision_rule_id_idx on governance.agenda_items(legal_decision_rule_id);
+
 alter table governance.votes
   add column if not exists dominant_owner_capped boolean not null default false,
   add column if not exists dominant_owner_party_id uuid references portfolio.parties(id) on delete restrict,
@@ -299,6 +314,8 @@ alter table governance.votes
   add column if not exists president_tie_breaker_applied boolean not null default false,
   add column if not exists president_vote_choice text,
   add column if not exists excluded_voter_parties jsonb not null default '[]'::jsonb;
+
+create index if not exists votes_dominant_owner_party_id_idx on governance.votes(dominant_owner_party_id);
 
 alter table governance.ballots
   add column if not exists effective_voting_weight numeric(20, 10),
@@ -312,6 +329,8 @@ alter table governance.minutes
   add column if not exists noticeboard_photocopy_displayed_at timestamptz,
   add column if not exists publication_deadline_at timestamptz,
   add column if not exists recorded_during_meeting boolean not null default true;
+
+create index if not exists minutes_elected_secretary_party_id_idx on governance.minutes(elected_secretary_party_id);
 
 -- Enable RLS on newly created tables
 alter table governance.legal_decision_rules enable row level security;
@@ -630,7 +649,7 @@ begin
     raise exception 'proxy_representative_prohibited_actor' using errcode = '42501';
   end if;
 
-  -- Statutory limit: Art. 49 alin. (3) lit. e: At most 1 absent member represented
+  -- Statutory limit: Legea 196/2018 Art. 47 / Art. 49 alin. (3) lit. e: At most 1 absent member represented
   select count(*) into v_active_proxies
   from governance.proxies
   where meeting_id = p_meeting_id
