@@ -19,6 +19,42 @@ select
   '0943add9-0c85-4b7a-a2ae-fea8b4d8a91d'::uuid as user_president,
   'ca8a1596-5c46-4021-b6b7-a09e752e3afc'::uuid as user_owner;
 
+insert into auth.users (id, email)
+select user_admin, 'admin_065@test.local' from test_fixtures
+on conflict (id) do nothing;
+
+insert into auth.users (id, email)
+select user_manager, 'pm_065@test.local' from test_fixtures
+on conflict (id) do nothing;
+
+insert into auth.users (id, email)
+select user_president, 'pres_065@test.local' from test_fixtures
+on conflict (id) do nothing;
+
+insert into auth.users (id, email)
+select user_owner, 'owner_065@test.local' from test_fixtures
+on conflict (id) do nothing;
+
+insert into platform.tenants (id, legal_name, registration_number, status)
+select tenant_a, 'Tenant A', 'ASSET-065-A', 'active' from test_fixtures
+on conflict (id) do nothing;
+
+insert into platform.tenants (id, legal_name, registration_number, status)
+select tenant_b, 'Tenant B', 'ASSET-065-B', 'active' from test_fixtures
+on conflict (id) do nothing;
+
+insert into portfolio.properties (id, tenant_id, type, name)
+select prop_a, tenant_a, 'condominium', 'Property A' from test_fixtures
+on conflict (id) do nothing;
+
+insert into portfolio.properties (id, tenant_id, type, name)
+select prop_b, tenant_b, 'condominium', 'Property B' from test_fixtures
+on conflict (id) do nothing;
+
+insert into portfolio.buildings (id, tenant_id, property_id, code, name)
+select bldg_a, tenant_a, prop_a, 'BLDG-A', 'Building A' from test_fixtures
+on conflict (id) do nothing;
+
 insert into assets.asset_categories (id, tenant_id, code, name)
 select cat_a, tenant_a, 'ELEVATOR', 'Elevator System' from test_fixtures;
 

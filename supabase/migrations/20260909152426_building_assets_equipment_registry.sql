@@ -552,9 +552,10 @@ create policy asset_claims_tenant_read on assets.asset_warranty_claims
     exists (select 1 from assets.assets a where a.id = asset_id and app_private.can_access_asset_scope(a.property_id, a.building_id, a.unit_id))
   );
 
-grant select on all tables in schema assets to authenticated;
 grant all on all tables in schema assets to service_role;
-revoke all on all tables in schema assets from public, anon;
+revoke all on all tables in schema assets from public, anon, authenticated;
+grant execute on all functions in schema assets to authenticated, service_role;
+revoke all on all functions in schema assets from public, anon;
 
 -- ----------------------------------------------------------------------------
 -- 10. Permission Bootstrap
@@ -657,7 +658,8 @@ $$;
 -- ----------------------------------------------------------------------------
 
 -- 12.1 List Assets with filters, sorting, and pagination
-create or replace function customer_api.list_assets_v1(
+-- Internal Definier: assets.list_assets_internal_v1
+create or replace function assets.list_assets_internal_v1(
   p_context_id uuid,
   p_property_id uuid default null,
   p_building_id uuid default null,
@@ -670,7 +672,8 @@ create or replace function customer_api.list_assets_v1(
   p_search text default null,
   p_limit integer default 25,
   p_offset integer default 0
-) returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql stable security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -800,11 +803,38 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.list_assets_v1
+create or replace function customer_api.list_assets_v1(
+  p_context_id uuid,
+  p_property_id uuid default null,
+  p_building_id uuid default null,
+  p_category_id uuid default null,
+  p_lifecycle_status text default null,
+  p_operational_status text default null,
+  p_condition text default null,
+  p_criticality_level text default null,
+  p_is_safety_critical boolean default null,
+  p_search text default null,
+  p_limit integer default 25,
+  p_offset integer default 0
+)
+returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.list_assets_internal_v1(p_context_id, p_property_id, p_building_id, p_category_id, p_lifecycle_status, p_operational_status, p_condition, p_criticality_level, p_is_safety_critical, p_search, p_limit, p_offset);
+end;
+$$;
+
 -- 12.2 Get Asset Detail
-create or replace function customer_api.get_asset_detail_v1(
+-- Internal Definier: assets.get_asset_detail_internal_v1
+create or replace function assets.get_asset_detail_internal_v1(
   p_context_id uuid,
   p_asset_id uuid
-) returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql stable security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -908,8 +938,24 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.get_asset_detail_v1
+create or replace function customer_api.get_asset_detail_v1(
+  p_context_id uuid,
+  p_asset_id uuid
+)
+returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.get_asset_detail_internal_v1(p_context_id, p_asset_id);
+end;
+$$;
+
 -- 12.3 Create Asset
-create or replace function customer_api.create_asset_v1(
+-- Internal Definier: assets.create_asset_internal_v1
+create or replace function assets.create_asset_internal_v1(
   p_context_id uuid,
   p_property_id uuid,
   p_category_id uuid,
@@ -936,7 +982,8 @@ create or replace function customer_api.create_asset_v1(
   p_vendor_id uuid default null,
   p_service_contract_id uuid default null,
   p_service_frequency_months integer default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -991,8 +1038,48 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.create_asset_v1
+create or replace function customer_api.create_asset_v1(
+  p_context_id uuid,
+  p_property_id uuid,
+  p_category_id uuid,
+  p_asset_code text,
+  p_name text,
+  p_scope text default 'property',
+  p_building_id uuid default null,
+  p_unit_id uuid default null,
+  p_description text default null,
+  p_manufacturer text default null,
+  p_model text default null,
+  p_serial_number text default null,
+  p_manufacture_year integer default null,
+  p_installed_on date default null,
+  p_location_description text default null,
+  p_ownership_type text default 'association',
+  p_condition text default 'unknown',
+  p_criticality_level text default 'medium',
+  p_is_safety_critical boolean default false,
+  p_replacement_cost numeric default null,
+  p_currency text default 'RON',
+  p_meter_id uuid default null,
+  p_access_point_id uuid default null,
+  p_vendor_id uuid default null,
+  p_service_contract_id uuid default null,
+  p_service_frequency_months integer default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.create_asset_internal_v1(p_context_id, p_property_id, p_category_id, p_asset_code, p_name, p_scope, p_building_id, p_unit_id, p_description, p_manufacturer, p_model, p_serial_number, p_manufacture_year, p_installed_on, p_location_description, p_ownership_type, p_condition, p_criticality_level, p_is_safety_critical, p_replacement_cost, p_currency, p_meter_id, p_access_point_id, p_vendor_id, p_service_contract_id, p_service_frequency_months);
+end;
+$$;
+
 -- 12.4 Update Asset Metadata
-create or replace function customer_api.update_asset_v1(
+-- Internal Definier: assets.update_asset_internal_v1
+create or replace function assets.update_asset_internal_v1(
   p_context_id uuid,
   p_asset_id uuid,
   p_name text default null,
@@ -1004,7 +1091,8 @@ create or replace function customer_api.update_asset_v1(
   p_service_contract_id uuid default null,
   p_service_frequency_months integer default null,
   p_replacement_cost numeric default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1040,13 +1128,39 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.update_asset_v1
+create or replace function customer_api.update_asset_v1(
+  p_context_id uuid,
+  p_asset_id uuid,
+  p_name text default null,
+  p_description text default null,
+  p_location_description text default null,
+  p_meter_id uuid default null,
+  p_access_point_id uuid default null,
+  p_vendor_id uuid default null,
+  p_service_contract_id uuid default null,
+  p_service_frequency_months integer default null,
+  p_replacement_cost numeric default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.update_asset_internal_v1(p_context_id, p_asset_id, p_name, p_description, p_location_description, p_meter_id, p_access_point_id, p_vendor_id, p_service_contract_id, p_service_frequency_months, p_replacement_cost);
+end;
+$$;
+
 -- 12.5 Transition Asset Lifecycle (Commissioning / Maintenance / Active)
-create or replace function customer_api.transition_asset_lifecycle_v1(
+-- Internal Definier: assets.transition_asset_lifecycle_internal_v1
+create or replace function assets.transition_asset_lifecycle_internal_v1(
   p_context_id uuid,
   p_asset_id uuid,
   p_target_status text,
   p_reason text default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1094,14 +1208,33 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.transition_asset_lifecycle_v1
+create or replace function customer_api.transition_asset_lifecycle_v1(
+  p_context_id uuid,
+  p_asset_id uuid,
+  p_target_status text,
+  p_reason text default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.transition_asset_lifecycle_internal_v1(p_context_id, p_asset_id, p_target_status, p_reason);
+end;
+$$;
+
 -- 12.6 Update Operational Status & Condition
-create or replace function customer_api.update_asset_operational_status_v1(
+-- Internal Definier: assets.update_asset_operational_status_internal_v1
+create or replace function assets.update_asset_operational_status_internal_v1(
   p_context_id uuid,
   p_asset_id uuid,
   p_operational_status text,
   p_condition text default null,
   p_reason text default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1140,8 +1273,27 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.update_asset_operational_status_v1
+create or replace function customer_api.update_asset_operational_status_v1(
+  p_context_id uuid,
+  p_asset_id uuid,
+  p_operational_status text,
+  p_condition text default null,
+  p_reason text default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.update_asset_operational_status_internal_v1(p_context_id, p_asset_id, p_operational_status, p_condition, p_reason);
+end;
+$$;
+
 -- 12.7 Start Asset Downtime
-create or replace function customer_api.start_asset_downtime_v1(
+-- Internal Definier: assets.start_asset_downtime_internal_v1
+create or replace function assets.start_asset_downtime_internal_v1(
   p_context_id uuid,
   p_asset_id uuid,
   p_reason text,
@@ -1149,7 +1301,8 @@ create or replace function customer_api.start_asset_downtime_v1(
   p_work_order_id uuid default null,
   p_ticket_id uuid default null,
   p_started_at timestamptz default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1184,13 +1337,35 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.start_asset_downtime_v1
+create or replace function customer_api.start_asset_downtime_v1(
+  p_context_id uuid,
+  p_asset_id uuid,
+  p_reason text,
+  p_is_planned boolean default false,
+  p_work_order_id uuid default null,
+  p_ticket_id uuid default null,
+  p_started_at timestamptz default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.start_asset_downtime_internal_v1(p_context_id, p_asset_id, p_reason, p_is_planned, p_work_order_id, p_ticket_id, p_started_at);
+end;
+$$;
+
 -- 12.8 End Asset Downtime (Atomic Single-Winner)
-create or replace function customer_api.end_asset_downtime_v1(
+-- Internal Definier: assets.end_asset_downtime_internal_v1
+create or replace function assets.end_asset_downtime_internal_v1(
   p_context_id uuid,
   p_downtime_id uuid,
   p_ended_at timestamptz default null,
   p_restored_operational_status text default 'operational'
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1230,11 +1405,30 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.end_asset_downtime_v1
+create or replace function customer_api.end_asset_downtime_v1(
+  p_context_id uuid,
+  p_downtime_id uuid,
+  p_ended_at timestamptz default null,
+  p_restored_operational_status text default 'operational'
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.end_asset_downtime_internal_v1(p_context_id, p_downtime_id, p_ended_at, p_restored_operational_status);
+end;
+$$;
+
 -- 12.9 List Asset Inspections
-create or replace function customer_api.list_asset_inspections_v1(
+-- Internal Definier: assets.list_asset_inspections_internal_v1
+create or replace function assets.list_asset_inspections_internal_v1(
   p_context_id uuid,
   p_asset_id uuid
-) returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql stable security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1266,8 +1460,24 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.list_asset_inspections_v1
+create or replace function customer_api.list_asset_inspections_v1(
+  p_context_id uuid,
+  p_asset_id uuid
+)
+returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.list_asset_inspections_internal_v1(p_context_id, p_asset_id);
+end;
+$$;
+
 -- 12.10 Record Asset Inspection
-create or replace function customer_api.record_asset_inspection_v1(
+-- Internal Definier: assets.record_asset_inspection_internal_v1
+create or replace function assets.record_asset_inspection_internal_v1(
   p_context_id uuid,
   p_asset_id uuid,
   p_inspection_type text,
@@ -1280,7 +1490,8 @@ create or replace function customer_api.record_asset_inspection_v1(
   p_corrective_action_required text default null,
   p_document_id uuid default null,
   p_policy_id uuid default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1367,11 +1578,38 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.record_asset_inspection_v1
+create or replace function customer_api.record_asset_inspection_v1(
+  p_context_id uuid,
+  p_asset_id uuid,
+  p_inspection_type text,
+  p_scheduled_date date,
+  p_performed_at timestamptz default null,
+  p_result text default 'pending',
+  p_inspector_name text default null,
+  p_inspector_vendor_id uuid default null,
+  p_observations text default null,
+  p_corrective_action_required text default null,
+  p_document_id uuid default null,
+  p_policy_id uuid default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.record_asset_inspection_internal_v1(p_context_id, p_asset_id, p_inspection_type, p_scheduled_date, p_performed_at, p_result, p_inspector_name, p_inspector_vendor_id, p_observations, p_corrective_action_required, p_document_id, p_policy_id);
+end;
+$$;
+
 -- 12.11 Verify Asset Inspection (AAL2 Required)
-create or replace function customer_api.verify_asset_inspection_v1(
+-- Internal Definier: assets.verify_asset_inspection_internal_v1
+create or replace function assets.verify_asset_inspection_internal_v1(
   p_context_id uuid,
   p_inspection_id uuid
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1401,11 +1639,28 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.verify_asset_inspection_v1
+create or replace function customer_api.verify_asset_inspection_v1(
+  p_context_id uuid,
+  p_inspection_id uuid
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.verify_asset_inspection_internal_v1(p_context_id, p_inspection_id);
+end;
+$$;
+
 -- 12.12 Get Asset Warranty
-create or replace function customer_api.get_asset_warranty_v1(
+-- Internal Definier: assets.get_asset_warranty_internal_v1
+create or replace function assets.get_asset_warranty_internal_v1(
   p_context_id uuid,
   p_asset_id uuid
-) returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql stable security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1441,8 +1696,24 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.get_asset_warranty_v1
+create or replace function customer_api.get_asset_warranty_v1(
+  p_context_id uuid,
+  p_asset_id uuid
+)
+returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.get_asset_warranty_internal_v1(p_context_id, p_asset_id);
+end;
+$$;
+
 -- 12.13 Upsert Asset Warranty
-create or replace function customer_api.upsert_asset_warranty_v1(
+-- Internal Definier: assets.upsert_asset_warranty_internal_v1
+create or replace function assets.upsert_asset_warranty_internal_v1(
   p_context_id uuid,
   p_asset_id uuid,
   p_starts_on date,
@@ -1451,7 +1722,8 @@ create or replace function customer_api.upsert_asset_warranty_v1(
   p_coverage_json jsonb default '{}'::jsonb,
   p_warranty_terms text default null,
   p_document_id uuid default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1483,11 +1755,34 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.upsert_asset_warranty_v1
+create or replace function customer_api.upsert_asset_warranty_v1(
+  p_context_id uuid,
+  p_asset_id uuid,
+  p_starts_on date,
+  p_ends_on date,
+  p_vendor_id uuid default null,
+  p_coverage_json jsonb default '{}'::jsonb,
+  p_warranty_terms text default null,
+  p_document_id uuid default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.upsert_asset_warranty_internal_v1(p_context_id, p_asset_id, p_starts_on, p_ends_on, p_vendor_id, p_coverage_json, p_warranty_terms, p_document_id);
+end;
+$$;
+
 -- 12.14 List Warranty Claims
-create or replace function customer_api.list_warranty_claims_v1(
+-- Internal Definier: assets.list_warranty_claims_internal_v1
+create or replace function assets.list_warranty_claims_internal_v1(
   p_context_id uuid,
   p_asset_id uuid
-) returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql stable security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1518,15 +1813,32 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.list_warranty_claims_v1
+create or replace function customer_api.list_warranty_claims_v1(
+  p_context_id uuid,
+  p_asset_id uuid
+)
+returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.list_warranty_claims_internal_v1(p_context_id, p_asset_id);
+end;
+$$;
+
 -- 12.15 Create Warranty Claim
-create or replace function customer_api.create_warranty_claim_v1(
+-- Internal Definier: assets.create_warranty_claim_internal_v1
+create or replace function assets.create_warranty_claim_internal_v1(
   p_context_id uuid,
   p_warranty_id uuid,
   p_claim_reference text,
   p_description text,
   p_claim_date date default current_date,
   p_document_id uuid default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1567,13 +1879,34 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.create_warranty_claim_v1
+create or replace function customer_api.create_warranty_claim_v1(
+  p_context_id uuid,
+  p_warranty_id uuid,
+  p_claim_reference text,
+  p_description text,
+  p_claim_date date default current_date,
+  p_document_id uuid default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.create_warranty_claim_internal_v1(p_context_id, p_warranty_id, p_claim_reference, p_description, p_claim_date, p_document_id);
+end;
+$$;
+
 -- 12.16 Resolve Warranty Claim
-create or replace function customer_api.resolve_warranty_claim_v1(
+-- Internal Definier: assets.resolve_warranty_claim_internal_v1
+create or replace function assets.resolve_warranty_claim_internal_v1(
   p_context_id uuid,
   p_claim_id uuid,
   p_resolution_status text,
   p_resolution_notes text default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1602,11 +1935,30 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.resolve_warranty_claim_v1
+create or replace function customer_api.resolve_warranty_claim_v1(
+  p_context_id uuid,
+  p_claim_id uuid,
+  p_resolution_status text,
+  p_resolution_notes text default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.resolve_warranty_claim_internal_v1(p_context_id, p_claim_id, p_resolution_status, p_resolution_notes);
+end;
+$$;
+
 -- 12.17 List Compliance Policies
-create or replace function customer_api.list_compliance_policies_v1(
+-- Internal Definier: assets.list_compliance_policies_internal_v1
+create or replace function assets.list_compliance_policies_internal_v1(
   p_context_id uuid,
   p_category_code text default null
-) returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql stable security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1638,8 +1990,24 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.list_compliance_policies_v1
+create or replace function customer_api.list_compliance_policies_v1(
+  p_context_id uuid,
+  p_category_code text default null
+)
+returns jsonb language plpgsql stable security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.list_compliance_policies_internal_v1(p_context_id, p_category_code);
+end;
+$$;
+
 -- 12.18 Configure Compliance Policy
-create or replace function customer_api.configure_compliance_policy_v1(
+-- Internal Definier: assets.configure_compliance_policy_internal_v1
+create or replace function assets.configure_compliance_policy_internal_v1(
   p_context_id uuid,
   p_policy_code text,
   p_category_code text,
@@ -1650,7 +2018,8 @@ create or replace function customer_api.configure_compliance_policy_v1(
   p_property_id uuid default null,
   p_is_safety_mandatory boolean default false,
   p_jurisdiction text default 'RO'
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1678,13 +2047,38 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.configure_compliance_policy_v1
+create or replace function customer_api.configure_compliance_policy_v1(
+  p_context_id uuid,
+  p_policy_code text,
+  p_category_code text,
+  p_interval_months integer,
+  p_legal_source_reference text,
+  p_effective_from date,
+  p_effective_to date default null,
+  p_property_id uuid default null,
+  p_is_safety_mandatory boolean default false,
+  p_jurisdiction text default 'RO'
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.configure_compliance_policy_internal_v1(p_context_id, p_policy_code, p_category_code, p_interval_months, p_legal_source_reference, p_effective_from, p_effective_to, p_property_id, p_is_safety_mandatory, p_jurisdiction);
+end;
+$$;
+
 -- 12.19 Request Asset Decommission
-create or replace function customer_api.request_asset_decommission_v1(
+-- Internal Definier: assets.request_asset_decommission_internal_v1
+create or replace function assets.request_asset_decommission_internal_v1(
   p_context_id uuid,
   p_asset_id uuid,
   p_reason text,
   p_replacement_asset_id uuid default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1730,13 +2124,32 @@ begin
 end;
 $$;
 
+-- Public Wrapper: customer_api.request_asset_decommission_v1
+create or replace function customer_api.request_asset_decommission_v1(
+  p_context_id uuid,
+  p_asset_id uuid,
+  p_reason text,
+  p_replacement_asset_id uuid default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.request_asset_decommission_internal_v1(p_context_id, p_asset_id, p_reason, p_replacement_asset_id);
+end;
+$$;
+
 -- 12.20 Approve Asset Decommission (Dual-Control for Critical Assets + AAL2)
-create or replace function customer_api.approve_asset_decommission_v1(
+-- Internal Definier: assets.approve_asset_decommission_internal_v1
+create or replace function assets.approve_asset_decommission_internal_v1(
   p_context_id uuid,
   p_request_id uuid,
   p_approved boolean,
   p_rejection_reason text default null
-) returns jsonb language plpgsql security invoker set search_path = pg_catalog
+)
+returns jsonb language plpgsql security definer set search_path = pg_catalog, assets, platform, identity, portfolio, utilities, maintenance, documents
 as $$
 declare
   v_caller record;
@@ -1799,6 +2212,23 @@ begin
   end if;
 
   return jsonb_build_object('success', true, 'request_id', p_request_id, 'approved', p_approved);
+end;
+$$;
+
+-- Public Wrapper: customer_api.approve_asset_decommission_v1
+create or replace function customer_api.approve_asset_decommission_v1(
+  p_context_id uuid,
+  p_request_id uuid,
+  p_approved boolean,
+  p_rejection_reason text default null
+)
+returns jsonb language plpgsql security invoker set search_path = pg_catalog
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'AUTHENTICATION_REQUIRED: Valid user session required' using errcode = '42501';
+  end if;
+  return assets.approve_asset_decommission_internal_v1(p_context_id, p_request_id, p_approved, p_rejection_reason);
 end;
 $$;
 
