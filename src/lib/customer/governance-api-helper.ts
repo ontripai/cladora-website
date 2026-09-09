@@ -49,14 +49,82 @@ export function mapGovernanceRpcError(error: { code?: string; message?: string }
     };
   }
 
-  // Fail-closed unconfigured governance policy
-  if (msg.includes("governance_policy_unconfigured") || msg.includes("active_policy_not_found")) {
+  // Fail-closed unconfigured governance policy or decision rule
+  if (
+    msg.includes("governance_policy_unconfigured") ||
+    msg.includes("active_policy_not_found") ||
+    msg.includes("legal_decision_rule_unconfigured")
+  ) {
     return {
       status: 422,
       body: {
         error: {
-          code: "GOVERNANCE_POLICY_UNCONFIGURED",
-          message: "No active governance policy configured for association. Cannot evaluate statutory rules.",
+          code: "LEGAL_DECISION_RULE_UNCONFIGURED",
+          message: "Statutory decision rule unconfigured or inactive. Resolution adoption failed-closed.",
+        },
+      },
+    };
+  }
+
+  // Statutory consent and permit prerequisites (Art. 38, 39, 44)
+  if (
+    msg.includes("missing_affected_owner_consent") ||
+    msg.includes("missing_required_permit_approval") ||
+    msg.includes("proof_of_complete_notice_required")
+  ) {
+    let errCode = "STATUTORY_PREREQUISITE_MISSING";
+    if (msg.includes("missing_affected_owner_consent")) errCode = "MISSING_AFFECTED_OWNER_CONSENT";
+    else if (msg.includes("missing_required_permit_approval")) errCode = "MISSING_REQUIRED_PERMIT_APPROVAL";
+    else if (msg.includes("proof_of_complete_notice_required")) errCode = "PROOF_OF_COMPLETE_NOTICE_REQUIRED";
+
+    return {
+      status: 422,
+      body: {
+        error: {
+          code: errCode,
+          message: msg || "Statutory prerequisite not met for governance resolution.",
+        },
+      },
+    };
+  }
+
+  // Minutes execution prerequisites (Art. 49(5)-(7))
+  if (
+    msg.includes("missing_attendee_minutes_signatures") ||
+    msg.includes("missing_censor_minutes_signature") ||
+    msg.includes("secretary_election_required_for_minutes") ||
+    msg.includes("secretary_must_be_present_member")
+  ) {
+    let errCode = "MINUTES_PREREQUISITE_MISSING";
+    if (msg.includes("missing_attendee_minutes_signatures")) errCode = "MISSING_ATTENDEE_SIGNATURES";
+    else if (msg.includes("missing_censor_minutes_signature")) errCode = "MISSING_CENSOR_SIGNATURE";
+    else if (msg.includes("secretary_election_required_for_minutes")) errCode = "SECRETARY_ELECTION_REQUIRED";
+
+    return {
+      status: 422,
+      body: {
+        error: {
+          code: errCode,
+          message: msg || "Statutory minutes prerequisites (secretary, attendee and censor signatures) not met.",
+        },
+      },
+    };
+  }
+
+  // Prohibited Proxy & Conflict of Interest (Art. 49(3)(f), Art. 49(3)(h))
+  if (
+    msg.includes("proxy_representative_prohibited_actor") ||
+    msg.includes("administrator_conflict_of_interest_voting_denied")
+  ) {
+    const isConflict = msg.includes("administrator_conflict_of_interest_voting_denied");
+    return {
+      status: 403,
+      body: {
+        error: {
+          code: isConflict ? "ADMINISTRATOR_CONFLICT_OF_INTEREST" : "PROXY_PROHIBITED_ACTOR",
+          message: isConflict
+            ? "Administrator and family members have no voting rights on administrator performance/fees (Art. 49(3)(h))."
+            : "Statutory officers and their family members cannot receive proxy representation (Art. 49(3)(f)).",
         },
       },
     };

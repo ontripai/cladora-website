@@ -31,6 +31,21 @@ export const addAgendaItemSchema = z.object({
   voting_required: z.boolean().default(false),
   proposed_amount: z.number().min(0).optional().nullable(),
   currency: z.string().length(3).default("RON"),
+  decision_category: z.string().trim().max(100).optional().nullable(),
+  affected_owner_consents_collected: z.boolean().default(false),
+  required_permit_reference: z.string().trim().max(200).optional().nullable(),
+});
+
+export const electMeetingSecretarySchema = z.object({
+  context_id: z.string().uuid(),
+  secretary_party_id: z.string().uuid(),
+  secretary_name: z.string().trim().min(1, "secretary_name_required").max(200),
+});
+
+export const recordMinutesSignatureSchema = z.object({
+  context_id: z.string().uuid(),
+  signature_type: z.enum(["present_member", "censor"]),
+  signature_evidence_ref: z.string().trim().max(500).optional().nullable(),
 });
 
 export const publishMeetingSchema = z.object({
