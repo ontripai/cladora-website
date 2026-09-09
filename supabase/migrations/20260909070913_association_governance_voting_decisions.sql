@@ -43,6 +43,7 @@ create table if not exists governance.governance_policies (
 );
 
 create index if not exists governance_policies_lookup_idx on governance.governance_policies(tenant_id, property_id, status, effective_from desc);
+create index if not exists governance_policies_property_id_idx on governance.governance_policies(property_id);
 create index if not exists governance_policies_created_by_idx on governance.governance_policies(created_by);
 create index if not exists governance_policies_activated_by_idx on governance.governance_policies(activated_by);
 create index if not exists governance_policies_superseded_by_idx on governance.governance_policies(superseded_by);
@@ -204,6 +205,7 @@ create table if not exists governance.resolution_actions (
 );
 
 create index if not exists governance_resolution_actions_res_idx on governance.resolution_actions(tenant_id, resolution_id);
+create index if not exists resolution_actions_resolution_id_idx on governance.resolution_actions(resolution_id);
 
 -- RLS & Grants
 alter table governance.governance_policies enable row level security;
