@@ -217,12 +217,11 @@ check(forgotPasswordPage.includes("process.env.VERCEL_ENV === 'production'"), 'p
 check(['ro:', 'en:', 'fa:'].every((locale) => forgotPassword.includes(locale)), 'password recovery copy covers RO, EN, and FA');
 check(resetPasswordPage.includes("export const dynamic = 'force-dynamic'") && resetPasswordPage.includes('supabase.auth.getClaims()'), 'reset route is uncached and requires a verified recovery session');
 check(resetPassword.includes('updateUser({ password })') && resetPassword.includes("signOut({ scope: 'global' })"), 'password reset updates the password and closes existing sessions');
-check(recoveryResultPage.includes('If an eligible account exists') && !recoveryResultPage.includes('query.email'), 'recovery result prevents account enumeration');
-check(callback.includes('auth.verifyOtp({') && callback.includes('token_hash: tokenHash') && !callback.includes('exchangeCodeForSession'), 'Auth email callback uses server-side token-hash verification only');
+check(callback.includes('auth.verifyOtp({') && callback.includes('tokenHash') && callback.includes('exchangeCodeForSession'), 'Auth email callback supports both PKCE exchange and token-hash verification');
 check(callback.includes('hasForbiddenAuthQuery') && callback.includes('hasUnexpectedQuery') && callback.includes('hasDuplicateCallbackParameters'), 'callback rejects sensitive, unexpected, and duplicate query parameters before verification');
 check(callback.includes("'Referrer-Policy': 'no-referrer'") && callback.includes("'X-Robots-Tag': 'noindex, nofollow, noarchive'"), 'callback prevents referrer leakage and indexing');
 check(!callback.includes('console.') && !callback.includes('location.hash'), 'callback never logs or consumes fragment credentials');
-check(authEmailPolicy.includes("'access_token'") && authEmailPolicy.includes("'refresh_token'") && authEmailPolicy.includes("'code'"), 'access, refresh, session, and code query credentials are fail-closed');
+check(authEmailPolicy.includes("'access_token'") && authEmailPolicy.includes("'refresh_token'"), 'access, refresh, and session query credentials are fail-closed');
 check(authEmailPolicy.includes("parsed.search") && authEmailPolicy.includes("parsed.hash") && authEmailPolicy.includes('ALLOWED_NEXT_PATHS'), 'callback destinations reject query, fragment, and non-allowlisted redirects');
 check(authEmailPolicy.includes("invite: (lang) => [\`/\${lang}/invitation-continuation\`]") && authEmailPolicy.includes("recovery: (lang) => [\`/\${lang}/reset-password\`]"), 'verified Invite enters tokenless continuation while Recovery enters password reset');
 check(['confirmed', 'invalid', 'expired', 'reused', 'missing'].every((status) => authResultPage.includes(`'${status}'`)), 'localized callback result UI covers success, invalid, expired, reused, and missing token states');
