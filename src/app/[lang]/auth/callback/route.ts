@@ -1,15 +1,25 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { cookies } from 'next/headers';
+import { createServerClient } from '@supabase/ssr';
 import {
   hasDuplicateCallbackParameters,
   hasForbiddenAuthQuery,
-  isSupportedAuthEmailType,
+  hasUnexpectedQuery,
   isSupportedLocale,
   mapOtpErrorStatus,
+  parseCallbackContract,
   resolveAuthEmailDestination,
+  resolvePkceDestination,
 } from '@/lib/auth/email-callback.mjs';
-import { createClient } from '@/lib/supabase/server';
+import { getPublicSupabaseEnv } from '@/lib/supabase/env';
+import {
+  createRecoverySessionToken,
+  getClearRecoveryCookieOptions,
+  getRecoveryCookieOptions,
+  RECOVERY_COOKIE_NAME,
+} from '@/lib/auth/recovery-cookie';
+import type { Database } from '@/types/database.generated';
 
-const ALLOWED_QUERY_KEYS = new Set(['token_hash', 'type', 'next']);
 const NO_STORE_HEADERS = {
   'Cache-Control': 'no-store, private',
   'CDN-Cache-Control': 'no-store',
@@ -31,15 +41,13 @@ function resultUrl(request: NextRequest, lang: string, status: string): URL {
 }
 
 function reject(request: NextRequest, lang: string, status: string): NextResponse {
-  return noStore(NextResponse.redirect(resultUrl(request, lang, status)));
-}
-
-function hasUnexpectedQuery(searchParams: URLSearchParams): boolean {
-  let unexpected = false;
-  searchParams.forEach((_, key) => {
-    if (!ALLOWED_QUERY_KEYS.has(key)) unexpected = true;
-  });
-  return unexpected;
+  const response = noStore(NextResponse.redirect(resultUrl(request, lang, status)));
+  response.cookies.set(
+    RECOVERY_COOKIE_NAME,
+    '',
+    getClearRecoveryCookieOptions(request.url.startsWith('https:')),
+  );
+  return response;
 }
 
 export async function GET(
@@ -60,30 +68,95 @@ export async function GET(
     return reject(request, lang, 'unsafe');
   }
 
-  const tokenHash = searchParams.get('token_hash');
-  if (!tokenHash || tokenHash.length < 16 || tokenHash.length > 256 || /\s/.test(tokenHash)) {
-    return reject(request, lang, 'missing');
+  const contract = parseCallbackContract(searchParams);
+  if (!contract.valid) {
+    return reject(request, lang, contract.reason || 'unsafe');
   }
 
-  const rawType = searchParams.get('type');
-  if (!isSupportedAuthEmailType(rawType)) {
-    return reject(request, lang, 'invalid_type');
+  let destination: string | null = null;
+  if (contract.kind === 'pkce') {
+    destination = resolvePkceDestination(lang, contract.next);
+  } else if (contract.kind === 'otp') {
+    destination = resolveAuthEmailDestination(lang, contract.type, contract.next);
   }
 
-  const destination = resolveAuthEmailDestination(lang, rawType, searchParams.get('next'));
   if (!destination) {
     return reject(request, lang, 'unsafe');
   }
 
-  const supabase = await createClient();
-  const verification = await supabase.auth.verifyOtp({
-    token_hash: tokenHash,
-    type: rawType,
+  const response = NextResponse.redirect(new URL(destination, request.url));
+  noStore(response);
+
+  const cookieStore = await cookies();
+  const { url, publishableKey } = getPublicSupabaseEnv();
+
+  const supabase = createServerClient<Database>(url, publishableKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          request.cookies.set(name, value);
+          response.cookies.set(name, value, options);
+          try {
+            cookieStore.set(name, value, options);
+          } catch {
+            // Server response handles primary cookie header persistence.
+          }
+        });
+      },
+    },
   });
 
-  if (verification.error) {
-    return reject(request, lang, mapOtpErrorStatus(verification.error.code));
+  let sessionUserId: string | null = null;
+  let sessionId: string | undefined = undefined;
+  let isRecovery = false;
+
+  if (contract.kind === 'pkce') {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(contract.code);
+    if (error || !data?.session?.user) {
+      return reject(request, lang, 'expired');
+    }
+    sessionUserId = data.session.user.id;
+    sessionId = (data.session as { id?: string }).id;
+
+    if (destination.endsWith('/reset-password')) {
+      const amr = (data.session.user as { amr?: Array<{ method: string }> })?.amr;
+      const isOtpOrRecovery = !amr || amr.some((m) => m.method === 'otp' || m.method === 'recovery');
+      if (isOtpOrRecovery) {
+        isRecovery = true;
+      } else {
+        return reject(request, lang, 'unsafe');
+      }
+    }
+  } else if (contract.kind === 'otp') {
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: contract.tokenHash,
+      type: contract.type,
+    });
+    if (error || !data?.session?.user) {
+      return reject(request, lang, mapOtpErrorStatus(error?.code));
+    }
+    sessionUserId = data.session.user.id;
+    sessionId = (data.session as { id?: string }).id;
+
+    if (contract.type === 'recovery' && destination.endsWith('/reset-password')) {
+      isRecovery = true;
+    }
   }
 
-  return noStore(NextResponse.redirect(new URL(destination, request.url)));
+  if (isRecovery && sessionUserId) {
+    const isHttps = request.url.startsWith('https:');
+    const token = createRecoverySessionToken(sessionUserId, sessionId);
+    const cookieOpts = getRecoveryCookieOptions(isHttps);
+    response.cookies.set(RECOVERY_COOKIE_NAME, token, cookieOpts);
+    try {
+      cookieStore.set(RECOVERY_COOKIE_NAME, token, cookieOpts);
+    } catch {
+      // Primary cookie persisted in response.cookies.
+    }
+  }
+
+  return response;
 }

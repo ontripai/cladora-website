@@ -10,6 +10,11 @@ import { meetsPasswordPolicy, MIN_PASSWORD_LENGTH } from '@/lib/auth/password-po
 
 type Props = { lang: Language; flow?: 'recovery' | 'invitation' };
 
+import { mapUpdateUserError, recoveryErrorCopy, type RecoveryErrorCode } from '@/lib/auth/recovery-errors';
+
+export type { RecoveryErrorCode };
+export { mapUpdateUserError };
+
 const copy = {
   ro: {
     title: 'Alege o parolă nouă',
@@ -20,7 +25,6 @@ const copy = {
     working: 'Se actualizează…',
     mismatch: 'Parolele nu coincid.',
     weak: 'Parola trebuie să aibă cel puțin 8 caractere, o literă și o cifră.',
-    failed: 'Parola nu a putut fi actualizată. Linkul poate fi expirat sau nevalid.',
     invitationTitle: 'Setează parola contului',
     invitationIntro: 'Finalizează activarea cu o parolă de minimum 8 caractere, o literă și o cifră.',
     invitationFailed: 'Parola nu a putut fi setată. Reia invitația sau solicită asistență.',
@@ -34,7 +38,6 @@ const copy = {
     working: 'Updating…',
     mismatch: 'Passwords do not match.',
     weak: 'The password must contain at least 8 characters, one letter, and one number.',
-    failed: 'The password could not be updated. The recovery link may be expired or invalid.',
     invitationTitle: 'Set your account password',
     invitationIntro: 'Complete activation with at least 8 characters, one letter, and one number.',
     invitationFailed: 'The password could not be set. Restart the invitation or request assistance.',
@@ -48,7 +51,6 @@ const copy = {
     working: 'در حال به‌روزرسانی…',
     mismatch: 'رمزهای عبور یکسان نیستند.',
     weak: 'رمز عبور باید حداقل ۸ نویسه و شامل یک حرف و یک عدد باشد.',
-    failed: 'رمز عبور به‌روزرسانی نشد. ممکن است پیوند بازیابی منقضی یا نامعتبر باشد.',
     invitationTitle: 'تعیین رمز عبور حساب',
     invitationIntro: 'فعال‌سازی را با رمزی حداقل ۸ نویسه‌ای شامل یک حرف و یک عدد تکمیل کنید.',
     invitationFailed: 'تعیین رمز عبور انجام نشد. دعوت‌نامه را دوباره آغاز کنید یا پشتیبانی بخواهید.',
@@ -59,7 +61,6 @@ export function ResetPasswordForm({ lang, flow = 'recovery' }: Props) {
   const t = copy[lang];
   const title = flow === 'invitation' ? t.invitationTitle : t.title;
   const intro = flow === 'invitation' ? t.invitationIntro : t.intro;
-  const failed = flow === 'invitation' ? t.invitationFailed : t.failed;
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [confirmation, setConfirmation] = useState('');
@@ -84,8 +85,19 @@ export function ResetPasswordForm({ lang, flow = 'recovery' }: Props) {
       const supabase = createClient();
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setError(failed);
+        if (flow === 'invitation') {
+          setError(t.invitationFailed);
+        } else {
+          const errCode = mapUpdateUserError(updateError);
+          setError(recoveryErrorCopy[lang][errCode]);
+        }
         return;
+      }
+
+      try {
+        await fetch('/api/auth/clear-recovery', { method: 'POST' });
+      } catch {
+        // Non-fatal; global sign out invalidates refresh tokens on server.
       }
 
       await supabase.auth.signOut({ scope: 'global' });
@@ -95,8 +107,13 @@ export function ResetPasswordForm({ lang, flow = 'recovery' }: Props) {
           : `/${lang}/password-recovery-result?status=updated`,
       );
       router.refresh();
-    } catch {
-      setError(failed);
+    } catch (unexpected) {
+      if (flow === 'invitation') {
+        setError(t.invitationFailed);
+      } else {
+        const errCode = mapUpdateUserError(unexpected);
+        setError(recoveryErrorCopy[lang][errCode]);
+      }
     } finally {
       setBusy(false);
     }
@@ -153,10 +170,16 @@ export function ResetPasswordForm({ lang, flow = 'recovery' }: Props) {
         <button
           type="submit"
           disabled={busy}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#087A6E] px-4 py-3 text-xs font-extrabold text-white disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center rounded-xl bg-[#087A6E] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#065F55] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {busy ? t.working : t.submit}
-          {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+          {busy ? (
+            <>
+              <Loader2 className="me-2 h-4 w-4 animate-spin" />
+              <span>{t.working}</span>
+            </>
+          ) : (
+            <span>{t.submit}</span>
+          )}
         </button>
       </form>
     </div>
