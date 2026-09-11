@@ -76,6 +76,8 @@ CREATE TABLE IF NOT EXISTS payments.payment_allocation_policies (
 
 CREATE INDEX IF NOT EXISTS idx_payment_allocation_policies_lookup 
   ON payments.payment_allocation_policies (tenant_id, effective_from DESC);
+CREATE INDEX IF NOT EXISTS idx_payment_allocation_policies_approved_by
+  ON payments.payment_allocation_policies (approved_by);
 
 -- 3. Beneficiary Accounts (Direct Association Bank Accounts)
 CREATE TABLE IF NOT EXISTS payments.beneficiary_accounts (
@@ -97,6 +99,14 @@ CREATE TABLE IF NOT EXISTS payments.beneficiary_accounts (
 
 CREATE INDEX IF NOT EXISTS idx_beneficiary_accounts_tenant_property 
   ON payments.beneficiary_accounts (tenant_id, property_id, status);
+CREATE INDEX IF NOT EXISTS idx_beneficiary_accounts_bank_account_id 
+  ON payments.beneficiary_accounts (bank_account_id);
+CREATE INDEX IF NOT EXISTS idx_beneficiary_accounts_created_by 
+  ON payments.beneficiary_accounts (created_by);
+CREATE INDEX IF NOT EXISTS idx_beneficiary_accounts_property_id 
+  ON payments.beneficiary_accounts (property_id);
+CREATE INDEX IF NOT EXISTS idx_beneficiary_accounts_verified_by 
+  ON payments.beneficiary_accounts (verified_by);
 
 -- 4. Provider Accounts (Configuration Metadata Only - Zero Secrets)
 CREATE TABLE IF NOT EXISTS payments.provider_accounts (
@@ -116,6 +126,8 @@ CREATE TABLE IF NOT EXISTS payments.provider_accounts (
 
 CREATE INDEX IF NOT EXISTS idx_provider_accounts_tenant_env 
   ON payments.provider_accounts (tenant_id, environment, enabled);
+CREATE INDEX IF NOT EXISTS idx_provider_accounts_beneficiary_account_id 
+  ON payments.provider_accounts (beneficiary_account_id);
 
 -- 5. Payment Intents
 CREATE TABLE IF NOT EXISTS payments.payment_intents (
@@ -150,6 +162,16 @@ CREATE INDEX IF NOT EXISTS idx_payment_intents_unit_status
   ON payments.payment_intents (tenant_id, unit_id, status);
 CREATE INDEX IF NOT EXISTS idx_payment_intents_payer 
   ON payments.payment_intents (tenant_id, payer_user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_debtor_party_id 
+  ON payments.payment_intents (debtor_party_id);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_payer_party_id 
+  ON payments.payment_intents (payer_party_id);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_payer_user_id 
+  ON payments.payment_intents (payer_user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_property_id 
+  ON payments.payment_intents (property_id);
+CREATE INDEX IF NOT EXISTS idx_payment_intents_unit_id 
+  ON payments.payment_intents (unit_id);
 
 -- 6. Webhook Receipts
 CREATE TABLE IF NOT EXISTS payments.webhook_receipts (
@@ -184,6 +206,11 @@ CREATE TABLE IF NOT EXISTS payments.settlements (
   CONSTRAINT uq_settlements_payment_intent UNIQUE (tenant_id, payment_intent_id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_settlements_beneficiary_account_id 
+  ON payments.settlements (beneficiary_account_id);
+CREATE INDEX IF NOT EXISTS idx_settlements_payment_intent_id 
+  ON payments.settlements (payment_intent_id);
+
 -- 8. Refund Records (Audit & Evidence Tracking)
 CREATE TABLE IF NOT EXISTS payments.refund_records (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -199,6 +226,11 @@ CREATE TABLE IF NOT EXISTS payments.refund_records (
   updated_at timestamptz NOT NULL DEFAULT statement_timestamp(),
   CONSTRAINT uq_refund_records_intent_status UNIQUE (tenant_id, payment_intent_id, status)
 );
+
+CREATE INDEX IF NOT EXISTS idx_refund_records_payment_intent_id 
+  ON payments.refund_records (payment_intent_id);
+CREATE INDEX IF NOT EXISTS idx_refund_records_requested_by 
+  ON payments.refund_records (requested_by);
 
 -- 9. Extend payments.payments with payment_intent_id foreign key
 DO $$
