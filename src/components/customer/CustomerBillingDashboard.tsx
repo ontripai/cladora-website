@@ -21,7 +21,10 @@ import {
   Building,
   User,
   ShieldCheck,
-  Trash2
+  Trash2,
+  QrCode,
+  Copy,
+  Check
 } from 'lucide-react';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
@@ -208,6 +211,23 @@ const copy = {
     ledgerBalanced: 'Notă contabilă echilibrată (Debit = Credit)',
     viewJournal: 'Vezi jurnal',
     ownUnitOnly: 'Afișare limitată strict la unitatea dumneavoastră',
+    payDirect: 'Plătește direct către Asociație',
+    payDirectShort: 'Plătește',
+    payDirectDesc: 'Plată securizată direct în contul bancar al asociației de proprietari.',
+    nonCustodialNotice: 'Plată directă către asociație. CLADORA nu este comerciant, nu reține fonduri și nu stochează date de card.',
+    bankTransferTab: 'Transfer Bancar / Cod QR',
+    cardTab: 'Card bancar',
+    cardCheckoutTitle: 'Plată online cu cardul',
+    cardDeferredNotice: 'Plata online prin card bancar este în curs de activare pentru asociația dumneavoastră. Vă rugăm să folosiți transferul bancar direct conform instrucțiunilor de mai jos.',
+    beneficiary: 'Beneficiar (Asociație)',
+    iban: 'Cod IBAN',
+    bank: 'Bancă',
+    amountToPay: 'Sumă de plată',
+    paymentReference: 'Referință unică de plată',
+    scanQrHelp: 'Scanați codul QR de mai jos în aplicația dumneavoastră bancară mobilă pentru transfer automat securizat.',
+    copied: 'Copiat!',
+    copy: 'Copiază',
+    generatingInstruction: 'Se generează instrucțiunile de plată…',
   },
   en: {
     title: 'Billing, Charges & Receivables',
@@ -286,6 +306,23 @@ const copy = {
     ledgerBalanced: 'Balanced Journal (Debit = Credit)',
     viewJournal: 'View Ledger Journal',
     ownUnitOnly: 'Scope restricted strictly to your registered unit',
+    payDirect: 'Pay Directly to Association',
+    payDirectShort: 'Pay',
+    payDirectDesc: 'Secure direct settlement into the building association bank account.',
+    nonCustodialNotice: 'Direct payment to association. CLADORA is non-custodial and never holds funds or card data.',
+    bankTransferTab: 'Bank Transfer / QR Code',
+    cardTab: 'Debit / Credit Card',
+    cardCheckoutTitle: 'Debit / Credit Card Payment',
+    cardDeferredNotice: 'Card payment is awaiting merchant onboarding for your association. Please use direct bank transfer with the instructions below.',
+    beneficiary: 'Beneficiary (Association)',
+    iban: 'IBAN Code',
+    bank: 'Bank',
+    amountToPay: 'Amount to Pay',
+    paymentReference: 'Unique Payment Reference',
+    scanQrHelp: 'Scan the EPC QR code in your mobile banking app for instant structured payment.',
+    copied: 'Copied!',
+    copy: 'Copy',
+    generatingInstruction: 'Generating payment instructions…',
   },
   fa: {
     title: 'صورتحساب‌ها، هزینه‌ها و مطالبات',
@@ -364,6 +401,23 @@ const copy = {
     ledgerBalanced: 'سند حسابداری تراز (بدهکار = بستانکار)',
     viewJournal: 'مشاهده سند دفتر کل',
     ownUnitOnly: 'نمایش منحصراً به واحد ثبتی شما محدود شده است',
+    payDirect: 'پرداخت مستقیم به حساب انجمن',
+    payDirectShort: 'پرداخت',
+    payDirectDesc: 'تسویه مستقیم و امن به حساب بانکی انجمن ساختمان.',
+    nonCustodialNotice: 'پرداخت مستقیم به حساب بانکی انجمن ساختمان. کلادورا وجوه یا اطلاعات کارت را نگهداری نمی‌کند.',
+    bankTransferTab: 'انتقال بانکی / کد QR',
+    cardTab: 'کارت بانکی',
+    cardCheckoutTitle: 'پرداخت اینترنتی با کارت',
+    cardDeferredNotice: 'پرداخت اینترنتی با کارت در حال اتصال است. لطفاً از انتقال مستقیم بانکی با مشخصات زیر استفاده فرمایید.',
+    beneficiary: 'نام ذینفع (انجمن)',
+    iban: 'شماره شبا (IBAN)',
+    bank: 'بانک',
+    amountToPay: 'مبلغ پرداختی',
+    paymentReference: 'شناسه مرجع پرداخت',
+    scanQrHelp: 'کد QR زیر را با اپلیکیشن بانکی خود برای انتقال مستقیم وجه اسکن فرمایید.',
+    copied: 'کپی شد!',
+    copy: 'کپی',
+    generatingInstruction: 'در حال تولید دستور پرداخت بانکی…',
   }
 };
 
@@ -426,7 +480,69 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   const [issuePostingDate, setIssuePostingDate] = useState('');
   const [cancelReasonText, setCancelReasonText] = useState('');
 
+  // Direct Association Payment States
+  const [showDirectPayModal, setShowDirectPayModal] = useState(false);
+  const [payTargetInvoice, setPayTargetInvoice] = useState<Invoice | null>(null);
+  const [payInstruction, setPayInstruction] = useState<any | null>(null);
+  const [payLoading, setPayLoading] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [selectedPayTab, setSelectedPayTab] = useState<'bank' | 'card'>('bank');
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
   const limit = 25;
+
+  async function openDirectPayment(inv: Invoice) {
+    if (!active) return;
+    setPayTargetInvoice(inv);
+    setShowDirectPayModal(true);
+    setPayLoading(true);
+    setPayError(null);
+    setPayInstruction(null);
+    setSelectedPayTab('bank');
+
+    try {
+      const intentRes = await fetch('/api/customer/v1/payments/intents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          context_id: active.context_id,
+          unit_id: inv.unit_id || '00000000-0000-0000-0000-000000000000',
+          amount: inv.outstanding_amount,
+          currency: inv.currency,
+          payment_method: 'bank_transfer',
+          selected_invoices: [{ invoice_id: inv.id, amount: inv.outstanding_amount }],
+        }),
+      });
+
+      if (!intentRes.ok) {
+        const errJson = await intentRes.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || 'Failed to initialize payment intent');
+      }
+
+      const intentData = await intentRes.json();
+
+      const instRes = await fetch(`/api/customer/v1/payments/intents/${intentData.id}/bank-instruction?context_id=${active.context_id}`);
+      if (!instRes.ok) {
+        const errJson = await instRes.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || 'Failed to generate bank transfer instruction');
+      }
+
+      const instData = await instRes.json();
+      setPayInstruction(instData);
+    } catch (err: any) {
+      setPayError(err.message || 'Error initializing direct association payment');
+    } finally {
+      setPayLoading(false);
+    }
+  }
+
+  function copyToClipboard(text: string, field: string) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      void navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 2000);
+    }
+  }
 
   const loadData = useCallback(async (invoiceId?: string) => {
     if (!active) return;
@@ -977,6 +1093,15 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                           >
                             {t.detail}
                           </button>
+                          {inv.outstanding_amount > 0 && inv.status !== 'draft' && inv.status !== 'void' && (
+                            <button
+                              type="button"
+                              onClick={() => void openDirectPayment(inv)}
+                              className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                            >
+                              {t.payDirectShort}
+                            </button>
+                          )}
                           {!isReadOnly && inv.status === 'draft' && (
                             <button
                               type="button"
@@ -1201,6 +1326,16 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
             {/* Modal Actions */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-slate-200 pt-4">
               <div className="flex items-center gap-2">
+                {selectedInvoice.outstanding_amount > 0 && selectedInvoice.status !== 'draft' && selectedInvoice.status !== 'void' && (
+                  <button
+                    type="button"
+                    onClick={() => void openDirectPayment(selectedInvoice)}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
+                  >
+                    <Receipt className="h-3.5 w-3.5" />
+                    {t.payDirect}
+                  </button>
+                )}
                 {!isReadOnly && selectedInvoice.status === 'draft' && (
                   <button
                     type="button"
@@ -1546,6 +1681,182 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white hover:bg-rose-700 disabled:opacity-50"
               >
                 {mutationLoading ? t.cancelling : t.confirmCancel}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Direct-to-Association Payment Modal */}
+      {showDirectPayModal && payTargetInvoice && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={t.payDirect}
+            className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl"
+          >
+            {/* Modal Header */}
+            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-emerald-50 p-2.5 text-emerald-600">
+                  <Receipt className="h-6 w-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-slate-900">{t.payDirect}</h3>
+                  <p className="text-xs text-slate-500">
+                    {t.invoice} #{payTargetInvoice.invoice_no} · {payTargetInvoice.unit_code ? `${t.unit} ${payTargetInvoice.unit_code}` : ''}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDirectPayModal(false)}
+                className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* Non-Custodial Security Banner */}
+            <div className="mt-4 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-3.5 text-xs text-emerald-900">
+              <ShieldCheck className="h-5 w-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">{t.nonCustodialNotice}</p>
+                <p className="mt-0.5 text-emerald-700">{t.payDirectDesc}</p>
+              </div>
+            </div>
+
+            {/* Tabs: Bank Transfer (Active) vs Card (Deferred) */}
+            <div className="mt-5 flex gap-2 border-b border-slate-200">
+              <button
+                type="button"
+                onClick={() => setSelectedPayTab('bank')}
+                className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
+                  selectedPayTab === 'bank'
+                    ? 'border-emerald-600 text-emerald-800'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <Building className="h-4 w-4" />
+                {t.bankTransferTab}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPayTab('card')}
+                className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
+                  selectedPayTab === 'card'
+                    ? 'border-blue-600 text-blue-800'
+                    : 'border-transparent text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                <DollarSign className="h-4 w-4" />
+                {t.cardTab}
+              </button>
+            </div>
+
+            {payLoading ? (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                <RefreshCw className="h-8 w-8 animate-spin text-emerald-600 mb-3" />
+                <p className="text-sm font-medium">{t.generatingInstruction}</p>
+              </div>
+            ) : payError ? (
+              <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">
+                <p className="font-bold">{payError}</p>
+              </div>
+            ) : selectedPayTab === 'bank' && payInstruction ? (
+              <div className="mt-5 space-y-4">
+                {/* Bank Transfer Details Cards */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase">{t.beneficiary}</p>
+                    <p className="mt-1 text-sm font-extrabold text-slate-900">{payInstruction.association_legal_name}</p>
+                    <p className="text-xs text-slate-500">{payInstruction.bank_name}</p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3.5">
+                    <p className="text-[11px] font-bold text-slate-400 uppercase">{t.amountToPay}</p>
+                    <p className="mt-1 text-lg font-black text-emerald-700">
+                      {money(payInstruction.amount, payInstruction.currency, lang)}
+                    </p>
+                  </div>
+                </div>
+
+                {/* IBAN Copy Box */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase">
+                    <span>{t.iban}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(payInstruction.iban, 'iban')}
+                      className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                    >
+                      {copiedField === 'iban' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copiedField === 'iban' ? t.copied : t.copy}
+                    </button>
+                  </div>
+                  <p className="mt-2 font-mono text-base font-black tracking-wider text-slate-900 select-all">
+                    {payInstruction.iban}
+                  </p>
+                </div>
+
+                {/* Structured Reference Copy Box */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-xs">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase">
+                    <span>{t.paymentReference}</span>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(payInstruction.structured_reference, 'ref')}
+                      className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                    >
+                      {copiedField === 'ref' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                      {copiedField === 'ref' ? t.copied : t.copy}
+                    </button>
+                  </div>
+                  <p className="mt-2 font-mono text-sm font-extrabold text-blue-700 select-all">
+                    {payInstruction.structured_reference}
+                  </p>
+                </div>
+
+                {/* EPC QR Code Instruction Box */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
+                    <QrCode className="h-5 w-5 text-emerald-600" />
+                    <span>EPC QR Code (SEPA EPC069-12)</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">{t.scanQrHelp}</p>
+                  <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-3 font-mono text-[11px] text-slate-100 select-all">
+                    {payInstruction.epc_qr_payload}
+                  </pre>
+                </div>
+              </div>
+            ) : selectedPayTab === 'card' ? (
+              <div className="mt-8 rounded-2xl border border-blue-200 bg-blue-50/50 p-6 text-center">
+                <DollarSign className="mx-auto h-10 w-10 text-blue-500 mb-2" />
+                <h4 className="text-sm font-bold text-blue-900">{t.cardCheckoutTitle}</h4>
+                <p className="mt-2 text-xs text-blue-700 leading-relaxed max-w-md mx-auto">
+                  {t.cardDeferredNotice}
+                </p>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPayTab('bank')}
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
+                  >
+                    {t.bankTransferTab}
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {/* Modal Footer */}
+            <div className="mt-6 flex justify-end border-t border-slate-100 pt-4">
+              <button
+                type="button"
+                onClick={() => setShowDirectPayModal(false)}
+                className="rounded-xl border border-slate-200 px-5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              >
+                {t.close}
               </button>
             </div>
           </div>
