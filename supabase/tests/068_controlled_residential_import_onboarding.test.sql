@@ -53,7 +53,7 @@ select ok(exists(select 1 from pg_trigger where tgname='import_runs_transition_g
 select ok(exists(select 1 from pg_trigger where tgname='import_sources_immutable'),'source immutability trigger exists');
 select ok(exists(select 1 from pg_trigger where tgname='import_rows_immutable'),'row immutability trigger exists');
 
-select ok((select count(*)=17 from information_schema.columns where table_schema='platform' and table_name='import_runs'),'run column contract stable');
+select ok((select count(*)=21 from information_schema.columns where table_schema='platform' and table_name='import_runs'),'run column contract stable');
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_runs' and column_name='input_hash'),'input hash exists');
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_runs' and column_name='result_hash'),'result hash exists');
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_runs' and column_name='version'),'optimistic version exists');
@@ -70,10 +70,10 @@ select ok(position('for update' in lower(pg_get_functiondef('customer_api.approv
 select ok(position('for update' in lower(pg_get_functiondef('customer_api.validate_import_v1(uuid,uuid)'::regprocedure)))>0,'validation uses row lock');
 select ok(position('for update' in lower(pg_get_functiondef('customer_api.dry_run_import_v1(uuid,uuid)'::regprocedure)))>0,'dry run uses row lock');
 
-select throws_ok($$insert into platform.import_sources(run_id,template_version_id,original_filename,media_type,byte_size,sha256,row_count,uploaded_by) values(gen_random_uuid(),gen_random_uuid(),'x.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',1,repeat('a',64),0,gen_random_uuid())$$,'23503',null,'orphan source rejected');
-select throws_ok($$insert into platform.import_runs(customer_workspace_id,tenant_id,idempotency_key,created_by,input_hash) values(gen_random_uuid(),gen_random_uuid(),'valid-key',gen_random_uuid(),'bad')$$,'23503',null,'orphan run rejected before invalid hash');
-select throws_ok($$insert into platform.import_template_versions(template_id,version,format,schema_json,max_rows) values(gen_random_uuid(),1,'csv','{}',0)$$,'23503',null,'orphan template version rejected');
-select throws_ok($$insert into platform.import_rows(run_id,source_id,template_code,source_row_no,source_payload,row_hash) values(gen_random_uuid(),gen_random_uuid(),'unit',0,'{}',repeat('a',64))$$,'23503',null,'orphan row rejected');
+select throws_ok($$insert into platform.import_sources(run_id,template_version_id,original_filename,media_type,byte_size,sha256,row_count,uploaded_by) values(gen_random_uuid(),gen_random_uuid(),'x.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',1,repeat('a',64),0,gen_random_uuid())$$,'23514',null,'non-CSV source rejected before FK lookup');
+select throws_ok($$insert into platform.import_runs(customer_workspace_id,tenant_id,idempotency_key,created_by,input_hash) values(gen_random_uuid(),gen_random_uuid(),'valid-key',gen_random_uuid(),'bad')$$,'23514',null,'invalid input hash rejected before FK lookup');
+select throws_ok($$insert into platform.import_template_versions(template_id,version,format,schema_json,max_rows) values(gen_random_uuid(),1,'csv','{}',0)$$,'23514',null,'invalid row limit rejected before FK lookup');
+select throws_ok($$insert into platform.import_rows(run_id,source_id,template_code,source_row_no,source_payload,row_hash) values(gen_random_uuid(),gen_random_uuid(),'unit',0,'{}',repeat('a',64))$$,'23514',null,'invalid source row number rejected before FK lookup');
 
 select ok(obj_description('platform.import_rows'::regclass) like 'Untrusted staging rows%','staging boundary documented');
 select ok(obj_description('customer_api.approve_import_commit_v1(uuid,uuid)'::regprocedure) like 'AAL2 dual-control%','commit contract documented');
