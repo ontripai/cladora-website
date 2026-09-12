@@ -889,6 +889,45 @@ begin
 end;
 $$;
 
+-- 3.6 Unit Debtor & Payer Resolution Helper (SECURITY DEFINER)
+create or replace function payments.resolve_unit_debtor_party_v1(
+  p_tenant_id uuid,
+  p_unit_id uuid,
+  p_membership_key uuid default null
+)
+returns table (
+  property_id uuid,
+  debtor_party_id uuid,
+  payer_party_id uuid
+)
+language plpgsql
+stable
+security definer
+set search_path = pg_catalog, portfolio, billing, identity
+as $$
+declare
+  v_prop_id uuid;
+  v_debtor uuid;
+  v_payer uuid;
+begin
+  select b.property_id, coalesce(
+    (select o.party_id from portfolio.ownerships o where o.tenant_id = p_tenant_id and o.unit_id = u.id and o.valid_from <= current_date and (o.valid_to is null or o.valid_to > current_date) limit 1),
+    (select inv.liable_party_id from billing.invoices inv where inv.tenant_id = p_tenant_id and inv.unit_id = u.id order by inv.period_end desc limit 1)
+  ) into v_prop_id, v_debtor
+  from portfolio.units u
+  join portfolio.buildings b on b.id = u.building_id
+  where u.id = p_unit_id and u.tenant_id = p_tenant_id;
+
+  if p_membership_key is not null then
+    select mp.party_id into v_payer
+    from identity.membership_parties mp
+    where mp.membership_id = p_membership_key and mp.tenant_id = p_tenant_id;
+  end if;
+
+  return query select v_prop_id, v_debtor, v_payer;
+end;
+$$;
+
 -- 4. Payment Intent Creation with Full Immutable Snapshot
 -- -----------------------------------------------------------------------------
 
@@ -966,22 +1005,14 @@ begin
     );
   end if;
 
-  -- Unit existence & debtor resolution
-  select b.property_id, coalesce(
-    (select o.party_id from portfolio.ownerships o where o.tenant_id = v.tenant_id and o.unit_id = u.id and o.valid_from <= current_date and (o.valid_to is null or o.valid_to > current_date) limit 1),
-    (select inv.liable_party_id from billing.invoices inv where inv.tenant_id = v.tenant_id and inv.unit_id = u.id order by inv.period_end desc limit 1)
-  ) into v_property_id, v_debtor_party_id
-  from portfolio.units u
-  join portfolio.buildings b on b.id = u.building_id
-  where u.id = p_unit_id and u.tenant_id = v.tenant_id;
+  -- Unit existence & debtor resolution via security definer helper
+  select r.property_id, r.debtor_party_id, r.payer_party_id
+  into v_property_id, v_debtor_party_id, v_party
+  from payments.resolve_unit_debtor_party_v1(v.tenant_id, p_unit_id, v.membership_key) r;
 
-  if not found or v_property_id is null or v_debtor_party_id is null then
+  if v_property_id is null or v_debtor_party_id is null then
     raise exception 'unit_debtor_unresolvable' using errcode = '22023';
   end if;
-
-  select mp.party_id into v_party
-  from identity.membership_parties mp
-  where mp.membership_id = v.membership_key and mp.tenant_id = v.tenant_id;
 
   -- Active policy check (fail-closed)
   select * into v_policy
@@ -1471,7 +1502,7 @@ begin
       v_tenant_id,
       v_intent.id,
       v_beneficiary.id,
-      'SETTLE-' || v_intent.client_reference,
+      coalesce(p_payload->>'settlement_reference', 'SETTLE-' || p_provider_event_id),
       v_amount,
       v_currency,
       v_settled_at,
@@ -1614,6 +1645,9 @@ grant execute on function payments.process_webhook_event_v1(uuid, text, text, te
 
 revoke all on function payments.assert_payments_module_entitled(uuid) from public, anon;
 grant execute on function payments.assert_payments_module_entitled(uuid) to authenticated, service_role;
+
+revoke all on function payments.resolve_unit_debtor_party_v1(uuid, uuid, uuid) from public, anon;
+grant execute on function payments.resolve_unit_debtor_party_v1(uuid, uuid, uuid) to authenticated, service_role;
 
 -- Table-level grants protected by RLS
 grant select, insert, update on table payments.payment_allocation_policies to authenticated, service_role;
