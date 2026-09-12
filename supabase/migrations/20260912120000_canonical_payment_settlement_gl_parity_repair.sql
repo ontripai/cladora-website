@@ -859,6 +859,36 @@ begin
 end;
 $$;
 
+-- 3.5 Payments Module Entitlement Verification Helper (SECURITY DEFINER)
+create or replace function payments.assert_payments_module_entitled(p_tenant_id uuid)
+returns boolean
+language plpgsql
+stable
+security definer
+set search_path = pg_catalog, platform
+as $$
+declare
+  v_workspace uuid;
+begin
+  select w.id into v_workspace
+  from platform.customer_workspaces w
+  where w.tenant_id = p_tenant_id and w.lifecycle_status = 'ACTIVE'
+  order by w.id limit 1;
+
+  if v_workspace is null or not exists (
+    select 1 from platform.workspace_entitlements e
+    where e.customer_workspace_id = v_workspace and e.entitlement_key = 'module.payments'
+      and e.valid_from <= statement_timestamp() and (e.valid_until is null or e.valid_until > statement_timestamp())
+      and (case when e.override_value_json is not null and e.override_expires_at > statement_timestamp()
+                then e.override_value_json = 'true'::jsonb else e.boolean_value is true end)
+  ) then
+    raise exception 'payments_entitlement_required' using errcode = '42501';
+  end if;
+
+  return true;
+end;
+$$;
+
 -- 4. Payment Intent Creation with Full Immutable Snapshot
 -- -----------------------------------------------------------------------------
 
@@ -909,20 +939,8 @@ begin
     raise exception 'customer_context_access_denied' using errcode = '42501';
   end if;
 
-  select w.id into v_workspace
-  from platform.customer_workspaces w
-  where w.tenant_id = v.tenant_id and w.lifecycle_status = 'ACTIVE'
-  order by w.id limit 1;
-
-  if v_workspace is null or not exists (
-    select 1 from platform.workspace_entitlements e
-    where e.customer_workspace_id = v_workspace and e.entitlement_key = 'module.payments'
-      and e.valid_from <= statement_timestamp() and (e.valid_until is null or e.valid_until > statement_timestamp())
-      and (case when e.override_value_json is not null and e.override_expires_at > statement_timestamp()
-                then e.override_value_json = 'true'::jsonb else e.boolean_value is true end)
-  ) then
-    raise exception 'payments_entitlement_required' using errcode = '42501';
-  end if;
+  -- 2. Entitlement check via security definer helper
+  perform payments.assert_payments_module_entitled(v.tenant_id);
 
   if not exists (
     select 1 from identity.role_permissions rp
@@ -1265,6 +1283,17 @@ begin
     order by (case when property_id = v_intent.property_id then 0 else 1 end), code limit 1;
 
     if v_bank_gl_id is null then
+      insert into finance.accounts (tenant_id, property_id, code, name, type, currency, status)
+      values (v_tenant_id, v_intent.property_id, '5121', 'Conturi la banci in lei', 'asset', coalesce(v_currency, 'RON'), 'active')
+      on conflict do nothing;
+
+      select id into v_bank_gl_id from finance.accounts
+      where tenant_id = v_tenant_id and (property_id is null or property_id = v_intent.property_id)
+        and (code = '5121' or code like '512%' or code like '531%') and status = 'active'
+      order by (case when property_id = v_intent.property_id then 0 else 1 end), code limit 1;
+    end if;
+
+    if v_bank_gl_id is null then
       raise exception 'bank_gl_account_not_found' using errcode = '22023';
     end if;
 
@@ -1273,6 +1302,17 @@ begin
     where tenant_id = v_tenant_id and (property_id is null or property_id = v_intent.property_id)
       and (code = '4111' or code like '411%') and status = 'active'
     order by (case when property_id = v_intent.property_id then 0 else 1 end), code limit 1;
+
+    if v_ar_gl_id is null then
+      insert into finance.accounts (tenant_id, property_id, code, name, type, currency, status)
+      values (v_tenant_id, v_intent.property_id, '4111', 'Clienti / Proprietari cote intretinere', 'asset', coalesce(v_currency, 'RON'), 'active')
+      on conflict do nothing;
+
+      select id into v_ar_gl_id from finance.accounts
+      where tenant_id = v_tenant_id and (property_id is null or property_id = v_intent.property_id)
+        and (code = '4111' or code like '411%') and status = 'active'
+      order by (case when property_id = v_intent.property_id then 0 else 1 end), code limit 1;
+    end if;
 
     if v_ar_gl_id is null then
       raise exception 'ar_gl_account_not_found' using errcode = '22023';
@@ -1284,6 +1324,18 @@ begin
       and (code = '419' or code like '419%' or code = '473' or code like '473%') and status = 'active'
     order by (case when code = '419' or code like '419%' then 0 else 1 end),
              (case when property_id = v_intent.property_id then 0 else 1 end), code limit 1;
+
+    if v_clearing_gl_id is null then
+      insert into finance.accounts (tenant_id, property_id, code, name, type, currency, status)
+      values (v_tenant_id, v_intent.property_id, '419', 'Clienti - creditori (Avansuri incasate)', 'liability', coalesce(v_currency, 'RON'), 'active')
+      on conflict do nothing;
+
+      select id into v_clearing_gl_id from finance.accounts
+      where tenant_id = v_tenant_id and (property_id is null or property_id = v_intent.property_id)
+        and (code = '419' or code like '419%' or code = '473' or code like '473%') and status = 'active'
+      order by (case when code = '419' or code like '419%' then 0 else 1 end),
+               (case when property_id = v_intent.property_id then 0 else 1 end), code limit 1;
+    end if;
 
     if v_clearing_gl_id is null then
       raise exception 'clearing_gl_account_not_found' using errcode = '22023';
@@ -1559,6 +1611,9 @@ grant execute on function customer_api.list_payment_configuration_v1(uuid, uuid)
 
 revoke all on function payments.process_webhook_event_v1(uuid, text, text, text, text, jsonb) from public, anon, authenticated;
 grant execute on function payments.process_webhook_event_v1(uuid, text, text, text, text, jsonb) to service_role;
+
+revoke all on function payments.assert_payments_module_entitled(uuid) from public, anon;
+grant execute on function payments.assert_payments_module_entitled(uuid) to authenticated, service_role;
 
 -- Table-level grants protected by RLS
 grant select, insert, update on table payments.payment_allocation_policies to authenticated, service_role;
