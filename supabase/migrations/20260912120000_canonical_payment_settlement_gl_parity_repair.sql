@@ -1527,8 +1527,8 @@ $$;
 -- 6. Permissions and Execution Grants Lockdown
 -- -----------------------------------------------------------------------------
 
--- Drop obsolete Migration 82 signature overload
-drop function if exists payments.process_webhook_event_v1(uuid, text, text, text, text, jsonb);
+-- Drop obsolete overload if exists
+drop function if exists payments.process_webhook_event_v1(text, text, text, text, jsonb, uuid);
 
 grant usage on schema payments to authenticated, service_role;
 grant usage on schema customer_api to authenticated, service_role;
