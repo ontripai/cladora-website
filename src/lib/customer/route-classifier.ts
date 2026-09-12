@@ -18,6 +18,12 @@ export interface RouteRequirement {
 }
 
 export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
+  // Controlled residential building onboarding
+  {
+    pathPrefix: '/app/building-setup',
+    permissions: ['onboarding.import.read'],
+  },
+
   // Accounting & Allocations
   {
     pathPrefix: '/app/accounting/allocations',
