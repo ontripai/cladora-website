@@ -41,8 +41,8 @@ select ok(not has_table_privilege('authenticated','platform.import_rows','UPDATE
 select ok(not has_table_privilege('authenticated','platform.import_rows','DELETE'),'authenticated cannot directly delete rows');
 select ok(not has_function_privilege('anon','customer_api.create_import_run_v1(uuid,uuid,text)','EXECUTE'),'anon denied create run');
 select ok(has_function_privilege('authenticated','customer_api.create_import_run_v1(uuid,uuid,text)','EXECUTE'),'authenticated may invoke guarded create run');
-select ok(not has_function_privilege('anon','customer_api.approve_import_commit_v1(uuid,uuid)','EXECUTE'),'anon denied approval');
-select ok(has_function_privilege('authenticated','customer_api.approve_import_commit_v1(uuid,uuid)','EXECUTE'),'authenticated may invoke guarded approval');
+select ok(not has_function_privilege('anon','app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)','EXECUTE'),'anon denied approval');
+select ok(has_function_privilege('authenticated','app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)','EXECUTE'),'authenticated may invoke guarded approval');
 
 select ok(exists(select 1 from identity.permissions where code='onboarding.import.read'),'read permission exists');
 select ok(exists(select 1 from identity.permissions where code='onboarding.import.manage'),'manage permission exists');
@@ -61,14 +61,14 @@ select ok(exists(select 1 from information_schema.columns where table_schema='pl
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_rows' and column_name='row_hash'),'row hash exists');
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_reconciliation_results' and column_name='is_balanced'),'balanced certificate exists');
 
-select ok(position('DEFERRED_XLSX_IMPORT_UNTIL_MALWARE_SCANNER' in pg_get_functiondef('customer_api.add_import_source_v1(uuid,uuid,text,text,text,bigint,text,jsonb)'::regprocedure))>0,'XLSX fail-closed boundary exists');
-select ok(position('dual_control_violation' in pg_get_functiondef('customer_api.approve_import_commit_v1(uuid,uuid)'::regprocedure))>0,'dual control enforced');
-select ok(position('opening_balance_unbalanced' in pg_get_functiondef('customer_api.approve_import_commit_v1(uuid,uuid)'::regprocedure))>0,'unbalanced opening data rejected');
-select ok(position('post_commit_cancellation_forbidden' in pg_get_functiondef('customer_api.cancel_import_v1(uuid,uuid)'::regprocedure))>0,'post-commit cancellation rejected');
-select ok(position('reconciliation_required' in pg_get_functiondef('customer_api.activate_import_v1(uuid,uuid)'::regprocedure))>0,'activation requires reconciliation');
-select ok(position('for update' in lower(pg_get_functiondef('customer_api.approve_import_commit_v1(uuid,uuid)'::regprocedure)))>0,'approval uses row lock');
-select ok(position('for update' in lower(pg_get_functiondef('customer_api.validate_import_v1(uuid,uuid)'::regprocedure)))>0,'validation uses row lock');
-select ok(position('for update' in lower(pg_get_functiondef('customer_api.dry_run_import_v1(uuid,uuid)'::regprocedure)))>0,'dry run uses row lock');
+select ok(position('DEFERRED_XLSX_IMPORT_UNTIL_MALWARE_SCANNER' in pg_get_functiondef('app_private.onboarding_add_import_source_internal_v1(uuid,uuid,text,text,text,bigint,text,jsonb)'::regprocedure))>0,'XLSX fail-closed boundary exists');
+select ok(position('dual_control_violation' in pg_get_functiondef('app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)'::regprocedure))>0,'dual control enforced');
+select ok(position('opening_balance_unbalanced' in pg_get_functiondef('app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)'::regprocedure))>0,'unbalanced opening data rejected');
+select ok(position('post_commit_cancellation_forbidden' in pg_get_functiondef('app_private.onboarding_cancel_import_internal_v1(uuid,uuid)'::regprocedure))>0,'post-commit cancellation rejected');
+select ok(position('reconciliation_required' in pg_get_functiondef('app_private.onboarding_activate_import_internal_v1(uuid,uuid)'::regprocedure))>0,'activation requires reconciliation');
+select ok(position('for update' in lower(pg_get_functiondef('app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)'::regprocedure)))>0,'approval uses row lock');
+select ok(position('for update' in lower(pg_get_functiondef('app_private.onboarding_validate_import_internal_v1(uuid,uuid)'::regprocedure)))>0,'validation uses row lock');
+select ok(position('for update' in lower(pg_get_functiondef('app_private.onboarding_dry_run_import_internal_v1(uuid,uuid)'::regprocedure)))>0,'dry run uses row lock');
 
 select throws_ok($$insert into platform.import_sources(run_id,template_version_id,original_filename,media_type,byte_size,sha256,row_count,uploaded_by) values(gen_random_uuid(),gen_random_uuid(),'x.xlsx','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',1,repeat('a',64),0,gen_random_uuid())$$,'23514',null,'non-CSV source rejected before FK lookup');
 select throws_ok($$insert into platform.import_runs(customer_workspace_id,tenant_id,idempotency_key,created_by,input_hash) values(gen_random_uuid(),gen_random_uuid(),'valid-key',gen_random_uuid(),'bad')$$,'23514',null,'invalid input hash rejected before FK lookup');
@@ -76,8 +76,8 @@ select throws_ok($$insert into platform.import_template_versions(template_id,ver
 select throws_ok($$insert into platform.import_rows(run_id,source_id,template_code,source_row_no,source_payload,row_hash) values(gen_random_uuid(),gen_random_uuid(),'unit',0,'{}',repeat('a',64))$$,'23514',null,'invalid source row number rejected before FK lookup');
 
 select ok(obj_description('platform.import_rows'::regclass) like 'Untrusted staging rows%','staging boundary documented');
-select ok(obj_description('customer_api.approve_import_commit_v1(uuid,uuid)'::regprocedure) like 'AAL2 dual-control%','commit contract documented');
-select ok(obj_description('customer_api.add_import_source_v1(uuid,uuid,text,text,text,bigint,text,jsonb)'::regprocedure) like 'CSV-only%','file boundary documented');
+select ok(obj_description('customer_api.approve_import_commit_v1(uuid,uuid)'::regprocedure) like 'SECURITY INVOKER%','commit contract documented');
+select ok(obj_description('app_private.onboarding_add_import_source_internal_v1(uuid,uuid,text,text,text,bigint,text,jsonb)'::regprocedure) like 'CSV-only%','file boundary documented');
 select ok(not exists(select 1 from platform.import_runs),'migration has no import fixtures');
 select ok(not exists(select 1 from platform.import_sources),'migration has no source fixtures');
 select ok(not exists(select 1 from platform.import_rows),'migration has no row fixtures');
