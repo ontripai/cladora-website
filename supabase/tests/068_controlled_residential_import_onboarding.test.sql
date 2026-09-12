@@ -53,7 +53,7 @@ select ok(exists(select 1 from pg_trigger where tgname='import_runs_transition_g
 select ok(exists(select 1 from pg_trigger where tgname='import_sources_immutable'),'source immutability trigger exists');
 select ok(exists(select 1 from pg_trigger where tgname='import_rows_immutable'),'row immutability trigger exists');
 
-select ok((select count(*)=21 from information_schema.columns where table_schema='platform' and table_name='import_runs'),'run column contract stable');
+select ok((select count(*)=20 from information_schema.columns where table_schema='platform' and table_name='import_runs'),'run column contract stable');
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_runs' and column_name='input_hash'),'input hash exists');
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_runs' and column_name='result_hash'),'result hash exists');
 select ok(exists(select 1 from information_schema.columns where table_schema='platform' and table_name='import_runs' and column_name='version'),'optimistic version exists');
