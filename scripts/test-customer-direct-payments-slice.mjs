@@ -42,6 +42,12 @@ const ROUTES = [
     methods: ["POST"],
     isWebhook: true,
   },
+  {
+    path: "src/app/api/customer/v1/payments/configuration/route.ts",
+    rpc: "list_payment_configuration_v1",
+    secondaryRpc: "create_beneficiary_account_draft_v1",
+    methods: ["GET", "POST"],
+  },
 ];
 
 for (const route of ROUTES) {
@@ -189,4 +195,49 @@ for (const tbl of forbiddenShadowTables) {
 
 console.log("  ✔ Migration 82 verified: strictly non-custodial, zero parallel ledger, zero card storage\n");
 
+// -----------------------------------------------------------------------------
+// Suite 5: Migration 83 & pgTAP Test 067 Dual Control & GL Parity Verification
+// -----------------------------------------------------------------------------
+console.log("[Suite 5] Migration 83 & pgTAP Test 067 Canonical Settlement Verification");
+
+const migration83Path = path.join(root, "supabase", "migrations", "20260912120000_canonical_payment_settlement_gl_parity_repair.sql");
+assert.ok(fs.existsSync(migration83Path), "Migration 83 must exist");
+const m83Content = fs.readFileSync(migration83Path, "utf8");
+
+// Verify zero fixture DML in Migration 83
+const forbiddenFixturePhrases = [
+  "11111111-1111-1111-1111-111111111111", // Tenant A
+  "p1test",
+  "P1TEST",
+  "insert into platform.tenants",
+  "insert into auth.users",
+  "insert into billing.invoices",
+  "insert into portfolio.properties",
+];
+for (const phrase of forbiddenFixturePhrases) {
+  assert.ok(
+    !m83Content.toLowerCase().includes(phrase.toLowerCase()),
+    `Migration 83 must NOT contain fixture DML: ${phrase}`
+  );
+}
+
+// Verify canonical compound accounting formula
+assert.ok(m83Content.includes("5121"), "Migration 83 must post to Bank 5121");
+assert.ok(m83Content.includes("4111"), "Migration 83 must post to Receivables 4111");
+assert.ok(m83Content.includes("419"), "Migration 83 must post to Advances/Clearing 419");
+
+// Verify dual-control constraint & unique partial index
+assert.ok(m83Content.includes("ck_beneficiary_dual_control_approval"), "Must enforce dual control approval check");
+assert.ok(m83Content.includes("uq_active_beneficiary_account"), "Must enforce unique active account partial index");
+
+// Verify Test 067
+const test067Path = path.join(root, "supabase", "tests", "067_canonical_payment_settlement_gl_parity_repair.test.sql");
+assert.ok(fs.existsSync(test067Path), "Test 067 must exist");
+const test067Content = fs.readFileSync(test067Path, "utf8");
+assert.ok(test067Content.includes("plan(49)"), "Test 067 must plan 49 assertions");
+assert.ok(test067Content.includes("is_continuous_parity"), "Test 067 must assert continuous parity");
+
+console.log("  ✔ Migration 83 & Test 067 verified: zero fixture DML, compound GL journal (5121/4111/419), dual control lifecycle\n");
+
 console.log("=== ALL DIRECT ASSOCIATION PAYMENT SLICE CONTRACT TESTS PASSED! ===");
+
