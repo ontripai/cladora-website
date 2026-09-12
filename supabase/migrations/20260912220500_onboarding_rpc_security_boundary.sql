@@ -33,7 +33,18 @@ create function customer_api.get_import_preview_v1(p_context_id uuid,p_run_id uu
 create function customer_api.cancel_import_v1(p_context_id uuid,p_run_id uuid) returns jsonb language sql security invoker set search_path=pg_catalog as $$ select app_private.onboarding_cancel_import_internal_v1(p_context_id,p_run_id) $$;
 create function customer_api.activate_import_v1(p_context_id uuid,p_run_id uuid) returns jsonb language sql security invoker set search_path=pg_catalog as $$ select app_private.onboarding_activate_import_internal_v1(p_context_id,p_run_id) $$;
 
-revoke all on all functions in schema app_private from public,anon;
+revoke all on function
+ app_private.onboarding_list_import_templates_internal_v1(uuid),
+ app_private.onboarding_create_import_run_internal_v1(uuid,uuid,text),
+ app_private.onboarding_add_import_source_internal_v1(uuid,uuid,text,text,text,bigint,text,jsonb),
+ app_private.onboarding_validate_import_internal_v1(uuid,uuid),
+ app_private.onboarding_dry_run_import_internal_v1(uuid,uuid),
+ app_private.onboarding_submit_import_internal_v1(uuid,uuid),
+ app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid),
+ app_private.onboarding_get_import_preview_internal_v1(uuid,uuid),
+ app_private.onboarding_cancel_import_internal_v1(uuid,uuid),
+ app_private.onboarding_activate_import_internal_v1(uuid,uuid)
+from public,anon;
 grant usage on schema app_private to authenticated,service_role;
 grant execute on function app_private.onboarding_list_import_templates_internal_v1(uuid),app_private.onboarding_create_import_run_internal_v1(uuid,uuid,text),app_private.onboarding_add_import_source_internal_v1(uuid,uuid,text,text,text,bigint,text,jsonb),app_private.onboarding_validate_import_internal_v1(uuid,uuid),app_private.onboarding_dry_run_import_internal_v1(uuid,uuid),app_private.onboarding_submit_import_internal_v1(uuid,uuid),app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid),app_private.onboarding_get_import_preview_internal_v1(uuid,uuid),app_private.onboarding_cancel_import_internal_v1(uuid,uuid),app_private.onboarding_activate_import_internal_v1(uuid,uuid) to authenticated,service_role;
 revoke all on all functions in schema customer_api from public,anon;
