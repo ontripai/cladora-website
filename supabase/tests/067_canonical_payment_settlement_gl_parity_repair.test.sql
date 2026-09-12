@@ -33,16 +33,16 @@ select ok(to_regprocedure('customer_api.reject_beneficiary_account_v1(uuid,uuid,
 select ok(to_regprocedure('customer_api.revoke_beneficiary_account_v1(uuid,uuid,text)') is not null, 'customer_api.revoke_beneficiary_account_v1 exists');
 select ok(to_regprocedure('customer_api.configure_payment_allocation_policy_v1(uuid,payments.payment_allocation_strategy,payments.penalties_priority,numeric,text,text,text)') is not null, 'customer_api.configure_payment_allocation_policy_v1 exists');
 select ok(to_regprocedure('customer_api.list_payment_configuration_v1(uuid,uuid)') is not null, 'customer_api.list_payment_configuration_v1 exists');
-select ok(to_regprocedure('payments.process_webhook_event_v1(text,text,text,text,jsonb,uuid)') is not null, 'payments.process_webhook_event_v1 exists');
+select ok(to_regprocedure('payments.process_webhook_event_v1(uuid,text,text,text,text,jsonb)') is not null, 'payments.process_webhook_event_v1 exists');
 select ok(to_regprocedure('payments.validate_and_mask_iban(text)') is not null, 'payments.validate_and_mask_iban exists');
 
 -- =============================================================================
 -- 2. Privilege Lockdown
 -- =============================================================================
 
-select ok(has_function_privilege('service_role', 'payments.process_webhook_event_v1(text,text,text,text,jsonb,uuid)', 'EXECUTE'), 'service_role can execute process_webhook_event_v1');
-select ok(not has_function_privilege('anon', 'payments.process_webhook_event_v1(text,text,text,text,jsonb,uuid)', 'EXECUTE'), 'anon denied process_webhook_event_v1');
-select ok(not has_function_privilege('authenticated', 'payments.process_webhook_event_v1(text,text,text,text,jsonb,uuid)', 'EXECUTE'), 'authenticated denied process_webhook_event_v1');
+select ok(has_function_privilege('service_role', 'payments.process_webhook_event_v1(uuid,text,text,text,text,jsonb)', 'EXECUTE'), 'service_role can execute process_webhook_event_v1');
+select ok(not has_function_privilege('anon', 'payments.process_webhook_event_v1(uuid,text,text,text,text,jsonb)', 'EXECUTE'), 'anon denied process_webhook_event_v1');
+select ok(not has_function_privilege('authenticated', 'payments.process_webhook_event_v1(uuid,text,text,text,text,jsonb)', 'EXECUTE'), 'authenticated denied process_webhook_event_v1');
 select ok(has_function_privilege('authenticated', 'customer_api.create_beneficiary_account_draft_v1(uuid,uuid,uuid,text,text,text,text)', 'EXECUTE'), 'authenticated can execute create_beneficiary_account_draft_v1');
 select ok(not has_function_privilege('anon', 'customer_api.create_beneficiary_account_draft_v1(uuid,uuid,uuid,text,text,text,text)', 'EXECUTE'), 'anon denied create_beneficiary_account_draft_v1');
 
@@ -345,6 +345,7 @@ select throws_ok(
   $$
   set local role service_role;
   select payments.process_webhook_event_v1(
+    '11111111-2222-3333-4444-555555555555'::uuid, -- untrusted forged tenant
     'provider_sandbox',
     'EVT-TEST-001',
     'payment.succeeded',
@@ -353,8 +354,7 @@ select throws_ok(
       'payment_intent_id', (select id from payments.payment_intents where idempotency_key = 'IDEM-TEST-INTENT-001'),
       'amount', 200.00,
       'currency', 'RON'
-    ),
-    '11111111-2222-3333-4444-555555555555'::uuid -- untrusted forged tenant
+    )
   );
   $$,
   '42501',
@@ -370,6 +370,7 @@ reset role;
 set local role service_role;
 select ok(
   (payments.process_webhook_event_v1(
+    null,
     'provider_sandbox',
     'EVT-TEST-001',
     'payment.succeeded',
@@ -469,6 +470,7 @@ select ok(
 -- Duplicate replay returns ignored duplicate
 select ok(
   (select (payments.process_webhook_event_v1(
+    null,
     'provider_sandbox',
     'EVT-TEST-001',
     'payment.succeeded',
@@ -485,6 +487,7 @@ select ok(
 -- Loser delivery for terminal intent returns ignored
 select ok(
   (select (payments.process_webhook_event_v1(
+    null,
     'provider_sandbox',
     'EVT-TEST-002',
     'payment.succeeded',
@@ -507,6 +510,7 @@ select ok(
 -- Reversal event fail-closed under DEFERRED-PAYMENT-REVERSAL-PROVIDER
 select ok(
   (select (payments.process_webhook_event_v1(
+    null,
     'provider_sandbox',
     'EVT-TEST-REV-001',
     'payment.refunded',

@@ -49,6 +49,11 @@ alter table payments.beneficiary_accounts
   add column if not exists revoked_by uuid references auth.users(id),
   add column if not exists revocation_reason text;
 
+create index if not exists idx_beneficiary_accounts_submitted_by on payments.beneficiary_accounts (submitted_by);
+create index if not exists idx_beneficiary_accounts_approved_by on payments.beneficiary_accounts (approved_by);
+create index if not exists idx_beneficiary_accounts_rejected_by on payments.beneficiary_accounts (rejected_by);
+create index if not exists idx_beneficiary_accounts_revoked_by on payments.beneficiary_accounts (revoked_by);
+
 -- 1.3 Add dual-control approval check constraint
 do $$
 begin
@@ -868,7 +873,7 @@ create or replace function customer_api.create_payment_intent_v1(
 )
 returns jsonb
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog, payments, billing, portfolio, platform, identity
 as $$
 declare
@@ -1089,12 +1094,12 @@ $$;
 -- -----------------------------------------------------------------------------
 
 create or replace function payments.process_webhook_event_v1(
-  p_provider_code text,
-  p_provider_event_id text,
-  p_event_type text,
-  p_payload_hash text,
-  p_payload jsonb,
-  p_tenant_id uuid default null
+  p_tenant_id uuid default null,
+  p_provider_code text default 'unconfigured',
+  p_provider_event_id text default 'unknown',
+  p_event_type text default 'unknown',
+  p_payload_hash text default '',
+  p_payload jsonb default '{}'::jsonb
 )
 returns jsonb
 language plpgsql
@@ -1552,8 +1557,8 @@ grant execute on function customer_api.configure_payment_allocation_policy_v1(uu
 revoke all on function customer_api.list_payment_configuration_v1(uuid, uuid) from public, anon;
 grant execute on function customer_api.list_payment_configuration_v1(uuid, uuid) to authenticated;
 
-revoke all on function payments.process_webhook_event_v1(text, text, text, text, jsonb, uuid) from public, anon, authenticated;
-grant execute on function payments.process_webhook_event_v1(text, text, text, text, jsonb, uuid) to service_role;
+revoke all on function payments.process_webhook_event_v1(uuid, text, text, text, text, jsonb) from public, anon, authenticated;
+grant execute on function payments.process_webhook_event_v1(uuid, text, text, text, text, jsonb) to service_role;
 
 -- Table-level grants protected by RLS
 grant select, insert, update on table payments.payment_allocation_policies to authenticated, service_role;
