@@ -32,6 +32,7 @@ create table finance.export_artifact_scan_attestations(
   unique(artifact_id)
 );
 alter table finance.export_artifact_scan_attestations enable row level security;
+create index export_artifact_scan_attestations_tenant_idx on finance.export_artifact_scan_attestations(tenant_id);
 revoke all on finance.export_artifact_scan_attestations from public,anon,authenticated;
 grant all on finance.export_artifact_scan_attestations to service_role;
 
