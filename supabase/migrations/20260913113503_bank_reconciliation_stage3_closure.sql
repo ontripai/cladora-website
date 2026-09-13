@@ -92,6 +92,18 @@ begin
     raise exception 'reconciliation_unmatched_credit_remaining' using errcode = '55000';
   end if;
 
+  if tg_op = 'INSERT' and exists (
+    select 1
+    from payments.reconciliation_sessions rs
+    where rs.tenant_id = new.tenant_id
+      and rs.bank_account_id = new.bank_account_id
+      and rs.period_start = new.period_start
+      and rs.period_end = new.period_end
+      and rs.status = 'reconciled'
+  ) then
+    raise exception 'reconciliation_session_already_finalized' using errcode = '23505';
+  end if;
+
   select rs.closing_balance
   into v_opening
   from payments.reconciliation_sessions rs

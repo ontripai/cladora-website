@@ -72,7 +72,7 @@ select ok((payments.finalize_bank_reconciliation('76500000-0000-0000-0000-000000
 reset role;
 
 select ok((select count(*)=1 and min(difference)=0 from payments.reconciliation_sessions where tenant_id='76100000-0000-0000-0000-000000000001'),'exactly one zero-difference session is persisted');
-select throws_ok($$insert into payments.reconciliation_sessions(tenant_id,bank_account_id,statement_date,period_start,period_end,closing_balance,status) values('76100000-0000-0000-0000-000000000001','76600000-0000-0000-0000-000000000001','2026-09-30','2026-09-01','2026-09-30',100,'reconciled')$$,'23505',null,'retry cannot duplicate the reconciled session');
+select throws_ok($$insert into payments.reconciliation_sessions(tenant_id,bank_account_id,statement_date,period_start,period_end,closing_balance,status) values('76100000-0000-0000-0000-000000000001','76600000-0000-0000-0000-000000000001','2026-09-30','2026-09-01','2026-09-30',100,'reconciled')$$,'23505','reconciliation_session_already_finalized','retry cannot duplicate the reconciled session');
 select ok((select count(*)=1 from audit.events where tenant_id='76100000-0000-0000-0000-000000000001' and action='BANK_STATEMENT_RECONCILED'),'finalization emits exactly one audit event');
 select ok((select count(*)=0 from finance.journals where tenant_id='76100000-0000-0000-0000-000000000001'),'statement import and matching emit no journal');
 select ok((select count(*)=0 from finance.journal_entries je join finance.journals j on j.id=je.journal_id where j.tenant_id='76100000-0000-0000-0000-000000000001'),'GL and subledger remain unchanged through reconciliation');
