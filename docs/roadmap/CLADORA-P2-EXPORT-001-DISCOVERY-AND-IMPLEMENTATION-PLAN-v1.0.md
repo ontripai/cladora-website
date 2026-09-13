@@ -59,6 +59,19 @@ permission, closed-period, idempotency, hashing, audit and immutability contract
 Runtime pgTAP and linked transactional rehearsal remain release gates because
 the current execution environment has no Docker/Podman runtime.
 
+## Canonical row-set closure
+
+Migration 91 seals seven bounded, deterministically ordered datasets into
+`source_snapshot.reports`. Every dataset is restricted to the selected closed
+period, tenant and property scope and fails closed above 5,000 rows.
+
+The export excludes actor/user identifiers, bank counterparty and remittance
+data, encrypted account references, ballot receipts, raw source snapshots,
+object paths, meter notes and contact details. The renderer accepts only these
+sealed row sets, caps rows and columns, preserves deterministic PDF/XLSX/CSV
+bytes and neutralizes spreadsheet-formula prefixes without changing the source
+value.
+
 ## Verdict
 
 `READY-FOR-CLADORA-P2-EXPORT-001-LOCAL-VERIFICATION`

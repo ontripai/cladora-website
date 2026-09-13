@@ -99,6 +99,86 @@ begin
 end $$;
 revoke all on function app_private.export_pack_actor_v1(uuid,text) from public,anon,authenticated;
 
+create or replace function app_private.build_export_reports_v1(
+  p_tenant_id uuid,p_property_id uuid,p_period_start date,p_period_end date
+) returns jsonb
+language plpgsql stable security definer
+set search_path=pg_catalog,finance,billing,payments,maintenance,utilities,governance,portfolio
+as $$
+declare result jsonb; oversized text;
+begin
+  with report_sizes(code,row_count) as (values
+    ('trial_balance',(select count(distinct e.account_id) from finance.journal_entries e join finance.journals j on j.id=e.journal_id and j.tenant_id=e.tenant_id where e.tenant_id=p_tenant_id and (p_property_id is null or j.property_id=p_property_id) and j.occurred_on between p_period_start and p_period_end and j.status in ('posted','reversed'))),
+    ('unit_charges',(select count(*) from billing.invoice_lines l join billing.invoices i on i.id=l.invoice_id and i.tenant_id=l.tenant_id where l.tenant_id=p_tenant_id and (p_property_id is null or i.property_id=p_property_id) and i.period_start>=p_period_start and i.period_end<=p_period_end and i.status<>'draft')),
+    ('receivables_collections',(select count(*) from billing.receivables r join billing.invoices i on i.id=r.invoice_id and i.tenant_id=r.tenant_id where r.tenant_id=p_tenant_id and (p_property_id is null or i.property_id=p_property_id) and i.period_start>=p_period_start and i.period_end<=p_period_end and i.status<>'draft')),
+    ('bank_reconciliation',(select count(*) from payments.reconciliation_sessions s join payments.bank_accounts b on b.id=s.bank_account_id and b.tenant_id=s.tenant_id where s.tenant_id=p_tenant_id and (p_property_id is null or b.property_id=p_property_id) and s.period_start>=p_period_start and s.period_end<=p_period_end)),
+    ('supplier_invoices_payments',(select count(*) from maintenance.vendor_payables v join maintenance.work_orders w on w.id=v.work_order_id and w.tenant_id=v.tenant_id where v.tenant_id=p_tenant_id and (p_property_id is null or w.property_id=p_property_id) and v.invoice_date between p_period_start and p_period_end)),
+    ('meter_allocation_evidence',(select count(*) from utilities.consumption_periods c join utilities.meters m on m.id=c.meter_id and m.tenant_id=c.tenant_id where c.tenant_id=p_tenant_id and (p_property_id is null or m.property_id=p_property_id) and c.period_start::date>=p_period_start and c.period_end::date<=p_period_end)),
+    ('governance_audit_trail',(select count(*) from governance.resolutions r join governance.meetings m on m.id=r.meeting_id and m.tenant_id=r.tenant_id where r.tenant_id=p_tenant_id and (p_property_id is null or m.property_id=p_property_id) and m.scheduled_at::date between p_period_start and p_period_end))
+  ) select code into oversized from report_sizes where row_count>5000 order by code limit 1;
+  if oversized is not null then raise exception 'export_report_row_limit_exceeded:%',oversized using errcode='54000'; end if;
+
+  result:=jsonb_build_object(
+    'trial_balance',(select coalesce(jsonb_agg(to_jsonb(x) order by x.account_code,x.currency),'[]'::jsonb) from (
+      select a.code account_code,a.name account_name,a.type::text account_type,a.currency,
+        coalesce(sum(e.amount) filter(where e.side='debit'),0) debit_total,
+        coalesce(sum(e.amount) filter(where e.side='credit'),0) credit_total,
+        coalesce(sum(case when e.side='debit' then e.amount else -e.amount end),0) balance
+      from finance.journal_entries e join finance.journals j on j.id=e.journal_id and j.tenant_id=e.tenant_id
+      join finance.accounts a on a.id=e.account_id and a.tenant_id=e.tenant_id
+      where e.tenant_id=p_tenant_id and (p_property_id is null or j.property_id=p_property_id)
+        and j.occurred_on between p_period_start and p_period_end and j.status in ('posted','reversed')
+      group by a.code,a.name,a.type,a.currency) x),
+    'unit_charges',(select coalesce(jsonb_agg(to_jsonb(x) order by x.invoice_no,x.line_description),'[]'::jsonb) from (
+      select i.invoice_no,u.code unit_code,i.period_start,i.period_end,i.currency,i.status::text invoice_status,
+        l.description line_description,l.quantity,l.unit_price,l.line_subtotal,l.line_tax,(l.line_subtotal+l.line_tax) line_total
+      from billing.invoice_lines l join billing.invoices i on i.id=l.invoice_id and i.tenant_id=l.tenant_id
+      join portfolio.units u on u.id=i.unit_id and u.tenant_id=i.tenant_id
+      where l.tenant_id=p_tenant_id and (p_property_id is null or i.property_id=p_property_id)
+        and i.period_start>=p_period_start and i.period_end<=p_period_end and i.status<>'draft') x),
+    'receivables_collections',(select coalesce(jsonb_agg(to_jsonb(x) order by x.invoice_no),'[]'::jsonb) from (
+      select i.invoice_no,u.code unit_code,i.issued_on,i.due_on,i.currency,i.status::text invoice_status,
+        r.original_amount,r.paid_amount,r.credited_amount,r.outstanding_amount,r.last_payment_at
+      from billing.receivables r join billing.invoices i on i.id=r.invoice_id and i.tenant_id=r.tenant_id
+      join portfolio.units u on u.id=i.unit_id and u.tenant_id=i.tenant_id
+      where r.tenant_id=p_tenant_id and (p_property_id is null or i.property_id=p_property_id)
+        and i.period_start>=p_period_start and i.period_end<=p_period_end and i.status<>'draft') x),
+    'bank_reconciliation',(select coalesce(jsonb_agg(to_jsonb(x) order by x.statement_date,x.bank_name,x.currency),'[]'::jsonb) from (
+      select s.statement_date,s.period_start,s.period_end,b.bank_name,b.currency,s.opening_balance,s.total_credits,
+        s.total_debits,s.closing_balance,s.difference,s.status,s.reconciled_at
+      from payments.reconciliation_sessions s join payments.bank_accounts b on b.id=s.bank_account_id and b.tenant_id=s.tenant_id
+      where s.tenant_id=p_tenant_id and (p_property_id is null or b.property_id=p_property_id)
+        and s.period_start>=p_period_start and s.period_end<=p_period_end) x),
+    'supplier_invoices_payments',(select coalesce(jsonb_agg(to_jsonb(x) order by x.invoice_date,x.payable_no),'[]'::jsonb) from (
+      select v.payable_no,p.legal_name vendor_name,v.invoice_ref,v.invoice_date,v.due_date,v.currency,
+        v.subtotal,v.tax_amount,v.total_amount,v.status,v.posted_at,po.po_no,w.work_order_no
+      from maintenance.vendor_payables v join maintenance.work_orders w on w.id=v.work_order_id and w.tenant_id=v.tenant_id
+      join maintenance.vendors mv on mv.id=v.vendor_id and mv.tenant_id=v.tenant_id join portfolio.parties p on p.id=mv.party_id and p.tenant_id=mv.tenant_id
+      left join maintenance.purchase_orders po on po.id=v.purchase_order_id and po.tenant_id=v.tenant_id
+      where v.tenant_id=p_tenant_id and (p_property_id is null or w.property_id=p_property_id)
+        and v.invoice_date between p_period_start and p_period_end) x),
+    'meter_allocation_evidence',(select coalesce(jsonb_agg(to_jsonb(x) order by x.period_start,x.meter_code),'[]'::jsonb) from (
+      select m.serial_fingerprint meter_code,m.service_type::text,m.scope::text,coalesce(u.code,'') unit_code,m.unit_code measurement_unit,
+        c.period_start,c.period_end,s.reading_value start_reading,e.reading_value end_reading,c.raw_consumption,c.adjusted_consumption,
+        s.status::text start_status,e.status::text end_status
+      from utilities.consumption_periods c join utilities.meters m on m.id=c.meter_id and m.tenant_id=c.tenant_id
+      join utilities.meter_readings s on s.id=c.start_reading_id and s.tenant_id=c.tenant_id
+      join utilities.meter_readings e on e.id=c.end_reading_id and e.tenant_id=c.tenant_id
+      left join portfolio.units u on u.id=m.unit_id and u.tenant_id=m.tenant_id
+      where c.tenant_id=p_tenant_id and (p_property_id is null or m.property_id=p_property_id)
+        and c.period_start::date>=p_period_start and c.period_end::date<=p_period_end) x),
+    'governance_audit_trail',(select coalesce(jsonb_agg(to_jsonb(x) order by x.scheduled_at,x.resolution_no),'[]'::jsonb) from (
+      select m.title meeting_title,m.meeting_type,m.scheduled_at,m.status::text meeting_status,m.closed_at,
+        r.resolution_no,r.title resolution_title,r.adopted,r.effective_on,
+        (select count(*) from governance.minutes mn where mn.meeting_id=m.id and mn.approved_at is not null) approved_minutes_versions
+      from governance.resolutions r join governance.meetings m on m.id=r.meeting_id and m.tenant_id=r.tenant_id
+      where r.tenant_id=p_tenant_id and (p_property_id is null or m.property_id=p_property_id)
+        and m.scheduled_at::date between p_period_start and p_period_end) x)
+  );
+  return result;
+end $$;
+revoke all on function app_private.build_export_reports_v1(uuid,uuid,date,date) from public,anon,authenticated;
+
 create or replace function app_private.create_export_pack_internal_v1(
   p_context_id uuid,p_accounting_period_id uuid,p_idempotency_key text
 ) returns jsonb
@@ -127,6 +207,7 @@ begin
     'tenant_id',a.tenant_id,'property_id',per.property_id,'accounting_period_id',per.id,
     'period_start',per.starts_on,'period_end',per.ends_on,'closed_at',per.closed_at,
     'close_snapshot',per.snapshot_json,
+    'reports',app_private.build_export_reports_v1(a.tenant_id,per.property_id,per.starts_on,per.ends_on),
     'register_counts',jsonb_build_object(
       'posted_journals',(select count(*) from finance.journals j where j.tenant_id=a.tenant_id and (per.property_id is null or j.property_id=per.property_id) and j.occurred_on between per.starts_on and per.ends_on and j.status in ('posted','reversed')),
       'issued_invoices',(select count(*) from billing.invoices i where i.tenant_id=a.tenant_id and (per.property_id is null or i.property_id=per.property_id) and i.period_start>=per.starts_on and i.period_end<=per.ends_on and i.status<>'draft'),
