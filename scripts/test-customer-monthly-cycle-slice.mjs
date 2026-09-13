@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 
-const migration=readFileSync('supabase/migrations/20260913070508_canonical_monthly_financial_cycle.sql','utf8');
+const migration=readFileSync('supabase/migrations/20260913082028_canonical_monthly_financial_cycle.sql','utf8');
 const test=readFileSync('supabase/tests/072_canonical_monthly_financial_cycle.test.sql','utf8');
 const schema=readFileSync('src/lib/customer/monthly-cycle-schema.ts','utf8');
 const collection=readFileSync('src/app/api/customer/v1/accounting/monthly-cycles/route.ts','utf8');
