@@ -127,3 +127,35 @@ export const queryBankStatementImportsSchema = z.object({
 export const commitBankStatementImportSchema = z.object({
   context_id: z.string().uuid(),
 }).strict();
+
+export const generateBankMatchSuggestionsSchema = z.object({
+  context_id: z.string().uuid(),
+  bank_account_id: z.string().uuid(),
+  period_start: isoDateSchema,
+  period_end: isoDateSchema,
+  idempotency_key: z.string().trim().min(8).max(120),
+}).strict();
+
+export const queryBankMatchingQueueSchema = z.object({
+  context_id: z.string().uuid(),
+  bank_account_id: z.string().uuid().optional(),
+  status: z.enum(["open", "pending_approval", "suggested"]).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+export const reviewBankMatchSuggestionSchema = z.object({
+  context_id: z.string().uuid(),
+  decision: z.enum(["approve", "reject"]),
+  reason: z.string().trim().max(500).optional().nullable(),
+}).strict();
+
+export const proposeBankExceptionResolutionSchema = z.object({
+  context_id: z.string().uuid(),
+  payment_id: z.string().uuid().optional().nullable(),
+  receivable_id: z.string().uuid().optional().nullable(),
+  matched_amount: z.coerce.number().positive().optional().nullable(),
+  note: z.string().trim().min(3).max(500),
+}).strict().refine((value) => Boolean(value.payment_id || value.receivable_id), {
+  message: "A payment or receivable target is required",
+});

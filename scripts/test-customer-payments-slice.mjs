@@ -26,6 +26,9 @@ const PAYMENTS_ROUTES = [
   { path: 'src/app/api/customer/v1/payments/reconciliation/finalize/route.ts', rpc: 'finalize_bank_reconciliation_v1', methods: ['POST'] },
   { path: 'src/app/api/customer/v1/payments/bank-statements/imports/route.ts', rpc: 'create_bank_statement_import_v1', methods: ['GET', 'POST'] },
   { path: 'src/app/api/customer/v1/payments/bank-statements/imports/[id]/commit/route.ts', rpc: 'commit_bank_statement_import_v1', methods: ['POST'] },
+  { path: 'src/app/api/customer/v1/payments/bank-matching/route.ts', rpc: 'get_bank_matching_work_queue_v1', mutationRpc: 'generate_bank_match_suggestions_v1', methods: ['GET', 'POST'] },
+  { path: 'src/app/api/customer/v1/payments/bank-matching/matches/[id]/review/route.ts', rpc: 'review_bank_match_suggestion_v1', methods: ['POST'] },
+  { path: 'src/app/api/customer/v1/payments/bank-matching/exceptions/[id]/resolution/route.ts', rpc: 'propose_bank_exception_resolution_v1', methods: ['POST'] },
 ];
 
 const INTERNAL_SCHEMAS = [
@@ -283,5 +286,25 @@ assert.ok(!/insert\s+into\s+finance\.(journals|journal_entries)/i.test(migration
 const test074 = fs.readFileSync(path.join(root, 'supabase', 'tests', '074_bank_statement_import_reconciliation.test.sql'), 'utf8');
 assert.ok(test074.includes('select plan(42);'), 'Test 074 must plan exactly 42 assertions');
 console.log('  ✓ Migration 88 controlled ingestion, privacy, immutability and zero-ledger boundary verified');
+
+// =============================================================================
+// Suite 6: Migration 89 Assisted Matching & Exception Approval
+// =============================================================================
+console.log('\n[Suite 6] Migration 89 Assisted Matching & Exception Approval');
+const migration89Path=path.join(root,'supabase','migrations','20260913102143_assisted_bank_matching_reconciliation_exceptions.sql');
+const migration89Sql=fs.readFileSync(migration89Path,'utf8');
+for(const fn of ['generate_bank_match_suggestions_v1','get_bank_matching_work_queue_v1','review_bank_match_suggestion_v1','propose_bank_exception_resolution_v1']){
+  assert.ok(migration89Sql.includes(`function customer_api.${fn}`),`Migration 89 must define ${fn}`);
+  assert.ok(migration89Sql.includes(`revoke all on function customer_api.${fn}`),`Migration 89 must revoke public/anon ${fn}`);
+}
+assert.ok(migration89Sql.includes('dual_control_violation'),'Independent review must be enforced');
+assert.ok(migration89Sql.includes('requires_independent_approval'),'Legacy manual match must enter independent approval');
+assert.ok(migration89Sql.includes('exact_reference_amount_currency'),'Only conservative exact candidates may be suggested');
+assert.ok(migration89Sql.includes("direction='credit'"),'Debit transactions must not enter the incoming-payment matcher');
+assert.ok(!/insert\s+into\s+finance\.(journals|journal_entries)/i.test(migration89Sql),'Assisted matching must not post ledger entries');
+const matchingPanel=fs.readFileSync(path.join(root,'src','components','customer','BankMatchingWorkQueue.tsx'),'utf8');
+assert.ok(matchingPanel.includes("ro:{")&&matchingPanel.includes("en:{")&&matchingPanel.includes("fa:{"),'Matching queue must be trilingual');
+assert.ok(matchingPanel.includes("lang==='fa'?'rtl':'ltr'"),'Matching queue must support Persian RTL');
+console.log('  ✓ Assisted exact matching, exception queue, AAL2 dual control and zero-ledger boundary verified');
 
 console.log('\n=== ALL CUSTOMER PAYMENTS, ALLOCATION & RECONCILIATION TESTS PASSED ===\n');

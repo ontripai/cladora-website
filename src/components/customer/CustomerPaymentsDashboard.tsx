@@ -27,6 +27,7 @@ import {
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
 import { BankStatementImportPanel } from './BankStatementImportPanel';
+import { BankMatchingWorkQueue } from './BankMatchingWorkQueue';
 
 type View = 'payments' | 'reconciliation';
 
@@ -725,6 +726,7 @@ export function CustomerPaymentsDashboard({
               {view === 'reconciliation' && (
                 <>
                 <BankStatementImportPanel lang={lang} bankAccountId={reconciliationSummary?.bank_account?.id} onCommitted={() => setNonce((n) => n + 1)} />
+                <BankMatchingWorkQueue lang={lang} bankAccountId={reconciliationSummary?.bank_account?.id} onChanged={() => setNonce((n) => n + 1)} />
                 <button
                   type="button"
                   onClick={() => {
