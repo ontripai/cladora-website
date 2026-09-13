@@ -60,7 +60,11 @@ create table finance.export_artifacts (
 );
 
 create index export_packs_period_idx on finance.export_packs(tenant_id,accounting_period_id,generated_at desc);
+create index export_packs_accounting_period_id_idx on finance.export_packs(accounting_period_id);
+create index export_packs_property_id_idx on finance.export_packs(property_id);
+create index export_packs_generated_by_idx on finance.export_packs(generated_by);
 create index export_artifacts_pack_idx on finance.export_artifacts(export_pack_id,report_code,format);
+create index export_artifacts_pack_tenant_idx on finance.export_artifacts(export_pack_id,tenant_id);
 alter table finance.export_packs enable row level security;
 alter table finance.export_artifacts enable row level security;
 revoke all on finance.export_packs,finance.export_artifacts from public,anon,authenticated;

@@ -4,12 +4,12 @@ select plan(25);
 
 select has_table('finance','export_packs','sealed export-pack registry exists');
 select has_table('finance','export_artifacts','export-artifact registry exists');
-select ok(has_column('finance','export_packs','source_snapshot'),'canonical source snapshot exists');
-select ok(has_column('finance','export_packs','source_sha256'),'source SHA-256 exists');
-select ok(has_column('finance','export_packs','manifest_json'),'manifest exists');
-select ok(has_column('finance','export_packs','manifest_sha256'),'manifest SHA-256 exists');
-select ok(has_column('finance','export_artifacts','content_sha256'),'artifact SHA-256 slot exists');
-select ok(has_column('finance','export_artifacts','byte_size'),'bounded artifact size evidence exists');
+select ok(exists(select 1 from information_schema.columns where table_schema='finance' and table_name='export_packs' and column_name='source_snapshot'),'canonical source snapshot exists');
+select ok(exists(select 1 from information_schema.columns where table_schema='finance' and table_name='export_packs' and column_name='source_sha256'),'source SHA-256 exists');
+select ok(exists(select 1 from information_schema.columns where table_schema='finance' and table_name='export_packs' and column_name='manifest_json'),'manifest exists');
+select ok(exists(select 1 from information_schema.columns where table_schema='finance' and table_name='export_packs' and column_name='manifest_sha256'),'manifest SHA-256 exists');
+select ok(exists(select 1 from information_schema.columns where table_schema='finance' and table_name='export_artifacts' and column_name='content_sha256'),'artifact SHA-256 slot exists');
+select ok(exists(select 1 from information_schema.columns where table_schema='finance' and table_name='export_artifacts' and column_name='byte_size'),'bounded artifact size evidence exists');
 select has_function('customer_api','create_export_pack_v1',array['uuid','uuid','text'],'create gateway exists');
 select has_function('customer_api','get_export_pack_v1',array['uuid','uuid'],'read gateway exists');
 select has_function('app_private','export_pack_actor_v1',array['uuid','text'],'central export actor gate exists');
