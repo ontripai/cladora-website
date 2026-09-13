@@ -1,0 +1,20 @@
+-- Test 069: PostgREST onboarding RPC boundary hardening
+begin;
+select plan(15);
+select has_function('customer_api','create_import_run_v1',array['uuid','uuid','text'],'public wrapper remains stable');
+select has_function('app_private','onboarding_create_import_run_internal_v1',array['uuid','uuid','text'],'private implementation exists');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.create_import_run_v1(uuid,uuid,text)'::regprocedure),'create wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.add_import_source_v1(uuid,uuid,text,text,text,bigint,text,jsonb)'::regprocedure),'source wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.validate_import_v1(uuid,uuid)'::regprocedure),'validation wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.dry_run_import_v1(uuid,uuid)'::regprocedure),'dry-run wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.submit_import_v1(uuid,uuid)'::regprocedure),'submit wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.approve_import_commit_v1(uuid,uuid)'::regprocedure),'approval wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.get_import_preview_v1(uuid,uuid)'::regprocedure),'preview wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.cancel_import_v1(uuid,uuid)'::regprocedure),'cancel wrapper is invoker');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.activate_import_v1(uuid,uuid)'::regprocedure),'activation wrapper is invoker');
+select ok((select proconfig @> array['search_path=pg_catalog'] from pg_proc where oid='customer_api.create_import_run_v1(uuid,uuid,text)'::regprocedure),'wrapper search_path pinned');
+select ok(not has_function_privilege('anon','customer_api.create_import_run_v1(uuid,uuid,text)','EXECUTE'),'anon remains denied');
+select ok(has_function_privilege('authenticated','customer_api.create_import_run_v1(uuid,uuid,text)','EXECUTE'),'authenticated wrapper access retained');
+select ok(position('app_private.onboarding_create_import_run_internal_v1' in pg_get_functiondef('customer_api.create_import_run_v1(uuid,uuid,text)'::regprocedure))>0,'wrapper delegates to private implementation');
+select * from finish();
+rollback;
