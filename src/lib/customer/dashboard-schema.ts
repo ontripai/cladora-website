@@ -41,7 +41,10 @@ export const dashboardKpisSchema = z
   })
   .strict();
 
-export const isoDateStringSchema = z.iso.datetime();
+// PostgreSQL serializes timestamptz values with an explicit UTC offset
+// (for example, `2026-09-13T21:47:00.33075+00:00`). Accept standard
+// ISO-8601 offsets in addition to the `Z` form used by browser fixtures.
+export const isoDateStringSchema = z.iso.datetime({ offset: true });
 
 export const dashboardRpcResponseSchema = z
   .object({
