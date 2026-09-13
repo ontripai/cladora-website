@@ -55,7 +55,7 @@ function createStreamFromChunks(chunks) {
 
   // Must not use Date.parse for validation
   assert.ok(!content.includes('Date.parse('), 'Must not use loose Date.parse()');
-  assert.ok(content.includes('z.iso.datetime()'), 'Must use z.iso.datetime()');
+  assert.match(content, /z\.iso\.datetime\(/, 'Must use z.iso.datetime()');
 
   const { dashboardRpcResponseSchema } = await import('../src/lib/customer/dashboard-schema.ts');
 
@@ -89,6 +89,14 @@ function createStreamFromChunks(chunks) {
     dashboardRpcResponseSchema.parse({
       ...baseValid,
       generated_at: '2026-09-06T12:00:00Z',
+    })
+  );
+
+  // PostgreSQL timestamptz JSON output uses an explicit UTC offset.
+  assert.doesNotThrow(() =>
+    dashboardRpcResponseSchema.parse({
+      ...baseValid,
+      generated_at: '2026-09-13T21:47:00.33075+00:00',
     })
   );
 
