@@ -1,5 +1,7 @@
 # CLADORA-P2-BANK-001 — Bank Statement Import, Matching & Canonical Reconciliation
 
+Authoritative migration: `20260913100306_bank_statement_import_reconciliation.sql` (version assigned by the linked Supabase migration service).
+
 ## Objective
 
 Complete Stage 3 by extending the existing non-custodial payments engine with controlled bank-statement ingestion, deterministic duplicate prevention, reviewable staging and atomic commit. Existing payment, matching, reconciliation-session and ledger contracts remain canonical.

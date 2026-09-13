@@ -269,7 +269,7 @@ console.log('  ✓ pgTAP Test 054 contract verified covering all 38 planned asse
 // Suite 5: Migration 88 controlled statement ingestion
 // =============================================================================
 console.log('\n[Suite 5] Migration 88 Controlled Bank Statement Import');
-const migration88Path = path.join(root, 'supabase', 'migrations', '20260913093818_bank_statement_import_reconciliation.sql');
+const migration88Path = path.join(root, 'supabase', 'migrations', '20260913100306_bank_statement_import_reconciliation.sql');
 const migration88Sql = fs.readFileSync(migration88Path, 'utf8');
 assert.ok(/^\s*begin;/i.test(migration88Sql), 'Migration 88 must start with begin');
 assert.ok(migration88Sql.trim().endsWith('commit;'), 'Migration 88 must end with commit');
