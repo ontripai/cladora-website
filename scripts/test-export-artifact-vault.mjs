@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';import fs from 'node:fs';
-const migration=fs.readFileSync('supabase/migrations/20260913152500_export_artifact_quarantine_scanner_gate.sql','utf8');
+const migration=fs.readFileSync('supabase/migrations/20260913162715_export_artifact_quarantine_scanner_gate.sql','utf8');
 const materialize=fs.readFileSync('src/app/api/customer/v1/exports/[id]/route.ts','utf8');
 const download=fs.readFileSync('src/app/api/customer/v1/exports/[id]/download/route.ts','utf8');
 const errors=fs.readFileSync('src/lib/customer/export-artifact-errors.ts','utf8');
