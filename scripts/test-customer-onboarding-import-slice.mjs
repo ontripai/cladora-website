@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";import {readFileSync,existsSync} from "node:fs";
-const migration=readFileSync("supabase/migrations/20260912211715_controlled_residential_import_onboarding.sql","utf8");
-const pilotMigration=readFileSync("supabase/migrations/20260913061833_residential_pilot_import_completion.sql","utf8");
+const migration=readFileSync("supabase/migrations/20260912215541_controlled_residential_import_onboarding.sql","utf8");
+const pilotMigration=readFileSync("supabase/migrations/20260913063638_residential_pilot_import_completion.sql","utf8");
 const test=readFileSync("supabase/tests/068_controlled_residential_import_onboarding.test.sql","utf8");
 const pilotTest=readFileSync("supabase/tests/070_residential_pilot_import_completion.test.sql","utf8");
 const ui=readFileSync("src/components/customer/CustomerBuildingSetupWizard.tsx","utf8");
