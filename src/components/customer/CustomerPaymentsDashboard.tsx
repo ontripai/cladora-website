@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
+import { BankStatementImportPanel } from './BankStatementImportPanel';
 
 type View = 'payments' | 'reconciliation';
 
@@ -722,6 +723,8 @@ export function CustomerPaymentsDashboard({
                 {t.recordPayment}
               </button>
               {view === 'reconciliation' && (
+                <>
+                <BankStatementImportPanel lang={lang} bankAccountId={reconciliationSummary?.bank_account?.id} onCommitted={() => setNonce((n) => n + 1)} />
                 <button
                   type="button"
                   onClick={() => {
@@ -739,6 +742,7 @@ export function CustomerPaymentsDashboard({
                   <FileCheck className="h-4 w-4" />
                   {t.finalizeReconciliation}
                 </button>
+                </>
               )}
             </>
           )}

@@ -24,6 +24,8 @@ const PAYMENTS_ROUTES = [
   { path: 'src/app/api/customer/v1/payments/bank-transactions/[id]/unmatch/route.ts', rpc: 'unmatch_bank_transaction_v1', methods: ['POST'] },
   { path: 'src/app/api/customer/v1/payments/reconciliation/route.ts', rpc: 'get_reconciliation_summary_v1', methods: ['GET'] },
   { path: 'src/app/api/customer/v1/payments/reconciliation/finalize/route.ts', rpc: 'finalize_bank_reconciliation_v1', methods: ['POST'] },
+  { path: 'src/app/api/customer/v1/payments/bank-statements/imports/route.ts', rpc: 'create_bank_statement_import_v1', methods: ['GET', 'POST'] },
+  { path: 'src/app/api/customer/v1/payments/bank-statements/imports/[id]/commit/route.ts', rpc: 'commit_bank_statement_import_v1', methods: ['POST'] },
 ];
 
 const INTERNAL_SCHEMAS = [
@@ -73,7 +75,7 @@ for (const route of PAYMENTS_ROUTES) {
   }
 }
 
-console.log('  ✓ 12 Payments Route Handlers verified targeting customer_api schema with versioned RPCs');
+console.log(`  ✓ ${PAYMENTS_ROUTES.length} Payments Route Handlers verified targeting customer_api schema with versioned RPCs`);
 console.log('  ✓ Defensive stream limit verified on all mutation endpoints');
 console.log('  ✓ Origin and Content-Type defense verified');
 console.log('  ✓ Zero internal schema exposure across all handlers');
@@ -200,6 +202,14 @@ assert.ok(schemaCode.includes('allocatePaymentRequestSchema'), 'Must export allo
 assert.ok(schemaCode.includes('unallocatePaymentRequestSchema'), 'Must export unallocatePaymentRequestSchema');
 assert.ok(schemaCode.includes('reversePaymentRequestSchema'), 'Must export reversePaymentRequestSchema');
 assert.ok(schemaCode.includes('finalizeReconciliationRequestSchema'), 'Must export finalizeReconciliationRequestSchema');
+assert.ok(schemaCode.includes('createBankStatementImportSchema'), 'Must export strict bank statement import schema');
+assert.ok(uiCode.includes('BankStatementImportPanel'), 'Reconciliation UI must expose controlled statement import');
+const statementPanel = fs.readFileSync(path.join(root, 'src', 'components', 'customer', 'BankStatementImportPanel.tsx'), 'utf8');
+assert.ok(statementPanel.includes("accept=\".csv,.json"), 'Import UI must limit accepted file formats');
+assert.ok(statementPanel.includes('idempotencyKey'), 'Import UI must preserve idempotency key across retries');
+const statementParser = fs.readFileSync(path.join(root, 'src', 'lib', 'payments', 'bank-statement-parser.ts'), 'utf8');
+assert.ok(statementParser.includes('MAX_FILE_BYTES = 5 * 1024 * 1024'), 'Client parser must enforce 5 MB bound');
+assert.ok(statementParser.includes('MAX_ROWS = 5000'), 'Client parser must enforce 5000-row bound');
 
 console.log('  ✓ CustomerPaymentsDashboard trilingual (RO/EN/FA) coverage verified');
 console.log('  ✓ Full Persian RTL dynamic support verified');
@@ -255,6 +265,23 @@ console.log('  ✓ Split reversal / refund accounting contract verified');
 console.log('  ✓ Internal continuous parity diagnostic RPC customer_api.get_parity_diagnostic_v1 verified');
 console.log('  ✓ pgTAP Test 054 contract verified covering all 38 planned assertions');
 
+// =============================================================================
+// Suite 5: Migration 88 controlled statement ingestion
+// =============================================================================
+console.log('\n[Suite 5] Migration 88 Controlled Bank Statement Import');
+const migration88Path = path.join(root, 'supabase', 'migrations', '20260913100306_bank_statement_import_reconciliation.sql');
+const migration88Sql = fs.readFileSync(migration88Path, 'utf8');
+assert.ok(/^\s*begin;/i.test(migration88Sql), 'Migration 88 must start with begin');
+assert.ok(migration88Sql.trim().endsWith('commit;'), 'Migration 88 must end with commit');
+for (const fn of ['create_bank_statement_import_v1', 'stage_bank_statement_rows_v1', 'validate_bank_statement_import_v1', 'commit_bank_statement_import_v1', 'get_bank_statement_import_v1']) {
+  assert.ok(migration88Sql.includes(`customer_api.${fn}`), `Migration 88 must expose ${fn}`);
+}
+assert.ok(migration88Sql.includes('unmasked_counterparty_iban_rejected'), 'Full counterparty IBAN must be rejected');
+assert.ok(migration88Sql.includes('protect_committed_bank_import'), 'Committed batches must be immutable');
+assert.ok(migration88Sql.includes('jsonb_strip_nulls(jsonb_build_object'), 'Raw snapshots must be allowlisted');
+assert.ok(!/insert\s+into\s+finance\.(journals|journal_entries)/i.test(migration88Sql), 'Statement import must not post ledger entries');
+const test074 = fs.readFileSync(path.join(root, 'supabase', 'tests', '074_bank_statement_import_reconciliation.test.sql'), 'utf8');
+assert.ok(test074.includes('select plan(42);'), 'Test 074 must plan exactly 42 assertions');
+console.log('  ✓ Migration 88 controlled ingestion, privacy, immutability and zero-ledger boundary verified');
+
 console.log('\n=== ALL CUSTOMER PAYMENTS, ALLOCATION & RECONCILIATION TESTS PASSED ===\n');
-
-
