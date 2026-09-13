@@ -1,0 +1,25 @@
+import assert from 'node:assert/strict';
+import { existsSync, readFileSync } from 'node:fs';
+
+const migration=readFileSync('supabase/migrations/20260913070508_canonical_monthly_financial_cycle.sql','utf8');
+const test=readFileSync('supabase/tests/072_canonical_monthly_financial_cycle.test.sql','utf8');
+const schema=readFileSync('src/lib/customer/monthly-cycle-schema.ts','utf8');
+const collection=readFileSync('src/app/api/customer/v1/accounting/monthly-cycles/route.ts','utf8');
+const action=readFileSync('src/app/api/customer/v1/accounting/monthly-cycles/[id]/[action]/route.ts','utf8');
+for(const table of ['monthly_cycles','monthly_cycle_sources','monthly_cycle_reviews','monthly_cycle_publications','monthly_cycle_exceptions'])assert.match(migration,new RegExp(`create table finance\\.${table}`));
+for(const rpc of ['list_monthly_cycles_v1','create_monthly_cycle_v1','capture_monthly_cycle_source_v1','submit_monthly_cycle_v1','review_monthly_cycle_v1','publish_monthly_cycle_v1','close_monthly_cycle_v1'])assert.match(migration,new RegExp(`function customer_api\\.${rpc}`));
+assert.match(migration,/monthly_cycle_reviews_reviewer_unique/);
+assert.match(migration,/president_and_censor_approval_required/);
+assert.match(migration,/get_ar_subledger_parity/);
+assert.match(migration,/finance\.close_accounting_period/);
+assert.match(migration,/security invoker set search_path=pg_catalog/gi);
+assert.doesNotMatch(migration,/p1test|Tenant A/i);
+assert.match(test,/select plan\(45\)/);
+assert.match(migration,/revoke execute on function customer_api\.close_accounting_period_v1/);
+assert.match(collection,/hasTrustedMutationOrigin/);
+assert.match(collection,/parseJsonWithLimit/);
+assert.match(action,/capture-source/);
+assert.match(action,/publish/);
+assert.match(schema,/z\.discriminatedUnion/);
+for(const path of ['src/lib/customer/monthly-cycle-api-helper.ts','src/app/api/customer/v1/accounting/monthly-cycles/route.ts','src/app/api/customer/v1/accounting/monthly-cycles/[id]/[action]/route.ts'])assert.ok(existsSync(path),`${path} exists`);
+console.log('Canonical monthly financial cycle: 5/5 contract suites passed.');
