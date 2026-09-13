@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { isSupportedLocale, Language } from '@/types';
-import { CustomerMonthClose } from '@/components/customer/CustomerMonthClose';
+import { CustomerMonthlyCycleDashboard } from '@/components/customer/CustomerMonthlyCycleDashboard';
 
 export default async function MonthClosePage({
   params,
@@ -9,5 +9,5 @@ export default async function MonthClosePage({
 }) {
   const { lang } = await params;
   if (!isSupportedLocale(lang)) notFound();
-  return <CustomerMonthClose lang={lang as Language} />;
+  return <CustomerMonthlyCycleDashboard lang={lang as Language} />;
 }

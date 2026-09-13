@@ -282,8 +282,8 @@ select ok(
 ) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'customer_api' and p.proname = 'get_close_readiness_v1';
 
 select ok(
-  has_function_privilege('authenticated', p.oid, 'EXECUTE'),
-  'authenticated can execute customer_api.close_accounting_period_v1'
+  not has_function_privilege('authenticated', p.oid, 'EXECUTE'),
+  'authenticated cannot bypass monthly cycle through customer_api.close_accounting_period_v1'
 ) from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'customer_api' and p.proname = 'close_accounting_period_v1';
 
 select ok(
