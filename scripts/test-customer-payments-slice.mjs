@@ -291,7 +291,7 @@ console.log('  ✓ Migration 88 controlled ingestion, privacy, immutability and 
 // Suite 6: Migration 89 Assisted Matching & Exception Approval
 // =============================================================================
 console.log('\n[Suite 6] Migration 89 Assisted Matching & Exception Approval');
-const migration89Path=path.join(root,'supabase','migrations','20260913102143_assisted_bank_matching_reconciliation_exceptions.sql');
+const migration89Path=path.join(root,'supabase','migrations','20260913110118_assisted_bank_matching_reconciliation_exceptions.sql');
 const migration89Sql=fs.readFileSync(migration89Path,'utf8');
 for(const fn of ['generate_bank_match_suggestions_v1','get_bank_matching_work_queue_v1','review_bank_match_suggestion_v1','propose_bank_exception_resolution_v1']){
   assert.ok(migration89Sql.includes(`function customer_api.${fn}`),`Migration 89 must define ${fn}`);
