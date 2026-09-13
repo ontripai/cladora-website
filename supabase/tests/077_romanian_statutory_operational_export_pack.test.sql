@@ -1,0 +1,32 @@
+begin;
+
+select plan(25);
+
+select has_table('finance','export_packs','sealed export-pack registry exists');
+select has_table('finance','export_artifacts','export-artifact registry exists');
+select ok(has_column('finance','export_packs','source_snapshot'),'canonical source snapshot exists');
+select ok(has_column('finance','export_packs','source_sha256'),'source SHA-256 exists');
+select ok(has_column('finance','export_packs','manifest_json'),'manifest exists');
+select ok(has_column('finance','export_packs','manifest_sha256'),'manifest SHA-256 exists');
+select ok(has_column('finance','export_artifacts','content_sha256'),'artifact SHA-256 slot exists');
+select ok(has_column('finance','export_artifacts','byte_size'),'bounded artifact size evidence exists');
+select has_function('customer_api','create_export_pack_v1',array['uuid','uuid','text'],'create gateway exists');
+select has_function('customer_api','get_export_pack_v1',array['uuid','uuid'],'read gateway exists');
+select has_function('app_private','export_pack_actor_v1',array['uuid','text'],'central export actor gate exists');
+select has_function('app_private','create_export_pack_internal_v1',array['uuid','uuid','text'],'internal sealer exists');
+select ok((select prorettype='jsonb'::regtype from pg_proc where oid='customer_api.create_export_pack_v1(uuid,uuid,text)'::regprocedure),'create returns jsonb');
+select ok((select prorettype='jsonb'::regtype from pg_proc where oid='customer_api.get_export_pack_v1(uuid,uuid)'::regprocedure),'read returns jsonb');
+select ok((select relrowsecurity from pg_class where oid='finance.export_packs'::regclass),'export packs use RLS defense in depth');
+select ok((select relrowsecurity from pg_class where oid='finance.export_artifacts'::regclass),'export artifacts use RLS defense in depth');
+select ok(not has_table_privilege('authenticated','finance.export_packs','SELECT'),'raw packs are not directly readable');
+select ok(not has_table_privilege('authenticated','finance.export_artifacts','SELECT'),'raw artifacts are not directly readable');
+select ok(has_function_privilege('authenticated','customer_api.create_export_pack_v1(uuid,uuid,text)','EXECUTE'),'authenticated may invoke guarded create gateway');
+select ok(not has_function_privilege('anon','customer_api.create_export_pack_v1(uuid,uuid,text)','EXECUTE'),'anon cannot create exports');
+select ok(position('export_requires_closed_accounting_period' in pg_get_functiondef('app_private.create_export_pack_internal_v1(uuid,uuid,text)'::regprocedure))>0,'open periods fail closed');
+select ok(position('idempotency_payload_mismatch' in pg_get_functiondef('app_private.create_export_pack_internal_v1(uuid,uuid,text)'::regprocedure))>0,'idempotency payload mismatch is deterministic');
+select ok(position('extensions.digest' in pg_get_functiondef('app_private.create_export_pack_internal_v1(uuid,uuid,text)'::regprocedure))>0,'source and manifest use SHA-256');
+select ok(position('ROMANIAN_EXPORT_PACK_SEALED' in pg_get_functiondef('app_private.create_export_pack_internal_v1(uuid,uuid,text)'::regprocedure))>0,'sealing emits audit evidence');
+select ok(position('sealed_export_pack_is_immutable' in pg_get_functiondef('finance.protect_export_pack_v1()'::regprocedure))>0,'sealed packs are immutable');
+
+select * from finish();
+rollback;
