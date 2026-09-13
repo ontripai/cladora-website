@@ -172,14 +172,46 @@ begin
 end $$;
 revoke all on function app_private.get_export_pack_internal_v1(uuid,uuid) from public,anon,authenticated;
 
+create or replace function app_private.record_export_artifact_internal_v1(
+  p_context_id uuid,p_export_pack_id uuid,p_report_code text,p_format text,p_content_sha256 text,p_byte_size bigint
+) returns jsonb language plpgsql security definer
+set search_path=pg_catalog,finance,audit
+as $$
+declare a record;art finance.export_artifacts;
+begin
+  select * into a from app_private.export_pack_actor_v1(p_context_id,'finance.exports.generate');
+  if p_content_sha256 !~ '^[0-9a-f]{64}$' then raise exception 'invalid_export_artifact_hash' using errcode='22023'; end if;
+  if p_byte_size<1 or p_byte_size>5242880 then raise exception 'export_artifact_size_out_of_bounds' using errcode='22023'; end if;
+  select ea.* into art from finance.export_artifacts ea join finance.export_packs ep on ep.id=ea.export_pack_id and ep.tenant_id=ea.tenant_id
+  where ea.export_pack_id=p_export_pack_id and ea.tenant_id=a.tenant_id and ea.report_code=p_report_code and ea.format=p_format
+    and (a.property_id is null or ep.property_id=a.property_id) for update of ea;
+  if not found then raise exception 'export_artifact_not_found' using errcode='22023'; end if;
+  if art.content_sha256 is not null then
+    if (art.content_sha256,art.byte_size) is distinct from (p_content_sha256,p_byte_size) then
+      raise exception 'export_artifact_materialization_mismatch' using errcode='23505';
+    end if;
+    return jsonb_build_object('artifact_id',art.id,'sha256',art.content_sha256,'byte_size',art.byte_size,'idempotent_replay',true);
+  end if;
+  update finance.export_artifacts set content_sha256=p_content_sha256,byte_size=p_byte_size,materialized_at=statement_timestamp()
+  where id=art.id returning * into art;
+  insert into audit.events(tenant_id,actor_id,actor_role,action,entity_type,entity_id,after_snapshot,occurred_at)
+  values(a.tenant_id,auth.uid(),a.role_code,'EXPORT_ARTIFACT_MATERIALIZED','finance.export_artifact',art.id,
+    jsonb_build_object('export_pack_id',p_export_pack_id,'report_code',p_report_code,'format',p_format,'sha256',p_content_sha256,'byte_size',p_byte_size),statement_timestamp());
+  return jsonb_build_object('artifact_id',art.id,'sha256',art.content_sha256,'byte_size',art.byte_size,'idempotent_replay',false);
+end $$;
+revoke all on function app_private.record_export_artifact_internal_v1(uuid,uuid,text,text,text,bigint) from public,anon,authenticated;
+
 create or replace function customer_api.create_export_pack_v1(p_context_id uuid,p_accounting_period_id uuid,p_idempotency_key text)
 returns jsonb language sql security invoker set search_path=pg_catalog
 as $$select app_private.create_export_pack_internal_v1(p_context_id,p_accounting_period_id,p_idempotency_key)$$;
 create or replace function customer_api.get_export_pack_v1(p_context_id uuid,p_export_pack_id uuid)
 returns jsonb language sql stable security invoker set search_path=pg_catalog
 as $$select app_private.get_export_pack_internal_v1(p_context_id,p_export_pack_id)$$;
-revoke all on function customer_api.create_export_pack_v1(uuid,uuid,text),customer_api.get_export_pack_v1(uuid,uuid) from public,anon;
-grant execute on function customer_api.create_export_pack_v1(uuid,uuid,text),customer_api.get_export_pack_v1(uuid,uuid) to authenticated,service_role;
+create or replace function customer_api.record_export_artifact_v1(p_context_id uuid,p_export_pack_id uuid,p_report_code text,p_format text,p_content_sha256 text,p_byte_size bigint)
+returns jsonb language sql security invoker set search_path=pg_catalog
+as $$select app_private.record_export_artifact_internal_v1(p_context_id,p_export_pack_id,p_report_code,p_format,p_content_sha256,p_byte_size)$$;
+revoke all on function customer_api.create_export_pack_v1(uuid,uuid,text),customer_api.get_export_pack_v1(uuid,uuid),customer_api.record_export_artifact_v1(uuid,uuid,text,text,text,bigint) from public,anon;
+grant execute on function customer_api.create_export_pack_v1(uuid,uuid,text),customer_api.get_export_pack_v1(uuid,uuid),customer_api.record_export_artifact_v1(uuid,uuid,text,text,text,bigint) to authenticated,service_role;
 
 create or replace function finance.protect_export_pack_v1()
 returns trigger language plpgsql security definer set search_path=pg_catalog
