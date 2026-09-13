@@ -128,12 +128,19 @@ assert.deepEqual(
 
 console.log('PASS: Reset Password Page guard contracts verified.');
 
-console.log('--- Test 3: Granular 7-State Error Mapping ---');
+console.log('--- Test 3: Granular 8-State Error Mapping ---');
 
 // 1. recovery_session_missing
 assert.equal(mapUpdateUserError({ name: 'AuthSessionMissingError' }), 'recovery_session_missing');
 assert.equal(mapUpdateUserError({ status: 401 }), 'recovery_session_missing');
 assert.equal(mapUpdateUserError({ code: 'session_missing' }), 'recovery_session_missing');
+
+// AAL2-required 401 must not be misreported as a missing recovery session.
+assert.equal(
+  mapUpdateUserError({ status: 401, message: 'AAL2 session is required to update email or password when MFA is enabled.' }),
+  'mfa_aal2_required'
+);
+assert.equal(mapUpdateUserError({ code: 'insufficient_aal' }), 'mfa_aal2_required');
 
 // 2. same_password_rejected
 assert.equal(mapUpdateUserError({ code: 'same_password', status: 422 }), 'same_password_rejected');
@@ -161,7 +168,7 @@ assert.equal(mapUpdateUserError({ code: 'code_challenge_failed' }), 'recovery_li
 assert.equal(mapUpdateUserError({ status: 500 }), 'unexpected_update_failure');
 assert.equal(mapUpdateUserError(null), 'unexpected_update_failure');
 
-console.log('PASS: Error mapping correctly differentiates all 7 states.');
+console.log('PASS: Error mapping correctly differentiates all 8 states.');
 
 console.log('--- Test 4: Multilingual Translation Audit ---');
 
@@ -179,6 +186,7 @@ const requiredErrorKeys = [
   'recovery_link_already_used',
   'password_policy_failed',
   'same_password_rejected',
+  'mfa_aal2_required',
   'rate_limited',
   'unexpected_update_failure',
 ];
@@ -191,6 +199,24 @@ for (const key of requiredErrorKeys) {
 assert.ok(errorModuleSource.includes('رمز عبور جدید نمی‌تواند همانند رمز عبور قبلی باشد'), 'Persian same password translation must be present');
 assert.ok(errorModuleSource.includes('نشست بازیابی رمز عبور یافت نشد یا منقضی شده است'), 'Persian session missing translation must be present');
 assert.ok(errorModuleSource.includes('تعداد تلاش‌های مجاز بیش از حد بوده است'), 'Persian rate limit translation must be present');
+
+for (const contract of [
+  'mfa.getAuthenticatorAssuranceLevel()',
+  'mfa.listFactors()',
+  "factor.status === 'verified'",
+  'mfa.challengeAndVerify',
+  "assurance?.currentLevel !== 'aal2'",
+]) {
+  assert.ok(formSource.includes(contract), `Recovery form must enforce MFA contract: ${contract}`);
+}
+
+for (const localizedCopy of [
+  'Cod Authenticator',
+  'Authenticator code',
+  'کد Authenticator',
+]) {
+  assert.ok(formSource.includes(localizedCopy), `Recovery MFA copy must include: ${localizedCopy}`);
+}
 
 console.log('PASS: Multilingual copy and Persian translations verified.');
 
