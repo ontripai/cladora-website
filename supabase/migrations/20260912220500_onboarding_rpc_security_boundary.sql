@@ -47,7 +47,18 @@ revoke all on function
 from public,anon;
 grant usage on schema app_private to authenticated,service_role;
 grant execute on function app_private.onboarding_list_import_templates_internal_v1(uuid),app_private.onboarding_create_import_run_internal_v1(uuid,uuid,text),app_private.onboarding_add_import_source_internal_v1(uuid,uuid,text,text,text,bigint,text,jsonb),app_private.onboarding_validate_import_internal_v1(uuid,uuid),app_private.onboarding_dry_run_import_internal_v1(uuid,uuid),app_private.onboarding_submit_import_internal_v1(uuid,uuid),app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid),app_private.onboarding_get_import_preview_internal_v1(uuid,uuid),app_private.onboarding_cancel_import_internal_v1(uuid,uuid),app_private.onboarding_activate_import_internal_v1(uuid,uuid) to authenticated,service_role;
-revoke all on all functions in schema customer_api from public,anon;
+revoke all on function
+ customer_api.list_import_templates_v1(uuid),
+ customer_api.create_import_run_v1(uuid,uuid,text),
+ customer_api.add_import_source_v1(uuid,uuid,text,text,text,bigint,text,jsonb),
+ customer_api.validate_import_v1(uuid,uuid),
+ customer_api.dry_run_import_v1(uuid,uuid),
+ customer_api.submit_import_v1(uuid,uuid),
+ customer_api.approve_import_commit_v1(uuid,uuid),
+ customer_api.get_import_preview_v1(uuid,uuid),
+ customer_api.cancel_import_v1(uuid,uuid),
+ customer_api.activate_import_v1(uuid,uuid)
+from public,anon;
 grant execute on function customer_api.list_import_templates_v1(uuid),customer_api.create_import_run_v1(uuid,uuid,text),customer_api.add_import_source_v1(uuid,uuid,text,text,text,bigint,text,jsonb),customer_api.validate_import_v1(uuid,uuid),customer_api.dry_run_import_v1(uuid,uuid),customer_api.submit_import_v1(uuid,uuid),customer_api.approve_import_commit_v1(uuid,uuid),customer_api.get_import_preview_v1(uuid,uuid),customer_api.cancel_import_v1(uuid,uuid),customer_api.activate_import_v1(uuid,uuid) to authenticated,service_role;
 comment on function customer_api.approve_import_commit_v1(uuid,uuid) is 'SECURITY INVOKER PostgREST boundary; privileged implementation is isolated in non-exposed app_private.';
 commit;
