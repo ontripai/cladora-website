@@ -336,7 +336,7 @@ begin
   );
 end $$;
 
-select ok(exists (select 1 from payments.reconciliation_matches where bank_transaction_id = '40f10000-0000-0000-0000-000000000001' and status = 'confirmed'), 'bank transaction matched');
+select ok(exists (select 1 from payments.reconciliation_matches where bank_transaction_id = '40f10000-0000-0000-0000-000000000001' and status = 'suggested'), 'bank transaction match requires independent approval');
 
 -- Finalize with non-zero difference should fail
 select throws_ok(

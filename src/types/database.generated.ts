@@ -1893,6 +1893,22 @@ export type Database = {
         Args: { p_context_id: string; p_batch_id?: string | null; p_limit?: number; p_offset?: number };
         Returns: Json;
       };
+      generate_bank_match_suggestions_v1: {
+        Args: { p_context_id: string; p_bank_account_id: string; p_period_start: string; p_period_end: string; p_idempotency_key: string };
+        Returns: Json;
+      };
+      get_bank_matching_work_queue_v1: {
+        Args: { p_context_id: string; p_bank_account_id?: string | null; p_status?: string | null; p_limit?: number; p_offset?: number };
+        Returns: Json;
+      };
+      review_bank_match_suggestion_v1: {
+        Args: { p_context_id: string; p_match_id: string; p_decision: string; p_reason?: string | null };
+        Returns: Json;
+      };
+      propose_bank_exception_resolution_v1: {
+        Args: { p_context_id: string; p_exception_id: string; p_payment_id?: string | null; p_receivable_id?: string | null; p_matched_amount?: number | null; p_note?: string | null };
+        Returns: Json;
+      };
     };
     Enums: {
       [key: string]: string;
