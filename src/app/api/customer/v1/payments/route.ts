@@ -39,6 +39,9 @@ export function mapPaymentsRpcError(error: { code?: string; message?: string }):
   if (
     msg.includes("overallocated") ||
     msg.includes("reconciliation_difference_must_be_zero") ||
+    msg.includes("reconciliation_unmatched_credit_remaining") ||
+    msg.includes("reconciliation_match_approval_pending") ||
+    msg.includes("reconciliation_exception_unresolved") ||
     msg.includes("already_reversed") ||
     msg.includes("not_in_allocatable_status")
   ) {

@@ -338,6 +338,17 @@ end $$;
 
 select ok(exists (select 1 from payments.reconciliation_matches where bank_transaction_id = '40f10000-0000-0000-0000-000000000001' and status = 'suggested'), 'bank transaction match requires independent approval');
 
+-- BANK-002 made manual matching proposal-only. Move the legacy fixture through
+-- an independently reviewed confirmed state before exercising finalization.
+update payments.reconciliation_matches
+set status = 'confirmed',
+    confirmed_by = '40000000-0000-0000-0000-000000000002',
+    confirmed_at = statement_timestamp(),
+    reviewed_by = '40000000-0000-0000-0000-000000000002',
+    reviewed_at = statement_timestamp()
+where bank_transaction_id = '40f10000-0000-0000-0000-000000000001'
+  and status = 'suggested';
+
 -- Finalize with non-zero difference should fail
 select throws_ok(
   $$

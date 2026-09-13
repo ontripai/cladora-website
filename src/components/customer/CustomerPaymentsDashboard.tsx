@@ -193,6 +193,9 @@ const copy = {
     closingBalance: 'Sold final extras',
     calculatedBalance: 'Sold calculat din registrul bancar',
     zeroDiffRequired: 'Diferența trebuie să fie 0 pentru finalizare.',
+    unmatchedCreditRemaining: 'Reconcilierea nu poate fi finalizată: există încasări neasociate integral.',
+    matchApprovalPending: 'Reconcilierea nu poate fi finalizată: există asocieri în așteptarea aprobării.',
+    exceptionUnresolved: 'Reconcilierea nu poate fi finalizată: există excepții nerezolvate.',
     partial: 'Parțial',
     fullyAllocated: 'Alocat integral',
     reversed: 'Inversat / Stornat',
@@ -258,6 +261,9 @@ const copy = {
     closingBalance: 'Statement Closing Balance',
     calculatedBalance: 'Calculated Ledger Balance',
     zeroDiffRequired: 'Difference must be strictly 0 to finalize.',
+    unmatchedCreditRemaining: 'Reconciliation cannot be finalized: one or more credits are not fully matched.',
+    matchApprovalPending: 'Reconciliation cannot be finalized: one or more matches are awaiting approval.',
+    exceptionUnresolved: 'Reconciliation cannot be finalized: one or more exceptions remain unresolved.',
     partial: 'Partial',
     fullyAllocated: 'Fully Allocated',
     reversed: 'Reversed / Refunded',
@@ -323,6 +329,9 @@ const copy = {
     closingBalance: 'مانده پایانی صورت‌حساب بانکی',
     calculatedBalance: 'مانده محاسباتی دفاتر',
     zeroDiffRequired: 'اختلاف برای نهایی‌سازی باید دقیقاً صفر باشد.',
+    unmatchedCreditRemaining: 'مغایرت‌گیری قابل نهایی‌سازی نیست: یک یا چند دریافت به‌طور کامل تطبیق نشده است.',
+    matchApprovalPending: 'مغایرت‌گیری قابل نهایی‌سازی نیست: یک یا چند تطبیق در انتظار تأیید است.',
+    exceptionUnresolved: 'مغایرت‌گیری قابل نهایی‌سازی نیست: یک یا چند استثنا حل‌نشده باقی مانده است.',
     partial: 'تخصیص جزئی',
     fullyAllocated: 'تخصیص کامل',
     reversed: 'برگشت‌خورده / باطل‌شده',
@@ -672,7 +681,15 @@ export function CustomerPaymentsDashboard({
 
       if (!res.ok) {
         const errJson = await res.json();
-        throw new Error(errJson?.error?.message || 'Failed to finalize reconciliation');
+        const message = errJson?.error?.message || '';
+        const localizedErrors: Record<string, string> = {
+          reconciliation_unmatched_credit_remaining: t.unmatchedCreditRemaining,
+          reconciliation_match_approval_pending: t.matchApprovalPending,
+          reconciliation_exception_unresolved: t.exceptionUnresolved,
+          reconciliation_difference_must_be_zero: t.zeroDiffRequired
+        };
+        const localized = Object.entries(localizedErrors).find(([code]) => message.includes(code))?.[1];
+        throw new Error(localized || message || 'Failed to finalize reconciliation');
       }
 
       setShowFinalizeModal(false);
