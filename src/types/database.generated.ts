@@ -1861,6 +1861,38 @@ export type Database = {
         };
         Returns: Json;
       };
+      create_bank_statement_import_v1: {
+        Args: {
+          p_context_id: string;
+          p_bank_account_id: string;
+          p_source: string;
+          p_source_hash: string;
+          p_file_name: string;
+          p_statement_format: string;
+          p_period_start: string;
+          p_period_end: string;
+          p_opening_balance?: number | null;
+          p_closing_balance?: number | null;
+          p_idempotency_key: string;
+        };
+        Returns: Json;
+      };
+      stage_bank_statement_rows_v1: {
+        Args: { p_context_id: string; p_batch_id: string; p_rows: Json };
+        Returns: Json;
+      };
+      validate_bank_statement_import_v1: {
+        Args: { p_context_id: string; p_batch_id: string };
+        Returns: Json;
+      };
+      commit_bank_statement_import_v1: {
+        Args: { p_context_id: string; p_batch_id: string };
+        Returns: Json;
+      };
+      get_bank_statement_import_v1: {
+        Args: { p_context_id: string; p_batch_id?: string | null; p_limit?: number; p_offset?: number };
+        Returns: Json;
+      };
     };
     Enums: {
       [key: string]: string;
