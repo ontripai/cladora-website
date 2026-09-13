@@ -2,13 +2,13 @@
 
 ## Verdict
 
-READY-FOR-DRAFT-PR — SOURCE ONLY
+READY-FOR-RELEASE-CLOSURE
 
 ## Scope
 
-- Forward-only Migration 93: `20260913190055_security_advisory_closure.sql`
+- Forward-only Migration 93: `20260913191543_security_advisory_closure.sql`
 - Transaction-wrapped pgTAP Test 079: 39 assertions
-- No Supabase apply, Auth configuration mutation, fixture DML, customer DML or merge.
+- Migration 93 applied exactly once as `20260913191543_security_advisory_closure`; Auth configuration, fixture/customer DML and merge remain unchanged.
 
 ## Discovery classification
 
@@ -54,5 +54,5 @@ Performance advisor items, provider integrations, environment variables and appl
 ## Verification
 
 - Linked transactional rehearsal: Migration 93 + Test 079, 39/39 assertions, explicit ROLLBACK.
-- Post-rollback production check: Remote migrations 92; original public functions unchanged; zero new deny policies.
+- Post-apply production verification: Test 079 39/39 PASS; Remote migrations 93; Local/Remote drift 0.
 - Expected source package after this branch: 93 migrations / 79 tests / 2579 assertions.
