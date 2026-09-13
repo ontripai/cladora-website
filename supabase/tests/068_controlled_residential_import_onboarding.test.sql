@@ -63,7 +63,7 @@ select ok(exists(select 1 from information_schema.columns where table_schema='pl
 
 select ok(position('DEFERRED_XLSX_IMPORT_UNTIL_MALWARE_SCANNER' in pg_get_functiondef('app_private.onboarding_add_import_source_internal_v1(uuid,uuid,text,text,text,bigint,text,jsonb)'::regprocedure))>0,'XLSX fail-closed boundary exists');
 select ok(position('dual_control_violation' in pg_get_functiondef('app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)'::regprocedure))>0,'dual control enforced');
-select ok(position('opening_balance_unbalanced' in pg_get_functiondef('app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)'::regprocedure))>0,'unbalanced opening data rejected');
+select ok(position('opening_ar_parity_failed' in pg_get_functiondef('app_private.onboarding_commit_residential_internal_v1(uuid,uuid)'::regprocedure))>0,'unbalanced opening data rejected');
 select ok(position('post_commit_cancellation_forbidden' in pg_get_functiondef('app_private.onboarding_cancel_import_internal_v1(uuid,uuid)'::regprocedure))>0,'post-commit cancellation rejected');
 select ok(position('reconciliation_required' in pg_get_functiondef('app_private.onboarding_activate_import_internal_v1(uuid,uuid)'::regprocedure))>0,'activation requires reconciliation');
 select ok(position('for update' in lower(pg_get_functiondef('app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)'::regprocedure)))>0,'approval uses row lock');
