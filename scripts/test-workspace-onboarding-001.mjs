@@ -5,6 +5,7 @@ const fixture = readFileSync('supabase/fixtures/cladora_workspace_onboarding_001
 const rollback = readFileSync('supabase/fixtures/cladora_workspace_onboarding_001.rollback.sql', 'utf8');
 const dbTest = readFileSync('supabase/tests/080_workspace_onboarding_controlled_fixture.test.sql', 'utf8');
 const shell = readFileSync('src/components/customer/CustomerAppShell.tsx', 'utf8');
+const dashboardSchema = readFileSync('src/lib/customer/dashboard-schema.ts', 'utf8');
 
 assert.match(fixture, /CLADORA-WORKSPACE-ONBOARDING-001-FIXTURE/);
 assert.match(fixture, /environment[\s\S]*'PILOT'/);
@@ -19,6 +20,11 @@ assert.match(dbTest, /^begin;/m);
 assert.match(dbTest, /^rollback;/m);
 assert.match(dbTest, /select plan\(12\)/);
 assert.match(dbTest, /outsider cannot load the dashboard/);
+assert.match(
+  dashboardSchema,
+  /z\.iso\.datetime\(\{\s*offset:\s*true\s*\}\)/,
+  'dashboard accepts the PostgreSQL timestamptz offset returned in production'
+);
 
 for (const marker of [
   'Nu există niciun context activ alocat.',
