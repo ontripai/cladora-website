@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-const migration=fs.readFileSync('supabase/migrations/20260914125639_export_scanner_observability.sql','utf8');
+const migration=fs.readFileSync('supabase/migrations/20260914132346_export_scanner_observability.sql','utf8');
 const pgTap=fs.readFileSync('supabase/tests/085_export_scanner_observability.test.sql','utf8');
 const route=fs.readFileSync('src/app/api/customer/v1/export-scanner/observability/route.ts','utf8');
 const ui=fs.readFileSync('src/components/customer/ExportScannerObservability.tsx','utf8');
