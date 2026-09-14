@@ -48,7 +48,7 @@ select ok(has_function_privilege('authenticated','customer_api.reject_beneficiar
 select ok(has_function_privilege('authenticated','customer_api.revoke_beneficiary_account_v1(uuid,uuid,text)','EXECUTE'),'authenticated beneficiary revocation contract preserved');
 select ok(has_function_privilege('authenticated','customer_api.submit_beneficiary_account_for_approval_v1(uuid,uuid)','EXECUTE'),'authenticated beneficiary submission contract preserved');
 
-select ok((select count(*) from pg_policies where policyname like '%_direct_deny')=25,'all 25 application private-table boundaries are explicit');
+select ok((select count(*) from pg_policies where policyname like '%_direct_deny')=26,'all 26 application private-table boundaries are explicit');
 select ok(not exists(
   select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
   where n.nspname='customer_api' and p.prosecdef and p.proname in (
