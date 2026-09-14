@@ -55,5 +55,5 @@ const worker=fs.readFileSync('src/lib/server/export-scanner-worker.ts','utf8');
 const migration=fs.readFileSync('supabase/migrations/20260914093410_export_scanner_provider_neutral_queue.sql','utf8');
 assert.match(worker,/from 'node:crypto'/);assert.match(worker,/queue\.claim/);assert.match(worker,/queue\.complete/);assert.match(worker,/queue\.fail/);assert.match(worker,/export-artifact-vault/);assert.doesNotMatch(worker,/process\.env|service_role|SUPABASE_SERVICE_ROLE_KEY|fetch\(/i);
 for(const gateway of ['claim_export_artifact_scan_job_v1','fail_export_artifact_scan_job_v1','complete_export_artifact_scan_job_v1'])assert.match(migration,new RegExp(gateway));
-assert.equal(fs.readdirSync('supabase/migrations').filter(name=>name.endsWith('.sql')).length,96);
+assert.equal(fs.readdirSync('supabase/migrations').filter(name=>name.endsWith('.sql')).length,97);
 console.log('CLADORA-P2-EXPORT-SCANNER-WORKER-001: mock worker E2E, retry/dead-letter and RO/EN/FA PASS.');
