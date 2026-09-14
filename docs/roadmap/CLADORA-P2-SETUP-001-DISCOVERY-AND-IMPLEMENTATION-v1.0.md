@@ -2,7 +2,7 @@
 
 ## Verdict
 
-`READY-FOR-DRAFT-PR` — not applied, merged, or released.
+`RELEASED` — Migration 94 was applied exactly once, reconciled to canonical version `20260914071532`, and PR #86 was squash-merged as `7fefc66d34a9ac64a4e2a73740d2f67f33139508`. Production deployment reached `READY` with `Local 94 / Remote 94 / Drift 0`.
 
 ## Discovery
 
@@ -24,4 +24,4 @@ The RO/EN/FA wizard collects association, building, unit and accounting-period d
 
 ## Release boundary
 
-This branch may create a Draft PR only. Supabase Apply, PR readiness, merge, production provisioning and real-customer data require separate authorization. Stage status remains open until CI, transactional pgTAP rehearsal, apply-once evidence, Local/Remote drift zero, production deployment and closure reporting are complete.
+The release gates were completed without provisioning real-customer data. Subsequent hardening is tracked by `CLADORA-P2-SETUP-HARDENING-001`; any new Apply or Merge still requires separate authorization.
