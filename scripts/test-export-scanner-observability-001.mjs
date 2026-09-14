@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const migration=fs.readFileSync('supabase/migrations/20260914132346_export_scanner_observability.sql','utf8');
+const pgTap=fs.readFileSync('supabase/tests/085_export_scanner_observability.test.sql','utf8');
+const route=fs.readFileSync('src/app/api/customer/v1/export-scanner/observability/route.ts','utf8');
+const ui=fs.readFileSync('src/components/customer/ExportScannerObservability.tsx','utf8');
+for(const item of ['dead_letter','stalled','retry_warning','finance.exports.read','property_id'])assert.match(migration,new RegExp(item));
+for(const forbidden of ['object_path','content_sha256','lease_token'])assert.doesNotMatch(migration.split('create or replace function app_private.record_export_scan_job_audit_v1')[1].split('create trigger')[0],new RegExp(forbidden));
+assert.match(migration,/p_limit not between 1 and 100/);assert.match(migration,/security invoker set search_path=pg_catalog/);assert.match(pgTap,/select plan\(26\)/);
+assert.match(route,/getClaims/);assert.match(route,/no-store, private/);assert.doesNotMatch(route,/service.role|SUPABASE_SERVICE_ROLE/i);
+for(const lang of ['ro','en','fa'])assert.match(ui,new RegExp(`${lang}:\\{`));
+assert.match(ui,/role="alert"/);assert.match(ui,/role="status"/);assert.doesNotMatch(ui,/object_path|content_sha256|lease_token|canonical_filename/);
+assert.equal(fs.readdirSync('supabase/migrations').filter(n=>n.endsWith('.sql')).length,98);
+console.log('CLADORA-P2-EXPORT-SCANNER-OBSERVABILITY-001: redacted AAL2 queue health, audit evidence and RO/EN/FA PASS.');
