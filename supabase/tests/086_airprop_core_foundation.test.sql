@@ -57,9 +57,12 @@ select ok((select count(*) from airprop.property_interests)=1 and(select count(*
 select lives_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'property configuration retry is idempotent');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'lease_operate','2026-01-01','AIRPROP-RO','1.0')$$,'22023','airprop_property_configuration_conflict','conflicting retry rejected');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2027-01-01','AIRPROP-AE-DU','1.0')$$,'22023','airprop_country_pack_not_active','Dubai pack fails closed');
+
+reset role;
 select ok((select count(*) from audit.events where tenant_id='86200000-0000-0000-0000-000000000001' and action like 'AIRPROP_%')=4,'opportunity, two versions and property configuration audited');
 select ok((select count(*) from finance.journals where tenant_id='86200000-0000-0000-0000-000000000001')=0,'core discovery emits no journal');
 
+set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000002","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000002","active_context_id":"86400000-0000-0000-0000-000000000002"}',true);
 select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000002',(select id from airprop.investment_opportunities limit 1),'{"acquisition_cost":750000,"annual_rent":72000,"annual_opex":18000}'::jsonb)$$,'P0002','airprop_opportunity_not_found','cross-tenant underwriting hidden');
 
