@@ -1,0 +1,32 @@
+begin;
+select plan(25);
+
+select has_function('app_private','record_export_scan_job_audit_v1',array[]::text[],'redacted audit trigger function exists');
+select has_trigger('finance','export_artifact_scan_jobs','export_artifact_scan_jobs_audit','queue audit trigger exists');
+select has_function('app_private','get_export_scanner_observability_internal_v1',array['uuid','integer'],'internal observability function exists');
+select has_function('customer_api','get_export_scanner_observability_v1',array['uuid','integer'],'customer gateway exists');
+select ok(not has_function_privilege('anon','customer_api.get_export_scanner_observability_v1(uuid,integer)','EXECUTE'),'anon denied');
+select ok(has_function_privilege('authenticated','customer_api.get_export_scanner_observability_v1(uuid,integer)','EXECUTE'),'authenticated may invoke gateway');
+select ok(not (select prosecdef from pg_proc where oid='customer_api.get_export_scanner_observability_v1(uuid,integer)'::regprocedure),'gateway is security invoker');
+select ok((select proconfig @> array['search_path=pg_catalog'] from pg_proc where oid='customer_api.get_export_scanner_observability_v1(uuid,integer)'::regprocedure),'gateway search path fixed');
+select ok((select prosecdef from pg_proc where oid='app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure),'internal function is security definer');
+select ok(position('export_pack_actor_v1' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'canonical actor reused');
+select ok(position('finance.exports.read' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'export read permission required');
+select ok(position('property_id' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'property scope enforced');
+select ok(position('dead_letter' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'dead letter counted');
+select ok(position('stalled' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'stalled lease detected');
+select ok(position('retry_warning' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'retry exhaustion warning detected');
+select ok(position('p_limit not between 1 and 100' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'bounded result limit');
+select ok(position('object_path' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'redaction contract declared');
+select ok(position('content_sha256' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'hash redaction declared');
+select ok(position('lease_token' in pg_get_functiondef('app_private.get_export_scanner_observability_internal_v1(uuid,integer)'::regprocedure))>0,'lease token redaction declared');
+select ok(position('CLADORA scanner queue state evidence' in pg_get_functiondef('app_private.record_export_scan_job_audit_v1()'::regprocedure))>0,'audit reason deterministic');
+select ok((select prosecdef from pg_proc where oid='app_private.record_export_scan_job_audit_v1()'::regprocedure),'audit trigger function is security definer');
+select ok(position('object_path' in pg_get_functiondef('app_private.record_export_scan_job_audit_v1()'::regprocedure))=0,'audit omits object path');
+select ok(position('content_sha256' in pg_get_functiondef('app_private.record_export_scan_job_audit_v1()'::regprocedure))=0,'audit omits content hash');
+select ok(position('lease_token' in pg_get_functiondef('app_private.record_export_scan_job_audit_v1()'::regprocedure))=0,'audit omits lease token');
+select ok(not has_function_privilege('authenticated','app_private.record_export_scan_job_audit_v1()','EXECUTE'),'audit function not client callable');
+select ok(not has_table_privilege('authenticated','finance.export_artifact_scan_jobs','SELECT'),'queue remains directly hidden');
+
+select * from finish();
+rollback;
