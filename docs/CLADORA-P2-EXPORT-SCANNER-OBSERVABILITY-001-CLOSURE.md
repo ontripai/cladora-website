@@ -14,9 +14,9 @@ Provider-neutral, AAL2-protected queue health for Migration 96 with redacted aud
 
 ## Release gates
 
-- Static database package: PASS (`98 migrations / 85 tests / 2735 assertions`).
+- Static database package: PASS (`98 migrations / 85 tests / 2736 assertions`).
 - Scanner Mock suite, I18N and application foundation: PASS.
 - Typecheck, lint and production build: PASS.
-- Test 085 is transaction-wrapped with 25 assertions. Local execution is unavailable in the agent environment because Docker/Podman is absent; CI execution is required before release.
+- Test 085 is transaction-wrapped with 26 assertions. Local execution is unavailable in the agent environment because Docker/Podman is absent; CI execution is required before release.
 - Migration 98 must not be applied without separate approval.
 - Draft PR must not be marked Ready or merged without separate approval.

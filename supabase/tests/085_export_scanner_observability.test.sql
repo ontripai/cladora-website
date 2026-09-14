@@ -1,5 +1,5 @@
 begin;
-select plan(25);
+select plan(26);
 
 select has_function('app_private','record_export_scan_job_audit_v1',array[]::text[],'redacted audit trigger function exists');
 select has_trigger('finance','export_artifact_scan_jobs','export_artifact_scan_jobs_audit','queue audit trigger exists');
