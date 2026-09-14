@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {GET} from '../src/app/api/internal/export-scanner/mock-preview/route.ts';
 
-const migration=fs.readFileSync('supabase/migrations/20260914110500_export_scanner_worker_gateway.sql','utf8');
+const migration=fs.readFileSync('supabase/migrations/20260914114546_export_scanner_worker_gateway.sql','utf8');
 const pgTap=fs.readFileSync('supabase/tests/084_export_scanner_worker_gateway.test.sql','utf8');
 const route=fs.readFileSync('src/app/api/internal/export-scanner/mock-preview/route.ts','utf8');
 for(const name of ['claim','fail','complete'])assert.match(migration,new RegExp(`public\\.${name}_export_artifact_scan_job_worker_v1`));
