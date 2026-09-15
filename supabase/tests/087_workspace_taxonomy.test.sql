@@ -183,7 +183,8 @@ select throws_ok(
 
 -- 11. Customer API Security & Isolation Tests
 -- Unauthenticated access is rejected
-reset role;
+set local role anon;
+select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select throws_ok(
   $$select customer_api.get_workspace_taxonomy_v1('87600000-0000-0000-0000-000000000001')$$,
   '42501',
@@ -193,7 +194,7 @@ select throws_ok(
 
 -- Re-establish authenticated context for User A / Tenant A
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"87000000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"87100000-0000-0000-0000-000000000001","active_context_id":"87600000-0000-0000-0000-000000000001"}', true);
+select set_config('request.jwt.claims', '{"sub":"87000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2","active_tenant_id":"87100000-0000-0000-0000-000000000001","active_context_id":"87600000-0000-0000-0000-000000000001"}', true);
 
 -- Cross-tenant context access is denied
 select throws_ok(
