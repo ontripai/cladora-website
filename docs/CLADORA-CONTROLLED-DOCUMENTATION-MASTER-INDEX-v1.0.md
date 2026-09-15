@@ -1,6 +1,6 @@
 # CLADORA Controlled Documentation Master Index v1.0
 
-**Status:** Authoritative index  
+**Status:** Authoritative index
 **Effective date:** 2026-09-15
 
 ## Parent reference
@@ -42,4 +42,3 @@ The authoritative parent definition is:
 - Marketing and demo content do not prove production capability.
 
 Historical versions remain preserved and must not be silently rewritten.
-

@@ -1,8 +1,8 @@
 # CLADORA Residential Living & Services v1.0
 
-**Status:** Product architecture baseline  
-**Date:** 2026-09-15  
-**Reference benchmark:** ONE residential ecosystem, Romania  
+**Status:** Product architecture baseline
+**Date:** 2026-09-15
+**Reference benchmark:** ONE residential ecosystem, Romania
 **Scope:** Documentation only; no implementation, integration or affiliation claim
 
 ## Purpose

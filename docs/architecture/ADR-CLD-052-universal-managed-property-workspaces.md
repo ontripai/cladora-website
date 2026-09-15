@@ -1,8 +1,8 @@
 # ADR-CLD-052 — Universal Managed-Property Workspaces
 
-**Status:** Accepted for staged implementation  
-**Date:** 2026-09-15  
-**Decision owner:** CLADORA product architecture  
+**Status:** Accepted for staged implementation
+**Date:** 2026-09-15
+**Decision owner:** CLADORA product architecture
 **Scope:** Architecture and product taxonomy only; no database or production change
 
 ## Context

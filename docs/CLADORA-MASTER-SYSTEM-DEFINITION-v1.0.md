@@ -1,10 +1,10 @@
 # CLADORA Master System Definition v1.0
 
-**Document ID:** `CLADORA-DOC-SYSTEM-001`  
-**Status:** Authoritative system-scope and architecture reference  
-**Effective date:** 2026-09-15  
-**Repository:** `ontripai/cladora-website`  
-**Reviewed production baseline:** `9b561e87823d920c93c4143f7d65e1e0c684a266`  
+**Document ID:** `CLADORA-DOC-SYSTEM-001`
+**Status:** Authoritative system-scope and architecture reference
+**Effective date:** 2026-09-15
+**Repository:** `ontripai/cladora-website`
+**Reviewed production baseline:** `9b561e87823d920c93c4143f7d65e1e0c684a266`
 **Change class:** Documentation; no migration, remote configuration or production mutation
 
 ## 1. Authority
@@ -33,7 +33,7 @@ Canonical positioning:
 - **CLADORA — Universal Property Operations & Services OS**
 - **AIRPROP — Property Investment & Asset Lifecycle OS**
 
-CLADORA answers: **How is this property operated, serviced, accounted for and experienced?**  
+CLADORA answers: **How is this property operated, serviced, accounted for and experienced?**
 AIRPROP answers: **Why and under what ownership, investment, mandate or exit strategy is this property acquired, held, operated or sold?**
 
 ## 3. System principles
@@ -317,4 +317,3 @@ Sequence numbers do not reserve migration or test numbers. Each package remains 
 `CLADORA-MASTER-SYSTEM-DEFINITION-v1.0-AUTHORITATIVE`
 
 `ARCHITECTURE-READY / IMPLEMENTATION-BY-SEPARATE-CONTROLLED-PACKAGE`
-

@@ -1,8 +1,8 @@
 # CLADORA-UNIVERSAL-WORKSPACE-RECON-001 — Evidence and Gap Matrix v1.0
 
-**Verdict:** `ARCHITECTURE-READY / IMPLEMENTATION-NOT-AUTHORIZED`  
-**Baseline:** `origin/main` at `9b561e8`  
-**Review date:** 2026-09-15  
+**Verdict:** `ARCHITECTURE-READY / IMPLEMENTATION-NOT-AUTHORIZED`
+**Baseline:** `origin/main` at `9b561e8`
+**Review date:** 2026-09-15
 **Change class:** Documentation only
 
 ## Objective

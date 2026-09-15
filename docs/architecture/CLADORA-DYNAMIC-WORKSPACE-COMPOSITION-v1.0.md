@@ -1,7 +1,7 @@
 # CLADORA Dynamic Workspace Composition v1.0
 
-**Status:** Architecture contract  
-**Date:** 2026-09-15  
+**Status:** Architecture contract
+**Date:** 2026-09-15
 **Scope:** Documentation only
 
 ## Objective
@@ -138,4 +138,3 @@ Examples:
 ## Implementation boundary
 
 This contract does not authorize a migration, remote apply, customer data change or production activation. The first implementation package is `CLADORA-WORKSPACE-TAXONOMY-001`, followed by a separately approved dynamic-composition package with the next canonical migration and test numbers.
-
