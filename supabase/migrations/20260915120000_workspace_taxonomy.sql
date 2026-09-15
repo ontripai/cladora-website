@@ -10,58 +10,70 @@ begin;
 -- 1. Property Profiles Registry
 create table platform.property_profiles (
   id uuid primary key default gen_random_uuid(),
-  code text not null,
+  code text not null check (code ~ '^[a-z0-9_]{3,64}$'),
   version integer not null default 1 check (version > 0),
-  name text not null,
-  labels_json jsonb not null,
+  name text not null check (length(trim(name)) > 0),
+  labels_json jsonb not null check (
+    jsonb_typeof(labels_json) = 'object'
+    and coalesce(trim(labels_json->>'ro'), '') <> ''
+    and coalesce(trim(labels_json->>'en'), '') <> ''
+    and coalesce(trim(labels_json->>'fa'), '') <> ''
+  ),
   description text,
   lifecycle_status platform.record_status not null default 'active',
   is_active boolean not null default true,
   valid_from timestamptz not null default statement_timestamp(),
-  valid_to timestamptz,
-  metadata_json jsonb not null default '{}'::jsonb,
+  valid_to timestamptz check (valid_to is null or valid_to > valid_from),
+  metadata_json jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata_json) = 'object'),
   created_at timestamptz not null default statement_timestamp(),
   updated_at timestamptz not null default statement_timestamp(),
-  unique (code, version),
-  check (valid_to is null or valid_to > valid_from)
+  unique (code, version)
 );
 
 -- 2. Operating Models Registry
 create table platform.operating_models (
   id uuid primary key default gen_random_uuid(),
-  code text not null,
+  code text not null check (code ~ '^[a-z0-9_]{3,64}$'),
   version integer not null default 1 check (version > 0),
-  name text not null,
-  labels_json jsonb not null,
+  name text not null check (length(trim(name)) > 0),
+  labels_json jsonb not null check (
+    jsonb_typeof(labels_json) = 'object'
+    and coalesce(trim(labels_json->>'ro'), '') <> ''
+    and coalesce(trim(labels_json->>'en'), '') <> ''
+    and coalesce(trim(labels_json->>'fa'), '') <> ''
+  ),
   description text,
   lifecycle_status platform.record_status not null default 'active',
   is_active boolean not null default true,
   valid_from timestamptz not null default statement_timestamp(),
-  valid_to timestamptz,
-  metadata_json jsonb not null default '{}'::jsonb,
+  valid_to timestamptz check (valid_to is null or valid_to > valid_from),
+  metadata_json jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata_json) = 'object'),
   created_at timestamptz not null default statement_timestamp(),
   updated_at timestamptz not null default statement_timestamp(),
-  unique (code, version),
-  check (valid_to is null or valid_to > valid_from)
+  unique (code, version)
 );
 
 -- 3. Space Kinds Registry
 create table platform.space_kinds (
   id uuid primary key default gen_random_uuid(),
-  code text not null,
+  code text not null check (code ~ '^[a-z0-9_]{3,64}$'),
   version integer not null default 1 check (version > 0),
-  name text not null,
-  labels_json jsonb not null,
+  name text not null check (length(trim(name)) > 0),
+  labels_json jsonb not null check (
+    jsonb_typeof(labels_json) = 'object'
+    and coalesce(trim(labels_json->>'ro'), '') <> ''
+    and coalesce(trim(labels_json->>'en'), '') <> ''
+    and coalesce(trim(labels_json->>'fa'), '') <> ''
+  ),
   description text,
   lifecycle_status platform.record_status not null default 'active',
   is_active boolean not null default true,
   valid_from timestamptz not null default statement_timestamp(),
-  valid_to timestamptz,
-  metadata_json jsonb not null default '{}'::jsonb,
+  valid_to timestamptz check (valid_to is null or valid_to > valid_from),
+  metadata_json jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata_json) = 'object'),
   created_at timestamptz not null default statement_timestamp(),
   updated_at timestamptz not null default statement_timestamp(),
-  unique (code, version),
-  check (valid_to is null or valid_to > valid_from)
+  unique (code, version)
 );
 
 -- 4. Property Profile <-> Operating Model Compatibility Rules
@@ -72,6 +84,7 @@ create table platform.property_operating_model_compatibilities (
   compatibility_level text not null check (compatibility_level in ('compatible', 'review_required', 'incompatible')),
   rule_version integer not null default 1 check (rule_version > 0),
   reason text not null,
+  metadata_json jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata_json) = 'object'),
   created_at timestamptz not null default statement_timestamp(),
   unique (property_profile_id, operating_model_id, rule_version)
 );
@@ -84,6 +97,7 @@ create table platform.property_space_kind_compatibilities (
   compatibility_level text not null check (compatibility_level in ('compatible', 'review_required', 'incompatible')),
   rule_version integer not null default 1 check (rule_version > 0),
   reason text not null,
+  metadata_json jsonb not null default '{}'::jsonb check (jsonb_typeof(metadata_json) = 'object'),
   created_at timestamptz not null default statement_timestamp(),
   unique (property_profile_id, space_kind_id, rule_version)
 );
@@ -151,6 +165,34 @@ create trigger guard_property_profiles_immutability before delete on platform.pr
 create trigger guard_operating_models_immutability before delete on platform.operating_models for each row execute function app_private.guard_taxonomy_record_immutability_v1();
 create trigger guard_space_kinds_immutability before delete on platform.space_kinds for each row execute function app_private.guard_taxonomy_record_immutability_v1();
 
+-- Trigger: Guard Workspace Taxonomy Assignment History (Immutable audit baseline)
+create or replace function app_private.guard_workspace_taxonomy_assignment_history_v1()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, platform
+as $$
+begin
+  if TG_OP = 'DELETE' then
+    raise exception 'workspace_taxonomy_assignment_history_immutable' using errcode = '42501';
+  elsif TG_OP = 'UPDATE' then
+    if old.tenant_id <> new.tenant_id
+       or old.customer_workspace_id <> new.customer_workspace_id
+       or old.property_profile_id <> new.property_profile_id
+       or old.operating_model_id <> new.operating_model_id
+       or old.created_at <> new.created_at
+       or old.valid_from <> new.valid_from then
+      raise exception 'workspace_taxonomy_assignment_history_immutable' using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger guard_ws_taxonomy_assignments_history
+before update or delete on platform.workspace_taxonomy_assignments
+for each row execute function app_private.guard_workspace_taxonomy_assignment_history_v1();
+
 -- Trigger: Guard Workspace Taxonomy Assignment (Tenant isolation, compatibility evaluation, concurrency lock, non-overlapping active periods)
 create or replace function app_private.guard_workspace_taxonomy_assignment_v1()
 returns trigger
@@ -178,41 +220,48 @@ begin
   where id = new.property_profile_id and lifecycle_status = 'active'
     and valid_from <= statement_timestamp() and (valid_to is null or valid_to > statement_timestamp());
   if not coalesce(v_profile_active, false) then
-    raise exception 'workspace_taxonomy_not_found' using errcode = 'P0002';
+    raise exception 'workspace_taxonomy_profile_inactive' using errcode = '22023';
   end if;
 
   select is_active into v_model_active from platform.operating_models
   where id = new.operating_model_id and lifecycle_status = 'active'
     and valid_from <= statement_timestamp() and (valid_to is null or valid_to > statement_timestamp());
   if not coalesce(v_model_active, false) then
-    raise exception 'workspace_taxonomy_not_found' using errcode = 'P0002';
+    raise exception 'workspace_taxonomy_operating_model_inactive' using errcode = '22023';
   end if;
 
-  -- 3. Compatibility Rule check (Fail-closed)
+  -- 3. Evaluate Compatibility Rule
   select compatibility_level into v_compat_level
   from platform.property_operating_model_compatibilities
-  where property_profile_id = new.property_profile_id and operating_model_id = new.operating_model_id
+  where property_profile_id = new.property_profile_id
+    and operating_model_id = new.operating_model_id
   order by rule_version desc limit 1;
 
+  -- Fail-closed default deny if compatibility rule does not exist
   if v_compat_level is null then
     raise exception 'workspace_taxonomy_compatibility_rule_missing' using errcode = 'P0001';
-  elsif v_compat_level = 'incompatible' then
-    raise exception 'workspace_taxonomy_incompatible_assignment' using errcode = 'P0001';
-  elsif v_compat_level = 'review_required' then
-    raise exception 'workspace_taxonomy_review_required' using errcode = 'P0001';
   end if;
 
-  -- 4. Temporal non-overlapping active assignment check
+  if v_compat_level = 'incompatible' then
+    raise exception 'workspace_taxonomy_incompatible_assignment' using errcode = 'P0001';
+  elsif v_compat_level = 'review_required' then
+    -- Review required combinations cannot become active without independent approval
+    if new.status = 'active' then
+      raise exception 'workspace_taxonomy_review_required' using errcode = 'P0001';
+    end if;
+  end if;
+
+  -- 4. Check for overlapping active assignments for this workspace
   if new.status = 'active' then
     if exists (
       select 1 from platform.workspace_taxonomy_assignments a
       where a.customer_workspace_id = new.customer_workspace_id
-        and a.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
         and a.status = 'active'
+        and a.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
         and (
           (a.valid_to is null and (new.valid_to is null or new.valid_to > a.valid_from))
-          or (new.valid_to is null and a.valid_to > new.valid_from)
-          or (a.valid_to is not null and new.valid_to is not null and a.valid_from < new.valid_to and new.valid_from < a.valid_to)
+          or
+          (a.valid_to is not null and new.valid_from < a.valid_to and (new.valid_to is null or new.valid_to > a.valid_from))
         )
     ) then
       raise exception 'workspace_taxonomy_assignment_overlap' using errcode = 'P0001';
@@ -223,11 +272,47 @@ begin
 end;
 $$;
 
-create trigger guard_workspace_taxonomy_assignment
+create trigger guard_ws_taxonomy_assignment_before_ins_upd
 before insert or update on platform.workspace_taxonomy_assignments
 for each row execute function app_private.guard_workspace_taxonomy_assignment_v1();
 
--- Enable RLS on all tables
+-- Function: Validate Compatibility Helper
+create or replace function app_private.validate_taxonomy_compatibility_v1(
+  p_property_profile_id uuid,
+  p_operating_model_id uuid
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = pg_catalog, platform
+as $$
+declare
+  v_compat record;
+begin
+  select * into v_compat
+  from platform.property_operating_model_compatibilities
+  where property_profile_id = p_property_profile_id
+    and operating_model_id = p_operating_model_id
+  order by rule_version desc limit 1;
+
+  if not found then
+    return jsonb_build_object(
+      'is_allowed', false,
+      'compatibility_level', 'missing_rule',
+      'reason', 'No explicit compatibility rule defined for this profile and operating model combination.'
+    );
+  end if;
+
+  return jsonb_build_object(
+    'is_allowed', (v_compat.compatibility_level = 'compatible'),
+    'compatibility_level', v_compat.compatibility_level,
+    'reason', v_compat.reason
+  );
+end;
+$$;
+
+-- RLS Configuration
 alter table platform.property_profiles enable row level security;
 alter table platform.operating_models enable row level security;
 alter table platform.space_kinds enable row level security;
@@ -235,24 +320,21 @@ alter table platform.property_operating_model_compatibilities enable row level s
 alter table platform.property_space_kind_compatibilities enable row level security;
 alter table platform.workspace_taxonomy_assignments enable row level security;
 
--- Read-only policies for authenticated principals
-create policy property_profiles_active_read on platform.property_profiles
-  for select to authenticated using (is_active = true and lifecycle_status = 'active');
+-- Default Deny on all tables for public, anon, authenticated
+revoke all on platform.property_profiles from public, anon, authenticated;
+revoke all on platform.operating_models from public, anon, authenticated;
+revoke all on platform.space_kinds from public, anon, authenticated;
+revoke all on platform.property_operating_model_compatibilities from public, anon, authenticated;
+revoke all on platform.property_space_kind_compatibilities from public, anon, authenticated;
+revoke all on platform.workspace_taxonomy_assignments from public, anon, authenticated;
 
-create policy operating_models_active_read on platform.operating_models
-  for select to authenticated using (is_active = true and lifecycle_status = 'active');
-
-create policy space_kinds_active_read on platform.space_kinds
-  for select to authenticated using (is_active = true and lifecycle_status = 'active');
-
-create policy prop_op_compat_catalog_read on platform.property_operating_model_compatibilities
-  for select to authenticated using (true);
-
-create policy prop_space_compat_catalog_read on platform.property_space_kind_compatibilities
-  for select to authenticated using (true);
-
-create policy ws_taxonomy_assignments_context_read on platform.workspace_taxonomy_assignments
-  for select to authenticated using (tenant_id = app_private.active_tenant_id());
+-- Minimal grants strictly to service_role on the newly created tables
+grant select, insert, update, delete on platform.property_profiles to service_role;
+grant select, insert, update, delete on platform.operating_models to service_role;
+grant select, insert, update, delete on platform.space_kinds to service_role;
+grant select, insert, update, delete on platform.property_operating_model_compatibilities to service_role;
+grant select, insert, update, delete on platform.property_space_kind_compatibilities to service_role;
+grant select, insert, update, delete on platform.workspace_taxonomy_assignments to service_role;
 
 -- ============================================================================
 -- Seed Registries (16 Property Profiles, 8 Operating Models, 18 Space Kinds)
@@ -276,9 +358,7 @@ values
   ('standalone_parking', 1, 'Standalone Parking Facility', jsonb_build_object('en','Standalone Parking Facility','ro','Parcare autonomă administrată','fa','پارکینگ طبقاتی یا مستقل'), 'Dedicated multi-story parking structure or managed surface parking facility'),
   ('shared_facility', 1, 'Shared Facility', jsonb_build_object('en','Shared Facility','ro','Facilitate comună administrată','fa','مرکز خدمات و امکانات مشترک'), 'Standalone sports club, business hub, community centre or amenity facility'),
   ('developer_portfolio', 1, 'Developer Portfolio', jsonb_build_object('en','Developer Portfolio','ro','Portofoliu dezvoltator','fa','پورتفولیوی توسعه‌دهنده'), 'Institutional real estate portfolio managed by the master developer'),
-  ('third_party_management_portfolio', 1, 'Third-Party Management Portfolio', jsonb_build_object('en','Third-Party Management Portfolio','ro','Portofoliu administrare terță','fa','پورتفولیوی مدیریت قراردادهای ثالث'), 'Property management company portfolio operating third-party real estate assets')
-on conflict (code, version) do update
-set name = excluded.name, labels_json = excluded.labels_json, description = excluded.description;
+  ('third_party_management_portfolio', 1, 'Third-Party Management Portfolio', jsonb_build_object('en','Third-Party Management Portfolio','ro','Portofoliu administrare terță','fa','پورتفولیوی مدیریت قراردادهای ثالث'), 'Property management company portfolio operating third-party real estate assets');
 
 -- 2. Operating Models Seeds
 insert into platform.operating_models (code, version, name, labels_json, description)
@@ -290,9 +370,7 @@ values
   ('master_lease', 1, 'Master Lease & Operated', jsonb_build_object('en','Master Lease & Operated','ro','Închiriere generală și operare','fa','اجاره کل و بهره‌برداری تجاری'), 'Single master lessee entity sub-leasing and operating the property'),
   ('multi_owner_contractual', 1, 'Multi-Owner Contractual Governance', jsonb_build_object('en','Multi-Owner Contractual Governance','ro','Guvernanță contractuală între co-proprietari','fa','مدیریت قراردادی میان چند مالک'), 'Contractual multi-party management agreement without statutory association structure'),
   ('institutional_owner', 1, 'Institutional / Fund Owner Operated', jsonb_build_object('en','Institutional / Fund Owner Operated','ro','Proprietar instituțional / Fond de investiții','fa','مالکیت نهادی و صندوق سرمایه‌گذاری'), 'Corporate real estate investment trust (REIT) or institutional fund asset operator'),
-  ('mixed_authority', 1, 'Mixed Authority Management', jsonb_build_object('en','Mixed Authority Management','ro','Administrare cu autoritate mixtă','fa','مدیریت با ساختار اختیارات ترکیبی'), 'Composite governance combining association rights for residential and contractual mandates for commercial')
-on conflict (code, version) do update
-set name = excluded.name, labels_json = excluded.labels_json, description = excluded.description;
+  ('mixed_authority', 1, 'Mixed Authority Management', jsonb_build_object('en','Mixed Authority Management','ro','Administrare cu autoritate mixtă','fa','مدیریت با ساختار اختیارات ترکیبی'), 'Composite governance combining association rights for residential and contractual mandates for commercial');
 
 -- 3. Space Kinds Seeds
 insert into platform.space_kinds (code, version, name, labels_json, description)
@@ -312,278 +390,205 @@ values
   ('service_point', 1, 'Service Point', jsonb_build_object('en','Service Point','ro','Punct de servicii','fa','نقطه ارائه خدمت / نگهبانی'), 'Concierge desk, security checkpoint, maintenance hub or parcel locker'),
   ('provider_location', 1, 'Provider Location', jsonb_build_object('en','Provider Location','ro','Locație furnizor on-site','fa','موقعیت ارائه‌دهنده خدمات'), 'On-site commercial partner location (café, branch, ATM)'),
   ('technical_room', 1, 'Technical Room', jsonb_build_object('en','Technical Room','ro','Cameră tehnică','fa','اتاق تأسیسات فنی'), 'HVAC room, electrical transformer, boiler room or pump station'),
-  ('yard', 1, 'Yard', jsonb_build_object('en','Yard','ro','Curte / Platformă exterioară','fa','محوطه باز / حیاط لجستیکی'), 'Outdoor logistics yard, loading yard or storage ground'),
-  ('loading_zone', 1, 'Loading Zone', jsonb_build_object('en','Loading Zone','ro','Zonă de încărcare/descărcare','fa','سکوی بارگیری و تخلیه'), 'Dedicated loading dock, freight ramp or delivery bay'),
-  ('land_parcel', 1, 'Land Parcel', jsonb_build_object('en','Land Parcel','ro','Parcelă de teren','fa','قطعه زمین'), 'Zoned land parcel or development plot')
-on conflict (code, version) do update
-set name = excluded.name, labels_json = excluded.labels_json, description = excluded.description;
+  ('courtyard_garden', 1, 'Courtyard & Garden', jsonb_build_object('en','Courtyard & Garden','ro','Curte interioară și grădină','fa','حیاط مرکزی و فضای سبز'), 'Shared residential courtyard, landscaped garden or park area'),
+  ('roof_deck', 1, 'Roof Deck & Terrace', jsonb_build_object('en','Roof Deck & Terrace','ro','Terasă pe acoperiș','fa','تراس / روف‌گاردن'), 'Accessible shared rooftop terrace or private penthouse deck'),
+  ('infrastructure_node', 1, 'Infrastructure Node', jsonb_build_object('en','Infrastructure Node','ro','Nod de infrastructură','fa','گره زیرساخت و دسترسی'), 'Access gates, telecom rooms, waste management hub or utility metering point');
+
+-- 4. Seed Canonical Compatibility Rules (Property Profile <-> Operating Model)
+insert into platform.property_operating_model_compatibilities (property_profile_id, operating_model_id, compatibility_level, reason)
+select p.id, m.id,
+  case
+    -- Condominium
+    when p.code = 'residential_condominium' and m.code in ('association_managed', 'third_party_managed') then 'compatible'
+    when p.code = 'residential_condominium' and m.code in ('developer_operated', 'multi_owner_contractual') then 'review_required'
+    when p.code = 'residential_condominium' then 'incompatible'
+
+    -- Residential Complex
+    when p.code = 'residential_complex' and m.code in ('association_managed', 'third_party_managed', 'mixed_authority') then 'compatible'
+    when p.code = 'residential_complex' and m.code in ('developer_operated', 'multi_owner_contractual') then 'review_required'
+    when p.code = 'residential_complex' then 'incompatible'
+
+    -- Gated Villa Community
+    when p.code = 'gated_villa_community' and m.code in ('association_managed', 'third_party_managed', 'multi_owner_contractual') then 'compatible'
+    when p.code = 'gated_villa_community' and m.code = 'developer_operated' then 'review_required'
+    when p.code = 'gated_villa_community' then 'incompatible'
+
+    -- Single Villa
+    when p.code = 'single_villa' and m.code in ('single_owner_operated', 'third_party_managed', 'master_lease') then 'compatible'
+    when p.code = 'single_villa' then 'incompatible'
+
+    -- Small Landlord Portfolio
+    when p.code = 'small_landlord_portfolio' and m.code in ('single_owner_operated', 'third_party_managed', 'master_lease') then 'compatible'
+    when p.code = 'small_landlord_portfolio' then 'incompatible'
+
+    -- Mixed-Use Estate
+    when p.code = 'mixed_use_estate' and m.code in ('mixed_authority', 'third_party_managed', 'institutional_owner') then 'compatible'
+    when p.code = 'mixed_use_estate' and m.code in ('association_managed', 'developer_operated', 'multi_owner_contractual') then 'review_required'
+    when p.code = 'mixed_use_estate' then 'incompatible'
+
+    -- Retail Centre
+    when p.code = 'retail_centre' and m.code in ('single_owner_operated', 'third_party_managed', 'institutional_owner', 'master_lease') then 'compatible'
+    when p.code = 'retail_centre' and m.code = 'developer_operated' then 'review_required'
+    when p.code = 'retail_centre' then 'incompatible'
+
+    -- Office Centre
+    when p.code = 'office_centre' and m.code in ('single_owner_operated', 'third_party_managed', 'institutional_owner', 'master_lease') then 'compatible'
+    when p.code = 'office_centre' and m.code = 'developer_operated' then 'review_required'
+    when p.code = 'office_centre' then 'incompatible'
+
+    -- Warehouse Logistics
+    when p.code = 'warehouse_logistics' and m.code in ('single_owner_operated', 'third_party_managed', 'institutional_owner', 'master_lease') then 'compatible'
+    when p.code = 'warehouse_logistics' then 'incompatible'
+
+    -- Managed Township
+    when p.code = 'managed_township' and m.code in ('mixed_authority', 'third_party_managed', 'developer_operated', 'institutional_owner') then 'compatible'
+    when p.code = 'managed_township' then 'incompatible'
+
+    -- Industrial Park
+    when p.code = 'industrial_park' and m.code in ('single_owner_operated', 'third_party_managed', 'institutional_owner', 'mixed_authority') then 'compatible'
+    when p.code = 'industrial_park' then 'incompatible'
+
+    -- Serviced Residence
+    when p.code = 'serviced_residence' and m.code in ('single_owner_operated', 'third_party_managed', 'master_lease', 'institutional_owner') then 'compatible'
+    when p.code = 'serviced_residence' and m.code = 'developer_operated' then 'review_required'
+    when p.code = 'serviced_residence' then 'incompatible'
+
+    -- Standalone Parking
+    when p.code = 'standalone_parking' and m.code in ('single_owner_operated', 'third_party_managed', 'master_lease', 'mixed_authority') then 'compatible'
+    when p.code = 'standalone_parking' then 'incompatible'
+
+    -- Shared Facility
+    when p.code = 'shared_facility' and m.code in ('third_party_managed', 'single_owner_operated', 'mixed_authority') then 'compatible'
+    when p.code = 'shared_facility' and m.code = 'association_managed' then 'review_required'
+    when p.code = 'shared_facility' then 'incompatible'
+
+    -- Developer Portfolio
+    when p.code = 'developer_portfolio' and m.code in ('developer_operated', 'third_party_managed') then 'compatible'
+    when p.code = 'developer_portfolio' then 'incompatible'
+
+    -- Third-Party Portfolio
+    when p.code = 'third_party_management_portfolio' and m.code in ('third_party_managed', 'mixed_authority') then 'compatible'
+    when p.code = 'third_party_management_portfolio' then 'incompatible'
+
+    else 'incompatible'
+  end as compatibility_level,
+  'Canonical architectural compatibility matrix v1.0' as reason
+from platform.property_profiles p
+cross join platform.operating_models m;
+
+-- 5. Seed Canonical Compatibility Rules (Property Profile <-> Space Kind)
+insert into platform.property_space_kind_compatibilities (property_profile_id, space_kind_id, compatibility_level, reason)
+select p.id, s.id,
+  case
+    -- Condominium Allowed Spaces
+    when p.code = 'residential_condominium' and s.code in ('residential_unit', 'parking_space', 'storage_space', 'common_area', 'technical_room', 'service_point', 'roof_deck') then 'compatible'
+    when p.code = 'residential_condominium' and s.code in ('retail_unit', 'amenity', 'shared_facility', 'courtyard_garden') then 'review_required'
+    when p.code = 'residential_condominium' then 'incompatible'
+
+    -- Residential Complex
+    when p.code = 'residential_complex' and s.code in ('residential_unit', 'villa', 'parking_space', 'storage_space', 'common_area', 'amenity', 'shared_facility', 'technical_room', 'service_point', 'courtyard_garden', 'roof_deck', 'infrastructure_node') then 'compatible'
+    when p.code = 'residential_complex' and s.code in ('retail_unit', 'provider_location') then 'review_required'
+    when p.code = 'residential_complex' then 'incompatible'
+
+    -- Gated Villa Community
+    when p.code = 'gated_villa_community' and s.code in ('villa', 'parking_space', 'storage_space', 'common_area', 'amenity', 'shared_facility', 'technical_room', 'service_point', 'courtyard_garden', 'infrastructure_node') then 'compatible'
+    when p.code = 'gated_villa_community' and s.code in ('provider_location', 'retail_unit') then 'review_required'
+    when p.code = 'gated_villa_community' then 'incompatible'
+
+    -- Single Villa
+    when p.code = 'single_villa' and s.code in ('villa', 'parking_space', 'storage_space', 'courtyard_garden', 'amenity', 'technical_room') then 'compatible'
+    when p.code = 'single_villa' then 'incompatible'
+
+    -- Small Landlord Portfolio
+    when p.code = 'small_landlord_portfolio' and s.code in ('residential_unit', 'villa', 'parking_space', 'storage_space') then 'compatible'
+    when p.code = 'small_landlord_portfolio' and s.code in ('retail_unit', 'office_suite') then 'review_required'
+    when p.code = 'small_landlord_portfolio' then 'incompatible'
+
+    -- Mixed Use Estate
+    when p.code = 'mixed_use_estate' and s.code in ('residential_unit', 'retail_unit', 'office_suite', 'parking_space', 'storage_space', 'common_area', 'shared_facility', 'amenity', 'service_point', 'provider_location', 'technical_room', 'courtyard_garden', 'roof_deck', 'infrastructure_node') then 'compatible'
+    when p.code = 'mixed_use_estate' and s.code = 'warehouse_bay' then 'review_required'
+    when p.code = 'mixed_use_estate' then 'incompatible'
+
+    -- Retail Centre
+    when p.code = 'retail_centre' and s.code in ('retail_unit', 'parking_space', 'storage_space', 'common_area', 'service_point', 'provider_location', 'technical_room', 'infrastructure_node', 'amenity') then 'compatible'
+    when p.code = 'retail_centre' and s.code in ('office_suite', 'warehouse_bay') then 'review_required'
+    when p.code = 'retail_centre' then 'incompatible'
+
+    -- Office Centre
+    when p.code = 'office_centre' and s.code in ('office_suite', 'retail_unit', 'parking_space', 'storage_space', 'common_area', 'shared_facility', 'service_point', 'provider_location', 'technical_room', 'infrastructure_node') then 'compatible'
+    when p.code = 'office_centre' and s.code = 'warehouse_bay' then 'review_required'
+    when p.code = 'office_centre' then 'incompatible'
+
+    -- Warehouse & Logistics
+    when p.code = 'warehouse_logistics' and s.code in ('warehouse_bay', 'industrial_lot', 'office_suite', 'parking_space', 'storage_space', 'technical_room', 'infrastructure_node', 'service_point') then 'compatible'
+    when p.code = 'warehouse_logistics' then 'incompatible'
+
+    -- Managed Township
+    when p.code = 'managed_township' then 'compatible'
+
+    -- Industrial Park
+    when p.code = 'industrial_park' and s.code in ('industrial_lot', 'factory_hall', 'warehouse_bay', 'office_suite', 'parking_space', 'storage_space', 'technical_room', 'infrastructure_node', 'service_point') then 'compatible'
+    when p.code = 'industrial_park' then 'incompatible'
+
+    -- Serviced Residence
+    when p.code = 'serviced_residence' and s.code in ('residential_unit', 'parking_space', 'storage_space', 'common_area', 'amenity', 'shared_facility', 'service_point', 'provider_location', 'technical_room') then 'compatible'
+    when p.code = 'serviced_residence' and s.code in ('retail_unit', 'office_suite') then 'review_required'
+    when p.code = 'serviced_residence' then 'incompatible'
+
+    -- Standalone Parking
+    when p.code = 'standalone_parking' and s.code in ('parking_space', 'technical_room', 'service_point', 'infrastructure_node') then 'compatible'
+    when p.code = 'standalone_parking' and s.code = 'storage_space' then 'review_required'
+    when p.code = 'standalone_parking' then 'incompatible'
+
+    -- Shared Facility
+    when p.code = 'shared_facility' and s.code in ('shared_facility', 'amenity', 'service_point', 'common_area', 'technical_room', 'parking_space', 'provider_location') then 'compatible'
+    when p.code = 'shared_facility' then 'incompatible'
+
+    -- Developer Portfolio
+    when p.code = 'developer_portfolio' then 'compatible'
+
+    -- Third-Party Management Portfolio
+    when p.code = 'third_party_management_portfolio' then 'compatible'
+
+    else 'incompatible'
+  end as compatibility_level,
+  'Canonical architectural space kind matrix v1.0' as reason
+from platform.property_profiles p
+cross join platform.space_kinds s;
 
 -- ============================================================================
--- Compatibility Rules Seed
+-- Customer-Facing Controlled Read APIs
 -- ============================================================================
 
--- Helper block for seeding compatibility matrix
-do $$
-declare
-  p_condo uuid := (select id from platform.property_profiles where code='residential_condominium' and version=1);
-  p_complex uuid := (select id from platform.property_profiles where code='residential_complex' and version=1);
-  p_villa_gated uuid := (select id from platform.property_profiles where code='gated_villa_community' and version=1);
-  p_single_villa uuid := (select id from platform.property_profiles where code='single_villa' and version=1);
-  p_small_landlord uuid := (select id from platform.property_profiles where code='small_landlord_portfolio' and version=1);
-  p_mixed uuid := (select id from platform.property_profiles where code='mixed_use_estate' and version=1);
-  p_retail uuid := (select id from platform.property_profiles where code='retail_centre' and version=1);
-  p_office uuid := (select id from platform.property_profiles where code='office_centre' and version=1);
-  p_warehouse uuid := (select id from platform.property_profiles where code='warehouse_logistics' and version=1);
-  p_township uuid := (select id from platform.property_profiles where code='managed_township' and version=1);
-  p_industrial uuid := (select id from platform.property_profiles where code='industrial_park' and version=1);
-  p_serviced uuid := (select id from platform.property_profiles where code='serviced_residence' and version=1);
-  p_parking uuid := (select id from platform.property_profiles where code='standalone_parking' and version=1);
-  p_facility uuid := (select id from platform.property_profiles where code='shared_facility' and version=1);
-  p_dev_port uuid := (select id from platform.property_profiles where code='developer_portfolio' and version=1);
-  p_pm_port uuid := (select id from platform.property_profiles where code='third_party_management_portfolio' and version=1);
-
-  m_assoc uuid := (select id from platform.operating_models where code='association_managed' and version=1);
-  m_owner uuid := (select id from platform.operating_models where code='single_owner_operated' and version=1);
-  m_dev uuid := (select id from platform.operating_models where code='developer_operated' and version=1);
-  m_tp uuid := (select id from platform.operating_models where code='third_party_managed' and version=1);
-  m_lease uuid := (select id from platform.operating_models where code='master_lease' and version=1);
-  m_multi uuid := (select id from platform.operating_models where code='multi_owner_contractual' and version=1);
-  m_inst uuid := (select id from platform.operating_models where code='institutional_owner' and version=1);
-  m_mixed uuid := (select id from platform.operating_models where code='mixed_authority' and version=1);
-
-  s_res uuid := (select id from platform.space_kinds where code='residential_unit' and version=1);
-  s_villa uuid := (select id from platform.space_kinds where code='villa' and version=1);
-  s_ret uuid := (select id from platform.space_kinds where code='retail_unit' and version=1);
-  s_off uuid := (select id from platform.space_kinds where code='office_suite' and version=1);
-  s_wh uuid := (select id from platform.space_kinds where code='warehouse_bay' and version=1);
-  s_ind_lot uuid := (select id from platform.space_kinds where code='industrial_lot' and version=1);
-  s_fact uuid := (select id from platform.space_kinds where code='factory_hall' and version=1);
-  s_park uuid := (select id from platform.space_kinds where code='parking_space' and version=1);
-  s_store uuid := (select id from platform.space_kinds where code='storage_space' and version=1);
-  s_comm uuid := (select id from platform.space_kinds where code='common_area' and version=1);
-  s_fac uuid := (select id from platform.space_kinds where code='shared_facility' and version=1);
-  s_amen uuid := (select id from platform.space_kinds where code='amenity' and version=1);
-  s_srv uuid := (select id from platform.space_kinds where code='service_point' and version=1);
-  s_prov uuid := (select id from platform.space_kinds where code='provider_location' and version=1);
-  s_tech uuid := (select id from platform.space_kinds where code='technical_room' and version=1);
-  s_yard uuid := (select id from platform.space_kinds where code='yard' and version=1);
-  s_load uuid := (select id from platform.space_kinds where code='loading_zone' and version=1);
-  s_land uuid := (select id from platform.space_kinds where code='land_parcel' and version=1);
-begin
-  -- Profile <-> Operating Model Compatibilities
-  -- 1. Residential Condominium
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_condo, m_assoc, 'compatible', 'Standard statutory condominium association governance'),
-    (p_condo, m_tp, 'compatible', 'Third-party property manager contracted by condominium association'),
-    (p_condo, m_dev, 'review_required', 'Developer management transition period requires active governance audit'),
-    (p_condo, m_owner, 'incompatible', 'Multi-owner condominium cannot be operated under single-owner structure without consolidation'),
-    (p_condo, m_lease, 'incompatible', 'Entire condominium co-ownership cannot be master-leased as a single asset'),
-    (p_condo, m_multi, 'review_required', 'Multi-owner contractual governance outside association law requires legal review'),
-    (p_condo, m_inst, 'review_required', 'Institutional majority ownership requires co-ownership governance alignment'),
-    (p_condo, m_mixed, 'review_required', 'Mixed authority condominium requires explicit delegation review');
-
-  -- 2. Residential Complex
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_complex, m_assoc, 'compatible', 'Multi-building residential association governance'),
-    (p_complex, m_tp, 'compatible', 'Professional estate management contract'),
-    (p_complex, m_dev, 'compatible', 'Developer operated residential estate during sales/handover'),
-    (p_complex, m_mixed, 'compatible', 'Complex with mixed master and building-level associations'),
-    (p_complex, m_owner, 'review_required', 'Single owner operating multi-building complex requires tenant lease verification'),
-    (p_complex, m_multi, 'compatible', 'Multi-building co-ownership contractual framework'),
-    (p_complex, m_inst, 'compatible', 'Institutional multi-family residential portfolio'),
-    (p_complex, m_lease, 'incompatible', 'Multi-building scattered co-ownership cannot be single master-leased');
-
-  -- 3. Gated Villa Community
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_villa_gated, m_assoc, 'compatible', 'HOA / Villa owners association management'),
-    (p_villa_gated, m_tp, 'compatible', 'Contracted third-party estate manager'),
-    (p_villa_gated, m_dev, 'compatible', 'Developer maintained villa infrastructure'),
-    (p_villa_gated, m_multi, 'compatible', 'Contractual villa community governance');
-
-  -- 4. Single Villa
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_single_villa, m_owner, 'compatible', 'Direct single villa owner operation'),
-    (p_single_villa, m_tp, 'compatible', 'Contracted villa management agent'),
-    (p_single_villa, m_lease, 'compatible', 'Single villa long-term master lease'),
-    (p_single_villa, m_assoc, 'incompatible', 'Standalone single villa has no multi-owner association');
-
-  -- 5. Small Landlord Portfolio
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_small_landlord, m_owner, 'compatible', 'Direct individual landlord management'),
-    (p_small_landlord, m_tp, 'compatible', 'Rental property management agency'),
-    (p_small_landlord, m_lease, 'compatible', 'Sub-lease portfolio operator');
-
-  -- 6. Mixed-Use Estate
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_mixed, m_mixed, 'compatible', 'Mixed residential-commercial operational authority'),
-    (p_mixed, m_tp, 'compatible', 'Integrated property management provider'),
-    (p_mixed, m_assoc, 'review_required', 'Association managing commercial podium requires commercial rights audit'),
-    (p_mixed, m_dev, 'compatible', 'Developer operated mixed-use community'),
-    (p_mixed, m_inst, 'compatible', 'Institutional mixed-use asset operator');
-
-  -- 7. Retail Centre / Mall
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_retail, m_owner, 'compatible', 'Single mall owner operator'),
-    (p_retail, m_inst, 'compatible', 'Institutional retail REIT / Asset manager'),
-    (p_retail, m_tp, 'compatible', 'Commercial centre management company'),
-    (p_retail, m_lease, 'compatible', 'Master leased shopping mall operator'),
-    (p_retail, m_assoc, 'incompatible', 'Shopping mall does not operate as residential association');
-
-  -- 8. Office Centre
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_office, m_owner, 'compatible', 'Commercial office building owner operated'),
-    (p_office, m_inst, 'compatible', 'Institutional commercial fund operator'),
-    (p_office, m_tp, 'compatible', 'Professional facility and property manager'),
-    (p_office, m_lease, 'compatible', 'Master tenant / flex office operator'),
-    (p_office, m_assoc, 'incompatible', 'Commercial office centre does not operate as residential association');
-
-  -- 9. Warehouse & Logistics
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_warehouse, m_owner, 'compatible', 'Logistics park owner operated'),
-    (p_warehouse, m_inst, 'compatible', 'Institutional logistics fund'),
-    (p_warehouse, m_tp, 'compatible', 'Third-party logistics park manager'),
-    (p_warehouse, m_lease, 'compatible', 'Master lease logistics operator'),
-    (p_warehouse, m_assoc, 'incompatible', 'Industrial logistics does not operate as residential association');
-
-  -- 10. Managed Township
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_township, m_dev, 'compatible', 'Master developer township authority'),
-    (p_township, m_mixed, 'compatible', 'Composite district authority'),
-    (p_township, m_tp, 'compatible', 'Master estate management operator');
-
-  -- 11. Industrial Park
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_industrial, m_owner, 'compatible', 'Industrial park owner operator'),
-    (p_industrial, m_inst, 'compatible', 'Institutional industrial estate fund'),
-    (p_industrial, m_tp, 'compatible', 'Industrial property manager'),
-    (p_industrial, m_dev, 'compatible', 'Industrial developer operated'),
-    (p_industrial, m_assoc, 'incompatible', 'Industrial park does not operate as residential association');
-
-  -- 12. Serviced Residence
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_serviced, m_owner, 'compatible', 'Direct hospitality/co-living owner operator'),
-    (p_serviced, m_lease, 'compatible', 'Hospitality master lease operator'),
-    (p_serviced, m_tp, 'compatible', 'Third-party serviced residence operator'),
-    (p_serviced, m_inst, 'compatible', 'Institutional student housing or co-living fund');
-
-  -- 13. Standalone Parking
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_parking, m_owner, 'compatible', 'Parking structure owner operated'),
-    (p_parking, m_tp, 'compatible', 'Professional parking operator mandate'),
-    (p_parking, m_lease, 'compatible', 'Master leased commercial parking');
-
-  -- 14. Shared Facility
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_facility, m_owner, 'compatible', 'Direct facility owner operator'),
-    (p_facility, m_tp, 'compatible', 'Third-party facility management operator'),
-    (p_facility, m_mixed, 'compatible', 'Joint facility governance');
-
-  -- 15. Developer Portfolio
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_dev_port, m_dev, 'compatible', 'Developer corporate portfolio oversight'),
-    (p_dev_port, m_mixed, 'compatible', 'Mixed developer portfolio management');
-
-  -- 16. Third-Party Management Portfolio
-  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, reason) values
-    (p_pm_port, m_tp, 'compatible', 'Multi-property management contract portfolio');
-
-  -- Profile <-> Space Kind Compatibilities (Representative allowed combinations)
-  -- Residential Condominium
-  insert into platform.property_space_kind_compatibilities(property_profile_id, space_kind_id, compatibility_level, reason) values
-    (p_condo, s_res, 'compatible', 'Primary residential apartment units'),
-    (p_condo, s_park, 'compatible', 'Resident parking spaces'),
-    (p_condo, s_store, 'compatible', 'Resident storage lockers / box'),
-    (p_condo, s_comm, 'compatible', 'Shared corridors, lobbies, roofs'),
-    (p_condo, s_tech, 'compatible', 'Building boiler and plant rooms'),
-    (p_condo, s_amen, 'compatible', 'Resident amenity spaces'),
-    (p_condo, s_wh, 'incompatible', 'Heavy logistics warehouse bays not permitted in residential condominium'),
-    (p_condo, s_fact, 'incompatible', 'Factory production halls prohibited in residential condominium');
-
-  -- Retail Centre / Mall
-  insert into platform.property_space_kind_compatibilities(property_profile_id, space_kind_id, compatibility_level, reason) values
-    (p_retail, s_ret, 'compatible', 'Commercial shops and retail premises'),
-    (p_retail, s_comm, 'compatible', 'Mall atriums, corridors, public areas'),
-    (p_retail, s_load, 'compatible', 'Freight loading and delivery bays'),
-    (p_retail, s_park, 'compatible', 'Customer and staff parking'),
-    (p_retail, s_prov, 'compatible', 'Kiosks, ATMs, pop-up locations'),
-    (p_retail, s_tech, 'compatible', 'Mall HVAC and transformer rooms'),
-    (p_retail, s_res, 'incompatible', 'Standard residential apartments not permitted in standalone retail centre');
-
-  -- Warehouse & Logistics
-  insert into platform.property_space_kind_compatibilities(property_profile_id, space_kind_id, compatibility_level, reason) values
-    (p_warehouse, s_wh, 'compatible', 'Industrial storage bays'),
-    (p_warehouse, s_yard, 'compatible', 'Outdoor storage and maneuvering yards'),
-    (p_warehouse, s_load, 'compatible', 'Dock levelers and loading bays'),
-    (p_warehouse, s_off, 'compatible', 'Logistics office and dispatch suites'),
-    (p_warehouse, s_park, 'compatible', 'Heavy truck and fleet parking'),
-    (p_warehouse, s_tech, 'compatible', 'Fire pump stations and substations'),
-    (p_warehouse, s_res, 'incompatible', 'Residential living prohibited in logistics park');
-end $$;
-
--- ============================================================================
--- Read-Only Customer APIs & Validation Helpers
--- ============================================================================
-
--- Validation Helper
-create or replace function app_private.validate_taxonomy_compatibility_v1(
-  p_property_profile_id uuid,
-  p_operating_model_id uuid
-)
-returns table(
-  is_compatible boolean,
-  compatibility_level text,
-  reason text,
-  rule_version integer
-)
-language sql
-stable
-security definer
-set search_path = pg_catalog, platform
-as $$
-  select
-    coalesce(c.compatibility_level = 'compatible', false) as is_compatible,
-    coalesce(c.compatibility_level, 'incompatible') as compatibility_level,
-    coalesce(c.reason, 'No explicit compatibility rule found (default-deny)') as reason,
-    coalesce(c.rule_version, 0) as rule_version
-  from (select 1) _
-  left join platform.property_operating_model_compatibilities c
-    on c.property_profile_id = p_property_profile_id
-   and c.operating_model_id = p_operating_model_id
-  order by c.rule_version desc nulls last
-  limit 1;
-$$;
-
-revoke all on function app_private.validate_taxonomy_compatibility_v1(uuid, uuid) from public;
-grant execute on function app_private.validate_taxonomy_compatibility_v1(uuid, uuid) to authenticated, service_role;
-
--- Customer API: Get Workspace Taxonomy (Active Assignment & Catalog Metadata)
+-- Customer API: Get Resolved Workspace Taxonomy & Compatibility
 create or replace function customer_api.get_workspace_taxonomy_v1(p_context_id uuid)
 returns jsonb
 language plpgsql
 stable
 security definer
-set search_path = pg_catalog, platform, identity, app_private
+set search_path = pg_catalog, platform, identity, portfolio, app_private
 as $$
 declare
   v_grant record;
+  v_target_property_id uuid;
   v_workspace record;
   v_assignment record;
   v_profile record;
   v_model record;
   v_allowed_space_kinds jsonb;
+  v_ws_count integer;
 begin
+  -- 1. Authentication check
   if auth.uid() is null then
     raise exception 'authentication_required' using errcode = '42501';
   end if;
 
-  -- 1. Validate Context & Membership
+  -- 2. Context grant & active membership validation
   select g.*, m.tenant_id as membership_tenant
   into v_grant
   from identity.context_grants g
   join identity.memberships m on m.id = g.membership_id and m.tenant_id = g.tenant_id
-  where g.id = p_context_id
-    and m.user_id = auth.uid()
-    and m.status = 'active'
+  where g.id = p_context_id and m.user_id = auth.uid() and m.status = 'active'
     and m.starts_at <= statement_timestamp() and (m.ends_at is null or m.ends_at > statement_timestamp())
     and g.starts_at <= statement_timestamp() and (g.ends_at is null or g.ends_at > statement_timestamp());
 
@@ -591,21 +596,53 @@ begin
     raise exception 'customer_context_access_denied' using errcode = '42501';
   end if;
 
-  -- 2. Resolve Workspace for active tenant
-  select w.* into v_workspace
-  from platform.customer_workspaces w
-  where w.tenant_id = v_grant.membership_tenant and w.lifecycle_status = 'ACTIVE'
-  order by w.id limit 1;
-
-  if not found then
-    return jsonb_build_object(
-      'has_assignment', false,
-      'status', 'unclassified',
-      'workspace_id', null
-    );
+  -- 3. Resolve target property if scoped
+  if v_grant.property_id is not null then
+    v_target_property_id := v_grant.property_id;
+  elsif v_grant.building_id is not null then
+    select property_id into v_target_property_id
+    from portfolio.buildings
+    where id = v_grant.building_id and tenant_id = v_grant.membership_tenant;
+  elsif v_grant.unit_id is not null then
+    select b.property_id into v_target_property_id
+    from portfolio.units u
+    join portfolio.buildings b on b.id = u.building_id
+    where u.id = v_grant.unit_id and u.tenant_id = v_grant.membership_tenant;
   end if;
 
-  -- 3. Resolve active taxonomy assignment
+  -- 4. Context-to-Workspace resolution (Canonical chain: User -> Membership -> Context Grant -> Scoped Object -> Customer Workspace)
+  if v_target_property_id is not null then
+    -- Resolve via import run linked to this property
+    select w.* into v_workspace
+    from platform.customer_workspaces w
+    join platform.import_runs ir on ir.customer_workspace_id = w.id and ir.tenant_id = w.tenant_id
+    where w.tenant_id = v_grant.membership_tenant
+      and ir.property_id = v_target_property_id
+      and w.lifecycle_status in ('PROVISIONING', 'ACTIVE')
+    order by ir.created_at desc limit 1;
+  end if;
+
+  -- If not resolved by property, check if tenant has a single unambiguous workspace
+  if v_workspace.id is null then
+    select count(*) into v_ws_count
+    from platform.customer_workspaces
+    where tenant_id = v_grant.membership_tenant and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+
+    if v_ws_count = 1 then
+      select * into v_workspace
+      from platform.customer_workspaces
+      where tenant_id = v_grant.membership_tenant and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+    else
+      -- Unambiguous resolution not possible without scoped binding (fail-closed)
+      raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
+    end if;
+  end if;
+
+  if v_workspace.id is null then
+    raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
+  end if;
+
+  -- 5. Resolve active taxonomy assignment
   select a.* into v_assignment
   from platform.workspace_taxonomy_assignments a
   where a.customer_workspace_id = v_workspace.id
@@ -621,11 +658,11 @@ begin
     );
   end if;
 
-  -- 4. Profile & Operating Model details
+  -- 6. Profile & Operating Model details
   select * into v_profile from platform.property_profiles where id = v_assignment.property_profile_id;
   select * into v_model from platform.operating_models where id = v_assignment.operating_model_id;
 
-  -- 5. Allowed space kinds for this profile
+  -- 7. Allowed space kinds for this profile
   select coalesce(jsonb_agg(jsonb_build_object(
     'id', k.id,
     'code', k.code,
@@ -640,7 +677,6 @@ begin
 
   return jsonb_build_object(
     'has_assignment', true,
-    'assignment_id', v_assignment.id,
     'workspace_id', v_workspace.id,
     'status', v_assignment.status,
     'valid_from', v_assignment.valid_from,
@@ -800,13 +836,7 @@ grant execute on function customer_api.list_taxonomy_profiles_v1(uuid) to authen
 grant execute on function customer_api.list_taxonomy_operating_models_v1(uuid) to authenticated, service_role;
 grant execute on function customer_api.list_taxonomy_space_kinds_v1(uuid) to authenticated, service_role;
 
-grant select on platform.property_profiles to authenticated, service_role;
-grant select on platform.operating_models to authenticated, service_role;
-grant select on platform.space_kinds to authenticated, service_role;
-grant select on platform.property_operating_model_compatibilities to authenticated, service_role;
-grant select on platform.property_space_kind_compatibilities to authenticated, service_role;
-grant select on platform.workspace_taxonomy_assignments to authenticated, service_role;
-
-grant all on all tables in schema platform to service_role;
+revoke all on function app_private.validate_taxonomy_compatibility_v1(uuid, uuid) from public, anon, authenticated;
+grant execute on function app_private.validate_taxonomy_compatibility_v1(uuid, uuid) to service_role;
 
 commit;
