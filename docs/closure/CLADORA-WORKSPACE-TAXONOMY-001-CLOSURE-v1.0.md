@@ -52,7 +52,7 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 | File | Type |
 | :--- | :--- |
 | `supabase/migrations/20260915120000_workspace_taxonomy.sql` | Migration 100 | `ab6381842a3813ad7acb3f9c76cdb149d3c85e624aa74a3263c0fd13c7d2c33e` |
-| `supabase/tests/087_workspace_taxonomy.test.sql` | Test 087 | `e624850cda99031584bbf928a5455f3320a3008f472e4ae49f28559cf7f2b597` |
+| `supabase/tests/087_workspace_taxonomy.test.sql` | Test 087 | `4f731b31ae674e0acbfd73286cc4f2b449622695bb998cf5b0663e5a9939de0c` |
 
 ### Prior Migration Invariant:
 - Total prior migrations (1 through 99): `99` files

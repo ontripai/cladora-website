@@ -245,8 +245,8 @@ do $$
 declare
   v_dummy_profile uuid := '87900000-0000-0000-0000-000000000099';
 begin
-  insert into platform.property_profiles(id, code, version, name, labels_json, valid_from, valid_to)
-  values(v_dummy_profile, 'custom_unmapped_profile', 1, 'Custom Profile', '{"ro":"x","en":"y","fa":"z"}', '2000-01-01 00:00:00+00', '2001-01-01 00:00:00+00');
+  insert into platform.property_profiles(id, code, version, name, labels_json)
+  values(v_dummy_profile, 'custom_unmapped_profile', 1, 'Custom Profile', '{"ro":"x","en":"y","fa":"z"}');
 end $$;
 
 select throws_ok(
@@ -261,6 +261,9 @@ select throws_ok(
   'workspace_taxonomy_compatibility_rule_missing',
   'unmapped profile and operating model combination fails closed'
 );
+
+-- Clean up unmapped dummy profile so list_taxonomy_profiles_v1 returns the exact 16 canonical seeds
+delete from platform.property_profiles where id = '87900000-0000-0000-0000-000000000099';
 
 -- 9. Tenant Isolation in Assignment (1 assertion)
 select throws_ok(
