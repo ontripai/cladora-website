@@ -37,7 +37,7 @@ select throws_ok(
 
 -- 3c. Duplicate (code, version) in property profiles is rejected
 select throws_ok(
-  $$insert into platform.property_profiles(code, version, name, labels_json) values('residential_condominium', 1, 'Duplicate Condo', '{"ro":"x","en":"y","fa":"z"}');$$,
+  $$insert into platform.property_profiles(code, version, name, labels_json, is_active) values('residential_condominium', 1, 'Duplicate Condo', '{"ro":"x","en":"y","fa":"z"}', false);$$,
   '23505',
   null,
   'duplicate (code, version) in property profiles is rejected'
@@ -71,18 +71,18 @@ select throws_ok(
   'overlapping active version of space kind is rejected'
 );
 
--- 4d. Future non-overlapping version can be inserted
-select lives_ok(
-  $$insert into platform.property_profiles(code, version, name, labels_json, valid_from)
-    values('residential_condominium', 99, 'Condo Future V99', '{"ro":"x","en":"y","fa":"z"}', '2099-01-01 00:00:00+00');$$,
-  'future non-overlapping version of property profile is permitted'
-);
-
--- 4e. Expired historical non-overlapping version can be inserted
+-- 4d. Expired historical non-overlapping version can be inserted
 select lives_ok(
   $$insert into platform.property_profiles(code, version, name, labels_json, valid_from, valid_to)
-    values('residential_condominium', 98, 'Condo Expired V98', '{"ro":"x","en":"y","fa":"z"}', '2000-01-01 00:00:00+00', '2005-01-01 00:00:00+00');$$,
+    values('versioned_sample_profile', 1, 'Sample V1 Expired', '{"ro":"x","en":"y","fa":"z"}', '2000-01-01 00:00:00+00', '2005-01-01 00:00:00+00');$$,
   'expired non-overlapping version of property profile is permitted'
+);
+
+-- 4e. Future non-overlapping version can be inserted
+select lives_ok(
+  $$insert into platform.property_profiles(code, version, name, labels_json, valid_from)
+    values('versioned_sample_profile', 2, 'Sample V2 Future', '{"ro":"x","en":"y","fa":"z"}', '2099-01-01 00:00:00+00');$$,
+  'future non-overlapping version of property profile is permitted'
 );
 
 -- 5. Set up synthetic test fixtures inside transaction
@@ -245,8 +245,8 @@ do $$
 declare
   v_dummy_profile uuid := '87900000-0000-0000-0000-000000000099';
 begin
-  insert into platform.property_profiles(id, code, version, name, labels_json)
-  values(v_dummy_profile, 'custom_unmapped_profile', 1, 'Custom Profile', '{"ro":"x","en":"y","fa":"z"}');
+  insert into platform.property_profiles(id, code, version, name, labels_json, valid_from, valid_to)
+  values(v_dummy_profile, 'custom_unmapped_profile', 1, 'Custom Profile', '{"ro":"x","en":"y","fa":"z"}', '2000-01-01 00:00:00+00', '2001-01-01 00:00:00+00');
 end $$;
 
 select throws_ok(
