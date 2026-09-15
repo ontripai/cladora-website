@@ -45,7 +45,7 @@ Reconcile the previously described Building DNA, workspace, resident experience 
 | Non-residential charge bases | `PARTIAL` | generic rule/evidence engine exists | Add area, coefficient, service participation, contract and composite bases. |
 | Residents and occupants | `MATCH-RESIDENTIAL` | parties, ownership, leases, occupancies and residents | Generalize presentation and relationships for merchants, companies and operators. |
 | Resident self-service | `PARTIAL` | statements, meters, dashboard, communications and access views exist | Add request, reservation, parcel and concierge journeys under entitlements. |
-| ONE residential benchmark | `RECONCILED` | Smart Home operations and One Community lifestyle patterns were reviewed as distinct public examples | Use as comparative evidence only; no copying, affiliation or integration claim. |
+| ONE residential benchmark | `RECONCILED` | Smart Home operations and the developer-sponsored One Community service/benefit ecosystem were reviewed as distinct public examples | Model on-site cafés, shops, gyms and wider partners through a separate sponsor network; no copying, affiliation or integration claim. |
 | Amenities and booking | `DOCUMENTED / MISSING CORE` | referenced in product positioning and modern-complex profiles | Define resource, availability, booking, approval, fee and cancellation contracts. |
 | Visitor/contractor/delivery access | `MATCH` | visitor passes, credential lifecycle and access events | Extend location scopes and operator vocabulary. |
 | Governance | `MATCH-ASSOCIATION` | meetings, decisions and role separation | Do not impose HOA voting on single-owner or contract-managed workspaces. |
@@ -75,7 +75,7 @@ Module availability is determined by explicit workspace entitlements and applica
 | P1 | `CLADORA-OCCUPANT-PERSONA-001` | organization/operator/employee relationships and terminology | Migration only if existing party/occupancy model cannot extend safely |
 | P1 | `CLADORA-NONRES-ALLOCATION-001` | commercial and shared-service allocation bases | Transactional pgTAP and zero-difference acceptance |
 | P2 | `CLADORA-AMENITIES-SERVICES-001` | reservations, concierge, parcel and shared services | Separate bounded context and synthetic fixtures |
-| P2 | `CLADORA-COMMUNITY-BENEFITS-001` | optional partner offers, memberships and rewards with consent boundaries | Separate non-financial ledger and synthetic acceptance |
+| P2 | `CLADORA-WORKSPACE-SERVICES-BENEFITS-001` | sponsor networks, participating workspaces, providers, eligible members, digital cards, offers and redemptions | Separate non-financial ledger, settlement boundary and synthetic acceptance |
 | P2 | `CLADORA-MIXED-USE-PILOT-001` | Bucharest synthetic mixed-use acceptance | RO/EN/FA end-to-end acceptance |
 | P3 | `CLADORA-LOGISTICS-INDUSTRIAL-PILOT-001` | synthetic warehouse/industrial acceptance | Safety, access, utilities and allocation acceptance |
 

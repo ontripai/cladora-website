@@ -85,6 +85,18 @@ The common experience layer may expose, subject to role and workspace entitlemen
 
 Terminology is profile-aware: for example `unit` may be presented as apartment, shop, office, warehouse, bay or industrial lot. Presentation vocabulary does not change canonical IDs or accounting meaning.
 
+### Workspace Services & Benefits
+
+A developer, parent company, portfolio owner or operator may sponsor a cross-workspace network of services and benefits. Participating locations can include on-site cafés, shops, gyms, wellness facilities and service desks as well as approved external partners. Verified owners, residents, tenants, employees, clients or delegated family members may receive a digital membership card, tier, discount, included service, reservation priority, event access or non-cash reward.
+
+This is a separate bounded system from building charges, association governance, amenity ownership and physical access control. Membership eligibility references authoritative ownership, occupancy, employment or approved-client evidence but does not replace it. A membership card never grants general building access unless a distinct security credential and policy also authorize that access.
+
+The target network hierarchy is:
+
+`Sponsor → Benefit Network → Participating Workspace → Provider/Location → Offer/Service → Eligible Member → Redemption`
+
+Cross-workspace membership never permits cross-tenant operational data access. Financial settlement between sponsor and provider requires explicit accounting evidence and approval; scanning a benefit card cannot directly post a journal or move money.
+
 ### Charge and cost-allocation model
 
 The existing versioned allocation and owner/tenant responsibility engines remain authoritative. Future extensions may add bases for floor area, ownership share, occupant count, measured consumption, parking or storage rights, commercial coefficients, zone/service-point participation, fixed fees, contractual schedules and composite formulas.
@@ -115,7 +127,8 @@ Building DNA remains the technical configuration layer, separate from property p
 3. **Authorization extension:** extend context grants and read/write projections to the new scopes with cross-tenant negative tests.
 4. **Allocation extension:** add versioned non-residential allocation bases and deterministic reconciliation.
 5. **Experience profiles:** expose entitlement-driven vocabulary and modules in RO/EN/FA.
-6. **Synthetic pilots:** accept residential, mixed-use, retail/logistics and industrial fixtures before any real customer activation.
+6. **Service and benefit networks:** add sponsor, provider, membership, card, offer and redemption contracts behind separate entitlements.
+7. **Synthetic pilots:** accept residential, mixed-use, retail/logistics and industrial fixtures before any real customer activation.
 
 Each stage requires its own migration, pgTAP suite, application tests, security review and separately approved release gate.
 
@@ -130,4 +143,3 @@ Each stage requires its own migration, pgTAP suite, application tests, security 
 ## Consequences
 
 CLADORA can evolve from Residential Asset OS into a configurable Managed-Property Operating System while preserving the proven residential core. The cost is a controlled topology and vocabulary extension, broader role modelling, new allocation bases and additional acceptance fixtures. Product marketing must continue to distinguish implemented production behavior from documented target capability.
-

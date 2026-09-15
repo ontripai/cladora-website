@@ -99,6 +99,77 @@ Community or commercial benefits must never alter accounting balances, governanc
 
 This layer is optional. A condominium can use CLADORA fully without loyalty, advertising or partner programs.
 
+## Developer-sponsored service and benefit network
+
+The ONE example represents more than a list of building amenities. A developer, parent company, portfolio owner or operating brand may sponsor a benefit network across several properties and participating service providers. Eligibility originates from a verified relationship with that ecosystem—for example ownership, current residence, tenancy, employment or an approved client relationship.
+
+Typical participants include:
+
+- cafés and restaurants inside the development;
+- grocery, convenience and specialist shops;
+- gyms, pools, wellness and beauty providers;
+- childcare, education and family services;
+- cleaning, repairs and home services;
+- mobility, parking, charging and transport services;
+- events, experiences and external partner businesses.
+
+This becomes a distinct CLADORA product system named **Workspace Services & Benefits**. It supports both services physically located in a property and benefits shared across a developer or operator's wider portfolio.
+
+### Network hierarchy
+
+`Sponsor Organization → Benefit Network → Participating Workspaces → Service Providers → Locations → Offers/Services → Eligible Members`
+
+- **Sponsor Organization:** developer, parent company, portfolio owner, association group or operator.
+- **Benefit Network:** the branded program and its rules.
+- **Participating Workspace:** eligible building, block, estate, mall or managed site.
+- **Service Provider:** internal operator or approved external partner.
+- **Location:** café, shop, gym, reception, facility or online service point.
+- **Offer/Service:** discount, included service, paid service, reservation, reward or event.
+- **Eligible Member:** verified owner, resident, tenant, employee, client or delegated family member.
+
+### Eligibility and digital card
+
+Eligibility is derived from an effective, verified relationship and must not be asserted only by the browser. A membership record references its source relationship and effective period. The digital card may expose a rotating QR or other revocable presentation token, but it is not itself proof of ownership or a general building-access credential.
+
+Supported examples include:
+
+- owner card while an ownership interest is effective;
+- resident or tenant card while occupancy/lease eligibility is effective;
+- family card delegated by an eligible member;
+- employee or operator card issued by an authorized sponsor;
+- invited client tier approved through a controlled workflow.
+
+When the source relationship expires, the system recalculates or ends benefit eligibility without deleting historical redemption evidence.
+
+### Offer and service types
+
+| Type | Example | Accounting boundary |
+| --- | --- | --- |
+| Included benefit | free gym access for eligible residents | entitlement evidence; no resident charge unless contract says otherwise |
+| Percentage discount | 15% at an on-site café | provider transaction; discount evidence only |
+| Fixed-price service | preferred cleaning package | provider/service order; separate from building charges |
+| Reservation priority | early access to a shared facility | booking entitlement |
+| Event access | resident-only event | attendance/eligibility evidence |
+| Points/reward | points earned on eligible interaction | non-cash rewards ledger, isolated from GL |
+| Building-sponsored subsidy | developer covers part of a service | explicit sponsor liability and approved settlement evidence |
+
+### Redemption flow
+
+1. Resolve the member and active workspace relationship server-side.
+2. Validate network, tier, offer, location, time window and usage limits.
+3. Present or scan a short-lived card token without exposing resident data.
+4. Record an idempotent redemption and the applied benefit.
+5. If financial settlement is required, create a bounded settlement intent for independent accounting—not a direct journal from the scan.
+6. Preserve consent, audit and dispute evidence.
+
+### Multi-workspace rule
+
+A benefit network can span many workspaces, while each property continues to have independent tenant, accounting, access and governance boundaries. Cross-portfolio eligibility is an explicit sponsor entitlement; it does not create cross-tenant data visibility.
+
+### Automation boundary
+
+The system may automatically calculate eligibility, display applicable offers, enforce limits, expire memberships and record redemptions. It may not autonomously change ownership, occupancy, building-access authority, provider bank details, settlement approval or posted accounting entries.
+
 ## Personas
 
 | Persona | Typical access |
@@ -150,7 +221,7 @@ Packages are commercial presentation. Runtime access is granted only by explicit
 | Resident/owner/tenant contextual dashboards | Production-backed foundation exists |
 | Amenity reservations | Target capability; bounded context not yet implemented |
 | Concierge and parcel custody | Target capability; not yet implemented |
-| Partner offers, cards, tiers and rewards | Comparative target capability; not yet implemented |
+| Developer-sponsored benefit networks, cards, tiers and rewards | Comparative target capability; separate bounded system not yet implemented |
 | Smart-home device control | Deferred integration; not implemented |
 
 ## Proposed staged packages
@@ -158,8 +229,7 @@ Packages are commercial presentation. Runtime access is granted only by explicit
 1. `CLADORA-RESIDENT-SERVICE-CATALOG-001` — service definitions, entitlements and profile applicability.
 2. `CLADORA-AMENITIES-BOOKING-001` — resources, availability, reservations, approvals, fees and exceptions.
 3. `CLADORA-CONCIERGE-PARCELS-001` — requests, parcel custody and resident notification.
-4. `CLADORA-COMMUNITY-BENEFITS-001` — optional partner benefits and consent boundaries.
+4. `CLADORA-WORKSPACE-SERVICES-BENEFITS-001` — sponsor networks, participating workspaces, providers, eligibility, digital cards, offers and redemption evidence.
 5. `CLADORA-SMART-BUILDING-ADAPTERS-001` — provider-neutral device and BMS contract.
 
 Each package requires separate approval, synthetic fixtures, RO/EN/FA acceptance and an explicit release gate. No migration or test number is reserved by this document.
-
