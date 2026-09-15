@@ -189,7 +189,7 @@ begin
 end;
 $$;
 
-create trigger guard_ws_taxonomy_assignments_history
+create trigger a_guard_ws_taxonomy_assignments_history
 before update or delete on platform.workspace_taxonomy_assignments
 for each row execute function app_private.guard_workspace_taxonomy_assignment_history_v1();
 
@@ -571,7 +571,7 @@ as $$
 declare
   v_grant record;
   v_target_property_id uuid;
-  v_workspace record;
+  v_workspace platform.customer_workspaces%rowtype;
   v_assignment record;
   v_profile record;
   v_model record;
