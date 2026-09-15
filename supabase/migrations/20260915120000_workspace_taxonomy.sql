@@ -119,6 +119,22 @@ create table platform.workspace_taxonomy_assignments (
   check (valid_to is null or valid_to > valid_from)
 );
 
+-- 7. Workspace Property Bindings (Canonical deterministic forward-only binding)
+create table platform.workspace_property_bindings (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references platform.tenants(id) on delete restrict,
+  customer_workspace_id uuid not null references platform.customer_workspaces(id) on delete restrict,
+  property_id uuid not null references portfolio.properties(id) on delete restrict,
+  status text not null default 'active' check (status in ('active', 'superseded', 'archived')),
+  valid_from timestamptz not null default statement_timestamp(),
+  valid_to timestamptz,
+  binding_source text not null check (binding_source in ('onboarding_activation', 'building_setup', 'platform_assignment', 'migration_verified')),
+  created_by uuid references auth.users(id) on delete restrict,
+  created_at timestamptz not null default statement_timestamp(),
+  updated_at timestamptz not null default statement_timestamp(),
+  check (valid_to is null or valid_to > valid_from)
+);
+
 -- Indexes
 create index property_profiles_code_ver_idx on platform.property_profiles (code, version);
 create index operating_models_code_ver_idx on platform.operating_models (code, version);
@@ -126,12 +142,85 @@ create index space_kinds_code_ver_idx on platform.space_kinds (code, version);
 create index prop_op_compat_lookup_idx on platform.property_operating_model_compatibilities (property_profile_id, operating_model_id);
 create index prop_space_compat_lookup_idx on platform.property_space_kind_compatibilities (property_profile_id, space_kind_id);
 create index ws_taxonomy_assignments_lookup_idx on platform.workspace_taxonomy_assignments (tenant_id, customer_workspace_id, status);
+create index ws_prop_bindings_lookup_idx on platform.workspace_property_bindings (tenant_id, property_id, status);
+create index ws_prop_bindings_ws_idx on platform.workspace_property_bindings (customer_workspace_id, status);
 
 -- Trigger: Updated At
 create trigger property_profiles_updated_at before update on platform.property_profiles for each row execute function app_private.set_updated_at();
 create trigger operating_models_updated_at before update on platform.operating_models for each row execute function app_private.set_updated_at();
 create trigger space_kinds_updated_at before update on platform.space_kinds for each row execute function app_private.set_updated_at();
 create trigger ws_taxonomy_assignments_updated_at before update on platform.workspace_taxonomy_assignments for each row execute function app_private.set_updated_at();
+create trigger ws_property_bindings_updated_at before update on platform.workspace_property_bindings for each row execute function app_private.set_updated_at();
+
+-- Trigger: Guard Taxonomy Version Effective Period Overlap
+create or replace function app_private.guard_taxonomy_version_effective_period_v1()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, platform
+as $$
+declare
+  v_overlap boolean;
+begin
+  if new.is_active = true and new.lifecycle_status = 'active' then
+    if TG_TABLE_NAME = 'property_profiles' then
+      select exists (
+        select 1 from platform.property_profiles p
+        where p.code = new.code
+          and p.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
+          and p.is_active = true and p.lifecycle_status = 'active'
+          and (
+            (p.valid_to is null and (new.valid_to is null or new.valid_to > p.valid_from))
+            or
+            (p.valid_to is not null and new.valid_from < p.valid_to and (new.valid_to is null or new.valid_to > p.valid_from))
+          )
+      ) into v_overlap;
+    elsif TG_TABLE_NAME = 'operating_models' then
+      select exists (
+        select 1 from platform.operating_models m
+        where m.code = new.code
+          and m.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
+          and m.is_active = true and m.lifecycle_status = 'active'
+          and (
+            (m.valid_to is null and (new.valid_to is null or new.valid_to > m.valid_from))
+            or
+            (m.valid_to is not null and new.valid_from < m.valid_to and (new.valid_to is null or new.valid_to > m.valid_from))
+          )
+      ) into v_overlap;
+    elsif TG_TABLE_NAME = 'space_kinds' then
+      select exists (
+        select 1 from platform.space_kinds s
+        where s.code = new.code
+          and s.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
+          and s.is_active = true and s.lifecycle_status = 'active'
+          and (
+            (s.valid_to is null and (new.valid_to is null or new.valid_to > s.valid_from))
+            or
+            (s.valid_to is not null and new.valid_from < s.valid_to and (new.valid_to is null or new.valid_to > s.valid_from))
+          )
+      ) into v_overlap;
+    end if;
+
+    if coalesce(v_overlap, false) then
+      raise exception 'workspace_taxonomy_version_effective_period_overlap' using errcode = 'P0001';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger guard_property_profiles_version_overlap
+before insert or update on platform.property_profiles
+for each row execute function app_private.guard_taxonomy_version_effective_period_v1();
+
+create trigger guard_operating_models_version_overlap
+before insert or update on platform.operating_models
+for each row execute function app_private.guard_taxonomy_version_effective_period_v1();
+
+create trigger guard_space_kinds_version_overlap
+before insert or update on platform.space_kinds
+for each row execute function app_private.guard_taxonomy_version_effective_period_v1();
 
 -- Trigger: Prevent Deletion of Referenced Taxonomy Records
 create or replace function app_private.guard_taxonomy_record_immutability_v1()
@@ -176,10 +265,12 @@ begin
   if TG_OP = 'DELETE' then
     raise exception 'workspace_taxonomy_assignment_history_immutable' using errcode = '42501';
   elsif TG_OP = 'UPDATE' then
-    if old.tenant_id <> new.tenant_id
+    if old.id <> new.id
+       or old.tenant_id <> new.tenant_id
        or old.customer_workspace_id <> new.customer_workspace_id
        or old.property_profile_id <> new.property_profile_id
        or old.operating_model_id <> new.operating_model_id
+       or (old.created_by is distinct from new.created_by)
        or old.created_at <> new.created_at
        or old.valid_from <> new.valid_from then
       raise exception 'workspace_taxonomy_assignment_history_immutable' using errcode = '42501';
@@ -192,6 +283,98 @@ $$;
 create trigger a_guard_ws_taxonomy_assignments_history
 before update or delete on platform.workspace_taxonomy_assignments
 for each row execute function app_private.guard_workspace_taxonomy_assignment_history_v1();
+
+-- Trigger: Guard Workspace Property Binding History (Immutable forward-only binding)
+create or replace function app_private.guard_workspace_property_binding_history_v1()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, platform
+as $$
+begin
+  if TG_OP = 'DELETE' then
+    raise exception 'workspace_property_binding_history_immutable' using errcode = '42501';
+  elsif TG_OP = 'UPDATE' then
+    if old.id <> new.id
+       or old.tenant_id <> new.tenant_id
+       or old.customer_workspace_id <> new.customer_workspace_id
+       or old.property_id <> new.property_id
+       or old.binding_source <> new.binding_source
+       or (old.created_by is distinct from new.created_by)
+       or old.created_at <> new.created_at
+       or old.valid_from <> new.valid_from then
+      raise exception 'workspace_property_binding_history_immutable' using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+create trigger a_guard_ws_property_bindings_history
+before update or delete on platform.workspace_property_bindings
+for each row execute function app_private.guard_workspace_property_binding_history_v1();
+
+-- Trigger: Guard Workspace Property Binding (Tenant consistency, non-overlapping active periods for same property)
+create or replace function app_private.guard_workspace_property_binding_v1()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, platform, portfolio
+as $$
+declare
+  v_workspace_tenant uuid;
+  v_property_tenant uuid;
+begin
+  -- 1. Validate Customer Workspace tenant
+  select tenant_id into v_workspace_tenant
+  from platform.customer_workspaces
+  where id = new.customer_workspace_id for update;
+
+  if not found then
+    raise exception 'workspace_property_binding_workspace_not_found' using errcode = 'P0002';
+  end if;
+
+  if v_workspace_tenant <> new.tenant_id then
+    raise exception 'workspace_taxonomy_workspace_binding_tenant_mismatch' using errcode = '42501';
+  end if;
+
+  -- 2. Validate Property tenant
+  select tenant_id into v_property_tenant
+  from portfolio.properties
+  where id = new.property_id;
+
+  if not found then
+    raise exception 'workspace_property_binding_property_not_found' using errcode = 'P0002';
+  end if;
+
+  if v_property_tenant <> new.tenant_id then
+    raise exception 'workspace_taxonomy_workspace_binding_tenant_mismatch' using errcode = '42501';
+  end if;
+
+  -- 3. Non-overlapping active bindings for this property
+  if new.status = 'active' then
+    if exists (
+      select 1 from platform.workspace_property_bindings b
+      where b.property_id = new.property_id
+        and b.status = 'active'
+        and b.id <> coalesce(new.id, '00000000-0000-0000-0000-000000000000'::uuid)
+        and (
+          (b.valid_to is null and (new.valid_to is null or new.valid_to > b.valid_from))
+          or
+          (b.valid_to is not null and new.valid_from < b.valid_to and (new.valid_to is null or new.valid_to > b.valid_from))
+        )
+    ) then
+      raise exception 'workspace_property_binding_overlap' using errcode = 'P0001';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger guard_ws_property_binding_before_ins_upd
+before insert or update on platform.workspace_property_bindings
+for each row execute function app_private.guard_workspace_property_binding_v1();
 
 -- Trigger: Guard Workspace Taxonomy Assignment (Tenant isolation, compatibility evaluation, concurrency lock, non-overlapping active periods)
 create or replace function app_private.guard_workspace_taxonomy_assignment_v1()
@@ -319,6 +502,7 @@ alter table platform.space_kinds enable row level security;
 alter table platform.property_operating_model_compatibilities enable row level security;
 alter table platform.property_space_kind_compatibilities enable row level security;
 alter table platform.workspace_taxonomy_assignments enable row level security;
+alter table platform.workspace_property_bindings enable row level security;
 
 -- Default Deny on all tables for public, anon, authenticated
 revoke all on platform.property_profiles from public, anon, authenticated;
@@ -327,6 +511,7 @@ revoke all on platform.space_kinds from public, anon, authenticated;
 revoke all on platform.property_operating_model_compatibilities from public, anon, authenticated;
 revoke all on platform.property_space_kind_compatibilities from public, anon, authenticated;
 revoke all on platform.workspace_taxonomy_assignments from public, anon, authenticated;
+revoke all on platform.workspace_property_bindings from public, anon, authenticated;
 
 -- Minimal grants strictly to service_role on the newly created tables
 grant select, insert, update, delete on platform.property_profiles to service_role;
@@ -335,6 +520,7 @@ grant select, insert, update, delete on platform.space_kinds to service_role;
 grant select, insert, update, delete on platform.property_operating_model_compatibilities to service_role;
 grant select, insert, update, delete on platform.property_space_kind_compatibilities to service_role;
 grant select, insert, update, delete on platform.workspace_taxonomy_assignments to service_role;
+grant select, insert, update, delete on platform.workspace_property_bindings to service_role;
 
 -- ============================================================================
 -- Seed Registries (16 Property Profiles, 8 Operating Models, 18 Space Kinds)
@@ -571,6 +757,8 @@ as $$
 declare
   v_grant record;
   v_target_property_id uuid;
+  v_binding_count integer;
+  v_binding record;
   v_workspace platform.customer_workspaces%rowtype;
   v_assignment record;
   v_profile record;
@@ -610,20 +798,44 @@ begin
     where u.id = v_grant.unit_id and u.tenant_id = v_grant.membership_tenant;
   end if;
 
-  -- 4. Context-to-Workspace resolution (Canonical chain: User -> Membership -> Context Grant -> Scoped Object -> Customer Workspace)
+  -- 4. Context-to-Workspace resolution (Canonical chain: Context Grant -> Scoped Object -> Property -> workspace_property_bindings -> Customer Workspace)
   if v_target_property_id is not null then
-    -- Resolve via import run linked to this property
-    select w.* into v_workspace
-    from platform.customer_workspaces w
-    join platform.import_runs ir on ir.customer_workspace_id = w.id and ir.tenant_id = w.tenant_id
-    where w.tenant_id = v_grant.membership_tenant
-      and ir.property_id = v_target_property_id
-      and w.lifecycle_status in ('PROVISIONING', 'ACTIVE')
-    order by ir.created_at desc limit 1;
-  end if;
+    -- Property-scoped context REQUIRES explicit canonical binding; NO fallback to single-workspace
+    select count(*)
+    into v_binding_count
+    from platform.workspace_property_bindings b
+    where b.property_id = v_target_property_id
+      and b.status = 'active'
+      and b.valid_from <= statement_timestamp() and (b.valid_to is null or b.valid_to > statement_timestamp());
 
-  -- If not resolved by property, check if tenant has a single unambiguous workspace
-  if v_workspace.id is null then
+    if v_binding_count = 0 then
+      raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
+    elsif v_binding_count > 1 then
+      raise exception 'workspace_taxonomy_workspace_binding_ambiguous' using errcode = '42501';
+    end if;
+
+    select * into v_binding
+    from platform.workspace_property_bindings b
+    where b.property_id = v_target_property_id
+      and b.status = 'active'
+      and b.valid_from <= statement_timestamp() and (b.valid_to is null or b.valid_to > statement_timestamp())
+    limit 1;
+
+    if v_binding.tenant_id <> v_grant.membership_tenant then
+      raise exception 'workspace_taxonomy_workspace_binding_tenant_mismatch' using errcode = '42501';
+    end if;
+
+    select * into v_workspace
+    from platform.customer_workspaces
+    where id = v_binding.customer_workspace_id
+      and tenant_id = v_grant.membership_tenant
+      and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+
+    if v_workspace.id is null then
+      raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
+    end if;
+  else
+    -- Pure tenant-scoped context without property/building/unit scope
     select count(*) into v_ws_count
     from platform.customer_workspaces
     where tenant_id = v_grant.membership_tenant and lifecycle_status in ('PROVISIONING', 'ACTIVE');
@@ -633,7 +845,7 @@ begin
       from platform.customer_workspaces
       where tenant_id = v_grant.membership_tenant and lifecycle_status in ('PROVISIONING', 'ACTIVE');
     else
-      -- Unambiguous resolution not possible without scoped binding (fail-closed)
+      -- Tenant has 0 or >1 workspaces; fail-closed without guessing
       raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
     end if;
   end if;
@@ -739,6 +951,7 @@ begin
     ) order by p.code), '[]'::jsonb)
     from platform.property_profiles p
     where p.is_active = true and p.lifecycle_status = 'active'
+      and p.valid_from <= statement_timestamp() and (p.valid_to is null or p.valid_to > statement_timestamp())
   );
 end;
 $$;
@@ -780,6 +993,7 @@ begin
     ) order by m.code), '[]'::jsonb)
     from platform.operating_models m
     where m.is_active = true and m.lifecycle_status = 'active'
+      and m.valid_from <= statement_timestamp() and (m.valid_to is null or m.valid_to > statement_timestamp())
   );
 end;
 $$;
@@ -821,6 +1035,7 @@ begin
     ) order by s.code), '[]'::jsonb)
     from platform.space_kinds s
     where s.is_active = true and s.lifecycle_status = 'active'
+      and s.valid_from <= statement_timestamp() and (s.valid_to is null or s.valid_to > statement_timestamp())
   );
 end;
 $$;

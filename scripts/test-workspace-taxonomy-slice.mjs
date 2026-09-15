@@ -17,6 +17,7 @@ assert.match(migrationSql, /create table platform\.space_kinds/i, 'platform.spac
 assert.match(migrationSql, /create table platform\.property_operating_model_compatibilities/i, 'compatibility table created');
 assert.match(migrationSql, /create table platform\.property_space_kind_compatibilities/i, 'space compatibility table created');
 assert.match(migrationSql, /create table platform\.workspace_taxonomy_assignments/i, 'workspace assignments table created');
+assert.match(migrationSql, /create table platform\.workspace_property_bindings/i, 'workspace property bindings table created');
 
 // Check validation constraints
 assert.match(migrationSql, /code ~ '\^\[a-z0-9_\]\{3,64\}\$'/, 'Stable code regex constraint enforced');
@@ -24,10 +25,27 @@ assert.match(migrationSql, /coalesce\(trim\(labels_json->>'ro'\), ''\) <> ''/, '
 assert.match(migrationSql, /coalesce\(trim\(labels_json->>'en'\), ''\) <> ''/, 'English label constraint enforced');
 assert.match(migrationSql, /coalesce\(trim\(labels_json->>'fa'\), ''\) <> ''/, 'Persian label constraint enforced');
 
+// Version overlap prevention
+assert.match(migrationSql, /workspace_taxonomy_version_effective_period_overlap/, 'Version effective-period overlap error present');
+
 // Security & Minimal Privilege Rules
 assert.doesNotMatch(migrationSql, /grant all on all tables in schema platform/i, 'No broad platform table grant in Migration 100');
 assert.doesNotMatch(migrationSql, /on conflict \(code, version\) do update/i, 'No ON CONFLICT DO UPDATE in seeds');
 assert.doesNotMatch(migrationSql, /order by w\.id limit 1/i, 'No random order by limit 1 workspace resolution');
+assert.doesNotMatch(migrationSql, /join platform\.import_runs/i, 'Zero runtime resolution dependency on import_runs');
+
+// Binding Error Codes in Resolver
+assert.match(migrationSql, /workspace_taxonomy_context_not_workspace_bound/, 'Not workspace bound error present');
+assert.match(migrationSql, /workspace_taxonomy_workspace_binding_ambiguous/, 'Ambiguous binding error present');
+assert.match(migrationSql, /workspace_taxonomy_workspace_binding_tenant_mismatch/, 'Binding tenant mismatch error present');
+
+// Current version filters in list APIs
+assert.match(migrationSql, /p\.valid_from <= statement_timestamp\(\) and \(p\.valid_to is null or p\.valid_to > statement_timestamp\(\)\)/, 'List profiles filters current version');
+assert.match(migrationSql, /m\.valid_from <= statement_timestamp\(\) and \(m\.valid_to is null or m\.valid_to > statement_timestamp\(\)\)/, 'List models filters current version');
+assert.match(migrationSql, /s\.valid_from <= statement_timestamp\(\) and \(s\.valid_to is null or s\.valid_to > statement_timestamp\(\)\)/, 'List space kinds filters current version');
+
+// Immutability identity includes created_by
+assert.match(migrationSql, /old\.created_by is distinct from new\.created_by/, 'created_by is guarded in assignment immutability trigger');
 
 // All 16 profiles, 8 models, 18 space kinds
 const expectedProfiles = [
@@ -56,7 +74,7 @@ const expectedSpaces = [
 for (const space of expectedSpaces) {
   assert.match(migrationSql, new RegExp(`'${space}'`), `Space kind seed ${space} present`);
 }
-console.log('  ✔ Migration 100 structure, security constraints, and 16/8/18 seeds verified.');
+console.log('  ✔ Migration 100 structure, security constraints, deterministic bindings, and 16/8/18 seeds verified.');
 
 // 2. pgTAP Test 087 Contract
 console.log('\n[Suite 2] pgTAP Test 087 Acceptance Contract');
@@ -66,7 +84,7 @@ const testSql = fs.readFileSync(testPath, 'utf8');
 
 assert.match(testSql, /^begin;/m, 'Test 087 starts with begin;');
 assert.match(testSql, /^rollback;/m, 'Test 087 ends with rollback;');
-assert.match(testSql, /select plan\(34\);/, 'Test 087 matches 34 assertions plan');
+assert.match(testSql, /select plan\(47\);/, 'Test 087 matches 47 assertions plan');
 assert.match(testSql, /workspace_taxonomy_incompatible_assignment/, 'Incompatible combination assertion tested');
 assert.match(testSql, /workspace_taxonomy_review_required/, 'Review required combination assertion tested');
 assert.match(testSql, /workspace_taxonomy_compatibility_rule_missing/, 'Missing rule fail-closed assertion tested');
@@ -74,7 +92,10 @@ assert.match(testSql, /workspace_taxonomy_assignment_overlap/, 'Temporal overlap
 assert.match(testSql, /workspace_taxonomy_tenant_mismatch/, 'Tenant isolation assertion tested');
 assert.match(testSql, /workspace_taxonomy_context_not_workspace_bound/, 'Ambiguous context fail-closed assertion tested');
 assert.match(testSql, /workspace_taxonomy_assignment_history_immutable/, 'History immutability assertion tested');
-console.log('  ✔ Test 087 pgTAP plan (34 assertions) and multi-workspace isolation verified.');
+assert.match(testSql, /workspace_property_binding_overlap/, 'Binding overlap assertion tested');
+assert.match(testSql, /workspace_property_binding_history_immutable/, 'Binding immutability assertion tested');
+assert.match(testSql, /workspace_taxonomy_version_effective_period_overlap/, 'Version overlap assertion tested');
+console.log('  ✔ Test 087 pgTAP plan (47 assertions), binding invariants, and multi-workspace isolation verified.');
 
 // 3. API Route & Security Boundary Verification
 console.log('\n[Suite 3] Route Handlers Contract & Security Delegation');
