@@ -252,13 +252,7 @@ create policy prop_space_compat_catalog_read on platform.property_space_kind_com
   for select to authenticated using (true);
 
 create policy ws_taxonomy_assignments_context_read on platform.workspace_taxonomy_assignments
-  for select to authenticated using (
-    tenant_id = app_private.active_tenant_id()
-    and exists (
-      select 1 from platform.customer_workspaces w
-      where w.id = customer_workspace_id and w.tenant_id = app_private.active_tenant_id()
-    )
-  );
+  for select to authenticated using (tenant_id = app_private.active_tenant_id());
 
 -- ============================================================================
 -- Seed Registries (16 Property Profiles, 8 Operating Models, 18 Space Kinds)

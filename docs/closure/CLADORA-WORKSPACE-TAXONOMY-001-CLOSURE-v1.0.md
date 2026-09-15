@@ -48,8 +48,8 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 
 | File | Type | SHA-256 Checksum |
 | --- | --- | --- |
-| `supabase/migrations/20260915120000_workspace_taxonomy.sql` | Migration 100 | `228194df478ae5781d621e9902b5838bad1fc6dd255b60598905ae88c305be55` |
-| `supabase/tests/087_workspace_taxonomy.test.sql` | Test 087 | `09c6bfbe1e1f74a0076a5a22ca14ea0f666f7f63faae3ba89035f2a1b9faef51` |
+| `supabase/migrations/20260915120000_workspace_taxonomy.sql` | Migration 100 | `e9d7e4d37699a8960ff2f325e83bf129988b77490ca925f197b2dfa92ce8f16d` |
+| `supabase/tests/087_workspace_taxonomy.test.sql` | Test 087 | `f31f16ee42ff7ce321343a4cd93bbf9ca8571321f5bf2ae371ad69bccdab51d6` |
 
 ### Prior Migration Invariant:
 - Total prior migrations (1 through 99): `99` files
