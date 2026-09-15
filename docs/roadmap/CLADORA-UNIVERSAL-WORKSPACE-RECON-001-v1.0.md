@@ -29,6 +29,8 @@ Reconcile the previously described Building DNA, workspace, resident experience 
 | --- | --- | --- | --- |
 | Tenant isolation | `MATCH` | tenant-bound schemas, RLS and validated context | Preserve unchanged; add negative tests for every new scope. |
 | Workspace lifecycle | `MATCH` | customer workspace, provisioning, assignments and entitlements | Add profile and operating-model configuration without using them as authorization. |
+| Dynamic object composition | `PARTIAL` | workspaces, entitlements, modules and fixed property objects exist | Add registered object types, dependency validation and versioned object schemas. |
+| Workspace-local role design | `PARTIAL` | canonical roles, permission mappings and scoped assignments exist | Allow constrained local roles without permitting new capability codes or privilege escalation. |
 | Residential property registry | `MATCH` | property/building/entrance/unit | Preserve identifiers and backward compatibility. |
 | Residential Building DNA | `MATCH-PRESENTATION` | six archetypes and five calculator coefficients | Promote only through a versioned, reviewed operational contract. |
 | Villa/HOA operations | `PARTIAL` | gated-community types and parcel-oriented copy exist | Add parcel/lot scope, common infrastructure and HOA acceptance fixture. |
@@ -71,6 +73,7 @@ Module availability is determined by explicit workspace entitlements and applica
 | Priority | Controlled package | Deliverable | Migration/Test expectation |
 | --- | --- | --- | --- |
 | P0 | `CLADORA-WORKSPACE-TAXONOMY-001` | profile, operating-model and space-kind compatibility contract | Next available migration/test; no record rewrite |
+| P0 | `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001` | registered object types, module dependencies, entitlements, local roles and scoped assignments | Privilege-escalation, AAL2, concurrency and cross-tenant tests |
 | P1 | `CLADORA-PROPERTY-TOPOLOGY-001` | site, zone, section, space, common area and shared asset scopes | Forward-only migration plus isolation tests |
 | P1 | `CLADORA-OCCUPANT-PERSONA-001` | organization/operator/employee relationships and terminology | Migration only if existing party/occupancy model cannot extend safely |
 | P1 | `CLADORA-NONRES-ALLOCATION-001` | commercial and shared-service allocation bases | Transactional pgTAP and zero-difference acceptance |

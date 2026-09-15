@@ -97,6 +97,32 @@ The target network hierarchy is:
 
 Cross-workspace membership never permits cross-tenant operational data access. Financial settlement between sponsor and provider requires explicit accounting evidence and approval; scanning a benefit card cannot directly post a journal or move money.
 
+### Dynamic workspace composition
+
+A workspace is composed dynamically from registered objects, modules, entitlements, roles and scoped assignments. Product profiles provide safe starting templates but do not hard-code the final workspace.
+
+The composition model is:
+
+`Workspace → Scoped Objects → Enabled Modules → Effective Entitlements → Workspace Roles → User/Group Assignments`
+
+- **Scoped objects** represent sites, buildings, zones, spaces, common areas, shared assets, service points, providers, amenities and other registered resource types.
+- **Modules** attach capabilities and workflows to supported object types.
+- **Entitlements** state what the workspace contract and platform policy permit, including limits and effective dates.
+- **Workspace roles** group allowed permissions for defined scopes.
+- **Assignments** connect an authenticated user or managed group to a role and scope for a controlled period.
+
+Object creation is metadata-driven but not arbitrary schema creation. Every object type must be registered with a versioned schema, allowed parent types, owning module, lifecycle, validation rules and authorization projection.
+
+An authorized workspace administrator may create workspace-local roles, select permissions from the workspace's allowed capability catalog and assign those roles to users or groups. The administrator cannot grant a capability that is unavailable to the workspace, outside the target scope, prohibited from delegation or stronger than the administrator's own delegable authority.
+
+Effective authorization is always the intersection of:
+
+`Platform policy ∩ active workspace ∩ active entitlement ∩ role grant ∩ context scope ∩ relationship/condition ∩ required assurance level`
+
+The browser may configure desired state but never becomes the authorization authority. Every mutation is revalidated by the database or trusted server boundary.
+
+High-risk capabilities—such as role administration, bank-account changes, payment approval, period close, payout, ownership change, access-policy administration and support impersonation—may require AAL2, independent approval, a reason and immutable audit evidence. Some platform-reserved permissions remain non-delegable.
+
 ### Charge and cost-allocation model
 
 The existing versioned allocation and owner/tenant responsibility engines remain authoritative. Future extensions may add bases for floor area, ownership share, occupant count, measured consumption, parking or storage rights, commercial coefficients, zone/service-point participation, fixed fees, contractual schedules and composite formulas.
@@ -116,6 +142,8 @@ Building DNA remains the technical configuration layer, separate from property p
 - Common areas and shared assets cannot be represented as fake residents or fake apartments.
 - Legal ownership, occupancy, operating authority and payment responsibility remain separate relationships.
 - A property profile cannot confer permission or management authority.
+- A workspace administrator cannot manufacture new permission codes or exceed contracted entitlements and delegable authority.
+- Role, entitlement, module and object-definition changes are versioned, effective-dated and auditable.
 - Country-specific legal and fiscal rules belong to versioned country packs.
 - Romanian condominium-law claims apply only to eligible Romanian association workspaces.
 - No autonomous system may approve legal acts, bank changes, payouts or high-impact financial decisions.
@@ -123,12 +151,13 @@ Building DNA remains the technical configuration layer, separate from property p
 ## Staged implementation boundary
 
 1. **Taxonomy and compatibility contract:** introduce stable profile, space-kind and operating-model codes without changing existing behavior.
-2. **Topology extension:** add optional site, zone, floor/section, space, common-area, shared-asset and service-point scopes.
-3. **Authorization extension:** extend context grants and read/write projections to the new scopes with cross-tenant negative tests.
-4. **Allocation extension:** add versioned non-residential allocation bases and deterministic reconciliation.
-5. **Experience profiles:** expose entitlement-driven vocabulary and modules in RO/EN/FA.
-6. **Service and benefit networks:** add sponsor, provider, membership, card, offer and redemption contracts behind separate entitlements.
-7. **Synthetic pilots:** accept residential, mixed-use, retail/logistics and industrial fixtures before any real customer activation.
+2. **Dynamic composition contract:** register object types, module dependencies, capability catalogs, entitlements and constrained workspace-local roles.
+3. **Topology extension:** add optional site, zone, floor/section, space, common-area, shared-asset and service-point scopes.
+4. **Authorization extension:** extend context grants and read/write projections to the new scopes with cross-tenant and privilege-escalation negative tests.
+5. **Allocation extension:** add versioned non-residential allocation bases and deterministic reconciliation.
+6. **Experience profiles:** expose entitlement-driven vocabulary and modules in RO/EN/FA.
+7. **Service and benefit networks:** add sponsor, provider, membership, card, offer and redemption contracts behind separate entitlements.
+8. **Synthetic pilots:** accept residential, mixed-use, retail/logistics and industrial fixtures before any real customer activation.
 
 Each stage requires its own migration, pgTAP suite, application tests, security review and separately approved release gate.
 
