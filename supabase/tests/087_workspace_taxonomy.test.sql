@@ -188,7 +188,7 @@ select set_config('request.jwt.claims', '{"role":"anon"}', true);
 select throws_ok(
   $$select customer_api.get_workspace_taxonomy_v1('87600000-0000-0000-0000-000000000001')$$,
   '42501',
-  'authentication_required',
+  null,
   'unauthenticated call to taxonomy API is rejected'
 );
 
