@@ -73,5 +73,30 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 
 - `Supabase Apply: PERFORMED / 100/100 IN SYNC (Migration 20260915120000_workspace_taxonomy.sql applied, Drift: 0)`
 - `Remote Schema State: 100 Local / 100 Remote / 0 Drift`
-- `Security Advisor: VERIFIED (0 errors, 0 security vulnerabilities)`
+- `Security Advisor: ACCEPTED-CONTROLLED-ADVISORY-EXCEPTIONS (7 INFO, 4 WARN reviewed and documented)`
 - `Zero Legacy Backfill: ENFORCED`
+
+---
+
+## 6. Post-Release Erratum & Security Advisory Classification (v1.1)
+
+**Erratum Date:** 2026-09-16  
+**Reference Exception Register:** [`docs/security/CLADORA-WORKSPACE-TAXONOMY-001-ADVISORY-EXCEPTION-v1.0.md`](../security/CLADORA-WORKSPACE-TAXONOMY-001-ADVISORY-EXCEPTION-v1.0.md)  
+**Correction Class:** Documentation and evidence alignment only (no code, migration, or schema change).
+
+### Notice of Correction:
+The initial post-release summary in Section 5 stating *"Security Advisor: VERIFIED (0 errors, 0 security vulnerabilities)"* was imprecise regarding the Supabase Database Linter policy-level advisor. While plpgsql check (`supabase db lint --level warning`) executed with zero errors, the automated Supabase Remote Security Advisor actually reports eleven (11) advisory items:
+1. **Seven (7) `INFO` findings (`rls_enabled_no_policy`):**
+   `platform.property_profiles`, `platform.operating_models`, `platform.space_kinds`, `platform.property_operating_model_compatibilities`, `platform.property_space_kind_compatibilities`, `platform.workspace_taxonomy_assignments`, and `platform.workspace_property_bindings`.
+2. **Four (4) `WARN` findings (`authenticated_security_definer_function_executable`):**
+   `customer_api.get_workspace_taxonomy_v1(uuid)`, `customer_api.list_taxonomy_profiles_v1(uuid)`, `customer_api.list_taxonomy_operating_models_v1(uuid)`, and `customer_api.list_taxonomy_space_kinds_v1(uuid)`.
+
+### Resolution & Security Verdict:
+- All eleven findings were independently audited and formally documented in [`docs/security/CLADORA-WORKSPACE-TAXONOMY-001-ADVISORY-EXCEPTION-v1.0.md`](../security/CLADORA-WORKSPACE-TAXONOMY-001-ADVISORY-EXCEPTION-v1.0.md).
+- **Current Disposition:** `ACCEPTED-CONTROLLED-ADVISORY-EXCEPTIONS`.
+- **Finding Acceptance Details:**
+  - The 7 `INFO` findings are accepted as an intentional deny-by-default RLS posture for internal platform tables where direct client table querying is revoked.
+  - The 4 `WARN` findings are accepted as controlled authenticated read gateways incorporating mandatory `auth.uid()` checks, active membership joins, active context grant checks, fixed `search_path`, and zero side-effects.
+- **Audit Result:** No confirmed privilege escape, data leakage, or cross-tenant exposure exists.
+- **Release Status:** Production release status remains fully valid; Migration 100 remains byte-identical and applied.
+
