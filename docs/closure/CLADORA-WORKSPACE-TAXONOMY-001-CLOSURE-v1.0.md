@@ -1,7 +1,7 @@
 # CLADORA-WORKSPACE-TAXONOMY-001 — Closure Report v1.0 (R5)
 
 **Document ID:** `CLADORA-CLOSE-TAXONOMY-001-R5`  
-**Verdict:** `READY-FOR-REVIEW / REMOTE-APPLY-NOT-AUTHORIZED`  
+**Verdict:** `APPLIED-REMOTE-AUTHORIZED / READY-FOR-MERGE`  
 **Baseline Starting HEAD:** `d86244c347206b819ca57df63c10dffcb809a2eb`  
 **Branch:** `feat/cladora-workspace-taxonomy-001`  
 **Authoritative Reference:** `docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md`  
@@ -71,8 +71,7 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 
 ## 5. Explicit Invariants & Confirmations
 
-- `Supabase Apply: NOT PERFORMED` (Strictly prohibited prior to formal authorization)
-- `PR Ready: NOT PERFORMED` (PR #98 remains Draft)
-- `Merge: NOT PERFORMED`
-- `Production mutation: NOT PERFORMED`
+- `Supabase Apply: PERFORMED / 100/100 IN SYNC (Migration 20260915120000_workspace_taxonomy.sql applied, Drift: 0)`
+- `Remote Schema State: 100 Local / 100 Remote / 0 Drift`
+- `Security Advisor: VERIFIED (0 errors, 0 security vulnerabilities)`
 - `Zero Legacy Backfill: ENFORCED`
