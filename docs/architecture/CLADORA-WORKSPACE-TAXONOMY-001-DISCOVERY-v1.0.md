@@ -1,6 +1,6 @@
-# CLADORA-WORKSPACE-TAXONOMY-001 — Discovery & Architecture Specification v1.0 (R4)
+# CLADORA-WORKSPACE-TAXONOMY-001 — Discovery & Architecture Specification v1.0 (R5)
 
-**Document ID:** `CLADORA-DISC-TAXONOMY-001-R4`  
+**Document ID:** `CLADORA-DISC-TAXONOMY-001-R5`  
 **Authoritative Architectural Invariant:**  
 $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} \neq \text{Service Profile} \neq \text{Country Pack}$$  
 **Baseline SHA:** `076f4c560867b20e94d874b1b5fd01c783439e77` (Tracking `origin/main`)  
@@ -68,6 +68,13 @@ The purpose of this package is to establish the versioned Universal Workspace Ta
   - `guard_workspace_property_binding_v1()`
   - `guard_workspace_taxonomy_assignment_v1()`
   - `validate_taxonomy_compatibility_v1(uuid, uuid)` (strictly granted to `service_role`).
+
+### 2.6 [WSTAX-R5-001-REAL-CONCURRENCY-REHEARSAL] Real Multi-Connection Concurrency Rehearsal
+- **Architecture & Tooling:** Converted modeled concurrency simulation to a real PostgreSQL multi-session concurrency execution test (`scripts/test-workspace-taxonomy-concurrency.mjs`) using 3 independent `pg.Client` connections (Winner Session T1, Competitor Session T2, Observer Session conObs).
+- **Execution Mechanism:**
+  1. **Scenario A (Taxonomy Version Race):** T1 inserts active version 1 for synthetic code `conc_space_kind_race_001` and holds per-code advisory transaction lock. T2 attempts to insert active version 2 for the same code. Observer queries `pg_blocking_pids` and `pg_locks`, verifying T2 is actively blocked by T1 on an ungranted advisory lock. T1 commits. T2 resumes and is rejected with `workspace_taxonomy_version_effective_period_overlap` (`P0001`). Observer verifies exactly 1 active version exists, followed by clean removal of synthetic records.
+  2. **Scenario B (Workspace Property Binding Race):** Committed synthetic prerequisites created (Tenant, Workspaces W1 & W2, Property P). T1 inserts binding for Property P -> W1 and holds Property row lock `FOR UPDATE`. T2 attempts binding Property P -> W2 concurrently. Observer queries `pg_blocking_pids` and `pg_locks`, verifying T2 is actively blocked by T1 on an ungranted row lock. T1 commits. T2 resumes and is rejected with `workspace_property_binding_overlap` (`P0001`). Observer verifies exactly 1 active binding exists (winner W1), followed by clean removal of all synthetic records.
+- **Fail-Closed Guarantees:** Strict localhost/local CI DB validation (remote hosts immediately rejected), explicit `statement_timeout = 15000` and `lock_timeout = 10000`, safe cleanup with verification, zero credential logging.
 
 ---
 

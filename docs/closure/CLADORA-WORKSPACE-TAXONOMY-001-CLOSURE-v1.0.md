@@ -1,17 +1,17 @@
-# CLADORA-WORKSPACE-TAXONOMY-001 — Closure Report v1.0 (R4)
+# CLADORA-WORKSPACE-TAXONOMY-001 — Closure Report v1.0 (R5)
 
-**Document ID:** `CLADORA-CLOSE-TAXONOMY-001-R4`  
+**Document ID:** `CLADORA-CLOSE-TAXONOMY-001-R5`  
 **Verdict:** `READY-FOR-REVIEW / REMOTE-APPLY-NOT-AUTHORIZED`  
-**Baseline Starting HEAD:** `c70177d561e8b3eaae279b48aec3c6d4e6eb071e`  
+**Baseline Starting HEAD:** `d86244c347206b819ca57df63c10dffcb809a2eb`  
 **Branch:** `feat/cladora-workspace-taxonomy-001`  
 **Authoritative Reference:** `docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md`  
-**Change Class:** Concurrency Hardening, Complete Space Kind Registry (21), Safe Unbound Dashboard UX, Security Revokes, Acceptance Tests, and Concurrency Rehearsal.
+**Change Class:** Real PostgreSQL Multi-Connection Concurrency Rehearsal, Evidence Alignment, CI Integration, Complete Space Kind Registry (21), Safe Unbound Dashboard UX, Security Revokes, and Acceptance Tests.
 
 ---
 
 ## 1. Objective & Scope
 
-This package delivers the final concurrency hardening, complete 21 Space Kind catalog, safe unbound workspace handling, and function security remediation for the Universal Managed Property architecture for CLADORA.
+This package delivers the real multi-connection PostgreSQL concurrency rehearsal, final CI integration under `postgres-runtime`, complete 21 Space Kind catalog, safe unbound workspace handling, and function security remediation for the Universal Managed Property architecture for CLADORA.
 
 Core Invariant:
 $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} \neq \text{Service Profile} \neq \text{Country Pack}$$
@@ -25,10 +25,11 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 6. **Workspace Taxonomy Assignments** (`platform.workspace_taxonomy_assignments`): Temporal, non-overlapping, tenant-bound classification container with history immutability triggers.
 7. **Customer API & UI**: Controlled read-only gateway (`customer_api.get_workspace_taxonomy_v1`, `/api/customer/v1/workspace/taxonomy`) and integrated React component (`WorkspaceTaxonomyCard`) embedded in `CustomerDashboard.tsx` with neutral unconfigured state for unbound legacy workspaces in Romanian, English, and Persian RTL.
 8. **Privileged Function Execution Control**: Explicit `REVOKE ALL` on all `app_private` trigger and helper functions from `public, anon, authenticated`.
+9. **Real PostgreSQL Concurrency Rehearsal**: Independent multi-connection database execution script (`scripts/test-workspace-taxonomy-concurrency.mjs`) verifying Scenario A (taxonomy version race) and Scenario B (workspace property binding race) with real `pg_blocking_pids` / `pg_locks` detection, deterministic error assertions, single winner verification, and zero residual synthetic rows.
 
 ---
 
-## 2. Review Findings & Remediation Log (R4)
+## 2. Review Findings & Remediation Log (R4 / R5)
 
 | Finding ID | Description | Resolution Status |
 | :--- | :--- | :---: |
@@ -37,6 +38,7 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 | `WSTAX-R4-003-SPACE-KIND-COMPLETENESS` | Restored `yard`, `loading_zone`, and `land_parcel` into `platform.space_kinds`, bringing registry total to exactly 21 space kinds. Updated compatibility matrices for all property profiles. | **RESOLVED** |
 | `WSTAX-R4-004-UNBOUND-WORKSPACE-UX` | Unbound valid context returns controlled `has_assignment: false`, `status: "binding_required"`, `workspace_id: null` with zero data leakage. Route maps `workspace_taxonomy_context_not_workspace_bound` to 409 `TAXONOMY_NOT_CONFIGURED`. UI renders neutral non-error card in RO/EN/FA without Access Denied alert styling. | **RESOLVED** |
 | `WSTAX-R4-005-PRIVILEGED-FUNCTION-GRANTS` | Explicitly revoked execute on all `app_private` trigger and helper functions from `public, anon, authenticated`. | **RESOLVED** |
+| `WSTAX-R5-001-REAL-CONCURRENCY-REHEARSAL` | Replaced modeled/static rehearsal with actual multi-session PostgreSQL execution test (`scripts/test-workspace-taxonomy-concurrency.mjs`) using 3 `pg.Client` connections. Validated Scenario A (taxonomy version race) and Scenario B (workspace property binding race) with real `pg_blocking_pids` / `pg_locks` detection, deterministic `P0001` exceptions, single winner verification, and zero residual synthetic rows. Integrated into CI `postgres-runtime` workflow. | **RESOLVED** |
 
 ---
 
@@ -59,8 +61,8 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 | :--- | :--- | :--- | :--- |
 | **Database Package Contract** | `node scripts/check-database-package.mjs` | 100 migrations / 87 tests / 2825 assertions | **PASS** |
 | **Workspace Taxonomy Slice** | `node scripts/test-workspace-taxonomy-slice.mjs` | 5/5 test suites (21 space kinds, locks, revokes, UI) | **PASS** |
-| **Concurrency Rehearsal** | `node scripts/test-workspace-taxonomy-concurrency.mjs` | 3/3 rehearsal steps (lock formulas, interleaving models, invariants) | **PASS** |
-| **Unit Test Suite** | `npm test` | All slice tests + unit suites + rehearsal | **PASS** |
+| **Real Concurrency Rehearsal** | `node scripts/test-workspace-taxonomy-concurrency.mjs` | Real 2-session PostgreSQL execution (Scenario A version race & Scenario B binding race with `pg_blocking_pids` / `pg_locks` detection, single winner, and zero residual rows) | **PASS (CI postgres-runtime)** |
+| **Unit Test Suite** | `npm test` | All slice tests + unit suites (100 migrations, 87 tests, 2825 assertions) | **PASS** |
 | **TypeScript Typecheck** | `npm run typecheck` | 0 errors | **PASS** |
 | **ESLint Audit** | `npm run lint` | 0 warnings, 0 errors | **PASS** |
 | **Next.js Production Build** | `npm run build` | All 358 static/dynamic routes compiled | **PASS** |
