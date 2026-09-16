@@ -56,10 +56,10 @@ This document records the exact findings, technical controls, authorization proo
 
 | Exception ID | Target Function Signature | Severity | Supabase Linter Rule | Remediation Guidance | Disposition |
 | :--- | :--- | :---: | :--- | :--- | :---: |
-| `WSTAX-ADV-WARN-001` | `customer_api.get_workspace_taxonomy_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0011_function_search_path_mutable](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable) | **ACCEPTED-CONTROLLED-GATEWAY** |
-| `WSTAX-ADV-WARN-002` | `customer_api.list_taxonomy_profiles_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0011_function_search_path_mutable](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable) | **ACCEPTED-CONTROLLED-GATEWAY** |
-| `WSTAX-ADV-WARN-003` | `customer_api.list_taxonomy_operating_models_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0011_function_search_path_mutable](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable) | **ACCEPTED-CONTROLLED-GATEWAY** |
-| `WSTAX-ADV-WARN-004` | `customer_api.list_taxonomy_space_kinds_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0011_function_search_path_mutable](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable) | **ACCEPTED-CONTROLLED-GATEWAY** |
+| `WSTAX-ADV-WARN-001` | `customer_api.get_workspace_taxonomy_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0029_authenticated_security_definer_function_executable](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **ACCEPTED-CONTROLLED-GATEWAY** |
+| `WSTAX-ADV-WARN-002` | `customer_api.list_taxonomy_profiles_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0029_authenticated_security_definer_function_executable](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **ACCEPTED-CONTROLLED-GATEWAY** |
+| `WSTAX-ADV-WARN-003` | `customer_api.list_taxonomy_operating_models_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0029_authenticated_security_definer_function_executable](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **ACCEPTED-CONTROLLED-GATEWAY** |
+| `WSTAX-ADV-WARN-004` | `customer_api.list_taxonomy_space_kinds_v1(p_context_id uuid)` | `WARN` | `authenticated_security_definer_function_executable` | [0029_authenticated_security_definer_function_executable](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **ACCEPTED-CONTROLLED-GATEWAY** |
 
 ---
 
@@ -88,12 +88,12 @@ The seven tables intentionally have RLS enabled with zero client-facing permissi
 All four `customer_api` routines satisfy strict security criteria proving they do not present privilege escalation vectors:
 
 #### Privilege & Execution Matrix
-| Function | `SECURITY DEFINER` | `anon` Execute | `authenticated` Execute | `service_role` Execute | Fixed `search_path` | Volatility |
-| :--- | :---: | :---: | :---: | :---: | :--- | :---: |
-| `customer_api.get_workspace_taxonomy_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, app_private, portfolio` | `VOLATILE` (Locking) |
-| `customer_api.list_taxonomy_profiles_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, app_private` | `STABLE` |
-| `customer_api.list_taxonomy_operating_models_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, app_private` | `STABLE` |
-| `customer_api.list_taxonomy_space_kinds_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, app_private` | `STABLE` |
+| Function | `SECURITY DEFINER` | `anon` Execute | `authenticated` Execute | `service_role` Execute | Explicit Fixed `search_path` | Volatility | Row-lock clauses |
+| :--- | :---: | :---: | :---: | :---: | :--- | :---: | :---: |
+| `customer_api.get_workspace_taxonomy_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, portfolio, app_private` | `STABLE` | none |
+| `customer_api.list_taxonomy_profiles_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, app_private` | `STABLE` | none |
+| `customer_api.list_taxonomy_operating_models_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, app_private` | `STABLE` | none |
+| `customer_api.list_taxonomy_space_kinds_v1` | `true` | `false` | `true` | `true` | `pg_catalog, platform, identity, app_private` | `STABLE` | none |
 
 #### Mandatory Security Controls Enforced in Function Bodies:
 1. **Authoritative Authentication Check:**
@@ -156,7 +156,7 @@ This exception register is automatically invalidated and requires immediate secu
 ## 8. References & Standards
 
 - [Supabase Database Linter — RLS Enabled No Policy (`0008_rls_enabled_no_policy`)](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
-- [Supabase Database Linter — Function Search Path Mutable (`0011_function_search_path_mutable`)](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable)
+- [Supabase Database Linter — Authenticated Security Definer Function Executable (`0029_authenticated_security_definer_function_executable`)](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
 - [CLADORA Architecture Decision Record — ADR-CLD-052](docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md)
 - [CLADORA Security Advisory Closure Register — Migration 93](docs/CLADORA-P2-SEC-ADVISORY-001.md)
 - [CLADORA Workspace Taxonomy Closure Report v1.0 (R5)](docs/closure/CLADORA-WORKSPACE-TAXONOMY-001-CLOSURE-v1.0.md)
