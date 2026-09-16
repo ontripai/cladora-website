@@ -7,7 +7,7 @@
 **Supabase Production Ref:** `jyomlehahwlyqzoacrvp`  
 **Merged PR:** [#98](https://github.com/ontripai/cladora-website/pull/98) (`feat/cladora-workspace-taxonomy-001` merged at commit `a6fd3f57e55b69ebdd9962de2a4d64dc9b1d1a04`)  
 **Review Date:** 2026-09-16  
-**Security Lead / Owner:** CLADORA Architecture & Security Working Group (`security@cladora.com`)  
+**Security Lead / Owner:** CLADORA Architecture & Security Working Group
 **Review Status:** Formal Post-Release Security Exception Document  
 
 ---
@@ -85,7 +85,7 @@ The seven tables intentionally have RLS enabled with zero client-facing permissi
 
 ### 4.2 Controlled Authenticated RPC Gateways (`WSTAX-ADV-WARN-001` through `004`)
 
-All four `customer_api` routines satisfy strict security criteria proving they do not present privilege escalation vectors:
+All four `customer_api` routines document the controls supporting the accepted low-risk advisory decision:
 
 #### Privilege & Execution Matrix
 | Function | `SECURITY DEFINER` | `anon` Execute | `authenticated` Execute | `service_role` Execute | Explicit Fixed `search_path` | Volatility | Row-lock clauses |
@@ -157,6 +157,6 @@ This exception register is automatically invalidated and requires immediate secu
 
 - [Supabase Database Linter — RLS Enabled No Policy (`0008_rls_enabled_no_policy`)](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)
 - [Supabase Database Linter — Authenticated Security Definer Function Executable (`0029_authenticated_security_definer_function_executable`)](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable)
-- [CLADORA Architecture Decision Record — ADR-CLD-052](docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md)
-- [CLADORA Security Advisory Closure Register — Migration 93](docs/CLADORA-P2-SEC-ADVISORY-001.md)
-- [CLADORA Workspace Taxonomy Closure Report v1.0 (R5)](docs/closure/CLADORA-WORKSPACE-TAXONOMY-001-CLOSURE-v1.0.md)
+- [CLADORA Architecture Decision Record — ADR-CLD-052](../architecture/ADR-CLD-052-universal-managed-property-workspaces.md)
+- [CLADORA Security Advisory Closure Register — Migration 93](../CLADORA-P2-SEC-ADVISORY-001.md)
+- [CLADORA Workspace Taxonomy Closure Report v1.0 (R5)](../closure/CLADORA-WORKSPACE-TAXONOMY-001-CLOSURE-v1.0.md)
