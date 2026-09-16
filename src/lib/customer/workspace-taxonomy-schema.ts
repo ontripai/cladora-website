@@ -38,3 +38,30 @@ export const workspaceTaxonomyResponseSchema = z.object({
 });
 
 export type WorkspaceTaxonomyResponse = z.infer<typeof workspaceTaxonomyResponseSchema>;
+
+export const assignWorkspaceTaxonomyRequestSchema = z.object({
+  context_id: uuidSchema,
+  property_profile_code: z.string().regex(/^[a-z0-9_]{3,64}$/),
+  operating_model_code: z.string().regex(/^[a-z0-9_]{3,64}$/),
+  country_code: z.string().regex(/^[A-Za-z]{2}$/).transform((val) => val.toUpperCase()),
+  idempotency_key: uuidSchema,
+  expected_assignment_id: uuidSchema.nullable().optional(),
+  reason: z.string().max(1000).nullable().optional(),
+}).strict();
+
+export type AssignWorkspaceTaxonomyRequest = z.infer<typeof assignWorkspaceTaxonomyRequestSchema>;
+
+export const assignWorkspaceTaxonomyResponseSchema = z.object({
+  workspace_id: uuidSchema,
+  assignment_id: uuidSchema,
+  previous_assignment_id: uuidSchema.nullable().optional(),
+  property_profile_code: z.string(),
+  operating_model_code: z.string(),
+  country_code: z.string(),
+  compatibility_status: z.enum(['compatible', 'review_required']),
+  valid_from: z.string(),
+  idempotent_replay: z.boolean(),
+  audit_event_id: z.number().int().positive(),
+});
+
+export type AssignWorkspaceTaxonomyResponse = z.infer<typeof assignWorkspaceTaxonomyResponseSchema>;
