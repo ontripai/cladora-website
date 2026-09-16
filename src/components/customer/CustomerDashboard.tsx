@@ -35,6 +35,7 @@ import {
   type CanonicalRole,
 } from '@/lib/customer/access-matrix';
 import { AccessRestrictedCard } from './CustomerRouteGuard';
+import { WorkspaceTaxonomyCard } from '@/components/workspace/WorkspaceTaxonomyCard';
 
 const copy = {
   ro: {
@@ -735,6 +736,11 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
 
       {/* Scoped Dynamic KPIs */}
       {renderKpis()}
+
+      {/* Workspace Universal Taxonomy Classification */}
+      {dashboard?.context?.id && (
+        <WorkspaceTaxonomyCard lang={lang} contextId={dashboard.context.id} />
+      )}
 
       {/* --------------------------------------------------------------------- */}
       {/* Persona-Specific Scoped Sections (Server Authoritative: Unallowed omitted) */}
