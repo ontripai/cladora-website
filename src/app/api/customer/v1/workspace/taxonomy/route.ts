@@ -43,6 +43,18 @@ export async function GET(request: NextRequest) {
     });
 
   if (queryError) {
+    if (queryError.message?.includes('workspace_taxonomy_context_not_workspace_bound')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'TAXONOMY_NOT_CONFIGURED',
+            message: 'Workspace classification is not configured yet.',
+          },
+        },
+        { status: 409, headers: HEADERS }
+      );
+    }
+
     const isAccessDenied = queryError.code === '42501';
     return NextResponse.json(
       {

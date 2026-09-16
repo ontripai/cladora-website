@@ -1,6 +1,6 @@
-# CLADORA-WORKSPACE-TAXONOMY-001 — Discovery & Architecture Specification v1.0 (R3)
+# CLADORA-WORKSPACE-TAXONOMY-001 — Discovery & Architecture Specification v1.0 (R4)
 
-**Document ID:** `CLADORA-DISC-TAXONOMY-001-R3`  
+**Document ID:** `CLADORA-DISC-TAXONOMY-001-R4`  
 **Authoritative Architectural Invariant:**  
 $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} \neq \text{Service Profile} \neq \text{Country Pack}$$  
 **Baseline SHA:** `076f4c560867b20e94d874b1b5fd01c783439e77` (Tracking `origin/main`)  
@@ -11,47 +11,63 @@ $$\text{Workspace Profile} \neq \text{Operating Model} \neq \text{Building DNA} 
 
 ## 1. Executive Summary & Architectural Goals
 
-The purpose of this package is to establish the versioned Universal Workspace Taxonomy for the CLADORA platform. It models property profiles, operating models, space kinds, deterministic workspace property bindings, and compatibility matrices in PostgreSQL with strict tenant boundary isolation, version effective-period integrity, and default-deny security.
+The purpose of this package is to establish the versioned Universal Workspace Taxonomy for the CLADORA platform. It models property profiles (16), operating models (8), space kinds (21), deterministic workspace property bindings, and compatibility matrices in PostgreSQL with strict tenant boundary isolation, version effective-period integrity, concurrency-safe locking, and default-deny security.
 
 ---
 
-## 2. Decision Record & Security Findings (R3 Remediation)
+## 2. Decision Record & Security Findings (R4 Remediation)
 
-### 2.1 [WSTAX-R2-001] Canonical Workspace Property Binding
-- **Issue:** Relying on `platform.import_runs` for runtime workspace resolution was non-authoritative because `import_runs` represents migration history, not canonical live authority. Multiple historical import runs on a property could introduce non-deterministic resolution.
-- **Canonical Model:** Introduced `platform.workspace_property_bindings` as the single canonical source of truth for property-to-workspace mapping:
-  - Columns: `id`, `tenant_id`, `customer_workspace_id`, `property_id`, `status`, `valid_from`, `valid_to`, `binding_source`, `created_by`, `created_at`, `updated_at`.
-  - Allowed `binding_source` values: `onboarding_activation`, `building_setup`, `platform_assignment`, `migration_verified`.
-  - Non-overlapping active binding constraint per property.
-  - Zero backfill of existing legacy workspaces (existing workspaces remain unclassified / not-bound until canonical binding is registered).
-  - Runtime resolution chain:
-    $$\text{Context Grant} \longrightarrow \text{Scoped Object (Property/Building/Unit)} \longrightarrow \text{Property} \longrightarrow \text{workspace\_property\_bindings} \longrightarrow \text{Customer Workspace}$$
+### 2.1 [WSTAX-R4-001-VERSION-RACE] Deterministic Version Concurrency Protection
+- **Issue:** In R3, `app_private.guard_taxonomy_version_effective_period_v1` relied solely on `SELECT EXISTS(...)`, allowing two concurrent transactions inserting active versions for the same code to both pass in parallel.
+- **Decision:** Added a deterministic transactional advisory lock per (registry, code) prior to the overlap check:
+  `perform pg_advisory_xact_lock(hashtextextended(TG_TABLE_SCHEMA || ':' || TG_TABLE_NAME || ':' || new.code, 0));`
+- **Result:** Concurrent inserts for the same `(registry, code)` serialize deterministically. Under `READ COMMITTED`, the unblocked second transaction observes the committed version from the winner and throws `workspace_taxonomy_version_effective_period_overlap` (`P0001`). Different codes never block each other.
 
-### 2.2 [WSTAX-R2-002] Version Effective-Period Integrity
-- **Issue:** Registries permitted concurrent overlapping active versions of the same `code`, creating catalog ambiguity.
-- **Decision:** Implemented concurrency-safe trigger `app_private.guard_taxonomy_version_effective_period_v1` on `platform.property_profiles`, `platform.operating_models`, and `platform.space_kinds`.
-- Any attempt to insert or update an active version with an overlapping effective period throws `workspace_taxonomy_version_effective_period_overlap` (`P0001`).
-- Catalog List APIs (`list_taxonomy_profiles_v1`, `list_taxonomy_operating_models_v1`, `list_taxonomy_space_kinds_v1`) filter strictly by `valid_from <= statement_timestamp() AND (valid_to IS NULL OR valid_to > statement_timestamp())`, guaranteeing that only the single currently effective version per code is exposed.
+### 2.2 [WSTAX-R4-002-BINDING-RACE] Property-Level Concurrency Serialization
+- **Issue:** In R3, `app_private.guard_workspace_property_binding_v1` locked the `customer_workspace` row. Two concurrent transactions attempting to bind the same property to two different workspaces could lock separate workspace rows and both succeed.
+- **Decision:** The target property row in `portfolio.properties` is now locked `FOR UPDATE` prior to checking tenant consistency and active binding overlap:
+  `select tenant_id into v_property_tenant from portfolio.properties where id = new.property_id for update;`
+- **Result:** Concurrent binding attempts for the same `property_id` serialize on the property row lock. Exactly one winner commits; the losing transaction detects the committed active binding and raises `workspace_property_binding_overlap` (`P0001`).
 
-### 2.3 [WSTAX-R2-003] Historical Identity Protection
-- **Decision:** In `guard_workspace_taxonomy_assignment_history_v1` and `guard_workspace_property_binding_history_v1`, the full historical identity (`id`, `tenant_id`, `customer_workspace_id`, `property_id` / `property_profile_id`, `operating_model_id`, `created_by`, `created_at`, `valid_from`) is immutable. Physical `DELETE` is prohibited.
-- `notes` on assignments is documented as an operational annotation for audit annotations, while historical entity identities are strictly protected.
+### 2.3 [WSTAX-R4-003-SPACE-KIND-COMPLETENESS] Complete Space Kind Registry (21 Items)
+- **Decision:** Restored the 3 approved space kinds:
+  1. `yard` (Yard & Outdoor Staging)
+  2. `loading_zone` (Loading Zone & Logistics Dock)
+  3. `land_parcel` (Land Parcel)
+  retaining all 3 R3 additions (`courtyard_garden`, `roof_deck`, `infrastructure_node`) to achieve exactly 21 canonical space kinds.
+- **Compatibility Matrix Complete:**
+  - `yard`: compatible with `warehouse_logistics`, `industrial_park`, `managed_township`, `gated_villa_community`, `single_villa`; review_required with `retail_centre`, `mixed_use_estate`, `office_centre`.
+  - `loading_zone`: compatible with `retail_centre`, `warehouse_logistics`, `industrial_park`, `mixed_use_estate`; review_required with `office_centre`.
+  - `land_parcel`: compatible with `single_villa`, `gated_villa_community`, `managed_township`, `industrial_park`, `developer_portfolio`; review_required with `mixed_use_estate`.
 
-### 2.4 [WSTAX-SEC-002] Assignment RLS & Direct Client Read Revocation
-- **Decision:** Direct table `SELECT` and DML privileges for `authenticated` and `anon` are completely REVOKED on `platform.workspace_taxonomy_assignments` and `platform.workspace_property_bindings`. Access is strictly mediated via context-validated RPCs.
+### 2.4 [WSTAX-R4-004-UNBOUND-WORKSPACE-UX] Unbound Existing Workspace UX & Safe Degradation
+- **Context:** Migration 100 enforces zero backfill of legacy data. Existing property-scoped contexts will initially lack bindings.
+- **Security & UX Alignment:**
+  - RPC (`customer_api.get_workspace_taxonomy_v1`): After authoritative user, membership, and context validation, if no binding exists (`v_binding_count = 0`), returns:
+    ```json
+    {
+      "has_assignment": false,
+      "status": "binding_required",
+      "workspace_id": null
+    }
+    ```
+  - Zero sensitive data leak: No workspace ID or tenant info is exposed in the unbound state.
+  - Route (`/api/customer/v1/workspace/taxonomy`): Maps `workspace_taxonomy_context_not_workspace_bound` to HTTP 409 `TAXONOMY_NOT_CONFIGURED` if encountered, while passing valid 200 responses with `status: 'binding_required'`.
+  - UI (`WorkspaceTaxonomyCard`): Displays neutral, non-error informative state with trilingual copy:
+    - RO: „Clasificarea workspace-ului nu este încă configurată.”
+    - EN: “Workspace classification is not configured yet.”
+    - FA: «طبقه‌بندی فضای کاری هنوز تنظیم نشده است.»
+  - Unauthorized contexts continue to receive HTTP 403 `CONTEXT_ACCESS_DENIED`. Ambiguous bindings (>1) remain fail-closed.
 
-### 2.5 [WSTAX-SEC-003] Catalog Access Minimization
-- **Decision:** Direct `SELECT` on `platform.property_profiles`, `platform.operating_models`, `platform.space_kinds`, and compatibility tables is revoked from `authenticated`. All catalog reads are mediated by `customer_api` RPCs.
-
-### 2.6 [WSTAX-AUDIT-001] Read-Only Foundation & Deferred Mutation Audit
-- **Decision:** Public mutation RPCs for taxonomy assignment are omitted in this package. Assignment records are read-only for clients. Finding recorded:
-  `DEFERRED-WORKSPACE-TAXONOMY-MUTATION-AUDIT`.
-
-### 2.7 [WSTAX-SEED-001] Seed Immutability
-- **Decision:** Removed all `ON CONFLICT (code, version) DO UPDATE` clauses. Seeds use deterministic plain `INSERT INTO` statements to ensure existing versions cannot be overwritten.
-
-### 2.8 [WSTAX-UI-001] Dashboard UI Integration
-- **Decision:** Integrated `WorkspaceTaxonomyCard` into `CustomerDashboard.tsx` with dynamic fetch via `/api/customer/v1/workspace/taxonomy?context_id=...`, supporting loading state (`role="status"`), error state (`role="alert"`), and complete RO/EN/FA + RTL translations.
+### 2.5 [WSTAX-R4-005-PRIVILEGED-FUNCTION-GRANTS] Explicit Privileged Function Revocations
+- **Decision:** Executed explicit `REVOKE ALL ON FUNCTION ... FROM public, anon, authenticated;` for all `app_private` trigger functions and internal helpers created in Migration 100:
+  - `guard_taxonomy_version_effective_period_v1()`
+  - `guard_taxonomy_record_immutability_v1()`
+  - `guard_workspace_taxonomy_assignment_history_v1()`
+  - `guard_workspace_property_binding_history_v1()`
+  - `guard_workspace_property_binding_v1()`
+  - `guard_workspace_taxonomy_assignment_v1()`
+  - `validate_taxonomy_compatibility_v1(uuid, uuid)` (strictly granted to `service_role`).
 
 ---
 
@@ -61,7 +77,7 @@ The purpose of this package is to establish the versioned Universal Workspace Ta
 | :--- | :--- | :--- |
 | `authentication_required` | `42501` | `auth.uid()` is null |
 | `customer_context_access_denied` | `42501` | Actor has no active grant for context |
-| `workspace_taxonomy_context_not_workspace_bound` | `42501` | Unbound property or ambiguous context grant |
+| `workspace_taxonomy_context_not_workspace_bound` | `42501` | Ambiguous tenant-scoped context without property scope |
 | `workspace_taxonomy_workspace_binding_ambiguous` | `42501` | Multiple active workspace bindings exist for property |
 | `workspace_taxonomy_workspace_binding_tenant_mismatch` | `42501` | Binding `tenant_id` does not match membership / property tenant |
 | `workspace_property_binding_overlap` | `P0001` | Overlapping active binding periods for same property |

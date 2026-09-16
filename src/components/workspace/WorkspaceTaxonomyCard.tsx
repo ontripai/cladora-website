@@ -15,6 +15,8 @@ const DICTIONARY = {
   ro: {
     title: 'Clasificare și Topologie Workspace',
     unclassified: 'Neclasificat / În așteptare revizuire',
+    notConfigured: 'Clasificarea workspace-ului nu este încă configurată.',
+    notConfiguredBadge: 'Neconfigurat',
     activeStatus: 'Activ',
     propertyProfile: 'Profil Proprietate',
     operatingModel: 'Model Operațional',
@@ -31,6 +33,8 @@ const DICTIONARY = {
   en: {
     title: 'Workspace Taxonomy & Classification',
     unclassified: 'Unclassified / Review Required',
+    notConfigured: 'Workspace classification is not configured yet.',
+    notConfiguredBadge: 'Not Configured',
     activeStatus: 'Active',
     propertyProfile: 'Property Profile',
     operatingModel: 'Operating Model',
@@ -47,6 +51,8 @@ const DICTIONARY = {
   fa: {
     title: 'طبقه‌بندی و توپولوژی فضای کاری',
     unclassified: 'طبقه‌بندی‌نشده / نیازمند بررسی',
+    notConfigured: 'طبقه‌بندی فضای کاری هنوز تنظیم نشده است.',
+    notConfiguredBadge: 'تنظیم‌نشده',
     activeStatus: 'فعال',
     propertyProfile: 'پروفایل محیطی ملک',
     operatingModel: 'مدل عملیاتی و اختیارات',
@@ -88,9 +94,17 @@ export function WorkspaceTaxonomyCard({
         `/api/customer/v1/workspace/taxonomy?context_id=${encodeURIComponent(contextId)}`,
         { headers: { 'Cache-Control': 'no-cache' } }
       );
+      if (res.status === 409) {
+        setFetchedTaxonomy({
+          has_assignment: false,
+          status: 'binding_required',
+          workspace_id: null,
+        });
+        return;
+      }
       if (!res.ok) throw new Error('Request failed');
-      const data: WorkspaceTaxonomyResponse = await res.json();
-      setFetchedTaxonomy(data);
+      const body = await res.json();
+      setFetchedTaxonomy(body.data ?? body);
     } catch {
       setError(dict.error);
     } finally {
@@ -135,6 +149,7 @@ export function WorkspaceTaxonomyCard({
   }
 
   if (!taxonomy || !taxonomy.has_assignment || !taxonomy.profile || !taxonomy.operating_model) {
+    const isUnbound = taxonomy?.status === 'binding_required' || !taxonomy?.workspace_id;
     return (
       <div
         dir={isRtl ? 'rtl' : 'ltr'}
@@ -147,12 +162,18 @@ export function WorkspaceTaxonomyCard({
             </div>
             <h3 className="text-base font-bold text-[#102A43]">{dict.title}</h3>
           </div>
-          <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200">
-            {dict.unclassified}
+          <span
+            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${
+              isUnbound
+                ? 'bg-slate-50 text-slate-600 border-slate-200'
+                : 'bg-amber-50 text-amber-700 border-amber-200'
+            }`}
+          >
+            {isUnbound ? dict.notConfiguredBadge : dict.unclassified}
           </span>
         </div>
         <p className="mt-3 text-xs text-[#52667A]">
-          {dict.noAssignmentDesc}
+          {isUnbound ? dict.notConfigured : dict.noAssignmentDesc}
         </p>
       </div>
     );

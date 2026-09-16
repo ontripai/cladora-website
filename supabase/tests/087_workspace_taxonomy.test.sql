@@ -1,8 +1,8 @@
 -- =============================================================================
--- Test 087: Universal Workspace Taxonomy & Compatibility Matrix Acceptance R3
+-- Test 087: Universal Workspace Taxonomy & Compatibility Matrix Acceptance R4
 -- =============================================================================
 begin;
-select plan(47);
+select plan(55);
 
 -- 1. Schema & Table Structural Verification (7 assertions)
 select ok(to_regclass('platform.property_profiles') is not null, 'platform.property_profiles table exists');
@@ -13,10 +13,13 @@ select ok(to_regclass('platform.property_space_kind_compatibilities') is not nul
 select ok(to_regclass('platform.workspace_taxonomy_assignments') is not null, 'platform.workspace_taxonomy_assignments table exists');
 select ok(to_regclass('platform.workspace_property_bindings') is not null, 'platform.workspace_property_bindings table exists');
 
--- 2. Seed Population Verification (3 assertions)
+-- 2. Seed Population Verification (6 assertions)
 select ok((select count(*) = 16 from platform.property_profiles where is_active = true and lifecycle_status = 'active'), 'all 16 canonical property profiles are seeded');
 select ok((select count(*) = 8 from platform.operating_models where is_active = true and lifecycle_status = 'active'), 'all 8 canonical operating models are seeded');
-select ok((select count(*) = 18 from platform.space_kinds where is_active = true and lifecycle_status = 'active'), 'all 18 canonical space kinds are seeded');
+select ok((select count(*) = 21 from platform.space_kinds where is_active = true and lifecycle_status = 'active'), 'all 21 canonical space kinds are seeded');
+select ok(exists(select 1 from platform.space_kinds where code = 'yard' and is_active = true), 'space kind yard exists');
+select ok(exists(select 1 from platform.space_kinds where code = 'loading_zone' and is_active = true), 'space kind loading_zone exists');
+select ok(exists(select 1 from platform.space_kinds where code = 'land_parcel' and is_active = true), 'space kind land_parcel exists');
 
 -- 3. Validation Constraints Runtime Verifications (3 assertions)
 -- 3a. Invalid code pattern rejected
@@ -265,6 +268,37 @@ select throws_ok(
 -- Clean up unmapped dummy profile so list_taxonomy_profiles_v1 returns the exact 16 canonical seeds
 delete from platform.property_profiles where id = '87900000-0000-0000-0000-000000000099';
 
+-- 8d. Restored Space Kinds Compatibility Verifications (3 assertions)
+select ok(
+  exists(
+    select 1 from platform.property_space_kind_compatibilities c
+    join platform.property_profiles p on p.id = c.property_profile_id
+    join platform.space_kinds s on s.id = c.space_kind_id
+    where p.code = 'warehouse_logistics' and s.code = 'yard' and c.compatibility_level = 'compatible'
+  ),
+  'yard is compatible with warehouse_logistics'
+);
+
+select ok(
+  exists(
+    select 1 from platform.property_space_kind_compatibilities c
+    join platform.property_profiles p on p.id = c.property_profile_id
+    join platform.space_kinds s on s.id = c.space_kind_id
+    where p.code = 'retail_centre' and s.code = 'loading_zone' and c.compatibility_level = 'compatible'
+  ),
+  'loading_zone is compatible with retail_centre'
+);
+
+select ok(
+  exists(
+    select 1 from platform.property_space_kind_compatibilities c
+    join platform.property_profiles p on p.id = c.property_profile_id
+    join platform.space_kinds s on s.id = c.space_kind_id
+    where p.code = 'single_villa' and s.code = 'land_parcel' and c.compatibility_level = 'compatible'
+  ),
+  'land_parcel is compatible with single_villa'
+);
+
 -- 9. Tenant Isolation in Assignment (1 assertion)
 select throws_ok(
   $$insert into platform.workspace_taxonomy_assignments(tenant_id, customer_workspace_id, property_profile_id, operating_model_id)
@@ -411,12 +445,12 @@ select throws_ok(
   'ambiguous tenant-scoped context in multi-workspace tenant fails closed without guessing'
 );
 
--- 14d. Property-scoped context without binding fails closed (Property A3 has no binding)
-select throws_ok(
-  $$select customer_api.get_workspace_taxonomy_v1('87600000-0000-0000-0000-000000000003')$$, -- Context A3 (unbound property)
-  '42501',
-  'workspace_taxonomy_context_not_workspace_bound',
-  'property-scoped context without canonical binding fails closed'
+-- 14d. Property-scoped context without binding safely returns binding_required (Property A3 has no binding)
+select ok(
+  ((customer_api.get_workspace_taxonomy_v1('87600000-0000-0000-0000-000000000003'))->>'has_assignment')::boolean = false
+  and ((customer_api.get_workspace_taxonomy_v1('87600000-0000-0000-0000-000000000003'))->>'status') = 'binding_required'
+  and (customer_api.get_workspace_taxonomy_v1('87600000-0000-0000-0000-000000000003'))->>'workspace_id' is null,
+  'valid property-scoped context without binding safely returns binding_required without leaking workspace ID'
 );
 
 -- 14e. Two-workspace same-tenant isolation: Context A1 resolves ONLY Workspace A1 via canonical binding
@@ -447,13 +481,24 @@ select ok(
 );
 
 select ok(
-  jsonb_array_length(customer_api.list_taxonomy_space_kinds_v1('87600000-0000-0000-0000-000000000001')) = 18,
-  'list_taxonomy_space_kinds_v1 returns exactly 18 current active space kinds'
+  jsonb_array_length(customer_api.list_taxonomy_space_kinds_v1('87600000-0000-0000-0000-000000000001')) = 21,
+  'list_taxonomy_space_kinds_v1 returns exactly 21 current active space kinds'
 );
 
 reset role;
 
--- 16. Non-Derivation & Zero Side-Effect Guarantees (1 assertion)
+-- 16. Privileged Functions Execution Revoke Verification (2 assertions)
+select ok(
+  not has_function_privilege('authenticated', 'app_private.guard_taxonomy_version_effective_period_v1()', 'EXECUTE'),
+  'authenticated role cannot directly execute guard_taxonomy_version_effective_period_v1'
+);
+
+select ok(
+  not has_function_privilege('authenticated', 'app_private.guard_workspace_property_binding_v1()', 'EXECUTE'),
+  'authenticated role cannot directly execute guard_workspace_property_binding_v1'
+);
+
+-- 17. Non-Derivation & Zero Side-Effect Guarantees (1 assertion)
 select ok(
   (select count(*) = 0 from finance.journals where tenant_id in ('87100000-0000-0000-0000-000000000001', '87100000-0000-0000-0000-000000000002')),
   'taxonomy classification emits zero financial journals'

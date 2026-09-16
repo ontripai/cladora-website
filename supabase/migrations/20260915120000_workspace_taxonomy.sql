@@ -163,6 +163,9 @@ declare
   v_overlap boolean;
 begin
   if new.is_active = true and new.lifecycle_status = 'active' then
+    -- Deterministic transactional lock per (table, code) to serialize concurrent version inserts
+    perform pg_advisory_xact_lock(hashtextextended(TG_TABLE_SCHEMA || ':' || TG_TABLE_NAME || ':' || new.code, 0));
+
     if TG_TABLE_NAME = 'property_profiles' then
       select exists (
         select 1 from platform.property_profiles p
@@ -325,29 +328,31 @@ declare
   v_workspace_tenant uuid;
   v_property_tenant uuid;
 begin
-  -- 1. Validate Customer Workspace tenant
-  select tenant_id into v_workspace_tenant
-  from platform.customer_workspaces
-  where id = new.customer_workspace_id for update;
-
-  if not found then
-    raise exception 'workspace_property_binding_workspace_not_found' using errcode = 'P0002';
-  end if;
-
-  if v_workspace_tenant <> new.tenant_id then
-    raise exception 'workspace_taxonomy_workspace_binding_tenant_mismatch' using errcode = '42501';
-  end if;
-
-  -- 2. Validate Property tenant
+  -- 1. Lock and validate Property tenant (serialize concurrent bindings targeting the same property)
   select tenant_id into v_property_tenant
   from portfolio.properties
-  where id = new.property_id;
+  where id = new.property_id
+  for update;
 
   if not found then
     raise exception 'workspace_property_binding_property_not_found' using errcode = 'P0002';
   end if;
 
   if v_property_tenant <> new.tenant_id then
+    raise exception 'workspace_taxonomy_workspace_binding_tenant_mismatch' using errcode = '42501';
+  end if;
+
+  -- 2. Validate Customer Workspace tenant
+  select tenant_id into v_workspace_tenant
+  from platform.customer_workspaces
+  where id = new.customer_workspace_id
+  for update;
+
+  if not found then
+    raise exception 'workspace_property_binding_workspace_not_found' using errcode = 'P0002';
+  end if;
+
+  if v_workspace_tenant <> new.tenant_id then
     raise exception 'workspace_taxonomy_workspace_binding_tenant_mismatch' using errcode = '42501';
   end if;
 
@@ -523,7 +528,7 @@ grant select, insert, update, delete on platform.workspace_taxonomy_assignments 
 grant select, insert, update, delete on platform.workspace_property_bindings to service_role;
 
 -- ============================================================================
--- Seed Registries (16 Property Profiles, 8 Operating Models, 18 Space Kinds)
+-- Seed Registries (16 Property Profiles, 8 Operating Models, 21 Space Kinds)
 -- ============================================================================
 
 -- 1. Property Profiles Seeds
@@ -578,7 +583,10 @@ values
   ('technical_room', 1, 'Technical Room', jsonb_build_object('en','Technical Room','ro','Cameră tehnică','fa','اتاق تأسیسات فنی'), 'HVAC room, electrical transformer, boiler room or pump station'),
   ('courtyard_garden', 1, 'Courtyard & Garden', jsonb_build_object('en','Courtyard & Garden','ro','Curte interioară și grădină','fa','حیاط مرکزی و فضای سبز'), 'Shared residential courtyard, landscaped garden or park area'),
   ('roof_deck', 1, 'Roof Deck & Terrace', jsonb_build_object('en','Roof Deck & Terrace','ro','Terasă pe acoperiș','fa','تراس / روف‌گاردن'), 'Accessible shared rooftop terrace or private penthouse deck'),
-  ('infrastructure_node', 1, 'Infrastructure Node', jsonb_build_object('en','Infrastructure Node','ro','Nod de infrastructură','fa','گره زیرساخت و دسترسی'), 'Access gates, telecom rooms, waste management hub or utility metering point');
+  ('infrastructure_node', 1, 'Infrastructure Node', jsonb_build_object('en','Infrastructure Node','ro','Nod de infrastructură','fa','گره زیرساخت و دسترسی'), 'Access gates, telecom rooms, waste management hub or utility metering point'),
+  ('yard', 1, 'Yard & Outdoor Staging', jsonb_build_object('en','Yard & Outdoor Staging','ro','Curte / Zonă deschisă depozitare','fa','حیاط / محوطه بارانداز و انبارش'), 'Enclosed or open yard for exterior storage, fleet staging or outdoor operations'),
+  ('loading_zone', 1, 'Loading Zone & Logistics Dock', jsonb_build_object('en','Loading Zone & Logistics Dock','ro','Zonă de încărcare / descărcare','fa','سکوی تخلیه و بارگیری / بارانداز'), 'Freight loading dock, delivery staging area or logistical dispatch ramp'),
+  ('land_parcel', 1, 'Land Parcel', jsonb_build_object('en','Land Parcel','ro','Parcelă de teren','fa','قطعه زمین / پلاک ملکی'), 'Demarcated cadastral land parcel, plot or ground-level subdivision');
 
 -- 4. Seed Canonical Compatibility Rules (Property Profile <-> Operating Model)
 insert into platform.property_operating_model_compatibilities (property_profile_id, operating_model_id, compatibility_level, reason)
@@ -677,12 +685,12 @@ select p.id, s.id,
     when p.code = 'residential_complex' then 'incompatible'
 
     -- Gated Villa Community
-    when p.code = 'gated_villa_community' and s.code in ('villa', 'parking_space', 'storage_space', 'common_area', 'amenity', 'shared_facility', 'technical_room', 'service_point', 'courtyard_garden', 'infrastructure_node') then 'compatible'
+    when p.code = 'gated_villa_community' and s.code in ('villa', 'parking_space', 'storage_space', 'common_area', 'amenity', 'shared_facility', 'technical_room', 'service_point', 'courtyard_garden', 'infrastructure_node', 'yard', 'land_parcel') then 'compatible'
     when p.code = 'gated_villa_community' and s.code in ('provider_location', 'retail_unit') then 'review_required'
     when p.code = 'gated_villa_community' then 'incompatible'
 
     -- Single Villa
-    when p.code = 'single_villa' and s.code in ('villa', 'parking_space', 'storage_space', 'courtyard_garden', 'amenity', 'technical_room') then 'compatible'
+    when p.code = 'single_villa' and s.code in ('villa', 'parking_space', 'storage_space', 'courtyard_garden', 'amenity', 'technical_room', 'yard', 'land_parcel') then 'compatible'
     when p.code = 'single_villa' then 'incompatible'
 
     -- Small Landlord Portfolio
@@ -691,29 +699,29 @@ select p.id, s.id,
     when p.code = 'small_landlord_portfolio' then 'incompatible'
 
     -- Mixed Use Estate
-    when p.code = 'mixed_use_estate' and s.code in ('residential_unit', 'retail_unit', 'office_suite', 'parking_space', 'storage_space', 'common_area', 'shared_facility', 'amenity', 'service_point', 'provider_location', 'technical_room', 'courtyard_garden', 'roof_deck', 'infrastructure_node') then 'compatible'
-    when p.code = 'mixed_use_estate' and s.code = 'warehouse_bay' then 'review_required'
+    when p.code = 'mixed_use_estate' and s.code in ('residential_unit', 'retail_unit', 'office_suite', 'parking_space', 'storage_space', 'common_area', 'shared_facility', 'amenity', 'service_point', 'provider_location', 'technical_room', 'courtyard_garden', 'roof_deck', 'infrastructure_node', 'loading_zone') then 'compatible'
+    when p.code = 'mixed_use_estate' and s.code in ('warehouse_bay', 'yard', 'land_parcel') then 'review_required'
     when p.code = 'mixed_use_estate' then 'incompatible'
 
     -- Retail Centre
-    when p.code = 'retail_centre' and s.code in ('retail_unit', 'parking_space', 'storage_space', 'common_area', 'service_point', 'provider_location', 'technical_room', 'infrastructure_node', 'amenity') then 'compatible'
-    when p.code = 'retail_centre' and s.code in ('office_suite', 'warehouse_bay') then 'review_required'
+    when p.code = 'retail_centre' and s.code in ('retail_unit', 'parking_space', 'storage_space', 'common_area', 'service_point', 'provider_location', 'technical_room', 'infrastructure_node', 'amenity', 'loading_zone') then 'compatible'
+    when p.code = 'retail_centre' and s.code in ('office_suite', 'warehouse_bay', 'yard') then 'review_required'
     when p.code = 'retail_centre' then 'incompatible'
 
     -- Office Centre
     when p.code = 'office_centre' and s.code in ('office_suite', 'retail_unit', 'parking_space', 'storage_space', 'common_area', 'shared_facility', 'service_point', 'provider_location', 'technical_room', 'infrastructure_node') then 'compatible'
-    when p.code = 'office_centre' and s.code = 'warehouse_bay' then 'review_required'
+    when p.code = 'office_centre' and s.code in ('warehouse_bay', 'loading_zone', 'yard') then 'review_required'
     when p.code = 'office_centre' then 'incompatible'
 
     -- Warehouse & Logistics
-    when p.code = 'warehouse_logistics' and s.code in ('warehouse_bay', 'industrial_lot', 'office_suite', 'parking_space', 'storage_space', 'technical_room', 'infrastructure_node', 'service_point') then 'compatible'
+    when p.code = 'warehouse_logistics' and s.code in ('warehouse_bay', 'industrial_lot', 'office_suite', 'parking_space', 'storage_space', 'technical_room', 'infrastructure_node', 'service_point', 'yard', 'loading_zone') then 'compatible'
     when p.code = 'warehouse_logistics' then 'incompatible'
 
     -- Managed Township
     when p.code = 'managed_township' then 'compatible'
 
     -- Industrial Park
-    when p.code = 'industrial_park' and s.code in ('industrial_lot', 'factory_hall', 'warehouse_bay', 'office_suite', 'parking_space', 'storage_space', 'technical_room', 'infrastructure_node', 'service_point') then 'compatible'
+    when p.code = 'industrial_park' and s.code in ('industrial_lot', 'factory_hall', 'warehouse_bay', 'office_suite', 'parking_space', 'storage_space', 'technical_room', 'infrastructure_node', 'service_point', 'yard', 'loading_zone', 'land_parcel') then 'compatible'
     when p.code = 'industrial_park' then 'incompatible'
 
     -- Serviced Residence
@@ -809,7 +817,13 @@ begin
       and b.valid_from <= statement_timestamp() and (b.valid_to is null or b.valid_to > statement_timestamp());
 
     if v_binding_count = 0 then
-      raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
+      -- Unbound property: valid context has no taxonomy binding yet.
+      -- Return neutral controlled unconfigured state without leaking workspace ID or tenant info.
+      return jsonb_build_object(
+        'has_assignment', false,
+        'status', 'binding_required',
+        'workspace_id', null
+      );
     elsif v_binding_count > 1 then
       raise exception 'workspace_taxonomy_workspace_binding_ambiguous' using errcode = '42501';
     end if;
@@ -832,7 +846,11 @@ begin
       and lifecycle_status in ('PROVISIONING', 'ACTIVE');
 
     if v_workspace.id is null then
-      raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
+      return jsonb_build_object(
+        'has_assignment', false,
+        'status', 'binding_required',
+        'workspace_id', null
+      );
     end if;
   else
     -- Pure tenant-scoped context without property/building/unit scope
@@ -844,14 +862,24 @@ begin
       select * into v_workspace
       from platform.customer_workspaces
       where tenant_id = v_grant.membership_tenant and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+    elsif v_ws_count = 0 then
+      return jsonb_build_object(
+        'has_assignment', false,
+        'status', 'binding_required',
+        'workspace_id', null
+      );
     else
-      -- Tenant has 0 or >1 workspaces; fail-closed without guessing
+      -- Tenant has >1 workspaces; fail-closed without guessing
       raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
     end if;
   end if;
 
   if v_workspace.id is null then
-    raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
+    return jsonb_build_object(
+      'has_assignment', false,
+      'status', 'binding_required',
+      'workspace_id', null
+    );
   end if;
 
   -- 5. Resolve active taxonomy assignment
@@ -1051,6 +1079,13 @@ grant execute on function customer_api.list_taxonomy_profiles_v1(uuid) to authen
 grant execute on function customer_api.list_taxonomy_operating_models_v1(uuid) to authenticated, service_role;
 grant execute on function customer_api.list_taxonomy_space_kinds_v1(uuid) to authenticated, service_role;
 
+-- Privileged Functions Security: Revoke all on app_private functions from public, anon, authenticated
+revoke all on function app_private.guard_taxonomy_version_effective_period_v1() from public, anon, authenticated;
+revoke all on function app_private.guard_taxonomy_record_immutability_v1() from public, anon, authenticated;
+revoke all on function app_private.guard_workspace_taxonomy_assignment_history_v1() from public, anon, authenticated;
+revoke all on function app_private.guard_workspace_property_binding_history_v1() from public, anon, authenticated;
+revoke all on function app_private.guard_workspace_property_binding_v1() from public, anon, authenticated;
+revoke all on function app_private.guard_workspace_taxonomy_assignment_v1() from public, anon, authenticated;
 revoke all on function app_private.validate_taxonomy_compatibility_v1(uuid, uuid) from public, anon, authenticated;
 grant execute on function app_private.validate_taxonomy_compatibility_v1(uuid, uuid) to service_role;
 
