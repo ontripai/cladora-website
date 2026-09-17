@@ -29,9 +29,11 @@ All strict prohibitions were upheld:
 
 1. **Database Migration 101:**
    - Path: `supabase/migrations/20260916120000_workspace_taxonomy_mutation.sql`
+   - SHA-256: `90F9FF8C11A6707997892FB2FF2C91797A133DE48EA93425E3D48639E61CA6BF`
    - Scope: Permission `workspace.taxonomy.manage` seed validation without `DO UPDATE`, future role bootstrap trigger (`trg_bootstrap_role_taxonomy_permissions`), canonical `country_code` column on `platform.workspace_taxonomy_assignments`, forward updates to `guard_workspace_taxonomy_assignment_history_v1` and `guard_workspace_taxonomy_assignment_v1`, options RPC `get_taxonomy_catalog_options_v1`, updated resolver `get_workspace_taxonomy_v1`, and transactional RPC `customer_api.assign_workspace_taxonomy_v1`.
 2. **pgTAP Test 088:**
    - Path: `supabase/tests/088_workspace_taxonomy_mutation.test.sql`
+   - SHA-256: `4F4640467AE59E357D83C21C5AB05341539BE95540C1D9A1D0616B78082F57F4`
    - Plan: 53 planned and executed assertions in `BEGIN; ... ROLLBACK;`.
 3. **Database Package Invariant:**
    - Contract passed: 101 migrations, 88 tests, 2878 assertions.

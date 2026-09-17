@@ -102,10 +102,10 @@ begin
     (v_grant_unbound, v_mem_admin, v_tenant_a, 'property', v_prop_unbound);
 
   -- Setup lifecycle testing catalog records
-  insert into platform.property_profiles(id, code, version, name, description, is_active, lifecycle_status, valid_from, valid_to) values
-    ('88c00000-0000-0000-0000-000000000001', 'synth_inactive_profile', 1, 'Inactive Synth', 'Inactive', false, 'archived', statement_timestamp() - interval '10 days', null),
-    ('88c00000-0000-0000-0000-000000000002', 'synth_future_profile', 1, 'Future Synth', 'Future', true, 'active', statement_timestamp() + interval '10 days', null),
-    ('88c00000-0000-0000-0000-000000000003', 'synth_expired_profile', 1, 'Expired Synth', 'Expired', true, 'active', statement_timestamp() - interval '10 days', statement_timestamp() - interval '1 day');
+  insert into platform.property_profiles(id, code, version, name, labels_json, description, is_active, lifecycle_status, valid_from, valid_to) values
+    ('88c00000-0000-0000-0000-000000000001', 'synth_inactive_profile', 1, 'Inactive Synth', '{"ro":"Inactiv","en":"Inactive","fa":"غیرفعال"}'::jsonb, 'Inactive', false, 'archived', statement_timestamp() - interval '10 days', null),
+    ('88c00000-0000-0000-0000-000000000002', 'synth_future_profile', 1, 'Future Synth', '{"ro":"Viitor","en":"Future","fa":"آینده"}'::jsonb, 'Future', true, 'active', statement_timestamp() + interval '10 days', null),
+    ('88c00000-0000-0000-0000-000000000003', 'synth_expired_profile', 1, 'Expired Synth', '{"ro":"Expirat","en":"Expired","fa":"منقضی"}'::jsonb, 'Expired', true, 'active', statement_timestamp() - interval '10 days', statement_timestamp() - interval '1 day');
 end $$;
 
 -- 3. Anonymous caller rejected (1 assertion)
