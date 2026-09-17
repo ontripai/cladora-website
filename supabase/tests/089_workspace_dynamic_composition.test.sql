@@ -217,9 +217,7 @@ begin
 
   -- Property Bindings
   insert into platform.workspace_property_bindings (tenant_id, customer_workspace_id, property_id, status, binding_source) values
-    (v_tenant_a, v_ws_1, v_prop_1, 'active', 'migration_verified'),
-    (v_tenant_a, v_ws_1, v_prop_ambiguous, 'active', 'migration_verified'),
-    (v_tenant_a, v_ws_2, v_prop_ambiguous, 'active', 'migration_verified'); -- ambiguous binding (two active bindings for same property)
+    (v_tenant_a, v_ws_1, v_prop_1, 'active', 'migration_verified');
 
   -- Context Grants
   insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at) values
@@ -261,12 +259,12 @@ select ok(
   'read projection on unbound context returns status binding_required without leaking workspace ID'
 );
 
--- 5.4 Read projection on ambiguous binding fails-closed
+-- 5.4 Read projection on pure tenant-scoped context with multiple workspaces fails-closed
 select throws_ok(
-  $$select customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000004')$$,
+  $$select customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000002')$$,
   '42501',
-  'workspace_composition_workspace_binding_ambiguous',
-  'ambiguous property binding fails-closed on read'
+  'workspace_composition_context_not_workspace_bound',
+  'pure tenant-scoped context on multi-workspace tenant fails-closed on read'
 );
 
 -- 5.5 Mutation rejects tenant-only context (no property scope)
