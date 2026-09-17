@@ -905,9 +905,8 @@ select ok(
   'effective permission returns false when module permission binding is future-dated (fail-closed)'
 );
 
--- Clean up temporary test module definitions and bindings
+-- Clean up temporary test module bindings
 delete from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'temp_binding_mod');
-delete from platform.module_definitions where code in ('future_mod', 'expired_mod', 'temp_binding_mod');
 
 -- Switch auth to admin for doc_viewer role setup
 select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000010', 'role', 'authenticated', 'aal', 'aal2')::text, true);
