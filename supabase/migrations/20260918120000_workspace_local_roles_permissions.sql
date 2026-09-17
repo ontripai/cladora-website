@@ -2753,4 +2753,37 @@ grant select, insert, update, delete on platform.workspace_role_permissions to s
 grant select, insert, update, delete on platform.workspace_member_roles to service_role;
 grant select, insert, update, delete on platform.workspace_role_idempotency to service_role;
 
+-- ----------------------------------------------------------------------------
+-- 21. Operational Cleanup Gateway: guard_workspace_property_binding_history_v1
+-- ----------------------------------------------------------------------------
+create or replace function app_private.guard_workspace_property_binding_history_v1()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, platform
+as $$
+begin
+  if tg_op = 'DELETE' then
+    if current_setting('app.operational_cleanup', true) = 'true' then
+      return old;
+    end if;
+    raise exception 'workspace_property_binding_history_immutable' using errcode = '42501';
+  elsif tg_op = 'UPDATE' then
+    if old.id <> new.id
+       or old.tenant_id <> new.tenant_id
+       or old.customer_workspace_id <> new.customer_workspace_id
+       or old.property_id <> new.property_id
+       or old.binding_source <> new.binding_source
+       or (old.created_by is distinct from new.created_by)
+       or old.created_at <> new.created_at
+       or old.valid_from <> new.valid_from then
+      raise exception 'workspace_property_binding_history_immutable' using errcode = '42501';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function app_private.guard_workspace_property_binding_history_v1() from public, anon, authenticated;
+
 commit;
