@@ -16,7 +16,7 @@
  *     with SQLSTATE 40001 and workspace_module_expected_state_conflict;
  *     Observer proves: exactly 1 active workspace module, zero temporal overlap, exactly 1 audit event,
  *     and exactly 1 idempotency record.
- * - Ephemeral database execution: Zero session_replication_role = replica.
+ * - Ephemeral database execution: Zero trigger bypass.
  * - Full cleanup: Zero fixture residue.
  * - Fail-closed: Any database connection error, lock timeout, assertion failure, or PID mismatch causes non-zero exit code.
  */

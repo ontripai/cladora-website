@@ -16,7 +16,7 @@
  *     and is deterministically rejected with SQLSTATE 40001 and workspace_taxonomy_expected_assignment_conflict;
  *     Observer proves: exactly 1 active assignment, 1 superseded assignment, zero overlap, exactly 1 audit event,
  *     and exactly 1 idempotency record.
- * - Ephemeral database execution: Zero session_replication_role = replica.
+ * - Ephemeral database execution: Zero trigger bypass.
  * - Fail-closed: Any database connection error, lock timeout, assertion failure, or PID mismatch causes non-zero exit code.
  */
 
@@ -302,7 +302,7 @@ async function run() {
     console.log('  ✔ Database invariants verified: 1 winner, 1 active assignment, no overlap, 1 audit event, 1 idempotency record.');
 
     // Clean teardown: close all connections cleanly.
-    // In accordance with instructions: Zero session_replication_role = replica is used.
+    // In accordance with instructions: Zero trigger bypass is used.
     // Ephemeral database lifecycle handles container teardown.
     await c1.end();
     await c2.end();

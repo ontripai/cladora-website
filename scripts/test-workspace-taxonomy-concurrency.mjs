@@ -259,14 +259,12 @@ async function setupScenarioBFixtures(client) {
 }
 
 async function cleanupScenarioBFixtures(client) {
-  await client.query('SET session_replication_role = replica');
   await client.query(`DELETE FROM platform.workspace_property_bindings WHERE tenant_id = $1`, [F_TENANT]);
   await client.query(`DELETE FROM portfolio.properties WHERE tenant_id = $1`, [F_TENANT]);
   await client.query(`DELETE FROM portfolio.addresses WHERE tenant_id = $1`, [F_TENANT]);
   await client.query(`DELETE FROM platform.customer_workspaces WHERE tenant_id = $1`, [F_TENANT]);
   await client.query(`DELETE FROM platform.tenants WHERE id = $1`, [F_TENANT]);
   await client.query(`DELETE FROM auth.users WHERE id = $1`, [F_USER]);
-  await client.query('SET session_replication_role = DEFAULT');
 }
 
 async function runScenarioB(conA, conB, conObs) {

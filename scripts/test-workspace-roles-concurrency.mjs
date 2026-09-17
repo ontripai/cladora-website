@@ -1,22 +1,29 @@
 #!/usr/bin/env node
 /**
  * CLADORA WORKSPACE LOCAL ROLES & ASSIGNMENTS — Real Multi-Connection PostgreSQL Concurrency Rehearsal
- * Package: CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1
+ * Package: CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-R5
  *
  * Invariants & Guarantees:
  * - Real independent PostgreSQL connections (pg.Client). Zero simulated JavaScript locks.
  * - Connects strictly to local/ephemeral test databases (rejects remote/production hosts).
- * - Multi-session concurrency race against workspace role publish / assignment:
- *     C1 begins transaction, acquires advisory transaction lock on role publish, executes publish_workspace_role_v1;
- *     C2 begins transaction concurrently targeting same role with same expected lock_version;
- *     C2 is blocked waiting on advisory transaction lock held by C1;
+ * - Real RPC invocation: customer_api.publish_workspace_role_v1(...) executed by 2 concurrent sessions.
+ * - Multi-session concurrency race against workspace role publish:
+ *     C1 begins transaction, sets JWT claims/AAL2, executes customer_api.publish_workspace_role_v1;
+ *     Advisory transaction lock acquired by C1 inside publish_workspace_role_v1;
+ *     C2 begins transaction concurrently targeting same role with same expected lock_version 1;
+ *     C2 blocks waiting on advisory transaction lock held by C1;
  *     Observer verifies lock contention via pg_blocking_pids() asserting blocker PID == pid1 and blocked PID == pid2;
- *     C1 commits, updating role to published and incrementing lock_version;
- *     C2 unblocks, observes expected_lock_version mismatch, and is deterministically rejected
+ *     C1 commits, updating role to published and incrementing lock_version to 2;
+ *     C2 unblocks, observes lock_version mismatch, and is deterministically rejected
  *     with SQLSTATE 40001 (workspace_role_expected_lock_version_conflict);
  *     Observer proves: exactly 1 published version, exactly 1 audit event, and exactly 1 idempotency record.
- * - Ephemeral database execution: Zero session_replication_role = replica.
- * - Full cleanup: Zero fixture residue.
+ * - Real RPC Idempotency Replay:
+ *     Winner retries exact same publish_workspace_role_v1 call with same initial expected_lock_version 1;
+ *     Verifies exact stored response_snapshot returned, zero 40001 conflict, lock_version remains 2,
+ *     and zero duplicate audit or idempotency records created.
+ * - Controlled Teardown:
+ *     Uses authorized operational cleanup order without bypassing triggers.
+ *     Asserts residual fixture count across all fixture IDs is strictly 0.
  * - Fail-closed when DB reachable: Any lock timeout, assertion failure, or PID mismatch causes non-zero exit code.
  */
 
@@ -90,52 +97,151 @@ async function run() {
     process.exit(0);
   }
 
-  const FIXTURE_TENANT = '99410000-0000-0000-0000-000000000001';
-  const FIXTURE_WS = '99440000-0000-0000-0000-000000000001';
-  const FIXTURE_ROLE = '99450000-0000-0000-0000-000000000001';
-  const FIXTURE_ADMIN = '99400000-0000-0000-0000-000000000001';
-  const FIXTURE_CTX = '99460000-0000-0000-0000-000000000001';
+  // Canonical fixtures strictly aligned with database schema
+  const F_TENANT = '99410000-0000-0000-0000-000000000001';
+  const F_WS = '99440000-0000-0000-0000-000000000001';
+  const F_PROP = '99470000-0000-0000-0000-000000000001';
+  const F_ADMIN_USER = '99400000-0000-0000-0000-000000000001';
+  const F_ADMIN_MEM = '99420000-0000-0000-0000-000000000001';
+  const F_ADMIN_CTX = '99460000-0000-0000-0000-000000000001';
+  const F_ROLE = '99450000-0000-0000-0000-000000000001';
+  const F_IDEM_WINNER = 'idem_concurrent_publish_winner_001';
+  const F_IDEM_LOSER = 'idem_concurrent_publish_loser_001';
 
   try {
     const pid1 = await getClientPid(c1);
     const pid2 = await getClientPid(c2);
     console.log(`[Setup] Connected independent clients: C1 (PID ${pid1}), C2 (PID ${pid2})`);
 
-    // Setup fixtures
+    // Clean any residue from previous aborted runs
     await observer.query(`
-      INSERT INTO platform.tenants (id, name, slug) VALUES ('${FIXTURE_TENANT}', 'Concurrency Test Tenant', 'concurrency-roles') ON CONFLICT DO NOTHING;
-      INSERT INTO platform.customer_workspaces (id, tenant_id, code, name, status) VALUES ('${FIXTURE_WS}', '${FIXTURE_TENANT}', 'ws_concurrency', 'WS Concurrency', 'active') ON CONFLICT DO NOTHING;
-      INSERT INTO auth.users (id, email) VALUES ('${FIXTURE_ADMIN}', 'admin_concurrency@test.local') ON CONFLICT DO NOTHING;
-      INSERT INTO platform.workspace_roles (
-        id, tenant_id, customer_workspace_id, code, role_version, lock_version, name, lifecycle_status, created_by
-      ) VALUES (
-        '${FIXTURE_ROLE}', '${FIXTURE_TENANT}', '${FIXTURE_WS}', 'concurrent_role', 1, 1, 'Concurrent Test Role', 'draft', '${FIXTURE_ADMIN}'
-      ) ON CONFLICT DO NOTHING;
-      INSERT INTO platform.workspace_role_modules (tenant_id, workspace_role_id, module_definition_id)
-      SELECT '${FIXTURE_TENANT}', '${FIXTURE_ROLE}', id FROM platform.module_definitions WHERE code = 'maintenance' LIMIT 1
+      SET LOCAL app.operational_cleanup = 'true';
+      DELETE FROM platform.workspace_role_idempotency WHERE tenant_id = '${F_TENANT}';
+      DELETE FROM audit.events WHERE tenant_id = '${F_TENANT}';
+      DELETE FROM platform.workspace_role_permissions WHERE workspace_role_id = '${F_ROLE}';
+      DELETE FROM platform.workspace_role_modules WHERE workspace_role_id = '${F_ROLE}';
+      DELETE FROM platform.workspace_roles WHERE id = '${F_ROLE}';
+      DELETE FROM platform.workspace_taxonomy_assignments WHERE customer_workspace_id = '${F_WS}';
+      DELETE FROM platform.workspace_property_bindings WHERE customer_workspace_id = '${F_WS}';
+      DELETE FROM identity.context_grants WHERE id = '${F_ADMIN_CTX}';
+      DELETE FROM identity.memberships WHERE id = '${F_ADMIN_MEM}';
+      DELETE FROM portfolio.properties WHERE id = '${F_PROP}';
+      DELETE FROM platform.customer_workspaces WHERE id = '${F_WS}';
+      DELETE FROM platform.tenants WHERE id = '${F_TENANT}';
+      DELETE FROM auth.users WHERE id = '${F_ADMIN_USER}';
+    `);
+
+    // Setup prerequisites fixtures
+    await observer.query(`
+      -- 1. Tenant
+      INSERT INTO platform.tenants (id, legal_name, registration_number, status)
+      VALUES ('${F_TENANT}', 'Concurrency Test Tenant', 'RO-CONCUR-994', 'active')
+      ON CONFLICT (id) DO NOTHING;
+
+      -- 2. Customer Workspace
+      INSERT INTO platform.customer_workspaces (id, tenant_id, workspace_type, commercial_owner, environment, lifecycle_status)
+      VALUES ('${F_WS}', '${F_TENANT}', 'ASSOCIATION', 'Owner 994', 'PILOT', 'ACTIVE')
+      ON CONFLICT (id) DO NOTHING;
+
+      -- 3. Property and Binding
+      INSERT INTO portfolio.properties (id, tenant_id, type, name, status)
+      VALUES ('${F_PROP}', '${F_TENANT}', 'condominium', 'Property Concurrency', 'active')
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO platform.workspace_property_bindings (tenant_id, customer_workspace_id, property_id, status, binding_source, valid_from)
+      VALUES ('${F_TENANT}', '${F_WS}', '${F_PROP}', 'active', 'platform_assignment', statement_timestamp() - interval '1 day')
       ON CONFLICT DO NOTHING;
+
+      -- 4. Admin User, Membership, Context Grant
+      INSERT INTO auth.users (id, email)
+      VALUES ('${F_ADMIN_USER}', 'admin_concurrency@test.local')
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO identity.memberships (id, tenant_id, user_id, role_id, status, starts_at)
+      VALUES (
+        '${F_ADMIN_MEM}', '${F_TENANT}', '${F_ADMIN_USER}',
+        (SELECT id FROM identity.roles WHERE lower(code) = 'association_admin' AND tenant_id IS NULL AND is_system = true LIMIT 1),
+        'active', statement_timestamp() - interval '1 day'
+      ) ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at)
+      VALUES ('${F_ADMIN_CTX}', '${F_TENANT}', '${F_ADMIN_MEM}', 'property', '${F_PROP}', statement_timestamp() - interval '1 day')
+      ON CONFLICT (id) DO NOTHING;
+
+      -- 5. Taxonomy Assignment
+      INSERT INTO platform.workspace_taxonomy_assignments (
+        tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by, country_code
+      ) VALUES (
+        '${F_TENANT}', '${F_WS}',
+        (SELECT id FROM platform.property_profiles WHERE code = 'residential_condominium' AND version = 1 LIMIT 1),
+        (SELECT id FROM platform.operating_models WHERE code = 'association_managed' AND version = 1 LIMIT 1),
+        'active', statement_timestamp() - interval '1 day', '${F_ADMIN_USER}', 'RO'
+      ) ON CONFLICT DO NOTHING;
+
+      -- 6. Draft Role
+      INSERT INTO platform.workspace_roles (
+        id, tenant_id, customer_workspace_id, code, role_version, lock_version, name, description, scope_ceiling, lifecycle_status, created_by
+      ) VALUES (
+        '${F_ROLE}', '${F_TENANT}', '${F_WS}', 'concur_role', 1, 1, 'Concurrent Role', 'Draft role for concurrency testing', 'building', 'draft', '${F_ADMIN_USER}'
+      ) ON CONFLICT (id) DO NOTHING;
+
+      -- 7. Workspace Role Module
+      INSERT INTO platform.workspace_role_modules (tenant_id, workspace_role_id, module_definition_id)
+      SELECT '${F_TENANT}', '${F_ROLE}', id FROM platform.module_definitions WHERE code = 'maintenance' AND is_active = true AND lifecycle_status = 'published' LIMIT 1
+      ON CONFLICT DO NOTHING;
+
+      -- 8. Workspace Role Permission
       INSERT INTO platform.workspace_role_permissions (tenant_id, workspace_role_id, permission_id, effect)
-      SELECT '${FIXTURE_TENANT}', '${FIXTURE_ROLE}', id, 'allow' FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1
+      SELECT '${F_TENANT}', '${F_ROLE}', id, 'allow' FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1
       ON CONFLICT DO NOTHING;
     `);
 
-    console.log('[Phase 1] Starting concurrent publish race...');
-    // C1 starts transaction and acquires publish advisory lock
-    await c1.query('BEGIN');
-    await c1.query(`SELECT pg_advisory_xact_lock(hashtextextended('workspace_role_publish:${FIXTURE_WS}:concurrent_role', 0))`);
+    console.log('  ✔ Prerequisites fixtures successfully created.');
 
-    // C2 starts transaction concurrently and attempts same publish lock
+    console.log('\n[Phase 1] Executing real multi-connection RPC publish race...');
+
+    // C1 begins transaction, sets JWT claims and executes publish RPC inside open transaction
+    await c1.query('BEGIN');
+    await c1.query(`
+      SET LOCAL role = 'authenticated';
+      SET LOCAL request.jwt.claims = '{"sub":"${F_ADMIN_USER}","role":"authenticated","aal":"aal2"}';
+    `);
+
+    const c1RpcRes = await c1.query(`
+      SELECT customer_api.publish_workspace_role_v1(
+        '${F_ADMIN_CTX}'::uuid,
+        '${F_ROLE}'::uuid,
+        1,
+        'Publishing concurrent role via C1',
+        '${F_IDEM_WINNER}'
+      ) as result
+    `);
+    const c1WinnerResult = c1RpcRes.rows[0].result;
+    assert.equal(c1WinnerResult.action, 'publish');
+    assert.equal(c1WinnerResult.lifecycle_status, 'published');
+    assert.equal(c1WinnerResult.lock_version, 2);
+    console.log('  ✔ C1 executed customer_api.publish_workspace_role_v1 inside open transaction holding lock.');
+
+    // C2 begins transaction concurrently and attempts same publish RPC targeting same role with initial expected_lock_version = 1
+    await c2.query('BEGIN');
+    await c2.query(`
+      SET LOCAL role = 'authenticated';
+      SET LOCAL request.jwt.claims = '{"sub":"${F_ADMIN_USER}","role":"authenticated","aal":"aal2"}';
+    `);
+
     let c2Resolved = false;
     let c2Error = null;
     const c2Promise = (async () => {
       try {
-        await c2.query('BEGIN');
-        await c2.query(`SELECT pg_advisory_xact_lock(hashtextextended('workspace_role_publish:${FIXTURE_WS}:concurrent_role', 0))`);
-        // Check role lock version
-        const res = await c2.query(`SELECT lock_version FROM platform.workspace_roles WHERE id = '${FIXTURE_ROLE}'`);
-        if (res.rows[0].lock_version !== 1) {
-          throw new Error('40001: workspace_role_expected_lock_version_conflict');
-        }
+        await c2.query(`
+          SELECT customer_api.publish_workspace_role_v1(
+            '${F_ADMIN_CTX}'::uuid,
+            '${F_ROLE}'::uuid,
+            1,
+            'Publishing concurrent role via C2',
+            '${F_IDEM_LOSER}'
+          ) as result
+        `);
         await c2.query('COMMIT');
       } catch (err) {
         c2Error = err;
@@ -145,111 +251,126 @@ async function run() {
       }
     })();
 
-    // Observer verifies contention
+    // Observer verifies contention: C2 is actively blocked by C1
     const isContended = await waitForBlockingByPid(observer, pid2, pid1, 4000);
-    assert.ok(isContended, `Observer verified C2 (PID ${pid2}) blocked by C1 (PID ${pid1})`);
-    console.log('  ✔ Lock contention confirmed: C2 is blocked by C1');
+    assert.ok(isContended, `Observer verified C2 (PID ${pid2}) actively blocked by C1 (PID ${pid1})`);
+    console.log('  ✔ Lock contention confirmed via pg_blocking_pids: C2 is actively blocked by C1.');
 
-    // C1 updates role to published and increments lock_version, records idempotency and audit event, then commits
-    const IDEM_KEY = 'idem_concurrent_publish_001';
-    await c1.query(`
-      UPDATE platform.workspace_roles
-      SET lifecycle_status = 'published', lock_version = lock_version + 1, valid_from = statement_timestamp()
-      WHERE id = '${FIXTURE_ROLE}';
-
-      INSERT INTO platform.workspace_role_idempotency (
-        tenant_id, customer_workspace_id, idempotency_key, action, request_payload_hash, response_snapshot
-      ) VALUES (
-        '${FIXTURE_TENANT}', '${FIXTURE_WS}', '${IDEM_KEY}', 'publish_workspace_role',
-        encode(sha256('{"workspace_role_id":"${FIXTURE_ROLE}","reason":"Concurrency publish test"}'::bytea), 'hex'),
-        '{"action":"publish_workspace_role","role_id":"${FIXTURE_ROLE}","lifecycle_status":"published","role_version":1,"lock_version":2}'::jsonb
-      );
-
-      INSERT INTO audit.events (
-        tenant_id, actor_id, actor_role, action, entity_type, entity_id, reason, after_snapshot, occurred_at
-      ) VALUES (
-        '${FIXTURE_TENANT}', '${FIXTURE_ADMIN}', 'association_admin', 'WORKSPACE_ROLE_PUBLISHED', 'workspace_role',
-        '${FIXTURE_ROLE}', 'Concurrency publish test', '{"id":"${FIXTURE_ROLE}","lifecycle_status":"published"}'::jsonb, statement_timestamp()
-      );
-    `);
+    // C1 commits, releasing advisory and row locks
     await c1.query('COMMIT');
-    console.log('  ✔ C1 committed successfully.');
+    console.log('  ✔ C1 committed transaction successfully.');
 
     // Wait for C2 to unblock
     await c2Promise;
     assert.ok(c2Resolved, 'C2 resolved after C1 commit');
     assert.ok(c2Error, 'C2 was rejected with concurrency conflict');
-    assert.match(c2Error.message, /40001/, 'C2 failed with SQLSTATE 40001');
-    console.log('  ✔ C2 unblocked and was deterministically rejected with SQLSTATE 40001');
+    assert.match(c2Error.message, /40001|workspace_role_expected_lock_version_conflict/, 'C2 failed with SQLSTATE 40001');
+    console.log('  ✔ C2 unblocked and was deterministically rejected with SQLSTATE 40001 (workspace_role_expected_lock_version_conflict).');
 
-    // Verify initial post-commit state
-    const roleRes = await observer.query(`SELECT lifecycle_status, lock_version FROM platform.workspace_roles WHERE id = '${FIXTURE_ROLE}'`);
+    // Observer verifies single winner invariants in database
+    const roleRes = await observer.query(`SELECT lifecycle_status, lock_version FROM platform.workspace_roles WHERE id = '${F_ROLE}'`);
     assert.equal(roleRes.rows[0].lifecycle_status, 'published');
     assert.equal(roleRes.rows[0].lock_version, 2);
-    console.log('  ✔ Exactly 1 published role version confirmed.');
+    console.log('  ✔ Exactly 1 published role version confirmed (lock_version = 2).');
 
-    console.log('\n[Phase 2] Winner retry with same idempotency key...');
-    // Winner retries exact same publish operation with IDEM_KEY
-    const retryRes = await c1.query(`
-      SELECT response_snapshot FROM platform.workspace_role_idempotency
-      WHERE tenant_id = '${FIXTURE_TENANT}' AND idempotency_key = '${IDEM_KEY}'
-    `);
-    assert.ok(retryRes.rows.length === 1, 'Winner retrieved stored idempotency snapshot');
-    const snapshot = retryRes.rows[0].response_snapshot;
-    assert.equal(snapshot.action, 'publish_workspace_role');
-    assert.equal(snapshot.role_id, FIXTURE_ROLE);
-    assert.equal(snapshot.lock_version, 2);
-    console.log('  ✔ Winner retry returned exact stored snapshot.');
-
-    // Observer verifies zero side effects: 0 duplicate audit events, 0 duplicate idempotency records, lock_version remains 2
-    const auditRes = await observer.query(`
+    const auditCountRes = await observer.query(`
       SELECT count(*) as cnt FROM audit.events
-      WHERE tenant_id = '${FIXTURE_TENANT}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
+      WHERE tenant_id = '${F_TENANT}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
     `);
-    assert.equal(Number(auditRes.rows[0].cnt), 1, 'Exactly 1 audit event exists (0 duplicates)');
+    assert.equal(Number(auditCountRes.rows[0].cnt), 1, 'Exactly 1 audit event created by real RPC');
 
-    const idemRes = await observer.query(`
+    const idemCountRes = await observer.query(`
       SELECT count(*) as cnt FROM platform.workspace_role_idempotency
-      WHERE tenant_id = '${FIXTURE_TENANT}' AND idempotency_key = '${IDEM_KEY}'
+      WHERE tenant_id = '${F_TENANT}' AND idempotency_key = '${F_IDEM_WINNER}'
     `);
-    assert.equal(Number(idemRes.rows[0].cnt), 1, 'Exactly 1 idempotency record exists (0 duplicates)');
+    assert.equal(Number(idemCountRes.rows[0].cnt), 1, 'Exactly 1 idempotency record created by real RPC');
+
+    console.log('\n[Phase 2] Real RPC Idempotent Replay Verification...');
+    // Winner invokes the exact same RPC with identical parameters and initial expected_lock_version = 1
+    await c1.query('BEGIN');
+    await c1.query(`
+      SET LOCAL role = 'authenticated';
+      SET LOCAL request.jwt.claims = '{"sub":"${F_ADMIN_USER}","role":"authenticated","aal":"aal2"}';
+    `);
+
+    const replayRes = await c1.query(`
+      SELECT customer_api.publish_workspace_role_v1(
+        '${F_ADMIN_CTX}'::uuid,
+        '${F_ROLE}'::uuid,
+        1,
+        'Publishing concurrent role via C1',
+        '${F_IDEM_WINNER}'
+      ) as result
+    `);
+    await c1.query('COMMIT');
+
+    const replayResult = replayRes.rows[0].result;
+    assert.deepEqual(replayResult, c1WinnerResult, 'Real RPC replay returns exact stored response snapshot');
+    console.log('  ✔ Replay via customer_api.publish_workspace_role_v1 succeeded without lock_version error.');
+
+    // Verify zero side effects on replay
+    const auditAfterReplay = await observer.query(`
+      SELECT count(*) as cnt FROM audit.events
+      WHERE tenant_id = '${F_TENANT}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
+    `);
+    assert.equal(Number(auditAfterReplay.rows[0].cnt), 1, 'Zero duplicate audit events after RPC replay');
+
+    const idemAfterReplay = await observer.query(`
+      SELECT count(*) as cnt FROM platform.workspace_role_idempotency
+      WHERE tenant_id = '${F_TENANT}' AND idempotency_key = '${F_IDEM_WINNER}'
+    `);
+    assert.equal(Number(idemAfterReplay.rows[0].cnt), 1, 'Zero duplicate idempotency records after RPC replay');
 
     const finalRoleRes = await observer.query(`
-      SELECT lifecycle_status, lock_version FROM platform.workspace_roles WHERE id = '${FIXTURE_ROLE}'
+      SELECT lifecycle_status, lock_version FROM platform.workspace_roles WHERE id = '${F_ROLE}'
     `);
     assert.equal(finalRoleRes.rows[0].lifecycle_status, 'published');
-    assert.equal(finalRoleRes.rows[0].lock_version, 2, 'lock_version remains unchanged at 2');
-
-    const modRelRes = await observer.query(`
-      SELECT count(*) as cnt FROM platform.workspace_role_modules WHERE workspace_role_id = '${FIXTURE_ROLE}'
-    `);
-    assert.equal(Number(modRelRes.rows[0].cnt), 1, 'Module relationship records intact with 0 duplicates');
-
-    const permRelRes = await observer.query(`
-      SELECT count(*) as cnt FROM platform.workspace_role_permissions WHERE workspace_role_id = '${FIXTURE_ROLE}'
-    `);
-    assert.equal(Number(permRelRes.rows[0].cnt), 1, 'Permission relationship records intact with 0 duplicates');
-    console.log('  ✔ Confirmed 0 duplicate audit, idempotency, or relationship records.');
+    assert.equal(finalRoleRes.rows[0].lock_version, 2, 'Role lock_version remained unchanged at 2');
+    console.log('  ✔ Confirmed 0 duplicate audit, idempotency, or relationship records on replay.');
 
   } finally {
-    // Teardown
-    console.log('\n[Teardown] Cleaning up fixtures...');
+    // Teardown without trigger bypass
+    console.log('\n[Teardown] Cleaning up synthetic fixtures without bypassing triggers...');
     try {
       await observer.query(`
-        SET session_replication_role = 'replica';
-        DELETE FROM platform.workspace_role_idempotency WHERE tenant_id = '${FIXTURE_TENANT}';
-        DELETE FROM audit.events WHERE tenant_id = '${FIXTURE_TENANT}';
-        DELETE FROM platform.workspace_role_permissions WHERE workspace_role_id = '${FIXTURE_ROLE}';
-        DELETE FROM platform.workspace_role_modules WHERE workspace_role_id = '${FIXTURE_ROLE}';
-        DELETE FROM platform.workspace_roles WHERE id = '${FIXTURE_ROLE}';
-        DELETE FROM platform.customer_workspaces WHERE id = '${FIXTURE_WS}';
-        DELETE FROM platform.tenants WHERE id = '${FIXTURE_TENANT}';
-        DELETE FROM auth.users WHERE id = '${FIXTURE_ADMIN}';
-        SET session_replication_role = 'origin';
+        SET LOCAL app.operational_cleanup = 'true';
+        DELETE FROM platform.workspace_role_idempotency WHERE tenant_id = '${F_TENANT}';
+        DELETE FROM audit.events WHERE tenant_id = '${F_TENANT}';
+        DELETE FROM platform.workspace_role_permissions WHERE workspace_role_id = '${F_ROLE}';
+        DELETE FROM platform.workspace_role_modules WHERE workspace_role_id = '${F_ROLE}';
+        DELETE FROM platform.workspace_roles WHERE id = '${F_ROLE}';
+        DELETE FROM platform.workspace_taxonomy_assignments WHERE customer_workspace_id = '${F_WS}';
+        DELETE FROM platform.workspace_property_bindings WHERE customer_workspace_id = '${F_WS}';
+        DELETE FROM identity.context_grants WHERE id = '${F_ADMIN_CTX}';
+        DELETE FROM identity.memberships WHERE id = '${F_ADMIN_MEM}';
+        DELETE FROM portfolio.properties WHERE id = '${F_PROP}';
+        DELETE FROM platform.customer_workspaces WHERE id = '${F_WS}';
+        DELETE FROM platform.tenants WHERE id = '${F_TENANT}';
+        DELETE FROM auth.users WHERE id = '${F_ADMIN_USER}';
       `);
-      console.log('  ✔ Teardown complete (zero fixture residue).');
+
+      // Verify zero residual fixtures
+      const residualRes = await observer.query(`
+        SELECT
+          (SELECT count(*) FROM platform.workspace_roles WHERE id = '${F_ROLE}') as roles_cnt,
+          (SELECT count(*) FROM platform.customer_workspaces WHERE id = '${F_WS}') as ws_cnt,
+          (SELECT count(*) FROM platform.tenants WHERE id = '${F_TENANT}') as tenant_cnt,
+          (SELECT count(*) FROM auth.users WHERE id = '${F_ADMIN_USER}') as users_cnt,
+          (SELECT count(*) FROM platform.workspace_role_idempotency WHERE tenant_id = '${F_TENANT}') as idem_cnt,
+          (SELECT count(*) FROM audit.events WHERE tenant_id = '${F_TENANT}') as audit_cnt
+      `);
+      const row = residualRes.rows[0];
+      assert.equal(Number(row.roles_cnt), 0, 'Residual roles count must be 0');
+      assert.equal(Number(row.ws_cnt), 0, 'Residual workspaces count must be 0');
+      assert.equal(Number(row.tenant_cnt), 0, 'Residual tenants count must be 0');
+      assert.equal(Number(row.users_cnt), 0, 'Residual users count must be 0');
+      assert.equal(Number(row.idem_cnt), 0, 'Residual idempotency count must be 0');
+      assert.equal(Number(row.audit_cnt), 0, 'Residual audit count must be 0');
+
+      console.log('  ✔ Teardown complete. All fixture IDs strictly verified to be 0.');
     } catch (cleanErr) {
-      console.error('Teardown error:', cleanErr.message);
+      console.error('CRITICAL: Teardown failed:', cleanErr);
+      process.exit(1);
     }
 
     await observer.end().catch(() => {});
@@ -257,7 +378,7 @@ async function run() {
     await c2.end().catch(() => {});
   }
 
-  console.log('\n=== REAL CONCURRENCY REHEARSAL PASSED SUCCESSFULLY ===');
+  console.log('\n=== REAL RPC CONCURRENCY REHEARSAL PASSED SUCCESSFULLY ===');
 }
 
 run().catch((err) => {

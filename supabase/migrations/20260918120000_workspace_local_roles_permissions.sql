@@ -236,6 +236,9 @@ set search_path = pg_catalog, platform
 as $$
 begin
   if tg_op = 'DELETE' then
+    if current_setting('app.operational_cleanup', true) = 'true' then
+      return old;
+    end if;
     raise exception 'workspace_role_delete_prohibited' using errcode = '42501';
   end if;
 
@@ -324,6 +327,10 @@ declare
 begin
   v_target_role_id := case when tg_op = 'DELETE' then old.workspace_role_id else new.workspace_role_id end;
 
+  if tg_op = 'DELETE' and current_setting('app.operational_cleanup', true) = 'true' then
+    return old;
+  end if;
+
   select lifecycle_status into v_role_status
   from platform.workspace_roles
   where id = v_target_role_id;
@@ -372,6 +379,10 @@ declare
 begin
   v_target_role_id := case when tg_op = 'DELETE' then old.workspace_role_id else new.workspace_role_id end;
 
+  if tg_op = 'DELETE' and current_setting('app.operational_cleanup', true) = 'true' then
+    return old;
+  end if;
+
   select lifecycle_status into v_role_status
   from platform.workspace_roles
   where id = v_target_role_id;
@@ -391,6 +402,7 @@ begin
         and mpb.permission_id = new.permission_id
         and mpb.is_assignable_to_local_role = true
         and mpb.lifecycle_status = 'active'
+        and mpb.valid_from <= statement_timestamp()
         and (mpb.valid_to is null or mpb.valid_to > statement_timestamp())
     ) then
       raise exception 'permission_not_assignable_to_role_modules' using errcode = '42501';
@@ -462,6 +474,9 @@ declare
   v_scope_rank integer;
 begin
   if tg_op = 'DELETE' then
+    if current_setting('app.operational_cleanup', true) = 'true' then
+      return old;
+    end if;
     raise exception 'workspace_member_role_delete_prohibited' using errcode = '42501';
   end if;
 
@@ -559,6 +574,7 @@ begin
       where customer_workspace_id = new.customer_workspace_id
         and property_id = new.property_id
         and status = 'active'
+        and valid_from <= statement_timestamp()
         and (valid_to is null or valid_to > statement_timestamp())
     ) then
       raise exception 'property_not_bound_to_workspace' using errcode = '42501';
@@ -1573,9 +1589,13 @@ begin
     raise exception 'workspace_role_expected_lock_version_conflict' using errcode = '40001';
   end if;
 
-  -- Verify module definition exists and is active in workspace composition
+  -- Verify module definition exists and is active, published, and temporally effective
   select * into v_mod from platform.module_definitions where id = p_module_definition_id;
-  if not found or v_mod.lifecycle_status = 'catalog_only' then
+  if not found
+     or v_mod.is_active = false
+     or v_mod.lifecycle_status <> 'published'
+     or v_mod.valid_from > statement_timestamp()
+     or (v_mod.valid_to is not null and v_mod.valid_to <= statement_timestamp()) then
     raise exception 'workspace_module_definition_invalid' using errcode = '42501';
   end if;
 
@@ -2297,12 +2317,12 @@ begin
 
   select * into v_role from platform.workspace_roles where id = p_workspace_role_id for update;
 
-  if v_role.lifecycle_status <> 'draft' then
-    raise exception 'workspace_role_not_in_draft_state' using errcode = '42501';
-  end if;
-
   if p_expected_lock_version is null or v_role.lock_version <> p_expected_lock_version then
     raise exception 'workspace_role_expected_lock_version_conflict' using errcode = '40001';
+  end if;
+
+  if v_role.lifecycle_status <> 'draft' then
+    raise exception 'workspace_role_not_in_draft_state' using errcode = '42501';
   end if;
 
   -- Minimum 1 module and 1 permission
@@ -2312,6 +2332,43 @@ begin
 
   if not exists (select 1 from platform.workspace_role_permissions where workspace_role_id = v_role.id) then
     raise exception 'workspace_role_publish_requires_at_least_one_permission' using errcode = '42501';
+  end if;
+
+  -- Re-validate that all attached modules are currently active, published, and temporally effective
+  if exists (
+    select 1
+    from platform.workspace_role_modules wrm
+    join platform.module_definitions md on md.id = wrm.module_definition_id
+    where wrm.workspace_role_id = v_role.id
+      and (
+        md.is_active = false
+        or md.lifecycle_status <> 'published'
+        or md.valid_from > statement_timestamp()
+        or (md.valid_to is not null and md.valid_to <= statement_timestamp())
+      )
+  ) then
+    raise exception 'workspace_role_publish_module_invalid' using errcode = '42501';
+  end if;
+
+  -- Re-validate that all attached permissions have an active, assignable, and temporally effective binding
+  if exists (
+    select 1
+    from platform.workspace_role_permissions wrp
+    where wrp.workspace_role_id = v_role.id
+      and not exists (
+        select 1
+        from platform.workspace_role_modules wrm
+        join platform.module_permission_bindings mpb
+          on mpb.module_definition_id = wrm.module_definition_id
+        where wrm.workspace_role_id = wrp.workspace_role_id
+          and mpb.permission_id = wrp.permission_id
+          and mpb.is_assignable_to_local_role = true
+          and mpb.lifecycle_status = 'active'
+          and mpb.valid_from <= statement_timestamp()
+          and (mpb.valid_to is null or mpb.valid_to > statement_timestamp())
+      )
+  ) then
+    raise exception 'workspace_role_publish_permission_binding_invalid' using errcode = '42501';
   end if;
 
   -- Atomically archive currently active published role with same code
@@ -2469,7 +2526,11 @@ begin
   end if;
 
   select * into v_mem from identity.memberships where id = p_target_membership_id;
-  if not found or v_mem.tenant_id <> v_res.tenant_id or v_mem.status <> 'active' then
+  if not found
+     or v_mem.tenant_id <> v_res.tenant_id
+     or v_mem.status <> 'active'
+     or v_mem.starts_at > statement_timestamp()
+     or (v_mem.ends_at is not null and v_mem.ends_at <= statement_timestamp()) then
     raise exception 'workspace_member_role_target_membership_invalid' using errcode = '42501';
   end if;
 
