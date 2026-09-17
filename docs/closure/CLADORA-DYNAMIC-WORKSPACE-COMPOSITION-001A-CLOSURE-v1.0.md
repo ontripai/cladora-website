@@ -1,12 +1,12 @@
-# Closure & Review Report — CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A (v1.0)
+# Closure & Review Report — CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4 (v1.0)
 
 **Document Identifier:** `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-CLOSURE-v1.0`
 **Final Status:** `READY-FOR-REVIEW / REMOTE-APPLY-NOT-AUTHORIZED`
-**Package Name:** `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A — Module Registry, Workspace Activation & Entitlement Enforcement`
+**Package Name:** `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4 — Fail-Closed Taxonomy Compatibility Gate & Server-Authoritative Projection`
 **Repository:** `ontripai/cladora-website`
 **Branch:** `feat/cladora-dynamic-workspace-composition-001a`
 **Starting Baseline HEAD:** `681770b4708748091d536dd254d60fbafe4e18f6`
-**Current Working HEAD:** `f23ab03b3e55b0a4b7254a68e49ccc2f6176d515`
+**Starting HEAD (R4):** `6da5c328e6eb376a9e4d779b913e7c4fb4a8061b`
 **Draft Pull Request:** [#102](https://github.com/ontripai/cladora-website/pull/102) (`isDraft: true`)
 **Target Migration:** `supabase/migrations/20260917120000_workspace_dynamic_composition.sql` (Migration 102)
 **Target Test:** `supabase/tests/089_workspace_dynamic_composition.test.sql` (Test 089)
@@ -16,17 +16,38 @@
 
 ## 1. Executive Summary & Authoritative Closure State
 
-This report summarizes the implementation, local verification, and readiness assessment for package `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A` including all remediation mandates from Review R3.
+This report summarizes the implementation, local verification, and readiness assessment for package `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4` addressing all fail-open taxonomy compatibility gate vulnerabilities prior to applying Migration 102.
 
 All architectural mandates have been implemented and verified:
-1. **Catalog-Only Entitlement Disassociation (R3):** For conceptual modules (`core_property_registry`, `contracts_tenancy`), `entitlement_key` is strictly `NULL`. Table check constraint strictly enforces that `catalog_only` definitions have `entitlement_key IS NULL`, while activatable definitions must have non-null controlled keys (`^module\.[a-z0-9_]{2,64}$`).
-2. **Mandatory & Audit-Ready Reason (R3):** `p_reason` parameter in both `activate_workspace_module_v1` and `deactivate_workspace_module_v1` is mandatory and without default. Length is strictly bounded to 5–500 characters after `trim`. The normalized trimmed reason is stored in `platform.workspace_modules`, `audit.events`, and hashed into `platform.workspace_module_idempotency`.
-3. **Hardened Administrative Permission Bootstrap (R3):** `workspace.module.manage` is seeded strictly to canonical global management roles (`association_admin`, `property_manager` where `tenant_id IS NULL` and `is_system = true`). An automated trigger on `identity.roles` enforces exact matching on future roles and rejects spoof/blank roles.
-4. **Idempotency Boundary:** `platform.workspace_module_idempotency` is constrained by `UNIQUE (tenant_id, idempotency_key)`, strictly preventing cross-workspace key leakage within a tenant.
-5. **Deterministic Request Hash:** Constructed via `jsonb_build_object` with `request_hash_version = 1`, normalized non-empty reason, trimmed strings, and canonical `{}` config hashed via `extensions.digest(..., 'sha256')`. Replay order of client JSON does not alter the hash.
-6. **Success-Only Idempotency:** Zero failed status columns; only committed successful operations register idempotency. Gateway failures abort the entire transaction.
-7. **Module Version Uniqueness:** Composite `UNIQUE (code, version)` on `platform.module_definitions`, permitting version evolution while preventing duplicate versioning.
-8. **Config Constraint:** Restricted strictly to `{}` for 001A under `DEFERRED-WORKSPACE-MODULE-CONFIG-SCHEMA-POLICY`.
+1. **Fail-Closed Missing Taxonomy Assignment (R4):** In `customer_api.activate_workspace_module_v1`, the workspace must have exactly one active taxonomy assignment (`platform.workspace_taxonomy_assignments`).
+   - If 0 active assignments: fails closed with error `workspace_module_taxonomy_assignment_required` (SQLSTATE `42501`).
+   - If >1 active assignments: fails closed with error `workspace_module_taxonomy_assignment_ambiguous` (SQLSTATE `42501`).
+   - Zero profile or operating model guessing. Zero partial writes across `workspace_modules`, `workspace_module_idempotency`, and `audit.events`.
+2. **Fail-Closed Missing Compatibility Rule (R4):** Explicit compatibility rules are mandatory in both `platform.module_property_profile_compatibilities` and `platform.module_operating_model_compatibilities`. Missing rule records never default to `compatible` and fail closed with `workspace_module_compatibility_rule_missing` (SQLSTATE `42501`).
+3. **Definitive 3-Level Compatibility Mutation Behavior (R4):**
+   - `compatible`: Activation may proceed subject to all other gates (entitlement, dependencies, concurrency locks).
+   - `review_required`: In 001A, because the formal approval workflow is deferred, activation fails closed with `workspace_module_compatibility_review_required` (SQLSTATE `42501`). An audit reason or AAL2 cannot substitute for an independent approval.
+   - `incompatible`: Fails closed with `workspace_module_taxonomy_incompatible` (SQLSTATE `42501`).
+   - Country pack policies and approval records remain deferred under `DEFERRED-COUNTRY-PACK-MODULE-POLICY` with zero speculative workflow logic.
+4. **Server-Authoritative Read Projection (R4):** In `customer_api.get_workspace_composition_v1`:
+   - All `coalesce(..., 'compatible')` expressions have been completely removed.
+   - The RPC projects 3 server-authoritative fields: `profile_compatibility`, `operating_model_compatibility`, and `effective_compatibility`.
+   - Valid discrete values: `'compatible'`, `'review_required'`, `'incompatible'`, `'rule_missing'`, `'taxonomy_required'`.
+   - `is_compatible = true` ONLY when both profile and operating model rules are explicitly `'compatible'`.
+   - `can_activate` and `activation_allowed` are `true` ONLY when: active taxonomy exists, both rules are `'compatible'`, workspace holds active entitlement, module is published (not `catalog_only`), all direct dependencies are active, and module is not already active.
+   - States `'review_required'`, `'rule_missing'`, and `'taxonomy_required'` strictly yield `can_activate = false` and `activation_allowed = false`.
+   - Read-only RPC does not require AAL2 step-up.
+5. **Client UI & Application Schema (R4):**
+   - Zod schema enforces `compatibilityLevelSchema` with all 5 discrete server states; zero client-side fallback to `compatible`.
+   - `WorkspaceCompositionCard` renders trilingual copy (RO/EN/FA) and distinct badges for all states: `Taxonomy required`, `Compatibility rule missing`, `Manual review required`, and `Incompatible`.
+   - The activation button is disabled in all non-compatible states.
+6. **Test 089 Expansion (R4):**
+   - Test 089 expanded by 12 new assertions in Section 8 without reducing existing 84 assertions (plan updated from 84 to 96; database package total from 2975 to 2987).
+   - Safe leaf module deactivation is preserved even when taxonomy is inactive/missing.
+7. **Catalog-Only Entitlement Disassociation (R3):** For conceptual modules (`core_property_registry`, `contracts_tenancy`), `entitlement_key` is strictly `NULL`.
+8. **Mandatory & Audit-Ready Reason (R3):** `p_reason` parameter in both `activate_workspace_module_v1` and `deactivate_workspace_module_v1` is mandatory and without default (5–500 characters after `trim`).
+9. **Hardened Administrative Permission Bootstrap (R3):** `workspace.module.manage` seeded strictly to canonical global management roles.
+10. **Idempotency & Concurrency Invariants:** Unique `(tenant_id, idempotency_key)`, deterministic UTF-8 JSONB hash (`request_hash_version = 1`), success-only records, composite `UNIQUE (code, version)`.
 
 ### Mandatory Operational Boundaries:
 - **Supabase Remote Apply:** `NOT PERFORMED`
@@ -42,9 +63,19 @@ All architectural mandates have been implemented and verified:
 
 ---
 
-## 2. Canonical Module Registry Evidence Matrix (12 Modules)
+## 2. Canonical Compatibility & Module Evidence Matrix
 
-The database schema and seeds strictly define the following 12 canonical modules:
+### 2.1 Five-State Compatibility Behavior Matrix (R4)
+
+| State | Profile / Operating Model Condition | Projection `effective_compatibility` | Projection `can_activate` | Mutation Behavior |
+|---|---|:---:|:---:|---|
+| `compatible` | Both rules explicitly `'compatible'` | `'compatible'` | `true` (if entitled & satisfied) | Activation proceeds |
+| `review_required` | At least one rule is `'review_required'`, neither is incompatible/missing | `'review_required'` | `false` | Rejected with `42501 workspace_module_compatibility_review_required` |
+| `incompatible` | At least one rule is `'incompatible'` | `'incompatible'` | `false` | Rejected with `42501 workspace_module_taxonomy_incompatible` |
+| `rule_missing` | Taxonomy assigned but matching rule record not found | `'rule_missing'` | `false` | Rejected with `42501 workspace_module_compatibility_rule_missing` |
+| `taxonomy_required` | Zero active taxonomy assignments for workspace | `'taxonomy_required'` | `false` | Rejected with `42501 workspace_module_taxonomy_assignment_required` |
+
+### 2.2 Canonical Module Registry (12 Modules)
 
 | # | Module Code | Lifecycle Status | Entitlement Key | Requires AAL2 | Sensitivity Level | Category | Direct Dependencies |
 |---|---|:---:|:---:|:---:|:---:|:---:|---|
@@ -61,7 +92,7 @@ The database schema and seeds strictly define the following 12 canonical modules
 | 11 | `core_property_registry` | `catalog_only` | `NULL` | No | `standard` | `core` | None (Conceptual) |
 | 12 | `contracts_tenancy` | `catalog_only` | `NULL` | No | `standard` | `occupancy` | None (Conceptual) |
 
-### 2.1 Governance Compatibility Rules
+### 2.3 Governance Compatibility Rules
 - **Compatible Property Profiles:**
   - `residential_condominium`
   - `residential_complex`
@@ -79,37 +110,34 @@ The database schema and seeds strictly define the following 12 canonical modules
 ### 3.1 Database Package Invariant
 - **Total Migrations:** 102
 - **Total Tests:** 89
-- **Total Assertions:** 2975
+- **Total Assertions:** 2987
 - **Migrations 1–101:** 100% byte-identical to `origin/main` baseline.
 - **Tests 1–088:** 100% byte-identical to `origin/main` baseline.
 - **Package Check:** `node scripts/check-database-package.mjs` executed cleanly with exit code 0.
 
 ### 3.2 Migration 102 & Test 089 Identifiers
 - **Migration 102 Path:** `supabase/migrations/20260917120000_workspace_dynamic_composition.sql`
-- **Migration 102 SHA-256:** `717E1F5A05E4CEFBE1DCD291F4FD40984E3E10374613A8AA13230D54F75B299C`
+- **Migration 102 SHA-256:** `CDB872F98300A237E3AE7BC086D874D704E667C7068BF8B63E1BFDB52DC0676B`
 - **Test 089 Path:** `supabase/tests/089_workspace_dynamic_composition.test.sql`
-- **Test 089 SHA-256:** `AE69D8C58070BD9A65D3FA762A7E533E6C7750420E843EADA3B60BE8410D2839`
-- **pgTAP Plan:** Exactly 84 assertions matching `SELECT plan(84);`.
+- **Test 089 SHA-256:** `E53EFB337D3B0EB9C7A494814FE953FB1C147F0E0F99987159FAF9C967081552`
+- **pgTAP Plan:** Exactly 96 assertions matching `SELECT plan(96);`.
 
 ### 3.3 Concurrency Rehearsal
 - **Script:** `scripts/test-workspace-module-activation-concurrency.mjs`
 - **Configuration:** Multi-session PostgreSQL concurrency test using 4 concurrent connections (1 Observer, 3 concurrent Mutators C1/C2/C3).
-- **Evidence:** Verified advisory locks, `pg_blocking_pids()`, exactly 1 winner, losers deterministically receiving SQLSTATE `40001` (`workspace_module_expected_state_conflict`), zero `23505` uniqueness violation leakage, exactly 1 active workspace module record, 1 audit log event, 1 idempotency record, and clean teardown with zero residual state.
+- **Evidence:** Verified advisory locks, `pg_blocking_pids()`, exactly 1 winner, losers deterministically receiving SQLSTATE `40001` (`workspace_module_expected_state_conflict`), zero `23505` uniqueness violation leakage, exactly 1 active workspace module record, 1 audit log event, 1 idempotency record, and clean teardown with zero residual state. Includes active taxonomy assignment fixture.
 
 ### 3.4 Slice Contract Testing & Documentation Drift Guard
 - **Script:** `scripts/test-workspace-dynamic-composition-slice.mjs`
-- **Coverage:** Tested 25 distinct contract slices covering:
-  - Idempotency uniqueness `(tenant_id, idempotency_key)`
-  - Deterministic SHA-256 hash calculation across varying JSON key order
-  - Success-only idempotency record guarantee
-  - Composite `(code, version)` uniqueness
-  - Proven 12-module catalog seeding and catalog-only activation prevention
-  - `catalog_only` definitions having `entitlement_key IS NULL`
-  - Mandatory `p_reason` without default (length 5–500 characters)
-  - Hardened role permission bootstrap trigger on `identity.roles`
-  - Canonical Governance compatibility with `residential_condominium` and `association_managed`
-  - Zero documentation drift against obsolete taxonomy codes
-  - Context-scoped RPC authorization & conditional AAL2 requirements
+- **Coverage:** Tested 38 distinct contract slices covering:
+  - Zero `coalesce(..., 'compatible')` in compatibility projection
+  - Fail-closed taxonomy assignment (missing -> `42501`, ambiguous -> `42501`)
+  - Fail-closed compatibility rules (missing -> `42501`, review_required -> `42501`, incompatible -> `42501`)
+  - Server-authoritative compatibility projection fields (`profile_compatibility`, `operating_model_compatibility`, `effective_compatibility`)
+  - Test 089 plan 96 assertions verification
+  - Safe leaf deactivation without active taxonomy
+  - Zero side-effects and zero partial writes
+  - Documentation drift prevention against obsolete taxonomy codes
 
 ### 3.5 Full Application Verification
 - `npm run test:unit`: Passed (includes slice contract test).
@@ -136,4 +164,4 @@ The database schema and seeds strictly define the following 12 canonical modules
 
 ## 5. Final Sign-off Statement
 
-Package `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A` is fully remediated per R3, verified locally, and ready for peer review as a Draft PR. Remote execution and production mutations remain strictly unauthorized.
+Package `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4` is fully remediated, fail-closed against taxonomy compatibility gate vulnerabilities, verified locally, and ready for peer review as a Draft PR. Remote execution and production mutations remain strictly unauthorized.

@@ -674,27 +674,80 @@ begin
         when wm.id is not null then wm.status
         when d.lifecycle_status = 'catalog_only' then 'catalog_only'
         when d.entitlement_key is null or e.id is null then 'unentitled'
-        when coalesce(ppc.compatibility_level, 'compatible') = 'incompatible' or coalesce(omc.compatibility_level, 'compatible') = 'incompatible' then 'incompatible'
+        when v_assignment.id is null then 'taxonomy_required'
+        when ppc.compatibility_level is null or omc.compatibility_level is null then 'rule_missing'
+        when ppc.compatibility_level = 'incompatible' or omc.compatibility_level = 'incompatible' then 'incompatible'
+        when ppc.compatibility_level = 'review_required' or omc.compatibility_level = 'review_required' then 'review_required'
         else 'not_installed'
+      end,
+      'profile_compatibility', case
+        when v_assignment.id is null then 'taxonomy_required'
+        when ppc.compatibility_level is null then 'rule_missing'
+        else ppc.compatibility_level
+      end,
+      'operating_model_compatibility', case
+        when v_assignment.id is null then 'taxonomy_required'
+        when omc.compatibility_level is null then 'rule_missing'
+        else omc.compatibility_level
+      end,
+      'effective_compatibility', case
+        when v_assignment.id is null then 'taxonomy_required'
+        when ppc.compatibility_level is null or omc.compatibility_level is null then 'rule_missing'
+        when ppc.compatibility_level = 'incompatible' or omc.compatibility_level = 'incompatible' then 'incompatible'
+        when ppc.compatibility_level = 'review_required' or omc.compatibility_level = 'review_required' then 'review_required'
+        when ppc.compatibility_level = 'compatible' and omc.compatibility_level = 'compatible' then 'compatible'
+        else 'incompatible'
       end,
       'is_installed', (wm.id is not null),
       'is_entitled', (d.entitlement_key is not null and e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())),
-      'is_compatible', (coalesce(ppc.compatibility_level, 'compatible') <> 'incompatible' and coalesce(omc.compatibility_level, 'compatible') <> 'incompatible'),
+      'is_compatible', (
+        v_assignment.id is not null
+        and ppc.compatibility_level = 'compatible'
+        and omc.compatibility_level = 'compatible'
+      ),
       'activation_allowed', (
         wm.id is null
         and d.lifecycle_status in ('active', 'published')
         and d.entitlement_key is not null
         and e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())
-        and coalesce(ppc.compatibility_level, 'compatible') <> 'incompatible'
-        and coalesce(omc.compatibility_level, 'compatible') <> 'incompatible'
+        and v_assignment.id is not null
+        and ppc.compatibility_level = 'compatible'
+        and omc.compatibility_level = 'compatible'
+        and not exists (
+          select 1 from platform.module_dependencies req_dep
+          join platform.module_definitions req_def on req_def.id = req_dep.required_module_definition_id
+          where req_dep.module_definition_id = d.id
+            and req_dep.is_required = true
+            and not exists (
+              select 1 from platform.workspace_modules req_wm
+              where req_wm.customer_workspace_id = v_res.workspace_id
+                and req_wm.module_code = req_def.code
+                and req_wm.valid_to is null
+                and req_wm.status = 'active'
+            )
+        )
       ),
       'can_activate', (
         wm.id is null
         and d.lifecycle_status in ('active', 'published')
         and d.entitlement_key is not null
         and e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())
-        and coalesce(ppc.compatibility_level, 'compatible') <> 'incompatible'
-        and coalesce(omc.compatibility_level, 'compatible') <> 'incompatible'
+        and v_assignment.id is not null
+        and ppc.compatibility_level = 'compatible'
+        and omc.compatibility_level = 'compatible'
+        and not exists (
+          select 1 from platform.module_dependencies req_dep
+          join platform.module_definitions req_def on req_def.id = req_dep.required_module_definition_id
+          where req_dep.module_definition_id = d.id
+            and req_dep.is_required = true
+            and not exists (
+              select 1 from platform.workspace_modules req_wm
+              where req_wm.customer_workspace_id = v_res.workspace_id
+                and req_wm.module_code = req_def.code
+                and req_wm.valid_to is null
+                and req_wm.status = 'active'
+            )
+        )
       ),
       'can_deactivate', (wm.id is not null and wm.status = 'active')
     ) order by d.code
@@ -759,9 +812,9 @@ declare
   v_request_hash text;
   v_normalized_reason text;
   v_assignment record;
-  v_profile record;
-  v_model record;
-  v_compat_level text;
+  v_assignment_count integer;
+  v_profile_compat text;
+  v_model_compat text;
   v_response jsonb;
   v_missing_dep text;
 begin
@@ -870,32 +923,54 @@ begin
     raise exception 'workspace_module_entitlement_required' using errcode = '42501';
   end if;
 
-  -- 12. Universal Taxonomy Compatibility Gate
+  -- 12. Universal Taxonomy Compatibility Gate (Fail-Closed Enforcement)
+  select count(*) into v_assignment_count
+  from platform.workspace_taxonomy_assignments a
+  where a.customer_workspace_id = v_res.workspace_id
+    and a.status = 'active'
+    and a.valid_from <= statement_timestamp() and (a.valid_to is null or a.valid_to > statement_timestamp());
+
+  if v_assignment_count = 0 then
+    raise exception 'workspace_module_taxonomy_assignment_required' using errcode = '42501';
+  elsif v_assignment_count > 1 then
+    raise exception 'workspace_module_taxonomy_assignment_ambiguous' using errcode = '42501';
+  end if;
+
   select a.* into v_assignment
   from platform.workspace_taxonomy_assignments a
   where a.customer_workspace_id = v_res.workspace_id
     and a.status = 'active'
     and a.valid_from <= statement_timestamp() and (a.valid_to is null or a.valid_to > statement_timestamp())
-  order by a.valid_from desc, a.created_at desc limit 1;
+  limit 1;
 
-  if found then
-    -- Property Profile compatibility
-    select compatibility_level into v_compat_level
-    from platform.module_property_profile_compatibilities
-    where module_definition_id = v_module_def.id and property_profile_id = v_assignment.property_profile_id;
+  -- Property Profile compatibility rule verification
+  select compatibility_level into v_profile_compat
+  from platform.module_property_profile_compatibilities
+  where module_definition_id = v_module_def.id and property_profile_id = v_assignment.property_profile_id;
 
-    if v_compat_level = 'incompatible' then
-      raise exception 'workspace_module_taxonomy_incompatible' using errcode = '42501';
-    end if;
+  if v_profile_compat is null then
+    raise exception 'workspace_module_compatibility_rule_missing' using errcode = '42501';
+  elsif v_profile_compat = 'incompatible' then
+    raise exception 'workspace_module_taxonomy_incompatible' using errcode = '42501';
+  elsif v_profile_compat = 'review_required' then
+    raise exception 'workspace_module_compatibility_review_required' using errcode = '42501';
+  elsif v_profile_compat <> 'compatible' then
+    raise exception 'workspace_module_taxonomy_incompatible' using errcode = '42501';
+  end if;
 
-    -- Operating Model compatibility
-    select compatibility_level into v_compat_level
-    from platform.module_operating_model_compatibilities
-    where module_definition_id = v_module_def.id and operating_model_id = v_assignment.operating_model_id;
+  -- Operating Model compatibility rule verification
+  select compatibility_level into v_model_compat
+  from platform.module_operating_model_compatibilities
+  where module_definition_id = v_module_def.id and operating_model_id = v_assignment.operating_model_id;
 
-    if v_compat_level = 'incompatible' then
-      raise exception 'workspace_module_taxonomy_incompatible' using errcode = '42501';
-    end if;
+  if v_model_compat is null then
+    raise exception 'workspace_module_compatibility_rule_missing' using errcode = '42501';
+  elsif v_model_compat = 'incompatible' then
+    raise exception 'workspace_module_taxonomy_incompatible' using errcode = '42501';
+  elsif v_model_compat = 'review_required' then
+    raise exception 'workspace_module_compatibility_review_required' using errcode = '42501';
+  elsif v_model_compat <> 'compatible' then
+    raise exception 'workspace_module_taxonomy_incompatible' using errcode = '42501';
   end if;
 
   -- 13. Relational Dependency Gate: all required dependencies must be active in workspace

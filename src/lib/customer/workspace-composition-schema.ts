@@ -17,6 +17,14 @@ export const moduleCategorySchema = z.enum([
   'investment',
 ]);
 
+export const compatibilityLevelSchema = z.enum([
+  'compatible',
+  'review_required',
+  'incompatible',
+  'rule_missing',
+  'taxonomy_required',
+]);
+
 export const moduleItemSchema = z.object({
   module_definition_id: uuidSchema,
   code: z.string().min(2).max(64),
@@ -34,6 +42,9 @@ export const moduleItemSchema = z.object({
   entitlement_key: z.string().nullable().optional(),
   workspace_module_id: uuidSchema.nullable(),
   status: z.string(),
+  profile_compatibility: compatibilityLevelSchema.optional(),
+  operating_model_compatibility: compatibilityLevelSchema.optional(),
+  effective_compatibility: compatibilityLevelSchema.optional(),
   is_installed: z.boolean(),
   is_entitled: z.boolean(),
   is_compatible: z.boolean(),

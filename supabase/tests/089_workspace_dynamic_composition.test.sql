@@ -7,7 +7,7 @@
 -- Invariant: Property Profile != Operating Model != Building DNA != Service Profile != Country Pack
 -- =============================================================================
 begin;
-select plan(84);
+select plan(96);
 
 -- 1. Structural & Table Schema Verification (7 assertions)
 select ok(to_regclass('platform.module_definitions') is not null, 'platform.module_definitions table exists');
@@ -235,7 +235,8 @@ begin
   insert into portfolio.properties (id, tenant_id, type, name, status) values
     (v_prop_1, v_tenant_a, 'condominium', 'Property Alpha 89', 'active'),
     (v_prop_ambiguous, v_tenant_a, 'condominium', 'Property Ambiguous 89', 'active'),
-    (v_prop_unbound, v_tenant_a, 'condominium', 'Property Unbound 89', 'active');
+    (v_prop_unbound, v_tenant_a, 'condominium', 'Property Unbound 89', 'active'),
+    ('89700000-0000-0000-0000-000000000004', v_tenant_a, 'condominium', 'Property No Tax 89', 'active');
 
   -- Workspaces
   insert into platform.customer_workspaces (id, tenant_id, workspace_type, commercial_owner, environment, lifecycle_status) values
@@ -245,7 +246,8 @@ begin
 
   -- Property Bindings
   insert into platform.workspace_property_bindings (tenant_id, customer_workspace_id, property_id, status, binding_source) values
-    (v_tenant_a, v_ws_1, v_prop_1, 'active', 'migration_verified');
+    (v_tenant_a, v_ws_1, v_prop_1, 'active', 'migration_verified'),
+    (v_tenant_a, v_ws_2, '89700000-0000-0000-0000-000000000004', 'active', 'migration_verified');
 
   -- Context Grants
   insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at) values
@@ -253,12 +255,29 @@ begin
     (v_ctx_tenant_only, v_tenant_a, v_mem_admin, 'tenant', null, statement_timestamp() - interval '1 day'),
     (v_ctx_res, v_tenant_a, v_mem_res, 'property', v_prop_1, statement_timestamp() - interval '1 day'),
     (v_ctx_ambiguous, v_tenant_a, v_mem_admin, 'property', v_prop_ambiguous, statement_timestamp() - interval '1 day'),
-    (v_ctx_unbound, v_tenant_a, v_mem_admin, 'property', v_prop_unbound, statement_timestamp() - interval '1 day');
+    (v_ctx_unbound, v_tenant_a, v_mem_admin, 'property', v_prop_unbound, statement_timestamp() - interval '1 day'),
+    ('89500000-0000-0000-0000-000000000006', v_tenant_a, v_mem_admin, 'property', '89700000-0000-0000-0000-000000000004', statement_timestamp() - interval '1 day');
 
-  -- Seed Entitlements on Workspace 1: module.occupancy and module.billing
+  -- Seed Entitlements on Workspace 1: module.occupancy, module.billing, module.documents
   insert into platform.workspace_entitlements (customer_workspace_id, entitlement_key, value_type, boolean_value, valid_from) values
     (v_ws_1, 'module.occupancy', 'boolean', true, statement_timestamp() - interval '1 day'),
-    (v_ws_1, 'module.billing', 'boolean', true, statement_timestamp() - interval '1 day');
+    (v_ws_1, 'module.billing', 'boolean', true, statement_timestamp() - interval '1 day'),
+    (v_ws_1, 'module.documents', 'boolean', true, statement_timestamp() - interval '1 day'),
+    (v_ws_2, 'module.occupancy', 'boolean', true, statement_timestamp() - interval '1 day');
+
+  -- Seed Active Taxonomy Assignment for Workspace 1 ONLY (Workspace 2 has NO assignment)
+  insert into platform.workspace_taxonomy_assignments (
+    id, tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by
+  ) values (
+    '89a00000-0000-0000-0000-000000000001',
+    v_tenant_a,
+    v_ws_1,
+    (select id from platform.property_profiles where code = 'residential_condominium' and version = 1),
+    (select id from platform.operating_models where code = 'association_managed' and version = 1),
+    'active',
+    statement_timestamp() - interval '1 day',
+    v_user_admin
+  );
 end;
 $$;
 
@@ -445,7 +464,182 @@ select lives_ok(
   'activation of billing succeeds once dependency occupancy is active'
 );
 
--- 8. Idempotency Contract & Replay (8 assertions)
+-- 8. Universal Taxonomy Compatibility Gate Fail-Closed Verification (12 assertions)
+-- 8.1 Workspace without active taxonomy assignment cannot activate module
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000006', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-tax-req-001', 'Activation on unassigned workspace')$$,
+  '42501',
+  'workspace_module_taxonomy_assignment_required',
+  'workspace without active taxonomy assignment is rejected with workspace_module_taxonomy_assignment_required'
+);
+
+-- 8.2 Ambiguous active taxonomy assignments on workspace causes fail-closed (42501)
+insert into platform.workspace_taxonomy_assignments (id, tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by)
+values ('89a00000-0000-0000-0000-000000000009', '89100000-0000-0000-0000-000000000001', '89600000-0000-0000-0000-000000000001', (select id from platform.property_profiles where code = 'residential_complex' and version = 1), (select id from platform.operating_models where code = 'association_managed' and version = 1), 'active', statement_timestamp() - interval '1 day', '89000000-0000-0000-0000-000000000001');
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-ambig-001', 'Activation on ambiguous workspace')$$,
+  '42501',
+  'workspace_module_taxonomy_assignment_ambiguous',
+  'ambiguous active taxonomy assignments on workspace is rejected with workspace_module_taxonomy_assignment_ambiguous'
+);
+
+delete from platform.workspace_taxonomy_assignments where id = '89a00000-0000-0000-0000-000000000009';
+
+-- 8.3 Missing property profile compatibility rule causes fail-closed (42501)
+delete from platform.module_property_profile_compatibilities
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-missing-prof-001', 'Activation with missing profile rule')$$,
+  '42501',
+  'workspace_module_compatibility_rule_missing',
+  'activation with missing property profile compatibility rule is rejected with workspace_module_compatibility_rule_missing'
+);
+
+-- Restore profile compatibility rule
+insert into platform.module_property_profile_compatibilities (module_definition_id, property_profile_id, compatibility_level, reason)
+select md.id, pp.id, 'compatible', 'restored'
+from platform.module_definitions md cross join platform.property_profiles pp
+where md.code = 'documents' and pp.code = 'residential_condominium';
+
+-- 8.4 Missing operating model compatibility rule causes fail-closed (42501)
+delete from platform.module_operating_model_compatibilities
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and operating_model_id = (select id from platform.operating_models where code = 'association_managed' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-missing-om-001', 'Activation with missing model rule')$$,
+  '42501',
+  'workspace_module_compatibility_rule_missing',
+  'activation with missing operating model compatibility rule is rejected with workspace_module_compatibility_rule_missing'
+);
+
+-- Restore operating model compatibility rule
+insert into platform.module_operating_model_compatibilities (module_definition_id, operating_model_id, compatibility_level, reason)
+select md.id, om.id, 'compatible', 'restored'
+from platform.module_definitions md cross join platform.operating_models om
+where md.code = 'documents' and om.code = 'association_managed';
+
+-- 8.5 Profile with review_required is rejected in 001A (42501)
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'review_required'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-review-prof-001', 'Activation with review required profile')$$,
+  '42501',
+  'workspace_module_compatibility_review_required',
+  'activation with profile review_required is rejected with workspace_module_compatibility_review_required'
+);
+
+-- Restore profile rule to compatible
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+-- 8.6 Operating Model with review_required is rejected in 001A (42501)
+update platform.module_operating_model_compatibilities
+set compatibility_level = 'review_required'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and operating_model_id = (select id from platform.operating_models where code = 'association_managed' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-review-om-001', 'Activation with review required model')$$,
+  '42501',
+  'workspace_module_compatibility_review_required',
+  'activation with operating model review_required is rejected with workspace_module_compatibility_review_required'
+);
+
+-- Restore operating model rule to compatible
+update platform.module_operating_model_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and operating_model_id = (select id from platform.operating_models where code = 'association_managed' and version = 1);
+
+-- 8.7 Incompatible taxonomy rule is rejected (42501)
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'incompatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-incompat-001', 'Activation with incompatible profile')$$,
+  '42501',
+  'workspace_module_taxonomy_incompatible',
+  'activation with incompatible taxonomy rule is rejected with workspace_module_taxonomy_incompatible'
+);
+
+-- Restore profile rule to compatible
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+-- 8.8 Projection on workspace without taxonomy returns taxonomy_required and can_activate = false
+select ok(
+  (select (m->>'profile_compatibility' = 'taxonomy_required' and m->>'operating_model_compatibility' = 'taxonomy_required' and m->>'effective_compatibility' = 'taxonomy_required' and (m->>'can_activate')::boolean = false and (m->>'is_compatible')::boolean = false)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000006'))->'modules') m
+   where m->>'code' = 'occupancy'),
+  'projection on workspace without taxonomy returns taxonomy_required and can_activate false'
+);
+
+-- 8.9 Projection for module with missing compatibility rule returns rule_missing and can_activate = false
+delete from platform.module_property_profile_compatibilities
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select ok(
+  (select (m->>'profile_compatibility' = 'rule_missing' and m->>'effective_compatibility' = 'rule_missing' and (m->>'can_activate')::boolean = false and (m->>'is_compatible')::boolean = false)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'documents'),
+  'projection for module with missing compatibility rule returns rule_missing and can_activate false'
+);
+
+-- Restore profile compatibility rule
+insert into platform.module_property_profile_compatibilities (module_definition_id, property_profile_id, compatibility_level, reason)
+select md.id, pp.id, 'compatible', 'restored'
+from platform.module_definitions md cross join platform.property_profiles pp
+where md.code = 'documents' and pp.code = 'residential_condominium';
+
+-- 8.10 Projection for review_required returns review_required, is_compatible false, and can_activate = false
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'review_required'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select ok(
+  (select (m->>'effective_compatibility' = 'review_required' and m->>'status' = 'review_required' and (m->>'can_activate')::boolean = false and (m->>'is_compatible')::boolean = false)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'documents'),
+  'projection for review_required returns status review_required, is_compatible false, and can_activate false'
+);
+
+-- Restore profile rule to compatible
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+-- 8.11 Projection for compatible + compatible allows activation
+select ok(
+  (select (m->>'profile_compatibility' = 'compatible' and m->>'operating_model_compatibility' = 'compatible' and m->>'effective_compatibility' = 'compatible' and (m->>'is_compatible')::boolean = true and (m->>'can_activate')::boolean = true)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'occupancy'),
+  'projection for compatible + compatible returns is_compatible true and can_activate true'
+);
+
+-- 8.12 Zero writes across all taxonomy failure scenarios
+select ok(
+  (select count(*) from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000002') = 0
+  and (select count(*) from platform.workspace_module_idempotency where customer_workspace_id = '89600000-0000-0000-0000-000000000002') = 0,
+  'zero module rows and zero idempotency rows created across taxonomy failures'
+);
+
+-- 9. Idempotency Contract & Replay (8 assertions)
 -- 8.1 Replay with exact same key and payload returns cached response snapshot
 select ok(
   ((customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', 'Initial activation of occupancy'))->>'status') = 'active',
@@ -539,11 +733,19 @@ select throws_ok(
   'deactivating a module with active dependents is rejected'
 );
 
--- 9.4 Successful deactivation of leaf module (billing)
+-- 9.4 Safe deactivation of leaf module (billing) is not blocked even without active taxonomy
+update platform.workspace_taxonomy_assignments
+set status = 'inactive'
+where customer_workspace_id = '89600000-0000-0000-0000-000000000001';
+
 select lives_ok(
   $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'billing' and valid_to is null), 'idem-deact-billing-001', 'Deactivating billing safely')$$,
-  'deactivating leaf module billing succeeds'
+  'deactivating leaf module billing succeeds even without active taxonomy assignment'
 );
+
+update platform.workspace_taxonomy_assignments
+set status = 'active'
+where customer_workspace_id = '89600000-0000-0000-0000-000000000001';
 
 -- 9.5 Deactivated module is closed with valid_to NOT NULL
 select ok(
@@ -629,7 +831,7 @@ select ok(
 );
 
 select ok(
-  (select count(*) from portfolio.properties where tenant_id = '89100000-0000-0000-0000-000000000001') = 3,
+  (select count(*) from portfolio.properties where tenant_id = '89100000-0000-0000-0000-000000000001') = 4,
   'portfolio properties count remains stable without mutation'
 );
 

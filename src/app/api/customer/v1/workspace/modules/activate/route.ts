@@ -132,6 +132,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Taxonomy Assignment Required
+    if (msg.includes('workspace_module_taxonomy_assignment_required')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'TAXONOMY_ASSIGNMENT_REQUIRED',
+            message: 'An active taxonomy assignment is required before activating workspace modules.',
+          },
+        },
+        { status: 422, headers: HEADERS }
+      );
+    }
+
+    // Taxonomy Assignment Ambiguous
+    if (msg.includes('workspace_module_taxonomy_assignment_ambiguous')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'TAXONOMY_ASSIGNMENT_AMBIGUOUS',
+            message: 'Multiple active taxonomy assignments detected for workspace.',
+          },
+        },
+        { status: 409, headers: HEADERS }
+      );
+    }
+
+    // Compatibility Rule Missing
+    if (msg.includes('workspace_module_compatibility_rule_missing')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'COMPATIBILITY_RULE_MISSING',
+            message: 'Explicit compatibility rule is missing for the active taxonomy.',
+          },
+        },
+        { status: 422, headers: HEADERS }
+      );
+    }
+
+    // Compatibility Review Required
+    if (msg.includes('workspace_module_compatibility_review_required')) {
+      return NextResponse.json(
+        {
+          error: {
+            code: 'COMPATIBILITY_REVIEW_REQUIRED',
+            message: 'Module requires manual architectural review and approval before activation.',
+          },
+        },
+        { status: 422, headers: HEADERS }
+      );
+    }
+
     // Taxonomy Incompatible
     if (msg.includes('workspace_module_taxonomy_incompatible')) {
       return NextResponse.json(

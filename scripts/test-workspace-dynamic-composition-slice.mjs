@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-console.log('=== RUNNING WORKSPACE DYNAMIC COMPOSITION CONTRACT TESTS (CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R3) ===\n');
+console.log('=== RUNNING WORKSPACE DYNAMIC COMPOSITION CONTRACT TESTS (CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4) ===\n');
 
 // 1. Migration 102 Structure, Security & Invariants
 console.log('[Suite 1] Migration 102 Structure, Schema, Security & Non-Negotiable Invariants');
@@ -83,6 +83,17 @@ assert.match(migrationSql, /new\.name is not null and length\(trim\(new\.name\)\
 assert.match(migrationSql, /residential_condominium', 'residential_complex', 'gated_villa_community', 'mixed_use_estate/i, 'Governance profile compatibility matches canonical profiles');
 assert.match(migrationSql, /o\.code <> 'association_managed'/i, 'Governance operating model matches association_managed');
 
+// R4 Mandates: Fail-closed taxonomy compatibility gate & server-authoritative projection
+assert.doesNotMatch(migrationSql, /coalesce\([^,]+,\s*'compatible'\)/i, 'Zero coalesce(..., compatible) in compatibility projection');
+assert.match(migrationSql, /workspace_module_taxonomy_assignment_required/, 'Fail-closed missing taxonomy assignment (42501)');
+assert.match(migrationSql, /workspace_module_taxonomy_assignment_ambiguous/, 'Fail-closed ambiguous taxonomy assignment (42501)');
+assert.match(migrationSql, /workspace_module_compatibility_rule_missing/, 'Fail-closed missing compatibility rule (42501)');
+assert.match(migrationSql, /workspace_module_compatibility_review_required/, 'Fail-closed review_required (42501)');
+assert.match(migrationSql, /workspace_module_taxonomy_incompatible/, 'Fail-closed incompatible (42501)');
+assert.match(migrationSql, /'profile_compatibility'/, 'Projection includes profile_compatibility');
+assert.match(migrationSql, /'operating_model_compatibility'/, 'Projection includes operating_model_compatibility');
+assert.match(migrationSql, /'effective_compatibility'/, 'Projection includes effective_compatibility');
+
 // Non-negotiable 6: Context Resolver
 assert.match(migrationSql, /app_private\.resolve_workspace_from_customer_context_v1/i, 'Canonical Context Resolver defined');
 assert.match(migrationSql, /workspace_composition_context_not_workspace_bound/, 'Fail-closed error on unbound context');
@@ -105,17 +116,17 @@ assert.match(migrationSql, /guard_module_dependency_dag_v1/i, 'Recursive depende
 assert.match(migrationSql, /guard_workspace_module_code_sync_v1/i, 'Workspace module code sync guard defined');
 assert.match(migrationSql, /guard_workspace_module_immutability_v1/i, 'Workspace module immutability guard defined');
 
-console.log('  ✔ Migration 102 passes all structural, security, DAG, temporal, and non-negotiable invariants.');
+console.log('  ✔ Migration 102 passes all structural, security, DAG, temporal, taxonomy compatibility gate, and non-negotiable invariants.');
 
 // 2. pgTAP Test 089 Structure & Coverage Contract
-console.log('\n[Suite 2] pgTAP Test 089 Acceptance Contract (Plan 84)');
+console.log('\n[Suite 2] pgTAP Test 089 Acceptance Contract (Plan 96)');
 const testPath = 'supabase/tests/089_workspace_dynamic_composition.test.sql';
 assert.ok(fs.existsSync(testPath), 'Test 089 exists');
 const testSql = fs.readFileSync(testPath, 'utf8');
 
 assert.match(testSql, /^begin;/m, 'Test 089 starts with begin;');
 assert.match(testSql, /^rollback;/m, 'Test 089 ends with rollback;');
-assert.match(testSql, /select plan\(84\);/, 'Test 089 matches exact 84 assertions plan');
+assert.match(testSql, /select plan\(96\);/, 'Test 089 matches exact 96 assertions plan');
 
 // Check key assertions in Test 089
 assert.match(testSql, /duplicate \(code, version\) is rejected/, 'Composite uniqueness tested');
@@ -157,7 +168,22 @@ assert.match(testSql, /governance module is compatible with residential_condomin
 assert.match(testSql, /governance module is compatible with association_managed operating model/, 'Governance operating model compatibility tested');
 assert.match(testSql, /zero partial or malformed workspace module rows across all failures/, 'Zero partial writes tested');
 
-console.log('  ✔ Test 089 satisfies all 45 groups, plan(84), and edge-case contracts.');
+// R4: Taxonomy compatibility gate fail-closed assertions in Test 089
+assert.match(testSql, /workspace without active taxonomy assignment is rejected with workspace_module_taxonomy_assignment_required/, 'Missing taxonomy assignment mutation tested');
+assert.match(testSql, /ambiguous active taxonomy assignments on workspace is rejected with workspace_module_taxonomy_assignment_ambiguous/, 'Ambiguous taxonomy assignment mutation tested');
+assert.match(testSql, /activation with missing property profile compatibility rule is rejected with workspace_module_compatibility_rule_missing/, 'Missing profile compatibility rule tested');
+assert.match(testSql, /activation with missing operating model compatibility rule is rejected with workspace_module_compatibility_rule_missing/, 'Missing operating model compatibility rule tested');
+assert.match(testSql, /activation with profile review_required is rejected with workspace_module_compatibility_review_required/, 'Profile review_required rejection tested');
+assert.match(testSql, /activation with operating model review_required is rejected with workspace_module_compatibility_review_required/, 'Operating model review_required rejection tested');
+assert.match(testSql, /activation with incompatible taxonomy rule is rejected with workspace_module_taxonomy_incompatible/, 'Incompatible taxonomy rule rejection tested');
+assert.match(testSql, /projection on workspace without taxonomy returns taxonomy_required and can_activate false/, 'Projection taxonomy_required tested');
+assert.match(testSql, /projection for module with missing compatibility rule returns rule_missing and can_activate false/, 'Projection rule_missing tested');
+assert.match(testSql, /projection for review_required returns status review_required, is_compatible false, and can_activate false/, 'Projection review_required tested');
+assert.match(testSql, /projection for compatible \+ compatible returns is_compatible true and can_activate true/, 'Projection compatible + compatible tested');
+assert.match(testSql, /deactivating leaf module billing succeeds even without active taxonomy assignment/, 'Safe deactivation without active taxonomy tested');
+assert.match(testSql, /zero module rows and zero idempotency rows created across taxonomy failures/, 'Zero writes across taxonomy failures tested');
+
+console.log('  ✔ Test 089 satisfies all 57 groups, plan(96), and edge-case contracts.');
 
 // 3. Documentation Drift Prevention Guard (Directive 5)
 console.log('\n[Suite 3] Documentation Drift Prevention Guard');
@@ -192,6 +218,10 @@ for (const code of expectedModules) {
 // Ensure governance rules are accurately documented
 assert.match(closureContent, /residential_condominium/i, 'Closure report documents residential_condominium compatibility');
 assert.match(closureContent, /association_managed/i, 'Closure report documents association_managed compatibility');
+
+// R4 Mandates: Closure document records R4 and deferred policies
+assert.match(closureContent, /CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4/i, 'Closure report documents R4 remediation');
+assert.match(closureContent, /DEFERRED-COUNTRY-PACK-MODULE-POLICY/i, 'Closure report documents deferred country pack policy');
 
 console.log('  ✔ Documentation drift guard verified: zero stale taxonomy codes, 12 canonical modules present.');
 console.log('\n=== ALL SLICE CONTRACTS PASSED ===');

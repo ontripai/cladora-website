@@ -48,6 +48,9 @@ const DICTIONARY = {
     statusNotInstalled: 'Disponibil',
     statusSuspendedUnentitled: 'Suspendat (Abonament Expirat)',
     statusUnentitled: 'Fără Abonament',
+    statusTaxonomyRequired: 'Necesită Asociere Taxonomie',
+    statusRuleMissing: 'Regulă Compatibilitate Lipsă',
+    statusReviewRequired: 'Necesită Revizuire Manuală',
     statusIncompatible: 'Incompatibil',
     statusCatalogOnly: 'În Curând',
     categoryFinancial: 'Financiar & Contabilitate',
@@ -84,6 +87,9 @@ const DICTIONARY = {
     statusNotInstalled: 'Available',
     statusSuspendedUnentitled: 'Suspended (Subscription Expired)',
     statusUnentitled: 'Entitlement Required',
+    statusTaxonomyRequired: 'Taxonomy Required',
+    statusRuleMissing: 'Compatibility Rule Missing',
+    statusReviewRequired: 'Manual Review Required',
     statusIncompatible: 'Incompatible',
     statusCatalogOnly: 'Coming Soon',
     categoryFinancial: 'Financial & Accounting',
@@ -120,7 +126,10 @@ const DICTIONARY = {
     statusNotInstalled: 'قابل نصب',
     statusSuspendedUnentitled: 'معلق (اشتراک منقضی)',
     statusUnentitled: 'نیازمند اشتراک',
-    statusIncompatible: 'ناسازگار با الگو',
+    statusTaxonomyRequired: 'نیازمند انتساب تاکسونومی',
+    statusRuleMissing: 'نبود قانون سازگاری',
+    statusReviewRequired: 'نیازمند بررسی دستی',
+    statusIncompatible: 'ناسازگار با الگوی فعلی',
     statusCatalogOnly: 'به‌زودی',
     categoryFinancial: 'مالی و حسابداری',
     categoryOperations: 'عملیات و نگهداری',
@@ -303,6 +312,27 @@ export function WorkspaceCompositionCard({
           <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-semibold text-orange-700 border border-orange-200">
             <AlertCircle className="h-3.5 w-3.5" />
             {t.statusUnentitled}
+          </span>
+        );
+      case 'taxonomy_required':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 border border-amber-200">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {t.statusTaxonomyRequired}
+          </span>
+        );
+      case 'rule_missing':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 border border-rose-200">
+            <AlertCircle className="h-3.5 w-3.5" />
+            {t.statusRuleMissing}
+          </span>
+        );
+      case 'review_required':
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-semibold text-indigo-700 border border-indigo-200">
+            <AlertCircle className="h-3.5 w-3.5" />
+            {t.statusReviewRequired}
           </span>
         );
       case 'incompatible':
@@ -496,7 +526,7 @@ export function WorkspaceCompositionCard({
                     {t.versionBadge(mod.version)}
                   </span>
 
-                  {canManage && mod.can_activate && (
+                  {canManage && mod.can_activate && mod.is_compatible && (
                     <button
                       type="button"
                       disabled={isLoading}

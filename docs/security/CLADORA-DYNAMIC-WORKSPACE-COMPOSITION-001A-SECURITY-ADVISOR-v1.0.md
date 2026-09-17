@@ -96,3 +96,10 @@ The findings represent intentional architectural patterns:
 - `GRANT SELECT, INSERT, UPDATE, DELETE` is restricted to `service_role`.
 - `authenticated` and `anon` roles have zero table-level grants and zero permissive policies.
 - Direct client manipulation via PostgREST is impossible; all queries must traverse the audited `customer_api` gateways.
+
+### 4.5 Fail-Closed Taxonomy Compatibility Gate & Projection Guard (R4)
+- **Zero Fallback to Compatible:** All `coalesce(..., 'compatible')` projections have been removed. Projection emits server-authoritative fields (`profile_compatibility`, `operating_model_compatibility`, `effective_compatibility`).
+- **Enforced Assignment Cardinality:** Mutation strictly requires exactly one active taxonomy assignment on the workspace. Zero active assignments emits `workspace_module_taxonomy_assignment_required` (`42501`); multiple emits `workspace_module_taxonomy_assignment_ambiguous` (`42501`).
+- **Mandatory Compatibility Rules:** Both property profile and operating model compatibility rules must explicitly exist. Missing rules reject mutation with `workspace_module_compatibility_rule_missing` (`42501`).
+- **Review Required Rejection in 001A:** Status `review_required` rejects mutation with `workspace_module_compatibility_review_required` (`42501`) because independent approval workflows remain deferred under `DEFERRED-COUNTRY-PACK-MODULE-POLICY`.
+- **Zero Partial Writes:** All taxonomy and compatibility failures immediately abort transaction execution, resulting in zero rows written to `workspace_modules`, `workspace_module_idempotency`, or `audit.events`.
