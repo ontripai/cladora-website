@@ -18,8 +18,10 @@ This register documents the formal security exceptions, architectural risk asses
 Following the authorized remote application to Supabase Linked Production, verification of zero schema drift (`Local 103 / Remote 103 / Drift 0`), confirmation of zero blocking queries and zero ungranted locks, and successful automated CI/CD pipeline execution on `main`, all exceptions cataloged herein have been formally audited and assigned the authoritative status **`ACCEPTED-CONTROLLED-EXCEPTION`** or **`ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL`**.
 
 The cataloged findings represent proven, deliberate, and hardened multi-tenant security patterns:
-1. **Ten (10) Accepted `WARN` Findings (`0029_authenticated_security_definer_function_executable`):** Ten controlled `customer_api` RPC functions exposed to authenticated sessions with internal fail-closed context resolution, tenant isolation, explicit ordered search paths, permission checks (`workspace.role.read`, `workspace.role.manage`, `workspace.role.publish`, `workspace.role.assign`), transactional advisory locking, versioned optimistic concurrency checks (`40001`), and mandatory AAL2 step-up validation for all nine mutation RPCs.
-2. **Six (6) Accepted `INFO` Findings (`0008_rls_enabled_no_policy`):** Six core workspace role, module scoping, and assignment tables in the `platform` schema with Row Level Security enabled. Direct access by `anon` and `authenticated` roles is completely denied via explicit `REVOKE ALL` and zero client-facing policies; client application access is mediated exclusively through audited `customer_api` gateways. Internal maintenance and administrative operations are governed by minimal, non-permissive `service_role` grants.
+1. **Ten (10) Accepted `WARN` Findings (`0029_authenticated_security_definer_function_executable`):** Exactly ten controlled `customer_api` RPC functions exposed to authenticated sessions, strictly partitioned into:
+   - **One (1) Read RPC Gateway (`customer_api.get_workspace_roles_v1`):** Marked `STABLE`, validates caller workspace membership and context under AAL1 (no AAL2 required), projects role and permission data without requiring idempotency keys or emitting mutation audit events.
+   - **Nine (9) Mutation RPC Gateways:** Marked `VOLATILE`, enforce mandatory AAL2 MFA step-up (`auth.jwt()->>'aal' = 'aal2'`), validate dedicated permissions (`workspace.role.manage`, `workspace.role.publish`, `workspace.role.assign`), execute transactional advisory locking, perform versioned optimistic concurrency checks raising SQLSTATE `40001`, require versioned idempotency keys, and atomically record domain audit events in `audit.events`.
+2. **Six (6) Accepted `INFO` Findings (`0008_rls_enabled_no_policy`):** Exactly six core workspace role, module scoping, and assignment tables in the `platform` schema with Row Level Security enabled via `ENABLE ROW LEVEL SECURITY`. Direct access by `anon` and `authenticated` roles is completely denied via explicit `REVOKE ALL` from `public`, `anon`, and `authenticated`, with zero client-facing policies. Client application access is mediated exclusively through audited `customer_api` gateways. Internal maintenance and administrative operations are governed by minimal, non-permissive `service_role` grants.
 3. **Internal Helper Function:** `app_private.check_effective_permission_v1` is `SECURITY DEFINER`, with fixed `search_path` `pg_catalog, platform, identity, portfolio, app_private`, and is completely revoked from `public`, `anon`, and `authenticated`.
 4. **Zero Trigger Bypass:** The database contains zero backdoor session settings, zero operational cleanup overrides, and zero `session_replication_role` bypasses. All historical and invariant triggers remain strictly non-negotiable.
 
@@ -74,18 +76,18 @@ The cataloged findings represent proven, deliberate, and hardened multi-tenant s
 
 ### 3.2 Security Controls & Compensating Architecture
 
-| Gateway Routine | Required Permission | AAL2 MFA Enforced | Context & Tenant Isolation | Concurrency & Idempotency | Audit Logging |
-| :--- | :--- | :---: | :--- | :--- | :--- |
-| `get_workspace_roles_v1` | `workspace.role.read` | No (Read-Only) | Caller authenticated membership in workspace required; filters by tenant. | Read snapshot projection. | N/A (Read) |
-| `create_workspace_role_draft_v1` | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Validates caller workspace membership; scopes draft role to caller's tenant. | `pg_advisory_xact_lock`, versioned hash key, unique code per tenant. | Writes `WORKSPACE_ROLE_DRAFT_CREATED` to `audit.events`. |
-| `attach_workspace_role_module_v1` | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Ensures role and active module definition belong to caller's tenant context. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_MODULE_ATTACHED` to `audit.events`. |
-| `detach_workspace_role_module_v1` | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Enforces role tenant boundary; only draft roles can be detached. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_MODULE_DETACHED` to `audit.events`. |
-| `attach_workspace_role_permission_v1` | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Validates permission existence, active status, and non-administrative scope. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_PERMISSION_ATTACHED` to `audit.events`. |
-| `detach_workspace_role_permission_v1` | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Enforces draft role immutability invariants and tenant ownership. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_PERMISSION_DETACHED` to `audit.events`. |
-| `snapshot_workspace_role_template_permissions_v1` | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Snapshots baseline template permissions for attached modules in tenant. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_TEMPLATE_PERMISSIONS_SNAPSHOT` to `audit.events`. |
-| `publish_workspace_role_v1` | `workspace.role.publish` | Yes (`aal = 'aal2'`) | Enforces active modules, permissions, role versioning (`role_version` increments), tenant scope. | Advisory lock, supersession locking, lock version verification (`40001`), idempotency replay. | Writes `WORKSPACE_ROLE_PUBLISHED` to `audit.events`. |
-| `assign_workspace_role_v1` | `workspace.role.assign` | Yes (`aal = 'aal2'`) | Validates published role, active membership, exact scope hierarchy, tenant match. | Advisory lock on target membership, single active role per scope constraint, idempotency replay. | Writes `WORKSPACE_ROLE_ASSIGNED` to `audit.events`. |
-| `revoke_workspace_role_assignment_v1` | `workspace.role.assign` | Yes (`aal = 'aal2'`) | Validates caller tenant and target assignment active status. | Advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_ASSIGNMENT_REVOKED` to `audit.events`. |
+| Gateway Routine | Type & Volatility | Required Permission | AAL2 MFA Enforced | Context & Tenant Isolation | Concurrency & Idempotency | Audit Logging |
+| :--- | :--- | :--- | :---: | :--- | :--- | :--- |
+| `get_workspace_roles_v1` | Read (`STABLE`) | `workspace.role.read` | No (AAL1 / Read-Only) | Caller authenticated membership in workspace required; scopes projection strictly to caller tenant. | Read snapshot projection (no lock, no idempotency). | N/A (Read-only, no mutation audit) |
+| `create_workspace_role_draft_v1` | Mutation (`VOLATILE`) | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Validates caller workspace membership; scopes draft role to caller tenant. | `pg_advisory_xact_lock`, versioned hash key, unique code per tenant. | Writes `WORKSPACE_ROLE_CREATED` to `audit.events`. |
+| `attach_workspace_role_module_v1` | Mutation (`VOLATILE`) | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Ensures role and active module definition belong to caller tenant context. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_MODULE_ATTACHED` to `audit.events`. |
+| `detach_workspace_role_module_v1` | Mutation (`VOLATILE`) | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Enforces role tenant boundary; only draft roles can be detached. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_MODULE_DETACHED` to `audit.events`. |
+| `attach_workspace_role_permission_v1` | Mutation (`VOLATILE`) | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Validates permission existence, active status, and non-administrative scope. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_PERMISSION_ATTACHED` to `audit.events`. |
+| `detach_workspace_role_permission_v1` | Mutation (`VOLATILE`) | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Enforces draft role immutability invariants and tenant ownership. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_PERMISSION_DETACHED` to `audit.events`. |
+| `snapshot_workspace_role_template_permissions_v1` | Mutation (`VOLATILE`) | `workspace.role.manage` | Yes (`aal = 'aal2'`) | Snapshots baseline template permissions for attached modules in tenant. | Transactional advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_TEMPLATE_SNAPSHOTTED` to `audit.events`. |
+| `publish_workspace_role_v1` | Mutation (`VOLATILE`) | `workspace.role.publish` | Yes (`aal = 'aal2'`) | Enforces active modules, permissions, role versioning (`role_version` increments), tenant scope. | Advisory lock, supersession locking, lock version verification (`40001`), idempotency replay. | Writes `WORKSPACE_ROLE_PUBLISHED` to `audit.events`. |
+| `assign_workspace_role_v1` | Mutation (`VOLATILE`) | `workspace.role.assign` | Yes (`aal = 'aal2'`) | Validates published role, active membership, exact scope hierarchy, tenant match. | Advisory lock on target membership, single active role per scope constraint, idempotency replay. | Writes `WORKSPACE_ROLE_ASSIGNED` to `audit.events`. |
+| `revoke_workspace_role_assignment_v1` | Mutation (`VOLATILE`) | `workspace.role.assign` | Yes (`aal = 'aal2'`) | Validates caller tenant and target assignment active status. | Advisory lock, checks `expected_lock_version` (`40001` conflict), idempotency replay. | Writes `WORKSPACE_ROLE_ASSIGNMENT_REVOKED` to `audit.events`. |
 
 ### 3.3 Technical Justification for `SECURITY DEFINER` (Non-Invocability of `SECURITY INVOKER`)
 - **Deny-by-Default Table Architecture:** The underlying relational tables (`platform.workspace_roles`, `platform.workspace_member_roles`, `platform.workspace_role_modules`, `platform.workspace_role_permissions`, `platform.module_permission_bindings`, `platform.workspace_role_idempotency`) reside in private system schemas where direct access by `authenticated` and `anon` roles is completely revoked.
@@ -97,32 +99,36 @@ The cataloged findings represent proven, deliberate, and hardened multi-tenant s
 - **Compensating Controls:**
   1. **Strict Context & Membership Anchor:** Every routine takes `p_context_id`, resolves caller identity via `auth.uid()`, and verifies active membership within the specified workspace.
   2. **Explicit Ordered `search_path`:** Every routine specifies a fixed, ordered search path (`pg_catalog, platform, identity, portfolio, [audit, extensions,] app_private`), completely neutralizing search-path hijacking attacks.
-  3. **Mandatory AAL2 MFA:** All mutation operations strictly assert `auth.jwt()->>'aal' = 'aal2'`. Unauthenticated or single-factor sessions cannot mutate roles or assignments.
-  4. **Optimistic Concurrency & Advisory Locks:** Concurrency contention raises SQLSTATE `40001` (`workspace_role_expected_lock_version_conflict`), preventing race conditions.
-  5. **Mandatory Audit Reasons:** Parameter `p_reason` is strictly validated (5–500 characters after `trim`) and permanently recorded with before/after state in `audit.events`.
+  3. **Mandatory AAL2 MFA for Mutations:** All nine mutation operations strictly assert `auth.jwt()->>'aal' = 'aal2'`. Unauthenticated or single-factor sessions cannot mutate roles, bindings, or assignments. The read gateway `get_workspace_roles_v1` requires authenticated membership under standard AAL1 without MFA step-up.
+  4. **Optimistic Concurrency & Advisory Locks for Mutations:** Concurrency contention during mutations raises SQLSTATE `40001` (`workspace_role_expected_lock_version_conflict`), preventing race conditions. The read gateway performs snapshot reads without locks or version checks.
+  5. **Mandatory Audit Reasons for Mutations:** Parameter `p_reason` is strictly validated (5–500 characters after `trim`) and permanently recorded with before/after state in `audit.events` for all nine mutation gateways. The read gateway performs read-only projection without taking `p_reason` or emitting mutation audit events.
   6. **Zero Physical Deletion:** Published roles, member assignments, and binding histories are protected by strict production triggers that reject `DELETE` operations with SQLSTATE `42501`.
 
 ---
 
 ## 4. Six Accepted Deny-by-Default RLS Tables Catalog
 
-| Table Name | RLS Enabled (`relrowsecurity`) | Force RLS (`relforcerowsecurity`) | Actual Database Grants | Direct Policies for `anon` / `authenticated` | Direct Client Access | Mediation Gateway |
-| :--- | :---: | :---: | :--- | :---: | :---: | :--- |
-| `platform.module_permission_bindings` | `true` | `false` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | Controlled via Migration 103 Seeding |
-| `platform.workspace_roles` | `true` | `false` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `customer_api.*workspace_role*_v1` |
-| `platform.workspace_role_modules` | `true` | `false` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `attach`/`detach_workspace_role_module_v1` |
-| `platform.workspace_role_permissions` | `true` | `false` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `attach`/`detach_workspace_role_permission_v1` |
-| `platform.workspace_member_roles` | `true` | `false` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `assign`/`revoke_workspace_role_assignment_v1` |
-| `platform.workspace_role_idempotency` | `true` | `false` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | Internal Gateway Idempotency Engine |
+| Table Name | RLS Status | Actual Database Grants | Direct Policies for `anon` / `authenticated` | Direct Client Access | Mediation Gateway |
+| :--- | :---: | :--- | :---: | :---: | :--- |
+| `platform.module_permission_bindings` | `ENABLE ROW LEVEL SECURITY` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | Controlled via Migration 103 Seeding |
+| `platform.workspace_roles` | `ENABLE ROW LEVEL SECURITY` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `customer_api.*workspace_role*_v1` |
+| `platform.workspace_role_modules` | `ENABLE ROW LEVEL SECURITY` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `attach`/`detach_workspace_role_module_v1` |
+| `platform.workspace_role_permissions` | `ENABLE ROW LEVEL SECURITY` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `attach`/`detach_workspace_role_permission_v1` |
+| `platform.workspace_member_roles` | `ENABLE ROW LEVEL SECURITY` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | `assign`/`revoke_workspace_role_assignment_v1` |
+| `platform.workspace_role_idempotency` | `ENABLE ROW LEVEL SECURITY` | `postgres` (ALL), `service_role` (SELECT, INSERT, UPDATE, DELETE) | None (0 policies) | Completely Blocked | Internal Gateway Idempotency Engine |
 
-- **Security Rationale:** Enabling RLS without direct policies, combined with explicit `REVOKE ALL` from `public`, `anon`, and `authenticated`, enforces a robust deny-by-default stance. Direct queries via PostgREST or Supabase client libraries fail closed with empty results or permission denied.
+- **Security Rationale & Deny-by-Default Architecture:**
+  1. **Row Level Security Enabled:** Every table has Row Level Security enabled via explicit `ALTER TABLE ... ENABLE ROW LEVEL SECURITY`.
+  2. **Zero Policies for Client Roles:** Exactly zero policies are defined for `anon` or `authenticated` roles in `pg_policies`.
+  3. **Explicit Revocations:** Explicit `REVOKE ALL` from `public`, `anon`, and `authenticated` is enforced on all six tables.
+  4. **Strict RPC Mediation:** Client access is mediated exclusively through controlled, validated `customer_api` RPC gateways. Direct access via PostgREST or client SDKs fails closed with empty results or permission denied.
 
 ---
 
 ## 5. Final Disposition Statement
 
 All 16 findings (10 `SECURITY DEFINER` gateways and 6 deny-by-default RLS tables) introduced in Migration 103 on Supabase Linked Production are thoroughly documented, rigorously controlled, and formally accepted:
-- **Ten (10) `customer_api` RPC Gateways:** **`ACCEPTED-CONTROLLED-EXCEPTION`**
+- **Ten (10) `customer_api` RPC Gateways (1 Read + 9 Mutations):** **`ACCEPTED-CONTROLLED-EXCEPTION`**
 - **Six (6) `platform` Relational Tables:** **`ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL`**
 
 Zero unexpected security advisor findings exist. Zero trigger bypasses exist.

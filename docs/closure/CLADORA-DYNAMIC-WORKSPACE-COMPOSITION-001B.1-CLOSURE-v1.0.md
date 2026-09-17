@@ -17,7 +17,7 @@
 This report certifies the authoritative completion, remote application, production verification, and security advisory closure for package `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1`. Migration 103 has been successfully applied to Supabase Linked Production (`jyomlehahwlyqzoacrvp`), verified against schema drift (`Local 103 / Remote 103 / Drift 0`), validated with zero blocking queries and zero ungranted locks, merged to `main` via Squash Merge, and verified live across production domains.
 
 All architectural mandates are fully realized and verified in production:
-1. **Migration 103 Applied to Production:** Exactly six relational tables created in `platform` schema (`module_permission_bindings`, `workspace_roles`, `workspace_role_modules`, `workspace_role_permissions`, `workspace_member_roles`, `workspace_role_idempotency`). Zero `ON DELETE CASCADE`. Explicit fixed `search_path` across all routines. Deny-by-default RLS with zero grants to `anon` or `authenticated`.
+1. **Migration 103 Applied to Production:** Exactly six relational tables created in `platform` schema (`module_permission_bindings`, `workspace_roles`, `workspace_role_modules`, `workspace_role_permissions`, `workspace_member_roles`, `workspace_role_idempotency`). Zero `ON DELETE CASCADE`. Explicit fixed `search_path` across all routines. Deny-by-default architecture established with `ENABLE ROW LEVEL SECURITY` across all six tables, exactly zero direct policies for `anon` or `authenticated`, explicit `REVOKE ALL` from `public`, `anon`, and `authenticated`, and client access mediated strictly via controlled RPC gateways.
 2. **Cardinal Delegation Rule Preserved:** `is_delegable = false` across all 48 module-permission binding records in Migration 103. Delegation runtime, delegation tables, and approval dual control remain strictly deferred to package 001B.2 (Migration 104).
 3. **Proven Module-Permission Seed Manifest:** Exactly 48 proven mappings registered without wildcards. Catalog-only modules (`core_property_registry`, `contracts_tenancy`) have exactly zero bindings. Four administrative permissions (`workspace.role.read`, `workspace.role.manage`, `workspace.role.publish`, `workspace.role.assign`) are excluded from operational module mappings.
 4. **Disambiguated Role Versioning & Immutability:** `role_version` increments forward-only on supersession; `lock_version` increments on draft mutations. Lock version conflicts raise SQLSTATE `40001`. Published roles are content-immutable; supersession atomically transitions previous version to `archived`. Physical deletion is strictly blocked via triggers (`42501`).
@@ -25,7 +25,9 @@ All architectural mandates are fully realized and verified in production:
 6. **Deny-First Effective Permission Resolution Engine (`app_private.check_effective_permission_v1`):** Canonical equation:
    $$\text{Effective Permission} = \text{Common Gates} \;\land\; \neg(\text{Applicable Scoped Deny}) \;\land\; (\text{Any Applicable Allow})$$
    Evaluates all applicable denys before any allow. Evaluates active module definition, valid permission binding, and active taxonomy assignment against `statement_timestamp()`.
-7. **Ten Controlled Customer RPC Gateways:** Complete suite of STABLE read (`get_workspace_roles_v1`) and nine VOLATILE mutation gateways (`create_workspace_role_draft_v1`, `attach_workspace_role_module_v1`, `detach_workspace_role_module_v1`, `attach_workspace_role_permission_v1`, `detach_workspace_role_permission_v1`, `snapshot_workspace_role_template_permissions_v1`, `publish_workspace_role_v1`, `assign_workspace_role_v1`, `revoke_workspace_role_assignment_v1`) with advisory locks, mandatory AAL2 MFA enforcement, trimmed reason, versioned idempotency (`request_hash_version = 1`), and atomic audit logging in `audit.events`.
+7. **Ten Controlled Customer RPC Gateways (1 Read + 9 Mutations):**
+   - **One (1) Read Gateway (`get_workspace_roles_v1`):** Marked `STABLE`, verifies caller workspace context and active membership under standard AAL1 authentication without requiring AAL2 step-up, does not use idempotency keys, and does not emit mutation audit records.
+   - **Nine (9) Mutation Gateways:** Marked `VOLATILE` (`create_workspace_role_draft_v1`, `attach_workspace_role_module_v1`, `detach_workspace_role_module_v1`, `attach_workspace_role_permission_v1`, `detach_workspace_role_permission_v1`, `snapshot_workspace_role_template_permissions_v1`, `publish_workspace_role_v1`, `assign_workspace_role_v1`, `revoke_workspace_role_assignment_v1`). All nine enforce mandatory AAL2 MFA (`auth.jwt()->>'aal' = 'aal2'`), dedicated fine-grained permissions (`workspace.role.manage`, `workspace.role.publish`, `workspace.role.assign`), transactional advisory locking, versioned optimistic concurrency checks raising SQLSTATE `40001`, versioned idempotency (`request_hash_version = 1`), and atomic domain audit event logging in `audit.events` (`WORKSPACE_ROLE_CREATED`, `WORKSPACE_ROLE_MODULE_ATTACHED`, `WORKSPACE_ROLE_MODULE_DETACHED`, `WORKSPACE_ROLE_PERMISSION_ATTACHED`, `WORKSPACE_ROLE_PERMISSION_DETACHED`, `WORKSPACE_ROLE_TEMPLATE_SNAPSHOTTED`, `WORKSPACE_ROLE_PUBLISHED`, `WORKSPACE_ROLE_ASSIGNED`, `WORKSPACE_ROLE_ASSIGNMENT_REVOKED`).
 8. **Protected Application Routes & UI:** Ten route handlers under `src/app/api/customer/v1/workspace/roles/` with same-origin checks, 16KB body limit, Zod validation, and zero service role in browser paths. Trilingual UI (`ro`, `en`, `fa` + RTL) deployed at `src/app/[lang]/app/settings/roles/`.
 9. **Zero Trigger Bypass:** Zero `session_replication_role`, zero `operational_cleanup`, and zero session GUC backdoors across the entire codebase, tests, and production database.
 
@@ -82,19 +84,21 @@ Authoritative read-only smoke verification was executed against both production 
 ## 4. Security Advisor Final Disposition
 
 All findings cataloged in `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-SECURITY-ADVISOR-v1.0` have been audited following remote deployment:
-- **Ten (10) Accepted `SECURITY DEFINER` Gateways:**
-  - `customer_api.get_workspace_roles_v1(uuid)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.create_workspace_role_draft_v1(uuid, text, text, text, text, uuid, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.attach_workspace_role_module_v1(uuid, uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.detach_workspace_role_module_v1(uuid, uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.attach_workspace_role_permission_v1(uuid, uuid, uuid, text, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.detach_workspace_role_permission_v1(uuid, uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.snapshot_workspace_role_template_permissions_v1(uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.publish_workspace_role_v1(uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.assign_workspace_role_v1(uuid, uuid, uuid, text, uuid, uuid, uuid, timestamptz, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.revoke_workspace_role_assignment_v1(uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
+- **Ten (10) Accepted `SECURITY DEFINER` Gateways (1 Read + 9 Mutations):**
+  - **One (1) Read Gateway (`STABLE`, AAL1 authenticated membership, no AAL2, no idempotency, no mutation audit):**
+    - `customer_api.get_workspace_roles_v1(uuid)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
+  - **Nine (9) Mutation Gateways (`VOLATILE`, mandatory AAL2 `aal = 'aal2'`, dedicated permissions, idempotency, advisory lock/40001, atomic audit logging):**
+    - `customer_api.create_workspace_role_draft_v1(uuid, text, text, text, text, uuid, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_CREATED`)
+    - `customer_api.attach_workspace_role_module_v1(uuid, uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_MODULE_ATTACHED`)
+    - `customer_api.detach_workspace_role_module_v1(uuid, uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_MODULE_DETACHED`)
+    - `customer_api.attach_workspace_role_permission_v1(uuid, uuid, uuid, text, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_PERMISSION_ATTACHED`)
+    - `customer_api.detach_workspace_role_permission_v1(uuid, uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_PERMISSION_DETACHED`)
+    - `customer_api.snapshot_workspace_role_template_permissions_v1(uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_TEMPLATE_SNAPSHOTTED`)
+    - `customer_api.publish_workspace_role_v1(uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_PUBLISHED`)
+    - `customer_api.assign_workspace_role_v1(uuid, uuid, uuid, text, uuid, uuid, uuid, timestamptz, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_ASSIGNED`)
+    - `customer_api.revoke_workspace_role_assignment_v1(uuid, uuid, integer, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION` (Audit: `WORKSPACE_ROLE_ASSIGNMENT_REVOKED`)
 - **Six (6) Accepted Deny-by-Default RLS Tables:**
-  - All 6 new `platform.*` tables enforce deny-by-default RLS with zero client-facing policies -> `ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL`
+  - All 6 new `platform.*` tables enforce a deny-by-default architecture based on `ENABLE ROW LEVEL SECURITY`, exactly zero policies for `anon` or `authenticated`, explicit `REVOKE ALL` from `public`, `anon`, and `authenticated`, and client access mediated strictly via controlled RPC gateways -> `ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL`
 - **Unexpected Findings:** 0 (zero unexpected warnings, errors, or unhandled exceptions).
 
 ---
