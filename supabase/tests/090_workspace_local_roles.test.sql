@@ -374,12 +374,13 @@ select throws_ok(
   'direct UPDATE on published workspace role is rejected by trigger'
 );
 
--- 5.10 Direct delete on published role is rejected
+-- 5.10 Direct delete on published role is rejected (custom GUC has zero effect)
+select set_config('app.test_custom_bypass', 'true', true);
 select throws_ok(
   $$delete from platform.workspace_roles where code = 'lead_technician'$$,
   '42501',
   'workspace_role_delete_prohibited',
-  'direct DELETE on workspace role is prohibited by trigger'
+  'direct DELETE on workspace role is prohibited by trigger even if custom GUC is set'
 );
 
 -- 5.11 Modifying modules/permissions on published role is rejected
@@ -648,12 +649,13 @@ select ok(exists(
     and lock_version = 2
 ), 'assignment revoked by setting valid_to and incrementing lock_version');
 
--- 6.9 Direct delete on workspace_member_roles is prohibited
+-- 6.9 Direct delete on workspace_member_roles is prohibited (custom GUC has zero effect)
+select set_config('app.test_custom_bypass', 'true', true);
 select throws_ok(
   $$delete from platform.workspace_member_roles$$,
   '42501',
   'workspace_member_role_delete_prohibited',
-  'physical DELETE on workspace_member_roles is prohibited by trigger'
+  'physical DELETE on workspace_member_roles is prohibited by trigger even if custom GUC is set'
 );
 
 -- 6.10 Reopening a revoked assignment (clearing valid_to) is prohibited

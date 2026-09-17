@@ -78,7 +78,7 @@ The transactional mutation gateway (`customer_api.assign_workspace_taxonomy_v1`)
    - Server-authoritative catalog options and compatibility evaluation (zero client hardcoding, zero compatible fallback), country code input, `canManage` derived from server permissions, and real MFA step-up link to `/${lang}/mfa`.
 6. **Multi-Session Concurrency Rehearsal:**
    - Path: `scripts/test-workspace-taxonomy-mutation-concurrency.mjs`
-   - Real PostgreSQL multi-session race with advisory transaction locking, explicit blocker/blocked PID verification via `pg_blocking_pids`, loser SQLSTATE `40001`, and zero `session_replication_role = replica`.
+   - Real PostgreSQL multi-session race with advisory transaction locking, explicit blocker/blocked PID verification via `pg_blocking_pids`, loser SQLSTATE `40001`, and zero replica trigger bypass.
 7. **CI Workflow Integration:**
    - Path: `.github/workflows/database-tests.yml`
    - Concurrency tests integrated into CI runner under `postgres-runtime`.

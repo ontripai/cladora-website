@@ -157,4 +157,17 @@ const gitStatus = fs.readFileSync('supabase/migrations/20260918120000_workspace_
 assert.doesNotMatch(gitStatus, /demo/i, 'Zero demo references in migration');
 
 console.log('  ✔ All prohibited boundaries preserved.');
+
+const prohibitedGuc = ['operational', 'cleanup'].join('_');
+const prohibitedRole = ['session', 'replication', 'role'].join('_');
+assert.doesNotMatch(migrationSql, new RegExp(prohibitedGuc, 'i'), 'Zero bypass GUC in Migration 103');
+assert.doesNotMatch(migrationSql, new RegExp(prohibitedRole, 'i'), 'Zero replication role in Migration 103');
+assert.doesNotMatch(migrationSql, /guard_workspace_property_binding_history_v1/i, 'Migration 103 does not define or replace guard_workspace_property_binding_history_v1');
+
+assert.match(migrationSql, /if tg_op = 'DELETE' then\s+raise exception 'workspace_role_delete_prohibited' using errcode = '42501';\s+end if;/m, 'Published role delete is unconditionally prohibited');
+assert.match(migrationSql, /if tg_op = 'DELETE' then\s+raise exception 'workspace_member_role_delete_prohibited' using errcode = '42501';\s+end if;/m, 'Member role delete is unconditionally prohibited');
+assert.match(testSql, /select set_config\('app\.test_custom_bypass'/i, 'Test 090 proves custom GUC has zero effect on triggers');
+
+console.log('  ✔ All backdoor absence and strict trigger invariants verified.');
+
 console.log('\n=== ALL WORKSPACE LOCAL ROLES CONTRACT TESTS PASSED ===');

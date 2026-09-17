@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 /**
  * CLADORA WORKSPACE LOCAL ROLES & ASSIGNMENTS — Real Multi-Connection PostgreSQL Concurrency Rehearsal
- * Package: CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-R5
+ * Package: CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-R6
  *
  * Invariants & Guarantees:
  * - Real independent PostgreSQL connections (pg.Client). Zero simulated JavaScript locks.
  * - Connects strictly to local/ephemeral test databases (rejects remote/production hosts).
+ * - Provable local ephemeral database: If connection is unreachable or remote, exits with non-zero exit code.
+ * - Random unique fixture generation (crypto.randomUUID()): Every rehearsal execution uses freshly generated
+ *   UUIDs and unique role codes. Zero prerequisite cleanup required prior to run.
  * - Real RPC invocation: customer_api.publish_workspace_role_v1(...) executed by 2 concurrent sessions.
  * - Multi-session concurrency race against workspace role publish:
  *     C1 begins transaction, sets JWT claims/AAL2, executes customer_api.publish_workspace_role_v1;
@@ -21,14 +24,14 @@
  *     Winner retries exact same publish_workspace_role_v1 call with same initial expected_lock_version 1;
  *     Verifies exact stored response_snapshot returned, zero 40001 conflict, lock_version remains 2,
  *     and zero duplicate audit or idempotency records created.
- * - Controlled Teardown:
- *     Uses authorized operational cleanup order without bypassing triggers.
- *     Asserts residual fixture count across all fixture IDs is strictly 0.
- * - Fail-closed when DB reachable: Any lock timeout, assertion failure, or PID mismatch causes non-zero exit code.
+ * - Ephemeral Container Lifecycle:
+ *     In ephemeral databases/containers, fixtures remain safely in the DB until container destruction.
+ *     Zero trigger bypass, zero session GUC manipulation, and zero artificial delete logic.
  */
 
 import { Client } from 'pg';
 import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
 
 const LOCAL_DB_URL =
   process.env.SUPABASE_DB_URL ||
@@ -41,11 +44,13 @@ function validateDatabaseUrl(url) {
   const disallowed = ['supabase.co', 'pooler.supabase.com', 'aws.', 'azure.', 'gcp.', 'neon.tech'];
   for (const d of disallowed) {
     if (hostname.includes(d)) {
-      throw new Error(`CRITICAL SECURITY REFUSAL: Concurrency test must never run against remote/production host (${hostname})`);
+      console.error(`CRITICAL SECURITY REFUSAL: Concurrency test must never run against remote/production host (${hostname})`);
+      process.exit(1);
     }
   }
   if (hostname !== '127.0.0.1' && hostname !== 'localhost' && hostname !== 'postgres') {
-    throw new Error(`CRITICAL SECURITY REFUSAL: Concurrency test host must be local ephemeral test database (got: ${hostname})`);
+    console.error(`CRITICAL SECURITY REFUSAL: Concurrency test host must be local ephemeral test database (got: ${hostname})`);
+    process.exit(1);
   }
 }
 
@@ -92,81 +97,58 @@ async function run() {
     c1 = await createClient('Connection 1');
     c2 = await createClient('Connection 2');
   } catch (connErr) {
-    console.log(`[Info] Local PostgreSQL database not reachable at ${LOCAL_DB_URL}: ${connErr.message}`);
-    console.log('Skipping live multi-connection concurrency rehearsal (executed during ephemeral CI container run).');
-    process.exit(0);
+    console.error(`[CRITICAL] Local ephemeral PostgreSQL database not reachable at ${LOCAL_DB_URL}: ${connErr.message}`);
+    process.exit(1);
   }
 
-  // Canonical fixtures strictly aligned with database schema
-  const F_TENANT = '99410000-0000-0000-0000-000000000001';
-  const F_WS = '99440000-0000-0000-0000-000000000001';
-  const F_PROP = '99470000-0000-0000-0000-000000000001';
-  const F_ADMIN_USER = '99400000-0000-0000-0000-000000000001';
-  const F_ADMIN_MEM = '99420000-0000-0000-0000-000000000001';
-  const F_ADMIN_CTX = '99460000-0000-0000-0000-000000000001';
-  const F_ROLE = '99450000-0000-0000-0000-000000000001';
-  const F_IDEM_WINNER = 'idem_concurrent_publish_winner_001';
-  const F_IDEM_LOSER = 'idem_concurrent_publish_loser_001';
+  // Generate completely random unique UUIDs and code for this run
+  const F_TENANT = crypto.randomUUID();
+  const F_WS = crypto.randomUUID();
+  const F_PROP = crypto.randomUUID();
+  const F_ADMIN_USER = crypto.randomUUID();
+  const F_ADMIN_MEM = crypto.randomUUID();
+  const F_ADMIN_CTX = crypto.randomUUID();
+  const F_ROLE = crypto.randomUUID();
+  const ROLE_CODE = `role_${crypto.randomBytes(4).toString('hex')}`;
+  const F_IDEM_WINNER = `idem_win_${crypto.randomBytes(6).toString('hex')}`;
+  const F_IDEM_LOSER = `idem_lose_${crypto.randomBytes(6).toString('hex')}`;
 
   try {
     const pid1 = await getClientPid(c1);
     const pid2 = await getClientPid(c2);
-    console.log(`[Setup] Connected independent clients: C1 (PID ${pid1}), C2 (PID ${pid2})`);
+    console.log(`[Setup] Connected independent clients to ephemeral DB: C1 (PID ${pid1}), C2 (PID ${pid2})`);
+    console.log(`[Setup] Provisioning isolated test fixtures with fresh UUIDs (Tenant: ${F_TENANT})...`);
 
-    // Clean any residue from previous aborted runs
-    await observer.query(`
-      SET LOCAL app.operational_cleanup = 'true';
-      DELETE FROM platform.workspace_role_idempotency WHERE tenant_id = '${F_TENANT}';
-      DELETE FROM audit.events WHERE tenant_id = '${F_TENANT}';
-      DELETE FROM platform.workspace_role_permissions WHERE workspace_role_id = '${F_ROLE}';
-      DELETE FROM platform.workspace_role_modules WHERE workspace_role_id = '${F_ROLE}';
-      DELETE FROM platform.workspace_roles WHERE id = '${F_ROLE}';
-      DELETE FROM platform.workspace_taxonomy_assignments WHERE customer_workspace_id = '${F_WS}';
-      DELETE FROM platform.workspace_property_bindings WHERE customer_workspace_id = '${F_WS}';
-      DELETE FROM identity.context_grants WHERE id = '${F_ADMIN_CTX}';
-      DELETE FROM identity.memberships WHERE id = '${F_ADMIN_MEM}';
-      DELETE FROM portfolio.properties WHERE id = '${F_PROP}';
-      DELETE FROM platform.customer_workspaces WHERE id = '${F_WS}';
-      DELETE FROM platform.tenants WHERE id = '${F_TENANT}';
-      DELETE FROM auth.users WHERE id = '${F_ADMIN_USER}';
-    `);
-
-    // Setup prerequisites fixtures
+    // Setup prerequisites fixtures directly without pre-cleanup
     await observer.query(`
       -- 1. Tenant
       INSERT INTO platform.tenants (id, legal_name, registration_number, status)
-      VALUES ('${F_TENANT}', 'Concurrency Test Tenant', 'RO-CONCUR-994', 'active')
-      ON CONFLICT (id) DO NOTHING;
+      VALUES ('${F_TENANT}', 'Ephemeral Concurrency Test Tenant', 'RO-CONCUR-EPH', 'active');
 
       -- 2. Customer Workspace
       INSERT INTO platform.customer_workspaces (id, tenant_id, workspace_type, commercial_owner, environment, lifecycle_status)
-      VALUES ('${F_WS}', '${F_TENANT}', 'ASSOCIATION', 'Owner 994', 'PILOT', 'ACTIVE')
-      ON CONFLICT (id) DO NOTHING;
+      VALUES ('${F_WS}', '${F_TENANT}', 'ASSOCIATION', 'Owner Ephemeral', 'PILOT', 'ACTIVE');
 
       -- 3. Property and Binding
       INSERT INTO portfolio.properties (id, tenant_id, type, name, status)
-      VALUES ('${F_PROP}', '${F_TENANT}', 'condominium', 'Property Concurrency', 'active')
-      ON CONFLICT (id) DO NOTHING;
+      VALUES ('${F_PROP}', '${F_TENANT}', 'condominium', 'Property Ephemeral Concurrency', 'active');
 
       INSERT INTO platform.workspace_property_bindings (tenant_id, customer_workspace_id, property_id, status, binding_source, valid_from)
-      VALUES ('${F_TENANT}', '${F_WS}', '${F_PROP}', 'active', 'platform_assignment', statement_timestamp() - interval '1 day')
-      ON CONFLICT DO NOTHING;
+      VALUES ('${F_TENANT}', '${F_WS}', '${F_PROP}', 'active', 'platform_assignment', statement_timestamp() - interval '1 day');
 
       -- 4. Admin User, Membership, Context Grant
       INSERT INTO auth.users (id, email)
-      VALUES ('${F_ADMIN_USER}', 'admin_concurrency@test.local')
-      ON CONFLICT (id) DO NOTHING;
+      VALUES ('${F_ADMIN_USER}', 'admin_concurrency_${F_ADMIN_USER}@test.local');
 
       INSERT INTO identity.memberships (id, tenant_id, user_id, role_id, status, starts_at)
       VALUES (
         '${F_ADMIN_MEM}', '${F_TENANT}', '${F_ADMIN_USER}',
         (SELECT id FROM identity.roles WHERE lower(code) = 'association_admin' AND tenant_id IS NULL AND is_system = true LIMIT 1),
         'active', statement_timestamp() - interval '1 day'
-      ) ON CONFLICT (id) DO NOTHING;
+      );
 
       INSERT INTO identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at)
-      VALUES ('${F_ADMIN_CTX}', '${F_TENANT}', '${F_ADMIN_MEM}', 'property', '${F_PROP}', statement_timestamp() - interval '1 day')
-      ON CONFLICT (id) DO NOTHING;
+      VALUES ('${F_ADMIN_CTX}', '${F_TENANT}', '${F_ADMIN_MEM}', 'property', '${F_PROP}', statement_timestamp() - interval '1 day');
 
       -- 5. Taxonomy Assignment
       INSERT INTO platform.workspace_taxonomy_assignments (
@@ -176,27 +158,25 @@ async function run() {
         (SELECT id FROM platform.property_profiles WHERE code = 'residential_condominium' AND version = 1 LIMIT 1),
         (SELECT id FROM platform.operating_models WHERE code = 'association_managed' AND version = 1 LIMIT 1),
         'active', statement_timestamp() - interval '1 day', '${F_ADMIN_USER}', 'RO'
-      ) ON CONFLICT DO NOTHING;
+      );
 
       -- 6. Draft Role
       INSERT INTO platform.workspace_roles (
         id, tenant_id, customer_workspace_id, code, role_version, lock_version, name, description, scope_ceiling, lifecycle_status, created_by
       ) VALUES (
-        '${F_ROLE}', '${F_TENANT}', '${F_WS}', 'concur_role', 1, 1, 'Concurrent Role', 'Draft role for concurrency testing', 'building', 'draft', '${F_ADMIN_USER}'
-      ) ON CONFLICT (id) DO NOTHING;
+        '${F_ROLE}', '${F_TENANT}', '${F_WS}', '${ROLE_CODE}', 1, 1, 'Ephemeral Role', 'Draft role for concurrency testing', 'building', 'draft', '${F_ADMIN_USER}'
+      );
 
       -- 7. Workspace Role Module
       INSERT INTO platform.workspace_role_modules (tenant_id, workspace_role_id, module_definition_id)
-      SELECT '${F_TENANT}', '${F_ROLE}', id FROM platform.module_definitions WHERE code = 'maintenance' AND is_active = true AND lifecycle_status = 'published' LIMIT 1
-      ON CONFLICT DO NOTHING;
+      SELECT '${F_TENANT}', '${F_ROLE}', id FROM platform.module_definitions WHERE code = 'maintenance' AND is_active = true AND lifecycle_status = 'published' LIMIT 1;
 
       -- 8. Workspace Role Permission
       INSERT INTO platform.workspace_role_permissions (tenant_id, workspace_role_id, permission_id, effect)
-      SELECT '${F_TENANT}', '${F_ROLE}', id, 'allow' FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1
-      ON CONFLICT DO NOTHING;
+      SELECT '${F_TENANT}', '${F_ROLE}', id, 'allow' FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1;
     `);
 
-    console.log('  ✔ Prerequisites fixtures successfully created.');
+    console.log('  ✔ Ephemeral prerequisite fixtures successfully created.');
 
     console.log('\n[Phase 1] Executing real multi-connection RPC publish race...');
 
@@ -329,50 +309,7 @@ async function run() {
     console.log('  ✔ Confirmed 0 duplicate audit, idempotency, or relationship records on replay.');
 
   } finally {
-    // Teardown without trigger bypass
-    console.log('\n[Teardown] Cleaning up synthetic fixtures without bypassing triggers...');
-    try {
-      await observer.query(`
-        SET LOCAL app.operational_cleanup = 'true';
-        DELETE FROM platform.workspace_role_idempotency WHERE tenant_id = '${F_TENANT}';
-        DELETE FROM audit.events WHERE tenant_id = '${F_TENANT}';
-        DELETE FROM platform.workspace_role_permissions WHERE workspace_role_id = '${F_ROLE}';
-        DELETE FROM platform.workspace_role_modules WHERE workspace_role_id = '${F_ROLE}';
-        DELETE FROM platform.workspace_roles WHERE id = '${F_ROLE}';
-        DELETE FROM platform.workspace_taxonomy_assignments WHERE customer_workspace_id = '${F_WS}';
-        DELETE FROM platform.workspace_property_bindings WHERE customer_workspace_id = '${F_WS}';
-        DELETE FROM identity.context_grants WHERE id = '${F_ADMIN_CTX}';
-        DELETE FROM identity.memberships WHERE id = '${F_ADMIN_MEM}';
-        DELETE FROM portfolio.properties WHERE id = '${F_PROP}';
-        DELETE FROM platform.customer_workspaces WHERE id = '${F_WS}';
-        DELETE FROM platform.tenants WHERE id = '${F_TENANT}';
-        DELETE FROM auth.users WHERE id = '${F_ADMIN_USER}';
-      `);
-
-      // Verify zero residual fixtures
-      const residualRes = await observer.query(`
-        SELECT
-          (SELECT count(*) FROM platform.workspace_roles WHERE id = '${F_ROLE}') as roles_cnt,
-          (SELECT count(*) FROM platform.customer_workspaces WHERE id = '${F_WS}') as ws_cnt,
-          (SELECT count(*) FROM platform.tenants WHERE id = '${F_TENANT}') as tenant_cnt,
-          (SELECT count(*) FROM auth.users WHERE id = '${F_ADMIN_USER}') as users_cnt,
-          (SELECT count(*) FROM platform.workspace_role_idempotency WHERE tenant_id = '${F_TENANT}') as idem_cnt,
-          (SELECT count(*) FROM audit.events WHERE tenant_id = '${F_TENANT}') as audit_cnt
-      `);
-      const row = residualRes.rows[0];
-      assert.equal(Number(row.roles_cnt), 0, 'Residual roles count must be 0');
-      assert.equal(Number(row.ws_cnt), 0, 'Residual workspaces count must be 0');
-      assert.equal(Number(row.tenant_cnt), 0, 'Residual tenants count must be 0');
-      assert.equal(Number(row.users_cnt), 0, 'Residual users count must be 0');
-      assert.equal(Number(row.idem_cnt), 0, 'Residual idempotency count must be 0');
-      assert.equal(Number(row.audit_cnt), 0, 'Residual audit count must be 0');
-
-      console.log('  ✔ Teardown complete. All fixture IDs strictly verified to be 0.');
-    } catch (cleanErr) {
-      console.error('CRITICAL: Teardown failed:', cleanErr);
-      process.exit(1);
-    }
-
+    console.log('\n[Teardown] In ephemeral container, fixtures remain safely until container teardown (zero trigger bypass).');
     await observer.end().catch(() => {});
     await c1.end().catch(() => {});
     await c2.end().catch(() => {});

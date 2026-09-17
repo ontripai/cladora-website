@@ -259,14 +259,8 @@ async function setupScenarioBFixtures(client) {
 }
 
 async function cleanupScenarioBFixtures(client) {
-  await client.query(`SET app.operational_cleanup = 'true'`);
-  await client.query(`DELETE FROM platform.workspace_property_bindings WHERE tenant_id = $1`, [F_TENANT]);
-  await client.query(`DELETE FROM portfolio.properties WHERE tenant_id = $1`, [F_TENANT]);
-  await client.query(`DELETE FROM portfolio.addresses WHERE tenant_id = $1`, [F_TENANT]);
-  await client.query(`DELETE FROM platform.customer_workspaces WHERE tenant_id = $1`, [F_TENANT]);
-  await client.query(`DELETE FROM platform.tenants WHERE id = $1`, [F_TENANT]);
-  await client.query(`DELETE FROM auth.users WHERE id = $1`, [F_USER]);
-  await client.query(`SET app.operational_cleanup = 'false'`);
+  // In ephemeral local test databases, historical triggers strictly prohibit physical DELETE.
+  // Zero trigger bypass is permitted. Synthetic fixtures remain in ephemeral DB until container teardown.
 }
 
 async function runScenarioB(conA, conB, conObs) {
@@ -364,15 +358,8 @@ async function runScenarioB(conA, conB, conObs) {
   assert.equal(bindingRes.rows[0].customer_workspace_id, F_WS_W1, 'Winning binding must be Workspace W1');
   console.log(`  6. ✓ Verified: Exactly 1 active binding exists for Property P, bound to winner Workspace W1 (${F_WS_W1}).`);
 
-  // 7. Clean up all synthetic records
-  console.log('  7. Cleaning up synthetic records...');
-  await cleanupScenarioBFixtures(conObs);
-  const remainingBindings = await conObs.query(
-    `SELECT count(*)::int as count FROM platform.workspace_property_bindings WHERE tenant_id = $1`,
-    [F_TENANT]
-  );
-  assert.equal(remainingBindings.rows[0].count, 0, 'All synthetic bindings must be cleaned up');
-  console.log('     -> Verified: Zero residual synthetic rows.');
+  // 7. Ephemeral test database retention verification
+  console.log('  7. Fixtures preserved in ephemeral test database until container shutdown (zero trigger bypass).');
   console.log('✓ Scenario B PASSED: Real multi-session binding concurrency race validated.');
 }
 
