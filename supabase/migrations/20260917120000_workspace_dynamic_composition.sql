@@ -578,9 +578,9 @@ set search_path = pg_catalog, platform, identity, portfolio, app_private
 as $$
 declare
   v_res record;
-  v_assignment record;
-  v_profile record;
-  v_model record;
+  v_assignment platform.workspace_taxonomy_assignments%rowtype;
+  v_profile platform.property_profiles%rowtype;
+  v_model platform.operating_models%rowtype;
   v_modules jsonb;
 begin
   -- Resolve context and workspace
@@ -597,14 +597,14 @@ begin
   end if;
 
   -- Active taxonomy assignment
-  select a.* into v_assignment
-  from platform.workspace_taxonomy_assignments a
-  where a.customer_workspace_id = v_res.workspace_id
-    and a.status = 'active'
-    and a.valid_from <= statement_timestamp() and (a.valid_to is null or a.valid_to > statement_timestamp())
-  order by a.valid_from desc, a.created_at desc limit 1;
+  select * into v_assignment
+  from platform.workspace_taxonomy_assignments
+  where customer_workspace_id = v_res.workspace_id
+    and status = 'active'
+    and valid_from <= statement_timestamp() and (valid_to is null or valid_to > statement_timestamp())
+  order by valid_from desc, created_at desc limit 1;
 
-  if found then
+  if v_assignment.id is not null then
     select * into v_profile from platform.property_profiles where id = v_assignment.property_profile_id;
     select * into v_model from platform.operating_models where id = v_assignment.operating_model_id;
   end if;
