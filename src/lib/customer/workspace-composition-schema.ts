@@ -31,11 +31,13 @@ export const moduleItemSchema = z.object({
   sensitivity_level: z.string(),
   requires_aal2: z.boolean(),
   lifecycle_status: z.string(),
+  entitlement_key: z.string().nullable().optional(),
   workspace_module_id: uuidSchema.nullable(),
   status: z.string(),
   is_installed: z.boolean(),
   is_entitled: z.boolean(),
   is_compatible: z.boolean(),
+  activation_allowed: z.boolean().optional(),
   can_activate: z.boolean(),
   can_deactivate: z.boolean(),
 });
@@ -70,7 +72,7 @@ export const activateWorkspaceModuleRequestSchema = z.object({
   expected_workspace_module_id: uuidSchema.nullable().optional(),
   config_json: z.record(z.string(), z.never()).default({}),
   idempotency_key: idempotencyKeySchema,
-  reason: z.string().min(3).max(500).optional(),
+  reason: z.string().transform((val) => val.trim()).pipe(z.string().min(5).max(500)),
 });
 
 export const activateWorkspaceModuleResponseSchema = z.object({
@@ -88,7 +90,7 @@ export const deactivateWorkspaceModuleRequestSchema = z.object({
   context_id: uuidSchema,
   expected_workspace_module_id: uuidSchema,
   idempotency_key: idempotencyKeySchema,
-  reason: z.string().min(5).max(500),
+  reason: z.string().transform((val) => val.trim()).pipe(z.string().min(5).max(500)),
 });
 
 export const deactivateWorkspaceModuleResponseSchema = z.object({

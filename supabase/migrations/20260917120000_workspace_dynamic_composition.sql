@@ -35,11 +35,17 @@ begin
     raise exception 'permission_specification_mismatch: %', v_perm.code using errcode = '22023';
   end if;
 
-  if not exists (select 1 from identity.roles where lower(code) = 'association_admin') then
+  if not exists (
+    select 1 from identity.roles
+    where code = 'association_admin' and tenant_id is null and is_system = true
+  ) then
     raise exception 'required_target_role_missing: association_admin' using errcode = 'P0002';
   end if;
 
-  if not exists (select 1 from identity.roles where lower(code) = 'property_manager') then
+  if not exists (
+    select 1 from identity.roles
+    where code = 'property_manager' and tenant_id is null and is_system = true
+  ) then
     raise exception 'required_target_role_missing: property_manager' using errcode = 'P0002';
   end if;
 end;
@@ -48,14 +54,49 @@ $$;
 revoke all on function app_private.validate_workspace_module_manage_seeding_v1() from public, anon, authenticated;
 select app_private.validate_workspace_module_manage_seeding_v1();
 
--- Grant to verified existing administrative roles only
+-- Grant to verified existing canonical system administrative roles only
 insert into identity.role_permissions (role_id, permission_id, effect)
 select r.id, p.id, 'allow'
 from identity.roles r
 cross join identity.permissions p
-where lower(r.code) in ('association_admin', 'property_manager')
+where r.code in ('association_admin', 'property_manager')
+  and r.tenant_id is null
+  and r.is_system = true
   and p.code = 'workspace.module.manage'
 on conflict do nothing;
+
+-- Bootstrap future roles with scoped permission automatically (hardened validation)
+create or replace function app_private.bootstrap_role_module_permissions_v1()
+returns trigger
+language plpgsql
+security definer
+set search_path = pg_catalog, identity
+as $$
+begin
+  -- Only grant to canonical global system management roles (tenant_id is null, is_system = true)
+  -- or valid tenant-scoped management roles (tenant_id is not null, is_system = false)
+  -- Rogue/spoof roles with prefix/suffix or empty names are strictly rejected
+  if new.code in ('association_admin', 'property_manager')
+     and ((new.tenant_id is null and new.is_system = true) or (new.tenant_id is not null and new.is_system = false))
+     and new.name is not null and length(trim(new.name)) > 0 then
+    insert into identity.role_permissions (role_id, permission_id, effect)
+    select new.id, p.id, 'allow'
+    from identity.permissions p
+    where p.code = 'workspace.module.manage'
+    on conflict do nothing;
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function app_private.bootstrap_role_module_permissions_v1() from public, anon, authenticated;
+
+drop trigger if exists trg_bootstrap_role_module_permissions on identity.roles;
+create trigger trg_bootstrap_role_module_permissions
+after insert on identity.roles
+for each row
+execute function app_private.bootstrap_role_module_permissions_v1();
+
 
 -- 2. Module Definitions Table
 create table platform.module_definitions (
@@ -70,7 +111,7 @@ create table platform.module_definitions (
   lifecycle_status text not null default 'active' check (lifecycle_status in ('draft', 'active', 'published', 'deprecated', 'retired', 'catalog_only')),
   sensitivity_level text not null default 'standard' check (sensitivity_level in ('standard', 'sensitive', 'high_impact')),
   requires_aal2 boolean not null default false,
-  entitlement_key text not null check (entitlement_key ~ '^module\.[a-z0-9_]{2,64}$'),
+  entitlement_key text,
   config_schema jsonb not null default '{"type":"object","additionalProperties":false}'::jsonb,
   default_config jsonb not null default '{}'::jsonb,
   published_at timestamptz,
@@ -78,6 +119,11 @@ create table platform.module_definitions (
   valid_to timestamptz check (valid_to is null or valid_to > valid_from),
   created_at timestamptz not null default statement_timestamp(),
   updated_at timestamptz not null default statement_timestamp(),
+  check (
+    (lifecycle_status = 'catalog_only' and entitlement_key is null)
+    or
+    (lifecycle_status <> 'catalog_only' and entitlement_key is not null and entitlement_key ~ '^module\.[a-z0-9_]{2,64}$')
+  ),
   unique (code, version)
 );
 
@@ -622,20 +668,30 @@ begin
       'requires_aal2', d.requires_aal2,
       'lifecycle_status', d.lifecycle_status,
       'workspace_module_id', wm.id,
+      'entitlement_key', d.entitlement_key,
       'status', case
-        when wm.id is not null and (e.id is null or e.valid_until <= statement_timestamp()) then 'suspended_unentitled'
+        when wm.id is not null and (d.entitlement_key is null or e.id is null or e.valid_until <= statement_timestamp()) then 'suspended_unentitled'
         when wm.id is not null then wm.status
         when d.lifecycle_status = 'catalog_only' then 'catalog_only'
-        when e.id is null then 'unentitled'
+        when d.entitlement_key is null or e.id is null then 'unentitled'
         when coalesce(ppc.compatibility_level, 'compatible') = 'incompatible' or coalesce(omc.compatibility_level, 'compatible') = 'incompatible' then 'incompatible'
         else 'not_installed'
       end,
       'is_installed', (wm.id is not null),
-      'is_entitled', (e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())),
+      'is_entitled', (d.entitlement_key is not null and e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())),
       'is_compatible', (coalesce(ppc.compatibility_level, 'compatible') <> 'incompatible' and coalesce(omc.compatibility_level, 'compatible') <> 'incompatible'),
+      'activation_allowed', (
+        wm.id is null
+        and d.lifecycle_status in ('active', 'published')
+        and d.entitlement_key is not null
+        and e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())
+        and coalesce(ppc.compatibility_level, 'compatible') <> 'incompatible'
+        and coalesce(omc.compatibility_level, 'compatible') <> 'incompatible'
+      ),
       'can_activate', (
         wm.id is null
         and d.lifecycle_status in ('active', 'published')
+        and d.entitlement_key is not null
         and e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())
         and coalesce(ppc.compatibility_level, 'compatible') <> 'incompatible'
         and coalesce(omc.compatibility_level, 'compatible') <> 'incompatible'
@@ -651,6 +707,7 @@ begin
     and wm.valid_to is null
   -- Left join active entitlement
   left join platform.workspace_entitlements e on e.customer_workspace_id = v_res.workspace_id
+    and d.entitlement_key is not null
     and e.entitlement_key = d.entitlement_key
     and e.valid_from <= statement_timestamp() and (e.valid_until is null or e.valid_until > statement_timestamp())
     and (case when e.override_value_json is not null and e.override_expires_at > statement_timestamp() then e.override_value_json = 'true'::jsonb else (e.boolean_value is true or e.numeric_value > 0) end)
@@ -684,7 +741,7 @@ create or replace function customer_api.activate_workspace_module_v1(
   p_expected_workspace_module_id uuid,
   p_config_json jsonb,
   p_idempotency_key text,
-  p_reason text default null
+  p_reason text
 )
 returns jsonb
 language plpgsql
@@ -720,16 +777,14 @@ begin
     raise exception 'workspace_module_config_mutation_deferred' using errcode = '42501';
   end if;
 
-  -- 3. Reason validation
-  if p_reason is not null then
-    v_normalized_reason := trim(p_reason);
-    if length(v_normalized_reason) = 0 then
-      raise exception 'workspace_module_invalid_reason' using errcode = '22023';
-    elsif length(v_normalized_reason) < 3 or length(v_normalized_reason) > 500 then
-      raise exception 'workspace_module_invalid_reason' using errcode = '22023';
-    end if;
-  else
-    v_normalized_reason := 'Activated via customer composition gateway';
+  -- 3. Mandatory Reason validation
+  if p_reason is null or length(trim(p_reason)) = 0 then
+    raise exception 'workspace_module_activation_reason_required' using errcode = '22023';
+  end if;
+
+  v_normalized_reason := trim(p_reason);
+  if length(v_normalized_reason) < 5 or length(v_normalized_reason) > 500 then
+    raise exception 'workspace_module_invalid_reason' using errcode = '22023';
   end if;
 
   -- 4. Context & Workspace resolution (Mutation fail-closed)
@@ -756,7 +811,7 @@ begin
     raise exception 'workspace_module_definition_not_found' using errcode = 'P0002';
   end if;
 
-  if v_module_def.lifecycle_status = 'catalog_only' or v_module_def.lifecycle_status not in ('active', 'published') then
+  if v_module_def.lifecycle_status = 'catalog_only' or v_module_def.lifecycle_status not in ('active', 'published') or v_module_def.entitlement_key is null then
     raise exception 'workspace_module_definition_not_activatable' using errcode = '42501';
   end if;
 
@@ -1223,8 +1278,8 @@ insert into platform.module_definitions (
   ('communications', 1, 'Official Communications', jsonb_build_object('ro','Comunicări și Înștiințări','en','Official Communications','fa','ارتباطات و اعلان‌ها'), 'Formal announcements, notice feed, and delivery evidence', 'operations', true, 'published', 'standard', false, 'module.communications', statement_timestamp()),
   ('documents', 1, 'Document Evidence Vault', jsonb_build_object('ro','Seif Documente','en','Document Evidence Vault','fa','مخزن امن اسناد'), 'Tamper-evident document repository and verification evidence', 'security', true, 'published', 'standard', false, 'module.documents', statement_timestamp()),
   ('security', 1, 'Security & Access Control', jsonb_build_object('ro','Control Acces și Vizitatori','en','Security & Visitor Access','fa','امنیت و کنترل تردد'), 'Access credentials, visitor logs, and key management', 'security', true, 'published', 'standard', false, 'module.security', statement_timestamp()),
-  ('core_property_registry', 1, 'Master Property Registry', jsonb_build_object('ro','Registru Fond Imobiliar','en','Master Property Registry','fa','رجیستری کل املاک'), 'Conceptual master portfolio registry reserved for future expansion', 'core', false, 'catalog_only', 'standard', false, 'module.occupancy', null),
-  ('contracts_tenancy', 1, 'Tenancy Contracts', jsonb_build_object('ro','Contracte Închiriere','en','Tenancy Contracts','fa','قراردادهای حقوقی اجاره'), 'Conceptual legal lease engine reserved for future expansion', 'occupancy', false, 'catalog_only', 'standard', false, 'module.occupancy', null);
+  ('core_property_registry', 1, 'Master Property Registry', jsonb_build_object('ro','Registru Fond Imobiliar','en','Master Property Registry','fa','رجیستری کل املاک'), 'Conceptual master portfolio registry reserved for future expansion', 'core', false, 'catalog_only', 'standard', false, null, null),
+  ('contracts_tenancy', 1, 'Tenancy Contracts', jsonb_build_object('ro','Contracte Închiriere','en','Tenancy Contracts','fa','قراردادهای حقوقی اجاره'), 'Conceptual legal lease engine reserved for future expansion', 'occupancy', false, 'catalog_only', 'standard', false, null, null);
 
 -- 15. Seed Relational Dependencies
 -- billing requires occupancy

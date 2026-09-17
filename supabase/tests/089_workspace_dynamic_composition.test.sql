@@ -7,7 +7,7 @@
 -- Invariant: Property Profile != Operating Model != Building DNA != Service Profile != Country Pack
 -- =============================================================================
 begin;
-select plan(68);
+select plan(84);
 
 -- 1. Structural & Table Schema Verification (7 assertions)
 select ok(to_regclass('platform.module_definitions') is not null, 'platform.module_definitions table exists');
@@ -18,12 +18,20 @@ select ok(to_regclass('platform.module_operating_model_compatibilities') is not 
 select ok(to_regclass('platform.workspace_modules') is not null, 'platform.workspace_modules table exists');
 select ok(to_regclass('platform.workspace_module_idempotency') is not null, 'platform.workspace_module_idempotency table exists');
 
--- 2. Permission and Role Seeding Verification (3 assertions)
+-- 2. Permission and Role Seeding Verification (5 assertions)
 select ok(exists(select 1 from identity.permissions where code = 'workspace.module.manage'), 'workspace.module.manage permission exists in identity.permissions');
-select ok(exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id join identity.roles r on r.id = rp.role_id where lower(r.code) = 'association_admin' and p.code = 'workspace.module.manage' and rp.effect = 'allow'), 'association_admin granted workspace.module.manage');
-select ok(exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id join identity.roles r on r.id = rp.role_id where lower(r.code) = 'property_manager' and p.code = 'workspace.module.manage' and rp.effect = 'allow'), 'property_manager granted workspace.module.manage');
+select ok(exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id join identity.roles r on r.id = rp.role_id where r.code = 'association_admin' and r.tenant_id is null and r.is_system = true and p.code = 'workspace.module.manage' and rp.effect = 'allow'), 'association_admin granted workspace.module.manage');
+select ok(exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id join identity.roles r on r.id = rp.role_id where r.code = 'property_manager' and r.tenant_id is null and r.is_system = true and p.code = 'workspace.module.manage' and rp.effect = 'allow'), 'property_manager granted workspace.module.manage');
 
--- 3. Module Definition Constraints & Versioning (8 assertions)
+-- 2.4 Negative role fixture: Spoof role does NOT receive permission
+insert into identity.roles (id, code, name, is_system) values ('89300000-0000-0000-0000-000000000099', 'association_admin_spoof', 'Spoof Admin', false);
+select ok(not exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id where rp.role_id = '89300000-0000-0000-0000-000000000099' and p.code = 'workspace.module.manage'), 'spoof role association_admin_spoof does not receive workspace.module.manage permission');
+
+-- 2.5 Negative role fixture: Role with blank name does NOT receive permission
+insert into identity.roles (id, code, name, is_system) values ('89300000-0000-0000-0000-000000000098', 'association_admin', '   ', false);
+select ok(not exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id where rp.role_id = '89300000-0000-0000-0000-000000000098' and p.code = 'workspace.module.manage'), 'role with blank name does not receive workspace.module.manage permission');
+
+-- 3. Module Definition Constraints & Versioning (12 assertions)
 -- 3.1 Composite uniqueness (code, version)
 select throws_ok(
   $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status) values ('occupancy', 1, 'Duplicate Occupancy', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', false, 'draft')$$,
@@ -82,6 +90,26 @@ select throws_ok(
   '42501',
   'platform_module_definition_immutable',
   'direct DELETE on published module definition is rejected'
+);
+
+-- 3.9 Catalog-only module definitions have entitlement_key IS NULL
+select ok(exists(select 1 from platform.module_definitions where code = 'core_property_registry' and lifecycle_status = 'catalog_only' and entitlement_key is null), 'core_property_registry has lifecycle_status catalog_only and entitlement_key IS NULL');
+select ok(exists(select 1 from platform.module_definitions where code = 'contracts_tenancy' and lifecycle_status = 'catalog_only' and entitlement_key is null), 'contracts_tenancy has lifecycle_status catalog_only and entitlement_key IS NULL');
+
+-- 3.10 Catalog-only definition with non-null entitlement_key is rejected
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, lifecycle_status, entitlement_key) values ('bad_cat_only', 1, 'Bad Cat', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'core', 'catalog_only', 'module.bad')$$,
+  '23514',
+  null,
+  'catalog_only definition with non-null entitlement_key is rejected by check constraint'
+);
+
+-- 3.11 Published definition with null entitlement_key is rejected
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, lifecycle_status, entitlement_key) values ('bad_pub_mod', 1, 'Bad Pub', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'core', 'published', null)$$,
+  '23514',
+  null,
+  'published definition with null entitlement_key is rejected by check constraint'
 );
 
 -- 4. Relational Dependency & Incompatibility Graph Constraints (7 assertions)
@@ -194,7 +222,7 @@ begin
   on conflict do nothing;
 
   -- Roles
-  select id into v_role_admin from identity.roles where lower(code) = 'association_admin' limit 1;
+  select id into v_role_admin from identity.roles where lower(code) = 'association_admin' and tenant_id is null and is_system = true limit 1;
   select id into v_role_resident from identity.roles where lower(code) = 'resident' limit 1;
 
   -- Memberships
@@ -269,7 +297,7 @@ select throws_ok(
 
 -- 5.5 Mutation rejects tenant-only context (no property scope)
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000002', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-tenant-only-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000002', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-tenant-only-001', 'Test reason 123')$$,
   '42501',
   'workspace_composition_context_not_workspace_bound',
   'mutation on tenant-only context without property binding is rejected'
@@ -277,7 +305,7 @@ select throws_ok(
 
 -- 5.6 Mutation rejects unbound context
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000005', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-unbound-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000005', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-unbound-001', 'Test reason 123')$$,
   '42501',
   'workspace_composition_context_not_workspace_bound',
   'mutation on unbound context is rejected'
@@ -286,7 +314,7 @@ select throws_ok(
 -- 5.7 Permission check: user lacking workspace.module.manage denied
 select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000002", "role": "authenticated", "aal": "aal2"}', true);
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000003', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-perm-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000003', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-perm-001', 'Test reason 123')$$,
   '42501',
   'workspace_module_manage_permission_required',
   'user without workspace.module.manage permission is denied activation'
@@ -298,17 +326,17 @@ select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000
 -- 5.8 Cross-tenant context isolation
 select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000003", "role": "authenticated", "aal": "aal2"}', true);
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-cross-tenant-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-cross-tenant-001', 'Test reason 123')$$,
   '42501',
   'customer_context_access_denied',
   'user cannot access context grant of another tenant'
 );
 select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal2"}', true);
 
--- 6. Configuration Validation & Reason Invariants (6 assertions)
+-- 6. Configuration Validation & Reason Invariants (7 assertions)
 -- 6.1 Non-empty config rejected in 001A
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{"custom_key": "val"}'::jsonb, 'idem-test-config-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{"custom_key": "val"}'::jsonb, 'idem-test-config-001', 'Test reason 123')$$,
   '42501',
   'workspace_module_config_mutation_deferred',
   'non-empty config_json is rejected in 001A'
@@ -316,29 +344,37 @@ select throws_ok(
 
 -- 6.2 Null config_json rejected
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, null, 'idem-test-config-002', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, null, 'idem-test-config-002', 'Test reason 123')$$,
   '42501',
   'workspace_module_config_mutation_deferred',
   'null config_json is rejected in 001A'
 );
 
--- 6.3 Empty / whitespace-only reason rejected when supplied
+-- 6.3 Null reason rejected in activation
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-reason-null', null)$$,
+  '22023',
+  'workspace_module_activation_reason_required',
+  'null reason in activation is rejected'
+);
+
+-- 6.4 Empty / whitespace-only reason rejected
 select throws_ok(
   $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-reason-001', '   ')$$,
   '22023',
-  'workspace_module_invalid_reason',
+  'workspace_module_activation_reason_required',
   'whitespace-only reason is rejected'
 );
 
--- 6.4 Too short reason rejected (< 3 chars)
+-- 6.5 Too short reason rejected (< 5 chars)
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-reason-002', 'no')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-reason-002', 'abcd')$$,
   '22023',
   'workspace_module_invalid_reason',
-  'reason shorter than 3 characters is rejected'
+  'reason shorter than 5 characters is rejected'
 );
 
--- 6.5 Missing idempotency key rejected
+-- 6.6 Missing idempotency key rejected
 select throws_ok(
   $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, null, 'Valid reason')$$,
   '22023',
@@ -346,7 +382,7 @@ select throws_ok(
   'null idempotency key is rejected'
 );
 
--- 6.6 Invalid idempotency key format rejected
+-- 6.7 Invalid idempotency key format rejected
 select throws_ok(
   $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'bad key!', 'Valid reason')$$,
   '22023',
@@ -354,10 +390,10 @@ select throws_ok(
   'invalid idempotency key format is rejected'
 );
 
--- 7. Entitlement & Sensitivity Enforcement (6 assertions)
+-- 7. Entitlement & Sensitivity Enforcement (7 assertions)
 -- 7.1 Unentitled module activation rejected (e.g. utilities is not seeded on Workspace 1)
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'utilities' and version = 1), null, '{}'::jsonb, 'idem-test-unentitled-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'utilities' and version = 1), null, '{}'::jsonb, 'idem-test-unentitled-001', 'Test reason 123')$$,
   '42501',
   'workspace_module_entitlement_required',
   'activation of unentitled module is rejected'
@@ -365,16 +401,24 @@ select throws_ok(
 
 -- 7.2 Catalog-only module activation rejected (cannot activate catalog-only concept)
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'core_property_registry' and version = 1), null, '{}'::jsonb, 'idem-test-catonly-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'core_property_registry' and version = 1), null, '{}'::jsonb, 'idem-test-catonly-001', 'Test reason 123')$$,
   '42501',
   'workspace_module_definition_not_activatable',
   'activation of catalog_only module definition is rejected'
 );
 
+-- 7.2b Catalog-only activation rejected even when workspace holds another entitlement
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'contracts_tenancy' and version = 1), null, '{}'::jsonb, 'idem-test-catonly-contracts-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_definition_not_activatable',
+  'activation of contracts_tenancy is rejected even if workspace holds other entitlements'
+);
+
 -- 7.3 Sensitive module under AAL1 rejected
 select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal1"}', true);
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-aal1-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-aal1-001', 'Test reason 123')$$,
   '42501',
   'mfa_required',
   'activation of sensitive module billing requires AAL2 MFA'
@@ -383,25 +427,25 @@ select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000
 
 -- 7.4 Dependency ordering gate: billing requires occupancy
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-dep-001', 'Test reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-dep-001', 'Test reason 123')$$,
   '42501',
   'workspace_module_dependency_missing: occupancy',
   'activation of module with unsatisfied active dependency is rejected'
 );
 
--- 7.5 Successful initial activation of occupancy (root module)
+-- 7.5 Successful initial activation of occupancy (root module) with padded reason
 select lives_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', 'Initial activation of occupancy')$$,
-  'initial activation of root module occupancy succeeds'
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', '   Initial activation of occupancy   ')$$,
+  'initial activation of root module occupancy succeeds with trimmed reason'
 );
 
 -- 7.6 Successful activation of billing after occupancy is active
 select lives_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-act-billing-001', 'Activation of billing')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-act-billing-001', 'Activation of billing 123')$$,
   'activation of billing succeeds once dependency occupancy is active'
 );
 
--- 8. Idempotency Contract & Replay (7 assertions)
+-- 8. Idempotency Contract & Replay (8 assertions)
 -- 8.1 Replay with exact same key and payload returns cached response snapshot
 select ok(
   ((customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', 'Initial activation of occupancy'))->>'status') = 'active',
@@ -416,7 +460,7 @@ select ok(
 
 -- 8.3 Idempotency key conflict on different reason / payload
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', 'Different reason')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', 'Different reason 12345')$$,
   '22023',
   'workspace_module_idempotency_conflict',
   'reusing idempotency key with different payload/reason is rejected with conflict'
@@ -442,13 +486,19 @@ select ok(
   'exactly one current record with valid_to IS NULL exists for occupancy'
 );
 
--- 8.7 Audit event verified for activation
+-- 8.7 Audit event verified for activation (verifying normalized trimmed reason)
 select ok(
   exists (select 1 from audit.events where action = 'WORKSPACE_MODULE_ACTIVATED' and entity_type = 'workspace_module' and reason = 'Initial activation of occupancy'),
-  'audit event successfully recorded for module activation'
+  'audit event successfully recorded normalized trimmed reason for module activation'
 );
 
--- 9. Concurrency & Deactivation Protection (8 assertions)
+-- 8.8 Workspace modules table verified to store normalized trimmed reason
+select ok(
+  exists (select 1 from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and module_code = 'occupancy' and reason = 'Initial activation of occupancy'),
+  'workspace_modules record stored normalized trimmed reason'
+);
+
+-- 9. Concurrency & Deactivation Protection (10 assertions)
 -- 9.1 Deactivation without reason rejected
 select throws_ok(
   $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-001', '   ')$$,
@@ -457,9 +507,25 @@ select throws_ok(
   'deactivation requires non-empty reason'
 );
 
+-- 9.1b Deactivation with null reason rejected
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-null', null)$$,
+  '22023',
+  'workspace_module_deactivation_reason_required',
+  'deactivation with null reason is rejected'
+);
+
+-- 9.1c Deactivation with reason < 5 chars rejected
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-short', 'abc')$$,
+  '22023',
+  'workspace_module_invalid_reason',
+  'deactivation with reason shorter than 5 characters is rejected'
+);
+
 -- 9.2 Deactivation with mismatched expected_id rejected (SQLSTATE 40001)
 select throws_ok(
-  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000099'::uuid, 'idem-deact-002', 'Deactivation reason')$$,
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000099'::uuid, 'idem-deact-002', 'Deactivation reason 123')$$,
   '40001',
   'workspace_module_expected_state_conflict',
   'deactivation with non-matching expected ID throws expected state conflict (40001)'
@@ -467,7 +533,7 @@ select throws_ok(
 
 -- 9.3 Dependent-module deactivation rejection: cannot deactivate occupancy while billing is active
 select throws_ok(
-  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-003', 'Deactivating occupancy')$$,
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-003', 'Deactivating occupancy 123')$$,
   '42501',
   'workspace_module_dependent_active: billing',
   'deactivating a module with active dependents is rejected'
@@ -487,7 +553,7 @@ select ok(
 
 -- 9.6 Deactivating already deactivated module yields 40001 conflict
 select throws_ok(
-  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'billing' order by created_at desc limit 1), 'idem-deact-billing-002', 'Deactivating again')$$,
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'billing' order by created_at desc limit 1), 'idem-deact-billing-002', 'Deactivating again 123')$$,
   '40001',
   'workspace_module_expected_state_conflict',
   'deactivating already closed module yields 40001 expected state conflict'
@@ -495,7 +561,7 @@ select throws_ok(
 
 -- 9.7 Reactivation contract: reactivation requires expected_id IS NULL
 select throws_ok(
-  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), (select id from platform.workspace_modules where module_code = 'billing' and status = 'deactivated' limit 1), '{}'::jsonb, 'idem-react-billing-bad-001', 'Reactivation with stale ID')$$,
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), (select id from platform.workspace_modules where module_code = 'billing' and status = 'deactivated' limit 1), '{}'::jsonb, 'idem-react-billing-bad-001', 'Reactivation with stale ID 123')$$,
   '40001',
   'workspace_module_expected_state_conflict',
   'reactivation with stale historical ID yields 40001 conflict'
@@ -507,7 +573,7 @@ select lives_ok(
   'reactivation with expected_id IS NULL creates new active temporal record'
 );
 
--- 10. Effective State Projection & Regression Verification (8 assertions)
+-- 10. Effective State Projection & Regression Verification (13 assertions)
 -- 10.1 Projection reflects active modules
 select ok(
   (select count(*) from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m where m->>'is_installed' = 'true') = 2,
@@ -568,11 +634,52 @@ select ok(
 );
 
 -- 10.5 Replay with JSONB having different key order produces same canonical result
--- Tested by checking request hash determinism in PL/pgSQL
 select ok(
   encode(extensions.digest(convert_to(jsonb_build_object('b', 2, 'a', 1)::text, 'UTF8'), 'sha256'), 'hex') =
   encode(extensions.digest(convert_to(jsonb_build_object('a', 1, 'b', 2)::text, 'UTF8'), 'sha256'), 'hex'),
   'canonical JSONB text representation guarantees deterministic SHA-256 hash regardless of key insertion order'
+);
+
+-- 10.6 Catalog projection for catalog_only modules verifies zero activation, zero entitlement, null entitlement_key
+select ok(
+  (select (m->>'can_activate')::boolean = false and (m->>'is_entitled')::boolean = false and (m->>'entitlement_key') is null
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'core_property_registry'),
+  'catalog projection for core_property_registry returns can_activate false, is_entitled false, and entitlement_key null'
+);
+
+select ok(
+  (select (m->>'can_activate')::boolean = false and (m->>'is_entitled')::boolean = false and (m->>'entitlement_key') is null
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'contracts_tenancy'),
+  'catalog projection for contracts_tenancy returns can_activate false, is_entitled false, and entitlement_key null'
+);
+
+-- 10.7 Governance canonical compatibility verification
+select ok(
+  exists (
+    select 1 from platform.module_property_profile_compatibilities mpc
+    join platform.module_definitions md on md.id = mpc.module_definition_id
+    join platform.property_profiles pp on pp.id = mpc.property_profile_id
+    where md.code = 'governance' and pp.code = 'residential_condominium' and mpc.compatibility_level = 'compatible'
+  ),
+  'governance module is compatible with residential_condominium profile'
+);
+
+select ok(
+  exists (
+    select 1 from platform.module_operating_model_compatibilities moc
+    join platform.module_definitions md on md.id = moc.module_definition_id
+    join platform.operating_models om on om.id = moc.operating_model_id
+    where md.code = 'governance' and om.code = 'association_managed' and moc.compatibility_level = 'compatible'
+  ),
+  'governance module is compatible with association_managed operating model'
+);
+
+-- 10.8 Zero partial writes across all failed operations
+select ok(
+  (select count(*) from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and status not in ('active', 'deactivated')) = 0,
+  'zero partial or malformed workspace module rows across all failures'
 );
 
 rollback;

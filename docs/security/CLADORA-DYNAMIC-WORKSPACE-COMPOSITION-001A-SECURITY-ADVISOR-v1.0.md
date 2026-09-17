@@ -59,8 +59,7 @@ The findings represent intentional architectural patterns:
 | **Explicit search_path** | `pg_catalog, platform, identity, app_private` | `pg_catalog, platform, identity, audit, app_private` | `pg_catalog, platform, identity, audit, app_private` |
 | **EXECUTE Granted** | `authenticated, service_role` | `authenticated, service_role` | `authenticated, service_role` |
 | **Revoked Roles** | `public, anon` | `public, anon` | `public, anon` |
-| **Authentication Check** | `auth.uid() is not null` | `auth.uid() is not null` | `auth.uid() is not null` |
-| **AAL2 Step-Up Check** | N/A (read-only) | Mandatory: `auth.jwt()->>'aal' = 'aal2'` | Mandatory: `auth.jwt()->>'aal' = 'aal2'` |
+| **AAL2 Step-Up Check** | N/A (read-only) | Conditional: Enforced when module requires_aal2 is true or sensitivity_level is sensitive/high_impact (`auth.jwt()->>'aal' = 'aal2'`) | Conditional: Enforced when module requires_aal2 is true or sensitivity_level is sensitive/high_impact (`auth.jwt()->>'aal' = 'aal2'`) |
 | **Permission Check** | Active context grant | Enforces `workspace.module.manage` | Enforces `workspace.module.manage` |
 | **Context Validation** | `app_private.resolve_workspace_from_customer_context_v1(p_context_id, 'read')` | `app_private.resolve_workspace_from_customer_context_v1(p_context_id, 'mutation')` | `app_private.resolve_workspace_from_customer_context_v1(p_context_id, 'mutation')` |
 | **Tenant Isolation** | Scoped strictly to caller's `tenant_id` and resolved `workspace_id` | Scoped strictly to caller's `tenant_id` and resolved `workspace_id` | Scoped strictly to caller's `tenant_id` and resolved `workspace_id` |

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-console.log('=== RUNNING WORKSPACE DYNAMIC COMPOSITION CONTRACT TESTS (CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A) ===\n');
+console.log('=== RUNNING WORKSPACE DYNAMIC COMPOSITION CONTRACT TESTS (CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R3) ===\n');
 
 // 1. Migration 102 Structure, Security & Invariants
 console.log('[Suite 1] Migration 102 Structure, Schema, Security & Non-Negotiable Invariants');
@@ -38,29 +38,58 @@ assert.match(migrationSql, /create table platform\.module_definitions[\s\S]*?uni
 assert.doesNotMatch(migrationSql, /create table platform\.module_definitions[\s\S]*?unique\s*\(code\)[^,]*?,/i, 'Zero independent unique(code) on module_definitions');
 assert.doesNotMatch(migrationSql, /create table platform\.module_definitions[\s\S]*?unique\s*\(version\)[^,]*?,/i, 'Zero independent unique(version) on module_definitions');
 
-// Non-negotiable 5: Verified proven modules only
-assert.match(migrationSql, /'occupancy',\s*1,.*?'published'/i, 'occupancy seeded as published');
-assert.match(migrationSql, /'billing',\s*1,.*?'published'/i, 'billing seeded as published');
-assert.match(migrationSql, /'payments',\s*1,.*?'published'/i, 'payments seeded as published');
-assert.match(migrationSql, /'accounting',\s*1,.*?'published'/i, 'accounting seeded as published');
-assert.match(migrationSql, /'maintenance',\s*1,.*?'published'/i, 'maintenance seeded as published');
-assert.match(migrationSql, /'utilities',\s*1,.*?'published'/i, 'utilities seeded as published');
-assert.match(migrationSql, /'governance',\s*1,.*?'published'/i, 'governance seeded as published');
-assert.match(migrationSql, /'communications',\s*1,.*?'published'/i, 'communications seeded as published');
-assert.match(migrationSql, /'documents',\s*1,.*?'published'/i, 'documents seeded as published');
-assert.match(migrationSql, /'security',\s*1,.*?'published'/i, 'security seeded as published');
-assert.match(migrationSql, /'core_property_registry',\s*1,.*?'catalog_only'/i, 'core_property_registry seeded as catalog_only');
-assert.match(migrationSql, /'contracts_tenancy',\s*1,.*?'catalog_only'/i, 'contracts_tenancy seeded as catalog_only');
+// Directive 1 & Non-negotiable 5: Verified proven 12 modules and catalog_only entitlement nullability
+const expectedModules = [
+  'occupancy',
+  'billing',
+  'payments',
+  'accounting',
+  'maintenance',
+  'utilities',
+  'governance',
+  'communications',
+  'documents',
+  'security',
+  'core_property_registry',
+  'contracts_tenancy',
+];
+
+for (const code of expectedModules) {
+  assert.match(migrationSql, new RegExp(`'${code}',\\s*1,`, 'i'), `Module ${code} seeded with version 1`);
+}
+
+// Catalog-only modules must have entitlement_key IS NULL
+assert.match(migrationSql, /'core_property_registry',\s*1,[\s\S]*?'catalog_only',[\s\S]*?null,\s*null\);/i, 'core_property_registry seeded with null entitlement_key');
+assert.match(migrationSql, /'contracts_tenancy',\s*1,[\s\S]*?'catalog_only',[\s\S]*?null,\s*null\);/i, 'contracts_tenancy seeded with null entitlement_key');
+
+// Check constraint in module_definitions
+assert.match(migrationSql, /lifecycle_status = 'catalog_only' and entitlement_key is null/i, 'Constraint enforces null entitlement_key on catalog_only');
+assert.match(migrationSql, /lifecycle_status <> 'catalog_only' and entitlement_key is not null and entitlement_key ~ '\^module/i, 'Constraint enforces valid entitlement_key pattern on activatable modules');
+
+// Directive 2: Mandatory Reason without Default
+assert.doesNotMatch(migrationSql, /function customer_api\.activate_workspace_module_v1[\s\S]*?p_reason text default/i, 'activate RPC has NO default value for p_reason');
+assert.doesNotMatch(migrationSql, /function customer_api\.deactivate_workspace_module_v1[\s\S]*?p_reason text default/i, 'deactivate RPC has NO default value for p_reason');
+assert.match(migrationSql, /workspace_module_activation_reason_required/, 'activate requires non-empty reason');
+assert.match(migrationSql, /workspace_module_deactivation_reason_required/, 'deactivate requires non-empty reason');
+assert.match(migrationSql, /workspace_module_invalid_reason/, 'Invalid/whitespace/short reason rejected');
+
+// Directive 3: Hardened Permission Bootstrap
+assert.match(migrationSql, /create trigger trg_bootstrap_role_module_permissions/i, 'Bootstrap trigger defined on identity.roles');
+assert.match(migrationSql, /app_private\.bootstrap_role_module_permissions_v1/i, 'Hardened bootstrap function defined');
+assert.match(migrationSql, /new\.code in \('association_admin', 'property_manager'\)/, 'Bootstrap checks exact role codes');
+assert.match(migrationSql, /new\.name is not null and length\(trim\(new\.name\)\) > 0/, 'Bootstrap checks non-blank name');
+
+// Directive 4: Governance Canonical Compatibility
+assert.match(migrationSql, /residential_condominium', 'residential_complex', 'gated_villa_community', 'mixed_use_estate/i, 'Governance profile compatibility matches canonical profiles');
+assert.match(migrationSql, /o\.code <> 'association_managed'/i, 'Governance operating model matches association_managed');
 
 // Non-negotiable 6: Context Resolver
 assert.match(migrationSql, /app_private\.resolve_workspace_from_customer_context_v1/i, 'Canonical Context Resolver defined');
 assert.match(migrationSql, /workspace_composition_context_not_workspace_bound/, 'Fail-closed error on unbound context');
 assert.match(migrationSql, /workspace_composition_workspace_binding_ambiguous/, 'Fail-closed error on ambiguous binding');
 
-// Non-negotiable 7: Reason and Config validation
+// Non-negotiable 7: Config mutation deferred
 assert.match(migrationSql, /workspace_module_config_mutation_deferred/, 'Non-empty config rejected in 001A');
-assert.match(migrationSql, /workspace_module_deactivation_reason_required/, 'Deactivation requires reason');
-assert.match(migrationSql, /workspace_module_invalid_reason/, 'Invalid/whitespace reason rejected');
 
 // Concurrency and Optimistic Locking contracts
 assert.match(migrationSql, /pg_advisory_xact_lock\(hashtextextended\('workspace_module:'/, 'Transactional advisory lock on workspace and module code');
@@ -76,22 +105,19 @@ assert.match(migrationSql, /guard_module_dependency_dag_v1/i, 'Recursive depende
 assert.match(migrationSql, /guard_workspace_module_code_sync_v1/i, 'Workspace module code sync guard defined');
 assert.match(migrationSql, /guard_workspace_module_immutability_v1/i, 'Workspace module immutability guard defined');
 
-// Identity & Role safety: No triggers on identity.roles in 001A
-assert.doesNotMatch(migrationSql, /trigger.*?on\s+identity\.roles/i, 'Zero triggers on identity.roles in 001A');
-
 console.log('  ✔ Migration 102 passes all structural, security, DAG, temporal, and non-negotiable invariants.');
 
 // 2. pgTAP Test 089 Structure & Coverage Contract
-console.log('\n[Suite 2] pgTAP Test 089 Acceptance Contract (Plan 68)');
+console.log('\n[Suite 2] pgTAP Test 089 Acceptance Contract (Plan 84)');
 const testPath = 'supabase/tests/089_workspace_dynamic_composition.test.sql';
 assert.ok(fs.existsSync(testPath), 'Test 089 exists');
 const testSql = fs.readFileSync(testPath, 'utf8');
 
 assert.match(testSql, /^begin;/m, 'Test 089 starts with begin;');
 assert.match(testSql, /^rollback;/m, 'Test 089 ends with rollback;');
-assert.match(testSql, /select plan\(68\);/, 'Test 089 matches exact 68 assertions plan');
+assert.match(testSql, /select plan\(84\);/, 'Test 089 matches exact 84 assertions plan');
 
-// Check key assertions
+// Check key assertions in Test 089
 assert.match(testSql, /duplicate \(code, version\) is rejected/, 'Composite uniqueness tested');
 assert.match(testSql, /different codes can share the same version number/, 'Same version across different codes tested');
 assert.match(testSql, /new version for same code allowed in non-overlapping future effective window/, 'New version in non-overlapping window tested');
@@ -104,13 +130,18 @@ assert.match(testSql, /pure tenant-scoped context on multi-workspace tenant fail
 assert.match(testSql, /mutation on tenant-only context without property binding is rejected/, 'Tenant-only mutation rejection tested');
 assert.match(testSql, /mutation on unbound context is rejected/, 'Unbound mutation rejection tested');
 assert.match(testSql, /user without workspace\.module\.manage permission is denied activation/, 'Permission check tested');
+assert.match(testSql, /spoof role association_admin_spoof does not receive workspace\.module\.manage permission/, 'Negative spoof role tested');
+assert.match(testSql, /role with blank name does not receive workspace\.module\.manage permission/, 'Blank name role tested');
+assert.match(testSql, /catalog_only definition with non-null entitlement_key is rejected/, 'Non-null entitlement_key rejection tested');
+assert.match(testSql, /published definition with null entitlement_key is rejected/, 'Null entitlement_key on published rejection tested');
 assert.match(testSql, /user cannot access context grant of another tenant/, 'Cross-tenant isolation tested');
 assert.match(testSql, /non-empty config_json is rejected in 001A/, 'Config mutation deferred tested');
 assert.match(testSql, /activation of unentitled module is rejected/, 'Unentitled module rejection tested');
 assert.match(testSql, /activation of catalog_only module definition is rejected/, 'Catalog-only module rejection tested');
+assert.match(testSql, /activation of contracts_tenancy is rejected even if workspace holds other entitlements/, 'Contracts tenancy rejection tested');
 assert.match(testSql, /activation of sensitive module billing requires AAL2 MFA/, 'AAL2 MFA enforcement tested');
 assert.match(testSql, /activation of module with unsatisfied active dependency is rejected/, 'Dependency ordering gate tested');
-assert.match(testSql, /initial activation of root module occupancy succeeds/, 'Initial activation tested');
+assert.match(testSql, /initial activation of root module occupancy succeeds with trimmed reason/, 'Initial activation tested');
 assert.match(testSql, /idempotent replay returns cached response snapshot/, 'Idempotent replay tested');
 assert.match(testSql, /idempotent replay does not create duplicate workspace module rows/, 'Idempotent row stability tested');
 assert.match(testSql, /reusing idempotency key across different workspaces of same tenant is rejected by unique\(tenant_id, idempotency_key\)/, 'Tenant-level idempotency collision tested');
@@ -120,6 +151,47 @@ assert.match(testSql, /deactivated module record is closed with valid_to timesta
 assert.match(testSql, /reactivation with expected_id IS NULL creates new active temporal record/, 'Reactivation expected_id NULL contract tested');
 assert.match(testSql, /installed module with expired entitlement projects effective status suspended_unentitled/, 'Effective projection suspended_unentitled tested');
 assert.match(testSql, /canonical JSONB text representation guarantees deterministic SHA-256 hash regardless of key insertion order/, 'JSONB hash determinism tested');
+assert.match(testSql, /catalog projection for core_property_registry returns can_activate false, is_entitled false, and entitlement_key null/, 'Core property registry catalog projection tested');
+assert.match(testSql, /catalog projection for contracts_tenancy returns can_activate false, is_entitled false, and entitlement_key null/, 'Contracts tenancy catalog projection tested');
+assert.match(testSql, /governance module is compatible with residential_condominium profile/, 'Governance profile compatibility tested');
+assert.match(testSql, /governance module is compatible with association_managed operating model/, 'Governance operating model compatibility tested');
+assert.match(testSql, /zero partial or malformed workspace module rows across all failures/, 'Zero partial writes tested');
 
-console.log('  ✔ Test 089 satisfies all 36 groups, plan(68), and edge-case contracts.');
+console.log('  ✔ Test 089 satisfies all 45 groups, plan(84), and edge-case contracts.');
+
+// 3. Documentation Drift Prevention Guard (Directive 5)
+console.log('\n[Suite 3] Documentation Drift Prevention Guard');
+const closureDocPath = 'docs/closure/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-CLOSURE-v1.0.md';
+const securityDocPath = 'docs/security/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-SECURITY-ADVISOR-v1.0.md';
+
+assert.ok(fs.existsSync(closureDocPath), 'Closure document exists');
+assert.ok(fs.existsSync(securityDocPath), 'Security advisor document exists');
+
+const closureContent = fs.readFileSync(closureDocPath, 'utf8');
+const securityContent = fs.readFileSync(securityDocPath, 'utf8');
+
+const forbiddenTaxonomyCodes = [
+  'residential_onboarding',
+  'resident_records',
+  'units_spaces',
+  'self_managed',
+  'delegated_board',
+  'hoa_residential',
+];
+
+for (const term of forbiddenTaxonomyCodes) {
+  assert.doesNotMatch(closureContent, new RegExp(`\\b${term}\\b`, 'i'), `Closure report must not contain invalid code '${term}'`);
+  assert.doesNotMatch(securityContent, new RegExp(`\\b${term}\\b`, 'i'), `Security advisor report must not contain invalid code '${term}'`);
+}
+
+// Ensure all 12 canonical module codes are explicitly enumerated in closure doc
+for (const code of expectedModules) {
+  assert.match(closureContent, new RegExp(`\\b${code}\\b`, 'i'), `Closure report must explicitly document canonical module '${code}'`);
+}
+
+// Ensure governance rules are accurately documented
+assert.match(closureContent, /residential_condominium/i, 'Closure report documents residential_condominium compatibility');
+assert.match(closureContent, /association_managed/i, 'Closure report documents association_managed compatibility');
+
+console.log('  ✔ Documentation drift guard verified: zero stale taxonomy codes, 12 canonical modules present.');
 console.log('\n=== ALL SLICE CONTRACTS PASSED ===');

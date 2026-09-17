@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       p_expected_workspace_module_id: parsed.data.expected_workspace_module_id ?? null,
       p_config_json: parsed.data.config_json ?? {},
       p_idempotency_key: parsed.data.idempotency_key,
-      p_reason: parsed.data.reason ?? null,
+      p_reason: parsed.data.reason,
     });
 
   if (rpcError) {
