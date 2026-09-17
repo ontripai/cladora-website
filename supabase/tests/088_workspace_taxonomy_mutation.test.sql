@@ -73,7 +73,7 @@ begin
   insert into identity.memberships(id, tenant_id, user_id, role_id, status) values
     (v_mem_admin, v_tenant_a, v_user_admin, v_role_admin, 'active'),
     (v_mem_nonadmin, v_tenant_a, v_user_nonadmin, v_role_resident, 'active'),
-    (v_mem_inactive, v_tenant_a, v_user_inactive, v_role_admin, 'inactive'),
+    (v_mem_inactive, v_tenant_a, v_user_inactive, v_role_admin, 'suspended'),
     (v_mem_b, v_tenant_b, v_user_b, v_role_admin, 'active');
 
   insert into portfolio.addresses(id, tenant_id, city, street, building_no) values

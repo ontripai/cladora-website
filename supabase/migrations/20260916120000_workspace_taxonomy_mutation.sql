@@ -186,10 +186,10 @@ begin
   end if;
 
   if v_compat_level = 'incompatible' then
-    raise exception 'workspace_taxonomy_incompatible' using errcode = 'P0001';
+    raise exception 'workspace_taxonomy_incompatible_assignment' using errcode = 'P0001';
   elsif v_compat_level = 'review_required' then
     if new.status = 'active' and (new.notes is null or length(trim(new.notes)) = 0) then
-      raise exception 'workspace_taxonomy_review_reason_required' using errcode = 'P0001';
+      raise exception 'workspace_taxonomy_review_required' using errcode = 'P0001';
     end if;
   end if;
 
