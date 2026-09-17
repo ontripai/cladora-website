@@ -74,10 +74,10 @@ set search_path = pg_catalog, identity
 as $$
 begin
   -- Only grant to canonical global system management roles (tenant_id is null, is_system = true)
-  -- or valid tenant-scoped management roles (tenant_id is not null, is_system = false)
-  -- Rogue/spoof roles with prefix/suffix or empty names are strictly rejected
+  -- Rogue/spoof roles with prefix/suffix or non-canonical properties are strictly rejected
   if new.code in ('association_admin', 'property_manager')
-     and ((new.tenant_id is null and new.is_system = true) or (new.tenant_id is not null and new.is_system = false))
+     and new.tenant_id is null
+     and new.is_system = true
      and new.name is not null and length(trim(new.name)) > 0 then
     insert into identity.role_permissions (role_id, permission_id, effect)
     select new.id, p.id, 'allow'

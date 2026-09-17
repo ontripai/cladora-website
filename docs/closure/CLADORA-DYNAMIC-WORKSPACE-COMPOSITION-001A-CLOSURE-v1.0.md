@@ -86,9 +86,9 @@ The database schema and seeds strictly define the following 12 canonical modules
 
 ### 3.2 Migration 102 & Test 089 Identifiers
 - **Migration 102 Path:** `supabase/migrations/20260917120000_workspace_dynamic_composition.sql`
-- **Migration 102 SHA-256:** `6BE4A716D4385420A6D344D98A39B714570947E6465B7E6E0585EA4EEBA593A1`
+- **Migration 102 SHA-256:** `33207F9D0782F35D8C9AA55FC79B8C91B96E586B82450A0C927BEFD7FFC92568`
 - **Test 089 Path:** `supabase/tests/089_workspace_dynamic_composition.test.sql`
-- **Test 089 SHA-256:** `E0DA9A7D7319D70E01031FCCE8609C1A56C5B8C52010B71606A9B81F9B22E34B`
+- **Test 089 SHA-256:** `AE69D8C58070BD9A65D3FA762A7E533E6C7750420E843EADA3B60BE8410D2839`
 - **pgTAP Plan:** Exactly 84 assertions matching `SELECT plan(84);`.
 
 ### 3.3 Concurrency Rehearsal

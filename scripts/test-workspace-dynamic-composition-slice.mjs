@@ -131,7 +131,7 @@ assert.match(testSql, /mutation on tenant-only context without property binding 
 assert.match(testSql, /mutation on unbound context is rejected/, 'Unbound mutation rejection tested');
 assert.match(testSql, /user without workspace\.module\.manage permission is denied activation/, 'Permission check tested');
 assert.match(testSql, /spoof role association_admin_spoof does not receive workspace\.module\.manage permission/, 'Negative spoof role tested');
-assert.match(testSql, /role with blank name does not receive workspace\.module\.manage permission/, 'Blank name role tested');
+assert.match(testSql, /similar role property_manager_fake does not receive workspace\.module\.manage permission/, 'Similar role tested');
 assert.match(testSql, /catalog_only definition with non-null entitlement_key is rejected/, 'Non-null entitlement_key rejection tested');
 assert.match(testSql, /published definition with null entitlement_key is rejected/, 'Null entitlement_key on published rejection tested');
 assert.match(testSql, /user cannot access context grant of another tenant/, 'Cross-tenant isolation tested');

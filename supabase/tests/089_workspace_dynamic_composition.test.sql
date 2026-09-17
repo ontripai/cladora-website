@@ -27,9 +27,9 @@ select ok(exists(select 1 from identity.role_permissions rp join identity.permis
 insert into identity.roles (id, code, name, is_system) values ('89300000-0000-0000-0000-000000000099', 'association_admin_spoof', 'Spoof Admin', false);
 select ok(not exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id where rp.role_id = '89300000-0000-0000-0000-000000000099' and p.code = 'workspace.module.manage'), 'spoof role association_admin_spoof does not receive workspace.module.manage permission');
 
--- 2.5 Negative role fixture: Role with blank name does NOT receive permission
-insert into identity.roles (id, code, name, is_system) values ('89300000-0000-0000-0000-000000000098', 'association_admin', '   ', false);
-select ok(not exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id where rp.role_id = '89300000-0000-0000-0000-000000000098' and p.code = 'workspace.module.manage'), 'role with blank name does not receive workspace.module.manage permission');
+-- 2.5 Negative role fixture: Similar role property_manager_fake does NOT receive permission
+insert into identity.roles (id, code, name, is_system) values ('89300000-0000-0000-0000-000000000098', 'property_manager_fake', 'Fake Property Manager', false);
+select ok(not exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id where rp.role_id = '89300000-0000-0000-0000-000000000098' and p.code = 'workspace.module.manage'), 'similar role property_manager_fake does not receive workspace.module.manage permission');
 
 -- 3. Module Definition Constraints & Versioning (12 assertions)
 -- 3.1 Composite uniqueness (code, version)
