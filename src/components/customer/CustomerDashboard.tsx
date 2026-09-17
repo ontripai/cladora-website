@@ -36,6 +36,7 @@ import {
 } from '@/lib/customer/access-matrix';
 import { AccessRestrictedCard } from './CustomerRouteGuard';
 import { WorkspaceTaxonomyCard } from '@/components/workspace/WorkspaceTaxonomyCard';
+import { WorkspaceCompositionCard } from '@/components/workspace/WorkspaceCompositionCard';
 
 const copy = {
   ro: {
@@ -743,6 +744,15 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
           lang={lang}
           contextId={dashboard.context.id}
           canManage={permissions.includes('workspace.taxonomy.manage')}
+        />
+      )}
+
+      {/* Workspace Dynamic Composition Modules */}
+      {dashboard?.context?.id && (
+        <WorkspaceCompositionCard
+          lang={lang}
+          contextId={dashboard.context.id}
+          canManage={permissions.includes('workspace.module.manage')}
         />
       )}
 

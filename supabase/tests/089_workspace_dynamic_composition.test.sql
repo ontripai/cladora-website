@@ -1,0 +1,893 @@
+-- =============================================================================
+-- Test 089: Workspace Dynamic Composition Engine (001A) Acceptance Test
+-- Package: CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A
+-- Scope: Canonical Module Registry, Context-Scoped Activation & Deactivation,
+-- Relational Dependency DAG, Relational Incompatibilities, Universal Taxonomy
+-- Compatibilities, Guarded Temporal State, Versioned Idempotency, and Audit.
+-- Invariant: Property Profile != Operating Model != Building DNA != Service Profile != Country Pack
+-- =============================================================================
+begin;
+select plan(96);
+
+-- 1. Structural & Table Schema Verification (7 assertions)
+select ok(to_regclass('platform.module_definitions') is not null, 'platform.module_definitions table exists');
+select ok(to_regclass('platform.module_dependencies') is not null, 'platform.module_dependencies table exists');
+select ok(to_regclass('platform.module_incompatibilities') is not null, 'platform.module_incompatibilities table exists');
+select ok(to_regclass('platform.module_property_profile_compatibilities') is not null, 'platform.module_property_profile_compatibilities table exists');
+select ok(to_regclass('platform.module_operating_model_compatibilities') is not null, 'platform.module_operating_model_compatibilities table exists');
+select ok(to_regclass('platform.workspace_modules') is not null, 'platform.workspace_modules table exists');
+select ok(to_regclass('platform.workspace_module_idempotency') is not null, 'platform.workspace_module_idempotency table exists');
+
+-- 2. Permission and Role Seeding Verification (5 assertions)
+select ok(exists(select 1 from identity.permissions where code = 'workspace.module.manage'), 'workspace.module.manage permission exists in identity.permissions');
+select ok(exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id join identity.roles r on r.id = rp.role_id where r.code = 'association_admin' and r.tenant_id is null and r.is_system = true and p.code = 'workspace.module.manage' and rp.effect = 'allow'), 'association_admin granted workspace.module.manage');
+select ok(exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id join identity.roles r on r.id = rp.role_id where r.code = 'property_manager' and r.tenant_id is null and r.is_system = true and p.code = 'workspace.module.manage' and rp.effect = 'allow'), 'property_manager granted workspace.module.manage');
+
+-- 2.4 Negative role fixture: Spoof role does NOT receive permission
+insert into identity.roles (id, code, name, is_system) values ('89300000-0000-0000-0000-000000000099', 'association_admin_spoof', 'Spoof Admin', false);
+select ok(not exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id where rp.role_id = '89300000-0000-0000-0000-000000000099' and p.code = 'workspace.module.manage'), 'spoof role association_admin_spoof does not receive workspace.module.manage permission');
+
+-- 2.5 Negative role fixture: Similar role property_manager_fake does NOT receive permission
+insert into identity.roles (id, code, name, is_system) values ('89300000-0000-0000-0000-000000000098', 'property_manager_fake', 'Fake Property Manager', false);
+select ok(not exists(select 1 from identity.role_permissions rp join identity.permissions p on p.id = rp.permission_id where rp.role_id = '89300000-0000-0000-0000-000000000098' and p.code = 'workspace.module.manage'), 'similar role property_manager_fake does not receive workspace.module.manage permission');
+
+-- 3. Module Definition Constraints & Versioning (12 assertions)
+-- 3.1 Composite uniqueness (code, version)
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status) values ('occupancy', 1, 'Duplicate Occupancy', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', false, 'draft')$$,
+  '23505',
+  null,
+  'duplicate (code, version) is rejected'
+);
+
+-- 3.2 Same version allowed for different code
+select lives_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('test_ver_mod', 1, 'Test Versioned v1', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '10 days', statement_timestamp() + interval '20 days')$$,
+  'different codes can share the same version number'
+);
+
+-- 3.3 New version for a code in non-overlapping effective window
+select lives_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('test_ver_mod', 2, 'Test Versioned v2', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '30 days', statement_timestamp() + interval '60 days')$$,
+  'new version for same code allowed in non-overlapping future effective window'
+);
+
+-- 3.4 Overlapping effective window rejected
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('test_ver_mod', 3, 'Test Versioned v3', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '35 days', statement_timestamp() + interval '50 days')$$,
+  'P0001',
+  'platform_module_definition_version_overlap',
+  'overlapping effective period for published definition is rejected'
+);
+
+-- 3.5 Invalid trilingual labels rejected
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key) values ('test_lang', 1, 'Test Lang', jsonb_build_object('en','English'), 'test', 'core', 'module.occupancy')$$,
+  '23514',
+  null,
+  'missing RO/FA language labels is rejected by check constraint'
+);
+
+-- 3.6 Invalid effective date bounds rejected (valid_to <= valid_from)
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, valid_from, valid_to) values ('test_dates', 1, 'Test Dates', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'core', 'module.occupancy', statement_timestamp(), statement_timestamp() - interval '1 hour')$$,
+  '23514',
+  null,
+  'valid_to earlier than valid_from is rejected by check constraint'
+);
+
+-- 3.7 Immutability of published definition
+select throws_ok(
+  $$update platform.module_definitions set name = 'Mutated Occupancy' where code = 'occupancy' and version = 1$$,
+  '42501',
+  'platform_module_definition_immutable',
+  'direct UPDATE on published module definition is rejected'
+);
+
+-- 3.8 Deletion of published definition rejected
+select throws_ok(
+  $$delete from platform.module_definitions where code = 'occupancy' and version = 1$$,
+  '42501',
+  'platform_module_definition_immutable',
+  'direct DELETE on published module definition is rejected'
+);
+
+-- 3.9 Catalog-only module definitions have entitlement_key IS NULL
+select ok(exists(select 1 from platform.module_definitions where code = 'core_property_registry' and lifecycle_status = 'catalog_only' and entitlement_key is null), 'core_property_registry has lifecycle_status catalog_only and entitlement_key IS NULL');
+select ok(exists(select 1 from platform.module_definitions where code = 'contracts_tenancy' and lifecycle_status = 'catalog_only' and entitlement_key is null), 'contracts_tenancy has lifecycle_status catalog_only and entitlement_key IS NULL');
+
+-- 3.10 Catalog-only definition with non-null entitlement_key is rejected
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, lifecycle_status, entitlement_key) values ('bad_cat_only', 1, 'Bad Cat', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'core', 'catalog_only', 'module.bad')$$,
+  '23514',
+  null,
+  'catalog_only definition with non-null entitlement_key is rejected by check constraint'
+);
+
+-- 3.11 Published definition with null entitlement_key is rejected
+select throws_ok(
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, lifecycle_status, entitlement_key) values ('bad_pub_mod', 1, 'Bad Pub', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'core', 'published', null)$$,
+  '23514',
+  null,
+  'published definition with null entitlement_key is rejected by check constraint'
+);
+
+-- 4. Relational Dependency & Incompatibility Graph Constraints (7 assertions)
+-- 4.1 Anti-reflexive check: Self-dependency rejected
+select throws_ok(
+  $$insert into platform.module_dependencies (module_definition_id, required_module_definition_id) select id, id from platform.module_definitions where code = 'billing' and version = 1$$,
+  '42501',
+  'workspace_module_self_dependency_prohibited',
+  'self-dependency is rejected'
+);
+
+-- 4.2 Duplicate dependency edge rejected
+select throws_ok(
+  $$insert into platform.module_dependencies (module_definition_id, required_module_definition_id) select m.id, req.id from platform.module_definitions m cross join platform.module_definitions req where m.code = 'billing' and req.code = 'occupancy'$$,
+  '23505',
+  null,
+  'duplicate dependency edge is rejected by unique constraint'
+);
+
+-- 4.3 Dependency cycle detection (billing -> occupancy -> billing)
+select throws_ok(
+  $$insert into platform.module_dependencies (module_definition_id, required_module_definition_id) select m.id, req.id from platform.module_definitions m cross join platform.module_definitions req where m.code = 'occupancy' and req.code = 'billing'$$,
+  '42501',
+  'workspace_module_dependency_cycle_detected',
+  'cyclic dependency edge is rejected by DAG guard trigger'
+);
+
+-- 4.4 Non-existent foreign key in dependencies rejected
+select throws_ok(
+  $$insert into platform.module_dependencies (module_definition_id, required_module_definition_id) values ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002')$$,
+  '23503',
+  null,
+  'foreign key integrity enforced on module dependencies'
+);
+
+-- 4.5 Self-incompatibility rejected
+select throws_ok(
+  $$insert into platform.module_incompatibilities (module_definition_id, incompatible_module_definition_id) select id, id from platform.module_definitions where code = 'billing' and version = 1$$,
+  '23514',
+  null,
+  'self-incompatibility is rejected'
+);
+
+-- 4.6 Non-existent foreign key in incompatibilities rejected
+select throws_ok(
+  $$insert into platform.module_incompatibilities (module_definition_id, incompatible_module_definition_id) values ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000002')$$,
+  '23503',
+  null,
+  'foreign key integrity enforced on module incompatibilities'
+);
+
+-- 4.7 Duplicate incompatibility edge rejected
+do $$
+declare
+  v_mod_a uuid;
+  v_mod_b uuid;
+begin
+  select id into v_mod_a from platform.module_definitions where code = 'utilities' and version = 1;
+  select id into v_mod_b from platform.module_definitions where code = 'security' and version = 1;
+  insert into platform.module_incompatibilities (module_definition_id, incompatible_module_definition_id) values (v_mod_a, v_mod_b);
+end;
+$$;
+
+select throws_ok(
+  $$insert into platform.module_incompatibilities (module_definition_id, incompatible_module_definition_id) select module_definition_id, incompatible_module_definition_id from platform.module_incompatibilities limit 1$$,
+  '23505',
+  null,
+  'duplicate incompatibility edge is rejected'
+);
+
+-- Clean up temporary incompatibility fixture
+delete from platform.module_incompatibilities;
+
+-- Setup synthetic fixtures for E2E Gateway verification
+do $$
+declare
+  v_tenant_a uuid := '89100000-0000-0000-0000-000000000001';
+  v_tenant_b uuid := '89100000-0000-0000-0000-000000000002';
+  v_user_admin uuid := '89000000-0000-0000-0000-000000000001';
+  v_user_resident uuid := '89000000-0000-0000-0000-000000000002';
+  v_user_other uuid := '89000000-0000-0000-0000-000000000003';
+  v_role_admin uuid := '89300000-0000-0000-0000-000000000001';
+  v_role_resident uuid := '89300000-0000-0000-0000-000000000002';
+  v_mem_admin uuid := '89400000-0000-0000-0000-000000000001';
+  v_mem_res uuid := '89400000-0000-0000-0000-000000000002';
+  v_mem_other uuid := '89400000-0000-0000-0000-000000000003';
+  v_ctx_admin uuid := '89500000-0000-0000-0000-000000000001';
+  v_ctx_tenant_only uuid := '89500000-0000-0000-0000-000000000002';
+  v_ctx_res uuid := '89500000-0000-0000-0000-000000000003';
+  v_ctx_ambiguous uuid := '89500000-0000-0000-0000-000000000004';
+  v_ctx_unbound uuid := '89500000-0000-0000-0000-000000000005';
+  v_ws_1 uuid := '89600000-0000-0000-0000-000000000001';
+  v_ws_2 uuid := '89600000-0000-0000-0000-000000000002';
+  v_ws_b uuid := '89600000-0000-0000-0000-000000000003';
+  v_prop_1 uuid := '89700000-0000-0000-0000-000000000001';
+  v_prop_ambiguous uuid := '89700000-0000-0000-0000-000000000002';
+  v_prop_unbound uuid := '89700000-0000-0000-0000-000000000003';
+begin
+  -- Tenants
+  insert into platform.tenants (id, legal_name, registration_number, status) values
+    (v_tenant_a, 'Tenant 89 Alpha', 'RO-TEST-89A', 'active'),
+    (v_tenant_b, 'Tenant 89 Beta', 'RO-TEST-89B', 'active')
+  on conflict do nothing;
+
+  -- Users
+  insert into auth.users (id, email) values
+    (v_user_admin, 'admin89@cladora.test'),
+    (v_user_resident, 'resident89@cladora.test'),
+    (v_user_other, 'other89@cladora.test')
+  on conflict do nothing;
+
+  -- Roles
+  select id into v_role_admin from identity.roles where lower(code) = 'association_admin' and tenant_id is null and is_system = true limit 1;
+  select id into v_role_resident from identity.roles where lower(code) = 'resident' limit 1;
+
+  -- Memberships
+  insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at) values
+    (v_mem_admin, v_tenant_a, v_user_admin, v_role_admin, 'active', statement_timestamp() - interval '1 day'),
+    (v_mem_res, v_tenant_a, v_user_resident, v_role_resident, 'active', statement_timestamp() - interval '1 day'),
+    (v_mem_other, v_tenant_b, v_user_other, v_role_admin, 'active', statement_timestamp() - interval '1 day');
+
+  -- Properties
+  insert into portfolio.properties (id, tenant_id, type, name, status) values
+    (v_prop_1, v_tenant_a, 'condominium', 'Property Alpha 89', 'active'),
+    (v_prop_ambiguous, v_tenant_a, 'condominium', 'Property Ambiguous 89', 'active'),
+    (v_prop_unbound, v_tenant_a, 'condominium', 'Property Unbound 89', 'active'),
+    ('89700000-0000-0000-0000-000000000004', v_tenant_a, 'condominium', 'Property No Tax 89', 'active');
+
+  -- Workspaces
+  insert into platform.customer_workspaces (id, tenant_id, workspace_type, commercial_owner, environment, lifecycle_status) values
+    (v_ws_1, v_tenant_a, 'ASSOCIATION', 'Commercial Alpha 1', 'PILOT', 'ACTIVE'),
+    (v_ws_2, v_tenant_a, 'ASSOCIATION', 'Commercial Alpha 2', 'PILOT', 'ACTIVE'),
+    (v_ws_b, v_tenant_b, 'ASSOCIATION', 'Commercial Beta', 'PILOT', 'ACTIVE');
+
+  -- Property Bindings
+  insert into platform.workspace_property_bindings (tenant_id, customer_workspace_id, property_id, status, binding_source) values
+    (v_tenant_a, v_ws_1, v_prop_1, 'active', 'migration_verified'),
+    (v_tenant_a, v_ws_2, '89700000-0000-0000-0000-000000000004', 'active', 'migration_verified');
+
+  -- Context Grants
+  insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at) values
+    (v_ctx_admin, v_tenant_a, v_mem_admin, 'property', v_prop_1, statement_timestamp() - interval '1 day'),
+    (v_ctx_tenant_only, v_tenant_a, v_mem_admin, 'tenant', null, statement_timestamp() - interval '1 day'),
+    (v_ctx_res, v_tenant_a, v_mem_res, 'property', v_prop_1, statement_timestamp() - interval '1 day'),
+    (v_ctx_ambiguous, v_tenant_a, v_mem_admin, 'property', v_prop_ambiguous, statement_timestamp() - interval '1 day'),
+    (v_ctx_unbound, v_tenant_a, v_mem_admin, 'property', v_prop_unbound, statement_timestamp() - interval '1 day'),
+    ('89500000-0000-0000-0000-000000000006', v_tenant_a, v_mem_admin, 'property', '89700000-0000-0000-0000-000000000004', statement_timestamp() - interval '1 day');
+
+  -- Seed Entitlements on Workspace 1: module.occupancy, module.billing, module.documents
+  insert into platform.workspace_entitlements (customer_workspace_id, entitlement_key, value_type, boolean_value, valid_from) values
+    (v_ws_1, 'module.occupancy', 'boolean', true, statement_timestamp() - interval '1 day'),
+    (v_ws_1, 'module.billing', 'boolean', true, statement_timestamp() - interval '1 day'),
+    (v_ws_1, 'module.documents', 'boolean', true, statement_timestamp() - interval '1 day'),
+    (v_ws_2, 'module.occupancy', 'boolean', true, statement_timestamp() - interval '1 day');
+
+  -- Seed Active Taxonomy Assignment for Workspace 1 ONLY (Workspace 2 has NO assignment)
+  insert into platform.workspace_taxonomy_assignments (
+    id, tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by
+  ) values (
+    '89a00000-0000-0000-0000-000000000001',
+    v_tenant_a,
+    v_ws_1,
+    (select id from platform.property_profiles where code = 'residential_condominium' and version = 1),
+    (select id from platform.operating_models where code = 'association_managed' and version = 1),
+    'active',
+    statement_timestamp() - interval '1 day',
+    v_user_admin
+  );
+end;
+$$;
+
+-- 5. Context Resolver & Access Matrix (8 assertions)
+-- 5.1 Unauthenticated call denied
+select set_config('request.jwt.claims', '{"role": "anon"}', true);
+select throws_ok(
+  $$select customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001')$$,
+  '42501',
+  'authentication_required',
+  'unauthenticated call to get_workspace_composition_v1 is denied'
+);
+
+-- Set admin context with AAL2
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal2"}', true);
+
+-- 5.2 Read projection on valid context succeeds
+select lives_ok(
+  $$select customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001')$$,
+  'get_workspace_composition_v1 succeeds on valid context'
+);
+
+-- 5.3 Read projection on unbound property returns neutral binding_required
+select ok(
+  (customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000005')->>'status') = 'binding_required',
+  'read projection on unbound context returns status binding_required without leaking workspace ID'
+);
+
+-- 5.4 Read projection on pure tenant-scoped context with multiple workspaces fails-closed
+select throws_ok(
+  $$select customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000002')$$,
+  '42501',
+  'workspace_composition_context_not_workspace_bound',
+  'pure tenant-scoped context on multi-workspace tenant fails-closed on read'
+);
+
+-- 5.5 Mutation rejects tenant-only context (no property scope)
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000002', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-tenant-only-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_composition_context_not_workspace_bound',
+  'mutation on tenant-only context without property binding is rejected'
+);
+
+-- 5.6 Mutation rejects unbound context
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000005', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-unbound-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_composition_context_not_workspace_bound',
+  'mutation on unbound context is rejected'
+);
+
+-- 5.7 Permission check: user lacking workspace.module.manage denied
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000002", "role": "authenticated", "aal": "aal2"}', true);
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000003', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-perm-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_manage_permission_required',
+  'user without workspace.module.manage permission is denied activation'
+);
+
+-- Reset back to admin user
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal2"}', true);
+
+-- 5.8 Cross-tenant context isolation
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000003", "role": "authenticated", "aal": "aal2"}', true);
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-cross-tenant-001', 'Test reason 123')$$,
+  '42501',
+  'customer_context_access_denied',
+  'user cannot access context grant of another tenant'
+);
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal2"}', true);
+
+-- 6. Configuration Validation & Reason Invariants (7 assertions)
+-- 6.1 Non-empty config rejected in 001A
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{"custom_key": "val"}'::jsonb, 'idem-test-config-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_config_mutation_deferred',
+  'non-empty config_json is rejected in 001A'
+);
+
+-- 6.2 Null config_json rejected
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, null, 'idem-test-config-002', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_config_mutation_deferred',
+  'null config_json is rejected in 001A'
+);
+
+-- 6.3 Null reason rejected in activation
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-reason-null', null)$$,
+  '22023',
+  'workspace_module_activation_reason_required',
+  'null reason in activation is rejected'
+);
+
+-- 6.4 Empty / whitespace-only reason rejected
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-reason-001', '   ')$$,
+  '22023',
+  'workspace_module_activation_reason_required',
+  'whitespace-only reason is rejected'
+);
+
+-- 6.5 Too short reason rejected (< 5 chars)
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-reason-002', 'abcd')$$,
+  '22023',
+  'workspace_module_invalid_reason',
+  'reason shorter than 5 characters is rejected'
+);
+
+-- 6.6 Missing idempotency key rejected
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, null, 'Valid reason')$$,
+  '22023',
+  'workspace_module_idempotency_key_required',
+  'null idempotency key is rejected'
+);
+
+-- 6.7 Invalid idempotency key format rejected
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'bad key!', 'Valid reason')$$,
+  '22023',
+  'workspace_module_idempotency_key_invalid',
+  'invalid idempotency key format is rejected'
+);
+
+-- 7. Entitlement & Sensitivity Enforcement (7 assertions)
+-- 7.1 Unentitled module activation rejected (e.g. utilities is not seeded on Workspace 1)
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'utilities' and version = 1), null, '{}'::jsonb, 'idem-test-unentitled-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_entitlement_required',
+  'activation of unentitled module is rejected'
+);
+
+-- 7.2 Catalog-only module activation rejected (cannot activate catalog-only concept)
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'core_property_registry' and version = 1), null, '{}'::jsonb, 'idem-test-catonly-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_definition_not_activatable',
+  'activation of catalog_only module definition is rejected'
+);
+
+-- 7.2b Catalog-only activation rejected even when workspace holds another entitlement
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'contracts_tenancy' and version = 1), null, '{}'::jsonb, 'idem-test-catonly-contracts-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_definition_not_activatable',
+  'activation of contracts_tenancy is rejected even if workspace holds other entitlements'
+);
+
+-- 7.3 Sensitive module under AAL1 rejected
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal1"}', true);
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-aal1-001', 'Test reason 123')$$,
+  '42501',
+  'mfa_required',
+  'activation of sensitive module billing requires AAL2 MFA'
+);
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated", "aal": "aal2"}', true);
+
+-- 7.4 Dependency ordering gate: billing requires occupancy
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-dep-001', 'Test reason 123')$$,
+  '42501',
+  'workspace_module_dependency_missing: occupancy',
+  'activation of module with unsatisfied active dependency is rejected'
+);
+
+-- 7.5 Successful initial activation of occupancy (root module) with padded reason
+select lives_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', '   Initial activation of occupancy   ')$$,
+  'initial activation of root module occupancy succeeds with trimmed reason'
+);
+
+-- 7.6 Successful activation of billing after occupancy is active
+select lives_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-test-act-billing-001', 'Activation of billing 123')$$,
+  'activation of billing succeeds once dependency occupancy is active'
+);
+
+-- 8. Universal Taxonomy Compatibility Gate Fail-Closed Verification (12 assertions)
+-- 8.1 Workspace without active taxonomy assignment cannot activate module
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000006', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-tax-req-001', 'Activation on unassigned workspace')$$,
+  '42501',
+  'workspace_module_taxonomy_assignment_required',
+  'workspace without active taxonomy assignment is rejected with workspace_module_taxonomy_assignment_required'
+);
+
+-- 8.2 Ambiguous active taxonomy assignments on workspace causes fail-closed (42501)
+alter table platform.workspace_taxonomy_assignments disable trigger guard_ws_taxonomy_assignment_before_ins_upd;
+alter table platform.workspace_taxonomy_assignments disable trigger a_guard_ws_taxonomy_assignments_history;
+
+insert into platform.workspace_taxonomy_assignments (id, tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by)
+values ('89a00000-0000-0000-0000-000000000009', '89100000-0000-0000-0000-000000000001', '89600000-0000-0000-0000-000000000001', (select id from platform.property_profiles where code = 'residential_complex' and version = 1), (select id from platform.operating_models where code = 'association_managed' and version = 1), 'active', statement_timestamp() - interval '1 day', '89000000-0000-0000-0000-000000000001');
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-ambig-001', 'Activation on ambiguous workspace')$$,
+  '42501',
+  'workspace_module_taxonomy_assignment_ambiguous',
+  'ambiguous active taxonomy assignments on workspace is rejected with workspace_module_taxonomy_assignment_ambiguous'
+);
+
+delete from platform.workspace_taxonomy_assignments where id = '89a00000-0000-0000-0000-000000000009';
+
+alter table platform.workspace_taxonomy_assignments enable trigger guard_ws_taxonomy_assignment_before_ins_upd;
+alter table platform.workspace_taxonomy_assignments enable trigger a_guard_ws_taxonomy_assignments_history;
+
+-- 8.3 Missing property profile compatibility rule causes fail-closed (42501)
+delete from platform.module_property_profile_compatibilities
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-missing-prof-001', 'Activation with missing profile rule')$$,
+  '42501',
+  'workspace_module_compatibility_rule_missing',
+  'activation with missing property profile compatibility rule is rejected with workspace_module_compatibility_rule_missing'
+);
+
+-- Restore profile compatibility rule
+insert into platform.module_property_profile_compatibilities (module_definition_id, property_profile_id, compatibility_level, reason)
+select md.id, pp.id, 'compatible', 'restored'
+from platform.module_definitions md cross join platform.property_profiles pp
+where md.code = 'documents' and pp.code = 'residential_condominium';
+
+-- 8.4 Missing operating model compatibility rule causes fail-closed (42501)
+delete from platform.module_operating_model_compatibilities
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and operating_model_id = (select id from platform.operating_models where code = 'association_managed' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-missing-om-001', 'Activation with missing model rule')$$,
+  '42501',
+  'workspace_module_compatibility_rule_missing',
+  'activation with missing operating model compatibility rule is rejected with workspace_module_compatibility_rule_missing'
+);
+
+-- Restore operating model compatibility rule
+insert into platform.module_operating_model_compatibilities (module_definition_id, operating_model_id, compatibility_level, reason)
+select md.id, om.id, 'compatible', 'restored'
+from platform.module_definitions md cross join platform.operating_models om
+where md.code = 'documents' and om.code = 'association_managed';
+
+-- 8.5 Profile with review_required is rejected in 001A (42501)
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'review_required'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-review-prof-001', 'Activation with review required profile')$$,
+  '42501',
+  'workspace_module_compatibility_review_required',
+  'activation with profile review_required is rejected with workspace_module_compatibility_review_required'
+);
+
+-- Restore profile rule to compatible
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+-- 8.6 Operating Model with review_required is rejected in 001A (42501)
+update platform.module_operating_model_compatibilities
+set compatibility_level = 'review_required'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and operating_model_id = (select id from platform.operating_models where code = 'association_managed' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-review-om-001', 'Activation with review required model')$$,
+  '42501',
+  'workspace_module_compatibility_review_required',
+  'activation with operating model review_required is rejected with workspace_module_compatibility_review_required'
+);
+
+-- Restore operating model rule to compatible
+update platform.module_operating_model_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and operating_model_id = (select id from platform.operating_models where code = 'association_managed' and version = 1);
+
+-- 8.7 Incompatible taxonomy rule is rejected (42501)
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'incompatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-incompat-001', 'Activation with incompatible profile')$$,
+  '42501',
+  'workspace_module_taxonomy_incompatible',
+  'activation with incompatible taxonomy rule is rejected with workspace_module_taxonomy_incompatible'
+);
+
+-- Restore profile rule to compatible
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+-- 8.8 Projection on workspace without taxonomy returns taxonomy_required and can_activate = false
+select ok(
+  (select (m->>'profile_compatibility' = 'taxonomy_required' and m->>'operating_model_compatibility' = 'taxonomy_required' and m->>'effective_compatibility' = 'taxonomy_required' and (m->>'can_activate')::boolean = false and (m->>'is_compatible')::boolean = false)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000006'))->'modules') m
+   where m->>'code' = 'occupancy'),
+  'projection on workspace without taxonomy returns taxonomy_required and can_activate false'
+);
+
+-- 8.9 Projection for module with missing compatibility rule returns rule_missing and can_activate = false
+delete from platform.module_property_profile_compatibilities
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select ok(
+  (select (m->>'profile_compatibility' = 'rule_missing' and m->>'effective_compatibility' = 'rule_missing' and (m->>'can_activate')::boolean = false and (m->>'is_compatible')::boolean = false)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'documents'),
+  'projection for module with missing compatibility rule returns rule_missing and can_activate false'
+);
+
+-- Restore profile compatibility rule
+insert into platform.module_property_profile_compatibilities (module_definition_id, property_profile_id, compatibility_level, reason)
+select md.id, pp.id, 'compatible', 'restored'
+from platform.module_definitions md cross join platform.property_profiles pp
+where md.code = 'documents' and pp.code = 'residential_condominium';
+
+-- 8.10 Projection for review_required returns review_required, is_compatible false, and can_activate = false
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'review_required'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+select ok(
+  (select (m->>'effective_compatibility' = 'review_required' and m->>'status' = 'review_required' and (m->>'can_activate')::boolean = false and (m->>'is_compatible')::boolean = false)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'documents'),
+  'projection for review_required returns status review_required, is_compatible false, and can_activate false'
+);
+
+-- Restore profile rule to compatible
+update platform.module_property_profile_compatibilities
+set compatibility_level = 'compatible'
+where module_definition_id = (select id from platform.module_definitions where code = 'documents' and version = 1)
+  and property_profile_id = (select id from platform.property_profiles where code = 'residential_condominium' and version = 1);
+
+-- 8.11 Projection for compatible + compatible allows activation
+select ok(
+  (select (m->>'profile_compatibility' = 'compatible' and m->>'operating_model_compatibility' = 'compatible' and m->>'effective_compatibility' = 'compatible' and (m->>'is_compatible')::boolean = true and (m->>'can_activate')::boolean = true)
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'documents'),
+  'projection for compatible + compatible returns is_compatible true and can_activate true'
+);
+
+-- 8.12 Zero writes across all taxonomy failure scenarios
+select ok(
+  (select count(*) from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000002') = 0
+  and (select count(*) from platform.workspace_module_idempotency where customer_workspace_id = '89600000-0000-0000-0000-000000000002') = 0,
+  'zero module rows and zero idempotency rows created across taxonomy failures'
+);
+
+-- 9. Idempotency Contract & Replay (8 assertions)
+-- 8.1 Replay with exact same key and payload returns cached response snapshot
+select ok(
+  ((customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', 'Initial activation of occupancy'))->>'status') = 'active',
+  'idempotent replay returns cached response snapshot'
+);
+
+-- 8.2 Replay does NOT duplicate rows in platform.workspace_modules
+select ok(
+  (select count(*) from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and module_code = 'occupancy') = 1,
+  'idempotent replay does not create duplicate workspace module rows'
+);
+
+-- 8.3 Idempotency key conflict on different reason / payload
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'occupancy' and version = 1), null, '{}'::jsonb, 'idem-test-act-occupancy-001', 'Different reason 12345')$$,
+  '22023',
+  'workspace_module_idempotency_conflict',
+  'reusing idempotency key with different payload/reason is rejected with conflict'
+);
+
+-- 8.4 Idempotency key conflict on different workspace of same tenant
+select throws_ok(
+  $$insert into platform.workspace_module_idempotency (tenant_id, customer_workspace_id, idempotency_key, request_hash, request_hash_version, action, module_definition_id, result_workspace_module_id, response_snapshot, actor_id) values ('89100000-0000-0000-0000-000000000001', '89600000-0000-0000-0000-000000000002', 'idem-test-act-occupancy-001', 'dummyhash', 1, 'activate', (select id from platform.module_definitions where code = 'occupancy' and version = 1), (select id from platform.workspace_modules where module_code = 'occupancy' limit 1), '{}'::jsonb, '89000000-0000-0000-0000-000000000001')$$,
+  '23505',
+  null,
+  'reusing idempotency key across different workspaces of same tenant is rejected by unique(tenant_id, idempotency_key)'
+);
+
+-- 8.5 Failed mutation rolls back idempotency record (zero residue on failure)
+select ok(
+  not exists (select 1 from platform.workspace_module_idempotency where idempotency_key = 'idem-test-unentitled-001'),
+  'failed mutation leaves zero idempotency residue'
+);
+
+-- 8.6 Single current record invariant
+select ok(
+  (select count(*) from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and module_code = 'occupancy' and valid_to is null) = 1,
+  'exactly one current record with valid_to IS NULL exists for occupancy'
+);
+
+-- 8.7 Audit event verified for activation (verifying normalized trimmed reason)
+select ok(
+  exists (select 1 from audit.events where action = 'WORKSPACE_MODULE_ACTIVATED' and entity_type = 'workspace_module' and reason = 'Initial activation of occupancy'),
+  'audit event successfully recorded normalized trimmed reason for module activation'
+);
+
+-- 8.8 Workspace modules table verified to store normalized trimmed reason
+select ok(
+  exists (select 1 from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and module_code = 'occupancy' and reason = 'Initial activation of occupancy'),
+  'workspace_modules record stored normalized trimmed reason'
+);
+
+-- 9. Concurrency & Deactivation Protection (10 assertions)
+-- 9.1 Deactivation without reason rejected
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-001', '   ')$$,
+  '22023',
+  'workspace_module_deactivation_reason_required',
+  'deactivation requires non-empty reason'
+);
+
+-- 9.1b Deactivation with null reason rejected
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-null', null)$$,
+  '22023',
+  'workspace_module_deactivation_reason_required',
+  'deactivation with null reason is rejected'
+);
+
+-- 9.1c Deactivation with reason < 5 chars rejected
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-short', 'abc')$$,
+  '22023',
+  'workspace_module_invalid_reason',
+  'deactivation with reason shorter than 5 characters is rejected'
+);
+
+-- 9.2 Deactivation with mismatched expected_id rejected (SQLSTATE 40001)
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000099'::uuid, 'idem-deact-002', 'Deactivation reason 123')$$,
+  '40001',
+  'workspace_module_expected_state_conflict',
+  'deactivation with non-matching expected ID throws expected state conflict (40001)'
+);
+
+-- 9.3 Dependent-module deactivation rejection: cannot deactivate occupancy while billing is active
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'occupancy' and valid_to is null), 'idem-deact-003', 'Deactivating occupancy 123')$$,
+  '42501',
+  'workspace_module_dependent_active: billing',
+  'deactivating a module with active dependents is rejected'
+);
+
+-- 9.4 Safe deactivation of leaf module (billing) is not blocked even without active taxonomy
+update platform.workspace_taxonomy_assignments
+set status = 'archived', valid_to = statement_timestamp()
+where customer_workspace_id = '89600000-0000-0000-0000-000000000001';
+
+select lives_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'billing' and valid_to is null), 'idem-deact-billing-001', 'Deactivating billing safely')$$,
+  'deactivating leaf module billing succeeds even without active taxonomy assignment'
+);
+
+update platform.workspace_taxonomy_assignments
+set status = 'active', valid_to = null
+where customer_workspace_id = '89600000-0000-0000-0000-000000000001';
+
+-- 9.5 Deactivated module is closed with valid_to NOT NULL
+select ok(
+  exists (select 1 from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and module_code = 'billing' and status = 'deactivated' and valid_to is not null),
+  'deactivated module record is closed with valid_to timestamp'
+);
+
+-- 9.6 Deactivating already deactivated module yields 40001 conflict
+select throws_ok(
+  $$select customer_api.deactivate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.workspace_modules where module_code = 'billing' order by created_at desc limit 1), 'idem-deact-billing-002', 'Deactivating again 123')$$,
+  '40001',
+  'workspace_module_expected_state_conflict',
+  'deactivating already closed module yields 40001 expected state conflict'
+);
+
+-- 9.7 Reactivation contract: reactivation requires expected_id IS NULL
+select throws_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), (select id from platform.workspace_modules where module_code = 'billing' and status = 'deactivated' limit 1), '{}'::jsonb, 'idem-react-billing-bad-001', 'Reactivation with stale ID 123')$$,
+  '40001',
+  'workspace_module_expected_state_conflict',
+  'reactivation with stale historical ID yields 40001 conflict'
+);
+
+-- 9.8 Successful reactivation with expected_id = NULL
+select lives_ok(
+  $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'billing' and version = 1), null, '{}'::jsonb, 'idem-react-billing-good-001', 'Reactivating billing with null expected ID')$$,
+  'reactivation with expected_id IS NULL creates new active temporal record'
+);
+
+-- 10. Effective State Projection & Regression Verification (13 assertions)
+-- 10.1 Projection reflects active modules
+select ok(
+  (select count(*) from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m where m->>'is_installed' = 'true') = 2,
+  'projection correctly reflects 2 installed modules'
+);
+
+-- 10.2 Expired entitlement projects effective status suspended_unentitled
+update platform.workspace_entitlements
+set valid_until = statement_timestamp() - interval '1 hour'
+where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and entitlement_key = 'module.billing';
+
+select ok(
+  (select m->>'status' from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m where m->>'code' = 'billing') = 'suspended_unentitled',
+  'installed module with expired entitlement projects effective status suspended_unentitled'
+);
+
+-- Restore entitlement
+update platform.workspace_entitlements
+set valid_until = null
+where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and entitlement_key = 'module.billing';
+
+-- 10.3 Direct table manipulation prevented by RLS/Grants for authenticated
+set local role authenticated;
+select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated"}', true);
+
+select throws_ok(
+  $$select * from platform.workspace_modules limit 1$$,
+  '42501',
+  null,
+  'authenticated user denied direct SELECT on platform.workspace_modules'
+);
+
+select throws_ok(
+  $$insert into platform.workspace_modules (tenant_id, customer_workspace_id, module_definition_id, module_code, status) values ('89100000-0000-0000-0000-000000000001', '89600000-0000-0000-0000-000000000001', '89100000-0000-0000-0000-000000000001', 'occupancy', 'active')$$,
+  '42501',
+  null,
+  'authenticated user denied direct INSERT on platform.workspace_modules'
+);
+
+select throws_ok(
+  $$select * from platform.workspace_module_idempotency limit 1$$,
+  '42501',
+  null,
+  'authenticated user denied direct SELECT on platform.workspace_module_idempotency'
+);
+
+reset role;
+
+-- 10.4 No side-effects on finance ledger or properties
+select ok(
+  (select count(*) from finance.journal_entries where tenant_id = '89100000-0000-0000-0000-000000000001') = 0,
+  'zero finance ledger rows created or mutated'
+);
+
+select ok(
+  (select count(*) from portfolio.properties where tenant_id = '89100000-0000-0000-0000-000000000001') = 4,
+  'portfolio properties count remains stable without mutation'
+);
+
+-- 10.5 Replay with JSONB having different key order produces same canonical result
+select ok(
+  encode(extensions.digest(convert_to(jsonb_build_object('b', 2, 'a', 1)::text, 'UTF8'), 'sha256'), 'hex') =
+  encode(extensions.digest(convert_to(jsonb_build_object('a', 1, 'b', 2)::text, 'UTF8'), 'sha256'), 'hex'),
+  'canonical JSONB text representation guarantees deterministic SHA-256 hash regardless of key insertion order'
+);
+
+-- 10.6 Catalog projection for catalog_only modules verifies zero activation, zero entitlement, null entitlement_key
+select ok(
+  (select (m->>'can_activate')::boolean = false and (m->>'is_entitled')::boolean = false and (m->>'entitlement_key') is null
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'core_property_registry'),
+  'catalog projection for core_property_registry returns can_activate false, is_entitled false, and entitlement_key null'
+);
+
+select ok(
+  (select (m->>'can_activate')::boolean = false and (m->>'is_entitled')::boolean = false and (m->>'entitlement_key') is null
+   from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
+   where m->>'code' = 'contracts_tenancy'),
+  'catalog projection for contracts_tenancy returns can_activate false, is_entitled false, and entitlement_key null'
+);
+
+-- 10.7 Governance canonical compatibility verification
+select ok(
+  exists (
+    select 1 from platform.module_property_profile_compatibilities mpc
+    join platform.module_definitions md on md.id = mpc.module_definition_id
+    join platform.property_profiles pp on pp.id = mpc.property_profile_id
+    where md.code = 'governance' and pp.code = 'residential_condominium' and mpc.compatibility_level = 'compatible'
+  ),
+  'governance module is compatible with residential_condominium profile'
+);
+
+select ok(
+  exists (
+    select 1 from platform.module_operating_model_compatibilities moc
+    join platform.module_definitions md on md.id = moc.module_definition_id
+    join platform.operating_models om on om.id = moc.operating_model_id
+    where md.code = 'governance' and om.code = 'association_managed' and moc.compatibility_level = 'compatible'
+  ),
+  'governance module is compatible with association_managed operating model'
+);
+
+-- 10.8 Zero partial writes across all failed operations
+select ok(
+  (select count(*) from platform.workspace_modules where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and status not in ('active', 'deactivated')) = 0,
+  'zero partial or malformed workspace module rows across all failures'
+);
+
+rollback;
