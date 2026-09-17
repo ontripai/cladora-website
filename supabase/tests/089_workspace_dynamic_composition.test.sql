@@ -530,28 +530,35 @@ set valid_until = null
 where customer_workspace_id = '89600000-0000-0000-0000-000000000001' and entitlement_key = 'module.billing';
 
 -- 10.3 Direct table manipulation prevented by RLS/Grants for authenticated
+set local role authenticated;
 select set_config('request.jwt.claims', '{"sub": "89000000-0000-0000-0000-000000000001", "role": "authenticated"}', true);
-select throws_like(
-  $$select * from platform.workspace_modules$$,
-  '%permission denied%',
+
+select throws_ok(
+  $$select * from platform.workspace_modules limit 1$$,
+  '42501',
+  null,
   'authenticated user denied direct SELECT on platform.workspace_modules'
 );
 
-select throws_like(
+select throws_ok(
   $$insert into platform.workspace_modules (tenant_id, customer_workspace_id, module_definition_id, module_code, status) values ('89100000-0000-0000-0000-000000000001', '89600000-0000-0000-0000-000000000001', '89100000-0000-0000-0000-000000000001', 'occupancy', 'active')$$,
-  '%permission denied%',
+  '42501',
+  null,
   'authenticated user denied direct INSERT on platform.workspace_modules'
 );
 
-select throws_like(
-  $$select * from platform.workspace_module_idempotency$$,
-  '%permission denied%',
+select throws_ok(
+  $$select * from platform.workspace_module_idempotency limit 1$$,
+  '42501',
+  null,
   'authenticated user denied direct SELECT on platform.workspace_module_idempotency'
 );
 
+reset role;
+
 -- 10.4 No side-effects on finance ledger or properties
 select ok(
-  (select count(*) from finance.general_ledger_accounts where tenant_id = '89100000-0000-0000-0000-000000000001') = 0,
+  (select count(*) from finance.journal_entries where tenant_id = '89100000-0000-0000-0000-000000000001') = 0,
   'zero finance ledger rows created or mutated'
 );
 
