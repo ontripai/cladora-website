@@ -14,10 +14,14 @@ values ('workspace.taxonomy.manage', 'workspace.taxonomy', 'manage', 'Assign and
 on conflict (code) do nothing;
 
 -- Strict post-insert validation: ensure exact permission specifications and target roles
-do $$
+create or replace function app_private.validate_workspace_taxonomy_manage_seeding_v1()
+returns void
+language plpgsql
+security definer
+set search_path = pg_catalog, identity
+as $$
 declare
   v_perm record;
-  v_admin_role_count integer;
 begin
   select * into v_perm
   from identity.permissions
@@ -31,15 +35,20 @@ begin
     raise exception 'permission_specification_mismatch: %', v_perm.code using errcode = '22023';
   end if;
 
-  select count(*) into v_admin_role_count
-  from identity.roles
-  where lower(code) in ('association_admin', 'property_manager');
+  if not exists (select 1 from identity.roles where lower(code) = 'association_admin') then
+    raise exception 'required_target_role_missing: association_admin' using errcode = 'P0002';
+  end if;
 
-  if v_admin_role_count < 2 then
-    raise exception 'required_target_roles_missing' using errcode = 'P0002';
+  if not exists (select 1 from identity.roles where lower(code) = 'property_manager') then
+    raise exception 'required_target_role_missing: property_manager' using errcode = 'P0002';
   end if;
 end;
 $$;
+
+revoke all on function app_private.validate_workspace_taxonomy_manage_seeding_v1() from public, anon, authenticated;
+
+-- Execute strict post-insert validation immediately
+select app_private.validate_workspace_taxonomy_manage_seeding_v1();
 
 -- Seed existing administrative roles
 insert into identity.role_permissions (role_id, permission_id, effect)
@@ -308,7 +317,8 @@ begin
       return jsonb_build_object(
         'has_assignment', false,
         'status', 'binding_required',
-        'workspace_id', null
+        'workspace_id', null,
+        'assignment_id', null
       );
     end if;
   else
@@ -324,7 +334,8 @@ begin
       return jsonb_build_object(
         'has_assignment', false,
         'status', 'binding_required',
-        'workspace_id', null
+        'workspace_id', null,
+        'assignment_id', null
       );
     else
       raise exception 'workspace_taxonomy_context_not_workspace_bound' using errcode = '42501';
@@ -335,7 +346,8 @@ begin
     return jsonb_build_object(
       'has_assignment', false,
       'status', 'binding_required',
-      'workspace_id', null
+      'workspace_id', null,
+      'assignment_id', null
     );
   end if;
 
@@ -351,7 +363,8 @@ begin
     return jsonb_build_object(
       'has_assignment', false,
       'status', 'unclassified',
-      'workspace_id', v_workspace.id
+      'workspace_id', v_workspace.id,
+      'assignment_id', null
     );
   end if;
 
@@ -375,6 +388,7 @@ begin
   return jsonb_build_object(
     'has_assignment', true,
     'workspace_id', v_workspace.id,
+    'assignment_id', v_assignment.id,
     'status', v_assignment.status,
     'country_code', v_assignment.country_code,
     'valid_from', v_assignment.valid_from,
@@ -434,7 +448,7 @@ begin
     raise exception 'customer_context_access_denied' using errcode = '42501';
   end if;
 
-  -- 3. Query active profiles
+  -- 3. Query active profiles (latest version per code)
   select coalesce(jsonb_agg(jsonb_build_object(
     'code', p.code,
     'name', p.name,
@@ -442,11 +456,15 @@ begin
     'description', p.description
   ) order by p.code), '[]'::jsonb)
   into v_profiles
-  from platform.property_profiles p
-  where p.is_active = true and p.lifecycle_status = 'active'
-    and p.valid_from <= statement_timestamp() and (p.valid_to is null or p.valid_to > statement_timestamp());
+  from (
+    select distinct on (code) code, name, labels_json, description
+    from platform.property_profiles
+    where is_active = true and lifecycle_status = 'active'
+      and valid_from <= statement_timestamp() and (valid_to is null or valid_to > statement_timestamp())
+    order by code, version desc
+  ) p;
 
-  -- 4. Query active operating models
+  -- 4. Query active operating models (latest version per code)
   select coalesce(jsonb_agg(jsonb_build_object(
     'code', m.code,
     'name', m.name,
@@ -454,21 +472,46 @@ begin
     'description', m.description
   ) order by m.code), '[]'::jsonb)
   into v_models
-  from platform.operating_models m
-  where m.is_active = true and m.lifecycle_status = 'active'
-    and m.valid_from <= statement_timestamp() and (m.valid_to is null or m.valid_to > statement_timestamp());
+  from (
+    select distinct on (code) code, name, labels_json, description
+    from platform.operating_models
+    where is_active = true and lifecycle_status = 'active'
+      and valid_from <= statement_timestamp() and (valid_to is null or valid_to > statement_timestamp())
+    order by code, version desc
+  ) m;
 
-  -- 5. Query active compatibilities
+  -- 5. Query active compatibilities with latest rule_version and current active profile/model parity
+  with current_profiles as (
+    select distinct on (code) id, code
+    from platform.property_profiles
+    where is_active = true and lifecycle_status = 'active'
+      and valid_from <= statement_timestamp() and (valid_to is null or valid_to > statement_timestamp())
+    order by code, version desc
+  ),
+  current_models as (
+    select distinct on (code) id, code
+    from platform.operating_models
+    where is_active = true and lifecycle_status = 'active'
+      and valid_from <= statement_timestamp() and (valid_to is null or valid_to > statement_timestamp())
+    order by code, version desc
+  ),
+  latest_compat as (
+    select distinct on (p.code, m.code)
+      p.code as profile_code,
+      m.code as operating_model_code,
+      c.compatibility_level
+    from platform.property_operating_model_compatibilities c
+    join current_profiles p on p.id = c.property_profile_id
+    join current_models m on m.id = c.operating_model_id
+    order by p.code, m.code, c.rule_version desc
+  )
   select coalesce(jsonb_agg(jsonb_build_object(
-    'profile_code', p.code,
-    'operating_model_code', m.code,
-    'compatibility_level', c.compatibility_level
-  )), '[]'::jsonb)
+    'profile_code', profile_code,
+    'operating_model_code', operating_model_code,
+    'compatibility_level', compatibility_level
+  ) order by profile_code, operating_model_code), '[]'::jsonb)
   into v_compatibilities
-  from platform.property_operating_model_compatibilities c
-  join platform.property_profiles p on p.id = c.property_profile_id
-  join platform.operating_models m on m.id = c.operating_model_id
-  where p.is_active = true and m.is_active = true;
+  from latest_compat;
 
   return jsonb_build_object(
     'profiles', v_profiles,

@@ -12,16 +12,17 @@
 
 ## 1. Executive Summary
 
-This report documents the review-ready state of `CLADORA-WORKSPACE-TAXONOMY-MUTATION-001` following all review remediations (R1) and four complementary refinements.
+This report documents the review-ready state of `CLADORA-WORKSPACE-TAXONOMY-MUTATION-001` following all review remediations (R1 and R2).
 
-A canonical, fail-closed, transactional mutation gateway (`customer_api.assign_workspace_taxonomy_v1`) has been implemented to allow authorized administrators to assign and transition workspace taxonomy profiles and operating models with strict AAL2 MFA enforcement, granular `workspace.taxonomy.manage` permissions, automatic role bootstrap triggers for future administrative roles, catalog compatibility checks, deterministic versioned idempotency, advisory transaction locking, forward-only canonical `country_code` storage, and transactional audit trail generation.
+A canonical, fail-closed, transactional mutation gateway (`customer_api.assign_workspace_taxonomy_v1`) has been implemented to allow authorized administrators to assign and transition workspace taxonomy profiles and operating models with strict AAL2 MFA enforcement, granular `workspace.taxonomy.manage` permissions, independent exact role existence validation, automatic role bootstrap triggers for future administrative roles, catalog compatibility checks, deterministic versioned idempotency, advisory transaction locking, forward-only canonical `country_code` storage, an explicit `assignment_id` contract, latest-rule catalog/mutation parity, and transactional audit trail generation.
 
-All strict prohibitions were upheld:
+All strict boundaries were upheld:
 - `Supabase Remote Apply: NOT PERFORMED (ZERO DDL/DML ON REMOTE)`
 - `PR Status: DRAFT MAINTAINED (NOT MARKED READY / NOT MERGED)`
 - `Production Redeploy: ZERO`
 - `Customer Data Mutation: ZERO`
 - `Auth/Credential Changes: ZERO`
+- `session_replication_role = replica: ZERO USE`
 
 ---
 
@@ -29,26 +30,39 @@ All strict prohibitions were upheld:
 
 1. **Database Migration 101:**
    - Path: `supabase/migrations/20260916120000_workspace_taxonomy_mutation.sql`
-   - SHA-256: `90F9FF8C11A6707997892FB2FF2C91797A133DE48EA93425E3D48639E61CA6BF`
-   - Scope: Permission `workspace.taxonomy.manage` seed validation without `DO UPDATE`, future role bootstrap trigger (`trg_bootstrap_role_taxonomy_permissions`), canonical `country_code` column on `platform.workspace_taxonomy_assignments`, forward updates to `guard_workspace_taxonomy_assignment_history_v1` and `guard_workspace_taxonomy_assignment_v1`, options RPC `get_taxonomy_catalog_options_v1`, updated resolver `get_workspace_taxonomy_v1`, and transactional RPC `customer_api.assign_workspace_taxonomy_v1`.
+   - SHA-256: `F828F6AFB56892FFD10897532EA052FE373649CDA19CADFEEF02B35B9B1B4AB8`
+   - Scope:
+     - Exact independent role existence validation (`app_private.validate_workspace_taxonomy_manage_seeding_v1()`) ensuring both `association_admin` and `property_manager` exist independently with deterministic error messages (`required_target_role_missing: <role>`).
+     - Permission `workspace.taxonomy.manage` seeded without `DO UPDATE`.
+     - Future role bootstrap trigger (`trg_bootstrap_role_taxonomy_permissions`).
+     - Canonical `country_code` column on `platform.workspace_taxonomy_assignments`.
+     - Forward updates to `guard_workspace_taxonomy_assignment_history_v1` and `guard_workspace_taxonomy_assignment_v1` (with latest rule_version ordering).
+     - Catalog options RPC `customer_api.get_taxonomy_catalog_options_v1` with latest-rule filtering (`DISTINCT ON (p.code, m.code) ... ORDER BY p.code, m.code, c.rule_version desc`).
+     - Resolver `customer_api.get_workspace_taxonomy_v1` with explicit `assignment_id` contract (`v_assignment.id` when active, explicit `null` for unclassified/binding_required).
+     - Transactional mutation RPC `customer_api.assign_workspace_taxonomy_v1`.
 2. **pgTAP Test 088:**
    - Path: `supabase/tests/088_workspace_taxonomy_mutation.test.sql`
-   - SHA-256: `EAD3ACF4BA44D22383A644A9E8CCB7E95C924A516ADC379824EADD6E9200A1E8`
-   - Plan: 53 planned and executed assertions in `BEGIN; ... ROLLBACK;`.
+   - SHA-256: `06E9C930BBF9AF51D6B3DAAE6D6F3AEAAEEDC85363B3253B4FF4EAFCF7C2F176`
+   - Plan: Exact 66 planned and executed assertions in `BEGIN; ... ROLLBACK;`.
+   - Coverage:
+     - Remediation 1: Active workspace returns canonical `assignment_id`; unassigned returns explicit `null`.
+     - Remediation 2: Exact role validation tested with 2 `association_admin` and 0 `property_manager` (proving raw count cannot trick it) and 0 `association_admin`.
+     - Remediation 3: Options RPC excludes future profiles and expired models; returns exactly 1 entry for current profile/model pair with latest `rule_version` level; zero duplicate pairs; and mutation RPC evaluates with identical latest rule.
+     - End-to-End Transition Contract: Full 10-step sequence verifying GET active `assignment_id`, payload conversion, successful transition, rejection of stale/null IDs with SQLSTATE `40001`, exact post-transition entity counts (1 active, 1 superseded, 1 audit event, 1 idempotency record), and idempotent retry with zero duplicate writes.
 3. **Database Package Invariant:**
-   - Contract passed: 101 migrations, 88 tests, 2878 assertions.
+   - Contract passed: 101 migrations, 88 tests, 2891 assertions.
    - Migrations 1–100 and Tests 1–087 are verified 100% byte-identical to `origin/main`.
-4. **API Route Handlers:**
-   - Path: `src/app/api/customer/v1/workspace/taxonomy/route.ts` (GET and POST)
-   - Path: `src/app/api/customer/v1/workspace/taxonomy/options/route.ts` (GET options)
-   - Supports same-origin check, body size limit, strict Zod validation, authoritative client auth, and structured error mapping.
-5. **Customer UI:**
+4. **API Route Handlers & Zod Schemas:**
+   - Path: `src/lib/customer/workspace-taxonomy-schema.ts` (`assignment_id: uuidSchema.nullable().optional()`).
+   - Path: `src/app/api/customer/v1/workspace/taxonomy/route.ts` (GET and POST with same-origin check, body size limit, strict Zod validation, authoritative client auth, and structured error mapping).
+   - Path: `src/app/api/customer/v1/workspace/taxonomy/options/route.ts` (GET options).
+5. **Customer UI Component:**
    - Path: `src/components/workspace/WorkspaceTaxonomyCard.tsx`
-   - Path: `src/components/customer/CustomerDashboard.tsx`
-   - Server-authoritative options and compatibility evaluation (zero client hardcoding, zero compatible fallback), country code input, `canManage` derived from server permissions, and real MFA step-up link to `/${lang}/mfa`.
+   - Forwards exact active `assignment_id` as `expected_assignment_id` for transitions; uses `null` for initial assignments. Zero client-side ID extraction fallback.
+   - Server-authoritative catalog options and compatibility evaluation (zero client hardcoding, zero compatible fallback), country code input, `canManage` derived from server permissions, and real MFA step-up link to `/${lang}/mfa`.
 6. **Multi-Session Concurrency Rehearsal:**
    - Path: `scripts/test-workspace-taxonomy-mutation-concurrency.mjs`
-   - Strict fail-closed connection check, valid transaction blocks, explicit C1 result assertion before commit, PID contention assertion via `pg_blocking_pids`, loser SQLSTATE `40001`, and zero `session_replication_role = replica`.
+   - Real PostgreSQL multi-session race with advisory transaction locking, explicit blocker/blocked PID verification via `pg_blocking_pids`, loser SQLSTATE `40001`, and zero `session_replication_role = replica`.
 7. **CI Workflow Integration:**
    - Path: `.github/workflows/database-tests.yml`
    - Mutation concurrency script integrated into triggers and `postgres-runtime` job.

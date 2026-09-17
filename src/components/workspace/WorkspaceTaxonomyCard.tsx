@@ -274,7 +274,7 @@ export function WorkspaceTaxonomyCard({
           operating_model_code: selectedModel,
           country_code: cleanCountry,
           idempotency_key: idempotencyKey,
-          expected_assignment_id: taxonomy?.assignment_id ?? null,
+          expected_assignment_id: (taxonomy?.has_assignment && taxonomy?.assignment_id) ? taxonomy.assignment_id : null,
           reason: reason.trim() || null,
         }),
       });

@@ -30,7 +30,7 @@ export const workspaceTaxonomyResponseSchema = z.object({
   status: z.string(),
   country_code: z.string().regex(/^[A-Z]{2}$/).nullable().optional(),
   workspace_id: uuidSchema.nullable().optional(),
-  assignment_id: uuidSchema.optional(),
+  assignment_id: uuidSchema.nullable().optional(),
   valid_from: z.string().optional(),
   valid_to: z.string().nullable().optional(),
   profile: taxonomyItemSchema.optional(),

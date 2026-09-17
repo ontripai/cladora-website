@@ -2,10 +2,11 @@
 -- Test 088: Controlled Workspace Taxonomy Mutation Gateway Acceptance
 -- Scope: Transactional assignment, controlled transition, advisory concurrency,
 -- audit evidence, deterministic idempotency, fail-closed resolution,
--- canonical country_code persistence, and AAL2 authorization.
+-- canonical country_code persistence, AAL2 authorization, exact role validation,
+-- assignment_id contract, and latest-rule catalog parity.
 -- =============================================================================
 begin;
-select plan(53);
+select plan(66);
 
 -- 1. Structural & Permission Verification (6 assertions)
 select ok(to_regclass('platform.workspace_taxonomy_idempotency') is not null, 'platform.workspace_taxonomy_idempotency table exists');
@@ -15,7 +16,37 @@ select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid = p.pronam
 select ok(exists(select 1 from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'app_private' and p.proname = 'bootstrap_role_taxonomy_permissions_v1'), 'app_private.bootstrap_role_taxonomy_permissions_v1 trigger function exists');
 select ok(exists(select 1 from information_schema.columns where table_schema = 'platform' and table_name = 'workspace_taxonomy_assignments' and column_name = 'country_code'), 'country_code column exists on platform.workspace_taxonomy_assignments');
 
--- 2. Setup synthetic test fixtures
+-- 2. Exact Role Existence Validation & Synthetic Fixtures Setup
+-- Test 088 Remediation 2: Prove validation cannot be tricked by raw role count (3 assertions)
+select lives_ok(
+  $$select app_private.validate_workspace_taxonomy_manage_seeding_v1()$$,
+  'role validation succeeds when both association_admin and property_manager exist'
+);
+
+-- Test scenario: 2 association_admin and 0 property_manager (raw count >= 2, but property_manager missing)
+savepoint sp_role_test_pm;
+update identity.roles set code = 'temp_disabled_pm' where lower(code) = 'property_manager';
+insert into identity.roles(tenant_id, code, name) values (null, 'association_admin_duplicate', 'Second association admin');
+select throws_ok(
+  $$select app_private.validate_workspace_taxonomy_manage_seeding_v1()$$,
+  'P0002',
+  'required_target_role_missing: property_manager',
+  'validation fails when property_manager is missing even if raw admin role count is 2 or more'
+);
+rollback to savepoint sp_role_test_pm;
+
+-- Test scenario: 0 association_admin (deterministic failure)
+savepoint sp_role_test_aa;
+update identity.roles set code = 'temp_disabled_aa' where lower(code) = 'association_admin';
+select throws_ok(
+  $$select app_private.validate_workspace_taxonomy_manage_seeding_v1()$$,
+  'P0002',
+  'required_target_role_missing: association_admin',
+  'validation fails deterministically when association_admin is missing'
+);
+rollback to savepoint sp_role_test_aa;
+
+-- Setup synthetic test fixtures
 do $$
 declare
   v_tenant_a uuid := '88100000-0000-0000-0000-000000000001';
@@ -26,6 +57,7 @@ declare
   v_user_b uuid := '88000000-0000-0000-0000-000000000004';
   v_role_admin uuid := '88300000-0000-0000-0000-000000000001';
   v_role_resident uuid := '88300000-0000-0000-0000-000000000002';
+  v_role_pm uuid := '88300000-0000-0000-0000-000000000003';
   v_ws_a1 uuid := '88400000-0000-0000-0000-000000000001';
   v_ws_a2 uuid := '88400000-0000-0000-0000-000000000002';
   v_ws_b1 uuid := '88400000-0000-0000-0000-000000000003';
@@ -65,9 +97,10 @@ begin
 
   insert into identity.roles(id, tenant_id, code, name) values
     (v_role_admin, v_tenant_a, 'association_admin', 'Association Administrator A'),
+    (v_role_pm, v_tenant_a, 'property_manager', 'Property Manager A'),
     (v_role_resident, v_tenant_a, 'resident', 'Resident Non-Manager');
 
-  -- Role trigger automatically bootstraps permission for association_admin
+  -- Role trigger automatically bootstraps permission for association_admin and property_manager
   -- Ensure nonadmin has no taxonomy permission
 
   insert into identity.memberships(id, tenant_id, user_id, role_id, status) values
@@ -105,7 +138,18 @@ begin
   insert into platform.property_profiles(id, code, version, name, labels_json, description, is_active, lifecycle_status, valid_from, valid_to) values
     ('88c00000-0000-0000-0000-000000000001', 'synth_inactive_profile', 1, 'Inactive Synth', '{"ro":"Inactiv","en":"Inactive","fa":"غیرفعال"}'::jsonb, 'Inactive', false, 'archived', statement_timestamp() - interval '10 days', null),
     ('88c00000-0000-0000-0000-000000000002', 'synth_future_profile', 1, 'Future Synth', '{"ro":"Viitor","en":"Future","fa":"آینده"}'::jsonb, 'Future', true, 'active', statement_timestamp() + interval '10 days', null),
-    ('88c00000-0000-0000-0000-000000000003', 'synth_expired_profile', 1, 'Expired Synth', '{"ro":"Expirat","en":"Expired","fa":"منقضی"}'::jsonb, 'Expired', true, 'active', statement_timestamp() - interval '10 days', statement_timestamp() - interval '1 day');
+    ('88c00000-0000-0000-0000-000000000003', 'synth_expired_profile', 1, 'Expired Synth', '{"ro":"Expirat","en":"Expired","fa":"منقضی"}'::jsonb, 'Expired', true, 'active', statement_timestamp() - interval '10 days', statement_timestamp() - interval '1 day'),
+    ('88c00000-0000-0000-0000-000000000004', 'synth_parity_profile', 1, 'Parity Synth Profile', '{"ro":"Paritate","en":"Parity","fa":"هم‌ترازی"}'::jsonb, 'Parity', true, 'active', statement_timestamp() - interval '10 days', null);
+
+  insert into platform.operating_models(id, code, version, name, labels_json, description, is_active, lifecycle_status, valid_from, valid_to) values
+    ('88c10000-0000-0000-0000-000000000001', 'synth_parity_model', 1, 'Parity Synth Model', '{"ro":"Paritate","en":"Parity","fa":"هم‌ترازی"}'::jsonb, 'Parity', true, 'active', statement_timestamp() - interval '10 days', null),
+    ('88c10000-0000-0000-0000-000000000002', 'synth_expired_model', 1, 'Expired Synth Model', '{"ro":"Expirat","en":"Expired","fa":"منقضی"}'::jsonb, 'Expired', true, 'active', statement_timestamp() - interval '10 days', statement_timestamp() - interval '1 day');
+
+  insert into platform.property_operating_model_compatibilities(property_profile_id, operating_model_id, compatibility_level, rule_version, reason) values
+    ('88c00000-0000-0000-0000-000000000004', '88c10000-0000-0000-0000-000000000001', 'review_required', 1, 'Parity test older rule v1'),
+    ('88c00000-0000-0000-0000-000000000004', '88c10000-0000-0000-0000-000000000001', 'compatible', 2, 'Parity test latest rule v2 supersedes v1'),
+    ('88c00000-0000-0000-0000-000000000002', '88c10000-0000-0000-0000-000000000001', 'compatible', 1, 'Future profile rule should be excluded'),
+    ('88c00000-0000-0000-0000-000000000004', '88c10000-0000-0000-0000-000000000002', 'compatible', 1, 'Expired model rule should be excluded');
 end $$;
 
 -- 3. Unauthenticated caller without user ID rejected (1 assertion)
@@ -256,7 +300,14 @@ select throws_ok(
   'review_required combination without non-empty reason is rejected'
 );
 
--- 12. Initial assignment on unassigned workspace succeeds (6 assertions)
+-- 12. Initial assignment on unassigned workspace & Assignment ID Contract (8 assertions)
+-- Remediation 1 Contract: Unassigned workspace returns has_assignment=false and assignment_id=null
+select ok(
+  ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000002'))->>'has_assignment')::boolean = false
+  and (customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000002'))->>'assignment_id' is null,
+  'unassigned workspace returns has_assignment=false and explicit null assignment_id'
+);
+
 select lives_ok(
   $$select customer_api.assign_workspace_taxonomy_v1(
     '88600000-0000-0000-0000-000000000001',
@@ -302,6 +353,13 @@ select ok(
 select ok(
   ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000001'))->>'country_code') = 'RO',
   'resolver customer_api.get_workspace_taxonomy_v1 returns stored country_code'
+);
+
+-- Remediation 1 Contract: Assigned workspace returns exact active assignment_id matching table
+select ok(
+  ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000001'))->>'assignment_id')::uuid =
+  (select id from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000001' and status = 'active'),
+  'assigned workspace returns exact active assignment_id matching canonical table'
 );
 
 -- 13. Idempotent Replay, Payload Normalization & Conflict Tests (5 assertions)
@@ -366,7 +424,14 @@ select throws_ok(
   'cross-workspace idempotency key reuse within tenant is rejected with conflict'
 );
 
--- 14. Optimistic Concurrency Control (Expected Assignment ID) (6 assertions)
+-- 14. Required End-to-End Transition & Optimistic Concurrency Sequence (10 assertions)
+-- E2E Step 1: GET returns active assignment_id
+select ok(
+  (customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000001'))->>'assignment_id' is not null,
+  'e2e step 1: GET on assigned workspace returns active assignment_id'
+);
+
+-- E2E Step 2a: Transition with stale or mismatched expected assignment ID rejected with SQLSTATE 40001
 select throws_ok(
   $$select customer_api.assign_workspace_taxonomy_v1(
     '88600000-0000-0000-0000-000000000001',
@@ -379,9 +444,10 @@ select throws_ok(
   )$$,
   '40001',
   'workspace_taxonomy_expected_assignment_conflict',
-  'transition with mismatched expected assignment ID is rejected with conflict'
+  'e2e step 2a: transition with mismatched expected assignment ID is rejected with SQLSTATE 40001'
 );
 
+-- E2E Step 2b: Transition with null expected assignment ID on assigned workspace rejected with SQLSTATE 40001
 select throws_ok(
   $$select customer_api.assign_workspace_taxonomy_v1(
     '88600000-0000-0000-0000-000000000001',
@@ -394,9 +460,10 @@ select throws_ok(
   )$$,
   '40001',
   'workspace_taxonomy_expected_assignment_conflict',
-  'transition without expected assignment ID on assigned workspace is rejected'
+  'e2e step 2b: transition without expected assignment ID on assigned workspace is rejected with SQLSTATE 40001'
 );
 
+-- E2E Step 3: Transition using active assignment_id from GET payload as expected_assignment_id succeeds
 select lives_ok(
   $$select customer_api.assign_workspace_taxonomy_v1(
     '88600000-0000-0000-0000-000000000001',
@@ -404,25 +471,56 @@ select lives_ok(
     'third_party_managed',
     'RO',
     '88900000-0000-0000-0000-000000000013'::uuid,
-    (select id from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000001' and status = 'active'),
+    ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000001'))->>'assignment_id')::uuid,
     'Contracted professional third-party management company'
   )$$,
-  'valid transition with correct expected assignment ID executes successfully'
+  'e2e step 3: transition using active assignment_id from GET payload as expected_assignment_id succeeds'
 );
 
+-- E2E Step 5a: Previous assignment closed with status=superseded and valid_to set
 select ok(
   (select count(*) from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000001' and status = 'superseded' and valid_to is not null) = 1,
-  'previous assignment closed with status=superseded and valid_to set'
+  'e2e step 5a: previous assignment closed with status=superseded and valid_to set'
 );
 
+-- E2E Step 5b: Exactly 1 active assignment remains
 select ok(
   (select count(*) from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000001' and status = 'active' and valid_to is null) = 1,
-  'exactly 1 active assignment remains for Workspace A1'
+  'e2e step 5b: exactly 1 active assignment remains for Workspace A1'
 );
 
+-- E2E Step 5c: Audit event WORKSPACE_TAXONOMY_TRANSITIONED generated
 select ok(
   (select count(*) from audit.events where action = 'WORKSPACE_TAXONOMY_TRANSITIONED') = 1,
-  'audit event WORKSPACE_TAXONOMY_TRANSITIONED generated with before and after snapshots'
+  'e2e step 5c: audit event WORKSPACE_TAXONOMY_TRANSITIONED generated with before and after snapshots'
+);
+
+-- E2E Step 5d: Exactly 1 transition idempotency record exists
+select ok(
+  (select count(*) from platform.workspace_taxonomy_idempotency where customer_workspace_id = '88400000-0000-0000-0000-000000000001' and idempotency_key = '88900000-0000-0000-0000-000000000013'::uuid) = 1,
+  'e2e step 5d: exactly 1 transition idempotency record exists post-transition'
+);
+
+-- E2E Step 6a: Replay with same idempotency key returns idempotent_replay=true
+select ok(
+  ((customer_api.assign_workspace_taxonomy_v1(
+    '88600000-0000-0000-0000-000000000001',
+    'residential_condominium',
+    'third_party_managed',
+    'RO',
+    '88900000-0000-0000-0000-000000000013'::uuid,
+    ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000001'))->>'assignment_id')::uuid,
+    'Contracted professional third-party management company'
+  ))->>'idempotent_replay')::boolean = true,
+  'e2e step 6a: retry with same idempotency key returns idempotent_replay=true'
+);
+
+-- E2E Step 6b: Replay produces zero duplicate writes across assignments, audit events, and idempotency
+select ok(
+  (select count(*) from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000001') = 2
+  and (select count(*) from audit.events where action = 'WORKSPACE_TAXONOMY_TRANSITIONED') = 1
+  and (select count(*) from platform.workspace_taxonomy_idempotency where customer_workspace_id = '88400000-0000-0000-0000-000000000001') = 2,
+  'e2e step 6b: replay produces zero duplicate writes across assignments, audit events, and idempotency'
 );
 
 -- 15. Review-Required Transition with Approved Reason (2 assertions)
@@ -505,7 +603,62 @@ select ok(
   'tenant B workspace remains unmutated (strict isolation)'
 );
 
--- 18. Zero Overlap, Zero Partial Writes, Zero Ledger Side-Effect, Options RPC (4 assertions)
+-- 18. Catalog/Mutation Options Parity & Latest Rule (Remediation 3) (4 assertions)
+-- Assertion 1: Options RPC excludes future profile and expired model rules
+select ok(
+  not exists (
+    select 1
+    from jsonb_array_elements((customer_api.get_taxonomy_catalog_options_v1('88600000-0000-0000-0000-000000000001'))->'compatibilities') elem
+    where elem->>'profile_code' = 'synth_future_profile'
+       or elem->>'operating_model_code' = 'synth_expired_model'
+  ),
+  'customer_api.get_taxonomy_catalog_options_v1 excludes future profile and expired model rules'
+);
+
+-- Assertion 2: Options RPC returns exactly 1 entry for current profile/model pair with latest rule_version level compatible
+select ok(
+  (
+    select count(*)
+    from jsonb_array_elements((customer_api.get_taxonomy_catalog_options_v1('88600000-0000-0000-0000-000000000001'))->'compatibilities') elem
+    where elem->>'profile_code' = 'synth_parity_profile' and elem->>'operating_model_code' = 'synth_parity_model'
+  ) = 1
+  and (
+    select elem->>'compatibility_level'
+    from jsonb_array_elements((customer_api.get_taxonomy_catalog_options_v1('88600000-0000-0000-0000-000000000001'))->'compatibilities') elem
+    where elem->>'profile_code' = 'synth_parity_profile' and elem->>'operating_model_code' = 'synth_parity_model'
+  ) = 'compatible',
+  'options RPC returns exactly 1 entry for current profile/model pair with latest rule_version level compatible'
+);
+
+-- Assertion 3: Options RPC compatibilities contains zero duplicate profile_code and operating_model_code pairs
+select ok(
+  (
+    select count(*)
+    from (
+      select elem->>'profile_code' as p_code, elem->>'operating_model_code' as m_code, count(*)
+      from jsonb_array_elements((customer_api.get_taxonomy_catalog_options_v1('88600000-0000-0000-0000-000000000001'))->'compatibilities') elem
+      group by 1, 2
+      having count(*) > 1
+    ) dupes
+  ) = 0,
+  'options RPC compatibilities contains zero duplicate profile_code and operating_model_code pairs'
+);
+
+-- Assertion 4: Parity with Mutation RPC: Mutation evaluates with latest rule compatible without review reason requirement
+select lives_ok(
+  $$select customer_api.assign_workspace_taxonomy_v1(
+    '88600000-0000-0000-0000-000000000002', -- Workspace A2 is unassigned
+    'synth_parity_profile',
+    'synth_parity_model',
+    'RO',
+    '88900000-0000-0000-0000-000000000016'::uuid,
+    null,
+    null -- Zero review reason passed; succeeds because latest rule_version 2 is 'compatible' (parity with options RPC)
+  )$$,
+  'mutation RPC evaluates parity pair with latest rule_version compatible without review reason'
+);
+
+-- 19. Zero Overlap, Zero Partial Writes, Zero Ledger Side-Effect, Options RPC baseline (4 assertions)
 select ok(
   (
     select count(*)
@@ -518,11 +671,11 @@ select ok(
 
 select ok(
   (
-    select count(*) from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000002'
+    select count(*) from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000003'
   ) = 0 and (
-    select count(*) from platform.workspace_taxonomy_idempotency where customer_workspace_id = '88400000-0000-0000-0000-000000000002'
+    select count(*) from platform.workspace_taxonomy_idempotency where customer_workspace_id = '88400000-0000-0000-0000-000000000003'
   ) = 0,
-  'zero partial writes: failed attempts on workspace A2 produced zero assignment or idempotency rows'
+  'zero partial writes: failed attempts on workspace B1 produced zero assignment or idempotency rows'
 );
 
 select ok(
