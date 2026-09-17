@@ -1,32 +1,48 @@
 # Closure & Review Report — CLADORA-WORKSPACE-TAXONOMY-MUTATION-001 (v1.0)
 
-**Status:** `READY-FOR-REVIEW / REMOTE-APPLY-NOT-AUTHORIZED`  
-**Item In-Scope:** `DEFERRED-WORKSPACE-TAXONOMY-MUTATION-AUDIT`  
-**Repository:** `ontripai/cladora-website`  
-**Base SHA:** `21fd73f0cdd5e556f4a53a2c3ba89bf70f650e4f`  
-**Branch:** `feat/cladora-workspace-taxonomy-mutation-001`  
-**PR:** #100 (Draft)  
-**Date:** 2026-09-17  
+**Document Identifier:** `CLADORA-WORKSPACE-TAXONOMY-MUTATION-001-CLOSURE-v1.0`
+**Status:** `APPLIED-REMOTE / LOCAL-101-REMOTE-101-DRIFT-0 / MERGED-TO-MAIN / PRODUCTION-VERIFIED / CONTROLLED-ADVISORIES-ACCEPTED`
+**Item In-Scope:** `DEFERRED-WORKSPACE-TAXONOMY-MUTATION-AUDIT`
+**Repository:** `ontripai/cladora-website`
+**Base SHA:** `21fd73f0cdd5e556f4a53a2c3ba89bf70f650e4f`
+**Merged PR:** [#100](https://github.com/ontripai/cladora-website/pull/100)
+**Squash Merge SHA:** `78e14045c6bd2079989f537be73d2cef3db75587`
+**Supabase Production Project Ref:** `jyomlehahwlyqzoacrvp`
+**Date:** 2026-09-17
 
 ---
 
-## 1. Executive Summary
+## 1. Executive Summary & Release Verification
 
-This report documents the review-ready state of `CLADORA-WORKSPACE-TAXONOMY-MUTATION-001` following all review remediations (R1, R2, and R2A).
+This report documents the completed production delivery, release evidence, and operational acceptance for `CLADORA-WORKSPACE-TAXONOMY-MUTATION-001`.
 
-A canonical, fail-closed, transactional mutation gateway (`customer_api.assign_workspace_taxonomy_v1`) has been implemented to allow authorized administrators to assign and transition workspace taxonomy profiles and operating models with strict AAL2 MFA enforcement, granular `workspace.taxonomy.manage` permissions, independent exact role existence validation, automatic role bootstrap triggers for future administrative roles, catalog compatibility checks, deterministic versioned idempotency, advisory transaction locking, forward-only canonical `country_code` storage, a uniform `assignment_id` contract (explicit `assignment_id: null` across all unclassified and binding_required branches), latest-rule catalog/mutation parity, and transactional audit trail generation.
+The transactional mutation gateway (`customer_api.assign_workspace_taxonomy_v1`), accompanying catalog options RPC (`customer_api.get_taxonomy_catalog_options_v1`), forward-updated taxonomy resolver (`customer_api.get_workspace_taxonomy_v1`), and responsive trilingual UI (`WorkspaceTaxonomyCard.tsx`) are verified live on both Supabase Remote and Vercel Production.
 
-All strict boundaries were upheld:
-- `Supabase Remote Apply: NOT PERFORMED (ZERO DDL/DML ON REMOTE)`
-- `PR Status: DRAFT MAINTAINED (NOT MARKED READY / NOT MERGED)`
-- `Production Redeploy: ZERO`
-- `Customer Data Mutation: ZERO`
-- `Auth/Credential Changes: ZERO`
-- `session_replication_role = replica: ZERO USE`
+### Production Release Evidence:
+1. **Migration 101 Applied to Supabase Remote:**
+   - Migration `20260916120000_workspace_taxonomy_mutation.sql` applied exactly once via `supabase db push --linked`.
+   - Inventory: **Local 101 / Remote 101 / Drift 0**.
+2. **Health & Concurrency Audits:**
+   - Active Blocking Queries (`pg_blocking_pids`): **0 rows (zero contention)**.
+3. **Security Advisor Statement:**
+   > Security Advisor reviewed: 6 controlled SECURITY DEFINER gateway warnings and 8 deny-by-default RLS informational findings remain. All findings are documented with explicit owners, access boundaries, fixed search paths and compensating controls. No unexpected new finding or privilege exposure was detected.
+4. **Pull Request & Main Branch:**
+   - PR #100 was marked ready for review and squash-merged into `main` at commit `78e14045c6bd2079989f537be73d2cef3db75587`.
+5. **Database Package Totals:**
+   - Package status: **101 migrations / 88 tests / 2891 assertions**.
+   - Migrations 1–100 and Tests 1–087 are 100% byte-identical to `origin/main` baseline.
+6. **Production Deployment (Vercel):**
+   - Deployment ID: `dpl_ATQio2G6qX6FBGV5j17w3eYNmT9s`
+   - State: `READY`
+   - Target Git SHA: `78e14045c6bd2079989f537be73d2cef3db75587`
+   - Production Aliases:
+     - `cladora.ro`
+     - `www.cladora.ro`
+     - `cladora-website.vercel.app`
 
 ---
 
-## 2. Invariants & Deliverables
+## 2. Invariants & Delivered Components
 
 1. **Database Migration 101:**
    - Path: `supabase/migrations/20260916120000_workspace_taxonomy_mutation.sql`
@@ -50,8 +66,8 @@ All strict boundaries were upheld:
      - Remediation 3: Options RPC excludes future profiles and expired models; returns exactly 1 entry for current profile/model pair with latest `rule_version` level; zero duplicate pairs; and mutation RPC evaluates with identical latest rule.
      - End-to-End Transition Contract: Full 10-step sequence verifying GET active `assignment_id`, payload conversion, successful transition, rejection of stale/null IDs with SQLSTATE `40001`, exact post-transition entity counts (1 active, 1 superseded, 1 audit event, 1 idempotency record), and idempotent retry with zero duplicate writes.
 3. **Database Package Invariant:**
-   - Contract passed: 101 migrations, 88 tests, 2891 assertions.
-   - Migrations 1–100 and Tests 1–087 are verified 100% byte-identical to `origin/main`.
+   - Contract verified: 101 migrations, 88 tests, 2891 assertions.
+   - Migrations 1–100 and Tests 1–087 are verified 100% byte-identical to prior baseline.
 4. **API Route Handlers & Zod Schemas:**
    - Path: `src/lib/customer/workspace-taxonomy-schema.ts` (`assignment_id: uuidSchema.nullable().optional()`).
    - Path: `src/app/api/customer/v1/workspace/taxonomy/route.ts` (GET and POST with same-origin check, body size limit, strict Zod validation, authoritative client auth, and structured error mapping).
@@ -65,9 +81,27 @@ All strict boundaries were upheld:
    - Real PostgreSQL multi-session race with advisory transaction locking, explicit blocker/blocked PID verification via `pg_blocking_pids`, loser SQLSTATE `40001`, and zero `session_replication_role = replica`.
 7. **CI Workflow Integration:**
    - Path: `.github/workflows/database-tests.yml`
-   - Mutation concurrency script integrated into triggers and `postgres-runtime` job.
-8. **Security Advisor Delta:**
-   - Finding `WSTAX-ADV-WARN-005` (`assign_workspace_taxonomy_v1`)
-   - Finding `WSTAX-ADV-WARN-006` (`get_taxonomy_catalog_options_v1`)
-   - Forward update coverage for `get_workspace_taxonomy_v1`
-   - Documented as `PROPOSED-CONTROLLED-EXCEPTION` in `docs/security/CLADORA-WORKSPACE-TAXONOMY-MUTATION-001-ADVISORY-EXCEPTION-v1.0.md`.
+   - Concurrency tests integrated into CI runner under `postgres-runtime`.
+8. **Security Exception Register:**
+   - Path: `docs/security/CLADORA-WORKSPACE-TAXONOMY-MUTATION-001-ADVISORY-EXCEPTION-v1.0.md`
+   - Status: `ACCEPTED-CONTROLLED-EXCEPTION` for all 6 `customer_api` gateway functions and `ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL` for all 8 `platform.*` tables.
+
+---
+
+## 3. Review Findings & Remediation Log
+
+| Remediation Phase | Scope | Status |
+| :--- | :--- | :---: |
+| `R1` | Fail-closed context resolver, forward-only `country_code` storage, dynamic options endpoint, and true multi-session concurrency rehearsal. | **RESOLVED** |
+| `R2` | Explicit `assignment_id` in resolver, independent role validation, and catalog options latest-rule parity. | **RESOLVED** |
+| `R2A` | Uniform `assignment_id: null` contract across all `binding_required` and `unclassified` branches. | **RESOLVED** |
+| `ADVISORY-DOC` | Formal post-release evidence recording and acceptance of Security Advisor findings. | **RESOLVED** |
+
+---
+
+## 4. References & Standards
+
+- [CLADORA-WORKSPACE-TAXONOMY-MUTATION-CONTRACT-v1.0.md](../contracts/CLADORA-WORKSPACE-TAXONOMY-MUTATION-CONTRACT-v1.0.md)
+- [CLADORA-WORKSPACE-TAXONOMY-MUTATION-001-ADVISORY-EXCEPTION-v1.0.md](../security/CLADORA-WORKSPACE-TAXONOMY-MUTATION-001-ADVISORY-EXCEPTION-v1.0.md)
+- [ADR-CLD-052: Universal Managed Property Workspaces](../architecture/ADR-CLD-052-universal-managed-property-workspaces.md)
+- [CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md](../CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md)
