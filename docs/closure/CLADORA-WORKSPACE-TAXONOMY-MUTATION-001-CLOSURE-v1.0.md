@@ -12,9 +12,9 @@
 
 ## 1. Executive Summary
 
-This report documents the review-ready state of `CLADORA-WORKSPACE-TAXONOMY-MUTATION-001` following all review remediations (R1 and R2).
+This report documents the review-ready state of `CLADORA-WORKSPACE-TAXONOMY-MUTATION-001` following all review remediations (R1, R2, and R2A).
 
-A canonical, fail-closed, transactional mutation gateway (`customer_api.assign_workspace_taxonomy_v1`) has been implemented to allow authorized administrators to assign and transition workspace taxonomy profiles and operating models with strict AAL2 MFA enforcement, granular `workspace.taxonomy.manage` permissions, independent exact role existence validation, automatic role bootstrap triggers for future administrative roles, catalog compatibility checks, deterministic versioned idempotency, advisory transaction locking, forward-only canonical `country_code` storage, an explicit `assignment_id` contract, latest-rule catalog/mutation parity, and transactional audit trail generation.
+A canonical, fail-closed, transactional mutation gateway (`customer_api.assign_workspace_taxonomy_v1`) has been implemented to allow authorized administrators to assign and transition workspace taxonomy profiles and operating models with strict AAL2 MFA enforcement, granular `workspace.taxonomy.manage` permissions, independent exact role existence validation, automatic role bootstrap triggers for future administrative roles, catalog compatibility checks, deterministic versioned idempotency, advisory transaction locking, forward-only canonical `country_code` storage, a uniform `assignment_id` contract (explicit `assignment_id: null` across all unclassified and binding_required branches), latest-rule catalog/mutation parity, and transactional audit trail generation.
 
 All strict boundaries were upheld:
 - `Supabase Remote Apply: NOT PERFORMED (ZERO DDL/DML ON REMOTE)`
@@ -30,7 +30,7 @@ All strict boundaries were upheld:
 
 1. **Database Migration 101:**
    - Path: `supabase/migrations/20260916120000_workspace_taxonomy_mutation.sql`
-   - SHA-256: `F828F6AFB56892FFD10897532EA052FE373649CDA19CADFEEF02B35B9B1B4AB8`
+   - SHA-256: `57474646523CCC07885BB03237BA815A7EA74E91D7F221DD5EC52279E6590129`
    - Scope:
      - Exact independent role existence validation (`app_private.validate_workspace_taxonomy_manage_seeding_v1()`) ensuring both `association_admin` and `property_manager` exist independently with deterministic error messages (`required_target_role_missing: <role>`).
      - Permission `workspace.taxonomy.manage` seeded without `DO UPDATE`.
@@ -38,14 +38,14 @@ All strict boundaries were upheld:
      - Canonical `country_code` column on `platform.workspace_taxonomy_assignments`.
      - Forward updates to `guard_workspace_taxonomy_assignment_history_v1` and `guard_workspace_taxonomy_assignment_v1` (with latest rule_version ordering).
      - Catalog options RPC `customer_api.get_taxonomy_catalog_options_v1` with latest-rule filtering (`DISTINCT ON (p.code, m.code) ... ORDER BY p.code, m.code, c.rule_version desc`).
-     - Resolver `customer_api.get_workspace_taxonomy_v1` with explicit `assignment_id` contract (`v_assignment.id` when active, explicit `null` for unclassified/binding_required).
+     - Resolver `customer_api.get_workspace_taxonomy_v1` with uniform `assignment_id` contract (`v_assignment.id` when active, explicit `null` for unclassified and all binding_required branches).
      - Transactional mutation RPC `customer_api.assign_workspace_taxonomy_v1`.
 2. **pgTAP Test 088:**
    - Path: `supabase/tests/088_workspace_taxonomy_mutation.test.sql`
-   - SHA-256: `8B709564BF2899481F5DBE070ECD7142AA5225519B59B03701EAFCDFBE13EE67`
+   - SHA-256: `71EFC3C015AAC09E7715C604DE767773F07E9EBF9F7F821E4AF7660BD162EBA7`
    - Plan: Exact 66 planned and executed assertions in `BEGIN; ... ROLLBACK;`.
    - Coverage:
-     - Remediation 1: Active workspace returns canonical `assignment_id`; unassigned returns explicit `null`.
+     - Remediation 1 & R2A: Active workspace returns canonical `assignment_id`; unassigned and unbound property contexts return explicit `null` with `binding_required`/`unclassified` status.
      - Remediation 2: Exact role validation tested with 2 `association_admin` and 0 `property_manager` (proving raw count cannot trick it) and 0 `association_admin`.
      - Remediation 3: Options RPC excludes future profiles and expired models; returns exactly 1 entry for current profile/model pair with latest `rule_version` level; zero duplicate pairs; and mutation RPC evaluates with identical latest rule.
      - End-to-End Transition Contract: Full 10-step sequence verifying GET active `assignment_id`, payload conversion, successful transition, rejection of stale/null IDs with SQLSTATE `40001`, exact post-transition entity counts (1 active, 1 superseded, 1 audit event, 1 idempotency record), and idempotent retry with zero duplicate writes.

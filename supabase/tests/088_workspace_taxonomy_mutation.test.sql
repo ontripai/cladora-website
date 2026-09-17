@@ -301,11 +301,14 @@ select throws_ok(
 );
 
 -- 12. Initial assignment on unassigned workspace & Assignment ID Contract (8 assertions)
--- Remediation 1 Contract: Unassigned workspace returns has_assignment=false and assignment_id=null
+-- Remediation 1 & R2A Contract: Unassigned workspace & unbound property context return has_assignment=false and assignment_id=null
 select ok(
   ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000002'))->>'has_assignment')::boolean = false
-  and (customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000002'))->>'assignment_id' is null,
-  'unassigned workspace returns has_assignment=false and explicit null assignment_id'
+  and (customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000002'))->>'assignment_id' is null
+  and (customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000007'))->>'status' = 'binding_required'
+  and ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000007'))->>'has_assignment')::boolean = false
+  and (customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000007'))->>'assignment_id' is null,
+  'unassigned workspace and unbound property context return has_assignment=false and explicit null assignment_id'
 );
 
 select lives_ok(

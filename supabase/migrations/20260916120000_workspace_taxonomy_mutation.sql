@@ -290,7 +290,8 @@ begin
       return jsonb_build_object(
         'has_assignment', false,
         'status', 'binding_required',
-        'workspace_id', null
+        'workspace_id', null,
+        'assignment_id', null
       );
     elsif v_binding_count > 1 then
       raise exception 'workspace_taxonomy_workspace_binding_ambiguous' using errcode = '42501';

@@ -30,9 +30,10 @@ assert.match(migrationSql, /app_private\.guard_workspace_taxonomy_assignment_v1/
 assert.match(migrationSql, /customer_api\.assign_workspace_taxonomy_v1/i, 'assign_workspace_taxonomy_v1 created');
 assert.match(migrationSql, /customer_api\.get_taxonomy_catalog_options_v1/i, 'get_taxonomy_catalog_options_v1 created');
 
-// Remediation 1 Invariants: Explicit assignment_id contract in resolver
+// Remediation 1 & R2A Invariants: Explicit assignment_id contract in resolver
 assert.match(migrationSql, /'assignment_id',\s*v_assignment\.id/i, 'Active assignment_id returned in resolver');
 assert.match(migrationSql, /'assignment_id',\s*null/i, 'Explicit null assignment_id for unclassified and binding_required states');
+assert.match(migrationSql, /if v_binding_count = 0 then[\s\S]*?'status',\s*'binding_required'[\s\S]*?'assignment_id',\s*null/i, 'binding_count = 0 explicitly returns assignment_id null');
 
 // Remediation 3 Invariants: Options RPC latest rule parity
 assert.match(migrationSql, /order by p\.code,\s*m\.code,\s*c\.rule_version desc/i, 'Options RPC selects latest rule_version with distinct on profile/model');
@@ -80,8 +81,8 @@ assert.match(testSql, /WORKSPACE_TAXONOMY_ASSIGNED/, 'Initial audit assertion te
 assert.match(testSql, /WORKSPACE_TAXONOMY_TRANSITIONED/, 'Transition audit assertion tested');
 assert.match(testSql, /workspace_taxonomy_assignment_history_immutable/, 'History immutability assertion tested');
 
-// Assignment ID Contract test coverage (Remediation 1)
-assert.match(testSql, /unassigned workspace returns has_assignment=false and explicit null assignment_id/, 'Unassigned assignment_id null contract tested');
+// Assignment ID Contract test coverage (Remediation 1 & R2A)
+assert.match(testSql, /unassigned workspace and unbound property context return has_assignment=false and explicit null assignment_id/, 'Unassigned assignment_id null and unbound property binding_required contract tested');
 assert.match(testSql, /assigned workspace returns exact active assignment_id matching canonical table/, 'Assigned active assignment_id contract tested');
 
 // End-to-End Transition & Optimistic Concurrency Sequence
