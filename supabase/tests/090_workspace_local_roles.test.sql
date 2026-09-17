@@ -94,13 +94,18 @@ select throws_ok(
 );
 
 -- 3.7 Non-overlapping future version is allowed
+update platform.module_permission_bindings
+set valid_to = statement_timestamp() + interval '30 days'
+where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1)
+  and permission_id = (select id from identity.permissions where code = 'maintenance.work_orders.read' limit 1);
+
 select lives_ok(
   $$insert into platform.module_permission_bindings (
     module_definition_id, permission_id, binding_version, is_delegable, lifecycle_status, valid_from, valid_to
-  ) select module_definition_id, permission_id, 3, false, 'active', statement_timestamp() + interval '30 days', statement_timestamp() + interval '60 days'
+  ) select module_definition_id, permission_id, 2, false, 'active', statement_timestamp() + interval '30 days', statement_timestamp() + interval '60 days'
   from platform.module_permission_bindings
   where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1)
-  limit 1$$,
+    and permission_id = (select id from identity.permissions where code = 'maintenance.work_orders.read' limit 1)$$,
   'non-overlapping future binding version succeeds'
 );
 
@@ -143,31 +148,31 @@ begin
   on conflict (id) do nothing;
 
   -- Tenants
-  insert into platform.tenants (id, name, slug) values
-    (v_tenant_id, 'Test Tenant 090', 'tenant-090'),
-    (v_tenant2_id, 'Test Tenant 090 B', 'tenant-090-b')
+  insert into platform.tenants (id, legal_name, registration_number, status) values
+    (v_tenant_id, 'Test Tenant 090', 'RO-TEST-090-A', 'active'),
+    (v_tenant2_id, 'Test Tenant 090 B', 'RO-TEST-090-B', 'active')
   on conflict (id) do nothing;
 
   -- Workspaces
-  insert into platform.customer_workspaces (id, tenant_id, code, name, status) values
-    (v_ws_id, v_tenant_id, 'ws_main_090', 'Main Workspace 090', 'active'),
-    (v_ws2_id, v_tenant_id, 'ws_second_090', 'Second Workspace 090', 'active')
+  insert into platform.customer_workspaces (id, tenant_id, workspace_type, commercial_owner, environment, lifecycle_status) values
+    (v_ws_id, v_tenant_id, 'ASSOCIATION', 'Owner 090', 'PILOT', 'ACTIVE'),
+    (v_ws2_id, v_tenant_id, 'ASSOCIATION', 'Owner 090 B', 'PILOT', 'ACTIVE')
   on conflict (id) do nothing;
 
   -- Properties, Buildings, Units
-  insert into portfolio.properties (id, tenant_id, name, code) values
-    (v_prop_id, v_tenant_id, 'Property 090 A', 'PROP-090-A'),
-    (v_prop2_id, v_tenant_id, 'Property 090 B', 'PROP-090-B')
+  insert into portfolio.properties (id, tenant_id, type, name, status) values
+    (v_prop_id, v_tenant_id, 'condominium', 'Property 090 A', 'active'),
+    (v_prop2_id, v_tenant_id, 'condominium', 'Property 090 B', 'active')
   on conflict (id) do nothing;
 
-  insert into portfolio.buildings (id, tenant_id, property_id, name, code) values
-    (v_bld_id, v_tenant_id, v_prop_id, 'Building 1', 'BLD-1'),
-    (v_bld2_id, v_tenant_id, v_prop_id, 'Building 2', 'BLD-2')
+  insert into portfolio.buildings (id, tenant_id, property_id, code, name, status) values
+    (v_bld_id, v_tenant_id, v_prop_id, 'BLD-1', 'Building 1', 'active'),
+    (v_bld2_id, v_tenant_id, v_prop_id, 'BLD-2', 'Building 2', 'active')
   on conflict (id) do nothing;
 
-  insert into portfolio.units (id, tenant_id, building_id, unit_number) values
-    (v_unit1_id, v_tenant_id, v_bld_id, '101'),
-    (v_unit2_id, v_tenant_id, v_bld_id, '102')
+  insert into portfolio.units (id, tenant_id, building_id, code, status) values
+    (v_unit1_id, v_tenant_id, v_bld_id, '101', 'active'),
+    (v_unit2_id, v_tenant_id, v_bld_id, '102', 'active')
   on conflict (id) do nothing;
 
   -- Workspace Property Bindings
@@ -177,29 +182,29 @@ begin
   on conflict do nothing;
 
   -- Roles & Memberships
-  select id into v_admin_role_id from identity.roles where code = 'association_admin' and tenant_id is null and is_system = true limit 1;
-  select id into v_member_role_id from identity.roles where code = 'owner' and tenant_id is null and is_system = true limit 1;
+  select id into v_admin_role_id from identity.roles where lower(code) = 'association_admin' and tenant_id is null and is_system = true limit 1;
+  select id into v_member_role_id from identity.roles where lower(code) = 'owner' and tenant_id is null and is_system = true limit 1;
 
-  insert into identity.memberships (id, tenant_id, user_id, role_id, status) values
-    (v_mem_admin_id, v_tenant_id, v_user_admin_id, v_admin_role_id, 'active'),
-    (v_mem_target_id, v_tenant_id, v_user_member_id, v_member_role_id, 'active'),
-    (v_mem_other_id, v_tenant2_id, v_user_other_id, v_member_role_id, 'active')
+  insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at) values
+    (v_mem_admin_id, v_tenant_id, v_user_admin_id, v_admin_role_id, 'active', statement_timestamp() - interval '1 day'),
+    (v_mem_target_id, v_tenant_id, v_user_member_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day'),
+    (v_mem_other_id, v_tenant2_id, v_user_other_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day')
   on conflict (id) do nothing;
 
   -- Context Grants
-  insert into identity.context_grants (id, tenant_id, membership_id, property_id) values
-    (v_ctx_admin_id, v_tenant_id, v_mem_admin_id, v_prop_id),
-    (v_ctx_member_id, v_tenant_id, v_mem_target_id, v_prop_id)
+  insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at) values
+    (v_ctx_admin_id, v_tenant_id, v_mem_admin_id, 'property', v_prop_id, statement_timestamp() - interval '1 day'),
+    (v_ctx_member_id, v_tenant_id, v_mem_target_id, 'property', v_prop_id, statement_timestamp() - interval '1 day')
   on conflict (id) do nothing;
 
   -- Active Taxonomy Assignment
-  select id into v_profile_id from platform.property_profiles where code = 'residential_condominium' limit 1;
-  select id into v_model_id from platform.operating_models where code = 'hoa_self_managed' limit 1;
+  select id into v_profile_id from platform.property_profiles where code = 'residential_condominium' and version = 1 limit 1;
+  select id into v_model_id from platform.operating_models where code = 'association_managed' and version = 1 limit 1;
 
   insert into platform.workspace_taxonomy_assignments (
-    tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status
+    tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by, country_code
   ) values (
-    v_tenant_id, v_ws_id, v_profile_id, v_model_id, 'active'
+    v_tenant_id, v_ws_id, v_profile_id, v_model_id, 'active', statement_timestamp() - interval '1 day', v_user_admin_id, 'RO'
   ) on conflict do nothing;
 
   -- Active Module & Entitlement for Maintenance
@@ -210,9 +215,9 @@ begin
   on conflict do nothing;
 
   insert into platform.workspace_entitlements (
-    tenant_id, customer_workspace_id, entitlement_key, boolean_value, valid_from
+    customer_workspace_id, entitlement_key, value_type, boolean_value, valid_from
   ) values (
-    v_tenant_id, v_ws_id, 'module.maintenance', true, statement_timestamp() - interval '1 day'
+    v_ws_id, 'module.maintenance', 'boolean', true, statement_timestamp() - interval '1 day'
   ) on conflict do nothing;
 end;
 $$;

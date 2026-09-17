@@ -1016,7 +1016,7 @@ begin
       'building_id', a.building_id,
       'building_name', bld.name,
       'unit_id', a.unit_id,
-      'unit_number', unt.unit_number,
+      'unit_number', unt.code,
       'valid_from', a.valid_from,
       'valid_to', a.valid_to,
       'lock_version', a.lock_version,
