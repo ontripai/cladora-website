@@ -6,6 +6,8 @@
 **Repository:** `ontripai/cladora-website`
 **Branch:** `feat/cladora-dynamic-workspace-composition-001a`
 **Starting Baseline HEAD:** `681770b4708748091d536dd254d60fbafe4e18f6`
+**Final Commit HEAD:** `740e1fa3fa01bccbc82dfba646d3f8c473c08024`
+**Draft Pull Request:** [#102](https://github.com/ontripai/cladora-website/pull/102) (`isDraft: true`)
 **Target Migration:** `supabase/migrations/20260917120000_workspace_dynamic_composition.sql` (Migration 102)
 **Target Test:** `supabase/tests/089_workspace_dynamic_composition.test.sql` (Test 089)
 **Date:** 2026-09-17
@@ -61,6 +63,7 @@ All non-negotiable architectural mandates from Review R2 have been implemented a
 - **Script:** `scripts/test-workspace-module-activation-concurrency.mjs`
 - **Configuration:** Multi-session PostgreSQL concurrency test using 4 concurrent connections (1 Observer, 3 concurrent Mutators C1/C2/C3).
 - **Evidence:** Verified advisory locks, `pg_blocking_pids()`, exactly 1 winner, losers deterministically receiving SQLSTATE `40001` (`workspace_module_expected_state_conflict`), zero `23505` uniqueness violation leakage, exactly 1 active workspace module record, 1 audit log event, 1 idempotency record, and clean teardown with zero residual state.
+- **CI Run Status:** Executed successfully in GitHub Actions `postgres-runtime` step.
 
 ### 2.4 Slice Contract Testing
 - **Script:** `scripts/test-workspace-dynamic-composition-slice.mjs`
@@ -74,12 +77,13 @@ All non-negotiable architectural mandates from Review R2 have been implemented a
   - Empty `{}` config requirement
   - Context-scoped RPC authorization & AAL2 requirements
 
-### 2.5 Full Application Verification
-- `npm run test:unit`: Passed (includes slice contract test).
-- `npm run typecheck`: Passed (zero TypeScript errors).
-- `npm run lint`: Passed (zero lint errors).
-- `npm run build`: Production Next.js build clean.
-- `git diff --check`: Clean (no whitespace or formatting errors).
+### 2.5 Full Application Verification & CI Runs
+- **Application Foundation CI:** Run `35214667664` — **SUCCESS** (1m 38s)
+  - `npm ci`, `npm audit`, `npm run lint`, `npm run test:unit`, `npx tsc --noEmit`, `npm run build`, three-language audit, `git diff --check`.
+- **Database Tests CI:** Run `35214667589` — **SUCCESS** (2m 39s)
+  - `static-contract` passed.
+  - `postgres-runtime` passed: all 89 pgTAP files, 2959 assertions, 4 real multi-connection concurrency suites, and security advisors.
+- **Vercel Preview:** Built and deployed successfully: `https://vercel.com/ontrip/cladora-website/AJhFVGcMV8nn5VDRGSdvbqcE96io`.
 
 ---
 
