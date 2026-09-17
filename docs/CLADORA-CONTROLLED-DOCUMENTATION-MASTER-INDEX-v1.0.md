@@ -1,7 +1,7 @@
 # CLADORA Controlled Documentation Master Index v1.0
 
 **Status:** Authoritative index
-**Effective date:** 2026-09-17
+**Effective date:** 2026-09-18
 
 ## Parent reference
 
@@ -25,8 +25,8 @@ The authoritative parent definition is:
 12. [`security/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-SECURITY-ADVISOR-v1.0.md`](security/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-SECURITY-ADVISOR-v1.0.md) — *Accepted Controlled Advisory Exceptions*
 13. [`closure/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-CLOSURE-v1.0.md`](closure/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-CLOSURE-v1.0.md) — *Production Closed & Verified (102 Migrations, Drift 0, Merged to Main)*
 14. [`discovery/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-DISCOVERY-v1.0.md`](discovery/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-DISCOVERY-v1.0.md)
-15. [`security/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-SECURITY-ADVISOR-v1.0.md`](security/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-SECURITY-ADVISOR-v1.0.md) — *Proposed Controlled Advisory Exceptions*
-16. [`closure/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-CLOSURE-v1.0.md`](closure/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-CLOSURE-v1.0.md) — *Ready for Review (103 Migrations, 90 Tests, 3063 Assertions)*
+15. [`security/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-SECURITY-ADVISOR-v1.0.md`](security/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-SECURITY-ADVISOR-v1.0.md) — *Accepted Controlled Advisory Exceptions*
+16. [`closure/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-CLOSURE-v1.0.md`](closure/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001B.1-CLOSURE-v1.0.md) — *Production Closed & Verified (103 Migrations, Drift 0, Merged to Main)*
 
 ## Current execution roadmap
 
