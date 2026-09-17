@@ -9,6 +9,7 @@ on:
       - "scripts/test-financial-close-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
+      - "scripts/test-workspace-module-activation-concurrency.mjs"
       - "package.json"
       - "package-lock.json"
   push:
@@ -20,6 +21,7 @@ on:
       - "scripts/test-financial-close-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
+      - "scripts/test-workspace-module-activation-concurrency.mjs"
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
@@ -71,6 +73,10 @@ jobs:
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run real multi-connection workspace taxonomy mutation concurrency tests
         run: timeout 60s node scripts/test-workspace-taxonomy-mutation-concurrency.mjs
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run real multi-connection workspace module activation concurrency tests
+        run: timeout 60s node scripts/test-workspace-module-activation-concurrency.mjs
         env:
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run local database security and performance advisors
