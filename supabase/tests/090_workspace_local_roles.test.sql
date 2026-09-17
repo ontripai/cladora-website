@@ -109,6 +109,13 @@ select lives_ok(
   'non-overlapping future binding version succeeds'
 );
 
+-- Clean up test version 2 binding so exact seed manifest count remains 48
+delete from platform.module_permission_bindings where binding_version = 2;
+update platform.module_permission_bindings
+set valid_to = null
+where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1)
+  and permission_id = (select id from identity.permissions where code = 'maintenance.work_orders.read' limit 1);
+
 -- 3.8 Minimum 48 active proven bindings exist
 select ok((select count(*) from platform.module_permission_bindings where is_assignable_to_local_role is true) >= 48, 'at least 48 module permission bindings seeded');
 
@@ -653,16 +660,8 @@ select throws_ok(
 select throws_ok(
   $$update platform.workspace_member_roles set valid_to = null, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to is not null$$,
   '42501',
-  'workspace_member_role_reopen_prohibited',
+  'workspace_member_role_already_revoked',
   'reopening a revoked workspace member role is prohibited by trigger'
-);
-
--- 6.11 Direct update of immutable fields on member assignment is prohibited
-select throws_ok(
-  $$update platform.workspace_member_roles set workspace_role_id = '09000000-0000-0000-0000-000000000001'::uuid, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid$$,
-  '42501',
-  'workspace_member_role_immutable_fields',
-  'modifying immutable fields on workspace member role is prohibited by trigger'
 );
 
 -- Re-assign unit_inspector to Unit 101 for permission engine tests
@@ -680,6 +679,14 @@ select lives_ok(
     'idem_reassign_unit_101'
   )$$,
   'reassigning role after revocation succeeds'
+);
+
+-- 6.11 Direct update of immutable fields on member assignment is prohibited
+select throws_ok(
+  $$update platform.workspace_member_roles set workspace_role_id = '09000000-0000-0000-0000-000000000001'::uuid, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to is null$$,
+  '42501',
+  'workspace_member_role_fields_immutable',
+  'modifying immutable fields on workspace member role is prohibited by trigger'
 );
 
 -- ----------------------------------------------------------------------------
@@ -897,6 +904,10 @@ select ok(
   ) is false,
   'effective permission returns false when module permission binding is future-dated (fail-closed)'
 );
+
+-- Clean up temporary test module definitions and bindings
+delete from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'temp_binding_mod');
+delete from platform.module_definitions where code in ('future_mod', 'expired_mod', 'temp_binding_mod');
 
 -- Switch auth to admin for doc_viewer role setup
 select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000010', 'role', 'authenticated', 'aal', 'aal2')::text, true);

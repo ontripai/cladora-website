@@ -866,14 +866,11 @@ as $$
 declare
   v_res record;
   v_perm identity.permissions%rowtype;
-  v_mod_count integer;
-  v_mod_id uuid;
+  v_mod_ids uuid[];
   v_mod platform.module_definitions%rowtype;
-  v_binding_count integer;
-  v_binding_id uuid;
+  v_binding_ids uuid[];
   v_binding platform.module_permission_bindings%rowtype;
-  v_tax_count integer;
-  v_tax_id uuid;
+  v_tax_ids uuid[];
   v_target_property_id uuid;
   v_target_building_id uuid;
   v_target_unit_id uuid;
@@ -910,8 +907,8 @@ begin
   select * into v_perm from identity.permissions where code = p_permission_code;
   if not found then return false; end if;
 
-  select count(*), max(id)
-  into v_mod_count, v_mod_id
+  select array_agg(id)
+  into v_mod_ids
   from platform.module_definitions
   where code = p_module_code
     and is_active = true
@@ -921,15 +918,15 @@ begin
     and (valid_to is null or valid_to > statement_timestamp());
 
   -- Exactly one effective runtime module definition required; zero or ambiguous (>1) => fail-closed
-  if v_mod_count <> 1 then
+  if coalesce(cardinality(v_mod_ids), 0) <> 1 then
     return false;
   end if;
 
-  select * into v_mod from platform.module_definitions where id = v_mod_id;
+  select * into v_mod from platform.module_definitions where id = v_mod_ids[1];
 
   -- Step 4: Active Module-Permission Binding Gate (Deterministic & temporal non-ambiguous)
-  select count(*), max(id)
-  into v_binding_count, v_binding_id
+  select array_agg(id)
+  into v_binding_ids
   from platform.module_permission_bindings
   where module_definition_id = v_mod.id
     and permission_id = v_perm.id
@@ -939,11 +936,11 @@ begin
     and (valid_to is null or valid_to > statement_timestamp());
 
   -- Exactly one effective binding required; zero or ambiguous (>1) => fail-closed
-  if v_binding_count <> 1 then
+  if coalesce(cardinality(v_binding_ids), 0) <> 1 then
     return false;
   end if;
 
-  select * into v_binding from platform.module_permission_bindings where id = v_binding_id;
+  select * into v_binding from platform.module_permission_bindings where id = v_binding_ids[1];
 
   -- Step 5: Active Workspace Module Activation Gate
   if not exists (
@@ -975,8 +972,8 @@ begin
   end if;
 
   -- Step 7: Universal Taxonomy Compatibility Gate (Deterministic & temporal non-ambiguous)
-  select count(*), max(wta.id)
-  into v_tax_count, v_tax_id
+  select array_agg(wta.id)
+  into v_tax_ids
   from platform.workspace_taxonomy_assignments wta
   where wta.customer_workspace_id = v_res.workspace_id
     and wta.status = 'active'
@@ -984,7 +981,7 @@ begin
     and (wta.valid_to is null or wta.valid_to > statement_timestamp());
 
   -- Exactly one active taxonomy assignment required; zero or ambiguous (>1) => fail-closed
-  if v_tax_count <> 1 then
+  if coalesce(cardinality(v_tax_ids), 0) <> 1 then
     return false;
   end if;
 
@@ -993,7 +990,7 @@ begin
   from platform.workspace_taxonomy_assignments wta
   join platform.property_profiles pp on pp.id = wta.property_profile_id
   join platform.operating_models om on om.id = wta.operating_model_id
-  where wta.id = v_tax_id;
+  where wta.id = v_tax_ids[1];
 
   if not exists (
     select 1
