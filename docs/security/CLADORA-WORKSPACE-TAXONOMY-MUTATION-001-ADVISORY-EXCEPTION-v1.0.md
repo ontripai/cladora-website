@@ -65,7 +65,7 @@ The findings represent intentional architectural design patterns:
 | **Revoked Roles** | `public, anon` | `public, anon` | `public, anon` | `public, anon` | `public, anon` | `public, anon` |
 | **Authentication Check** | `auth.uid() is not null` | `auth.uid() is not null` | `auth.uid() is not null` | `auth.uid() is not null` | `auth.uid() is not null` | `auth.uid() is not null` |
 | **Context Validation** | `identity.context_grants` & `memberships` join | `identity.context_grants` & `memberships` join | `identity.context_grants` & `memberships` join | `identity.context_grants` & `memberships` join | `identity.context_grants` & `memberships` join | `identity.context_grants` & `memberships` join |
-| **Tenant Isolation** | Scoped strictly to caller's `tenant_id` | Scoped strictly to caller's `tenant_id` | Scoped strictly to caller's `tenant_id` | Scoped strictly to caller's `tenant_id` | Scoped strictly to caller's `tenant_id` | Bound strictly to caller's verified `tenant_id` |
+| **Tenant Isolation** | Scoped strictly to caller's `tenant_id` | Caller authentication, active membership and context grant are validated; output contains global non-tenant taxonomy metadata and no customer-scoped records. | Caller authentication, active membership and context grant are validated; output contains global non-tenant taxonomy metadata and no customer-scoped records. | Caller authentication, active membership and context grant are validated; output contains global non-tenant taxonomy metadata and no customer-scoped records. | Caller authentication, active membership and context grant are validated; output contains global non-tenant taxonomy metadata and no customer-scoped records. | Bound strictly to caller's verified `tenant_id` |
 | **Permission Check** | Active context grant | Active context grant | Active context grant | Active context grant | Active context grant | Enforces `workspace.taxonomy.manage` |
 | **AAL2 Step-Up Check** | Not applicable (read-only) | Not applicable (read-only) | Not applicable (read-only) | Not applicable (read-only) | Not applicable (read-only) | Mandatory: `auth.jwt()->>'aal' = 'aal2'` |
 | **Why DEFINER Required** | Reads locked `platform.*` tables | Reads locked `platform.*` tables | Reads locked `platform.*` tables | Reads locked `platform.*` tables | Reads locked `platform.*` tables | Writes `platform.*`, `audit.*` while tables deny client direct DML |
@@ -88,17 +88,25 @@ The findings represent intentional architectural design patterns:
 - **Granular Permission Check:**
   Requires the caller's role to possess the `workspace.taxonomy.manage` permission on `identity.role_permissions`.
 - **Fail-Closed Context Resolution:**
-  Enforces that context grants explicitly map through `platform.workspace_property_bindings` to an unambiguous workspace. Contexts lacking bindings return `binding_required` or raise `customer_context_access_denied` (`42501`). Single-workspace fallback is strictly disallowed during mutation.
+  Enforces that context grants explicitly map through `platform.workspace_property_bindings` to an unambiguous workspace:
+  - Context grant and active membership validity are evaluated first; invalid, mismatched, or expired records raise `customer_context_access_denied` (`42501`).
+  - Contexts lacking a valid Property/Building/Unit binding, contexts having zero bindings (`v_binding_count = 0`), or contexts with ambiguous bindings (`v_binding_count > 1`) fail-closed immediately by throwing `workspace_taxonomy_context_not_workspace_bound` (`42501`) or `workspace_taxonomy_workspace_binding_ambiguous` (`42501`).
+  - The mutation gateway produces no `binding_required` response; structured `binding_required` responses are strictly exclusive to the read-only resolver `customer_api.get_workspace_taxonomy_v1`.
+  - Single-workspace tenant-only fallback is strictly disallowed during mutation.
 - **Optimistic Concurrency & Advisory Lock:**
   Acquires an advisory transaction lock (`pg_advisory_xact_lock`) keyed on `workspace_taxonomy_mutation:<workspace_id>`. Verifies `p_expected_assignment_id` against active assignment; concurrent contenders receive deterministic `workspace_taxonomy_expected_assignment_conflict` (`40001`).
 - **Audit & Idempotency:**
   Writes immutable audit records (`WORKSPACE_TAXONOMY_ASSIGNED` or `WORKSPACE_TAXONOMY_TRANSITIONED`) and registers idempotent keys in `platform.workspace_taxonomy_idempotency` with zero side-effects on replay.
 
-### 4.2 `customer_api.get_taxonomy_catalog_options_v1` (Catalog Parity)
-- **Controlled Scope:**
-  Evaluates active `platform.property_profiles`, `platform.operating_models`, and compatibility matrices with latest `rule_version` parity (`DISTINCT ON (p.code, m.code) ... ORDER BY p.code, m.code, c.rule_version desc`).
-- **Data Protection:**
-  Emits only localized UI display labels, descriptions, and compatibility flags. Emits zero customer records, zero financial balances, and zero credential metadata.
+### 4.2 Shared Platform Taxonomy Registries & Catalog Options (`list_*` and `get_taxonomy_catalog_options_v1`)
+- **Global Platform Catalog Semantics:**
+  Taxonomy catalogs (`platform.property_profiles`, `platform.operating_models`, `platform.space_kinds`, and compatibility matrices) serve as shared, canonical platform reference registries.
+- **Context Validation as Gateway Authorization:**
+  Context grant and active membership validation confirm the caller's authorization to invoke the customer gateway, but the emitted taxonomy options represent global platform metadata.
+- **Zero Customer Data Leakage:**
+  Catalog routines emit strictly localized display labels (trilingual RO/EN/FA), codes, descriptions, and compatibility flags. They disclose zero customer data, zero workspace assignments, zero financial balances or transactions, and zero credential metadata in catalog outputs.
+- **Rule Parity in `get_taxonomy_catalog_options_v1`:**
+  Evaluates active `platform.property_profiles`, `platform.operating_models`, and compatibility matrices with latest `rule_version` parity (`DISTINCT ON (p.code, m.code) ... ORDER BY p.code, m.code, c.rule_version desc`), ensuring UI compatibility matches mutation engine validation exactly.
 
 ### 4.3 `customer_api.get_workspace_taxonomy_v1` (Forward-Updated Resolver)
 - **Forward Parity:**
