@@ -2,50 +2,48 @@
 
 **Document Identifier:** `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-SECURITY-ADVISOR-v1.0`
 **Security Lead / Owner:** CLADORA Architecture & Security Working Group
-**Status:** `PROPOSED-CONTROLLED-EXCEPTION`
+**Status:** `ACCEPTED-CONTROLLED-EXCEPTION`
 **Baseline Date:** 2026-09-17
-**PR:** Draft PR (Branch `feat/cladora-dynamic-workspace-composition-001a` -> `main`)
+**Merged Pull Request:** PR [#102](https://github.com/ontripai/cladora-website/pull/102) via Squash Commit [`98800623e150d0877ca8839d2ba5f33bd5da3c6a`](https://github.com/ontripai/cladora-website/commit/98800623e150d0877ca8839d2ba5f33bd5da3c6a)
 **Reference Migration:** `supabase/migrations/20260917120000_workspace_dynamic_composition.sql` (Migration 102)
 **Reference Test:** `supabase/tests/089_workspace_dynamic_composition.test.sql` (Test 089)
-**Target Supabase Environment:** Ephemeral Postgres / CI Runner (Remote Apply: NOT PERFORMED)
+**Target Supabase Environment:** Supabase Linked Production (Migration 102 Applied / Remote 102 / Drift 0 / Production Verified)
 
 ---
 
 ## 1. Executive Summary & Authoritative Statement
 
-This document logs the proposed security exceptions and architectural controls for the database objects introduced in Migration 102 (`20260917120000_workspace_dynamic_composition.sql`) under package `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A`.
+This document logs the formal security exceptions and architectural controls for the database objects introduced in Migration 102 (`20260917120000_workspace_dynamic_composition.sql`) under package `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A`.
 
-> [!IMPORTANT]
-> **Pre-Release Architectural Security Statement:**
-> All findings identified below are classified as **`PROPOSED-CONTROLLED-EXCEPTION`**. Under strict release policy, **no finding is marked as Accepted** prior to formal authorization, branch review, and Supabase remote deployment. All gateway functions are protected by fail-closed context authorization, explicit search paths, role validation, and AAL2 step-up enforcement. All new tables enforce strict PostgreSQL deny-by-default Row Level Security.
+Following the successful application of Migration 102 to Supabase Linked Production, verification of zero drift (`Local 102 / Remote 102 / Drift 0`), zero blocking queries (0 blocked PID, 0 ungranted lock), and automated CI/CD validation on `main`, all exceptions cataloged herein have been formally audited and assigned the status **`ACCEPTED-CONTROLLED-EXCEPTION`** or **`ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL`**.
 
-The findings represent intentional architectural patterns:
+The findings represent intentional, proven architectural patterns:
 1. **Three (3) `WARN` findings (`0029_authenticated_security_definer_function_executable`):** Three controlled `customer_api` RPC functions exposed to authenticated sessions with internal fail-closed context resolution, tenant isolation, explicit search paths, permission checks (`workspace.module.manage`), and AAL2 step-up validation for mutations.
-2. **Seven (7) `INFO` findings (`0008_rls_enabled_no_policy`):** Seven core module registry, compatibility, and temporal activation tables with Row Level Security enabled and zero client-facing permissive policies, enforcing strict PostgreSQL deny-by-default table isolation.
+2. **Seven (7) `INFO` findings (`0008_rls_enabled_no_policy`):** Seven core module registry, compatibility, and temporal activation tables with Row Level Security enabled and zero client-facing permissive policies, enforcing strict PostgreSQL deny-by-default table isolation. Direct access by `anon` and `authenticated` roles is completely denied; all client access is mediated exclusively through audited gateways.
 
 ---
 
-## 2. Proposed Security Advisor Findings Inventory
+## 2. Accepted Security Advisor Findings Inventory
 
-### 2.1 Three (3) Proposed Authenticated Security Definer Gateways
+### 2.1 Three (3) Accepted Authenticated Security Definer Gateways
 
 | Finding ID | Target Function Signature | Severity | Rule ID | Remediation Guidance | Architectural Status |
 | :--- | :--- | :---: | :---: | :--- | :---: |
-| `WSCOMP-ADV-WARN-001` | `customer_api.get_workspace_composition_v1(uuid)` | `WARN` | `0029` | [Rule 0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **PROPOSED-CONTROLLED-EXCEPTION** |
-| `WSCOMP-ADV-WARN-002` | `customer_api.activate_workspace_module_v1(uuid, uuid, uuid, jsonb, text, text)` | `WARN` | `0029` | [Rule 0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **PROPOSED-CONTROLLED-EXCEPTION** |
-| `WSCOMP-ADV-WARN-003` | `customer_api.deactivate_workspace_module_v1(uuid, uuid, uuid, text, text)` | `WARN` | `0029` | [Rule 0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **PROPOSED-CONTROLLED-EXCEPTION** |
+| `WSCOMP-ADV-WARN-001` | `customer_api.get_workspace_composition_v1(uuid)` | `WARN` | `0029` | [Rule 0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **ACCEPTED-CONTROLLED-EXCEPTION** |
+| `WSCOMP-ADV-WARN-002` | `customer_api.activate_workspace_module_v1(uuid, uuid, uuid, jsonb, text, text)` | `WARN` | `0029` | [Rule 0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **ACCEPTED-CONTROLLED-EXCEPTION** |
+| `WSCOMP-ADV-WARN-003` | `customer_api.deactivate_workspace_module_v1(uuid, uuid, uuid, text, text)` | `WARN` | `0029` | [Rule 0029](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable) | **ACCEPTED-CONTROLLED-EXCEPTION** |
 
-### 2.2 Seven (7) Proposed Deny-by-Default RLS Tables
+### 2.2 Seven (7) Accepted Deny-by-Default RLS Tables
 
 | Exception ID | Target Table | Severity | Rule ID | Remediation Guidance | Architectural Status |
 | :--- | :--- | :---: | :---: | :--- | :---: |
-| `WSCOMP-ADV-INFO-001` | `platform.module_definitions` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **PROPOSED-DENY-BY-DEFAULT-INFORMATIONAL** |
-| `WSCOMP-ADV-INFO-002` | `platform.module_dependencies` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **PROPOSED-DENY-BY-DEFAULT-INFORMATIONAL** |
-| `WSCOMP-ADV-INFO-003` | `platform.module_incompatibilities` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **PROPOSED-DENY-BY-DEFAULT-INFORMATIONAL** |
-| `WSCOMP-ADV-INFO-004` | `platform.module_property_profile_compatibilities` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **PROPOSED-DENY-BY-DEFAULT-INFORMATIONAL** |
-| `WSCOMP-ADV-INFO-005` | `platform.module_operating_model_compatibilities` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **PROPOSED-DENY-BY-DEFAULT-INFORMATIONAL** |
-| `WSCOMP-ADV-INFO-006` | `platform.workspace_modules` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **PROPOSED-DENY-BY-DEFAULT-INFORMATIONAL** |
-| `WSCOMP-ADV-INFO-007` | `platform.workspace_module_idempotency` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **PROPOSED-DENY-BY-DEFAULT-INFORMATIONAL** |
+| `WSCOMP-ADV-INFO-001` | `platform.module_definitions` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL** |
+| `WSCOMP-ADV-INFO-002` | `platform.module_dependencies` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL** |
+| `WSCOMP-ADV-INFO-003` | `platform.module_incompatibilities` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL** |
+| `WSCOMP-ADV-INFO-004` | `platform.module_property_profile_compatibilities` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL** |
+| `WSCOMP-ADV-INFO-005` | `platform.module_operating_model_compatibilities` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL** |
+| `WSCOMP-ADV-INFO-006` | `platform.workspace_modules` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL** |
+| `WSCOMP-ADV-INFO-007` | `platform.workspace_module_idempotency` | `INFO` | `0008` | [Rule 0008](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy) | **ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL** |
 
 ---
 
@@ -53,19 +51,23 @@ The findings represent intentional architectural patterns:
 
 | Attribute | `get_workspace_composition_v1` | `activate_workspace_module_v1` | `deactivate_workspace_module_v1` |
 | :--- | :--- | :--- | :--- |
-| **Function Owner** | `postgres` | `postgres` | `postgres` |
+| **Real Function Owner** | `postgres` | `postgres` | `postgres` |
 | **Security Context** | `SECURITY DEFINER` | `SECURITY DEFINER` | `SECURITY DEFINER` |
-| **Actual Volatility** | `STABLE` | `VOLATILE` | `VOLATILE` |
-| **Explicit search_path** | `pg_catalog, platform, identity, app_private` | `pg_catalog, platform, identity, audit, app_private` | `pg_catalog, platform, identity, audit, app_private` |
+| **Real Volatility** | `STABLE` | `VOLATILE` | `VOLATILE` |
+| **Real Ordered search_path** | `pg_catalog, platform, identity, app_private` | `pg_catalog, platform, identity, audit, app_private` | `pg_catalog, platform, identity, audit, app_private` |
 | **EXECUTE Granted** | `authenticated, service_role` | `authenticated, service_role` | `authenticated, service_role` |
 | **Revoked Roles** | `public, anon` | `public, anon` | `public, anon` |
 | **AAL2 Step-Up Check** | N/A (read-only) | Conditional: Enforced when module requires_aal2 is true or sensitivity_level is sensitive/high_impact (`auth.jwt()->>'aal' = 'aal2'`) | Conditional: Enforced when module requires_aal2 is true or sensitivity_level is sensitive/high_impact (`auth.jwt()->>'aal' = 'aal2'`) |
 | **Permission Check** | Active context grant | Enforces `workspace.module.manage` | Enforces `workspace.module.manage` |
 | **Context Validation** | `app_private.resolve_workspace_from_customer_context_v1(p_context_id, 'read')` | `app_private.resolve_workspace_from_customer_context_v1(p_context_id, 'mutation')` | `app_private.resolve_workspace_from_customer_context_v1(p_context_id, 'mutation')` |
 | **Tenant Isolation** | Scoped strictly to caller's `tenant_id` and resolved `workspace_id` | Scoped strictly to caller's `tenant_id` and resolved `workspace_id` | Scoped strictly to caller's `tenant_id` and resolved `workspace_id` |
-| **Concurrency Guard** | Transaction-level isolation | `pg_advisory_xact_lock(hashtext('workspace_module_mutation:' || v_resolved.workspace_id::text))` | `pg_advisory_xact_lock(hashtext('workspace_module_mutation:' || v_resolved.workspace_id::text))` |
+| **Fail-Closed Taxonomy Behavior** | Evaluates active assignment cardinality; returns `taxonomy_required` or `rule_missing`; never defaults to `compatible` | Exactly 1 active assignment required; missing rules raise `42501`; `review_required` raises `42501`; 0 partial writes | Safe leaf deactivation preserved regardless of taxonomy state; requires active installation |
+| **Concurrency Guard** | Transaction-level read consistency | `pg_advisory_xact_lock(hashtext('workspace_module_mutation:' || v_resolved.workspace_id::text))` | `pg_advisory_xact_lock(hashtext('workspace_module_mutation:' || v_resolved.workspace_id::text))` |
 | **Why DEFINER Required** | Reads locked `platform.*` tables | Reads & mutates `platform.*` and `audit.*` while direct client DML is denied | Reads & mutates `platform.*` and `audit.*` while direct client DML is denied |
-| **Risk Disposition** | **PROPOSED-CONTROLLED-EXCEPTION** | **PROPOSED-CONTROLLED-EXCEPTION** | **PROPOSED-CONTROLLED-EXCEPTION** |
+| **Compensating Controls** | Strict resolver isolation, no direct DML, fail-closed projection | Advisory locks, optimistic concurrency check (`40001`), AAL2 enforcement, deterministic idempotency hash, tamper-evident audit trail | Advisory locks, dependency graph check (`workspace_module_dependent_active`), optimistic concurrency check (`40001`), tamper-evident audit trail |
+| **Residual Risk** | Negligible (read-only projection, zero side effects) | Negligible (guarded by authorization, idempotency, advisory locks, audit logs) | Negligible (guarded by dependency leaf enforcement, advisory locks, audit logs) |
+| **Review Owner** | CLADORA Architecture & Security WG | CLADORA Architecture & Security WG | CLADORA Architecture & Security WG |
+| **Risk Disposition** | **ACCEPTED-CONTROLLED-EXCEPTION** | **ACCEPTED-CONTROLLED-EXCEPTION** | **ACCEPTED-CONTROLLED-EXCEPTION** |
 
 ---
 
@@ -103,3 +105,10 @@ The findings represent intentional architectural patterns:
 - **Mandatory Compatibility Rules:** Both property profile and operating model compatibility rules must explicitly exist. Missing rules reject mutation with `workspace_module_compatibility_rule_missing` (`42501`).
 - **Review Required Rejection in 001A:** Status `review_required` rejects mutation with `workspace_module_compatibility_review_required` (`42501`) because independent approval workflows remain deferred under `DEFERRED-COUNTRY-PACK-MODULE-POLICY`.
 - **Zero Partial Writes:** All taxonomy and compatibility failures immediately abort transaction execution, resulting in zero rows written to `workspace_modules`, `workspace_module_idempotency`, or `audit.events`.
+
+---
+
+## 5. Scope Boundaries & Deferred Policies
+
+- **`DEFERRED-COUNTRY-PACK-MODULE-POLICY`:** Jurisdiction-specific module overrides, country packs, and statutory approval workflows remain deferred. No approval workflow logic is claimed or implemented in 001A.
+- **Package 001B / 001C:** Dynamic composition remains strictly within the verified bounds of 001A. Zero speculative features or runtime extensions for 001B are introduced in this advisory register.
