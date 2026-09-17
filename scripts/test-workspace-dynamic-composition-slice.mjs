@@ -100,7 +100,7 @@ assert.match(testSql, /self-dependency is rejected/, 'Self-dependency rejection 
 assert.match(testSql, /cyclic dependency edge is rejected by DAG guard trigger/, 'DAG cycle rejection tested');
 assert.match(testSql, /authentication_required/, 'Anonymous rejection tested');
 assert.match(testSql, /read projection on unbound context returns status binding_required without leaking workspace ID/, 'Unbound read projection tested');
-assert.match(testSql, /ambiguous property binding fails-closed on read/, 'Ambiguous binding read failure tested');
+assert.match(testSql, /pure tenant-scoped context on multi-workspace tenant fails-closed on read/, 'Tenant-scoped multi-workspace read failure tested');
 assert.match(testSql, /mutation on tenant-only context without property binding is rejected/, 'Tenant-only mutation rejection tested');
 assert.match(testSql, /mutation on unbound context is rejected/, 'Unbound mutation rejection tested');
 assert.match(testSql, /user without workspace\.module\.manage permission is denied activation/, 'Permission check tested');

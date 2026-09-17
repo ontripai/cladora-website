@@ -413,6 +413,7 @@ stable
 security definer
 set search_path = pg_catalog, platform, identity, portfolio, app_private
 as $$
+#variable_conflict use_column
 declare
   v_grant record;
   v_target_property_id uuid;
@@ -446,9 +447,9 @@ begin
   if v_grant.property_id is not null then
     v_target_property_id := v_grant.property_id;
   elsif v_grant.building_id is not null then
-    select property_id into v_target_property_id
-    from portfolio.buildings
-    where id = v_grant.building_id and tenant_id = v_grant.membership_tenant;
+    select b.property_id into v_target_property_id
+    from portfolio.buildings b
+    where b.id = v_grant.building_id and b.tenant_id = v_grant.membership_tenant;
   elsif v_grant.unit_id is not null then
     select b.property_id into v_target_property_id
     from portfolio.units u
@@ -488,10 +489,10 @@ begin
     end if;
 
     select * into v_workspace
-    from platform.customer_workspaces
-    where id = v_binding.customer_workspace_id
-      and tenant_id = v_grant.membership_tenant
-      and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+    from platform.customer_workspaces cw
+    where cw.id = v_binding.customer_workspace_id
+      and cw.tenant_id = v_grant.membership_tenant
+      and cw.lifecycle_status in ('PROVISIONING', 'ACTIVE');
 
     if v_workspace.id is null then
       raise exception 'workspace_composition_workspace_inactive' using errcode = '42501';
@@ -528,10 +529,10 @@ begin
       end if;
 
       select * into v_workspace
-      from platform.customer_workspaces
-      where id = v_binding.customer_workspace_id
-        and tenant_id = v_grant.membership_tenant
-        and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+      from platform.customer_workspaces cw
+      where cw.id = v_binding.customer_workspace_id
+        and cw.tenant_id = v_grant.membership_tenant
+        and cw.lifecycle_status in ('PROVISIONING', 'ACTIVE');
 
       if v_workspace.id is null then
         return query select null::uuid, v_grant.membership_tenant, v_grant.membership_key, v_grant.role_id, v_grant.role_code, 'binding_required'::text;
@@ -543,13 +544,13 @@ begin
     else
       -- Pure tenant-scoped context read
       select count(*) into v_ws_count
-      from platform.customer_workspaces
-      where tenant_id = v_grant.membership_tenant and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+      from platform.customer_workspaces cw
+      where cw.tenant_id = v_grant.membership_tenant and cw.lifecycle_status in ('PROVISIONING', 'ACTIVE');
 
       if v_ws_count = 1 then
         select * into v_workspace
-        from platform.customer_workspaces
-        where tenant_id = v_grant.membership_tenant and lifecycle_status in ('PROVISIONING', 'ACTIVE');
+        from platform.customer_workspaces cw
+        where cw.tenant_id = v_grant.membership_tenant and cw.lifecycle_status in ('PROVISIONING', 'ACTIVE');
         return query select v_workspace.id, v_workspace.tenant_id, v_grant.membership_key, v_grant.role_id, v_grant.role_code, 'active'::text;
         return;
       elsif v_ws_count = 0 then
