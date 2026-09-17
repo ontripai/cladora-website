@@ -246,18 +246,42 @@ begin
   if old.lifecycle_status = 'published' then
     -- Only permitted transition is published -> archived
     if new.lifecycle_status = 'archived' then
-      if new.valid_to is null then
+      if new.valid_to is null or new.valid_to < old.valid_from then
         raise exception 'archived_role_requires_valid_to' using errcode = '22023';
       end if;
       -- Immutable fields cannot be modified during supersession
-      if new.code <> old.code or new.customer_workspace_id <> old.customer_workspace_id
-         or new.tenant_id <> old.tenant_id or new.role_version <> old.role_version
-         or new.scope_ceiling <> old.scope_ceiling or new.base_role_id is distinct from old.base_role_id
-         or new.name <> old.name or new.description is distinct from old.description then
+      if new.id <> old.id
+         or new.tenant_id <> old.tenant_id
+         or new.customer_workspace_id <> old.customer_workspace_id
+         or new.code <> old.code
+         or new.role_version <> old.role_version
+         or new.name <> old.name
+         or new.description is distinct from old.description
+         or new.base_role_id is distinct from old.base_role_id
+         or new.scope_ceiling <> old.scope_ceiling
+         or new.valid_from <> old.valid_from
+         or new.created_by <> old.created_by
+         or new.created_at <> old.created_at
+         or new.lock_version <> old.lock_version + 1 then
         raise exception 'published_workspace_role_content_immutable' using errcode = '42501';
       end if;
     else
       raise exception 'published_workspace_role_immutable' using errcode = '42501';
+    end if;
+  end if;
+
+  if old.lifecycle_status = 'draft' then
+    if new.lifecycle_status not in ('draft', 'published') then
+      raise exception 'draft_role_invalid_lifecycle_transition' using errcode = '42501';
+    end if;
+    if new.id <> old.id
+       or new.tenant_id <> old.tenant_id
+       or new.customer_workspace_id <> old.customer_workspace_id
+       or new.code <> old.code
+       or new.role_version <> old.role_version
+       or new.created_by <> old.created_by
+       or new.created_at <> old.created_at then
+      raise exception 'draft_role_identity_immutable' using errcode = '42501';
     end if;
   end if;
 
@@ -442,11 +466,29 @@ begin
   end if;
 
   if tg_op = 'UPDATE' then
-    -- Revocation only: valid_to and lock_version update permitted
-    if old.valid_to is not null and old.valid_to <= statement_timestamp() then
+    -- Reopening prohibited: once revoked, no updates are allowed
+    if old.valid_to is not null then
       raise exception 'workspace_member_role_already_revoked' using errcode = '42501';
     end if;
-    if new.customer_workspace_id <> old.customer_workspace_id
+
+    -- Revocation transition only: valid_to must transition from NULL to a valid timestamp
+    if new.valid_to is null or new.valid_to < old.valid_from then
+      raise exception 'workspace_member_role_update_must_be_revocation' using errcode = '42501';
+    end if;
+
+    -- lock_version must increment by exactly 1
+    if new.lock_version <> old.lock_version + 1 then
+      raise exception 'workspace_member_role_expected_lock_version_conflict' using errcode = '40001';
+    end if;
+
+    -- Reason must be valid
+    if new.reason is null or length(trim(new.reason)) < 5 then
+      raise exception 'workspace_member_role_reason_invalid' using errcode = '22023';
+    end if;
+
+    -- All identity, scope, role, membership, timestamps, and creator provenance fields are strictly immutable
+    if new.id <> old.id
+       or new.customer_workspace_id <> old.customer_workspace_id
        or new.tenant_id <> old.tenant_id
        or new.membership_id <> old.membership_id
        or new.workspace_role_id <> old.workspace_role_id
@@ -455,20 +497,23 @@ begin
        or new.building_id is distinct from old.building_id
        or new.unit_id is distinct from old.unit_id
        or new.valid_from <> old.valid_from
+       or new.created_at <> old.created_at
        or new.assigned_by_user_id <> old.assigned_by_user_id
        or new.assigned_by_membership_id <> old.assigned_by_membership_id then
       raise exception 'workspace_member_role_fields_immutable' using errcode = '42501';
     end if;
+
     return new;
   end if;
 
   -- INSERT Validations:
-  -- 1. Tenant & Membership consistency
+  -- 1. Tenant & Membership consistency and active validity
   select * into v_mem
   from identity.memberships
   where id = new.membership_id;
 
   if not found or v_mem.tenant_id <> new.tenant_id or v_mem.status <> 'active'
+     or v_mem.starts_at > statement_timestamp()
      or (v_mem.ends_at is not null and v_mem.ends_at <= statement_timestamp()) then
     raise exception 'workspace_member_role_target_membership_invalid' using errcode = '42501';
   end if;
@@ -682,18 +727,100 @@ create or replace function app_private.validate_module_permission_bindings_seedi
 returns void
 language plpgsql
 security definer
-set search_path = pg_catalog, platform
+set search_path = pg_catalog, platform, identity
 as $$
 declare
-  v_count integer;
+  v_expected_count integer := 48;
+  v_actual_count integer;
+  v_matching_count integer;
+  v_catalog_only_bindings integer;
 begin
-  select count(*) into v_count
+  select count(*) into v_actual_count
   from platform.module_permission_bindings;
 
-  if v_count < 48 then
-    raise exception 'module_permission_bindings_seed_incomplete: expected 48, got %', v_count using errcode = 'P0002';
+  if v_actual_count <> v_expected_count then
+    raise exception 'module_permission_bindings_seed_count_mismatch: expected %, got %', v_expected_count, v_actual_count using errcode = 'P0002';
   end if;
 
+  -- Verify exact match against manifest
+  select count(*) into v_matching_count
+  from (values
+    ('occupancy', 'occupancy.occupancies.manage', 'manage', false),
+    ('occupancy', 'occupancy.registry.read', 'read', false),
+    ('billing', 'billing.manage', 'manage', true),
+    ('billing', 'billing.issue', 'execute', true),
+    ('billing', 'billing.cancel', 'manage', true),
+    ('billing', 'billing.receivables.read', 'read', false),
+    ('payments', 'payments.manage', 'manage', true),
+    ('payments', 'payments.allocate', 'execute', true),
+    ('payments', 'payments.reverse', 'manage', true),
+    ('payments', 'payments.reconcile', 'manage', true),
+    ('payments', 'payments.reconciliation.read', 'read', false),
+    ('accounting', 'finance.ledger.read', 'read', false),
+    ('maintenance', 'maintenance.requests.read', 'read', false),
+    ('maintenance', 'maintenance.requests.create', 'execute', false),
+    ('maintenance', 'maintenance.requests.manage', 'manage', false),
+    ('maintenance', 'maintenance.requests.assign', 'manage', false),
+    ('maintenance', 'maintenance.work_orders.read', 'read', false),
+    ('maintenance', 'maintenance.work_orders.manage', 'manage', false),
+    ('maintenance', 'maintenance.work_orders.verify', 'manage', false),
+    ('maintenance', 'maintenance.procurement.read', 'read', false),
+    ('maintenance', 'maintenance.procurement.manage', 'manage', false),
+    ('maintenance', 'maintenance.procurement.approve', 'manage', true),
+    ('maintenance', 'maintenance.assets.read', 'read', false),
+    ('utilities', 'utilities.manage', 'manage', false),
+    ('utilities', 'utilities.readings.capture', 'execute', false),
+    ('utilities', 'utilities.readings.approve', 'manage', false),
+    ('utilities', 'utilities.tariffs.manage', 'manage', false),
+    ('utilities', 'utilities.billing.create', 'execute', true),
+    ('utilities', 'utilities.metering.read', 'read', false),
+    ('governance', 'governance.meetings.manage', 'manage', false),
+    ('governance', 'governance.agenda.manage', 'manage', false),
+    ('governance', 'governance.attendance.manage', 'manage', false),
+    ('governance', 'governance.proxies.manage', 'manage', false),
+    ('governance', 'governance.votes.cast', 'execute', false),
+    ('governance', 'governance.votes.administer', 'admin', true),
+    ('governance', 'governance.resolutions.read', 'read', false),
+    ('governance', 'governance.resolutions.manage', 'manage', false),
+    ('governance', 'governance.minutes.read', 'read', false),
+    ('governance', 'governance.minutes.finalize', 'manage', true),
+    ('governance', 'governance.meetings.read', 'read', false),
+    ('communications', 'communications.notices.read', 'read', false),
+    ('communications', 'communications.notices.manage', 'manage', false),
+    ('communications', 'communications.notices.publish', 'execute', true),
+    ('communications', 'communications.feed.read', 'read', false),
+    ('documents', 'documents.vault.manage', 'manage', false),
+    ('documents', 'documents.vault.upload', 'execute', false),
+    ('documents', 'documents.vault.read', 'read', false),
+    ('security', 'security.access.read', 'read', false)
+  ) as m(module_code, permission_code, permission_mode, requires_aal2)
+  join platform.module_definitions md on md.code = m.module_code
+  join identity.permissions p on p.code = m.permission_code
+  join platform.module_permission_bindings b
+    on b.module_definition_id = md.id
+   and b.permission_id = p.id
+   and b.binding_version = 1
+   and b.permission_mode = m.permission_mode
+   and b.requires_aal2 = m.requires_aal2
+   and b.is_assignable_to_local_role = true
+   and b.is_delegable = false
+   and b.lifecycle_status = 'active';
+
+  if v_matching_count <> v_expected_count then
+    raise exception 'module_permission_bindings_seed_mismatch: expected % exact matches, got %', v_expected_count, v_matching_count using errcode = 'P0002';
+  end if;
+
+  -- Ensure catalog-only modules have 0 bindings
+  select count(*) into v_catalog_only_bindings
+  from platform.module_permission_bindings b
+  join platform.module_definitions md on md.id = b.module_definition_id
+  where md.lifecycle_status = 'catalog_only';
+
+  if v_catalog_only_bindings > 0 then
+    raise exception 'catalog_only_modules_have_bindings: % bindings found', v_catalog_only_bindings using errcode = '42501';
+  end if;
+
+  -- Ensure zero delegable bindings in 001B.1
   if exists (select 1 from platform.module_permission_bindings where is_delegable is true) then
     raise exception 'module_permission_bindings_invalid_delegation: is_delegable must be false in 001B.1' using errcode = '42501';
   end if;
@@ -723,8 +850,14 @@ as $$
 declare
   v_res record;
   v_perm identity.permissions%rowtype;
+  v_mod_count integer;
+  v_mod_id uuid;
   v_mod platform.module_definitions%rowtype;
+  v_binding_count integer;
+  v_binding_id uuid;
   v_binding platform.module_permission_bindings%rowtype;
+  v_tax_count integer;
+  v_tax_id uuid;
   v_target_property_id uuid;
   v_target_building_id uuid;
   v_target_unit_id uuid;
@@ -757,24 +890,44 @@ begin
     return false;
   end if;
 
-  -- Step 3: Permission & Module Verification
+  -- Step 3: Permission & Module Verification (Deterministic & temporal non-ambiguous)
   select * into v_perm from identity.permissions where code = p_permission_code;
   if not found then return false; end if;
 
-  select * into v_mod from platform.module_definitions
-  where code = p_module_code and lifecycle_status in ('active', 'published');
-  if not found or v_mod.lifecycle_status = 'catalog_only' then return false; end if;
+  select count(*), max(id)
+  into v_mod_count, v_mod_id
+  from platform.module_definitions
+  where code = p_module_code
+    and is_active = true
+    and lifecycle_status in ('active', 'published')
+    and lifecycle_status <> 'catalog_only'
+    and valid_from <= statement_timestamp()
+    and (valid_to is null or valid_to > statement_timestamp());
 
-  -- Step 4: Active Module-Permission Binding Gate
-  select * into v_binding
+  -- Exactly one effective runtime module definition required; zero or ambiguous (>1) => fail-closed
+  if v_mod_count <> 1 then
+    return false;
+  end if;
+
+  select * into v_mod from platform.module_definitions where id = v_mod_id;
+
+  -- Step 4: Active Module-Permission Binding Gate (Deterministic & temporal non-ambiguous)
+  select count(*), max(id)
+  into v_binding_count, v_binding_id
   from platform.module_permission_bindings
   where module_definition_id = v_mod.id
     and permission_id = v_perm.id
     and is_assignable_to_local_role = true
     and lifecycle_status = 'active'
+    and valid_from <= statement_timestamp()
     and (valid_to is null or valid_to > statement_timestamp());
 
-  if not found then return false; end if;
+  -- Exactly one effective binding required; zero or ambiguous (>1) => fail-closed
+  if v_binding_count <> 1 then
+    return false;
+  end if;
+
+  select * into v_binding from platform.module_permission_bindings where id = v_binding_id;
 
   -- Step 5: Active Workspace Module Activation Gate
   if not exists (
@@ -782,7 +935,8 @@ begin
     where customer_workspace_id = v_res.workspace_id
       and module_code = p_module_code
       and status = 'active'
-      and valid_to is null
+      and valid_from <= statement_timestamp()
+      and (valid_to is null or valid_to > statement_timestamp())
   ) then
     return false;
   end if;
@@ -804,16 +958,26 @@ begin
     return false;
   end if;
 
-  -- Step 7: Universal Taxonomy Compatibility Gate
+  -- Step 7: Universal Taxonomy Compatibility Gate (Deterministic & temporal non-ambiguous)
+  select count(*), max(wta.id)
+  into v_tax_count, v_tax_id
+  from platform.workspace_taxonomy_assignments wta
+  where wta.customer_workspace_id = v_res.workspace_id
+    and wta.status = 'active'
+    and wta.valid_from <= statement_timestamp()
+    and (wta.valid_to is null or wta.valid_to > statement_timestamp());
+
+  -- Exactly one active taxonomy assignment required; zero or ambiguous (>1) => fail-closed
+  if v_tax_count <> 1 then
+    return false;
+  end if;
+
   select pp.id as profile_id, om.id as model_id
   into v_profile
   from platform.workspace_taxonomy_assignments wta
   join platform.property_profiles pp on pp.id = wta.property_profile_id
   join platform.operating_models om on om.id = wta.operating_model_id
-  where wta.customer_workspace_id = v_res.workspace_id
-    and wta.status = 'active';
-
-  if not found then return false; end if;
+  where wta.id = v_tax_id;
 
   if not exists (
     select 1
@@ -852,6 +1016,7 @@ begin
     where customer_workspace_id = v_res.workspace_id
       and property_id = v_target_property_id
       and status = 'active'
+      and valid_from <= statement_timestamp()
       and (valid_to is null or valid_to > statement_timestamp())
   ) then
     return false;
@@ -869,17 +1034,21 @@ begin
     return false;
   end if;
 
-  -- Path B Deny: Workspace-Local Roles Deny (Encompassing Target Scope)
+  -- Path B Deny: Workspace-Local Roles Deny (Encompassing Target Scope & Bound to target module)
   if exists (
     select 1
     from platform.workspace_member_roles wmr
     join platform.workspace_roles wr on wr.id = wmr.workspace_role_id
     join platform.workspace_role_permissions wrp on wrp.workspace_role_id = wr.id
+    join platform.workspace_role_modules wrm on wrm.workspace_role_id = wr.id
     where wmr.customer_workspace_id = v_res.workspace_id
       and wmr.membership_id = v_res.membership_id
+      and wmr.valid_from <= statement_timestamp()
       and (wmr.valid_to is null or wmr.valid_to > statement_timestamp())
       and wr.lifecycle_status = 'published'
+      and wr.valid_from <= statement_timestamp()
       and (wr.valid_to is null or wr.valid_to > statement_timestamp())
+      and wrm.module_definition_id = v_mod.id
       and wrp.permission_id = v_perm.id
       and wrp.effect = 'deny'
       and (
@@ -913,8 +1082,10 @@ begin
     join platform.workspace_role_modules wrm on wrm.workspace_role_id = wr.id
     where wmr.customer_workspace_id = v_res.workspace_id
       and wmr.membership_id = v_res.membership_id
+      and wmr.valid_from <= statement_timestamp()
       and (wmr.valid_to is null or wmr.valid_to > statement_timestamp())
       and wr.lifecycle_status = 'published'
+      and wr.valid_from <= statement_timestamp()
       and (wr.valid_to is null or wr.valid_to > statement_timestamp())
       and wrm.module_definition_id = v_mod.id
       and wrp.permission_id = v_perm.id
@@ -1048,7 +1219,13 @@ begin
   join platform.module_definitions md on md.id = wm.module_definition_id
   where wm.customer_workspace_id = v_res.workspace_id
     and wm.status = 'active'
-    and wm.valid_to is null;
+    and wm.valid_from <= statement_timestamp()
+    and (wm.valid_to is null or wm.valid_to > statement_timestamp())
+    and md.is_active = true
+    and md.lifecycle_status in ('active', 'published')
+    and md.lifecycle_status <> 'catalog_only'
+    and md.valid_from <= statement_timestamp()
+    and (md.valid_to is null or md.valid_to > statement_timestamp());
 
   -- 4. Available Permissions for Installed Modules
   select coalesce(jsonb_agg(
@@ -1074,9 +1251,16 @@ begin
     join identity.permissions p on p.id = mpb.permission_id
     where wm.customer_workspace_id = v_res.workspace_id
       and wm.status = 'active'
-      and wm.valid_to is null
+      and wm.valid_from <= statement_timestamp()
+      and (wm.valid_to is null or wm.valid_to > statement_timestamp())
+      and md.is_active = true
+      and md.lifecycle_status in ('active', 'published')
+      and md.lifecycle_status <> 'catalog_only'
+      and md.valid_from <= statement_timestamp()
+      and (md.valid_to is null or md.valid_to > statement_timestamp())
       and mpb.is_assignable_to_local_role = true
       and mpb.lifecycle_status = 'active'
+      and mpb.valid_from <= statement_timestamp()
       and (mpb.valid_to is null or mpb.valid_to > statement_timestamp())
   ) sub;
 
@@ -1352,6 +1536,28 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
+  v_canonical_payload := jsonb_build_object(
+    'action', 'attach_module',
+    'expected_lock_version', p_expected_lock_version,
+    'module_definition_id', p_module_definition_id,
+    'reason', v_normalized_reason,
+    'workspace_role_id', p_workspace_role_id
+  );
+  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
+
+  select * into v_idem from platform.workspace_role_idempotency
+  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
+
+  if found then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'attach_module'
+       and v_idem.request_hash = v_request_hash then
+      return v_idem.response_snapshot;
+    else
+      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
+    end if;
+  end if;
+
   perform pg_advisory_xact_lock(hashtextextended('workspace_role_lock:' || p_workspace_role_id::text, 0));
 
   select * into v_role from platform.workspace_roles where id = p_workspace_role_id for update;
@@ -1378,29 +1584,10 @@ begin
     where customer_workspace_id = v_res.workspace_id
       and module_code = v_mod.code
       and status = 'active'
-      and valid_to is null
+      and valid_from <= statement_timestamp()
+      and (valid_to is null or valid_to > statement_timestamp())
   ) then
     raise exception 'workspace_module_not_active_in_workspace' using errcode = '42501';
-  end if;
-
-  v_canonical_payload := jsonb_build_object(
-    'action', 'attach_module',
-    'expected_lock_version', p_expected_lock_version,
-    'module_definition_id', p_module_definition_id,
-    'reason', v_normalized_reason,
-    'workspace_role_id', p_workspace_role_id
-  );
-  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
-
-  select * into v_idem from platform.workspace_role_idempotency
-  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
-
-  if found then
-    if v_idem.action = 'attach_module' and v_idem.request_hash = v_request_hash then
-      return v_idem.response_snapshot;
-    else
-      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
-    end if;
   end if;
 
   insert into platform.workspace_role_modules (tenant_id, workspace_role_id, module_definition_id)
@@ -1494,6 +1681,28 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
+  v_canonical_payload := jsonb_build_object(
+    'action', 'detach_module',
+    'expected_lock_version', p_expected_lock_version,
+    'module_definition_id', p_module_definition_id,
+    'reason', v_normalized_reason,
+    'workspace_role_id', p_workspace_role_id
+  );
+  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
+
+  select * into v_idem from platform.workspace_role_idempotency
+  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
+
+  if found then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'detach_module'
+       and v_idem.request_hash = v_request_hash then
+      return v_idem.response_snapshot;
+    else
+      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
+    end if;
+  end if;
+
   perform pg_advisory_xact_lock(hashtextextended('workspace_role_lock:' || p_workspace_role_id::text, 0));
 
   select * into v_role from platform.workspace_roles where id = p_workspace_role_id for update;
@@ -1511,26 +1720,6 @@ begin
 
   select * into v_mod from platform.module_definitions where id = p_module_definition_id;
   if not found then raise exception 'workspace_module_definition_not_found' using errcode = 'P0002'; end if;
-
-  v_canonical_payload := jsonb_build_object(
-    'action', 'detach_module',
-    'expected_lock_version', p_expected_lock_version,
-    'module_definition_id', p_module_definition_id,
-    'reason', v_normalized_reason,
-    'workspace_role_id', p_workspace_role_id
-  );
-  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
-
-  select * into v_idem from platform.workspace_role_idempotency
-  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
-
-  if found then
-    if v_idem.action = 'detach_module' and v_idem.request_hash = v_request_hash then
-      return v_idem.response_snapshot;
-    else
-      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
-    end if;
-  end if;
 
   -- Detach permissions orphaned by this module detachment
   delete from platform.workspace_role_permissions wrp
@@ -1644,6 +1833,29 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
+  v_canonical_payload := jsonb_build_object(
+    'action', 'attach_permission',
+    'effect', p_effect,
+    'expected_lock_version', p_expected_lock_version,
+    'permission_id', p_permission_id,
+    'reason', v_normalized_reason,
+    'workspace_role_id', p_workspace_role_id
+  );
+  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
+
+  select * into v_idem from platform.workspace_role_idempotency
+  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
+
+  if found then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'attach_permission'
+       and v_idem.request_hash = v_request_hash then
+      return v_idem.response_snapshot;
+    else
+      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
+    end if;
+  end if;
+
   perform pg_advisory_xact_lock(hashtextextended('workspace_role_lock:' || p_workspace_role_id::text, 0));
 
   select * into v_role from platform.workspace_roles where id = p_workspace_role_id for update;
@@ -1661,27 +1873,6 @@ begin
 
   select * into v_perm from identity.permissions where id = p_permission_id;
   if not found then raise exception 'permission_not_found' using errcode = 'P0002'; end if;
-
-  v_canonical_payload := jsonb_build_object(
-    'action', 'attach_permission',
-    'effect', p_effect,
-    'expected_lock_version', p_expected_lock_version,
-    'permission_id', p_permission_id,
-    'reason', v_normalized_reason,
-    'workspace_role_id', p_workspace_role_id
-  );
-  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
-
-  select * into v_idem from platform.workspace_role_idempotency
-  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
-
-  if found then
-    if v_idem.action = 'attach_permission' and v_idem.request_hash = v_request_hash then
-      return v_idem.response_snapshot;
-    else
-      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
-    end if;
-  end if;
 
   insert into platform.workspace_role_permissions (tenant_id, workspace_role_id, permission_id, effect)
   values (v_res.tenant_id, v_role.id, v_perm.id, v_effect)
@@ -1777,6 +1968,28 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
+  v_canonical_payload := jsonb_build_object(
+    'action', 'detach_permission',
+    'expected_lock_version', p_expected_lock_version,
+    'permission_id', p_permission_id,
+    'reason', v_normalized_reason,
+    'workspace_role_id', p_workspace_role_id
+  );
+  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
+
+  select * into v_idem from platform.workspace_role_idempotency
+  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
+
+  if found then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'detach_permission'
+       and v_idem.request_hash = v_request_hash then
+      return v_idem.response_snapshot;
+    else
+      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
+    end if;
+  end if;
+
   perform pg_advisory_xact_lock(hashtextextended('workspace_role_lock:' || p_workspace_role_id::text, 0));
 
   select * into v_role from platform.workspace_roles where id = p_workspace_role_id for update;
@@ -1794,26 +2007,6 @@ begin
 
   select * into v_perm from identity.permissions where id = p_permission_id;
   if not found then raise exception 'permission_not_found' using errcode = 'P0002'; end if;
-
-  v_canonical_payload := jsonb_build_object(
-    'action', 'detach_permission',
-    'expected_lock_version', p_expected_lock_version,
-    'permission_id', p_permission_id,
-    'reason', v_normalized_reason,
-    'workspace_role_id', p_workspace_role_id
-  );
-  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
-
-  select * into v_idem from platform.workspace_role_idempotency
-  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
-
-  if found then
-    if v_idem.action = 'detach_permission' and v_idem.request_hash = v_request_hash then
-      return v_idem.response_snapshot;
-    else
-      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
-    end if;
-  end if;
 
   delete from platform.workspace_role_permissions
   where workspace_role_id = v_role.id and permission_id = v_perm.id;
@@ -1905,6 +2098,27 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
+  v_canonical_payload := jsonb_build_object(
+    'action', 'snapshot_template',
+    'expected_lock_version', p_expected_lock_version,
+    'reason', v_normalized_reason,
+    'workspace_role_id', p_workspace_role_id
+  );
+  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
+
+  select * into v_idem from platform.workspace_role_idempotency
+  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
+
+  if found then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'snapshot_template'
+       and v_idem.request_hash = v_request_hash then
+      return v_idem.response_snapshot;
+    else
+      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
+    end if;
+  end if;
+
   perform pg_advisory_xact_lock(hashtextextended('workspace_role_lock:' || p_workspace_role_id::text, 0));
 
   select * into v_role from platform.workspace_roles where id = p_workspace_role_id for update;
@@ -1922,26 +2136,6 @@ begin
 
   if p_expected_lock_version is null or v_role.lock_version <> p_expected_lock_version then
     raise exception 'workspace_role_expected_lock_version_conflict' using errcode = '40001';
-  end if;
-
-  v_canonical_payload := jsonb_build_object(
-    'action', 'snapshot_template',
-    'base_role_id', v_role.base_role_id,
-    'expected_lock_version', p_expected_lock_version,
-    'reason', v_normalized_reason,
-    'workspace_role_id', p_workspace_role_id
-  );
-  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
-
-  select * into v_idem from platform.workspace_role_idempotency
-  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
-
-  if found then
-    if v_idem.action = 'snapshot_template' and v_idem.request_hash = v_request_hash then
-      return v_idem.response_snapshot;
-    else
-      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
-    end if;
   end if;
 
   -- Insert matching permissions:
@@ -2072,6 +2266,27 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
+  v_canonical_payload := jsonb_build_object(
+    'action', 'publish',
+    'expected_lock_version', p_expected_lock_version,
+    'reason', v_normalized_reason,
+    'workspace_role_id', p_workspace_role_id
+  );
+  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
+
+  select * into v_idem from platform.workspace_role_idempotency
+  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
+
+  if found then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'publish'
+       and v_idem.request_hash = v_request_hash then
+      return v_idem.response_snapshot;
+    else
+      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
+    end if;
+  end if;
+
   select * into v_role from platform.workspace_roles where id = p_workspace_role_id;
   if not found or v_role.customer_workspace_id <> v_res.workspace_id then
     raise exception 'workspace_role_not_found' using errcode = 'P0002';
@@ -2097,25 +2312,6 @@ begin
 
   if not exists (select 1 from platform.workspace_role_permissions where workspace_role_id = v_role.id) then
     raise exception 'workspace_role_publish_requires_at_least_one_permission' using errcode = '42501';
-  end if;
-
-  v_canonical_payload := jsonb_build_object(
-    'action', 'publish',
-    'expected_lock_version', p_expected_lock_version,
-    'reason', v_normalized_reason,
-    'workspace_role_id', p_workspace_role_id
-  );
-  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
-
-  select * into v_idem from platform.workspace_role_idempotency
-  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
-
-  if found then
-    if v_idem.action = 'publish' and v_idem.request_hash = v_request_hash then
-      return v_idem.response_snapshot;
-    else
-      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
-    end if;
   end if;
 
   -- Atomically archive currently active published role with same code
@@ -2235,22 +2431,6 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
-  perform pg_advisory_xact_lock(hashtextextended('workspace_member_role:' || v_res.workspace_id::text || ':' || p_target_membership_id::text, 0));
-
-  select * into v_role from platform.workspace_roles where id = p_workspace_role_id;
-  if not found or v_role.customer_workspace_id <> v_res.workspace_id then
-    raise exception 'workspace_role_not_found' using errcode = 'P0002';
-  end if;
-
-  if v_role.lifecycle_status <> 'published' or (v_role.valid_to is not null and v_role.valid_to <= statement_timestamp()) then
-    raise exception 'workspace_role_not_published' using errcode = '42501';
-  end if;
-
-  select * into v_mem from identity.memberships where id = p_target_membership_id;
-  if not found or v_mem.tenant_id <> v_res.tenant_id or v_mem.status <> 'active' then
-    raise exception 'workspace_member_role_target_membership_invalid' using errcode = '42501';
-  end if;
-
   v_canonical_payload := jsonb_build_object(
     'action', 'assign_role',
     'building_id', p_building_id,
@@ -2268,11 +2448,29 @@ begin
   where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
 
   if found then
-    if v_idem.action = 'assign_role' and v_idem.request_hash = v_request_hash then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'assign_role'
+       and v_idem.request_hash = v_request_hash then
       return v_idem.response_snapshot;
     else
       raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
     end if;
+  end if;
+
+  perform pg_advisory_xact_lock(hashtextextended('workspace_member_role:' || v_res.workspace_id::text || ':' || p_target_membership_id::text, 0));
+
+  select * into v_role from platform.workspace_roles where id = p_workspace_role_id;
+  if not found or v_role.customer_workspace_id <> v_res.workspace_id then
+    raise exception 'workspace_role_not_found' using errcode = 'P0002';
+  end if;
+
+  if v_role.lifecycle_status <> 'published' or (v_role.valid_to is not null and v_role.valid_to <= statement_timestamp()) then
+    raise exception 'workspace_role_not_published' using errcode = '42501';
+  end if;
+
+  select * into v_mem from identity.memberships where id = p_target_membership_id;
+  if not found or v_mem.tenant_id <> v_res.tenant_id or v_mem.status <> 'active' then
+    raise exception 'workspace_member_role_target_membership_invalid' using errcode = '42501';
   end if;
 
   insert into platform.workspace_member_roles (
@@ -2361,6 +2559,8 @@ as $$
 declare
   v_res record;
   v_assignment platform.workspace_member_roles%rowtype;
+  v_assignment_after platform.workspace_member_roles%rowtype;
+  v_before_snapshot jsonb;
   v_normalized_reason text;
   v_canonical_payload jsonb;
   v_request_hash text;
@@ -2391,6 +2591,27 @@ begin
     raise exception 'mfa_required' using errcode = '42501';
   end if;
 
+  v_canonical_payload := jsonb_build_object(
+    'action', 'revoke_assignment',
+    'assignment_id', p_assignment_id,
+    'expected_lock_version', p_expected_lock_version,
+    'reason', v_normalized_reason
+  );
+  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
+
+  select * into v_idem from platform.workspace_role_idempotency
+  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
+
+  if found then
+    if v_idem.customer_workspace_id = v_res.workspace_id
+       and v_idem.action = 'revoke_assignment'
+       and v_idem.request_hash = v_request_hash then
+      return v_idem.response_snapshot;
+    else
+      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
+    end if;
+  end if;
+
   perform pg_advisory_xact_lock(hashtextextended('workspace_member_role_revoke:' || p_assignment_id::text, 0));
 
   select * into v_assignment
@@ -2410,37 +2631,20 @@ begin
     raise exception 'workspace_member_role_expected_lock_version_conflict' using errcode = '40001';
   end if;
 
-  v_canonical_payload := jsonb_build_object(
-    'action', 'revoke_assignment',
-    'assignment_id', p_assignment_id,
-    'expected_lock_version', p_expected_lock_version,
-    'reason', v_normalized_reason
-  );
-  v_request_hash := encode(extensions.digest(convert_to(v_canonical_payload::text, 'UTF8'), 'sha256'), 'hex');
-
-  select * into v_idem from platform.workspace_role_idempotency
-  where tenant_id = v_res.tenant_id and idempotency_key = p_idempotency_key;
-
-  if found then
-    if v_idem.action = 'revoke_assignment' and v_idem.request_hash = v_request_hash then
-      return v_idem.response_snapshot;
-    else
-      raise exception 'workspace_role_idempotency_conflict' using errcode = '22023';
-    end if;
-  end if;
+  v_before_snapshot := to_jsonb(v_assignment);
 
   update platform.workspace_member_roles
   set valid_to = statement_timestamp(),
       lock_version = lock_version + 1,
       reason = v_normalized_reason
   where id = v_assignment.id
-  returning * into v_assignment;
+  returning * into v_assignment_after;
 
   v_response := jsonb_build_object(
     'action', 'revoke_assignment',
-    'id', v_assignment.id,
-    'valid_to', v_assignment.valid_to,
-    'lock_version', v_assignment.lock_version
+    'id', v_assignment_after.id,
+    'valid_to', v_assignment_after.valid_to,
+    'lock_version', v_assignment_after.lock_version
   );
 
   insert into platform.workspace_role_idempotency (
@@ -2448,7 +2652,7 @@ begin
     request_hash, request_hash_version, result_entity_id, response_snapshot, actor_id
   ) values (
     v_res.tenant_id, v_res.workspace_id, p_idempotency_key, 'revoke_assignment',
-    v_request_hash, 1, v_assignment.id, v_response, auth.uid()
+    v_request_hash, 1, v_assignment_after.id, v_response, auth.uid()
   );
 
   insert into audit.events (
@@ -2456,7 +2660,7 @@ begin
     before_snapshot, after_snapshot, reason, occurred_at
   ) values (
     auth.uid(), v_res.role_code, 'WORKSPACE_ROLE_ASSIGNMENT_REVOKED', 'workspace_member_role',
-    v_assignment.id, to_jsonb(v_assignment), null, v_normalized_reason, statement_timestamp()
+    v_assignment_after.id, v_before_snapshot, to_jsonb(v_assignment_after), v_normalized_reason, statement_timestamp()
   );
 
   return v_response;

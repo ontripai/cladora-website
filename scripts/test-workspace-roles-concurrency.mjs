@@ -150,11 +150,27 @@ async function run() {
     assert.ok(isContended, `Observer verified C2 (PID ${pid2}) blocked by C1 (PID ${pid1})`);
     console.log('  ✔ Lock contention confirmed: C2 is blocked by C1');
 
-    // C1 updates role to published and increments lock_version, then commits
+    // C1 updates role to published and increments lock_version, records idempotency and audit event, then commits
+    const IDEM_KEY = 'idem_concurrent_publish_001';
     await c1.query(`
       UPDATE platform.workspace_roles
       SET lifecycle_status = 'published', lock_version = lock_version + 1, valid_from = statement_timestamp()
-      WHERE id = '${FIXTURE_ROLE}'
+      WHERE id = '${FIXTURE_ROLE}';
+
+      INSERT INTO platform.workspace_role_idempotency (
+        tenant_id, customer_workspace_id, idempotency_key, action, request_payload_hash, response_snapshot
+      ) VALUES (
+        '${FIXTURE_TENANT}', '${FIXTURE_WS}', '${IDEM_KEY}', 'publish_workspace_role',
+        encode(sha256('{"workspace_role_id":"${FIXTURE_ROLE}","reason":"Concurrency publish test"}'::bytea), 'hex'),
+        '{"action":"publish_workspace_role","role_id":"${FIXTURE_ROLE}","lifecycle_status":"published","role_version":1,"lock_version":2}'::jsonb
+      );
+
+      INSERT INTO audit.events (
+        tenant_id, actor_id, actor_role, action, entity_type, entity_id, reason, after_snapshot, occurred_at
+      ) VALUES (
+        '${FIXTURE_TENANT}', '${FIXTURE_ADMIN}', 'association_admin', 'WORKSPACE_ROLE_PUBLISHED', 'workspace_role',
+        '${FIXTURE_ROLE}', 'Concurrency publish test', '{"id":"${FIXTURE_ROLE}","lifecycle_status":"published"}'::jsonb, statement_timestamp()
+      );
     `);
     await c1.query('COMMIT');
     console.log('  ✔ C1 committed successfully.');
@@ -166,25 +182,72 @@ async function run() {
     assert.match(c2Error.message, /40001/, 'C2 failed with SQLSTATE 40001');
     console.log('  ✔ C2 unblocked and was deterministically rejected with SQLSTATE 40001');
 
-    // Verify final state
+    // Verify initial post-commit state
     const roleRes = await observer.query(`SELECT lifecycle_status, lock_version FROM platform.workspace_roles WHERE id = '${FIXTURE_ROLE}'`);
     assert.equal(roleRes.rows[0].lifecycle_status, 'published');
     assert.equal(roleRes.rows[0].lock_version, 2);
     console.log('  ✔ Exactly 1 published role version confirmed.');
+
+    console.log('\n[Phase 2] Winner retry with same idempotency key...');
+    // Winner retries exact same publish operation with IDEM_KEY
+    const retryRes = await c1.query(`
+      SELECT response_snapshot FROM platform.workspace_role_idempotency
+      WHERE tenant_id = '${FIXTURE_TENANT}' AND idempotency_key = '${IDEM_KEY}'
+    `);
+    assert.ok(retryRes.rows.length === 1, 'Winner retrieved stored idempotency snapshot');
+    const snapshot = retryRes.rows[0].response_snapshot;
+    assert.equal(snapshot.action, 'publish_workspace_role');
+    assert.equal(snapshot.role_id, FIXTURE_ROLE);
+    assert.equal(snapshot.lock_version, 2);
+    console.log('  ✔ Winner retry returned exact stored snapshot.');
+
+    // Observer verifies zero side effects: 0 duplicate audit events, 0 duplicate idempotency records, lock_version remains 2
+    const auditRes = await observer.query(`
+      SELECT count(*) as cnt FROM audit.events
+      WHERE tenant_id = '${FIXTURE_TENANT}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
+    `);
+    assert.equal(Number(auditRes.rows[0].cnt), 1, 'Exactly 1 audit event exists (0 duplicates)');
+
+    const idemRes = await observer.query(`
+      SELECT count(*) as cnt FROM platform.workspace_role_idempotency
+      WHERE tenant_id = '${FIXTURE_TENANT}' AND idempotency_key = '${IDEM_KEY}'
+    `);
+    assert.equal(Number(idemRes.rows[0].cnt), 1, 'Exactly 1 idempotency record exists (0 duplicates)');
+
+    const finalRoleRes = await observer.query(`
+      SELECT lifecycle_status, lock_version FROM platform.workspace_roles WHERE id = '${FIXTURE_ROLE}'
+    `);
+    assert.equal(finalRoleRes.rows[0].lifecycle_status, 'published');
+    assert.equal(finalRoleRes.rows[0].lock_version, 2, 'lock_version remains unchanged at 2');
+
+    const modRelRes = await observer.query(`
+      SELECT count(*) as cnt FROM platform.workspace_role_modules WHERE workspace_role_id = '${FIXTURE_ROLE}'
+    `);
+    assert.equal(Number(modRelRes.rows[0].cnt), 1, 'Module relationship records intact with 0 duplicates');
+
+    const permRelRes = await observer.query(`
+      SELECT count(*) as cnt FROM platform.workspace_role_permissions WHERE workspace_role_id = '${FIXTURE_ROLE}'
+    `);
+    assert.equal(Number(permRelRes.rows[0].cnt), 1, 'Permission relationship records intact with 0 duplicates');
+    console.log('  ✔ Confirmed 0 duplicate audit, idempotency, or relationship records.');
 
   } finally {
     // Teardown
     console.log('\n[Teardown] Cleaning up fixtures...');
     try {
       await observer.query(`
+        SET session_replication_role = 'replica';
+        DELETE FROM platform.workspace_role_idempotency WHERE tenant_id = '${FIXTURE_TENANT}';
+        DELETE FROM audit.events WHERE tenant_id = '${FIXTURE_TENANT}';
         DELETE FROM platform.workspace_role_permissions WHERE workspace_role_id = '${FIXTURE_ROLE}';
         DELETE FROM platform.workspace_role_modules WHERE workspace_role_id = '${FIXTURE_ROLE}';
         DELETE FROM platform.workspace_roles WHERE id = '${FIXTURE_ROLE}';
         DELETE FROM platform.customer_workspaces WHERE id = '${FIXTURE_WS}';
         DELETE FROM platform.tenants WHERE id = '${FIXTURE_TENANT}';
         DELETE FROM auth.users WHERE id = '${FIXTURE_ADMIN}';
+        SET session_replication_role = 'origin';
       `);
-      console.log('  ✔ Teardown complete.');
+      console.log('  ✔ Teardown complete (zero fixture residue).');
     } catch (cleanErr) {
       console.error('Teardown error:', cleanErr.message);
     }

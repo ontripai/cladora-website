@@ -8,7 +8,7 @@
 -- Workspace Taxonomy != Module Activation != Entitlement != Permission != Role != Delegation != Country Pack
 -- =============================================================================
 begin;
-select plan(76);
+select plan(96);
 
 -- 1. Structural & Table Schema Verification (6 assertions)
 select ok(to_regclass('platform.module_permission_bindings') is not null, 'platform.module_permission_bindings table exists');
@@ -40,7 +40,7 @@ select ok(exists(
     and p.code = 'workspace.role.assign' and rp.effect = 'allow'
 ), 'property_manager granted workspace.role.assign');
 
--- 3. Module-Permission Binding Registry Invariants (8 assertions)
+-- 3. Module-Permission Binding Registry Invariants (9 assertions)
 -- 3.1 All seeded records have is_delegable = false
 select ok(not exists(
   select 1 from platform.module_permission_bindings where is_delegable is true
@@ -112,6 +112,12 @@ select lives_ok(
 -- 3.8 Minimum 48 active proven bindings exist
 select ok((select count(*) from platform.module_permission_bindings where is_assignable_to_local_role is true) >= 48, 'at least 48 module permission bindings seeded');
 
+-- 3.9 Seed Manifest exact-set verification
+select lives_ok(
+  $$select app_private.validate_module_permission_bindings_seeding_v1()$$,
+  'exact 48 seed manifest passes validation function'
+);
+
 -- ----------------------------------------------------------------------------
 -- 4. Test Fixtures Setup (Tenant, Workspace, Properties, Buildings, Units, Users)
 -- ----------------------------------------------------------------------------
@@ -136,6 +142,7 @@ declare
   v_mem_target_id uuid := '09000000-0000-0000-0000-000001000002'::uuid;
   v_mem_other_id uuid := '09000000-0000-0000-0000-000001000003'::uuid;
   v_ctx_admin_id uuid := '09000000-0000-0000-0000-000010000001'::uuid;
+  v_ctx_admin_ws2_id uuid := '09000000-0000-0000-0000-000010000003'::uuid;
   v_ctx_member_id uuid := '09000000-0000-0000-0000-000010000002'::uuid;
   v_profile_id uuid;
   v_model_id uuid;
@@ -194,6 +201,7 @@ begin
   -- Context Grants
   insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at) values
     (v_ctx_admin_id, v_tenant_id, v_mem_admin_id, 'property', v_prop_id, statement_timestamp() - interval '1 day'),
+    (v_ctx_admin_ws2_id, v_tenant_id, v_mem_admin_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day'),
     (v_ctx_member_id, v_tenant_id, v_mem_target_id, 'property', v_prop_id, statement_timestamp() - interval '1 day')
   on conflict (id) do nothing;
 
@@ -203,22 +211,24 @@ begin
 
   insert into platform.workspace_taxonomy_assignments (
     tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by, country_code
-  ) values (
-    v_tenant_id, v_ws_id, v_profile_id, v_model_id, 'active', statement_timestamp() - interval '1 day', v_user_admin_id, 'RO'
-  ) on conflict do nothing;
+  ) values
+    (v_tenant_id, v_ws_id, v_profile_id, v_model_id, 'active', statement_timestamp() - interval '1 day', v_user_admin_id, 'RO'),
+    (v_tenant_id, v_ws2_id, v_profile_id, v_model_id, 'active', statement_timestamp() - interval '1 day', v_user_admin_id, 'RO')
+  on conflict do nothing;
 
-  -- Active Module & Entitlement for Maintenance
+  -- Active Modules & Entitlements for Maintenance and Documents
   insert into platform.workspace_modules (
     tenant_id, customer_workspace_id, module_definition_id, module_code, status, reason
   ) select v_tenant_id, v_ws_id, id, code, 'active', 'Initial test activation'
-  from platform.module_definitions where code = 'maintenance' limit 1
+  from platform.module_definitions where code in ('maintenance', 'documents')
   on conflict do nothing;
 
   insert into platform.workspace_entitlements (
     customer_workspace_id, entitlement_key, value_type, boolean_value, valid_from
-  ) values (
-    v_ws_id, 'module.maintenance', 'boolean', true, statement_timestamp() - interval '1 day'
-  ) on conflict do nothing;
+  ) values
+    (v_ws_id, 'module.maintenance', 'boolean', true, statement_timestamp() - interval '1 day'),
+    (v_ws_id, 'module.documents', 'boolean', true, statement_timestamp() - interval '1 day')
+  on conflict do nothing;
 end;
 $$;
 
@@ -639,6 +649,22 @@ select throws_ok(
   'physical DELETE on workspace_member_roles is prohibited by trigger'
 );
 
+-- 6.10 Reopening a revoked assignment (clearing valid_to) is prohibited
+select throws_ok(
+  $$update platform.workspace_member_roles set valid_to = null, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to is not null$$,
+  '42501',
+  'workspace_member_role_reopen_prohibited',
+  'reopening a revoked workspace member role is prohibited by trigger'
+);
+
+-- 6.11 Direct update of immutable fields on member assignment is prohibited
+select throws_ok(
+  $$update platform.workspace_member_roles set workspace_role_id = '09000000-0000-0000-0000-000000000001'::uuid, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid$$,
+  '42501',
+  'workspace_member_role_immutable_fields',
+  'modifying immutable fields on workspace member role is prohibited by trigger'
+);
+
 -- Re-assign unit_inspector to Unit 101 for permission engine tests
 select lives_ok(
   $$select customer_api.assign_workspace_role_v1(
@@ -808,6 +834,159 @@ select ok(
   'effective permission returns false for non-existent target unit'
 );
 
+-- 7.8 Future module fails closed
+insert into platform.module_definitions (
+  code, version, name, labels_json, description, category, lifecycle_status, is_active, entitlement_key, valid_from, valid_to
+) values (
+  'future_mod', 1, 'Future Mod', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'operations', 'published', true, 'module.future_mod', statement_timestamp() + interval '10 days', null
+);
+
+select ok(
+  app_private.check_effective_permission_v1(
+    '09000000-0000-0000-0000-000010000002'::uuid,
+    'maintenance.requests.manage',
+    'future_mod',
+    'unit',
+    '09000000-0000-0000-0000-000000100001'::uuid
+  ) is false,
+  'effective permission returns false when module is future-dated (fail-closed)'
+);
+
+-- 7.9 Expired module fails closed
+insert into platform.module_definitions (
+  code, version, name, labels_json, description, category, lifecycle_status, is_active, entitlement_key, valid_from, valid_to
+) values (
+  'expired_mod', 1, 'Expired Mod', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'operations', 'published', true, 'module.expired_mod', statement_timestamp() - interval '10 days', statement_timestamp() - interval '1 day'
+);
+
+select ok(
+  app_private.check_effective_permission_v1(
+    '09000000-0000-0000-0000-000010000002'::uuid,
+    'maintenance.requests.manage',
+    'expired_mod',
+    'unit',
+    '09000000-0000-0000-0000-000000100001'::uuid
+  ) is false,
+  'effective permission returns false when module is expired (fail-closed)'
+);
+
+-- 7.10 Future binding fails closed
+insert into platform.module_definitions (
+  code, version, name, labels_json, description, category, lifecycle_status, is_active, entitlement_key, valid_from, valid_to
+) values (
+  'temp_binding_mod', 1, 'Temp Binding Mod', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'operations', 'published', true, 'module.temp_binding_mod', statement_timestamp() - interval '1 day', null
+);
+
+insert into platform.module_permission_bindings (
+  module_definition_id, permission_id, is_active, valid_from, valid_to
+) values (
+  (select id from platform.module_definitions where code = 'temp_binding_mod'),
+  (select id from identity.permissions where code = 'maintenance.requests.manage' limit 1),
+  true,
+  statement_timestamp() + interval '10 days',
+  null
+);
+
+select ok(
+  app_private.check_effective_permission_v1(
+    '09000000-0000-0000-0000-000010000002'::uuid,
+    'maintenance.requests.manage',
+    'temp_binding_mod',
+    'unit',
+    '09000000-0000-0000-0000-000000100001'::uuid
+  ) is false,
+  'effective permission returns false when module permission binding is future-dated (fail-closed)'
+);
+
+-- Switch auth to admin for doc_viewer role setup
+select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000010', 'role', 'authenticated', 'aal', 'aal2')::text, true);
+
+-- 7.11 Create doc_viewer draft role
+select lives_ok(
+  $$select customer_api.create_workspace_role_draft_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    'doc_viewer',
+    'Document Viewer',
+    'Document viewer role for testing module scoped deny isolation',
+    'unit',
+    null,
+    'Create doc viewer role',
+    'idem_create_doc_viewer'
+  )$$,
+  'create draft doc viewer role succeeds'
+);
+
+-- 7.12 Attach documents module to doc_viewer
+select lives_ok(
+  $$select customer_api.attach_workspace_role_module_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    (select id from platform.workspace_roles where code = 'doc_viewer'),
+    (select id from platform.module_definitions where code = 'documents' limit 1),
+    1,
+    'Attach documents module',
+    'idem_doc_viewer_mod'
+  )$$,
+  'attach documents module to doc_viewer succeeds'
+);
+
+-- 7.13 Attach documents.vault.read permission with allow effect
+select lives_ok(
+  $$select customer_api.attach_workspace_role_permission_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    (select id from platform.workspace_roles where code = 'doc_viewer'),
+    (select id from identity.permissions where code = 'documents.vault.read' limit 1),
+    'allow',
+    2,
+    'Attach allow documents.vault.read',
+    'idem_doc_viewer_perm'
+  )$$,
+  'attach allow documents.vault.read succeeds'
+);
+
+-- 7.14 Publish doc_viewer role
+select lives_ok(
+  $$select customer_api.publish_workspace_role_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    (select id from platform.workspace_roles where code = 'doc_viewer'),
+    3,
+    'Publish doc viewer role',
+    'idem_doc_viewer_pub'
+  )$$,
+  'publish doc viewer role succeeds'
+);
+
+-- 7.15 Assign doc_viewer to member at Unit 101 scope
+select lives_ok(
+  $$select customer_api.assign_workspace_role_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    '09000000-0000-0000-0000-000001000002'::uuid,
+    (select id from platform.workspace_roles where code = 'doc_viewer'),
+    'unit',
+    '09000000-0000-0000-0000-000000001000'::uuid,
+    '09000000-0000-0000-0000-000000010000'::uuid,
+    '09000000-0000-0000-0000-000000100001'::uuid,
+    null,
+    'Assign doc viewer at unit scope',
+    'idem_assign_doc_viewer'
+  )$$,
+  'assign doc viewer role at unit scope succeeds'
+);
+
+-- Switch back to member user
+select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000020', 'aal', 'aal1')::text, true);
+
+-- 7.16 Local role deny on maintenance does not bleed into documents module
+select ok(
+  app_private.check_effective_permission_v1(
+    '09000000-0000-0000-0000-000010000002'::uuid,
+    'documents.vault.read',
+    'documents',
+    'unit',
+    '09000000-0000-0000-0000-000000100001'::uuid
+  ) is true,
+  'deny on maintenance role does not bleed into documents module (deny strictly module-scoped)'
+);
+
 -- ----------------------------------------------------------------------------
 -- 8. Security & AAL2 Enforcement, Read RPC & Audit Verification (10 assertions)
 -- ----------------------------------------------------------------------------
@@ -878,7 +1057,90 @@ select throws_ok(
   'idempotency key conflict raises SQLSTATE 22023'
 );
 
--- 8.6 Audit Events recorded in audit.events
+-- 8.6 Idempotent replay of attach_workspace_role_module_v1 succeeds even if role lock_version changed or role published
+select ok(
+  (select customer_api.attach_workspace_role_module_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    (select id from platform.workspace_roles where code = 'lead_technician' and role_version = 1 limit 1),
+    (select id from platform.module_definitions where code = 'maintenance' limit 1),
+    1,
+    'Attach maintenance module to role',
+    'idem_attach_mod_001'
+  ))->>'action' = 'attach_module',
+  'idempotent replay of attach_workspace_role_module_v1 returns stored snapshot'
+);
+
+-- 8.7 Idempotent replay of snapshot_workspace_role_template_permissions_v1 succeeds
+select ok(
+  (select customer_api.snapshot_workspace_role_template_permissions_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    (select id from platform.workspace_roles where code = 'lead_technician' and role_version = 1 limit 1),
+    2,
+    'Snapshot base template permissions',
+    'idem_snapshot_tpl_001'
+  ))->>'action' = 'snapshot_template_permissions',
+  'idempotent replay of snapshot_workspace_role_template_permissions_v1 returns stored snapshot'
+);
+
+-- 8.8 Idempotent replay of publish_workspace_role_v1 succeeds
+select ok(
+  (select customer_api.publish_workspace_role_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    (select id from platform.workspace_roles where code = 'lead_technician' and role_version = 1 limit 1),
+    3,
+    'Publish lead technician role version 1',
+    'idem_publish_001'
+  ))->>'action' = 'publish_workspace_role',
+  'idempotent replay of publish_workspace_role_v1 returns stored snapshot'
+);
+
+-- 8.9 Idempotent replay of assign_workspace_role_v1 succeeds
+select ok(
+  (select customer_api.assign_workspace_role_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    '09000000-0000-0000-0000-000001000002'::uuid,
+    (select id from platform.workspace_roles where code = 'unit_inspector'),
+    'unit',
+    '09000000-0000-0000-0000-000000001000'::uuid,
+    '09000000-0000-0000-0000-000000010000'::uuid,
+    '09000000-0000-0000-0000-000000100001'::uuid,
+    null,
+    'Assign unit inspector to Unit 101',
+    'idem_assign_unit_101'
+  ))->>'action' = 'assign_role',
+  'idempotent replay of assign_workspace_role_v1 returns stored snapshot'
+);
+
+-- 8.10 Idempotent replay of revoke_workspace_role_assignment_v1 succeeds
+select ok(
+  (select customer_api.revoke_workspace_role_assignment_v1(
+    '09000000-0000-0000-0000-000010000001'::uuid,
+    (select id from platform.workspace_member_roles where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to is not null limit 1),
+    1,
+    'Revoking assignment for testing',
+    'idem_revoke_001'
+  ))->>'action' = 'revoke_assignment',
+  'idempotent replay of revoke_workspace_role_assignment_v1 returns stored snapshot'
+);
+
+-- 8.11 Cross-workspace idempotency conflict raises SQLSTATE 22023
+select throws_ok(
+  $$select customer_api.create_workspace_role_draft_v1(
+    '09000000-0000-0000-0000-000010000003'::uuid,
+    'lead_technician',
+    'Lead Maintenance Technician',
+    'Responsible for work orders and inspections',
+    'building',
+    (select id from identity.roles where code = 'property_manager' limit 1),
+    'Create draft role for maintenance team',
+    'idem_create_role_001'
+  )$$,
+  '22023',
+  'workspace_role_idempotency_conflict',
+  'cross-workspace idempotency key reuse triggers SQLSTATE 22023'
+);
+
+-- 8.12 Audit Events recorded in audit.events
 select ok(exists(
   select 1 from audit.events where action = 'WORKSPACE_ROLE_CREATED'
 ), 'audit event WORKSPACE_ROLE_CREATED recorded');
@@ -891,12 +1153,26 @@ select ok(exists(
   select 1 from audit.events where action = 'WORKSPACE_ROLE_ASSIGNED'
 ), 'audit event WORKSPACE_ROLE_ASSIGNED recorded');
 
--- 8.7 Zero Side Effects on Finance / Ledger
+-- 8.13 Audit revocation captured pre-update before_snapshot with valid_to IS NULL
+select ok(exists(
+  select 1 from audit.events
+  where action = 'WORKSPACE_ROLE_ASSIGNMENT_REVOKED'
+    and (before_snapshot->>'valid_to') is null
+), 'audit event WORKSPACE_ROLE_ASSIGNMENT_REVOKED captured true pre-update before_snapshot with valid_to IS NULL');
+
+-- 8.14 Audit revocation captured post-update after_snapshot with valid_to NOT NULL
+select ok(exists(
+  select 1 from audit.events
+  where action = 'WORKSPACE_ROLE_ASSIGNMENT_REVOKED'
+    and (after_snapshot->>'valid_to') is not null
+), 'audit event WORKSPACE_ROLE_ASSIGNMENT_REVOKED captured true post-update after_snapshot with valid_to NOT NULL');
+
+-- 8.15 Zero Side Effects on Finance / Ledger
 select ok(not exists(
   select 1 from audit.events where entity_type in ('ledger_transaction', 'journal_entry') and reason like '%test%'
 ), 'finance and ledger remain completely unaffected');
 
--- 8.8 Zero Side Effects on Identity Delegations
+-- 8.16 Zero Side Effects on Identity Delegations
 select ok(not exists(
   select 1 from identity.delegations where justification like '%090%'
 ), 'legacy identity.delegations remains completely untouched');
