@@ -52,7 +52,9 @@ All non-negotiable architectural mandates from Review R2 have been implemented a
 
 ### 2.2 Migration 102 & Test 089 Identifiers
 - **Migration 102 Path:** `supabase/migrations/20260917120000_workspace_dynamic_composition.sql`
+- **Migration 102 SHA-256:** `2EE56967C8DA6FEFF38F5ADECA6767C97B165410DA46A1DDE314EC45102A139D`
 - **Test 089 Path:** `supabase/tests/089_workspace_dynamic_composition.test.sql`
+- **Test 089 SHA-256:** `D0B3E0F261DDB233A61A429D76E8ED35FFA813D86AB87662ADDD1A5D4349F51C`
 - **pgTAP Plan:** Exactly 68 assertions matching `SELECT plan(68);`.
 
 ### 2.3 Concurrency Rehearsal

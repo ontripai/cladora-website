@@ -204,6 +204,8 @@ begin
       if old.id <> new.id
          or old.code <> new.code
          or old.version <> new.version
+         or old.name <> new.name
+         or old.description <> new.description
          or old.entitlement_key <> new.entitlement_key
          or old.requires_aal2 <> new.requires_aal2
          or old.sensitivity_level <> new.sensitivity_level
@@ -238,6 +240,10 @@ declare
   v_overlap boolean;
 begin
   if new.is_active = true and new.lifecycle_status in ('active', 'published') then
+    if new.valid_to is not null and new.valid_to <= new.valid_from then
+      return new; -- Allow table check constraint (valid_to is null or valid_to > valid_from) to raise check_violation (23514)
+    end if;
+
     perform pg_advisory_xact_lock(hashtextextended('module_definition:' || new.code, 0));
 
     select exists (

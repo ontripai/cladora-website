@@ -26,7 +26,7 @@ select ok(exists(select 1 from identity.role_permissions rp join identity.permis
 -- 3. Module Definition Constraints & Versioning (8 assertions)
 -- 3.1 Composite uniqueness (code, version)
 select throws_ok(
-  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key) values ('occupancy', 1, 'Duplicate Occupancy', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy')$$,
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status) values ('occupancy', 1, 'Duplicate Occupancy', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', false, 'draft')$$,
   '23505',
   null,
   'duplicate (code, version) is rejected'
@@ -34,19 +34,19 @@ select throws_ok(
 
 -- 3.2 Same version allowed for different code
 select lives_ok(
-  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status) values ('test_mod_a', 1, 'Test Mod A', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'operations', 'module.occupancy', false, 'draft')$$,
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('test_ver_mod', 1, 'Test Versioned v1', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '10 days', statement_timestamp() + interval '20 days')$$,
   'different codes can share the same version number'
 );
 
 -- 3.3 New version for a code in non-overlapping effective window
 select lives_ok(
-  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('occupancy', 2, 'Occupancy v2', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '30 days', statement_timestamp() + interval '60 days')$$,
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('test_ver_mod', 2, 'Test Versioned v2', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '30 days', statement_timestamp() + interval '60 days')$$,
   'new version for same code allowed in non-overlapping future effective window'
 );
 
 -- 3.4 Overlapping effective window rejected
 select throws_ok(
-  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('occupancy', 3, 'Occupancy v3', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '35 days', statement_timestamp() + interval '50 days')$$,
+  $$insert into platform.module_definitions (code, version, name, labels_json, description, category, entitlement_key, is_active, lifecycle_status, valid_from, valid_to) values ('test_ver_mod', 3, 'Test Versioned v3', jsonb_build_object('ro','a','en','b','fa','c'), 'test', 'occupancy', 'module.occupancy', true, 'published', statement_timestamp() + interval '35 days', statement_timestamp() + interval '50 days')$$,
   'P0001',
   'platform_module_definition_version_overlap',
   'overlapping effective period for published definition is rejected'
@@ -181,9 +181,9 @@ declare
   v_prop_unbound uuid := '89700000-0000-0000-0000-000000000003';
 begin
   -- Tenants
-  insert into platform.tenants (id, code, name, status) values
-    (v_tenant_a, 'TENANT-89-A', 'Tenant 89 Alpha', 'active'),
-    (v_tenant_b, 'TENANT-89-B', 'Tenant 89 Beta', 'active')
+  insert into platform.tenants (id, legal_name, registration_number, status) values
+    (v_tenant_a, 'Tenant 89 Alpha', 'RO-TEST-89A', 'active'),
+    (v_tenant_b, 'Tenant 89 Beta', 'RO-TEST-89B', 'active')
   on conflict do nothing;
 
   -- Users
