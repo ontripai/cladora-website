@@ -108,15 +108,16 @@ begin
     ('88c00000-0000-0000-0000-000000000003', 'synth_expired_profile', 1, 'Expired Synth', '{"ro":"Expirat","en":"Expired","fa":"منقضی"}'::jsonb, 'Expired', true, 'active', statement_timestamp() - interval '10 days', statement_timestamp() - interval '1 day');
 end $$;
 
--- 3. Anonymous caller rejected (1 assertion)
-set local role anon;
-select set_config('request.jwt.claims', '{"role":"anon"}', true);
+-- 3. Unauthenticated caller without user ID rejected (1 assertion)
+set local role authenticated;
+select set_config('request.jwt.claims', '{"role":"authenticated"}', true);
 select throws_ok(
   $$select customer_api.assign_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000001', 'residential_condominium', 'association_managed', 'RO', '88900000-0000-0000-0000-000000000001'::uuid)$$,
   '42501',
   'authentication_required',
-  'anonymous caller is rejected with authentication_required'
+  'caller without user ID is rejected with authentication_required'
 );
+reset role;
 
 -- 4. Inactive membership caller rejected (1 assertion)
 set local role authenticated;
@@ -149,6 +150,7 @@ select throws_ok(
 );
 
 -- Establish authoritative AAL2 admin context for remaining tests
+reset role;
 select set_config('request.jwt.claims', '{"sub":"88000000-0000-0000-0000-000000000001","role":"authenticated","aal":"aal2"}', true);
 
 -- 7. Mandatory Idempotency Key (1 assertion)
