@@ -885,11 +885,11 @@ insert into platform.module_definitions (
 );
 
 insert into platform.module_permission_bindings (
-  module_definition_id, permission_id, is_active, valid_from, valid_to
+  module_definition_id, permission_id, lifecycle_status, valid_from, valid_to
 ) values (
   (select id from platform.module_definitions where code = 'temp_binding_mod'),
   (select id from identity.permissions where code = 'maintenance.requests.manage' limit 1),
-  true,
+  'active',
   statement_timestamp() + interval '10 days',
   null
 );

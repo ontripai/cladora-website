@@ -486,21 +486,6 @@ begin
       raise exception 'workspace_member_role_already_revoked' using errcode = '42501';
     end if;
 
-    -- Revocation transition only: valid_to must transition from NULL to a valid timestamp
-    if new.valid_to is null or new.valid_to < old.valid_from then
-      raise exception 'workspace_member_role_update_must_be_revocation' using errcode = '42501';
-    end if;
-
-    -- lock_version must increment by exactly 1
-    if new.lock_version <> old.lock_version + 1 then
-      raise exception 'workspace_member_role_expected_lock_version_conflict' using errcode = '40001';
-    end if;
-
-    -- Reason must be valid
-    if new.reason is null or length(trim(new.reason)) < 5 then
-      raise exception 'workspace_member_role_reason_invalid' using errcode = '22023';
-    end if;
-
     -- All identity, scope, role, membership, timestamps, and creator provenance fields are strictly immutable
     if new.id <> old.id
        or new.customer_workspace_id <> old.customer_workspace_id
@@ -516,6 +501,21 @@ begin
        or new.assigned_by_user_id <> old.assigned_by_user_id
        or new.assigned_by_membership_id <> old.assigned_by_membership_id then
       raise exception 'workspace_member_role_fields_immutable' using errcode = '42501';
+    end if;
+
+    -- Revocation transition only: valid_to must transition from NULL to a valid timestamp
+    if new.valid_to is null or new.valid_to < old.valid_from then
+      raise exception 'workspace_member_role_update_must_be_revocation' using errcode = '42501';
+    end if;
+
+    -- lock_version must increment by exactly 1
+    if new.lock_version <> old.lock_version + 1 then
+      raise exception 'workspace_member_role_expected_lock_version_conflict' using errcode = '40001';
+    end if;
+
+    -- Reason must be valid
+    if new.reason is null or length(trim(new.reason)) < 5 then
+      raise exception 'workspace_member_role_reason_invalid' using errcode = '22023';
     end if;
 
     return new;
