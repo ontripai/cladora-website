@@ -117,9 +117,9 @@ All architectural mandates have been implemented and verified:
 
 ### 3.2 Migration 102 & Test 089 Identifiers
 - **Migration 102 Path:** `supabase/migrations/20260917120000_workspace_dynamic_composition.sql`
-- **Migration 102 SHA-256:** `CDB872F98300A237E3AE7BC086D874D704E667C7068BF8B63E1BFDB52DC0676B`
+- **Migration 102 SHA-256:** `5D96EA037185F6A4B302455CD060FF598CAC6435D05CE97E89D2E6C9D41189A6`
 - **Test 089 Path:** `supabase/tests/089_workspace_dynamic_composition.test.sql`
-- **Test 089 SHA-256:** `7BDF0448E1AFBDE3CF84196DC0C89FB5FFE0F84E20643E5D9B6C443657159C36`
+- **Test 089 SHA-256:** `BEB8A2631F657B6B4E12DB04BD85E7E12D5A34922047613FAD33BF95D0BB26C8`
 - **pgTAP Plan:** Exactly 96 assertions matching `SELECT plan(96);`.
 
 ### 3.3 Concurrency Rehearsal

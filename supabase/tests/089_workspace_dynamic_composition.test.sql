@@ -634,7 +634,7 @@ where module_definition_id = (select id from platform.module_definitions where c
 select ok(
   (select (m->>'profile_compatibility' = 'compatible' and m->>'operating_model_compatibility' = 'compatible' and m->>'effective_compatibility' = 'compatible' and (m->>'is_compatible')::boolean = true and (m->>'can_activate')::boolean = true)
    from jsonb_array_elements((customer_api.get_workspace_composition_v1('89500000-0000-0000-0000-000000000001'))->'modules') m
-   where m->>'code' = 'occupancy'),
+   where m->>'code' = 'documents'),
   'projection for compatible + compatible returns is_compatible true and can_activate true'
 );
 
@@ -741,7 +741,7 @@ select throws_ok(
 
 -- 9.4 Safe deactivation of leaf module (billing) is not blocked even without active taxonomy
 update platform.workspace_taxonomy_assignments
-set status = 'inactive'
+set status = 'archived', valid_to = statement_timestamp()
 where customer_workspace_id = '89600000-0000-0000-0000-000000000001';
 
 select lives_ok(
@@ -750,7 +750,7 @@ select lives_ok(
 );
 
 update platform.workspace_taxonomy_assignments
-set status = 'active'
+set status = 'active', valid_to = null
 where customer_workspace_id = '89600000-0000-0000-0000-000000000001';
 
 -- 9.5 Deactivated module is closed with valid_to NOT NULL

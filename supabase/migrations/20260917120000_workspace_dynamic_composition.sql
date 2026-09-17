@@ -700,12 +700,13 @@ begin
       end,
       'is_installed', (wm.id is not null),
       'is_entitled', (d.entitlement_key is not null and e.id is not null and (e.valid_until is null or e.valid_until > statement_timestamp())),
-      'is_compatible', (
+      'is_compatible', coalesce(
         v_assignment.id is not null
         and ppc.compatibility_level = 'compatible'
-        and omc.compatibility_level = 'compatible'
+        and omc.compatibility_level = 'compatible',
+        false
       ),
-      'activation_allowed', (
+      'activation_allowed', coalesce(
         wm.id is null
         and d.lifecycle_status in ('active', 'published')
         and d.entitlement_key is not null
@@ -725,9 +726,10 @@ begin
                 and req_wm.valid_to is null
                 and req_wm.status = 'active'
             )
-        )
+        ),
+        false
       ),
-      'can_activate', (
+      'can_activate', coalesce(
         wm.id is null
         and d.lifecycle_status in ('active', 'published')
         and d.entitlement_key is not null
@@ -747,7 +749,8 @@ begin
                 and req_wm.valid_to is null
                 and req_wm.status = 'active'
             )
-        )
+        ),
+        false
       ),
       'can_deactivate', (wm.id is not null and wm.status = 'active')
     ) order by d.code
