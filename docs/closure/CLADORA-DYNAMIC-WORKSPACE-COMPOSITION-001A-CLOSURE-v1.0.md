@@ -132,7 +132,7 @@ All findings cataloged in `CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-SECURITY-A
 - **Three (3) Accepted `SECURITY DEFINER` Gateways:**
   - `customer_api.get_workspace_composition_v1(uuid)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
   - `customer_api.activate_workspace_module_v1(uuid, uuid, uuid, jsonb, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
-  - `customer_api.deactivate_workspace_module_v1(uuid, uuid, uuid, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
+  - `customer_api.deactivate_workspace_module_v1(uuid, uuid, text, text)` -> `ACCEPTED-CONTROLLED-EXCEPTION`
 - **Seven (7) Accepted Deny-by-Default RLS Tables:**
   - All 7 new `platform.*` tables enforce deny-by-default RLS -> `ACCEPTED-DENY-BY-DEFAULT-INFORMATIONAL`
 - **Unexpected Findings:** 0 (zero unexpected warnings or errors).
