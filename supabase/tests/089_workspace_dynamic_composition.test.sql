@@ -211,9 +211,9 @@ begin
 
   -- Workspaces
   insert into platform.customer_workspaces (id, tenant_id, workspace_type, commercial_owner, environment, lifecycle_status) values
-    (v_ws_1, v_tenant_a, 'association', 'Commercial Alpha 1', 'production', 'ACTIVE'),
-    (v_ws_2, v_tenant_a, 'association', 'Commercial Alpha 2', 'production', 'ACTIVE'),
-    (v_ws_b, v_tenant_b, 'association', 'Commercial Beta', 'production', 'ACTIVE');
+    (v_ws_1, v_tenant_a, 'ASSOCIATION', 'Commercial Alpha 1', 'PILOT', 'ACTIVE'),
+    (v_ws_2, v_tenant_a, 'ASSOCIATION', 'Commercial Alpha 2', 'PILOT', 'ACTIVE'),
+    (v_ws_b, v_tenant_b, 'ASSOCIATION', 'Commercial Beta', 'PILOT', 'ACTIVE');
 
   -- Property Bindings
   insert into platform.workspace_property_bindings (tenant_id, customer_workspace_id, property_id, status, binding_source) values
