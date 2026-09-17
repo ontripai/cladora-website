@@ -475,11 +475,10 @@ select throws_ok(
 
 -- 8.2 Ambiguous active taxonomy assignments on workspace causes fail-closed (42501)
 alter table platform.workspace_taxonomy_assignments disable trigger guard_ws_taxonomy_assignment_before_ins_upd;
+alter table platform.workspace_taxonomy_assignments disable trigger a_guard_ws_taxonomy_assignments_history;
 
 insert into platform.workspace_taxonomy_assignments (id, tenant_id, customer_workspace_id, property_profile_id, operating_model_id, status, valid_from, created_by)
 values ('89a00000-0000-0000-0000-000000000009', '89100000-0000-0000-0000-000000000001', '89600000-0000-0000-0000-000000000001', (select id from platform.property_profiles where code = 'residential_complex' and version = 1), (select id from platform.operating_models where code = 'association_managed' and version = 1), 'active', statement_timestamp() - interval '1 day', '89000000-0000-0000-0000-000000000001');
-
-alter table platform.workspace_taxonomy_assignments enable trigger guard_ws_taxonomy_assignment_before_ins_upd;
 
 select throws_ok(
   $$select customer_api.activate_workspace_module_v1('89500000-0000-0000-0000-000000000001', (select id from platform.module_definitions where code = 'documents' and version = 1), null, '{}'::jsonb, 'idem-tax-ambig-001', 'Activation on ambiguous workspace')$$,
@@ -489,6 +488,9 @@ select throws_ok(
 );
 
 delete from platform.workspace_taxonomy_assignments where id = '89a00000-0000-0000-0000-000000000009';
+
+alter table platform.workspace_taxonomy_assignments enable trigger guard_ws_taxonomy_assignment_before_ins_upd;
+alter table platform.workspace_taxonomy_assignments enable trigger a_guard_ws_taxonomy_assignments_history;
 
 -- 8.3 Missing property profile compatibility rule causes fail-closed (42501)
 delete from platform.module_property_profile_compatibilities
