@@ -739,7 +739,11 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
 
       {/* Workspace Universal Taxonomy Classification */}
       {dashboard?.context?.id && (
-        <WorkspaceTaxonomyCard lang={lang} contextId={dashboard.context.id} />
+        <WorkspaceTaxonomyCard
+          lang={lang}
+          contextId={dashboard.context.id}
+          canManage={permissions.includes('workspace.taxonomy.manage')}
+        />
       )}
 
       {/* --------------------------------------------------------------------- */}
