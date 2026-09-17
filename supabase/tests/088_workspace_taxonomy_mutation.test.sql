@@ -509,7 +509,7 @@ select ok(
     'third_party_managed',
     'RO',
     '88900000-0000-0000-0000-000000000013'::uuid,
-    ((customer_api.get_workspace_taxonomy_v1('88600000-0000-0000-0000-000000000001'))->>'assignment_id')::uuid,
+    (select id from platform.workspace_taxonomy_assignments where customer_workspace_id = '88400000-0000-0000-0000-000000000001' and status = 'superseded'),
     'Contracted professional third-party management company'
   ))->>'idempotent_replay')::boolean = true,
   'e2e step 6a: retry with same idempotency key returns idempotent_replay=true'

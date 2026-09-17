@@ -42,7 +42,7 @@ All strict boundaries were upheld:
      - Transactional mutation RPC `customer_api.assign_workspace_taxonomy_v1`.
 2. **pgTAP Test 088:**
    - Path: `supabase/tests/088_workspace_taxonomy_mutation.test.sql`
-   - SHA-256: `06E9C930BBF9AF51D6B3DAAE6D6F3AEAAEEDC85363B3253B4FF4EAFCF7C2F176`
+   - SHA-256: `8B709564BF2899481F5DBE070ECD7142AA5225519B59B03701EAFCDFBE13EE67`
    - Plan: Exact 66 planned and executed assertions in `BEGIN; ... ROLLBACK;`.
    - Coverage:
      - Remediation 1: Active workspace returns canonical `assignment_id`; unassigned returns explicit `null`.
