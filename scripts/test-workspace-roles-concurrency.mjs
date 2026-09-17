@@ -255,7 +255,7 @@ async function run() {
 
     const auditCountRes = await observer.query(`
       SELECT count(*) as cnt FROM audit.events
-      WHERE tenant_id = '${F_TENANT}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
+      WHERE entity_id = '${F_ROLE}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
     `);
     assert.equal(Number(auditCountRes.rows[0].cnt), 1, 'Exactly 1 audit event created by real RPC');
 
@@ -291,7 +291,7 @@ async function run() {
     // Verify zero side effects on replay
     const auditAfterReplay = await observer.query(`
       SELECT count(*) as cnt FROM audit.events
-      WHERE tenant_id = '${F_TENANT}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
+      WHERE entity_id = '${F_ROLE}' AND action = 'WORKSPACE_ROLE_PUBLISHED'
     `);
     assert.equal(Number(auditAfterReplay.rows[0].cnt), 1, 'Zero duplicate audit events after RPC replay');
 
