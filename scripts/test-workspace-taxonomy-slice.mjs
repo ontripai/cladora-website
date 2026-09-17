@@ -140,7 +140,7 @@ assert.match(uiCode, /role="alert"/, 'Error alert accessibility role present');
 // Verify integration in CustomerDashboard
 const dashboardCode = fs.readFileSync('src/components/customer/CustomerDashboard.tsx', 'utf8');
 assert.match(dashboardCode, /import \{ WorkspaceTaxonomyCard \} from '@\/components\/workspace\/WorkspaceTaxonomyCard'/, 'WorkspaceTaxonomyCard imported in CustomerDashboard');
-assert.match(dashboardCode, /<WorkspaceTaxonomyCard lang=\{lang\} contextId=\{dashboard\.context\.id\} \/>/, 'WorkspaceTaxonomyCard rendered with active context in CustomerDashboard');
+assert.match(dashboardCode, /<WorkspaceTaxonomyCard[\s\S]*?lang=\{lang\}[\s\S]*?contextId=\{dashboard\.context\.id\}[\s\S]*?canManage=\{permissions\.includes\('workspace\.taxonomy\.manage'\)\}/, 'WorkspaceTaxonomyCard rendered with active context and server-authoritative canManage in CustomerDashboard');
 console.log('  ✔ UI component provides complete RO/EN/FA copy, neutral unbound state, RTL layout, and integration in real customer dashboard.');
 
 // 5. Zero Side-Effect & Non-Derivation Boundary
