@@ -227,8 +227,7 @@ $$;
 -- ----------------------------------------------------------------------------
 
 -- Set auth context to admin user with AAL2
-set local role authenticated;
-select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000010', 'aal', 'aal2')::text, true);
+select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000010', 'role', 'authenticated', 'aal', 'aal2')::text, true);
 
 -- 5.1 Create Draft Role
 select lives_ok(

@@ -44,7 +44,7 @@ All core mandates are implemented and verified:
 - **Migration 103 Path:** `supabase/migrations/20260918120000_workspace_local_roles_permissions.sql`
 - **Migration 103 SHA-256:** `A194C09326B3DDB73C5D0DA667C1F142FC6A9249BA08321A913613D3560B201F`
 - **Test 090:** `supabase/tests/090_workspace_local_roles.test.sql`
-- **Test 090 SHA-256:** `91A46AB086BB21E3237DCB5EAA9B455ED8979011DA6ED1438AF6ECC16F505BE5`
+- **Test 090 SHA-256:** `493960030B3B4DEBB47FE2B074536F66221727975992C753EB44C329BF320AE3`
 - **pgTAP Plan:** Exactly 76 assertions matching `SELECT plan(76);`.
 
 ---
