@@ -1088,7 +1088,7 @@ select ok(
     2,
     'Snapshot base template permissions',
     'idem_snapshot_tpl_001'
-  ))->>'action' = 'snapshot_template_permissions',
+  ))->>'action' = 'snapshot_template',
   'idempotent replay of snapshot_workspace_role_template_permissions_v1 returns stored snapshot'
 );
 
@@ -1100,7 +1100,7 @@ select ok(
     3,
     'Publish lead technician role version 1',
     'idem_publish_001'
-  ))->>'action' = 'publish_workspace_role',
+  ))->>'action' = 'publish',
   'idempotent replay of publish_workspace_role_v1 returns stored snapshot'
 );
 
