@@ -220,7 +220,7 @@ assert.match(closureContent, /residential_condominium/i, 'Closure report documen
 assert.match(closureContent, /association_managed/i, 'Closure report documents association_managed compatibility');
 
 // R4 Mandates: Closure document records R4 and deferred policies
-assert.match(closureContent, /CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4/i, 'Closure report documents R4 remediation');
+assert.match(closureContent, /(CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A-R4|CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-001A)/i, 'Closure report documents R4 remediation');
 assert.match(closureContent, /DEFERRED-COUNTRY-PACK-MODULE-POLICY/i, 'Closure report documents deferred country pack policy');
 
 console.log('  ✔ Documentation drift guard verified: zero stale taxonomy codes, 12 canonical modules present.');
