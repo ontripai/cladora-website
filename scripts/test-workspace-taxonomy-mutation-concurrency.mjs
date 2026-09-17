@@ -108,35 +108,36 @@ async function run() {
     const pidObs = await getClientPid(observer);
     console.log(`Connected 3 independent PostgreSQL sessions: Observer (PID: ${pidObs}), Client 1 (PID: ${pid1}), Client 2 (PID: ${pid2})`);
 
-    // Setup synthetic fixtures
-    const fixtureTenant = '99100000-0000-0000-0000-000000000001';
-    const fixtureUser1 = '99000000-0000-0000-0000-000000000001';
-    const fixtureUser2 = '99000000-0000-0000-0000-000000000002';
-    const fixtureWs = '99400000-0000-0000-0000-000000000001';
-    const fixtureProp = '99700000-0000-0000-0000-000000000001';
-    const fixtureAddr = '99800000-0000-0000-0000-000000000001';
-    const fixtureRole = '99300000-0000-0000-0000-000000000001';
-    const fixtureMem1 = '99500000-0000-0000-0000-000000000001';
-    const fixtureMem2 = '99500000-0000-0000-0000-000000000002';
-    const fixtureGrant1 = '99600000-0000-0000-0000-000000000001';
-    const fixtureGrant2 = '99600000-0000-0000-0000-000000000002';
-    const initialAssignmentId = '99a00000-0000-0000-0000-000000000001';
-    const idemKey1 = '99900000-0000-0000-0000-000000000001';
-    const idemKey2 = '99900000-0000-0000-0000-000000000002';
+    // Setup synthetic fixtures (isolated UUIDs with 992 prefix to avoid collisions across concurrency test suites)
+    const fixtureTenant = '99210000-0000-0000-0000-000000000001';
+    const fixtureUser1 = '99200000-0000-0000-0000-000000000001';
+    const fixtureUser2 = '99200000-0000-0000-0000-000000000002';
+    const fixtureWs = '99240000-0000-0000-0000-000000000001';
+    const fixtureProp = '99270000-0000-0000-0000-000000000001';
+    const fixtureAddr = '99280000-0000-0000-0000-000000000001';
+    const fixtureRole = '99230000-0000-0000-0000-000000000001';
+    const fixtureMem1 = '99250000-0000-0000-0000-000000000001';
+    const fixtureMem2 = '99250000-0000-0000-0000-000000000002';
+    const fixtureGrant1 = '99260000-0000-0000-0000-000000000001';
+    const fixtureGrant2 = '99260000-0000-0000-0000-000000000002';
+    const initialAssignmentId = '992a0000-0000-0000-0000-000000000001';
+    const idemKey1 = '99290000-0000-0000-0000-000000000001';
+    const idemKey2 = '99290000-0000-0000-0000-000000000002';
+    const fixtureBinding = '992b0000-0000-0000-0000-000000000001';
 
     await observer.query('BEGIN');
     await observer.query(`
       INSERT INTO auth.users(id, email) VALUES
-        ('${fixtureUser1}', 'c1@test.com'),
-        ('${fixtureUser2}', 'c2@test.com')
+        ('${fixtureUser1}', 'c1-mutation@test.com'),
+        ('${fixtureUser2}', 'c2-mutation@test.com')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO platform.tenants(id, legal_name, registration_number, status) VALUES
-        ('${fixtureTenant}', 'Tenant Concurrency', 'RO-CONC-99', 'active')
+        ('${fixtureTenant}', 'Tenant Concurrency Mutation', 'RO-CONC-MUT-99', 'active')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO platform.customer_workspaces(id, tenant_id, workspace_type, lifecycle_status, commercial_owner, environment) VALUES
-        ('${fixtureWs}', '${fixtureTenant}', 'ASSOCIATION', 'ACTIVE', 'Conc WS', 'PILOT')
+        ('${fixtureWs}', '${fixtureTenant}', 'ASSOCIATION', 'ACTIVE', 'Conc Mutation WS', 'PILOT')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO identity.roles(id, tenant_id, code, name) VALUES
@@ -149,15 +150,15 @@ async function run() {
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO portfolio.addresses(id, tenant_id, city, street, building_no) VALUES
-        ('${fixtureAddr}', '${fixtureTenant}', 'Bucharest', 'Strada Conc', '1')
+        ('${fixtureAddr}', '${fixtureTenant}', 'Bucharest', 'Strada Conc Mut', '1')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO portfolio.properties(id, tenant_id, type, name, address_id, status) VALUES
-        ('${fixtureProp}', '${fixtureTenant}', 'condominium', 'Conc Prop', '${fixtureAddr}', 'active')
+        ('${fixtureProp}', '${fixtureTenant}', 'condominium', 'Conc Mut Prop', '${fixtureAddr}', 'active')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO platform.workspace_property_bindings(id, tenant_id, customer_workspace_id, property_id, status, binding_source, created_by) VALUES
-        ('99b10000-0000-0000-0000-000000000001', '${fixtureTenant}', '${fixtureWs}', '${fixtureProp}', 'active', 'building_setup', '${fixtureUser1}')
+        ('${fixtureBinding}', '${fixtureTenant}', '${fixtureWs}', '${fixtureProp}', 'active', 'building_setup', '${fixtureUser1}')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO identity.context_grants(id, membership_id, tenant_id, scope_type, property_id) VALUES
