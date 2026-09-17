@@ -898,7 +898,7 @@ select ok(not exists(
 
 -- 8.8 Zero Side Effects on Identity Delegations
 select ok(not exists(
-  select 1 from identity.delegations where purpose like '%090%'
+  select 1 from identity.delegations where justification like '%090%'
 ), 'legacy identity.delegations remains completely untouched');
 
 rollback;

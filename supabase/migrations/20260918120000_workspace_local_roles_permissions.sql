@@ -1051,26 +1051,34 @@ begin
     and wm.valid_to is null;
 
   -- 4. Available Permissions for Installed Modules
-  select coalesce(jsonb_agg(distinct
+  select coalesce(jsonb_agg(
     jsonb_build_object(
-      'id', p.id,
-      'code', p.code,
-      'module_code', md.code,
-      'permission_mode', mpb.permission_mode,
-      'requires_aal2', mpb.requires_aal2
-    ) order by p.code
+      'id', sub.id,
+      'code', sub.code,
+      'module_code', sub.module_code,
+      'permission_mode', sub.permission_mode,
+      'requires_aal2', sub.requires_aal2
+    ) order by sub.code, sub.module_code
   ), '[]'::jsonb)
   into v_available_permissions
-  from platform.workspace_modules wm
-  join platform.module_definitions md on md.id = wm.module_definition_id
-  join platform.module_permission_bindings mpb on mpb.module_definition_id = md.id
-  join identity.permissions p on p.id = mpb.permission_id
-  where wm.customer_workspace_id = v_res.workspace_id
-    and wm.status = 'active'
-    and wm.valid_to is null
-    and mpb.is_assignable_to_local_role = true
-    and mpb.lifecycle_status = 'active'
-    and (mpb.valid_to is null or mpb.valid_to > statement_timestamp());
+  from (
+    select distinct
+      p.id,
+      p.code,
+      md.code as module_code,
+      mpb.permission_mode,
+      mpb.requires_aal2
+    from platform.workspace_modules wm
+    join platform.module_definitions md on md.id = wm.module_definition_id
+    join platform.module_permission_bindings mpb on mpb.module_definition_id = md.id
+    join identity.permissions p on p.id = mpb.permission_id
+    where wm.customer_workspace_id = v_res.workspace_id
+      and wm.status = 'active'
+      and wm.valid_to is null
+      and mpb.is_assignable_to_local_role = true
+      and mpb.lifecycle_status = 'active'
+      and (mpb.valid_to is null or mpb.valid_to > statement_timestamp())
+  ) sub;
 
   -- 5. Available Base Role Templates
   select coalesce(jsonb_agg(
