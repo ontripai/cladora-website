@@ -139,6 +139,7 @@ async function run() {
     const fixtureUser2 = '99300000-0000-0000-0000-000000000002';
     const fixtureUser3 = '99300000-0000-0000-0000-000000000003';
     const fixtureWs = '99340000-0000-0000-0000-000000000001';
+    const fixtureAddr = '99380000-0000-0000-0000-000000000001';
     const fixtureProp = '99370000-0000-0000-0000-000000000001';
     const fixtureRole = '99330000-0000-0000-0000-000000000001';
     const fixtureMem1 = '99350000-0000-0000-0000-000000000001';
@@ -160,24 +161,35 @@ async function run() {
         ('${fixtureUser3}', 'c3-module@test.com')
       ON CONFLICT (id) DO NOTHING;
 
-      INSERT INTO platform.tenants(id, code, name, status) VALUES
-        ('${fixtureTenant}', 'TENANT-CONC-MOD-99', 'Tenant Concurrency Module', 'active')
+      INSERT INTO platform.tenants(id, legal_name, registration_number, status) VALUES
+        ('${fixtureTenant}', 'Tenant Concurrency Module', 'RO-CONC-MOD-99', 'active')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO platform.customer_workspaces(id, tenant_id, workspace_type, lifecycle_status, commercial_owner, environment) VALUES
-        ('${fixtureWs}', '${fixtureTenant}', 'association', 'ACTIVE', 'Conc Module WS', 'production')
+        ('${fixtureWs}', '${fixtureTenant}', 'ASSOCIATION', 'ACTIVE', 'Conc Module WS', 'PILOT')
       ON CONFLICT (id) DO NOTHING;
 
-      SELECT id INTO '${fixtureRole}' FROM identity.roles WHERE lower(code) = 'association_admin' LIMIT 1;
+      INSERT INTO identity.roles(id, tenant_id, code, name) VALUES
+        ('${fixtureRole}', '${fixtureTenant}', 'association_admin', 'Admin')
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO identity.role_permissions(role_id, permission_id, effect)
+      SELECT '${fixtureRole}', id, 'allow'
+      FROM identity.permissions WHERE code = 'workspace.module.manage'
+      ON CONFLICT DO NOTHING;
 
       INSERT INTO identity.memberships(id, tenant_id, user_id, role_id, status, starts_at) VALUES
-        ('${fixtureMem1}', '${fixtureTenant}', '${fixtureUser1}', (SELECT id FROM identity.roles WHERE lower(code)='association_admin' LIMIT 1), 'active', statement_timestamp() - interval '1 day'),
-        ('${fixtureMem2}', '${fixtureTenant}', '${fixtureUser2}', (SELECT id FROM identity.roles WHERE lower(code)='association_admin' LIMIT 1), 'active', statement_timestamp() - interval '1 day'),
-        ('${fixtureMem3}', '${fixtureTenant}', '${fixtureUser3}', (SELECT id FROM identity.roles WHERE lower(code)='association_admin' LIMIT 1), 'active', statement_timestamp() - interval '1 day')
+        ('${fixtureMem1}', '${fixtureTenant}', '${fixtureUser1}', '${fixtureRole}', 'active', statement_timestamp() - interval '1 day'),
+        ('${fixtureMem2}', '${fixtureTenant}', '${fixtureUser2}', '${fixtureRole}', 'active', statement_timestamp() - interval '1 day'),
+        ('${fixtureMem3}', '${fixtureTenant}', '${fixtureUser3}', '${fixtureRole}', 'active', statement_timestamp() - interval '1 day')
       ON CONFLICT (id) DO NOTHING;
 
-      INSERT INTO portfolio.properties(id, tenant_id, type, name, status) VALUES
-        ('${fixtureProp}', '${fixtureTenant}', 'condominium', 'Conc Module Prop', 'active')
+      INSERT INTO portfolio.addresses(id, tenant_id, city, street, building_no) VALUES
+        ('${fixtureAddr}', '${fixtureTenant}', 'Bucharest', 'Strada Conc Mod', '1')
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO portfolio.properties(id, tenant_id, type, name, address_id, status) VALUES
+        ('${fixtureProp}', '${fixtureTenant}', 'condominium', 'Conc Mod Prop', '${fixtureAddr}', 'active')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO platform.workspace_property_bindings(id, tenant_id, customer_workspace_id, property_id, status, binding_source, created_by) VALUES
@@ -319,8 +331,11 @@ async function run() {
         DELETE FROM identity.context_grants WHERE tenant_id = '99310000-0000-0000-0000-000000000001';
         DELETE FROM platform.workspace_property_bindings WHERE tenant_id = '99310000-0000-0000-0000-000000000001';
         DELETE FROM portfolio.properties WHERE tenant_id = '99310000-0000-0000-0000-000000000001';
+        DELETE FROM portfolio.addresses WHERE tenant_id = '99310000-0000-0000-0000-000000000001';
         DELETE FROM platform.customer_workspaces WHERE tenant_id = '99310000-0000-0000-0000-000000000001';
         DELETE FROM identity.memberships WHERE tenant_id = '99310000-0000-0000-0000-000000000001';
+        DELETE FROM identity.role_permissions WHERE role_id = '99330000-0000-0000-0000-000000000001';
+        DELETE FROM identity.roles WHERE tenant_id = '99310000-0000-0000-0000-000000000001';
         DELETE FROM platform.tenants WHERE id = '99310000-0000-0000-0000-000000000001';
         DELETE FROM auth.users WHERE id IN ('99300000-0000-0000-0000-000000000001', '99300000-0000-0000-0000-000000000002', '99300000-0000-0000-0000-000000000003');
       `);
