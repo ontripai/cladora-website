@@ -278,14 +278,14 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version,
+    purpose, valid_from, valid_until, lock_version, created_by,
     approval_policy_code, required_approval_count, payload_hash, submitted_at, activated_at
   ) values (
     '09100000-0000-0000-0000-000000009999'::uuid, 'DEL-TEST-PRE', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'active', 0,
     'Pre-existing delegation for deny and recursion tests',
-    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6,
+    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6, v_user_grantor_id,
     'single_manager', 1, 'mock_hash', statement_timestamp() - interval '1 hour', statement_timestamp() - interval '30 minutes'
   ) on conflict do nothing;
 
@@ -304,13 +304,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000008001'::uuid, 'DEL-TEST-EXC', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'draft', 0,
     'Delegation exceeding duration ceiling',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '45 days', 2
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '45 days', 2, v_user_grantor_id
   ) on conflict do nothing;
 
   insert into platform.workspace_delegation_permissions (
@@ -327,13 +327,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000008002'::uuid, 'DEL-TEST-AMP', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'draft', 0,
     'Scope amplification delegation',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 1
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 1, v_user_grantor_id
   ) on conflict do nothing;
 
   -- Pre-delegation 3: Grantee Rejection test
@@ -341,14 +341,14 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version,
+    purpose, valid_from, valid_until, lock_version, created_by,
     approval_policy_code, required_approval_count, payload_hash, submitted_at
   ) values (
     '09100000-0000-0000-0000-000000008003'::uuid, 'DEL-TEST-REJ', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'pending_acceptance', 0,
     'Delegation for rejection test',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 2,
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 2, v_user_grantor_id,
     'single_manager', 1, 'hash_for_rejection_test', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
 
@@ -357,14 +357,14 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version,
+    purpose, valid_from, valid_until, lock_version, created_by,
     approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at
   ) values (
     '09100000-0000-0000-0000-000000008004'::uuid, 'DEL-TEST-AREJ', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'pending_approval', 0,
     'Delegation for approver rejection test',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 3,
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 3, v_user_grantor_id,
     'single_manager', 1, 'hash_for_approver_rejection', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
 
@@ -373,14 +373,14 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version,
+    purpose, valid_from, valid_until, lock_version, created_by,
     approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at
   ) values (
     '09100000-0000-0000-0000-000000008005'::uuid, 'DEL-TEST-FIN', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'pending_approval', 0,
     'Financial four eyes delegation',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3,
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3, v_user_grantor_id,
     'four_eyes_financial', 1, 'hash_fin', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
 
@@ -389,14 +389,14 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version,
+    purpose, valid_from, valid_until, lock_version, created_by,
     approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at
   ) values (
     '09100000-0000-0000-0000-000000008006'::uuid, 'DEL-TEST-SENS', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'pending_approval', 0,
     'Sensitive procurement delegation',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3,
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3, v_user_grantor_id,
     'four_eyes_sensitive', 1, 'hash_sens', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
 
@@ -405,28 +405,28 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version,
+    purpose, valid_from, valid_until, lock_version, created_by,
     approval_policy_code, required_approval_count, payload_hash, activated_at
   ) values (
     '09100000-0000-0000-0000-000000008007'::uuid, 'DEL-TEST-REV1', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'active', 0,
     'Delegation for grantor revoke test',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 6,
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 6, v_user_grantor_id,
     'single_manager', 1, 'hash_rev1', statement_timestamp() - interval '1 minute'
   ), (
     '09100000-0000-0000-0000-000000008008'::uuid, 'DEL-TEST-REV2', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'active', 0,
     'Delegation for grantee revoke test',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 6,
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 6, v_user_grantor_id,
     'single_manager', 1, 'hash_rev2', statement_timestamp() - interval '1 minute'
   ), (
     '09100000-0000-0000-0000-000000008009'::uuid, 'DEL-TEST-REV3', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'active', 0,
     'Delegation for admin revoke test',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 6,
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 6, v_user_grantor_id,
     'single_manager', 1, 'hash_rev3', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
 
