@@ -278,15 +278,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version, created_by,
-    approval_policy_code, required_approval_count, payload_hash, submitted_at, activated_at
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000009999'::uuid, 'DEL-TEST-PRE', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
-    'property', v_prop_id, 'active', 0,
+    'property', v_prop_id, 'draft', 0,
     'Pre-existing delegation for deny and recursion tests',
-    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6, v_user_grantor_id,
-    'single_manager', 1, 'mock_hash', statement_timestamp() - interval '1 hour', statement_timestamp() - interval '30 minutes'
+    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6, v_user_grantor_id
   ) on conflict do nothing;
 
   insert into platform.workspace_delegation_permissions (
@@ -297,6 +295,15 @@ begin
     (select id from identity.permissions where code = 'occupancy.registry.read' limit 1),
     (select id from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'occupancy' limit 1) and permission_id = (select id from identity.permissions where code = 'occupancy.registry.read' limit 1) and binding_version = 2 limit 1)
   ) on conflict do nothing;
+
+  update platform.workspace_delegations
+  set lifecycle_status = 'active',
+      approval_policy_code = 'single_manager',
+      required_approval_count = 1,
+      payload_hash = 'mock_hash',
+      submitted_at = statement_timestamp() - interval '1 hour',
+      activated_at = statement_timestamp() - interval '30 minutes'
+  where id = '09100000-0000-0000-0000-000000009999'::uuid;
 
   -- Additional pre-delegations for multi-scenario test coverage
   -- Pre-delegation 1: Exceeding duration ceiling
