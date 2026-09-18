@@ -130,6 +130,10 @@ declare
   v_user_censor_id uuid := '09100000-0000-0000-0000-000000000040'::uuid;
   v_user_admin_id uuid := '09100000-0000-0000-0000-000000000050'::uuid;
   v_user_unauth_id uuid := '09100000-0000-0000-0000-000000000060'::uuid;
+  v_user_pm2_id uuid := '09100000-0000-0000-0000-000000000011'::uuid;
+  v_user_grantee_exp_id uuid := '09100000-0000-0000-0000-000000000021'::uuid;
+  v_user_grantor_inv_id uuid := '09100000-0000-0000-0000-000000000012'::uuid;
+  v_user_grantee_inv_id uuid := '09100000-0000-0000-0000-000000000022'::uuid;
 
   v_ws_id uuid := '09100000-0000-0000-0000-000000000100'::uuid;
   v_ws2_id uuid := '09100000-0000-0000-0000-000000000200'::uuid;
@@ -148,6 +152,10 @@ declare
   v_mem_grantee_id uuid := '09100000-0000-0000-0000-000001000002'::uuid;
   v_mem_approver_id uuid := '09100000-0000-0000-0000-000001000005'::uuid;
   v_mem_unauth_id uuid := '09100000-0000-0000-0000-000001000006'::uuid;
+  v_mem_pm2_id uuid := '09100000-0000-0000-0000-000001000011'::uuid;
+  v_mem_grantee_exp_id uuid := '09100000-0000-0000-0000-000001000021'::uuid;
+  v_mem_grantor_inv_id uuid := '09100000-0000-0000-0000-000001000012'::uuid;
+  v_mem_grantee_inv_id uuid := '09100000-0000-0000-0000-000001000022'::uuid;
 
   v_ctx_grantor_id uuid := '09100000-0000-0000-0000-000010000001'::uuid;
   v_ctx_grantee_id uuid := '09100000-0000-0000-0000-000010000002'::uuid;
@@ -155,6 +163,10 @@ declare
   v_ctx_grantor_bld_id uuid := '09100000-0000-0000-0000-000010000004'::uuid;
   v_ctx_approver_id uuid := '09100000-0000-0000-0000-000010000005'::uuid;
   v_ctx_unauth_id uuid := '09100000-0000-0000-0000-000010000006'::uuid;
+  v_ctx_pm2_id uuid := '09100000-0000-0000-0000-000010000011'::uuid;
+  v_ctx_grantee_exp_id uuid := '09100000-0000-0000-0000-000010000021'::uuid;
+  v_ctx_grantor_inv_id uuid := '09100000-0000-0000-0000-000010000012'::uuid;
+  v_ctx_grantee_inv_id uuid := '09100000-0000-0000-0000-000010000022'::uuid;
 
   v_profile_id uuid;
   v_model_id uuid;
@@ -166,7 +178,11 @@ begin
     (v_user_approver_id, 'ws_approver@test.local'),
     (v_user_censor_id, 'ws_censor@test.local'),
     (v_user_admin_id, 'ws_admin@test.local'),
-    (v_user_unauth_id, 'ws_unauth@test.local')
+    (v_user_unauth_id, 'ws_unauth@test.local'),
+    (v_user_pm2_id, 'ws_pm2@test.local'),
+    (v_user_grantee_exp_id, 'ws_grantee_exp@test.local'),
+    (v_user_grantor_inv_id, 'ws_grantor_inv@test.local'),
+    (v_user_grantee_inv_id, 'ws_grantee_inv@test.local')
   on conflict (id) do nothing;
 
   -- Tenants
@@ -227,7 +243,11 @@ begin
     (v_mem_grantor_id, v_tenant_id, v_user_grantor_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_grantee_id, v_tenant_id, v_user_grantee_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_approver_id, v_tenant_id, v_user_approver_id, v_role_pres_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
-    (v_mem_unauth_id, v_tenant2_id, v_user_unauth_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days')
+    (v_mem_unauth_id, v_tenant2_id, v_user_unauth_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_mem_pm2_id, v_tenant_id, v_user_pm2_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_mem_grantee_exp_id, v_tenant_id, v_user_grantee_exp_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_mem_grantor_inv_id, v_tenant_id, v_user_grantor_inv_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_mem_grantee_inv_id, v_tenant_id, v_user_grantee_inv_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days')
   on conflict (id) do nothing;
 
   -- Context Grants
@@ -236,7 +256,11 @@ begin
     (v_ctx_grantee_id, v_tenant_id, v_mem_grantee_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_ctx_grantor_ws2_id, v_tenant_id, v_mem_grantor_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_ctx_approver_id, v_tenant_id, v_mem_approver_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
-    (v_ctx_unauth_id, v_tenant2_id, v_mem_unauth_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days')
+    (v_ctx_unauth_id, v_tenant2_id, v_mem_unauth_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_ctx_pm2_id, v_tenant_id, v_mem_pm2_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_ctx_grantee_exp_id, v_tenant_id, v_mem_grantee_exp_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_ctx_grantor_inv_id, v_tenant_id, v_mem_grantor_inv_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_ctx_grantee_inv_id, v_tenant_id, v_mem_grantee_inv_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days')
   on conflict (id) do nothing;
 
   -- Building-scoped Context Grant for Scope Amplification test
@@ -359,7 +383,7 @@ begin
     'single_manager', 1, 'hash_for_rejection_test', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
 
-  -- Pre-delegation 4: Approver Rejection test
+  -- Pre-delegation 4: Approver Rejection test (Financial four-eyes policy with billing.manage)
   insert into platform.workspace_delegations (
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
@@ -372,8 +396,21 @@ begin
     'property', v_prop_id, 'pending_approval', 0,
     'Delegation for approver rejection test',
     statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 3, v_user_grantor_id,
-    'single_manager', 1, 'hash_for_approver_rejection', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+    'four_eyes_financial', 1, 'dummy_hash', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
+
+  insert into platform.workspace_delegation_permissions (
+    delegation_id, module_definition_id, permission_id, module_permission_binding_id
+  ) values (
+    '09100000-0000-0000-0000-000000008004'::uuid,
+    (select id from platform.module_definitions where code = 'billing' limit 1),
+    (select id from identity.permissions where code = 'billing.manage' limit 1),
+    (select id from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'billing' limit 1) and permission_id = (select id from identity.permissions where code = 'billing.manage' limit 1) and binding_version = 2 limit 1)
+  ) on conflict do nothing;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  where id = '09100000-0000-0000-0000-000000008004'::uuid;
 
   -- Pre-delegation 5: Financial four eyes policy detection
   insert into platform.workspace_delegations (
@@ -388,8 +425,21 @@ begin
     'property', v_prop_id, 'pending_approval', 0,
     'Financial four eyes delegation',
     statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3, v_user_grantor_id,
-    'four_eyes_financial', 1, 'hash_fin', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+    'four_eyes_financial', 1, 'dummy_hash', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
+
+  insert into platform.workspace_delegation_permissions (
+    delegation_id, module_definition_id, permission_id, module_permission_binding_id
+  ) values (
+    '09100000-0000-0000-0000-000000008005'::uuid,
+    (select id from platform.module_definitions where code = 'billing' limit 1),
+    (select id from identity.permissions where code = 'billing.manage' limit 1),
+    (select id from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'billing' limit 1) and permission_id = (select id from identity.permissions where code = 'billing.manage' limit 1) and binding_version = 2 limit 1)
+  ) on conflict do nothing;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  where id = '09100000-0000-0000-0000-000000008005'::uuid;
 
   -- Pre-delegation 6: Sensitive procurement policy detection
   insert into platform.workspace_delegations (
@@ -404,8 +454,79 @@ begin
     'property', v_prop_id, 'pending_approval', 0,
     'Sensitive procurement delegation',
     statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3, v_user_grantor_id,
-    'four_eyes_sensitive', 1, 'hash_sens', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+    'four_eyes_sensitive', 1, 'dummy_hash', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
   ) on conflict do nothing;
+
+  insert into platform.workspace_delegation_permissions (
+    delegation_id, module_definition_id, permission_id, module_permission_binding_id
+  ) values (
+    '09100000-0000-0000-0000-000000008006'::uuid,
+    (select id from platform.module_definitions where code = 'maintenance' limit 1),
+    (select id from identity.permissions where code = 'maintenance.procurement.approve' limit 1),
+    (select id from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1) and permission_id = (select id from identity.permissions where code = 'maintenance.procurement.approve' limit 1) and binding_version = 2 limit 1)
+  ) on conflict do nothing;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  where id = '09100000-0000-0000-0000-000000008006'::uuid;
+
+  -- Dedicated Pre-delegation 10: Dynamic Expiry Test (Isolated fixture)
+  insert into platform.workspace_delegations (
+    id, delegation_code, tenant_id, customer_workspace_id,
+    grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
+    scope_type, property_id, lifecycle_status, delegation_depth,
+    purpose, valid_from, valid_until, lock_version, created_by,
+    approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at, activated_at
+  ) values (
+    '09100000-0000-0000-0000-000000008010'::uuid, 'DEL-TEST-EXP', v_tenant_id, v_ws_id,
+    v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_exp_id, v_user_grantee_exp_id,
+    'property', v_prop_id, 'active', 0,
+    'Dedicated delegation for dynamic temporal expiry test',
+    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6, v_user_grantor_id,
+    'single_manager', 1, 'dummy_hash', statement_timestamp() - interval '1 hour', statement_timestamp() - interval '45 minutes', statement_timestamp() - interval '30 minutes'
+  ) on conflict do nothing;
+
+  insert into platform.workspace_delegation_permissions (
+    delegation_id, module_definition_id, permission_id, module_permission_binding_id
+  ) values (
+    '09100000-0000-0000-0000-000000008010'::uuid,
+    (select id from platform.module_definitions where code = 'maintenance' limit 1),
+    (select id from identity.permissions where code = 'maintenance.requests.manage' limit 1),
+    (select id from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1) and permission_id = (select id from identity.permissions where code = 'maintenance.requests.manage' limit 1) and binding_version = 2 limit 1)
+  ) on conflict do nothing;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  where id = '09100000-0000-0000-0000-000000008010'::uuid;
+
+  -- Dedicated Pre-delegation 12: Dynamic Grantor Invalidation Test (Isolated fixture)
+  insert into platform.workspace_delegations (
+    id, delegation_code, tenant_id, customer_workspace_id,
+    grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
+    scope_type, property_id, lifecycle_status, delegation_depth,
+    purpose, valid_from, valid_until, lock_version, created_by,
+    approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at, activated_at
+  ) values (
+    '09100000-0000-0000-0000-000000008012'::uuid, 'DEL-TEST-INV', v_tenant_id, v_ws_id,
+    v_mem_grantor_inv_id, v_user_grantor_inv_id, v_mem_grantee_inv_id, v_user_grantee_inv_id,
+    'property', v_prop_id, 'active', 0,
+    'Dedicated delegation for dynamic grantor invalidation test',
+    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6, v_user_grantor_inv_id,
+    'single_manager', 1, 'dummy_hash', statement_timestamp() - interval '1 hour', statement_timestamp() - interval '45 minutes', statement_timestamp() - interval '30 minutes'
+  ) on conflict do nothing;
+
+  insert into platform.workspace_delegation_permissions (
+    delegation_id, module_definition_id, permission_id, module_permission_binding_id
+  ) values (
+    '09100000-0000-0000-0000-000000008012'::uuid,
+    (select id from platform.module_definitions where code = 'maintenance' limit 1),
+    (select id from identity.permissions where code = 'maintenance.requests.manage' limit 1),
+    (select id from platform.module_permission_bindings where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1) and permission_id = (select id from identity.permissions where code = 'maintenance.requests.manage' limit 1) and binding_version = 2 limit 1)
+  ) on conflict do nothing;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  where id = '09100000-0000-0000-0000-000000008012'::uuid;
 
   -- Pre-delegations 7 & 8: Revocation tests (Grantor, Grantee, Admin)
   insert into platform.workspace_delegations (
@@ -608,6 +729,16 @@ select customer_api.attach_workspace_delegation_permission_v1(
   'del_idem_reattach_001'
 );
 
+select customer_api.attach_workspace_delegation_permission_v1(
+  '09100000-0000-0000-0000-000010000001'::uuid,
+  (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
+  (select id from platform.module_definitions where code = 'billing' limit 1),
+  (select id from identity.permissions where code = 'billing.manage' limit 1),
+  4,
+  'Attaching financial permission for four_eyes_financial policy',
+  'del_idem_attach_fin_001'
+);
+
 -- 7.4 Duration exceeding grantor authority ceiling is rejected
 select throws_ok(
   $$select customer_api.submit_workspace_delegation_v1(
@@ -628,8 +759,8 @@ select throws_ok(
     '09100000-0000-0000-0000-000010000001'::uuid,
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     (select id from platform.module_definitions where code = 'governance' limit 1),
-    (select id from identity.permissions where code = 'governance.meetings.manage' limit 1),
-    4,
+    (select id from identity.permissions where code = 'governance.votes.cast' limit 1),
+    5,
     'Attaching unheld governance permission',
     'del_idem_attach_unheld_001'
   )$$,
@@ -650,7 +781,7 @@ select throws_ok(
     'del_idem_attach_amp_001'
   )$$,
   '42501',
-  'delegation_grantor_lacks_effective_permission',
+  'delegation_scope_amplification_prohibited',
   'scope amplification beyond grantor direct authority scope is rejected'
 );
 
@@ -662,7 +793,7 @@ select lives_ok(
   $$select customer_api.submit_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000001'::uuid,
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
-    4,
+    5,
     'Submit draft for recipient acceptance',
     'del_idem_submit_001'
   )$$,
@@ -676,7 +807,7 @@ select throws_ok(
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     (select id from platform.module_definitions where code = 'maintenance' limit 1),
     (select id from identity.permissions where code = 'maintenance.work_orders.read' limit 1),
-    5,
+    6,
     'Attaching after submit',
     'del_idem_attach_post_sub'
   )$$,
@@ -691,7 +822,7 @@ select throws_ok(
     '09100000-0000-0000-0000-000010000001'::uuid,
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'accepted',
-    5,
+    6,
     'Non grantee accepting',
     'del_idem_acc_unauth_001'
   )$$,
@@ -726,7 +857,7 @@ select lives_ok(
     '09100000-0000-0000-0000-000010000002'::uuid,
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'accepted',
-    5,
+    6,
     'Accepting delegation responsibility',
     'del_idem_acc_001'
   )$$,
@@ -736,13 +867,20 @@ select lives_ok(
 -- ----------------------------------------------------------------------------
 -- 9. Independent Approvals, Policy Governance & Four-Eyes Controls (9 assertions)
 -- ----------------------------------------------------------------------------
+-- Switch auth context to Grantor (Property Manager) with AAL2 for self-approval check
+select set_config('request.jwt.claims', jsonb_build_object(
+  'sub', '09100000-0000-0000-0000-000000000010',
+  'role', 'authenticated',
+  'aal', 'aal2'
+)::text, true);
+
 -- 9.1 Grantor attempting self-approval is rejected
 select throws_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000001'::uuid,
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'approved',
-    6,
+    7,
     'Grantor self-approving',
     'del_idem_self_app_grantor'
   )$$,
@@ -751,13 +889,20 @@ select throws_ok(
   'grantor attempting self-approval is rejected'
 );
 
+-- Switch auth context to Grantee (Owner) with AAL2 for self-approval check
+select set_config('request.jwt.claims', jsonb_build_object(
+  'sub', '09100000-0000-0000-0000-000000000020',
+  'role', 'authenticated',
+  'aal', 'aal2'
+)::text, true);
+
 -- 9.2 Grantee attempting self-approval is rejected
 select throws_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000002'::uuid,
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'approved',
-    6,
+    7,
     'Grantee self-approving',
     'del_idem_self_app_grantee'
   )$$,
@@ -774,21 +919,19 @@ select set_config('request.jwt.claims', jsonb_build_object(
 )::text, true);
 
 -- 9.3 Approving with stale or mismatched payload hash is rejected
-select throws_ok(
-  $$
-    update platform.workspace_delegations
-    set payload_hash = 'stale_tampered_hash_000000000000000000000000000000000000000000000000'
-    where purpose = 'Maintenance delegation for inspections';
+update platform.workspace_delegations
+set payload_hash = 'stale_tampered_hash_000000000000000000000000000000000000000000000000'
+where purpose = 'Maintenance delegation for inspections';
 
-    select customer_api.approve_workspace_delegation_v1(
-      '09100000-0000-0000-0000-000010000005'::uuid,
-      (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
-      'approved',
-      6,
-      'Approving tampered payload',
-      'del_idem_app_tampered'
-    );
-  $$,
+select throws_ok(
+  $$select customer_api.approve_workspace_delegation_v1(
+    '09100000-0000-0000-0000-000010000005'::uuid,
+    (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
+    'approved',
+    7,
+    'Approving tampered payload',
+    'del_idem_app_tampered'
+  )$$,
   '42501',
   'delegation_stale_payload_hash',
   'approval with stale or mismatched payload hash is rejected'
@@ -814,9 +957,9 @@ select throws_ok(
   'approval with mismatching lock_version is rejected with 40001'
 );
 
--- Switch auth context to Property Manager for policy role check
+-- Switch auth context to dedicated Property Manager 2 for policy role check
 select set_config('request.jwt.claims', jsonb_build_object(
-  'sub', '09100000-0000-0000-0000-000000000010',
+  'sub', '09100000-0000-0000-0000-000000000011',
   'role', 'authenticated',
   'aal', 'aal2'
 )::text, true);
@@ -824,7 +967,7 @@ select set_config('request.jwt.claims', jsonb_build_object(
 -- 9.5 Unauthorized approver role for policy is rejected
 select throws_ok(
   $$select customer_api.approve_workspace_delegation_v1(
-    '09100000-0000-0000-0000-000010000001'::uuid,
+    '09100000-0000-0000-0000-000010000011'::uuid,
     '09100000-0000-0000-0000-000000008005'::uuid,
     'approved',
     3,
@@ -874,7 +1017,7 @@ select lives_ok(
     '09100000-0000-0000-0000-000010000005'::uuid,
     (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'approved',
-    6,
+    7,
     'President approving delegation',
     'del_idem_app_pres_001'
   )$$,
@@ -897,50 +1040,36 @@ select ok(
 );
 
 -- 10.2 Dynamic temporal expiry yields no effective permission without database mutation
-select ok(
-  not (
-    update platform.workspace_delegations
-    set valid_until = statement_timestamp() - interval '1 second'
-    where purpose = 'Maintenance delegation for inspections';
+update platform.workspace_delegations
+set valid_until = statement_timestamp() - interval '1 second'
+where id = '09100000-0000-0000-0000-000000008010'::uuid;
 
-    select app_private.check_effective_permission_v1(
-      '09100000-0000-0000-0000-000010000002'::uuid,
-      'maintenance.requests.manage',
-      'maintenance',
-      'property',
-      '09100000-0000-0000-0000-000000001000'::uuid
-    );
+select ok(
+  not app_private.check_effective_permission_v1(
+    '09100000-0000-0000-0000-000010000021'::uuid,
+    'maintenance.requests.manage',
+    'maintenance',
+    'property',
+    '09100000-0000-0000-0000-000000001000'::uuid
   ),
   'temporally expired delegation dynamically yields no effective permission without database mutation'
 );
 
--- Restore valid_until and test grantor role revocation
-update platform.workspace_delegations
-set valid_until = statement_timestamp() + interval '5 days'
-where purpose = 'Maintenance delegation for inspections';
-
 -- 10.3 Dynamic fail-closed grantor invalidation: revoking grantor role immediately invalidates grantee effective permission
-select ok(
-  not (
-    update identity.memberships
-    set status = 'suspended'
-    where id = '09100000-0000-0000-0000-000001000001'::uuid;
+update identity.memberships
+set ends_at = statement_timestamp() - interval '1 second'
+where id = '09100000-0000-0000-0000-000001000012'::uuid;
 
-    select app_private.check_effective_permission_v1(
-      '09100000-0000-0000-0000-000010000002'::uuid,
-      'maintenance.requests.manage',
-      'maintenance',
-      'property',
-      '09100000-0000-0000-0000-000000001000'::uuid
-    );
+select ok(
+  not app_private.check_effective_permission_v1(
+    '09100000-0000-0000-0000-000010000022'::uuid,
+    'maintenance.requests.manage',
+    'maintenance',
+    'property',
+    '09100000-0000-0000-0000-000000001000'::uuid
   ),
   'revoking grantor direct role immediately invalidates grantee delegated effective permission fail-closed'
 );
-
--- Restore grantor membership
-update identity.memberships
-set status = 'active'
-where id = '09100000-0000-0000-0000-000001000001'::uuid;
 
 -- Switch to Grantor for emergency revocation
 select set_config('request.jwt.claims', jsonb_build_object(

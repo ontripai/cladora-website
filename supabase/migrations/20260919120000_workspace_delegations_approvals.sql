@@ -862,6 +862,38 @@ begin
     return false;
   end if;
 
+  -- Validate p_context_id Context Grant independently (fail-closed, single-row deterministic lookup)
+  select cg.id, cg.tenant_id, cg.membership_id, cg.scope_type, cg.property_id, cg.building_id, cg.unit_id
+  into v_ctx_grant
+  from identity.context_grants cg
+  where cg.id = p_context_id
+    and cg.tenant_id = v_res.tenant_id
+    and cg.membership_id = p_membership_id
+    and cg.starts_at <= statement_timestamp()
+    and (cg.ends_at is null or cg.ends_at > statement_timestamp());
+
+  if found then
+    -- Context Grant scope containment check against Target Scope
+    if v_ctx_grant.scope_type in ('workspace', 'tenant') then
+      v_ctx_scope_covered := true;
+    elsif v_ctx_grant.scope_type = 'property' then
+      if p_target_scope_type in ('property', 'building', 'unit')
+         and v_ctx_grant.property_id = v_target_property_id then
+        v_ctx_scope_covered := true;
+      end if;
+    elsif v_ctx_grant.scope_type = 'building' then
+      if p_target_scope_type in ('building', 'unit')
+         and v_ctx_grant.building_id = v_target_building_id then
+        v_ctx_scope_covered := true;
+      end if;
+    elsif v_ctx_grant.scope_type = 'unit' then
+      if p_target_scope_type = 'unit'
+         and v_ctx_grant.unit_id = v_target_unit_id then
+        v_ctx_scope_covered := true;
+      end if;
+    end if;
+  end if;
+
   -- Deny Path A
   if v_member.role_id is not null and exists (
     select 1 from identity.role_permissions rp
@@ -888,24 +920,24 @@ begin
       and wrp.permission_id = v_perm.id
       and wrp.effect = 'deny'
       and (
-        wmr.scope_type = 'workspace'
-        or (wmr.scope_type = 'property' and wmr.property_id = v_target_property_id)
-        or (wmr.scope_type = 'building' and wmr.building_id = v_target_building_id)
-        or (wmr.scope_type = 'unit' and wmr.unit_id = v_target_unit_id)
+        (wmr.scope_type = 'workspace')
+        or (wmr.scope_type = 'property' and p_target_scope_type in ('property', 'building', 'unit') and wmr.property_id = v_target_property_id)
+        or (wmr.scope_type = 'building' and p_target_scope_type in ('building', 'unit') and wmr.building_id = v_target_building_id)
+        or (wmr.scope_type = 'unit' and p_target_scope_type = 'unit' and wmr.unit_id = v_target_unit_id)
       )
   ) then
     return false;
   end if;
 
-  -- Allow Path A
-  if v_member.role_id is not null and exists (
+  -- Allow Path A (Strict: requires valid context grant that covers target scope)
+  if v_ctx_scope_covered and v_member.role_id is not null and exists (
     select 1 from identity.role_permissions rp
     where rp.role_id = v_member.role_id and rp.permission_id = v_perm.id and rp.effect = 'allow'
   ) then
     v_has_allow := true;
   end if;
 
-  -- Allow Path B
+  -- Allow Path B (Strict: requires local role assignment that covers target scope)
   if not v_has_allow and exists (
     select 1
     from platform.workspace_member_roles wmr
@@ -923,10 +955,10 @@ begin
       and wrp.permission_id = v_perm.id
       and wrp.effect = 'allow'
       and (
-        wmr.scope_type = 'workspace'
-        or (wmr.scope_type = 'property' and wmr.property_id = v_target_property_id)
-        or (wmr.scope_type = 'building' and wmr.building_id = v_target_building_id)
-        or (wmr.scope_type = 'unit' and wmr.unit_id = v_target_unit_id)
+        (wmr.scope_type = 'workspace')
+        or (wmr.scope_type = 'property' and p_target_scope_type in ('property', 'building', 'unit') and wmr.property_id = v_target_property_id)
+        or (wmr.scope_type = 'building' and p_target_scope_type in ('building', 'unit') and wmr.building_id = v_target_building_id)
+        or (wmr.scope_type = 'unit' and p_target_scope_type = 'unit' and wmr.unit_id = v_target_unit_id)
       )
   ) then
     v_has_allow := true;
@@ -1191,14 +1223,21 @@ begin
         or (wd.scope_type = 'unit' and wd.unit_id = v_target_unit_id)
       )
       -- Dynamic Fail-Closed Grantor Check:
-      and app_private.check_direct_effective_permission_v1(
-        p_context_id,
-        wd.grantor_membership_id,
-        p_permission_code,
-        p_module_code,
-        wd.scope_type,
-        coalesce(wd.unit_id, wd.building_id, wd.property_id, v_res.workspace_id)
-      ) = true
+      and exists (
+        select 1 from identity.context_grants gcg
+        where gcg.membership_id = wd.grantor_membership_id
+          and gcg.tenant_id = v_res.tenant_id
+          and gcg.starts_at <= statement_timestamp()
+          and (gcg.ends_at is null or gcg.ends_at > statement_timestamp())
+          and app_private.check_direct_effective_permission_v1(
+            gcg.id,
+            wd.grantor_membership_id,
+            p_permission_code,
+            p_module_code,
+            wd.scope_type,
+            coalesce(wd.unit_id, wd.building_id, wd.property_id, v_res.workspace_id)
+          ) = true
+      )
   ) then
     v_has_allow := true;
   end if;
@@ -1624,7 +1663,73 @@ begin
   if app_private.check_direct_effective_permission_v1(
     p_context_id, v_del.grantor_membership_id, v_perm.code, v_mod.code, v_del.scope_type, v_target_scope_id
   ) is not true then
-    raise exception 'delegation_grantor_lacks_effective_permission' using errcode = '42501';
+    -- Differentiate Scope Amplification from Lack of Permission
+    declare
+      v_grantor_has_perm boolean := false;
+      v_grantor_role_id uuid;
+    begin
+      select m.role_id into v_grantor_role_id
+      from identity.memberships m
+      where m.id = v_del.grantor_membership_id
+        and m.tenant_id = v_res.tenant_id
+        and m.status = 'active'
+        and m.starts_at <= statement_timestamp()
+        and (m.ends_at is null or m.ends_at > statement_timestamp());
+
+      -- Path A general allow (not denied)
+      if v_grantor_role_id is not null and exists (
+        select 1 from identity.role_permissions rp
+        where rp.role_id = v_grantor_role_id and rp.permission_id = v_perm.id and rp.effect = 'allow'
+      ) and not exists (
+        select 1 from identity.role_permissions rp
+        where rp.role_id = v_grantor_role_id and rp.permission_id = v_perm.id and rp.effect = 'deny'
+      ) then
+        v_grantor_has_perm := true;
+      end if;
+
+      -- Path B general allow (not denied)
+      if not v_grantor_has_perm and exists (
+        select 1
+        from platform.workspace_member_roles wmr
+        join platform.workspace_roles wr on wr.id = wmr.workspace_role_id
+        join platform.workspace_role_permissions wrp on wrp.workspace_role_id = wr.id
+        join platform.workspace_role_modules wrm on wrm.workspace_role_id = wr.id
+        where wmr.customer_workspace_id = v_res.workspace_id
+          and wmr.membership_id = v_del.grantor_membership_id
+          and wmr.valid_from <= statement_timestamp()
+          and (wmr.valid_to is null or wmr.valid_to > statement_timestamp())
+          and wr.lifecycle_status = 'published'
+          and wr.valid_from <= statement_timestamp()
+          and (wr.valid_to is null or wr.valid_to > statement_timestamp())
+          and wrm.module_definition_id = v_mod.id
+          and wrp.permission_id = v_perm.id
+          and wrp.effect = 'allow'
+      ) and not exists (
+        select 1
+        from platform.workspace_member_roles wmr
+        join platform.workspace_roles wr on wr.id = wmr.workspace_role_id
+        join platform.workspace_role_permissions wrp on wrp.workspace_role_id = wr.id
+        join platform.workspace_role_modules wrm on wrm.workspace_role_id = wr.id
+        where wmr.customer_workspace_id = v_res.workspace_id
+          and wmr.membership_id = v_del.grantor_membership_id
+          and wmr.valid_from <= statement_timestamp()
+          and (wmr.valid_to is null or wmr.valid_to > statement_timestamp())
+          and wr.lifecycle_status = 'published'
+          and wr.valid_from <= statement_timestamp()
+          and (wr.valid_to is null or wr.valid_to > statement_timestamp())
+          and wrm.module_definition_id = v_mod.id
+          and wrp.permission_id = v_perm.id
+          and wrp.effect = 'deny'
+      ) then
+        v_grantor_has_perm := true;
+      end if;
+
+      if v_grantor_has_perm then
+        raise exception 'delegation_scope_amplification_prohibited' using errcode = '42501';
+      else
+        raise exception 'delegation_grantor_lacks_effective_permission' using errcode = '42501';
+      end if;
+    end;
   end if;
 
   insert into platform.workspace_delegation_permissions (
@@ -2225,14 +2330,6 @@ begin
     raise exception 'invalid_context_or_membership' using errcode = '42501';
   end if;
 
-  if not exists (
-    select 1 from identity.role_permissions rp
-    join identity.permissions p on p.id = rp.permission_id
-    where rp.role_id = v_res.role_id and rp.effect = 'allow' and p.code = 'workspace.delegation.approve'
-  ) then
-    raise exception 'workspace_delegation_approve_permission_required' using errcode = '42501';
-  end if;
-
   perform pg_advisory_xact_lock(hashtextextended('delegation_lock:' || p_delegation_id::text, 0));
 
   v_request_hash := encode(extensions.digest(
@@ -2258,17 +2355,17 @@ begin
     raise exception 'delegation_not_found' using errcode = 'P0002';
   end if;
 
-  if v_del.lock_version <> p_expected_lock_version then
-    raise exception 'workspace_delegation_expected_lock_version_conflict' using errcode = '40001';
-  end if;
-
-  if v_del.lifecycle_status <> 'pending_approval' then
-    raise exception 'workspace_delegation_invalid_lifecycle_transition' using errcode = 'P0001';
-  end if;
-
-  -- Four-Eyes Prohibitions
+  -- Four-Eyes Prohibitions (Precedes approve permission check)
   if auth.uid() = v_del.grantor_user_id or auth.uid() = v_del.grantee_user_id then
     raise exception 'delegation_self_approval_prohibited' using errcode = '42501';
+  end if;
+
+  if not exists (
+    select 1 from identity.role_permissions rp
+    join identity.permissions p on p.id = rp.permission_id
+    where rp.role_id = v_res.role_id and rp.effect = 'allow' and p.code = 'workspace.delegation.approve'
+  ) then
+    raise exception 'workspace_delegation_approve_permission_required' using errcode = '42501';
   end if;
 
   -- Verify Approver Role according to Policy
@@ -2287,6 +2384,15 @@ begin
     end if;
   else
     raise exception 'delegation_unauthorized_approver_role' using errcode = '42501';
+  end if;
+
+  -- 10. Lock version and lifecycle validation
+  if v_del.lock_version <> p_expected_lock_version then
+    raise exception 'workspace_delegation_expected_lock_version_conflict' using errcode = '40001';
+  end if;
+
+  if v_del.lifecycle_status <> 'pending_approval' then
+    raise exception 'workspace_delegation_invalid_lifecycle_transition' using errcode = 'P0001';
   end if;
 
   -- Payload Hash Verification
