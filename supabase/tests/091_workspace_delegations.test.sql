@@ -388,15 +388,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version, created_by,
-    approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000008004'::uuid, 'DEL-TEST-AREJ', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
-    'property', v_prop_id, 'pending_approval', 0,
+    'property', v_prop_id, 'draft', 0,
     'Delegation for approver rejection test',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 3, v_user_grantor_id,
-    'four_eyes_financial', 1, 'dummy_hash', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 1, v_user_grantor_id
   ) on conflict do nothing;
 
   insert into platform.workspace_delegation_permissions (
@@ -409,7 +407,13 @@ begin
   ) on conflict do nothing;
 
   update platform.workspace_delegations
-  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  set lifecycle_status = 'pending_approval',
+      approval_policy_code = 'four_eyes_financial',
+      required_approval_count = 1,
+      submitted_at = statement_timestamp() - interval '2 minutes',
+      accepted_at = statement_timestamp() - interval '1 minute',
+      lock_version = 3,
+      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008004'::uuid;
 
   -- Pre-delegation 5: Financial four eyes policy detection
@@ -417,15 +421,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version, created_by,
-    approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000008005'::uuid, 'DEL-TEST-FIN', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
-    'property', v_prop_id, 'pending_approval', 0,
+    'property', v_prop_id, 'draft', 0,
     'Financial four eyes delegation',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3, v_user_grantor_id,
-    'four_eyes_financial', 1, 'dummy_hash', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 1, v_user_grantor_id
   ) on conflict do nothing;
 
   insert into platform.workspace_delegation_permissions (
@@ -438,7 +440,13 @@ begin
   ) on conflict do nothing;
 
   update platform.workspace_delegations
-  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  set lifecycle_status = 'pending_approval',
+      approval_policy_code = 'four_eyes_financial',
+      required_approval_count = 1,
+      submitted_at = statement_timestamp() - interval '2 minutes',
+      accepted_at = statement_timestamp() - interval '1 minute',
+      lock_version = 3,
+      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008005'::uuid;
 
   -- Pre-delegation 6: Sensitive procurement policy detection
@@ -446,15 +454,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version, created_by,
-    approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000008006'::uuid, 'DEL-TEST-SENS', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
-    'property', v_prop_id, 'pending_approval', 0,
+    'property', v_prop_id, 'draft', 0,
     'Sensitive procurement delegation',
-    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 3, v_user_grantor_id,
-    'four_eyes_sensitive', 1, 'dummy_hash', statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+    statement_timestamp() - interval '1 minute', statement_timestamp() + interval '10 days', 1, v_user_grantor_id
   ) on conflict do nothing;
 
   insert into platform.workspace_delegation_permissions (
@@ -467,7 +473,13 @@ begin
   ) on conflict do nothing;
 
   update platform.workspace_delegations
-  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  set lifecycle_status = 'pending_approval',
+      approval_policy_code = 'four_eyes_sensitive',
+      required_approval_count = 1,
+      submitted_at = statement_timestamp() - interval '2 minutes',
+      accepted_at = statement_timestamp() - interval '1 minute',
+      lock_version = 3,
+      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008006'::uuid;
 
   -- Dedicated Pre-delegation 10: Dynamic Expiry Test (Isolated fixture)
@@ -475,15 +487,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version, created_by,
-    approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at, activated_at
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000008010'::uuid, 'DEL-TEST-EXP', v_tenant_id, v_ws_id,
     v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_exp_id, v_user_grantee_exp_id,
-    'property', v_prop_id, 'active', 0,
+    'property', v_prop_id, 'draft', 0,
     'Dedicated delegation for dynamic temporal expiry test',
-    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6, v_user_grantor_id,
-    'single_manager', 1, 'dummy_hash', statement_timestamp() - interval '1 hour', statement_timestamp() - interval '45 minutes', statement_timestamp() - interval '30 minutes'
+    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 1, v_user_grantor_id
   ) on conflict do nothing;
 
   insert into platform.workspace_delegation_permissions (
@@ -496,7 +506,14 @@ begin
   ) on conflict do nothing;
 
   update platform.workspace_delegations
-  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  set lifecycle_status = 'active',
+      approval_policy_code = 'single_manager',
+      required_approval_count = 1,
+      submitted_at = statement_timestamp() - interval '1 hour',
+      accepted_at = statement_timestamp() - interval '45 minutes',
+      activated_at = statement_timestamp() - interval '30 minutes',
+      lock_version = 6,
+      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008010'::uuid;
 
   -- Dedicated Pre-delegation 12: Dynamic Grantor Invalidation Test (Isolated fixture)
@@ -504,15 +521,13 @@ begin
     id, delegation_code, tenant_id, customer_workspace_id,
     grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
     scope_type, property_id, lifecycle_status, delegation_depth,
-    purpose, valid_from, valid_until, lock_version, created_by,
-    approval_policy_code, required_approval_count, payload_hash, submitted_at, accepted_at, activated_at
+    purpose, valid_from, valid_until, lock_version, created_by
   ) values (
     '09100000-0000-0000-0000-000000008012'::uuid, 'DEL-TEST-INV', v_tenant_id, v_ws_id,
     v_mem_grantor_inv_id, v_user_grantor_inv_id, v_mem_grantee_inv_id, v_user_grantee_inv_id,
-    'property', v_prop_id, 'active', 0,
+    'property', v_prop_id, 'draft', 0,
     'Dedicated delegation for dynamic grantor invalidation test',
-    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 6, v_user_grantor_inv_id,
-    'single_manager', 1, 'dummy_hash', statement_timestamp() - interval '1 hour', statement_timestamp() - interval '45 minutes', statement_timestamp() - interval '30 minutes'
+    statement_timestamp() - interval '1 hour', statement_timestamp() + interval '5 days', 1, v_user_grantor_inv_id
   ) on conflict do nothing;
 
   insert into platform.workspace_delegation_permissions (
@@ -525,7 +540,14 @@ begin
   ) on conflict do nothing;
 
   update platform.workspace_delegations
-  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+  set lifecycle_status = 'active',
+      approval_policy_code = 'single_manager',
+      required_approval_count = 1,
+      submitted_at = statement_timestamp() - interval '1 hour',
+      accepted_at = statement_timestamp() - interval '45 minutes',
+      activated_at = statement_timestamp() - interval '30 minutes',
+      lock_version = 6,
+      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008012'::uuid;
 
   -- Pre-delegations 7 & 8: Revocation tests (Grantor, Grantee, Admin)
