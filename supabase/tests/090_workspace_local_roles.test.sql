@@ -123,14 +123,13 @@ select lives_ok(
   $$
   do $block$
   declare
-    v_fixture_mod_id uuid := '09000000-0000-0000-0000-000000000091'::uuid;
     v_fixture_perm_id uuid := '09000000-0000-0000-0000-000000000092'::uuid;
     v_fixture_v1_id uuid := '09000000-0000-0000-0000-000000000093'::uuid;
     v_fixture_v2_id uuid := '09000000-0000-0000-0000-000000000094'::uuid;
+    v_mod_id uuid;
     v_transition_ts timestamptz := statement_timestamp();
   begin
-    insert into platform.module_definitions (id, code, name, category, lifecycle_status)
-    values (v_fixture_mod_id, 'test_fixture_mod_090', 'Test Fixture Module 090', 'operations', 'active');
+    select id into v_mod_id from platform.module_definitions where code = 'maintenance' limit 1;
 
     insert into identity.permissions (id, code, resource, action, description)
     values (v_fixture_perm_id, 'test.fixture.permission.090', 'test', 'read', 'Test Fixture Permission 090');
@@ -139,7 +138,7 @@ select lives_ok(
       id, module_definition_id, permission_id, binding_version, is_delegable,
       is_assignable_to_local_role, lifecycle_status, valid_from, valid_to
     ) values (
-      v_fixture_v1_id, v_fixture_mod_id, v_fixture_perm_id, 1, false,
+      v_fixture_v1_id, v_mod_id, v_fixture_perm_id, 1, false,
       true, 'active', v_transition_ts - interval '1 hour', null
     );
 
@@ -152,7 +151,7 @@ select lives_ok(
       id, module_definition_id, permission_id, binding_version, is_delegable,
       is_assignable_to_local_role, lifecycle_status, valid_from, valid_to
     ) values (
-      v_fixture_v2_id, v_fixture_mod_id, v_fixture_perm_id, 2, true,
+      v_fixture_v2_id, v_mod_id, v_fixture_perm_id, 2, true,
       true, 'active', v_transition_ts, null
     );
   end;
