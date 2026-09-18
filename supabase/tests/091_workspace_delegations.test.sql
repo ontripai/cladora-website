@@ -146,7 +146,6 @@ declare
 
   v_mem_grantor_id uuid := '09100000-0000-0000-0000-000001000001'::uuid;
   v_mem_grantee_id uuid := '09100000-0000-0000-0000-000001000002'::uuid;
-  v_mem_grantor_bld_id uuid := '09100000-0000-0000-0000-000001000004'::uuid;
   v_mem_approver_id uuid := '09100000-0000-0000-0000-000001000005'::uuid;
   v_mem_unauth_id uuid := '09100000-0000-0000-0000-000001000006'::uuid;
 
@@ -227,7 +226,6 @@ begin
   insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at, ends_at) values
     (v_mem_grantor_id, v_tenant_id, v_user_grantor_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_grantee_id, v_tenant_id, v_user_grantee_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
-    (v_mem_grantor_bld_id, v_tenant_id, v_user_grantor_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_approver_id, v_tenant_id, v_user_approver_id, v_role_pres_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_unauth_id, v_tenant2_id, v_user_unauth_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days')
   on conflict (id) do nothing;
@@ -243,7 +241,7 @@ begin
 
   -- Building-scoped Context Grant for Scope Amplification test
   insert into identity.context_grants (id, tenant_id, membership_id, scope_type, building_id, starts_at, ends_at) values
-    (v_ctx_grantor_bld_id, v_tenant_id, v_mem_grantor_bld_id, 'building', v_bld_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days')
+    (v_ctx_grantor_bld_id, v_tenant_id, v_mem_grantor_id, 'building', v_bld_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days')
   on conflict (id) do nothing;
 
   -- Taxonomy Assignment
@@ -332,7 +330,7 @@ begin
     purpose, valid_from, valid_until, lock_version
   ) values (
     '09100000-0000-0000-0000-000000008002'::uuid, 'DEL-TEST-AMP', v_tenant_id, v_ws_id,
-    v_mem_grantor_bld_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
+    v_mem_grantor_id, v_user_grantor_id, v_mem_grantee_id, v_user_grantee_id,
     'property', v_prop_id, 'draft', 0,
     'Scope amplification delegation',
     statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 1
