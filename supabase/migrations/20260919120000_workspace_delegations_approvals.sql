@@ -876,19 +876,19 @@ begin
 
   if found then
     -- Context Grant scope containment check against Target Scope
-    if v_ctx_grant.scope_type in ('workspace', 'tenant') then
+    if v_ctx_grant.scope_type::text in ('workspace', 'tenant') then
       v_ctx_scope_covered := true;
-    elsif v_ctx_grant.scope_type = 'property' then
+    elsif v_ctx_grant.scope_type::text = 'property' then
       if p_target_scope_type in ('property', 'building', 'unit')
          and v_ctx_grant.property_id = v_target_property_id then
         v_ctx_scope_covered := true;
       end if;
-    elsif v_ctx_grant.scope_type = 'building' then
+    elsif v_ctx_grant.scope_type::text = 'building' then
       if p_target_scope_type in ('building', 'unit')
          and v_ctx_grant.building_id = v_target_building_id then
         v_ctx_scope_covered := true;
       end if;
-    elsif v_ctx_grant.scope_type = 'unit' then
+    elsif v_ctx_grant.scope_type::text = 'unit' then
       if p_target_scope_type = 'unit'
          and v_ctx_grant.unit_id = v_target_unit_id then
         v_ctx_scope_covered := true;
