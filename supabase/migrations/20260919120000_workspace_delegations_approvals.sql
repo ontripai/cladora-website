@@ -710,6 +710,8 @@ declare
   v_target_property_id uuid;
   v_target_building_id uuid;
   v_target_unit_id uuid;
+  v_ctx_grant record;
+  v_ctx_scope_covered boolean := false;
   v_has_allow boolean := false;
 begin
   if p_context_id is null or p_membership_id is null or p_permission_code is null or p_module_code is null or p_target_scope_type is null then
