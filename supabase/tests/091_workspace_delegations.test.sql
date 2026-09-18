@@ -99,7 +99,7 @@ select ok(
 select ok(
   not exists (
     select 1 from pg_proc p
-    join pg_namespace n on n.id = p.pronamespace
+    join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'customer_api' and p.proname = 'attach_workspace_delegation_permission_v1'
       and 'p_effect' = any(p.proargnames)
   ),
@@ -110,7 +110,7 @@ select ok(
 select ok(
   not exists (
     select 1 from pg_proc p
-    join pg_namespace n on n.id = p.pronamespace
+    join pg_namespace n on n.oid = p.pronamespace
     where n.nspname = 'customer_api' and p.proname = 'create_workspace_delegation_draft_v1'
       and 'p_expected_lock_version' = any(p.proargnames)
   ),
