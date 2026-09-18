@@ -943,12 +943,12 @@ select set_config('request.jwt.claims', jsonb_build_object(
 -- 9.3 Approving with stale or mismatched payload hash is rejected
 update platform.workspace_delegations
 set payload_hash = 'stale_tampered_hash_000000000000000000000000000000000000000000000000'
-where purpose = 'Maintenance delegation for inspections';
+where id = '09100000-0000-0000-0000-000000008000'::uuid;
 
 select throws_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000005'::uuid,
-    (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
+    '09100000-0000-0000-0000-000000008000'::uuid,
     'approved',
     7,
     'Approving tampered payload',
@@ -962,13 +962,13 @@ select throws_ok(
 -- Restore genuine payload hash
 update platform.workspace_delegations
 set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
-where purpose = 'Maintenance delegation for inspections';
+where id = '09100000-0000-0000-0000-000000008000'::uuid;
 
 -- 9.4 Approving with mismatching lock_version is rejected with 40001
 select throws_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000005'::uuid,
-    (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
+    '09100000-0000-0000-0000-000000008000'::uuid,
     'approved',
     99,
     'Approving with stale lock version',
@@ -1037,7 +1037,7 @@ select ok(
 select lives_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000005'::uuid,
-    (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
+    '09100000-0000-0000-0000-000000008000'::uuid,
     'approved',
     7,
     'President approving delegation',

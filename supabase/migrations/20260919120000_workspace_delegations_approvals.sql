@@ -439,18 +439,17 @@ begin
       raise exception 'workspace_delegation_core_identity_immutable' using errcode = '42501';
     end if;
 
-    -- Once submitted, scope, timeframes, purpose, and policy become immutable
+    -- Once submitted, scope, valid_from, purpose, and policy become immutable; valid_until cannot be extended
     if old.lifecycle_status <> 'draft' then
       if old.scope_type <> new.scope_type or
          old.property_id is distinct from new.property_id or
          old.building_id is distinct from new.building_id or
          old.unit_id is distinct from new.unit_id or
          old.valid_from <> new.valid_from or
-         old.valid_until <> new.valid_until or
+         old.valid_until < new.valid_until or
          old.purpose <> new.purpose or
          old.approval_policy_code is distinct from new.approval_policy_code or
-         old.required_approval_count <> new.required_approval_count or
-         old.payload_hash is distinct from new.payload_hash
+         old.required_approval_count <> new.required_approval_count
       then
         raise exception 'workspace_delegation_submitted_parameters_are_immutable' using errcode = '42501';
       end if;
