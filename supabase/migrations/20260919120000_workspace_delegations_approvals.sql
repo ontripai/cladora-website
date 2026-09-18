@@ -734,11 +734,10 @@ begin
   if v_res.workspace_id is null then return false; end if;
 
   -- Verify target member exists, active and belongs to same tenant
-  select m.id, m.tenant_id, m.user_id, cg.role_id, r.code as role_code
+  select m.id, m.tenant_id, m.user_id, m.role_id, r.code as role_code
   into v_member
   from identity.memberships m
-  left join identity.context_grants cg on cg.membership_id = m.id and cg.tenant_id = m.tenant_id
-  left join identity.roles r on r.id = cg.role_id
+  left join identity.roles r on r.id = m.role_id
   where m.id = p_membership_id
     and m.tenant_id = v_res.tenant_id
     and m.status = 'active'
