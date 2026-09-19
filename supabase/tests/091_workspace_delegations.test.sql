@@ -243,7 +243,7 @@ begin
     (v_mem_grantor_id, v_tenant_id, v_user_grantor_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_grantee_id, v_tenant_id, v_user_grantee_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_approver_id, v_tenant_id, v_user_approver_id, v_role_pres_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
-    (v_mem_unauth_id, v_tenant2_id, v_user_unauth_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_mem_unauth_id, v_tenant_id, v_user_unauth_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_pm2_id, v_tenant_id, v_user_pm2_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_grantee_exp_id, v_tenant_id, v_user_grantee_exp_id, v_role_owner_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_mem_grantor_inv_id, v_tenant_id, v_user_grantor_inv_id, v_role_pm_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
@@ -256,7 +256,7 @@ begin
     (v_ctx_grantee_id, v_tenant_id, v_mem_grantee_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_ctx_grantor_ws2_id, v_tenant_id, v_mem_grantor_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_ctx_approver_id, v_tenant_id, v_mem_approver_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
-    (v_ctx_unauth_id, v_tenant2_id, v_mem_unauth_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
+    (v_ctx_unauth_id, v_tenant_id, v_mem_unauth_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_ctx_pm2_id, v_tenant_id, v_mem_pm2_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_ctx_grantee_exp_id, v_tenant_id, v_mem_grantee_exp_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
     (v_ctx_grantor_inv_id, v_tenant_id, v_mem_grantor_inv_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '30 days'),
@@ -412,8 +412,11 @@ begin
       required_approval_count = 1,
       submitted_at = statement_timestamp() - interval '2 minutes',
       accepted_at = statement_timestamp() - interval '1 minute',
-      lock_version = 3,
-      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+      lock_version = 3
+  where id = '09100000-0000-0000-0000-000000008004'::uuid;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008004'::uuid;
 
   -- Pre-delegation 5: Financial four eyes policy detection
@@ -445,8 +448,11 @@ begin
       required_approval_count = 1,
       submitted_at = statement_timestamp() - interval '2 minutes',
       accepted_at = statement_timestamp() - interval '1 minute',
-      lock_version = 3,
-      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+      lock_version = 3
+  where id = '09100000-0000-0000-0000-000000008005'::uuid;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008005'::uuid;
 
   -- Pre-delegation 6: Sensitive procurement policy detection
@@ -478,8 +484,11 @@ begin
       required_approval_count = 1,
       submitted_at = statement_timestamp() - interval '2 minutes',
       accepted_at = statement_timestamp() - interval '1 minute',
-      lock_version = 3,
-      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+      lock_version = 3
+  where id = '09100000-0000-0000-0000-000000008006'::uuid;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008006'::uuid;
 
   -- Dedicated Pre-delegation 10: Dynamic Expiry Test (Isolated fixture)
@@ -512,8 +521,11 @@ begin
       submitted_at = statement_timestamp() - interval '1 hour',
       accepted_at = statement_timestamp() - interval '45 minutes',
       activated_at = statement_timestamp() - interval '30 minutes',
-      lock_version = 6,
-      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+      lock_version = 6
+  where id = '09100000-0000-0000-0000-000000008010'::uuid;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008010'::uuid;
 
   -- Dedicated Pre-delegation 12: Dynamic Grantor Invalidation Test (Isolated fixture)
@@ -546,8 +558,11 @@ begin
       submitted_at = statement_timestamp() - interval '1 hour',
       accepted_at = statement_timestamp() - interval '45 minutes',
       activated_at = statement_timestamp() - interval '30 minutes',
-      lock_version = 6,
-      payload_hash = app_private.compute_delegation_payload_hash_v1(id)
+      lock_version = 6
+  where id = '09100000-0000-0000-0000-000000008012'::uuid;
+
+  update platform.workspace_delegations
+  set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
   where id = '09100000-0000-0000-0000-000000008012'::uuid;
 
   -- Pre-delegations 7 & 8: Revocation tests (Grantor, Grantee, Admin)
@@ -943,12 +958,12 @@ select set_config('request.jwt.claims', jsonb_build_object(
 -- 9.3 Approving with stale or mismatched payload hash is rejected
 update platform.workspace_delegations
 set payload_hash = 'stale_tampered_hash_000000000000000000000000000000000000000000000000'
-where id = '09100000-0000-0000-0000-000000008000'::uuid;
+where id = (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1);
 
 select throws_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000005'::uuid,
-    '09100000-0000-0000-0000-000000008000'::uuid,
+    (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'approved',
     7,
     'Approving tampered payload',
@@ -962,13 +977,13 @@ select throws_ok(
 -- Restore genuine payload hash
 update platform.workspace_delegations
 set payload_hash = app_private.compute_delegation_payload_hash_v1(id)
-where id = '09100000-0000-0000-0000-000000008000'::uuid;
+where id = (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1);
 
 -- 9.4 Approving with mismatching lock_version is rejected with 40001
 select throws_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000005'::uuid,
-    '09100000-0000-0000-0000-000000008000'::uuid,
+    (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'approved',
     99,
     'Approving with stale lock version',
@@ -1037,7 +1052,7 @@ select ok(
 select lives_ok(
   $$select customer_api.approve_workspace_delegation_v1(
     '09100000-0000-0000-0000-000010000005'::uuid,
-    '09100000-0000-0000-0000-000000008000'::uuid,
+    (select id from platform.workspace_delegations where purpose = 'Maintenance delegation for inspections' limit 1),
     'approved',
     7,
     'President approving delegation',
