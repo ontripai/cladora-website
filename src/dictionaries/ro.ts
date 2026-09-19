@@ -23,9 +23,10 @@ export const ro = {
     viewDetails: "Vezi Detalii",
     backToHome: "Înapoi la pagina principală",
     romaniaFirst: "Dezvoltat pentru România • Pregătit Internațional",
-    lawCompliance: "Conformitate cu Legea 196/2018 & Standardele Financiare Europene",
+    lawCompliance: "Conformitate cu Legea 196/2018 & Registre Statutare în Partidă Simplă",
     allRightsReserved: "Toate drepturile rezervate.",
     securityCertified: "Arhitectură GDPR • Criptare TLS/AES • Jurnal de Audit cu Trasabilitate",
+    canonicalPositioning: "CLADORA păstrează registrele obligatorii în partidă simplă pentru asociațiile de proprietari din România. Registrul în partidă dublă este un instrument analitic suplimentar și nu înlocuiește registrele și formularele statutare.",
   },
   nav: {
     modes: "Soluții pe Roluri",
@@ -51,7 +52,7 @@ export const ro = {
     ctaPrimary: "Solicită acces în pilot",
     ctaSecondary: "Vezi demonstrația interactivă",
     metrics: [
-      { value: "Claritate", label: "Validare Asistată a Soldurilor", subtext: "Partidă dublă & jurnal de audit" },
+      { value: "Claritate", label: "Validare Asistată a Soldurilor", subtext: "Partidă simplă statutară & control analitic suplimentar" },
       { value: "Eficiență", label: "Mai puține operațiuni repetitive", subtext: "Flux ghidat pentru închiderea perioadei" },
       { value: "Legea 196/2018", label: "Model Structurat Legal", subtext: "Conceput pentru repartizări și fonduri" },
       { value: "3 în 1", label: "Asociație, Portofoliu, Manager", subtext: "Spații de lucru dedicate" },
@@ -110,8 +111,8 @@ export const ro = {
     description: "În CLADORA, nicio cifră nu este întâmplătoare. Fiecare leu din lista de plată este ancorat într-o factură reală de la furnizor, o formulă clară de repartizare și o înregistrare contabilă verificabilă.",
     pillars: [
       {
-        title: "Partidă Dublă Verificabilă (Double-Entry GL)",
-        desc: "Fiecare tranzacție păstrează echilibrul contabil. Corecțiile se fac exclusiv prin stornări documentate, păstrând întregul istoric.",
+        title: "Control Analitic Suplimentar (Double-Entry GL)",
+        desc: "Fiecare tranzacție asigură controlul analitic al soldurilor fără a înlocui registrele statutare în partidă simplă. Corecțiile se fac exclusiv prin stornări documentate.",
       },
       {
         title: "Separarea Costurilor pe 4 Niveluri",
@@ -196,7 +197,7 @@ export const ro = {
       },
       {
         feature: "Rigoare Contabilă",
-        cladora: "Partidă dublă veritabilă, jurnal auditat, închidere securizată de lună",
+        cladora: "Registre statutare în partidă simplă, control analitic suplimentar în partidă dublă și jurnal auditat",
         legacyDesktop: "Evidență simplă în tabele închise, risc ridicat de eroare umană",
         basicPortal: "Formule automate de afișaj, fără jurnal contabil complet",
         landlordOnly: "Listă simplă de venituri și cheltuieli",
@@ -336,11 +337,11 @@ export const ro = {
     title: "17 module specializate, concepute să lucreze unitar",
     description: "Fiecare funcție din CLADORA este un modul dedicat, dar comunică fluid cu restul platformei pentru a păstra coerența datelor financiare și tehnice.",
     cores: [
-      { code: "C01", name: "Adevăr Financiar & Contabilitate", priority: "P1", domain: "Financiar", desc: "Jurnal general, plan de conturi, perioade financiare și raportare legală conformă.", highlight: "Partidă dublă" },
+      { code: "C01", name: "Adevăr Financiar & Contabilitate", priority: "P1", domain: "Financiar", desc: "Registre statutare în partidă simplă (Legea 196/2018), situația soldurilor și control analitic suplimentar în partidă dublă.", highlight: "Partidă simplă & GL" },
       { code: "C02", name: "Alocare Cheltuieli & Drepturi", priority: "P1", domain: "Financiar", desc: "Repartizare cote conform Legii 196/2018 cu distincție clară între debitor legal și plătitor.", highlight: "Legea 196/2018" },
       { code: "C03", name: "Trezorerie & Plăți Furnizori", priority: "P2", domain: "Trezorerie", desc: "Flux de reconciliere asistată a extraselor bancare, fluxuri de aprobare maker-checker.", highlight: "Reconciliere asistată" },
       { code: "C04", name: "Creanțe, Restanțe & Dispute", priority: "P2", domain: "Recuperare", desc: "Eșalonări de plată, somații legale, calcul penalități și dosare juridice.", highlight: "Somații conforme" },
-      { code: "C05", name: "Conformitate & Fiscalitate", priority: "P2", domain: "Legal", desc: "Calendar de conformitate, depunere declarații (D112/D100), evidență personal angajat.", highlight: "Declarații ANAF" },
+      { code: "C05", name: "Conformitate & Fiscalitate", priority: "P2", domain: "Legal", desc: "Calendar de conformitate, pregătire date pentru expert contabil și evidență personal angajat.", highlight: "Calendar Conformitate" },
       { code: "C06", name: "Proprietăți, Persoane & Ocupare", priority: "P1", domain: "Identitate", desc: "Graful de relații proprietar-chiriaș-număr persoane cu dată de intrare în vigoare.", highlight: "Graf relațional" },
       { code: "C07", name: "ADN Clădire & Inginerie", priority: "P2", domain: "Tehnic", desc: "Catalog arhetipuri (A1-A8), anvelopă, gaze, încălzire, lifturi și punctaj tehnic.", highlight: "8 Arhetipuri" },
       { code: "C08", name: "Contoare, Utilități & Consum", priority: "P1", domain: "Utilități", desc: "Citire multi-metodă (Foto OCR, QR/NFC, Radio) și detectare pierderi pe coloane.", highlight: "Foto Asistat" },

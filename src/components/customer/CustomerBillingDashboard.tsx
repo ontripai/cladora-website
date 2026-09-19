@@ -231,7 +231,7 @@ const copy = {
   },
   en: {
     title: 'Billing, Charges & Receivables',
-    sub: 'Double-entry compliant general ledger integration, aging buckets and audit trail',
+    sub: 'Statutory registers, supplemental double-entry ledger integration, aging buckets and audit trail',
     search: 'Search invoice #, unit code, payer or line description…',
     allStatuses: 'All statuses',
     empty: 'No invoices match the selected criteria.',
@@ -294,7 +294,7 @@ const copy = {
     saveDraft: 'Save Draft Bill',
     saving: 'Saving…',
     issueConfirmTitle: 'Confirm Bill Issuance',
-    issueConfirmDesc: 'Issuing will post a balanced double-entry journal (Dr. Receivables / Cr. Revenue) in an open accounting period.',
+    issueConfirmDesc: 'Issuing will post statutory receivables and a balanced supplemental double-entry journal in an open accounting period.',
     issueDate: 'Posting Date',
     confirmIssue: 'Confirm & Post to Ledger',
     issuing: 'Posting…',

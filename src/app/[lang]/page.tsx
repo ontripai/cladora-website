@@ -47,7 +47,7 @@ export default async function HomePage(props: PageProps) {
       {/* 4. Role-Based Quick Entry */}
       <RoleQuickEntry lang={lang} />
 
-      {/* 5. Financial Truth & Double-Entry Accounting */}
+      {/* 5. Financial Truth & Accounting Controls */}
       <FinancialTruthSection lang={lang} />
 
       {/* 6. Owner vs Tenant 5D Separation */}

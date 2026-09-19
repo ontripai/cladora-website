@@ -80,12 +80,12 @@ export default function PrototypePage(
   const journey4Steps = [
     {
       num: '1',
-      title: isRo ? '1. Inbox Utilități (Recepție Factură)' : isFa ? '۱. صندوق ورودی قبوض (دریافت سند)' : '1. Utility Inbox (Invoice Received)',
-      badge: 'e-Factura SPV',
-      actor: 'ANAF e-Factura Connector',
-      role: 'Automated Gateway',
-      desc: isRo ? 'Factura ENEL-RO-8849201 recepționată automat prin SPV XML UBL 2.1.' : isFa ? 'صورت‌حساب برق از سامانه مودیان دریافت شد.' : 'Invoice ENEL-RO-8849201 ingested via SPV XML.',
-      evidence: 'XML Message ID: eFactura-RO-2026-98129',
+      title: isRo ? '1. Inbox Utilități (Recepție Factură - Simulare)' : isFa ? '۱. صندوق ورودی قبوض (دریافت سند - شبیه‌سازی)' : '1. Utility Inbox (Invoice Received - Simulation)',
+      badge: 'e-Factura XML (Simulare / Demo)',
+      actor: 'e-Factura XML Parser (Simulare Demo)',
+      role: 'Simulated Ingestion Gateway',
+      desc: isRo ? 'Factură demonstrativă încărcată din fișier XML UBL 2.1 (Simulare / Date fictive / Fără conexiune SPV de producție).' : isFa ? 'صورت‌حساب برق نمونه از فایل ساختاریافته XML (شبیه‌سازی / بدون اتصال پروداکشن به سامانه).' : 'Demo invoice loaded from XML UBL 2.1 file (Simulation / Fictitious data - No production SPV connection).',
+      evidence: '[Simulare Demo] XML Message ID: DEMO-SIM-eFactura-RO-2026-98129',
       auditId: 'AUD-J4-01-REC',
     },
     {
@@ -141,10 +141,10 @@ export default function PrototypePage(
     },
     {
       num: '7',
-      title: isRo ? '7. Înregistrare în Contabilitate' : isFa ? '۷. ثبت سند در دفتر کل دوبل' : '7. Posted to Double-Entry Ledger',
+      title: isRo ? '7. Înregistrare în Registre & Control Analitic' : isFa ? '۷. ثبت در دفاتر و کنترل تحلیلی' : '7. Posted to Statutory Books & Analytical Ledger',
       badge: 'Ledger Posted',
       actor: 'General Ledger Service',
-      role: 'Double-Entry Accounting',
+      role: 'Supplemental Analytical Ledger',
       desc: isRo ? 'Generat articol contabil în Jurnal pe contul 605.01 Cheltuieli Energie Electrică.' : isFa ? 'سند حسابداری در سرفصل هزینه‌های انرژی ثبت شد.' : 'Journal entry generated on Account 605.01 (Electricity expense).',
       evidence: 'Journal ID: JRN-2026-10-0891 • Allocation ID: ALC-UB-2026-10',
       auditId: 'AUD-J4-07-POS',

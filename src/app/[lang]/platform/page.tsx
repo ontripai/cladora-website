@@ -85,15 +85,15 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
             </h2>
             <p className="text-xs text-[#52667A] leading-relaxed">
               {lang === 'ro'
-                ? 'Contabilitate în partidă dublă, jurnal general auditat, reconciliere asistată a extraselor de cont bancar și stornări auditate.'
+                ? 'Registre obligatorii în partidă simplă, control analitic suplimentar în partidă dublă, reconciliere bancară asistată și stornări auditate.'
                 : lang === 'fa'
-                ? 'دفتر کل دوطرفه، ثبت تراکنش‌ها بدون حذف خام، تطبیق خودکار با صورت‌حساب بانکی و اسناد اصلاحی کاملاً مستند.'
-                : 'General ledger, double-entry balance verification, assisted bank statement reconciliation, and auditable event logs.'}
+                ? 'دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی دوطرفه، تطبیق هدایت‌شده با صورت‌حساب بانکی و اسناد اصلاحی مستند.'
+                : 'Statutory simple-entry registers, supplemental analytical double-entry verification, assisted bank reconciliation, and auditable logs.'}
             </p>
             <ul className="space-y-2 text-xs text-[#52667A] pt-2 border-t border-[#F0F4F8]">
               <li className="flex items-center gap-2">
                 <span className="text-[#0E9F8E] font-bold">✓</span>
-                <span>{lang === 'ro' ? 'Plan de conturi adaptat legislației' : lang === 'fa' ? 'کدینگ حسابداری منطبق با قوانین املاک' : 'Statutory condo chart of accounts'}</span>
+                <span>{lang === 'ro' ? 'Plan de conturi analitic adaptat legislației' : lang === 'fa' ? 'کدینگ حسابداری تحلیلی منطبق با نیازهای مجتمع' : 'Analytical chart of accounts for association controls'}</span>
               </li>
               <li className="flex items-center gap-2">
                 <span className="text-[#0E9F8E] font-bold">✓</span>

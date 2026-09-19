@@ -244,7 +244,7 @@ export default function UserTestingPage(
                     Option A: {isRo ? 'Corectează Indexul din Scanarea Originală' : isFa ? 'اصلاح شاخص از روی اسکن اصلی' : 'Correct Index from Original Scan'}
                   </div>
                   <div className="text-[11px] text-[#52667A]">
-                    {isRo ? 'Verifică PDF-ul furnizorului și actualizează indexul de pornire la 124.200 kWh.' : isFa ? 'شاخص اولیه با رقم اسکن تطبیق و اصلاح شد.' : 'Matches verified meter series from SPV e-Factura scan.'}
+                    {isRo ? 'Verifică fișierul demonstrativ al furnizorului și actualizează indexul de pornire la 124.200 kWh.' : isFa ? 'شاخص اولیه با رقم اسکن تطبیق و اصلاح شد.' : 'Matches verified meter series from simulated supplier invoice scan.'}
                   </div>
                 </button>
 

@@ -35,21 +35,26 @@ export default function AccountingPage(props: { params: Promise<{ lang: Language
       <div className="card-proptech p-6 bg-white border-[#D3DCE6] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider">
-            {lang === 'ro' 
-              ? 'Nucleul C01 — Jurnal General & Contabilitate în Partidă Dublă' 
-              : lang === 'fa' 
-              ? 'هسته C01 — دفتر کل و حسابداری دوطرفه' 
-              : 'Core C01 — General Ledger & Auditable Journal'}
+            {lang === 'ro'
+              ? 'Nucleul C01 — Registre Statutare & Control Analitic Suplimentar'
+              : lang === 'fa'
+              ? 'هسته C01 — دفاتر قانونی و کنترل تحلیلی تکمیلی'
+              : 'Core C01 — Statutory Registers & Supplemental Analytical Ledger'}
+          </div>
+          <div className="pt-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-semibold">
+              {lang === 'ro' ? 'Mediu Demonstrativ • Date de Simulare' : lang === 'fa' ? 'محیط آزمایشی • داده‌های شبیه‌سازی' : 'Demo Simulation Environment • Fictitious Data'}
+            </span>
           </div>
           <h1 className="text-2xl font-display font-extrabold text-[#102A43] mt-1">
-            {lang === 'ro' ? 'Contabilitate în Partidă Dublă' : lang === 'fa' ? 'حسابداری دوطرفه و تراز مالی' : 'Double-Entry General Ledger'}
+            {lang === 'ro' ? 'Registre Statutare & Control Analitic' : lang === 'fa' ? 'دفاتر قانونی و کنترل تحلیلی' : 'Statutory Registers & Supplemental Ledger'}
           </h1>
           <p className="text-xs text-[#52667A]">
-            {lang === 'ro' 
-              ? 'Jurnal auditat conform Legii 196/2018 · Plan de conturi standardizat' 
-              : lang === 'fa' 
-              ? 'دفتر روزنامه با قابلیت ممیزی و رهگیری · کدینگ استاندارد حساب‌ها' 
-              : 'Auditable journal with traceable event history · Standardized chart of accounts'}
+            {lang === 'ro'
+              ? 'Registre în partidă simplă conform Legii 196/2018 · Control analitic suplimentar în partidă dublă'
+              : lang === 'fa'
+              ? 'دفاتر قانونی یک‌طرفه بر اساس قانون ۱۹۶/۲۰۱۸ · کنترل‌های تحلیلی تکمیلی دوطرفه'
+              : 'Statutory simple-entry records under Law 196/2018 · Supplemental analytical double-entry controls'}
           </p>
         </div>
 

@@ -15,8 +15,8 @@ export const TrustStrip: React.FC<TrustStripProps> = ({ lang }) => {
     },
     {
       icon: FileCheck,
-      title: lang === 'ro' ? 'Contabilitate în Partidă Dublă' : lang === 'fa' ? 'دفتر کل با اسناد اصلاحی' : 'Auditable Double-Entry',
-      desc: lang === 'ro' ? 'Fără ștergeri de înregistrări — doar stornări auditate' : lang === 'fa' ? 'ثبت اسناد اصلاحی بدون حذف داده‌های تاریخی' : 'Reversals instead of silent deletions'
+      title: lang === 'ro' ? 'Control Analitic & Stornare' : lang === 'fa' ? 'کنترل تحلیلی و اسناد اصلاحی' : 'Analytical Control & Reversals',
+      desc: lang === 'ro' ? 'Control analitic suplimentar, fără ștergeri — doar stornări auditate' : lang === 'fa' ? 'کنترل تحلیلی تکمیلی با اسناد اصلاحی بدون حذف داده‌های تاریخی' : 'Supplemental analytical ledger with reversals instead of deletions'
     },
     {
       icon: ShieldCheck,

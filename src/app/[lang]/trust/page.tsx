@@ -156,10 +156,10 @@ export default async function TrustPage(
             </span>
             <p className="text-slate-400 text-xs">
               {isRo 
-                ? 'Colectăm strict datele necesare bunei funcționări conform legii. Fără urmărire ascunsă sau vânzare de date către terți.'
+                ? 'Prelucrare bazată pe scop și temei legal justificat (Legea 196/2018 / GDPR). Suport pentru identificatori alternativi și minimizarea colectării CNP.'
                 : isFa
-                ? 'ما صرفاً داده‌های ضروری برای انجام تکالیف قانونی و محاسبات را ذخیره می‌کنیم؛ بدون هیچ‌گونه ردیابی تبلیغاتی یا اشتراک‌گذاری با اشخاص ثالث.'
-                : 'We collect strictly the data required by statutory law. Zero third-party ad tracking or data brokering.'}
+                ? 'پردازش بر اساس اهداف و مبانی قانونی مشخص. پشتیبانی از شناسه‌های جایگزین و به حداقل‌رسانی جمع‌آوری کد ملی (CNP).'
+                : 'Processing grounded in defined purposes and lawful bases under GDPR. Supports alternative identifiers and minimized CNP collection.'}
             </p>
           </div>
           <div className="space-y-2 p-4 rounded-xl glass-panel">

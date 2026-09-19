@@ -159,7 +159,7 @@ export default async function ManagerPage(
           </h2>
           <p className="text-sm text-[#52667A] max-w-2xl leading-relaxed">
             {isRo
-              ? 'Ingestie multi-canal (e-Factura, Email, OCR, CSV, API), reconciliere automată indexuri contoare, verificare tarife și aprobare umană obligatorie conform Legii 196/2018.'
+              ? 'Ingestie multi-canal (format XML e-Factura, Email, OCR, CSV), reconciliere indexuri contoare, verificare tarife și aprobare umană obligatorie conform Legii 196/2018.'
               : isFa
               ? 'دریافت چندکاناله صورت‌حساب‌ها، تطبیق خودکار شاخص کنتورها، بررسی انطباق تعرفه‌ها و تأیید نهایی توسط کاربر مجاز انسانی.'
               : 'Multi-channel invoice ingestion, OCR parsing, meter index reconciliation, tariff validation, and mandatory authorized human sign-off.'}
