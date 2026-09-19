@@ -219,8 +219,11 @@ async function run() {
           required_approval_count = 1,
           submitted_at = statement_timestamp() - interval '2 minutes',
           accepted_at = statement_timestamp() - interval '1 minute',
-          lock_version = 5,
-          payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_1}')
+          lock_version = 5
+      WHERE id = '${F_DEL_1}';
+
+      UPDATE platform.workspace_delegations
+      SET payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_1}')
       WHERE id = '${F_DEL_1}';
 
       -- 8. Seed Delegation 2 in draft state, attach permission, then transition to pending_approval (lock_version = 5)
@@ -253,8 +256,11 @@ async function run() {
           required_approval_count = 1,
           submitted_at = statement_timestamp() - interval '2 minutes',
           accepted_at = statement_timestamp() - interval '1 minute',
-          lock_version = 5,
-          payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_2}')
+          lock_version = 5
+      WHERE id = '${F_DEL_2}';
+
+      UPDATE platform.workspace_delegations
+      SET payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_2}')
       WHERE id = '${F_DEL_2}';
     `);
     console.log('  ✔ Fixtures and pending delegations seeded with authentic payload hashes.');
