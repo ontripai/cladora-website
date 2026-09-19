@@ -41,20 +41,33 @@ select ok(exists(
 ), 'property_manager granted workspace.role.assign');
 
 -- 3. Module-Permission Binding Registry Invariants (9 assertions)
--- 3.1 All seeded records have is_delegable = false
-select ok(not exists(
-  select 1 from platform.module_permission_bindings where is_delegable is true
-), 'all module_permission_bindings have is_delegable = false in 001B.1');
+-- 3.1 Binding delegation invariants (version 1 non-delegable, sensitive permissions strictly non-delegable)
+select ok(
+  not exists (
+    select 1 from platform.module_permission_bindings
+    where binding_version = 1 and is_delegable is true
+  ) and not exists (
+    select 1 from platform.module_permission_bindings b
+    join identity.permissions p on p.id = b.permission_id
+    where p.code in (
+      'billing.cancel', 'payments.reverse', 'payments.reconcile',
+      'utilities.tariffs.manage', 'governance.votes.administer', 'governance.minutes.finalize'
+    ) and b.is_delegable is true and b.lifecycle_status = 'active'
+  ),
+  'version 1 bindings and sensitive permissions are strictly non-delegable'
+);
 
--- 3.2 Attempting to insert is_delegable = true is rejected
+-- 3.2 Attempting to insert is_delegable = true on strictly non-delegable permission is rejected
 select throws_ok(
   $$insert into platform.module_permission_bindings (
     module_definition_id, permission_id, binding_version, is_delegable
-  ) select id, (select id from identity.permissions limit 1), 99, true
-  from platform.module_definitions where code = 'maintenance' limit 1$$,
+  ) select
+      (select id from platform.module_definitions where code = 'billing' limit 1),
+      (select id from identity.permissions where code = 'billing.cancel' limit 1),
+      99, true$$,
   '42501',
-  'delegation_runtime_deferred_to_001b2',
-  'inserting is_delegable = true is rejected by trigger'
+  'permission_is_strictly_non_delegable: billing.cancel',
+  'inserting is_delegable = true for sensitive permission is rejected by trigger'
 );
 
 -- 3.3 Catalog-only modules cannot have permission bindings
@@ -86,43 +99,65 @@ select ok(not exists(
 select throws_ok(
   $$insert into platform.module_permission_bindings (
     module_definition_id, permission_id, binding_version, is_delegable, lifecycle_status, valid_from, valid_to
-  ) select module_definition_id, permission_id, 2, false, 'active', valid_from + interval '1 day', valid_from + interval '5 days'
-  from platform.module_permission_bindings limit 1$$,
-  '23505',
-  'module_permission_binding_temporal_overlap',
+  ) select module_definition_id, permission_id, 3, false, 'active', valid_from + interval '1 day', valid_from + interval '5 days'
+  from platform.module_permission_bindings where lifecycle_status = 'active' limit 1$$,
+  '42501',
+  'active_module_permission_binding_temporal_overlap',
   'temporal overlap for active module permission binding is rejected'
 );
 
--- 3.7 Non-overlapping future version is allowed
-update platform.module_permission_bindings
-set valid_to = statement_timestamp() + interval '30 days'
-where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1)
-  and permission_id = (select id from identity.permissions where code = 'maintenance.work_orders.read' limit 1);
-
-select lives_ok(
-  $$insert into platform.module_permission_bindings (
-    module_definition_id, permission_id, binding_version, is_delegable, lifecycle_status, valid_from, valid_to
-  ) select module_definition_id, permission_id, 2, false, 'active', statement_timestamp() + interval '30 days', statement_timestamp() + interval '60 days'
-  from platform.module_permission_bindings
-  where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1)
-    and permission_id = (select id from identity.permissions where code = 'maintenance.work_orders.read' limit 1)$$,
-  'non-overlapping future binding version succeeds'
+-- 3.7 Minimum 48 active proven bindings exist
+select ok(
+  (select count(*) from platform.module_permission_bindings where is_assignable_to_local_role is true and lifecycle_status = 'active') >= 48,
+  'at least 48 active module permission bindings seeded'
 );
 
--- Clean up test version 2 binding so exact seed manifest count remains 48
-delete from platform.module_permission_bindings where binding_version = 2;
-update platform.module_permission_bindings
-set valid_to = null
-where module_definition_id = (select id from platform.module_definitions where code = 'maintenance' limit 1)
-  and permission_id = (select id from identity.permissions where code = 'maintenance.work_orders.read' limit 1);
-
--- 3.8 Minimum 48 active proven bindings exist
-select ok((select count(*) from platform.module_permission_bindings where is_assignable_to_local_role is true) >= 48, 'at least 48 module permission bindings seeded');
-
--- 3.9 Seed Manifest exact-set verification
+-- 3.8 Seed Manifest exact-set verification
 select lives_ok(
-  $$select app_private.validate_module_permission_bindings_seeding_v1()$$,
-  'exact 48 seed manifest passes validation function'
+  $$select app_private.validate_module_permission_bindings_v2_seeding_v1()$$,
+  'exact active seed manifest passes validation function'
+);
+
+-- 3.9 Controlled forward versioning handoff on dedicated fixture
+select lives_ok(
+  $$
+  do $block$
+  declare
+    v_fixture_perm_id uuid := '09000000-0000-0000-0000-000000000092'::uuid;
+    v_fixture_v1_id uuid := '09000000-0000-0000-0000-000000000093'::uuid;
+    v_fixture_v2_id uuid := '09000000-0000-0000-0000-000000000094'::uuid;
+    v_mod_id uuid;
+    v_transition_ts timestamptz := statement_timestamp();
+  begin
+    select id into v_mod_id from platform.module_definitions where code = 'maintenance' limit 1;
+
+    insert into identity.permissions (id, code, resource, action, description)
+    values (v_fixture_perm_id, 'test.fixture.permission.090', 'test', 'read', 'Test Fixture Permission 090');
+
+    insert into platform.module_permission_bindings (
+      id, module_definition_id, permission_id, binding_version, is_delegable,
+      is_assignable_to_local_role, lifecycle_status, valid_from, valid_to
+    ) values (
+      v_fixture_v1_id, v_mod_id, v_fixture_perm_id, 1, false,
+      true, 'active', v_transition_ts - interval '1 hour', null
+    );
+
+    update platform.module_permission_bindings
+    set lifecycle_status = 'deprecated',
+        valid_to = v_transition_ts
+    where id = v_fixture_v1_id;
+
+    insert into platform.module_permission_bindings (
+      id, module_definition_id, permission_id, binding_version, is_delegable,
+      is_assignable_to_local_role, lifecycle_status, valid_from, valid_to
+    ) values (
+      v_fixture_v2_id, v_mod_id, v_fixture_perm_id, 2, true,
+      true, 'active', v_transition_ts, null
+    );
+  end;
+  $block$;
+  $$,
+  'dedicated fixture forward-close handoff succeeds with matching timestamp and zero gap or overlap'
 );
 
 -- ----------------------------------------------------------------------------
