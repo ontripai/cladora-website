@@ -1064,6 +1064,13 @@ select lives_ok(
 -- ----------------------------------------------------------------------------
 -- 10. Dynamic Expiry, Dynamic Grantor Invalidation & Emergency Revocation (6 assertions)
 -- ----------------------------------------------------------------------------
+-- Switch to Grantee for Path C evaluation and dynamic expiry tests
+select set_config('request.jwt.claims', jsonb_build_object(
+  'sub', '09100000-0000-0000-0000-000000000020',
+  'role', 'authenticated',
+  'aal', 'aal2'
+)::text, true);
+
 -- 10.1 Grantee gains effective permission via active Path C delegation
 select ok(
   app_private.check_effective_permission_v1(

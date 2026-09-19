@@ -710,6 +710,8 @@ declare
   v_target_building_id uuid;
   v_target_unit_id uuid;
   v_ctx_grant record;
+  v_workspace_id uuid;
+  v_ctx_property_id uuid;
   v_ctx_scope_covered boolean := false;
   v_has_allow boolean := false;
 begin
@@ -725,16 +727,56 @@ begin
     return false;
   end if;
 
-  begin
-    select * into v_res
-    from app_private.resolve_workspace_from_customer_context_v1(p_context_id, false);
-  exception when others then
-    return false;
-  end;
+  -- 1. Validate Context Grant independently (deterministic single-row, fail-closed)
+  select cg.id, cg.tenant_id, cg.membership_id, cg.scope_type, cg.property_id, cg.building_id, cg.unit_id
+  into v_ctx_grant
+  from identity.context_grants cg
+  where cg.id = p_context_id
+    and cg.membership_id = p_membership_id
+    and cg.starts_at <= statement_timestamp()
+    and (cg.ends_at is null or cg.ends_at > statement_timestamp());
 
-  if v_res.workspace_id is null then return false; end if;
+  if not found then return false; end if;
 
-  -- Verify target member exists, active and belongs to same tenant
+  -- 2. Resolve property from context grant
+  if v_ctx_grant.property_id is not null then
+    v_ctx_property_id := v_ctx_grant.property_id;
+  elsif v_ctx_grant.building_id is not null then
+    select b.property_id into v_ctx_property_id
+    from portfolio.buildings b
+    where b.id = v_ctx_grant.building_id and b.tenant_id = v_ctx_grant.tenant_id;
+  elsif v_ctx_grant.unit_id is not null then
+    select b.property_id into v_ctx_property_id
+    from portfolio.units u
+    join portfolio.buildings b on b.id = u.building_id
+    where u.id = v_ctx_grant.unit_id and u.tenant_id = v_ctx_grant.tenant_id;
+  end if;
+
+  if v_ctx_property_id is not null then
+    select b.customer_workspace_id into v_workspace_id
+    from platform.workspace_property_bindings b
+    join platform.customer_workspaces cw on cw.id = b.customer_workspace_id
+    where b.property_id = v_ctx_property_id
+      and b.tenant_id = v_ctx_grant.tenant_id
+      and b.status = 'active'
+      and b.valid_from <= statement_timestamp()
+      and (b.valid_to is null or b.valid_to > statement_timestamp())
+      and cw.tenant_id = v_ctx_grant.tenant_id
+      and cw.lifecycle_status in ('PROVISIONING', 'ACTIVE')
+    limit 1;
+  else
+    select cw.id into v_workspace_id
+    from platform.customer_workspaces cw
+    where cw.tenant_id = v_ctx_grant.tenant_id
+      and cw.lifecycle_status in ('PROVISIONING', 'ACTIVE')
+    limit 1;
+  end if;
+
+  if v_workspace_id is null then return false; end if;
+
+  select v_workspace_id as workspace_id, v_ctx_grant.tenant_id as tenant_id into v_res;
+
+  -- 3. Verify target member exists, active and belongs to same tenant
   select m.id, m.tenant_id, m.user_id, m.role_id, r.code as role_code
   into v_member
   from identity.memberships m
@@ -863,19 +905,8 @@ begin
     return false;
   end if;
 
-  -- Validate p_context_id Context Grant independently (fail-closed, single-row deterministic lookup)
-  select cg.id, cg.tenant_id, cg.membership_id, cg.scope_type, cg.property_id, cg.building_id, cg.unit_id
-  into v_ctx_grant
-  from identity.context_grants cg
-  where cg.id = p_context_id
-    and cg.tenant_id = v_res.tenant_id
-    and cg.membership_id = p_membership_id
-    and cg.starts_at <= statement_timestamp()
-    and (cg.ends_at is null or cg.ends_at > statement_timestamp());
-
-  if found then
-    -- Context Grant scope containment check against Target Scope
-    if v_ctx_grant.scope_type::text in ('workspace', 'tenant') then
+  -- Context Grant scope containment check against Target Scope
+  if v_ctx_grant.scope_type::text in ('workspace', 'tenant') then
       v_ctx_scope_covered := true;
     elsif v_ctx_grant.scope_type::text = 'property' then
       if p_target_scope_type in ('property', 'building', 'unit')
@@ -893,7 +924,6 @@ begin
         v_ctx_scope_covered := true;
       end if;
     end if;
-  end if;
 
   -- Deny Path A
   if v_member.role_id is not null and exists (
