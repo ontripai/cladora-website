@@ -189,22 +189,18 @@ async function run() {
         ('${F_WS}', 'module.maintenance', 'boolean', true, statement_timestamp() - interval '1 day'),
         ('${F_WS}', 'module.billing', 'boolean', true, statement_timestamp() - interval '1 day');
 
-      -- 7. Seed Delegation 1 in pending_approval state (lock_version = 5)
+      -- 7. Seed Delegation 1 in draft state, attach permission, then transition to pending_approval (lock_version = 5)
       INSERT INTO platform.workspace_delegations (
         id, delegation_code, tenant_id, customer_workspace_id,
         grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
         scope_type, property_id, lifecycle_status, delegation_depth,
-        purpose, valid_from, valid_until, lock_version,
-        approval_policy_code, required_approval_count, payload_hash,
-        submitted_at, accepted_at, created_by
+        purpose, valid_from, valid_until, lock_version, created_by
       ) VALUES (
         '${F_DEL_1}', 'DEL-CONCUR-1', '${F_TENANT}', '${F_WS}',
         '${F_GRANTOR_MEM}', '${F_GRANTOR_USER}', '${F_GRANTEE_MEM}', '${F_GRANTEE_USER}',
-        'property', '${F_PROP}', 'pending_approval', 0,
+        'property', '${F_PROP}', 'draft', 0,
         'Concurrency Delegation 1',
-        statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 5,
-        'single_manager', 1, 'dummy_hash_1',
-        statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute',
+        statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 1,
         '${F_GRANTOR_USER}'
       );
 
@@ -218,25 +214,27 @@ async function run() {
       );
 
       UPDATE platform.workspace_delegations
-      SET payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_1}')
+      SET lifecycle_status = 'pending_approval',
+          approval_policy_code = 'single_manager',
+          required_approval_count = 1,
+          submitted_at = statement_timestamp() - interval '2 minutes',
+          accepted_at = statement_timestamp() - interval '1 minute',
+          lock_version = 5,
+          payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_1}')
       WHERE id = '${F_DEL_1}';
 
-      -- 8. Seed Delegation 2 in pending_approval state (lock_version = 5)
+      -- 8. Seed Delegation 2 in draft state, attach permission, then transition to pending_approval (lock_version = 5)
       INSERT INTO platform.workspace_delegations (
         id, delegation_code, tenant_id, customer_workspace_id,
         grantor_membership_id, grantor_user_id, grantee_membership_id, grantee_user_id,
         scope_type, property_id, lifecycle_status, delegation_depth,
-        purpose, valid_from, valid_until, lock_version,
-        approval_policy_code, required_approval_count, payload_hash,
-        submitted_at, accepted_at, created_by
+        purpose, valid_from, valid_until, lock_version, created_by
       ) VALUES (
         '${F_DEL_2}', 'DEL-CONCUR-2', '${F_TENANT}', '${F_WS}',
         '${F_GRANTOR_MEM}', '${F_GRANTOR_USER}', '${F_GRANTEE_MEM}', '${F_GRANTEE_USER}',
-        'property', '${F_PROP}', 'pending_approval', 0,
+        'property', '${F_PROP}', 'draft', 0,
         'Concurrency Delegation 2',
-        statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 5,
-        'single_manager', 1, 'dummy_hash_2',
-        statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute',
+        statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 1,
         '${F_GRANTOR_USER}'
       );
 
@@ -250,7 +248,13 @@ async function run() {
       );
 
       UPDATE platform.workspace_delegations
-      SET payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_2}')
+      SET lifecycle_status = 'pending_approval',
+          approval_policy_code = 'single_manager',
+          required_approval_count = 1,
+          submitted_at = statement_timestamp() - interval '2 minutes',
+          accepted_at = statement_timestamp() - interval '1 minute',
+          lock_version = 5,
+          payload_hash = app_private.compute_delegation_payload_hash_v1('${F_DEL_2}')
       WHERE id = '${F_DEL_2}';
     `);
     console.log('  ✔ Fixtures and pending delegations seeded with authentic payload hashes.');
