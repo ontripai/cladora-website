@@ -21,6 +21,7 @@
     "test:export-vault": "node scripts/test-export-artifact-vault.mjs && node scripts/test-export-scanner-001a.mjs && node scripts/test-export-scanner-worker-001.mjs && node scripts/test-export-scanner-runtime-001a.mjs && node scripts/test-export-scanner-observability-001.mjs",
     "test:i18n": "node scripts/audit-untranslated-copy.mjs",
     "test:db:static": "node scripts/check-database-package.mjs",
+    "test:db:catalog": "node scripts/audit-r10-catalog-evidence.mjs",
     "test:app-foundation": "node scripts/test-supabase-foundation.mjs",
     "test": "npm run test:unit && npm run test:export-vault && npm run test:i18n && npm run test:db:static && npm run test:app-foundation",
     "db:start": "supabase start",
