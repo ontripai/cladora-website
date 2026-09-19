@@ -49,7 +49,7 @@ export default async function InformationArchitecturePage(
   const isFa = lang === 'fa';
 
   const intakeChannels = [
-    { name: 'e-Factura SPV', type: 'RO e-Factura XML UBL 2.1', icon: Zap, color: 'text-[#1E40AF]' },
+    { name: 'e-Factura XML (Simulare)', type: 'Format RO e-Factura XML UBL 2.1 (Simulare / Pre-integrare)', icon: Zap, color: 'text-[#1E40AF]' },
     { name: 'Dedicated Inbound Email', type: 'MIME Parser & PDF Attachment', icon: Mail, color: 'text-[#065F46]' },
     { name: 'PDF & Image Upload', type: 'Direct UI Multi-file Ingestion', icon: Upload, color: 'text-[#92400E]' },
     { name: 'Batch CSV Ingestion', type: 'Standardized Structured Import', icon: FileSpreadsheet, color: 'text-[#102A43]' },

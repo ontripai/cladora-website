@@ -51,14 +51,14 @@ export const FinancialTruthSection: React.FC<FinancialTruthSectionProps> = ({ la
           <div className="card-proptech p-5 space-y-2 border-l-4 border-l-[#102A43]">
             <div className="flex items-center gap-2 text-sm font-bold text-[#102A43]">
               <FileSpreadsheet className="w-4 h-4 text-[#0E9F8E]" />
-              <span>{lang === 'ro' ? 'Partidă Dublă Verificabilă' : lang === 'fa' ? 'حسابداری دوطرفه دفتر کل' : 'True Double-Entry'}</span>
+              <span>{lang === 'ro' ? 'Control Analitic Suplimentar' : lang === 'fa' ? 'کنترل تحلیلی تکمیلی دوطرفه' : 'Supplemental Analytical GL'}</span>
             </div>
             <p className="text-xs text-[#52667A] leading-relaxed">
-              {lang === 'ro' 
-                ? 'Plan de conturi adaptat asociațiilor de proprietari. Balanță contabilă mereu echilibrată Debit = Credit.' 
+              {lang === 'ro'
+                ? 'Control analitic în partidă dublă (Debit = Credit) ca instrument suplimentar de verificare, fără a înlocui registrele statutare în partidă simplă.'
                 : lang === 'fa'
-                ? 'کدینگ استاندارد حساب‌ها متناسب با مجتمع‌ها. تراز مالی همواره تراز با برابری بدهکار و بستانکار.'
-                : 'Condominium-adapted chart of accounts. Mathematical guarantee that total debits always equal total credits.'}
+                ? 'دفتر کل تحلیلی تکمیلی (برابری بدهکار و بستانکار) جهت کنترل دقیق تراز، بدون جایگزینی دفاتر قانونی یک‌طرفه.'
+                : 'Supplemental analytical double-entry controls (Debit = Credit) providing extra rigor without replacing statutory simple-entry registers.'}
             </p>
           </div>
 

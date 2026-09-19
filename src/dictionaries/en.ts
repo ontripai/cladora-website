@@ -23,9 +23,10 @@ export const en = {
     viewDetails: "View Details",
     backToHome: "Back to Home",
     romaniaFirst: "Engineered for Romania • Internationally Ready",
-    lawCompliance: "Designed for Romanian Law 196/2018 & European Financial Standards",
+    lawCompliance: "Designed for Romanian Law 196/2018 & Statutory Association Accounting",
     allRightsReserved: "All rights reserved.",
     securityCertified: "GDPR Architecture • TLS/AES Encryption • Traceable Audit History",
+    canonicalPositioning: "CLADORA is designed to support Romania’s statutory simple-entry registers for condominium associations. Statutory production functionality will be enabled only after implementation and validation. Its double-entry general ledger remains an optional supplemental analytical control and does not replace statutory books or forms.",
   },
   nav: {
     modes: "Role Solutions",
@@ -51,7 +52,7 @@ export const en = {
     ctaPrimary: "Apply for Pilot Access",
     ctaSecondary: "View Interactive Demo",
     metrics: [
-      { value: "Clarity", label: "Mathematical Ledger Checks", subtext: "Double-entry & traceable audit history" },
+      { value: "Clarity", label: "Mathematical Ledger Checks", subtext: "Statutory simple-entry & supplemental analytical controls" },
       { value: "Efficiency", label: "Fewer repetitive closing tasks", subtext: "A guided month-end workflow" },
       { value: "Law 196/2018", label: "Statutory Workflow Support", subtext: "Structured for joint-property shares & funds" },
       { value: "3 in 1", label: "Association, Portfolio, Manager", subtext: "Tailored workspaces in one platform" },
@@ -110,8 +111,8 @@ export const en = {
     description: "In CLADORA, no figure is arbitrary. Every single line on a resident's statement is anchored to a verified utility invoice, an approved statutory allocation formula, and an auditable ledger record.",
     pillars: [
       {
-        title: "Verifiable Double-Entry Ledger (GL)",
-        desc: "Every transaction maintains zero variance. Any correction requires an auditable reversing entry, preserving full event history.",
+        title: "Supplemental Analytical Double-Entry Ledger (GL)",
+        desc: "Maintains supplemental balance verification without replacing statutory simple-entry books. Any correction requires an auditable reversing entry, preserving full event history.",
       },
       {
         title: "4-Way Cost Separation",
@@ -196,7 +197,7 @@ export const en = {
       },
       {
         feature: "Accounting Rigor",
-        cladora: "True double-entry general ledger, auditable event history, secure period close",
+        cladora: "Statutory simple-entry registers, optional supplemental double-entry ledger, and auditable history",
         legacyDesktop: "Single-entry calculation tables, manual edit risk",
         basicPortal: "Automated billing tables without a full double-entry GL",
         landlordOnly: "Simple cash-in / cash-out list",
@@ -336,11 +337,11 @@ export const en = {
     title: "17 Purpose-Built Modules Working as One",
     description: "Every capability in CLADORA is an engineered module, communicating seamlessly across the platform to keep financial and technical data consistent.",
     cores: [
-      { code: "C01", name: "Financial Truth & Accounting", priority: "P1", domain: "Finance", desc: "General ledger, chart of accounts, auditable periods, and statutory balance sheets.", highlight: "Double-entry GL" },
+      { code: "C01", name: "Financial Truth & Accounting", priority: "P1", domain: "Finance", desc: "Statutory simple-entry registers, monthly balance controls, and optional supplemental analytical general ledger.", highlight: "Simple-Entry & GL" },
       { code: "C02", name: "Charge Allocation & Rights", priority: "P1", domain: "Finance", desc: "Statutory fee distribution with strict legal debtor vs. operational payer separation.", highlight: "Law 196/2018" },
       { code: "C03", name: "Treasury & Payments", priority: "P2", domain: "Treasury", desc: "Assisted bank statement reconciliation and payment approval workflows.", highlight: "Assisted Match" },
       { code: "C04", name: "Receivables & Disputes", priority: "P2", domain: "Recovery", desc: "Payment installment plans, statutory reminder notices, and penalty calculations.", highlight: "Formal Notices" },
-      { code: "C05", name: "Compliance & Tax", priority: "P2", domain: "Legal", desc: "Statutory compliance calendar, tax declarations, and employee registries.", highlight: "Tax Calendar" },
+      { code: "C05", name: "Compliance & Tax", priority: "P2", domain: "Legal", desc: "Statutory compliance calendar, accountant-ready data preparation, and employee registries.", highlight: "Compliance Calendar" },
       { code: "C06", name: "Property, People & Occupancy", priority: "P1", domain: "Identity", desc: "Owner-tenant relationship graph with effective-dated occupancy counts.", highlight: "Property Graph" },
       { code: "C07", name: "Building DNA & Engineering", priority: "P2", domain: "Engineering", desc: "Archetypes A1-A8, structural envelope, HVAC/gas safety, and condition scoring.", highlight: "8 Archetypes" },
       { code: "C08", name: "Meters, Utility & Consumption", priority: "P1", domain: "Utility", desc: "Multi-method reading (Assisted Photo, QR/NFC, Radio) and riser leakage alerts.", highlight: "Photo Assisted" },

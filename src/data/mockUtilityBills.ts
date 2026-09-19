@@ -62,10 +62,10 @@ export const MOCK_UTILITY_BILLS: UtilityBill[] = [
     workflowHistory: [
       {
         state: 'RECEIVED',
-        actor: 'ANAF e-Factura Connector',
-        actorRole: 'System Integration Service',
+        actor: 'e-Factura XML Ingestion (Simulare Demo)',
+        actorRole: 'Simulated Ingestion Engine (No production SPV connection)',
         timestamp: '2026-11-02 04:12:00',
-        evidence: 'XML UBL 2.1 SPV Message ID: eFactura-RO-2026-98129',
+        evidence: '[Simulare Demo / Date fictive] XML UBL 2.1 Msg ID: DEMO-SIM-eFactura-RO-2026-98129',
         auditId: 'AUD-001-REC',
       },
       {
@@ -586,7 +586,7 @@ export const MOCK_UTILITY_BILLS: UtilityBill[] = [
         code: 'DUPLICATE_INVOICE',
         label: 'Factură duplicat detectată',
         severity: 'HIGH',
-        explanation: 'Factura cu numărul ENEL-RO-8849201 emisă de Enel Energie există deja în sistem (UB-2026-001 recepționată prin e-Factura).',
+        explanation: 'Factura cu numărul ENEL-RO-8849201 emisă de Enel Energie există deja în sistem (UB-2026-001 încărcată în simulare).',
         affectedField: 'invoiceNumber, supplierTaxId',
         evidence: 'Conflict direct cu înregistrarea existentă UB-2026-001',
         recommendedAction: 'Respingeți documentul duplicat pentru a preveni dubla înregistrare în cheltuielile asociației.',

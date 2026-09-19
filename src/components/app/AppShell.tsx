@@ -63,7 +63,7 @@ export function AppShell({
 
   const navItems = [
     { label: lang === 'ro' ? 'Tablou Principal' : lang === 'fa' ? 'داشبورد اصلی' : 'Dashboard', href: `${appBase}/dashboard`, icon: Home },
-    { label: lang === 'ro' ? 'Contabilitate & Partidă Dublă' : lang === 'fa' ? 'حسابداری و دفتر کل' : 'Accounting & Ledger', href: `${appBase}/accounting`, icon: FileSpreadsheet },
+    { label: lang === 'ro' ? 'Contabilitate & Registre' : lang === 'fa' ? 'حسابداری و دفاتر مالی' : 'Accounting & Registers', href: `${appBase}/accounting`, icon: FileSpreadsheet },
     { label: lang === 'ro' ? 'Închidere Lunară' : lang === 'fa' ? 'بستن دوره ماهانه' : 'Month-End Close', href: `${appBase}/accounting/month-close`, icon: CheckCircle2 },
     { label: lang === 'ro' ? 'Cote & Alocare (CPI)' : lang === 'fa' ? 'تخصیص سهم مشاع (CPI)' : 'Allocations & Rights', href: `${appBase}/accounting/allocations`, icon: Receipt },
     { label: lang === 'ro' ? 'Contoare & Consum' : lang === 'fa' ? 'کنتورها و مصارف' : 'Utilities & Meters', href: `${appBase}/meters`, icon: Gauge },

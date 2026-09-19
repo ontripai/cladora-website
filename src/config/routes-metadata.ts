@@ -12,15 +12,15 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/': {
     ro: {
       title: 'Sistemul de Operare pentru Active Rezidențiale & Contabilitate',
-      desc: 'CLADORA unește contabilitatea în partidă dublă, Legea 196/2018, drepturile proprietar-chiriaș, citirea automată a contoarelor și migrarea structurată într-un singur sistem de operare.',
+      desc: 'CLADORA este concepută pentru a susține registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.',
     },
     en: {
-      title: 'Residential Asset Operating System & Double-Entry Accounting',
-      desc: 'CLADORA unifies double-entry accounting truth, 5D owner-tenant rights, meter OCR, and residential portfolios on an auditable ledger.',
+      title: 'Residential Asset Operating System & Statutory Accounting',
+      desc: 'CLADORA is designed to support statutory simple-entry accounting, supplemental double-entry controls, 5D owner-tenant rights, and meter OCR on an auditable platform.',
     },
     fa: {
-      title: 'سیستم‌عامل مدیریت دارایی‌های مسکونی و حسابداری دوطرفه',
-      desc: 'کلادورا حسابداری دوطرفه ساختاریافته، تفکیک ۵ بعدی حقوق مالک و مستأجر، قرائت تصویری کنتورها و مهاجرت کنترل‌شده سوابق را در یک پلتفرم ارائه می‌دهد.',
+      title: 'سیستم‌عامل مدیریت دارایی‌های مسکونی و حسابداری قانونی',
+      desc: 'کلادورا برای پشتیبانی از دفاتر قانونی حسابداری یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک ۵ بعدی حقوق مالک و مستأجر و قرائت تصویری کنتورها طراحی شده است.',
     },
   },
   '/pricing': {
@@ -54,15 +54,15 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/platform': {
     ro: {
       title: 'Arhitectura Platformei & Tehnologie',
-      desc: 'Explorează arhitectura modulară CLADORA: 17 nuclee logice, evidență în partidă dublă și reconciliere asistată.',
+      desc: 'Explorează arhitectura modulară CLADORA: 17 nuclee logice, evidență conformă în partidă simplă, registru analitic suplimentar și reconciliere asistată.',
     },
     en: {
       title: 'Platform Architecture & Technology',
-      desc: 'Explore the CLADORA modular architecture: 17 logical cores, double-entry ledger truth, and assisted reconciliation.',
+      desc: 'Explore the CLADORA modular architecture: 17 logical cores, statutory simple-entry truth, supplemental ledger controls, and assisted reconciliation.',
     },
     fa: {
       title: 'معماری فنی و ساختار یکپارچه پلتفرم',
-      desc: 'بررسی معماری ماژولار کلادورا شامل ۱۷ هسته نرم‌افزاری تخصصی، دفتر کل دوطرفه و تطبیق ساختاریافته.',
+      desc: 'بررسی معماری ماژولار کلادورا شامل ۱۷ هسته نرم‌افزاری تخصصی، دفاتر قانونی یک‌طرفه، کنترل‌های تحلیلی تکمیلی و تطبیق ساختاریافته.',
     },
   },
   '/modules': {
@@ -72,11 +72,11 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
     },
     en: {
       title: 'The 17 Logical Platform Cores',
-      desc: 'Detailed walkthrough of the 17 functional cores: from double-entry accounting to meter OCR and shadow ledger migration.',
+      desc: 'Detailed walkthrough of the 17 functional cores: from statutory accounting and supplemental ledger to meter OCR and shadow ledger migration.',
     },
     fa: {
       title: 'مشاهده ۱۷ هسته نرم‌افزاری تخصصی',
-      desc: 'معرفی جامع ۱۷ ماژول کاربردی کلادورا: از حسابداری دوطرفه و قرائت تصویری کنتورها تا مدیریت تعمیرات و انتقال سوابق.',
+      desc: 'معرفی جامع ۱۷ ماژول کاربردی کلادورا: از دفاتر قانونی و کنترل‌های تکمیلی تا قرائت تصویری کنتورها و مدیریت تعمیرات.',
     },
   },
   '/building-dna': {
@@ -95,16 +95,16 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/financial-truth': {
     ro: {
-      title: 'Claritate Financiară & Contabilitate în Partidă Dublă',
-      desc: 'Evidență contabilă clară, corecții exclusiv prin stornare documentată și acces direct la documentele sursă.',
+      title: 'Claritate Financiară & Evidență Statutară',
+      desc: 'Evidență statutară în partidă simplă, control analitic suplimentar în partidă dublă, corecții exclusiv prin stornare documentată și acces direct la documentele sursă.',
     },
     en: {
-      title: 'Financial Truth & Double-Entry Accounting',
-      desc: 'Auditable double-entry ledger truth, correction through documented reversals, and direct source invoice links.',
+      title: 'Financial Truth & Statutory Accounting Controls',
+      desc: 'Statutory simple-entry registers, supplemental double-entry ledger controls, documented reversals, and direct source invoice links.',
     },
     fa: {
-      title: 'شفافیت مالی و حسابداری در دفتر کل دوطرفه',
-      desc: 'تراز مالی دقیق و تغییرناپذیر، ثبت اصلاحات صرفاً از طریق سند اصلاحی و پیوند مستقیم به فاکتورهای مرجع.',
+      title: 'شفافیت مالی و کنترل‌های دفاتر قانونی',
+      desc: 'دفاتر قانونی یک‌طرفه، کنترل تراز تحلیلی تکمیلی دوطرفه، ثبت اصلاحات صرفاً از طریق سند اصلاحی و پیوند مستقیم به فاکتورهای مرجع.',
     },
   },
   '/meters': {
@@ -278,15 +278,15 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/resources/faq': {
     ro: {
       title: 'Întrebări Frecvente & Răspunsuri Tehnice',
-      desc: 'Răspunsuri la cele mai comune întrebări despre contabilitate, Legea 196/2018, migrare și securitate.',
+      desc: 'Răspunsuri la cele mai comune întrebări despre registre statutare, Legea 196/2018, migrare și securitate.',
     },
     en: {
       title: 'Frequently Asked Questions & Technical Details',
-      desc: 'Answers to key questions regarding double-entry accounting, statutory compliance, migration, and security.',
+      desc: 'Answers to key questions regarding statutory accounting, supplemental ledger controls, compliance, migration, and security.',
     },
     fa: {
       title: 'پرسش‌های متداول و راهنمای فنی',
-      desc: 'پاسخ به سوالات متداول درباره نحوه تسهیم هزینه‌ها، حسابداری دوطرفه، انتقال اطلاعات و امنیت سیستم.',
+      desc: 'پاسخ به سوالات متداول درباره نحوه تسهیم هزینه‌ها، دفاتر قانونی، کنترل‌های حسابداری تکمیلی، انتقال اطلاعات و امنیت سیستم.',
     },
   },
   '/about': {

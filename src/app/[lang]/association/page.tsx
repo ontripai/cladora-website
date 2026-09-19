@@ -113,10 +113,10 @@ export default async function AssociationPage(
         </h1>
         <p className="text-base sm:text-lg text-slate-300 leading-relaxed">
           {isRo
-            ? 'Elimină erorile din tabelele Excel, recâștigă încrederea proprietarilor și automatizează închiderea lunară conform Legii 196/2018.'
+            ? 'Elimină erorile din tabelele Excel, recâștigă încrederea proprietarilor și este concepută pentru a susține închiderea lunară în partidă simplă conform Legii 196/2018.'
             : isFa
-            ? 'پایان دادن به خطاهای اکسل، بازیابی اعتماد ساکنان و خودکارسازی کامل فرایند بستن دوره‌های مالی با شفافیت ۱۰۰٪.'
-            : 'Eliminate spreadsheet drift, restore community trust, and automate month-end statutory closes with audit-grade double-entry accounting.'}
+            ? 'پایان دادن به خطاهای اکسل، بازیابی اعتماد ساکنان و طراحی‌شده برای پشتیبانی از بستن دوره‌های مالی دفاتر قانونی با شفافیت ۱۰۰٪.'
+            : 'Eliminate spreadsheet drift, restore community trust, and designed to support statutory simple-entry month-end closes with optional supplemental analytical controls.'}
         </p>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
           <Link

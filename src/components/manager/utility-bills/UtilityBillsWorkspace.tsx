@@ -367,7 +367,7 @@ export function UtilityBillsWorkspace({ lang }: UtilityBillsWorkspaceProps) {
             actor: 'Elena Popescu',
             actorRole: 'Property Manager (Authorized Sign-Off)',
             timestamp: new Date().toISOString(),
-            evidence: `Double-entry posting generated on account ${b.accountingCode}`,
+            evidence: `Supplemental double-entry posting generated on account ${b.accountingCode}`,
             auditId: `AUD-${Date.now()}`,
           };
           return {
@@ -383,10 +383,10 @@ export function UtilityBillsWorkspace({ lang }: UtilityBillsWorkspaceProps) {
     setIsConfirmModalOpen(false);
     setActionSuccessMessage(
       isRo
-        ? `Factura ${activeBill.invoiceNumber} a fost înregistrată în Jurnalul General (Partidă Dublă).`
+        ? `Factura ${activeBill.invoiceNumber} a fost înregistrată în registrele statutare și jurnalul analitic suplimentar.`
         : isFa
-        ? `صورت‌حساب ${activeBill.invoiceNumber} در دفتر کل دوبل ثبت شد.`
-        : `Invoice ${activeBill.invoiceNumber} posted to Double-Entry General Ledger.`
+        ? `صورت‌حساب ${activeBill.invoiceNumber} در دفاتر قانونی و دفتر کل تحلیلی تکمیلی ثبت شد.`
+        : `Invoice ${activeBill.invoiceNumber} posted to statutory books and supplemental analytical ledger.`
     );
   };
 
@@ -423,10 +423,10 @@ export function UtilityBillsWorkspace({ lang }: UtilityBillsWorkspaceProps) {
           <button
             type="button"
             className="px-3 py-1.5 text-xs rounded-xl bg-white hover:bg-[#F0F4F8] text-[#102A43] font-semibold border border-[#D3DCE6] inline-flex items-center gap-1.5 shadow-sm transition-all"
-            title="e-Factura SPV Ingestion"
+            title="e-Factura XML (Simulare / Demo)"
           >
             <Zap className="w-3.5 h-3.5 text-[#1E40AF]" />
-            <span>e-Factura</span>
+            <span>e-Factura (Simulare)</span>
           </button>
           <button
             type="button"
@@ -1064,7 +1064,7 @@ export function UtilityBillsWorkspace({ lang }: UtilityBillsWorkspaceProps) {
 
                     <div className="space-y-2 text-xs">
                       <div className="flex items-center justify-between p-2.5 rounded-xl bg-white border border-[#E2E8F0]">
-                        <span className="text-[#52667A]">{isRo ? 'Cont Contabil (Partidă Dublă):' : isFa ? 'سرفصل حسابداری دوبل:' : 'Accounting Code:'}</span>
+                        <span className="text-[#52667A]">{isRo ? 'Cont Contabil (Control Analitic):' : isFa ? 'سرفصل حسابداری (کنترل تحلیلی):' : 'Accounting Code (Supplemental GL):'}</span>
                         <span className="font-mono font-bold text-[#102A43]">{activeBill.accountingCode} — {formatAccountName(activeBill.accountingAccountName)}</span>
                       </div>
 
@@ -1168,20 +1168,25 @@ export function UtilityBillsWorkspace({ lang }: UtilityBillsWorkspaceProps) {
                       <h4 className="text-base font-bold text-[#102A43]">
                         {activeBill.originalDocumentName || 'factura_originala_scanata.pdf'}
                       </h4>
-                      <p className="text-xs text-[#52667A] mt-1">
+                      <div className="pt-1">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-semibold">
+                          Simulare / Demo • Date fictive • No production SPV connection
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#52667A] mt-2">
                         {isRo
-                          ? 'Document original recepționat prin canal securizat (SPV e-Factura XML / PDF Scan).'
+                          ? 'Document demonstrativ (Simulare XML / Date fictive / Fără conexiune SPV de producție).'
                           : isFa
-                          ? 'سند الکترونیکی اصلی دریافت شده از درگاه امن مودیان / اسکن دیجیتال.'
-                          : 'Original verified invoice received via secure ingestion gateway.'}
+                          ? 'سند نمونه ساختاریافته (شبیه‌سازی XML / داده‌های آزمایشی / بدون اتصال پروداکشن به سامانه).'
+                          : 'Demo document (XML Simulation / Fictitious data / No production SPV connection).'}
                       </p>
                     </div>
 
                     <div className="max-w-md mx-auto p-4 rounded-xl bg-white border border-[#E2E8F0] text-xs font-mono text-start space-y-1">
                       <div>File Name: <strong className="text-[#102A43]">{activeBill.originalDocumentName || 'factura_enel_octombrie_2026.pdf'}</strong></div>
                       <div>Document Hash (SHA-256): <strong className="text-[#0A6E62]">0x9185dd4759671ed69dca39f17080c84593912134</strong></div>
-                      <div>Ingestion Channel: <strong className="text-[#1E40AF]">{activeBill.intakeSource}</strong></div>
-                      <div>SPV Message ID: <strong className="text-[#065F46]">SPV-RO-2026-991823</strong></div>
+                      <div>Ingestion Channel: <strong className="text-[#1E40AF]">{activeBill.intakeSource} (Simulation)</strong></div>
+                      <div>SPV Message ID (Simulare): <strong className="text-[#065F46]">DEMO-SIM-SPV-RO-2026-991823</strong></div>
                     </div>
                   </div>
                 </div>
@@ -1383,7 +1388,7 @@ export function UtilityBillsWorkspace({ lang }: UtilityBillsWorkspaceProps) {
                   <h3 className="text-lg font-display font-extrabold text-[#102A43]">
                     {confirmActionType === 'APPROVE'
                       ? isRo ? 'Aprobare Umană Autorizată Factură Utilități' : isFa ? 'تأیید نهایی کاربر مجاز انسانی' : 'Authorized Human Sign-Off & Expense Approval'
-                      : isRo ? 'Confirmare Înregistrare în Partidă Dublă' : isFa ? 'تأیید ثبت در دفتر کل دوبل' : 'Confirm Double-Entry Ledger Posting'}
+                      : isRo ? 'Confirmare Înregistrare în Registre & Control Analitic' : isFa ? 'تأیید ثبت در دفاتر قانونی و کنترل تحلیلی' : 'Confirm Statutory Posting & Supplemental Ledger'}
                   </h3>
                   <span className="text-xs text-[#52667A] font-mono">Gate 5 Human Responsibility Sign-Off</span>
                 </div>

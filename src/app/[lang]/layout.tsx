@@ -40,12 +40,13 @@ export async function generateMetadata(
   const isRo = params.lang === 'ro';
   const isFa = params.lang === 'fa';
 
-  let title = 'CLADORA | Residential Asset Operating System & Double-Entry Accounting';
-  let description = 'CLADORA unifies double-entry accounting truth, 5D owner-tenant rights, meter OCR, and residential portfolios on an auditable ledger.';
+  let title = 'CLADORA | Residential Asset Operating System & Statutory Accounting';
+  let description = 'CLADORA unifies statutory simple-entry accounting, supplemental double-entry controls, 5D owner-tenant rights, and meter OCR on an auditable platform.';
   let keywords = [
     'homeowner association software',
     'condo management operating system',
-    'double entry condo accounting',
+    'statutory simple entry accounting',
+    'double entry analytical ledger',
     'tenant meter readings ocr',
     'residential portfolio software',
     'cladora',
@@ -53,7 +54,7 @@ export async function generateMetadata(
 
   if (isRo) {
     title = 'CLADORA | Sistemul de Operare pentru Active Rezidențiale & Contabilitate';
-    description = 'CLADORA unește contabilitatea în partidă dublă, Legea 196/2018, drepturile proprietar-chiriaș, citirea automată a contoarelor și migrarea prin Shadow Ledger într-un singur sistem de operare.';
+    description = 'CLADORA este concepută pentru a susține registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.';
     keywords = [
       'soft asociatie de proprietari',
       'program administrare bloc',
@@ -65,8 +66,8 @@ export async function generateMetadata(
       'cladora',
     ];
   } else if (isFa) {
-    title = 'کلادورا | سیستم‌عامل مدیریت دارایی‌های مسکونی و حسابداری دوطرفه';
-    description = 'کلادورا حسابداری دوطرفه ساختاریافته، تفکیک ۵ بعدی حقوق مالک و مستأجر، قرائت تصویری کنتورها و مهاجرت کنترل‌شده سوابق را در یک سیستم‌عامل یکپارچه ارائه می‌دهد.';
+    title = 'کلادورا | سیستم‌عامل مدیریت دارایی‌های مسکونی و کنترل‌های حسابداری';
+    description = 'کلادورا برای پشتیبانی از دفاتر قانونی حسابداری یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک ۵ بعدی حقوق مالک و مستأجر و قرائت تصویری کنتورها طراحی شده است.';
     keywords = [
       'نرم افزار مدیریت ساختمان',
       'حسابداری انجمن مالکان',
@@ -169,10 +170,10 @@ export default async function LangLayout(
       priceCurrency: 'EUR',
     },
     description: isRo
-      ? 'Sistem de operare pentru active rezidențiale: contabilitate în partidă dublă, Legea 196/2018, citire contoare și administrare portofoliu.'
+      ? 'Sistem de operare pentru active rezidențiale: conceput pentru susținerea registrelor statutare în partidă simplă, control analitic în partidă dublă, Legea 196/2018 și administrare portofoliu.'
       : isFa
-      ? 'سیستم‌عامل مدیریت دارایی‌های مسکونی: حسابداری دوطرفه، تفکیک حقوق مالک و مستأجر، قرائت کنتورها و مدیریت مجتمع‌ها.'
-      : 'Residential Asset Operating System uniting double-entry accounting, statutory compliance, meter OCR, and multi-property portfolio management.',
+      ? 'سیستم‌عامل مدیریت دارایی‌های مسکونی: طراحی‌شده برای پشتیبانی از دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی، تفکیک حقوق مالک و مستأجر و مدیریت مجتمع‌ها.'
+      : 'Residential Asset Operating System designed to support statutory simple-entry accounting, supplemental double-entry controls, meter OCR, and multi-property portfolio management.',
     creator: {
       '@type': 'Organization',
       name: 'CLADORA',
