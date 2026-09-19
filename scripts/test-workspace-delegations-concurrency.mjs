@@ -196,7 +196,7 @@ async function run() {
         scope_type, property_id, lifecycle_status, delegation_depth,
         purpose, valid_from, valid_until, lock_version,
         approval_policy_code, required_approval_count, payload_hash,
-        submitted_at, accepted_at
+        submitted_at, accepted_at, created_by
       ) VALUES (
         '${F_DEL_1}', 'DEL-CONCUR-1', '${F_TENANT}', '${F_WS}',
         '${F_GRANTOR_MEM}', '${F_GRANTOR_USER}', '${F_GRANTEE_MEM}', '${F_GRANTEE_USER}',
@@ -204,7 +204,8 @@ async function run() {
         'Concurrency Delegation 1',
         statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 5,
         'single_manager', 1, 'dummy_hash_1',
-        statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+        statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute',
+        '${F_GRANTOR_USER}'
       );
 
       INSERT INTO platform.workspace_delegation_permissions (
@@ -227,7 +228,7 @@ async function run() {
         scope_type, property_id, lifecycle_status, delegation_depth,
         purpose, valid_from, valid_until, lock_version,
         approval_policy_code, required_approval_count, payload_hash,
-        submitted_at, accepted_at
+        submitted_at, accepted_at, created_by
       ) VALUES (
         '${F_DEL_2}', 'DEL-CONCUR-2', '${F_TENANT}', '${F_WS}',
         '${F_GRANTOR_MEM}', '${F_GRANTOR_USER}', '${F_GRANTEE_MEM}', '${F_GRANTEE_USER}',
@@ -235,7 +236,8 @@ async function run() {
         'Concurrency Delegation 2',
         statement_timestamp() - interval '1 minute', statement_timestamp() + interval '5 days', 5,
         'single_manager', 1, 'dummy_hash_2',
-        statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute'
+        statement_timestamp() - interval '2 minutes', statement_timestamp() - interval '1 minute',
+        '${F_GRANTOR_USER}'
       );
 
       INSERT INTO platform.workspace_delegation_permissions (
