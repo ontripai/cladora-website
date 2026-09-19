@@ -644,8 +644,8 @@ select lives_ok(
     'property',
     '09100000-0000-0000-0000-000000001000'::uuid,
     null, null,
-    '2026-09-20 10:00:00+00'::timestamptz,
-    '2026-09-27 10:00:00+00'::timestamptz,
+    '2026-09-18 10:00:00+00'::timestamptz,
+    '2026-09-25 10:00:00+00'::timestamptz,
     'Maintenance delegation for inspections',
     'Routine management handoff',
     'del_idem_create_001'
@@ -699,8 +699,8 @@ select ok(
     'property',
     '09100000-0000-0000-0000-000000001000'::uuid,
     null, null,
-    '2026-09-20 10:00:00+00'::timestamptz,
-    '2026-09-27 10:00:00+00'::timestamptz,
+    '2026-09-18 10:00:00+00'::timestamptz,
+    '2026-09-25 10:00:00+00'::timestamptz,
     'Maintenance delegation for inspections',
     'Routine management handoff',
     'del_idem_create_001'
@@ -1084,6 +1084,13 @@ select ok(
 );
 
 -- 10.2 Dynamic temporal expiry yields no effective permission without database mutation
+-- Switch auth context to Grantee Exp
+select set_config('request.jwt.claims', jsonb_build_object(
+  'sub', '09100000-0000-0000-0000-000000000021',
+  'role', 'authenticated',
+  'aal', 'aal2'
+)::text, true);
+
 update platform.workspace_delegations
 set valid_until = statement_timestamp() - interval '1 second'
 where id = '09100000-0000-0000-0000-000000008010'::uuid;
@@ -1100,6 +1107,13 @@ select ok(
 );
 
 -- 10.3 Dynamic fail-closed grantor invalidation: revoking grantor role immediately invalidates grantee effective permission
+-- Switch auth context to Grantee Inv
+select set_config('request.jwt.claims', jsonb_build_object(
+  'sub', '09100000-0000-0000-0000-000000000022',
+  'role', 'authenticated',
+  'aal', 'aal2'
+)::text, true);
+
 update identity.memberships
 set ends_at = statement_timestamp() - interval '1 second'
 where id = '09100000-0000-0000-0000-000001000012'::uuid;
