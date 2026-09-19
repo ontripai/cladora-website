@@ -2410,7 +2410,7 @@ begin
       raise exception 'delegation_unauthorized_approver_role' using errcode = '42501';
     end if;
   elsif v_del.approval_policy_code = 'single_manager' then
-    if v_approver_role not in ('president', 'association_admin', 'property_manager') then
+    if v_approver_role not in ('association_admin', 'property_manager') then
       raise exception 'delegation_unauthorized_approver_role' using errcode = '42501';
     end if;
   else

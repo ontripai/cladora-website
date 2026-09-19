@@ -644,8 +644,8 @@ select lives_ok(
     'property',
     '09100000-0000-0000-0000-000000001000'::uuid,
     null, null,
-    '2026-09-18 10:00:00+00'::timestamptz,
-    '2026-09-25 10:00:00+00'::timestamptz,
+    transaction_timestamp() - interval '1 minute',
+    transaction_timestamp() + interval '7 days',
     'Maintenance delegation for inspections',
     'Routine management handoff',
     'del_idem_create_001'
@@ -699,8 +699,8 @@ select ok(
     'property',
     '09100000-0000-0000-0000-000000001000'::uuid,
     null, null,
-    '2026-09-18 10:00:00+00'::timestamptz,
-    '2026-09-25 10:00:00+00'::timestamptz,
+    transaction_timestamp() - interval '1 minute',
+    transaction_timestamp() + interval '7 days',
     'Maintenance delegation for inspections',
     'Routine management handoff',
     'del_idem_create_001'

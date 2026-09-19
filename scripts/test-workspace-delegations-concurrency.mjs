@@ -208,14 +208,14 @@ async function run() {
         delegation_id, module_definition_id, permission_id, module_permission_binding_id
       ) VALUES (
         '${F_DEL_1}',
-        (SELECT id FROM platform.module_definitions WHERE code = 'maintenance' LIMIT 1),
-        (SELECT id FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1),
-        (SELECT id FROM platform.module_permission_bindings WHERE module_definition_id = (SELECT id FROM platform.module_definitions WHERE code = 'maintenance' LIMIT 1) AND permission_id = (SELECT id FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1) AND binding_version = 2 LIMIT 1)
+        (SELECT id FROM platform.module_definitions WHERE code = 'billing' LIMIT 1),
+        (SELECT id FROM identity.permissions WHERE code = 'billing.manage' LIMIT 1),
+        (SELECT id FROM platform.module_permission_bindings WHERE module_definition_id = (SELECT id FROM platform.module_definitions WHERE code = 'billing' LIMIT 1) AND permission_id = (SELECT id FROM identity.permissions WHERE code = 'billing.manage' LIMIT 1) AND binding_version = 2 LIMIT 1)
       );
 
       UPDATE platform.workspace_delegations
       SET lifecycle_status = 'pending_approval',
-          approval_policy_code = 'single_manager',
+          approval_policy_code = 'four_eyes_financial',
           required_approval_count = 1,
           submitted_at = statement_timestamp() - interval '2 minutes',
           accepted_at = statement_timestamp() - interval '1 minute',
@@ -245,14 +245,14 @@ async function run() {
         delegation_id, module_definition_id, permission_id, module_permission_binding_id
       ) VALUES (
         '${F_DEL_2}',
-        (SELECT id FROM platform.module_definitions WHERE code = 'maintenance' LIMIT 1),
-        (SELECT id FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1),
-        (SELECT id FROM platform.module_permission_bindings WHERE module_definition_id = (SELECT id FROM platform.module_definitions WHERE code = 'maintenance' LIMIT 1) AND permission_id = (SELECT id FROM identity.permissions WHERE code = 'maintenance.requests.manage' LIMIT 1) AND binding_version = 2 LIMIT 1)
+        (SELECT id FROM platform.module_definitions WHERE code = 'billing' LIMIT 1),
+        (SELECT id FROM identity.permissions WHERE code = 'billing.manage' LIMIT 1),
+        (SELECT id FROM platform.module_permission_bindings WHERE module_definition_id = (SELECT id FROM platform.module_definitions WHERE code = 'billing' LIMIT 1) AND permission_id = (SELECT id FROM identity.permissions WHERE code = 'billing.manage' LIMIT 1) AND binding_version = 2 LIMIT 1)
       );
 
       UPDATE platform.workspace_delegations
       SET lifecycle_status = 'pending_approval',
-          approval_policy_code = 'single_manager',
+          approval_policy_code = 'four_eyes_financial',
           required_approval_count = 1,
           submitted_at = statement_timestamp() - interval '2 minutes',
           accepted_at = statement_timestamp() - interval '1 minute',
