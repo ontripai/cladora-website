@@ -36,10 +36,10 @@ export default function AccountingPage(props: { params: Promise<{ lang: Language
         <div>
           <div className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider">
             {lang === 'ro'
-              ? 'Nucleul C01 — Registre Statutare & Control Analitic Suplimentar'
+              ? 'Nucleul C01 — Simulare Registre Statutare & Control Analitic Suplimentar'
               : lang === 'fa'
-              ? 'هسته C01 — دفاتر قانونی و کنترل تحلیلی تکمیلی'
-              : 'Core C01 — Statutory Registers & Supplemental Analytical Ledger'}
+              ? 'هسته C01 — شبیه‌سازی دفاتر قانونی و کنترل تحلیلی تکمیلی'
+              : 'Core C01 — Simulated Statutory Registers & Supplemental Analytical Ledger'}
           </div>
           <div className="pt-1">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-[11px] font-semibold">
@@ -47,14 +47,14 @@ export default function AccountingPage(props: { params: Promise<{ lang: Language
             </span>
           </div>
           <h1 className="text-2xl font-display font-extrabold text-[#102A43] mt-1">
-            {lang === 'ro' ? 'Registre Statutare & Control Analitic' : lang === 'fa' ? 'دفاتر قانونی و کنترل تحلیلی' : 'Statutory Registers & Supplemental Ledger'}
+            {lang === 'ro' ? 'Simulare Registre Statutare & Control Analitic' : lang === 'fa' ? 'شبیه‌سازی دفاتر قانونی و کنترل تحلیلی' : 'Simulated Registers & Supplemental Ledger'}
           </h1>
           <p className="text-xs text-[#52667A]">
             {lang === 'ro'
-              ? 'Registre în partidă simplă conform Legii 196/2018 · Control analitic suplimentar în partidă dublă'
+              ? 'Simulare registre în partidă simplă conform Legii 196/2018 · Control analitic suplimentar în partidă dublă'
               : lang === 'fa'
-              ? 'دفاتر قانونی یک‌طرفه بر اساس قانون ۱۹۶/۲۰۱۸ · کنترل‌های تحلیلی تکمیلی دوطرفه'
-              : 'Statutory simple-entry records under Law 196/2018 · Supplemental analytical double-entry controls'}
+              ? 'شبیه‌سازی دفاتر قانونی یک‌طرفه بر اساس قانون ۱۹۶/۲۰۱۸ · کنترل‌های تحلیلی تکمیلی دوطرفه'
+              : 'Simulated simple-entry records under Law 196/2018 · Supplemental analytical double-entry controls'}
           </p>
         </div>
 

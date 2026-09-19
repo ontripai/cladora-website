@@ -26,7 +26,7 @@ export const ro = {
     lawCompliance: "Conformitate cu Legea 196/2018 & Registre Statutare în Partidă Simplă",
     allRightsReserved: "Toate drepturile rezervate.",
     securityCertified: "Arhitectură GDPR • Criptare TLS/AES • Jurnal de Audit cu Trasabilitate",
-    canonicalPositioning: "CLADORA păstrează registrele obligatorii în partidă simplă pentru asociațiile de proprietari din România. Registrul în partidă dublă este un instrument analitic suplimentar și nu înlocuiește registrele și formularele statutare.",
+    canonicalPositioning: "CLADORA este concepută pentru a susține registrele obligatorii în partidă simplă ale asociațiilor de proprietari din România. Funcționalitățile statutare de producție vor fi activate numai după implementare și validare. Registrul în partidă dublă rămâne un instrument analitic suplimentar și nu înlocuiește registrele și formularele statutare.",
   },
   nav: {
     modes: "Soluții pe Roluri",

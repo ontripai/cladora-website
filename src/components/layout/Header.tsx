@@ -98,7 +98,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
   const modulesPreview = [
     {
       title: lang === 'ro' ? 'C01 — Financial Truth & Contabilitate' : lang === 'fa' ? 'C01 — حسابداری و دفاتر قانونی' : 'C01 — Financial Truth & Accounting',
-      desc: lang === 'ro' ? 'Partidă simplă statutară, control analitic în partidă dublă și stornare' : lang === 'fa' ? 'دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی دوطرفه و سند اصلاحی' : 'Statutory simple-entry, supplemental double-entry ledger, auditable reversals',
+      desc: lang === 'ro' ? 'Conceput pentru partidă simplă statutară, control analitic în partidă dublă și stornare' : lang === 'fa' ? 'طراحی‌شده برای دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی دوطرفه و سند اصلاحی' : 'Designed for statutory simple-entry, supplemental double-entry ledger, auditable reversals',
       href: `/${lang}/modules`
     },
     {

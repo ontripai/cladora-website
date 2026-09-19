@@ -12,15 +12,15 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/': {
     ro: {
       title: 'Sistemul de Operare pentru Active Rezidențiale & Contabilitate',
-      desc: 'CLADORA unește registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.',
+      desc: 'CLADORA este concepută pentru a susține registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.',
     },
     en: {
       title: 'Residential Asset Operating System & Statutory Accounting',
-      desc: 'CLADORA unifies statutory simple-entry accounting, supplemental double-entry controls, 5D owner-tenant rights, and meter OCR on an auditable platform.',
+      desc: 'CLADORA is designed to support statutory simple-entry accounting, supplemental double-entry controls, 5D owner-tenant rights, and meter OCR on an auditable platform.',
     },
     fa: {
       title: 'سیستم‌عامل مدیریت دارایی‌های مسکونی و حسابداری قانونی',
-      desc: 'کلادورا دفاتر قانونی حسابداری یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک ۵ بعدی حقوق مالک و مستأجر و قرائت تصویری کنتورها را در یک پلتفرم ارائه می‌دهد.',
+      desc: 'کلادورا برای پشتیبانی از دفاتر قانونی حسابداری یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک ۵ بعدی حقوق مالک و مستأجر و قرائت تصویری کنتورها طراحی شده است.',
     },
   },
   '/pricing': {

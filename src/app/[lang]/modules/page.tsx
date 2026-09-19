@@ -71,10 +71,10 @@ export default async function ModulesPage(props: { params: Promise<{ lang: Langu
             <div className="text-sm font-bold text-[#102A43] mt-1 font-mono ltr-isolate">C01, C02, C06, C08, C11, C16, C17</div>
             <p className="text-xs text-[#334E68] mt-1">
               {lang === 'ro'
-                ? 'Evidență statutară în partidă simplă, control analitic în partidă dublă, alocare CPI, contoare, avizier și Shadow Ledger.'
+                ? 'Conceput pentru: evidență statutară în partidă simplă, control analitic în partidă dublă, alocare CPI, contoare, avizier și Shadow Ledger.'
                 : lang === 'fa'
-                ? 'دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی دوطرفه، تسهیم سهم مشاع، قرائت کنتورها و Shadow Ledger.'
-                : 'Statutory simple-entry accounting, supplemental double-entry ledger, CPI allocation, meters, and Shadow Ledger.'}
+                ? 'طراحی‌شده برای: دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی دوطرفه، تسهیم سهم مشاع، قرائت کنتورها و Shadow Ledger.'
+                : 'Designed for: statutory simple-entry accounting, supplemental double-entry ledger, CPI allocation, meters, and Shadow Ledger.'}
             </p>
           </div>
 

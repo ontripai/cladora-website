@@ -26,7 +26,7 @@ export const en = {
     lawCompliance: "Designed for Romanian Law 196/2018 & Statutory Association Accounting",
     allRightsReserved: "All rights reserved.",
     securityCertified: "GDPR Architecture • TLS/AES Encryption • Traceable Audit History",
-    canonicalPositioning: "CLADORA maintains Romania’s statutory simple-entry registers for condominium associations. Its double-entry general ledger is an optional supplemental analytical control and does not replace statutory books or forms.",
+    canonicalPositioning: "CLADORA is designed to support Romania’s statutory simple-entry registers for condominium associations. Statutory production functionality will be enabled only after implementation and validation. Its double-entry general ledger remains an optional supplemental analytical control and does not replace statutory books or forms.",
   },
   nav: {
     modes: "Role Solutions",

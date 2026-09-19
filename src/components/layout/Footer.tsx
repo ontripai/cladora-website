@@ -25,10 +25,10 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
             
             <p className="text-sm text-[#CBD5E1] leading-relaxed max-w-sm">
               {lang === 'ro'
-                ? 'Sistemul de operare pentru active rezidențiale. Unifică registrele statutare în partidă simplă, Legea 196/2018, controlul analitic în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur adevăr financiar.'
+                ? 'Sistemul de operare pentru active rezidențiale. Conceput pentru a susține registrele statutare în partidă simplă conform Legii 196/2018, controlul analitic în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur adevăr financiar.'
                 : lang === 'fa'
-                ? 'سیستم‌عامل یکپارچه مدیریت دارایی‌های مسکونی. اتصال دفاتر قانونی یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک حقوق مالک و مستأجر و قرائت کنتورها.'
-                : 'The residential asset operating system. Unifying statutory simple-entry accounting under Law 196/2018, supplemental double-entry ledger controls, 5D owner-tenant rights, and meter readings.'}
+                ? 'سیستم‌عامل یکپارچه مدیریت دارایی‌های مسکونی. طراحی‌شده برای پشتیبانی از دفاتر قانونی یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک حقوق مالک و مستأجر و قرائت کنتورها.'
+                : 'The residential asset operating system. Designed to support statutory simple-entry accounting under Law 196/2018, supplemental double-entry ledger controls, 5D owner-tenant rights, and meter readings.'}
             </p>
 
             <div className="pt-2 flex items-center gap-2 text-xs text-[#14B8A6] font-semibold">

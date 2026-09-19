@@ -41,6 +41,31 @@ function readFile(relPath) {
   return fs.readFileSync(fullPath, 'utf8');
 }
 
+// Target public files allowlist
+const targetFiles = [
+  'src/config/routes-metadata.ts',
+  'src/app/[lang]/layout.tsx',
+  'src/app/[lang]/page.tsx',
+  'src/app/[lang]/association/page.tsx',
+  'src/app/[lang]/modules/page.tsx',
+  'src/app/[lang]/platform/page.tsx',
+  'src/app/[lang]/manager/page.tsx',
+  'src/app/[lang]/prototype/page.tsx',
+  'src/app/[lang]/information-architecture/page.tsx',
+  'src/app/[lang]/user-testing/page.tsx',
+  'src/app/[lang]/trust/page.tsx',
+  'src/components/layout/Header.tsx',
+  'src/components/layout/Footer.tsx',
+  'src/components/home/FinancialTruthSection.tsx',
+  'src/components/home/TrustStrip.tsx',
+  'src/components/demo/DemoAccountingPage.tsx',
+  'src/components/manager/utility-bills/UtilityBillsWorkspace.tsx',
+  'src/data/mockUtilityBills.ts',
+  'src/dictionaries/ro.ts',
+  'src/dictionaries/en.ts',
+  'src/dictionaries/fa.ts',
+];
+
 // =============================================================================
 // Assertion 1: Exact Forbidden Claims Absence
 // =============================================================================
@@ -56,30 +81,6 @@ runAssertion('Absence of forbidden claims across public/marketing source code', 
     { pattern: /direct production SPV connection/i, desc: 'Production SPV connection without demo disclosure' },
   ];
 
-  const targetFiles = [
-    'src/config/routes-metadata.ts',
-    'src/app/[lang]/layout.tsx',
-    'src/app/[lang]/page.tsx',
-    'src/app/[lang]/association/page.tsx',
-    'src/app/[lang]/modules/page.tsx',
-    'src/app/[lang]/platform/page.tsx',
-    'src/app/[lang]/manager/page.tsx',
-    'src/app/[lang]/prototype/page.tsx',
-    'src/app/[lang]/information-architecture/page.tsx',
-    'src/app/[lang]/user-testing/page.tsx',
-    'src/app/[lang]/trust/page.tsx',
-    'src/components/layout/Header.tsx',
-    'src/components/layout/Footer.tsx',
-    'src/components/home/FinancialTruthSection.tsx',
-    'src/components/home/TrustStrip.tsx',
-    'src/components/demo/DemoAccountingPage.tsx',
-    'src/components/manager/utility-bills/UtilityBillsWorkspace.tsx',
-    'src/data/mockUtilityBills.ts',
-    'src/dictionaries/ro.ts',
-    'src/dictionaries/en.ts',
-    'src/dictionaries/fa.ts',
-  ];
-
   for (const relPath of targetFiles) {
     const content = readFile(relPath);
     for (const { pattern, desc } of forbiddenPatterns) {
@@ -92,25 +93,25 @@ runAssertion('Absence of forbidden claims across public/marketing source code', 
 });
 
 // =============================================================================
-// Assertion 2: Canonical Accounting Positioning Presence (RO / EN / FA)
+// Assertion 2: Canonical Pre-implementation Accounting Positioning (RO / EN / FA)
 // =============================================================================
-runAssertion('Canonical Accounting Positioning Presence in Romanian, English, and Persian dictionaries', () => {
+runAssertion('Canonical Pre-implementation Positioning Presence in Romanian, English, and Persian dictionaries', () => {
   const roContent = readFile('src/dictionaries/ro.ts');
   const enContent = readFile('src/dictionaries/en.ts');
   const faContent = readFile('src/dictionaries/fa.ts');
 
-  const expectedRo = 'CLADORA păstrează registrele obligatorii în partidă simplă pentru asociațiile de proprietari din România. Registrul în partidă dublă este un instrument analitic suplimentar și nu înlocuiește registrele și formularele statutare.';
-  const expectedEn = 'CLADORA maintains Romania’s statutory simple-entry registers for condominium associations. Its double-entry general ledger is an optional supplemental analytical control and does not replace statutory books or forms.';
-  const expectedFa = 'کلادورا دفاتر قانونی حسابداری یک‌طرفه انجمن‌های مالکان رومانی را نگهداری می‌کند. دفتر کل دوطرفه صرفاً یک ابزار تحلیلی تکمیلی است و جایگزین دفاتر و فرم‌های قانونی نمی‌شود.';
+  const expectedRo = 'CLADORA este concepută pentru a susține registrele obligatorii în partidă simplă ale asociațiilor de proprietari din România. Funcționalitățile statutare de producție vor fi activate numai după implementare și validare. Registrul în partidă dublă rămâne un instrument analitic suplimentar și nu înlocuiește registrele și formularele statutare.';
+  const expectedEn = 'CLADORA is designed to support Romania’s statutory simple-entry registers for condominium associations. Statutory production functionality will be enabled only after implementation and validation. Its double-entry general ledger remains an optional supplemental analytical control and does not replace statutory books or forms.';
+  const expectedFa = 'کلادورا برای پشتیبانی از دفاتر قانونی حسابداری یک‌طرفه انجمن‌های مالکان رومانی طراحی شده است. قابلیت‌های قانونی در محیط عملیاتی فقط پس از پیاده‌سازی و اعتبارسنجی فعال خواهند شد. دفتر کل دوطرفه همچنان صرفاً یک ابزار تحلیلی تکمیلی است و جایگزین دفاتر و فرم‌های قانونی نمی‌شود.';
 
   assert.ok(
     roContent.includes(expectedRo),
-    'Romanian dictionary (src/dictionaries/ro.ts) must contain exact canonical copy'
+    'Romanian dictionary (src/dictionaries/ro.ts) must contain exact pre-implementation canonical copy'
   );
 
   assert.ok(
     enContent.includes(expectedEn),
-    'English dictionary (src/dictionaries/en.ts) must contain exact canonical copy'
+    'English dictionary (src/dictionaries/en.ts) must contain exact pre-implementation canonical copy'
   );
 
   // For Persian, test with normalized unicode comparison
@@ -118,12 +119,37 @@ runAssertion('Canonical Accounting Positioning Presence in Romanian, English, an
   const normalizedExpectedFa = normalizeText(expectedFa);
   assert.ok(
     normalizedFaContent.includes(normalizedExpectedFa),
-    'Persian dictionary (src/dictionaries/fa.ts) must contain exact normalized canonical copy'
+    'Persian dictionary (src/dictionaries/fa.ts) must contain exact normalized pre-implementation canonical copy'
   );
 });
 
 // =============================================================================
-// Assertion 3: Routes Metadata Qualification (routes-metadata.ts)
+// Assertion 3: Absence of Present-Tense Statutory Simple-Entry Claims (Pre-implementation Gate)
+// =============================================================================
+runAssertion('Absence of present-tense active statutory simple-entry claims across public copy', () => {
+  const presentTenseForbiddenPatterns = [
+    { pattern: /maintains Romania[’']s statutory simple-entry registers/i, desc: 'Present tense maintains statutory simple-entry' },
+    { pattern: /păstrează registrele obligatorii în partidă simplă/i, desc: 'Present tense păstrează registrele obligatorii' },
+    { pattern: /دفاتر قانونی حسابداری یک‌?طرفه.*نگهداری می[‌]?کند/, desc: 'Present tense دفاتر قانونی را نگهداری می‌کند' },
+    { pattern: /gestionează închiderea lunară în partidă simplă/i, desc: 'Present tense gestionează închiderea lunară' },
+    { pattern: /maintain statutory simple-entry/i, desc: 'Present tense maintain statutory simple-entry' },
+    { pattern: /Unifică registrele statutare în partidă simplă/i, desc: 'Present tense Unifică registrele statutare' },
+    { pattern: /Unifying statutory simple-entry/i, desc: 'Present tense Unifying statutory simple-entry' },
+  ];
+
+  for (const relPath of targetFiles) {
+    const content = readFile(relPath);
+    for (const { pattern, desc } of presentTenseForbiddenPatterns) {
+      assert.ok(
+        !pattern.test(content),
+        `Pre-implementation gate violation: File ${relPath} contains active present-tense claim "${desc}" matching pattern ${pattern}`
+      );
+    }
+  }
+});
+
+// =============================================================================
+// Assertion 4: Routes Metadata Qualification (routes-metadata.ts)
 // =============================================================================
 runAssertion('Route metadata accurately qualifies simple-entry and supplemental analytical control', () => {
   const metadataContent = readFile('src/config/routes-metadata.ts');
@@ -143,7 +169,7 @@ runAssertion('Route metadata accurately qualifies simple-entry and supplemental 
 });
 
 // =============================================================================
-// Assertion 4: Public Marketing & Feature Sections Double-Entry Qualification
+// Assertion 5: Public Marketing & Feature Sections Double-Entry Qualification
 // =============================================================================
 runAssertion('Double-entry references in public components are qualified as supplemental / analytical', () => {
   const financialTruthContent = readFile('src/components/home/FinancialTruthSection.tsx');
@@ -177,7 +203,7 @@ runAssertion('Double-entry references in public components are qualified as supp
 });
 
 // =============================================================================
-// Assertion 5: SPV / e-Factura Demo Disclosures & Simulation Identifiers
+// Assertion 6: SPV / e-Factura Demo Disclosures & Simulation Identifiers
 // =============================================================================
 runAssertion('Demo components display visible simulation badges and use DEMO-SIM identifiers', () => {
   const mockBills = readFile('src/data/mockUtilityBills.ts');
@@ -216,7 +242,7 @@ runAssertion('Demo components display visible simulation badges and use DEMO-SIM
 });
 
 // =============================================================================
-// Assertion 6: Demo Accounting Page Disclosures
+// Assertion 7: Demo Accounting Page Disclosures & Simulation Markers
 // =============================================================================
 runAssertion('Demo Accounting Page displays prominent simulation badge and qualified ledger controls', () => {
   const demoPage = readFile('src/components/demo/DemoAccountingPage.tsx');
@@ -229,10 +255,14 @@ runAssertion('Demo Accounting Page displays prominent simulation badge and quali
     demoPage.includes('Control Analitic Suplimentar') || demoPage.includes('Supplemental Analytical Ledger') || demoPage.includes('analitic suplimentar'),
     'DemoAccountingPage must qualify double-entry general ledger as supplemental analytical instrument'
   );
+  assert.ok(
+    demoPage.includes('Simulare') || demoPage.includes('Simulated'),
+    'DemoAccountingPage headers must be qualified with simulation/simulated markers'
+  );
 });
 
 // =============================================================================
-// Assertion 7: Law 196/2018 Statutory Simple-Entry vs Supplemental Ledger Distinction
+// Assertion 8: Law 196/2018 Statutory Simple-Entry vs Supplemental Ledger Distinction
 // =============================================================================
 runAssertion('Statutory simple-entry registers are strictly distinguished from supplemental general ledger', () => {
   const roDict = readFile('src/dictionaries/ro.ts');
@@ -259,7 +289,7 @@ runAssertion('Statutory simple-entry registers are strictly distinguished from s
 });
 
 // =============================================================================
-// Assertion 8: Tax Declarations & Calendar Positioning (Preparation vs Active Direct Filing)
+// Assertion 9: Tax Declarations & Calendar Positioning (Preparation vs Active Direct Filing)
 // =============================================================================
 runAssertion('Tax module positions as calendar and data preparation for authorized accountant, not direct filing', () => {
   const roDict = readFile('src/dictionaries/ro.ts');
@@ -287,7 +317,7 @@ runAssertion('Tax module positions as calendar and data preparation for authoriz
 });
 
 // =============================================================================
-// Assertion 9: GDPR and Data Residency Legal Qualification
+// Assertion 10: GDPR and Data Residency Legal Qualification
 // =============================================================================
 runAssertion('Trust page qualifies data protection with lawful bases and safeguards, avoiding absolute zero-transfer claims', () => {
   const trustPage = readFile('src/app/[lang]/trust/page.tsx');
@@ -303,7 +333,7 @@ runAssertion('Trust page qualifies data protection with lawful bases and safegua
 });
 
 // =============================================================================
-// Assertion 10: Regression Guard - Fail-Safe on Unauthorized Claims Insertion
+// Assertion 11: Comprehensive Scan Against Critical Regression Terms
 // =============================================================================
 runAssertion('Comprehensive scan against critical regression terms across all application pages', () => {
   const scanDirs = ['src/app', 'src/components', 'src/dictionaries'];
@@ -312,6 +342,8 @@ runAssertion('Comprehensive scan against critical regression terms across all ap
     { term: 'standarde financiare europene', regex: /\bstandarde financiare europene\b/i },
     { term: 'depunere directă SPV', regex: /\bdepunere directă SPV\b/i },
     { term: 'active D112 automated submission', regex: /\bactive D112 automated submission\b/i },
+    { term: 'maintains Romania’s statutory simple-entry registers', regex: /maintains Romania[’']s statutory simple-entry registers/i },
+    { term: 'păstrează registrele obligatorii în partidă simplă', regex: /păstrează registrele obligatorii în partidă simplă/i },
   ];
 
   function walkDir(dir) {

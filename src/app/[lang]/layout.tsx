@@ -54,7 +54,7 @@ export async function generateMetadata(
 
   if (isRo) {
     title = 'CLADORA | Sistemul de Operare pentru Active Rezidențiale & Contabilitate';
-    description = 'CLADORA unește registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.';
+    description = 'CLADORA este concepută pentru a susține registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.';
     keywords = [
       'soft asociatie de proprietari',
       'program administrare bloc',
@@ -66,8 +66,8 @@ export async function generateMetadata(
       'cladora',
     ];
   } else if (isFa) {
-    title = 'کلادورا | سیستم‌عامل مدیریت دارایی‌های مسکونی و حسابداری دوطرفه';
-    description = 'کلادورا حسابداری دوطرفه ساختاریافته، تفکیک ۵ بعدی حقوق مالک و مستأجر، قرائت تصویری کنتورها و مهاجرت کنترل‌شده سوابق را در یک سیستم‌عامل یکپارچه ارائه می‌دهد.';
+    title = 'کلادورا | سیستم‌عامل مدیریت دارایی‌های مسکونی و کنترل‌های حسابداری';
+    description = 'کلادورا برای پشتیبانی از دفاتر قانونی حسابداری یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک ۵ بعدی حقوق مالک و مستأجر و قرائت تصویری کنتورها طراحی شده است.';
     keywords = [
       'نرم افزار مدیریت ساختمان',
       'حسابداری انجمن مالکان',
@@ -170,10 +170,10 @@ export default async function LangLayout(
       priceCurrency: 'EUR',
     },
     description: isRo
-      ? 'Sistem de operare pentru active rezidențiale: registre statutare în partidă simplă, control analitic în partidă dublă, Legea 196/2018 și administrare portofoliu.'
+      ? 'Sistem de operare pentru active rezidențiale: conceput pentru susținerea registrelor statutare în partidă simplă, control analitic în partidă dublă, Legea 196/2018 și administrare portofoliu.'
       : isFa
-      ? 'سیستم‌عامل مدیریت دارایی‌های مسکونی: دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی، تفکیک حقوق مالک و مستأجر و مدیریت مجتمع‌ها.'
-      : 'Residential Asset Operating System uniting statutory simple-entry accounting, supplemental double-entry controls, meter OCR, and multi-property portfolio management.',
+      ? 'سیستم‌عامل مدیریت دارایی‌های مسکونی: طراحی‌شده برای پشتیبانی از دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی، تفکیک حقوق مالک و مستأجر و مدیریت مجتمع‌ها.'
+      : 'Residential Asset Operating System designed to support statutory simple-entry accounting, supplemental double-entry controls, meter OCR, and multi-property portfolio management.',
     creator: {
       '@type': 'Organization',
       name: 'CLADORA',
