@@ -2077,7 +2077,7 @@ begin
      where exception_id = p_exception_id;
 
     if (v_ex_already_allocated + p_settled_amount) > v_ex.covered_amount then
-      raise exception 'exception_covered_capacity_exceeded' using errcode = '23514';
+      raise exception 'exception_capacity_exceeded' using errcode = '23514';
     end if;
 
     v_is_timely := (v_transfer.transferred_at::date <= v_ex.expiry_date);
