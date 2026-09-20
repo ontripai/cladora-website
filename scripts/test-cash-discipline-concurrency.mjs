@@ -802,7 +802,7 @@ async function runExceptionAllocationRace(observer, winner, waiter, f) {
   const exRes = await winner.query(
     `select * from app_private.record_deposit_obligation_exception_v1(
        $1, 3000.00, 'personnel_rights', (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Salarii casier', $2, $3, $4
-     ),
+     )`,
     [f.obligationCeiling1, f.actor, `idemp-ex-race-${f.obligationCeiling1}`, sha256(`ex-race-${f.obligationCeiling1}`)],
   );
   f.exceptionId1 = exRes.rows[0].id;
