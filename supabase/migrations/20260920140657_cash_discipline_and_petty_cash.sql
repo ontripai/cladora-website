@@ -509,6 +509,7 @@ for each row execute function finance.protect_statutory_cash_document_v1();
 -- Indexes
 -- =============================================================================
 
+create index statutory_cash_desks_tenant_idx on finance.statutory_cash_desks(tenant_id);
 create index statutory_cash_desks_property_idx on finance.statutory_cash_desks(property_id);
 create index statutory_cash_desks_regime_idx on finance.statutory_cash_desks(regime_id);
 create index statutory_cash_desks_status_idx on finance.statutory_cash_desks(status);
@@ -517,10 +518,12 @@ create index statutory_cash_desks_activated_by_idx on finance.statutory_cash_des
 
 create index statutory_cash_entry_assign_desk_idx on finance.statutory_cash_entry_assignments(cash_desk_id);
 create index statutory_cash_entry_assign_entry_idx on finance.statutory_cash_entry_assignments(statutory_simple_entry_id);
+create index statutory_cash_entry_assign_tenant_idx on finance.statutory_cash_entry_assignments(tenant_id);
 create index statutory_cash_entry_assign_property_idx on finance.statutory_cash_entry_assignments(property_id);
 create index statutory_cash_entry_assign_user_idx on finance.statutory_cash_entry_assignments(assigned_by);
 
 create index statutory_cash_transfers_desk_idx on finance.statutory_cash_custody_transfers(cash_desk_id);
+create index statutory_cash_transfers_tenant_idx on finance.statutory_cash_custody_transfers(tenant_id);
 create index statutory_cash_transfers_bank_acc_idx on finance.statutory_cash_custody_transfers(bank_account_id);
 create index statutory_cash_transfers_bank_tx_idx on finance.statutory_cash_custody_transfers(bank_transaction_id);
 create index statutory_cash_transfers_property_idx on finance.statutory_cash_custody_transfers(property_id);
@@ -528,10 +531,12 @@ create index statutory_cash_transfers_created_by_idx on finance.statutory_cash_c
 create index statutory_cash_transfers_confirmed_by_idx on finance.statutory_cash_custody_transfers(confirmed_by);
 
 create index statutory_cash_closures_desk_date_idx on finance.statutory_cash_daily_closures(cash_desk_id, closure_date);
+create index statutory_cash_closures_tenant_idx on finance.statutory_cash_daily_closures(tenant_id);
 create index statutory_cash_closures_property_idx on finance.statutory_cash_daily_closures(property_id);
 create index statutory_cash_closures_user_idx on finance.statutory_cash_daily_closures(closed_by);
 
 create index statutory_deposit_obligations_desk_idx on finance.statutory_cash_deposit_obligations(cash_desk_id);
+create index statutory_deposit_obligations_tenant_idx on finance.statutory_cash_deposit_obligations(tenant_id);
 create index statutory_deposit_obligations_entry_idx on finance.statutory_cash_deposit_obligations(statutory_simple_entry_id);
 create index statutory_deposit_obligations_closure_idx on finance.statutory_cash_deposit_obligations(closure_id);
 create index statutory_deposit_obligations_petty_idx on finance.statutory_cash_deposit_obligations(petty_cash_authorization_id);
@@ -539,30 +544,47 @@ create index statutory_deposit_obligations_property_idx on finance.statutory_cas
 create index statutory_deposit_obligations_status_idx on finance.statutory_cash_deposit_obligations(status);
 
 create index statutory_deposit_exceptions_ob_idx on finance.statutory_cash_deposit_obligation_exceptions(obligation_id);
+create index statutory_deposit_exceptions_tenant_idx on finance.statutory_cash_deposit_obligation_exceptions(tenant_id);
 create index statutory_deposit_exceptions_prop_idx on finance.statutory_cash_deposit_obligation_exceptions(property_id);
+create index statutory_deposit_exceptions_recorded_by_idx on finance.statutory_cash_deposit_obligation_exceptions(recorded_by);
 
 create index statutory_deposit_settlements_ob_idx on finance.statutory_cash_deposit_settlements(obligation_id);
 create index statutory_deposit_settlements_transfer_idx on finance.statutory_cash_deposit_settlements(custody_transfer_id);
+create index statutory_deposit_settlements_tenant_idx on finance.statutory_cash_deposit_settlements(tenant_id);
+create index statutory_deposit_settlements_property_idx on finance.statutory_cash_deposit_settlements(property_id);
 create index statutory_deposit_settlements_desk_idx on finance.statutory_cash_deposit_settlements(cash_desk_id);
+create index statutory_deposit_settlements_settled_by_idx on finance.statutory_cash_deposit_settlements(settled_by);
 
 create index statutory_pc_retentions_ob_idx on finance.statutory_cash_receipt_petty_cash_retentions(deposit_obligation_id);
 create index statutory_pc_retentions_auth_idx on finance.statutory_cash_receipt_petty_cash_retentions(authorization_id);
+create index statutory_pc_retentions_tenant_idx on finance.statutory_cash_receipt_petty_cash_retentions(tenant_id);
+create index statutory_pc_retentions_property_idx on finance.statutory_cash_receipt_petty_cash_retentions(property_id);
+create index statutory_pc_retentions_cash_desk_idx on finance.statutory_cash_receipt_petty_cash_retentions(cash_desk_id);
+create index statutory_pc_retentions_retained_by_idx on finance.statutory_cash_receipt_petty_cash_retentions(retained_by);
 
 create index statutory_petty_authorizations_desk_idx on finance.statutory_petty_cash_authorizations(cash_desk_id);
+create index statutory_petty_authorizations_tenant_idx on finance.statutory_petty_cash_authorizations(tenant_id);
 create index statutory_petty_authorizations_res_idx on finance.statutory_petty_cash_authorizations(adopted_resolution_id);
 create index statutory_petty_authorizations_property_idx on finance.statutory_petty_cash_authorizations(property_id);
 create index statutory_petty_authorizations_user_idx on finance.statutory_petty_cash_authorizations(created_by);
+create index statutory_petty_authorizations_activated_by_idx on finance.statutory_petty_cash_authorizations(activated_by);
 
 create index statutory_petty_expenses_auth_idx on finance.statutory_petty_cash_expenses(authorization_id);
 create index statutory_petty_expenses_entry_idx on finance.statutory_petty_cash_expenses(statutory_simple_entry_id);
+create index statutory_petty_expenses_tenant_idx on finance.statutory_petty_cash_expenses(tenant_id);
 create index statutory_petty_expenses_property_idx on finance.statutory_petty_cash_expenses(property_id);
+create index statutory_petty_expenses_cash_desk_idx on finance.statutory_petty_cash_expenses(cash_desk_id);
 create index statutory_petty_expenses_user_idx on finance.statutory_petty_cash_expenses(created_by);
 
 create index statutory_petty_reversals_auth_idx on finance.statutory_petty_cash_expense_reversals(authorization_id);
 create index statutory_petty_reversals_rev_idx on finance.statutory_petty_cash_expense_reversals(reversal_of_id);
 create index statutory_petty_reversals_entry_idx on finance.statutory_petty_cash_expense_reversals(statutory_simple_entry_id);
+create index statutory_petty_reversals_tenant_idx on finance.statutory_petty_cash_expense_reversals(tenant_id);
+create index statutory_petty_reversals_property_idx on finance.statutory_petty_cash_expense_reversals(property_id);
+create index statutory_petty_reversals_created_by_idx on finance.statutory_petty_cash_expense_reversals(created_by);
 
 create index statutory_cash_documents_desk_idx on finance.statutory_cash_documents(cash_desk_id);
+create index statutory_cash_documents_tenant_idx on finance.statutory_cash_documents(tenant_id);
 create index statutory_cash_documents_entry_idx on finance.statutory_cash_documents(statutory_simple_entry_id);
 create index statutory_cash_documents_petty_idx on finance.statutory_cash_documents(petty_cash_expense_id);
 create index statutory_cash_documents_super_idx on finance.statutory_cash_documents(supersedes_id);
