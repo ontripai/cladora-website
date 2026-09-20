@@ -1,7 +1,7 @@
 -- R10 Phase 2B: Romanian HOA petty cash controls under Law 196/2018 Art. 67(5)
 -- and statutory cash documents (14-4-1 Chitanță, 14-4-4 Dispoziție casierie).
 begin;
-select plan(73);
+select plan(71);
 
 -- 1. Structural, RLS and ACL contracts
 select has_table('finance', 'statutory_petty_cash_authorizations', 'petty cash authorizations table exists');
@@ -20,7 +20,7 @@ select has_function('finance', 'statutory_petty_cash_balance_v1', array['uuid'],
 
 select has_function(
   'app_private', 'authorize_statutory_petty_cash_v1',
-  array['uuid', 'uuid', 'date', 'numeric', 'text', 'text', 'boolean', 'uuid', 'text', 'text'],
+  array['uuid', 'uuid', 'numeric', 'date', 'text', 'text', 'uuid', 'text', 'text'],
   'controlled petty cash authorization RPC exists with custodian_name parameter'
 );
 select has_function(
@@ -35,7 +35,7 @@ select has_function(
 );
 select has_function(
   'app_private', 'record_statutory_petty_cash_expense_v1',
-  array['uuid', 'uuid', 'numeric', 'date', 'text', 'text', 'text', 'text', 'text', 'uuid', 'text', 'text'],
+  array['uuid', 'uuid', 'text', 'text', 'uuid', 'text', 'text'],
   'controlled petty cash expense recording RPC exists with simple entry link'
 );
 select has_function(
@@ -79,8 +79,8 @@ select ok(
   and not has_table_privilege('authenticated', 'finance.statutory_petty_cash_expense_reversals', 'INSERT,UPDATE,DELETE')
   and not has_table_privilege('anon', 'finance.statutory_petty_cash_retention_consumptions', 'INSERT,UPDATE,DELETE')
   and not has_table_privilege('authenticated', 'finance.statutory_petty_cash_retention_consumptions', 'INSERT,UPDATE,DELETE')
-  and not has_function_privilege('anon', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,date,numeric,text,text,boolean,uuid,text,text)', 'EXECUTE')
-  and not has_function_privilege('authenticated', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,date,numeric,text,text,boolean,uuid,text,text)', 'EXECUTE'),
+  and not has_function_privilege('anon', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,numeric,date,text,text,uuid,text,text)', 'EXECUTE')
+  and not has_function_privilege('authenticated', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,numeric,date,text,text,uuid,text,text)', 'EXECUTE'),
   'anon and authenticated roles have zero mutation access to petty cash tables and RPCs'
 );
 
@@ -229,7 +229,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000075', -- unadopted resolution
-      date '2026-06-01', 800.00, 'Elena Ionescu', 'Cheltuieli neprevazute urgente', true,
+      800.00, date '2026-06-01', 'Elena Ionescu', 'Cheltuieli neprevazute urgente',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-unadopted', repeat('1', 64)
     )$$,
   '23514', 'adopted_resolution_required_for_petty_cash',
@@ -240,7 +240,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000076', -- foreign property resolution
-      date '2026-06-01', 800.00, 'Elena Ionescu', 'Cheltuieli neprevazute urgente', true,
+      800.00, date '2026-06-01', 'Elena Ionescu', 'Cheltuieli neprevazute urgente',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-foreign', repeat('2', 64)
     )$$,
   '23514', 'resolution_property_scope_mismatch',
@@ -252,19 +252,8 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 800.00, 'Elena Ionescu', 'General operational cash', false, -- not unforeseen expense
-      '09800000-0000-0000-0000-000000000001', 'idemp-auth-not-unforeseen', repeat('3', 64)
-    )$$,
-  '22023', 'petty_cash_authorization_invalid_arguments',
-  'petty cash rejected if not designated exclusively for unforeseen expenses'
-);
-
-select throws_ok(
-  $$select * from app_private.authorize_statutory_petty_cash_v1(
-      '09800000-0000-0000-0000-000000000060',
-      '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 1200.00, 'Elena Ionescu', -- exceeds 1,000 RON statutory limit
-      'Cheltuieli neprevazute', true,
+      1200.00, date '2026-06-01', 'Elena Ionescu', -- exceeds 1,000 RON statutory limit
+      'Cheltuieli neprevazute',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-over1000', repeat('4', 64)
     )$$,
   '22023', 'petty_cash_authorization_invalid_arguments',
@@ -276,7 +265,7 @@ select lives_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 800.00, 'Elena Ionescu', 'Cheltuieli neprevazute reparatii instalatii', true,
+      800.00, date '2026-06-01', 'Elena Ionescu', 'Cheltuieli neprevazute reparatii instalatii',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-098-ok', repeat('5', 64)
     )$$,
   'valid petty cash authorization is created in authorized status'
@@ -293,7 +282,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000061', -- Desk B in same property
       '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 200.00, 'Elena Ionescu', 'Second desk authorization in same property/month', true,
+      200.00, date '2026-06-01', 'Elena Ionescu', 'Second desk authorization in same property/month',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-dup-prop', repeat('6', 64)
     )$$,
   '23505', 'petty_cash_already_authorized_for_month',
@@ -305,8 +294,7 @@ select throws_ok(
   $$select * from app_private.record_statutory_petty_cash_expense_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
       '09800000-0000-0000-0000-000000000081',
-      300.00, date '2026-06-10', 'Robinet trecere avarie coloana', 'FACTURA_BON', 'BF-098-101',
-      repeat('a', 64), 'DISPOZITIE-COMITET-098-1',
+      'Instalator Vasile', 'BF-098-101',
       '09800000-0000-0000-0000-000000000001', 'idemp-exp-before-act', repeat('7', 64)
     )$$,
   '55000', 'petty_cash_authorization_not_active',
@@ -391,26 +379,12 @@ select lives_ok(
   'payment simple entry 81 assigned to cash desk'
 );
 
-select throws_ok(
-  $$select * from app_private.record_statutory_petty_cash_expense_v1(
-      (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
-      '09800000-0000-0000-0000-000000000081',
-      300.00, date '2026-07-10', -- Outside June authorization month
-      'Robinet trecere avarie coloana', 'FACTURA_BON', 'BF-098-101',
-      repeat('a', 64), 'DISPOZITIE-COMITET-098-1',
-      '09800000-0000-0000-0000-000000000001', 'idemp-exp-wrong-month', repeat('7', 64)
-    )$$,
-  '22023', 'expense_date_outside_authorization_month',
-  'expense date outside authorization calendar month is rejected'
-);
-
 -- Record valid expense of 300 RON
 select lives_ok(
   $$select * from app_private.record_statutory_petty_cash_expense_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
       '09800000-0000-0000-0000-000000000081',
-      300.00, date '2026-06-10', 'Robinet trecere avarie coloana', 'FACTURA_BON', 'BF-098-101',
-      repeat('a', 64), 'DISPOZITIE-COMITET-098-1',
+      'Instalator Vasile', 'BF-098-101',
       '09800000-0000-0000-0000-000000000001', 'idemp-exp-098-1', repeat('7', 64)
     )$$,
   'petty cash expense of 300 RON recorded with linked simple entry'
@@ -442,8 +416,7 @@ select throws_ok(
   $$select * from app_private.record_statutory_petty_cash_expense_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
       '09800000-0000-0000-0000-000000000081', -- Same simple entry reused
-      300.00, date '2026-06-10', 'Duplicate attempt', 'FACTURA_BON', 'BF-098-101',
-      repeat('a', 64), 'DISPOZITIE-COMITET-098-1',
+      'Instalator Vasile', 'BF-098-101',
       '09800000-0000-0000-0000-000000000001', 'idemp-exp-dup-entry', repeat('8', 64)
     )$$,
   '23505', null,
@@ -452,7 +425,7 @@ select throws_ok(
 
 -- Direct update/delete on expense is blocked
 select throws_ok(
-  $$update finance.statutory_petty_cash_expenses set amount = 299.00 where idempotency_key = 'idemp-exp-098-1'$$,
+  $$update finance.statutory_petty_cash_expenses set recipient_name = 'Modified' where idempotency_key = 'idemp-exp-098-1'$$,
   '55000', 'statutory_petty_cash_expense_is_immutable',
   'petty cash expense is immutable against direct SQL update'
 );
@@ -549,8 +522,7 @@ select lives_ok(
   $$select * from app_private.record_statutory_petty_cash_expense_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
       '09800000-0000-0000-0000-000000000082',
-      450.00, date '2026-06-12', 'Materiale etansare subsol', 'FACTURA_BON', 'BF-098-103',
-      repeat('c', 64), 'DISPOZITIE-COMITET-098-3',
+      'Depozit Materiale SRL', 'BF-098-103',
       '09800000-0000-0000-0000-000000000001', 'idemp-exp-098-2', repeat('b', 64)
     )$$,
   'second petty cash expense of 450 RON recorded'

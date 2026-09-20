@@ -34,7 +34,7 @@ select has_function(
 );
 select has_function(
   'app_private', 'record_cash_custody_transfer_v1',
-  array['uuid', 'uuid', 'finance.statutory_custody_transfer_kind', 'numeric', 'timestamp with time zone', 'date', 'text', 'uuid', 'uuid', 'text', 'text'],
+  array['uuid', 'uuid', 'uuid', 'finance.statutory_custody_transfer_kind', 'numeric', 'date', 'timestamp with time zone', 'text', 'uuid', 'text', 'text'],
   'controlled cash custody transfer RPC exists with mandatory transferred_at'
 );
 select has_function(
@@ -44,12 +44,12 @@ select has_function(
 );
 select has_function(
   'app_private', 'record_deposit_obligation_exception_v1',
-  array['uuid', 'numeric', 'uuid', 'text', 'date', 'text', 'uuid', 'text', 'text'],
+  array['uuid', 'numeric', 'text', 'date', 'text', 'uuid', 'uuid', 'text', 'text'],
   'controlled Art. 4² exception recording RPC exists with linked simple entry'
 );
 select has_function(
   'app_private', 'settle_cash_deposit_obligation_v1',
-  array['uuid', 'uuid', 'numeric', 'uuid', 'uuid', 'text', 'text'],
+  array['uuid', 'uuid', 'numeric', 'uuid', 'text', 'uuid', 'text', 'text'],
   'controlled deposit obligation settlement RPC exists with amount-specific exception support'
 );
 
@@ -214,7 +214,7 @@ select throws_ok(
       null,
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-pay-nobal', repeat('3', 64)
     )$$,
-  '23514', 'cash_desk_balance_insufficient',
+  '23514', 'cash_desk_balance_underflow_forbidden',
   'cash payment cannot be assigned if it causes negative balance'
 );
 
@@ -371,10 +371,10 @@ select throws_ok(
 select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      '09700000-0000-0000-0000-000000000070', 'bank_deposit', 1000.00,
-      timestamptz '2026-06-15 16:00:00+03',
+      '09700000-0000-0000-0000-000000000070', null, 'bank_deposit', 1000.00,
       date '2026-06-15', -- On closed date
-      'BACKDATED-DEP', null,
+      timestamptz '2026-06-15 16:00:00+03',
+      'BACKDATED-DEP',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-backdated', repeat('9', 64)
     )$$,
   '55000', 'cash_desk_day_already_finalized',
@@ -396,9 +396,10 @@ select throws_ok(
 select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      '09700000-0000-0000-0000-000000000070', 'bank_deposit', 50000.00,
+      '09700000-0000-0000-0000-000000000070', null, 'bank_deposit', 50000.00,
+      date '2026-06-16',
       statement_timestamp() + interval '1 second', -- Future transferred_at (+1s)
-      date '2026-06-16', 'FUTURE-DEP-1', null,
+      'FUTURE-DEP-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-future-1', repeat('c', 64)
     )$$,
   '22023', 'transferred_at_cannot_be_in_future',
@@ -408,9 +409,10 @@ select throws_ok(
 select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      '09700000-0000-0000-0000-000000000070', 'bank_deposit', 50000.00,
+      '09700000-0000-0000-0000-000000000070', null, 'bank_deposit', 50000.00,
+      date '2026-06-16',
       statement_timestamp() + interval '1 day', -- Future transferred_at (+1d)
-      date '2026-06-16', 'FUTURE-DEP-2', null,
+      'FUTURE-DEP-2',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-future-2', repeat('c', 64)
     )$$,
   '22023', 'transferred_at_cannot_be_in_future',
@@ -420,9 +422,10 @@ select throws_ok(
 select lives_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      '09700000-0000-0000-0000-000000000070', 'bank_deposit', 50000.00,
+      '09700000-0000-0000-0000-000000000070', null, 'bank_deposit', 50000.00,
+      date '2026-06-16',
       timestamptz '2026-06-16 09:30:00+03',
-      date '2026-06-16', 'DEPOZIT-BT-097-01', null,
+      'DEPOZIT-BT-097-01',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-097', repeat('c', 64)
     )$$,
   'bank deposit custody transfer recorded on 2026-06-16 with explicit transferred_at'
@@ -457,9 +460,9 @@ select lives_ok(
 select throws_ok(
   $$select * from app_private.record_deposit_obligation_exception_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'hoa_24h_receipt'),
-      1000.00, '09700000-0000-0000-0000-000000000084', 'Salarii casier',
-      date '2026-06-16', 'Salarii casier',
-      '09700000-0000-0000-0000-000000000001', 'idemp-ex-wrong-kind', repeat('a', 64)
+      1000.00, 'personnel_rights', date '2026-06-16', 'Salarii casier',
+      '09700000-0000-0000-0000-000000000084'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid, 'idemp-ex-wrong-kind', repeat('a', 64)
     )$$,
   '22023', 'exception_only_allowed_for_50k_ceiling_excess',
   'exception cannot be recorded against 24-hour receipt obligations'
@@ -468,9 +471,9 @@ select throws_ok(
 select throws_ok(
   $$select * from app_private.record_deposit_obligation_exception_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
-      6000.00, '09700000-0000-0000-0000-000000000084', 'Salarii casier',
-      date '2026-06-16', 'Salarii casier',
-      '09700000-0000-0000-0000-000000000001', 'idemp-ex-over', repeat('a', 64)
+      6000.00, 'personnel_rights', date '2026-06-16', 'Salarii casier',
+      '09700000-0000-0000-0000-000000000084'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid, 'idemp-ex-over', repeat('a', 64)
     )$$,
   '23514', 'exception_amount_exceeds_obligation',
   'exception amount exceeding obligation required amount is rejected'
@@ -480,9 +483,9 @@ select throws_ok(
 select lives_ok(
   $$select * from app_private.record_deposit_obligation_exception_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
-      3000.00, '09700000-0000-0000-0000-000000000084', 'Stat de plata salarii personal ingrijire',
-      date '2026-06-16', 'Legea 70/2015 Art. 4^2 alin. (2)',
-      '09700000-0000-0000-0000-000000000001', 'idemp-ex-valid', repeat('b', 64)
+      3000.00, 'personnel_rights', date '2026-06-16', 'Stat de plata salarii personal ingrijire',
+      '09700000-0000-0000-0000-000000000084'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid, 'idemp-ex-valid', repeat('b', 64)
     )$$,
   'valid 3-business-day exception recorded for personnel rights linked to cash payment'
 );
@@ -505,8 +508,8 @@ select lives_ok(
   $$select * from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'hoa_24h_receipt'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097'),
-      50000.00, null, -- Normal settlement, no exception
-      '09700000-0000-0000-0000-000000000001', 'partial settlement of 60k obligation',
+      50000.00, null, 'partial settlement of 60k obligation',
+      '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-097-1', repeat('d', 64)
     )$$,
   'partial normal settlement of 24h deposit obligation recorded in settlements table'
@@ -529,8 +532,8 @@ select ok(
   (select id from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'hoa_24h_receipt'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097'),
-      50000.00, null,
-      '09700000-0000-0000-0000-000000000001', 'replay',
+      50000.00, null, 'partial settlement of 60k obligation',
+      '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-097-1', repeat('d', 64)
     )) = (select id from finance.statutory_cash_deposit_settlements where idempotency_key = 'idemp-settle-097-1'),
   'settlement replay with identical key and payload returns existing settlement without duplicate allocation'
@@ -541,8 +544,8 @@ select throws_ok(
   $$select * from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097'), -- already 50k allocated
-      5000.00, null,
-      '09700000-0000-0000-0000-000000000001', 'double spend attempt',
+      5000.00, null, 'double spend attempt',
+      '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-double-spend', repeat('e', 64)
     )$$,
   '23514', 'custody_transfer_capacity_exceeded',
@@ -560,9 +563,10 @@ select throws_ok(
 select lives_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      '09700000-0000-0000-0000-000000000070', 'bank_deposit', 5000.00,
+      '09700000-0000-0000-0000-000000000070', null, 'bank_deposit', 5000.00,
+      date '2026-06-16',
       timestamptz '2026-06-16 11:00:00+03',
-      date '2026-06-16', 'DEPOZIT-BT-097-02', null,
+      'DEPOZIT-BT-097-02',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-097-2', repeat('e', 64)
     )$$,
   'second bank deposit of 5000 RON recorded'
@@ -575,7 +579,8 @@ select throws_ok(
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097-2'),
       3001.00,
       (select id from finance.statutory_cash_deposit_obligation_exceptions where idempotency_key = 'idemp-ex-valid'),
-      '09700000-0000-0000-0000-000000000001', 'exceed exception capacity',
+      'exceed exception capacity',
+      '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-ex-over', repeat('f', 64)
     )$$,
   '23514', 'exception_capacity_exceeded',
@@ -589,7 +594,8 @@ select lives_ok(
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097-2'),
       3000.00,
       (select id from finance.statutory_cash_deposit_obligation_exceptions where idempotency_key = 'idemp-ex-valid'),
-      '09700000-0000-0000-0000-000000000001', 'settle exception covered portion',
+      'settle exception covered portion',
+      '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-097-ex', repeat('f', 64)
     )$$,
   'exception-covered settlement allocation of 3000 RON recorded'
@@ -606,8 +612,8 @@ select lives_ok(
   $$select * from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097-2'),
-      2000.00, null, -- Normal uncovered settlement
-      '09700000-0000-0000-0000-000000000001', 'settle normal uncovered portion',
+      2000.00, null, 'settle normal uncovered portion',
+      '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-097-norm', repeat('1', 64)
     )$$,
   'normal uncovered settlement allocation of 2000 RON recorded'
