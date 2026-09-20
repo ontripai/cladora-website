@@ -1964,7 +1964,6 @@ begin
          and v_entry.entry_date <= (r.expires_at at time zone 'Europe/Bucharest')::date
          and statement_timestamp() <= r.expires_at
        order by r.expires_at asc, r.created_at asc, r.id asc
-       for update
     loop
       exit when v_rem <= 0.00;
 

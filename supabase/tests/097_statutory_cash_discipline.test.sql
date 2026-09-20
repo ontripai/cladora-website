@@ -148,6 +148,17 @@ insert into finance.statutory_monthly_cycles (
   '09700000-0000-0000-0000-000000000040', 'collecting'
 );
 
+insert into finance.statutory_cash_desks (
+  id, tenant_id, property_id, regime_id, code, name, currency, status,
+  daily_ceiling_amount, idempotency_key, payload_hash, created_by, activated_by, activated_at
+) values (
+  '09700000-0000-0000-0000-000000000062', '09700000-0000-0000-0000-000000000010',
+  '09700000-0000-0000-0000-000000000030', '09700000-0000-0000-0000-000000000050',
+  'CASH-097-B', 'Casierie 097 B', 'RON', 'active', 50000.00,
+  'idemp-desk-097-b', repeat('0', 64), '09700000-0000-0000-0000-000000000001',
+  '09700000-0000-0000-0000-000000000001', statement_timestamp()
+);
+
 insert into payments.bank_accounts (
   id, tenant_id, property_id, iban_encrypted, iban_fingerprint, bank_name, currency, status
 ) values (
@@ -270,7 +281,7 @@ select throws_ok(
       clock_timestamp() + interval '1 day', -- Future timestamp
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-future-ts', repeat('3', 64)
     )$$,
-  '22023', 'receipt_received_at_cannot_be_in_future',
+  '22023', 'received_at_cannot_be_in_future',
   'cash receipt cannot have a future received_at timestamp'
 );
 
@@ -308,7 +319,7 @@ select ok(
 -- Deposit obligation immutability against direct SQL delete/update
 select throws_ok(
   $$delete from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'$$,
-  '55000', 'statutory_deposit_obligation_is_immutable',
+  '55000', 'unmediated_deposit_obligation_mutation_forbidden',
   'statutory deposit obligation is immutable against direct SQL delete'
 );
 
@@ -344,7 +355,7 @@ select ok(
 -- Reassigning same entry to different desk is rejected
 select throws_ok(
   $$select * from app_private.assign_cash_simple_entry_v1(
-      '09700000-0000-0000-0000-000000000030', -- Different desk/property id
+      '09700000-0000-0000-0000-000000000062', -- Valid second cash desk
       '09700000-0000-0000-0000-000000000081',
       timestamptz '2026-06-15 10:00:00+03',
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-diff-desk', repeat('5', 64)
