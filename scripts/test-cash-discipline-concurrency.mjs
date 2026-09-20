@@ -613,7 +613,10 @@ async function runPettyFundingAndActivationRace(observer, winner, waiter, f) {
   await waiter.query('commit');
 
   const proof = await observer.query(
-    `select status, allocated_funding_amount from finance.statutory_petty_cash_authorizations where id = $1`,
+    `select a.status,
+            finance.statutory_petty_cash_balance_v1(a.id) as allocated_funding_amount
+       from finance.statutory_petty_cash_authorizations a
+      where a.id = $1`,
     [f.unfundedPettyAuth],
   );
   assert.equal(proof.rows[0].status, 'active');
