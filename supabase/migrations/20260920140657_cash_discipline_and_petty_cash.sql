@@ -24,6 +24,10 @@ grant select, insert on all tables in schema audit to cladora_rpc_owner;
 grant usage on all sequences in schema finance, app_private, audit to cladora_rpc_owner;
 grant cladora_rpc_owner to postgres;
 
+-- Revoke cladora_rpc_owner from service_role so service_role has zero direct ledger mutation privilege
+revoke cladora_rpc_owner from service_role;
+revoke update on finance.export_artifact_scan_jobs from cladora_rpc_owner;
+
 alter default privileges in schema finance grant select, insert, update, delete on tables to cladora_rpc_owner;
 alter default privileges in schema app_private grant select, insert, update, delete on tables to cladora_rpc_owner;
 alter default privileges in schema finance grant usage on sequences to cladora_rpc_owner;
@@ -1136,6 +1140,7 @@ declare
   v_bank payments.bank_accounts;
   v_transfer finance.statutory_cash_custody_transfers;
   v_curr_balance numeric(20,2);
+  v_latest_closed_date date;
 begin
   if p_cash_desk_id is null or p_bank_account_id is null or p_transfer_kind is null
      or p_amount is null or p_amount <= 0 or p_transfer_date is null
@@ -1168,6 +1173,13 @@ begin
       raise exception 'cash_custody_transfer_idempotency_conflict' using errcode = '23505';
     end if;
     return v_transfer;
+  end if;
+
+  -- Mutation on finalized day is rejected (Blocker 12)
+  select coalesce(max(closure_date), '1900-01-01'::date) into v_latest_closed_date
+    from finance.statutory_cash_daily_closures where cash_desk_id = p_cash_desk_id;
+  if p_transfer_date <= v_latest_closed_date then
+    raise exception 'cash_desk_day_already_finalized' using errcode = '55000';
   end if;
 
   select * into v_bank from payments.bank_accounts where id = p_bank_account_id;
@@ -2416,6 +2428,10 @@ create policy statutory_pc_activation_events_rpc_owner_all on finance.statutory_
 create policy statutory_cash_deposit_obligations_rpc_owner_all on finance.statutory_cash_deposit_obligations for all to cladora_rpc_owner using (true) with check (true);
 create policy statutory_deposit_exceptions_rpc_owner_all on finance.statutory_cash_deposit_obligation_exceptions for all to cladora_rpc_owner using (true) with check (true);
 create policy statutory_deposit_settlements_rpc_owner_all on finance.statutory_cash_deposit_settlements for all to cladora_rpc_owner using (true) with check (true);
+create policy bank_accounts_rpc_owner_select on payments.bank_accounts for select to cladora_rpc_owner using (true);
+create policy bank_transactions_rpc_owner_select on payments.bank_transactions for select to cladora_rpc_owner using (true);
+create policy resolutions_rpc_owner_select on governance.resolutions for select to cladora_rpc_owner using (true);
+create policy meetings_rpc_owner_select on governance.meetings for select to cladora_rpc_owner using (true);
 create policy statutory_pc_retentions_rpc_owner_all on finance.statutory_cash_receipt_petty_cash_retentions for all to cladora_rpc_owner using (true) with check (true);
 create policy statutory_cash_documents_rpc_owner_all on finance.statutory_cash_documents for all to cladora_rpc_owner using (true) with check (true);
 create policy statutory_cash_doc_verify_events_rpc_owner_all on finance.statutory_cash_document_verification_events for all to cladora_rpc_owner using (true) with check (true);
@@ -2558,7 +2574,16 @@ comment on table finance.statutory_cash_document_verification_events is 'Append-
 comment on table finance.statutory_cash_document_finalization_events is 'Append-only document finalization lifecycle events with idempotency tracking';
 
 -- Revoke direct DML from service_role on append-only ledgers and events (Erratum-004 item 7)
+revoke insert, delete on table
+  finance.statutory_cash_deposit_obligations
+from service_role;
+
 revoke insert, update, delete on table
+  finance.statutory_cash_deposit_settlements,
+  finance.statutory_cash_custody_transfers,
+  finance.statutory_cash_daily_closures,
+  finance.statutory_cash_receipt_petty_cash_retentions,
+  finance.statutory_cash_entry_assignments,
   finance.statutory_petty_cash_retention_consumptions,
   finance.statutory_petty_cash_expenses,
   finance.statutory_petty_cash_expense_reversals,
