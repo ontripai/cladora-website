@@ -18,7 +18,6 @@ $$;
 grant usage on schema app_private, finance, payments, governance, portfolio, platform, audit to cladora_rpc_owner;
 grant cladora_rpc_owner to postgres;
 revoke cladora_rpc_owner from service_role;
-revoke create on schema finance, app_private from cladora_rpc_owner, public;
 
 -- =============================================================================
 -- Enums
@@ -2749,6 +2748,8 @@ $$;
 -- Alter Function Owners to cladora_rpc_owner
 -- =============================================================================
 
+grant create on schema app_private to cladora_rpc_owner;
+
 alter function app_private.create_statutory_cash_desk_v1 owner to cladora_rpc_owner;
 alter function app_private.activate_statutory_cash_desk_v1 owner to cladora_rpc_owner;
 alter function app_private.assign_cash_simple_entry_v1 owner to cladora_rpc_owner;
@@ -2765,6 +2766,9 @@ alter function app_private.settle_cash_deposit_obligation_v1 owner to cladora_rp
 alter function app_private.create_statutory_cash_document_v1 owner to cladora_rpc_owner;
 alter function app_private.verify_statutory_cash_document_semantic_schema_v1 owner to cladora_rpc_owner;
 alter function app_private.finalize_statutory_cash_document_v1 owner to cladora_rpc_owner;
+
+-- Strictly revoke CREATE on finance and app_private from cladora_rpc_owner and public
+revoke create on schema finance, app_private from cladora_rpc_owner, public;
 
 -- =============================================================================
 -- RLS, Policies & Grants
