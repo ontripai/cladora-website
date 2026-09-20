@@ -7,7 +7,9 @@
  *   - CLADORA-R10-CATALOG-EVIDENCE-CLASSIFICATION-REMEDIATION-001
  *
  * Strict local-target enforcement: Only connects to 127.0.0.1:54322/postgres and 127.0.0.1:54321
- * Read-only catalog extraction. Zero schema migration or mutation.
+ * Read-only catalog extraction plus an ephemeral local Auth/Data API roundtrip.
+ * The synthetic Auth user is always deleted in a finally block. Zero schema
+ * migration and zero remote mutation.
  * Deterministic JSON output: r10-catalog-evidence.json
  */
 
@@ -21,6 +23,13 @@ const DB_URL_RAW = process.env.SUPABASE_DB_URL || 'postgresql://postgres:postgre
 const SUPABASE_URL_RAW = process.env.SUPABASE_URL || 'http://127.0.0.1:54321';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const REQUIRE_DATA_API_EVIDENCE = process.env.REQUIRE_DATA_API_EVIDENCE === 'true';
+const DATA_API_TIMEOUT_MS = 10_000;
+
+async function fetchWithTimeout(url, options = {}) {
+  const signal = AbortSignal.timeout(DATA_API_TIMEOUT_MS);
+  return fetch(url, { ...options, signal });
+}
 
 // -----------------------------------------------------------------------------
 // Phase 2: Local-target Enforcement
@@ -152,6 +161,7 @@ async function runAudit() {
   console.log(`[Target Enforcement] PostgreSQL: ${dbTarget.hostname}:${dbTarget.port}/${dbTarget.database}`);
   console.log(`[Target Enforcement] Supabase API: ${apiTarget.hostname}:${apiTarget.port}`);
   console.log(`[Exposed Schemas (config.toml)]: ${EXPOSED_SCHEMAS.join(', ')}`);
+  console.log(`[Data API Evidence Required]: ${REQUIRE_DATA_API_EVIDENCE}`);
 
   let commitSha = 'UNKNOWN';
   try {
@@ -888,6 +898,12 @@ async function runAudit() {
       reason: 'SUPABASE_ANON_KEY or SUPABASE_SERVICE_ROLE_KEY missing from environment',
       results: []
     };
+    if (REQUIRE_DATA_API_EVIDENCE) {
+      criticalFindings.push({
+        rule: 'REQUIRED_DATA_API_EVIDENCE_SKIPPED',
+        message: 'Live local Data API evidence was required, but one or more local API keys were unavailable'
+      });
+    }
   } else {
     dataApiResultMatrix.evaluated = true;
     const authUrl = `${SUPABASE_URL_RAW}/auth/v1`;
@@ -899,7 +915,7 @@ async function runAudit() {
     try {
       // Check 1: Root /rest/v1/ behavior classification
       console.log(' - Testing Root /rest/v1/ without API key...');
-      const rootRes = await fetch(`${restUrl}/`, { method: 'GET' });
+      const rootRes = await fetchWithTimeout(`${restUrl}/`, { method: 'GET' });
       const rootContentType = rootRes.headers.get('content-type') || '';
       let rootBodyCategory = 'UNKNOWN';
       let rowDataExists = false;
@@ -935,7 +951,7 @@ async function runAudit() {
 
       // Check 2: No API key call to customer_api.list_contexts_v1()
       console.log(' - Testing protected RPC without API key...');
-      const noKeyRpcRes = await fetch(`${restUrl}/rpc/list_contexts_v1`, {
+      const noKeyRpcRes = await fetchWithTimeout(`${restUrl}/rpc/list_contexts_v1`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -958,7 +974,7 @@ async function runAudit() {
 
       // Check 3: No-key direct internal table endpoint
       console.log(' - Testing internal table endpoint without API key...');
-      const noKeyInternalTableRes = await fetch(`${restUrl}/tenants`, { method: 'GET' });
+      const noKeyInternalTableRes = await fetchWithTimeout(`${restUrl}/tenants`, { method: 'GET' });
       const noKeyTableRejected = noKeyInternalTableRes.status === 401 || noKeyInternalTableRes.status === 404;
       dataApiResultMatrix.results.push({
         check: 'NO_KEY_INTERNAL_TABLE_REJECTED',
@@ -973,7 +989,7 @@ async function runAudit() {
 
       // Check 4: anon request to customer_api.list_contexts_v1() (with apikey only, no Bearer)
       console.log(' - Testing protected RPC with anon key (no Authorization)...');
-      const anonRpcRes = await fetch(`${restUrl}/rpc/list_contexts_v1`, {
+      const anonRpcRes = await fetchWithTimeout(`${restUrl}/rpc/list_contexts_v1`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -1001,7 +1017,7 @@ async function runAudit() {
       const syntheticEmail = `audit_synthetic_${Date.now()}_${crypto.randomBytes(4).toString('hex')}@local.test`;
       const syntheticPassword = `Pass_${crypto.randomBytes(12).toString('hex')}!`;
 
-      const createRes = await fetch(`${authUrl}/admin/users`, {
+      const createRes = await fetchWithTimeout(`${authUrl}/admin/users`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -1028,7 +1044,7 @@ async function runAudit() {
 
       // Check 6: Obtain local access token
       console.log(' - Authenticating synthetic user...');
-      const tokenRes = await fetch(`${authUrl}/token?grant_type=password`, {
+      const tokenRes = await fetchWithTimeout(`${authUrl}/token?grant_type=password`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -1053,7 +1069,7 @@ async function runAudit() {
 
       // Check 7 & 8: Authenticated call to customer_api.list_contexts_v1() & tenant isolation
       console.log(' - Testing authenticated RPC invocation and tenant isolation...');
-      const authRpcRes = await fetch(`${restUrl}/rpc/list_contexts_v1`, {
+      const authRpcRes = await fetchWithTimeout(`${restUrl}/rpc/list_contexts_v1`, {
         method: 'POST',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -1088,7 +1104,7 @@ async function runAudit() {
 
       // Check 9: Direct table endpoint for internal tables rejected
       console.log(' - Testing internal table endpoint protection...');
-      const internalTableRes = await fetch(`${restUrl}/tenants`, {
+      const internalTableRes = await fetchWithTimeout(`${restUrl}/tenants`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -1097,7 +1113,7 @@ async function runAudit() {
       });
       const internalTableRejected = internalTableRes.status === 404 || internalTableRes.status === 401 || internalTableRes.status === 403;
 
-      const internalSchemaOverrideRes = await fetch(`${restUrl}/tenants`, {
+      const internalSchemaOverrideRes = await fetchWithTimeout(`${restUrl}/tenants`, {
         method: 'GET',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
@@ -1122,7 +1138,7 @@ async function runAudit() {
       // Cleanup synthetic user
       if (syntheticUserId) {
         console.log('\n[Cleanup] Deleting synthetic user from local Auth...');
-        const delRes = await fetch(`${authUrl}/admin/users/${syntheticUserId}`, {
+        const delRes = await fetchWithTimeout(`${authUrl}/admin/users/${syntheticUserId}`, {
           method: 'DELETE',
           headers: {
             'apikey': SUPABASE_SERVICE_ROLE_KEY,
@@ -1153,6 +1169,22 @@ async function runAudit() {
   const nonExposedPublicExecuteCount = allFunctionRecords.filter(f => !f.schema_is_data_api_exposed && f.inherited_public_execute).length;
   const triggerExecuteCount = allFunctionRecords.filter(f => f.function_is_trigger || f.function_is_event_trigger).length;
   const appPrivateEffectiveCallableCount = appPrivateAudit.callable_functions_count || 0;
+  const countByRule = findings => findings.reduce((counts, finding) => {
+    counts[finding.rule] = (counts[finding.rule] || 0) + 1;
+    return counts;
+  }, {});
+  const authenticatedDirectDmlInventory = tableRlsSummary.tables
+    .filter(table => table.grants.authenticated.insert || table.grants.authenticated.update || table.grants.authenticated.delete)
+    .map(table => {
+      const fullTableName = `${table.schema}.${table.table}`;
+      return {
+        table: fullTableName,
+        schema_is_data_api_exposed: EXPOSED_SCHEMAS.includes(table.schema),
+        has_rls: table.has_rls,
+        allowlisted: AUTHENTICATED_DML_ALLOWLIST.has(fullTableName),
+        grants: table.grants.authenticated
+      };
+    });
 
   let finalVerdict;
   if (criticalFindings.length === 0 && highFindings.length === 0) {
@@ -1167,6 +1199,14 @@ async function runAudit() {
     timestamp: new Date().toISOString(),
     commit_sha: commitSha,
     cli_version: cliVersion,
+    execution_scope: {
+      database_target: 'local_ephemeral_only',
+      catalog_queries: 'read_only',
+      schema_or_migration_mutation: false,
+      remote_mutation: false,
+      local_auth_roundtrip: dataApiResultMatrix.evaluated,
+      local_auth_cleanup_status: cleanupResult.status
+    },
     counters: {
       critical_count: criticalFindings.length,
       high_count: highFindings.length,
@@ -1183,8 +1223,14 @@ async function runAudit() {
     role_matrix: roleMatrix,
     schema_matrix: schemaMatrix,
     schema_usage_intersection_matrix: schemaUsageIntersectionMatrix,
+    finding_breakdown: {
+      critical_by_rule: countByRule(criticalFindings),
+      high_by_rule: countByRule(highFindings),
+      hardening_by_rule: countByRule(hardeningFindings)
+    },
     app_private_audit: appPrivateAudit,
     customer_api_gateway_classification: customerApiGatewayClassification,
+    authenticated_direct_dml_inventory: authenticatedDirectDmlInventory,
     table_rls_summary: {
       total_tables: tableRlsSummary.total_tables,
       tables_with_rls: tableRlsSummary.tables_with_rls,
