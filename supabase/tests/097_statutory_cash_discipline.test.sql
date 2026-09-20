@@ -376,7 +376,7 @@ select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'desk_to_bank', 50000.00, date '2026-06-15',
+      'bank_deposit', 50000.00, date '2026-06-15',
       clock_timestamp() + interval '1 hour', -- Future transferred_at
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-future', repeat('6', 64)
@@ -389,7 +389,7 @@ select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'desk_to_bank', 56000.00, date '2026-06-15', -- Exceeds balance of 55,000 RON
+      'bank_deposit', 56000.00, date '2026-06-15', -- Exceeds balance of 55,000 RON
       timestamptz '2026-06-15 15:00:00+03',
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-overbal', repeat('7', 64)
@@ -402,7 +402,7 @@ select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       null, null, -- Missing bank_account_id for desk_to_bank
-      'desk_to_bank', 50000.00, date '2026-06-15',
+      'bank_deposit', 50000.00, date '2026-06-15',
       timestamptz '2026-06-15 15:00:00+03',
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-nobank', repeat('8', 64)
@@ -416,7 +416,7 @@ select lives_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'desk_to_bank', 50000.00, date '2026-06-15',
+      'bank_deposit', 50000.00, date '2026-06-15',
       timestamptz '2026-06-15 15:00:00+03',
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-097', repeat('9', 64)
@@ -442,7 +442,7 @@ select ok(
   (select id from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'desk_to_bank', 50000.00, date '2026-06-15',
+      'bank_deposit', 50000.00, date '2026-06-15',
       timestamptz '2026-06-15 15:00:00+03',
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-097', repeat('9', 64)
@@ -806,7 +806,7 @@ select lives_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'desk_to_bank', 1000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
+      'bank_deposit', 1000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
       statement_timestamp(),
       'Foaie varsamant FV-097-ADD',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-add-1k', repeat('f', 64)
