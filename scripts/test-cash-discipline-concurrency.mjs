@@ -361,7 +361,7 @@ async function runDailyClosureRace(observer, winner, waiter, f) {
 
   await beginAsServiceRole(winner);
   const winnerCall = winner.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64400.00, $3, $4, $5)`,
+    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64750.00, $3, $4, $5)`,
     [f.cashDesk1, closureDate, f.actor, `idemp-close-winner-${f.cashDesk1}`, sha256(`close-win-${f.cashDesk1}`)],
   );
 
@@ -375,7 +375,7 @@ async function runDailyClosureRace(observer, winner, waiter, f) {
   let waiterError;
 
   const pendingWaiter = waiter.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64400.00, $3, $4, $5)`,
+    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64750.00, $3, $4, $5)`,
     [f.cashDesk1, closureDate, f.actor, `idemp-close-waiter-${f.cashDesk1}`, sha256(`close-wait-${f.cashDesk1}`)],
   ).catch((error) => {
     waiterError = error;
@@ -538,7 +538,7 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
   let waiterResult;
 
   const pendingWaiter = waiter.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, date '2026-06-16', 54400.00, $2, $3, $4)`,
+    `select * from app_private.close_statutory_cash_day_v1($1, date '2026-06-16', 53250.00, $2, $3, $4)`,
     [f.cashDesk1, f.actor, `idemp-close-race-${f.cashDesk1}`, sha256(`close-race-${f.cashDesk1}`)],
   ).then((res) => {
     waiterResult = res;
