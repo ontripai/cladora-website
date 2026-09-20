@@ -2,6 +2,19 @@
 -- petty-cash controls and statutory cash documents (Law 196/2018 & Law 70/2015).
 begin;
 
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'cladora_rpc_owner') then
+    create role cladora_rpc_owner
+      nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
+  end if;
+end
+$$;
+
+grant usage, create on schema app_private to cladora_rpc_owner;
+grant usage, create on schema finance to cladora_rpc_owner;
+grant cladora_rpc_owner to postgres;
+
 -- =============================================================================
 -- Enums
 -- =============================================================================
