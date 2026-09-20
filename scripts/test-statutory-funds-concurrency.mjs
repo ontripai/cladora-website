@@ -310,10 +310,10 @@ async function createConveyances(client, f) {
     const refundPayload = sha256(`refund-conveyance-${f.refundConveyance}`);
     const retentionPayload = sha256(`retention-conveyance-${f.retentionConveyance}`);
     const refund = await client.query(
-      `select (app_private.create_working_capital_conveyance_v1(
+      `select * from app_private.create_working_capital_conveyance_v1(
          $1, $2, $3, $4, current_date, 'refund_transferor', null,
          '{"deed":"default-refund"}'::jsonb, $5, $6, $7
-       )).*`,
+       )`,
       [
         f.fund,
         f.unit,
@@ -325,10 +325,10 @@ async function createConveyances(client, f) {
       ],
     );
     const retention = await client.query(
-      `select (app_private.create_working_capital_conveyance_v1(
+      `select * from app_private.create_working_capital_conveyance_v1(
          $1, $2, $3, $4, current_date, 'transfer_to_acquirer_by_deed', 'DEED-EPHEMERAL',
          '{"deed":"retention"}'::jsonb, $5, $6, $7
-       )).*`,
+       )`,
       [
         f.fund,
         f.unit,
@@ -352,12 +352,12 @@ async function createConveyances(client, f) {
 
 async function movementCall(client, f, suffix) {
   return client.query(
-    `select (app_private.record_statutory_fund_movement_v1(
+    `select * from app_private.record_statutory_fund_movement_v1(
        $1, $2, $3, null, null, null,
        'increase', 'owner_contribution', null, 70,
        $4, $5, $6, null, $7, null,
        $8::jsonb, $9, $10, $11
-     )).*`,
+     )`,
     [
       f.fund,
       f.cycle,
@@ -409,18 +409,18 @@ async function runMovementRace(observer, winner, waiter, f) {
 
 async function finalizeRefund(client, f) {
   return client.query(
-    `select (app_private.finalize_working_capital_conveyance_v1(
+    `select * from app_private.finalize_working_capital_conveyance_v1(
        $1, 1, $2, 'LEGAL-SIGNOFF-EPHEMERAL', $3, 'Conveyance refund concurrency winner'
-     )).*`,
+     )`,
     [f.refundConveyance, f.refundEntry, f.actor],
   );
 }
 
 async function finalizeRetention(client, f) {
   return client.query(
-    `select (app_private.finalize_working_capital_conveyance_v1(
+    `select * from app_private.finalize_working_capital_conveyance_v1(
        $1, 1, null, 'LEGAL-SIGNOFF-EPHEMERAL', $2, 'Deed retention concurrency contender'
-     )).*`,
+     )`,
     [f.retentionConveyance, f.actor],
   );
 }

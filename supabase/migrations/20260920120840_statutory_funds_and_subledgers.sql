@@ -800,14 +800,18 @@ create or replace function app_private.finalize_working_capital_conveyance_v1(
 returns finance.statutory_working_capital_conveyances
 language plpgsql security invoker set search_path = pg_catalog
 as $$
-declare v_c finance.statutory_working_capital_conveyances; v_fund finance.statutory_funds; v_entry finance.statutory_simple_entries;
+declare
+  v_fund_id uuid;
+  v_c finance.statutory_working_capital_conveyances;
+  v_fund finance.statutory_funds;
+  v_entry finance.statutory_simple_entries;
 begin
   if p_conveyance_id is null or p_expected_lock_version is null or p_actor_id is null or nullif(btrim(p_reason), '') is null then
     raise exception 'working_capital_conveyance_finalize_invalid_arguments' using errcode = '22023';
   end if;
-  select fund_id into v_c.fund_id from finance.statutory_working_capital_conveyances where id = p_conveyance_id;
+  select fund_id into v_fund_id from finance.statutory_working_capital_conveyances where id = p_conveyance_id;
   if not found then raise exception 'working_capital_conveyance_not_found' using errcode = 'P0002'; end if;
-  perform pg_advisory_xact_lock(hashtextextended('statutory_fund:' || v_c.fund_id::text, 0));
+  perform pg_advisory_xact_lock(hashtextextended('statutory_fund:' || v_fund_id::text, 0));
   select * into v_c from finance.statutory_working_capital_conveyances where id = p_conveyance_id for update;
   select * into v_fund from finance.statutory_funds where id = v_c.fund_id for update;
   if v_c.lock_version <> p_expected_lock_version then raise exception 'working_capital_conveyance_lock_version_conflict' using errcode = '40001'; end if;
