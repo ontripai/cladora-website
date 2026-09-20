@@ -329,7 +329,7 @@ async function setupCashDesksAndFixtures(client, f) {
     // Create a document ready for semantic verification / finalization tests
     const doc = await client.query(
       `select * from app_private.create_statutory_cash_document_v1(
-         $1, 'dispozitie_plata_14_4_4', 'DP-CONC', '0001', date '2026-06-15', 250.00,
+         $1, 'dispozitie_14_4_4_plata', 'DP-CONC', '0001', date '2026-06-15', 250.00,
          'Test Beneficiary', 'Test payment doc', '{"form":"14-4-4"}'::jsonb, $2, null,
          $3, $4, $5
        )`,
