@@ -10,6 +10,7 @@ on:
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
+      - "scripts/audit-r10-catalog-evidence.mjs"
       - "package.json"
       - "package-lock.json"
   push:
@@ -22,6 +23,7 @@ on:
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
+      - "scripts/audit-r10-catalog-evidence.mjs"
       - "package.json"
       - "package-lock.json"
   workflow_dispatch:
@@ -87,6 +89,31 @@ jobs:
         run: timeout 60s node scripts/test-workspace-delegations-concurrency.mjs
         env:
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run R10 catalog and Data API evidence gate
+        run: |
+          set -euo pipefail
+          STATUS_JSON=$(supabase status -o json)
+          ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // empty')
+          SERVICE_ROLE_KEY=$(echo "$STATUS_JSON" | jq -r '.SERVICE_ROLE_KEY // empty')
+          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_ROLE_KEY" ]; then
+            echo "::error::Local Supabase keys are required for the R10 Data API evidence gate"
+            exit 1
+          fi
+          if [ -n "$ANON_KEY" ]; then echo "::add-mask::$ANON_KEY"; fi
+          if [ -n "$SERVICE_ROLE_KEY" ]; then echo "::add-mask::$SERVICE_ROLE_KEY"; fi
+          SUPABASE_ANON_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" node scripts/audit-r10-catalog-evidence.mjs
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          SUPABASE_URL: http://127.0.0.1:54321
+          REQUIRE_DATA_API_EVIDENCE: "true"
+          SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Upload R10 catalog evidence artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: r10-catalog-evidence
+          path: r10-catalog-evidence.json
+          if-no-files-found: ignore
       - name: Run local database security and performance advisors
         run: supabase db lint --local --level warning
       - name: Show service status on failure
