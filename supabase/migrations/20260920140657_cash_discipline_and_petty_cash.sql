@@ -161,6 +161,20 @@ create table finance.statutory_cash_entry_assignments (
          (entry_direction = 'payment' and received_at is null))
 );
 
+create or replace function finance.protect_statutory_cash_assignment_v1()
+returns trigger
+language plpgsql
+set search_path = pg_catalog
+as $
+begin
+  raise exception 'statutory_cash_assignment_is_immutable' using errcode = '55000';
+end;
+$;
+
+create trigger statutory_cash_assignment_immutable
+before update or delete on finance.statutory_cash_entry_assignments
+for each row execute function finance.protect_statutory_cash_assignment_v1();
+
 create table finance.statutory_cash_custody_transfers (
   id uuid primary key default gen_random_uuid(),
   cash_desk_id uuid not null references finance.statutory_cash_desks(id) on delete restrict,
@@ -1353,6 +1367,9 @@ declare
   v_curr_balance numeric(20,2);
   v_latest_closed_date date;
 begin
+  if p_transfer_kind in ('bank_deposit', 'bank_withdrawal') and p_bank_account_id is null then
+    raise exception 'bank_account_required_for_bank_transfers' using errcode = '22023';
+  end if;
   if p_cash_desk_id is null or p_bank_account_id is null or p_transfer_kind is null
      or p_amount is null or p_amount <= 0 or p_transfer_date is null
      or p_transferred_at is null or nullif(btrim(p_supporting_document_reference), '') is null
@@ -1938,6 +1955,10 @@ begin
 
   if date_trunc('month', v_entry.entry_date)::date <> v_auth.calendar_month then
     raise exception 'expense_date_outside_authorization_month' using errcode = '22023';
+  end if;
+
+  if exists (select 1 from finance.statutory_petty_cash_expenses where statutory_simple_entry_id = p_statutory_simple_entry_id) then
+    raise exception 'statutory_simple_entry_already_expensed' using errcode = '23505';
   end if;
 
   -- Check available funded balance at expense date and server time (Remediation 005 section 2)
@@ -2901,6 +2922,8 @@ grant select on finance.statutory_cash_document_finalization_events to service_r
 -- Grant necessary DML to cladora_rpc_owner
 grant select on finance.statutory_compliance_calendars to cladora_rpc_owner;
 grant select on finance.statutory_simple_entries to cladora_rpc_owner;
+grant select on payments.bank_accounts to cladora_rpc_owner;
+grant select on payments.bank_transactions to cladora_rpc_owner;
 grant select, insert, update on finance.statutory_cash_desks to cladora_rpc_owner;
 grant select, insert on finance.statutory_cash_entry_assignments to cladora_rpc_owner;
 grant select, insert, update on finance.statutory_cash_custody_transfers to cladora_rpc_owner;

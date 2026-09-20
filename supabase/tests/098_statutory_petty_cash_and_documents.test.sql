@@ -223,7 +223,7 @@ insert into finance.statutory_simple_entries (
    '09800000-0000-0000-0000-000000000001'),
   ('09800000-0000-0000-0000-000000000087', '09800000-0000-0000-0000-000000000065',
    '09800000-0000-0000-0000-000000000010', '09800000-0000-0000-0000-000000000030',
-   (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-098-OVER', 1100.00, 'Over capacity expense attempt',
+   (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-098-OVER', 900.00, 'Over capacity expense attempt',
    '09800000-0000-0000-0000-000000000001');
 
 -- Refund entry linked cleanly to original expense entry 81 via reversal_of_entry_id
@@ -266,7 +266,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000075', -- unadopted resolution
-      1000.00, date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Elena Ionescu', 'Cheltuieli neprevazute urgente',
+      800.00, date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Elena Ionescu', 'Cheltuieli neprevazute urgente',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-unadopted', repeat('1', 64)
     )$$,
   '23514', 'adopted_resolution_required_for_petty_cash',
@@ -277,7 +277,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000076', -- foreign property resolution
-      1000.00, date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Elena Ionescu', 'Cheltuieli neprevazute urgente',
+      800.00, date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Elena Ionescu', 'Cheltuieli neprevazute urgente',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-foreign', repeat('2', 64)
     )$$,
   '23514', 'resolution_property_scope_mismatch',
@@ -302,14 +302,14 @@ select lives_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000074',
-      1000.00, date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Elena Ionescu', 'Cheltuieli neprevazute reparatii instalatii',
+      800.00, date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Elena Ionescu', 'Cheltuieli neprevazute reparatii instalatii',
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-098-ok', repeat('5', 64)
     )$$,
   'valid petty cash authorization is created in authorized status'
 );
 
 select ok(
-  (select status = 'authorized' and custodian_name = 'Elena Ionescu' and authorized_amount = 1000.00
+  (select status = 'authorized' and custodian_name = 'Elena Ionescu' and authorized_amount = 800.00
      from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
   'petty cash authorization verified in authorized status with custodian_name'
 );
@@ -355,7 +355,7 @@ select lives_ok(
   $$select * from app_private.retain_petty_cash_from_receipt_v1(
       (select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09800000-0000-0000-0000-000000000080'),
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
-      500.00, '09800000-0000-0000-0000-000000000001', 'idemp-ret-1', repeat('9', 64)
+      300.00, '09800000-0000-0000-0000-000000000001', 'idemp-ret-1', repeat('9', 64)
     )$$,
   'first lawful petty cash retention of 300 RON allocated from receipt 80'
 );
@@ -463,7 +463,7 @@ select ok(
 );
 
 select ok(
-  (select (select sum(retained_amount) from finance.statutory_cash_receipt_petty_cash_retentions where authorization_id = (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok')) = 1000.00),
+  (select (select sum(retained_amount) from finance.statutory_cash_receipt_petty_cash_retentions where authorization_id = (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok')) = 800.00),
   'original retentions remain completely immutable at 800 RON total'
 );
 
@@ -471,8 +471,8 @@ select ok(
   (select finance.statutory_petty_cash_balance_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
       statement_timestamp()
-    ) = 500.00),
-  'derived petty cash balance correctly decrements to 500 RON'
+    ) = 300.00),
+  'derived petty cash balance correctly decrements to 300 RON'
 );
 
 -- Double use of same simple entry is rejected
@@ -567,8 +567,8 @@ select ok(
   (select finance.statutory_petty_cash_balance_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
       statement_timestamp()
-    ) = 1000.00),
-  'petty cash balance restored to 1000 RON following reversal'
+    ) = 800.00),
+  'petty cash balance restored to 800 RON following reversal'
 );
 
 -- Reversal replay is idempotent
