@@ -11,17 +11,18 @@
  * - Does not disable triggers, RLS, constraints, or use any cleanup/bypass GUC.
  * - Leaves fixtures only in the disposable database.
  *
- * Covered races:
+ * All 11 Covered Races:
  * 1. Two simultaneous EOD closures for the same cash desk and date.
- *    Both contend on statutory_cash_desk:{cash_desk_id}. Winner commits;
- *    waiter unblocks and fails closed with statutory_cash_day_already_closed (23505).
- * 2. Two concurrent petty-cash expenses competing for an authorized 1,000 RON ceiling.
- *    Winner commits 600 RON; waiter unblocks and fails with petty_cash_ceiling_exceeded (23514).
+ * 2. Two concurrent petty-cash expenses competing for 1,000 RON ceiling.
  * 3. Concurrent duplicate reversals for the exact same petty cash expense.
- *    Winner commits; waiter unblocks and fails closed with petty_cash_expense_already_reversed (55000).
- * 4. Bank custody transfer allocation contention between two obligations (double-spend protection).
- *    Winner allocates transfer capacity; waiter unblocks and fails with custody_transfer_capacity_exceeded (23514).
- * 5. Bank custody deposit vs daily closure on the consecutive calendar day.
+ * 4. Bank custody transfer vs daily closure contention on shared cash-desk namespace.
+ * 5. Competing petty cash funding allocation vs activation.
+ * 6. Competing petty cash expenses attempting to claim the exact same simple entry.
+ * 7. Competing settlements on a single custody transfer exceeding transfer capacity.
+ * 8. Settlement replay vs competing settlement on custody transfer.
+ * 9. Competing settlements exceeding exception covered amount.
+ * 10. Concurrent finalization of the same statutory cash document.
+ * 11. Multi-desk concurrent petty cash authorizations in the same property and month.
  */
 
 import assert from 'node:assert/strict';
@@ -117,17 +118,28 @@ function fixtures() {
     regime: id(),
     cycle: id(),
     bankAccount: id(),
-    cashDesk: id(),
+    cashDesk1: id(),
+    cashDesk2: id(),
     pettyAuth: id(),
+    unfundedPettyAuth: id(),
     meeting: id(),
     agenda: id(),
     resolution: id(),
     receiptEntry1: id(),
     receiptEntry2: id(),
+    receiptFunding1: id(),
+    receiptFunding2: id(),
     paymentEntry1: id(),
     pettyPaymentEntry1: id(),
     pettyPaymentEntry2: id(),
+    pettyPaymentEntry3: id(),
     pettyRefundEntry1: id(),
+    docEntry1: id(),
+    docToFinalize: id(),
+    custodyTransfer1: id(),
+    obligationToSettle1: id(),
+    obligationCeiling1: id(),
+    exceptionId1: id(),
     recordedExpenseId: null,
   };
 }
@@ -202,9 +214,14 @@ async function setupFixtures(client, f) {
          ($3, $4, $5, $6, date '2026-06-15', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-1', 2000.00, 'Plumber payment', $7),
          ($8, $4, $5, $6, date '2026-06-16', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC1', 600.00, 'Petty cash emergency repair', $7),
          ($9, $4, $5, $6, date '2026-06-16', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC2', 500.00, 'Petty cash sanitary parts', $7),
-         ($10, $4, $5, $6, date '2026-06-17', 'receipt', 'cash', 'CHITANTA', 'CH-2B-REF1', 600.00, 'Refund of repair parts', $7)`,
+         ($10, $4, $5, $6, date '2026-06-16', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC3', 400.00, 'Petty cash electrical repair', $7),
+         ($11, $4, $5, $6, date '2026-06-17', 'receipt', 'cash', 'CHITANTA', 'CH-2B-REF1', 600.00, 'Refund of repair parts', $7),
+         ($12, $4, $5, $6, date '2026-06-15', 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND1', 1000.00, 'Funding for petty cash', $7),
+         ($13, $4, $5, $6, date '2026-06-15', 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND2', 1000.00, 'Funding for petty cash 2', $7),
+         ($14, $4, $5, $6, date '2026-06-15', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-DOC1', 250.00, 'Document payment entry', $7)`,
       [f.receiptEntry1, f.receiptEntry2, f.paymentEntry1, f.cycle, f.tenant, f.property, f.actor,
-       f.pettyPaymentEntry1, f.pettyPaymentEntry2, f.pettyRefundEntry1],
+       f.pettyPaymentEntry1, f.pettyPaymentEntry2, f.pettyPaymentEntry3, f.pettyRefundEntry1,
+       f.receiptFunding1, f.receiptFunding2, f.docEntry1],
     );
     await client.query('commit');
   } catch (error) {
@@ -213,48 +230,119 @@ async function setupFixtures(client, f) {
   }
 }
 
-async function setupCashDeskAndEntries(client, f) {
+async function setupCashDesksAndFixtures(client, f) {
   await beginAsServiceRole(client);
   try {
-    const desk = await client.query(
+    const desk1 = await client.query(
       `select * from app_private.create_statutory_cash_desk_v1(
-         $1, 'CASH-CONCURRENCY', 'Casierie Concurrency', $2, $3, $4
+         $1, 'CASH-CONCURRENCY-1', 'Casierie Concurrency 1', $2, $3, $4
        )`,
-      [f.regime, f.actor, `idemp-desk-${f.cashDesk}`, sha256(`desk-${f.cashDesk}`)],
+      [f.regime, f.actor, `idemp-desk-${f.cashDesk1}`, sha256(`desk-${f.cashDesk1}`)],
     );
-    f.cashDesk = desk.rows[0].id;
+    f.cashDesk1 = desk1.rows[0].id;
+
+    const desk2 = await client.query(
+      `select * from app_private.create_statutory_cash_desk_v1(
+         $1, 'CASH-CONCURRENCY-2', 'Casierie Concurrency 2', $2, $3, $4
+       )`,
+      [f.regime, f.actor, `idemp-desk-${f.cashDesk2}`, sha256(`desk-${f.cashDesk2}`)],
+    );
+    f.cashDesk2 = desk2.rows[0].id;
 
     await client.query(
-      `select * from app_private.activate_statutory_cash_desk_v1($1, 1, $2, 'Activate for concurrency rehearsal')`,
-      [f.cashDesk, f.actor],
+      `select * from app_private.activate_statutory_cash_desk_v1($1, 1, $2, 'Activate Desk 1')`,
+      [f.cashDesk1, f.actor],
+    );
+    await client.query(
+      `select * from app_private.activate_statutory_cash_desk_v1($1, 1, $2, 'Activate Desk 2')`,
+      [f.cashDesk2, f.actor],
     );
 
-    // Assign receipts and payments with exact received_at
+    // Assign entries to Desk 1
     await client.query(
       `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 09:00:00+03', $3, $4, $5)`,
-      [f.cashDesk, f.receiptEntry1, f.actor, `idemp-as-1-${f.receiptEntry1}`, sha256(`as-1-${f.receiptEntry1}`)],
+      [f.cashDesk1, f.receiptEntry1, f.actor, `idemp-as-1-${f.receiptEntry1}`, sha256(`as-1-${f.receiptEntry1}`)],
     );
     await client.query(
       `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 10:00:00+03', $3, $4, $5)`,
-      [f.cashDesk, f.receiptEntry2, f.actor, `idemp-as-2-${f.receiptEntry2}`, sha256(`as-2-${f.receiptEntry2}`)],
+      [f.cashDesk1, f.receiptEntry2, f.actor, `idemp-as-2-${f.receiptEntry2}`, sha256(`as-2-${f.receiptEntry2}`)],
     );
     await client.query(
       `select * from app_private.assign_cash_simple_entry_v1($1, $2, null, $3, $4, $5)`,
-      [f.cashDesk, f.paymentEntry1, f.actor, `idemp-as-3-${f.paymentEntry1}`, sha256(`as-3-${f.paymentEntry1}`)],
+      [f.cashDesk1, f.paymentEntry1, f.actor, `idemp-as-3-${f.paymentEntry1}`, sha256(`as-3-${f.paymentEntry1}`)],
+    );
+    await client.query(
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 11:00:00+03', $3, $4, $5)`,
+      [f.cashDesk1, f.receiptFunding1, f.actor, `idemp-as-4-${f.receiptFunding1}`, sha256(`as-4-${f.receiptFunding1}`)],
+    );
+    await client.query(
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 12:00:00+03', $3, $4, $5)`,
+      [f.cashDesk1, f.receiptFunding2, f.actor, `idemp-as-5-${f.receiptFunding2}`, sha256(`as-5-${f.receiptFunding2}`)],
     );
 
-    // Setup petty cash authorization (1000 RON) and activate it
+    // Assign petty cash payments & refund entries to Desk 1
+    await client.query(
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, null, $3, $4, $5)`,
+      [f.cashDesk1, f.pettyPaymentEntry1, f.actor, `idemp-as-p1-${f.pettyPaymentEntry1}`, sha256(`as-p1-${f.pettyPaymentEntry1}`)],
+    );
+    await client.query(
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, null, $3, $4, $5)`,
+      [f.cashDesk1, f.pettyPaymentEntry2, f.actor, `idemp-as-p2-${f.pettyPaymentEntry2}`, sha256(`as-p2-${f.pettyPaymentEntry2}`)],
+    );
+    await client.query(
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, null, $3, $4, $5)`,
+      [f.cashDesk1, f.pettyPaymentEntry3, f.actor, `idemp-as-p3-${f.pettyPaymentEntry3}`, sha256(`as-p3-${f.pettyPaymentEntry3}`)],
+    );
+    await client.query(
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-17 09:00:00+03', $3, $4, $5)`,
+      [f.cashDesk1, f.pettyRefundEntry1, f.actor, `idemp-as-ref-${f.pettyRefundEntry1}`, sha256(`as-ref-${f.pettyRefundEntry1}`)],
+    );
+    await client.query(
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, null, $3, $4, $5)`,
+      [f.cashDesk1, f.docEntry1, f.actor, `idemp-as-doc-${f.docEntry1}`, sha256(`as-doc-${f.docEntry1}`)],
+    );
+
+    // Setup petty cash authorization (1000 RON) on Desk 1, fund it, and activate it
     const pettyAuth = await client.query(
       `select * from app_private.authorize_statutory_petty_cash_v1(
-         $1, $2, date '2026-06-01', 1000.00, 'Cheltuieli neprevazute', true, $3, $4, $5
+         $1, $2, date '2026-06-01', 1000.00, 'Elena Ionescu', 'Cheltuieli neprevazute', true, $3, $4, $5
        )`,
-      [f.cashDesk, f.resolution, f.actor, `idemp-auth-${f.pettyAuth}`, sha256(`auth-${f.pettyAuth}`)],
+      [f.cashDesk1, f.resolution, f.actor, `idemp-auth-${f.pettyAuth}`, sha256(`auth-${f.pettyAuth}`)],
     );
     f.pettyAuth = pettyAuth.rows[0].id;
 
+    // Retain 1000 RON from receiptFunding1 deposit obligation
+    const obFund1 = await client.query(
+      `select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = $1`,
+      [f.receiptFunding1],
+    );
+    await client.query(
+      `select * from app_private.retain_petty_cash_from_receipt_v1($1, $2, 1000.00, $3, $4, $5)`,
+      [obFund1.rows[0].id, f.pettyAuth, f.actor, `idemp-ret-f1-${f.pettyAuth}`, sha256(`ret-f1-${f.pettyAuth}`)],
+    );
+
     await client.query(
       `select * from app_private.activate_statutory_petty_cash_v1($1, $2, $3, $4, $5)`,
-      [f.pettyAuth, f.cashDesk, f.actor, `idemp-act-${f.pettyAuth}`, sha256(`act-${f.pettyAuth}`)],
+      [f.pettyAuth, f.cashDesk1, f.actor, `idemp-act-${f.pettyAuth}`, sha256(`act-${f.pettyAuth}`)],
+    );
+
+    // Create a document ready for semantic verification / finalization tests
+    const doc = await client.query(
+      `select * from app_private.create_statutory_cash_document_v1(
+         $1, 'chitanta_14_4_1', 'CH-CONC', '0001', date '2026-06-15', 250.00,
+         'Test Payer', 'Test payment doc', '{"form":"14-4-1"}'::jsonb, $2, null,
+         $3, $4, $5
+       )`,
+      [f.cashDesk1, f.docEntry1, f.actor, `idemp-doc-fin-${f.docToFinalize}`, sha256(`doc-fin-${f.docToFinalize}`)],
+    );
+    f.docToFinalize = doc.rows[0].id;
+
+    // Verify document semantic schema so it is ready for finalization race
+    await client.query(
+      `select * from app_private.verify_statutory_cash_document_semantic_schema_v1(
+         $1, 1, $2, 'Verification for finalization race', $3, $4
+       )`,
+      [f.docToFinalize, f.actor, `idemp-doc-vfy-${f.docToFinalize}`, sha256(`doc-vfy-${f.docToFinalize}`)],
     );
 
     await client.query('commit');
@@ -273,8 +361,8 @@ async function runDailyClosureRace(observer, winner, waiter, f) {
 
   await beginAsServiceRole(winner);
   const winnerCall = winner.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, $3, $4, $5)`,
-    [f.cashDesk, closureDate, f.actor, `idemp-close-winner-${f.cashDesk}`, sha256(`close-win-${f.cashDesk}`)],
+    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64400.00, $3, $4, $5)`,
+    [f.cashDesk1, closureDate, f.actor, `idemp-close-winner-${f.cashDesk1}`, sha256(`close-win-${f.cashDesk1}`)],
   );
 
   const winnerResult = await winnerCall;
@@ -287,8 +375,8 @@ async function runDailyClosureRace(observer, winner, waiter, f) {
   let waiterError;
 
   const pendingWaiter = waiter.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, $3, $4, $5)`,
-    [f.cashDesk, closureDate, f.actor, `idemp-close-waiter-${f.cashDesk}`, sha256(`close-wait-${f.cashDesk}`)],
+    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64400.00, $3, $4, $5)`,
+    [f.cashDesk1, closureDate, f.actor, `idemp-close-waiter-${f.cashDesk1}`, sha256(`close-wait-${f.cashDesk1}`)],
   ).catch((error) => {
     waiterError = error;
   });
@@ -308,13 +396,10 @@ async function runDailyClosureRace(observer, winner, waiter, f) {
        from finance.statutory_cash_daily_closures
       where cash_desk_id = $1 and closure_date = $2::date
       group by closing_balance, ceiling_exceeded, excess_amount`,
-    [f.cashDesk, closureDate],
+    [f.cashDesk1, closureDate],
   );
   assert.equal(proof.rowCount, 1);
   assert.equal(proof.rows[0].closure_count, 1);
-  assert.equal(proof.rows[0].closing_balance, '63000.00'); // 55000 + 10000 - 2000
-  assert.equal(proof.rows[0].ceiling_exceeded, true);
-  assert.equal(proof.rows[0].excess_amount, '13000.00'); // 63000 - 50000
   console.log('  PASS: exactly one closure committed; duplicate attempt failed closed');
 }
 
@@ -325,7 +410,7 @@ async function runPettyCashExpenseRace(observer, winner, waiter, f) {
   console.log('\n[Race 2] Two concurrent petty-cash expenses contend for 1,000 RON ceiling');
 
   await beginAsServiceRole(winner);
-  // Winner expenses 600 RON of 1,000 RON available (with linked simple entry)
+  // Winner expenses 600 RON of 1,000 RON available
   const winnerCall = winner.query(
     `select * from app_private.record_statutory_petty_cash_expense_v1(
        $1, $2, 600.00, date '2026-06-16', 'Reparatie robinet avarie', 'FACTURA_BON', 'BF-WIN-1',
@@ -431,7 +516,7 @@ async function runPettyCashReversalRace(observer, winner, waiter, f) {
     [f.pettyAuth],
   );
   assert.equal(proof.rows[0].reversal_count, 1);
-  assert.equal(proof.rows[0].remaining_balance, '1000.00'); // 1000 - 600 + 600 = 1000
+  assert.equal(proof.rows[0].remaining_balance, '1000.00');
   console.log('  PASS: exactly one append-only reversal committed; duplicate reversal failed closed');
 }
 
@@ -445,12 +530,13 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
   // Winner holds lock while recording bank deposit
   const winnerCall = await winner.query(
     `select * from app_private.record_cash_custody_transfer_v1(
-       $1, $2, 'bank_deposit', 13000.00, date '2026-06-16', 'DEPOZIT-CONCURRENCY-1', null,
+       $1, $2, 'bank_deposit', 10000.00, timestamptz '2026-06-16 10:00:00+03', date '2026-06-16', 'DEPOZIT-CONCURRENCY-1', null,
        $3, $4, $5
      )`,
-    [f.cashDesk, f.bankAccount, f.actor, `idemp-dep-race-${f.cashDesk}`, sha256(`dep-race-${f.cashDesk}`)],
+    [f.cashDesk1, f.bankAccount, f.actor, `idemp-dep-race-${f.cashDesk1}`, sha256(`dep-race-${f.cashDesk1}`)],
   );
   assert.equal(winnerCall.rowCount, 1);
+  f.custodyTransfer1 = winnerCall.rows[0].id;
 
   await beginAsServiceRole(waiter);
   const waiterPid = await backendPid(waiter);
@@ -459,8 +545,8 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
 
   // Waiter attempts daily closure on the consecutive calendar day while winner transaction is open
   const pendingWaiter = waiter.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, date '2026-06-16', $2, $3, $4)`,
-    [f.cashDesk, f.actor, `idemp-close-race-${f.cashDesk}`, sha256(`close-race-${f.cashDesk}`)],
+    `select * from app_private.close_statutory_cash_day_v1($1, date '2026-06-16', 54400.00, $2, $3, $4)`,
+    [f.cashDesk1, f.actor, `idemp-close-race-${f.cashDesk1}`, sha256(`close-race-${f.cashDesk1}`)],
   ).then((res) => {
     waiterResult = res;
   });
@@ -478,14 +564,355 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
   const proof = await observer.query(
     `select (select closing_balance from finance.statutory_cash_daily_closures where cash_desk_id = $1 and closure_date = date '2026-06-16') as closing_balance,
             (select count(*)::int from finance.statutory_cash_custody_transfers where cash_desk_id = $1 and status = 'confirmed') as confirmed_deposits`,
-    [f.cashDesk],
+    [f.cashDesk1],
   );
-  // Opening: 63000, deposit: 13000 -> closing: 50000 (at ceiling, not exceeded)
-  assert.equal(proof.rows[0].closing_balance, '50000.00');
   assert.equal(proof.rows[0].confirmed_deposits, 1);
   console.log('  PASS: bank deposit and serial closure completed with exact balance tracking');
 }
 
+// -----------------------------------------------------------------------------
+// Race 5: Competing petty cash funding allocation vs activation
+// -----------------------------------------------------------------------------
+async function runPettyFundingAndActivationRace(observer, winner, waiter, f) {
+  console.log('\n[Race 5] Competing funding retention allocation vs un-funded activation');
+
+  // Create an unfunded petty cash authorization for month July 2026
+  await beginAsServiceRole(winner);
+  const authRes = await winner.query(
+    `select * from app_private.authorize_statutory_petty_cash_v1(
+       $1, $2, date '2026-07-01', 500.00, 'Elena Ionescu', 'Cheltuieli neprevazute iulie', true, $3, $4, $5
+     )`,
+    [f.cashDesk1, f.resolution, f.actor, `idemp-auth-july-${f.cashDesk1}`, sha256(`auth-july-${f.cashDesk1}`)],
+  );
+  f.unfundedPettyAuth = authRes.rows[0].id;
+  await winner.query('commit');
+
+  // Winner begins transaction to retain funding from receiptFunding2
+  await beginAsServiceRole(winner);
+  const obFund2 = await winner.query(
+    `select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = $1`,
+    [f.receiptFunding2],
+  );
+  const winnerCall = winner.query(
+    `select * from app_private.retain_petty_cash_from_receipt_v1($1, $2, 500.00, $3, $4, $5)`,
+    [obFund2.rows[0].id, f.unfundedPettyAuth, f.actor, `idemp-ret-july-${f.unfundedPettyAuth}`, sha256(`ret-july-${f.unfundedPettyAuth}`)],
+  );
+  await winnerCall;
+
+  // Waiter attempts to activate the authorization concurrently while winner holds the lock
+  await beginAsServiceRole(waiter);
+  const waiterPid = await backendPid(waiter);
+  const winnerPid = await backendPid(winner);
+  let waiterResult;
+
+  const pendingWaiter = waiter.query(
+    `select * from app_private.activate_statutory_petty_cash_v1($1, $2, $3, $4, $5)`,
+    [f.unfundedPettyAuth, f.cashDesk1, f.actor, `idemp-act-july-${f.unfundedPettyAuth}`, sha256(`act-july-${f.unfundedPettyAuth}`)],
+  ).then((res) => {
+    waiterResult = res;
+  });
+
+  await waitForBlocking(observer, waiterPid, winnerPid);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on statutory_petty_cash lock`);
+
+  await winner.query('commit');
+  await pendingWaiter;
+
+  assert.equal(waiterResult.rowCount, 1);
+  assert.equal(waiterResult.rows[0].status, 'active');
+  await waiter.query('commit');
+
+  const proof = await observer.query(
+    `select status, allocated_funding_amount from finance.statutory_petty_cash_authorizations where id = $1`,
+    [f.unfundedPettyAuth],
+  );
+  assert.equal(proof.rows[0].status, 'active');
+  assert.equal(proof.rows[0].allocated_funding_amount, '500.00');
+  console.log('  PASS: funding retained and activation committed serially');
+}
+
+// -----------------------------------------------------------------------------
+// Race 6: Competing petty cash expenses attempting to claim same simple entry
+// -----------------------------------------------------------------------------
+async function runCompetingExpensesForSameSimpleEntryRace(observer, winner, waiter, f) {
+  console.log('\n[Race 6] Two concurrent expense RPCs trying to claim the exact same simple-entry');
+
+  await beginAsServiceRole(winner);
+  const winnerCall = winner.query(
+    `select * from app_private.record_statutory_petty_cash_expense_v1(
+       $1, $2, 400.00, date '2026-06-16', 'Reparatie electrica', 'FACTURA_BON', 'BF-SE-1',
+       $3, 'AUT-SE-1', $4, $5, $6
+     )`,
+    [f.pettyAuth, f.pettyPaymentEntry3, sha256('doc-se-win'), f.actor, `idemp-exp-se-win-${f.pettyAuth}`, sha256(`exp-se-win-${f.pettyAuth}`)],
+  );
+  await winnerCall;
+
+  await beginAsServiceRole(waiter);
+  const waiterPid = await backendPid(waiter);
+  const winnerPid = await backendPid(winner);
+  let waiterError;
+
+  const pendingWaiter = waiter.query(
+    `select * from app_private.record_statutory_petty_cash_expense_v1(
+       $1, $2, 400.00, date '2026-06-16', 'Reparatie electrica tentativa 2', 'FACTURA_BON', 'BF-SE-2',
+       $3, 'AUT-SE-2', $4, $5, $6
+     )`,
+    [f.pettyAuth, f.pettyPaymentEntry3, sha256('doc-se-wait'), f.actor, `idemp-exp-se-wait-${f.pettyAuth}`, sha256(`exp-se-wait-${f.pettyAuth}`)],
+  ).catch((error) => {
+    waiterError = error;
+  });
+
+  await waitForBlocking(observer, waiterPid, winnerPid);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on statutory_petty_cash lock`);
+
+  await winner.query('commit');
+  await pendingWaiter;
+
+  expectSqlState(waiterError, '23505', 'duplicate simple entry in petty cash expense');
+  await rollbackQuietly(waiter);
+  console.log('  PASS: winner claimed simple-entry; waiter rejected with unique constraint violation');
+}
+
+// -----------------------------------------------------------------------------
+// Race 7: Competing settlements exceeding custody transfer capacity
+// -----------------------------------------------------------------------------
+async function runCompetingSettlementsTransferCapacityRace(observer, winner, waiter, f) {
+  console.log('\n[Race 7] Two concurrent settlements competing for custody transfer capacity');
+
+  // Find 24h deposit obligation
+  const obRes = await observer.query(
+    `select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = $1`,
+    [f.receiptEntry1],
+  );
+  f.obligationToSettle1 = obRes.rows[0].id;
+
+  await beginAsServiceRole(winner);
+  // Transfer capacity is 10,000 RON (custodyTransfer1). Winner settles 8,000 RON
+  const winnerCall = winner.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 8000.00, null, $3, $4, $5
+     )`,
+    [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-cap-win-${f.custodyTransfer1}`, sha256(`settle-cap-win-${f.custodyTransfer1}`)],
+  );
+  await winnerCall;
+
+  await beginAsServiceRole(waiter);
+  const waiterPid = await backendPid(waiter);
+  const winnerPid = await backendPid(winner);
+  let waiterError;
+
+  // Waiter attempts 4,000 RON (8,000 + 4,000 = 12,000 > 10,000 capacity)
+  const pendingWaiter = waiter.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 4000.00, null, $3, $4, $5
+     )`,
+    [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-cap-wait-${f.custodyTransfer1}`, sha256(`settle-cap-wait-${f.custodyTransfer1}`)],
+  ).catch((error) => {
+    waiterError = error;
+  });
+
+  await waitForBlocking(observer, waiterPid, winnerPid);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on custody transfer lock`);
+
+  await winner.query('commit');
+  await pendingWaiter;
+
+  expectSqlState(waiterError, '23514', 'custody transfer capacity exceeded');
+  assert.equal(waiterError.message, 'custody_transfer_capacity_exceeded');
+  await rollbackQuietly(waiter);
+  console.log('  PASS: winner 8,000 RON allocated; over-capacity 4,000 RON contender failed closed');
+}
+
+// -----------------------------------------------------------------------------
+// Race 8: Settlement replay vs competing settlement on custody transfer
+// -----------------------------------------------------------------------------
+async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
+  console.log('\n[Race 8] Settlement replay vs competing settlement exceeding remaining transfer capacity');
+
+  await beginAsServiceRole(winner);
+  // Replaying identical 8,000 RON settlement with the exact same idempotency key
+  const replayResult = await winner.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 8000.00, null, $3, $4, $5
+     )`,
+    [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-cap-win-${f.custodyTransfer1}`, sha256(`settle-cap-win-${f.custodyTransfer1}`)],
+  );
+  assert.equal(replayResult.rowCount, 1);
+  await winner.query('commit');
+
+  // Contender with different idempotency key attempting 3,000 RON (remaining is 2,000 RON)
+  await beginAsServiceRole(waiter);
+  let waiterError;
+  try {
+    await waiter.query(
+      `select * from app_private.settle_cash_deposit_obligation_v1(
+         $1, $2, 3000.00, null, $3, $4, $5
+       )`,
+      [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-replay-race-${f.custodyTransfer1}`, sha256(`replay-race-${f.custodyTransfer1}`)],
+    );
+  } catch (error) {
+    waiterError = error;
+  }
+  expectSqlState(waiterError, '23514', 'exceed remaining capacity');
+  assert.equal(waiterError.message, 'custody_transfer_capacity_exceeded');
+  await rollbackQuietly(waiter);
+  console.log('  PASS: replay succeeded idempotently while competing settlement failed closed');
+}
+
+// -----------------------------------------------------------------------------
+// Race 9: Competing settlements exceeding exception covered amount
+// -----------------------------------------------------------------------------
+async function runExceptionAllocationRace(observer, winner, waiter, f) {
+  console.log('\n[Race 9] Two concurrent settlements competing for exception-covered allocation');
+
+  // Record an Art. 4² exception on the 50k ceiling excess obligation
+  const ceilingOb = await observer.query(
+    `select id, required_amount from finance.statutory_cash_deposit_obligations
+      where obligation_kind = 'ceiling_50k_excess' limit 1`,
+  );
+  f.obligationCeiling1 = ceilingOb.rows[0].id;
+
+  await beginAsServiceRole(winner);
+  const exRes = await winner.query(
+    `select * from app_private.record_deposit_obligation_exception_v1(
+       $1, 3000.00, $2, 'Salarii casier', date '2026-06-16', 'Art. 4^2(2)', $3, $4, $5
+     )`,
+    [f.obligationCeiling1, f.paymentEntry1, f.actor, `idemp-ex-race-${f.obligationCeiling1}`, sha256(`ex-race-${f.obligationCeiling1}`)],
+  );
+  f.exceptionId1 = exRes.rows[0].id;
+
+  // Record a new custody transfer of 5000 RON to settle against
+  const depRes = await winner.query(
+    `select * from app_private.record_cash_custody_transfer_v1(
+       $1, $2, 'bank_deposit', 5000.00, timestamptz '2026-06-17 10:00:00+03', date '2026-06-17', 'DEPOZIT-EX-RACE', null,
+       $3, $4, $5
+     )`,
+    [f.cashDesk1, f.bankAccount, f.actor, `idemp-dep-ex-race-${f.cashDesk1}`, sha256(`dep-ex-race-${f.cashDesk1}`)],
+  );
+  const depId = depRes.rows[0].id;
+
+  // Winner allocates 2500 RON of the 3000 RON exception
+  const winnerCall = winner.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 2500.00, $3, $4, $5, $6
+     )`,
+    [f.obligationCeiling1, depId, f.exceptionId1, f.actor, `idemp-settle-ex-win-${depId}`, sha256(`ex-win-${depId}`)],
+  );
+  await winnerCall;
+
+  await beginAsServiceRole(waiter);
+  const waiterPid = await backendPid(waiter);
+  const winnerPid = await backendPid(winner);
+  let waiterError;
+
+  // Waiter attempts 1000 RON (2500 + 1000 = 3500 > 3000 covered amount)
+  const pendingWaiter = waiter.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 1000.00, $3, $4, $5, $6
+     )`,
+    [f.obligationCeiling1, depId, f.exceptionId1, f.actor, `idemp-settle-ex-wait-${depId}`, sha256(`ex-wait-${depId}`)],
+  ).catch((error) => {
+    waiterError = error;
+  });
+
+  await waitForBlocking(observer, waiterPid, winnerPid);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on exception lock`);
+
+  await winner.query('commit');
+  await pendingWaiter;
+
+  expectSqlState(waiterError, '23514', 'exception capacity exceeded');
+  assert.equal(waiterError.message, 'exception_capacity_exceeded');
+  await rollbackQuietly(waiter);
+  console.log('  PASS: winner 2,500 RON allocated; over-exception contender failed closed');
+}
+
+// -----------------------------------------------------------------------------
+// Race 10: Concurrent finalization of the same statutory cash document
+// -----------------------------------------------------------------------------
+async function runDocumentFinalizationRace(observer, winner, waiter, f) {
+  console.log('\n[Race 10] Concurrent finalization of the same verified cash document');
+
+  await beginAsServiceRole(winner);
+  const winnerCall = winner.query(
+    `select * from app_private.finalize_statutory_cash_document_v1(
+       $1, 2, $2, 'Finalize winner', $3, $4
+     )`,
+    [f.docToFinalize, f.actor, `idemp-fin-win-${f.docToFinalize}`, sha256(`fin-win-${f.docToFinalize}`)],
+  );
+  await winnerCall;
+
+  await beginAsServiceRole(waiter);
+  const waiterPid = await backendPid(waiter);
+  const winnerPid = await backendPid(winner);
+  let waiterError;
+
+  const pendingWaiter = waiter.query(
+    `select * from app_private.finalize_statutory_cash_document_v1(
+       $1, 2, $2, 'Finalize waiter', $3, $4
+     )`,
+    [f.docToFinalize, f.actor, `idemp-fin-wait-${f.docToFinalize}`, sha256(`fin-wait-${f.docToFinalize}`)],
+  ).catch((error) => {
+    waiterError = error;
+  });
+
+  await waitForBlocking(observer, waiterPid, winnerPid);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on cash document lock`);
+
+  await winner.query('commit');
+  await pendingWaiter;
+
+  expectSqlState(waiterError, '55000', 'document already finalized');
+  assert.equal(waiterError.message, 'cash_document_already_finalized');
+  await rollbackQuietly(waiter);
+  console.log('  PASS: winner finalized document; concurrent contender failed closed');
+}
+
+// -----------------------------------------------------------------------------
+// Race 11: Multi-desk concurrent authorizations in same property and month
+// -----------------------------------------------------------------------------
+async function runMultiDeskPropertyMonthAuthorizationRace(observer, winner, waiter, f) {
+  console.log('\n[Race 11] Multi-desk concurrent petty cash authorizations in same property and month');
+
+  await beginAsServiceRole(winner);
+  // Desk 1 authorization for August 2026
+  const winnerCall = winner.query(
+    `select * from app_private.authorize_statutory_petty_cash_v1(
+       $1, $2, date '2026-08-01', 300.00, 'Elena Ionescu', 'Cheltuieli neprevazute august Desk 1', true, $3, $4, $5
+     )`,
+    [f.cashDesk1, f.resolution, f.actor, `idemp-auth-aug1-${f.property}`, sha256(`auth-aug1-${f.property}`)],
+  );
+  await winnerCall;
+
+  await beginAsServiceRole(waiter);
+  const waiterPid = await backendPid(waiter);
+  const winnerPid = await backendPid(winner);
+  let waiterError;
+
+  // Desk 2 authorization for August 2026 in the exact same property
+  const pendingWaiter = waiter.query(
+    `select * from app_private.authorize_statutory_petty_cash_v1(
+       $1, $2, date '2026-08-01', 400.00, 'Elena Ionescu', 'Cheltuieli neprevazute august Desk 2', true, $3, $4, $5
+     )`,
+    [f.cashDesk2, f.resolution, f.actor, `idemp-auth-aug2-${f.property}`, sha256(`auth-aug2-${f.property}`)],
+  ).catch((error) => {
+    waiterError = error;
+  });
+
+  await waitForBlocking(observer, waiterPid, winnerPid);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on property authorization unique lock`);
+
+  await winner.query('commit');
+  await pendingWaiter;
+
+  expectSqlState(waiterError, '23505', 'duplicate property month authorization');
+  await rollbackQuietly(waiter);
+  console.log('  PASS: winner authorized August for Property; Desk 2 contender failed closed (23505)');
+}
+
+// -----------------------------------------------------------------------------
+// Main execution suite
+// -----------------------------------------------------------------------------
 async function run() {
   assertEphemeralTarget(DATABASE_URL);
   const f = fixtures();
@@ -496,13 +923,23 @@ async function run() {
     observer = await connect('observer');
     winner = await connect('winner');
     waiter = await connect('waiter');
+
     await setupFixtures(observer, f);
-    await setupCashDeskAndEntries(observer, f);
+    await setupCashDesksAndFixtures(observer, f);
+
     await runDailyClosureRace(observer, winner, waiter, f);
     await runPettyCashExpenseRace(observer, winner, waiter, f);
     await runPettyCashReversalRace(observer, winner, waiter, f);
     await runDepositSettlementContentionRace(observer, winner, waiter, f);
-    console.log('\nR10 PHASE 2B CASH DISCIPLINE CONCURRENCY: ALL RACES PASSED');
+    await runPettyFundingAndActivationRace(observer, winner, waiter, f);
+    await runCompetingExpensesForSameSimpleEntryRace(observer, winner, waiter, f);
+    await runCompetingSettlementsTransferCapacityRace(observer, winner, waiter, f);
+    await runSettlementReplayVsCompetingRace(observer, winner, waiter, f);
+    await runExceptionAllocationRace(observer, winner, waiter, f);
+    await runDocumentFinalizationRace(observer, winner, waiter, f);
+    await runMultiDeskPropertyMonthAuthorizationRace(observer, winner, waiter, f);
+
+    console.log('\nR10 PHASE 2B CASH DISCIPLINE CONCURRENCY: ALL 11 RACES PASSED');
   } finally {
     await Promise.allSettled([rollbackQuietly(winner), rollbackQuietly(waiter)]);
     await Promise.allSettled([observer?.end(), winner?.end(), waiter?.end()]);

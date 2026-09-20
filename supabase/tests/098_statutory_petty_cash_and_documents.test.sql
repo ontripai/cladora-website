@@ -1,21 +1,27 @@
 -- R10 Phase 2B: Romanian HOA petty cash controls under Law 196/2018 Art. 67(5)
 -- and statutory cash documents (14-4-1 Chitanță, 14-4-4 Dispoziție casierie).
 begin;
-select plan(52);
+select plan(73);
 
 -- 1. Structural, RLS and ACL contracts
 select has_table('finance', 'statutory_petty_cash_authorizations', 'petty cash authorizations table exists');
 select has_table('finance', 'statutory_petty_cash_expenses', 'petty cash expenses table exists');
 select has_table('finance', 'statutory_petty_cash_expense_reversals', 'petty cash expense reversals table exists');
 select has_table('finance', 'statutory_cash_receipt_petty_cash_retentions', 'petty cash receipt retentions table exists');
+select has_table('finance', 'statutory_petty_cash_retention_consumptions', 'petty cash retention consumptions table exists');
+select has_table('finance', 'statutory_petty_cash_activation_events', 'petty cash activation events table exists');
 select has_table('finance', 'statutory_cash_documents', 'statutory cash documents table exists');
+select has_table('finance', 'statutory_cash_document_verification_events', 'cash document verification events table exists');
+select has_table('finance', 'statutory_cash_document_finalization_events', 'cash document finalization events table exists');
+
+select has_column('finance', 'statutory_petty_cash_authorizations', 'custodian_name', 'custodian_name column exists on authorizations');
 
 select has_function('finance', 'statutory_petty_cash_balance_v1', array['uuid'], 'derived petty cash balance function exists');
 
 select has_function(
   'app_private', 'authorize_statutory_petty_cash_v1',
-  array['uuid', 'uuid', 'date', 'numeric', 'text', 'boolean', 'uuid', 'text', 'text'],
-  'controlled petty cash authorization RPC exists'
+  array['uuid', 'uuid', 'date', 'numeric', 'text', 'text', 'boolean', 'uuid', 'text', 'text'],
+  'controlled petty cash authorization RPC exists with custodian_name parameter'
 );
 select has_function(
   'app_private', 'activate_statutory_petty_cash_v1',
@@ -43,6 +49,11 @@ select has_function(
   'controlled statutory cash document creation RPC exists'
 );
 select has_function(
+  'app_private', 'verify_statutory_cash_document_semantic_schema_v1',
+  array['uuid', 'integer', 'uuid', 'text', 'text', 'text'],
+  'controlled statutory cash document semantic schema verification RPC exists'
+);
+select has_function(
   'app_private', 'finalize_statutory_cash_document_v1',
   array['uuid', 'integer', 'uuid', 'text', 'text', 'text'],
   'controlled statutory cash document finalization RPC exists'
@@ -52,8 +63,13 @@ select ok(
   (select relrowsecurity from pg_class where oid = 'finance.statutory_petty_cash_authorizations'::regclass)
   and (select relrowsecurity from pg_class where oid = 'finance.statutory_petty_cash_expenses'::regclass)
   and (select relrowsecurity from pg_class where oid = 'finance.statutory_petty_cash_expense_reversals'::regclass)
-  and (select relrowsecurity from pg_class where oid = 'finance.statutory_cash_documents'::regclass),
-  'petty cash tables and cash documents have RLS enabled'
+  and (select relrowsecurity from pg_class where oid = 'finance.statutory_cash_receipt_petty_cash_retentions'::regclass)
+  and (select relrowsecurity from pg_class where oid = 'finance.statutory_petty_cash_retention_consumptions'::regclass)
+  and (select relrowsecurity from pg_class where oid = 'finance.statutory_petty_cash_activation_events'::regclass)
+  and (select relrowsecurity from pg_class where oid = 'finance.statutory_cash_documents'::regclass)
+  and (select relrowsecurity from pg_class where oid = 'finance.statutory_cash_document_verification_events'::regclass)
+  and (select relrowsecurity from pg_class where oid = 'finance.statutory_cash_document_finalization_events'::regclass),
+  'petty cash tables, events, and cash documents have RLS enabled'
 );
 
 select ok(
@@ -61,9 +77,21 @@ select ok(
   and not has_table_privilege('authenticated', 'finance.statutory_petty_cash_authorizations', 'INSERT,UPDATE,DELETE')
   and not has_table_privilege('anon', 'finance.statutory_petty_cash_expense_reversals', 'INSERT,UPDATE,DELETE')
   and not has_table_privilege('authenticated', 'finance.statutory_petty_cash_expense_reversals', 'INSERT,UPDATE,DELETE')
-  and not has_function_privilege('anon', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,date,numeric,text,boolean,uuid,text,text)', 'EXECUTE')
-  and not has_function_privilege('authenticated', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,date,numeric,text,boolean,uuid,text,text)', 'EXECUTE'),
-  'anon and authenticated roles have zero mutation access to petty cash RPCs'
+  and not has_table_privilege('anon', 'finance.statutory_petty_cash_retention_consumptions', 'INSERT,UPDATE,DELETE')
+  and not has_table_privilege('authenticated', 'finance.statutory_petty_cash_retention_consumptions', 'INSERT,UPDATE,DELETE')
+  and not has_function_privilege('anon', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,date,numeric,text,text,boolean,uuid,text,text)', 'EXECUTE')
+  and not has_function_privilege('authenticated', 'app_private.authorize_statutory_petty_cash_v1(uuid,uuid,date,numeric,text,text,boolean,uuid,text,text)', 'EXECUTE'),
+  'anon and authenticated roles have zero mutation access to petty cash tables and RPCs'
+);
+
+select ok(
+  not has_table_privilege('service_role', 'finance.statutory_petty_cash_retention_consumptions', 'INSERT,UPDATE,DELETE')
+  and not has_table_privilege('service_role', 'finance.statutory_petty_cash_expenses', 'INSERT,UPDATE,DELETE')
+  and not has_table_privilege('service_role', 'finance.statutory_petty_cash_expense_reversals', 'INSERT,UPDATE,DELETE')
+  and not has_table_privilege('service_role', 'finance.statutory_petty_cash_activation_events', 'INSERT,UPDATE,DELETE')
+  and not has_table_privilege('service_role', 'finance.statutory_cash_document_verification_events', 'INSERT,UPDATE,DELETE')
+  and not has_table_privilege('service_role', 'finance.statutory_cash_document_finalization_events', 'INSERT,UPDATE,DELETE'),
+  'service_role has zero direct insert/update/delete privilege on internal append-only ledgers and events'
 );
 
 -- 2. Fixture Setup (098 Isolated Space)
@@ -201,7 +229,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000075', -- unadopted resolution
-      date '2026-06-01', 800.00, 'Cheltuieli neprevazute urgente', true,
+      date '2026-06-01', 800.00, 'Elena Ionescu', 'Cheltuieli neprevazute urgente', true,
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-unadopted', repeat('1', 64)
     )$$,
   '23514', 'adopted_resolution_required_for_petty_cash',
@@ -212,7 +240,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000076', -- foreign property resolution
-      date '2026-06-01', 800.00, 'Cheltuieli neprevazute urgente', true,
+      date '2026-06-01', 800.00, 'Elena Ionescu', 'Cheltuieli neprevazute urgente', true,
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-foreign', repeat('2', 64)
     )$$,
   '23514', 'resolution_property_scope_mismatch',
@@ -224,7 +252,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 800.00, 'General operational cash', false, -- not unforeseen expense
+      date '2026-06-01', 800.00, 'Elena Ionescu', 'General operational cash', false, -- not unforeseen expense
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-not-unforeseen', repeat('3', 64)
     )$$,
   '22023', 'petty_cash_authorization_invalid_arguments',
@@ -235,7 +263,7 @@ select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 1200.00, -- exceeds 1,000 RON statutory limit
+      date '2026-06-01', 1200.00, 'Elena Ionescu', -- exceeds 1,000 RON statutory limit
       'Cheltuieli neprevazute', true,
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-over1000', repeat('4', 64)
     )$$,
@@ -248,18 +276,24 @@ select lives_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000060',
       '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 800.00, 'Cheltuieli neprevazute reparatii instalatii', true,
+      date '2026-06-01', 800.00, 'Elena Ionescu', 'Cheltuieli neprevazute reparatii instalatii', true,
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-098-ok', repeat('5', 64)
     )$$,
   'valid petty cash authorization is created in authorized status'
 );
 
--- Blocker 5: Property-level 1,000 RON ceiling across cash desks
+select ok(
+  (select status = 'authorized' and custodian_name = 'Elena Ionescu' and authorized_amount = 800.00
+     from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
+  'petty cash authorization verified in authorized status with custodian_name'
+);
+
+-- Property-level 1,000 RON ceiling across cash desks
 select throws_ok(
   $$select * from app_private.authorize_statutory_petty_cash_v1(
       '09800000-0000-0000-0000-000000000061', -- Desk B in same property
       '09800000-0000-0000-0000-000000000074',
-      date '2026-06-01', 200.00, 'Second desk authorization in same property/month', true,
+      date '2026-06-01', 200.00, 'Elena Ionescu', 'Second desk authorization in same property/month', true,
       '09800000-0000-0000-0000-000000000001', 'idemp-auth-dup-prop', repeat('6', 64)
     )$$,
   '23505', 'petty_cash_already_authorized_for_month',
@@ -279,20 +313,15 @@ select throws_ok(
   'expense cannot be recorded on an unactivated authorization'
 );
 
--- Activate Petty Cash Authorization
-select lives_ok(
+-- Blocker 6: Cannot activate before actual funding allocation (retention)
+select throws_ok(
   $$select * from app_private.activate_statutory_petty_cash_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
       '09800000-0000-0000-0000-000000000060',
-      '09800000-0000-0000-0000-000000000001', 'idemp-act-pc-1', repeat('8', 64)
+      '09800000-0000-0000-0000-000000000001', 'idemp-act-pc-early', repeat('8', 64)
     )$$,
-  'petty cash authorization activated successfully'
-);
-
-select ok(
-  (select status = 'active' and activated_at is not null
-     from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
-  'petty cash authorization status transitioned to active'
+  '22023', 'petty_cash_activation_requires_funding_allocation',
+  'activation without allocated retention funding is strictly rejected'
 );
 
 -- Law 196/2018 Art. 67(5) Petty Cash Retention from Cash Receipt
@@ -318,7 +347,50 @@ select throws_ok(
   'petty cash retention record is immutable and cannot be deleted'
 );
 
+-- Activate Petty Cash Authorization (now funded with 800 RON)
+select lives_ok(
+  $$select * from app_private.activate_statutory_petty_cash_v1(
+      (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
+      '09800000-0000-0000-0000-000000000060',
+      '09800000-0000-0000-0000-000000000001', 'idemp-act-pc-1', repeat('8', 64)
+    )$$,
+  'petty cash authorization activated successfully once funded'
+);
+
+select ok(
+  (select status = 'active' and activated_at is not null
+     from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
+  'petty cash authorization status transitioned to active'
+);
+
+select ok(
+  exists(
+    select 1 from finance.statutory_petty_cash_activation_events
+     where authorization_id = (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok')
+  ),
+  'append-only petty cash activation event recorded'
+);
+
+-- Activation event immutability
+select throws_ok(
+  $$delete from finance.statutory_petty_cash_activation_events
+     where authorization_id = (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok')$$,
+  '55000', 'statutory_pc_activation_event_is_immutable',
+  'petty cash activation event is immutable against direct SQL delete'
+);
+
 -- 5. Petty Cash Expense Recording with Simple Entry Link
+-- First assign payment entry 81 to cash desk
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      '09800000-0000-0000-0000-000000000060',
+      '09800000-0000-0000-0000-000000000081',
+      null,
+      '09800000-0000-0000-0000-000000000001', 'idemp-as-pay-81', repeat('2', 64)
+    )$$,
+  'payment simple entry 81 assigned to cash desk'
+);
+
 select throws_ok(
   $$select * from app_private.record_statutory_petty_cash_expense_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
@@ -344,11 +416,25 @@ select lives_ok(
   'petty cash expense of 300 RON recorded with linked simple entry'
 );
 
+-- Erratum 2: check consumption recorded in append-only table, original retention remains immutable
+select ok(
+  (select count(*) = 1 and sum(consumed_amount) = 300.00
+     from finance.statutory_petty_cash_retention_consumptions
+    where authorization_id = (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok')),
+  'petty cash consumption recorded in append-only consumptions table'
+);
+
+select ok(
+  (select retained_amount = 800.00
+     from finance.statutory_cash_receipt_petty_cash_retentions where idempotency_key = 'idemp-ret-1'),
+  'original retention remains completely immutable at 800 RON'
+);
+
 select ok(
   (select finance.statutory_petty_cash_balance_v1(
       (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok')
     ) = 500.00),
-  'petty cash balance decrements to 500 RON'
+  'derived petty cash balance correctly decrements to 500 RON'
 );
 
 -- Double use of same simple entry is rejected
@@ -371,7 +457,25 @@ select throws_ok(
   'petty cash expense is immutable against direct SQL update'
 );
 
+select throws_ok(
+  $$delete from finance.statutory_petty_cash_retention_consumptions
+     where authorization_id = (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok')$$,
+  '55000', 'statutory_pc_consumption_is_immutable',
+  'retention consumption is immutable against direct SQL delete'
+);
+
 -- 6. Append-Only Expense Reversal
+-- First assign refund receipt entry 83 to cash desk
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      '09800000-0000-0000-0000-000000000060',
+      '09800000-0000-0000-0000-000000000083',
+      timestamptz '2026-06-13 11:00:00+03',
+      '09800000-0000-0000-0000-000000000001', 'idemp-as-ref-83', repeat('3', 64)
+    )$$,
+  'refund receipt simple entry 83 assigned to cash desk'
+);
+
 select lives_ok(
   $$select * from app_private.reverse_statutory_petty_cash_expense_v1(
       (select id from finance.statutory_petty_cash_expenses where idempotency_key = 'idemp-exp-098-1'),
@@ -404,7 +508,7 @@ select ok(
   (select id from app_private.reverse_statutory_petty_cash_expense_v1(
       (select id from finance.statutory_petty_cash_expenses where idempotency_key = 'idemp-exp-098-1'),
       '09800000-0000-0000-0000-000000000083',
-      'Returned plumbing parts',
+      'Returned plumbing parts to vendor for full cash refund',
       '09800000-0000-0000-0000-000000000001', 'idemp-rev-exp-1', repeat('9', 64)
     )) = (select id from finance.statutory_petty_cash_expense_reversals where idempotency_key = 'idemp-rev-exp-1'),
   'reversal replay with identical key returns existing reversal row'
@@ -427,6 +531,17 @@ select throws_ok(
   $$delete from finance.statutory_petty_cash_expense_reversals where idempotency_key = 'idemp-rev-exp-1'$$,
   '55000', 'statutory_petty_cash_reversal_is_immutable',
   'reversal record is immutable against direct SQL delete'
+);
+
+-- Assign payment entry 82 to cash desk
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      '09800000-0000-0000-0000-000000000060',
+      '09800000-0000-0000-0000-000000000082',
+      null,
+      '09800000-0000-0000-0000-000000000001', 'idemp-as-pay-82', repeat('4', 64)
+    )$$,
+  'payment simple entry 82 assigned to cash desk'
 );
 
 -- Record new valid expense of 450 RON
@@ -488,8 +603,17 @@ select lives_ok(
 select throws_ok(
   $$update finance.statutory_cash_documents set status = 'finalized'
      where idempotency_key = 'idemp-doc-chitanta-1'$$,
-  '55000', 'unmediated_document_finalization_forbidden',
-  'unmediated direct SQL document finalization is forbidden'
+  '55000', 'unmediated_document_mutation_forbidden',
+  'unmediated direct SQL document finalization is forbidden by trigger'
+);
+
+-- Erratum 6: Direct SQL update to semantic_schema_verified is rejected by trigger
+select throws_ok(
+  $$update finance.statutory_cash_documents
+       set renderer_status = 'semantic_schema_verified'
+     where idempotency_key = 'idemp-doc-chitanta-1'$$,
+  '55000', 'unmediated_document_mutation_forbidden',
+  'direct SQL update to semantic_schema_verified is forbidden'
 );
 
 -- Finalization without schema verification is rejected
@@ -503,25 +627,52 @@ select throws_ok(
   'finalization without semantic schema verification is rejected'
 );
 
--- Set renderer_status to semantic_schema_verified
-update finance.statutory_cash_documents
-   set renderer_status = 'semantic_schema_verified'
- where idempotency_key = 'idemp-doc-chitanta-1';
+-- Erratum 6: Controlled semantic schema verification via dedicated RPC
+select lives_ok(
+  $$select * from app_private.verify_statutory_cash_document_semantic_schema_v1(
+      (select id from finance.statutory_cash_documents where idempotency_key = 'idemp-doc-chitanta-1'),
+      1, '09800000-0000-0000-0000-000000000001', 'Legal schema verified',
+      'idemp-verify-doc-1', repeat('e', 64)
+    )$$,
+  'controlled semantic schema verification succeeds'
+);
+
+select ok(
+  (select renderer_status = 'semantic_schema_verified' and lock_version = 2
+     from finance.statutory_cash_documents where idempotency_key = 'idemp-doc-chitanta-1'),
+  'document renderer_status transitioned to semantic_schema_verified with lock_version advanced'
+);
+
+select ok(
+  exists(
+    select 1 from finance.statutory_cash_document_verification_events
+     where document_id = (select id from finance.statutory_cash_documents where idempotency_key = 'idemp-doc-chitanta-1')
+  ),
+  'append-only document verification event recorded'
+);
 
 -- Formal finalization via RPC
 select lives_ok(
   $$select * from app_private.finalize_statutory_cash_document_v1(
       (select id from finance.statutory_cash_documents where idempotency_key = 'idemp-doc-chitanta-1'),
-      1, '09800000-0000-0000-0000-000000000001', 'Formal compliance signoff',
+      2, '09800000-0000-0000-0000-000000000001', 'Formal compliance signoff',
       'idemp-fin-doc-1', repeat('f', 64)
     )$$,
   'formal document finalization succeeds via controlled RPC'
 );
 
 select ok(
-  (select status = 'finalized' and finalized_at is not null and lock_version = 2
+  (select status = 'finalized' and finalized_at is not null and lock_version = 3
      from finance.statutory_cash_documents where idempotency_key = 'idemp-doc-chitanta-1'),
   'document status is finalized with lock_version advanced'
+);
+
+select ok(
+  exists(
+    select 1 from finance.statutory_cash_document_finalization_events
+     where document_id = (select id from finance.statutory_cash_documents where idempotency_key = 'idemp-doc-chitanta-1')
+  ),
+  'append-only document finalization event recorded'
 );
 
 -- Finalized document is strictly immutable against delete/update
