@@ -466,7 +466,7 @@ select throws_ok(
       date '2026-06-15', 5001.00, -- Mismatch with ledger balance of 5,000.00
       '09700000-0000-0000-0000-000000000001', 'idemp-close-mismatch', repeat('a', 64)
     )$$,
-  '23514', 'counted_cash_does_not_match_ledger_balance',
+  '23514', 'cash_closure_discrepancy_detected',
   'closure is rejected when counted cash does not match derived ledger balance'
 );
 
@@ -481,7 +481,7 @@ select lives_ok(
 );
 
 select ok(
-  (select closing_balance = 5000.00 and ceiling_amount = 50000.00 and is_ceiling_breached = false
+  (select closing_balance = 5000.00 and ceiling_threshold = 50000.00 and ceiling_exceeded = false
      from finance.statutory_cash_daily_closures where idempotency_key = 'idemp-close-097'),
   'daily closure recorded with exact closing balance and non-breached ceiling'
 );
@@ -499,7 +499,7 @@ select ok(
 -- Direct delete on daily closure is blocked
 select throws_ok(
   $$delete from finance.statutory_cash_daily_closures where idempotency_key = 'idemp-close-097'$$,
-  '55000', 'statutory_daily_closure_is_immutable',
+  '55000', 'finalized_cash_closure_is_immutable',
   'daily closure record is immutable against direct SQL delete'
 );
 
@@ -511,7 +511,7 @@ select throws_ok(
       timestamptz '2026-06-15 11:00:00+03',
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-closed-day', repeat('c', 64)
     )$$,
-  '23514', null,
+  '55000', 'cash_desk_day_already_finalized',
   'assigning entries to closed cash date is rejected'
 );
 
@@ -547,7 +547,7 @@ select lives_ok(
 );
 
 select ok(
-  (select is_ceiling_breached = true and closing_balance = 55000.00
+  (select ceiling_exceeded = true and closing_balance = 55000.00
      from finance.statutory_cash_daily_closures where idempotency_key = 'idemp-close-day2'),
   'ceiling breach flagged on daily closure'
 );
