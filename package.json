@@ -18,6 +18,7 @@
     "test:composition:concurrency": "node scripts/test-workspace-module-activation-concurrency.mjs",
     "test:roles:concurrency": "node scripts/test-workspace-roles-concurrency.mjs",
     "test:delegations:concurrency": "node scripts/test-workspace-delegations-concurrency.mjs",
+    "test:statutory-funds:concurrency": "node scripts/test-statutory-funds-concurrency.mjs",
     "test:export-vault": "node scripts/test-export-artifact-vault.mjs && node scripts/test-export-scanner-001a.mjs && node scripts/test-export-scanner-worker-001.mjs && node scripts/test-export-scanner-runtime-001a.mjs && node scripts/test-export-scanner-observability-001.mjs",
     "test:i18n": "node scripts/audit-untranslated-copy.mjs",
     "test:db:static": "node scripts/check-database-package.mjs",

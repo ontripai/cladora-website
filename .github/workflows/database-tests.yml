@@ -10,6 +10,7 @@ on:
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
+      - "scripts/test-statutory-funds-concurrency.mjs"
       - "scripts/audit-r10-catalog-evidence.mjs"
       - "package.json"
       - "package-lock.json"
@@ -23,6 +24,7 @@ on:
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
+      - "scripts/test-statutory-funds-concurrency.mjs"
       - "scripts/audit-r10-catalog-evidence.mjs"
       - "package.json"
       - "package-lock.json"
@@ -89,6 +91,11 @@ jobs:
         run: timeout 60s node scripts/test-workspace-delegations-concurrency.mjs
         env:
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run R10 statutory funds multi-connection concurrency tests
+        run: timeout 60s npm run test:statutory-funds:concurrency
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          CLADORA_EPHEMERAL_DB: "1"
       - name: Run R10 catalog and Data API evidence gate
         run: |
           set -euo pipefail
