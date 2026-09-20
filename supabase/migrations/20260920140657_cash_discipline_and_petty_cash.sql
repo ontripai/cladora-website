@@ -7,31 +7,18 @@ begin
   if not exists (select 1 from pg_roles where rolname = 'cladora_rpc_owner') then
     create role cladora_rpc_owner
       nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
+  else
+    alter role cladora_rpc_owner
+      nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
   end if;
 end
 $$;
 
-grant usage, create on schema app_private to cladora_rpc_owner;
-grant usage, create on schema finance to cladora_rpc_owner;
-grant usage on schema payments, governance, portfolio, platform, audit to cladora_rpc_owner;
-grant select, insert, update, delete on all tables in schema finance to cladora_rpc_owner;
-grant select, insert, update, delete on all tables in schema app_private to cladora_rpc_owner;
-grant select on all tables in schema payments to cladora_rpc_owner;
-grant select on all tables in schema governance to cladora_rpc_owner;
-grant select on all tables in schema portfolio to cladora_rpc_owner;
-grant select on all tables in schema platform to cladora_rpc_owner;
-grant select, insert on all tables in schema audit to cladora_rpc_owner;
-grant usage on all sequences in schema finance, app_private, audit to cladora_rpc_owner;
+-- Schema usage only - cladora_rpc_owner has NO CREATE on finance or app_private
+grant usage on schema app_private, finance, payments, governance, portfolio, platform, audit to cladora_rpc_owner;
 grant cladora_rpc_owner to postgres;
-
--- Revoke cladora_rpc_owner from service_role so service_role has zero direct ledger mutation privilege
 revoke cladora_rpc_owner from service_role;
-revoke update on finance.export_artifact_scan_jobs from cladora_rpc_owner;
-
-alter default privileges in schema finance grant select, insert, update, delete on tables to cladora_rpc_owner;
-alter default privileges in schema app_private grant select, insert, update, delete on tables to cladora_rpc_owner;
-alter default privileges in schema finance grant usage on sequences to cladora_rpc_owner;
-alter default privileges in schema app_private grant usage on sequences to cladora_rpc_owner;
+revoke create on schema finance, app_private from cladora_rpc_owner, public;
 
 -- =============================================================================
 -- Enums
@@ -465,6 +452,36 @@ create trigger statutory_deposit_exception_immutable
 before update or delete on finance.statutory_cash_deposit_obligation_exceptions
 for each row execute function finance.protect_statutory_deposit_exception_v1();
 
+-- Append-only Exception Disbursements Ledger (Remediation 005 Erratum-005 item 1)
+create table finance.statutory_cash_deposit_exception_disbursements (
+  id uuid primary key default gen_random_uuid(),
+  exception_id uuid not null references finance.statutory_cash_deposit_obligation_exceptions(id) on delete restrict,
+  statutory_simple_entry_id uuid not null unique references finance.statutory_simple_entries(id) on delete restrict,
+  tenant_id uuid not null references platform.tenants(id) on delete restrict,
+  property_id uuid not null references portfolio.properties(id) on delete restrict,
+  cash_desk_id uuid not null references finance.statutory_cash_desks(id) on delete restrict,
+  disbursed_amount numeric(20,2) not null check (disbursed_amount > 0),
+  actor_id uuid not null references auth.users(id) on delete restrict,
+  idempotency_key text not null check (btrim(idempotency_key) <> ''),
+  payload_hash text not null check (payload_hash ~ '^[0-9a-f]{64}$'),
+  created_at timestamptz not null default statement_timestamp(),
+  unique (tenant_id, idempotency_key)
+);
+
+create or replace function finance.protect_statutory_deposit_exception_disbursement_v1()
+returns trigger
+language plpgsql
+set search_path = pg_catalog
+as $$
+begin
+  raise exception 'statutory_deposit_exception_disbursement_is_immutable' using errcode = '55000';
+end;
+$$;
+
+create trigger statutory_deposit_exception_disbursement_immutable
+before update or delete on finance.statutory_cash_deposit_exception_disbursements
+for each row execute function finance.protect_statutory_deposit_exception_disbursement_v1();
+
 -- Append-only Bank Deposit Settlements (prevents double-spend of custody transfers)
 create table finance.statutory_cash_deposit_settlements (
   id uuid primary key default gen_random_uuid(),
@@ -538,13 +555,14 @@ create table finance.statutory_petty_cash_retention_consumptions (
   id uuid primary key default gen_random_uuid(),
   retention_id uuid not null references finance.statutory_cash_receipt_petty_cash_retentions(id) on delete restrict,
   authorization_id uuid not null references finance.statutory_petty_cash_authorizations(id) on delete restrict,
-  expense_id uuid not null unique references finance.statutory_petty_cash_expenses(id) on delete restrict,
+  expense_id uuid not null references finance.statutory_petty_cash_expenses(id) on delete restrict,
   tenant_id uuid not null references platform.tenants(id) on delete restrict,
   property_id uuid not null references portfolio.properties(id) on delete restrict,
   consumed_amount numeric(20,2) not null check (consumed_amount > 0),
   idempotency_key text not null check (btrim(idempotency_key) <> ''),
   payload_hash text not null check (payload_hash ~ '^[0-9a-f]{64}$'),
   created_at timestamptz not null default statement_timestamp(),
+  constraint uq_petty_cash_consumptions_expense_retention unique (expense_id, retention_id),
   unique (tenant_id, idempotency_key)
 );
 
@@ -561,6 +579,37 @@ $$;
 create trigger statutory_pc_consumption_immutable
 before update or delete on finance.statutory_petty_cash_retention_consumptions
 for each row execute function finance.protect_statutory_pc_consumption_v1();
+
+-- Append-only Petty Cash Retention Consumption Releases Ledger (Remediation 005 section 3)
+create table finance.statutory_petty_cash_retention_consumption_releases (
+  id uuid primary key default gen_random_uuid(),
+  tenant_id uuid not null references platform.tenants(id) on delete restrict,
+  property_id uuid not null references portfolio.properties(id) on delete restrict,
+  consumption_id uuid not null unique references finance.statutory_petty_cash_retention_consumptions(id) on delete restrict,
+  reversal_id uuid not null references finance.statutory_petty_cash_expense_reversals(id) on delete restrict,
+  retention_id uuid not null references finance.statutory_cash_receipt_petty_cash_retentions(id) on delete restrict,
+  released_amount numeric(20,2) not null check (released_amount > 0),
+  actor_id uuid not null references auth.users(id) on delete restrict,
+  idempotency_key text not null check (btrim(idempotency_key) <> ''),
+  payload_hash text not null check (payload_hash ~ '^[0-9a-f]{64}$'),
+  created_at timestamptz not null default statement_timestamp(),
+  unique (reversal_id, consumption_id),
+  unique (tenant_id, idempotency_key)
+);
+
+create or replace function finance.protect_statutory_pc_consumption_release_v1()
+returns trigger
+language plpgsql
+set search_path = pg_catalog
+as $$
+begin
+  raise exception 'statutory_pc_consumption_release_is_immutable' using errcode = '55000';
+end;
+$$;
+
+create trigger statutory_pc_consumption_release_immutable
+before update or delete on finance.statutory_petty_cash_retention_consumption_releases
+for each row execute function finance.protect_statutory_pc_consumption_release_v1();
 
 -- Append-only Petty Cash Activation Events (Blocker 3)
 create table finance.statutory_petty_cash_activation_events (
@@ -793,6 +842,20 @@ create index statutory_petty_reversals_tenant_idx on finance.statutory_petty_cas
 create index statutory_petty_reversals_property_idx on finance.statutory_petty_cash_expense_reversals(property_id);
 create index statutory_petty_reversals_created_by_idx on finance.statutory_petty_cash_expense_reversals(created_by);
 
+create index statutory_deposit_disb_ex_idx on finance.statutory_cash_deposit_exception_disbursements(exception_id);
+create index statutory_deposit_disb_entry_idx on finance.statutory_cash_deposit_exception_disbursements(statutory_simple_entry_id);
+create index statutory_deposit_disb_tenant_idx on finance.statutory_cash_deposit_exception_disbursements(tenant_id);
+create index statutory_deposit_disb_prop_idx on finance.statutory_cash_deposit_exception_disbursements(property_id);
+create index statutory_deposit_disb_desk_idx on finance.statutory_cash_deposit_exception_disbursements(cash_desk_id);
+create index statutory_deposit_disb_actor_idx on finance.statutory_cash_deposit_exception_disbursements(actor_id);
+
+create index statutory_pc_releases_cons_idx on finance.statutory_petty_cash_retention_consumption_releases(consumption_id);
+create index statutory_pc_releases_rev_idx on finance.statutory_petty_cash_retention_consumption_releases(reversal_id);
+create index statutory_pc_releases_ret_idx on finance.statutory_petty_cash_retention_consumption_releases(retention_id);
+create index statutory_pc_releases_tenant_idx on finance.statutory_petty_cash_retention_consumption_releases(tenant_id);
+create index statutory_pc_releases_prop_idx on finance.statutory_petty_cash_retention_consumption_releases(property_id);
+create index statutory_pc_releases_actor_idx on finance.statutory_petty_cash_retention_consumption_releases(actor_id);
+
 create index statutory_pc_consumptions_ret_idx on finance.statutory_petty_cash_retention_consumptions(retention_id);
 create index statutory_pc_consumptions_auth_idx on finance.statutory_petty_cash_retention_consumptions(authorization_id);
 create index statutory_pc_consumptions_exp_idx on finance.statutory_petty_cash_retention_consumptions(expense_id);
@@ -866,7 +929,10 @@ begin
 end;
 $$;
 
-create or replace function finance.statutory_petty_cash_balance_v1(p_authorization_id uuid)
+create or replace function finance.statutory_petty_cash_balance_v1(
+  p_authorization_id uuid,
+  p_as_of timestamptz default statement_timestamp()
+)
 returns numeric(20,2)
 language plpgsql
 stable
@@ -875,28 +941,156 @@ set search_path = pg_catalog
 as $$
 declare
   v_auth finance.statutory_petty_cash_authorizations;
-  v_funded numeric(20,2);
-  v_expenses numeric(20,2);
-  v_reversals numeric(20,2);
+  v_as_of_date date;
+  v_ret record;
+  v_consumed numeric(20,2);
+  v_released numeric(20,2);
+  v_net_consumed numeric(20,2);
+  v_usable numeric(20,2) := 0.00;
 begin
   select * into v_auth from finance.statutory_petty_cash_authorizations where id = p_authorization_id;
   if not found then
     raise exception 'statutory_petty_cash_authorization_not_found' using errcode = 'P0002';
   end if;
 
-  select coalesce(sum(retained_amount), 0.00)::numeric(20,2) into v_funded
-    from finance.statutory_cash_receipt_petty_cash_retentions
-   where authorization_id = p_authorization_id;
+  v_as_of_date := (p_as_of at time zone 'Europe/Bucharest')::date;
 
-  select coalesce(sum(consumed_amount), 0.00)::numeric(20,2) into v_expenses
-    from finance.statutory_petty_cash_retention_consumptions
-   where authorization_id = p_authorization_id;
+  -- Only sum active unexpired retentions at p_as_of
+  for v_ret in
+    select id, retained_amount
+      from finance.statutory_cash_receipt_petty_cash_retentions
+     where authorization_id = p_authorization_id
+       and v_as_of_date >= effective_from
+       and p_as_of <= expires_at
+  loop
+    select coalesce(sum(consumed_amount), 0.00)::numeric(20,2) into v_consumed
+      from finance.statutory_petty_cash_retention_consumptions
+     where retention_id = v_ret.id;
 
-  select coalesce(sum(amount), 0.00)::numeric(20,2) into v_reversals
-    from finance.statutory_petty_cash_expense_reversals
-   where authorization_id = p_authorization_id;
+    select coalesce(sum(released_amount), 0.00)::numeric(20,2) into v_released
+      from finance.statutory_petty_cash_retention_consumption_releases
+     where retention_id = v_ret.id;
 
-  return (v_funded - v_expenses + v_reversals);
+    v_net_consumed := greatest(0.00, v_consumed - v_released);
+    v_usable := v_usable + greatest(0.00, v_ret.retained_amount - v_net_consumed);
+  end loop;
+
+  return v_usable;
+end;
+$$;
+
+-- Deterministic 8-Field Deposit Obligation Position Projection (Remediation 005 Erratum-005 item 2)
+create or replace function finance.statutory_deposit_obligation_position_v1(
+  p_obligation_id uuid,
+  p_as_of timestamptz default statement_timestamp()
+)
+returns table (
+  gross_required_amount numeric(20,2),
+  bank_settled_amount numeric(20,2),
+  active_retained_amount numeric(20,2),
+  lawfully_consumed_amount numeric(20,2),
+  exception_disbursed_amount numeric(20,2),
+  expired_unused_retention_amount numeric(20,2),
+  effective_outstanding_amount numeric(20,2),
+  compliance_status text
+)
+language plpgsql
+stable
+security invoker
+set search_path = pg_catalog
+as $$
+declare
+  v_ob finance.statutory_cash_deposit_obligations;
+  v_as_of_bucharest_date date;
+  v_bank_settled numeric(20,2);
+  v_active_retained numeric(20,2) := 0.00;
+  v_lawfully_consumed numeric(20,2) := 0.00;
+  v_exception_disbursed numeric(20,2) := 0.00;
+  v_expired_unused numeric(20,2) := 0.00;
+  v_effective_outstanding numeric(20,2);
+  v_ret record;
+  v_ret_consumed numeric(20,2);
+  v_ret_released numeric(20,2);
+  v_ret_net_consumed numeric(20,2);
+  v_ret_unconsumed numeric(20,2);
+begin
+  select * into v_ob from finance.statutory_cash_deposit_obligations where id = p_obligation_id;
+  if not found then
+    raise exception 'statutory_deposit_obligation_not_found' using errcode = 'P0002';
+  end if;
+
+  v_as_of_bucharest_date := (p_as_of at time zone 'Europe/Bucharest')::date;
+
+  -- 1. gross_required_amount
+  gross_required_amount := v_ob.required_amount;
+
+  -- 2. bank_settled_amount
+  select coalesce(sum(settled_amount), 0.00)::numeric(20,2) into v_bank_settled
+    from finance.statutory_cash_deposit_settlements
+   where obligation_id = p_obligation_id;
+  bank_settled_amount := v_bank_settled;
+
+  -- 3, 4, 6: retentions funded by this obligation
+  for v_ret in
+    select id, retained_amount, effective_from, expires_at
+      from finance.statutory_cash_receipt_petty_cash_retentions
+     where deposit_obligation_id = p_obligation_id
+  loop
+    select coalesce(sum(consumed_amount), 0.00)::numeric(20,2) into v_ret_consumed
+      from finance.statutory_petty_cash_retention_consumptions
+     where retention_id = v_ret.id;
+
+    select coalesce(sum(released_amount), 0.00)::numeric(20,2) into v_ret_released
+      from finance.statutory_petty_cash_retention_consumption_releases
+     where retention_id = v_ret.id;
+
+    v_ret_net_consumed := greatest(0.00, v_ret_consumed - v_ret_released);
+    v_lawfully_consumed := v_lawfully_consumed + v_ret_net_consumed;
+
+    v_ret_unconsumed := greatest(0.00, v_ret.retained_amount - v_ret_net_consumed);
+
+    if v_as_of_bucharest_date >= v_ret.effective_from and p_as_of <= v_ret.expires_at then
+      v_active_retained := v_active_retained + v_ret_unconsumed;
+    elsif p_as_of > v_ret.expires_at then
+      v_expired_unused := v_expired_unused + v_ret_unconsumed;
+    end if;
+  end loop;
+
+  active_retained_amount := v_active_retained;
+  lawfully_consumed_amount := v_lawfully_consumed;
+  expired_unused_retention_amount := v_expired_unused;
+
+  -- 5. exception_disbursed_amount (actual disbursements from disbursement ledger)
+  select coalesce(sum(d.disbursed_amount), 0.00)::numeric(20,2) into v_exception_disbursed
+    from finance.statutory_cash_deposit_exception_disbursements d
+    join finance.statutory_cash_deposit_obligation_exceptions e on e.id = d.exception_id
+   where e.obligation_id = p_obligation_id;
+  exception_disbursed_amount := v_exception_disbursed;
+
+  -- 7. effective_outstanding_amount
+  v_effective_outstanding := greatest(0.00,
+    gross_required_amount
+    - bank_settled_amount
+    - active_retained_amount
+    - lawfully_consumed_amount
+    - exception_disbursed_amount
+  );
+  effective_outstanding_amount := v_effective_outstanding;
+
+  -- 8. compliance_status
+  if effective_outstanding_amount = 0.00 then
+    compliance_status := 'settled';
+  elsif effective_outstanding_amount < gross_required_amount and p_as_of > v_ob.due_at then
+    compliance_status := 'overdue';
+  elsif effective_outstanding_amount < gross_required_amount then
+    compliance_status := 'partially_settled';
+  elsif p_as_of > v_ob.due_at then
+    compliance_status := 'overdue';
+  else
+    compliance_status := 'open';
+  end if;
+
+  return next;
 end;
 $$;
 
@@ -915,7 +1109,7 @@ create or replace function app_private.create_statutory_cash_desk_v1(
 returns finance.statutory_cash_desks
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_regime finance.statutory_accounting_regimes;
@@ -968,7 +1162,7 @@ create or replace function app_private.activate_statutory_cash_desk_v1(
 returns finance.statutory_cash_desks
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_desk finance.statutory_cash_desks;
@@ -1024,7 +1218,7 @@ create or replace function app_private.assign_cash_simple_entry_v1(
 returns finance.statutory_cash_entry_assignments
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_desk finance.statutory_cash_desks;
@@ -1151,7 +1345,7 @@ create or replace function app_private.record_cash_custody_transfer_v1(
 returns finance.statutory_cash_custody_transfers
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_desk finance.statutory_cash_desks;
@@ -1242,7 +1436,7 @@ create or replace function app_private.close_statutory_cash_day_v1(
 returns finance.statutory_cash_daily_closures
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_desk finance.statutory_cash_desks;
@@ -1394,7 +1588,7 @@ create or replace function app_private.authorize_statutory_petty_cash_v1(
 returns finance.statutory_petty_cash_authorizations
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_desk finance.statutory_cash_desks;
@@ -1489,7 +1683,7 @@ create or replace function app_private.retain_petty_cash_from_receipt_v1(
 returns finance.statutory_cash_receipt_petty_cash_retentions
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_ob finance.statutory_cash_deposit_obligations;
@@ -1568,6 +1762,10 @@ begin
   v_effective_from := v_ob.created_at::date;
   v_expires_at := (date_trunc('month', v_auth.calendar_month) + interval '1 month' - interval '1 second') at time zone 'Europe/Bucharest';
 
+  if statement_timestamp() > v_expires_at then
+    raise exception 'petty_cash_authorization_expired' using errcode = '22023';
+  end if;
+
   insert into finance.statutory_cash_receipt_petty_cash_retentions (
     deposit_obligation_id, authorization_id, tenant_id, property_id, cash_desk_id,
     retained_amount, effective_from, expires_at, retained_by, idempotency_key, payload_hash
@@ -1595,7 +1793,7 @@ create or replace function app_private.activate_statutory_petty_cash_v1(
 returns finance.statutory_petty_cash_authorizations
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_auth finance.statutory_petty_cash_authorizations;
@@ -1633,10 +1831,12 @@ begin
     raise exception 'petty_cash_authorization_not_in_authorized_state' using errcode = '55000';
   end if;
 
-  -- Funding check: must have valid retention allocated (Blocker 4)
+  -- Funding check: must have active, unexpired retention allocated (Remediation 005 section 1)
   select coalesce(sum(retained_amount), 0.00)::numeric(20,2) into v_funded
     from finance.statutory_cash_receipt_petty_cash_retentions
-   where authorization_id = p_authorization_id;
+   where authorization_id = p_authorization_id
+     and (statement_timestamp() at time zone 'Europe/Bucharest')::date >= effective_from
+     and statement_timestamp() <= expires_at;
 
   if v_funded <= 0.00 then
     raise exception 'petty_cash_activation_requires_funding_allocation' using errcode = '22023';
@@ -1678,7 +1878,7 @@ create or replace function app_private.record_statutory_petty_cash_expense_v1(
 returns finance.statutory_petty_cash_expenses
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_auth finance.statutory_petty_cash_authorizations;
@@ -1741,42 +1941,72 @@ begin
     raise exception 'expense_date_outside_authorization_month' using errcode = '22023';
   end if;
 
-  -- Check available funded balance (Blocker 4)
-  v_avail := finance.statutory_petty_cash_balance_v1(p_authorization_id);
+  -- Check available funded balance at expense date and server time (Remediation 005 section 2)
+  v_avail := finance.statutory_petty_cash_balance_v1(p_authorization_id, statement_timestamp());
   if v_entry.amount > v_avail then
     raise exception 'petty_cash_ceiling_exceeded' using errcode = '23514';
   end if;
 
-  insert into finance.statutory_petty_cash_expenses (
-    authorization_id, statutory_simple_entry_id, tenant_id, property_id, cash_desk_id,
-    amount, expense_date, description, supporting_document_type, supporting_document_number,
-    supporting_document_hash, recipient_name, written_authority_reference, status, idempotency_key, payload_hash, created_by
-  ) values (
-    p_authorization_id, p_statutory_simple_entry_id, v_auth.tenant_id, v_auth.property_id, v_auth.cash_desk_id,
-    v_entry.amount, v_entry.entry_date, btrim(v_entry.description), 'FACTURA_BON', btrim(p_receipt_document_reference),
-    encode(sha256((p_receipt_document_reference || ':' || v_entry.amount::text)::bytea), 'hex'),
-    btrim(p_recipient_name), btrim(p_recipient_name), 'recorded', p_idempotency_key, p_payload_hash, p_actor_id
-  ) returning * into v_exp;
+  -- Atomic multi-retention split validation: retentions locked in order expires_at ASC, created_at ASC, id ASC
+  -- Fail-closed before inserting expense if total available valid funding is insufficient
+  declare
+    v_rem numeric(20,2) := v_entry.amount;
+    v_take numeric(20,2);
+    v_ret_avail numeric(20,2);
+    v_r record;
+    v_allocations jsonb := '[]'::jsonb;
+    v_elem jsonb;
+  begin
+    for v_r in
+      select r.id, r.retained_amount, r.expires_at
+        from finance.statutory_cash_receipt_petty_cash_retentions r
+       where r.authorization_id = p_authorization_id
+         and v_entry.entry_date >= r.effective_from
+         and v_entry.entry_date <= (r.expires_at at time zone 'Europe/Bucharest')::date
+         and statement_timestamp() <= r.expires_at
+       order by r.expires_at asc, r.created_at asc, r.id asc
+       for update
+    loop
+      exit when v_rem <= 0.00;
 
-  -- Append-only consumption allocation (Erratum-004 item 2)
-  select r.id into v_ret_id
-    from finance.statutory_cash_receipt_petty_cash_retentions r
-    left join finance.statutory_petty_cash_retention_consumptions c on c.retention_id = r.id
-   where r.authorization_id = p_authorization_id
-   group by r.id, r.retained_amount
-  having coalesce(sum(c.consumed_amount), 0.00) + v_entry.amount <= r.retained_amount
-   order by r.created_at
-   limit 1;
+      select v_r.retained_amount - (
+        coalesce((select sum(c.consumed_amount) from finance.statutory_petty_cash_retention_consumptions c where c.retention_id = v_r.id), 0.00)
+        - coalesce((select sum(rel.released_amount) from finance.statutory_petty_cash_retention_consumption_releases rel where rel.retention_id = v_r.id), 0.00)
+      ) into v_ret_avail;
 
-  if v_ret_id is not null then
-    insert into finance.statutory_petty_cash_retention_consumptions (
-      retention_id, authorization_id, expense_id, tenant_id, property_id,
-      consumed_amount, idempotency_key, payload_hash
+      if v_ret_avail > 0.00 then
+        v_take := least(v_rem, v_ret_avail);
+        v_rem := v_rem - v_take;
+        v_allocations := v_allocations || jsonb_build_object('retention_id', v_r.id, 'amount', v_take);
+      end if;
+    end loop;
+
+    if v_rem > 0.00 then
+      raise exception 'petty_cash_ceiling_exceeded' using errcode = '23514';
+    end if;
+
+    insert into finance.statutory_petty_cash_expenses (
+      authorization_id, statutory_simple_entry_id, tenant_id, property_id, cash_desk_id,
+      amount, expense_date, description, supporting_document_type, supporting_document_number,
+      supporting_document_hash, recipient_name, written_authority_reference, status, idempotency_key, payload_hash, created_by
     ) values (
-      v_ret_id, p_authorization_id, v_exp.id, v_auth.tenant_id, v_auth.property_id,
-      v_entry.amount, 'cons-' || v_exp.id::text, p_payload_hash
-    );
-  end if;
+      p_authorization_id, p_statutory_simple_entry_id, v_auth.tenant_id, v_auth.property_id, v_auth.cash_desk_id,
+      v_entry.amount, v_entry.entry_date, btrim(v_entry.description), 'FACTURA_BON', btrim(p_receipt_document_reference),
+      encode(sha256((p_receipt_document_reference || ':' || v_entry.amount::text)::bytea), 'hex'),
+      btrim(p_recipient_name), btrim(p_recipient_name), 'recorded', p_idempotency_key, p_payload_hash, p_actor_id
+    ) returning * into v_exp;
+
+    for v_elem in select * from jsonb_array_elements(v_allocations)
+    loop
+      insert into finance.statutory_petty_cash_retention_consumptions (
+        retention_id, authorization_id, expense_id, tenant_id, property_id,
+        consumed_amount, idempotency_key, payload_hash
+      ) values (
+        (v_elem->>'retention_id')::uuid, p_authorization_id, v_exp.id, v_auth.tenant_id, v_auth.property_id,
+        (v_elem->>'amount')::numeric, 'cons-' || v_exp.id::text || '-' || (v_elem->>'retention_id'), p_payload_hash
+      );
+    end loop;
+  end;
 
   insert into audit.events (tenant_id, actor_id, actor_role, action, entity_type, entity_id, after_snapshot, reason)
   values (v_auth.tenant_id, p_actor_id, 'service_role', 'statutory.petty_cash_expense.recorded', 'statutory_petty_cash_expense', v_exp.id,
@@ -1797,7 +2027,7 @@ create or replace function app_private.reverse_statutory_petty_cash_expense_v1(
 returns finance.statutory_petty_cash_expense_reversals
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_orig finance.statutory_petty_cash_expenses;
@@ -1847,7 +2077,8 @@ begin
     raise exception 'statutory_petty_cash_reversal_entry_not_assigned_to_desk' using errcode = '22023';
   end if;
 
-  if v_entry.reversal_of_entry_id is not null and v_entry.reversal_of_entry_id <> v_orig.statutory_simple_entry_id then
+  -- Deterministic link: reversal_of_entry_id cannot be null and must match original expense entry (Remediation 005 section 4)
+  if v_entry.reversal_of_entry_id is null or v_entry.reversal_of_entry_id <> v_orig.statutory_simple_entry_id then
     raise exception 'reversal_simple_entry_mismatch' using errcode = '23514';
   end if;
 
@@ -1865,6 +2096,28 @@ begin
     p_idempotency_key, p_payload_hash, p_actor_id
   ) returning * into v_rev;
 
+  -- Append-only release ledger insertion per consumption (Remediation 005 section 3)
+  declare
+    v_cons record;
+  begin
+    for v_cons in
+      select id, retention_id, consumed_amount
+        from finance.statutory_petty_cash_retention_consumptions
+       where expense_id = p_expense_id
+       order by id
+    loop
+      insert into finance.statutory_petty_cash_retention_consumption_releases (
+        tenant_id, property_id, consumption_id, reversal_id, retention_id,
+        released_amount, actor_id, idempotency_key, payload_hash
+      ) values (
+        v_orig.tenant_id, v_orig.property_id, v_cons.id, v_rev.id, v_cons.retention_id,
+        v_cons.consumed_amount, p_actor_id,
+        'rel-' || v_rev.id::text || '-' || v_cons.id::text,
+        p_payload_hash
+      );
+    end loop;
+  end;
+
   insert into audit.events (tenant_id, actor_id, actor_role, action, entity_type, entity_id, after_snapshot, reason)
   values (v_orig.tenant_id, p_actor_id, 'service_role', 'statutory.petty_cash_expense.reversed', 'statutory_petty_cash_expense_reversal', v_rev.id,
     jsonb_build_object('reversed_expense_id', v_orig.id, 'amount', v_orig.amount), p_reason);
@@ -1879,7 +2132,6 @@ create or replace function app_private.record_deposit_obligation_exception_v1(
   p_beneficiary_class text,
   p_scheduled_payment_date date,
   p_documentary_evidence text,
-  p_statutory_simple_entry_id uuid,
   p_actor_id uuid,
   p_idempotency_key text,
   p_payload_hash text
@@ -1887,13 +2139,11 @@ create or replace function app_private.record_deposit_obligation_exception_v1(
 returns finance.statutory_cash_deposit_obligation_exceptions
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_ob finance.statutory_cash_deposit_obligations;
   v_ex finance.statutory_cash_deposit_obligation_exceptions;
-  v_entry finance.statutory_simple_entries;
-  v_assign finance.statutory_cash_entry_assignments;
   v_desk_id uuid;
   v_expiry_date date;
   v_total_covered numeric(20,2);
@@ -1945,29 +2195,13 @@ begin
     raise exception 'exception_amount_exceeds_obligation' using errcode = '23514';
   end if;
 
-  -- Optional linked cash payment simple-entry validation (Erratum-004 item 4)
-  if p_statutory_simple_entry_id is not null then
-    select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
-    if not found or v_entry.direction <> 'payment' or v_entry.payment_medium <> 'cash' then
-      raise exception 'exception_payment_entry_invalid' using errcode = '23514';
-    end if;
-    select * into v_assign from finance.statutory_cash_entry_assignments
-     where statutory_simple_entry_id = p_statutory_simple_entry_id and cash_desk_id = v_ob.cash_desk_id;
-    if not found then
-      raise exception 'exception_payment_not_assigned_to_desk' using errcode = '22023';
-    end if;
-    if v_entry.amount > p_covered_amount then
-      raise exception 'exception_payment_amount_exceeds_coverage' using errcode = '23514';
-    end if;
-  end if;
-
   insert into finance.statutory_cash_deposit_obligation_exceptions (
     obligation_id, tenant_id, property_id, covered_amount, beneficiary_class,
     scheduled_payment_date, expiry_date, documentary_evidence, statutory_simple_entry_id,
     recorded_by, idempotency_key, payload_hash
   ) values (
     p_obligation_id, v_ob.tenant_id, v_ob.property_id, p_covered_amount, p_beneficiary_class,
-    p_scheduled_payment_date, v_expiry_date, btrim(p_documentary_evidence), p_statutory_simple_entry_id,
+    p_scheduled_payment_date, v_expiry_date, btrim(p_documentary_evidence), null,
     p_actor_id, p_idempotency_key, p_payload_hash
   ) returning * into v_ex;
 
@@ -1975,9 +2209,117 @@ begin
   values (v_ob.tenant_id, p_actor_id, 'service_role', 'statutory.deposit_exception.recorded',
     'statutory_cash_deposit_obligation_exception', v_ex.id,
     jsonb_build_object('obligation_id', p_obligation_id, 'covered_amount', p_covered_amount, 'expiry_date', v_expiry_date),
-    'Law 70/2015 Art. 4²(2) 3-business-day exception recorded');
+    'Law 70/2015 Art. 4²(2) 3-business-day exception reservation recorded');
 
   return v_ex;
+end;
+$$;
+
+-- Dedicated Exception Disbursement RPC (Remediation 005 Erratum-005 item 1)
+create or replace function app_private.consume_deposit_obligation_exception_v1(
+  p_exception_id uuid,
+  p_statutory_simple_entry_id uuid,
+  p_actor_id uuid,
+  p_idempotency_key text,
+  p_payload_hash text
+)
+returns finance.statutory_cash_deposit_exception_disbursements
+language plpgsql
+security definer
+set search_path = pg_catalog
+as $$
+declare
+  v_ex finance.statutory_cash_deposit_obligation_exceptions;
+  v_ob finance.statutory_cash_deposit_obligations;
+  v_entry finance.statutory_simple_entries;
+  v_assign finance.statutory_cash_entry_assignments;
+  v_disb finance.statutory_cash_deposit_exception_disbursements;
+  v_total_disbursed numeric(20,2);
+  v_now_bucharest_date date;
+begin
+  if p_exception_id is null or p_statutory_simple_entry_id is null
+     or p_actor_id is null or nullif(btrim(p_idempotency_key), '') is null
+     or p_payload_hash !~ '^[0-9a-f]{64}$' then
+    raise exception 'consume_exception_invalid_arguments' using errcode = '22023';
+  end if;
+
+  select * into v_ex from finance.statutory_cash_deposit_obligation_exceptions where id = p_exception_id;
+  if not found then
+    raise exception 'statutory_deposit_exception_not_found' using errcode = 'P0002';
+  end if;
+
+  select * into v_ob from finance.statutory_cash_deposit_obligations where id = v_ex.obligation_id for update;
+
+  perform pg_advisory_xact_lock(hashtextextended('statutory_cash_desk:' || v_ob.cash_desk_id::text, 0));
+
+  select * into v_disb from finance.statutory_cash_deposit_exception_disbursements
+   where tenant_id = v_ex.tenant_id and idempotency_key = p_idempotency_key;
+  if found then
+    if v_disb.payload_hash <> p_payload_hash then
+      raise exception 'consume_exception_idempotency_conflict' using errcode = '23505';
+    end if;
+    return v_disb;
+  end if;
+
+  -- Verify entry was not previously consumed in any exception disbursement (single-use)
+  if exists (select 1 from finance.statutory_cash_deposit_exception_disbursements where statutory_simple_entry_id = p_statutory_simple_entry_id) then
+    raise exception 'exception_payment_entry_already_disbursed' using errcode = '23505';
+  end if;
+
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  if not found then
+    raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
+  end if;
+
+  if v_entry.tenant_id <> v_ex.tenant_id or v_entry.property_id <> v_ex.property_id then
+    raise exception 'disbursement_scope_mismatch' using errcode = '23514';
+  end if;
+
+  if v_entry.direction <> 'payment' or v_entry.payment_medium <> 'cash' then
+    raise exception 'exception_payment_entry_invalid' using errcode = '23514';
+  end if;
+
+  select * into v_assign from finance.statutory_cash_entry_assignments
+   where statutory_simple_entry_id = p_statutory_simple_entry_id and cash_desk_id = v_ob.cash_desk_id;
+  if not found then
+    raise exception 'exception_payment_not_assigned_to_desk' using errcode = '22023';
+  end if;
+
+  -- Payment date must fall within statutory reservation window
+  if v_entry.entry_date < v_ex.scheduled_payment_date or v_entry.entry_date > v_ex.expiry_date then
+    raise exception 'exception_payment_outside_window' using errcode = '22023';
+  end if;
+
+  -- Cannot consume an expired reservation at current runtime
+  v_now_bucharest_date := (statement_timestamp() at time zone 'Europe/Bucharest')::date;
+  if v_now_bucharest_date > v_ex.expiry_date then
+    raise exception 'cannot_disburse_expired_exception' using errcode = '22023';
+  end if;
+
+  -- Check remaining coverage on reservation
+  select coalesce(sum(disbursed_amount), 0.00)::numeric(20,2) into v_total_disbursed
+    from finance.statutory_cash_deposit_exception_disbursements
+   where exception_id = p_exception_id;
+
+  if (v_total_disbursed + v_entry.amount) > v_ex.covered_amount then
+    raise exception 'disbursement_exceeds_exception_coverage' using errcode = '23514';
+  end if;
+
+  insert into finance.statutory_cash_deposit_exception_disbursements (
+    exception_id, statutory_simple_entry_id, tenant_id, property_id, cash_desk_id,
+    disbursed_amount, actor_id, idempotency_key, payload_hash
+  ) values (
+    p_exception_id, p_statutory_simple_entry_id, v_ex.tenant_id, v_ex.property_id, v_ob.cash_desk_id,
+    v_entry.amount, p_actor_id, p_idempotency_key, p_payload_hash
+  ) returning * into v_disb;
+
+  insert into audit.events (tenant_id, actor_id, actor_role, action, entity_type, entity_id, after_snapshot, reason)
+  values (v_ex.tenant_id, p_actor_id, 'service_role', 'statutory.deposit_exception.disbursed',
+    'statutory_cash_deposit_exception_disbursement', v_disb.id,
+    jsonb_build_object('exception_id', p_exception_id, 'amount', v_entry.amount, 'entry_id', p_statutory_simple_entry_id),
+    'Law 70/2015 Art. 4²(2) exception disbursement executed');
+
+  return v_disb;
 end;
 $$;
 
@@ -1994,7 +2336,7 @@ create or replace function app_private.settle_cash_deposit_obligation_v1(
 returns finance.statutory_cash_deposit_settlements
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_ob finance.statutory_cash_deposit_obligations;
@@ -2141,7 +2483,7 @@ create or replace function app_private.create_statutory_cash_document_v1(
 returns finance.statutory_cash_documents
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_desk finance.statutory_cash_desks;
@@ -2175,20 +2517,40 @@ begin
     return v_doc;
   end if;
 
-  -- Scope & Assignment validation for linked statutory_simple_entry_id (Blocker 10)
-  if p_statutory_simple_entry_id is not null then
-    select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
+  -- Dual-NULL rejection (Remediation 005 section 6)
+  if p_statutory_simple_entry_id is null and p_petty_cash_expense_id is null then
+    raise exception 'cash_document_requires_simple_entry_or_expense' using errcode = '22023';
+  end if;
+
+  -- Canonical simple entry resolution across direct and expense paths
+  declare
+    v_canonical_entry_id uuid;
+  begin
+    if p_petty_cash_expense_id is not null then
+      select * into v_exp from finance.statutory_petty_cash_expenses where id = p_petty_cash_expense_id;
+      if not found or v_exp.tenant_id <> v_desk.tenant_id or v_exp.property_id <> v_desk.property_id or v_exp.cash_desk_id <> v_desk.id then
+        raise exception 'document_scope_mismatch' using errcode = '23514';
+      end if;
+      if p_statutory_simple_entry_id is not null and p_statutory_simple_entry_id <> v_exp.statutory_simple_entry_id then
+        raise exception 'cash_document_canonical_entry_mismatch' using errcode = '22023';
+      end if;
+      v_canonical_entry_id := v_exp.statutory_simple_entry_id;
+    else
+      v_canonical_entry_id := p_statutory_simple_entry_id;
+    end if;
+
+    select * into v_entry from finance.statutory_simple_entries where id = v_canonical_entry_id;
     if not found or v_entry.tenant_id <> v_desk.tenant_id or v_entry.property_id <> v_desk.property_id then
       raise exception 'document_scope_mismatch' using errcode = '23514';
     end if;
 
     select * into v_assign from finance.statutory_cash_entry_assignments
-     where statutory_simple_entry_id = p_statutory_simple_entry_id and cash_desk_id = p_cash_desk_id;
+     where statutory_simple_entry_id = v_canonical_entry_id and cash_desk_id = p_cash_desk_id;
     if not found then
       raise exception 'statutory_cash_document_entry_not_assigned_to_desk' using errcode = '22023';
     end if;
 
-    -- Document type and direction compatibility
+    -- Strict direction check on canonical entry (cannot bypass via expense path)
     if p_document_type in ('chitanta_14_4_1', 'dispozitie_14_4_4_incasare') and v_entry.direction <> 'receipt' then
       raise exception 'statutory_cash_document_direction_mismatch' using errcode = '22023';
     end if;
@@ -2199,30 +2561,23 @@ begin
     if p_amount <> v_entry.amount then
       raise exception 'statutory_cash_document_amount_mismatch' using errcode = '22023';
     end if;
-  end if;
 
-  -- Scope validation for linked petty_cash_expense_id
-  if p_petty_cash_expense_id is not null then
-    select * into v_exp from finance.statutory_petty_cash_expenses where id = p_petty_cash_expense_id;
-    if not found or v_exp.tenant_id <> v_desk.tenant_id or v_exp.property_id <> v_desk.property_id or v_exp.cash_desk_id <> v_desk.id then
-      raise exception 'document_scope_mismatch' using errcode = '23514';
+    if p_document_date <> v_entry.entry_date then
+      raise exception 'statutory_cash_document_date_mismatch' using errcode = '22023';
     end if;
-    if p_amount <> v_exp.amount then
-      raise exception 'statutory_cash_document_amount_mismatch' using errcode = '22023';
-    end if;
-  end if;
 
-  insert into finance.statutory_cash_documents (
-    cash_desk_id, tenant_id, property_id, document_type, document_series, document_number,
-    document_date, amount, currency, beneficiary_or_payer, purpose,
-    statutory_simple_entry_id, petty_cash_expense_id, semantic_payload, payload_hash,
-    renderer_status, status, idempotency_key, created_by
-  ) values (
-    p_cash_desk_id, v_desk.tenant_id, v_desk.property_id, p_document_type, btrim(p_document_series), btrim(p_document_number),
-    p_document_date, p_amount, 'RON', btrim(p_beneficiary_or_payer), btrim(p_purpose),
-    p_statutory_simple_entry_id, p_petty_cash_expense_id, p_semantic_payload, p_payload_hash,
-    'legal_review_required', 'draft', p_idempotency_key, p_actor_id
-  ) returning * into v_doc;
+    insert into finance.statutory_cash_documents (
+      cash_desk_id, tenant_id, property_id, document_type, document_series, document_number,
+      document_date, amount, currency, beneficiary_or_payer, purpose,
+      statutory_simple_entry_id, petty_cash_expense_id, semantic_payload, payload_hash,
+      renderer_status, status, idempotency_key, created_by
+    ) values (
+      p_cash_desk_id, v_desk.tenant_id, v_desk.property_id, p_document_type, btrim(p_document_series), btrim(p_document_number),
+      p_document_date, p_amount, 'RON', btrim(p_beneficiary_or_payer), btrim(p_purpose),
+      v_canonical_entry_id, p_petty_cash_expense_id, p_semantic_payload, p_payload_hash,
+      'legal_review_required', 'draft', p_idempotency_key, p_actor_id
+    ) returning * into v_doc;
+  end;
 
   insert into audit.events (tenant_id, actor_id, actor_role, action, entity_type, entity_id, after_snapshot, reason)
   values (v_desk.tenant_id, p_actor_id, 'service_role', 'statutory.cash_document.created', 'statutory_cash_document', v_doc.id,
@@ -2244,7 +2599,7 @@ create or replace function app_private.verify_statutory_cash_document_semantic_s
 returns finance.statutory_cash_documents
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_doc finance.statutory_cash_documents;
@@ -2320,7 +2675,7 @@ create or replace function app_private.finalize_statutory_cash_document_v1(
 returns finance.statutory_cash_documents
 language plpgsql
 security definer
-set search_path = pg_catalog, app_private, finance, platform, portfolio, governance, payments, audit
+set search_path = pg_catalog
 as $$
 declare
   v_doc finance.statutory_cash_documents;
@@ -2405,6 +2760,7 @@ alter function app_private.activate_statutory_petty_cash_v1 owner to cladora_rpc
 alter function app_private.record_statutory_petty_cash_expense_v1 owner to cladora_rpc_owner;
 alter function app_private.reverse_statutory_petty_cash_expense_v1 owner to cladora_rpc_owner;
 alter function app_private.record_deposit_obligation_exception_v1 owner to cladora_rpc_owner;
+alter function app_private.consume_deposit_obligation_exception_v1 owner to cladora_rpc_owner;
 alter function app_private.settle_cash_deposit_obligation_v1 owner to cladora_rpc_owner;
 alter function app_private.create_statutory_cash_document_v1 owner to cladora_rpc_owner;
 alter function app_private.verify_statutory_cash_document_semantic_schema_v1 owner to cladora_rpc_owner;
@@ -2413,6 +2769,30 @@ alter function app_private.finalize_statutory_cash_document_v1 owner to cladora_
 -- =============================================================================
 -- RLS, Policies & Grants
 -- =============================================================================
+
+alter table finance.statutory_cash_deposit_exception_disbursements enable row level security;
+alter table finance.statutory_petty_cash_retention_consumption_releases enable row level security;
+
+create policy statutory_deposit_disb_rpc_owner_all on finance.statutory_cash_deposit_exception_disbursements for all to cladora_rpc_owner using (true) with check (true);
+create policy statutory_pc_releases_rpc_owner_all on finance.statutory_petty_cash_retention_consumption_releases for all to cladora_rpc_owner using (true) with check (true);
+
+create policy statutory_deposit_disb_service_role_select on finance.statutory_cash_deposit_exception_disbursements for select to service_role using (true);
+create policy statutory_pc_releases_service_role_select on finance.statutory_petty_cash_retention_consumption_releases for select to service_role using (true);
+
+revoke all on finance.statutory_cash_deposit_exception_disbursements from public, anon, authenticated;
+revoke all on finance.statutory_petty_cash_retention_consumption_releases from public, anon, authenticated;
+
+grant select on finance.statutory_cash_deposit_exception_disbursements to service_role;
+grant select on finance.statutory_petty_cash_retention_consumption_releases to service_role;
+
+grant select, insert on finance.statutory_cash_deposit_exception_disbursements to cladora_rpc_owner;
+grant select, insert on finance.statutory_petty_cash_retention_consumption_releases to cladora_rpc_owner;
+
+revoke all on function app_private.consume_deposit_obligation_exception_v1(uuid, uuid, uuid, text, text) from public, anon, authenticated;
+revoke all on function finance.statutory_deposit_obligation_position_v1(uuid, timestamptz) from public, anon, authenticated;
+
+grant execute on function app_private.consume_deposit_obligation_exception_v1(uuid, uuid, uuid, text, text) to cladora_rpc_owner, service_role;
+grant execute on function finance.statutory_deposit_obligation_position_v1(uuid, timestamptz) to cladora_rpc_owner, service_role;
 
 alter table finance.statutory_compliance_calendars enable row level security;
 alter table finance.statutory_cash_desks enable row level security;
@@ -2537,7 +2917,7 @@ grant select, insert on finance.statutory_cash_document_finalization_events to c
 -- Revoke execute from public, anon, authenticated
 revoke all on function finance.add_romanian_business_days_v1(date, integer, char(2)) from public, anon, authenticated;
 revoke all on function finance.statutory_cash_balance_v1(uuid) from public, anon, authenticated;
-revoke all on function finance.statutory_petty_cash_balance_v1(uuid) from public, anon, authenticated;
+revoke all on function finance.statutory_petty_cash_balance_v1(uuid, timestamptz) from public, anon, authenticated;
 revoke all on function app_private.create_statutory_cash_desk_v1(uuid, text, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.activate_statutory_cash_desk_v1(uuid, integer, uuid, text) from public, anon, authenticated;
 revoke all on function app_private.assign_cash_simple_entry_v1(uuid, uuid, timestamptz, uuid, text, text) from public, anon, authenticated;
@@ -2548,7 +2928,7 @@ revoke all on function app_private.retain_petty_cash_from_receipt_v1(uuid, uuid,
 revoke all on function app_private.activate_statutory_petty_cash_v1(uuid, uuid, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.record_statutory_petty_cash_expense_v1(uuid, uuid, text, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.reverse_statutory_petty_cash_expense_v1(uuid, uuid, text, uuid, text, text) from public, anon, authenticated;
-revoke all on function app_private.record_deposit_obligation_exception_v1(uuid, numeric, text, date, text, uuid, uuid, text, text) from public, anon, authenticated;
+revoke all on function app_private.record_deposit_obligation_exception_v1(uuid, numeric, text, date, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.settle_cash_deposit_obligation_v1(uuid, uuid, numeric, uuid, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.create_statutory_cash_document_v1(uuid, finance.statutory_cash_document_type, text, text, date, numeric, text, text, jsonb, uuid, uuid, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.verify_statutory_cash_document_semantic_schema_v1(uuid, integer, uuid, text, text, text) from public, anon, authenticated;
@@ -2557,7 +2937,7 @@ revoke all on function app_private.finalize_statutory_cash_document_v1(uuid, int
 -- Grant execute to service_role and cladora_rpc_owner
 grant execute on function finance.add_romanian_business_days_v1(date, integer, char(2)) to cladora_rpc_owner, service_role;
 grant execute on function finance.statutory_cash_balance_v1(uuid) to cladora_rpc_owner, service_role;
-grant execute on function finance.statutory_petty_cash_balance_v1(uuid) to cladora_rpc_owner, service_role;
+grant execute on function finance.statutory_petty_cash_balance_v1(uuid, timestamptz) to cladora_rpc_owner, service_role;
 grant execute on function app_private.create_statutory_cash_desk_v1(uuid, text, text, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.activate_statutory_cash_desk_v1(uuid, integer, uuid, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.assign_cash_simple_entry_v1(uuid, uuid, timestamptz, uuid, text, text) to cladora_rpc_owner, service_role;
@@ -2568,7 +2948,7 @@ grant execute on function app_private.retain_petty_cash_from_receipt_v1(uuid, uu
 grant execute on function app_private.activate_statutory_petty_cash_v1(uuid, uuid, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.record_statutory_petty_cash_expense_v1(uuid, uuid, text, text, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.reverse_statutory_petty_cash_expense_v1(uuid, uuid, text, uuid, text, text) to cladora_rpc_owner, service_role;
-grant execute on function app_private.record_deposit_obligation_exception_v1(uuid, numeric, text, date, text, uuid, uuid, text, text) to cladora_rpc_owner, service_role;
+grant execute on function app_private.record_deposit_obligation_exception_v1(uuid, numeric, text, date, text, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.settle_cash_deposit_obligation_v1(uuid, uuid, numeric, uuid, text, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.create_statutory_cash_document_v1(uuid, finance.statutory_cash_document_type, text, text, date, numeric, text, text, jsonb, uuid, uuid, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.verify_statutory_cash_document_semantic_schema_v1(uuid, integer, uuid, text, text, text) to cladora_rpc_owner, service_role;
@@ -2590,6 +2970,9 @@ comment on table finance.statutory_cash_receipt_petty_cash_retentions is 'Lawful
 comment on table finance.statutory_cash_documents is 'Semantic evidence for Romanian statutory cash forms 14-4-1 (Chitanță) and 14-4-4 (Dispoziție casierie)';
 comment on table finance.statutory_cash_document_verification_events is 'Append-only semantic verification lifecycle events with idempotency tracking';
 comment on table finance.statutory_cash_document_finalization_events is 'Append-only document finalization lifecycle events with idempotency tracking';
+comment on table finance.statutory_cash_deposit_exception_disbursements is 'Append-only exception cash disbursements under Law 70/2015 Art. 4²(2)';
+comment on table finance.statutory_petty_cash_retention_consumption_releases is 'Append-only releases of consumed petty-cash retentions on expense reversal';
+
 
 -- Revoke direct DML from service_role on append-only ledgers and events (Erratum-004 item 7)
 revoke insert, delete on table
@@ -2603,6 +2986,8 @@ revoke insert, update, delete on table
   finance.statutory_cash_receipt_petty_cash_retentions,
   finance.statutory_cash_entry_assignments,
   finance.statutory_petty_cash_retention_consumptions,
+  finance.statutory_petty_cash_retention_consumption_releases,
+  finance.statutory_cash_deposit_exception_disbursements,
   finance.statutory_petty_cash_expenses,
   finance.statutory_petty_cash_expense_reversals,
   finance.statutory_petty_cash_activation_events,

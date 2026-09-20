@@ -715,34 +715,74 @@ async function runCompetingSettlementsTransferCapacityRace(observer, winner, wai
 // Race 8: Settlement replay vs competing settlement on custody transfer
 // -----------------------------------------------------------------------------
 async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
-  console.log('\n[Race 8] Settlement replay vs competing settlement exceeding remaining transfer capacity');
+  console.log('\n[Race 8] True contention: Settlement uncommitted winner vs concurrent replay/competing waiter');
 
-  await beginAsServiceRole(winner);
-  const replayResult = await winner.query(
-    `select * from app_private.settle_cash_deposit_obligation_v1(
-       $1, $2, 8000.00, null, 'settle capacity race', $3, $4, $5
+  // Create dedicated custody transfer for Race 8 so capacity is isolated and exact
+  const trRes = await observer.query(
+    `select * from app_private.record_cash_custody_transfer_v1(
+       $1, $2, null, 'bank_deposit', 10000.00, date '2026-06-16', timestamptz '2026-06-16 10:00:00+03', 'DEPOZIT-RACE-8',
+       $3, $4, $5
      )`,
-    [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-cap-win-${f.custodyTransfer1}`, sha256(`settle-cap-win-${f.custodyTransfer1}`)],
+    [f.cashDesk1, f.bankAccount, f.actor, `idemp-transfer-race-8-${id()}`, sha256(`transfer-race-8`)],
   );
-  assert.equal(replayResult.rowCount, 1);
-  await winner.query('commit');
+  const transfer8Id = trRes.rows[0].id;
 
+  // Winner begins and executes settlement without committing (holding lock and uncommitted event)
+  await beginAsServiceRole(winner);
+  const winnerPid = await backendPid(winner);
+
+  const idempKey8 = `idemp-race-8-contention-${id()}`;
+  const winnerCall = await winner.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 6000.00, null, 'settle race 8 true contention', $3, $4, $5
+     )`,
+    [f.obligationToSettle1, transfer8Id, f.actor, idempKey8, sha256(`race-8-settle`)],
+  );
+  assert.equal(winnerCall.rowCount, 1);
+  const winnerRow = winnerCall.rows[0];
+
+  // Waiter begins and concurrently attempts replay of the EXACT same uncommitted settlement key
   await beginAsServiceRole(waiter);
+  const waiterPid = await backendPid(waiter);
+  let waiterResult;
   let waiterError;
-  try {
-    await waiter.query(
-      `select * from app_private.settle_cash_deposit_obligation_v1(
-         $1, $2, 3000.00, null, 'competing settlement', $3, $4, $5
-       )`,
-      [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-replay-race-${f.custodyTransfer1}`, sha256(`replay-race-${f.custodyTransfer1}`)],
-    );
-  } catch (error) {
-    waiterError = error;
+
+  const pendingWaiter = waiter.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 6000.00, null, 'settle race 8 true contention', $3, $4, $5
+     )`,
+    [f.obligationToSettle1, transfer8Id, f.actor, idempKey8, sha256(`race-8-settle`)],
+  ).then((res) => {
+    waiterResult = res;
+  }).catch((err) => {
+    waiterError = err;
+  });
+
+  // Observer proves true contention by observing waiter blocked by winner PID
+  await waitForBlocking(observer, waiterPid, winnerPid);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on uncommitted settlement`);
+
+  // Winner commits, releasing lock
+  await winner.query('commit');
+  await pendingWaiter;
+
+  if (waiterError) {
+    throw waiterError;
   }
-  expectSqlState(waiterError, '23514', 'exceed remaining capacity');
-  assert.equal(waiterError.message, 'custody_transfer_capacity_exceeded');
-  await rollbackQuietly(waiter);
-  console.log('  PASS: replay succeeded idempotently while competing settlement failed closed');
+  assert.equal(waiterResult.rowCount, 1);
+  assert.equal(waiterResult.rows[0].id, winnerRow.id, 'Waiter idempotent replay must return exact same settlement record');
+  await waiter.query('commit');
+
+  // Verify count and transfer capacity
+  const countRes = await observer.query(
+    `select count(*) as cnt, sum(settled_amount) as total_settled from finance.statutory_cash_deposit_settlements
+      where custody_transfer_id = $1`,
+    [transfer8Id],
+  );
+  assert.equal(countRes.rows[0].cnt, '1', 'Exactly 1 settlement record created despite concurrent race');
+  assert.equal(countRes.rows[0].total_settled, '6000.00', 'Transfer capacity consumed exactly once');
+
+  console.log('  PASS: verified PID blocking, uncommitted contention, idempotent waiter resolution, and exact settlement capacity');
 }
 
 // -----------------------------------------------------------------------------
