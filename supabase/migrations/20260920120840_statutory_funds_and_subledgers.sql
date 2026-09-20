@@ -875,17 +875,20 @@ create policy statutory_fund_assessment_rpc_owner_all on finance.statutory_fund_
 create policy statutory_conveyances_rpc_owner_all on finance.statutory_working_capital_conveyances for all to cladora_rpc_owner using (true) with check (true);
 create policy statutory_fund_movements_rpc_owner_all on finance.statutory_fund_movements for all to cladora_rpc_owner using (true) with check (true);
 
-grant usage on schema finance, governance, portfolio, payments, maintenance, audit to cladora_rpc_owner;
+grant usage on schema app_private, finance, governance, portfolio, payments, maintenance, audit to cladora_rpc_owner, service_role;
 grant select, insert, update on finance.statutory_funds, finance.statutory_fund_plans,
-  finance.statutory_working_capital_conveyances to cladora_rpc_owner;
-grant select, insert on finance.statutory_fund_assessment_links, finance.statutory_fund_movements to cladora_rpc_owner;
+  finance.statutory_working_capital_conveyances to cladora_rpc_owner, service_role;
+grant select, insert on finance.statutory_fund_assessment_links, finance.statutory_fund_movements to cladora_rpc_owner, service_role;
 grant select on finance.statutory_accounting_regimes, finance.statutory_monthly_cycles,
   finance.statutory_simple_entries, finance.statutory_allocation_batches,
-  finance.accounting_periods, finance.journals to cladora_rpc_owner;
-grant select on governance.resolutions, governance.meetings to cladora_rpc_owner;
-grant select on portfolio.units, portfolio.buildings, portfolio.ownerships, portfolio.parties to cladora_rpc_owner;
-grant select on payments.payments to cladora_rpc_owner;
-grant select on maintenance.work_orders to cladora_rpc_owner;
+  finance.accounting_periods, finance.journals to cladora_rpc_owner, service_role;
+grant select on governance.resolutions, governance.meetings to cladora_rpc_owner, service_role;
+grant select on portfolio.units, portfolio.buildings, portfolio.ownerships, portfolio.parties to cladora_rpc_owner, service_role;
+grant select on payments.payments to cladora_rpc_owner, service_role;
+grant select on maintenance.work_orders to cladora_rpc_owner, service_role;
+grant insert on audit.events to cladora_rpc_owner, service_role;
+grant usage, select on sequence audit.events_id_seq to cladora_rpc_owner, service_role;
+grant cladora_rpc_owner to service_role;
 
 revoke all on finance.statutory_funds, finance.statutory_fund_plans,
   finance.statutory_fund_assessment_links, finance.statutory_working_capital_conveyances,
