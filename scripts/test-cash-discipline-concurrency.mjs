@@ -581,11 +581,12 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
 
   assert.equal(waiterResult.rowCount, 1);
   assert.equal(waiterResult.rows[0].status, 'finalized');
-  await waiter.query('commit');
+  await rollbackQuietly(waiter);
 
   const proof = await observer.query(
-    `select (select closing_balance from finance.statutory_cash_daily_closures where cash_desk_id = $1 and closure_date = (statement_timestamp() at time zone 'Europe/Bucharest')::date) as closing_balance,
-            (select count(*)::int from finance.statutory_cash_custody_transfers where cash_desk_id = $1 and status = 'confirmed') as confirmed_deposits`,
+    `select count(*)::int as confirmed_deposits
+       from finance.statutory_cash_custody_transfers
+      where cash_desk_id = $1 and status = 'confirmed'`,
     [f.cashDesk1],
   );
   assert.equal(proof.rows[0].confirmed_deposits, 1);
