@@ -237,7 +237,7 @@ create or replace function app_private.activate_statutory_accounting_regime_v1(
 )
 returns finance.statutory_accounting_regimes
 language plpgsql
-security definer
+security invoker
 set search_path = pg_catalog
 as $$
 declare
@@ -291,13 +291,6 @@ begin
 end
 $$;
 
--- PostgreSQL requires the migration actor to be able to SET ROLE to a new
--- owner. Grant that membership only for the ownership handoff, then remove it.
-grant cladora_rpc_owner to current_user;
-alter function app_private.activate_statutory_accounting_regime_v1(uuid, integer, uuid, text)
-  owner to cladora_rpc_owner;
-revoke cladora_rpc_owner from current_user;
-
 alter table finance.statutory_accounting_regimes enable row level security;
 alter table finance.statutory_monthly_cycles enable row level security;
 alter table finance.statutory_simple_entries enable row level security;
@@ -349,6 +342,6 @@ comment on table finance.statutory_accounting_regimes is
 comment on table finance.statutory_simple_entries is
   'Append-only statutory receipt/payment records; corrections are new reversal records.';
 comment on function app_private.activate_statutory_accounting_regime_v1(uuid, integer, uuid, text) is
-  'Fail-closed service-role activation after independent accounting and legal sign-off.';
+  'Fail-closed SECURITY INVOKER service-role activation after independent accounting and legal sign-off.';
 
 commit;
