@@ -1,7 +1,7 @@
 -- R10 Phase 2B: Romanian HOA cash-desk discipline, 24h deposit obligation,
 -- EOD 50,000 RON ceiling, Art. 4² 3-day exceptions, and bank deposit settlements.
 begin;
-select plan(88);
+select plan(89);
 
 -- 1. Structural, RLS and ACL contracts
 select has_table('finance', 'statutory_compliance_calendars', 'statutory compliance calendar table exists');
@@ -99,6 +99,12 @@ select ok(
   and not has_table_privilege('service_role', 'finance.statutory_cash_deposit_settlements', 'INSERT,UPDATE,DELETE')
   and not has_table_privilege('service_role', 'finance.statutory_cash_deposit_exception_disbursements', 'INSERT,UPDATE,DELETE'),
   'service_role has zero direct insert/update/delete privilege on internal append-only ledgers'
+);
+
+select ok(
+  (select rolcanlogin = false and rolsuper = false and rolbypassrls = false and rolinherit = false
+     from pg_roles where rolname = 'cladora_rpc_owner'),
+  'cladora_rpc_owner role attributes strictly verified as NOLOGIN, NOSUPERUSER, NOBYPASSRLS, NOINHERIT'
 );
 
 -- 2. Fixture Setup (097 Isolated Space)

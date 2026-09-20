@@ -9,7 +9,7 @@ begin
       nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
   else
     alter role cladora_rpc_owner
-      nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
+      nologin nocreatedb nocreaterole noinherit;
   end if;
 end
 $$;
