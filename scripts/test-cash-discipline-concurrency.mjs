@@ -169,7 +169,7 @@ async function setupFixtures(client, f) {
     );
     await client.query(
       `insert into finance.accounting_periods (id, tenant_id, property_id, starts_on, ends_on, status)
-       values ($1, $2, $3, date '2026-06-01', date '2026-06-30', 'open')`,
+       values ($1, $2, $3, date_trunc('year', statement_timestamp() at time zone 'Europe/Bucharest')::date, (date_trunc('year', statement_timestamp() at time zone 'Europe/Bucharest') + interval '1 year' - interval '1 day')::date, 'open')`,
       [f.period, f.tenant, f.property],
     );
     await client.query(
@@ -209,16 +209,16 @@ async function setupFixtures(client, f) {
     await client.query(
       `insert into finance.statutory_simple_entries (id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium, document_type, document_number, amount, description, created_by)
        values
-         ($1, $4, $5, $6, date '2026-06-15', 'receipt', 'cash', 'CHITANTA', 'CH-2B-1', 55000.00, 'Cash quota', $7),
-         ($2, $4, $5, $6, date '2026-06-15', 'receipt', 'cash', 'CHITANTA', 'CH-2B-2', 10000.00, 'Cash quota 2', $7),
-         ($3, $4, $5, $6, date '2026-06-15', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-1', 2000.00, 'Plumber payment', $7),
-         ($8, $4, $5, $6, date '2026-06-16', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC1', 600.00, 'Petty cash emergency repair', $7),
-         ($9, $4, $5, $6, date '2026-06-16', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC2', 500.00, 'Petty cash sanitary parts', $7),
-         ($10, $4, $5, $6, date '2026-06-16', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC3', 400.00, 'Petty cash electrical repair', $7),
-         ($11, $4, $5, $6, date '2026-06-17', 'receipt', 'cash', 'CHITANTA', 'CH-2B-REF1', 600.00, 'Refund of repair parts', $7),
-         ($12, $4, $5, $6, date '2026-06-15', 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND1', 1000.00, 'Funding for petty cash', $7),
-         ($13, $4, $5, $6, date '2026-06-15', 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND2', 1000.00, 'Funding for petty cash 2', $7),
-         ($14, $4, $5, $6, date '2026-06-15', 'payment', 'cash', 'DISPOZITIE', 'DP-2B-DOC1', 250.00, 'Document payment entry', $7)`,
+         ($1, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-2B-1', 55000.00, 'Cash quota', $7),
+         ($2, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-2B-2', 10000.00, 'Cash quota 2', $7),
+         ($3, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'payment', 'cash', 'DISPOZITIE', 'DP-2B-1', 2000.00, 'Plumber payment', $7),
+         ($8, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC1', 600.00, 'Petty cash emergency repair', $7),
+         ($9, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC2', 500.00, 'Petty cash sanitary parts', $7),
+         ($10, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC3', 400.00, 'Petty cash electrical repair', $7),
+         ($11, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-REF1', 600.00, 'Refund of repair parts', $7),
+         ($12, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND1', 1000.00, 'Funding for petty cash', $7),
+         ($13, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND2', 1000.00, 'Funding for petty cash 2', $7),
+         ($14, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-DOC1', 250.00, 'Document payment entry', $7)`,
       [f.receiptEntry1, f.receiptEntry2, f.paymentEntry1, f.cycle, f.tenant, f.property, f.actor,
        f.pettyPaymentEntry1, f.pettyPaymentEntry2, f.pettyPaymentEntry3, f.pettyRefundEntry1,
        f.receiptFunding1, f.receiptFunding2, f.docEntry1],
@@ -260,11 +260,11 @@ async function setupCashDesksAndFixtures(client, f) {
 
     // Assign entries to Desk 1
     await client.query(
-      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 09:00:00+03', $3, $4, $5)`,
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, (statement_timestamp() - interval '1 day'), $3, $4, $5)`,
       [f.cashDesk1, f.receiptEntry1, f.actor, `idemp-as-1-${f.receiptEntry1}`, sha256(`as-1-${f.receiptEntry1}`)],
     );
     await client.query(
-      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 10:00:00+03', $3, $4, $5)`,
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, (statement_timestamp() - interval '1 day'), $3, $4, $5)`,
       [f.cashDesk1, f.receiptEntry2, f.actor, `idemp-as-2-${f.receiptEntry2}`, sha256(`as-2-${f.receiptEntry2}`)],
     );
     await client.query(
@@ -272,11 +272,11 @@ async function setupCashDesksAndFixtures(client, f) {
       [f.cashDesk1, f.paymentEntry1, f.actor, `idemp-as-3-${f.paymentEntry1}`, sha256(`as-3-${f.paymentEntry1}`)],
     );
     await client.query(
-      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 11:00:00+03', $3, $4, $5)`,
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, statement_timestamp(), $3, $4, $5)`,
       [f.cashDesk1, f.receiptFunding1, f.actor, `idemp-as-4-${f.receiptFunding1}`, sha256(`as-4-${f.receiptFunding1}`)],
     );
     await client.query(
-      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-15 12:00:00+03', $3, $4, $5)`,
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, statement_timestamp(), $3, $4, $5)`,
       [f.cashDesk1, f.receiptFunding2, f.actor, `idemp-as-5-${f.receiptFunding2}`, sha256(`as-5-${f.receiptFunding2}`)],
     );
 
@@ -294,7 +294,7 @@ async function setupCashDesksAndFixtures(client, f) {
       [f.cashDesk1, f.pettyPaymentEntry3, f.actor, `idemp-as-p3-${f.pettyPaymentEntry3}`, sha256(`as-p3-${f.pettyPaymentEntry3}`)],
     );
     await client.query(
-      `select * from app_private.assign_cash_simple_entry_v1($1, $2, timestamptz '2026-06-17 09:00:00+03', $3, $4, $5)`,
+      `select * from app_private.assign_cash_simple_entry_v1($1, $2, statement_timestamp(), $3, $4, $5)`,
       [f.cashDesk1, f.pettyRefundEntry1, f.actor, `idemp-as-ref-${f.pettyRefundEntry1}`, sha256(`as-ref-${f.pettyRefundEntry1}`)],
     );
     await client.query(
@@ -305,7 +305,7 @@ async function setupCashDesksAndFixtures(client, f) {
     // Setup petty cash authorization (1000 RON) on Desk 1, fund it, and activate it
     const pettyAuth = await client.query(
       `select * from app_private.authorize_statutory_petty_cash_v1(
-         $1, $2, 1000.00, date '2026-06-01', 'Elena Ionescu', 'Cheltuieli neprevazute', $3, $4, $5
+         $1, $2, 1000.00, date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Elena Ionescu', 'Cheltuieli neprevazute', $3, $4, $5
        )`,
       [f.cashDesk1, f.resolution, f.actor, `idemp-auth-${f.pettyAuth}`, sha256(`auth-${f.pettyAuth}`)],
     );
@@ -329,7 +329,7 @@ async function setupCashDesksAndFixtures(client, f) {
     // Create a document ready for semantic verification / finalization tests
     const doc = await client.query(
       `select * from app_private.create_statutory_cash_document_v1(
-         $1, 'dispozitie_14_4_4_plata', 'DP-CONC', '0001', date '2026-06-15', 250.00,
+         $1, 'dispozitie_14_4_4_plata', 'DP-CONC', '0001', (statement_timestamp() at time zone 'Europe/Bucharest')::date, 250.00,
          'Test Beneficiary', 'Test payment doc', '{"form":"14-4-4"}'::jsonb, $2, null,
          $3, $4, $5
        )`,
@@ -357,7 +357,8 @@ async function setupCashDesksAndFixtures(client, f) {
 // -----------------------------------------------------------------------------
 async function runDailyClosureRace(observer, winner, waiter, f) {
   console.log('\n[Race 1] Two simultaneous daily closures contend on shared statutory_cash_desk lock');
-  const closureDate = '2026-06-15';
+  const closureDateRes = await observer.query("select ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1)::text as d");
+  const closureDate = closureDateRes.rows[0].d;
 
   await beginAsServiceRole(winner);
   const winnerCall = winner.query(
@@ -524,7 +525,7 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
   await beginAsServiceRole(winner);
   const winnerCall = await winner.query(
     `select * from app_private.record_cash_custody_transfer_v1(
-       $1, $2, null, 'bank_deposit', 10000.00, date '2026-06-16', timestamptz '2026-06-16 10:00:00+03', 'DEPOZIT-CONCURRENCY-1',
+       $1, $2, null, 'bank_deposit', 10000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date, statement_timestamp(), 'DEPOZIT-CONCURRENCY-1',
        $3, $4, $5
      )`,
     [f.cashDesk1, f.bankAccount, f.actor, `idemp-dep-race-${f.cashDesk1}`, sha256(`dep-race-${f.cashDesk1}`)],
@@ -538,7 +539,7 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
   let waiterResult;
 
   const pendingWaiter = waiter.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, date '2026-06-16', 53250.00, $2, $3, $4)`,
+    `select * from app_private.close_statutory_cash_day_v1($1, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 53250.00, $2, $3, $4)`,
     [f.cashDesk1, f.actor, `idemp-close-race-${f.cashDesk1}`, sha256(`close-race-${f.cashDesk1}`)],
   ).then((res) => {
     waiterResult = res;
@@ -555,7 +556,7 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
   await waiter.query('commit');
 
   const proof = await observer.query(
-    `select (select closing_balance from finance.statutory_cash_daily_closures where cash_desk_id = $1 and closure_date = date '2026-06-16') as closing_balance,
+    `select (select closing_balance from finance.statutory_cash_daily_closures where cash_desk_id = $1 and closure_date = (statement_timestamp() at time zone 'Europe/Bucharest')::date) as closing_balance,
             (select count(*)::int from finance.statutory_cash_custody_transfers where cash_desk_id = $1 and status = 'confirmed') as confirmed_deposits`,
     [f.cashDesk1],
   );
@@ -572,7 +573,7 @@ async function runPettyFundingAndActivationRace(observer, winner, waiter, f) {
   await beginAsServiceRole(winner);
   const authRes = await winner.query(
     `select * from app_private.authorize_statutory_petty_cash_v1(
-       $1, $2, 500.00, date '2026-07-01', 'Elena Ionescu', 'Cheltuieli neprevazute iulie', $3, $4, $5
+       $1, $2, 500.00, (date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest') + interval '1 month')::date, 'Elena Ionescu', 'Cheltuieli neprevazute iulie', $3, $4, $5
      )`,
     [f.cashDesk1, f.resolution, f.actor, `idemp-auth-july-${f.cashDesk1}`, sha256(`auth-july-${f.cashDesk1}`)],
   );
@@ -720,7 +721,7 @@ async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
   // Create dedicated custody transfer for Race 8 so capacity is isolated and exact
   const trRes = await observer.query(
     `select * from app_private.record_cash_custody_transfer_v1(
-       $1, $2, null, 'bank_deposit', 10000.00, date '2026-06-16', timestamptz '2026-06-16 10:00:00+03', 'DEPOZIT-RACE-8',
+       $1, $2, null, 'bank_deposit', 10000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date, statement_timestamp(), 'DEPOZIT-RACE-8',
        $3, $4, $5
      )`,
     [f.cashDesk1, f.bankAccount, f.actor, `idemp-transfer-race-8-${id()}`, sha256(`transfer-race-8`)],
@@ -800,15 +801,15 @@ async function runExceptionAllocationRace(observer, winner, waiter, f) {
   await beginAsServiceRole(winner);
   const exRes = await winner.query(
     `select * from app_private.record_deposit_obligation_exception_v1(
-       $1, 3000.00, 'personnel_rights', date '2026-06-16', 'Salarii casier', $2, $3, $4, $5
-     )`,
-    [f.obligationCeiling1, f.paymentEntry1, f.actor, `idemp-ex-race-${f.obligationCeiling1}`, sha256(`ex-race-${f.obligationCeiling1}`)],
+       $1, 3000.00, 'personnel_rights', (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Salarii casier', $2, $3, $4
+     ),
+    [f.obligationCeiling1, f.actor, `idemp-ex-race-${f.obligationCeiling1}`, sha256(`ex-race-${f.obligationCeiling1}`)],
   );
   f.exceptionId1 = exRes.rows[0].id;
 
   const depRes = await winner.query(
     `select * from app_private.record_cash_custody_transfer_v1(
-       $1, $2, null, 'bank_deposit', 5000.00, date '2026-06-17', timestamptz '2026-06-17 10:00:00+03', 'DEPOZIT-EX-RACE',
+       $1, $2, null, 'bank_deposit', 5000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date, statement_timestamp(), 'DEPOZIT-EX-RACE',
        $3, $4, $5
      )`,
     [f.cashDesk1, f.bankAccount, f.actor, `idemp-dep-ex-race-${f.cashDesk1}`, sha256(`dep-ex-race-${f.cashDesk1}`)],
@@ -899,7 +900,7 @@ async function runMultiDeskPropertyMonthAuthorizationRace(observer, winner, wait
   await beginAsServiceRole(winner);
   const winnerCall = winner.query(
     `select * from app_private.authorize_statutory_petty_cash_v1(
-       $1, $2, 300.00, date '2026-08-01', 'Elena Ionescu', 'Cheltuieli neprevazute august Desk 1', $3, $4, $5
+       $1, $2, 300.00, (date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest') + interval '2 months')::date, 'Elena Ionescu', 'Cheltuieli neprevazute august Desk 1', $3, $4, $5
      )`,
     [f.cashDesk1, f.resolution, f.actor, `idemp-auth-aug1-${f.property}`, sha256(`auth-aug1-${f.property}`)],
   );
@@ -912,7 +913,7 @@ async function runMultiDeskPropertyMonthAuthorizationRace(observer, winner, wait
 
   const pendingWaiter = waiter.query(
     `select * from app_private.authorize_statutory_petty_cash_v1(
-       $1, $2, 400.00, date '2026-08-01', 'Elena Ionescu', 'Cheltuieli neprevazute august Desk 2', $3, $4, $5
+       $1, $2, 400.00, (date_trunc('month', statement_timestamp() at time zone 'Europe/Bucharest') + interval '2 months')::date, 'Elena Ionescu', 'Cheltuieli neprevazute august Desk 2', $3, $4, $5
      )`,
     [f.cashDesk2, f.resolution, f.actor, `idemp-auth-aug2-${f.property}`, sha256(`auth-aug2-${f.property}`)],
   ).catch((error) => {
