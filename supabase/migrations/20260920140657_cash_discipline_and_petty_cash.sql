@@ -1254,7 +1254,7 @@ begin
     return v_assign;
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -1916,7 +1916,7 @@ begin
     raise exception 'petty_cash_authorization_not_active' using errcode = '55000';
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -2060,7 +2060,7 @@ begin
     raise exception 'petty_cash_expense_already_reversed' using errcode = '55000';
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -2265,7 +2265,7 @@ begin
     raise exception 'exception_payment_entry_already_disbursed' using errcode = '23505';
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -2901,6 +2901,7 @@ grant select on finance.statutory_cash_document_finalization_events to service_r
 
 -- Grant necessary DML to cladora_rpc_owner
 grant select on finance.statutory_compliance_calendars to cladora_rpc_owner;
+grant select on finance.statutory_simple_entries to cladora_rpc_owner;
 grant select, insert, update on finance.statutory_cash_desks to cladora_rpc_owner;
 grant select, insert on finance.statutory_cash_entry_assignments to cladora_rpc_owner;
 grant select, insert, update on finance.statutory_cash_custody_transfers to cladora_rpc_owner;

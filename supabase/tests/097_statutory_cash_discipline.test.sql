@@ -203,10 +203,12 @@ select ok(
 -- Blocker 4: DB check constraint rejects non-50000 RON ceiling
 select throws_ok(
   $$insert into finance.statutory_cash_desks (
-      regime_id, code, name, currency, daily_ceiling_amount,
-      idempotency_key, payload_hash, created_by
+      id, tenant_id, property_id, regime_id, code, name, currency, status,
+      daily_ceiling_amount, idempotency_key, payload_hash, created_by
     ) values (
-      '09700000-0000-0000-0000-000000000050', 'CASH-BAD', 'Bad Ceiling', 'RON', 49999.00,
+      '09700000-0000-0000-0000-000000000098', '09700000-0000-0000-0000-000000000010',
+      '09700000-0000-0000-0000-000000000030', '09700000-0000-0000-0000-000000000050',
+      'CASH-BAD', 'Bad Ceiling', 'RON', 'draft', 49999.00,
       'idemp-desk-bad', repeat('f', 64), '09700000-0000-0000-0000-000000000001'
     )$$,
   '23514', null,
