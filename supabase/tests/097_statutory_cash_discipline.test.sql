@@ -173,15 +173,15 @@ insert into finance.statutory_simple_entries (
 ) values
   ('09700000-0000-0000-0000-000000000081', '09700000-0000-0000-0000-000000000060',
    '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
-   ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-097-1', 60000.00, 'Maintenance quota cash receipt',
+   ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2), 'receipt', 'cash', 'CHITANTA', 'CH-097-1', 60000.00, 'Maintenance quota cash receipt',
    '09700000-0000-0000-0000-000000000001'),
   ('09700000-0000-0000-0000-000000000082', '09700000-0000-0000-0000-000000000060',
    '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
-   ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'payment', 'cash', 'DISPOZITIE', 'DP-097-1', 5000.00, 'Emergency plumbing cash payment',
+   ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2), 'payment', 'cash', 'DISPOZITIE', 'DP-097-1', 5000.00, 'Emergency plumbing cash payment',
    '09700000-0000-0000-0000-000000000001'),
   ('09700000-0000-0000-0000-000000000083', '09700000-0000-0000-0000-000000000060',
    '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
-   ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'bank', 'EXTRAS', 'EX-097-1', 1000.00, 'Bank transfer quota',
+   ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2), 'receipt', 'bank', 'EXTRAS', 'EX-097-1', 1000.00, 'Bank transfer quota',
    '09700000-0000-0000-0000-000000000001'),
   ('09700000-0000-0000-0000-000000000084', '09700000-0000-0000-0000-000000000060',
    '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
@@ -245,7 +245,7 @@ select throws_ok(
   $$select * from app_private.assign_cash_simple_entry_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000083', -- Bank medium entry
-      (statement_timestamp() - interval '1 day'),
+      (statement_timestamp() - interval '2 days'),
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-bank', repeat('2', 64)
     )$$,
   '23514', 'only_cash_entries_can_be_assigned_to_cash_desk',
@@ -290,7 +290,7 @@ select lives_ok(
   $$select * from app_private.assign_cash_simple_entry_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000081',
-      (statement_timestamp() - interval '1 day'),
+      (statement_timestamp() - interval '2 days'),
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-rec-81', repeat('4', 64)
     )$$,
   'cash receipt assigned successfully'
@@ -346,7 +346,7 @@ select ok(
   (select id from app_private.assign_cash_simple_entry_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000081',
-      (statement_timestamp() - interval '1 day'),
+      (statement_timestamp() - interval '2 days'),
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-rec-81', repeat('4', 64)
     )) = (select id from finance.statutory_cash_entry_assignments where idempotency_key = 'idemp-assign-rec-81'),
   'assignment replay returns existing row idempotently'
@@ -357,7 +357,7 @@ select throws_ok(
   $$select * from app_private.assign_cash_simple_entry_v1(
       '09700000-0000-0000-0000-000000000062', -- Valid second cash desk
       '09700000-0000-0000-0000-000000000081',
-      (statement_timestamp() - interval '1 day'),
+      (statement_timestamp() - interval '2 days'),
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-diff-desk', repeat('5', 64)
     )$$,
   '23505', null,
@@ -376,7 +376,7 @@ select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1),
+      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2),
       clock_timestamp() + interval '1 hour', -- Future transferred_at
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-future', repeat('6', 64)
@@ -389,8 +389,8 @@ select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'bank_deposit', 56000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), -- Exceeds balance of 55,000 RON
-      (statement_timestamp() - interval '20 hours'),
+      'bank_deposit', 56000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2), -- Exceeds balance of 55,000 RON
+      (statement_timestamp() - interval '40 hours'),
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-overbal', repeat('7', 64)
     )$$,
@@ -402,8 +402,8 @@ select throws_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       null, null, -- Missing bank_account_id for desk_to_bank
-      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1),
-      (statement_timestamp() - interval '20 hours'),
+      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2),
+      (statement_timestamp() - interval '40 hours'),
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-nobank', repeat('8', 64)
     )$$,
@@ -416,8 +416,8 @@ select lives_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1),
-      (statement_timestamp() - interval '20 hours'),
+      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2),
+      (statement_timestamp() - interval '40 hours'),
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-097', repeat('9', 64)
     )$$,
@@ -442,8 +442,8 @@ select ok(
   (select id from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1),
-      (statement_timestamp() - interval '20 hours'),
+      'bank_deposit', 50000.00, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2),
+      (statement_timestamp() - interval '40 hours'),
       'Foaie varsamant FV-097-1',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-097', repeat('9', 64)
     )) = (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097'),
@@ -463,7 +463,7 @@ select throws_ok(
 select throws_ok(
   $$select * from app_private.close_statutory_cash_day_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 5001.00, -- Mismatch with ledger balance of 5,000.00
+      ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2), 5001.00, -- Mismatch with ledger balance of 5,000.00
       '09700000-0000-0000-0000-000000000001', 'idemp-close-mismatch', repeat('a', 64)
     )$$,
   '23514', 'cash_closure_discrepancy_detected',
@@ -474,7 +474,7 @@ select throws_ok(
 select lives_ok(
   $$select * from app_private.close_statutory_cash_day_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 5000.00,
+      ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2), 5000.00,
       '09700000-0000-0000-0000-000000000001', 'idemp-close-097', repeat('b', 64)
     )$$,
   'daily cash closure recorded successfully with compliant closing balance'
@@ -490,7 +490,7 @@ select ok(
 select ok(
   (select id from app_private.close_statutory_cash_day_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 5000.00,
+      ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 2), 5000.00,
       '09700000-0000-0000-0000-000000000001', 'idemp-close-097', repeat('b', 64)
     )) = (select id from finance.statutory_cash_daily_closures where idempotency_key = 'idemp-close-097'),
   'closure replay returns existing closure row idempotently'
@@ -507,8 +507,8 @@ select throws_ok(
 select throws_ok(
   $$select * from app_private.assign_cash_simple_entry_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      '09700000-0000-0000-0000-000000000083', -- Even if was valid cash entry on closed date
-      (statement_timestamp() - interval '1 day'),
+      '09700000-0000-0000-0000-000000000083', -- Bank entry rejected
+      (statement_timestamp() - interval '2 days'),
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-closed-day', repeat('c', 64)
     )$$,
   '23514', 'only_cash_entries_can_be_assigned_to_cash_desk',
@@ -523,7 +523,7 @@ insert into finance.statutory_simple_entries (
 ) values (
   '09700000-0000-0000-0000-000000000088', '09700000-0000-0000-0000-000000000060',
   '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
-  (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-097-DAY2', 50000.00, 'Day 2 receipt',
+  ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-097-DAY2', 50000.00, 'Day 2 receipt',
   '09700000-0000-0000-0000-000000000001'
 );
 
@@ -531,7 +531,7 @@ select lives_ok(
   $$select * from app_private.assign_cash_simple_entry_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000088',
-      statement_timestamp(),
+      (statement_timestamp() - interval '1 day'),
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-day2', repeat('d', 64)
     )$$,
   'day 2 receipt assigned'
@@ -540,7 +540,7 @@ select lives_ok(
 select lives_ok(
   $$select * from app_private.close_statutory_cash_day_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
-      (statement_timestamp() at time zone 'Europe/Bucharest')::date, 55000.00,
+      ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 55000.00,
       '09700000-0000-0000-0000-000000000001', 'idemp-close-day2', repeat('c', 64)
     )$$,
   'day 2 closure recorded with 5,000 RON excess above ceiling'
