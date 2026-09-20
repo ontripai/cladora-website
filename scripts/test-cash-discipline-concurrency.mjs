@@ -207,18 +207,18 @@ async function setupFixtures(client, f) {
       [f.resolution, f.tenant, f.meeting, f.agenda],
     );
     await client.query(
-      `insert into finance.statutory_simple_entries (id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium, document_type, document_number, amount, description, created_by)
+      `insert into finance.statutory_simple_entries (id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium, document_type, document_number, amount, description, reversal_of_entry_id, created_by)
        values
-         ($1, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-2B-1', 55000.00, 'Cash quota', $7),
-         ($2, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-2B-2', 10000.00, 'Cash quota 2', $7),
-         ($3, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'payment', 'cash', 'DISPOZITIE', 'DP-2B-1', 2000.00, 'Plumber payment', $7),
-         ($8, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC1', 600.00, 'Petty cash emergency repair', $7),
-         ($9, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC2', 500.00, 'Petty cash sanitary parts', $7),
-         ($10, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC3', 400.00, 'Petty cash electrical repair', $7),
-         ($11, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-REF1', 600.00, 'Refund of repair parts', $7),
-         ($12, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND1', 1000.00, 'Funding for petty cash', $7),
-         ($13, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND2', 1000.00, 'Funding for petty cash 2', $7),
-         ($14, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-DOC1', 250.00, 'Document payment entry', $7)`,
+         ($1, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-2B-1', 55000.00, 'Cash quota', null, $7),
+         ($2, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'receipt', 'cash', 'CHITANTA', 'CH-2B-2', 10000.00, 'Cash quota 2', null, $7),
+         ($3, $4, $5, $6, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'payment', 'cash', 'DISPOZITIE', 'DP-2B-1', 2000.00, 'Plumber payment', null, $7),
+         ($8, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC1', 600.00, 'Petty cash emergency repair', null, $7),
+         ($9, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC2', 500.00, 'Petty cash sanitary parts', null, $7),
+         ($10, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-PC3', 400.00, 'Petty cash electrical repair', null, $7),
+         ($11, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-REF1', 600.00, 'Refund of repair parts', $8, $7),
+         ($12, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND1', 1000.00, 'Funding for petty cash', null, $7),
+         ($13, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-2B-FUND2', 1000.00, 'Funding for petty cash 2', null, $7),
+         ($14, $4, $5, $6, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-2B-DOC1', 250.00, 'Document payment entry', null, $7)`,
       [f.receiptEntry1, f.receiptEntry2, f.paymentEntry1, f.cycle, f.tenant, f.property, f.actor,
        f.pettyPaymentEntry1, f.pettyPaymentEntry2, f.pettyPaymentEntry3, f.pettyRefundEntry1,
        f.receiptFunding1, f.receiptFunding2, f.docEntry1],
