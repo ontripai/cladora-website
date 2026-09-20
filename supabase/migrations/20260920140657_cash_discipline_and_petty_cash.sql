@@ -199,6 +199,23 @@ create table finance.statutory_cash_custody_transfers (
   check ((status = 'confirmed') = (confirmed_at is not null and confirmed_by is not null))
 );
 
+create or replace function finance.protect_statutory_custody_transfer_v1()
+returns trigger
+language plpgsql
+set search_path = pg_catalog
+as $
+begin
+  if tg_op = 'DELETE' or (tg_op = 'UPDATE' and old.status = 'confirmed') then
+    raise exception 'statutory_custody_transfer_is_immutable' using errcode = '55000';
+  end if;
+  return new;
+end;
+$;
+
+create trigger statutory_cash_custody_transfer_immutable
+before update or delete on finance.statutory_cash_custody_transfers
+for each row execute function finance.protect_statutory_custody_transfer_v1();
+
 create table finance.statutory_cash_daily_closures (
   id uuid primary key default gen_random_uuid(),
   cash_desk_id uuid not null references finance.statutory_cash_desks(id) on delete restrict,
@@ -308,8 +325,7 @@ create table finance.statutory_petty_cash_expenses (
   description text not null check (btrim(description) <> ''),
   supporting_document_type text not null check (btrim(supporting_document_type) <> ''),
   supporting_document_number text not null check (btrim(supporting_document_number) <> ''),
-  supporting_document_hash text not null check (supporting_document_hash ~ '^[0-9a-f]{64}$'),
-  written_authority_reference text not null check (btrim(written_authority_reference) <> ''),
+  supporting_document_hash text not null check (supporting_document_hash ~ '^[0-9a-f]{64}
   status finance.statutory_petty_cash_expense_status not null default 'recorded',
   idempotency_key text not null check (btrim(idempotency_key) <> ''),
   payload_hash text not null check (payload_hash ~ '^[0-9a-f]{64}$'),
@@ -1621,7 +1637,7 @@ begin
    where authorization_id = p_authorization_id;
 
   if v_funded <= 0.00 then
-    raise exception 'statutory_petty_cash_unfunded' using errcode = '22023';
+    raise exception 'petty_cash_activation_requires_funding_allocation' using errcode = '22023';
   end if;
 
   update finance.statutory_petty_cash_authorizations
@@ -1732,12 +1748,12 @@ begin
   insert into finance.statutory_petty_cash_expenses (
     authorization_id, statutory_simple_entry_id, tenant_id, property_id, cash_desk_id,
     amount, expense_date, description, supporting_document_type, supporting_document_number,
-    supporting_document_hash, written_authority_reference, status, idempotency_key, payload_hash, created_by
+    supporting_document_hash, recipient_name, written_authority_reference, status, idempotency_key, payload_hash, created_by
   ) values (
     p_authorization_id, p_statutory_simple_entry_id, v_auth.tenant_id, v_auth.property_id, v_auth.cash_desk_id,
     v_entry.amount, v_entry.entry_date, btrim(v_entry.description), 'FACTURA_BON', btrim(p_receipt_document_reference),
     encode(sha256((p_receipt_document_reference || ':' || v_entry.amount::text)::bytea), 'hex'),
-    btrim(p_recipient_name), 'recorded', p_idempotency_key, p_payload_hash, p_actor_id
+    btrim(p_recipient_name), btrim(p_recipient_name), 'recorded', p_idempotency_key, p_payload_hash, p_actor_id
   ) returning * into v_exp;
 
   -- Append-only consumption allocation (Erratum-004 item 2)
@@ -1829,7 +1845,7 @@ begin
     raise exception 'statutory_petty_cash_reversal_entry_not_assigned_to_desk' using errcode = '22023';
   end if;
 
-  if v_entry.reversal_of_entry_id is distinct from v_orig.statutory_simple_entry_id then
+  if v_entry.reversal_of_entry_id is not null and v_entry.reversal_of_entry_id <> v_orig.statutory_simple_entry_id then
     raise exception 'reversal_simple_entry_mismatch' using errcode = '23514';
   end if;
 
