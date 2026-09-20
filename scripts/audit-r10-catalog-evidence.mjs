@@ -163,12 +163,13 @@ async function runAudit() {
   console.log(`[Exposed Schemas (config.toml)]: ${EXPOSED_SCHEMAS.join(', ')}`);
   console.log(`[Data API Evidence Required]: ${REQUIRE_DATA_API_EVIDENCE}`);
 
-  let commitSha = 'UNKNOWN';
+  let testedCheckoutSha = 'UNKNOWN';
   try {
-    commitSha = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+    testedCheckoutSha = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
   } catch {
-    commitSha = process.env.GITHUB_SHA || 'UNKNOWN';
+    testedCheckoutSha = process.env.GITHUB_SHA || 'UNKNOWN';
   }
+  const sourceHeadSha = process.env.SOURCE_HEAD_SHA || testedCheckoutSha;
 
   let cliVersion = 'UNKNOWN';
   try {
@@ -1197,7 +1198,9 @@ async function runAudit() {
 
   const evidenceReport = {
     timestamp: new Date().toISOString(),
-    commit_sha: commitSha,
+    commit_sha: sourceHeadSha,
+    source_head_sha: sourceHeadSha,
+    tested_checkout_sha: testedCheckoutSha,
     cli_version: cliVersion,
     execution_scope: {
       database_target: 'local_ephemeral_only',
