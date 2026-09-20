@@ -1,6 +1,6 @@
 -- R10 Phase 2B: Romanian HOA cash-desk discipline, 24h deposit obligation,
 -- EOD 50,000 RON ceiling, Art. 4² 3-day exceptions, and bank deposit settlements.
--- Remediation-005: Fully dynamic execution relative to Europe/Bucharest server timestamp
+-- Remediation-005: Fully dynamic execution relative to Europe/Bucharest server timestamp (all 11 races synchronized)
 begin;
 select plan(89);
 

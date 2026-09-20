@@ -360,10 +360,19 @@ async function runDailyClosureRace(observer, winner, waiter, f) {
   const closureDateRes = await observer.query("select ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1)::text as d");
   const closureDate = closureDateRes.rows[0].d;
 
+  const balRes = await observer.query(
+    `select (coalesce(sum(case when a.entry_direction = 'receipt' then a.amount else -a.amount end), 0))::numeric(20,2) as bal
+       from finance.statutory_cash_entry_assignments a
+       join finance.statutory_simple_entries e on e.id = a.statutory_simple_entry_id
+      where a.cash_desk_id = $1 and e.entry_date = $2::date`,
+    [f.cashDesk1, closureDate]
+  );
+  const countedAmount = parseFloat(balRes.rows[0].bal);
+
   await beginAsServiceRole(winner);
   const winnerCall = winner.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64750.00, $3, $4, $5)`,
-    [f.cashDesk1, closureDate, f.actor, `idemp-close-winner-${f.cashDesk1}`, sha256(`close-win-${f.cashDesk1}`)],
+    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, $3, $4, $5, $6)`,
+    [f.cashDesk1, closureDate, countedAmount, f.actor, `idemp-close-winner-${f.cashDesk1}`, sha256(`close-win-${f.cashDesk1}`)],
   );
 
   const winnerResult = await winnerCall;
@@ -376,8 +385,8 @@ async function runDailyClosureRace(observer, winner, waiter, f) {
   let waiterError;
 
   const pendingWaiter = waiter.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, 64750.00, $3, $4, $5)`,
-    [f.cashDesk1, closureDate, f.actor, `idemp-close-waiter-${f.cashDesk1}`, sha256(`close-wait-${f.cashDesk1}`)],
+    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, $3, $4, $5, $6)`,
+    [f.cashDesk1, closureDate, countedAmount, f.actor, `idemp-close-waiter-${f.cashDesk1}`, sha256(`close-wait-${f.cashDesk1}`)],
   ).catch((error) => {
     waiterError = error;
   });
@@ -538,9 +547,28 @@ async function runDepositSettlementContentionRace(observer, winner, waiter, f) {
   const winnerPid = await backendPid(winner);
   let waiterResult;
 
+  const closureDate2Res = await observer.query("select (statement_timestamp() at time zone 'Europe/Bucharest')::date::text as d");
+  const closureDate2 = closureDate2Res.rows[0].d;
+
+  const prevRes = await observer.query(
+    `select closing_balance from finance.statutory_cash_daily_closures where cash_desk_id = $1 order by closure_date desc limit 1`,
+    [f.cashDesk1]
+  );
+  const prevBal = parseFloat(prevRes.rows[0].closing_balance);
+
+  const day2EntriesRes = await observer.query(
+    `select (coalesce(sum(case when a.entry_direction = 'receipt' then a.amount else -a.amount end), 0))::numeric(20,2) as day2_entries
+       from finance.statutory_cash_entry_assignments a
+       join finance.statutory_simple_entries e on e.id = a.statutory_simple_entry_id
+      where a.cash_desk_id = $1 and e.entry_date = $2::date`,
+    [f.cashDesk1, closureDate2]
+  );
+  const day2Entries = parseFloat(day2EntriesRes.rows[0].day2_entries);
+  const day2Counted = prevBal + day2Entries - 10000.00;
+
   const pendingWaiter = waiter.query(
-    `select * from app_private.close_statutory_cash_day_v1($1, (statement_timestamp() at time zone 'Europe/Bucharest')::date, 53250.00, $2, $3, $4)`,
-    [f.cashDesk1, f.actor, `idemp-close-race-${f.cashDesk1}`, sha256(`close-race-${f.cashDesk1}`)],
+    `select * from app_private.close_statutory_cash_day_v1($1, $2::date, $3, $4, $5, $6)`,
+    [f.cashDesk1, closureDate2, day2Counted, f.actor, `idemp-close-race-${f.cashDesk1}`, sha256(`close-race-${f.cashDesk1}`)],
   ).then((res) => {
     waiterResult = res;
   });
