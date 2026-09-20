@@ -1744,7 +1744,7 @@ begin
   -- Check available funded balance (Blocker 4)
   v_avail := finance.statutory_petty_cash_balance_v1(p_authorization_id);
   if v_entry.amount > v_avail then
-    raise exception 'statutory_petty_cash_insufficient_funds' using errcode = '22023';
+    raise exception 'petty_cash_ceiling_exceeded' using errcode = '23514';
   end if;
 
   insert into finance.statutory_petty_cash_expenses (
@@ -2351,7 +2351,7 @@ begin
   select * into v_doc from finance.statutory_cash_documents where id = p_document_id for update;
 
   if v_doc.status = 'finalized' then
-    return v_doc;
+    raise exception 'cash_document_already_finalized' using errcode = '55000';
   end if;
 
   if v_doc.lock_version <> p_expected_lock_version then
