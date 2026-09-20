@@ -559,6 +559,19 @@ select throws_ok(
   'settlement allocation record is immutable and cannot be deleted'
 );
 
+-- Replenish cash desk via bank withdrawal to fund second deposit
+do $$
+begin
+  perform app_private.record_cash_custody_transfer_v1(
+    (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
+    '09700000-0000-0000-0000-000000000070', null, 'bank_withdrawal', 3000.00,
+    date '2026-06-16',
+    timestamptz '2026-06-16 10:30:00+03',
+    'RETRAGERE-BT-097-01',
+    '09700000-0000-0000-0000-000000000001', 'idemp-with-097-1', repeat('9', 64)
+  );
+end $$;
+
 -- Record second bank deposit of 5,000 RON
 select lives_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(

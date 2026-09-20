@@ -1,7 +1,7 @@
 -- R10 Phase 2B: Romanian HOA petty cash controls under Law 196/2018 Art. 67(5)
 -- and statutory cash documents (14-4-1 Chitanță, 14-4-4 Dispoziție casierie).
 begin;
-select plan(71);
+select plan(72);
 
 -- 1. Structural, RLS and ACL contracts
 select has_table('finance', 'statutory_petty_cash_authorizations', 'petty cash authorizations table exists');
@@ -14,7 +14,10 @@ select has_table('finance', 'statutory_cash_documents', 'statutory cash document
 select has_table('finance', 'statutory_cash_document_verification_events', 'cash document verification events table exists');
 select has_table('finance', 'statutory_cash_document_finalization_events', 'cash document finalization events table exists');
 
-select has_column('finance', 'statutory_petty_cash_authorizations', 'custodian_name', 'custodian_name column exists on authorizations');
+select ok(
+  exists(select 1 from information_schema.columns where table_schema = 'finance' and table_name = 'statutory_petty_cash_authorizations' and column_name = 'custodian_name'),
+  'custodian_name column exists on authorizations'
+);
 
 select has_function('finance', 'statutory_petty_cash_balance_v1', array['uuid'], 'derived petty cash balance function exists');
 

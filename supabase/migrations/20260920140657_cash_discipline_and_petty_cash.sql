@@ -412,7 +412,7 @@ set search_path = pg_catalog
 as $$
 begin
   if tg_op = 'DELETE' then
-    raise exception 'statutory_deposit_obligation_is_immutable' using errcode = '55000';
+    raise exception 'unmediated_deposit_obligation_mutation_forbidden' using errcode = '55000';
   end if;
   if tg_op = 'UPDATE' then
     if current_user <> 'cladora_rpc_owner' then
@@ -640,7 +640,7 @@ begin
     end if;
     if old.status <> new.status or old.renderer_status <> new.renderer_status then
       if current_user <> 'cladora_rpc_owner' then
-        raise exception 'unmediated_document_finalization_forbidden' using errcode = '55000';
+        raise exception 'unmediated_document_mutation_forbidden' using errcode = '55000';
       end if;
     end if;
   end if;
