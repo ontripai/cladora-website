@@ -209,7 +209,7 @@ select throws_ok(
       '09700000-0000-0000-0000-000000000081',
       '09700000-0000-0000-0000-000000000001', 'idemp-assign-rec-dup', repeat('5', 64)
     )$$,
-  '23505',
+  '23505', 'duplicate key value violates unique constraint',
   'cash entry cannot be assigned multiple times'
 );
 

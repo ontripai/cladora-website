@@ -322,7 +322,7 @@ select throws_ok(
       '{}'::jsonb, null, null,
       '09800000-0000-0000-0000-000000000001', 'idemp-doc-dup-num', repeat('e', 64)
     )$$,
-  '23505',
+  '23505', 'duplicate key value violates unique constraint',
   'duplicate document series and number for cash desk is rejected'
 );
 
