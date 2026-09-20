@@ -104,6 +104,10 @@ create index statutory_cycles_tenant_status_idx
   on finance.statutory_monthly_cycles (tenant_id, status, created_at desc);
 create index statutory_cycles_period_idx
   on finance.statutory_monthly_cycles (accounting_period_id);
+create index statutory_cycles_property_idx
+  on finance.statutory_monthly_cycles (property_id);
+create index statutory_cycles_operational_cycle_idx
+  on finance.statutory_monthly_cycles (operational_monthly_cycle_id);
 
 create table finance.statutory_simple_entries (
   id uuid primary key default gen_random_uuid(),
@@ -134,6 +138,12 @@ create index statutory_entries_cycle_sequence_idx
   on finance.statutory_simple_entries (cycle_id, entry_sequence);
 create index statutory_entries_tenant_date_idx
   on finance.statutory_simple_entries (tenant_id, entry_date, id);
+create index statutory_entries_property_idx
+  on finance.statutory_simple_entries (property_id);
+create index statutory_entries_reversal_idx
+  on finance.statutory_simple_entries (reversal_of_entry_id);
+create index statutory_entries_created_by_idx
+  on finance.statutory_simple_entries (created_by);
 
 create table finance.statutory_cycle_transitions (
   id bigint generated always as identity primary key,
@@ -149,6 +159,10 @@ create table finance.statutory_cycle_transitions (
 
 create index statutory_cycle_transitions_cycle_idx
   on finance.statutory_cycle_transitions (cycle_id, occurred_at, id);
+create index statutory_cycle_transitions_tenant_idx
+  on finance.statutory_cycle_transitions (tenant_id);
+create index statutory_cycle_transitions_actor_idx
+  on finance.statutory_cycle_transitions (actor_id);
 
 create or replace function finance.validate_statutory_accounting_scope_v1()
 returns trigger
