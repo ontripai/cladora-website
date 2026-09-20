@@ -132,7 +132,7 @@ create table finance.statutory_cash_entry_assignments (
   statutory_simple_entry_id uuid not null unique references finance.statutory_simple_entries(id) on delete restrict,
   tenant_id uuid not null references platform.tenants(id) on delete restrict,
   property_id uuid not null references portfolio.properties(id) on delete restrict,
-  entry_direction finance.statutory_simple_entry_direction not null,
+  entry_direction finance.statutory_entry_direction not null,
   amount numeric(20,2) not null check (amount > 0),
   received_at timestamptz,
   assigned_at timestamptz not null default statement_timestamp(),
