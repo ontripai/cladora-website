@@ -454,12 +454,18 @@ async function runAudit() {
         });
       }
 
-      // Gate 4: Direct DML for authenticated unless on allowlist
+      // Gate 4: Direct DML for authenticated
       if (t.authenticated_insert || t.authenticated_update || t.authenticated_delete) {
-        if (!AUTHENTICATED_DML_ALLOWLIST.has(fullTableName)) {
+        if (isExposed && !t.has_rls) {
           criticalFindings.push({
-            rule: 'TABLE_AUTHENTICATED_DIRECT_DML_UNAUTHORIZED',
-            message: `Table ${fullTableName} has direct DML privilege granted to authenticated not in allowlist`,
+            rule: 'TABLE_AUTHENTICATED_DIRECT_DML_EXPOSED_WITHOUT_RLS',
+            message: `Table ${fullTableName} in exposed schema has direct DML for authenticated without RLS`,
+            table: fullTableName
+          });
+        } else if (!AUTHENTICATED_DML_ALLOWLIST.has(fullTableName)) {
+          highFindings.push({
+            rule: 'TABLE_AUTHENTICATED_DIRECT_DML_INCONSISTENT',
+            message: `Table ${fullTableName} in internal schema has direct DML privilege granted to authenticated (architectural ACL review required before Phase 1)`,
             table: fullTableName
           });
         }
