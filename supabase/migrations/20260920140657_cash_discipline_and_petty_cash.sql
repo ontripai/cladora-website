@@ -203,14 +203,14 @@ create or replace function finance.protect_statutory_custody_transfer_v1()
 returns trigger
 language plpgsql
 set search_path = pg_catalog
-as $
+as $$
 begin
   if tg_op = 'DELETE' or (tg_op = 'UPDATE' and old.status = 'confirmed') then
     raise exception 'statutory_custody_transfer_is_immutable' using errcode = '55000';
   end if;
   return new;
 end;
-$;
+$$;
 
 create trigger statutory_cash_custody_transfer_immutable
 before update or delete on finance.statutory_cash_custody_transfers
