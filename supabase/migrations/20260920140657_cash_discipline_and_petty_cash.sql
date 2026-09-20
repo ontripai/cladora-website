@@ -165,11 +165,11 @@ create or replace function finance.protect_statutory_cash_assignment_v1()
 returns trigger
 language plpgsql
 set search_path = pg_catalog
-as $
+as $$
 begin
   raise exception 'statutory_cash_assignment_is_immutable' using errcode = '55000';
 end;
-$;
+$$;
 
 create trigger statutory_cash_assignment_immutable
 before update or delete on finance.statutory_cash_entry_assignments
