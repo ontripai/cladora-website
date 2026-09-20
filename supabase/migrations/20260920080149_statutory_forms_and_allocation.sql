@@ -323,13 +323,15 @@ language plpgsql
 set search_path = pg_catalog
 as $$
 begin
-  if tg_table_name = 'statutory_form_instances' and old.state in ('finalized', 'superseded') then
-    raise exception 'final_statutory_form_is_immutable' using errcode = '55000';
-  end if;
-  if tg_table_name = 'statutory_allocation_batches' and old.status <> 'draft' then
-    raise exception 'calculated_statutory_allocation_is_immutable' using errcode = '55000';
-  end if;
-  if tg_table_name in ('statutory_allocation_bases', 'statutory_allocation_results') then
+  if tg_table_name = 'statutory_form_instances' then
+    if old.state in ('finalized', 'superseded') then
+      raise exception 'final_statutory_form_is_immutable' using errcode = '55000';
+    end if;
+  elsif tg_table_name = 'statutory_allocation_batches' then
+    if old.status <> 'draft' then
+      raise exception 'calculated_statutory_allocation_is_immutable' using errcode = '55000';
+    end if;
+  elsif tg_table_name in ('statutory_allocation_bases', 'statutory_allocation_results') then
     raise exception 'statutory_allocation_evidence_is_append_only' using errcode = '55000';
   end if;
   return case when tg_op = 'DELETE' then old else new end;
