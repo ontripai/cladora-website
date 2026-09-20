@@ -410,9 +410,11 @@ begin
     raise exception 'statutory_form_phase2_dependencies_not_ready: %', v_form_code
       using errcode = '55000';
   elsif v_form_code = '14-1-1/A' then
-    if jsonb_typeof(v_instance.payload -> 'rows') <> 'array'
-       or jsonb_array_length(v_instance.payload -> 'rows') = 0
-       or jsonb_typeof(v_instance.payload -> 'control_totals') <> 'object' then
+    if jsonb_typeof(v_instance.payload -> 'rows') is distinct from 'array'
+       or jsonb_typeof(v_instance.payload -> 'control_totals') is distinct from 'object' then
+      raise exception 'statutory_journal_payload_incomplete' using errcode = '23514';
+    end if;
+    if jsonb_array_length(v_instance.payload -> 'rows') = 0 then
       raise exception 'statutory_journal_payload_incomplete' using errcode = '23514';
     end if;
     select coalesce(sum(amount) filter (where direction = 'receipt'), 0),
@@ -424,8 +426,10 @@ begin
       raise exception 'statutory_journal_control_totals_mismatch' using errcode = '23514';
     end if;
   elsif v_form_code = '14-1-2' then
-    if jsonb_typeof(v_instance.payload -> 'inventory_rows') <> 'array'
-       or jsonb_array_length(v_instance.payload -> 'inventory_rows') = 0
+    if jsonb_typeof(v_instance.payload -> 'inventory_rows') is distinct from 'array' then
+      raise exception 'statutory_inventory_payload_incomplete' using errcode = '23514';
+    end if;
+    if jsonb_array_length(v_instance.payload -> 'inventory_rows') = 0
        or nullif(btrim(v_instance.payload ->> 'inventory_signoff_reference'), '') is null then
       raise exception 'statutory_inventory_payload_incomplete' using errcode = '23514';
     end if;
