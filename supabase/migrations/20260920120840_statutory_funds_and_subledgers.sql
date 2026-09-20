@@ -237,6 +237,7 @@ create index statutory_fund_movements_work_order_idx on finance.statutory_fund_m
 create index statutory_fund_movements_conveyance_idx on finance.statutory_fund_movements(conveyance_id);
 create index statutory_fund_movements_reversal_idx on finance.statutory_fund_movements(reversal_of_movement_id);
 create index statutory_fund_movements_unit_party_idx on finance.statutory_fund_movements(fund_id, unit_id, party_id);
+create index statutory_fund_movements_unit_idx on finance.statutory_fund_movements(unit_id);
 create index statutory_fund_movements_party_idx on finance.statutory_fund_movements(party_id);
 create index statutory_fund_movements_created_by_idx on finance.statutory_fund_movements(created_by);
 
