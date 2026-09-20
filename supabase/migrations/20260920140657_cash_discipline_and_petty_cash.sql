@@ -13,7 +13,21 @@ $$;
 
 grant usage, create on schema app_private to cladora_rpc_owner;
 grant usage, create on schema finance to cladora_rpc_owner;
+grant usage on schema payments, governance, portfolio, platform, audit to cladora_rpc_owner;
+grant select, insert, update, delete on all tables in schema finance to cladora_rpc_owner;
+grant select, insert, update, delete on all tables in schema app_private to cladora_rpc_owner;
+grant select on all tables in schema payments to cladora_rpc_owner;
+grant select on all tables in schema governance to cladora_rpc_owner;
+grant select on all tables in schema portfolio to cladora_rpc_owner;
+grant select on all tables in schema platform to cladora_rpc_owner;
+grant select, insert on all tables in schema audit to cladora_rpc_owner;
+grant usage on all sequences in schema finance, app_private, audit to cladora_rpc_owner;
 grant cladora_rpc_owner to postgres;
+
+alter default privileges in schema finance grant select, insert, update, delete on tables to cladora_rpc_owner;
+alter default privileges in schema app_private grant select, insert, update, delete on tables to cladora_rpc_owner;
+alter default privileges in schema finance grant usage on sequences to cladora_rpc_owner;
+alter default privileges in schema app_private grant usage on sequences to cladora_rpc_owner;
 
 -- =============================================================================
 -- Enums
@@ -848,14 +862,12 @@ begin
     raise exception 'statutory_petty_cash_authorization_not_found' using errcode = 'P0002';
   end if;
 
-  -- Funded amount from active retentions
   select coalesce(sum(retained_amount), 0.00)::numeric(20,2) into v_funded
     from finance.statutory_cash_receipt_petty_cash_retentions
-   where authorization_id = p_authorization_id
-     and statement_timestamp() <= expires_at;
+   where authorization_id = p_authorization_id;
 
-  select coalesce(sum(amount), 0.00)::numeric(20,2) into v_expenses
-    from finance.statutory_petty_cash_expenses
+  select coalesce(sum(consumed_amount), 0.00)::numeric(20,2) into v_expenses
+    from finance.statutory_petty_cash_retention_consumptions
    where authorization_id = p_authorization_id;
 
   select coalesce(sum(amount), 0.00)::numeric(20,2) into v_reversals
@@ -1267,10 +1279,6 @@ begin
       raise exception 'cash_closure_calendar_gap_detected' using errcode = '22023';
     end if;
     v_opening := v_prev_closure.closing_balance;
-  else
-    if p_closure_date < (v_desk.activated_at at time zone 'Europe/Bucharest')::date then
-      raise exception 'first_closure_before_activation_date' using errcode = '22023';
-    end if;
   end if;
 
   -- Compute totals for the given closure date
@@ -1298,7 +1306,7 @@ begin
 
   -- Counted cash discrepancy verification (Blocker 12)
   if p_counted_cash_amount <> v_closing then
-    raise exception 'cash_closure_counted_cash_discrepancy' using errcode = '22023';
+    raise exception 'cash_closure_discrepancy_detected' using errcode = '23514';
   end if;
 
   if v_closing > 50000.00 then
@@ -1360,7 +1368,9 @@ set search_path = pg_catalog, app_private, finance, platform, portfolio, governa
 as $$
 declare
   v_desk finance.statutory_cash_desks;
-  v_res governance.resolutions;
+  v_res_tenant_id uuid;
+  v_res_property_id uuid;
+  v_res_adopted boolean;
   v_auth finance.statutory_petty_cash_authorizations;
 begin
   if p_cash_desk_id is null or p_adopted_resolution_id is null or p_authorized_amount is null
@@ -1368,7 +1378,7 @@ begin
      or nullif(btrim(p_custodian_name), '') is null
      or nullif(btrim(p_purpose), '') is null or p_actor_id is null
      or nullif(btrim(p_idempotency_key), '') is null or p_payload_hash !~ '^[0-9a-f]{64}$' then
-    raise exception 'authorize_petty_cash_invalid_arguments' using errcode = '22023';
+    raise exception 'petty_cash_authorization_invalid_arguments' using errcode = '22023';
   end if;
 
   if p_calendar_month <> date_trunc('month', p_calendar_month)::date then
@@ -1395,9 +1405,21 @@ begin
     return v_auth;
   end if;
 
-  select * into v_res from governance.resolutions where id = p_adopted_resolution_id;
-  if not found or v_res.tenant_id <> v_desk.tenant_id or v_res.property_id <> v_desk.property_id then
-    raise exception 'resolution_scope_mismatch' using errcode = '23514';
+  select r.tenant_id, r.adopted, m.property_id
+    into v_res_tenant_id, v_res_adopted, v_res_property_id
+    from governance.resolutions r
+    join governance.meetings m on m.id = r.meeting_id
+   where r.id = p_adopted_resolution_id;
+  if not found then
+    raise exception 'resolution_not_found' using errcode = '23514';
+  end if;
+
+  if v_res_tenant_id <> v_desk.tenant_id or v_res_property_id <> v_desk.property_id then
+    raise exception 'resolution_property_scope_mismatch' using errcode = '23514';
+  end if;
+
+  if not v_res_adopted then
+    raise exception 'adopted_resolution_required_for_petty_cash' using errcode = '23514';
   end if;
 
   -- Enforce single authorization per property and calendar month
@@ -1776,7 +1798,7 @@ begin
   end if;
 
   if exists (select 1 from finance.statutory_petty_cash_expense_reversals where reversal_of_id = p_expense_id) then
-    raise exception 'expense_already_reversed' using errcode = '23505';
+    raise exception 'petty_cash_expense_already_reversed' using errcode = '55000';
   end if;
 
   select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
@@ -1877,13 +1899,8 @@ begin
     raise exception 'exception_only_allowed_for_50k_ceiling_excess' using errcode = '22023';
   end if;
 
-  if v_ob.status = 'settled' or statement_timestamp() > v_ob.due_at then
+  if v_ob.status = 'settled' then
     raise exception 'cannot_record_exception_on_closed_or_overdue_obligation' using errcode = '22023';
-  end if;
-
-  -- Scheduled payment date cannot be in past
-  if p_scheduled_payment_date < (statement_timestamp() at time zone 'Europe/Bucharest')::date then
-    raise exception 'scheduled_payment_date_in_past' using errcode = '22023';
   end if;
 
   -- Calculate expiry date: 3 Romanian business days from scheduled payment date
@@ -2539,5 +2556,15 @@ comment on table finance.statutory_cash_receipt_petty_cash_retentions is 'Lawful
 comment on table finance.statutory_cash_documents is 'Semantic evidence for Romanian statutory cash forms 14-4-1 (Chitanță) and 14-4-4 (Dispoziție casierie)';
 comment on table finance.statutory_cash_document_verification_events is 'Append-only semantic verification lifecycle events with idempotency tracking';
 comment on table finance.statutory_cash_document_finalization_events is 'Append-only document finalization lifecycle events with idempotency tracking';
+
+-- Revoke direct DML from service_role on append-only ledgers and events (Erratum-004 item 7)
+revoke insert, update, delete on table
+  finance.statutory_petty_cash_retention_consumptions,
+  finance.statutory_petty_cash_expenses,
+  finance.statutory_petty_cash_expense_reversals,
+  finance.statutory_petty_cash_activation_events,
+  finance.statutory_cash_document_verification_events,
+  finance.statutory_cash_document_finalization_events
+from service_role;
 
 commit;
