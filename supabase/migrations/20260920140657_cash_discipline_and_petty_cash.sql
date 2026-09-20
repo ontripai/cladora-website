@@ -325,7 +325,9 @@ create table finance.statutory_petty_cash_expenses (
   description text not null check (btrim(description) <> ''),
   supporting_document_type text not null check (btrim(supporting_document_type) <> ''),
   supporting_document_number text not null check (btrim(supporting_document_number) <> ''),
-  supporting_document_hash text not null check (supporting_document_hash ~ '^[0-9a-f]{64}
+  supporting_document_hash text not null check (supporting_document_hash ~ '^[0-9a-f]{64}$'),
+  recipient_name text,
+  written_authority_reference text not null check (btrim(written_authority_reference) <> ''),
   status finance.statutory_petty_cash_expense_status not null default 'recorded',
   idempotency_key text not null check (btrim(idempotency_key) <> ''),
   payload_hash text not null check (payload_hash ~ '^[0-9a-f]{64}$'),
