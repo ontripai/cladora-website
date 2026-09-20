@@ -184,8 +184,8 @@ async function setupFixtures(client, f) {
          (id, tenant_id, unit_id, party_id, share, valid_from, valid_to)
        values
          ($1, $7, $6, $2, 1, current_date - 365, current_date),
-         ($3, $7, $6, $4, 1, current_date, null),
-         ($5, $7, $6, $8, 1, current_date, null)`,
+         ($3, $7, $6, $4, 0.5, current_date, null),
+         ($5, $7, $6, $8, 0.5, current_date, null)`,
       [
         f.outgoingOwnership,
         f.outgoingParty,
