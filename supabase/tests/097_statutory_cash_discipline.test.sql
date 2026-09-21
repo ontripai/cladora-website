@@ -1077,23 +1077,23 @@ select lives_ok(
   $$select * from app_private.record_cash_custody_transfer_v1(
       (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
       '09700000-0000-0000-0000-000000000070', null,
-      'bank_deposit', 200.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
+      'bank_deposit', 800.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
       statement_timestamp(),
       'Foaie varsamant FV-097-CROSS-EX',
       '09700000-0000-0000-0000-000000000001', 'idemp-dep-cross-ex', repeat('7', 64)
     )$$,
-  'third custody transfer of 200 RON recorded'
+  'third custody transfer of 800 RON recorded'
 );
 
 select lives_ok(
   $$select * from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-cross-ex'),
-      200.00, 'partial bank settlement reducing remaining capacity to 200 RON',
+      800.00, 'partial bank settlement reducing remaining capacity to 100 RON',
       '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-cross-ex', repeat('8', 64)
     )$$,
-  '200 RON bank settlement applied'
+  '800 RON bank settlement applied'
 );
 
 insert into finance.statutory_simple_entries (
@@ -1102,7 +1102,7 @@ insert into finance.statutory_simple_entries (
 ) values (
   '09700000-0000-0000-0000-000000000095', '09700000-0000-0000-0000-000000000060',
   '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
-  (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-097-CROSS-EX', 300.00, 'Salarii tranche 2 payment exceeding remaining 200 RON',
+  (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-097-CROSS-EX', 200.00, 'Salarii tranche 2 payment exceeding remaining 100 RON',
   '09700000-0000-0000-0000-000000000001'
 );
 

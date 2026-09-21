@@ -1747,6 +1747,12 @@ begin
     raise exception 'retention_scope_mismatch' using errcode = '23514';
   end if;
 
+  -- Canonical cross-ledger capacity check for obligation
+  select * into v_pos from finance.statutory_deposit_obligation_position_v1(p_deposit_obligation_id, statement_timestamp());
+  if p_amount > v_pos.effective_outstanding_amount then
+    raise exception 'cross_ledger_obligation_capacity_exceeded' using errcode = '23514';
+  end if;
+
   -- Capacity check for authorization
   select coalesce(sum(retained_amount), 0.00)::numeric(20,2) into v_auth_retained
     from finance.statutory_cash_receipt_petty_cash_retentions
@@ -1754,12 +1760,6 @@ begin
 
   if (v_auth_retained + p_amount) > v_auth.authorized_amount then
     raise exception 'petty_cash_authorization_retention_capacity_exceeded' using errcode = '23514';
-  end if;
-
-  -- Canonical cross-ledger capacity check for obligation
-  select * into v_pos from finance.statutory_deposit_obligation_position_v1(p_deposit_obligation_id, statement_timestamp());
-  if p_amount > v_pos.effective_outstanding_amount then
-    raise exception 'cross_ledger_obligation_capacity_exceeded' using errcode = '23514';
   end if;
 
   v_effective_from := v_ob.created_at::date;
