@@ -1,7 +1,7 @@
 -- R10 Phase 2B: Romanian HOA petty cash controls under Law 196/2018 Art. 67(5)
 -- and statutory cash documents (14-4-1 Chitanță, 14-4-4 Dispoziție casierie).
 begin;
-select plan(85);
+select plan(86);
 
 -- 1. Structural, RLS and ACL contracts
 select has_table('finance', 'statutory_petty_cash_authorizations', 'petty cash authorizations table exists');
@@ -349,6 +349,38 @@ select throws_ok(
   'activation without allocated retention funding is strictly rejected'
 );
 
+-- Dedicated small funding receipt 88 (50 RON) to test retention exceeding obligation capacity
+insert into finance.statutory_simple_entries (
+  id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
+  document_type, document_number, amount, description, created_by
+) values (
+  '09800000-0000-0000-0000-000000000088', '09800000-0000-0000-0000-000000000065',
+  '09800000-0000-0000-0000-000000000010', '09800000-0000-0000-0000-000000000030',
+  (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'receipt', 'cash', 'CHITANTA', 'CH-098-CAP', 50.00, 'Small receipt for capacity test',
+  '09800000-0000-0000-0000-000000000001'
+);
+
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      '09800000-0000-0000-0000-000000000060',
+      '09800000-0000-0000-0000-000000000088',
+      statement_timestamp(),
+      '09800000-0000-0000-0000-000000000001', 'idemp-as-fund-88', repeat('f', 64)
+    )$$,
+  'small funding receipt assigned to cash desk'
+);
+
+-- Retention exceeding remaining obligation capacity is rejected fail-closed
+select throws_ok(
+  $$select * from app_private.retain_petty_cash_from_receipt_v1(
+      (select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09800000-0000-0000-0000-000000000088'),
+      (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
+      100.00, '09800000-0000-0000-0000-000000000001', 'idemp-ret-overcap', repeat('b', 64)
+    )$$,
+  '23514', 'cross_ledger_obligation_capacity_exceeded',
+  'retention exceeding obligation remaining capacity is rejected with cross_ledger_obligation_capacity_exceeded'
+);
+
 -- Law 196/2018 Art. 67(5) Multi-Retention Funding:
 -- Retain 300 RON from Entry 80 (first retention)
 select lives_ok(
@@ -368,17 +400,6 @@ select lives_ok(
       500.00, '09800000-0000-0000-0000-000000000001', 'idemp-ret-2', repeat('a', 64)
     )$$,
   'second lawful petty cash retention of 500 RON allocated from receipt 84'
-);
-
--- Retention exceeding remaining obligation capacity is rejected fail-closed
-select throws_ok(
-  $$select * from app_private.retain_petty_cash_from_receipt_v1(
-      (select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09800000-0000-0000-0000-000000000080'),
-      (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
-      50.00, '09800000-0000-0000-0000-000000000001', 'idemp-ret-overcap', repeat('b', 64)
-    )$$,
-  '23514', 'cross_ledger_obligation_capacity_exceeded',
-  'retention exceeding obligation remaining capacity is rejected with cross_ledger_obligation_capacity_exceeded'
 );
 
 -- Retention immutability
