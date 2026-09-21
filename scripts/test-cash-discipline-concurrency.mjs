@@ -822,32 +822,41 @@ async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
 async function runExceptionAllocationRace(observer, winner, waiter, f) {
   console.log('\n[Race 9] True cross-ledger contention: Bank Settlement (3000) vs Exception Disbursement (3000) on 5000 RON obligation');
 
-  // Step 0: Insert and assign a dedicated 5,000 RON cash receipt entry to produce a 5,000 RON deposit obligation
-  const receiptEntryRace9 = id();
+  // Step 0: Insert a dedicated daily closure with 5,000 RON excess and its ceiling excess deposit obligation
+  const closureRace9 = id();
+  const obligationRace9 = id();
+  const closureKey = `idemp-close-race-9-${closureRace9}`;
+  const closureHash = sha256(`close-race-9-${closureRace9}`);
+  const obKey = `idemp-ob-race-9-${obligationRace9}`;
+  const obHash = sha256(`ob-race-9-${obligationRace9}`);
+
   await observer.query(
-    `insert into finance.statutory_simple_entries (
-       id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
-       document_type, document_number, amount, description, created_by
+    `insert into finance.statutory_cash_daily_closures (
+       id, cash_desk_id, tenant_id, property_id, closure_date,
+       opening_balance, total_receipts, total_payments, total_deposits, total_withdrawals,
+       closing_balance, counted_cash_amount, discrepancy_amount, ceiling_threshold,
+       ceiling_exceeded, excess_amount, status, idempotency_key, payload_hash, closed_by
      ) values (
-       $1, $2, $3, $4, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
-       'receipt', 'cash', 'CHITANTA', 'CH-RACE-9', 5000.00, 'Cash receipt 5000 RON Race 9', $5
+       $1, $2, $3, $4, ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 5),
+       0.00, 55000.00, 0.00, 0.00, 0.00,
+       55000.00, 55000.00, 0.00, 50000.00,
+       true, 5000.00, 'finalized', $5, $6, $7
      )`,
-    [receiptEntryRace9, f.cycle, f.tenant, f.property, f.actor],
-  );
-  await observer.query(
-    `select * from app_private.assign_cash_simple_entry_v1(
-       $1, $2, statement_timestamp(), $3, $4, $5
-     )`,
-    [f.cashDesk1, receiptEntryRace9, f.actor, `idemp-as-race-9-rec-${receiptEntryRace9}`, sha256(`as-race-9-rec-${receiptEntryRace9}`)],
+    [closureRace9, f.cashDesk1, f.tenant, f.property, closureKey, closureHash, f.actor],
   );
 
-  const ceilingOb = await observer.query(
-    `select id, required_amount from finance.statutory_cash_deposit_obligations
-      where statutory_simple_entry_id = $1`,
-    [receiptEntryRace9],
+  await observer.query(
+    `insert into finance.statutory_cash_deposit_obligations (
+       id, cash_desk_id, tenant_id, property_id, obligation_kind, closure_id,
+       required_amount, due_at, bank_settlement_status, idempotency_key, payload_hash
+     ) values (
+       $1, $2, $3, $4, 'ceiling_50k_excess', $5,
+       5000.00, (statement_timestamp() + interval '2 days'), 'pending', $6, $7
+     )`,
+    [obligationRace9, f.cashDesk1, f.tenant, f.property, closureRace9, obKey, obHash],
   );
-  f.obligationCeiling1 = ceilingOb.rows[0].id;
-  assert.equal(ceilingOb.rows[0].required_amount, '5000.00', 'Deposit obligation must be 5000.00 RON');
+
+  f.obligationCeiling1 = obligationRace9;
 
   // Step 1: Pre-record 3,000 RON exception reservation on the ceiling obligation
   const exRes = await observer.query(
