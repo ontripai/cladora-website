@@ -7,9 +7,6 @@ begin
   if not exists (select 1 from pg_roles where rolname = 'cladora_rpc_owner') then
     create role cladora_rpc_owner
       nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
-  else
-    alter role cladora_rpc_owner
-      nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
   end if;
 end
 $$;
