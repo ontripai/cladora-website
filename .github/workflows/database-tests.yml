@@ -96,6 +96,11 @@ jobs:
         env:
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
           CLADORA_EPHEMERAL_DB: "1"
+      - name: Run R10 cash discipline multi-connection concurrency tests
+        run: timeout 60s npm run test:cash-discipline:concurrency
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          CLADORA_EPHEMERAL_DB: "1"
       - name: Run R10 catalog and Data API evidence gate
         run: |
           set -euo pipefail
