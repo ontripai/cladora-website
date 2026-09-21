@@ -709,7 +709,7 @@ async function runCompetingSettlementsTransferCapacityRace(observer, winner, wai
   await beginAsServiceRole(winner);
   const winnerCall = winner.query(
     `select * from app_private.settle_cash_deposit_obligation_v1(
-       $1, $2, 8000.00, null, 'settle capacity race', $3, $4, $5
+       $1, $2, 8000.00, 'settle capacity race', $3, $4, $5
      )`,
     [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-cap-win-${f.custodyTransfer1}`, sha256(`settle-cap-win-${f.custodyTransfer1}`)],
   );
@@ -722,7 +722,7 @@ async function runCompetingSettlementsTransferCapacityRace(observer, winner, wai
 
   const pendingWaiter = waiter.query(
     `select * from app_private.settle_cash_deposit_obligation_v1(
-       $1, $2, 4000.00, null, 'settle capacity race 2', $3, $4, $5
+       $1, $2, 4000.00, 'settle capacity race 2', $3, $4, $5
      )`,
     [f.obligationToSettle1, f.custodyTransfer1, f.actor, `idemp-settle-cap-wait-${f.custodyTransfer1}`, sha256(`settle-cap-wait-${f.custodyTransfer1}`)],
   ).catch((error) => {
@@ -764,7 +764,7 @@ async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
   const idempKey8 = `idemp-race-8-contention-${id()}`;
   const winnerCall = await winner.query(
     `select * from app_private.settle_cash_deposit_obligation_v1(
-       $1, $2, 6000.00, null, 'settle race 8 true contention', $3, $4, $5
+       $1, $2, 6000.00, 'settle race 8 true contention', $3, $4, $5
      )`,
     [f.obligationToSettle1, transfer8Id, f.actor, idempKey8, sha256(`race-8-settle`)],
   );
@@ -779,7 +779,7 @@ async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
 
   const pendingWaiter = waiter.query(
     `select * from app_private.settle_cash_deposit_obligation_v1(
-       $1, $2, 6000.00, null, 'settle race 8 true contention', $3, $4, $5
+       $1, $2, 6000.00, 'settle race 8 true contention', $3, $4, $5
      )`,
     [f.obligationToSettle1, transfer8Id, f.actor, idempKey8, sha256(`race-8-settle`)],
   ).then((res) => {
@@ -816,67 +816,130 @@ async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
 }
 
 // -----------------------------------------------------------------------------
-// Race 9: Competing settlements exceeding exception covered amount
+// Race 9: Cross-Ledger Contention: Bank Settlement (3000) vs Exception Disbursement (3000)
+// on a 5000 RON ceiling deposit obligation
 // -----------------------------------------------------------------------------
 async function runExceptionAllocationRace(observer, winner, waiter, f) {
-  console.log('\n[Race 9] Two concurrent settlements competing for exception-covered allocation');
+  console.log('\n[Race 9] True cross-ledger contention: Bank Settlement (3000) vs Exception Disbursement (3000) on 5000 RON obligation');
 
   const ceilingOb = await observer.query(
     `select id, required_amount from finance.statutory_cash_deposit_obligations
       where obligation_kind = 'ceiling_50k_excess' limit 1`,
   );
   f.obligationCeiling1 = ceilingOb.rows[0].id;
+  assert.equal(ceilingOb.rows[0].required_amount, '5000.00', 'Ceiling excess obligation must be 5000.00 RON');
 
-  await beginAsServiceRole(winner);
-  const exRes = await winner.query(
+  // Step 1: Pre-record 3,000 RON exception reservation on the ceiling obligation
+  const exRes = await observer.query(
     `select * from app_private.record_deposit_obligation_exception_v1(
-       $1, 3000.00, 'personnel_rights', (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Salarii casier', $2, $3, $4
+       $1, 3000.00, 'personnel_rights', (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Salarii casier Race 9',
+       $2, $3, $4
      )`,
-    [f.obligationCeiling1, f.actor, `idemp-ex-race-${f.obligationCeiling1}`, sha256(`ex-race-${f.obligationCeiling1}`)],
+    [f.obligationCeiling1, f.actor, `idemp-ex-race-9-${id()}`, sha256(`ex-race-9`)],
   );
-  f.exceptionId1 = exRes.rows[0].id;
+  const exceptionId = exRes.rows[0].id;
 
-  const depRes = await winner.query(
+  // Step 2: Insert and assign a cash payment entry of 3,000 RON for disbursement
+  const paymentEntryRace9 = id();
+  await observer.query(
+    `insert into finance.statutory_simple_entries (
+       id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
+       document_type, document_number, amount, description, created_by
+     ) values (
+       $1, $2, $3, $4, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
+       'payment', 'cash', 'DISPOZITIE', 'DP-RACE-9', 3000.00, 'Plata salarii Race 9', $5
+     )`,
+    [paymentEntryRace9, f.cycle, f.tenant, f.property, f.actor],
+  );
+  await observer.query(
+    `select * from app_private.assign_cash_simple_entry_v1(
+       $1, $2, null, $3, $4, $5
+     )`,
+    [f.cashDesk1, paymentEntryRace9, f.actor, `idemp-as-race-9-${paymentEntryRace9}`, sha256(`as-race-9-${paymentEntryRace9}`)],
+  );
+
+  // Step 3: Record a custody transfer of 5,000 RON for the bank settlement
+  const depRes = await observer.query(
     `select * from app_private.record_cash_custody_transfer_v1(
-       $1, $2, null, 'bank_deposit', 5000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date, statement_timestamp(), 'DEPOZIT-EX-RACE',
+       $1, $2, null, 'bank_deposit', 5000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date, statement_timestamp(), 'DEPOZIT-EX-RACE-9',
        $3, $4, $5
      )`,
-    [f.cashDesk1, f.bankAccount, f.actor, `idemp-dep-ex-race-${f.cashDesk1}`, sha256(`dep-ex-race-${f.cashDesk1}`)],
+    [f.cashDesk1, f.bankAccount, f.actor, `idemp-dep-race-9-${id()}`, sha256(`dep-race-9`)],
   );
-  const depId = depRes.rows[0].id;
+  const custodyTransferId = depRes.rows[0].id;
 
-  const winnerCall = winner.query(
+  // Step 4: True contention execution:
+  // Winner (Bank Settlement of 3000 RON) starts and holds transaction OPEN
+  await beginAsServiceRole(winner);
+  const winnerPid = await backendPid(winner);
+
+  const winnerKey = `idemp-settle-race-9-${id()}`;
+  const winnerHash = sha256(`settle-win-race-9`);
+  const winnerCall = await winner.query(
     `select * from app_private.settle_cash_deposit_obligation_v1(
-       $1, $2, 2500.00, $3, 'ex settlement win', $4, $5, $6
+       $1, $2, 3000.00, 'Bank settlement winner 3000 RON',
+       $3, $4, $5
      )`,
-    [f.obligationCeiling1, depId, f.exceptionId1, f.actor, `idemp-settle-ex-win-${depId}`, sha256(`ex-win-${depId}`)],
+    [f.obligationCeiling1, custodyTransferId, f.actor, winnerKey, winnerHash],
   );
-  await winnerCall;
+  assert.equal(winnerCall.rowCount, 1);
+  const winnerRow = winnerCall.rows[0];
 
+  // Waiter (Exception Disbursement of 3000 RON) attempts concurrent execution
   await beginAsServiceRole(waiter);
   const waiterPid = await backendPid(waiter);
-  const winnerPid = await backendPid(winner);
   let waiterError;
 
+  const waiterKey = `idemp-disb-race-9-${id()}`;
+  const waiterHash = sha256(`disb-wait-race-9`);
   const pendingWaiter = waiter.query(
-    `select * from app_private.settle_cash_deposit_obligation_v1(
-       $1, $2, 1000.00, $3, 'ex settlement wait', $4, $5, $6
+    `select * from app_private.consume_deposit_obligation_exception_v1(
+       $1, $2, $3, $4, $5
      )`,
-    [f.obligationCeiling1, depId, f.exceptionId1, f.actor, `idemp-settle-ex-wait-${depId}`, sha256(`ex-wait-${depId}`)],
+    [exceptionId, paymentEntryRace9, f.actor, waiterKey, waiterHash],
   ).catch((error) => {
     waiterError = error;
   });
 
+  // Step 5: Observer proves Waiter is genuinely blocked by Winner PID via pg_blocking_pids()
   await waitForBlocking(observer, waiterPid, winnerPid);
-  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on exception lock`);
+  console.log(`  observed PID ${waiterPid} blocked by PID ${winnerPid} on statutory_cash_desk lock`);
 
+  // Step 6: Winner commits; Waiter resumes and must fail closed with cross_ledger_obligation_capacity_exceeded
   await winner.query('commit');
   await pendingWaiter;
 
-  expectSqlState(waiterError, '23514', 'exception capacity exceeded');
-  assert.equal(waiterError.message, 'exception_capacity_exceeded');
+  expectSqlState(waiterError, '23514', 'cross_ledger_obligation_capacity_exceeded');
+  assert.equal(waiterError.message, 'cross_ledger_obligation_capacity_exceeded');
   await rollbackQuietly(waiter);
-  console.log('  PASS: winner 2,500 RON allocated; over-exception contender failed closed');
+
+  // Step 7: Total resolved capacity verification (Invariant: total resolved never exceeds 5000)
+  const posRes = await observer.query(
+    `select * from finance.statutory_deposit_obligation_position_v1($1, statement_timestamp())`,
+    [f.obligationCeiling1],
+  );
+  const pos = posRes.rows[0];
+  assert.equal(pos.gross_required_amount, '5000.00');
+  assert.equal(pos.bank_settled_amount, '3000.00');
+  assert.equal(pos.exception_disbursed_amount, '0.00');
+  assert.equal(pos.effective_outstanding_amount, '2000.00');
+  assert.equal(pos.compliance_status, 'partially_settled');
+
+  const totalResolved = parseFloat(pos.bank_settled_amount) + parseFloat(pos.exception_disbursed_amount);
+  assert.ok(totalResolved <= 5000.00, `Total resolved (${totalResolved}) must not exceed 5000.00`);
+
+  // Step 8: Deterministic idempotent replay of winner
+  const replayRes = await observer.query(
+    `select * from app_private.settle_cash_deposit_obligation_v1(
+       $1, $2, 3000.00, 'Bank settlement winner 3000 RON',
+       $3, $4, $5
+     )`,
+    [f.obligationCeiling1, custodyTransferId, f.actor, winnerKey, winnerHash],
+  );
+  assert.equal(replayRes.rowCount, 1);
+  assert.equal(replayRes.rows[0].id, winnerRow.id, 'Winner replay with identical key must return exact same settlement');
+
+  console.log('  PASS: true contention proven: PID blocked, winner committed, waiter rejected with cross_ledger_obligation_capacity_exceeded, total resolved <= 5000, idempotent replay deterministic');
 }
 
 // -----------------------------------------------------------------------------

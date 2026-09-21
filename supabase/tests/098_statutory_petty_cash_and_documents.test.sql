@@ -1,7 +1,7 @@
 -- R10 Phase 2B: Romanian HOA petty cash controls under Law 196/2018 Art. 67(5)
 -- and statutory cash documents (14-4-1 Chitanță, 14-4-4 Dispoziție casierie).
 begin;
-select plan(84);
+select plan(85);
 
 -- 1. Structural, RLS and ACL contracts
 select has_table('finance', 'statutory_petty_cash_authorizations', 'petty cash authorizations table exists');
@@ -368,6 +368,17 @@ select lives_ok(
       500.00, '09800000-0000-0000-0000-000000000001', 'idemp-ret-2', repeat('a', 64)
     )$$,
   'second lawful petty cash retention of 500 RON allocated from receipt 84'
+);
+
+-- Retention exceeding remaining obligation capacity is rejected fail-closed
+select throws_ok(
+  $$select * from app_private.retain_petty_cash_from_receipt_v1(
+      (select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09800000-0000-0000-0000-000000000080'),
+      (select id from finance.statutory_petty_cash_authorizations where idempotency_key = 'idemp-auth-098-ok'),
+      50.00, '09800000-0000-0000-0000-000000000001', 'idemp-ret-overcap', repeat('b', 64)
+    )$$,
+  '23514', 'cross_ledger_obligation_capacity_exceeded',
+  'retention exceeding obligation remaining capacity is rejected with cross_ledger_obligation_capacity_exceeded'
 );
 
 -- Retention immutability

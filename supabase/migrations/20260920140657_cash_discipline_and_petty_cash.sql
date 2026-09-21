@@ -9,7 +9,7 @@ begin
       nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
   else
     alter role cladora_rpc_owner
-      nologin nocreatedb nocreaterole noinherit;
+      nologin nosuperuser nocreatedb nocreaterole noinherit noreplication nobypassrls;
   end if;
 end
 $$;
@@ -392,13 +392,13 @@ create table finance.statutory_cash_deposit_obligations (
   closure_id uuid references finance.statutory_cash_daily_closures(id) on delete restrict,
   petty_cash_authorization_id uuid references finance.statutory_petty_cash_authorizations(id) on delete restrict,
   required_amount numeric(20,2) not null check (required_amount > 0),
-  settled_amount numeric(20,2) not null default 0.00 check (settled_amount >= 0 and settled_amount <= required_amount),
+  bank_settled_amount numeric(20,2) not null default 0.00 check (bank_settled_amount >= 0 and bank_settled_amount <= required_amount),
   due_at timestamptz not null,
-  status finance.statutory_deposit_obligation_status not null default 'pending',
+  bank_settlement_status finance.statutory_deposit_obligation_status not null default 'pending',
   idempotency_key text not null check (btrim(idempotency_key) <> ''),
   payload_hash text not null check (payload_hash ~ '^[0-9a-f]{64}$'),
   created_at timestamptz not null default statement_timestamp(),
-  settled_at timestamptz,
+  bank_settled_at timestamptz,
   unique (tenant_id, idempotency_key),
   check ((obligation_kind = 'hoa_24h_receipt' and statutory_simple_entry_id is not null) or
          (obligation_kind = 'ceiling_50k_excess' and closure_id is not null))
@@ -505,16 +505,12 @@ create table finance.statutory_cash_deposit_settlements (
   cash_desk_id uuid not null references finance.statutory_cash_desks(id) on delete restrict,
   settled_amount numeric(20,2) not null check (settled_amount > 0),
   is_timely boolean not null,
-  exception_id uuid references finance.statutory_cash_deposit_obligation_exceptions(id) on delete restrict,
-  is_exception_covered boolean not null default false,
   reason text not null check (btrim(reason) <> ''),
   settled_by uuid not null references auth.users(id) on delete restrict,
   created_at timestamptz not null default statement_timestamp(),
   idempotency_key text not null check (btrim(idempotency_key) <> ''),
   payload_hash text not null check (payload_hash ~ '^[0-9a-f]{64}$'),
-  unique (tenant_id, idempotency_key),
-  check ((is_exception_covered and exception_id is not null) or
-         (not is_exception_covered and exception_id is null))
+  unique (tenant_id, idempotency_key)
 );
 
 create or replace function finance.protect_statutory_deposit_settlement_v1()
@@ -811,7 +807,7 @@ create index statutory_deposit_obligations_entry_idx on finance.statutory_cash_d
 create index statutory_deposit_obligations_closure_idx on finance.statutory_cash_deposit_obligations(closure_id);
 create index statutory_deposit_obligations_petty_idx on finance.statutory_cash_deposit_obligations(petty_cash_authorization_id);
 create index statutory_deposit_obligations_property_idx on finance.statutory_cash_deposit_obligations(property_id);
-create index statutory_deposit_obligations_status_idx on finance.statutory_cash_deposit_obligations(status);
+create index statutory_deposit_obligations_status_idx on finance.statutory_cash_deposit_obligations(bank_settlement_status);
 
 create index statutory_deposit_exceptions_ob_idx on finance.statutory_cash_deposit_obligation_exceptions(obligation_id);
 create index statutory_deposit_exceptions_tenant_idx on finance.statutory_cash_deposit_obligation_exceptions(tenant_id);
@@ -824,7 +820,6 @@ create index statutory_deposit_settlements_transfer_idx on finance.statutory_cas
 create index statutory_deposit_settlements_tenant_idx on finance.statutory_cash_deposit_settlements(tenant_id);
 create index statutory_deposit_settlements_property_idx on finance.statutory_cash_deposit_settlements(property_id);
 create index statutory_deposit_settlements_desk_idx on finance.statutory_cash_deposit_settlements(cash_desk_id);
-create index statutory_deposit_settlements_exception_idx on finance.statutory_cash_deposit_settlements(exception_id);
 create index statutory_deposit_settlements_settled_by_idx on finance.statutory_cash_deposit_settlements(settled_by);
 
 create index statutory_pc_retentions_ob_idx on finance.statutory_cash_receipt_petty_cash_retentions(deposit_obligation_id);
@@ -1081,7 +1076,7 @@ begin
   exception_disbursed_amount := v_exception_disbursed;
 
   -- 7. effective_outstanding_amount
-  v_effective_outstanding := greatest(0.00,
+  v_effective_outstanding := (
     gross_required_amount
     - bank_settled_amount
     - active_retained_amount
@@ -1326,7 +1321,7 @@ begin
 
     insert into finance.statutory_cash_deposit_obligations (
       cash_desk_id, tenant_id, property_id, obligation_kind, statutory_simple_entry_id,
-      required_amount, due_at, status, idempotency_key, payload_hash
+      required_amount, due_at, bank_settlement_status, idempotency_key, payload_hash
     ) values (
       p_cash_desk_id, v_desk.tenant_id, v_desk.property_id, 'hoa_24h_receipt', p_statutory_simple_entry_id,
       v_entry.amount, v_due, 'pending', v_ob_idempotency, v_ob_hash
@@ -1574,7 +1569,7 @@ begin
 
     insert into finance.statutory_cash_deposit_obligations (
       cash_desk_id, tenant_id, property_id, obligation_kind, closure_id,
-      required_amount, due_at, status, idempotency_key, payload_hash
+      required_amount, due_at, bank_settlement_status, idempotency_key, payload_hash
     ) values (
       p_cash_desk_id, v_desk.tenant_id, v_desk.property_id, 'ceiling_50k_excess', v_closure.id,
       v_excess, v_due_date::timestamptz + time '17:00:00', 'pending', v_ob_idempotency, v_ob_hash
@@ -1705,12 +1700,12 @@ declare
   v_ob finance.statutory_cash_deposit_obligations;
   v_auth finance.statutory_petty_cash_authorizations;
   v_ret finance.statutory_cash_receipt_petty_cash_retentions;
-  v_already_retained numeric(20,2);
-  v_already_settled numeric(20,2);
   v_auth_retained numeric(20,2);
   v_desk_id uuid;
+  v_tenant_id uuid;
   v_effective_from date;
   v_expires_at timestamptz;
+  v_pos record;
 begin
   if p_deposit_obligation_id is null or p_authorization_id is null or p_amount is null or p_amount <= 0
      or p_actor_id is null or nullif(btrim(p_idempotency_key), '') is null
@@ -1718,23 +1713,25 @@ begin
     raise exception 'retain_petty_cash_invalid_arguments' using errcode = '22023';
   end if;
 
-  select cash_desk_id into v_desk_id from finance.statutory_cash_deposit_obligations where id = p_deposit_obligation_id;
+  select cash_desk_id, tenant_id into v_desk_id, v_tenant_id
+    from finance.statutory_cash_deposit_obligations
+   where id = p_deposit_obligation_id;
   if not found then
     raise exception 'statutory_deposit_obligation_not_found' using errcode = 'P0002';
   end if;
 
   perform pg_advisory_xact_lock(hashtextextended('statutory_cash_desk:' || v_desk_id::text, 0));
 
-  select * into v_ob from finance.statutory_cash_deposit_obligations where id = p_deposit_obligation_id for update;
-
   select * into v_ret from finance.statutory_cash_receipt_petty_cash_retentions
-   where tenant_id = v_ob.tenant_id and idempotency_key = p_idempotency_key;
+   where tenant_id = v_tenant_id and idempotency_key = p_idempotency_key;
   if found then
     if v_ret.payload_hash <> p_payload_hash then
       raise exception 'retain_petty_cash_idempotency_conflict' using errcode = '23505';
     end if;
     return v_ret;
   end if;
+
+  select * into v_ob from finance.statutory_cash_deposit_obligations where id = p_deposit_obligation_id for update;
 
   if v_ob.obligation_kind <> 'hoa_24h_receipt' then
     raise exception 'retention_only_allowed_for_24h_receipts' using errcode = '22023';
@@ -1762,17 +1759,10 @@ begin
     raise exception 'petty_cash_authorization_retention_capacity_exceeded' using errcode = '23514';
   end if;
 
-  -- Capacity check for obligation
-  select coalesce(sum(settled_amount), 0.00)::numeric(20,2) into v_already_settled
-    from finance.statutory_cash_deposit_settlements
-   where obligation_id = p_deposit_obligation_id;
-
-  select coalesce(sum(retained_amount), 0.00)::numeric(20,2) into v_already_retained
-    from finance.statutory_cash_receipt_petty_cash_retentions
-   where deposit_obligation_id = p_deposit_obligation_id;
-
-  if (v_already_settled + v_already_retained + p_amount) > v_ob.required_amount then
-    raise exception 'retention_amount_exceeds_obligation' using errcode = '23514';
+  -- Canonical cross-ledger capacity check for obligation
+  select * into v_pos from finance.statutory_deposit_obligation_position_v1(p_deposit_obligation_id, statement_timestamp());
+  if p_amount > v_pos.effective_outstanding_amount then
+    raise exception 'cross_ledger_obligation_capacity_exceeded' using errcode = '23514';
   end if;
 
   v_effective_from := v_ob.created_at::date;
@@ -1933,7 +1923,7 @@ begin
     raise exception 'petty_cash_authorization_not_active' using errcode = '55000';
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -2076,11 +2066,13 @@ begin
     return v_rev;
   end if;
 
+  select * into v_orig from finance.statutory_petty_cash_expenses where id = p_expense_id for update;
+
   if exists (select 1 from finance.statutory_petty_cash_expense_reversals where reversal_of_id = p_expense_id) then
     raise exception 'petty_cash_expense_already_reversed' using errcode = '55000';
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -2164,8 +2156,13 @@ declare
   v_ob finance.statutory_cash_deposit_obligations;
   v_ex finance.statutory_cash_deposit_obligation_exceptions;
   v_desk_id uuid;
+  v_tenant_id uuid;
   v_expiry_date date;
-  v_total_covered numeric(20,2);
+  v_today date;
+  v_total_disbursed numeric(20,2);
+  v_active_unconsumed numeric(20,2);
+  v_rec record;
+  v_sub_disb numeric(20,2);
 begin
   if p_obligation_id is null or p_covered_amount is null or p_covered_amount <= 0
      or p_beneficiary_class is null or p_beneficiary_class not in ('personnel_rights', 'natural_person_operations')
@@ -2175,17 +2172,17 @@ begin
     raise exception 'deposit_obligation_exception_invalid_arguments' using errcode = '22023';
   end if;
 
-  select cash_desk_id into v_desk_id from finance.statutory_cash_deposit_obligations where id = p_obligation_id;
+  select cash_desk_id, tenant_id into v_desk_id, v_tenant_id
+    from finance.statutory_cash_deposit_obligations
+   where id = p_obligation_id;
   if not found then
     raise exception 'statutory_deposit_obligation_not_found' using errcode = 'P0002';
   end if;
 
   perform pg_advisory_xact_lock(hashtextextended('statutory_cash_desk:' || v_desk_id::text, 0));
 
-  select * into v_ob from finance.statutory_cash_deposit_obligations where id = p_obligation_id for update;
-
   select * into v_ex from finance.statutory_cash_deposit_obligation_exceptions
-   where tenant_id = v_ob.tenant_id and idempotency_key = p_idempotency_key;
+   where tenant_id = v_tenant_id and idempotency_key = p_idempotency_key;
   if found then
     if v_ex.payload_hash <> p_payload_hash then
       raise exception 'deposit_obligation_exception_idempotency_conflict' using errcode = '23505';
@@ -2193,24 +2190,40 @@ begin
     return v_ex;
   end if;
 
+  select * into v_ob from finance.statutory_cash_deposit_obligations where id = p_obligation_id for update;
+
   -- Exception strictly allowed for 50k ceiling excess obligations only (Blocker 7)
   if v_ob.obligation_kind <> 'ceiling_50k_excess' then
     raise exception 'exception_only_allowed_for_50k_ceiling_excess' using errcode = '22023';
   end if;
 
-  if v_ob.status = 'settled' then
+  if v_ob.bank_settlement_status = 'settled' then
     raise exception 'cannot_record_exception_on_closed_or_overdue_obligation' using errcode = '22023';
   end if;
 
   -- Calculate expiry date: 3 Romanian business days from scheduled payment date
   v_expiry_date := finance.add_romanian_business_days_v1(p_scheduled_payment_date, 3);
+  v_today := (statement_timestamp() at time zone 'Europe/Bucharest')::date;
 
-  -- Check cumulative exceptions on this obligation
-  select coalesce(sum(covered_amount), 0.00)::numeric(20,2) into v_total_covered
-    from finance.statutory_cash_deposit_obligation_exceptions
-   where obligation_id = p_obligation_id;
+  select coalesce(sum(d.disbursed_amount), 0.00)::numeric(20,2) into v_total_disbursed
+    from finance.statutory_cash_deposit_exception_disbursements d
+    join finance.statutory_cash_deposit_obligation_exceptions e on e.id = d.exception_id
+   where e.obligation_id = p_obligation_id;
 
-  if (v_total_covered + p_covered_amount + v_ob.settled_amount) > v_ob.required_amount then
+  v_active_unconsumed := 0.00;
+  for v_rec in
+    select e.id, e.covered_amount
+      from finance.statutory_cash_deposit_obligation_exceptions e
+     where e.obligation_id = p_obligation_id
+       and e.expiry_date >= v_today
+  loop
+    select coalesce(sum(disbursed_amount), 0.00)::numeric(20,2) into v_sub_disb
+      from finance.statutory_cash_deposit_exception_disbursements
+     where exception_id = v_rec.id;
+    v_active_unconsumed := v_active_unconsumed + greatest(0.00, v_rec.covered_amount - v_sub_disb);
+  end loop;
+
+  if (v_total_disbursed + v_active_unconsumed + p_covered_amount + v_ob.bank_settled_amount) > v_ob.required_amount then
     raise exception 'exception_amount_exceeds_obligation' using errcode = '23514';
   end if;
 
@@ -2255,6 +2268,10 @@ declare
   v_disb finance.statutory_cash_deposit_exception_disbursements;
   v_total_disbursed numeric(20,2);
   v_now_bucharest_date date;
+  v_tenant_id uuid;
+  v_desk_id uuid;
+  v_obligation_id uuid;
+  v_pos record;
 begin
   if p_exception_id is null or p_statutory_simple_entry_id is null
      or p_actor_id is null or nullif(btrim(p_idempotency_key), '') is null
@@ -2262,17 +2279,19 @@ begin
     raise exception 'consume_exception_invalid_arguments' using errcode = '22023';
   end if;
 
-  select * into v_ex from finance.statutory_cash_deposit_obligation_exceptions where id = p_exception_id;
+  select e.tenant_id, o.cash_desk_id, e.obligation_id
+    into v_tenant_id, v_desk_id, v_obligation_id
+    from finance.statutory_cash_deposit_obligation_exceptions e
+    join finance.statutory_cash_deposit_obligations o on o.id = e.obligation_id
+   where e.id = p_exception_id;
   if not found then
     raise exception 'statutory_deposit_exception_not_found' using errcode = 'P0002';
   end if;
 
-  select * into v_ob from finance.statutory_cash_deposit_obligations where id = v_ex.obligation_id for update;
-
-  perform pg_advisory_xact_lock(hashtextextended('statutory_cash_desk:' || v_ob.cash_desk_id::text, 0));
+  perform pg_advisory_xact_lock(hashtextextended('statutory_cash_desk:' || v_desk_id::text, 0));
 
   select * into v_disb from finance.statutory_cash_deposit_exception_disbursements
-   where tenant_id = v_ex.tenant_id and idempotency_key = p_idempotency_key;
+   where tenant_id = v_tenant_id and idempotency_key = p_idempotency_key;
   if found then
     if v_disb.payload_hash <> p_payload_hash then
       raise exception 'consume_exception_idempotency_conflict' using errcode = '23505';
@@ -2280,14 +2299,16 @@ begin
     return v_disb;
   end if;
 
+  select * into v_ob from finance.statutory_cash_deposit_obligations where id = v_obligation_id for update;
+  select * into v_ex from finance.statutory_cash_deposit_obligation_exceptions where id = p_exception_id for update;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  if not found then
+    raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
+  end if;
+
   -- Verify entry was not previously consumed in any exception disbursement (single-use)
   if exists (select 1 from finance.statutory_cash_deposit_exception_disbursements where statutory_simple_entry_id = p_statutory_simple_entry_id) then
     raise exception 'exception_payment_entry_already_disbursed' using errcode = '23505';
-  end if;
-
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
-  if not found then
-    raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
 
   if v_entry.tenant_id <> v_ex.tenant_id or v_entry.property_id <> v_ex.property_id then
@@ -2299,9 +2320,19 @@ begin
   end if;
 
   select * into v_assign from finance.statutory_cash_entry_assignments
-   where statutory_simple_entry_id = p_statutory_simple_entry_id and cash_desk_id = v_ob.cash_desk_id;
+   where statutory_simple_entry_id = p_statutory_simple_entry_id and cash_desk_id = v_desk_id;
   if not found then
     raise exception 'exception_payment_not_assigned_to_desk' using errcode = '22023';
+  end if;
+
+  -- Server date inclusive bounds check
+  v_now_bucharest_date := (statement_timestamp() at time zone 'Europe/Bucharest')::date;
+  if v_now_bucharest_date < v_ex.scheduled_payment_date then
+    raise exception 'cannot_disburse_before_scheduled_payment_date' using errcode = '22023';
+  end if;
+
+  if v_now_bucharest_date > v_ex.expiry_date then
+    raise exception 'cannot_disburse_expired_exception' using errcode = '22023';
   end if;
 
   -- Payment date must fall within statutory reservation window
@@ -2309,10 +2340,8 @@ begin
     raise exception 'exception_payment_outside_window' using errcode = '22023';
   end if;
 
-  -- Cannot consume an expired reservation at current runtime
-  v_now_bucharest_date := (statement_timestamp() at time zone 'Europe/Bucharest')::date;
-  if v_now_bucharest_date > v_ex.expiry_date then
-    raise exception 'cannot_disburse_expired_exception' using errcode = '22023';
+  if v_entry.entry_date > v_now_bucharest_date then
+    raise exception 'payment_entry_cannot_be_in_future' using errcode = '22023';
   end if;
 
   -- Check remaining coverage on reservation
@@ -2324,11 +2353,17 @@ begin
     raise exception 'disbursement_exceeds_exception_coverage' using errcode = '23514';
   end if;
 
+  -- Canonical cross-ledger capacity check for obligation
+  select * into v_pos from finance.statutory_deposit_obligation_position_v1(v_obligation_id, statement_timestamp());
+  if v_entry.amount > v_pos.effective_outstanding_amount then
+    raise exception 'cross_ledger_obligation_capacity_exceeded' using errcode = '23514';
+  end if;
+
   insert into finance.statutory_cash_deposit_exception_disbursements (
     exception_id, statutory_simple_entry_id, tenant_id, property_id, cash_desk_id,
     disbursed_amount, actor_id, idempotency_key, payload_hash
   ) values (
-    p_exception_id, p_statutory_simple_entry_id, v_ex.tenant_id, v_ex.property_id, v_ob.cash_desk_id,
+    p_exception_id, p_statutory_simple_entry_id, v_ex.tenant_id, v_ex.property_id, v_desk_id,
     v_entry.amount, p_actor_id, p_idempotency_key, p_payload_hash
   ) returning * into v_disb;
 
@@ -2346,7 +2381,6 @@ create or replace function app_private.settle_cash_deposit_obligation_v1(
   p_obligation_id uuid,
   p_custody_transfer_id uuid,
   p_settled_amount numeric,
-  p_exception_id uuid,
   p_reason text,
   p_actor_id uuid,
   p_idempotency_key text,
@@ -2361,14 +2395,13 @@ declare
   v_ob finance.statutory_cash_deposit_obligations;
   v_transfer finance.statutory_cash_custody_transfers;
   v_settlement finance.statutory_cash_deposit_settlements;
-  v_ex finance.statutory_cash_deposit_obligation_exceptions;
   v_transfer_already_allocated numeric(20,2);
-  v_ob_already_settled numeric(20,2);
-  v_ex_already_allocated numeric(20,2);
   v_is_timely boolean;
-  v_is_exception_covered boolean := false;
   v_total_settled numeric(20,2);
   v_new_status finance.statutory_deposit_obligation_status;
+  v_desk_id uuid;
+  v_tenant_id uuid;
+  v_pos record;
 begin
   if p_obligation_id is null or p_custody_transfer_id is null or p_settled_amount is null or p_settled_amount <= 0
      or nullif(btrim(p_reason), '') is null or p_actor_id is null
@@ -2376,15 +2409,17 @@ begin
     raise exception 'settle_cash_deposit_obligation_invalid_arguments' using errcode = '22023';
   end if;
 
-  select * into v_ob from finance.statutory_cash_deposit_obligations where id = p_obligation_id;
+  select cash_desk_id, tenant_id into v_desk_id, v_tenant_id
+    from finance.statutory_cash_deposit_obligations
+   where id = p_obligation_id;
   if not found then
     raise exception 'statutory_deposit_obligation_not_found' using errcode = 'P0002';
   end if;
 
-  perform pg_advisory_xact_lock(hashtextextended('statutory_cash_desk:' || v_ob.cash_desk_id::text, 0));
+  perform pg_advisory_xact_lock(hashtextextended('statutory_cash_desk:' || v_desk_id::text, 0));
 
   select * into v_settlement from finance.statutory_cash_deposit_settlements
-   where tenant_id = v_ob.tenant_id and idempotency_key = p_idempotency_key;
+   where tenant_id = v_tenant_id and idempotency_key = p_idempotency_key;
   if found then
     if v_settlement.payload_hash <> p_payload_hash then
       raise exception 'settle_cash_deposit_obligation_idempotency_conflict' using errcode = '23505';
@@ -2416,51 +2451,30 @@ begin
     raise exception 'custody_transfer_capacity_exceeded' using errcode = '23514';
   end if;
 
-  -- Obligation capacity validation
-  select coalesce(sum(settled_amount), 0.00)::numeric(20,2) into v_ob_already_settled
-    from finance.statutory_cash_deposit_settlements
-   where obligation_id = p_obligation_id;
-
-  if (v_ob_already_settled + p_settled_amount) > v_ob.required_amount then
-    raise exception 'obligation_required_amount_exceeded' using errcode = '23514';
+  -- Canonical cross-ledger capacity check for obligation
+  select * into v_pos from finance.statutory_deposit_obligation_position_v1(p_obligation_id, statement_timestamp());
+  if p_settled_amount > v_pos.effective_outstanding_amount then
+    raise exception 'cross_ledger_obligation_capacity_exceeded' using errcode = '23514';
   end if;
 
-  -- Exception-specific allocation (Erratum-004 item 3)
-  if p_exception_id is not null then
-    select * into v_ex from finance.statutory_cash_deposit_obligation_exceptions
-     where id = p_exception_id and obligation_id = p_obligation_id;
-    if not found then
-      raise exception 'exception_not_found_or_scope_mismatch' using errcode = '22023';
-    end if;
-
-    select coalesce(sum(settled_amount), 0.00)::numeric(20,2) into v_ex_already_allocated
-      from finance.statutory_cash_deposit_settlements
-     where exception_id = p_exception_id;
-
-    if (v_ex_already_allocated + p_settled_amount) > v_ex.covered_amount then
-      raise exception 'exception_capacity_exceeded' using errcode = '23514';
-    end if;
-
-    v_is_timely := (v_transfer.transferred_at::date <= v_ex.expiry_date);
-    v_is_exception_covered := true;
-  else
-    -- Normal deadline calculation strictly from transfer's immutable transferred_at (Blocker 8)
-    v_is_timely := (v_transfer.transferred_at <= v_ob.due_at);
-    v_is_exception_covered := false;
-  end if;
+  -- Normal deadline calculation strictly from transfer's immutable transferred_at (Blocker 8)
+  v_is_timely := (v_transfer.transferred_at <= v_ob.due_at);
 
   insert into finance.statutory_cash_deposit_settlements (
     obligation_id, custody_transfer_id, tenant_id, property_id, cash_desk_id,
-    settled_amount, is_timely, exception_id, is_exception_covered, reason,
+    settled_amount, is_timely, reason,
     settled_by, idempotency_key, payload_hash
   ) values (
     p_obligation_id, p_custody_transfer_id, v_ob.tenant_id, v_ob.property_id, v_ob.cash_desk_id,
-    p_settled_amount, v_is_timely, p_exception_id, v_is_exception_covered, btrim(p_reason),
+    p_settled_amount, v_is_timely, btrim(p_reason),
     p_actor_id, p_idempotency_key, p_payload_hash
   ) returning * into v_settlement;
 
   -- Update obligation projection
-  v_total_settled := v_ob_already_settled + p_settled_amount;
+  select coalesce(sum(settled_amount), 0.00)::numeric(20,2) into v_total_settled
+    from finance.statutory_cash_deposit_settlements
+   where obligation_id = p_obligation_id;
+
   if v_total_settled >= v_ob.required_amount then
     v_new_status := 'settled';
   else
@@ -2468,9 +2482,9 @@ begin
   end if;
 
   update finance.statutory_cash_deposit_obligations
-     set settled_amount = v_total_settled,
-         status = v_new_status,
-         settled_at = case when v_new_status = 'settled' then statement_timestamp() else null end
+     set bank_settled_amount = v_total_settled,
+         bank_settlement_status = v_new_status,
+         bank_settled_at = case when v_new_status = 'settled' then statement_timestamp() else null end
    where id = p_obligation_id;
 
   insert into audit.events (tenant_id, actor_id, actor_role, action, entity_type, entity_id, after_snapshot, reason)
@@ -2956,7 +2970,7 @@ revoke all on function app_private.activate_statutory_petty_cash_v1(uuid, uuid, 
 revoke all on function app_private.record_statutory_petty_cash_expense_v1(uuid, uuid, text, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.reverse_statutory_petty_cash_expense_v1(uuid, uuid, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.record_deposit_obligation_exception_v1(uuid, numeric, text, date, text, uuid, text, text) from public, anon, authenticated;
-revoke all on function app_private.settle_cash_deposit_obligation_v1(uuid, uuid, numeric, uuid, text, uuid, text, text) from public, anon, authenticated;
+revoke all on function app_private.settle_cash_deposit_obligation_v1(uuid, uuid, numeric, text, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.create_statutory_cash_document_v1(uuid, finance.statutory_cash_document_type, text, text, date, numeric, text, text, jsonb, uuid, uuid, uuid, text, text) from public, anon, authenticated;
 revoke all on function app_private.verify_statutory_cash_document_semantic_schema_v1(uuid, integer, uuid, text, text, text) from public, anon, authenticated;
 revoke all on function app_private.finalize_statutory_cash_document_v1(uuid, integer, uuid, text, text, text) from public, anon, authenticated;
@@ -2976,7 +2990,7 @@ grant execute on function app_private.activate_statutory_petty_cash_v1(uuid, uui
 grant execute on function app_private.record_statutory_petty_cash_expense_v1(uuid, uuid, text, text, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.reverse_statutory_petty_cash_expense_v1(uuid, uuid, text, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.record_deposit_obligation_exception_v1(uuid, numeric, text, date, text, uuid, text, text) to cladora_rpc_owner, service_role;
-grant execute on function app_private.settle_cash_deposit_obligation_v1(uuid, uuid, numeric, uuid, text, uuid, text, text) to cladora_rpc_owner, service_role;
+grant execute on function app_private.settle_cash_deposit_obligation_v1(uuid, uuid, numeric, text, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.create_statutory_cash_document_v1(uuid, finance.statutory_cash_document_type, text, text, date, numeric, text, text, jsonb, uuid, uuid, uuid, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.verify_statutory_cash_document_semantic_schema_v1(uuid, integer, uuid, text, text, text) to cladora_rpc_owner, service_role;
 grant execute on function app_private.finalize_statutory_cash_document_v1(uuid, integer, uuid, text, text, text) to cladora_rpc_owner, service_role;
@@ -3002,7 +3016,7 @@ comment on table finance.statutory_petty_cash_retention_consumption_releases is 
 
 
 -- Revoke direct DML from service_role on append-only ledgers and events (Erratum-004 item 7)
-revoke insert, delete on table
+revoke insert, update, delete on table
   finance.statutory_cash_deposit_obligations
 from service_role;
 

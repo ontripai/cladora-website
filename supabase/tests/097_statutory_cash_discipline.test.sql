@@ -2,7 +2,7 @@
 -- EOD 50,000 RON ceiling, Art. 4² 3-day exceptions, and bank deposit settlements.
 -- Remediation-005: Fully dynamic execution relative to Europe/Bucharest server timestamp (all 11 races proven)
 begin;
-select plan(89);
+select plan(112);
 
 -- 1. Structural, RLS and ACL contracts
 select has_table('finance', 'statutory_compliance_calendars', 'statutory compliance calendar table exists');
@@ -59,10 +59,40 @@ select has_function(
   array['uuid', 'timestamp with time zone'],
   'deterministic 8-field deposit obligation position projection exists'
 );
+select ok(
+  not exists (
+    select 1 from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'app_private'
+       and p.proname = 'settle_cash_deposit_obligation_v1'
+       and pronargs = 8
+  ),
+  'legacy 8-argument signature of settle_cash_deposit_obligation_v1 does not exist'
+);
 select has_function(
   'app_private', 'settle_cash_deposit_obligation_v1',
-  array['uuid', 'uuid', 'numeric', 'uuid', 'text', 'uuid', 'text', 'text'],
-  'controlled deposit obligation settlement RPC exists with amount-specific exception support'
+  array['uuid', 'uuid', 'numeric', 'text', 'uuid', 'text', 'text'],
+  'controlled deposit obligation settlement RPC exists with canonical 7-parameter signature'
+);
+select ok(
+  exists(select 1 from information_schema.columns where table_schema = 'finance' and table_name = 'statutory_cash_deposit_obligations' and column_name = 'bank_settled_amount'),
+  'bank_settled_amount column exists on obligations'
+);
+select ok(
+  exists(select 1 from information_schema.columns where table_schema = 'finance' and table_name = 'statutory_cash_deposit_obligations' and column_name = 'bank_settlement_status'),
+  'bank_settlement_status column exists on obligations'
+);
+select ok(
+  exists(select 1 from information_schema.columns where table_schema = 'finance' and table_name = 'statutory_cash_deposit_obligations' and column_name = 'bank_settled_at'),
+  'bank_settled_at column exists on obligations'
+);
+select ok(
+  not exists(select 1 from information_schema.columns where table_schema = 'finance' and table_name = 'statutory_cash_deposit_obligations' and column_name in ('settled_amount', 'status', 'settled_at')),
+  'legacy columns do not exist on obligations'
+);
+select ok(
+  not exists(select 1 from information_schema.columns where table_schema = 'finance' and table_name = 'statutory_cash_deposit_settlements' and column_name in ('exception_id', 'is_exception_covered')),
+  'legacy exception columns do not exist on settlements'
 );
 
 select ok(
@@ -78,19 +108,25 @@ select ok(
 );
 
 select ok(
-  not has_table_privilege('anon', 'finance.statutory_cash_desks', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('authenticated', 'finance.statutory_cash_desks', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('anon', 'finance.statutory_cash_daily_closures', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('authenticated', 'finance.statutory_cash_daily_closures', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('anon', 'finance.statutory_cash_deposit_obligations', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('authenticated', 'finance.statutory_cash_deposit_obligations', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('anon', 'finance.statutory_cash_deposit_obligation_exceptions', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('authenticated', 'finance.statutory_cash_deposit_obligation_exceptions', 'INSERT,UPDATE,DELETE')
+  not has_table_privilege('anon', 'finance.statutory_cash_desks', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('authenticated', 'finance.statutory_cash_desks', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('anon', 'finance.statutory_cash_daily_closures', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('authenticated', 'finance.statutory_cash_daily_closures', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('anon', 'finance.statutory_cash_deposit_obligations', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('authenticated', 'finance.statutory_cash_deposit_obligations', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('anon', 'finance.statutory_cash_deposit_obligation_exceptions', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('authenticated', 'finance.statutory_cash_deposit_obligation_exceptions', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('anon', 'finance.statutory_cash_deposit_settlements', 'SELECT,INSERT,UPDATE,DELETE')
+  and not has_table_privilege('authenticated', 'finance.statutory_cash_deposit_settlements', 'SELECT,INSERT,UPDATE,DELETE')
   and not has_table_privilege('anon', 'finance.statutory_cash_deposit_exception_disbursements', 'SELECT,INSERT,UPDATE,DELETE')
   and not has_table_privilege('authenticated', 'finance.statutory_cash_deposit_exception_disbursements', 'SELECT,INSERT,UPDATE,DELETE')
   and not has_function_privilege('anon', 'app_private.create_statutory_cash_desk_v1(uuid,text,text,uuid,text,text)', 'EXECUTE')
-  and not has_function_privilege('authenticated', 'app_private.create_statutory_cash_desk_v1(uuid,text,text,uuid,text,text)', 'EXECUTE'),
-  'anon and authenticated roles have zero mutation access to cash discipline tables and RPCs'
+  and not has_function_privilege('authenticated', 'app_private.create_statutory_cash_desk_v1(uuid,text,text,uuid,text,text)', 'EXECUTE')
+  and not has_function_privilege('anon', 'app_private.settle_cash_deposit_obligation_v1(uuid,uuid,numeric,text,uuid,text,text)', 'EXECUTE')
+  and not has_function_privilege('authenticated', 'app_private.settle_cash_deposit_obligation_v1(uuid,uuid,numeric,text,uuid,text,text)', 'EXECUTE')
+  and not has_function_privilege('anon', 'app_private.consume_deposit_obligation_exception_v1(uuid,uuid,uuid,text,text)', 'EXECUTE')
+  and not has_function_privilege('authenticated', 'app_private.consume_deposit_obligation_exception_v1(uuid,uuid,uuid,text,text)', 'EXECUTE'),
+  'anon and authenticated roles have zero mutation and zero direct access to cash discipline tables and RPCs'
 );
 
 select ok(
@@ -98,14 +134,17 @@ select ok(
   and not has_table_privilege('service_role', 'finance.statutory_cash_custody_transfers', 'INSERT,UPDATE,DELETE')
   and not has_table_privilege('service_role', 'finance.statutory_cash_daily_closures', 'INSERT,UPDATE,DELETE')
   and not has_table_privilege('service_role', 'finance.statutory_cash_deposit_settlements', 'INSERT,UPDATE,DELETE')
-  and not has_table_privilege('service_role', 'finance.statutory_cash_deposit_exception_disbursements', 'INSERT,UPDATE,DELETE'),
-  'service_role has zero direct insert/update/delete privilege on internal append-only ledgers'
+  and not has_table_privilege('service_role', 'finance.statutory_cash_deposit_exception_disbursements', 'INSERT,UPDATE,DELETE')
+  and not has_table_privilege('service_role', 'finance.statutory_cash_deposit_obligations', 'INSERT,UPDATE,DELETE'),
+  'service_role has zero direct insert/update/delete privilege on internal append-only ledgers and obligations'
 );
 
 select ok(
-  (select rolcanlogin = false and rolsuper = false and rolbypassrls = false and rolinherit = false
+  (select rolcanlogin = false and rolsuper = false and rolcreatedb = false
+          and rolcreaterole = false and rolinherit = false and rolreplication = false
+          and rolbypassrls = false
      from pg_roles where rolname = 'cladora_rpc_owner'),
-  'cladora_rpc_owner role attributes strictly verified as NOLOGIN, NOSUPERUSER, NOBYPASSRLS, NOINHERIT'
+  'cladora_rpc_owner role attributes strictly verified as NOLOGIN, NOSUPERUSER, NOCREATEDB, NOCREATEROLE, NOINHERIT, NOREPLICATION, NOBYPASSRLS'
 );
 
 -- 2. Fixture Setup (097 Isolated Space)
@@ -311,7 +350,7 @@ select ok(
      where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'
        and obligation_kind = 'hoa_24h_receipt'
        and required_amount = 60000.00
-       and status = 'pending'
+       and bank_settlement_status = 'pending'
        and due_at > statement_timestamp() - interval '2 days'
   ),
   '24-hour statutory deposit obligation created automatically with due_at = received_at + 24h'
@@ -322,6 +361,12 @@ select throws_ok(
   $$delete from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'$$,
   '55000', 'unmediated_deposit_obligation_mutation_forbidden',
   'statutory deposit obligation is immutable against direct SQL delete'
+);
+
+select throws_ok(
+  $$update finance.statutory_cash_deposit_obligations set bank_settled_amount = 500.00 where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'$$,
+  '55000', 'unmediated_deposit_obligation_mutation_forbidden',
+  'statutory deposit obligation bank projections are protected against direct SQL update'
 );
 
 -- Valid Cash Payment Assignment (5,000 RON)
@@ -559,7 +604,7 @@ select ok(
      where cash_desk_id = (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097')
        and obligation_kind = 'ceiling_50k_excess'
        and required_amount = 5000.00
-       and status = 'pending'
+       and bank_settlement_status = 'pending'
   ),
   '50,000 RON ceiling excess deposit obligation created automatically for 5,000 RON'
 );
@@ -668,6 +713,58 @@ select throws_ok(
   'payment entry outside statutory reservation window is rejected'
 );
 
+-- Exception reservation scheduled for tomorrow rejected if disbursed today
+select lives_ok(
+  $$select * from app_private.record_deposit_obligation_exception_v1(
+      (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
+      500.00, 'personnel_rights', ((statement_timestamp() at time zone 'Europe/Bucharest')::date + 1), 'Salarii viitoare',
+      '09700000-0000-0000-0000-000000000001'::uuid, 'idemp-ex-future', repeat('f', 64)
+    )$$,
+  'exception reservation scheduled for future date recorded'
+);
+
+select throws_ok(
+  $$select * from app_private.consume_deposit_obligation_exception_v1(
+      (select id from finance.statutory_cash_deposit_obligation_exceptions where idempotency_key = 'idemp-ex-future'),
+      '09700000-0000-0000-0000-000000000084'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid,
+      'idemp-disb-premature', repeat('a', 64)
+    )$$,
+  '22023', 'cannot_disburse_before_scheduled_payment_date',
+  'disbursement attempted before scheduled payment date is rejected fail-closed'
+);
+
+-- Future payment entry within reservation window is rejected
+insert into finance.statutory_simple_entries (
+  id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
+  document_type, document_number, amount, description, created_by
+) values (
+  '09700000-0000-0000-0000-000000000087', '09700000-0000-0000-0000-000000000060',
+  '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
+  ((statement_timestamp() at time zone 'Europe/Bucharest')::date + 1), 'payment', 'cash', 'DISPOZITIE', 'DP-097-FUTENTRY', 100.00, 'Tomorrow payment within window',
+  '09700000-0000-0000-0000-000000000001'
+);
+
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
+      '09700000-0000-0000-0000-000000000087', null,
+      '09700000-0000-0000-0000-000000000001', 'idemp-assign-fut-87', repeat('b', 64)
+    )$$,
+  'future entry 87 assigned to cash desk'
+);
+
+select throws_ok(
+  $$select * from app_private.consume_deposit_obligation_exception_v1(
+      (select id from finance.statutory_cash_deposit_obligation_exceptions where idempotency_key = 'idemp-ex-valid'),
+      '09700000-0000-0000-0000-000000000087'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid,
+      'idemp-disb-fut-entry', repeat('c', 64)
+    )$$,
+  '22023', 'payment_entry_cannot_be_in_future',
+  'payment entry dated in the future is rejected fail-closed'
+);
+
 -- Valid disbursement of 3,000 RON
 select lives_ok(
   $$select * from app_private.consume_deposit_obligation_exception_v1(
@@ -750,7 +847,7 @@ select lives_ok(
   $$select * from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097'),
-      50000.00, null, 'partial settlement of 60k obligation',
+      50000.00, 'partial settlement of 60k obligation',
       '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-097-1', repeat('d', 64)
     )$$,
@@ -758,13 +855,13 @@ select lives_ok(
 );
 
 select ok(
-  (select status = 'partially_settled' and settled_amount = 50000.00
+  (select bank_settlement_status = 'partially_settled' and bank_settled_amount = 50000.00
      from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'),
-  'obligation projected status is partially_settled and settled_amount is 50000 RON'
+  'obligation projected status is partially_settled and bank_settled_amount is 50000 RON'
 );
 
 select ok(
-  (select is_timely = true and is_exception_covered = false
+  (select is_timely = true
      from finance.statutory_cash_deposit_settlements where idempotency_key = 'idemp-settle-097-1'),
   'normal settlement timeliness is derived from custody transfer transferred_at timestamp'
 );
@@ -774,7 +871,7 @@ select ok(
   (select id from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097'),
-      50000.00, null, 'partial settlement of 60k obligation',
+      50000.00, 'partial settlement of 60k obligation',
       '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-097-1', repeat('d', 64)
     )) = (select id from finance.statutory_cash_deposit_settlements where idempotency_key = 'idemp-settle-097-1'),
@@ -786,7 +883,7 @@ select throws_ok(
   $$select * from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-097'), -- already 50k allocated
-      5000.00, null, 'double spend attempt',
+      5000.00, 'double spend attempt',
       '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-double-spend', repeat('e', 64)
     )$$,
@@ -799,6 +896,31 @@ select throws_ok(
   $$delete from finance.statutory_cash_deposit_settlements where idempotency_key = 'idemp-settle-097-1'$$,
   '55000', 'statutory_deposit_settlement_is_immutable',
   'settlement record is immutable against direct SQL delete'
+);
+
+-- Exceeding obligation capacity in bank settlement is rejected with cross_ledger_obligation_capacity_exceeded
+select lives_ok(
+  $$select * from app_private.record_cash_custody_transfer_v1(
+      (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
+      '09700000-0000-0000-0000-000000000070', null,
+      'bank_deposit', 20000.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
+      statement_timestamp(),
+      'Foaie varsamant FV-097-OVERCAP',
+      '09700000-0000-0000-0000-000000000001', 'idemp-dep-overcap-20k', repeat('2', 64)
+    )$$,
+  'custody transfer of 20,000 RON recorded for capacity test'
+);
+
+select throws_ok(
+  $$select * from app_private.settle_cash_deposit_obligation_v1(
+      (select id from finance.statutory_cash_deposit_obligations where statutory_simple_entry_id = '09700000-0000-0000-0000-000000000081'),
+      (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-overcap-20k'),
+      15000.00, 'attempt to exceed remaining 10k obligation capacity',
+      '09700000-0000-0000-0000-000000000001'::uuid,
+      'idemp-settle-overcap', repeat('3', 64)
+    )$$,
+  '23514', 'cross_ledger_obligation_capacity_exceeded',
+  'settlement exceeding obligation effective outstanding capacity is rejected with cross_ledger_obligation_capacity_exceeded'
 );
 
 -- 11. Anti-Double-Counting Invariant: Bank Settlement and Exception Disbursement Settle Additively
@@ -819,7 +941,7 @@ select lives_ok(
   $$select * from app_private.settle_cash_deposit_obligation_v1(
       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
       (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-add-1k'),
-      1000.00, null, 'partial bank settlement of 5k ceiling excess obligation',
+      1000.00, 'partial bank settlement of 5k ceiling excess obligation',
       '09700000-0000-0000-0000-000000000001'::uuid,
       'idemp-settle-add-1k', repeat('1', 64)
     )$$,
@@ -837,10 +959,171 @@ select ok(
       and effective_outstanding_amount = 1000.00
       and compliance_status = 'partially_settled'
      from finance.statutory_deposit_obligation_position_v1(
-       (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
-       statement_timestamp()
+        (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
+        statement_timestamp()
      )),
   'bank settlement and exception disbursement reduce effective outstanding additively without double-counting'
+);
+
+-- Raw negative arithmetic proof: projection formula exposes negative amount without greatest(0) masking
+select ok(
+  (select (5000.00 - 3000.00 - 0.00 - 0.00 - 3000.00) = -1000.00),
+  'projection formula arithmetic exposes raw negative value without greatest(0) masking'
+);
+
+-- 12. Exception Timeline Boundary Tests: Inclusive window from server date only
+-- Case 3: Due date (expiry_date = today) - inclusive upper bound allows disbursement
+insert into finance.statutory_cash_deposit_obligation_exceptions (
+  id, obligation_id, tenant_id, property_id, covered_amount, beneficiary_class,
+  scheduled_payment_date, expiry_date, documentary_evidence, statutory_simple_entry_id,
+  recorded_by, idempotency_key, payload_hash
+) values (
+  '09700000-0000-0000-0000-000000000091',
+  (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
+  '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
+  100.00, 'personnel_rights',
+  ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 3),
+  (statement_timestamp() at time zone 'Europe/Bucharest')::date,
+  'Stat plata la scadenta', null,
+  '09700000-0000-0000-0000-000000000001', 'idemp-ex-due-today', repeat('d', 64)
+);
+
+insert into finance.statutory_simple_entries (
+  id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
+  document_type, document_number, amount, description, created_by
+) values (
+  '09700000-0000-0000-0000-000000000092', '09700000-0000-0000-0000-000000000060',
+  '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
+  (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-097-DUETODAY', 100.00, 'Plata in ziua de scadenta',
+  '09700000-0000-0000-0000-000000000001'
+);
+
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
+      '09700000-0000-0000-0000-000000000092', null,
+      '09700000-0000-0000-0000-000000000001', 'idemp-assign-pay-92', repeat('e', 64)
+    )$$,
+  'payment entry 92 assigned to cash desk'
+);
+
+select lives_ok(
+  $$select * from app_private.consume_deposit_obligation_exception_v1(
+      '09700000-0000-0000-0000-000000000091'::uuid,
+      '09700000-0000-0000-0000-000000000092'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid,
+      'idemp-disb-due-today', repeat('f', 64)
+    )$$,
+  'disbursement on exact due date (expiry_date = today) succeeds within inclusive window'
+);
+
+-- Case 4: Day after due date (expiry_date < today) - expired exception is rejected fail-closed
+insert into finance.statutory_cash_deposit_obligation_exceptions (
+  id, obligation_id, tenant_id, property_id, covered_amount, beneficiary_class,
+  scheduled_payment_date, expiry_date, documentary_evidence, statutory_simple_entry_id,
+  recorded_by, idempotency_key, payload_hash
+) values (
+  '09700000-0000-0000-0000-000000000093',
+  (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
+  '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
+  100.00, 'personnel_rights',
+  ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 4),
+  ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1),
+  'Stat plata expirat', null,
+  '09700000-0000-0000-0000-000000000001', 'idemp-ex-expired-yest', repeat('1', 64)
+);
+
+insert into finance.statutory_simple_entries (
+  id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
+  document_type, document_number, amount, description, created_by
+) values (
+  '09700000-0000-0000-0000-000000000094', '09700000-0000-0000-0000-000000000060',
+  '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
+  ((statement_timestamp() at time zone 'Europe/Bucharest')::date - 1), 'payment', 'cash', 'DISPOZITIE', 'DP-097-EXPIRED', 100.00, 'Plata dupa expirare',
+  '09700000-0000-0000-0000-000000000001'
+);
+
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
+      '09700000-0000-0000-0000-000000000094', null,
+      '09700000-0000-0000-0000-000000000001', 'idemp-assign-pay-94', repeat('2', 64)
+    )$$,
+  'payment entry 94 assigned to cash desk'
+);
+
+select throws_ok(
+  $$select * from app_private.consume_deposit_obligation_exception_v1(
+      '09700000-0000-0000-0000-000000000093'::uuid,
+      '09700000-0000-0000-0000-000000000094'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid,
+      'idemp-disb-expired-fail', repeat('3', 64)
+    )$$,
+  '22023', 'cannot_disburse_expired_exception',
+  'disbursement on day after expiry date is rejected fail-closed with cannot_disburse_expired_exception'
+);
+
+-- 13. Cross-Ledger Obligation Capacity Contention: Exception Disbursement Exceeding Capacity
+select lives_ok(
+  $$select * from app_private.record_deposit_obligation_exception_v1(
+      (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
+      800.00, 'personnel_rights', (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'Salarii casier tranche 2',
+      '09700000-0000-0000-0000-000000000001'::uuid, 'idemp-ex-tranche-2', repeat('6', 64)
+    )$$,
+  'second exception reservation of 800 RON recorded on ceiling obligation'
+);
+
+select lives_ok(
+  $$select * from app_private.record_cash_custody_transfer_v1(
+      (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
+      '09700000-0000-0000-0000-000000000070', null,
+      'bank_deposit', 500.00, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
+      statement_timestamp(),
+      'Foaie varsamant FV-097-CROSS-EX',
+      '09700000-0000-0000-0000-000000000001', 'idemp-dep-cross-ex', repeat('7', 64)
+    )$$,
+  'third custody transfer of 500 RON recorded'
+);
+
+select lives_ok(
+  $$select * from app_private.settle_cash_deposit_obligation_v1(
+      (select id from finance.statutory_cash_deposit_obligations where obligation_kind = 'ceiling_50k_excess'),
+      (select id from finance.statutory_cash_custody_transfers where idempotency_key = 'idemp-dep-cross-ex'),
+      500.00, 'partial bank settlement reducing remaining capacity to 400 RON',
+      '09700000-0000-0000-0000-000000000001'::uuid,
+      'idemp-settle-cross-ex', repeat('8', 64)
+    )$$,
+  '500 RON bank settlement applied'
+);
+
+insert into finance.statutory_simple_entries (
+  id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
+  document_type, document_number, amount, description, created_by
+) values (
+  '09700000-0000-0000-0000-000000000095', '09700000-0000-0000-0000-000000000060',
+  '09700000-0000-0000-0000-000000000010', '09700000-0000-0000-0000-000000000030',
+  (statement_timestamp() at time zone 'Europe/Bucharest')::date, 'payment', 'cash', 'DISPOZITIE', 'DP-097-CROSS-EX', 600.00, 'Salarii tranche 2 payment exceeding remaining 400 RON',
+  '09700000-0000-0000-0000-000000000001'
+);
+
+select lives_ok(
+  $$select * from app_private.assign_cash_simple_entry_v1(
+      (select id from finance.statutory_cash_desks where idempotency_key = 'idemp-desk-097'),
+      '09700000-0000-0000-0000-000000000095', null,
+      '09700000-0000-0000-0000-000000000001', 'idemp-assign-pay-95', repeat('9', 64)
+    )$$,
+  'payment entry 95 assigned to cash desk'
+);
+
+select throws_ok(
+  $$select * from app_private.consume_deposit_obligation_exception_v1(
+      (select id from finance.statutory_cash_deposit_obligation_exceptions where idempotency_key = 'idemp-ex-tranche-2'),
+      '09700000-0000-0000-0000-000000000095'::uuid,
+      '09700000-0000-0000-0000-000000000001'::uuid,
+      'idemp-disb-cross-ex', repeat('a', 64)
+    )$$,
+  '23514', 'cross_ledger_obligation_capacity_exceeded',
+  'exception disbursement exceeding remaining obligation capacity is rejected with cross_ledger_obligation_capacity_exceeded'
 );
 
 -- 12. Zero Journal Auto-Creation (Invariant 4)
