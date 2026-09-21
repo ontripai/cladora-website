@@ -1920,7 +1920,7 @@ begin
     raise exception 'petty_cash_authorization_not_active' using errcode = '55000';
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -2063,13 +2063,13 @@ begin
     return v_rev;
   end if;
 
-  select * into v_orig from finance.statutory_petty_cash_expenses where id = p_expense_id for update;
+  select * into v_orig from finance.statutory_petty_cash_expenses where id = p_expense_id;
 
   if exists (select 1 from finance.statutory_petty_cash_expense_reversals where reversal_of_id = p_expense_id) then
     raise exception 'petty_cash_expense_already_reversed' using errcode = '55000';
   end if;
 
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
@@ -2297,8 +2297,8 @@ begin
   end if;
 
   select * into v_ob from finance.statutory_cash_deposit_obligations where id = v_obligation_id for update;
-  select * into v_ex from finance.statutory_cash_deposit_obligation_exceptions where id = p_exception_id for update;
-  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id for update;
+  select * into v_ex from finance.statutory_cash_deposit_obligation_exceptions where id = p_exception_id;
+  select * into v_entry from finance.statutory_simple_entries where id = p_statutory_simple_entry_id;
   if not found then
     raise exception 'statutory_simple_entry_not_found' using errcode = 'P0002';
   end if;
