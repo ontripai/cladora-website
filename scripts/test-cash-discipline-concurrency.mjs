@@ -822,12 +822,32 @@ async function runSettlementReplayVsCompetingRace(observer, winner, waiter, f) {
 async function runExceptionAllocationRace(observer, winner, waiter, f) {
   console.log('\n[Race 9] True cross-ledger contention: Bank Settlement (3000) vs Exception Disbursement (3000) on 5000 RON obligation');
 
+  // Step 0: Insert and assign a dedicated 5,000 RON cash receipt entry to produce a 5,000 RON deposit obligation
+  const receiptEntryRace9 = id();
+  await observer.query(
+    `insert into finance.statutory_simple_entries (
+       id, cycle_id, tenant_id, property_id, entry_date, direction, payment_medium,
+       document_type, document_number, amount, description, created_by
+     ) values (
+       $1, $2, $3, $4, (statement_timestamp() at time zone 'Europe/Bucharest')::date,
+       'receipt', 'cash', 'CHITANTA', 'CH-RACE-9', 5000.00, 'Cash receipt 5000 RON Race 9', $5
+     )`,
+    [receiptEntryRace9, f.cycle, f.tenant, f.property, f.actor],
+  );
+  await observer.query(
+    `select * from app_private.assign_cash_simple_entry_v1(
+       $1, $2, statement_timestamp(), $3, $4, $5
+     )`,
+    [f.cashDesk1, receiptEntryRace9, f.actor, `idemp-as-race-9-rec-${receiptEntryRace9}`, sha256(`as-race-9-rec-${receiptEntryRace9}`)],
+  );
+
   const ceilingOb = await observer.query(
     `select id, required_amount from finance.statutory_cash_deposit_obligations
-      where obligation_kind = 'ceiling_50k_excess' limit 1`,
+      where statutory_simple_entry_id = $1`,
+    [receiptEntryRace9],
   );
   f.obligationCeiling1 = ceilingOb.rows[0].id;
-  assert.equal(ceilingOb.rows[0].required_amount, '5000.00', 'Ceiling excess obligation must be 5000.00 RON');
+  assert.equal(ceilingOb.rows[0].required_amount, '5000.00', 'Deposit obligation must be 5000.00 RON');
 
   // Step 1: Pre-record 3,000 RON exception reservation on the ceiling obligation
   const exRes = await observer.query(
