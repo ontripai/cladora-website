@@ -1393,6 +1393,11 @@ grant execute on function app_private.jwt_uuid(text),app_private.active_tenant_i
   app_private.has_platform_role(platform.platform_role_type) to cladora_rpc_owner;
 
 -- Ownership includes private helpers; callable API grants remain exact and narrow below.
+-- PostgreSQL requires the destination owner to have CREATE on each containing
+-- schema during ALTER FUNCTION OWNER. The grant is scoped to this ownership
+-- transfer and revoked immediately afterwards.
+grant create on schema app_private, documents to cladora_rpc_owner;
+
 do $$
 declare r record;
 begin
@@ -1413,6 +1418,8 @@ begin
     ))) or (n.nspname='documents' and p.proname='protect_document_version')
   loop execute format('alter function %I.%I(%s) owner to cladora_rpc_owner',r.nspname,r.proname,r.args); end loop;
 end $$;
+
+revoke create on schema app_private, documents from cladora_rpc_owner;
 
 revoke all on function app_private.calc_accounting_retention_start_on(date) from public,anon,authenticated,service_role;
 revoke all on function app_private.calc_last_mandatory_day(date,integer) from public,anon,authenticated,service_role;
