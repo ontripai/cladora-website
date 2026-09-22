@@ -67,7 +67,11 @@ select lives_ok($$select platform.preview_retention_workers_v1()$$,'100-034 supe
 select is(platform.get_retention_operations_v1()->>'mode','read_only','100-035 read model declares read_only');
 select is(platform.get_retention_operations_v1()->>'section','summary','100-036 default section is summary');
 select is(jsonb_typeof(platform.get_retention_operations_v1()->'feature_flags'),'object','100-037 flags are an object');
-select is(jsonb_object_length(platform.get_retention_operations_v1()->'feature_flags'),4,'100-038 all four flags are projected');
+select is(
+  (select count(*)::integer from jsonb_object_keys(platform.get_retention_operations_v1()->'feature_flags')),
+  4,
+  '100-038 all four flags are projected'
+);
 select ok(not exists(select 1 from jsonb_each(platform.get_retention_operations_v1()->'feature_flags') f where (f.value->>'enabled')::boolean),'100-039 projected flags remain false');
 select is(jsonb_typeof(platform.get_retention_operations_v1()->'summary'),'object','100-040 summary is an object');
 select is(jsonb_typeof(platform.get_retention_operations_v1()->'items'),'array','100-041 items are an array');
