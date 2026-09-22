@@ -12,6 +12,7 @@ import {
   KeyRound,
   Terminal,
   FileText,
+  Archive,
   LifeBuoy,
   Lock,
   LogOut,
@@ -74,6 +75,12 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       href: `/${lang}/platform/provisioning`,
       label: lang === 'ro' ? 'Rulări Provizionare' : lang === 'fa' ? 'سوابق آماده‌سازی و فعال‌سازی' : 'Provisioning Runs',
       icon: Terminal,
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR'] as PlatformRole[],
+    },
+    {
+      href: `/${lang}/platform/retention-operations`,
+      label: lang === 'ro' ? 'Retenție & Legal Hold' : lang === 'fa' ? 'نگهداری و دستور حقوقی' : 'Retention & Legal Hold',
+      icon: Archive,
       roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR'] as PlatformRole[],
     },
     {
