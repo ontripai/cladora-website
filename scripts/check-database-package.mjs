@@ -36,7 +36,7 @@ let assertionTotal = 0;
 for (const name of tests) {
   const sql = readFileSync(join(testsDir, name), "utf8");
   const plan = Number(sql.match(/select\s+plan\((\d+)\)/i)?.[1] ?? -1);
-  const assertions = (sql.match(/^select\s+(?:has_schema|has_table|has_function|has_trigger|ok\(|lives_ok\(|throws_like\(|throws_ok\()/gim) ?? []).length;
+  const assertions = (sql.match(/^select\s+(?:has_schema|has_table|has_function|has_trigger|ok\(|is\(|isnt\(|cmp_ok\(|lives_ok\(|throws_like\(|throws_ok\()/gim) ?? []).length;
   assertionTotal += assertions;
   if (plan !== assertions) failures.push(`${name}: plan ${plan} does not match ${assertions} assertions`);
 }

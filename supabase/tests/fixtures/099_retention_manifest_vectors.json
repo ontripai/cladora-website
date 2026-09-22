@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CLADORA R10 Phase 3A Discovery R9 RFC 8785 Manifest Golden Test Vectors",
+  "specification": "RFC 8785 JSON Canonicalization Scheme (JCS) / SHA-256 Digest",
+  "approved_base_commit": "fe5e1bea92b3bed588b7edbf244657438c35b521",
+  "generated_at": "2026-09-21T18:40:00Z",
+  "status": "AUDIT_VERIFIED_STANDALONE",
+  "domain_separation_prefix": "CLADORA-DISPOSAL-MANIFEST-V1:",
+  "vectors": [
+    {
+      "vector_id": "VECTOR-001-RAW",
+      "description": "Single document disposal manifest payload without domain prefix",
+      "includes_domain_prefix": false,
+      "document_count": 1,
+      "canonical_jcs_payload": "[{\"document_class\":\"statutory_cash_receipts\",\"document_id\":\"a0000000-0000-0000-0000-000000000001\",\"file_content_digest\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"retention_last_mandatory_day\":\"2032-06-30\"}]",
+      "byte_length": 232,
+      "sha256_digest": "e6c44230cdf35ab4fefaffdbdbf356bfb4cae85db2b9c7e666b9ae704f1e1a0f",
+      "recomputation_command": "jq -j -r '.vectors[] | select(.vector_id == \"VECTOR-001-RAW\") | .canonical_jcs_payload' CLADORA-R10-PHASE-3A-DISCOVERY-R9-TEST-VECTORS.json | sha256sum"
+    },
+    {
+      "vector_id": "VECTOR-001-PREFIXED",
+      "description": "Single document disposal manifest payload with domain separation prefix",
+      "includes_domain_prefix": true,
+      "document_count": 1,
+      "canonical_jcs_payload": "CLADORA-DISPOSAL-MANIFEST-V1:[{\"document_class\":\"statutory_cash_receipts\",\"document_id\":\"a0000000-0000-0000-0000-000000000001\",\"file_content_digest\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"retention_last_mandatory_day\":\"2032-06-30\"}]",
+      "byte_length": 261,
+      "sha256_digest": "5bc27289dce576265aae17adcbcbce53af685bf6621e5e94cbc608cba06bb95c",
+      "recomputation_command": "jq -j -r '.vectors[] | select(.vector_id == \"VECTOR-001-PREFIXED\") | .canonical_jcs_payload' CLADORA-R10-PHASE-3A-DISCOVERY-R9-TEST-VECTORS.json | sha256sum"
+    },
+    {
+      "vector_id": "VECTOR-002-RAW",
+      "description": "Two-document multi-class disposal manifest payload without domain prefix",
+      "includes_domain_prefix": false,
+      "document_count": 2,
+      "canonical_jcs_payload": "[{\"document_class\":\"mandatory_accounting_registers\",\"document_id\":\"a0000000-0000-0000-0000-000000000001\",\"file_content_digest\":\"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\",\"retention_last_mandatory_day\":\"2032-06-30\"},{\"document_class\":\"statutory_cash_receipts\",\"document_id\":\"b0000000-0000-0000-0000-000000000002\",\"file_content_digest\":\"cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34\",\"retention_last_mandatory_day\":\"2031-12-31\"}]",
+      "byte_length": 470,
+      "sha256_digest": "18f36c3b657553d6dc67013042ba31adad9a109ab6973f3d3955cac1c11d5aca",
+      "recomputation_command": "jq -j -r '.vectors[] | select(.vector_id == \"VECTOR-002-RAW\") | .canonical_jcs_payload' CLADORA-R10-PHASE-3A-DISCOVERY-R9-TEST-VECTORS.json | sha256sum"
+    },
+    {
+      "vector_id": "VECTOR-002-PREFIXED",
+      "description": "Two-document multi-class disposal manifest payload with domain separation prefix",
+      "includes_domain_prefix": true,
+      "document_count": 2,
+      "canonical_jcs_payload": "CLADORA-DISPOSAL-MANIFEST-V1:[{\"document_class\":\"mandatory_accounting_registers\",\"document_id\":\"a0000000-0000-0000-0000-000000000001\",\"file_content_digest\":\"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\",\"retention_last_mandatory_day\":\"2032-06-30\"},{\"document_class\":\"statutory_cash_receipts\",\"document_id\":\"b0000000-0000-0000-0000-000000000002\",\"file_content_digest\":\"cb8379ac2098aa165029e3938a51da0bcecfc008fd6795f401178647f96c5b34\",\"retention_last_mandatory_day\":\"2031-12-31\"}]",
+      "byte_length": 499,
+      "sha256_digest": "06791b282fb1e95c4aaf6b0a042820bcd934146a7979c576f721dbb98527c35a",
+      "recomputation_command": "jq -j -r '.vectors[] | select(.vector_id == \"VECTOR-002-PREFIXED\") | .canonical_jcs_payload' CLADORA-R10-PHASE-3A-DISCOVERY-R9-TEST-VECTORS.json | sha256sum"
+    }
+  ]
+}
