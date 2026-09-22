@@ -21,8 +21,7 @@ end $$;
 grant cladora_rpc_owner, cladora_storage_worker, cladora_kms_worker to postgres;
 revoke cladora_rpc_owner, cladora_storage_worker, cladora_kms_worker from anon, authenticated, service_role;
 
-grant usage on schema auth, app_private, platform, identity, portfolio, maintenance, documents, audit, extensions to cladora_rpc_owner;
-grant execute on function auth.uid(), auth.jwt() to cladora_rpc_owner;
+grant usage on schema app_private, platform, identity, portfolio, maintenance, documents, audit, extensions to cladora_rpc_owner;
 grant usage on schema app_private to authenticated, service_role, cladora_storage_worker, cladora_kms_worker;
 
 alter table documents.documents
@@ -480,12 +479,24 @@ grant usage, select on sequence audit.events_id_seq to cladora_rpc_owner;
 grant usage, select on all sequences in schema app_private to cladora_rpc_owner;
 
 -- Shared authorization, idempotency and audit helpers.
+create or replace function app_private.phase3a_jwt_claim_v1(p_claim_name text)
+returns text language plpgsql stable security invoker set search_path=pg_catalog as $$
+declare v_claims jsonb;
+begin
+  begin
+    v_claims:=nullif(current_setting('request.jwt.claims',true),'')::jsonb;
+  exception when others then
+    return null;
+  end;
+  return nullif(v_claims->>p_claim_name,'');
+end $$;
+
 create or replace function app_private.phase3a_require_human_v1(
   p_tenant_id uuid, p_platform_only boolean default false, p_permission text default 'records.retention.manage')
 returns uuid language plpgsql stable security definer set search_path=pg_catalog as $$
-declare v_actor uuid := auth.uid();
+declare v_actor uuid := app_private.phase3a_jwt_claim_v1('sub')::uuid;
 begin
-  if v_actor is null or coalesce(auth.jwt()->>'aal','') <> 'aal2' then
+  if v_actor is null or coalesce(app_private.phase3a_jwt_claim_v1('aal'),'') <> 'aal2' then
     raise exception using errcode='42501', message='aal2_required';
   end if;
   if p_platform_only then
@@ -494,7 +505,7 @@ begin
       raise exception using errcode='42501', message='insufficient_privilege';
     end if;
   else
-    if p_tenant_id is null or app_private.active_tenant_id() is distinct from p_tenant_id
+    if p_tenant_id is null or app_private.phase3a_jwt_claim_v1('active_tenant_id')::uuid is distinct from p_tenant_id
       or not exists (
         select 1
         from identity.memberships m
@@ -587,10 +598,10 @@ declare v_property uuid; v_worker_ok boolean;
 begin
   select exists (
     select 1 from app_private.worker_principals w
-    where w.status='active' and w.token_subject=auth.jwt()->>'sub' and p_tenant_id=any(w.allowed_tenant_ids)
+    where w.status='active' and w.token_subject=app_private.phase3a_jwt_claim_v1('sub') and p_tenant_id=any(w.allowed_tenant_ids)
   ) into v_worker_ok;
-  if not app_private.is_service_role() and not coalesce(v_worker_ok,false)
-    and (app_private.active_tenant_id() is distinct from p_tenant_id or not app_private.is_active_member(p_tenant_id)) then
+  if coalesce(app_private.phase3a_jwt_claim_v1('role'),'') <> 'service_role' and not coalesce(v_worker_ok,false)
+    and (app_private.phase3a_jwt_claim_v1('active_tenant_id')::uuid is distinct from p_tenant_id or not app_private.is_active_member(p_tenant_id)) then
     raise exception using errcode='42501',message='tenant_access_denied';
   end if;
   select property_id into v_property from documents.documents where tenant_id=p_tenant_id and id=p_document_id;
@@ -624,7 +635,8 @@ create or replace function app_private.evaluate_document_retention_v1(
 returns jsonb language plpgsql stable security definer set search_path=pg_catalog as $$
 declare v_exists boolean; v_blocking bigint; v_latest date; v_held boolean;
 begin
-  if not app_private.is_service_role() and (app_private.active_tenant_id() is distinct from p_tenant_id or not app_private.is_active_member(p_tenant_id)) then
+  if coalesce(app_private.phase3a_jwt_claim_v1('role'),'') <> 'service_role'
+    and (app_private.phase3a_jwt_claim_v1('active_tenant_id')::uuid is distinct from p_tenant_id or not app_private.is_active_member(p_tenant_id)) then
     raise exception using errcode='42501',message='tenant_access_denied';
   end if;
   select true into v_exists from documents.documents where tenant_id=p_tenant_id and id=p_document_id;
@@ -643,7 +655,7 @@ create or replace function app_private.request_feature_flag_change_v1(
 returns uuid language plpgsql volatile security definer set search_path=pg_catalog as $$
 declare v_actor uuid; v_tenant uuid; v_existing jsonb; v_id uuid;
 begin
-  v_actor:=app_private.phase3a_require_human_v1(null,true); v_tenant:=app_private.active_tenant_id();
+  v_actor:=app_private.phase3a_require_human_v1(null,true); v_tenant:=app_private.phase3a_jwt_claim_v1('active_tenant_id')::uuid;
   if v_tenant is null then select tenant_id into v_tenant from identity.memberships where user_id=v_actor and status='active' order by starts_at limit 1; end if;
   v_existing:=app_private.phase3a_idempotency_get_v1(v_tenant,p_idempotency_key,p_payload_hash);
   if v_existing is not null then return (v_existing->>'request_id')::uuid; end if;
@@ -993,7 +1005,7 @@ returns app_private.worker_principals language plpgsql stable security definer s
 declare v app_private.worker_principals%rowtype;
 begin
   select * into v from app_private.worker_principals
-  where worker_kind=p_worker_kind and status='active' and token_subject=coalesce(auth.jwt()->>'sub','')
+  where worker_kind=p_worker_kind and status='active' and token_subject=coalesce(app_private.phase3a_jwt_claim_v1('sub'),'')
     and (p_principal_name is null or principal_name=p_principal_name);
   if not found then raise exception using errcode='42501',message='unauthorized_worker'; end if;
   return v;
@@ -1270,7 +1282,9 @@ create or replace function app_private.verify_document_tombstone_v1(p_tenant_id 
 returns jsonb language plpgsql stable security definer set search_path=pg_catalog as $$
 declare v app_private.document_tombstones%rowtype; v_job app_private.disposal_purge_jobs%rowtype; v_secret text; v_expected text;
 begin
-  if not app_private.is_service_role() then raise exception using errcode='42501',message='tenant_access_denied'; end if;
+  if coalesce(app_private.phase3a_jwt_claim_v1('role'),'') <> 'service_role' then
+    raise exception using errcode='42501',message='tenant_access_denied';
+  end if;
   select * into v from app_private.document_tombstones where tenant_id=p_tenant_id and document_id=p_document_id;
   if not found then raise exception using errcode='P0002',message='tombstone_not_found'; end if;
   select * into v_job from app_private.disposal_purge_jobs where id=v.purge_job_id;
@@ -1421,6 +1435,23 @@ end $$;
 
 revoke create on schema app_private, documents from cladora_rpc_owner;
 
+-- Keep Phase 3A helpers private without changing execution privileges on
+-- pre-existing app_private routines owned by earlier migrations.
+do $$
+declare r record;
+begin
+  for r in
+    select n.nspname,p.proname,pg_get_function_identity_arguments(p.oid) args
+    from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+    where n.nspname='app_private' and p.proname like 'phase3a_%'
+  loop
+    execute format(
+      'revoke all on function %I.%I(%s) from public,anon,authenticated,service_role,cladora_storage_worker,cladora_kms_worker',
+      r.nspname,r.proname,r.args
+    );
+  end loop;
+end $$;
+
 revoke all on function app_private.calc_accounting_retention_start_on(date) from public,anon,authenticated,service_role;
 revoke all on function app_private.calc_last_mandatory_day(date,integer) from public,anon,authenticated,service_role;
 revoke all on function app_private.calc_review_eligible_on(date,integer) from public,anon,authenticated,service_role;
@@ -1492,7 +1523,6 @@ grant execute on function app_private.claim_kms_dispatch_v1(integer,text,text),
 grant execute on function app_private.verify_document_tombstone_v1(uuid,uuid) to service_role;
 
 revoke all on function documents.protect_document_version() from public,anon,authenticated,service_role,cladora_storage_worker,cladora_kms_worker;
-revoke execute on all functions in schema app_private from public,anon;
 revoke create on schema app_private from public,anon,authenticated,service_role,cladora_rpc_owner,cladora_storage_worker,cladora_kms_worker;
 
 commit;
