@@ -1040,6 +1040,20 @@ export type Database = {
         Args: { p_workspace_id: string };
         Returns: Array<{ customer_workspace_id: string; workspace_version: number; onboarding_completed: boolean }>;
       };
+      get_retention_operations_v1: {
+        Args: {
+          p_section?: string;
+          p_tenant_id?: string | null;
+          p_status?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+        };
+        Returns: Json;
+      };
+      preview_retention_workers_v1: {
+        Args: { p_tenant_id?: string | null; p_limit?: number };
+        Returns: Json;
+      };
     };
     Enums: {
       platform_role_type:
