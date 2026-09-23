@@ -1469,6 +1469,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      has_platform_access_v1: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
       get_ledger_v1: {
         Args: {
           p_context_id: string;

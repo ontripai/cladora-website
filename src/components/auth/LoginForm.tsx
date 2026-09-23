@@ -2,13 +2,13 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { ArrowRight, Loader2, Lock, Mail, PlayCircle } from 'lucide-react';
 import type { Language } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
+import { resolvePostAuthRoute } from '@/lib/auth/post-auth-route';
 
 interface LoginFormProps {
   lang: Language;
@@ -17,7 +17,6 @@ interface LoginFormProps {
 }
 
 export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey }) => {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -87,9 +86,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
         return;
       }
 
-      const { data: assurance, error: assuranceError } =
-        await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (assuranceError) {
+      let destination: string;
+      try {
+        destination = await resolvePostAuthRoute(supabase, lang);
+      } catch {
         await supabase.auth.signOut();
         setError(
           lang === 'ro'
@@ -101,14 +101,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
         return;
       }
 
-      if (assurance.nextLevel === 'aal2' && assurance.currentLevel !== 'aal2') {
-        router.replace(`/${lang}/mfa`);
-        router.refresh();
-        return;
-      }
-
-      router.replace(`/${lang}/app/dashboard`);
-      router.refresh();
+      // A full document navigation makes the newly issued Auth/MFA cookies
+      // visible to the first server-rendered protected route.
+      window.location.replace(destination);
     } catch {
       setCaptchaToken(null);
       setCaptchaAttempt((value) => value + 1);
