@@ -34,6 +34,9 @@ const platformLayout = read('src/app/[lang]/platform/(control-plane)/layout.tsx'
 const platformAuthRoutingMigration = read('supabase/migrations/20260923141551_platform_auth_routing_gateway.sql');
 const platformAuthRoutingHardeningMigration = read('supabase/migrations/20260923141840_platform_auth_routing_gateway_hardening.sql');
 const platformAuthRoutingTest = read('supabase/tests/101_platform_auth_routing_gateway.test.sql');
+const platformAuthContextMigration = read('supabase/migrations/20260923144455_platform_auth_context_gateway.sql');
+const platformAuthContextTest = read('supabase/tests/102_platform_auth_context_gateway.test.sql');
+const platformAuth = read('src/lib/platform/auth.ts');
 const demoSelector = read('src/components/demo/DemoRoleSelector.tsx');
 const demoRouter = read('src/app/[lang]/demo/app/[...slug]/page.tsx');
 const dashboardPage = read('src/components/demo/DemoDashboardPage.tsx');
@@ -210,6 +213,12 @@ check(proxy.includes("'/:lang(ro|en|fa)/app/:path*'"), 'route matcher protects l
 check(protectedLayout.includes("export const dynamic = 'force-dynamic'"), 'protected pages cannot use shared static caching');
 check(protectedLayout.includes('supabase.auth.getClaims()'), 'server layout independently verifies signed claims');
 check(protectedLayout.includes('redirect(`/${lang}/login'), 'server layout rejects unauthenticated access');
+check(platformAuth.includes("rpc('get_my_platform_auth_context_v1')"), 'Platform authorization context uses the atomic caller-scoped AAL2 gateway');
+check(!platformAuth.includes(".from('platform_users')") && !platformAuth.includes(".from('platform_role_assignments')"), 'Platform authorization bootstrap no longer depends on chained direct RLS reads');
+check(platformAuthContextMigration.includes("coalesce(auth.jwt()->>'aal', 'aal1') <> 'aal2'"), 'Platform context gateway fails closed below AAL2');
+check(platformAuthContextMigration.includes('v_auth_user_id uuid := auth.uid()'), 'Platform context gateway binds all data to the signed caller');
+check(platformAuthContextMigration.includes('security invoker') && platformAuthContextMigration.includes('security definer'), 'Platform context gateway separates exposed invoker and private definer boundaries');
+check(platformAuthContextTest.includes('non-Platform AAL2 caller is not authorized'), 'Platform context regression test denies non-Platform callers');
 check(login.includes('signInWithPassword'), 'login submits to Supabase Auth');
 check(login.includes('role="alert"'), 'login failures are accessible');
 check(login.includes('resolvePostAuthRoute'), 'login resolves the role-aware destination and assurance flow');

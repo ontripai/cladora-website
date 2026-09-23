@@ -26,16 +26,7 @@ export async function getPlatformAuthContext(): Promise<PlatformAuthContext> {
   const userId = claimsData.claims.sub;
   const assuranceLevel = claimsData.claims.aal === 'aal2' ? 'aal2' : 'aal1';
 
-  const { data: userData, error: userError } = await supabase
-    .schema('platform')
-    .from('platform_users')
-    .select('*')
-    .eq('auth_user_id', userId)
-    .eq('status', 'active')
-    .is('deactivated_at', null)
-    .maybeSingle();
-
-  if (userError || !userData) {
+  if (assuranceLevel !== 'aal2') {
     return {
       userId,
       platformUser: null,
@@ -46,33 +37,23 @@ export async function getPlatformAuthContext(): Promise<PlatformAuthContext> {
     };
   }
 
-  const platformUser = userData as unknown as PlatformUser;
+  const { data, error } = await supabase
+    .schema('customer_api')
+    .rpc('get_my_platform_auth_context_v1');
 
-  const now = new Date().toISOString();
-  const { data: rolesData } = await supabase
-    .schema('platform')
-    .from('platform_role_assignments')
-    .select('*')
-    .eq('platform_user_id', platformUser.id)
-    .eq('status', 'active')
-    .lte('valid_from', now)
-    .or(`valid_until.is.null,valid_until.gt.${now}`);
+  if (error) throw error;
 
-  const activeRoleAssignments = (rolesData || []) as unknown as PlatformRoleAssignment[];
-  const roles = activeRoleAssignments.map((ra) => ra.role);
+  const payload = data as unknown as {
+    platform_user: PlatformUser | null;
+    roles: PlatformRoleAssignment[];
+    assignments: PlatformCustomerAssignment[];
+    is_authorized: boolean;
+  };
 
-  const { data: assignmentsData } = await supabase
-    .schema('platform')
-    .from('platform_customer_assignments')
-    .select('*')
-    .eq('platform_user_id', platformUser.id)
-    .eq('status', 'active')
-    .lte('valid_from', now)
-    .or(`valid_until.is.null,valid_until.gt.${now}`);
-
-  const assignments = (assignmentsData || []) as unknown as PlatformCustomerAssignment[];
-
-  const isAuthorized = roles.length > 0;
+  const platformUser = payload.platform_user;
+  const roles = (payload.roles ?? []).map((assignment) => assignment.role);
+  const assignments = payload.assignments ?? [];
+  const isAuthorized = payload.is_authorized === true && platformUser !== null && roles.length > 0;
 
   return {
     userId,

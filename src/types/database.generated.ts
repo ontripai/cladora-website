@@ -1473,6 +1473,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      get_my_platform_auth_context_v1: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
       get_ledger_v1: {
         Args: {
           p_context_id: string;
