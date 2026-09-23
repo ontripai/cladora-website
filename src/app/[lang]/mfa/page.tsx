@@ -3,6 +3,7 @@ import { MfaChallengeForm } from '@/components/auth/MfaChallengeForm';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { isSupportedLocale } from '@/types';
+import { getCustomerDashboardRoute, getPlatformOverviewRoute, hasActivePlatformAccess } from '@/lib/auth/post-auth-route';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,9 +14,21 @@ export default async function MfaPage({ params }: { params: Promise<{ lang: stri
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims) redirect(`/${lang}/login`);
+  let platformAccess: boolean | null = null;
+  try {
+    platformAccess = await hasActivePlatformAccess(supabase);
+  } catch {
+    platformAccess = null;
+  }
+  if (platformAccess === null) redirect(`/${lang}/login?reason=security`);
+  const continueTo = platformAccess
+    ? getPlatformOverviewRoute(lang)
+    : getCustomerDashboardRoute(lang);
   const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || !assurance) redirect(`/${lang}/login?reason=security`);
-  if (assurance.currentLevel === 'aal2') redirect(`/${lang}/app/dashboard`);
-  if (assurance.nextLevel !== 'aal2') redirect(`/${lang}/mfa/setup?reason=customer_required`);
-  return <main className="flex min-h-screen items-center justify-center bg-[#F6F9FC] p-6"><MfaChallengeForm lang={lang} /></main>;
+  if (assurance.currentLevel === 'aal2') redirect(continueTo);
+  if (assurance.nextLevel !== 'aal2') {
+    redirect(`/${lang}/mfa/setup?reason=${platformAccess ? 'platform_required' : 'customer_required'}`);
+  }
+  return <main className="flex min-h-screen items-center justify-center bg-[#F6F9FC] p-6"><MfaChallengeForm lang={lang} continueTo={continueTo} /></main>;
 }

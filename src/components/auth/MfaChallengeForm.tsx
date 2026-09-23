@@ -1,13 +1,11 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { Language } from '@/types';
 
-export function MfaChallengeForm({ lang }: { lang: Language }) {
-  const router = useRouter();
+export function MfaChallengeForm({ lang, continueTo }: { lang: Language; continueTo: string }) {
   const [factorId, setFactorId] = useState('');
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(true);
@@ -42,8 +40,9 @@ export function MfaChallengeForm({ lang }: { lang: Language }) {
       setLoading(false);
       return;
     }
-    router.replace(`/${lang}/app/dashboard`);
-    router.refresh();
+    // challengeAndVerify persists the AAL2 session. Reload the document so the
+    // protected server layout receives that updated session immediately.
+    window.location.replace(continueTo);
   }
 
   return (
