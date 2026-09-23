@@ -29,8 +29,8 @@ export async function GET(request: Request) {
 
   const supabase = await createClient();
   let query = supabase
-    .schema('platform')
-    .from('customer_workspaces')
+    .schema('customer_api')
+    .from('customer_workspaces_v1')
     .select('*', { count: 'exact' });
 
   if (!hasPlatformRole(authCtx, 'PLATFORM_SUPER_ADMIN')) {
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('create_customer_workspace', {
+    const { data, error } = await supabase.schema('customer_api').rpc('create_customer_workspace_v1', {
       p_tenant_id: tenant_id,
       p_workspace_type: workspace_type,
       p_commercial_owner: commercial_owner,

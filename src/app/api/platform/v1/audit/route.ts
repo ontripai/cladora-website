@@ -69,7 +69,7 @@ export async function GET(request: Request) {
   ) return failure('INVALID_AUDIT_FILTERS', 400);
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc('list_audit_events', {
+  const { data, error } = await supabase.schema('customer_api').rpc('list_control_plane_audit_events_v1', {
     p_limit: limit,
     p_offset: offset,
     p_query: query || null,
