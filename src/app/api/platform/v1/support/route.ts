@@ -30,9 +30,9 @@ export async function GET(request: Request) {
   }
   const supabase = await createClient();
   const [{ data, error }, workspaceResult] = await Promise.all([
-    supabase.rpc('list_support_access', { p_limit: limit, p_offset: offset, p_query: q || null, p_status: status, p_workspace_id: workspaceId }),
+    supabase.schema('customer_api').rpc('list_support_access_v1', { p_limit: limit, p_offset: offset, p_query: q || null, p_status: status, p_workspace_id: workspaceId }),
     hasPlatformRole(access.auth, ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS'])
-      ? supabase.rpc('list_support_workspaces') : Promise.resolve({ data: [], error: null }),
+      ? supabase.schema('customer_api').rpc('list_support_workspaces_v1') : Promise.resolve({ data: [], error: null }),
   ]);
   if (error || workspaceResult.error) return NextResponse.json({ error: { code: 'SUPPORT_QUERY_FAILED' } }, { status: 500, headers: HEADERS });
   const rows = (data ?? []) as Array<Record<string, unknown> & { total_count: number }>;
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: { code: 'INVALID_SUPPORT_REQUEST' } }, { status: 400, headers: HEADERS });
     }
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('request_support_access', {
+    const { data, error } = await supabase.schema('customer_api').rpc('request_support_access_v1', {
       p_workspace_id: body.workspace_id, p_ticket_ref: body.ticket_ref.trim(), p_purpose: body.purpose.trim(),
       p_requested_scope: body.requested_scope, p_sensitivity_level: body.sensitivity_level,
       p_duration_minutes: body.duration_minutes, p_evidence: { reference: body.evidence.trim() },

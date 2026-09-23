@@ -54,7 +54,7 @@ export async function PUT(
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('set_workspace_entitlement', {
+    const { data, error } = await supabase.schema('customer_api').rpc('set_workspace_entitlement_v1', {
       p_workspace_id: workspaceId,
       p_entitlement_key: entitlementKey,
       p_value_type: value_type,

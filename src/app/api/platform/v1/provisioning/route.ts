@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   const status = params.get('status');
   const q = (params.get('q') ?? '').trim().slice(0, 100).replace(/[^a-zA-Z0-9._:-]/g, '');
   const supabase = await createClient();
-  let query = supabase.schema('platform').from('provisioning_runs').select('*', { count: 'exact' });
+  let query = supabase.schema('customer_api').from('provisioning_runs_v1').select('*', { count: 'exact' });
   if (status && RUN_STATUSES.includes(status as typeof RUN_STATUSES[number])) query = query.eq('status', status);
   if (q) query = /^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(q)
     ? query.or(`idempotency_key.ilike.%${q}%,customer_workspace_id.eq.${q}`)
@@ -34,11 +34,11 @@ export async function GET(request: Request) {
   if (error) return NextResponse.json({ error: { code: 'DATABASE_QUERY_FAILED' } }, { status: 500, headers: HEADERS });
   const runIds = (runs ?? []).map((run) => run.id);
   const { data: tasks, error: tasksError } = runIds.length
-    ? await supabase.schema('platform').from('provisioning_tasks').select('*').in('run_id', runIds).order('task_order')
+    ? await supabase.schema('customer_api').from('provisioning_tasks_v1').select('*').in('run_id', runIds).order('task_order')
     : { data: [], error: null };
   if (tasksError) return NextResponse.json({ error: { code: 'TASK_QUERY_FAILED' } }, { status: 500, headers: HEADERS });
   const canManage = hasPlatformRole(access.auth, ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS']);
-  const { data: eligible, error: eligibleError } = canManage ? await supabase.rpc('list_provisionable_workspaces') : { data: [], error: null };
+  const { data: eligible, error: eligibleError } = canManage ? await supabase.schema('customer_api').rpc('list_provisionable_workspaces_v1') : { data: [], error: null };
   if (eligibleError) return NextResponse.json({ error: { code: 'ELIGIBILITY_QUERY_FAILED' } }, { status: 500, headers: HEADERS });
   return NextResponse.json({
     runs: (runs ?? []).map((run) => ({ ...run, tasks: (tasks ?? []).filter((task) => task.run_id === run.id) })),
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: { code: 'INVALID_PROVISIONING_PARAMETERS' } }, { status: 400, headers: HEADERS });
     }
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('create_provisioning_run', {
+    const { data, error } = await supabase.schema('customer_api').rpc('create_provisioning_run_v1', {
       p_workspace_id: body.workspace_id, p_idempotency_key: body.idempotency_key, p_task_types: DEFAULT_TASKS,
     });
     if (error) return NextResponse.json({ error: { code: 'PROVISIONING_RUN_CREATE_FAILED' } }, { status: error.message.includes('access_denied') ? 403 : 400, headers: HEADERS });

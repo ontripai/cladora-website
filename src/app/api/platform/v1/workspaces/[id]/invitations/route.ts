@@ -68,7 +68,7 @@ export async function POST(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.schema('platform').rpc('create_workspace_invitation', {
+  const { data, error } = await supabase.schema('customer_api').rpc('create_workspace_invitation_v1', {
     p_workspace_id: workspaceId,
     p_email: parsed.email,
     p_role_id: parsed.role_id,
@@ -106,7 +106,7 @@ export async function POST(
     const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(parsed.email, { redirectTo });
     if (inviteError) throw inviteError;
   } catch {
-    await supabase.schema('platform').rpc('revoke_workspace_invitation', {
+    await supabase.schema('customer_api').rpc('revoke_workspace_invitation_v1', {
       p_invitation_id: row.invitation_id,
       p_reason: 'Auth delivery failed; invitation revoked automatically',
     });

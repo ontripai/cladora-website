@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const q = (params.get('q') ?? '').trim().slice(0, 100).replace(/[^a-zA-Z0-9\u0100-\u024f\u0600-\u06ff\s._-]/g, '');
   const status = params.get('status');
   const supabase = await createClient();
-  let query = supabase.schema('platform').from('platform_users')
+  let query = supabase.schema('customer_api').from('platform_users_v1')
     .select('id,employee_ref,display_name,status,created_at,updated_at,deactivated_at', { count: 'exact' });
   if (q) query = query.or(`display_name.ilike.%${q}%,employee_ref.ilike.%${q}%`);
   if (status && ['active', 'suspended', 'archived'].includes(status)) query = query.eq('status', status);
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
 
   const ids = (users ?? []).map((user) => user.id);
   const now = new Date().toISOString();
-  const { data: roles } = ids.length ? await supabase.schema('platform').from('platform_role_assignments')
+  const { data: roles } = ids.length ? await supabase.schema('customer_api').from('platform_role_assignments_v1')
     .select('platform_user_id,role,valid_from,valid_until,status').in('platform_user_id', ids)
     .order('created_at', { ascending: false }) : { data: [] };
   return NextResponse.json({

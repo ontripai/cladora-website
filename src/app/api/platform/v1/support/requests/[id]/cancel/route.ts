@@ -13,7 +13,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const [{ id }, body] = await Promise.all([context.params, request.json()]);
     if (typeof body.reason !== 'string' || body.reason.trim().length < 8 || body.reason.length > 500) return NextResponse.json({ error: { code: 'INVALID_REASON' } }, { status: 400, headers: HEADERS });
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('cancel_support_access_request', { p_request_id: id, p_reason: body.reason.trim() });
+    const { data, error } = await supabase.schema('customer_api').rpc('cancel_support_access_request_v1', { p_request_id: id, p_reason: body.reason.trim() });
     if (error) return NextResponse.json({ error: { code: 'SUPPORT_CANCEL_FAILED' } }, { status: error.message.includes('access_denied') ? 403 : 400, headers: HEADERS });
     return NextResponse.json({ request: data }, { headers: HEADERS });
   } catch { return NextResponse.json({ error: { code: 'MALFORMED_JSON' } }, { status: 400, headers: HEADERS }); }
