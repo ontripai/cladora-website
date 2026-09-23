@@ -1,12 +1,17 @@
 begin;
-select plan(12);
+select plan(17);
 
 select ok(to_regprocedure('customer_api.has_platform_access_v1()') is not null, 'platform access routing gateway exists');
+select ok(to_regprocedure('app_private.has_platform_access_for_routing()') is not null, 'internal Platform access predicate exists');
 select ok(has_function_privilege('authenticated', 'customer_api.has_platform_access_v1()', 'EXECUTE'), 'authenticated callers may resolve their own routing destination');
 select ok(not has_function_privilege('anon', 'customer_api.has_platform_access_v1()', 'EXECUTE'), 'anonymous callers cannot query Platform routing state');
 select ok(not has_function_privilege('service_role', 'customer_api.has_platform_access_v1()', 'EXECUTE'), 'service role cannot use the end-user routing gateway');
-select ok((select p.prosecdef from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'customer_api' and p.proname = 'has_platform_access_v1'), 'routing gateway is security definer');
-select ok((select coalesce(array_to_string(p.proconfig, ','), '') like '%search_path=pg_catalog, platform%' from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'customer_api' and p.proname = 'has_platform_access_v1'), 'routing gateway has a fixed search path');
+select ok(not (select p.prosecdef from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'customer_api' and p.proname = 'has_platform_access_v1'), 'exposed routing gateway is security invoker');
+select ok((select coalesce(array_to_string(p.proconfig, ','), '') like '%search_path=pg_catalog%' from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'customer_api' and p.proname = 'has_platform_access_v1'), 'routing gateway has a fixed minimal search path');
+select ok((select p.prosecdef from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'app_private' and p.proname = 'has_platform_access_for_routing'), 'internal routing predicate is security definer');
+select ok((select coalesce(array_to_string(p.proconfig, ','), '') like '%search_path=pg_catalog, platform%' from pg_proc p join pg_namespace n on n.oid = p.pronamespace where n.nspname = 'app_private' and p.proname = 'has_platform_access_for_routing'), 'internal routing predicate has a fixed search path');
+select ok(not has_function_privilege('public', 'app_private.has_platform_access_for_routing()', 'EXECUTE'), 'PUBLIC cannot invoke the internal routing predicate');
+select ok(not has_function_privilege('anon', 'app_private.has_platform_access_for_routing()', 'EXECUTE'), 'anonymous callers cannot invoke the internal routing predicate');
 
 do $$
 begin

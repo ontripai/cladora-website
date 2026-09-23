@@ -31,7 +31,8 @@ const passwordPolicy = read('src/lib/auth/password-policy.ts');
 const customerMfaPolicyMigration = read('supabase/migrations/20260902074312_customer_password_optional_mfa_policy.sql');
 const customerMfaPolicyTest = read('supabase/tests/045_customer_password_optional_mfa_policy.test.sql');
 const platformLayout = read('src/app/[lang]/platform/(control-plane)/layout.tsx');
-const platformAuthRoutingMigration = read('supabase/migrations/20260923170000_platform_auth_routing_gateway.sql');
+const platformAuthRoutingMigration = read('supabase/migrations/20260923141551_platform_auth_routing_gateway.sql');
+const platformAuthRoutingHardeningMigration = read('supabase/migrations/20260923141840_platform_auth_routing_gateway_hardening.sql');
 const platformAuthRoutingTest = read('supabase/tests/101_platform_auth_routing_gateway.test.sql');
 const demoSelector = read('src/components/demo/DemoRoleSelector.tsx');
 const demoRouter = read('src/app/[lang]/demo/app/[...slug]/page.tsx');
@@ -264,6 +265,8 @@ check(platformLayout.includes('getAuthenticatorAssuranceLevel'), 'platform contr
 check(platformLayout.indexOf('getAuthenticatorAssuranceLevel') < platformLayout.indexOf('const authCtx = await getPlatformAuthContext'), 'platform layout crosses the AAL2 boundary before reading AAL2-protected Platform records');
 check(platformAuthRoutingMigration.includes('customer_api.has_platform_access_v1()') && platformAuthRoutingMigration.includes('security definer') && platformAuthRoutingMigration.includes('auth.uid()'), 'Platform routing gateway exposes only caller-scoped active access state');
 check(platformAuthRoutingMigration.includes('from public, anon, service_role') && platformAuthRoutingMigration.includes('to authenticated'), 'Platform routing gateway privileges fail closed');
+check(platformAuthRoutingHardeningMigration.includes('app_private.has_platform_access_for_routing()') && platformAuthRoutingHardeningMigration.includes('security invoker'), 'exposed routing gateway delegates to a hardened internal predicate');
+check(platformAuthRoutingHardeningMigration.includes('set search_path = pg_catalog') && platformAuthRoutingHardeningMigration.includes('from public, anon, service_role'), 'hardened routing gateway has a fixed search path and explicit grants');
 check(platformAuthRoutingTest.includes('active Platform user is recognized at AAL1') && platformAuthRoutingTest.includes('revoked Platform role is not accepted'), 'pgTAP covers pre-MFA routing and revoked-role denial');
 check(demoSelector.includes('`/${lang}/demo/app/dashboard`'), 'demo role selection stays in the public demo data plane');
 check(!demoSelector.includes('`/${lang}/app/dashboard`'), 'demo role selection never enters the protected customer app');
