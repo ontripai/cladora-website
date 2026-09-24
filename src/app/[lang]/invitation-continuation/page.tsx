@@ -61,8 +61,12 @@ export default async function InvitationContinuationPage(props: {
     const supabase = await createClient();
     const { data: claims, error: claimsError } = await supabase.auth.getClaims();
     if (!claimsError && claims?.claims?.sub) {
-      const { data, error } = await supabase.schema('platform').rpc('list_my_claimable_workspace_invitations');
-      if (!error && Array.isArray(data)) invitations = data;
+      const { data, error } = await supabase
+        .schema('customer_api')
+        .rpc('list_my_claimable_workspace_invitations_v1');
+      if (!error && Array.isArray(data)) {
+        invitations = data as unknown as ClaimableWorkspaceInvitation[];
+      }
     }
   }
 
