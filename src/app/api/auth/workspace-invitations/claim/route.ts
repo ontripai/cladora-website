@@ -19,6 +19,13 @@ const claimSchema = z.object({
   timezone: z.string().trim().min(1).max(100),
 });
 
+type InvitationClaimResult = {
+  claim_status: 'claimed' | 'already_claimed_by_you';
+  customer_workspace_id: string;
+  membership_id: string;
+  onboarding_required: boolean;
+};
+
 function json(body: unknown, status: number): NextResponse {
   return NextResponse.json(body, { status, headers: NO_STORE_HEADERS });
 }
@@ -41,14 +48,16 @@ export async function POST(request: NextRequest) {
     return json({ error: { code: 'AUTHENTICATION_REQUIRED', message: 'A verified invitation session is required.' } }, 401);
   }
 
-  const { data, error } = await supabase.schema('platform').rpc('claim_workspace_invitation', {
-    p_invitation_id: input.invitation_id,
-    p_display_name: input.display_name,
-    p_locale: input.locale,
-    p_timezone: input.timezone,
-  });
+  const { data, error } = await supabase
+    .schema('customer_api')
+    .rpc('claim_workspace_invitation_v1', {
+      p_invitation_id: input.invitation_id,
+      p_display_name: input.display_name,
+      p_locale: input.locale,
+      p_timezone: input.timezone,
+    });
 
-  const result = Array.isArray(data) ? data[0] : data;
+  const result = (Array.isArray(data) ? data[0] : data) as InvitationClaimResult | null;
   if (error || !result || !['claimed', 'already_claimed_by_you'].includes(result.claim_status)) {
     return json({ error: { code: 'INVITATION_UNAVAILABLE', message: 'The invitation cannot be completed.' } }, 409);
   }

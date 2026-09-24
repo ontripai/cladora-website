@@ -1524,6 +1524,11 @@ export type Database = {
       };
       create_workspace_invitation_v1: { Args: { p_workspace_id: string; p_email: string; p_role_id: string; p_scope_type: string; p_expires_in: string; p_reason: string }; Returns: Json };
       revoke_workspace_invitation_v1: { Args: { p_invitation_id: string; p_reason: string }; Returns: Json };
+      list_my_claimable_workspace_invitations_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      claim_workspace_invitation_v1: {
+        Args: { p_invitation_id: string; p_display_name: string; p_locale: string; p_timezone: string };
+        Returns: Json;
+      };
       get_retention_operations_v1: { Args: { p_section: string; p_tenant_id: string | null; p_status: string | null; p_limit: number; p_offset: number }; Returns: Json };
       preview_retention_workers_v1: { Args: { p_tenant_id: string | null; p_limit: number }; Returns: Json };
       get_ledger_v1: {
