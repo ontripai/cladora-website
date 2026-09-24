@@ -1518,6 +1518,10 @@ export type Database = {
       };
       transition_workspace_lifecycle_v1: { Args: { p_workspace_id: string; p_target_status: string; p_expected_version: number; p_reason: string }; Returns: Json };
       create_customer_workspace_v1: { Args: { p_tenant_id: string; p_workspace_type: string; p_commercial_owner: string; p_environment: string }; Returns: Json };
+      create_pilot_workspace_v1: { Args: { p_legal_name: string; p_registration_number: string; p_default_locale: string; p_commercial_owner: string }; Returns: Json };
+      create_platform_operator_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_role: string; p_reason: string }; Returns: Json };
+      grant_platform_operator_role_v1: { Args: { p_platform_user_id: string; p_role: string; p_reason: string }; Returns: Json };
+      revoke_platform_operator_role_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
       set_workspace_entitlement_v1: {
         Args: { p_workspace_id: string; p_entitlement_key: string; p_value_type: string; p_numeric_value: number | null; p_boolean_value: boolean | null; p_text_value: string | null; p_json_value: Json | null; p_override_value_json: Json | null; p_override_reason: string | null; p_override_expires_at: string | null };
         Returns: Json;

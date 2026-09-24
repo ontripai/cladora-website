@@ -1,5 +1,7 @@
 import { Building2, LockKeyhole } from "lucide-react";
 import { OperationalWorkspacesTable } from "@/components/platform/OperationalWorkspacesTable";
+import { PilotWorkspaceCreator } from "@/components/platform/PilotWorkspaceCreator";
+import { getPlatformAuthContext, hasPlatformRole } from "@/lib/platform/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +11,7 @@ export default async function PlatformWorkspacesPage(props: {
   const { lang } = await props.params;
   const isRo = lang === "ro";
   const isFa = lang === "fa";
+  const auth = await getPlatformAuthContext();
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -38,14 +41,13 @@ export default async function PlatformWorkspacesPage(props: {
         <div className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-500/40 bg-emerald-950/80 px-3 py-1 text-xs font-semibold text-emerald-300 sm:self-auto">
           <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
           <span>
-            {isRo
-              ? "Date live · doar citire"
-              : isFa
-                ? "داده زنده · فقط خواندنی"
-                : "Live data · read only"}
+            {hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN')
+              ? (isRo ? 'Date live · creare controlată' : isFa ? 'داده زنده · ایجاد کنترل‌شده' : 'Live data · controlled creation')
+              : (isRo ? 'Date live · doar citire' : isFa ? 'داده زنده · فقط خواندنی' : 'Live data · read only')}
           </span>
         </div>
       </div>
+      {hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN') && <PilotWorkspaceCreator lang={lang} />}
       <OperationalWorkspacesTable lang={lang} />
     </div>
   );
