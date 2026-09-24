@@ -50,6 +50,11 @@ const copy = {
     next: "Următorul",
     page: "Pagina",
     workspace: "Spațiu de lucru și entitate",
+    owner: "Responsabil comercial",
+    advance: "Treci la etapa următoare",
+    advanceReason: "Motivul schimbării etapei",
+    advanceSuccess: "Etapa spațiului de lucru a fost actualizată.",
+    advanceFailed: "Schimbarea etapei a eșuat. Reîmprospătează și încearcă din nou.",
     type: "Tip",
     environment: "Mediu",
     status: "Stare ciclu de viață",
@@ -85,6 +90,11 @@ const copy = {
     next: "Next",
     page: "Page",
     workspace: "Workspace & entity",
+    owner: "Commercial owner",
+    advance: "Advance stage",
+    advanceReason: "Reason for stage change",
+    advanceSuccess: "Workspace stage updated.",
+    advanceFailed: "Stage change failed. Refresh and retry.",
     type: "Type",
     environment: "Environment",
     status: "Lifecycle status",
@@ -119,6 +129,11 @@ const copy = {
     next: "بعدی",
     page: "صفحه",
     workspace: "محیط کاری و مجموعه",
+    owner: "مسئول تجاری",
+    advance: "مرحلهٔ بعد",
+    advanceReason: "دلیل تغییر مرحله",
+    advanceSuccess: "مرحلهٔ محیط کاری تغییر کرد.",
+    advanceFailed: "تغییر مرحله انجام نشد؛ صفحه را تازه‌سازی کنید.",
     type: "نوع",
     environment: "محیط",
     status: "وضعیت چرخه حیات",
@@ -161,10 +176,20 @@ function localeCode(lang: Locale) {
   return lang === "ro" ? "ro-RO" : lang === "fa" ? "fa-IR" : "en-GB";
 }
 
+const nextStage: Partial<Record<WorkspaceLifecycleStatus, WorkspaceLifecycleStatus>> = {
+  LEAD: 'UNDER_REVIEW',
+  UNDER_REVIEW: 'APPROVED',
+  APPROVED: 'CONTRACT_PENDING',
+  CONTRACT_PENDING: 'PAYMENT_PENDING',
+  PAYMENT_PENDING: 'PROVISIONING',
+};
+
 export function OperationalWorkspacesTable({
   lang: requestedLang,
+  canTransition = false,
 }: {
   lang: string;
+  canTransition?: boolean;
 }) {
   const lang: Locale =
     requestedLang === "ro" || requestedLang === "fa" ? requestedLang : "en";
@@ -177,6 +202,9 @@ export function OperationalWorkspacesTable({
   const [retryCount, setRetryCount] = useState(0);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [inviteWorkspace, setInviteWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [transitionWorkspace, setTransitionWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [transitionBusy, setTransitionBusy] = useState(false);
+  const [transitionError, setTransitionError] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
@@ -303,9 +331,8 @@ export function OperationalWorkspacesTable({
                   className="transition hover:bg-[#12283E]"
                 >
                   <td className="px-4 py-3">
-                    <div className="font-bold text-white">
-                      {workspace.commercial_owner}
-                    </div>
+                    <div className="font-bold text-white">{workspace.tenant_legal_name || workspace.commercial_owner}</div>
+                    <div className="text-[10px] text-slate-400">{labels.owner}: {workspace.commercial_owner}</div>
                     <div className="font-mono text-[10px] text-slate-400">
                       ID: {workspace.id} · Tenant: {workspace.tenant_id}
                     </div>
@@ -341,6 +368,7 @@ export function OperationalWorkspacesTable({
                       : "—"}
                   </td>
                   <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-2">{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{labels.advance}</button>}
                     {workspace.lifecycle_status === "PROVISIONING" ? (
                       <button
                         type="button"
@@ -355,7 +383,7 @@ export function OperationalWorkspacesTable({
                       </button>
                     ) : (
                       <span className="text-slate-600">—</span>
-                    )}
+                    )}</div>
                   </td>
                 </tr>
               ))}
@@ -420,6 +448,28 @@ export function OperationalWorkspacesTable({
           }}
         />
       ) : null}
+      {transitionWorkspace && nextStage[transitionWorkspace.lifecycle_status] && <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4" role="presentation">
+        <form className="w-full max-w-lg space-y-4 rounded-xl border border-[#1E3A5A] bg-[#0F2236] p-6 text-sm text-white" onSubmit={async (event) => {
+          event.preventDefault(); setTransitionBusy(true); setTransitionError('');
+          const reason = String(new FormData(event.currentTarget).get('reason') || '').trim();
+          try {
+            const response = await fetch(`/api/platform/v1/workspaces/${transitionWorkspace.id}/transitions`, {
+              method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ target_status: nextStage[transitionWorkspace.lifecycle_status], expected_version: transitionWorkspace.version, reason }),
+            });
+            if (!response.ok) throw new Error();
+            setTransitionWorkspace(null); setNotice(labels.advanceSuccess); setRetryCount(value => value + 1);
+          } catch { setTransitionError(labels.advanceFailed); }
+          finally { setTransitionBusy(false); }
+        }}>
+          <h2 className="font-bold">{transitionWorkspace.tenant_legal_name || transitionWorkspace.commercial_owner}</h2>
+          <p>{transitionWorkspace.lifecycle_status} → {nextStage[transitionWorkspace.lifecycle_status]}</p>
+          <p className="text-xs text-amber-200">{lang === 'fa' ? 'تغییر مرحله به‌تنهایی هیچ دعوت یا ایمیلی ارسال نمی‌کند.' : lang === 'ro' ? 'Schimbarea etapei nu trimite invitații sau e-mailuri.' : 'Changing the stage does not send an invitation or email.'}</p>
+          <label className="block">{labels.advanceReason}<textarea name="reason" minLength={3} maxLength={500} required className="mt-2 w-full rounded border border-[#1E3A5A] bg-[#081320] p-3" /></label>
+          {transitionError && <p role="alert" className="text-rose-300">{transitionError}</p>}
+          <div className="flex gap-2"><button disabled={transitionBusy} className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{labels.advance}</button><button type="button" onClick={() => setTransitionWorkspace(null)} className="rounded border border-[#1E3A5A] px-4 py-2">{labels.cancel}</button></div>
+        </form>
+      </div>}
     </section>
   );
 }

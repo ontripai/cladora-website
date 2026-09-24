@@ -62,6 +62,7 @@ export interface PlatformRoleAssignment {
 export interface CustomerWorkspace {
   id: string;
   tenant_id: string;
+  tenant_legal_name?: string;
   workspace_type: WorkspaceType;
   lifecycle_status: WorkspaceLifecycleStatus;
   commercial_owner: string;

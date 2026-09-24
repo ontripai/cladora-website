@@ -42,13 +42,13 @@ export default async function PlatformWorkspacesPage(props: {
           <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
           <span>
             {hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN')
-              ? (isRo ? 'Date live · creare controlată' : isFa ? 'داده زنده · ایجاد کنترل‌شده' : 'Live data · controlled creation')
+              ? (isRo ? 'Date live · operațiuni controlate' : isFa ? 'داده زنده · عملیات کنترل‌شده' : 'Live data · controlled actions')
               : (isRo ? 'Date live · doar citire' : isFa ? 'داده زنده · فقط خواندنی' : 'Live data · read only')}
           </span>
         </div>
       </div>
       {hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN') && <PilotWorkspaceCreator lang={lang} />}
-      <OperationalWorkspacesTable lang={lang} />
+      <OperationalWorkspacesTable lang={lang} canTransition={hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN')} />
     </div>
   );
 }
