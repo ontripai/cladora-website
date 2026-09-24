@@ -13,8 +13,9 @@ export async function generateMetadata(
   return getRouteMetadata('/login', lang);
 }
 
-export default async function LoginPage(props: { params: Promise<{ lang: Language }> }) {
+export default async function LoginPage(props: { params: Promise<{ lang: Language }>; searchParams: Promise<{ next?: string }> }) {
   const { lang } = await props.params;
+  const { next } = await props.searchParams;
   const captchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || undefined;
   const captchaRequired = process.env.VERCEL_ENV === 'production';
 
@@ -25,6 +26,7 @@ export default async function LoginPage(props: { params: Promise<{ lang: Languag
           lang={lang}
           captchaRequired={captchaRequired}
           captchaSiteKey={captchaSiteKey}
+          workspaceAccessRequested={next === 'workspace-access' || next === `/${lang}/workspace-access`}
         />
       </div>
     </main>

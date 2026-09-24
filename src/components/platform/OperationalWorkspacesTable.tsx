@@ -15,6 +15,7 @@ import type {
   CustomerWorkspace,
   WorkspaceLifecycleStatus,
 } from "@/types/platform";
+import { WorkspaceAccessBasisDialog } from "@/components/platform/WorkspaceAccessBasisDialog";
 
 const PAGE_SIZE = 20;
 type Locale = "ro" | "en" | "fa";
@@ -202,6 +203,7 @@ export function OperationalWorkspacesTable({
   const [retryCount, setRetryCount] = useState(0);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [inviteWorkspace, setInviteWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [basisWorkspace, setBasisWorkspace] = useState<CustomerWorkspace | null>(null);
   const [transitionWorkspace, setTransitionWorkspace] = useState<CustomerWorkspace | null>(null);
   const [transitionBusy, setTransitionBusy] = useState(false);
   const [transitionError, setTransitionError] = useState('');
@@ -368,7 +370,7 @@ export function OperationalWorkspacesTable({
                       : "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{labels.advance}</button>}
+                    <div className="flex flex-wrap gap-2">{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{labels.advance}</button>}
                     {workspace.lifecycle_status === "PROVISIONING" ? (
                       <button
                         type="button"
@@ -436,6 +438,7 @@ export function OperationalWorkspacesTable({
           {notice}
         </p>
       ) : null}
+      {basisWorkspace ? <WorkspaceAccessBasisDialog workspace={basisWorkspace} lang={lang} onClose={() => setBasisWorkspace(null)} /> : null}
       {inviteWorkspace ? (
         <InvitationDialog
           lang={lang}

@@ -1519,6 +1519,11 @@ export type Database = {
       transition_workspace_lifecycle_v1: { Args: { p_workspace_id: string; p_target_status: string; p_expected_version: number; p_reason: string }; Returns: Json };
       create_customer_workspace_v1: { Args: { p_tenant_id: string; p_workspace_type: string; p_commercial_owner: string; p_environment: string }; Returns: Json };
       create_pilot_workspace_v1: { Args: { p_legal_name: string; p_registration_number: string; p_default_locale: string; p_commercial_owner: string }; Returns: Json };
+      prepare_workspace_access_basis_v1: { Args: { p_workspace_id: string; p_email: string; p_role_id: string; p_mode: string; p_duration_hours: number | null; p_contract_id: string | null; p_payment_reference: string | null; p_payment_amount: number | null; p_payment_currency: string | null; p_paid_on: string | null; p_paid_through: string | null; p_evidence_note: string }; Returns: Json };
+      list_workspace_access_bases_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      list_my_prepared_workspace_access_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      activate_prepared_workspace_access_v1: { Args: { p_basis_id: string; p_display_name: string; p_locale: string }; Returns: Json };
+      revoke_workspace_access_basis_v1: { Args: { p_basis_id: string; p_reason: string }; Returns: Json };
       create_platform_operator_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_role: string; p_reason: string }; Returns: Json };
       grant_platform_operator_role_v1: { Args: { p_platform_user_id: string; p_role: string; p_reason: string }; Returns: Json };
       revoke_platform_operator_role_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
