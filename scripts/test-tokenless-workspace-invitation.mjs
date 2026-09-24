@@ -10,7 +10,7 @@ const continuation = read('src/components/auth/WorkspaceInvitationContinuation.t
 const claimApi = read('src/app/api/auth/workspace-invitations/claim/route.ts');
 const setPasswordPage = read('src/app/[lang]/set-password/page.tsx');
 const migration = read('supabase/migrations/20260901075649_tokenless_workspace_invitation_contract.sql');
-const gatewayMigration = read('supabase/migrations/20260924113547_tokenless_invitation_customer_api_gateway.sql');
+const gatewayMigration = read('supabase/migrations/20260924131045_20260924113547_tokenless_invitation_customer_api_gateway.sql');
 
 assert.doesNotMatch(dispatcher, /accept-invitation\?token|encodeURIComponent\(row\.invitation_token\)/);
 assert.match(dispatcher, /\$\{origin\}\/\$\{parsed\.lang\}\/auth\/callback/);
