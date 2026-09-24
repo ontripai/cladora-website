@@ -1433,7 +1433,7 @@ export type Database = {
       platform_users_v1: { Row: Database['platform']['Tables']['platform_users']['Row']; Relationships: [] };
       platform_role_assignments_v1: { Row: Database['platform']['Tables']['platform_role_assignments']['Row']; Relationships: [] };
       platform_customer_assignments_v1: { Row: Database['platform']['Tables']['platform_customer_assignments']['Row']; Relationships: [] };
-      customer_workspaces_v1: { Row: Database['platform']['Tables']['customer_workspaces']['Row']; Relationships: [] };
+      customer_workspaces_v1: { Row: Database['platform']['Tables']['customer_workspaces']['Row'] & { tenant_legal_name: string }; Relationships: [] };
       subscription_plans_v1: { Row: Database['platform']['Tables']['subscription_plans']['Row']; Relationships: [] };
       provisioning_runs_v1: { Row: Database['platform']['Tables']['provisioning_runs']['Row']; Relationships: [] };
       provisioning_tasks_v1: { Row: Database['platform']['Tables']['provisioning_tasks']['Row']; Relationships: [] };
