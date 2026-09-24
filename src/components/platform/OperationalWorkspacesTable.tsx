@@ -7,6 +7,9 @@ import {
   ChevronRight,
   LoaderCircle,
   RefreshCw,
+  Send,
+  UserPlus,
+  X,
 } from "lucide-react";
 import type {
   CustomerWorkspace,
@@ -25,6 +28,12 @@ interface WorkspaceResponse {
     offset: number;
     hasMore: boolean;
   };
+}
+
+interface InvitationRole {
+  id: string;
+  code: "association_admin" | "property_manager";
+  name: string;
 }
 
 const copy = {
@@ -46,6 +55,22 @@ const copy = {
     status: "Stare ciclu de viață",
     version: "Versiune",
     activated: "Activat la",
+    actions: "Acțiuni",
+    invite: "Invită administrator",
+    inviteTitle: "Invită administratorul principal",
+    inviteIntro: "Invitația este disponibilă numai în etapa PROVISIONING și expiră în cel mult 72 de ore.",
+    email: "E-mail",
+    role: "Rol",
+    reason: "Motivul invitației",
+    reasonPlaceholder: "Activarea administratorului principal al asociației",
+    expiry: "Valabilitate",
+    hours: "ore",
+    cancel: "Anulează",
+    send: "Trimite invitația",
+    sending: "Se trimite…",
+    sent: "Invitația a fost trimisă în siguranță.",
+    invitationFailed: "Invitația nu a putut fi trimisă.",
+    rolesFailed: "Rolurile de invitație nu au putut fi încărcate.",
   },
   en: {
     title: "Registered workspaces",
@@ -65,6 +90,22 @@ const copy = {
     status: "Lifecycle status",
     version: "Version",
     activated: "Activated",
+    actions: "Actions",
+    invite: "Invite administrator",
+    inviteTitle: "Invite primary administrator",
+    inviteIntro: "Invitations are available only during PROVISIONING and expire within 72 hours.",
+    email: "Email",
+    role: "Role",
+    reason: "Invitation reason",
+    reasonPlaceholder: "Activate the association's primary administrator",
+    expiry: "Validity",
+    hours: "hours",
+    cancel: "Cancel",
+    send: "Send invitation",
+    sending: "Sending…",
+    sent: "The invitation was sent securely.",
+    invitationFailed: "The invitation could not be sent.",
+    rolesFailed: "Invitation roles could not be loaded.",
   },
   fa: {
     title: "محیط‌های کاری ثبت‌شده",
@@ -83,6 +124,22 @@ const copy = {
     status: "وضعیت چرخه حیات",
     version: "نسخه",
     activated: "تاریخ فعال‌سازی",
+    actions: "عملیات",
+    invite: "دعوت مدیر ساختمان",
+    inviteTitle: "دعوت مدیر اصلی ساختمان",
+    inviteIntro: "دعوت فقط در مرحله PROVISIONING ممکن است و حداکثر تا ۷۲ ساعت اعتبار دارد.",
+    email: "ایمیل",
+    role: "نقش",
+    reason: "دلیل دعوت",
+    reasonPlaceholder: "فعال‌سازی مدیر اصلی ساختمان",
+    expiry: "مدت اعتبار",
+    hours: "ساعت",
+    cancel: "انصراف",
+    send: "ارسال دعوت‌نامه",
+    sending: "در حال ارسال…",
+    sent: "دعوت‌نامه به‌صورت امن ارسال شد.",
+    invitationFailed: "ارسال دعوت‌نامه انجام نشد.",
+    rolesFailed: "دریافت نقش‌های دعوت ناموفق بود.",
   },
 } as const;
 
@@ -119,6 +176,8 @@ export function OperationalWorkspacesTable({
   const [offset, setOffset] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [inviteWorkspace, setInviteWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -232,6 +291,9 @@ export function OperationalWorkspacesTable({
                 <th scope="col" className="px-4 py-3">
                   {labels.activated}
                 </th>
+                <th scope="col" className="px-4 py-3">
+                  {labels.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1E3A5A] text-slate-300">
@@ -277,6 +339,23 @@ export function OperationalWorkspacesTable({
                           timeZone: "UTC",
                         }).format(new Date(workspace.activated_at))
                       : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    {workspace.lifecycle_status === "PROVISIONING" ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNotice(null);
+                          setInviteWorkspace(workspace);
+                        }}
+                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-950/70 px-3 py-2 font-bold text-emerald-300 hover:bg-emerald-900/70"
+                      >
+                        <UserPlus className="h-4 w-4" aria-hidden="true" />
+                        {labels.invite}
+                      </button>
+                    ) : (
+                      <span className="text-slate-600">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -324,6 +403,142 @@ export function OperationalWorkspacesTable({
           </button>
         </nav>
       ) : null}
+      {notice ? (
+        <p role="status" className="border-t border-emerald-500/30 bg-emerald-950/50 px-4 py-3 text-xs font-bold text-emerald-300">
+          {notice}
+        </p>
+      ) : null}
+      {inviteWorkspace ? (
+        <InvitationDialog
+          lang={lang}
+          workspace={inviteWorkspace}
+          labels={labels}
+          onClose={() => setInviteWorkspace(null)}
+          onSent={() => {
+            setInviteWorkspace(null);
+            setNotice(labels.sent);
+          }}
+        />
+      ) : null}
     </section>
+  );
+}
+
+function InvitationDialog({
+  lang,
+  workspace,
+  labels,
+  onClose,
+  onSent,
+}: {
+  lang: Locale;
+  workspace: CustomerWorkspace;
+  labels: (typeof copy)[Locale];
+  onClose: () => void;
+  onSent: () => void;
+}) {
+  const [roles, setRoles] = useState<InvitationRole[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/platform/v1/workspaces/invitation-roles', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const body = await response.json() as { roles?: InvitationRole[] };
+        if (!response.ok) throw new Error('ROLE_CATALOG_UNAVAILABLE');
+        setRoles(body.roles ?? []);
+        setRolesLoading(false);
+      })
+      .catch((requestError: unknown) => {
+        if (requestError instanceof DOMException && requestError.name === 'AbortError') return;
+        setError(labels.rolesFailed);
+        setRolesLoading(false);
+      });
+    return () => controller.abort();
+  }, [labels.rolesFailed]);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    const form = new FormData(event.currentTarget);
+    const response = await fetch(`/api/platform/v1/workspaces/${workspace.id}/invitations`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: form.get('email'),
+        role_id: form.get('role_id'),
+        lang,
+        reason: form.get('reason'),
+        expires_in_hours: Number(form.get('expires_in_hours')),
+      }),
+    });
+    setBusy(false);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as { error?: { code?: string } } | null;
+      setError(body?.error?.code === 'ACTIVE_INVITATION_EXISTS'
+        ? `${labels.invitationFailed} ACTIVE_INVITATION_EXISTS`
+        : labels.invitationFailed);
+      return;
+    }
+    onSent();
+  }
+
+  const preferredRole = workspace.workspace_type === 'PROPERTY_MANAGER' ? 'property_manager' : 'association_admin';
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4" role="presentation">
+      <form onSubmit={submit} className="w-full max-w-xl space-y-5 rounded-xl border border-[#1E3A5A] bg-[#0F2236] p-6 text-start text-sm text-white" aria-labelledby="workspace-invitation-title">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 id="workspace-invitation-title" className="text-lg font-bold">{labels.inviteTitle}</h2>
+            <p className="mt-1 text-xs text-slate-400">{workspace.commercial_owner}</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg border border-[#1E3A5A] p-2 text-slate-300" aria-label={labels.cancel}>
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+        <p className="rounded-lg border border-amber-500/30 bg-amber-950/40 p-3 text-xs text-amber-200">{labels.inviteIntro}</p>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.email}</span>
+          <input required name="email" type="email" autoComplete="email" maxLength={320} className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3" />
+        </label>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.role}</span>
+          <select required name="role_id" disabled={rolesLoading || roles.length === 0} defaultValue="" className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3">
+            <option value="" disabled>{rolesLoading ? '…' : labels.role}</option>
+            {[...roles].sort((a) => a.code === preferredRole ? -1 : 1).map((role) => (
+              <option key={role.id} value={role.id}>{role.name} · {role.code}</option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.reason}</span>
+          <textarea required name="reason" minLength={3} maxLength={500} placeholder={labels.reasonPlaceholder} className="min-h-24 w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3" />
+        </label>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.expiry}</span>
+          <select name="expires_in_hours" defaultValue="72" className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3">
+            {[24, 48, 72].map((hours) => <option key={hours} value={hours}>{hours} {labels.hours}</option>)}
+          </select>
+        </label>
+        {error ? <p role="alert" className="rounded-lg border border-rose-500/40 bg-rose-950/50 p-3 text-xs text-rose-200">{error}</p> : null}
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="rounded-lg border border-[#1E3A5A] px-4 py-2 text-slate-200">{labels.cancel}</button>
+          <button disabled={busy || rolesLoading || roles.length === 0} className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">
+            {busy ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
+            {busy ? labels.sending : labels.send}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

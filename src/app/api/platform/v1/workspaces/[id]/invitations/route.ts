@@ -68,6 +68,19 @@ export async function POST(
   }
 
   const supabase = await createClient();
+  const { data: invitationRole, error: invitationRoleError } = await supabase
+    .schema('customer_api')
+    .from('workspace_primary_admin_roles_v1')
+    .select('id')
+    .eq('id', parsed.role_id)
+    .maybeSingle();
+  if (invitationRoleError || !invitationRole) {
+    return NextResponse.json(
+      { error: { code: 'INVALID_PRIMARY_ADMIN_ROLE', message: 'The selected role cannot receive a primary administrator invitation.' } },
+      { status: 400, headers: NO_CACHE_HEADERS },
+    );
+  }
+
   const { data, error } = await supabase.schema('customer_api').rpc('create_workspace_invitation_v1', {
     p_workspace_id: workspaceId,
     p_email: parsed.email,

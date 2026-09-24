@@ -1439,6 +1439,10 @@ export type Database = {
       provisioning_tasks_v1: { Row: Database['platform']['Tables']['provisioning_tasks']['Row']; Relationships: [] };
       workspace_contracts_v1: { Row: Database['platform']['Tables']['workspace_contracts']['Row']; Relationships: [] };
       workspace_entitlements_v1: { Row: Database['platform']['Tables']['workspace_entitlements']['Row']; Relationships: [] };
+      workspace_primary_admin_roles_v1: {
+        Row: { id: string; code: string; name: string };
+        Relationships: [];
+      };
     };
     Functions: {
       get_dashboard_v1: {
