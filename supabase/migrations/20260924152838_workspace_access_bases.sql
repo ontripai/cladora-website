@@ -214,7 +214,8 @@ begin
   end if;
   select * into v_role from identity.roles where id=p_role_id;
   if not found or v_role.tenant_id is not null
-     or v_role.code <> case when v_ws.workspace_type='PROPERTY_MANAGER' then 'property_manager' else 'association_admin' end then
+     or (v_ws.workspace_type='PROPERTY_MANAGER' and v_role.code<>'property_manager')
+     or (v_ws.workspace_type<>'PROPERTY_MANAGER' and v_role.code<>'association_admin') then
     raise exception 'primary_admin_role_mismatch' using errcode='22023';
   end if;
   if p_mode='PILOT' then
