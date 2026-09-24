@@ -15,6 +15,7 @@ export const config = {
     '/:lang(ro|en|fa)/password-recovery-result',
     '/:lang(ro|en|fa)/invitation-continuation',
     '/:lang(ro|en|fa)/set-password',
+    '/:lang(ro|en|fa)/workspace-access',
     '/:lang(ro|en|fa)/platform/:path+',
   ],
 };
