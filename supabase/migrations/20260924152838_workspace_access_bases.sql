@@ -63,7 +63,7 @@ grant all on platform.workspace_access_bases to service_role;
 create or replace function platform.cap_customer_membership_to_access_basis()
 returns trigger language plpgsql security definer set search_path=''
 as $$
-declare v_end timestamptz; v_now timestamptz:=pg_catalog.statement_timestamp(); v_prepared record;
+declare v_end timestamptz; v_now timestamptz:=pg_catalog.statement_timestamp(); v_prepared record; v_prepared_end timestamptz;
 begin
   if new.status<>'active' or not exists(
     select 1 from platform.workspace_access_bases b
@@ -89,10 +89,12 @@ begin
       and b.role_id=new.role_id and u.email_confirmed_at is not null
     limit 1;
     if not found then raise exception 'commercial_access_basis_required' using errcode='42501'; end if;
-    if new.ends_at is null
-      or new.ends_at > case when v_prepared.mode='PILOT'
-        then v_now+pg_catalog.make_interval(hours=>v_prepared.duration_hours)
-        else (v_prepared.paid_through+1)::timestamp at time zone 'Europe/Bucharest' end
+    if v_prepared.mode='PILOT' then
+      v_prepared_end:=v_now+pg_catalog.make_interval(hours=>v_prepared.duration_hours);
+    else
+      v_prepared_end:=(v_prepared.paid_through+1)::timestamp at time zone 'Europe/Bucharest';
+    end if;
+    if new.ends_at is null or new.ends_at > v_prepared_end
       or new.ends_at<=v_now then
       raise exception 'commercial_access_basis_required' using errcode='42501';
     end if;
