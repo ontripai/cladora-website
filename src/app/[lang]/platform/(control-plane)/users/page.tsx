@@ -1,6 +1,8 @@
 import React from 'react';
 import { Users2 } from 'lucide-react';
 import { OperationalPlatformUsersPanel } from '@/components/platform/OperationalPlatformUsersPanel';
+import { OperatorManagement } from '@/components/platform/OperatorManagement';
+import { getPlatformAuthContext, hasPlatformRole } from '@/lib/platform/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +12,7 @@ export default async function PlatformUsersPage(props: {
   const { lang } = await props.params;
   const isRo = lang === 'ro';
   const isFa = lang === 'fa';
+  const auth = await getPlatformAuthContext();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -36,6 +39,7 @@ export default async function PlatformUsersPage(props: {
         </div>
       </div>
 
+      {hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN') && <OperatorManagement lang={lang} />}
       <OperationalPlatformUsersPanel lang={lang} />
     </div>
   );

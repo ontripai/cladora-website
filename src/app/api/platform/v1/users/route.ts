@@ -27,12 +27,15 @@ export async function GET(request: Request) {
   const ids = (users ?? []).map((user) => user.id);
   const now = new Date().toISOString();
   const { data: roles } = ids.length ? await supabase.schema('customer_api').from('platform_role_assignments_v1')
-    .select('platform_user_id,role,valid_from,valid_until,status').in('platform_user_id', ids)
+    .select('id,platform_user_id,role,valid_from,valid_until,status').in('platform_user_id', ids)
     .order('created_at', { ascending: false }) : { data: [] };
   return NextResponse.json({
     users: (users ?? []).map((user) => ({
       ...user,
       roles: (roles ?? []).filter((role) => role.platform_user_id === user.id && role.status === 'active' && role.valid_from <= now && (!role.valid_until || role.valid_until > now)).map((role) => role.role),
+      role_assignments: hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN')
+        ? (roles ?? []).filter((role) => role.platform_user_id === user.id && role.status === 'active' && role.valid_from <= now && (!role.valid_until || role.valid_until > now)).map(({ id, role }) => ({ id, role }))
+        : [],
     })),
     pagination: { total: count ?? 0, limit, offset, hasMore: offset + limit < (count ?? 0) },
   }, { headers: HEADERS });
