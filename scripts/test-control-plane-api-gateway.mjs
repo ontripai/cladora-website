@@ -3,7 +3,10 @@ import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
-const migration = readFileSync(join(root, 'supabase/migrations/20260923161000_control_plane_api_gateway.sql'), 'utf8');
+const migration = [
+  '20260923161000_control_plane_api_gateway.sql',
+  '20260924103548_platform_primary_admin_invitation_roles.sql',
+].map((name) => readFileSync(join(root, 'supabase/migrations', name), 'utf8')).join('\n');
 const config = readFileSync(join(root, 'supabase/config.toml'), 'utf8');
 const routesRoot = join(root, 'src/app/api/platform/v1');
 
@@ -27,9 +30,14 @@ for (const view of [
   'platform_users_v1', 'platform_role_assignments_v1', 'platform_customer_assignments_v1',
   'customer_workspaces_v1', 'subscription_plans_v1', 'provisioning_runs_v1',
   'provisioning_tasks_v1', 'workspace_contracts_v1', 'workspace_entitlements_v1',
+  'workspace_primary_admin_roles_v1',
 ]) {
   assert.match(migration, new RegExp(`view customer_api\\.${view}\\nwith \\(security_invoker = true\\)`));
 }
+
+assert.match(migration, /lower\(code\) in \('association_admin', 'property_manager'\)/);
+assert.match(routeSource, /from\(['"]workspace_primary_admin_roles_v1['"]\)/);
+assert.match(routeSource, /INVALID_PRIMARY_ADMIN_ROLE/);
 
 for (const rpc of [
   'get_control_plane_overview_v1', 'list_support_access_v1', 'list_support_workspaces_v1',
