@@ -10,6 +10,7 @@ type Entry = { id: string; lease_id: string | null; kind: string; direction: str
 type View = { units: Unit[]; count: number; leases: Lease[]; entries: Entry[] };
 type UnitLink = { id: string; private_unit_id: string; workspace_id: string; canonical_unit_id: string; status: string; requested_at: string };
 type OfficialCharge = { id: string; invoice_no: number; due_on: string | null; total: number; outstanding_amount: number | null; currency: string; status: string; workspace_id: string };
+type AnnualGroup = { unit_id: string; currency: string; kind: string; direction: string; entry_count: number; amount: number };
 const endpoint = '/api/owner-portfolio/v1';
 
 const copy = {
@@ -27,6 +28,8 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
   const [busy, setBusy] = useState(false);
   const [links, setLinks] = useState<UnitLink[]>([]);
   const [charges, setCharges] = useState<OfficialCharge[]>([]);
+  const [year, setYear] = useState(new Date().getFullYear());
+  const [annual, setAnnual] = useState<AnnualGroup[]>([]);
   const refreshLinks = useCallback(async () => {
     const response = await fetch(`${endpoint}/links`, { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('LINK_READ_FAILED');
@@ -57,6 +60,14 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
   }, [selected, links, t.failed]);
+  useEffect(() => {
+    let active = true;
+    void fetch(`${endpoint}/annual?year=${year}`, { credentials: 'same-origin', cache: 'no-store' })
+      .then(async response => { if (!response.ok) throw new Error('ANNUAL_READ_FAILED'); return await response.json() as { groups: AnnualGroup[] }; })
+      .then(data => { if (active) setAnnual(data.groups); })
+      .catch(() => { if (active) setError(t.failed); });
+    return () => { active = false; };
+  }, [year, view.entries, t.failed]);
   useEffect(() => {
     let active = true;
     const query = new URLSearchParams({ offset: String(offset) });
@@ -116,6 +127,12 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       {view.units.length === 0 && <p className="mt-3">{t.none}</p>}
       <ul className="mt-3 grid gap-2 sm:grid-cols-2">{view.units.map(unit => <li key={unit.id}><button type="button" onClick={() => setSelected(unit.id)} className={`w-full rounded border p-3 text-start ${selected === unit.id ? 'border-teal-700 bg-teal-50' : ''}`}><strong>{unit.building_label} · {unit.unit_label}</strong><span className="block text-sm text-slate-600">{unit.address_text} · {unit.usage_kind}</span></button></li>)}</ul>
       <div className="mt-4 flex gap-3"><button type="button" disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-50))} className="rounded border p-2 disabled:opacity-50">{t.previous}</button><button type="button" disabled={offset+50>=view.count} onClick={()=>setOffset(offset+50)} className="rounded border p-2 disabled:opacity-50">{t.next}</button></div>
+    </section>
+    <section className="space-y-3 rounded-xl border bg-white p-5">
+      <h2 className="font-bold">{lang === 'fa' ? 'جمع‌بندی سالانه برای حسابداری' : lang === 'ro' ? 'Sinteză anuală pentru contabilitate' : 'Annual bookkeeping summary'}</h2>
+      <p className="text-sm text-slate-600">{lang === 'fa' ? 'بر اساس تاریخ دریافت/پرداخت و داده‌های ثبت‌شده توسط شما؛ مبلغ مالیات یا هزینهٔ قابل‌کسر مالیاتی محاسبه نمی‌شود.' : 'Based on self-reported payment dates. This is not a tax liability or deduction calculation.'}</p>
+      <label>{lang === 'fa' ? 'سال' : 'Year'} <input type="number" min={2000} max={2100} value={year} onChange={event => { const value = Number(event.target.value); if (value >= 2000 && value <= 2100) setYear(value); }} className="w-28 rounded border p-2" /></label>
+      <ul className="space-y-2">{annual.map(group => <li key={`${group.unit_id}-${group.currency}-${group.kind}-${group.direction}`} className="rounded border p-2">{view.units.find(unit => unit.id === group.unit_id)?.unit_label ?? group.unit_id} · {group.kind} · {group.direction} · {group.entry_count} · {group.amount} {group.currency}</li>)}</ul>
     </section>
     {selected && <><section className="space-y-3 rounded-xl border bg-white p-5">
       <h2 className="font-bold">{lang === 'fa' ? 'اتصال تأییدشده به واحد ساختمان' : lang === 'ro' ? 'Conectare la unitatea clădirii' : 'Verified building unit connection'}</h2>
