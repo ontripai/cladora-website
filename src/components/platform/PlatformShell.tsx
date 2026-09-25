@@ -73,6 +73,12 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_SALES'] as PlatformRole[],
     },
     {
+      href: `/${lang}/platform/owner-unit-links`,
+      label: lang === 'ro' ? 'Conectări proprietari' : lang === 'fa' ? 'تأیید اتصال واحدهای مالکان' : 'Owner Unit Links',
+      icon: FileCheck2,
+      roles: ['PLATFORM_SUPER_ADMIN'] as PlatformRole[],
+    },
+    {
       href: `/${lang}/platform/assignments`,
       label: lang === 'ro' ? 'Alocări Clienți' : lang === 'fa' ? 'تخصیص مشتریان به کارشناسان' : 'Customer Assignments',
       icon: KeyRound,
