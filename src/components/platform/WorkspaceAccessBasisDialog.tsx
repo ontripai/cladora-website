@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { CustomerWorkspace } from '@/types/platform';
+import { isPrimaryWorkspaceRoleAvailable, primaryWorkspaceRole } from '@/lib/customer/primary-workspace-role';
 
 type Role = { id: string; code: string; name: string };
 type Contract = { id: string; contract_ref: string; status: string; currency: string; signed_at: string | null };
@@ -45,8 +46,8 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
-  const preferred = workspace.workspace_type === 'PROPERTY_MANAGER' ? 'property_manager' : 'association_admin';
-  const primaryRolePending = workspace.workspace_type === 'OWNER_PORTFOLIO' || workspace.workspace_type === 'HYBRID';
+  const preferred = primaryWorkspaceRole(workspace.workspace_type);
+  const primaryRolePending = !isPrimaryWorkspaceRoleAvailable(workspace.workspace_type);
   const baseUrl = `/api/platform/v1/workspaces/${workspace.id}/access-bases`;
 
   async function load() {
@@ -147,7 +148,7 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
         <label className="block space-y-1">{l.reason}<textarea required name="evidence_note" minLength={15} maxLength={500} className="min-h-20 w-full rounded bg-[#081320] p-2" /></label>
         {error && <p role="alert" className="text-rose-300">{error}</p>}
         {notice && <p role="status" className="text-emerald-300">{notice}</p>}
-        <button disabled={busy || roles.length === 0 || (mode === 'PAID' && !contracts.some(c => c.signed_at))}
+        <button disabled={busy || !roles.some(r => r.code === preferred) || (mode === 'PAID' && !contracts.some(c => c.signed_at))}
           className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{l.save}</button>
       </form>}
       <h3 className="font-bold">{l.records}</h3>

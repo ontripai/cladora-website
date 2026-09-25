@@ -16,6 +16,7 @@ import type {
   WorkspaceLifecycleStatus,
 } from "@/types/platform";
 import { WorkspaceAccessBasisDialog } from "@/components/platform/WorkspaceAccessBasisDialog";
+import { isPrimaryWorkspaceRoleAvailable, primaryWorkspaceRole } from "@/lib/customer/primary-workspace-role";
 
 const PAGE_SIZE = 20;
 type Locale = "ro" | "en" | "fa";
@@ -371,7 +372,7 @@ export function OperationalWorkspacesTable({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{labels.advance}</button>}
-                    {workspace.lifecycle_status === "PROVISIONING" && !['OWNER_PORTFOLIO','HYBRID'].includes(workspace.workspace_type) ? (
+                    {workspace.lifecycle_status === "PROVISIONING" && isPrimaryWorkspaceRoleAvailable(workspace.workspace_type) ? (
                       <button
                         type="button"
                         onClick={() => {
@@ -545,7 +546,9 @@ function InvitationDialog({
     onSent();
   }
 
-  const preferredRole = workspace.workspace_type === 'PROPERTY_MANAGER' ? 'property_manager' : 'association_admin';
+  const preferredRole = primaryWorkspaceRole(workspace.workspace_type);
+  const compatibleRoles = isPrimaryWorkspaceRoleAvailable(workspace.workspace_type)
+    ? roles.filter(role => role.code === preferredRole) : [];
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4" role="presentation">
@@ -566,9 +569,9 @@ function InvitationDialog({
         </label>
         <label className="block space-y-2">
           <span className="font-bold">{labels.role}</span>
-          <select required name="role_id" disabled={rolesLoading || roles.length === 0} defaultValue="" className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3">
+          <select required name="role_id" disabled={rolesLoading || compatibleRoles.length === 0} defaultValue="" className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3">
             <option value="" disabled>{rolesLoading ? '…' : labels.role}</option>
-            {[...roles].sort((a) => a.code === preferredRole ? -1 : 1).map((role) => (
+            {compatibleRoles.map((role) => (
               <option key={role.id} value={role.id}>{role.name} · {role.code}</option>
             ))}
           </select>
@@ -586,7 +589,7 @@ function InvitationDialog({
         {error ? <p role="alert" className="rounded-lg border border-rose-500/40 bg-rose-950/50 p-3 text-xs text-rose-200">{error}</p> : null}
         <div className="flex justify-end gap-3">
           <button type="button" onClick={onClose} className="rounded-lg border border-[#1E3A5A] px-4 py-2 text-slate-200">{labels.cancel}</button>
-          <button disabled={busy || rolesLoading || roles.length === 0} className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">
+          <button disabled={busy || rolesLoading || compatibleRoles.length === 0} className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">
             {busy ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
             {busy ? labels.sending : labels.send}
           </button>
