@@ -1061,7 +1061,10 @@ export type Database = {
         | 'PLATFORM_OPERATIONS'
         | 'PLATFORM_FINANCE'
         | 'PLATFORM_SUPPORT'
-        | 'PLATFORM_AUDITOR';
+        | 'PLATFORM_AUDITOR'
+        | 'PLATFORM_SALES'
+        | 'PLATFORM_CONTRACTS'
+        | 'PLATFORM_ONBOARDING';
       workspace_type: 'ASSOCIATION' | 'PROPERTY_MANAGER' | 'OWNER_PORTFOLIO' | 'HYBRID';
       workspace_lifecycle_status:
         | 'LEAD'
