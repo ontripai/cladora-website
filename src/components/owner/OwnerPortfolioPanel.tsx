@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { Language } from '@/types';
 
@@ -8,6 +8,7 @@ type Unit = { id: string; building_label: string; unit_label: string; address_te
 type Lease = { id: string; tenant_label: string; starts_on: string; ends_on: string | null; monthly_rent: number; currency: string; status: string };
 type Entry = { id: string; lease_id: string | null; kind: string; direction: string; amount: number; currency: string; due_on: string | null; paid_on: string | null; memo: string | null; source: string };
 type View = { units: Unit[]; count: number; leases: Lease[]; entries: Entry[] };
+type LoadedView = { unitId: string | null; offset: number; data: View };
 type UnitLink = { id: string; private_unit_id: string; workspace_id: string; canonical_unit_id: string; status: string; requested_at: string };
 type OfficialCharge = { id: string; invoice_no: number; due_on: string | null; total: number; outstanding_amount: number | null; currency: string; status: string; workspace_id: string };
 type AnnualGroup = { unit_id: string; currency: string; kind: string; direction: string; entry_count: number; amount: number };
@@ -21,15 +22,26 @@ const copy = {
 
 export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
   const t = copy[lang];
-  const [view, setView] = useState<View>({ units: [], count: 0, leases: [], entries: [] });
+  const [loadedView, setLoadedView] = useState<LoadedView | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [offset, setOffset] = useState(0);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [links, setLinks] = useState<UnitLink[]>([]);
-  const [charges, setCharges] = useState<OfficialCharge[]>([]);
+  const [loadedCharges, setLoadedCharges] = useState<{ unitId: string; links: UnitLink[]; data: OfficialCharge[] } | null>(null);
   const [year, setYear] = useState(new Date().getFullYear());
-  const [annual, setAnnual] = useState<AnnualGroup[]>([]);
+  const [loadedAnnual, setLoadedAnnual] = useState<{ year: number; data: AnnualGroup[] } | null>(null);
+  // Only display detail records belonging to the current selection. A failed or
+  // delayed request must never leave the previous unit's finances on screen.
+  const detailsReady = loadedView?.unitId === selected && loadedView?.offset === offset;
+  const view: View = {
+    units: loadedView?.data.units ?? [], count: loadedView?.data.count ?? 0,
+    leases: detailsReady ? loadedView.data.leases : [],
+    entries: detailsReady ? loadedView.data.entries : [],
+  };
+  const charges = loadedCharges?.unitId === selected && loadedCharges.links === links ? loadedCharges.data : [];
+  const annual = loadedAnnual?.year === year ? loadedAnnual.data : [];
+  const loading = lang === 'fa' ? 'در حال دریافت اطلاعات واحد…' : lang === 'ro' ? 'Se încarcă datele unității…' : 'Loading unit records…';
   const refreshLinks = useCallback(async () => {
     const response = await fetch(`${endpoint}/links`, { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('LINK_READ_FAILED');
@@ -41,7 +53,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     if (selected) query.set('unit_id', selected);
     const response = await fetch(`${endpoint}?${query}`, { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('READ_FAILED');
-    setView(await response.json() as View);
+    setLoadedView({ unitId: selected, offset, data: await response.json() as View });
   }, [offset, selected]);
   useEffect(() => {
     let active = true;
@@ -56,7 +68,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     let active = true;
     void fetch(`${endpoint}/charges?private_unit_id=${encodeURIComponent(selected)}`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async response => { if (!response.ok) throw new Error('CHARGES_READ_FAILED'); return await response.json() as { charges: OfficialCharge[] }; })
-      .then(data => { if (active) setCharges(data.charges); })
+      .then(data => { if (active) setLoadedCharges({ unitId: selected, links, data: data.charges }); })
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
   }, [selected, links, t.failed]);
@@ -64,10 +76,10 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     let active = true;
     void fetch(`${endpoint}/annual?year=${year}`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async response => { if (!response.ok) throw new Error('ANNUAL_READ_FAILED'); return await response.json() as { groups: AnnualGroup[] }; })
-      .then(data => { if (active) setAnnual(data.groups); })
+      .then(data => { if (active) setLoadedAnnual({ year, data: data.groups }); })
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
-  }, [year, view.entries, t.failed]);
+  }, [year, loadedView?.data.entries, t.failed]);
   useEffect(() => {
     let active = true;
     const query = new URLSearchParams({ offset: String(offset) });
@@ -77,7 +89,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
         if (!response.ok) throw new Error('READ_FAILED');
         return await response.json() as View;
       })
-      .then(data => { if (active) setView(data); })
+      .then(data => { if (active) setLoadedView({ unitId: selected, offset, data }); })
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
   }, [offset, selected, t.failed]);
@@ -125,8 +137,8 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     </form>
     <section className="rounded-xl border bg-white p-5"><h2 className="font-bold">{t.unit} · {view.count}</h2>
       {view.units.length === 0 && <p className="mt-3">{t.none}</p>}
-      <ul className="mt-3 grid gap-2 sm:grid-cols-2">{view.units.map(unit => <li key={unit.id}><button type="button" onClick={() => setSelected(unit.id)} className={`w-full rounded border p-3 text-start ${selected === unit.id ? 'border-teal-700 bg-teal-50' : ''}`}><strong>{unit.building_label} · {unit.unit_label}</strong><span className="block text-sm text-slate-600">{unit.address_text} · {unit.usage_kind}</span></button></li>)}</ul>
-      <div className="mt-4 flex gap-3"><button type="button" disabled={offset===0} onClick={()=>setOffset(Math.max(0,offset-50))} className="rounded border p-2 disabled:opacity-50">{t.previous}</button><button type="button" disabled={offset+50>=view.count} onClick={()=>setOffset(offset+50)} className="rounded border p-2 disabled:opacity-50">{t.next}</button></div>
+      <ul className="mt-3 grid gap-2 sm:grid-cols-2">{view.units.map(unit => <li key={unit.id}><button type="button" disabled={busy} onClick={() => { setError(''); setSelected(unit.id); }} className={`w-full rounded border p-3 text-start ${selected === unit.id ? 'border-teal-700 bg-teal-50' : ''}`}><strong>{unit.building_label} · {unit.unit_label}</strong><span className="block text-sm text-slate-600">{unit.address_text} · {unit.usage_kind}</span></button></li>)}</ul>
+      <div className="mt-4 flex gap-3"><button type="button" disabled={busy || offset===0} onClick={()=>setOffset(Math.max(0,offset-50))} className="rounded border p-2 disabled:opacity-50">{t.previous}</button><button type="button" disabled={busy || offset+50>=view.count} onClick={()=>setOffset(offset+50)} className="rounded border p-2 disabled:opacity-50">{t.next}</button></div>
     </section>
     <section className="space-y-3 rounded-xl border bg-white p-5">
       <h2 className="font-bold">{lang === 'fa' ? 'جمع‌بندی سالانه برای حسابداری' : lang === 'ro' ? 'Sinteză anuală pentru contabilitate' : 'Annual bookkeeping summary'}</h2>
@@ -134,7 +146,9 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       <label>{lang === 'fa' ? 'سال' : 'Year'} <input type="number" min={2000} max={2100} value={year} onChange={event => { const value = Number(event.target.value); if (value >= 2000 && value <= 2100) setYear(value); }} className="w-28 rounded border p-2" /></label>
       <ul className="space-y-2">{annual.map(group => <li key={`${group.unit_id}-${group.currency}-${group.kind}-${group.direction}`} className="rounded border p-2">{view.units.find(unit => unit.id === group.unit_id)?.unit_label ?? group.unit_id} · {group.kind} · {group.direction} · {group.entry_count} · {group.amount} {group.currency}</li>)}</ul>
     </section>
-    {selected && <><section className="space-y-3 rounded-xl border bg-white p-5">
+    {selected && <Fragment key={selected}><fieldset disabled={busy || !detailsReady} aria-busy={!detailsReady} className="space-y-6">
+      {!detailsReady && !error && <p role="status">{loading}</p>}
+      <section className="space-y-3 rounded-xl border bg-white p-5">
       <h2 className="font-bold">{lang === 'fa' ? 'اتصال تأییدشده به واحد ساختمان' : lang === 'ro' ? 'Conectare la unitatea clădirii' : 'Verified building unit connection'}</h2>
       <p className="text-sm text-slate-600">{lang === 'fa' ? 'شناسه ورک‌اسپیس و واحد رسمی را از مدیر ساختمان دریافت کنید. درخواست پس از بررسی مدیر و تأیید سوپرادمین فعال می‌شود؛ این اتصال دسترسی کلی به ساختمان نمی‌دهد.' : 'Obtain the workspace and official unit IDs from the building manager. The manager and platform administrator must verify the request.'}</p>
       <form className="grid gap-2 sm:grid-cols-2" onSubmit={event => { event.preventDefault(); const form = event.currentTarget; const fields = Object.fromEntries(new FormData(form)); void linkAction({ action: 'request', private_unit_id: selected, workspace_id: fields.workspace_id, canonical_unit_id: fields.canonical_unit_id, evidence: fields.evidence }, form); }}>
@@ -174,6 +188,6 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
         <button disabled={busy} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50">{t.recordCash}</button>
       </form><p className="text-xs text-slate-500">{t.sourced} · {lang === 'fa' ? 'برای ثبت دریافت مرتبط با قرارداد، دستهٔ اجاره و جهت درآمد و هر دو تاریخ سررسید و دریافت را وارد کنید.' : 'For a lease payment, select Rent and Income and enter both due and received dates.'}</p>
       <ul className="space-y-2">{view.entries.map(e => <li key={e.id} className="rounded border p-2">{e.kind} · {e.direction} · {e.amount} {e.currency} · {e.due_on ?? '—'} · {e.paid_on ?? '—'}{e.lease_id && ` · ${lang === 'fa' ? 'قرارداد' : 'Lease'} ${e.lease_id}`}</li>)}</ul>
-    </section></>}
+    </section></fieldset></Fragment>}
   </main>;
 }
