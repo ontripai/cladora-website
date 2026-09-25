@@ -25,8 +25,10 @@ select throws_like($$select customer_api.activate_owner_portfolio_pilot_v1('d112
 select set_config('request.jwt.claims','{"sub":"a1120000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
 select throws_like($$select customer_api.activate_owner_portfolio_pilot_v1('d1120000-0000-4000-8000-000000000001',100,'Invalid pilot duration denied')$$,'%invalid_approval%','Duration cannot exceed defined pilot options');
 select lives_ok($$select customer_api.activate_owner_portfolio_pilot_v1('d1120000-0000-4000-8000-000000000001',24,'Approved case for verified customer')$$,'Superadmin approves verified owner case');
+reset role;
 select is((select count(*)::integer from platform.owner_portfolio_pilots where case_id='d1120000-0000-4000-8000-000000000001'),1,'One auditable decision per case');
 select is((select count(*)::integer from identity.context_grants g join platform.owner_portfolio_pilots p on p.membership_id=g.membership_id where p.case_id='d1120000-0000-4000-8000-000000000001'),0,'Pilot has no building context grant');
+set local role authenticated;
 select throws_like($$select customer_api.activate_owner_portfolio_pilot_v1('d1120000-0000-4000-8000-000000000001',24,'Cannot issue duplicate owner trial')$$,'%pilot_already_decided%','Duplicate pilot denied');
 select set_config('request.jwt.claims','{"sub":"a1120000-0000-4000-8000-000000000002","role":"authenticated","aal":"aal2"}',true);
 select is(app_private.has_multi_unit_owner_role_v1(),true,'Approved owner can access private ledger');
