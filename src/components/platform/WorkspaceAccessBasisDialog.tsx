@@ -35,7 +35,8 @@ const copy = {
     revoked: 'Acces revocat.', revokeReason: 'Motivul revocării' },
 };
 
-export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { workspace: CustomerWorkspace; lang: Lang; onClose: () => void }) {
+type BasisWorkspace = Pick<CustomerWorkspace, 'id' | 'workspace_type' | 'environment' | 'commercial_owner' | 'lifecycle_status'> & { tenant_legal_name?: string };
+export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEmail, onSaved }: { workspace: BasisWorkspace; lang: Lang; onClose: () => void; initialEmail?: string; onSaved?: () => void }) {
   const l = copy[lang];
   const [mode, setMode] = useState<'PILOT' | 'PAID'>(workspace.environment === 'PILOT' ? 'PILOT' : 'PAID');
   const [roles, setRoles] = useState<Role[]>([]);
@@ -93,6 +94,7 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { works
       if (!response.ok) throw new Error('SAVE_FAILED');
       setNotice(l.success);
       await load();
+      onSaved?.();
     } catch { setError(l.failed); }
     finally { setBusy(false); }
   }
@@ -121,7 +123,7 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { works
           {workspace.environment === 'PILOT' && <label><input type="radio" checked={mode === 'PILOT'} onChange={() => setMode('PILOT')} /> {l.pilot}</label>}
           <label><input type="radio" checked={mode === 'PAID'} onChange={() => setMode('PAID')} /> {l.paid}</label>
         </div>
-        <label className="block space-y-1">{l.email}<input required type="email" name="email" maxLength={320} className="w-full rounded bg-[#081320] p-2" /></label>
+        <label className="block space-y-1">{l.email}<input required type="email" name="email" defaultValue={initialEmail} maxLength={320} className="w-full rounded bg-[#081320] p-2" /></label>
         <label className="block space-y-1">{l.role}<select required name="role_id" className="w-full rounded bg-[#081320] p-2">
           <option value="">—</option>{roles.filter(r => r.code === preferred).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select></label>

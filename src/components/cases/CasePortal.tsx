@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { WorkspaceAccessBasisDialog } from '@/components/platform/WorkspaceAccessBasisDialog';
 
 export type CaseInvitation = { id: string; case_id: string; reference_id: string; expires_at: string };
 export type CaseListing = { id: string; reference_id: string; status: string; created_at: string; workspace_id: string | null; unread_count: number };
@@ -10,6 +11,7 @@ export type CaseDetail = { id: string; status: string; workspace_id: string | nu
 export type CaseDocument = { id: string; document_id: string; title: string; version: number; scan_status: 'pending'|'clean'|'quarantined'; visibility: 'shared'|'internal'; created_at: string; uploaded_by: string };
 export type CaseStaffOption = { id: string; name: string; role: string };
 type WorkspaceOption = { profile: string; profile_label: Record<string,string>; model: string; model_label: Record<string,string> };
+type PreparedWorkspace = { workspace_id: string; workspace_type: 'ASSOCIATION'|'PROPERTY_MANAGER'|'OWNER_PORTFOLIO'|'HYBRID'; lifecycle_status: 'LEAD'; environment: 'PILOT'; commercial_owner: string; tenant_id: string; customer_email: string; profile: string; model: string; approval_mode: 'PILOT'|'PAID'|null; contract_id: string|null; approval_ready: boolean; linked: boolean };
 
 export function CasePortal({ lang, invitations, cases }: { lang: string; invitations: CaseInvitation[]; cases: CaseListing[] }) {
   const fa = lang === 'fa';
@@ -41,16 +43,24 @@ export function CasePortal({ lang, invitations, cases }: { lang: string; invitat
   </main>;
 }
 
-export function CaseConversation({ lang, detail, documents, userId, manager, reviewer, staffOptions }: { lang: string; detail: CaseDetail; documents: CaseDocument[]; userId: string; manager: boolean; reviewer: boolean; staffOptions: CaseStaffOption[] }) {
+export function CaseConversation({ lang, detail, documents, userId, manager, approver, reviewer, staffOptions }: { lang: string; detail: CaseDetail; documents: CaseDocument[]; userId: string; manager: boolean; approver: boolean; reviewer: boolean; staffOptions: CaseStaffOption[] }) {
   const fa=lang==='fa'; const [error,setError]=useState(''); const [busy,setBusy]=useState(false);
   const [workspaceOptions,setWorkspaceOptions]=useState<WorkspaceOption[]>([]);
   const [preparedWorkspace,setPreparedWorkspace]=useState('');
+  const [preparedItems,setPreparedItems]=useState<PreparedWorkspace[]>([]);
+  const [approvalItem,setApprovalItem]=useState<PreparedWorkspace|null>(null);
+  async function reloadPrepared(){
+    const response=await fetch(`/api/platform/v1/cases/workspaces?case_id=${encodeURIComponent(detail.id)}`,{credentials:'same-origin',cache:'no-store'});
+    if(!response.ok)throw new Error('OPTIONS_UNAVAILABLE');
+    const result=await response.json();
+    setWorkspaceOptions(result.options??[]);setPreparedItems(result.prepared??[]);
+  }
   useEffect(()=>{
     if(!manager || !detail.workspace_id) return;
     let active=true;
     fetch(`/api/platform/v1/cases/workspaces?case_id=${encodeURIComponent(detail.id)}`,{credentials:'same-origin'})
       .then(async response=>{if(!response.ok)throw new Error('OPTIONS_UNAVAILABLE');return response.json();})
-      .then(result=>{if(active)setWorkspaceOptions(result.options??[]);})
+      .then(result=>{if(active){setWorkspaceOptions(result.options??[]);setPreparedItems(result.prepared??[]);}})
       .catch(()=>{if(active)setError('OPTIONS_UNAVAILABLE');});
     return ()=>{active=false;};
   },[manager,detail.id,detail.workspace_id]);
@@ -61,6 +71,7 @@ export function CaseConversation({ lang, detail, documents, userId, manager, rev
       const response=await fetch('/api/platform/v1/cases/workspaces',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:detail.id,workspace_type:form.get('workspace_type'),profile_code:selected.profile,model_code:selected.model,commercial_owner:form.get('commercial_owner'),reason:form.get('reason')})});
       const result=await response.json();if(!response.ok)throw new Error(result.error?.code??'CREATION_FAILED');
       setPreparedWorkspace(result.workspace.workspace_id);
+      await reloadPrepared();
     }catch(cause){setError(cause instanceof Error?cause.message:'CREATION_FAILED');}finally{setBusy(false);}
   }
   async function send(event: React.FormEvent<HTMLFormElement>) {
@@ -151,6 +162,15 @@ export function CaseConversation({ lang, detail, documents, userId, manager, rev
     {detail.workspace_links && detail.workspace_links.length>0 && <section className="rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'ورک‌اسپیس‌های تأییدشدهٔ این پرونده':'Approved workspaces in this case'}</h2>
       <ul className="mt-2 list-inside list-disc text-sm">{detail.workspace_links.map(item=><li key={item.workspace_id}>{item.workspace_id}{item.primary ? ` · ${fa?'اصلی':'Primary'}` : ''}{item.contract_id ? ` · ${fa?'قرارداد':'Contract'}: ${item.contract_id}` : ''}</li>)}</ul>
     </section>}
+    {manager&&preparedItems.length>0&&<section className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'ورک‌اسپیس‌های آماده‌شده برای این مشتری':'Workspaces prepared for this customer'}</h2>
+      {preparedItems.map(item=><div key={item.workspace_id} className="space-y-2 border-t pt-3 text-sm">
+        <p className="break-all font-semibold">{item.profile} · {item.model} · {item.workspace_id}</p>
+        <p>{item.lifecycle_status} · {item.linked?(fa?'متصل به پرونده':'Linked to case'):item.approval_ready?(fa?'تأیید تجاری ثبت شده؛ آمادهٔ اتصال':'Commercial approval recorded; ready to link'):(fa?'در انتظار تأیید تجاری':'Awaiting commercial approval')}</p>
+        {!item.linked&&!item.approval_ready&&approver&&<button type="button" onClick={()=>setApprovalItem(item)} className="rounded border border-amber-600 px-3 py-2 text-amber-900">{fa?'ثبت مجوز آزمایشی یا قراردادی':'Record pilot or contract approval'}</button>}
+        {!item.linked&&item.approval_ready&&<form onSubmit={link} className="flex flex-wrap gap-2"><input type="hidden" name="workspace_id" value={item.workspace_id}/><input type="hidden" name="contract_id" value={item.contract_id??''}/><input required name="reason" minLength={8} maxLength={500} placeholder={fa?'دلیل اتصال به پرونده':'Reason for linking'} className="min-w-48 flex-1 rounded border p-2"/><button disabled={busy} className="rounded bg-emerald-700 px-3 py-2 text-white disabled:opacity-50">{fa?'اتصال به پرونده':'Link to case'}</button></form>}
+      </div>)}
+    </section>}
+    {approvalItem&&<WorkspaceAccessBasisDialog workspace={{id:approvalItem.workspace_id,workspace_type:approvalItem.workspace_type,environment:approvalItem.environment,lifecycle_status:approvalItem.lifecycle_status,commercial_owner:approvalItem.commercial_owner}} lang={fa?'fa':lang==='ro'?'ro':'en'} initialEmail={approvalItem.customer_email} onClose={()=>setApprovalItem(null)} onSaved={()=>void reloadPrepared()} />}
     {manager&&detail.workspace_id&&<form onSubmit={prepareWorkspace} className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'آماده‌سازی ورک‌اسپیس دیگر برای همین مشتری':'Prepare another workspace for this customer'}</h2>
       <p className="text-sm text-amber-800">{fa?'ورک‌اسپیس در وضعیت LEAD ایجاد می‌شود. اتصال به پرونده و دسترسی مشتری به تأیید تجاری مستقل نیاز دارد.':'Creates a LEAD workspace. Case linking and customer access require separate commercial approval.'}</p>
       <label className="block">{fa?'نوع ساختار':'Workspace structure'}<select name="workspace_type" required className="mt-1 w-full rounded border p-2"><option value="ASSOCIATION">{fa?'انجمن مالکان':'Owners association'}</option><option value="PROPERTY_MANAGER">{fa?'شرکت مدیریت ملک':'Property manager'}</option><option value="OWNER_PORTFOLIO">{fa?'پورتفوی مالک':'Owner portfolio'}</option><option value="HYBRID">{fa?'ساختار ترکیبی':'Hybrid'}</option></select></label>

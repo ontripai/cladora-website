@@ -1551,6 +1551,7 @@ export type Database = {
       mark_customer_case_read_v1: { Args: { p_case_id: string }; Returns: number };
       link_customer_case_workspace_v1: { Args: { p_case_id: string; p_workspace_id: string; p_contract_id: string | null; p_reason: string }; Returns: Json };
       list_case_workspace_options_v1: { Args: { p_case_id: string }; Returns: Json };
+      list_case_prepared_workspaces_v1: { Args: { p_case_id: string }; Returns: Json };
       create_case_workspace_v1: { Args: { p_case_id: string; p_workspace_type: string; p_profile_code: string; p_model_code: string; p_commercial_owner: string; p_reason: string }; Returns: Json };
       begin_customer_case_document_v1: { Args: { p_case_id: string; p_document_id: string | null; p_title: string; p_visibility: string; p_mime_type: string; p_byte_size: number; p_sha256: string }; Returns: Json };
       get_customer_case_documents_v1: { Args: { p_case_id: string }; Returns: Json };
