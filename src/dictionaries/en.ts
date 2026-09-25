@@ -306,12 +306,12 @@ export const en = {
   pilot: {
     badge: "Pilot Program — Bucharest & Ilfov",
     title: "Join the CLADORA Pilot Cohort",
-    description: "We are onboarding a select group of homeowner associations and multi-property landlords. Receive hands-on onboarding, assisted migration, and 6 months of complimentary full access.",
+    description: "Request an assessment for residential, commercial, industrial, office or shared spaces. We review feature fit, contractual conditions and pilot availability for each request before activation.",
     benefits: [
       "Assisted migration from your current software (Shadow Ledger validation)",
       "Initial review of financial documents and utility consumption",
       "Hands-on training for the administrator, auditor, and committee members",
-      "Contractual alignment with Romanian Law 196/2018 requirements",
+      "Review of legal requirements applicable to your requested space",
     ],
     formTitle: "Pilot Program Application",
     fields: {
@@ -325,7 +325,7 @@ export const en = {
         cenzor: "Auditor / Accountant",
         owner: "Property Owner / Investor",
       },
-      buildingType: "Building Type / Archetype",
+      buildingType: "Residential building archetype (optional)",
       unitsCount: "Number of Units or Properties",
       currentSoftware: "What solution or tool do you currently use?",
       submit: "Submit Application",

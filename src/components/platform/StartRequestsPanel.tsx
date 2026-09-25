@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { PILOT_WORKSPACE_TYPES, type PilotWorkspaceType } from '@/lib/pilot/workspace-types';
 
 export type StartRequest = {
   id: string; reference_id: string; created_at: string; lead_type: string;
@@ -10,6 +11,10 @@ export type StartRequest = {
   message: string | null; status: string; assigned_platform_user_id: string | null;
   assignee_name: string | null;
   case_id: string | null;
+  applicant_type: string | null; requested_workspace_type: string | null;
+  requested_workspace_subtype: string | null; requested_workspace_count: number | null;
+  requested_workspace_description: string | null; requested_related_buildings: string | null;
+  units_count: number | null; building_type: string | null;
 };
 export type SalesOperator = { id: string; display_name: string };
 
@@ -55,6 +60,12 @@ export function StartRequestsPanel({ lang, requests, sales, manager }: {
       <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="font-bold">{item.full_name} · {item.reference_id}</h2>
         <span className="rounded bg-[#14324F] px-2 py-1">{item.lead_type} · {item.status}</span></div>
       <p className="mt-2 text-slate-300">{item.email}{item.phone ? ` · ${item.phone}` : ''}{item.city ? ` · ${item.city}` : ''}</p>
+      {item.requested_workspace_type && <div className="mt-2 rounded border border-[#1E3A5A] p-3 text-xs text-slate-200">
+        <p>{fa ? 'نوع ورک‌اسپیس درخواستی:' : 'Requested workspace:'} {Object.hasOwn(PILOT_WORKSPACE_TYPES, item.requested_workspace_type) ? PILOT_WORKSPACE_TYPES[item.requested_workspace_type as PilotWorkspaceType][lang === 'fa' || lang === 'ro' ? lang : 'en'] : item.requested_workspace_type} · {fa ? 'تعداد:' : 'Count:'} {item.requested_workspace_count ?? 1}</p>
+        <p>{fa ? 'زیرنوع:' : 'Subtype:'} {item.requested_workspace_subtype || '—'} · {fa ? 'متقاضی:' : 'Applicant:'} {item.applicant_type || '—'} · {fa ? 'واحد/فضا:' : 'Units/spaces:'} {item.units_count ?? '—'}</p>
+        {item.requested_workspace_description && <p className="whitespace-pre-wrap">{item.requested_workspace_description}</p>}
+        {item.requested_related_buildings && <p className="whitespace-pre-wrap">{fa ? 'ساختمان‌های مرتبط: ' : 'Related buildings: '}{item.requested_related_buildings}</p>}
+      </div>}
       <p className="mt-1 text-xs text-slate-400">{new Date(item.created_at).toLocaleString(lang === 'fa' ? 'fa-IR' : 'en-GB')} · {fa ? 'مسئول:' : 'Owner:'} {item.assignee_name ?? (fa ? 'صف مدیر؛ تخصیص داده نشده' : 'Manager queue; unassigned')}</p>
       {item.message && <p className="mt-3 whitespace-pre-wrap rounded bg-[#081320] p-3">{item.message}</p>}
       {item.case_id ? <Link href={`/${lang}/cases/${item.case_id}`} className="mt-3 inline-block rounded border border-emerald-400 px-3 py-2 text-emerald-300">{fa?'ورود به پروندهٔ مشترک':'Open shared case'}</Link>

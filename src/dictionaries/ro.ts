@@ -305,13 +305,13 @@ export const ro = {
   },
   pilot: {
     badge: "Program Pilot — București & Ilfov",
-    title: "Înscrie asociația sau portofoliul în programul pilot",
-    description: "Acceptăm un număr restrâns de asociații de proprietari și proprietari de portofolii în cohorta de validare. Beneficiezi de asistență dedicată la configurare, migrare asistată și 6 luni de utilizare gratuită.",
+    title: "Solicită evaluarea spațiului tău în programul pilot",
+    description: "Poți solicita evaluarea unui spațiu rezidențial, comercial, industrial, de birouri sau comun între clădiri. Echipa noastră verifică individual potrivirea funcțiilor, condițiile contractuale și disponibilitatea pilotului înainte de activare.",
     benefits: [
       "Migrare asistată din programul vechi (validare prin Shadow Ledger)",
       "Verificare inițială a documentelor financiare și a consumurilor",
       "Sesiune de instruire pentru administrator, cenzor și membrii comitetului",
-      "Angajament contractual pentru respectarea cerințelor Legii 196/2018",
+      "Verificarea cerințelor legale aplicabile tipului de spațiu solicitat",
     ],
     formTitle: "Formular de Înscriere în Programul Pilot",
     fields: {
@@ -325,7 +325,7 @@ export const ro = {
         cenzor: "Cenzor / Contabil",
         owner: "Proprietar / Investitor",
       },
-      buildingType: "Tipul Clădirii / Arhetip",
+      buildingType: "Arhetip tehnic al clădirii rezidențiale (opțional)",
       unitsCount: "Număr de Apartamente sau Proprietăți",
       currentSoftware: "Ce soluție sau program folosiți în prezent?",
       submit: "Trimite Solicitarea",

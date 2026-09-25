@@ -66,34 +66,29 @@ export default async function PilotPage(
               <div className="flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                 <span>
-                  {isRo 
-                    ? <><strong>5 Asociații de Proprietari</strong> (40 - 150 unități în București / Ilfov)</>
-                    : isFa
-                    ? <><strong>۵ مجتمع مسکونی</strong> (۴۰ تا ۱۵۰ واحد در بخارست و ایلفوف)</>
-                    : <><strong>5 Condominium Associations</strong> (40 - 150 units in Bucharest / Ilfov)</>}
+                  {isRo ? 'Spații rezidențiale, comerciale, retail și birouri'
+                    : isFa ? 'فضاهای مسکونی، تجاری، فروشگاهی و اداری'
+                    : 'Residential, commercial, retail and office spaces'}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-brand-400 shrink-0" />
                 <span>
-                  {isRo
-                    ? <><strong>20 Proprietari de Portofolii</strong> (Min. 2 proprietăți)</>
-                    : isFa
-                    ? <><strong>۲۰ سرمایه‌گذار املاک</strong> (حداقل ۲ واحد استیجاری)</>
-                    : <><strong>20 Portfolio Landlords</strong> (Min. 2 properties)</>}
+                  {isRo ? 'Spații industriale, logistice și cu utilizare mixtă'
+                    : isFa ? 'فضاهای صنعتی، لجستیکی و چندمنظوره'
+                    : 'Industrial, logistics and mixed-use spaces'}
                 </span>
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="w-2 h-2 rounded-full bg-violet-400 shrink-0" />
                 <span>
-                  {isRo
-                    ? <><strong>2 Firme de Administrare</strong> (Testare flux multi-bloc)</>
-                    : isFa
-                    ? <><strong>۲ شرکت مدیریت املاک</strong> (آزمون مدیریت هم‌زمان چند مجتمع)</>
-                    : <><strong>2 Property Management Firms</strong> (Multi-association testing)</>}
+                  {isRo ? 'Spații comune între clădiri și solicitări cu mai multe spații de lucru'
+                    : isFa ? 'فضاهای مشترک چندساختمانی و درخواست‌های چندورک‌اسپیسی'
+                    : 'Shared spaces across buildings and multi-workspace requests'}
                 </span>
               </div>
             </div>
+            <p className="text-xs text-slate-300">{isRo ? 'Fiecare solicitare este evaluată individual; completarea formularului nu creează și nu activează un spațiu de lucru.' : isFa ? 'هر درخواست جداگانه بررسی می‌شود؛ ارسال فرم، ورک‌اسپیس ایجاد یا فعال نمی‌کند.' : 'Each request is reviewed individually. Submitting this form does not create or activate a workspace.'}</p>
           </div>
 
           {/* Benefits */}
