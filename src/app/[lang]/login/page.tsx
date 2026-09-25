@@ -28,6 +28,7 @@ export default async function LoginPage(props: { params: Promise<{ lang: Languag
           captchaSiteKey={captchaSiteKey}
           workspaceAccessRequested={next === 'workspace-access' || next === `/${lang}/workspace-access`}
           caseAccessRequested={next === 'cases'}
+          ownerPortfolioRequested={next === 'owner-portfolio'}
         />
       </div>
     </main>
