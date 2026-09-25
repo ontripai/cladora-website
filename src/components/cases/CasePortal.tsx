@@ -12,6 +12,7 @@ export type CaseDocument = { id: string; document_id: string; title: string; ver
 export type CaseStaffOption = { id: string; name: string; role: string };
 type WorkspaceOption = { profile: string; profile_label: Record<string,string>; model: string; model_label: Record<string,string> };
 type PreparedWorkspace = { workspace_id: string; workspace_type: 'ASSOCIATION'|'PROPERTY_MANAGER'|'OWNER_PORTFOLIO'|'HYBRID'; lifecycle_status: 'LEAD'; environment: 'PILOT'; commercial_owner: string; tenant_id: string; customer_email: string; profile: string; model: string; approval_mode: 'PILOT'|'PAID'|null; contract_id: string|null; approval_ready: boolean; linked: boolean };
+type OwnerPilotStatus = { eligible: boolean; customer_claimed: boolean; expires_at: string | null; revoked_at: string | null };
 
 export function CasePortal({ lang, invitations, cases, ownerPortfolio = false }: { lang: string; invitations: CaseInvitation[]; cases: CaseListing[]; ownerPortfolio?: boolean }) {
   const fa = lang === 'fa';
@@ -50,6 +51,26 @@ export function CaseConversation({ lang, detail, documents, userId, manager, app
   const [preparedWorkspace,setPreparedWorkspace]=useState('');
   const [preparedItems,setPreparedItems]=useState<PreparedWorkspace[]>([]);
   const [approvalItem,setApprovalItem]=useState<PreparedWorkspace|null>(null);
+  const [ownerPilot,setOwnerPilot]=useState<OwnerPilotStatus|null>(null);
+  useEffect(()=>{
+    if(!approver)return;
+    let active=true;
+    fetch(`/api/platform/v1/cases/owner-portfolio-pilot?case_id=${encodeURIComponent(detail.id)}`,{credentials:'same-origin',cache:'no-store'})
+      .then(async response=>{if(!response.ok)throw new Error('PILOT_STATUS_FAILED');return response.json();})
+      .then(result=>{if(active)setOwnerPilot(result as OwnerPilotStatus);})
+      .catch(()=>{if(active)setError('PILOT_STATUS_FAILED');});
+    return()=>{active=false;};
+  },[approver,detail.id]);
+  async function decideOwnerPilot(event:React.FormEvent<HTMLFormElement>,action:'activate'|'revoke'){
+    event.preventDefault();setBusy(true);setError('');
+    try{
+      const values=new FormData(event.currentTarget);
+      const response=await fetch('/api/platform/v1/cases/owner-portfolio-pilot',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,case_id:detail.id,reason:values.get('reason'),...(action==='activate'?{hours:Number(values.get('hours'))}:{})})});
+      const result=await response.json();if(!response.ok)throw new Error(result.error?.code??'PILOT_ACTION_FAILED');
+      const updated=await fetch(`/api/platform/v1/cases/owner-portfolio-pilot?case_id=${encodeURIComponent(detail.id)}`,{credentials:'same-origin',cache:'no-store'});
+      if(!updated.ok)throw new Error('PILOT_STATUS_FAILED');setOwnerPilot(await updated.json() as OwnerPilotStatus);
+    }catch(cause){setError(cause instanceof Error?cause.message:'PILOT_ACTION_FAILED');}finally{setBusy(false);}
+  }
   async function reloadPrepared(){
     const response=await fetch(`/api/platform/v1/cases/workspaces?case_id=${encodeURIComponent(detail.id)}`,{credentials:'same-origin',cache:'no-store'});
     if(!response.ok)throw new Error('OPTIONS_UNAVAILABLE');
@@ -122,6 +143,13 @@ export function CaseConversation({ lang, detail, documents, userId, manager, app
     <Link href={detail.staff_view?`/${lang}/platform/start-requests`:`/${lang}/cases`} className="text-emerald-800 hover:underline">{fa?'بازگشت':'Back'}</Link>
     <h1 className="text-2xl font-black">{fa?'پروندهٔ مشتری':'Customer case'}</h1>
     <p className="text-xs text-slate-500">{fa?'شناسهٔ پرونده':'Case ID'}: {detail.id}</p>
+    {ownerPilot?.eligible&&<section className="space-y-3 rounded-xl border border-teal-700 bg-white p-4"><h2 className="font-bold">{fa?'نقش مالک چندواحدی · دسترسی آزمایشی':'Multi-unit owner · timed pilot'}</h2>
+      <p className="text-sm">{fa?'این تصمیم فقط کارتابل خصوصی مالک را فعال می‌کند و دسترسی ساختمان ایجاد نمی‌کند.':'This approval opens the owner’s private portfolio only; it grants no building access.'}</p>
+      {!ownerPilot.customer_claimed&&<p className="text-amber-800">{fa?'مشتری باید ابتدا دعوت امن پرونده را با ایمیل تأییدشده بپذیرد.':'Customer must claim the case with a verified email first.'}</p>}
+      {ownerPilot.expires_at?<p>{fa?'اعتبار تا':'Valid until'}: {new Date(ownerPilot.expires_at).toLocaleString(fa?'fa-IR':'en-GB')}{ownerPilot.revoked_at?` · ${fa?'لغوشده':'Revoked'}`:''}</p>:null}
+      {ownerPilot.customer_claimed&&!ownerPilot.expires_at&&<form onSubmit={event=>void decideOwnerPilot(event,'activate')} className="grid gap-2"><label>{fa?'مدت آزمایشی':'Pilot duration'}<select name="hours" className="mt-1 w-full rounded border p-2"><option value="24">24 h</option><option value="48">48 h</option><option value="72">72 h</option></select></label><label>{fa?'دلیل و مستند تأیید':'Approval evidence'}<input name="reason" required minLength={15} maxLength={500} className="mt-1 w-full rounded border p-2" /></label><button disabled={busy} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50">{fa?'فعال‌سازی آزمایشی':'Activate pilot'}</button></form>}
+      {ownerPilot.expires_at&&!ownerPilot.revoked_at&&<form onSubmit={event=>void decideOwnerPilot(event,'revoke')} className="grid gap-2"><label>{fa?'دلیل لغو':'Revocation reason'}<input name="reason" required minLength={8} maxLength={500} className="mt-1 w-full rounded border p-2" /></label><button disabled={busy} className="rounded border border-rose-700 p-2 text-rose-800 disabled:opacity-50">{fa?'لغو دسترسی':'Revoke access'}</button></form>}
+    </section>}
     {detail.unread_count>0&&<button type="button" disabled={busy} onClick={()=>void markRead()} className="rounded border border-emerald-700 px-3 py-2 text-emerald-900">{fa?`علامت‌گذاری ${detail.unread_count} اعلان به‌عنوان خوانده‌شده`:`Mark ${detail.unread_count} notification(s) read`}</button>}
     <section aria-label={fa?'پیام‌های پرونده':'Case messages'} className="space-y-3">
       {detail.messages.length===0&&<p className="rounded border bg-white p-4">{fa?'هنوز پیامی ثبت نشده است.':'No messages yet.'}</p>}
