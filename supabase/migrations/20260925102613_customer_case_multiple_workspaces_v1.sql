@@ -49,16 +49,6 @@ begin
   end if;
   select * into v_case from platform.customer_cases where id=p_case_id and status='open' for update;
   if not found then raise exception 'case_unavailable' using errcode='22023'; end if;
-  select * into v_workspace from platform.customer_workspaces where id=p_workspace_id;
-  if not found or v_workspace.archived_at is not null or v_workspace.lifecycle_status in ('TERMINATED','ARCHIVED') then
-    raise exception 'workspace_unavailable' using errcode='22023';
-  end if;
-  if v_case.customer_workspace_id is not null then
-    select * into v_primary from platform.customer_workspaces where id=v_case.customer_workspace_id;
-    if v_primary.tenant_id <> v_workspace.tenant_id then
-      raise exception 'case_workspace_tenant_mismatch' using errcode='42501';
-    end if;
-  end if;
   if exists(select 1 from platform.customer_case_workspace_links l
     where l.case_id=p_case_id and l.customer_workspace_id=p_workspace_id) then
     raise exception 'workspace_already_linked' using errcode='23505';
@@ -72,6 +62,16 @@ begin
       (mode='PAID' and contract_id=p_contract_id and p_contract_id is not null))
   order by approved_at desc limit 1;
   if not found then raise exception 'approved_access_basis_required' using errcode='42501'; end if;
+  select * into v_workspace from platform.customer_workspaces where id=p_workspace_id;
+  if not found or v_workspace.archived_at is not null or v_workspace.lifecycle_status in ('TERMINATED','ARCHIVED') then
+    raise exception 'workspace_unavailable' using errcode='22023';
+  end if;
+  if v_case.customer_workspace_id is not null then
+    select * into v_primary from platform.customer_workspaces where id=v_case.customer_workspace_id;
+    if v_primary.tenant_id <> v_workspace.tenant_id then
+      raise exception 'case_workspace_tenant_mismatch' using errcode='42501';
+    end if;
+  end if;
   if p_contract_id is not null and not exists (
     select 1 from platform.workspace_contracts c where c.id=p_contract_id
       and c.customer_workspace_id=p_workspace_id and c.status='active'
