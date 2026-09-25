@@ -17,7 +17,7 @@ export const dynamic = 'force-dynamic';
 
 export const PILOT_ROLES = ['admin', 'president', 'cenzor', 'owner'] as const;
 export const PILOT_BUILDING_TYPES = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'] as const;
-const PILOT_APPLICANTS = ['association', 'management_company', 'owner', 'company', 'other'] as const;
+const PILOT_APPLICANTS = ['association', 'management_company', 'owner', 'multi_unit_owner', 'company', 'other'] as const;
 
 const PilotPayloadSchema = z
   .object({
@@ -103,6 +103,12 @@ const PilotPayloadSchema = z
       ctx.addIssue({ code: 'custom', path: ['message'], message: 'Describe the additional requested workspaces.' });
     if (value.workspaceType !== 'residential' && value.buildingType)
       ctx.addIssue({ code: 'custom', path: ['buildingType'], message: 'Building archetypes apply only to residential requests.' });
+    if (value.applicantType === 'multi_unit_owner' && value.role !== 'owner')
+      ctx.addIssue({ code: 'custom', path: ['role'], message: 'A multi-unit owner request must identify the owner role.' });
+    if (value.applicantType === 'multi_unit_owner' && value.workspaceCount !== 1)
+      ctx.addIssue({ code: 'custom', path: ['workspaceCount'], message: 'A multi-unit owner starts with one personal portfolio.' });
+    if (value.applicantType === 'multi_unit_owner' && value.buildingType)
+      ctx.addIssue({ code: 'custom', path: ['buildingType'], message: 'A portfolio of units is not a single building archetype.' });
   });
 
 export async function POST(request: NextRequest) {
