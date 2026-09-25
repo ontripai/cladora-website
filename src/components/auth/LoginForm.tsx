@@ -16,9 +16,10 @@ interface LoginFormProps {
   captchaSiteKey?: string;
   workspaceAccessRequested?: boolean;
   caseAccessRequested?: boolean;
+  ownerPortfolioRequested?: boolean;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -100,6 +101,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
           destination = destination.includes('/mfa')
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=cases`
             : `/${lang}/cases`;
+        }
+        if (ownerPortfolioRequested && !destination.includes('/platform/')) {
+          destination = destination.includes('/mfa')
+            ? `${destination}${destination.includes('?') ? '&' : '?'}next=owner-portfolio`
+            : `/${lang}/owner-portfolio`;
         }
       } catch {
         await supabase.auth.signOut();
