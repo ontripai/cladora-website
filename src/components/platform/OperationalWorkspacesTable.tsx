@@ -371,7 +371,7 @@ export function OperationalWorkspacesTable({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{labels.advance}</button>}
-                    {workspace.lifecycle_status === "PROVISIONING" ? (
+                    {workspace.lifecycle_status === "PROVISIONING" && !['OWNER_PORTFOLIO','HYBRID'].includes(workspace.workspace_type) ? (
                       <button
                         type="button"
                         onClick={() => {

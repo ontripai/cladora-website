@@ -1,6 +1,6 @@
 begin;
 set local search_path=public,extensions;
-select plan(22);
+select plan(24);
 
 insert into auth.users(id,email,email_confirmed_at) values
 ('aa100000-0000-4000-8000-000000000001','multi-admin@cladora.test',now()),
@@ -18,13 +18,25 @@ insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_
 values('ea100000-0000-4000-8000-000000000001','da100000-0000-4000-8000-000000000001','ASSOCIATION','Commercial owner','PILOT'),
 ('ea100000-0000-4000-8000-000000000002','da100000-0000-4000-8000-000000000001','ASSOCIATION','Commercial owner','PILOT'),
 ('ea100000-0000-4000-8000-000000000003','da100000-0000-4000-8000-000000000002','ASSOCIATION','Commercial owner','PILOT'),
-('ea100000-0000-4000-8000-000000000004','da100000-0000-4000-8000-000000000001','ASSOCIATION','Commercial owner','PILOT');
+('ea100000-0000-4000-8000-000000000004','da100000-0000-4000-8000-000000000001','ASSOCIATION','Commercial owner','PILOT'),
+('ea100000-0000-4000-8000-000000000005','da100000-0000-4000-8000-000000000001','OWNER_PORTFOLIO','Commercial owner','PILOT');
 insert into platform.workspace_access_bases(customer_workspace_id,normalized_email,role_id,mode,duration_hours,evidence_note,approved_by)
 select w.id,'multi-customer@cladora.test',r.id,'PILOT',24,'Independently verified pilot customer',
   'aa100000-0000-4000-8000-000000000001'
 from platform.customer_workspaces w cross join lateral
   (select id from identity.roles where code='association_admin' and tenant_id is null limit 1) r
 where w.id in ('ea100000-0000-4000-8000-000000000001','ea100000-0000-4000-8000-000000000002','ea100000-0000-4000-8000-000000000003');
+select throws_like($$insert into platform.workspace_access_bases(customer_workspace_id,normalized_email,role_id,mode,duration_hours,evidence_note,approved_by)
+select 'ea100000-0000-4000-8000-000000000005','multi-customer@cladora.test',id,'PILOT',24,
+  'Owner role has not been approved','aa100000-0000-4000-8000-000000000001'
+from identity.roles where code='association_admin' and tenant_id is null limit 1$$,
+'%workspace_primary_admin_role_not_defined%','Owner portfolio cannot receive association access basis');
+select throws_like($$insert into platform.workspace_invitations(customer_workspace_id,normalized_email,role_id,token_hash,expires_at,invited_by,invitation_reason)
+select 'ea100000-0000-4000-8000-000000000005','multi-customer@cladora.test',id,
+  decode(repeat('ab',32),'hex'),statement_timestamp()+interval '24 hours',
+  'aa100000-0000-4000-8000-000000000001','Owner role has not been approved'
+from identity.roles where code='association_admin' and tenant_id is null limit 1$$,
+'%workspace_primary_admin_role_not_defined%','Owner portfolio cannot receive association administrator invitation');
 
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"aa100000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);

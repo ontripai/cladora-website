@@ -46,6 +46,7 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const preferred = workspace.workspace_type === 'PROPERTY_MANAGER' ? 'property_manager' : 'association_admin';
+  const primaryRolePending = workspace.workspace_type === 'OWNER_PORTFOLIO' || workspace.workspace_type === 'HYBRID';
   const baseUrl = `/api/platform/v1/workspaces/${workspace.id}/access-bases`;
 
   async function load() {
@@ -118,7 +119,8 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
         <button type="button" onClick={onClose} className="rounded border border-slate-500 px-3 py-1">{l.close}</button></div>
       <p className="rounded-lg border border-amber-400/40 p-3 text-sm text-amber-200">{l.intro}</p>
       <p className="font-mono text-xs text-slate-400">{workspace.tenant_legal_name ?? workspace.commercial_owner} · {workspace.lifecycle_status}</p>
-      <form onSubmit={submit} className="space-y-3">
+      {primaryRolePending&&<p role="status" className="rounded-lg border border-amber-400/40 p-3 text-sm text-amber-200">{lang==='fa'?'نقش مدیر اصلی برای پورتفوی مالک و ساختار ترکیبی هنوز تعریف و تأیید نشده است؛ ثبت دسترسی تا تکمیل نقش و مجوزهای مناسب بسته است.':lang==='ro'?'Rolul administratorului principal pentru portofoliu și structură hibridă nu este încă aprobat. Accesul rămâne indisponibil.':'A primary administrator role for owner portfolios and hybrid workspaces has not been approved yet. Access preparation is unavailable.'}</p>}
+      {!primaryRolePending&&<form onSubmit={submit} className="space-y-3">
         <div className="flex gap-4">
           {workspace.environment === 'PILOT' && <label><input type="radio" checked={mode === 'PILOT'} onChange={() => setMode('PILOT')} /> {l.pilot}</label>}
           <label><input type="radio" checked={mode === 'PAID'} onChange={() => setMode('PAID')} /> {l.paid}</label>
@@ -147,7 +149,7 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
         {notice && <p role="status" className="text-emerald-300">{notice}</p>}
         <button disabled={busy || roles.length === 0 || (mode === 'PAID' && !contracts.some(c => c.signed_at))}
           className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{l.save}</button>
-      </form>
+      </form>}
       <h3 className="font-bold">{l.records}</h3>
       <ul className="space-y-2 text-sm">{bases.map(b => <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-[#29445F] p-2">
         <span>{b.email} · {b.mode} · {b.status}{b.expires_at ? ` · ${new Date(b.expires_at).toLocaleString(lang)}` : ''}</span>
