@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 19840)
-Total output lines: 536
-
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
@@ -309,7 +306,41 @@ check(customerAllocationsPanel.includes('/api/customer/v1/allocations?') && cust
 check(customerAllocationsPanel.includes("'runs','rules','lines'") && customerAllocationsPanel.includes('rule_snapshot') && customerAllocationsPanel.includes('explanation'), 'allocation UI exposes runs, rules, lines, and explainability evidence');
 check(customerAllocationsApi.includes('UNAUTHORIZED') && !customerAllocationsApi.includes('claims.claims.aal') && customerMfaPolicyMigration.includes('finance.get_customer_allocations'), 'allocation API authenticates callers and delegates role-aware AAL enforcement to the database contract');
 check(customerAllocationsApi.includes('no-store, private') && customerAllocationsApi.includes("Pragma:'no-cache'") && !customerAllocationsApi.includes('export async function POST'), 'allocation API is non-cached and GET-only');
-check(customerAllocationsMigration.includes("p.code='finance.allocations.read'") && customerAllocationsMigration.includes("e.entitlement_key=…1840 tokens truncated…('adopted_resolution_is_immutable') && customerGovernanceMigration.includes('approved_minutes_are_immutable'), 'final governance records are immutable');
+check(customerAllocationsMigration.includes("p.code='finance.allocations.read'") && customerAllocationsMigration.includes("e.entitlement_key='module.accounting'"), 'allocation RPC requires permission and entitlement');
+check(customerAllocationsMigration.includes('a.responsible_party_id=v_party') && customerAllocationsMigration.includes("in ('owner','shared')"), 'tenant and owner financial-rights visibility is separated');
+check(customerAllocationsMigration.includes('final_allocation_children_are_immutable') && customerAllocationsMigration.includes('allocation_input_overallocated'), 'final allocation evidence is immutable and over-allocation is blocked');
+check(customerAllocationsMigration.includes('allocation_source_currency_mismatch') && customerAllocationsMigration.includes('allocation_source_amount_mismatch'), 'source currency and amount integrity are database-enforced');
+check(customerAllocationsMigration.includes("array['rule_id','version','formula']") && customerAllocationsMigration.includes("array['legal_debtor','operational_payer','evidence','reason']"), 'rule version, formula, evidence, reason, and payer semantics are mandatory');
+check(customerAllocationsAdr.includes('Production acceptance is read-only') && customerAllocationsAdr.includes('fail closed'), 'allocation ADR records read-only acceptance and fail-closed controls');
+check(!customerUtilitiesPage.includes('DemoStore') && customerUtilitiesPage.includes('CustomerUtilitiesDashboard'), 'production metering page contains no demo fixtures');
+check(customerUtilitiesPanel.includes('/api/customer/v1/utilities?') && customerUtilitiesPanel.includes("cache:'no-store'") && customerUtilitiesPanel.includes("credentials:'same-origin'"), 'utility UI uses protected non-cached same-origin API');
+check(customerUtilitiesPanel.includes("'meters','readings','periods','contracts','invoices','comparisons','anomalies'"), 'utility UI exposes all read-only evidence views');
+check(customerUtilitiesApi.includes('UNAUTHORIZED') && !customerUtilitiesApi.includes('claims.claims.aal') && customerMfaPolicyMigration.includes('utilities.get_customer_utilities') && !customerUtilitiesApi.includes('export async function POST'), 'utility API delegates role-aware AAL enforcement and is GET-only');
+check(customerUtilitiesApi.includes('no-store, private') && customerUtilitiesApi.includes("Pragma:'no-cache'"), 'utility API prohibits shared caching');
+check(customerUtilitiesMigration.includes("p.code='utilities.metering.read'") && customerUtilitiesMigration.includes("e.entitlement_key='module.utilities'"), 'utility RPC requires permission and entitlement');
+check(customerUtilitiesMigration.includes('negative_consumption') && customerUtilitiesMigration.includes('delta_times_multiplier'), 'consumption is database-calculated and cannot be negative');
+check(customerUtilitiesMigration.includes('utility_invoice_currency_mismatch') && customerUtilitiesMigration.includes('utility_contract_inactive_or_expired'), 'utility invoice currency and contract validity are enforced');
+check(!customerUtilitiesMigration.includes("'source_object_path',i.source_object_path") && !customerUtilitiesMigration.includes('serial_number_encrypted'), 'utility projection excludes object paths and encrypted meter serials');
+check(customerUtilitiesAdr.includes('read-only') && customerUtilitiesAdr.includes('fails closed'), 'utility ADR records read-only fail-closed architecture');
+check(!customerMaintenancePage.includes('DemoStore') && !customerAssetsPage.includes('DemoStore'), 'production assets and maintenance pages contain no demo fixtures');
+check(customerMaintenancePanel.includes('/api/customer/v1/maintenance?') && customerMaintenancePanel.includes("cache:'no-store'") && customerMaintenancePanel.includes("credentials:'same-origin'"), 'maintenance UI uses protected non-cached same-origin API');
+check(customerMaintenancePanel.includes("'assets','components','plans','work_orders','tasks','vendors','sla','costs','history'"), 'maintenance UI exposes every authorized evidence view');
+check(customerMaintenanceApi.includes('UNAUTHORIZED') && !customerMaintenanceApi.includes('claims.claims.aal') && customerMfaPolicyMigration.includes('maintenance.get_customer_maintenance') && !customerMaintenanceApi.includes('export async function POST'), 'maintenance API delegates role-aware AAL enforcement and is GET-only');
+check(customerMaintenanceApi.includes('no-store, private') && customerMaintenanceApi.includes("Pragma:'no-cache'"), 'maintenance API prohibits shared caching');
+check(customerMaintenanceMigration.includes("p.code='maintenance.assets.read'") && customerMaintenanceMigration.includes("e.entitlement_key='module.maintenance'"), 'maintenance RPC requires permission and effective entitlement');
+check(customerMaintenanceMigration.includes('work_orders_active_plan_asset_unique') && customerMaintenanceMigration.includes('final_work_order_is_immutable'), 'duplicate active and finalized work orders are database-protected');
+check(customerMaintenanceMigration.includes('work_order_cost_invoice_invalid') && customerMaintenanceMigration.includes('work_order_cost_journal_invalid'), 'maintenance financial relationships are tenant and currency validated');
+check(customerMaintenanceMigration.includes('revoke select on all tables in schema assets from authenticated') && customerMaintenanceMigration.includes('revoke select on all tables in schema maintenance from authenticated'), 'raw sensitive schemas cannot bypass the redacted maintenance RPC');
+check(!customerMaintenanceMigration.includes('serial_number_encrypted') && !customerMaintenanceMigration.includes("'object_path',"), 'maintenance projection excludes encrypted serials and evidence paths');
+check(customerMaintenanceAdr.includes('Production acceptance is read-only') && customerMaintenanceAdr.includes('fails closed'), 'maintenance ADR records read-only fail-closed architecture');
+check(!customerGovernancePage.includes('DemoStore') && !customerMeetingsPage.includes('DemoStore'), 'production governance pages contain no demo fixtures');
+check(customerGovernancePanel.includes('/api/customer/v1/governance?') && customerGovernancePanel.includes("cache:'no-store'") && customerGovernancePanel.includes("credentials:'same-origin'"), 'governance UI uses protected non-cached same-origin API');
+check(customerGovernancePanel.includes("'meetings','agenda','invitations','attendance','quorum','proxies','votes','resolutions','minutes','documents','history'"), 'governance UI exposes every authorized evidence view');
+check(customerGovernanceApi.includes('UNAUTHORIZED') && !customerGovernanceApi.includes('claims.claims.aal') && customerMfaPolicyMigration.includes('governance.get_customer_governance') && !customerGovernanceApi.includes('export async function POST'), 'governance API delegates role-aware AAL enforcement and is GET-only');
+check(customerGovernanceApi.includes('no-store, private') && customerGovernanceApi.includes("Pragma:'no-cache'"), 'governance API prohibits shared caching');
+check(customerGovernanceMigration.includes("p.code='governance.meetings.read'") && customerGovernanceMigration.includes("e.entitlement_key='module.governance'"), 'governance RPC requires permission and effective entitlement');
+check(customerGovernanceMigration.includes('ballot_eligibility_or_time_invalid') && customerGovernanceMigration.includes('overlapping_active_proxy'), 'ballot and proxy integrity is database-enforced');
+check(customerGovernanceMigration.includes('adopted_resolution_is_immutable') && customerGovernanceMigration.includes('approved_minutes_are_immutable'), 'final governance records are immutable');
 check(customerGovernanceMigration.includes('revoke select on all tables in schema governance from authenticated'), 'raw governance data cannot bypass the safe RPC');
 check(!customerGovernanceMigration.includes("'object_path',") && !customerGovernanceMigration.includes("'cast_by',") && !customerGovernanceMigration.includes("'receipt_hash',") && !customerGovernanceMigration.includes('r.result_snapshot,') && !customerGovernanceMigration.includes('h.evidence_json,'), 'governance projection excludes paths, ballot identities, and raw evidence snapshots');
 check(customerGovernanceAdr.includes('does not claim or guarantee legal compliance') && customerGovernanceAdr.includes('fails closed'), 'governance ADR records legal boundary and fail-closed architecture');
