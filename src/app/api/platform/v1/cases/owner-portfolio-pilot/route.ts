@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getPlatformAuthContext, hasPlatformAal2, hasPlatformRole } from '@/lib/platform/auth';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   return NextResponse.json(data, { headers });
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   if (!(await allowed())) return NextResponse.json({ error: { code: 'FORBIDDEN' } }, { status: 403, headers });
   if (!hasTrustedMutationOrigin(request)) return NextResponse.json({ error: { code: 'BAD_ORIGIN' } }, { status: 403, headers });
   if (!isApplicationJson(request.headers.get('content-type'))) return NextResponse.json({ error: { code: 'UNSUPPORTED_MEDIA_TYPE' } }, { status: 415, headers });
