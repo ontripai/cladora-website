@@ -13,7 +13,7 @@ export type CaseStaffOption = { id: string; name: string; role: string };
 type WorkspaceOption = { profile: string; profile_label: Record<string,string>; model: string; model_label: Record<string,string> };
 type PreparedWorkspace = { workspace_id: string; workspace_type: 'ASSOCIATION'|'PROPERTY_MANAGER'|'OWNER_PORTFOLIO'|'HYBRID'; lifecycle_status: 'LEAD'; environment: 'PILOT'; commercial_owner: string; tenant_id: string; customer_email: string; profile: string; model: string; approval_mode: 'PILOT'|'PAID'|null; contract_id: string|null; approval_ready: boolean; linked: boolean };
 
-export function CasePortal({ lang, invitations, cases }: { lang: string; invitations: CaseInvitation[]; cases: CaseListing[] }) {
+export function CasePortal({ lang, invitations, cases, ownerPortfolio = false }: { lang: string; invitations: CaseInvitation[]; cases: CaseListing[]; ownerPortfolio?: boolean }) {
   const fa = lang === 'fa';
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -31,6 +31,7 @@ export function CasePortal({ lang, invitations, cases }: { lang: string; invitat
   return <main dir={fa?'rtl':'ltr'} className="mx-auto min-h-screen max-w-4xl space-y-5 bg-[#F6F9FC] px-5 pb-20 pt-28 text-[#102A43]">
     <h1 className="text-2xl font-black">{fa?'کارتابل مشترک مشتری':'Customer case portal'}</h1>
     <p className="text-sm">{fa?'پرونده‌ها، پیام‌ها و پاسخ‌های کلادورا را در همین سامانه دنبال کنید.':'Follow your cases and replies within CLADORA.'}</p>
+    {ownerPortfolio && <Link href={`/${lang}/owner-portfolio`} className="inline-block rounded border border-teal-700 px-4 py-2 text-teal-800">{fa?'ورود به کارتابل مالک چندواحدی':lang==='ro'?'Deschide portofoliul proprietarului':'Open multi-unit owner portfolio'}</Link>}
     {error && <p role="alert" className="text-red-700">{error}</p>}
     {invitations.length>0 && <section className="rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'دعوت‌های منتظر پذیرش':'Pending invitations'}</h2>
       {invitations.map(inv=><div key={inv.id} className="mt-3 flex items-center justify-between gap-3 border-t pt-3"><span>{inv.reference_id}</span>
