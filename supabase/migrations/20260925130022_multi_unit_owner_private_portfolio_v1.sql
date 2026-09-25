@@ -111,6 +111,9 @@ create policy owner_private_cash_entries_update on public.owner_private_cash_ent
 using(owner_user_id=(select auth.uid()) and (select app_private.has_multi_unit_owner_role_v1()))
 with check(owner_user_id=(select auth.uid()) and (select app_private.has_multi_unit_owner_role_v1()));
 
+-- The project has default table privileges. Remove them explicitly before
+-- granting only the operations supported by this private portal.
+revoke all on public.owner_private_units,public.owner_private_leases,public.owner_private_cash_entries from public,anon,authenticated;
 grant select,insert,update on public.owner_private_units,public.owner_private_leases,public.owner_private_cash_entries to authenticated;
 grant all on public.owner_private_units,public.owner_private_leases,public.owner_private_cash_entries to service_role;
 
