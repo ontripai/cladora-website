@@ -1,6 +1,8 @@
 # ADR-CLD-053 — Scalable platform ownership and workspace enablement
 
-Status: Proposed, 2026-09-25. Supersedes no prior decision. Implement in additive slices; this document alone changes no production permissions.
+Version: 1.0 (proposed), 2026-09-25. This is a living baseline: revise roles, responsibilities and workflow after pilot evidence through a new versioned decision and change log. Supersedes no prior decision. Implement in additive slices; this document alone changes no production permissions.
+
+Change log: v1.0 — initial separation of platform and customer responsibilities, scalable multi-role staffing, customer ownership and staged onboarding gates. Future revisions must preserve this version's history and identify any changed permission boundary.
 
 ## Decision
 
