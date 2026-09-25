@@ -6,7 +6,7 @@ import type { Language } from '@/types';
 
 type Unit = { id: string; building_label: string; unit_label: string; address_text: string; usage_kind: string };
 type Lease = { id: string; tenant_label: string; starts_on: string; ends_on: string | null; monthly_rent: number; currency: string; status: string };
-type Entry = { id: string; kind: string; direction: string; amount: number; currency: string; due_on: string | null; paid_on: string | null; memo: string | null; source: string };
+type Entry = { id: string; lease_id: string | null; kind: string; direction: string; amount: number; currency: string; due_on: string | null; paid_on: string | null; memo: string | null; source: string };
 type View = { units: Unit[]; count: number; leases: Lease[]; entries: Entry[] };
 type UnitLink = { id: string; private_unit_id: string; workspace_id: string; canonical_unit_id: string; status: string; requested_at: string };
 type OfficialCharge = { id: string; invoice_no: number; due_on: string | null; total: number; outstanding_amount: number | null; currency: string; status: string; workspace_id: string };
@@ -78,7 +78,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     const fields = Object.fromEntries(values.entries());
     const body = action === 'unit' ? { action, ...fields }
       : action === 'lease' ? { action, ...fields, unit_id: selected, ends_on: fields.ends_on || null, monthly_rent: Number(fields.monthly_rent) }
-      : { action, ...fields, unit_id: selected, amount: Number(fields.amount), due_on: fields.due_on || null, paid_on: fields.paid_on || null, memo: fields.memo || null };
+      : { action, ...fields, unit_id: selected, amount: Number(fields.amount), due_on: fields.due_on || null, paid_on: fields.paid_on || null, lease_id: fields.lease_id || null, memo: fields.memo || null };
     try {
       const response = await fetch(endpoint, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!response.ok) throw new Error('SAVE_FAILED');
@@ -91,6 +91,14 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       const response = await fetch(`${endpoint}/links`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
       if (!response.ok) throw new Error('LINK_SAVE_FAILED');
       form?.reset(); await refreshLinks();
+    } catch { setError(t.failed); } finally { setBusy(false); }
+  }
+  async function changeLease(leaseId: string, transition: 'activate' | 'end' | 'cancel') {
+    setBusy(true); setError('');
+    try {
+      const response = await fetch(endpoint, { method: 'PATCH', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ lease_id: leaseId, transition }) });
+      if (!response.ok) throw new Error('LEASE_UPDATE_FAILED');
+      await refresh();
     } catch { setError(t.failed); } finally { setBusy(false); }
   }
 
@@ -133,7 +141,9 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
         <select name="currency" aria-label="Currency" className="rounded border p-2"><option>RON</option><option>EUR</option><option>USD</option></select>
         <button disabled={busy} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50">{t.recordLease}</button>
       </form>
-      <ul className="space-y-2">{view.leases.map(l => <li key={l.id} className="rounded border p-2">{l.tenant_label} · {l.starts_on} – {l.ends_on ?? '…'} · {l.monthly_rent} {l.currency} · {l.status}</li>)}</ul>
+      <ul className="space-y-2">{view.leases.map(l => <li key={l.id} className="rounded border p-2">{l.tenant_label} · {l.starts_on} – {l.ends_on ?? '…'} · {l.monthly_rent} {l.currency} · {l.status}
+        <div className="mt-2 flex gap-2">{l.status === 'draft' && <><button type="button" disabled={busy} onClick={() => void changeLease(l.id,'activate')} className="rounded border px-2 py-1">{lang === 'fa' ? 'فعال‌سازی' : 'Activate'}</button><button type="button" disabled={busy} onClick={() => void changeLease(l.id,'cancel')} className="rounded border px-2 py-1">{lang === 'fa' ? 'لغو پیش‌نویس' : 'Cancel draft'}</button></>}{l.status === 'active' && <button type="button" disabled={busy} onClick={() => void changeLease(l.id,'end')} className="rounded border px-2 py-1">{lang === 'fa' ? 'پایان قرارداد' : 'End lease'}</button>}</div>
+      </li>)}</ul>
     </section><section className="space-y-3 rounded-xl border bg-white p-5"><h2 className="font-bold">{t.cash}</h2>
       <form onSubmit={event=>void submit(event,'cash')} className="grid gap-2 sm:grid-cols-2">
         <label>{t.kind}<select name="kind" className="w-full rounded border p-2"><option value="rent">Rent</option><option value="building_charge">Building charge</option><option value="owner_expense">Expense</option><option value="tax_reserve">Tax reserve</option><option value="other">Other</option></select></label>
@@ -143,9 +153,10 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
         <label>{t.due}<input type="date" name="due_on" className="w-full rounded border p-2" /></label>
         <label>{t.paid}<input type="date" name="paid_on" className="w-full rounded border p-2" /></label>
         <label>{t.memo}<input name="memo" maxLength={500} className="w-full rounded border p-2" /></label>
+        <label>{lang === 'fa' ? 'قرارداد مرتبط با اجاره دریافتی (اختیاری)' : 'Related rent lease (optional)'}<select name="lease_id" className="w-full rounded border p-2"><option value="">—</option>{view.leases.filter(l => l.status === 'active' || l.status === 'ended').map(l => <option key={l.id} value={l.id}>{l.tenant_label} · {l.starts_on}</option>)}</select></label>
         <button disabled={busy} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50">{t.recordCash}</button>
-      </form><p className="text-xs text-slate-500">{t.sourced}</p>
-      <ul className="space-y-2">{view.entries.map(e => <li key={e.id} className="rounded border p-2">{e.kind} · {e.direction} · {e.amount} {e.currency} · {e.due_on ?? '—'} · {e.paid_on ?? '—'}</li>)}</ul>
+      </form><p className="text-xs text-slate-500">{t.sourced} · {lang === 'fa' ? 'برای ثبت دریافت مرتبط با قرارداد، دستهٔ اجاره و جهت درآمد و هر دو تاریخ سررسید و دریافت را وارد کنید.' : 'For a lease payment, select Rent and Income and enter both due and received dates.'}</p>
+      <ul className="space-y-2">{view.entries.map(e => <li key={e.id} className="rounded border p-2">{e.kind} · {e.direction} · {e.amount} {e.currency} · {e.due_on ?? '—'} · {e.paid_on ?? '—'}{e.lease_id && ` · ${lang === 'fa' ? 'قرارداد' : 'Lease'} ${e.lease_id}`}</li>)}</ul>
     </section></>}
   </main>;
 }
