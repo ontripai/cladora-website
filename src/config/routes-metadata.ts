@@ -40,15 +40,15 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/pilot': {
     ro: {
       title: 'Program Pilot București-Ilfov',
-      desc: 'Înscrie-te în cohorta pilot CLADORA pentru primele 10 asociații și 2 companii de administrare din București-Ilfov.',
+      desc: 'Solicită evaluarea unui spațiu rezidențial, comercial, industrial, de birouri sau comun pentru programul pilot CLADORA.',
     },
     en: {
       title: 'Bucharest-Ilfov Pilot Cohort',
-      desc: 'Join the CLADORA pilot cohort for the first 10 associations and 2 property management firms in Bucharest-Ilfov.',
+      desc: 'Request an assessment of residential, commercial, industrial, office or shared spaces for the CLADORA pilot.',
     },
     fa: {
       title: 'برنامه پایلوت بخارست-ایلفوف',
-      desc: 'ثبت‌نام در برنامه پایلوت کلادورا ویژه ۱۰ مجتمع مسکونی و ۲ شرکت مدیریت املاک در بخارست و ایلفوف.',
+      desc: 'درخواست ارزیابی فضاهای مسکونی، تجاری، صنعتی، اداری یا مشترک برای پایلوت کلادورا.',
     },
   },
   '/platform': {

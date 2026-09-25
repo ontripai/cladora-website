@@ -7,6 +7,7 @@ import { getDictionary } from '@/dictionaries';
 import { Sparkles, CheckCircle2, Send, ShieldCheck, X, AlertCircle, Loader2 } from 'lucide-react';
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { trackEvent, getUnitsBucket } from '@/lib/analytics/events';
+import { PILOT_WORKSPACE_TYPES, pilotWorkspaceTypes, type PilotWorkspaceType } from '@/lib/pilot/workspace-types';
 
 interface PilotApplicationModalProps {
   lang: Language;
@@ -23,7 +24,6 @@ const BUILDING_TYPE_OPTIONS: Record<Language, Array<{ value: string; label: stri
     { value: 'A5', label: 'A5 — Ansamblu de Vile / Comunitate Închisă' },
     { value: 'A6', label: 'A6 — Bloc P+4 Reabilitat Termic' },
     { value: 'A7', label: 'A7 — Turn Rezidențial (10+ etaje)' },
-    { value: 'A8', label: 'A8 — Portofoliu Multi-Imobil Individual' },
   ],
   en: [
     { value: 'A1', label: 'A1 — Standard Urban Block (40-120 apts)' },
@@ -33,7 +33,6 @@ const BUILDING_TYPE_OPTIONS: Record<Language, Array<{ value: string; label: stri
     { value: 'A5', label: 'A5 — Gated Villa Community' },
     { value: 'A6', label: 'A6 — Thermally Retrofitted P+4 Block' },
     { value: 'A7', label: 'A7 — High-Rise Residential Tower (10+ floors)' },
-    { value: 'A8', label: 'A8 — Multi-Property Individual Portfolio' },
   ],
   fa: [
     { value: 'A1', label: 'A1 — بلوک شهری استاندارد (۴۰ تا ۱۲۰ واحد)' },
@@ -43,7 +42,6 @@ const BUILDING_TYPE_OPTIONS: Record<Language, Array<{ value: string; label: stri
     { value: 'A5', label: 'A5 — شهرک ویلایی / مجتمع محصور' },
     { value: 'A6', label: 'A6 — ساختمان ۴ طبقه بازسازی حرارتی‌شده' },
     { value: 'A7', label: 'A7 — برج مسکونی (۱۰ طبقه به بالا)' },
-    { value: 'A8', label: 'A8 — سبد دارایی‌های چندساختمانی' },
   ],
 };
 
@@ -62,9 +60,15 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
     email: '',
     phone: '',
     role: 'admin',
+    applicantType: 'association',
+    workspaceType: 'residential' as PilotWorkspaceType,
+    workspaceSubtype: 'block',
+    workspaceCount: '1',
+    workspaceDescription: '',
+    relatedBuildings: '',
     buildingType: 'A1',
-    unitsCount: '40',
-    currentSoftware: 'Xisoft / BlocManager',
+    unitsCount: '',
+    currentSoftware: '',
     city: lang === 'ro' ? 'București' : lang === 'fa' ? 'بخارست' : 'Bucharest',
     county: lang === 'ro' ? 'Sector 1' : lang === 'fa' ? 'منطقه ۱' : 'Sector 1',
     message: '',
@@ -175,7 +179,13 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
           email: formData.email,
           phone: formData.phone,
           role: formData.role,
-          buildingType: formData.buildingType,
+          applicantType: formData.applicantType,
+          workspaceType: formData.workspaceType,
+          workspaceSubtype: formData.workspaceSubtype,
+          workspaceCount: Number(formData.workspaceCount),
+          workspaceDescription: formData.workspaceDescription || undefined,
+          relatedBuildings: formData.workspaceType === 'shared' ? formData.relatedBuildings : undefined,
+          buildingType: formData.workspaceType === 'residential' ? formData.buildingType : null,
           unitsCount: units,
           currentSoftware: formData.currentSoftware,
           city: formData.city,
@@ -246,9 +256,15 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
       email: '',
       phone: '',
       role: 'admin',
+      applicantType: 'association',
+      workspaceType: 'residential',
+      workspaceSubtype: 'block',
+      workspaceCount: '1',
+      workspaceDescription: '',
+      relatedBuildings: '',
       buildingType: 'A1',
-      unitsCount: '40',
-      currentSoftware: 'Xisoft / BlocManager',
+      unitsCount: '',
+      currentSoftware: '',
       city: '',
       county: '',
       message: '',
@@ -438,7 +454,7 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#D3DCE6] text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#0E9F8E] disabled:bg-slate-50"
                 >
                   <option value="admin">{fields.roles.admin}</option>
-                  <option value="president">{fields.roles.president}</option>
+                  {formData.applicantType === 'association' && <option value="president">{fields.roles.president}</option>}
                   <option value="cenzor">{fields.roles.cenzor}</option>
                   <option value="owner">{fields.roles.owner}</option>
                 </select>
@@ -446,29 +462,49 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="modalBuildingType" className="block text-xs font-bold text-[#102A43] mb-1">
-                  {fields.buildingType}
-                </label>
-                <select
-                  id="modalBuildingType"
-                  name="buildingType"
-                  disabled={status === 'submitting'}
-                  value={formData.buildingType}
-                  onChange={(e) => setFormData({ ...formData, buildingType: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#D3DCE6] text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#0E9F8E] disabled:bg-slate-50"
-                >
-                  {(BUILDING_TYPE_OPTIONS[lang] || BUILDING_TYPE_OPTIONS.en).map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
+              <label className="block text-xs font-bold text-[#102A43]">
+                {lang === 'ro' ? 'Tipul solicitantului' : lang === 'fa' ? 'نوع متقاضی' : 'Applicant type'}
+                <select required value={formData.applicantType} onChange={(e) => setFormData({ ...formData, applicantType: e.target.value, role: e.target.value === 'association' ? formData.role : 'admin' })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
+                  {(['association', 'management_company', 'owner', 'company', 'other'] as const).map((key, i) => <option key={key} value={key}>{({ ro: ['Asociație de proprietari', 'Firmă de administrare', 'Proprietar / investitor', 'Companie / organizație', 'Alt solicitant'], en: ['Owners association', 'Management company', 'Owner / investor', 'Company / organization', 'Other applicant'], fa: ['انجمن مالکان', 'شرکت مدیریت', 'مالک / سرمایه‌گذار', 'شرکت / سازمان', 'سایر متقاضیان'] })[lang][i]}</option>)}
                 </select>
-              </div>
+              </label>
+              <label className="block text-xs font-bold text-[#102A43]">
+                {lang === 'ro' ? 'Număr de spații de lucru solicitate' : lang === 'fa' ? 'تعداد ورک‌اسپیس‌های درخواستی' : 'Requested workspaces'}
+                <input type="number" required min={1} max={1000} value={formData.workspaceCount} onChange={(e) => setFormData({ ...formData, workspaceCount: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5" />
+              </label>
+              <label className="block text-xs font-bold text-[#102A43]">
+                {lang === 'ro' ? 'Tipul spațiului principal' : lang === 'fa' ? 'نوع ورک‌اسپیس اصلی' : 'Primary workspace type'}
+                <select required value={formData.workspaceType} onChange={(e) => {
+                  const type = e.target.value as PilotWorkspaceType;
+                  setFormData({ ...formData, workspaceType: type, workspaceSubtype: type === 'other' ? '' : Object.keys(PILOT_WORKSPACE_TYPES[type].subtypes)[0], buildingType: 'A1', unitsCount: '' });
+                }} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
+                  {pilotWorkspaceTypes.map(type => <option key={type} value={type}>{PILOT_WORKSPACE_TYPES[type][lang]}</option>)}
+                </select>
+              </label>
+              {formData.workspaceType !== 'other' && <label className="block text-xs font-bold text-[#102A43]">
+                {lang === 'ro' ? 'Subtipul spațiului principal' : lang === 'fa' ? 'زیرنوع ورک‌اسپیس اصلی' : 'Primary workspace subtype'}
+                <select required value={formData.workspaceSubtype} onChange={(e) => setFormData({ ...formData, workspaceSubtype: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
+                  {Object.entries(PILOT_WORKSPACE_TYPES[formData.workspaceType].subtypes).map(([key, label]) => <option key={key} value={key}>{label[lang]}</option>)}
+                </select>
+              </label>}
+              {(formData.workspaceType === 'other' || formData.workspaceSubtype === 'other') && <label className="block text-xs font-bold text-[#102A43]">
+                {lang === 'ro' ? 'Descrieți tipul spațiului' : lang === 'fa' ? 'نوع ورک‌اسپیس را توضیح دهید' : 'Describe the workspace type'}
+                <input required maxLength={500} value={formData.workspaceDescription} onChange={(e) => setFormData({ ...formData, workspaceDescription: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5" />
+              </label>}
+              {formData.workspaceType === 'shared' && <label className="block text-xs font-bold text-[#102A43]">
+                {lang === 'ro' ? 'Clădirile care folosesc acest spațiu' : lang === 'fa' ? 'ساختمان‌های استفاده‌کننده از فضای مشترک' : 'Buildings sharing this space'}
+                <input required maxLength={1000} value={formData.relatedBuildings} onChange={(e) => setFormData({ ...formData, relatedBuildings: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5" />
+              </label>}
+              {formData.workspaceType === 'residential' && <label className="block text-xs font-bold text-[#102A43]">
+                {fields.buildingType}
+                <select value={formData.buildingType} onChange={(e) => setFormData({ ...formData, buildingType: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
+                  {BUILDING_TYPE_OPTIONS[lang].map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+              </label>}
 
               <div>
                 <label htmlFor="modalUnitsCount" className="block text-xs font-bold text-[#102A43] mb-1">
-                  {fields.unitsCount} <span className="text-[#E5484D]">*</span>
+                  {formData.workspaceType === 'residential' ? fields.unitsCount : lang === 'ro' ? 'Număr estimat de unități sau spații' : lang === 'fa' ? 'تعداد تقریبی واحدها یا فضاها' : 'Estimated units or spaces'} <span className="text-[#E5484D]">*</span>
                 </label>
                 <input
                   type="number"
@@ -537,12 +573,13 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
 
             <div>
               <label htmlFor="modalMessage" className="block text-xs font-bold text-[#102A43] mb-1">
-                {lang === 'ro' ? 'Alte detalii sau cerințe speciale (opțional)' : lang === 'fa' ? 'توضیحات تکمیلی (اختیاری)' : 'Additional Details (Optional)'}
+                {Number(formData.workspaceCount) > 1 ? lang === 'ro' ? 'Descrieți celelalte spații solicitate' : lang === 'fa' ? 'ورک‌اسپیس‌های دیگر درخواستی را شرح دهید' : 'Describe the other requested workspaces' : lang === 'ro' ? 'Alte detalii (opțional)' : lang === 'fa' ? 'توضیحات تکمیلی (اختیاری)' : 'Additional details (optional)'}
               </label>
               <textarea
                 id="modalMessage"
                 name="message"
                 rows={2}
+                required={Number(formData.workspaceCount) > 1}
                 disabled={status === 'submitting'}
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
