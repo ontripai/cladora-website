@@ -12,9 +12,10 @@ export default async function CasesPage({params}:{params:Promise<{lang:string}>}
   if(error||!claims?.claims?.sub)redirect(`/${lang}/login?next=cases`);
   const {data:assurance}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if(assurance?.currentLevel!=='aal2')redirect(`/${lang}/mfa?next=cases`);
-  const [invites,cases]=await Promise.all([
+  const [invites,cases,ownerAccess]=await Promise.all([
     db.schema('customer_api').rpc('my_case_invitations_v1'),db.schema('customer_api').rpc('my_customer_cases_v1'),
+    db.schema('customer_api').rpc('my_multi_unit_owner_access_v1' as never),
   ]);
   if(invites.error||cases.error)throw invites.error??cases.error;
-  return <CasePortal lang={lang} invitations={invites.data as unknown as CaseInvitation[]} cases={cases.data as unknown as CaseListing[]} />;
+  return <CasePortal lang={lang} invitations={invites.data as unknown as CaseInvitation[]} cases={cases.data as unknown as CaseListing[]} ownerPortfolio={ownerAccess.error===null&&ownerAccess.data===true} />;
 }
