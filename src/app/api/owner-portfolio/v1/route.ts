@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 import { ownerPortfolioMutation } from '@/lib/owner-portfolio/schema';
+import { z } from 'zod';
 
 const headers = { 'Cache-Control': 'no-store' };
 
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
   if (visible.error || !visible.data) return NextResponse.json({ error: { code: 'UNIT_NOT_FOUND' } }, { status: 404, headers });
   const [leases, entries] = await Promise.all([
     db.from('owner_private_leases').select('id,unit_id,tenant_label,starts_on,ends_on,monthly_rent,currency,status').eq('unit_id',unitId).order('starts_on',{ascending:false}).limit(100),
-    db.from('owner_private_cash_entries').select('id,unit_id,kind,direction,amount,currency,due_on,paid_on,memo,source').eq('unit_id',unitId).order('created_at',{ascending:false}).limit(100),
+    db.from('owner_private_cash_entries').select('id,unit_id,lease_id,kind,direction,amount,currency,due_on,paid_on,memo,source').eq('unit_id',unitId).order('created_at',{ascending:false}).limit(100),
   ]);
   if (leases.error || entries.error) return NextResponse.json({ error: { code: 'PORTFOLIO_READ_FAILED' } }, { status: 500, headers });
   return NextResponse.json({ units: units.data, count: units.count, leases: leases.data, entries: entries.data }, { headers });
@@ -49,4 +50,21 @@ export async function POST(request: NextRequest) {
   const { data, error } = await db.from(table).insert(fields as never).select('id').single();
   if (error) return NextResponse.json({ error: { code: error.code === '23503' ? 'UNIT_NOT_FOUND' : error.code === '42501' ? 'ACCESS_DENIED' : 'PORTFOLIO_CREATE_FAILED' } }, { status: error.code === '23503' ? 404 : error.code === '42501' ? 403 : 400, headers });
   return NextResponse.json({ id: data.id }, { status: 201, headers });
+}
+
+export async function PATCH(request: NextRequest) {
+  if (!hasTrustedMutationOrigin(request)) return NextResponse.json({ error: { code: 'BAD_ORIGIN' } }, { status: 403, headers });
+  if (!isApplicationJson(request.headers.get('content-type'))) return NextResponse.json({ error: { code: 'UNSUPPORTED_MEDIA_TYPE' } }, { status: 415, headers });
+  const { data: raw, errorResponse } = await parseJsonWithLimit<unknown>(request, 4096);
+  if (errorResponse) return errorResponse;
+  const parsed = z.object({ lease_id: z.uuid(), transition: z.enum(['activate','end','cancel']) }).strict().safeParse(raw);
+  if (!parsed.success) return NextResponse.json({ error: { code: 'INVALID_REQUEST' } }, { status: 400, headers });
+  const { db, status } = await authorized();
+  if (status !== 200) return NextResponse.json({ error: { code: status === 401 ? 'UNAUTHORIZED' : 'OWNER_ROLE_REQUIRED' } }, { status, headers });
+  const from = parsed.data.transition === 'end' ? 'active' : 'draft';
+  const to = parsed.data.transition === 'activate' ? 'active' : parsed.data.transition === 'end' ? 'ended' : 'cancelled';
+  const { data, error } = await db.from('owner_private_leases').update({ status: to }).eq('id', parsed.data.lease_id).eq('status', from).select('id,status').maybeSingle();
+  if (error) return NextResponse.json({ error: { code: error.code === '23514' ? 'INVALID_LEASE_TRANSITION' : 'LEASE_UPDATE_FAILED' } }, { status: 400, headers });
+  if (!data) return NextResponse.json({ error: { code: 'LEASE_NOT_FOUND_OR_CHANGED' } }, { status: 404, headers });
+  return NextResponse.json({ lease: data }, { headers });
 }
