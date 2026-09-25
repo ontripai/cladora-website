@@ -60,7 +60,9 @@ begin
   end if;
   select case when p_responsibility='finance_reviewer' then 'PLATFORM_FINANCE'
       when p_responsibility='technical_contact' then 'PLATFORM_SUPPORT'
-      else 'PLATFORM_OPERATIONS' end::platform.platform_role_type into v_role;
+      when p_responsibility='contract_reviewer' then 'PLATFORM_CONTRACTS'
+      when p_responsibility='onboarding_trainer' then 'PLATFORM_ONBOARDING'
+      else 'PLATFORM_SALES' end::platform.platform_role_type into v_role;
   if not exists(select 1 from platform.platform_users u
     join platform.platform_role_assignments r on r.platform_user_id=u.id
     where u.id=p_platform_user_id and u.status='active' and u.deactivated_at is null
