@@ -9,6 +9,7 @@ import {
   FileCheck2,
   Layers,
   Users2,
+  Inbox,
   KeyRound,
   Terminal,
   FileText,
@@ -64,6 +65,12 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       label: lang === 'ro' ? 'Utilizatori Interni' : lang === 'fa' ? 'کاربران داخلی پلتفرم' : 'Internal Users & Roles',
       icon: Users2,
       roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_AUDITOR'] as PlatformRole[],
+    },
+    {
+      href: `/${lang}/platform/start-requests`,
+      label: lang === 'ro' ? 'Cereri noi' : lang === 'fa' ? 'درخواست‌های شروع' : 'Start Requests',
+      icon: Inbox,
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_SALES'] as PlatformRole[],
     },
     {
       href: `/${lang}/platform/assignments`,
