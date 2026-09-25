@@ -5,7 +5,7 @@ import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { createClient } from '@/lib/supabase/server';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
-const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR']);
+const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR','PLATFORM_SALES','PLATFORM_CONTRACTS','PLATFORM_ONBOARDING']);
 const grant = z.object({ platform_user_id: z.uuid(), role, reason: z.string().trim().min(8).max(500) });
 const revoke = z.object({ assignment_id: z.uuid(), reason: z.string().trim().min(8).max(500) });
 
