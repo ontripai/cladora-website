@@ -1537,7 +1537,12 @@ export type Database = {
       activate_prepared_workspace_access_v1: { Args: { p_basis_id: string; p_display_name: string; p_locale: string }; Returns: Json };
       revoke_workspace_access_basis_v1: { Args: { p_basis_id: string; p_reason: string }; Returns: Json };
       create_platform_operator_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_role: string; p_reason: string }; Returns: Json };
+      create_platform_operator_multi_role_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_roles: string[]; p_reason: string }; Returns: Json };
       grant_platform_operator_role_v1: { Args: { p_platform_user_id: string; p_role: string; p_reason: string }; Returns: Json };
+      grant_platform_operator_roles_v1: { Args: { p_platform_user_id: string; p_roles: string[]; p_reason: string }; Returns: Json };
+      list_start_requests_v1: { Args: { p_limit?: number }; Returns: Json };
+      assign_start_request_v1: { Args: { p_lead_id: string; p_assignee_id: string | null; p_reason: string }; Returns: Json };
+      update_start_request_v1: { Args: { p_lead_id: string; p_status: string; p_reason: string }; Returns: Json };
       revoke_platform_operator_role_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
       set_workspace_entitlement_v1: {
         Args: { p_workspace_id: string; p_entitlement_key: string; p_value_type: string; p_numeric_value: number | null; p_boolean_value: boolean | null; p_text_value: string | null; p_json_value: Json | null; p_override_value_json: Json | null; p_override_reason: string | null; p_override_expires_at: string | null };
