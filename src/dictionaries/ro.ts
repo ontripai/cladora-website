@@ -310,7 +310,7 @@ export const ro = {
     benefits: [
       "Migrare asistată din programul vechi (validare prin Shadow Ledger)",
       "Verificare inițială a documentelor financiare și a consumurilor",
-      "Sesiune de instruire pentru administrator, cenzor și membrii comitetului",
+      "Sesiune de instruire pentru persoanele responsabile de spațiul solicitat",
       "Verificarea cerințelor legale aplicabile tipului de spațiu solicitat",
     ],
     formTitle: "Formular de Înscriere în Programul Pilot",
@@ -318,9 +318,9 @@ export const ro = {
       fullName: "Nume și Prenume",
       email: "Adresă de Email",
       phone: "Număr de Telefon",
-      role: "Rolul tău în comunitate sau portofoliu",
+      role: "Rolul tău în organizație",
       roles: {
-        admin: "Administrator de Bloc / Firmă",
+        admin: "Administrator / responsabil de spațiu",
         president: "Președinte Asociație",
         cenzor: "Cenzor / Contabil",
         owner: "Proprietar / Investitor",

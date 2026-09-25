@@ -310,7 +310,7 @@ export const en = {
     benefits: [
       "Assisted migration from your current software (Shadow Ledger validation)",
       "Initial review of financial documents and utility consumption",
-      "Hands-on training for the administrator, auditor, and committee members",
+      "Hands-on training for the people responsible for the requested space",
       "Review of legal requirements applicable to your requested space",
     ],
     formTitle: "Pilot Program Application",
@@ -318,9 +318,9 @@ export const en = {
       fullName: "Full Name",
       email: "Email Address",
       phone: "Phone Number",
-      role: "Your Role in the Community or Portfolio",
+      role: "Your Role in the Organization",
       roles: {
-        admin: "Property Manager / Administrator",
+        admin: "Manager / Workspace Administrator",
         president: "HOA President",
         cenzor: "Auditor / Accountant",
         owner: "Property Owner / Investor",

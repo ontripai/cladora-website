@@ -454,7 +454,7 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#D3DCE6] text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#0E9F8E] disabled:bg-slate-50"
                 >
                   <option value="admin">{fields.roles.admin}</option>
-                  <option value="president">{fields.roles.president}</option>
+                  {formData.applicantType === 'association' && <option value="president">{fields.roles.president}</option>}
                   <option value="cenzor">{fields.roles.cenzor}</option>
                   <option value="owner">{fields.roles.owner}</option>
                 </select>
@@ -464,7 +464,7 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block text-xs font-bold text-[#102A43]">
                 {lang === 'ro' ? 'Tipul solicitantului' : lang === 'fa' ? 'نوع متقاضی' : 'Applicant type'}
-                <select required value={formData.applicantType} onChange={(e) => setFormData({ ...formData, applicantType: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
+                <select required value={formData.applicantType} onChange={(e) => setFormData({ ...formData, applicantType: e.target.value, role: e.target.value === 'association' ? formData.role : 'admin' })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
                   {(['association', 'management_company', 'owner', 'company', 'other'] as const).map((key, i) => <option key={key} value={key}>{({ ro: ['Asociație de proprietari', 'Firmă de administrare', 'Proprietar / investitor', 'Companie / organizație', 'Alt solicitant'], en: ['Owners association', 'Management company', 'Owner / investor', 'Company / organization', 'Other applicant'], fa: ['انجمن مالکان', 'شرکت مدیریت', 'مالک / سرمایه‌گذار', 'شرکت / سازمان', 'سایر متقاضیان'] })[lang][i]}</option>)}
                 </select>
               </label>
