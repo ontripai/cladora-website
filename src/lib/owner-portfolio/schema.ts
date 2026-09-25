@@ -25,6 +25,8 @@ export const ownerPortfolioMutation = z.discriminatedUnion('action', [
     direction: z.enum(['income', 'expense']),
     amount: money.positive(), currency,
     due_on: date.nullable(), paid_on: date.nullable(),
+    lease_id: uuid.nullable(),
     memo: z.string().trim().max(500).nullable(),
-  }).strict().refine(v => v.kind !== 'rent' || v.direction === 'income', { path: ['direction'] }),
+  }).strict().refine(v => v.kind !== 'rent' || v.direction === 'income', { path: ['direction'] })
+    .refine(v => !v.lease_id || (v.kind === 'rent' && v.direction === 'income' && v.due_on && v.paid_on), { path: ['lease_id'] }),
 ]);
