@@ -1,6 +1,6 @@
 begin;
 set local search_path=public,extensions;
-select plan(20);
+select plan(22);
 
 insert into auth.users(id,email,email_confirmed_at) values
 ('aa100000-0000-4000-8000-000000000001','multi-admin@cladora.test',now()),
@@ -53,6 +53,16 @@ select current_setting('case.multi.prepared')::uuid,'multi-customer@cladora.test
 from identity.roles r where r.code='association_admin' and r.tenant_id is null limit 1;
 set local role authenticated;
 select is((customer_api.list_case_prepared_workspaces_v1(current_setting('case.multi.id')::uuid)->0->>'approval_ready'),'true','Independent basis marks prepared workspace ready to link');
+set local role postgres;
+update platform.workspace_access_bases set approved_at=statement_timestamp()-interval '8 days'
+where customer_workspace_id=current_setting('case.multi.prepared')::uuid;
+set local role authenticated;
+select is((customer_api.list_case_prepared_workspaces_v1(current_setting('case.multi.id')::uuid)->0->>'approval_ready'),'false','Expired prepared basis is not shown as ready');
+select throws_like($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,current_setting('case.multi.prepared')::uuid,null,'Stale commercial approval')$$,'%approved_access_basis_required%','Expired prepared basis cannot link a case');
+set local role postgres;
+update platform.workspace_access_bases set approved_at=statement_timestamp()
+where customer_workspace_id=current_setting('case.multi.prepared')::uuid;
+set local role authenticated;
 select lives_ok($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,current_setting('case.multi.prepared')::uuid,null,'Approved additional building')$$,'Approved workspace may be linked');
 select is((customer_api.list_case_prepared_workspaces_v1(current_setting('case.multi.id')::uuid)->0->>'linked'),'true','Case records the approved link');
 select set_config('request.jwt.claims','{"sub":"aa100000-0000-4000-8000-000000000002","role":"authenticated","aal":"aal2"}',true);
