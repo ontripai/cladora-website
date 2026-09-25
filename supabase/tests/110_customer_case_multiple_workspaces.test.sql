@@ -1,6 +1,6 @@
 begin;
 set local search_path=public,extensions;
-select plan(10);
+select plan(14);
 
 insert into auth.users(id,email,email_confirmed_at) values
 ('aa100000-0000-4000-8000-000000000001','multi-admin@cladora.test',now()),
@@ -37,6 +37,13 @@ select throws_like($$select customer_api.link_customer_case_workspace_v1(current
 select throws_like($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,'ea100000-0000-4000-8000-000000000003',null,'Unrelated tenant workspace')$$,'%case_workspace_tenant_mismatch%','Different tenant cannot be linked even with matching email');
 select throws_like($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,'ea100000-0000-4000-8000-000000000004',null,'Unapproved workspace link')$$,'%approved_access_basis_required%','Each additional workspace needs its own approved basis');
 select is(jsonb_array_length(customer_api.get_customer_case_v1(current_setting('case.multi.id')::uuid)->'workspace_links'),2,'Denied links do not persist');
+select ok(jsonb_array_length(customer_api.list_case_workspace_options_v1(current_setting('case.multi.id')::uuid))>0,'Compatible property and operating model options are available');
+select set_config('case.multi.prepared',customer_api.create_case_workspace_v1(
+  current_setting('case.multi.id')::uuid,'ASSOCIATION','residential_condominium',
+  'association_managed','Commercial owner','Additional building for the same customer')->>'workspace_id',true);
+select is(jsonb_array_length(customer_api.get_customer_case_v1(current_setting('case.multi.id')::uuid)->'workspace_links'),2,'Prepared LEAD workspace does not grant case access');
+select throws_like($$select customer_api.create_case_workspace_v1(current_setting('case.multi.id')::uuid,'ASSOCIATION','industrial_park','association_managed','Commercial owner','Reject incompatible workspace')$$,'%compatible_taxonomy_required%','Incompatible profile and model are rejected');
+select throws_like($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,current_setting('case.multi.prepared')::uuid,null,'No commercial basis yet')$$,'%approved_access_basis_required%','New workspace needs independent access approval before linking');
 select set_config('request.jwt.claims','{"sub":"aa100000-0000-4000-8000-000000000002","role":"authenticated","aal":"aal2"}',true);
 select throws_like($$select customer_api.get_customer_case_v1(current_setting('case.multi.id')::uuid)$$,'%case_access_denied%','Unclaimed customer cannot view linked workspaces');
 select throws_like($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,'ea100000-0000-4000-8000-000000000004',null,'Unauthorized attempt')$$,'%platform_access_required%','Customer cannot create an approved workspace link');

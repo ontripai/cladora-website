@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -9,6 +9,7 @@ export type CaseMessage = { id: string; author_id: string; visibility: 'shared' 
 export type CaseDetail = { id: string; status: string; workspace_id: string | null; contract_id: string | null; workspace_links?: { workspace_id: string; contract_id: string | null; linked_at: string; primary: boolean }[]; staff_view: boolean; messages: CaseMessage[]; unread_count: number };
 export type CaseDocument = { id: string; document_id: string; title: string; version: number; scan_status: 'pending'|'clean'|'quarantined'; visibility: 'shared'|'internal'; created_at: string; uploaded_by: string };
 export type CaseStaffOption = { id: string; name: string; role: string };
+type WorkspaceOption = { profile: string; profile_label: Record<string,string>; model: string; model_label: Record<string,string> };
 
 export function CasePortal({ lang, invitations, cases }: { lang: string; invitations: CaseInvitation[]; cases: CaseListing[] }) {
   const fa = lang === 'fa';
@@ -42,6 +43,26 @@ export function CasePortal({ lang, invitations, cases }: { lang: string; invitat
 
 export function CaseConversation({ lang, detail, documents, userId, manager, reviewer, staffOptions }: { lang: string; detail: CaseDetail; documents: CaseDocument[]; userId: string; manager: boolean; reviewer: boolean; staffOptions: CaseStaffOption[] }) {
   const fa=lang==='fa'; const [error,setError]=useState(''); const [busy,setBusy]=useState(false);
+  const [workspaceOptions,setWorkspaceOptions]=useState<WorkspaceOption[]>([]);
+  const [preparedWorkspace,setPreparedWorkspace]=useState('');
+  useEffect(()=>{
+    if(!manager || !detail.workspace_id) return;
+    let active=true;
+    fetch(`/api/platform/v1/cases/workspaces?case_id=${encodeURIComponent(detail.id)}`,{credentials:'same-origin'})
+      .then(async response=>{if(!response.ok)throw new Error('OPTIONS_UNAVAILABLE');return response.json();})
+      .then(result=>{if(active)setWorkspaceOptions(result.options??[]);})
+      .catch(()=>{if(active)setError('OPTIONS_UNAVAILABLE');});
+    return ()=>{active=false;};
+  },[manager,detail.id,detail.workspace_id]);
+  async function prepareWorkspace(event:React.FormEvent<HTMLFormElement>){
+    event.preventDefault();setBusy(true);setError('');setPreparedWorkspace('');
+    try{const form=new FormData(event.currentTarget);const selected=workspaceOptions[Number(form.get('taxonomy'))];
+      if(!selected)throw new Error('INVALID_TAXONOMY');
+      const response=await fetch('/api/platform/v1/cases/workspaces',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:detail.id,workspace_type:form.get('workspace_type'),profile_code:selected.profile,model_code:selected.model,commercial_owner:form.get('commercial_owner'),reason:form.get('reason')})});
+      const result=await response.json();if(!response.ok)throw new Error(result.error?.code??'CREATION_FAILED');
+      setPreparedWorkspace(result.workspace.workspace_id);
+    }catch(cause){setError(cause instanceof Error?cause.message:'CREATION_FAILED');}finally{setBusy(false);}
+  }
   async function send(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true);setError('');
     try {
@@ -130,6 +151,15 @@ export function CaseConversation({ lang, detail, documents, userId, manager, rev
     {detail.workspace_links && detail.workspace_links.length>0 && <section className="rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'ورک‌اسپیس‌های تأییدشدهٔ این پرونده':'Approved workspaces in this case'}</h2>
       <ul className="mt-2 list-inside list-disc text-sm">{detail.workspace_links.map(item=><li key={item.workspace_id}>{item.workspace_id}{item.primary ? ` · ${fa?'اصلی':'Primary'}` : ''}{item.contract_id ? ` · ${fa?'قرارداد':'Contract'}: ${item.contract_id}` : ''}</li>)}</ul>
     </section>}
+    {manager&&detail.workspace_id&&<form onSubmit={prepareWorkspace} className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'آماده‌سازی ورک‌اسپیس دیگر برای همین مشتری':'Prepare another workspace for this customer'}</h2>
+      <p className="text-sm text-amber-800">{fa?'ورک‌اسپیس در وضعیت LEAD ایجاد می‌شود. اتصال به پرونده و دسترسی مشتری به تأیید تجاری مستقل نیاز دارد.':'Creates a LEAD workspace. Case linking and customer access require separate commercial approval.'}</p>
+      <label className="block">{fa?'نوع ساختار':'Workspace structure'}<select name="workspace_type" required className="mt-1 w-full rounded border p-2"><option value="ASSOCIATION">{fa?'انجمن مالکان':'Owners association'}</option><option value="PROPERTY_MANAGER">{fa?'شرکت مدیریت ملک':'Property manager'}</option><option value="OWNER_PORTFOLIO">{fa?'پورتفوی مالک':'Owner portfolio'}</option><option value="HYBRID">{fa?'ساختار ترکیبی':'Hybrid'}</option></select></label>
+      <label className="block">{fa?'نوع ملک و مدل ادارهٔ سازگار':'Compatible property and operating model'}<select name="taxonomy" required className="mt-1 w-full rounded border p-2"><option value="">{fa?'انتخاب کنید':'Select'}</option>{workspaceOptions.map((option,index)=><option key={`${option.profile}-${option.model}`} value={index}>{option.profile_label[lang]??option.profile} · {option.model_label[lang]??option.model}</option>)}</select></label>
+      <label className="block">{fa?'مسئول تجاری':'Commercial owner'}<input name="commercial_owner" required minLength={3} maxLength={200} className="mt-1 w-full rounded border p-2" /></label>
+      <label className="block">{fa?'دلیل آماده‌سازی':'Preparation reason'}<input name="reason" required minLength={8} maxLength={500} className="mt-1 w-full rounded border p-2" /></label>
+      {preparedWorkspace&&<p role="status" className="text-emerald-800">{fa?'ورک‌اسپیس آماده شد؛ شناسه برای مراحل تأیید:':'Workspace prepared; ID for approval steps:'} {preparedWorkspace}</p>}
+      <button disabled={busy||workspaceOptions.length===0} className="rounded bg-emerald-700 px-4 py-2 text-white disabled:opacity-50">{fa?'آماده‌سازی':'Prepare workspace'}</button>
+    </form>}
     {manager&&<form onSubmit={link} className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'اتصال ورک‌اسپیس با مجوز تجاری ثبت‌شده':'Link an approved workspace'}</h2>
       <label className="block">Workspace ID<input name="workspace_id" required className="mt-1 w-full rounded border p-2" /></label>
       <label className="block">{fa?'شناسه قرارداد فعال (برای دوره آزمایشی خالی بماند)':'Active contract ID (leave empty for pilot)'}<input name="contract_id" className="mt-1 w-full rounded border p-2" /></label>
