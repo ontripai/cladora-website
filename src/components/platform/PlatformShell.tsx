@@ -69,7 +69,7 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       href: `/${lang}/platform/assignments`,
       label: lang === 'ro' ? 'Alocări Clienți' : lang === 'fa' ? 'تخصیص مشتریان به کارشناسان' : 'Customer Assignments',
       icon: KeyRound,
-      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR'] as PlatformRole[],
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR', 'PLATFORM_SALES', 'PLATFORM_CONTRACTS', 'PLATFORM_ONBOARDING', 'PLATFORM_FINANCE', 'PLATFORM_SUPPORT'] as PlatformRole[],
     },
     {
       href: `/${lang}/platform/provisioning`,

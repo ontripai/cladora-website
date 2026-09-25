@@ -5,7 +5,7 @@ import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { createClient } from '@/lib/supabase/server';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
-const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR']);
+const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR','PLATFORM_SALES','PLATFORM_CONTRACTS','PLATFORM_ONBOARDING']);
 const schema = z.object({
   email: z.email().max(320), employee_ref: z.string().trim().min(3).max(80),
   display_name: z.string().trim().min(3).max(150), role,

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-const roles = ['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR'] as const;
+const roles = ['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR','PLATFORM_SALES','PLATFORM_CONTRACTS','PLATFORM_ONBOARDING'] as const;
 
 export function OperatorManagement({ lang }: { lang: string }) {
   const fa = lang === 'fa';

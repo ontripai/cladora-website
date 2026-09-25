@@ -1061,7 +1061,10 @@ export type Database = {
         | 'PLATFORM_OPERATIONS'
         | 'PLATFORM_FINANCE'
         | 'PLATFORM_SUPPORT'
-        | 'PLATFORM_AUDITOR';
+        | 'PLATFORM_AUDITOR'
+        | 'PLATFORM_SALES'
+        | 'PLATFORM_CONTRACTS'
+        | 'PLATFORM_ONBOARDING';
       workspace_type: 'ASSOCIATION' | 'PROPERTY_MANAGER' | 'OWNER_PORTFOLIO' | 'HYBRID';
       workspace_lifecycle_status:
         | 'LEAD'
@@ -1433,6 +1436,12 @@ export type Database = {
       platform_users_v1: { Row: Database['platform']['Tables']['platform_users']['Row']; Relationships: [] };
       platform_role_assignments_v1: { Row: Database['platform']['Tables']['platform_role_assignments']['Row']; Relationships: [] };
       platform_customer_assignments_v1: { Row: Database['platform']['Tables']['platform_customer_assignments']['Row']; Relationships: [] };
+      customer_staff_responsibilities_v1: { Row: {
+        id: string; customer_workspace_id: string; platform_user_id: string; responsibility: string;
+        status: string; valid_from: string; valid_until: string | null; assigned_by: string;
+        assignment_reason: string; revoked_at: string | null; revoked_by: string | null;
+        revoke_reason: string | null; created_at: string;
+      }; Relationships: [] };
       customer_workspaces_v1: { Row: Database['platform']['Tables']['customer_workspaces']['Row'] & { tenant_legal_name: string }; Relationships: [] };
       subscription_plans_v1: { Row: Database['platform']['Tables']['subscription_plans']['Row']; Relationships: [] };
       provisioning_runs_v1: { Row: Database['platform']['Tables']['provisioning_runs']['Row']; Relationships: [] };
@@ -1512,6 +1521,9 @@ export type Database = {
         Returns: Json;
       };
       revoke_customer_assignment_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
+      assign_customer_staff_responsibility_v1: { Args: { p_workspace_id: string; p_platform_user_id: string; p_responsibility: string; p_reason: string; p_valid_until: string | null }; Returns: Json };
+      revoke_customer_staff_responsibility_v1: { Args: { p_id: string; p_reason: string }; Returns: Json };
+      transfer_customer_commercial_owner_v1: { Args: { p_workspace_id: string; p_new_user_id: string; p_reason: string }; Returns: Json };
       create_workspace_contract_v1: {
         Args: { p_workspace_id: string; p_contract_ref: string; p_plan_id: string | null; p_currency: string; p_start_date: string; p_end_date: string | null; p_commercial_terms: Json };
         Returns: Json;
