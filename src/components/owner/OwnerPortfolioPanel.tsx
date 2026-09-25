@@ -9,6 +9,7 @@ type Lease = { id: string; tenant_label: string; starts_on: string; ends_on: str
 type Entry = { id: string; kind: string; direction: string; amount: number; currency: string; due_on: string | null; paid_on: string | null; memo: string | null; source: string };
 type View = { units: Unit[]; count: number; leases: Lease[]; entries: Entry[] };
 type UnitLink = { id: string; private_unit_id: string; workspace_id: string; canonical_unit_id: string; status: string; requested_at: string };
+type OfficialCharge = { id: string; invoice_no: number; due_on: string | null; total: number; outstanding_amount: number | null; currency: string; status: string; workspace_id: string };
 const endpoint = '/api/owner-portfolio/v1';
 
 const copy = {
@@ -25,6 +26,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [links, setLinks] = useState<UnitLink[]>([]);
+  const [charges, setCharges] = useState<OfficialCharge[]>([]);
   const refreshLinks = useCallback(async () => {
     const response = await fetch(`${endpoint}/links`, { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('LINK_READ_FAILED');
@@ -46,6 +48,15 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
   }, [t.failed]);
+  useEffect(() => {
+    if (!selected) return;
+    let active = true;
+    void fetch(`${endpoint}/charges?private_unit_id=${encodeURIComponent(selected)}`, { credentials: 'same-origin', cache: 'no-store' })
+      .then(async response => { if (!response.ok) throw new Error('CHARGES_READ_FAILED'); return await response.json() as { charges: OfficialCharge[] }; })
+      .then(data => { if (active) setCharges(data.charges); })
+      .catch(() => { if (active) setError(t.failed); });
+    return () => { active = false; };
+  }, [selected, links, t.failed]);
   useEffect(() => {
     let active = true;
     const query = new URLSearchParams({ offset: String(offset) });
@@ -108,6 +119,11 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
         <button disabled={busy} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50">{lang === 'fa' ? 'درخواست اتصال' : 'Request connection'}</button>
       </form>
       <ul className="space-y-2">{links.filter(link => link.private_unit_id === selected).map(link => <li key={link.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-2"><span>{link.status} · {link.workspace_id} · {link.canonical_unit_id}</span>{['requested','manager_verified','linked'].includes(link.status) && <button type="button" disabled={busy} className="rounded border px-2 py-1" onClick={() => void linkAction({ action: 'withdraw', link_id: link.id })}>{lang === 'fa' ? 'لغو اتصال' : 'Withdraw'}</button>}</li>)}</ul>
+    </section><section className="space-y-3 rounded-xl border bg-white p-5">
+      <h2 className="font-bold">{lang === 'fa' ? 'شارژ رسمی ساختمان' : lang === 'ro' ? 'Facturi oficiale ale clădirii' : 'Official building charges'}</h2>
+      <p className="text-sm text-slate-600">{lang === 'fa' ? 'فقط صورتحساب‌های صادرشده برای مالک تأییدشده نمایش داده می‌شود. این بخش جدا از ثبت‌های مالی شخصی شماست.' : 'Issued invoices owed by the verified owner are shown separately from self-reported cash records.'}</p>
+      {charges.length === 0 && <p className="text-sm text-slate-500">{lang === 'fa' ? 'صورتحساب قابل نمایشی وجود ندارد.' : 'No visible official invoices.'}</p>}
+      <ul className="space-y-2">{charges.map(charge => <li key={charge.id} className="rounded border p-2">#{charge.invoice_no} · {charge.total} {charge.currency} · {charge.status} · {lang === 'fa' ? 'باقی‌مانده' : 'Outstanding'}: {charge.outstanding_amount ?? '—'} · {charge.due_on ?? '—'}</li>)}</ul>
     </section><section className="space-y-3 rounded-xl border bg-white p-5"><h2 className="font-bold">{t.leases}</h2>
       <form onSubmit={event=>void submit(event,'lease')} className="grid gap-2 sm:grid-cols-2">
         <label>{t.tenant}<input required name="tenant_label" minLength={2} maxLength={160} className="w-full rounded border p-2" /></label>
