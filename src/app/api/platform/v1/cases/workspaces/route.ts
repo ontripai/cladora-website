@@ -15,9 +15,12 @@ export async function GET(request: Request) {
   const parsed = z.uuid().safeParse(new URL(request.url).searchParams.get('case_id'));
   if (!parsed.success) return NextResponse.json({ error: { code: 'INVALID_INPUT' } }, { status: 400, headers: HEADERS });
   const db = await createClient();
-  const { data, error } = await db.schema('customer_api').rpc('list_case_workspace_options_v1', { p_case_id: parsed.data });
-  if (error) return NextResponse.json({ error: { code: 'CASE_UNAVAILABLE' } }, { status: 403, headers: HEADERS });
-  return NextResponse.json({ options: data }, { headers: HEADERS });
+  const [options, prepared] = await Promise.all([
+    db.schema('customer_api').rpc('list_case_workspace_options_v1', { p_case_id: parsed.data }),
+    db.schema('customer_api').rpc('list_case_prepared_workspaces_v1', { p_case_id: parsed.data }),
+  ]);
+  if (options.error || prepared.error) return NextResponse.json({ error: { code: 'CASE_UNAVAILABLE' } }, { status: 403, headers: HEADERS });
+  return NextResponse.json({ options: options.data, prepared: prepared.data }, { headers: HEADERS });
 }
 
 export async function POST(request: Request) {

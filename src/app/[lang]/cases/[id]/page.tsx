@@ -36,6 +36,6 @@ export default async function CasePage({params}:{params:Promise<{lang:string;id:
     staff=activeStaffOptions(users.data??[],roles.data??[]);
   }
   return <CaseConversation lang={lang} detail={detail} documents={documents as unknown as CaseDocument[]} userId={claims.claims.sub}
-    manager={manager} staffOptions={staff}
+    manager={manager} approver={auth?hasPlatformRole(auth,'PLATFORM_SUPER_ADMIN'):false} staffOptions={staff}
     reviewer={auth?hasPlatformRole(auth,['PLATFORM_SUPER_ADMIN','PLATFORM_AUDITOR']):false} />;
 }
