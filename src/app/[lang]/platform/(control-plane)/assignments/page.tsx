@@ -1,6 +1,8 @@
 import React from 'react';
 import { KeyRound } from 'lucide-react';
 import { OperationalAssignmentsPanel } from '@/components/platform/OperationalAssignmentsPanel';
+import { CustomerStaffResponsibilitiesPanel } from '@/components/platform/CustomerStaffResponsibilitiesPanel';
+import { getPlatformAuthContext, hasPlatformRole } from '@/lib/platform/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +12,7 @@ export default async function PlatformAssignmentsPage(props: {
   const { lang } = await props.params;
   const isRo = lang === 'ro';
   const isFa = lang === 'fa';
+  const auth = await getPlatformAuthContext();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -36,7 +39,8 @@ export default async function PlatformAssignmentsPage(props: {
         </div>
       </div>
 
-      <OperationalAssignmentsPanel lang={lang} />
+      <CustomerStaffResponsibilitiesPanel lang={lang} />
+      {hasPlatformRole(auth, ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR']) && <OperationalAssignmentsPanel lang={lang} />}
     </div>
   );
 }
