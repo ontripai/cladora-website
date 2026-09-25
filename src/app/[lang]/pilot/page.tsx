@@ -39,14 +39,14 @@ export default async function PilotPage(
       
       {/* Header Hero */}
       <div className="text-center max-w-3xl mx-auto space-y-4">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-bold text-amber-300">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-xs font-bold text-amber-800">
+          <Sparkles className="w-3.5 h-3.5 text-amber-700" />
           <span>{dict.pilot.badge}</span>
         </div>
-        <h1 className="text-4xl sm:text-6xl font-display font-extrabold text-white tracking-tight">
+        <h1 className="text-4xl sm:text-6xl font-display font-extrabold text-[#102A43] tracking-tight">
           {dict.pilot.title}
         </h1>
-        <p className="text-base sm:text-lg text-slate-300 leading-relaxed">
+        <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
           {dict.pilot.description}
         </p>
       </div>
@@ -56,7 +56,7 @@ export default async function PilotPage(
         
         {/* Left: Pilot Details & Cohort criteria */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="p-6 rounded-3xl glass-panel border border-white/10 space-y-4">
+          <div className="p-6 rounded-3xl bg-[#102A43] border border-[#34536B] space-y-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <MapPin className="w-5 h-5 text-brand-400" />
               <span>{isRo ? 'Structura Cohortei de Validare' : isFa ? 'ظرفیت و ترکیب دوره پایلوت' : 'Cohort Composition'}</span>
@@ -92,7 +92,7 @@ export default async function PilotPage(
           </div>
 
           {/* Benefits */}
-          <div className="p-6 rounded-3xl glass-panel border border-emerald-500/20 space-y-4">
+          <div className="p-6 rounded-3xl bg-[#102A43] border border-emerald-500/30 space-y-4">
             <h3 className="text-lg font-bold text-white flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-emerald-400" />
               <span>{isRo ? 'Beneficii Exclusive pentru Participanți' : isFa ? 'مزایای ویژه اعضای دوره آزمایشی' : 'Cohort Exclusive Perks'}</span>
