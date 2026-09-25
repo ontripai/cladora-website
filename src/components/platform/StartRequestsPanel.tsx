@@ -1,12 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export type StartRequest = {
   id: string; reference_id: string; created_at: string; lead_type: string;
   full_name: string; email: string; phone: string | null; city: string | null;
   message: string | null; status: string; assigned_platform_user_id: string | null;
   assignee_name: string | null;
+  case_id: string | null;
 };
 export type SalesOperator = { id: string; display_name: string };
 
@@ -14,6 +17,7 @@ export function StartRequestsPanel({ lang, requests, sales, manager }: {
   lang: string; requests: StartRequest[]; sales: SalesOperator[]; manager: boolean;
 }) {
   const fa = lang === 'fa';
+  const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState('');
   async function update(leadId: string, action: 'assign' | 'status', value: string, reason: string) {
@@ -32,6 +36,16 @@ export function StartRequestsPanel({ lang, requests, sales, manager }: {
     } catch (cause) { setError(cause instanceof Error ? cause.message : 'UPDATE_FAILED'); }
     finally { setBusy(null); }
   }
+  async function openCase(leadId: string, reason: string) {
+    setBusy(leadId);setError('');
+    try {
+      const response=await fetch('/api/platform/v1/cases',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({lead_id:leadId,reason,lang})});
+      const result=await response.json();
+      if(!response.ok)throw new Error(result.error?.code??'CASE_OPEN_FAILED');
+      if(result.delivery==='auth_invitation_failed')setError(fa?'پرونده ساخته شد، اما دعوت ورود ایمیل نشد. پیش از اعلام به مشتری وضعیت حساب را بررسی کنید.':'Case created, but account invitation delivery failed. Check the account before notifying the customer.');
+      router.push(`/${lang}/cases/${result.case_id}`);
+    }catch(cause){setError(cause instanceof Error?cause.message:'CASE_OPEN_FAILED');}finally{setBusy(null);}
+  }
   return <section dir={fa ? 'rtl' : 'ltr'} className="mx-auto max-w-7xl space-y-5 text-white">
     <div><h1 className="text-2xl font-bold">{fa ? 'درخواست‌های شروع' : 'Start requests'}</h1>
       <p className="mt-2 text-sm text-slate-300">{fa ? 'درخواست‌های تماس و پایلوت. درخواست‌های جدید به‌طور خودکار میان کارشناسان فعال فروش توزیع می‌شوند.' : 'Contact and pilot requests. New requests are assigned automatically to active sales staff.'}</p></div>
@@ -43,6 +57,11 @@ export function StartRequestsPanel({ lang, requests, sales, manager }: {
       <p className="mt-2 text-slate-300">{item.email}{item.phone ? ` · ${item.phone}` : ''}{item.city ? ` · ${item.city}` : ''}</p>
       <p className="mt-1 text-xs text-slate-400">{new Date(item.created_at).toLocaleString(lang === 'fa' ? 'fa-IR' : 'en-GB')} · {fa ? 'مسئول:' : 'Owner:'} {item.assignee_name ?? (fa ? 'صف مدیر؛ تخصیص داده نشده' : 'Manager queue; unassigned')}</p>
       {item.message && <p className="mt-3 whitespace-pre-wrap rounded bg-[#081320] p-3">{item.message}</p>}
+      {item.case_id ? <Link href={`/${lang}/cases/${item.case_id}`} className="mt-3 inline-block rounded border border-emerald-400 px-3 py-2 text-emerald-300">{fa?'ورود به پروندهٔ مشترک':'Open shared case'}</Link>
+        : item.status!=='spam' && <form onSubmit={event=>{event.preventDefault();void openCase(item.id,String(new FormData(event.currentTarget).get('reason')??''));}} className="mt-3 flex flex-wrap items-end gap-2">
+          <label className="flex-1">{fa?'دلیل و نتیجهٔ بررسی هویت پیش از دعوت':'Identity check and invitation reason'}<input name="reason" required minLength={8} maxLength={500} className="mt-1 w-full rounded bg-[#081320] p-2" /></label>
+          <button disabled={busy===item.id} className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{fa?'ایجاد پرونده و دعوت امن':'Create case and secure invitation'}</button>
+        </form>}
       {['new','contacted','qualified'].includes(item.status) && <div className="mt-4 grid gap-3 lg:grid-cols-2">
         {manager && <form onSubmit={event => { event.preventDefault(); const values = new FormData(event.currentTarget); void update(item.id,'assign',String(values.get('assignee_id') ?? ''),String(values.get('reason') ?? '')); }} className="grid gap-2 rounded border border-[#1E3A5A] p-3">
           <label>{fa ? 'تخصیص به فروش' : 'Assign to sales'}<select name="assignee_id" defaultValue={item.assigned_platform_user_id ?? ''} className="mt-1 w-full rounded bg-[#081320] p-2"><option value="">{fa ? 'صف مدیر' : 'Manager queue'}</option>{sales.map(person => <option key={person.id} value={person.id}>{person.display_name}</option>)}</select></label>
