@@ -184,8 +184,8 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
           workspaceSubtype: formData.workspaceSubtype,
           workspaceCount: Number(formData.workspaceCount),
           workspaceDescription: formData.workspaceDescription || undefined,
-          relatedBuildings: formData.workspaceType === 'shared' ? formData.relatedBuildings : undefined,
-          buildingType: formData.workspaceType === 'residential' ? formData.buildingType : null,
+          relatedBuildings: formData.workspaceType === 'shared' || formData.applicantType === 'multi_unit_owner' ? formData.relatedBuildings : undefined,
+          buildingType: formData.workspaceType === 'residential' && formData.applicantType !== 'multi_unit_owner' ? formData.buildingType : null,
           unitsCount: units,
           currentSoftware: formData.currentSoftware,
           city: formData.city,
@@ -453,9 +453,9 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-[#D3DCE6] text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#0E9F8E] disabled:bg-slate-50"
                 >
-                  <option value="admin">{fields.roles.admin}</option>
+                  {formData.applicantType !== 'multi_unit_owner' && <option value="admin">{fields.roles.admin}</option>}
                   {formData.applicantType === 'association' && <option value="president">{fields.roles.president}</option>}
-                  <option value="cenzor">{fields.roles.cenzor}</option>
+                  {formData.applicantType !== 'multi_unit_owner' && <option value="cenzor">{fields.roles.cenzor}</option>}
                   <option value="owner">{fields.roles.owner}</option>
                 </select>
               </div>
@@ -464,16 +464,16 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <label className="block text-xs font-bold text-[#102A43]">
                 {lang === 'ro' ? 'Tipul solicitantului' : lang === 'fa' ? 'نوع متقاضی' : 'Applicant type'}
-                <select required value={formData.applicantType} onChange={(e) => setFormData({ ...formData, applicantType: e.target.value, role: e.target.value === 'association' ? formData.role : 'admin' })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
-                  {(['association', 'management_company', 'owner', 'company', 'other'] as const).map((key, i) => <option key={key} value={key}>{({ ro: ['Asociație de proprietari', 'Firmă de administrare', 'Proprietar / investitor', 'Companie / organizație', 'Alt solicitant'], en: ['Owners association', 'Management company', 'Owner / investor', 'Company / organization', 'Other applicant'], fa: ['انجمن مالکان', 'شرکت مدیریت', 'مالک / سرمایه‌گذار', 'شرکت / سازمان', 'سایر متقاضیان'] })[lang][i]}</option>)}
+                <select required value={formData.applicantType} onChange={(e) => setFormData({ ...formData, applicantType: e.target.value, role: e.target.value === 'association' ? formData.role : e.target.value === 'multi_unit_owner' ? 'owner' : 'admin', workspaceCount: e.target.value === 'multi_unit_owner' ? '1' : formData.workspaceCount, relatedBuildings: '' })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
+                  {(['association', 'management_company', 'owner', 'multi_unit_owner', 'company', 'other'] as const).map((key, i) => <option key={key} value={key}>{({ ro: ['Asociație de proprietari', 'Firmă de administrare', 'Proprietar / investitor', 'Proprietar cu mai multe unități', 'Companie / organizație', 'Alt solicitant'], en: ['Owners association', 'Management company', 'Owner / investor', 'Multi-unit owner', 'Company / organization', 'Other applicant'], fa: ['انجمن مالکان', 'شرکت مدیریت', 'مالک / سرمایه‌گذار', 'مالک چندواحدی', 'شرکت / سازمان', 'سایر متقاضیان'] })[lang][i]}</option>)}
                 </select>
               </label>
-              <label className="block text-xs font-bold text-[#102A43]">
+              {formData.applicantType !== 'multi_unit_owner' && <label className="block text-xs font-bold text-[#102A43]">
                 {lang === 'ro' ? 'Număr de spații de lucru solicitate' : lang === 'fa' ? 'تعداد ورک‌اسپیس‌های درخواستی' : 'Requested workspaces'}
                 <input type="number" required min={1} max={1000} value={formData.workspaceCount} onChange={(e) => setFormData({ ...formData, workspaceCount: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5" />
-              </label>
+              </label>}
               <label className="block text-xs font-bold text-[#102A43]">
-                {lang === 'ro' ? 'Tipul spațiului principal' : lang === 'fa' ? 'نوع ورک‌اسپیس اصلی' : 'Primary workspace type'}
+                {formData.applicantType === 'multi_unit_owner' ? lang === 'ro' ? 'Tipul predominant al unităților' : lang === 'fa' ? 'نوع غالب واحدها' : 'Predominant unit type' : lang === 'ro' ? 'Tipul spațiului principal' : lang === 'fa' ? 'نوع ورک‌اسپیس اصلی' : 'Primary workspace type'}
                 <select required value={formData.workspaceType} onChange={(e) => {
                   const type = e.target.value as PilotWorkspaceType;
                   setFormData({ ...formData, workspaceType: type, workspaceSubtype: type === 'other' ? '' : Object.keys(PILOT_WORKSPACE_TYPES[type].subtypes)[0], buildingType: 'A1', unitsCount: '' });
@@ -491,11 +491,11 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
                 {lang === 'ro' ? 'Descrieți tipul spațiului' : lang === 'fa' ? 'نوع ورک‌اسپیس را توضیح دهید' : 'Describe the workspace type'}
                 <input required maxLength={500} value={formData.workspaceDescription} onChange={(e) => setFormData({ ...formData, workspaceDescription: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5" />
               </label>}
-              {formData.workspaceType === 'shared' && <label className="block text-xs font-bold text-[#102A43]">
-                {lang === 'ro' ? 'Clădirile care folosesc acest spațiu' : lang === 'fa' ? 'ساختمان‌های استفاده‌کننده از فضای مشترک' : 'Buildings sharing this space'}
-                <input required maxLength={1000} value={formData.relatedBuildings} onChange={(e) => setFormData({ ...formData, relatedBuildings: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5" />
+              {(formData.workspaceType === 'shared' || formData.applicantType === 'multi_unit_owner') && <label className="block text-xs font-bold text-[#102A43]">
+                {formData.applicantType === 'multi_unit_owner' ? lang === 'ro' ? 'Clădirile în care dețineți unități (opțional)' : lang === 'fa' ? 'ساختمان‌هایی که در آن‌ها واحد دارید (اختیاری)' : 'Buildings containing your units (optional)' : lang === 'ro' ? 'Clădirile care folosesc acest spațiu' : lang === 'fa' ? 'ساختمان‌های استفاده‌کننده از فضای مشترک' : 'Buildings sharing this space'}
+                <input required={formData.workspaceType === 'shared'} maxLength={1000} value={formData.relatedBuildings} onChange={(e) => setFormData({ ...formData, relatedBuildings: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5" />
               </label>}
-              {formData.workspaceType === 'residential' && <label className="block text-xs font-bold text-[#102A43]">
+              {formData.workspaceType === 'residential' && formData.applicantType !== 'multi_unit_owner' && <label className="block text-xs font-bold text-[#102A43]">
                 {fields.buildingType}
                 <select value={formData.buildingType} onChange={(e) => setFormData({ ...formData, buildingType: e.target.value })} disabled={status === 'submitting'} className="mt-1 w-full rounded-xl border border-[#D3DCE6] px-3.5 py-2.5">
                   {BUILDING_TYPE_OPTIONS[lang].map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
@@ -504,7 +504,7 @@ export const PilotApplicationModal: React.FC<PilotApplicationModalProps> = ({
 
               <div>
                 <label htmlFor="modalUnitsCount" className="block text-xs font-bold text-[#102A43] mb-1">
-                  {formData.workspaceType === 'residential' ? fields.unitsCount : lang === 'ro' ? 'Număr estimat de unități sau spații' : lang === 'fa' ? 'تعداد تقریبی واحدها یا فضاها' : 'Estimated units or spaces'} <span className="text-[#E5484D]">*</span>
+                  {formData.applicantType === 'multi_unit_owner' ? lang === 'ro' ? 'Numărul unităților pe care le dețineți' : lang === 'fa' ? 'تعداد واحدهایی که مالک آن هستید' : 'Number of units you own' : formData.workspaceType === 'residential' ? fields.unitsCount : lang === 'ro' ? 'Număr estimat de unități sau spații' : lang === 'fa' ? 'تعداد تقریبی واحدها یا فضاها' : 'Estimated units or spaces'} <span className="text-[#E5484D]">*</span>
                 </label>
                 <input
                   type="number"
