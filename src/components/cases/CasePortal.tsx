@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 export type CaseInvitation = { id: string; case_id: string; reference_id: string; expires_at: string };
 export type CaseListing = { id: string; reference_id: string; status: string; created_at: string; workspace_id: string | null; unread_count: number };
 export type CaseMessage = { id: string; author_id: string; visibility: 'shared' | 'internal'; body: string; created_at: string };
-export type CaseDetail = { id: string; status: string; workspace_id: string | null; contract_id: string | null; staff_view: boolean; messages: CaseMessage[]; unread_count: number };
+export type CaseDetail = { id: string; status: string; workspace_id: string | null; contract_id: string | null; workspace_links?: { workspace_id: string; contract_id: string | null; linked_at: string; primary: boolean }[]; staff_view: boolean; messages: CaseMessage[]; unread_count: number };
 export type CaseDocument = { id: string; document_id: string; title: string; version: number; scan_status: 'pending'|'clean'|'quarantined'; visibility: 'shared'|'internal'; created_at: string; uploaded_by: string };
 export type CaseStaffOption = { id: string; name: string; role: string };
 
@@ -127,7 +127,10 @@ export function CaseConversation({ lang, detail, documents, userId, manager, rev
       {error&&<p role="alert" className="text-red-700">{error}</p>}
       <button disabled={busy} className="rounded bg-emerald-700 px-4 py-2 text-white disabled:opacity-50">{fa?'ارسال در پرونده':'Post to case'}</button>
     </form>}
-    {manager&&!detail.workspace_id&&<form onSubmit={link} className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'اتصال به ورک‌اسپیس با مجوز تجاری ثبت‌شده':'Link approved workspace'}</h2>
+    {detail.workspace_links && detail.workspace_links.length>0 && <section className="rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'ورک‌اسپیس‌های تأییدشدهٔ این پرونده':'Approved workspaces in this case'}</h2>
+      <ul className="mt-2 list-inside list-disc text-sm">{detail.workspace_links.map(item=><li key={item.workspace_id}>{item.workspace_id}{item.primary ? ` · ${fa?'اصلی':'Primary'}` : ''}{item.contract_id ? ` · ${fa?'قرارداد':'Contract'}: ${item.contract_id}` : ''}</li>)}</ul>
+    </section>}
+    {manager&&<form onSubmit={link} className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'اتصال ورک‌اسپیس با مجوز تجاری ثبت‌شده':'Link an approved workspace'}</h2>
       <label className="block">Workspace ID<input name="workspace_id" required className="mt-1 w-full rounded border p-2" /></label>
       <label className="block">{fa?'شناسه قرارداد فعال (برای دوره آزمایشی خالی بماند)':'Active contract ID (leave empty for pilot)'}<input name="contract_id" className="mt-1 w-full rounded border p-2" /></label>
       <label className="block">{fa?'دلیل اتصال':'Reason'}<input name="reason" required minLength={8} maxLength={500} className="mt-1 w-full rounded border p-2" /></label>
