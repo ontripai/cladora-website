@@ -31,6 +31,7 @@ select throws_like($$select customer_api.update_start_request_v1('c6010000-0000-
 select set_config('request.jwt.claims','{"sub":"a6010000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
 select throws_like($$select customer_api.assign_start_request_v1('c6010000-0000-4000-8000-000000000001','b6010000-0000-4000-8000-000000000003','Invalid sales role')$$,'%active_sales_required%','Manager cannot assign to non-sales role');
 select lives_ok($$select customer_api.assign_start_request_v1('c6010000-0000-4000-8000-000000000001',null,'Return to manager queue')$$,'Manager can put request in unassigned queue');
+reset role;
 select is((select assigned_platform_user_id from public.marketing_leads where reference_id='INBOX-106-1'),null::uuid,'Unassigned lead remains in manager queue');
 select * from finish();
 rollback;
