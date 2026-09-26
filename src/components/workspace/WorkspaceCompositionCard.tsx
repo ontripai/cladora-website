@@ -173,7 +173,7 @@ export function WorkspaceCompositionCard({
         }
       }).catch(() => {});
     return () => abort.abort();
-  }, []);
+  }, [fetch]);
 
   // Mutation state
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
