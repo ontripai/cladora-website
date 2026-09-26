@@ -1,12 +1,12 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-import { getApplicationOrigin } from '@/lib/supabase/server-env';
+import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 
 const headers={'Cache-Control':'no-store, private'};
 const schema=z.object({workspace_id:z.string().uuid(),expected_version:z.number().int().positive(),reason:z.string().trim().min(10).max(500)});
 export async function POST(request:NextRequest){
-  if(request.headers.get('origin')!==getApplicationOrigin()) return NextResponse.json({error:{code:'ORIGIN_REJECTED'}},{status:403,headers});
+  if(!hasTrustedMutationOrigin(request)) return NextResponse.json({error:{code:'ORIGIN_REJECTED'}},{status:403,headers});
   let input:z.infer<typeof schema>; try{input=schema.parse(await request.json());}catch{return NextResponse.json({error:{code:'INVALID_PAYLOAD'}},{status:400,headers});}
   const supabase=await createClient(); const {data:claims,error:claimsError}=await supabase.auth.getClaims();
   if(claimsError||!claims?.claims?.sub) return NextResponse.json({error:{code:'AUTHENTICATION_REQUIRED'}},{status:401,headers});
