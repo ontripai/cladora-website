@@ -186,6 +186,30 @@ const nextStage: Partial<Record<WorkspaceLifecycleStatus, WorkspaceLifecycleStat
   PAYMENT_PENDING: 'PROVISIONING',
 };
 
+const suggestedTransitionReasons: Record<Locale, Partial<Record<WorkspaceLifecycleStatus, string>>> = {
+  fa: {
+    LEAD: 'آغاز بررسی درخواست و نیازهای راه‌اندازی محیط کاری.',
+    UNDER_REVIEW: 'تأیید درخواست محیط کاری برای ادامه فرایند راه‌اندازی.',
+    APPROVED: 'انتقال درخواست تأییدشده به مرحله آماده‌سازی قرارداد.',
+    CONTRACT_PENDING: 'انتقال محیط کاری به مرحله بررسی وضعیت پرداخت.',
+    PAYMENT_PENDING: 'انتقال محیط کاری به مرحله آماده‌سازی فنی و بررسی پیش‌نیازهای فعال‌سازی.',
+  },
+  ro: {
+    LEAD: 'Începerea evaluării cererii și a cerințelor de configurare a spațiului de lucru.',
+    UNDER_REVIEW: 'Aprobarea cererii pentru continuarea configurării spațiului de lucru.',
+    APPROVED: 'Trecerea cererii aprobate la etapa de pregătire a contractului.',
+    CONTRACT_PENDING: 'Trecerea spațiului de lucru la etapa de verificare a stării plății.',
+    PAYMENT_PENDING: 'Trecerea spațiului de lucru la pregătirea tehnică și verificarea condițiilor de activare.',
+  },
+  en: {
+    LEAD: 'Begin reviewing the workspace request and setup requirements.',
+    UNDER_REVIEW: 'Approve the workspace request to continue the setup process.',
+    APPROVED: 'Move the approved request to contract preparation.',
+    CONTRACT_PENDING: 'Move the workspace to payment status review.',
+    PAYMENT_PENDING: 'Move the workspace to technical preparation and activation prerequisite checks.',
+  },
+};
+
 export function OperationalWorkspacesTable({
   lang: requestedLang,
   canTransition = false,
@@ -469,7 +493,7 @@ export function OperationalWorkspacesTable({
           <h2 className="font-bold">{transitionWorkspace.tenant_legal_name || transitionWorkspace.commercial_owner}</h2>
           <p>{transitionWorkspace.lifecycle_status} → {nextStage[transitionWorkspace.lifecycle_status]}</p>
           <p className="text-xs text-amber-200">{lang === 'fa' ? 'تغییر مرحله به‌تنهایی هیچ دعوت یا ایمیلی ارسال نمی‌کند.' : lang === 'ro' ? 'Schimbarea etapei nu trimite invitații sau e-mailuri.' : 'Changing the stage does not send an invitation or email.'}</p>
-          <label className="block">{labels.advanceReason}<textarea name="reason" minLength={3} maxLength={500} required className="mt-2 w-full rounded border border-[#1E3A5A] bg-[#081320] p-3" /></label>
+          <label className="block">{labels.advanceReason}<textarea key={`${transitionWorkspace.id}:${transitionWorkspace.lifecycle_status}:${lang}`} name="reason" defaultValue={suggestedTransitionReasons[lang][transitionWorkspace.lifecycle_status] ?? ''} minLength={3} maxLength={500} required className="mt-2 w-full rounded border border-[#1E3A5A] bg-[#081320] p-3" /></label>
           {transitionError && <p role="alert" className="text-rose-300">{transitionError}</p>}
           <div className="flex gap-2"><button disabled={transitionBusy} className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{labels.advance}</button><button type="button" onClick={() => setTransitionWorkspace(null)} className="rounded border border-[#1E3A5A] px-4 py-2">{labels.cancel}</button></div>
         </form>
