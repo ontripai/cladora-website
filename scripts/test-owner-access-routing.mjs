@@ -28,7 +28,7 @@ for (const lang of ['ro','en','fa']) for (const platform of [false,true]) {
       '@/lib/supabase/server':{createClient:async()=>db},
       '@/lib/supabase/env':{isSupabaseConfigured:()=>true},
       '@/types':{isSupportedLocale:x=>['ro','en','fa'].includes(x)},
-      '@/lib/auth/post-auth-route':{hasActivePlatformAccess:async()=>platform,getPlatformOverviewRoute:l=>`/${l}/platform/overview`,getCustomerDashboardRoute:l=>`/${l}/app/dashboard`},
+      '@/lib/auth/post-auth-route':{hasActivePlatformAccess:async()=>platform,getAccountRoute:l=>`/${l}/account`,getPlatformOverviewRoute:l=>`/${l}/platform/overview`,getCustomerDashboardRoute:l=>`/${l}/app/dashboard`},
       '@/components/auth/MfaChallengeForm':{MfaChallengeForm:()=>null},
       '@/components/auth/AccountSecurityPanel':{AccountSecurityPanel:()=>null},
     };

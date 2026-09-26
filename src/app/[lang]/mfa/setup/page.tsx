@@ -3,7 +3,7 @@ import { AccountSecurityPanel } from '@/components/auth/AccountSecurityPanel';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { isSupportedLocale } from '@/types';
-import { getCustomerDashboardRoute, getPlatformOverviewRoute, hasActivePlatformAccess } from '@/lib/auth/post-auth-route';
+import { getAccountRoute, hasActivePlatformAccess } from '@/lib/auth/post-auth-route';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,9 +29,7 @@ export default async function MfaSetupPage({ params, searchParams }: { params: P
     ? `/${lang}/workspace-access`
     : next === 'cases' && !platformAccess
     ? `/${lang}/cases`
-    : platformAccess
-    ? getPlatformOverviewRoute(lang)
-    : getCustomerDashboardRoute(lang);
+    : getAccountRoute(lang);
   const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || !assurance) redirect(`/${lang}/login?reason=security`);
   if (assurance.currentLevel === 'aal2') redirect(continueTo);
