@@ -1,0 +1,35 @@
+'use client';
+import {useMemo,useState} from 'react';
+import Link from 'next/link';
+import type {Language} from '@/types';
+import {LAB_ROLES,labRoleName,type LabRole} from '@/lib/dashboard-lab/catalog';
+import {createLabTransport} from '@/lib/dashboard-lab/fixtures';
+import {DashboardTransportProvider} from './DashboardTransport';
+import {CustomerContextProvider} from '@/components/customer/CustomerContextProvider';
+import {CustomerDashboard} from '@/components/customer/CustomerDashboard';
+import {OwnerPortfolioPanel} from '@/components/owner/OwnerPortfolioPanel';
+import {OperationalOverviewPanel} from '@/components/platform/OperationalOverviewPanel';
+const copy={
+ fa:{title:'مرکز آزمایش داشبوردها',intro:'همان اجزای داشبورد با دادهٔ فرضی؛ حساب شما سوپرادمین می‌ماند. این محیط برای بررسی رابط است و آزمون مجوزهای واقعی پایگاه داده نیست.',role:'نقش آزمایشی',scenario:'وضعیت داده',sample:'دادهٔ نمونه',empty:'بدون داده',error:'خطای دریافت',reset:'بازنشانی آزمایش',back:'بازگشت به سوپرادمین',notice:'محیط آزمایشی · تغییرات فقط تا بازنشانی یا خروج باقی می‌مانند.',scope:'۱۲ داشبورد پیاده‌سازی‌شده: ۶ نقش ساختمان، مالک چندواحدی و ۵ نقش پلتفرم. نقش‌های سفارشی از نمای پایهٔ خود استفاده می‌کنند.',links:'این مرکز، نمای اصلی داشبوردها را آزمایش می‌کند. صفحات جزئیات خارج از این محیط باز نمی‌شوند.',owner:'در نمای مالک می‌توانید واحد و قرارداد بسازید، وضعیت قرارداد را تغییر دهید، پرداخت ثبت کنید و CSV بگیرید. اتصال واقعی ساختمان و اطلاعات مشتری بارگذاری نمی‌شوند.',blocked:'صفحهٔ جزئیات در آزمایش داشبورد فعال نیست:',downloadError:'دریافت گزارش آزمایشی ناموفق بود.'},
+ ro:{title:'Centrul de testare a tablourilor',intro:'Aceleași componente cu date fictive; contul rămâne superadministrator. Acest mediu verifică interfața, nu permisiunile reale din baza de date.',role:'Rol de test',scenario:'Starea datelor',sample:'Date exemplu',empty:'Fără date',error:'Eroare de încărcare',reset:'Resetează testul',back:'Înapoi la superadministrator',notice:'Mediu de test · Modificările se păstrează doar până la resetare sau ieșire.',scope:'12 tablouri implementate: 6 roluri de clădire, proprietar cu mai multe unități și 5 roluri de platformă. Rolurile personalizate folosesc vizualizarea rolului de bază.',links:'Centrul testează tablourile principale. Paginile de detalii nu se deschid în afara mediului de test.',owner:'În tabloul proprietarului poți crea unități și contracte, schimba starea contractului, înregistra plăți și descărca CSV. Nu se încarcă legături reale sau date ale clienților.',blocked:'Pagina de detalii nu este activă în testul tabloului:',downloadError:'Raportul de test nu a putut fi descărcat.'},
+ en:{title:'Dashboard testing center',intro:'The same dashboard components with fictional data; your account stays a super administrator. This tests the interface, not real database permissions.',role:'Test role',scenario:'Data state',sample:'Sample data',empty:'Empty',error:'Loading error',reset:'Reset test',back:'Back to super administrator',notice:'Test environment · Changes last until reset or exit.',scope:'12 implemented dashboards: 6 building roles, multi-unit owner and 5 platform roles. Custom roles use their base role presentation.',links:'This center tests dashboard home screens. Detail pages do not open outside the test environment.',owner:'In the owner dashboard you can add units and leases, change lease status, record payments and download CSV. Real building links and customer data are not loaded.',blocked:'This detail page is outside the dashboard test:',downloadError:'The test report could not be downloaded.'},
+};
+export function DashboardLab({lang,initialRole='association_admin'}:{lang:Language;initialRole?:LabRole}){
+ const t=copy[lang];const [role,setRole]=useState<LabRole>(initialRole);const[scenario,setScenario]=useState<'sample'|'empty'|'error'>('sample');const[revision,setRevision]=useState(0);const[message,setMessage]=useState('');
+ const fetch=useMemo(()=>{void revision;return createLabTransport(role,lang,scenario)},[role,lang,scenario,revision]);
+ async function capture(event:React.MouseEvent<HTMLDivElement>){
+  const anchor=(event.target as Element).closest('a');if(!anchor)return;
+  event.preventDefault();event.stopPropagation();const href=anchor.getAttribute('data-lab-href')??anchor.getAttribute('href')??'';
+  if(href.startsWith('/api/owner-portfolio/v1/annual?')&&href.includes('format=csv')){
+   try{const r=await fetch(href);if(!r.ok)throw Error();const url=URL.createObjectURL(await r.blob());const a=document.createElement('a');a.href=url;a.download=`test-owner-${lang}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch{setMessage(t.downloadError)}
+  }else setMessage(`${t.blocked} ${href}`);
+ }
+ return <main dir={lang==='fa'?'rtl':'ltr'} className="mx-auto max-w-7xl space-y-5 text-slate-900">
+  <header className="space-y-3 rounded-2xl bg-white p-5"><div className="flex flex-wrap justify-between gap-3"><h1 className="text-2xl font-bold">{t.title}</h1><Link href={`/${lang}/platform/overview`} className="text-teal-800 underline">{t.back}</Link></div><p>{t.intro}</p><p className="text-sm text-slate-600">{t.scope}</p><nav className="flex flex-wrap gap-4" aria-label={lang==='fa'?'زبان':lang==='ro'?'Limbă':'Language'}>{(['ro','en','fa'] as const).map(l=><Link key={l} href={`/${l}/platform/dashboard-lab?role=${role}`} hrefLang={l} className="underline">{l==='fa'?'فارسی':l==='ro'?'Română':'English'}</Link>)}</nav>
+  <div className="flex flex-wrap items-end gap-3"><label>{t.role}<select value={role} onChange={e=>{setRole(e.target.value as LabRole);setMessage('')}} className="mt-1 block max-w-full rounded border p-2">{LAB_ROLES.map(r=><option key={r} value={r}>{labRoleName(r,lang)}</option>)}</select></label><label>{t.scenario}<select value={scenario} onChange={e=>{setScenario(e.target.value as typeof scenario);setMessage('')}} className="mt-1 block rounded border p-2"><option value="sample">{t.sample}</option><option value="empty">{t.empty}</option><option value="error">{t.error}</option></select></label><button onClick={()=>{setRevision(n=>n+1);setMessage('')}} className="rounded bg-teal-800 p-2 text-white">{t.reset}</button></div></header>
+  <aside className="sticky top-0 z-20 space-y-2 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950"><strong>{t.notice}</strong><p>{t.links}</p>{role==='multi_unit_owner'&&<p>{t.owner}</p>}{message&&<p role="status" className="break-all">{message}</p>}</aside>
+  <DashboardTransportProvider value={fetch}><div key={`${role}-${scenario}-${revision}`} onClickCapture={event=>void capture(event)} className={role.startsWith('PLATFORM_')?'rounded-2xl bg-[#081320] p-5':'rounded-2xl bg-slate-50 p-2 sm:p-5'}>
+   {role==='multi_unit_owner'?<OwnerPortfolioPanel lang={lang}/>:role.startsWith('PLATFORM_')?<><h2 className="mb-5 text-xl font-bold text-white">{labRoleName(role,lang)}</h2><OperationalOverviewPanel lang={lang}/></>:<CustomerContextProvider><CustomerDashboard lang={lang}/></CustomerContextProvider>}
+  </div></DashboardTransportProvider>
+ </main>;
+}

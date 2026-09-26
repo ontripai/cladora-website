@@ -1,7 +1,8 @@
 'use client';
+import {useDashboardFetch,useDashboardPreview} from '@/components/dashboard-lab/DashboardTransport';
 
 import { Fragment, useCallback, useEffect, useState } from 'react';
-import Link from 'next/link';
+import {DashboardLink as Link} from '@/components/dashboard-lab/DashboardTransport';
 import { ownerLabel } from '@/lib/owner-portfolio/labels';
 import { OwnerOverviewPanel } from './OwnerOverviewPanel';
 import { SignOutButton } from '@/components/auth/SignOutButton';
@@ -24,6 +25,8 @@ const copy = {
 };
 
 export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
+  const fetch=useDashboardFetch();
+  const preview=useDashboardPreview();
   const t = copy[lang];
   const label = (value: string) => ownerLabel(lang, value);
   const [loadedView, setLoadedView] = useState<LoadedView | null>(null);
@@ -53,7 +56,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     const response = await fetch(`${endpoint}/links`, { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('LINK_READ_FAILED');
     setLinks((await response.json() as { links: UnitLink[] }).links);
-  }, []);
+  }, [fetch]);
 
   const refresh = useCallback(async () => {
     const query = new URLSearchParams({ offset: String(offset), details_offset: String(detailsOffset) });
@@ -61,7 +64,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     const response = await fetch(`${endpoint}?${query}`, { credentials: 'same-origin', cache: 'no-store' });
     if (!response.ok) throw new Error('READ_FAILED');
     setLoadedView({ unitId: selected, offset, detailsOffset, data: await response.json() as View });
-  }, [offset, selected, detailsOffset]);
+  }, [offset, selected, detailsOffset,fetch]);
   useEffect(() => {
     let active = true;
     void fetch(`${endpoint}/links`, { credentials: 'same-origin', cache: 'no-store' })
@@ -69,7 +72,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       .then(data => { if (active) setLinks(data.links); })
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
-  }, [t.failed]);
+  }, [t.failed,fetch]);
   useEffect(() => {
     if (!selected) return;
     let active = true;
@@ -78,7 +81,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       .then(data => { if (active) setLoadedCharges({ unitId: selected, links, data: data.charges }); })
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
-  }, [selected, links, t.failed]);
+  }, [selected, links, t.failed,fetch]);
   useEffect(() => {
     let active = true;
     void fetch(`${endpoint}/annual?year=${year}`, { credentials: 'same-origin', cache: 'no-store' })
@@ -86,7 +89,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       .then(data => { if (active) setLoadedAnnual({ year, data: data.groups }); })
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
-  }, [year, loadedView?.data.entries, t.failed]);
+  }, [year, loadedView?.data.entries, t.failed,fetch]);
   useEffect(() => {
     let active = true;
     const query = new URLSearchParams({ offset: String(offset), details_offset: String(detailsOffset) });
@@ -99,7 +102,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       .then(data => { if (active) setLoadedView({ unitId: selected, offset, detailsOffset, data }); })
       .catch(() => { if (active) setError(t.failed); });
     return () => { active = false; };
-  }, [offset, selected, detailsOffset, t.failed, reload]);
+  }, [offset, selected, detailsOffset, t.failed, reload,fetch]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>, action: 'unit' | 'lease' | 'cash') {
     event.preventDefault(); setBusy(true); setError('');
@@ -142,7 +145,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
   }
 
   return <main dir={lang === 'fa' ? 'rtl' : 'ltr'} className="mx-auto max-w-5xl space-y-6 p-6 text-slate-900">
-    <header><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href={`/${lang}/account?choose=1`} className="text-sm text-teal-800 underline">{lang === 'fa' ? 'انتخاب محیط کار' : lang === 'ro' ? 'Schimbă spațiul' : 'Switch workspace'}</Link><div className="flex items-center gap-3">{(['ro','en','fa'] as const).map(locale=><Link key={locale} href={`/${locale}/owner-portfolio`} hrefLang={locale} className="text-sm underline">{locale==='fa'?'فارسی':locale==='ro'?'Română':'English'}</Link>)}<SignOutButton lang={lang}/></div></div><Link href={`/${lang}/cases`} className="text-sm text-teal-800">{t.return}</Link><h1 className="mt-3 text-2xl font-bold">{t.title}</h1><p className="mt-2 text-sm text-slate-600">{t.private}</p></header>
+    <header><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href={`/${lang}/account?choose=1`} className="text-sm text-teal-800 underline">{lang === 'fa' ? 'انتخاب محیط کار' : lang === 'ro' ? 'Schimbă spațiul' : 'Switch workspace'}</Link><div className="flex items-center gap-3">{(['ro','en','fa'] as const).map(locale=><Link key={locale} href={`/${locale}/owner-portfolio`} hrefLang={locale} className="text-sm underline">{locale==='fa'?'فارسی':locale==='ro'?'Română':'English'}</Link>)}{!preview&&<SignOutButton lang={lang}/>}</div></div><Link href={`/${lang}/cases`} className="text-sm text-teal-800">{t.return}</Link><h1 className="mt-3 text-2xl font-bold">{t.title}</h1><p className="mt-2 text-sm text-slate-600">{t.private}</p></header>
     <OwnerOverviewPanel lang={lang} revision={loadedView} onChange={() => setReload(value => value + 1)} />
     {error && <p role="alert" className="rounded bg-rose-50 p-3 text-rose-800">{error}</p>}
     <form onSubmit={event => void submit(event,'unit')} className="grid gap-3 rounded-xl border bg-white p-5 sm:grid-cols-2">
@@ -161,7 +164,7 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       <h2 className="font-bold">{lang === 'fa' ? 'جمع‌بندی سالانه برای حسابداری' : lang === 'ro' ? 'Sinteză anuală pentru contabilitate' : 'Annual bookkeeping summary'}</h2>
       <p className="text-sm text-slate-600">{lang === 'fa' ? 'بر اساس تاریخ دریافت/پرداخت و داده‌های ثبت‌شده توسط شما؛ مبلغ مالیات یا هزینهٔ قابل‌کسر مالیاتی محاسبه نمی‌شود.' : lang === 'ro' ? 'Pe baza datelor plăților declarate. Nu calculează impozite sau deduceri fiscale.' : 'Based on self-reported payment dates. This is not a tax liability or deduction calculation.'}</p>
       <label>{lang === 'fa' ? 'سال' : lang === 'ro' ? 'An' : 'Year'} <input type="number" min={2000} max={2100} value={year} onChange={event => { const value = Number(event.target.value); if (value >= 2000 && value <= 2100) setYear(value); }} className="w-28 rounded border p-2" /></label>
-      <a href={`${endpoint}/annual?year=${year}&format=csv&lang=${lang}`} className="inline-block text-sm text-teal-800 underline">{lang === 'fa' ? 'دریافت گزارش سالانه CSV' : lang === 'ro' ? 'Descarcă raportul anual CSV' : 'Download annual CSV'}</a>
+      <a href={preview?'#lab-csv':`${endpoint}/annual?year=${year}&format=csv&lang=${lang}`} data-lab-href={preview?`${endpoint}/annual?year=${year}&format=csv&lang=${lang}`:undefined} className="inline-block text-sm text-teal-800 underline">{lang === 'fa' ? 'دریافت گزارش سالانه CSV' : lang === 'ro' ? 'Descarcă raportul anual CSV' : 'Download annual CSV'}</a>
       <ul className="space-y-2">{annual.map(group => <li key={`${group.unit_id}-${group.currency}-${label(group.kind)}-${label(group.direction)}`} className="rounded border p-2">{view.units.find(unit => unit.id === group.unit_id)?.unit_label ?? group.unit_id} · {label(group.kind)} · {label(group.direction)} · {group.entry_count} · {group.amount} {group.currency}</li>)}</ul>
     </section>
     {selected && <Fragment key={`${selected}:${detailsOffset}`}><fieldset disabled={busy || !detailsReady} aria-busy={!detailsReady} className="space-y-6">

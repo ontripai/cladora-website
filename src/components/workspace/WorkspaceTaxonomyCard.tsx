@@ -1,4 +1,5 @@
 'use client';
+import {useDashboardFetch} from '@/components/dashboard-lab/DashboardTransport';
 
 import React, { useEffect, useState } from 'react';
 import { Loader2, AlertCircle, Layers, CheckCircle2, ShieldAlert, ArrowRight, Settings, ShieldCheck, ExternalLink } from 'lucide-react';
@@ -138,6 +139,7 @@ export function WorkspaceTaxonomyCard({
   countryCode = '',
   className = '',
 }: WorkspaceTaxonomyCardProps) {
+  const fetch=useDashboardFetch();
   const dict = DICTIONARY[lang] || DICTIONARY.ro;
   const isRtl = lang === 'fa';
 
@@ -185,7 +187,7 @@ export function WorkspaceTaxonomyCard({
     } finally {
       setLoading(false);
     }
-  }, [contextId, dict.error]);
+  }, [contextId, dict.error,fetch]);
 
   useEffect(() => {
     if (!initialTaxonomy && contextId) {

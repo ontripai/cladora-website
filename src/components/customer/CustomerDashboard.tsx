@@ -1,7 +1,8 @@
 'use client';
+import {useDashboardPreview} from '@/components/dashboard-lab/DashboardTransport';
 
 import React from 'react';
-import Link from 'next/link';
+import {DashboardLink as Link} from '@/components/dashboard-lab/DashboardTransport';
 import {
   ArrowLeft,
   ArrowRight,
@@ -309,6 +310,7 @@ const copy = {
 } as const;
 
 export function CustomerDashboard({ lang }: { lang: Language }) {
+  const preview=useDashboardPreview();
   const { active, dashboard, loading, error } = useCustomerContext();
   const t = copy[lang] ?? copy.ro;
   const isRtl = lang === 'fa';
@@ -715,11 +717,11 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
               <h1 className="text-2xl font-bold font-display text-[#102A43]">{t.title}</h1>
               {getBadge()}
             </div>
-            <p className="mt-1 text-xs text-[#52667A]">{t.subtitle}</p>
+            <p className="mt-1 text-xs text-[#52667A]">{preview ? (lang==='fa'?'پیش‌نمایش نقش با دادهٔ فرضی':lang==='ro'?'Previzualizarea rolului cu date fictive':'Role preview with fictional data') : t.subtitle}</p>
           </div>
           <div className="flex items-center gap-2 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] px-3 py-1.5 text-xs font-bold text-[#0A6E62]">
             <ShieldCheck className="h-4 w-4" />
-            <span>{t.verifiedBadge}</span>
+            <span>{preview ? (lang==='fa'?'دادهٔ آزمایشی':lang==='ro'?'Date de test':'Test data') : t.verifiedBadge}</span>
           </div>
         </div>
 
