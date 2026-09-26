@@ -62,3 +62,15 @@ assert.equal((await route.POST(request({action:'generate',context_id:id,plan_id:
 assert.equal((await route.GET(new NextRequest(url+'?context_id=invalid'))).status,400);
 assert.equal((await route.GET(new NextRequest(url+'?context_id='+id))).status,200);
 console.log('PASS calendar-plan API: origin, date/range validation, authentication, isolated RPCs and parameter mapping');
+const {PreventiveMaintenancePanel}=load('src/components/customer/PreventiveMaintenancePanel.tsx');
+for(const lang of ['ro','en','fa']){
+ globalThis.fetch=async()=>new Response(JSON.stringify({plans:[],assets:[],vendors:[]}));
+ const root=createRoot(document.getElementById('root'));
+ await act(async()=>root.render(React.createElement(PreventiveMaintenancePanel,{lang,contextId:id})));
+ await act(async()=>{await new Promise(r=>setTimeout(r,10));});
+ assert.equal(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
+ assert.equal(document.querySelectorAll('form').length,0,'no mutation form without authorized assets');
+ assert.ok(document.querySelector('h2').textContent.length>10);
+ await act(async()=>root.unmount());
+}
+console.log('PASS maintenance plan panel: three-language empty/access-unavailable state');
