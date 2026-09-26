@@ -102,7 +102,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=cases`
             : `/${lang}/cases`;
         }
-        if (ownerPortfolioRequested && !destination.includes('/platform/')) {
+        if (ownerPortfolioRequested) {
           destination = destination.includes('/mfa')
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=owner-portfolio`
             : `/${lang}/owner-portfolio`;
