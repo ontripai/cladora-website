@@ -17,7 +17,6 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import type { WorkspaceCompositionResponse, ModuleItem } from '@/lib/customer/workspace-composition-schema';
-import { createClient } from '@/lib/supabase/client';
 
 export interface WorkspaceCompositionCardProps {
   contextId?: string;
@@ -165,11 +164,15 @@ export function WorkspaceCompositionCard({
   const [assuranceLevel, setAssuranceLevel] = useState<'aal1' | 'aal2' | null>(null);
 
   useEffect(() => {
-    let mounted = true;
-    void createClient().auth.mfa.getAuthenticatorAssuranceLevel().then(({ data, error }) => {
-      if (mounted && !error) setAssuranceLevel(data.currentLevel === 'aal2' ? 'aal2' : 'aal1');
-    });
-    return () => { mounted = false; };
+    const abort = new AbortController();
+    void fetch('/api/customer/v1/auth/assurance', {cache: 'no-store', signal: abort.signal})
+      .then(async response => response.ok ? response.json() : null)
+      .then(result => {
+        if (!abort.signal.aborted && (result?.level === 'aal1' || result?.level === 'aal2')) {
+          setAssuranceLevel(result.level);
+        }
+      }).catch(() => {});
+    return () => abort.abort();
   }, []);
 
   // Mutation state
