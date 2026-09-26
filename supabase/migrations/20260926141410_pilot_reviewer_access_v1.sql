@@ -46,7 +46,7 @@ revoke all on function platform.end_pilot_reviewers_with_basis() from public,ano
 create trigger end_pilot_reviewers_with_basis after update of status on platform.workspace_access_bases
 for each row execute function platform.end_pilot_reviewers_with_basis();
 
-create function customer_api.prepare_pilot_setup_reviewer_v1(p_workspace_id uuid,p_email text,p_reason text)
+create function app_private.prepare_pilot_setup_reviewer_v1(p_workspace_id uuid,p_email text,p_reason text)
 returns jsonb language plpgsql security definer set search_path='' as $$
 declare v_ws platform.customer_workspaces; v_basis platform.workspace_access_bases; v_id uuid; v_email text:=lower(btrim(coalesce(p_email,'')));
 begin
@@ -69,7 +69,7 @@ begin
  return jsonb_build_object('id',v_id,'expires_at',v_basis.expires_at);
 end $$;
 
-create function customer_api.revoke_pilot_setup_reviewer_v1(p_id uuid,p_reason text)
+create function app_private.revoke_pilot_setup_reviewer_v1(p_id uuid,p_reason text)
 returns jsonb language plpgsql security definer set search_path='' as $$
 declare v_row platform.pilot_setup_reviewers; v_now timestamptz:=statement_timestamp();
 begin
@@ -89,7 +89,7 @@ begin
  return jsonb_build_object('id',p_id,'status','revoked');
 end $$;
 
-create function customer_api.claim_pilot_setup_reviewer_v1(p_workspace_id uuid,p_display_name text,p_locale text)
+create function app_private.claim_pilot_setup_reviewer_v1(p_workspace_id uuid,p_display_name text,p_locale text)
 returns jsonb language plpgsql security definer set search_path='' as $$
 declare v_now timestamptz:=statement_timestamp(); v_email text; v_row platform.pilot_setup_reviewers; v_ws platform.customer_workspaces;
  v_role uuid; v_membership uuid; v_grant uuid;
@@ -126,7 +126,7 @@ begin
  return jsonb_build_object('context_id',v_grant,'expires_at',v_row.expires_at);
 end $$;
 
-create function customer_api.my_pilot_setup_reviewer_v1(p_workspace_id uuid default null)
+create function app_private.my_pilot_setup_reviewer_v1(p_workspace_id uuid default null)
 returns jsonb language plpgsql stable security definer set search_path='' as $$
 declare v_result jsonb;
 begin
@@ -148,7 +148,7 @@ begin
  return coalesce(v_result,'{}'::jsonb);
 end $$;
 
-create or replace function customer_api.approve_building_setup_v1(p_context_id uuid,p_run_id uuid)
+create or replace function app_private.approve_building_setup_v1(p_context_id uuid,p_run_id uuid)
 returns jsonb language plpgsql security definer set search_path=pg_catalog,platform as $$
 declare c record;r platform.building_setup_runs%rowtype;
 begin
@@ -172,7 +172,7 @@ end $$;
 
 -- The historical provision endpoint used the approval permission. Keep existing
 -- administrators working while denying a reviewer context the mutation itself.
-create or replace function customer_api.provision_building_setup_v1(p_context_id uuid,p_run_id uuid)
+create or replace function app_private.provision_building_setup_v1(p_context_id uuid,p_run_id uuid)
 returns jsonb language plpgsql security definer set search_path=pg_catalog,platform,portfolio,finance as $$
 declare c record;r platform.building_setup_runs%rowtype;p_id uuid;b_id uuid;x jsonb;
 begin
@@ -199,10 +199,29 @@ begin
  return jsonb_build_object('version',1,'run_id',r.id,'status','provisioned','property_id',p_id,'building_id',b_id,'idempotent',false);
 end $$;
 
+revoke all on function app_private.prepare_pilot_setup_reviewer_v1(uuid,text,text),
+ app_private.revoke_pilot_setup_reviewer_v1(uuid,text),app_private.claim_pilot_setup_reviewer_v1(uuid,text,text),
+ app_private.my_pilot_setup_reviewer_v1(uuid) from public,anon;
+grant execute on function app_private.prepare_pilot_setup_reviewer_v1(uuid,text,text),
+ app_private.revoke_pilot_setup_reviewer_v1(uuid,text),app_private.claim_pilot_setup_reviewer_v1(uuid,text,text),
+ app_private.my_pilot_setup_reviewer_v1(uuid) to authenticated,service_role;
+
+create function customer_api.prepare_pilot_setup_reviewer_v1(p_workspace_id uuid,p_email text,p_reason text)
+returns jsonb language sql volatile security invoker set search_path=pg_catalog
+as $$select app_private.prepare_pilot_setup_reviewer_v1(p_workspace_id,p_email,p_reason)$$;
+create function customer_api.revoke_pilot_setup_reviewer_v1(p_id uuid,p_reason text)
+returns jsonb language sql volatile security invoker set search_path=pg_catalog
+as $$select app_private.revoke_pilot_setup_reviewer_v1(p_id,p_reason)$$;
+create function customer_api.claim_pilot_setup_reviewer_v1(p_workspace_id uuid,p_display_name text,p_locale text)
+returns jsonb language sql volatile security invoker set search_path=pg_catalog
+as $$select app_private.claim_pilot_setup_reviewer_v1(p_workspace_id,p_display_name,p_locale)$$;
+create function customer_api.my_pilot_setup_reviewer_v1(p_workspace_id uuid default null)
+returns jsonb language sql stable security invoker set search_path=pg_catalog
+as $$select app_private.my_pilot_setup_reviewer_v1(p_workspace_id)$$;
 revoke all on function customer_api.prepare_pilot_setup_reviewer_v1(uuid,text,text),
  customer_api.revoke_pilot_setup_reviewer_v1(uuid,text),customer_api.claim_pilot_setup_reviewer_v1(uuid,text,text),
- customer_api.my_pilot_setup_reviewer_v1(uuid) from public,anon,service_role;
+ customer_api.my_pilot_setup_reviewer_v1(uuid) from public,anon;
 grant execute on function customer_api.prepare_pilot_setup_reviewer_v1(uuid,text,text),
  customer_api.revoke_pilot_setup_reviewer_v1(uuid,text),customer_api.claim_pilot_setup_reviewer_v1(uuid,text,text),
- customer_api.my_pilot_setup_reviewer_v1(uuid) to authenticated;
+ customer_api.my_pilot_setup_reviewer_v1(uuid) to authenticated,service_role;
 commit;
