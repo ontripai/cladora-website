@@ -36,9 +36,17 @@ const copy = {
     revoked: 'Acces revocat.', revokeReason: 'Motivul revocării' },
 };
 
+const defaults = {
+  fa: { pilotReason: 'دسترسی آزمایشی برای بررسی ماژول‌ها، نقش‌ها و سرویس دوره‌ای تجهیزات.', paidReason: 'ثبت دسترسی مدیر بر مبنای قرارداد و مستند پرداخت ارائه‌شده.', revokeReason: 'لغو مجوز دسترسی این مدیر به درخواست مسئول پلتفرم.', confirmRevoke: 'تأیید لغو دسترسی', cancel: 'انصراف', revokeWarning: 'این عملیات مجوز انتخاب‌شده را لغو می‌کند؛ برای ادامه راه‌اندازی، انصراف را بزنید.', duplicate: 'برای این ایمیل یا مرجع پرداخت، تصمیم باز دیگری وجود دارد. تصمیم‌های ثبت‌شده را بررسی کنید؛ ثبت مجدد لازم نیست.', refreshFailed: 'عملیات ثبت شد، اما تازه‌سازی فهرست ناموفق بود. پنجره را ببندید و دوباره باز کنید؛ عملیات را تکرار نکنید.', admin: 'مدیر انجمن', manager: 'مدیر املاک', prepared: 'آمادهٔ فعال‌سازی', active: 'فعال', revoked: 'لغوشده', expired: 'منقضی‌شده', hours: 'ساعت' },
+  en: { pilotReason: 'Pilot access for testing modules, roles and scheduled equipment maintenance.', paidReason: 'Record manager access based on the supplied contract and payment evidence.', revokeReason: 'Revoke this manager access authorization at the platform administrator’s request.', confirmRevoke: 'Confirm revocation', cancel: 'Cancel', revokeWarning: 'This revokes the selected authorization. Cancel to continue workspace setup.', duplicate: 'An open decision already exists for this email or payment reference. Review the recorded decisions; do not submit again.', refreshFailed: 'The operation was saved, but the list could not refresh. Close and reopen this dialog; do not repeat the operation.', admin: 'Association administrator', manager: 'Property manager', prepared: 'Ready for activation', active: 'Active', revoked: 'Revoked', expired: 'Expired', hours: 'hours' },
+  ro: { pilotReason: 'Acces pilot pentru testarea modulelor, rolurilor și mentenanței periodice a echipamentelor.', paidReason: 'Înregistrarea accesului administratorului pe baza contractului și dovezii de plată furnizate.', revokeReason: 'Revocarea autorizației de acces a acestui administrator la cererea administratorului platformei.', confirmRevoke: 'Confirmă revocarea', cancel: 'Anulează', revokeWarning: 'Această operațiune revocă autorizația selectată. Anulează pentru a continua configurarea.', duplicate: 'Există deja o decizie deschisă pentru acest e-mail sau această referință de plată. Verifică deciziile înregistrate; nu retrimite formularul.', refreshFailed: 'Operațiunea a fost salvată, dar lista nu s-a actualizat. Închide și redeschide fereastra; nu repeta operațiunea.', admin: 'Administrator al asociației', manager: 'Administrator de proprietăți', prepared: 'Pregătit pentru activare', active: 'Activ', revoked: 'Revocat', expired: 'Expirat', hours: 'ore' },
+};
+
 type BasisWorkspace = Pick<CustomerWorkspace, 'id' | 'workspace_type' | 'environment' | 'commercial_owner' | 'lifecycle_status'> & { tenant_legal_name?: string };
 export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEmail, onSaved }: { workspace: BasisWorkspace; lang: Lang; onClose: () => void; initialEmail?: string; onSaved?: () => void }) {
   const l = copy[lang];
+  const d = defaults[lang];
+  const [revokeTarget, setRevokeTarget] = useState<Basis | null>(null);
   const [mode, setMode] = useState<'PILOT' | 'PAID'>(workspace.environment === 'PILOT' ? 'PILOT' : 'PAID');
   const [roles, setRoles] = useState<Role[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -93,23 +101,34 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
     try {
       const response = await fetch(baseUrl, { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-      if (!response.ok) throw new Error('SAVE_FAILED');
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        if (result?.error?.code === 'ACCESS_BASIS_EXISTS') {
+          setError(d.duplicate);
+          await load().catch(() => undefined);
+          return;
+        }
+        throw new Error('SAVE_FAILED');
+      }
       setNotice(l.success);
-      await load();
+      await load().catch(() => setError(d.refreshFailed));
       onSaved?.();
     } catch { setError(l.failed); }
     finally { setBusy(false); }
   }
 
-  async function revoke(basis: Basis) {
-    const reason = window.prompt(l.revokeReason);
-    if (!reason || reason.trim().length < 3) return;
+  async function revoke(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!revokeTarget || busy) return;
+    const basis = revokeTarget;
+    const reason = String(new FormData(event.currentTarget).get('revoke_reason') || '').trim();
+    if (reason.length < 3 || reason.length > 500) return;
     setBusy(true); setError(''); setNotice('');
     try {
       const response = await fetch(`${baseUrl}/${basis.id}/revoke`, { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason }) });
       if (!response.ok) throw new Error('REVOKE_FAILED');
-      setNotice(l.revoked); await load();
+      setRevokeTarget(null); setNotice(l.revoked); await load().catch(() => setError(d.refreshFailed));
     } catch { setError(l.failed); }
     finally { setBusy(false); }
   }
@@ -127,11 +146,11 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
           <label><input type="radio" checked={mode === 'PAID'} onChange={() => setMode('PAID')} /> {l.paid}</label>
         </div>
         <label className="block space-y-1">{l.email}<input required type="email" name="email" defaultValue={initialEmail} maxLength={320} className="w-full rounded bg-[#081320] p-2" /></label>
-        <label className="block space-y-1">{l.role}<select required name="role_id" className="w-full rounded bg-[#081320] p-2">
-          <option value="">—</option>{roles.filter(r => r.code === preferred).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+        <label className="block space-y-1">{l.role}<select key={roles.find(r => r.code === preferred)?.id ?? 'loading'} defaultValue={roles.find(r => r.code === preferred)?.id ?? ''} required name="role_id" className="w-full rounded bg-[#081320] p-2">
+          <option value="">—</option>{roles.filter(r => r.code === preferred).map(r => <option key={r.id} value={r.id}>{r.code === 'association_admin' ? d.admin : r.code === 'property_manager' ? d.manager : r.name}</option>)}
         </select></label>
-        {mode === 'PILOT' ? <label className="block space-y-1">{l.duration}<select name="duration_hours" defaultValue="24" className="w-full rounded bg-[#081320] p-2">
-          {[24,48,72].map(hours => <option key={hours} value={hours}>{hours} h</option>)}
+        {mode === 'PILOT' ? <label className="block space-y-1">{l.duration}<select name="duration_hours" defaultValue="72" className="w-full rounded bg-[#081320] p-2">
+          {[24,48,72].map(hours => <option key={hours} value={hours}>{hours} {d.hours}</option>)}
         </select></label> : <>
           <label className="block space-y-1">{l.contract}<select required name="contract_id" className="w-full rounded bg-[#081320] p-2">
             <option value="">—</option>{contracts.filter(c => c.signed_at).map(c => <option key={c.id} value={c.id}>{c.contract_ref} · {c.currency}</option>)}
@@ -145,7 +164,7 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
             <label>{l.paidThrough}<input required name="paid_through" type="date" className="w-full rounded bg-[#081320] p-2" /></label>
           </div>
         </>}
-        <label className="block space-y-1">{l.reason}<textarea required name="evidence_note" minLength={15} maxLength={500} className="min-h-20 w-full rounded bg-[#081320] p-2" /></label>
+        <label className="block space-y-1">{l.reason}<textarea key={`${mode}:${lang}`} defaultValue={mode === 'PILOT' ? d.pilotReason : d.paidReason} required name="evidence_note" minLength={15} maxLength={500} className="min-h-20 w-full rounded bg-[#081320] p-2" /></label>
         {error && <p role="alert" className="text-rose-300">{error}</p>}
         {notice && <p role="status" className="text-emerald-300">{notice}</p>}
         <button disabled={busy || !roles.some(r => r.code === preferred) || (mode === 'PAID' && !contracts.some(c => c.signed_at))}
@@ -153,10 +172,16 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEm
       </form>}
       <h3 className="font-bold">{l.records}</h3>
       <ul className="space-y-2 text-sm">{bases.map(b => <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-[#29445F] p-2">
-        <span>{b.email} · {b.mode} · {b.status}{b.expires_at ? ` · ${new Date(b.expires_at).toLocaleString(lang)}` : ''}</span>
-        {b.status === 'prepared' || b.status === 'active' || b.status === 'expired' ? <button type="button" disabled={busy} onClick={() => void revoke(b)}
+        <span>{b.email} · {b.mode === 'PILOT' ? l.pilot : l.paid} · {b.status === 'prepared' ? d.prepared : b.status === 'active' ? d.active : b.status === 'revoked' ? d.revoked : b.status === 'expired' ? d.expired : b.status}{b.expires_at ? ` · ${new Date(b.expires_at).toLocaleString(lang)}` : ''}</span>
+        {b.status === 'prepared' || b.status === 'active' || b.status === 'expired' ? <button type="button" disabled={busy} onClick={() => setRevokeTarget(b)}
           className="rounded border border-rose-500 px-2 py-1 text-rose-300">{l.revoke}</button> : null}
       </li>)}</ul>
+      {revokeTarget && <form key={revokeTarget.id} onSubmit={revoke} className="space-y-3 rounded border border-rose-400 p-4" aria-label={l.revoke}>
+        <p className="font-bold text-rose-200">{d.revokeWarning}</p>
+        <p dir="ltr">{revokeTarget.email}</p>
+        <label className="block">{l.revokeReason}<textarea autoFocus name="revoke_reason" defaultValue={d.revokeReason} required minLength={3} maxLength={500} className="mt-2 min-h-20 w-full rounded bg-[#081320] p-2" /></label>
+        <div className="flex gap-2"><button type="button" disabled={busy} onClick={() => setRevokeTarget(null)} className="rounded border px-4 py-2">{d.cancel}</button><button type="submit" disabled={busy} className="rounded bg-rose-700 px-4 py-2 text-white disabled:opacity-50">{d.confirmRevoke}</button></div>
+      </form>}
     </section>
   </div>;
 }
