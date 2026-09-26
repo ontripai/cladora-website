@@ -385,6 +385,12 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
   // Explicit contract checks
   // 1. Property manager blocked from governance and meetings
   assert.equal(isRouteAllowedForPersona('property_manager', '/app/governance'), false);
+  for (const role of ['association_admin', 'property_manager']) {
+    assert.equal(isRouteAllowedForPersona(role, '/fa/app/building-setup'), true);
+  }
+  for (const role of ['president', 'censor', 'owner', 'tenant_resident']) {
+    assert.equal(isRouteAllowedForPersona(role, '/fa/app/building-setup'), false);
+  }
   assert.equal(isRouteAllowedForPersona('property_manager', '/app/meetings'), false);
 
   // 2. President allowed allocations, payments, reconciliation
