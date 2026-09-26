@@ -14,7 +14,7 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
   if (!isSupabaseConfigured()) redirect(`/${lang}/login?reason=configuration`);
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) redirect(`/${lang}/login`);
+  if (error || !data?.claims) redirect(`/${lang}/login${next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
   let platformAccess: boolean | null = null;
   try {
     platformAccess = await hasActivePlatformAccess(supabase);
@@ -22,12 +22,14 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
     platformAccess = null;
   }
   if (platformAccess === null) redirect(`/${lang}/login?reason=security`);
-  const continueTo = next === 'workspace-access' && !platformAccess
+  // Explicit owner navigation never grants owner access; the destination rechecks it.
+  const continueTo = next === 'owner-portfolio'
+    ? `/${lang}/owner-portfolio`
+    : next === 'workspace-access' && !platformAccess
     ? `/${lang}/workspace-access`
     : next === 'cases' && !platformAccess
     ? `/${lang}/cases`
-    : next === 'owner-portfolio' && !platformAccess
-    ? `/${lang}/owner-portfolio`
+
     : platformAccess
     ? getPlatformOverviewRoute(lang)
     : getCustomerDashboardRoute(lang);
