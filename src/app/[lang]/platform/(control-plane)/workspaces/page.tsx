@@ -1,6 +1,7 @@
 import { Building2, LockKeyhole } from "lucide-react";
 import { OperationalWorkspacesTable } from "@/components/platform/OperationalWorkspacesTable";
 import { PilotWorkspaceCreator } from "@/components/platform/PilotWorkspaceCreator";
+import { PilotReviewerInvite } from "@/components/platform/PilotReviewerInvite";
 import { getPlatformAuthContext, hasPlatformRole } from "@/lib/platform/auth";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +49,7 @@ export default async function PlatformWorkspacesPage(props: {
         </div>
       </div>
       {hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN') && <PilotWorkspaceCreator lang={lang} />}
+      {hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN') && <PilotReviewerInvite lang={lang as 'ro'|'en'|'fa'} />}
       <OperationalWorkspacesTable lang={lang} canTransition={hasPlatformRole(auth, 'PLATFORM_SUPER_ADMIN')} />
     </div>
   );
