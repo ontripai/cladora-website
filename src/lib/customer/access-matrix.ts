@@ -77,6 +77,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     forbiddenData: ['cross_tenant_data'],
     allowedNavLinks: [
       '/app/dashboard',
+      '/app/building-setup',
       '/app/accounting',
       '/app/accounting/allocations',
       '/app/accounting/reports',
@@ -144,6 +145,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     forbiddenData: ['cross_tenant_data'],
     allowedNavLinks: [
       '/app/dashboard',
+      '/app/building-setup',
       '/app/accounting',
       '/app/accounting/allocations',
       '/app/accounting/reports',
