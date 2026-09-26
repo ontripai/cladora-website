@@ -11,6 +11,8 @@ alter table maintenance.maintenance_plans
   add column calendar_enabled boolean not null default false,
   add column revision integer not null default 1;
 
+create index maintenance_plans_vendor_idx on maintenance.maintenance_plans(vendor_id);
+
 create table maintenance.plan_occurrences (
   plan_id uuid not null references maintenance.maintenance_plans(id) on delete restrict,
   due_on date not null,
