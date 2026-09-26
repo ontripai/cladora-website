@@ -3,7 +3,7 @@ import { MfaChallengeForm } from '@/components/auth/MfaChallengeForm';
 import { createClient } from '@/lib/supabase/server';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { isSupportedLocale } from '@/types';
-import { getCustomerDashboardRoute, getPlatformOverviewRoute, hasActivePlatformAccess } from '@/lib/auth/post-auth-route';
+import { getAccountRoute, hasActivePlatformAccess } from '@/lib/auth/post-auth-route';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,9 +30,7 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
     : next === 'cases' && !platformAccess
     ? `/${lang}/cases`
 
-    : platformAccess
-    ? getPlatformOverviewRoute(lang)
-    : getCustomerDashboardRoute(lang);
+    : getAccountRoute(lang);
   const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || !assurance) redirect(`/${lang}/login?reason=security`);
   if (assurance.currentLevel === 'aal2') redirect(continueTo);

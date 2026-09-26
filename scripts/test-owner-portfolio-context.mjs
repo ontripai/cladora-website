@@ -17,7 +17,9 @@ const compiled = ts.transpileModule(readFileSync(filename, 'utf8'), {
 const componentModule = new Module(filename);
 componentModule.filename = filename;
 componentModule.paths = Module._nodeModulePaths(fileURLToPath(new URL('..', import.meta.url)));
-componentModule.require = id => id === 'next/link'
+const labelModule = new Module(filename);
+labelModule._compile(ts.transpileModule(readFileSync(new URL('../src/lib/owner-portfolio/labels.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,filename);
+componentModule.require = id => id === '@/lib/owner-portfolio/labels' ? labelModule.exports : id === './OwnerOverviewPanel' ? {OwnerOverviewPanel:()=>null} : id === '@/components/auth/SignOutButton' ? {SignOutButton:()=>null} : id === 'next/link'
   ? { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) }
   : require(id);
 componentModule._compile(compiled, filename);
@@ -62,6 +64,10 @@ for (const lang of ['en', 'ro', 'fa']) {
   await reply(unitRequest('A'), dataFor('A'));
   await reply(chargeRequest('A'), { charges: [{ id: 'charge-A', invoice_no: 99123, total: 321, outstanding_amount: 321, currency: 'RON', status: 'issued' }] });
   assert.ok(document.body.textContent.includes('Tenant-A'));
+  assert.ok(document.body.textContent.includes(labelModule.exports.ownerLabel(lang,'income')));
+  assert.ok(document.body.textContent.includes(labelModule.exports.ownerLabel(lang,'issued')));
+  assert.equal(document.querySelector('main').dir,lang==='fa'?'rtl':'ltr');
+  assert.ok(document.querySelector('a[href*="format=csv"]').href.includes(`lang=${lang}`));
   assert.ok(document.body.textContent.includes('#99123'));
   document.querySelector('input[name="tenant_label"]').value = 'Unsubmitted tenant A';
   document.querySelector('input[name="memo"]').value = 'Unsubmitted memo A';

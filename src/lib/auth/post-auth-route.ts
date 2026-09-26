@@ -3,6 +3,7 @@ import type { Database } from '@/types/database.generated';
 import type { Language } from '@/types';
 
 export const getCustomerDashboardRoute = (lang: Language) => `/${lang}/app/dashboard`;
+export const getAccountRoute = (lang: Language) => `/${lang}/account`;
 export const getPlatformOverviewRoute = (lang: Language) => `/${lang}/platform/overview`;
 
 export async function hasActivePlatformAccess(
@@ -32,8 +33,8 @@ export async function resolvePostAuthRoute(
   const hasVerifiedFactor = (factorsResult.data?.totp ?? []).some(
     (factor) => factor.status === 'verified',
   );
-  const destination = platformAccess
-    ? getPlatformOverviewRoute(lang)
+  const destination = platformAccess || hasVerifiedFactor
+    ? getAccountRoute(lang)
     : getCustomerDashboardRoute(lang);
 
   if (platformAccess && !hasVerifiedFactor) {

@@ -29,6 +29,7 @@ export default async function LoginPage(props: { params: Promise<{ lang: Languag
           workspaceAccessRequested={next === 'workspace-access' || next === `/${lang}/workspace-access`}
           caseAccessRequested={next === 'cases'}
           ownerPortfolioRequested={next === 'owner-portfolio'}
+          accountRequested={next === 'account'}
         />
       </div>
     </main>

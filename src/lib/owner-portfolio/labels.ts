@@ -1,0 +1,8 @@
+import type {Language} from '@/types';
+const labels:Record<string,Record<Language,string>>={
+ residential:{en:'Residential',ro:'Rezidențial',fa:'مسکونی'},commercial:{en:'Commercial',ro:'Comercial',fa:'تجاری'},office:{en:'Office',ro:'Birou',fa:'اداری'},industrial:{en:'Industrial',ro:'Industrial',fa:'صنعتی'},other:{en:'Other',ro:'Altele',fa:'سایر'},
+ rent:{en:'Rent',ro:'Chirie',fa:'اجاره'},building_charge:{en:'Building charge',ro:'Cheltuieli clădire',fa:'شارژ ساختمان'},owner_expense:{en:'Expense',ro:'Cheltuială',fa:'هزینه'},tax_reserve:{en:'Tax reserve',ro:'Rezervă pentru taxe',fa:'ذخیره مالیات'},income:{en:'Income',ro:'Încasare',fa:'درآمد'},expense:{en:'Expense',ro:'Plată',fa:'پرداخت'},
+ void:{en:'Void',ro:'Anulată',fa:'باطل‌شده'},credited:{en:'Credited',ro:'Stornată',fa:'اعتبار برگشتی'},archived:{en:'Archived',ro:'Arhivat',fa:'بایگانی‌شده'},
+ draft:{en:'Draft',ro:'Proiect',fa:'پیش‌نویس'},active:{en:'Active',ro:'Activ',fa:'فعال'},ended:{en:'Ended',ro:'Încheiat',fa:'پایان‌یافته'},cancelled:{en:'Cancelled',ro:'Anulat',fa:'لغوشده'},requested:{en:'Requested',ro:'Solicitat',fa:'درخواست‌شده'},manager_verified:{en:'Manager verified',ro:'Verificat de administrator',fa:'تأیید مدیر'},linked:{en:'Linked',ro:'Conectat',fa:'متصل'},withdrawn:{en:'Withdrawn',ro:'Retras',fa:'پس‌گرفته‌شده'},rejected:{en:'Rejected',ro:'Respins',fa:'ردشده'},revoked:{en:'Revoked',ro:'Revocat',fa:'لغو دسترسی'},issued:{en:'Issued',ro:'Emisă',fa:'صادرشده'},paid:{en:'Paid',ro:'Plătit',fa:'پرداخت‌شده'},partially_paid:{en:'Partially paid',ro:'Plătit parțial',fa:'پرداخت جزئی'},overdue:{en:'Overdue',ro:'Restant',fa:'معوق'},
+};
+export const ownerLabel=(lang:Language,value:string)=>labels[value]?.[lang]??value;

@@ -17,9 +17,10 @@ interface LoginFormProps {
   workspaceAccessRequested?: boolean;
   caseAccessRequested?: boolean;
   ownerPortfolioRequested?: boolean;
+  accountRequested?: boolean;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false, accountRequested = false }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +103,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=cases`
             : `/${lang}/cases`;
         }
+        if (accountRequested && !destination.includes('/mfa')) destination = `/${lang}/account`;
         if (ownerPortfolioRequested) {
           destination = destination.includes('/mfa')
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=owner-portfolio`
