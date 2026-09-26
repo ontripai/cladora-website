@@ -78,8 +78,8 @@ export async function POST(request: NextRequest) {
   const workspaceId = accepted?.customer_workspace_id;
   let workspaceVersion: number | undefined;
   if (workspaceId) {
-    const { data: onboarding, error: onboardingError } = await supabase.schema('platform').rpc(
-      'get_my_primary_admin_onboarding',
+    const { data: onboarding, error: onboardingError } = await supabase.schema('customer_api').rpc(
+      'get_my_primary_admin_onboarding_v1',
       { p_workspace_id: workspaceId },
     );
     const state = Array.isArray(onboarding) ? onboarding[0] : onboarding;

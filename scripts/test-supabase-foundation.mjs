@@ -422,11 +422,11 @@ check(!callback.includes('cladora-invitation') && !callback.includes("searchPara
 check(authEmailPolicy.includes('parsed.search') && authEmailPolicy.includes('parsed.hash'), 'query- or fragment-bearing invitation destinations fail closed');
 check(acceptanceApi.includes("request.headers.get('origin')"), 'acceptance POST enforces same-origin requests');
 check(acceptanceApi.includes('supabase.auth.getClaims()'), 'acceptance endpoint verifies signed claims');
-check(acceptanceApi.includes("'get_my_primary_admin_onboarding'"), 'acceptance resolves onboarding state through an actor-scoped RPC');
+check(acceptanceApi.includes("'get_my_primary_admin_onboarding_v1'"), 'acceptance resolves onboarding state through an actor-scoped RPC');
 check(!acceptanceApi.includes("from('customer_workspaces')"), 'customer acceptance never bypasses platform workspace RLS with a direct read');
 check(acceptancePage.includes("get('cladora-invitation')"), 'acceptance page reads the server-only invitation cookie');
 check(platformApiRoutes.every((route) => route.includes('hasPlatformAal2')), 'every platform API route independently enforces AAL2');
-check(onboardingPage.includes("rpc('get_my_primary_admin_onboarding'"), 'onboarding page derives state through the actor-scoped RPC');
+check(onboardingPage.includes("rpc('get_my_primary_admin_onboarding_v1'"), 'onboarding page derives state through the actor-scoped RPC');
 check(!onboardingPage.includes('query.version'), 'onboarding page never trusts a caller-supplied workspace version');
 check(!operationalWorkspacesPage.includes('mockWorkspaces'), 'operational workspace page contains no demo workspace fixtures');
 check(operationalWorkspacesPage.includes('OperationalWorkspacesTable'), 'operational workspace page renders the live workspace table');
