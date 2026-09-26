@@ -12,7 +12,9 @@ const copy={
 export function PilotReviewerPanel({lang}:{lang:Language}){
  const t=copy[lang];const [state,setState]=useState<State|null>(null);const [name,setName]=useState('');const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
  async function refresh(){const response=await fetch('/api/customer/v1/pilot-reviewer',{cache:'no-store'});const body=await response.json();setState(response.ok?body.reviewer:{});}
- useEffect(()=>{void refresh();},[]);
+ useEffect(()=>{const controller=new AbortController();fetch('/api/customer/v1/pilot-reviewer',{cache:'no-store',signal:controller.signal})
+  .then(response=>response.json().then(body=>response.ok?body.reviewer:{})).then(reviewer=>{if(!controller.signal.aborted)setState(reviewer)})
+  .catch(()=>{if(!controller.signal.aborted)setState({})});return ()=>controller.abort();},[]);
  async function act(path:string,payload:object){setBusy(true);setMessage('');try{const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});setMessage(response.ok?t.done:t.error);await refresh();}catch{setMessage(t.error)}finally{setBusy(false)}}
  return <section className="card-proptech space-y-4 bg-white p-6" dir={lang==='fa'?'rtl':'ltr'}><h1 className="text-xl font-bold">{t.title}</h1>
  {state===null?<p>…</p>:!state.status?<p>{t.empty}</p>:<><p>{state.expires_at}</p>
