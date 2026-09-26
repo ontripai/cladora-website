@@ -24,16 +24,19 @@ const unavailableCopy = {
     title: 'Invitația nu este disponibilă',
     message: 'Invitația nu poate fi continuată. Poate fi expirată, anulată, deja utilizată sau indisponibilă pentru această sesiune.',
     action: 'Înapoi la autentificare',
+    caseAction: 'Invitație pentru dosar? Deschide portalul dosarelor',
   },
   en: {
     title: 'Invitation unavailable',
     message: 'This invitation cannot be continued. It may be expired, cancelled, already used, or unavailable for this session.',
     action: 'Back to sign in',
+    caseAction: 'Invited to a case? Open the cases portal',
   },
   fa: {
     title: 'دعوت‌نامه در دسترس نیست',
     message: 'ادامه این دعوت‌نامه ممکن نیست. ممکن است منقضی، لغو، قبلاً استفاده‌شده یا برای این نشست نامعتبر باشد.',
     action: 'بازگشت به ورود',
+    caseAction: 'دعوت به پرونده دارید؟ به پنل پرونده‌ها بروید',
   },
 } as const;
 
@@ -47,6 +50,9 @@ function Unavailable({ lang }: { lang: Language }) {
       <p className="text-xs leading-6 text-[#334E68]">{t.message}</p>
       <Link href={`/${lang}/login`} className="inline-flex w-full items-center justify-center rounded-xl bg-[#087A6E] px-4 py-3 text-xs font-extrabold text-white">
         {t.action}
+      </Link>
+      <Link href={`/${lang}/cases`} className="inline-flex w-full items-center justify-center rounded-xl border border-[#087A6E] px-4 py-3 text-xs font-extrabold text-[#087A6E]">
+        {t.caseAction}
       </Link>
     </div>
   );
