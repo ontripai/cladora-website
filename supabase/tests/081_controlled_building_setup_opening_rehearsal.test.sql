@@ -51,9 +51,10 @@ select ok((select count(*) from finance.accounting_periods where tenant_id='8120
 -- Inspect the private binding as the test owner; authenticated callers must not gain table access.
 reset role;
 select ok((select count(*) from platform.workspace_property_bindings where customer_workspace_id='81400000-0000-0000-0000-000000000001' and status='active')=1,'provision binds property to workspace');
-set local role authenticated;
+-- Both grants are inspected independently of the reviewer's row visibility.
 select ok((select count(*) from identity.context_grants where membership_id='81300000-0000-0000-0000-000000000001' and scope_type='property')=1,'original operator gains property context');
 select ok((select count(*) from identity.context_grants where membership_id='81300000-0000-0000-0000-000000000002' and scope_type='property')=0,'reviewer gains no property context');
+set local role authenticated;
 select lives_ok($$select customer_api.provision_building_setup_v1('81500000-0000-0000-0000-000000000002',(select id from platform.building_setup_runs limit 1))$$,'provision retry is deterministic');
 reset role;
 select ok((select count(*) from platform.workspace_property_bindings where customer_workspace_id='81400000-0000-0000-0000-000000000001' and status='active')=1,'retry creates no duplicate binding');
