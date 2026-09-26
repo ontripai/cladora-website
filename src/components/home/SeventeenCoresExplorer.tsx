@@ -73,7 +73,7 @@ export const SeventeenCoresExplorer: React.FC<SeventeenCoresExplorerProps> = ({ 
                   : 'text-slate-200 hover:text-white'
               }`}
             >
-              {lang === 'ro' ? 'P1: Nucleu MVP (6)' : lang === 'fa' ? 'فاز ۱: هسته MVP (۶)' : 'P1: Core MVP (6)'}
+              {lang === 'ro' ? `P1: Nucleu MVP (${cores.filter(c=>c.priority==='P1').length})` : lang === 'fa' ? `فاز ۱: هسته MVP (${cores.filter(c=>c.priority==='P1').length})` : `P1: Core MVP (${cores.filter(c=>c.priority==='P1').length})`}
             </button>
             <button
               onClick={() => setSelectedPriority('P2')}
@@ -93,7 +93,7 @@ export const SeventeenCoresExplorer: React.FC<SeventeenCoresExplorerProps> = ({ 
                   : 'text-slate-200 hover:text-white'
               }`}
             >
-              {lang === 'ro' ? 'P3: AI & Valoare (4)' : lang === 'fa' ? 'فاز ۳: هوش مصنوعی و ارزش (۴)' : 'P3: AI & Value (4)'}
+              {lang === 'ro' ? `P3: AI & Valoare (${cores.filter(c=>c.priority==='P3').length})` : lang === 'fa' ? `فاز ۳: هوش مصنوعی و ارزش (${cores.filter(c=>c.priority==='P3').length})` : `P3: AI & Value (${cores.filter(c=>c.priority==='P3').length})`}
             </button>
           </div>
 

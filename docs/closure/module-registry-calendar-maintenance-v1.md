@@ -1,0 +1,15 @@
+# Module registry and calendar maintenance v1
+
+Date: 2026-09-26
+
+The product target is that all 17 logical cores are available across all property profiles. Profile and operating model provide recommendations, not exclusion of a core. The existing runtime catalog, entitlements, compatibility, dependencies and deny-first scoped permission resolver remain authoritative. The 17 cores are not 17 independent installable modules. Planned cores cannot be switched on. Core authentication, authorization and audit are never optional product switches.
+
+The AAL2 superadministrator page `/fa/platform/module-registry` (also RO/EN) records all 17 cores, 16 property profiles, 8 operating models and 12 dashboard-lab personas. It distinguishes implemented workflow slices, partial implementations, read models and planned work. It is a versioned planning reference, not a live inventory or authorization grant. The 12 personas consist of six canonical customer roles, the private multi-unit owner and five platform roles; contractor access is not yet a separate persona. Custom roles remain subject to real permission checks.
+
+Preventive maintenance connects C07 assets, C09 plans/work orders and C10 approved vendors. The Plans tab on `/app/maintenance` supports calendar plans with day/week/month/year intervals, first due date, required checklist, approved vendor, revision-checked edits, disabling without deletion, occurrence history and due draft generation. Asset and calendar identity cannot change after creation; disable and replace the plan for a new cadence. Each due occurrence is issued manually in v1. There is no background scheduler or contractor notification in this release. Work-order approvals and lifecycle are unchanged.
+
+Month/year dates are calculated from the original anchor, preserving Jan 31 after a short February and leap-day anniversaries. Row locking and a unique plan/due key prevent duplicate generation on retries. Overdue occurrences are issued one by one without silently skipping dates. Dates use Europe/Bucharest, matching the existing Romanian workspace workflows. Automatic dispatch, contract selection/expiry validation and other workspace time zones remain future work.
+
+Mutations require AAL2, maintenance management permission, entitlement, installed module and explicit asset scope. Reads are scoped, and no production identity is impersonated. Workspace module deactivation gates new reads/mutations while retaining records. The initial list is bounded at 200 plans and 500 asset/vendor choices; search/pagination is not yet part of this slice.
+
+Verification includes three-language registry rendering, complete taxonomy recommendation enumeration, server gate denial, actual API handler origin/date/range/auth checks and isolated database tests for module activation, create/edit, recurrence, duplicate generation, disabling/history and authentication. Browser layout and live customer sessions have not been verified in this execution environment. No permanent production test users or invitations are created by this change.

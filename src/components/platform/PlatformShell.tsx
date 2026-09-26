@@ -36,6 +36,7 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
   const isRtl = isRtlLocale(lang as 'ro' | 'en' | 'fa');
 
   const navItems = [
+    {href:`/${lang}/platform/module-registry`,label:lang==='fa'?'نگاشت و نیاز ماژول‌ها':lang==='ro'?'Harta și necesarul modulelor':'Module map and requirements',icon:Layers,roles:['PLATFORM_SUPER_ADMIN'] as PlatformRole[]},
     {href:`/${lang}/platform/dashboard-lab`,label:lang==='fa'?'آزمایش داشبوردها':lang==='ro'?'Testare tablouri':'Test dashboards',icon:Layers,roles:['PLATFORM_SUPER_ADMIN'] as PlatformRole[]},
     {
       href: `/${lang}/platform/overview`,
