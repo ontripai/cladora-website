@@ -1454,6 +1454,10 @@ export type Database = {
       };
     };
     Functions: {
+      prepare_pilot_setup_reviewer_v1: { Args: { p_workspace_id: string; p_email: string; p_reason: string }; Returns: Json };
+      revoke_pilot_setup_reviewer_v1: { Args: { p_id: string; p_reason: string }; Returns: Json };
+      claim_pilot_setup_reviewer_v1: { Args: { p_workspace_id: string; p_display_name: string; p_locale: string }; Returns: Json };
+      my_pilot_setup_reviewer_v1: { Args: { p_workspace_id?: string }; Returns: Json };
       get_my_primary_admin_onboarding_v1: {
         Args: { p_workspace_id: string }
         Returns: { customer_workspace_id: string; workspace_version: number; onboarding_completed: boolean }[]
