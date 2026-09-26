@@ -4,6 +4,7 @@ import {createClient} from '@/lib/supabase/server';
 import {HEADERS,mapMaintenanceRpcError} from '@/lib/customer/maintenance-api-helper';
 import {hasTrustedMutationOrigin} from '@/lib/security/same-origin';
 import {isApplicationJson,parseJsonWithLimit} from '@/lib/security/request-body';
+import {maintenanceTemplateFor} from '@/lib/customer/maintenance-defaults';
 const date=z.iso.date();
 const save=z.object({action:z.literal('save'),context_id:z.uuid(),id:z.uuid(),revision:z.number().int().min(0),asset_id:z.uuid(),vendor_id:z.uuid(),name:z.string().trim().min(1).max(200),anchor:date,unit:z.enum(['days','weeks','months','years']),every:z.number().int().min(1).max(120),enabled:z.boolean(),checklist:z.array(z.string().trim().min(1).max(200)).max(50)}).strict();
 const generate=z.object({action:z.literal('generate'),context_id:z.uuid(),plan_id:z.uuid(),due_on:date}).strict();
@@ -23,5 +24,11 @@ export async function POST(request:NextRequest){
  const parsed=mutation.safeParse(data);if(!parsed.success)return NextResponse.json({error:{code:'INVALID_REQUEST'}},{status:400,headers:HEADERS});
  const p=parsed.data;
  if(p.action==='generate')return rpc('generate_calendar_order_v1',{p_context_id:p.context_id,p_plan_id:p.plan_id,p_due_on:p.due_on});
+ // Fixed codes keep preset names and checklist steps identical across locales.
+ const template=maintenanceTemplateFor(p.name);
+ if((p.name.startsWith('CLADORA_PM_')&&!template)
+   ||(template&&JSON.stringify(p.checklist)!==JSON.stringify(template.steps.map(step=>step.code)))
+   ||(!template&&p.checklist.some(step=>step.startsWith('CLADORA_PM_'))))
+   return NextResponse.json({error:{code:'INVALID_TEMPLATE'}},{status:400,headers:HEADERS});
  return rpc('save_calendar_plan_v1',{p_context_id:p.context_id,p_id:p.id,p_revision:p.revision,p_asset_id:p.asset_id,p_vendor_id:p.vendor_id,p_name:p.name,p_anchor:p.anchor,p_unit:p.unit,p_every:p.every,p_enabled:p.enabled,p_checklist:p.checklist});
 }
