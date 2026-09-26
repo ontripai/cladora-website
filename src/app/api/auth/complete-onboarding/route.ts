@@ -12,7 +12,7 @@ export async function POST(request:NextRequest){
   if(claimsError||!claims?.claims?.sub) return NextResponse.json({error:{code:'AUTHENTICATION_REQUIRED'}},{status:401,headers});
   const {data:assurance}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if(assurance?.currentLevel!=='aal2') return NextResponse.json({error:{code:'MFA_REQUIRED'}},{status:403,headers});
-  const {data,error}=await supabase.schema('platform').rpc('complete_primary_admin_onboarding',{p_workspace_id:input.workspace_id,p_expected_version:input.expected_version,p_reason:input.reason});
+  const {data,error}=await supabase.schema('customer_api').rpc('complete_primary_admin_onboarding_v1',{p_workspace_id:input.workspace_id,p_expected_version:input.expected_version,p_reason:input.reason});
   if(error||!data) return NextResponse.json({error:{code:error?.message.includes('concurrency_conflict')?'CONCURRENCY_CONFLICT':'ONBOARDING_REJECTED'}},{status:error?.message.includes('concurrency_conflict')?409:403,headers});
   return NextResponse.json({completed:true},{status:200,headers});
 }

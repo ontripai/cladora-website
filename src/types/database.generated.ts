@@ -1454,6 +1454,14 @@ export type Database = {
       };
     };
     Functions: {
+      get_my_primary_admin_onboarding_v1: {
+        Args: { p_workspace_id: string }
+        Returns: { customer_workspace_id: string; workspace_version: number; onboarding_completed: boolean }[]
+      }
+      complete_primary_admin_onboarding_v1: {
+        Args: { p_workspace_id: string; p_expected_version: number; p_reason: string }
+        Returns: Json
+      }
       get_dashboard_v1: {
         Args: { p_context_id: string };
         Returns: Json;
