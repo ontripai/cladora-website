@@ -16,7 +16,7 @@ assert.doesNotMatch(migration, /insert into finance\.journals/i);
 assert.doesNotMatch(migration, /service_role_key|ontrip\.ai@gmail\.com/i);
 assert.match(dbTest, /^begin;/m);
 assert.match(dbTest, /^rollback;/m);
-assert.match(dbTest, /select plan\(24\)/);
+assert.match(dbTest, /select plan\(28\)/);
 assert.match(dbTest, /zero property writes/);
 assert.match(dbTest, /emit no journal/);
 for (const marker of ['Configurare controlată a clădirii','Controlled building setup','راه‌اندازی کنترل‌شده ساختمان']) assert.ok(wizard.includes(marker), `missing localized setup copy: ${marker}`);
