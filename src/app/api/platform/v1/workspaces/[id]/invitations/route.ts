@@ -114,7 +114,7 @@ export async function POST(
 
   try {
     const origin = getApplicationOrigin();
-    const redirectTo = `${origin}/${parsed.lang}/auth/callback`;
+    const redirectTo = `${origin}/${parsed.lang}/auth/callback?next=/${parsed.lang}/invitation-continuation`;
     const admin = createAdminClient();
     const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(parsed.email, { redirectTo });
     if (inviteError) throw inviteError;
