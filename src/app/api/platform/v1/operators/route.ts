@@ -5,12 +5,12 @@ import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { createClient } from '@/lib/supabase/server';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
-const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR']);
+const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR','PLATFORM_SALES','PLATFORM_CONTRACTS','PLATFORM_ONBOARDING']);
 const schema = z.object({
   email: z.email().max(320), employee_ref: z.string().trim().min(3).max(80),
-  display_name: z.string().trim().min(3).max(150), role,
+  display_name: z.string().trim().min(3).max(150), role: role.optional(), roles: z.array(role).min(1).max(7).optional(),
   reason: z.string().trim().min(8).max(500),
-});
+}).refine(v => Boolean(v.roles?.length || v.role) && (!v.roles || new Set(v.roles).size === v.roles.length));
 
 export async function POST(request: Request) {
   const auth = await getPlatformAuthContext();
@@ -21,9 +21,9 @@ export async function POST(request: Request) {
   const parsed = schema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: { code: 'INVALID_INPUT' } }, { status: 400, headers: HEADERS });
   const supabase = await createClient();
-  const { data, error } = await supabase.schema('customer_api').rpc('create_platform_operator_v1', {
+  const { data, error } = await supabase.schema('customer_api').rpc('create_platform_operator_multi_role_v1', {
     p_email: parsed.data.email, p_employee_ref: parsed.data.employee_ref,
-    p_display_name: parsed.data.display_name, p_role: parsed.data.role, p_reason: parsed.data.reason,
+    p_display_name: parsed.data.display_name, p_roles: parsed.data.roles ?? [parsed.data.role!], p_reason: parsed.data.reason,
   });
   if (error) {
     const code = error.message.includes('verified_auth_user_required') ? 'VERIFIED_ACCOUNT_REQUIRED'

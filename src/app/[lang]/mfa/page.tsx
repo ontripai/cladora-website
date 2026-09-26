@@ -24,6 +24,10 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
   if (platformAccess === null) redirect(`/${lang}/login?reason=security`);
   const continueTo = next === 'workspace-access' && !platformAccess
     ? `/${lang}/workspace-access`
+    : next === 'cases' && !platformAccess
+    ? `/${lang}/cases`
+    : next === 'owner-portfolio' && !platformAccess
+    ? `/${lang}/owner-portfolio`
     : platformAccess
     ? getPlatformOverviewRoute(lang)
     : getCustomerDashboardRoute(lang);
@@ -31,7 +35,7 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
   if (assuranceError || !assurance) redirect(`/${lang}/login?reason=security`);
   if (assurance.currentLevel === 'aal2') redirect(continueTo);
   if (assurance.nextLevel !== 'aal2') {
-    redirect(`/${lang}/mfa/setup?reason=${platformAccess ? 'platform_required' : 'customer_required'}${next === 'workspace-access' ? '&next=workspace-access' : ''}`);
+    redirect(`/${lang}/mfa/setup?reason=${platformAccess ? 'platform_required' : 'customer_required'}${next === 'workspace-access' ? '&next=workspace-access' : next === 'cases' ? '&next=cases' : next === 'owner-portfolio' ? '&next=owner-portfolio' : ''}`);
   }
   return <main className="flex min-h-screen items-center justify-center bg-[#F6F9FC] p-6"><MfaChallengeForm lang={lang} continueTo={continueTo} /></main>;
 }

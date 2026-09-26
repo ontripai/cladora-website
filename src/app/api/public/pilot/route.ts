@@ -10,12 +10,14 @@ import { notifyNewLead } from '../../../../lib/notifications/lead-notifier.ts';
 import { isSupabaseConfigured } from '../../../../lib/supabase/env.ts';
 import { isApplicationJson, parseJsonWithLimit } from '../../../../lib/security/request-body.ts';
 import { validateLeadServiceConfiguration } from '../../../../lib/security/lead-security-config.ts';
+import { pilotWorkspaceTypes, pilotWorkspaceSubtypeValid, type PilotWorkspaceType } from '../../../../lib/pilot/workspace-types.ts';
 
 // Enforce dynamic server execution
 export const dynamic = 'force-dynamic';
 
 export const PILOT_ROLES = ['admin', 'president', 'cenzor', 'owner'] as const;
 export const PILOT_BUILDING_TYPES = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'] as const;
+const PILOT_APPLICANTS = ['association', 'management_company', 'owner', 'multi_unit_owner', 'company', 'other'] as const;
 
 const PilotPayloadSchema = z
   .object({
@@ -35,6 +37,12 @@ const PilotPayloadSchema = z
       .min(5, { message: 'Phone number must be at least 5 characters.' })
       .max(50, { message: 'Phone number cannot exceed 50 characters.' }),
     role: z.enum(PILOT_ROLES, { message: 'Please select a valid role.' }).optional().nullable(),
+    applicantType: z.enum(PILOT_APPLICANTS),
+    workspaceType: z.enum(pilotWorkspaceTypes as [PilotWorkspaceType, ...PilotWorkspaceType[]]),
+    workspaceSubtype: z.string().trim().max(80),
+    workspaceCount: z.number().int().min(1).max(1000),
+    workspaceDescription: z.string().trim().max(500).optional().nullable(),
+    relatedBuildings: z.string().trim().max(1000).optional().nullable(),
     buildingType: z.enum(PILOT_BUILDING_TYPES, { message: 'Please select a valid building type.' }).optional().nullable(),
     unitsCount: z
       .number({ message: 'Units count must be a number.' })
@@ -83,7 +91,25 @@ const PilotPayloadSchema = z
     honeypot: z.string().optional(),
     turnstileToken: z.string().optional().nullable(),
   })
-  .strict();
+  .strict()
+  .superRefine((value, ctx) => {
+    if (!pilotWorkspaceSubtypeValid(value.workspaceType, value.workspaceSubtype))
+      ctx.addIssue({ code: 'custom', path: ['workspaceSubtype'], message: 'Select a subtype for the requested workspace.' });
+    if ((value.workspaceType === 'other' || value.workspaceSubtype === 'other') && !value.workspaceDescription?.trim())
+      ctx.addIssue({ code: 'custom', path: ['workspaceDescription'], message: 'Describe the requested workspace.' });
+    if (value.workspaceType === 'shared' && !value.relatedBuildings?.trim())
+      ctx.addIssue({ code: 'custom', path: ['relatedBuildings'], message: 'Describe the buildings sharing this space.' });
+    if (value.workspaceCount > 1 && !value.message?.trim())
+      ctx.addIssue({ code: 'custom', path: ['message'], message: 'Describe the additional requested workspaces.' });
+    if (value.workspaceType !== 'residential' && value.buildingType)
+      ctx.addIssue({ code: 'custom', path: ['buildingType'], message: 'Building archetypes apply only to residential requests.' });
+    if (value.applicantType === 'multi_unit_owner' && value.role !== 'owner')
+      ctx.addIssue({ code: 'custom', path: ['role'], message: 'A multi-unit owner request must identify the owner role.' });
+    if (value.applicantType === 'multi_unit_owner' && value.workspaceCount !== 1)
+      ctx.addIssue({ code: 'custom', path: ['workspaceCount'], message: 'A multi-unit owner starts with one personal portfolio.' });
+    if (value.applicantType === 'multi_unit_owner' && value.buildingType)
+      ctx.addIssue({ code: 'custom', path: ['buildingType'], message: 'A portfolio of units is not a single building archetype.' });
+  });
 
 export async function POST(request: NextRequest) {
   // 1. Same-Origin Validation
@@ -274,6 +300,12 @@ export async function POST(request: NextRequest) {
         email: normalizedEmail,
         phone: data.phone,
         role: data.role || null,
+        applicant_type: data.applicantType,
+        requested_workspace_type: data.workspaceType,
+        requested_workspace_subtype: data.workspaceSubtype || null,
+        requested_workspace_count: data.workspaceCount,
+        requested_workspace_description: data.workspaceDescription || null,
+        requested_related_buildings: data.relatedBuildings || null,
         building_type: data.buildingType || null,
         units_count: data.unitsCount,
         current_software: data.currentSoftware || null,

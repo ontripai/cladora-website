@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { CustomerWorkspace } from '@/types/platform';
+import { isPrimaryWorkspaceRoleAvailable, primaryWorkspaceRole } from '@/lib/customer/primary-workspace-role';
 
 type Role = { id: string; code: string; name: string };
 type Contract = { id: string; contract_ref: string; status: string; currency: string; signed_at: string | null };
@@ -35,7 +36,8 @@ const copy = {
     revoked: 'Acces revocat.', revokeReason: 'Motivul revocării' },
 };
 
-export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { workspace: CustomerWorkspace; lang: Lang; onClose: () => void }) {
+type BasisWorkspace = Pick<CustomerWorkspace, 'id' | 'workspace_type' | 'environment' | 'commercial_owner' | 'lifecycle_status'> & { tenant_legal_name?: string };
+export function WorkspaceAccessBasisDialog({ workspace, lang, onClose, initialEmail, onSaved }: { workspace: BasisWorkspace; lang: Lang; onClose: () => void; initialEmail?: string; onSaved?: () => void }) {
   const l = copy[lang];
   const [mode, setMode] = useState<'PILOT' | 'PAID'>(workspace.environment === 'PILOT' ? 'PILOT' : 'PAID');
   const [roles, setRoles] = useState<Role[]>([]);
@@ -44,7 +46,8 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { works
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
-  const preferred = workspace.workspace_type === 'PROPERTY_MANAGER' ? 'property_manager' : 'association_admin';
+  const preferred = primaryWorkspaceRole(workspace.workspace_type);
+  const primaryRolePending = !isPrimaryWorkspaceRoleAvailable(workspace.workspace_type);
   const baseUrl = `/api/platform/v1/workspaces/${workspace.id}/access-bases`;
 
   async function load() {
@@ -93,6 +96,7 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { works
       if (!response.ok) throw new Error('SAVE_FAILED');
       setNotice(l.success);
       await load();
+      onSaved?.();
     } catch { setError(l.failed); }
     finally { setBusy(false); }
   }
@@ -116,12 +120,13 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { works
         <button type="button" onClick={onClose} className="rounded border border-slate-500 px-3 py-1">{l.close}</button></div>
       <p className="rounded-lg border border-amber-400/40 p-3 text-sm text-amber-200">{l.intro}</p>
       <p className="font-mono text-xs text-slate-400">{workspace.tenant_legal_name ?? workspace.commercial_owner} · {workspace.lifecycle_status}</p>
-      <form onSubmit={submit} className="space-y-3">
+      {primaryRolePending&&<p role="status" className="rounded-lg border border-amber-400/40 p-3 text-sm text-amber-200">{lang==='fa'?'نقش مدیر اصلی برای پورتفوی مالک و ساختار ترکیبی هنوز تعریف و تأیید نشده است؛ ثبت دسترسی تا تکمیل نقش و مجوزهای مناسب بسته است.':lang==='ro'?'Rolul administratorului principal pentru portofoliu și structură hibridă nu este încă aprobat. Accesul rămâne indisponibil.':'A primary administrator role for owner portfolios and hybrid workspaces has not been approved yet. Access preparation is unavailable.'}</p>}
+      {!primaryRolePending&&<form onSubmit={submit} className="space-y-3">
         <div className="flex gap-4">
           {workspace.environment === 'PILOT' && <label><input type="radio" checked={mode === 'PILOT'} onChange={() => setMode('PILOT')} /> {l.pilot}</label>}
           <label><input type="radio" checked={mode === 'PAID'} onChange={() => setMode('PAID')} /> {l.paid}</label>
         </div>
-        <label className="block space-y-1">{l.email}<input required type="email" name="email" maxLength={320} className="w-full rounded bg-[#081320] p-2" /></label>
+        <label className="block space-y-1">{l.email}<input required type="email" name="email" defaultValue={initialEmail} maxLength={320} className="w-full rounded bg-[#081320] p-2" /></label>
         <label className="block space-y-1">{l.role}<select required name="role_id" className="w-full rounded bg-[#081320] p-2">
           <option value="">—</option>{roles.filter(r => r.code === preferred).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
         </select></label>
@@ -143,9 +148,9 @@ export function WorkspaceAccessBasisDialog({ workspace, lang, onClose }: { works
         <label className="block space-y-1">{l.reason}<textarea required name="evidence_note" minLength={15} maxLength={500} className="min-h-20 w-full rounded bg-[#081320] p-2" /></label>
         {error && <p role="alert" className="text-rose-300">{error}</p>}
         {notice && <p role="status" className="text-emerald-300">{notice}</p>}
-        <button disabled={busy || roles.length === 0 || (mode === 'PAID' && !contracts.some(c => c.signed_at))}
+        <button disabled={busy || !roles.some(r => r.code === preferred) || (mode === 'PAID' && !contracts.some(c => c.signed_at))}
           className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{l.save}</button>
-      </form>
+      </form>}
       <h3 className="font-bold">{l.records}</h3>
       <ul className="space-y-2 text-sm">{bases.map(b => <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-[#29445F] p-2">
         <span>{b.email} · {b.mode} · {b.status}{b.expires_at ? ` · ${new Date(b.expires_at).toLocaleString(lang)}` : ''}</span>

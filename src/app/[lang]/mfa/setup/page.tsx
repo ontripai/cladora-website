@@ -24,12 +24,14 @@ export default async function MfaSetupPage({ params, searchParams }: { params: P
   if (platformAccess === null) redirect(`/${lang}/login?reason=security`);
   const continueTo = next === 'workspace-access' && !platformAccess
     ? `/${lang}/workspace-access`
+    : next === 'cases' && !platformAccess
+    ? `/${lang}/cases`
     : platformAccess
     ? getPlatformOverviewRoute(lang)
     : getCustomerDashboardRoute(lang);
   const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || !assurance) redirect(`/${lang}/login?reason=security`);
   if (assurance.currentLevel === 'aal2') redirect(continueTo);
-  if (assurance.nextLevel === 'aal2') redirect(`/${lang}/mfa${next === 'workspace-access' ? '?next=workspace-access' : ''}`);
+  if (assurance.nextLevel === 'aal2') redirect(`/${lang}/mfa${next === 'workspace-access' ? '?next=workspace-access' : next === 'cases' ? '?next=cases' : next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
   return <main className="mx-auto flex min-h-screen max-w-3xl items-center bg-[#F6F9FC] p-6"><AccountSecurityPanel lang={lang} continueTo={continueTo} /></main>;
 }

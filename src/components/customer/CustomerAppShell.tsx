@@ -258,6 +258,7 @@ function Shell({
             </Link>
           );
         })}
+        {(roleCode === 'association_admin' || roleCode === 'property_manager') && <Link href={`/${lang}/owner-link-review`} className="rounded-lg border px-3 py-2 text-teal-800">{lang === 'fa' ? 'اتصال واحد مالکان' : 'Owner unit links'}</Link>}
       </nav>
 
       <div className="flex">
@@ -277,6 +278,7 @@ function Shell({
                 </Link>
               );
             })}
+            {(roleCode === 'association_admin' || roleCode === 'property_manager') && <Link href={`/${lang}/owner-link-review`} className="block rounded-xl px-3 py-2.5 text-xs font-bold text-teal-800">{lang === 'fa' ? 'بررسی اتصال واحد مالکان' : 'Review owner unit links'}</Link>}
           </nav>
           <div className="mt-6 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs text-[#0A6E62]">
             <div className="flex items-center gap-2 font-bold">

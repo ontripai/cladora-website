@@ -5,8 +5,9 @@ import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { createClient } from '@/lib/supabase/server';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
-const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR']);
-const grant = z.object({ platform_user_id: z.uuid(), role, reason: z.string().trim().min(8).max(500) });
+const role = z.enum(['PLATFORM_OPERATIONS','PLATFORM_FINANCE','PLATFORM_SUPPORT','PLATFORM_AUDITOR','PLATFORM_SALES','PLATFORM_CONTRACTS','PLATFORM_ONBOARDING']);
+const grant = z.object({ platform_user_id: z.uuid(), role: role.optional(), roles: z.array(role).min(1).max(7).optional(), reason: z.string().trim().min(8).max(500) })
+  .refine(v => Boolean(v.roles?.length || v.role) && (!v.roles || new Set(v.roles).size === v.roles.length));
 const revoke = z.object({ assignment_id: z.uuid(), reason: z.string().trim().min(8).max(500) });
 
 async function mutate(request: Request, method: 'POST' | 'DELETE') {
@@ -20,8 +21,8 @@ async function mutate(request: Request, method: 'POST' | 'DELETE') {
   if (method === 'POST') {
     const parsed = grant.safeParse(payload);
     if (!parsed.success) return NextResponse.json({ error: { code: 'INVALID_INPUT' } }, { status: 400, headers: HEADERS });
-    const { data, error } = await supabase.schema('customer_api').rpc('grant_platform_operator_role_v1', {
-      p_platform_user_id: parsed.data.platform_user_id, p_role: parsed.data.role, p_reason: parsed.data.reason,
+    const { data, error } = await supabase.schema('customer_api').rpc('grant_platform_operator_roles_v1', {
+      p_platform_user_id: parsed.data.platform_user_id, p_roles: parsed.data.roles ?? [parsed.data.role!], p_reason: parsed.data.reason,
     });
     if (error) return NextResponse.json({ error: { code: error.code === '23505' ? 'ROLE_ALREADY_ACTIVE' : 'GRANT_FAILED' } }, { status: error.code === '23505' ? 409 : 400, headers: HEADERS });
     return NextResponse.json({ assignment: data }, { status: 201, headers: HEADERS });

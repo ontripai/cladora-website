@@ -1061,7 +1061,10 @@ export type Database = {
         | 'PLATFORM_OPERATIONS'
         | 'PLATFORM_FINANCE'
         | 'PLATFORM_SUPPORT'
-        | 'PLATFORM_AUDITOR';
+        | 'PLATFORM_AUDITOR'
+        | 'PLATFORM_SALES'
+        | 'PLATFORM_CONTRACTS'
+        | 'PLATFORM_ONBOARDING';
       workspace_type: 'ASSOCIATION' | 'PROPERTY_MANAGER' | 'OWNER_PORTFOLIO' | 'HYBRID';
       workspace_lifecycle_status:
         | 'LEAD'
@@ -1433,6 +1436,12 @@ export type Database = {
       platform_users_v1: { Row: Database['platform']['Tables']['platform_users']['Row']; Relationships: [] };
       platform_role_assignments_v1: { Row: Database['platform']['Tables']['platform_role_assignments']['Row']; Relationships: [] };
       platform_customer_assignments_v1: { Row: Database['platform']['Tables']['platform_customer_assignments']['Row']; Relationships: [] };
+      customer_staff_responsibilities_v1: { Row: {
+        id: string; customer_workspace_id: string; platform_user_id: string; responsibility: string;
+        status: string; valid_from: string; valid_until: string | null; assigned_by: string;
+        assignment_reason: string; revoked_at: string | null; revoked_by: string | null;
+        revoke_reason: string | null; created_at: string;
+      }; Relationships: [] };
       customer_workspaces_v1: { Row: Database['platform']['Tables']['customer_workspaces']['Row'] & { tenant_legal_name: string }; Relationships: [] };
       subscription_plans_v1: { Row: Database['platform']['Tables']['subscription_plans']['Row']; Relationships: [] };
       provisioning_runs_v1: { Row: Database['platform']['Tables']['provisioning_runs']['Row']; Relationships: [] };
@@ -1512,6 +1521,9 @@ export type Database = {
         Returns: Json;
       };
       revoke_customer_assignment_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
+      assign_customer_staff_responsibility_v1: { Args: { p_workspace_id: string; p_platform_user_id: string; p_responsibility: string; p_reason: string; p_valid_until: string | null }; Returns: Json };
+      revoke_customer_staff_responsibility_v1: { Args: { p_id: string; p_reason: string }; Returns: Json };
+      transfer_customer_commercial_owner_v1: { Args: { p_workspace_id: string; p_new_user_id: string; p_reason: string }; Returns: Json };
       create_workspace_contract_v1: {
         Args: { p_workspace_id: string; p_contract_ref: string; p_plan_id: string | null; p_currency: string; p_start_date: string; p_end_date: string | null; p_commercial_terms: Json };
         Returns: Json;
@@ -1525,7 +1537,29 @@ export type Database = {
       activate_prepared_workspace_access_v1: { Args: { p_basis_id: string; p_display_name: string; p_locale: string }; Returns: Json };
       revoke_workspace_access_basis_v1: { Args: { p_basis_id: string; p_reason: string }; Returns: Json };
       create_platform_operator_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_role: string; p_reason: string }; Returns: Json };
+      create_platform_operator_multi_role_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_roles: string[]; p_reason: string }; Returns: Json };
       grant_platform_operator_role_v1: { Args: { p_platform_user_id: string; p_role: string; p_reason: string }; Returns: Json };
+      grant_platform_operator_roles_v1: { Args: { p_platform_user_id: string; p_roles: string[]; p_reason: string }; Returns: Json };
+      list_start_requests_v1: { Args: { p_limit?: number }; Returns: Json };
+      open_customer_case_v1: { Args: { p_lead_id: string; p_reason: string }; Returns: Json };
+      my_case_invitations_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      claim_customer_case_v1: { Args: { p_invitation_id: string }; Returns: Json };
+      my_customer_cases_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      get_customer_case_v1: { Args: { p_case_id: string }; Returns: Json };
+      post_customer_case_message_v1: { Args: { p_case_id: string; p_body: string; p_visibility: string }; Returns: Json };
+      assign_customer_case_staff_v1: { Args: { p_case_id: string; p_platform_user_id: string; p_duty: string; p_status: string; p_reason: string }; Returns: Json };
+      mark_customer_case_read_v1: { Args: { p_case_id: string }; Returns: number };
+      link_customer_case_workspace_v1: { Args: { p_case_id: string; p_workspace_id: string; p_contract_id: string | null; p_reason: string }; Returns: Json };
+      list_case_workspace_options_v1: { Args: { p_case_id: string }; Returns: Json };
+      list_case_prepared_workspaces_v1: { Args: { p_case_id: string }; Returns: Json };
+      create_case_workspace_v1: { Args: { p_case_id: string; p_workspace_type: string; p_profile_code: string; p_model_code: string; p_commercial_owner: string; p_reason: string }; Returns: Json };
+      begin_customer_case_document_v1: { Args: { p_case_id: string; p_document_id: string | null; p_title: string; p_visibility: string; p_mime_type: string; p_byte_size: number; p_sha256: string }; Returns: Json };
+      get_customer_case_documents_v1: { Args: { p_case_id: string }; Returns: Json };
+      review_customer_case_document_v1: { Args: { p_version_id: string; p_verdict: string; p_evidence: string }; Returns: Json };
+      get_customer_case_download_v1: { Args: { p_version_id: string }; Returns: Json };
+      get_customer_case_inspection_v1: { Args: { p_version_id: string }; Returns: Json };
+      assign_start_request_v1: { Args: { p_lead_id: string; p_assignee_id: string | null; p_reason: string }; Returns: Json };
+      update_start_request_v1: { Args: { p_lead_id: string; p_status: string; p_reason: string }; Returns: Json };
       revoke_platform_operator_role_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
       set_workspace_entitlement_v1: {
         Args: { p_workspace_id: string; p_entitlement_key: string; p_value_type: string; p_numeric_value: number | null; p_boolean_value: boolean | null; p_text_value: string | null; p_json_value: Json | null; p_override_value_json: Json | null; p_override_reason: string | null; p_override_expires_at: string | null };

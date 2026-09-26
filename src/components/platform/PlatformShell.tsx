@@ -9,6 +9,7 @@ import {
   FileCheck2,
   Layers,
   Users2,
+  Inbox,
   KeyRound,
   Terminal,
   FileText,
@@ -66,10 +67,22 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_AUDITOR'] as PlatformRole[],
     },
     {
+      href: `/${lang}/platform/start-requests`,
+      label: lang === 'ro' ? 'Cereri noi' : lang === 'fa' ? 'درخواست‌های شروع' : 'Start Requests',
+      icon: Inbox,
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_SALES'] as PlatformRole[],
+    },
+    {
+      href: `/${lang}/platform/owner-unit-links`,
+      label: lang === 'ro' ? 'Conectări proprietari' : lang === 'fa' ? 'تأیید اتصال واحدهای مالکان' : 'Owner Unit Links',
+      icon: FileCheck2,
+      roles: ['PLATFORM_SUPER_ADMIN'] as PlatformRole[],
+    },
+    {
       href: `/${lang}/platform/assignments`,
       label: lang === 'ro' ? 'Alocări Clienți' : lang === 'fa' ? 'تخصیص مشتریان به کارشناسان' : 'Customer Assignments',
       icon: KeyRound,
-      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR'] as PlatformRole[],
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR', 'PLATFORM_SALES', 'PLATFORM_CONTRACTS', 'PLATFORM_ONBOARDING', 'PLATFORM_FINANCE', 'PLATFORM_SUPPORT'] as PlatformRole[],
     },
     {
       href: `/${lang}/platform/provisioning`,

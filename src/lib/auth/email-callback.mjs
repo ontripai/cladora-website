@@ -29,7 +29,7 @@ const DEFAULT_DESTINATIONS = {
 
 const ALLOWED_NEXT_PATHS = {
   email: (lang) => [`/${lang}/app/dashboard`],
-  invite: (lang) => [`/${lang}/invitation-continuation`],
+  invite: (lang) => [`/${lang}/invitation-continuation`, `/${lang}/cases`],
   magiclink: (lang) => [`/${lang}/app/dashboard`],
   recovery: (lang) => [`/${lang}/reset-password`],
   signup: (lang) => [`/${lang}/app/dashboard`],

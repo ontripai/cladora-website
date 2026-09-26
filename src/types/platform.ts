@@ -3,7 +3,10 @@ export type PlatformRole =
   | 'PLATFORM_OPERATIONS'
   | 'PLATFORM_FINANCE'
   | 'PLATFORM_SUPPORT'
-  | 'PLATFORM_AUDITOR';
+  | 'PLATFORM_AUDITOR'
+  | 'PLATFORM_SALES'
+  | 'PLATFORM_CONTRACTS'
+  | 'PLATFORM_ONBOARDING';
 
 export type WorkspaceType =
   | 'ASSOCIATION'
