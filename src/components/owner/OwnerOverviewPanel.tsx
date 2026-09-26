@@ -1,4 +1,5 @@
 'use client';
+import {useDashboardFetch} from '@/components/dashboard-lab/DashboardTransport';
 import {useEffect,useState} from 'react';
 import type {Language} from '@/types';
 import type {ownerOverview} from '@/lib/owner-portfolio/overview';
@@ -9,13 +10,14 @@ const copy={
   fa:{title:'نمای کلی املاک من',units:'واحدهای فعال',leased:'واحدهای دارای قرارداد جاری',monthly:'اجاره ماهانه طبق قراردادهای جاری',income:'دریافتی این ماه',expense:'پرداختی این ماه',owed:'مطالبات معوق ثبت‌شده',payable:'پرداخت‌های معوق ثبت‌شده',expiring:'قراردادهای رو به پایان تا ۶۰ روز یا نیازمند بستن',overdue:'سررسیدهای معوق ثبت‌شده',none:'موردی برای نمایش وجود ندارد.',note:'اطلاعات خوداظهاری و به تفکیک ارز است. معوقات فقط شامل موارد ثبت‌شده و پرداخت‌نشده است، نه برنامه خودکار اجاره. مانده رسمی ساختمان در بخش هر واحد تأییدشده نمایش داده می‌شود.',failed:'نمای کامل دریافت نشد؛ صفحه را دوباره بارگذاری کنید.',loading:'در حال دریافت نمای املاک…',settle:'ثبت پرداخت کامل',date:'تاریخ واقعی پرداخت',direction:'جهت',incomeLabel:'دریافتنی',expenseLabel:'پرداختنی'},
 };
 export function OwnerOverviewPanel({lang,revision,onChange}:{lang:Language;revision:unknown;onChange:()=>void}){
+  const fetch=useDashboardFetch();
   const t=copy[lang];
   const [result,setResult]=useState<{revision:unknown;data:Overview|null;failed:boolean}|null>(null);
   const [saving,setSaving]=useState<string|null>(null);const [error,setError]=useState(false);
   useEffect(()=>{let active=true;void fetch('/api/owner-portfolio/v1/overview',{cache:'no-store',credentials:'same-origin'})
     .then(async r=>{if(!r.ok)throw Error('read');return r.json() as Promise<Overview>;})
     .then(data=>{if(active)setResult({revision,data,failed:false});})
-    .catch(()=>{if(active)setResult({revision,data:null,failed:true});});return()=>{active=false;};},[revision]);
+    .catch(()=>{if(active)setResult({revision,data:null,failed:true});});return()=>{active=false;};},[revision,fetch]);
   const current=result?.revision===revision?result:null;
   const data=current?.data;
   if(current?.failed)return <p role="alert" className="rounded-xl bg-rose-50 p-4 text-rose-800">{t.failed}</p>;

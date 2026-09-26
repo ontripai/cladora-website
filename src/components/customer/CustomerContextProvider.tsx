@@ -1,4 +1,5 @@
 'use client';
+import {useDashboardFetch,useDashboardPreview} from '@/components/dashboard-lab/DashboardTransport';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { DashboardRpcResponse } from '@/lib/customer/dashboard-schema';
@@ -28,6 +29,8 @@ const Context = createContext<State | null>(null);
 const STORAGE_KEY = 'cladora.customer-context.v1';
 
 export function CustomerContextProvider({ children }: { children: React.ReactNode }) {
+  const fetch=useDashboardFetch();
+  const preview=useDashboardPreview();
   const [contexts, setContexts] = useState<CustomerContext[]>([]);
   const [activeId, setActiveId] = useState('');
   const [dashboard, setDashboard] = useState<CustomerDashboardData | null>(null);
@@ -48,7 +51,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
         const body = (await response.json()) as { contexts: CustomerContext[] };
         if (cancelled) return;
         setContexts(body.contexts);
-        const stored = sessionStorage.getItem(STORAGE_KEY);
+        const stored = preview ? null : sessionStorage.getItem(STORAGE_KEY);
         setActiveId(
           body.contexts.some((c) => c.context_id === stored)
             ? stored ?? ''
@@ -63,7 +66,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetch,preview]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -72,7 +75,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
       setLoading(true);
       setError(null);
       try {
-        sessionStorage.setItem(STORAGE_KEY, activeId);
+        if (!preview) sessionStorage.setItem(STORAGE_KEY, activeId);
         const response = await fetch(
           `/api/customer/v1/dashboard?context_id=${encodeURIComponent(activeId)}`,
           { cache: 'no-store' }
@@ -92,7 +95,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     return () => {
       cancelled = true;
     };
-  }, [activeId, nonce]);
+  }, [activeId, nonce,fetch,preview]);
 
   const value = useMemo<State>(
     () => ({

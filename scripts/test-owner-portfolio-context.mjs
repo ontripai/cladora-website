@@ -19,7 +19,7 @@ componentModule.filename = filename;
 componentModule.paths = Module._nodeModulePaths(fileURLToPath(new URL('..', import.meta.url)));
 const labelModule = new Module(filename);
 labelModule._compile(ts.transpileModule(readFileSync(new URL('../src/lib/owner-portfolio/labels.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,filename);
-componentModule.require = id => id === '@/lib/owner-portfolio/labels' ? labelModule.exports : id === './OwnerOverviewPanel' ? {OwnerOverviewPanel:()=>null} : id === '@/components/auth/SignOutButton' ? {SignOutButton:()=>null} : id === 'next/link'
+componentModule.require = id => id === '@/components/dashboard-lab/DashboardTransport' ? {useDashboardFetch:()=>globalThis.fetch,useDashboardPreview:()=>false,DashboardLink:({children,...props})=>React.createElement('a',props,children)} : id === '@/lib/owner-portfolio/labels' ? labelModule.exports : id === './OwnerOverviewPanel' ? {OwnerOverviewPanel:()=>null} : id === '@/components/auth/SignOutButton' ? {SignOutButton:()=>null} : id === 'next/link'
   ? { __esModule: true, default: ({ children, ...props }) => React.createElement('a', props, children) }
   : require(id);
 componentModule._compile(compiled, filename);

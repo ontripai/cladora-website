@@ -1,4 +1,5 @@
 'use client';
+import {useDashboardFetch} from '@/components/dashboard-lab/DashboardTransport';
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
@@ -150,6 +151,7 @@ export function WorkspaceCompositionCard({
   canManage = false,
   className = '',
 }: WorkspaceCompositionCardProps) {
+  const fetch=useDashboardFetch();
   const t = DICTIONARY[lang] ?? DICTIONARY.ro;
   const isRtl = lang === 'fa';
 
@@ -190,7 +192,7 @@ export function WorkspaceCompositionCard({
     } finally {
       setLoading(false);
     }
-  }, [contextId, t.error]);
+  }, [contextId, t.error,fetch]);
 
   useEffect(() => {
     if (contextId) {
