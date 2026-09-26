@@ -1,6 +1,6 @@
 -- Test 081: CLADORA-P2-SETUP-001
 begin;
-select plan(24);
+select plan(28);
 
 insert into auth.users(id,email) values
  ('81100000-0000-0000-0000-000000000001','setup-author-081@cladora.test'),
@@ -48,7 +48,11 @@ select ok((select count(*) from portfolio.properties where tenant_id='81200000-0
 select ok((select count(*) from portfolio.buildings where tenant_id='81200000-0000-0000-0000-000000000001')=1,'one building provisioned');
 select ok((select count(*) from portfolio.units where tenant_id='81200000-0000-0000-0000-000000000001')=2,'two units provisioned');
 select ok((select count(*) from finance.accounting_periods where tenant_id='81200000-0000-0000-0000-000000000001' and status='open')=1,'one open period provisioned');
+select ok((select count(*) from platform.workspace_property_bindings where customer_workspace_id='81400000-0000-0000-0000-000000000001' and status='active')=1,'provision binds property to workspace');
+select ok((select count(*) from identity.context_grants where membership_id='81300000-0000-0000-0000-000000000001' and scope_type='property')=1,'original operator gains property context');
+select ok((select count(*) from identity.context_grants where membership_id='81300000-0000-0000-0000-000000000002' and scope_type='property')=0,'reviewer gains no property context');
 select lives_ok($$select customer_api.provision_building_setup_v1('81500000-0000-0000-0000-000000000002',(select id from platform.building_setup_runs limit 1))$$,'provision retry is deterministic');
+select ok((select count(*) from platform.workspace_property_bindings where customer_workspace_id='81400000-0000-0000-0000-000000000001' and status='active')=1,'retry creates no duplicate binding');
 select ok((select count(*) from finance.journals where tenant_id='81200000-0000-0000-0000-000000000001')=0,'setup and rehearsal emit no journal');
 
 select set_config('request.jwt.claims','{"sub":"81100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"81200000-0000-0000-0000-000000000001","active_context_id":"81500000-0000-0000-0000-000000000001"}',true);
