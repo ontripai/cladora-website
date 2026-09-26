@@ -44,6 +44,7 @@ const DICTIONARY = {
     confirmDeactivate: 'Confirmă Dezactivarea',
     cancel: 'Anulează',
     mfaNotice: 'Modul sensibil: Necesită Autentificare cu Doi Factori (AAL2)',
+    mfaVerified: 'Sesiune AAL2 verificată',
     mfaStepUp: 'Mergi la pagina MFA',
     statusActive: 'Activ',
     statusNotInstalled: 'Disponibil',
@@ -83,6 +84,7 @@ const DICTIONARY = {
     confirmDeactivate: 'Confirm Deactivation',
     cancel: 'Cancel',
     mfaNotice: 'Sensitive module: Two-Factor Authentication (AAL2) required',
+    mfaVerified: 'AAL2 session verified',
     mfaStepUp: 'Go to MFA Step-up',
     statusActive: 'Active',
     statusNotInstalled: 'Available',
@@ -122,6 +124,7 @@ const DICTIONARY = {
     confirmDeactivate: 'تأیید غیرفعال‌سازی',
     cancel: 'انصراف',
     mfaNotice: 'ماژول حساس: نیازمند احراز هویت دومرحله‌ای (AAL2)',
+    mfaVerified: 'نشست دومرحله‌ای (AAL2) تأیید شده است',
     mfaStepUp: 'ورود به صفحه MFA',
     statusActive: 'فعال',
     statusNotInstalled: 'قابل نصب',
@@ -158,6 +161,19 @@ export function WorkspaceCompositionCard({
   const [data, setData] = useState<WorkspaceCompositionResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [assuranceLevel, setAssuranceLevel] = useState<'aal1' | 'aal2' | null>(null);
+
+  useEffect(() => {
+    const abort = new AbortController();
+    void fetch('/api/customer/v1/auth/assurance', {cache: 'no-store', signal: abort.signal})
+      .then(async response => response.ok ? response.json() : null)
+      .then(result => {
+        if (!abort.signal.aborted && (result?.level === 'aal1' || result?.level === 'aal2')) {
+          setAssuranceLevel(result.level);
+        }
+      }).catch(() => {});
+    return () => abort.abort();
+  }, [fetch]);
 
   // Mutation state
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
@@ -515,10 +531,10 @@ export function WorkspaceCompositionCard({
                     {mod.code}
                   </p>
 
-                  {mod.requires_aal2 && (
-                    <div className="mb-3 flex items-center gap-1.5 rounded-lg bg-amber-50/80 p-2 text-[11px] font-semibold text-amber-800">
-                      <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-amber-600" />
-                      <span>{t.mfaNotice}</span>
+                  {mod.requires_aal2 && assuranceLevel && (
+                    <div className={`mb-3 flex items-center gap-1.5 rounded-lg p-2 text-[11px] font-semibold ${assuranceLevel === 'aal2' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'}`}>
+                      <ShieldCheck className={`h-3.5 w-3.5 shrink-0 ${assuranceLevel === 'aal2' ? 'text-emerald-700' : 'text-amber-600'}`} />
+                      <span>{assuranceLevel === 'aal2' ? t.mfaVerified : t.mfaNotice}</span>
                     </div>
                   )}
                 </div>
