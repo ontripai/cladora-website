@@ -53,6 +53,7 @@ const copy = {
     page: "Pagina",
     workspace: "Spațiu de lucru și entitate",
     owner: "Responsabil comercial",
+    activate: "Activează spațiul de lucru",
     advance: "Treci la etapa următoare",
     advanceReason: "Motivul schimbării etapei",
     advanceSuccess: "Etapa spațiului de lucru a fost actualizată.",
@@ -93,6 +94,7 @@ const copy = {
     page: "Page",
     workspace: "Workspace & entity",
     owner: "Commercial owner",
+    activate: "Activate workspace",
     advance: "Advance stage",
     advanceReason: "Reason for stage change",
     advanceSuccess: "Workspace stage updated.",
@@ -132,6 +134,7 @@ const copy = {
     page: "صفحه",
     workspace: "محیط کاری و مجموعه",
     owner: "مسئول تجاری",
+    activate: "فعال‌سازی محیط کاری",
     advance: "مرحلهٔ بعد",
     advanceReason: "دلیل تغییر مرحله",
     advanceSuccess: "مرحلهٔ محیط کاری تغییر کرد.",
@@ -184,10 +187,12 @@ const nextStage: Partial<Record<WorkspaceLifecycleStatus, WorkspaceLifecycleStat
   APPROVED: 'CONTRACT_PENDING',
   CONTRACT_PENDING: 'PAYMENT_PENDING',
   PAYMENT_PENDING: 'PROVISIONING',
+  PROVISIONING: 'ACTIVE',
 };
 
 const suggestedTransitionReasons: Record<Locale, Partial<Record<WorkspaceLifecycleStatus, string>>> = {
   fa: {
+    PROVISIONING: 'درخواست فعال‌سازی محیط کاری پس از تکمیل راه‌اندازی مدیر اصلی.',
     LEAD: 'آغاز بررسی درخواست و نیازهای راه‌اندازی محیط کاری.',
     UNDER_REVIEW: 'تأیید درخواست محیط کاری برای ادامه فرایند راه‌اندازی.',
     APPROVED: 'انتقال درخواست تأییدشده به مرحله آماده‌سازی قرارداد.',
@@ -195,6 +200,7 @@ const suggestedTransitionReasons: Record<Locale, Partial<Record<WorkspaceLifecyc
     PAYMENT_PENDING: 'انتقال محیط کاری به مرحله آماده‌سازی فنی و بررسی پیش‌نیازهای فعال‌سازی.',
   },
   ro: {
+    PROVISIONING: 'Solicitarea activării spațiului de lucru după finalizarea configurării administratorului principal.',
     LEAD: 'Începerea evaluării cererii și a cerințelor de configurare a spațiului de lucru.',
     UNDER_REVIEW: 'Aprobarea cererii pentru continuarea configurării spațiului de lucru.',
     APPROVED: 'Trecerea cererii aprobate la etapa de pregătire a contractului.',
@@ -202,6 +208,7 @@ const suggestedTransitionReasons: Record<Locale, Partial<Record<WorkspaceLifecyc
     PAYMENT_PENDING: 'Trecerea spațiului de lucru la pregătirea tehnică și verificarea condițiilor de activare.',
   },
   en: {
+    PROVISIONING: 'Request workspace activation after primary administrator onboarding is complete.',
     LEAD: 'Begin reviewing the workspace request and setup requirements.',
     UNDER_REVIEW: 'Approve the workspace request to continue the setup process.',
     APPROVED: 'Move the approved request to contract preparation.',
@@ -395,7 +402,7 @@ export function OperationalWorkspacesTable({
                       : "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{labels.advance}</button>}
+                    <div className="flex flex-wrap gap-2">{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{workspace.lifecycle_status === 'PROVISIONING' ? labels.activate : labels.advance}</button>}
                     {workspace.lifecycle_status === "PROVISIONING" && isPrimaryWorkspaceRoleAvailable(workspace.workspace_type) ? (
                       <button
                         type="button"
@@ -495,7 +502,7 @@ export function OperationalWorkspacesTable({
           <p className="text-xs text-amber-200">{lang === 'fa' ? 'تغییر مرحله به‌تنهایی هیچ دعوت یا ایمیلی ارسال نمی‌کند.' : lang === 'ro' ? 'Schimbarea etapei nu trimite invitații sau e-mailuri.' : 'Changing the stage does not send an invitation or email.'}</p>
           <label className="block">{labels.advanceReason}<textarea key={`${transitionWorkspace.id}:${transitionWorkspace.lifecycle_status}:${lang}`} name="reason" defaultValue={suggestedTransitionReasons[lang][transitionWorkspace.lifecycle_status] ?? ''} minLength={3} maxLength={500} required className="mt-2 w-full rounded border border-[#1E3A5A] bg-[#081320] p-3" /></label>
           {transitionError && <p role="alert" className="text-rose-300">{transitionError}</p>}
-          <div className="flex gap-2"><button disabled={transitionBusy} className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{labels.advance}</button><button type="button" onClick={() => setTransitionWorkspace(null)} className="rounded border border-[#1E3A5A] px-4 py-2">{labels.cancel}</button></div>
+          <div className="flex gap-2"><button disabled={transitionBusy} className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{transitionWorkspace.lifecycle_status === 'PROVISIONING' ? labels.activate : labels.advance}</button><button type="button" onClick={() => setTransitionWorkspace(null)} className="rounded border border-[#1E3A5A] px-4 py-2">{labels.cancel}</button></div>
         </form>
       </div>}
     </section>
