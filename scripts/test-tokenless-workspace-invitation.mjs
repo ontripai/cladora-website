@@ -4,6 +4,8 @@ import { readFileSync } from 'node:fs';
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 const dispatcher = read('src/app/api/platform/v1/workspaces/[id]/invitations/route.ts');
+const caseDispatcher = read('src/app/api/platform/v1/cases/route.ts');
+const pilotReviewerDispatcher = read('src/app/api/platform/v1/workspaces/[id]/pilot-reviewer/route.ts');
 const callbackPolicy = read('src/lib/auth/email-callback.mjs');
 const continuationPage = read('src/app/[lang]/invitation-continuation/page.tsx');
 const continuation = read('src/components/auth/WorkspaceInvitationContinuation.tsx');
@@ -14,6 +16,10 @@ const gatewayMigration = read('supabase/migrations/20260924131045_20260924113547
 
 assert.doesNotMatch(dispatcher, /accept-invitation\?token|encodeURIComponent\(row\.invitation_token\)/);
 assert.match(dispatcher, /\$\{origin\}\/\$\{parsed\.lang\}\/auth\/callback/);
+// The hosted invite template appends &token_hash=... to RedirectTo. All invitation redirects must already contain a query.
+assert.match(dispatcher, /auth\/callback\?next=\/\$\{parsed\.lang\}\/invitation-continuation/);
+assert.match(caseDispatcher, /auth\/callback\?next=\/\$\{parsed\.data\.lang\}\/cases/);
+assert.match(pilotReviewerDispatcher, /auth\/callback\?next=\/\$\{input\.data\.lang\}\/pilot-reviewer/);
 assert.match(callbackPolicy, /invite: \(lang\) => `\/\$\{lang\}\/invitation-continuation`/);
 assert.match(callbackPolicy, /parsed\.search/);
 assert.match(callbackPolicy, /parsed\.hash/);
