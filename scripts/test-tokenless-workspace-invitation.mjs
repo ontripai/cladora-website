@@ -26,6 +26,7 @@ assert.match(callbackPolicy, /parsed\.hash/);
 
 assert.match(continuationPage, /\.schema\('customer_api'\)/);
 assert.match(continuationPage, /list_my_claimable_workspace_invitations_v1/);
+assert.match(continuationPage, /invitations\.length === 0[\s\S]*my_pilot_setup_reviewer_v1[\s\S]*redirect\(`\/\$\{lang\}\/pilot-reviewer`\)/);
 assert.match(continuationPage, /supabase\.auth\.getClaims\(\)/);
 assert.match(continuationPage, /dynamic = 'force-dynamic'/);
 assert.match(continuationPage, /dir=\{lang === 'fa' \? 'rtl' : 'ltr'\}/);
