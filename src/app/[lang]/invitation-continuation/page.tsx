@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { AlertTriangle } from 'lucide-react';
 import {
   WorkspaceInvitationContinuation,
@@ -66,6 +67,15 @@ export default async function InvitationContinuationPage(props: {
         .rpc('list_my_claimable_workspace_invitations_v1');
       if (!error && Array.isArray(data)) {
         invitations = data as unknown as ClaimableWorkspaceInvitation[];
+      }
+      if (invitations.length === 0) {
+        const { data: reviewer, error: reviewerError } = await supabase
+          .schema('customer_api')
+          .rpc('my_pilot_setup_reviewer_v1');
+        if (!reviewerError && reviewer && typeof reviewer === 'object'
+          && 'status' in reviewer && (reviewer.status === 'prepared' || reviewer.status === 'active')) {
+          redirect(`/${lang}/pilot-reviewer`);
+        }
       }
     }
   }
