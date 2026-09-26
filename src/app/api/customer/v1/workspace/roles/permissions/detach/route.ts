@@ -25,13 +25,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await parseJsonWithLimit(request, 16 * 1024);
-  if (!body) {
-    return NextResponse.json(
-      { error: { code: 'PAYLOAD_TOO_LARGE', message: 'Payload exceeded 16KB limit or invalid JSON' } },
-      { status: 413, headers: HEADERS }
-    );
-  }
+  const { data: body, errorResponse } = await parseJsonWithLimit(request, 16 * 1024);
+  if (errorResponse) return errorResponse;
 
   const parsed = detachWorkspaceRolePermissionRequestSchema.safeParse(body);
   if (!parsed.success) {
