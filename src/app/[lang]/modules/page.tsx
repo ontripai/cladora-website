@@ -57,7 +57,7 @@ export default async function ModulesPage(props: { params: Promise<{ lang: Langu
             {lang === 'ro'
               ? 'Platforma este structurată în 17 nuclee logice organizate pe 3 faze evolutive: P1 (Fundația MVP & Adevăr Financiar), P2 (Operațiuni & Guvernanță) și P3 (Inteligență de Cost & Valoare Activ).'
               : lang === 'fa'
-              ? 'پلتفرم کلادورا در قالب ۱۷ هسته نرم‌افزاری و طی ۳ فاز توسعه یافته است: فاز ۱ (فونداسیون حسابداری و دفتر کل تغییرناپذیر)، فاز ۲ (عملیات روزمره، کنتورها و مجامع) و فاز ۳ (هوش مصنوعی و ارتقای ارزش دارایی).'
+              ? 'پلتفرم کلادورا در قالب ۱۷ هسته نرم‌افزاری و در قالب نقشهٔ راه ۳ فازی طراحی شده است: فاز ۱ (فونداسیون حسابداری و دفتر کل تغییرناپذیر)، فاز ۲ (عملیات روزمره، کنتورها و مجامع) و فاز ۳ (هوش مصنوعی و ارتقای ارزش دارایی).'
               : 'Structured into 17 logical cores across 3 progressive phases: P1 (MVP Foundation & Financial Truth), P2 (Operations & Governance), and P3 (Cost Intelligence & Asset Value).'}
           </p>
         </div>
