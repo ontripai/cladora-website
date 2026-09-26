@@ -15,7 +15,7 @@ type DefaultPlan = {
 export const DEFAULT_MAINTENANCE_PLANS: readonly DefaultPlan[] = [
   {
     code: 'CLADORA_PM_ELEVATOR',
-    assetCategories: ['elevator', 'lift', 'ascensor'],
+    assetCategories: ['elevator', 'lift', 'ascensor', 'pilot_test_elevator'],
     title: { ro: 'Verificarea periodică a liftului', en: 'Periodic elevator inspection', fa: 'بازدید دوره‌ای آسانسور' },
     suggestedUnit: 'months', suggestedEvery: 1,
     steps: [
