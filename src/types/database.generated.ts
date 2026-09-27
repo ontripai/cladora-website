@@ -1797,6 +1797,18 @@ export type Database = {
         Args: { p_context_id: string };
         Returns: Json;
       };
+      list_internal_workspaces_v1: { Args: Record<string, never>; Returns: Json };
+      list_internal_recipients_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      create_internal_conversation_v1: {
+        Args: { p_workspace_id: string; p_recipient_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      send_internal_message_v1: {
+        Args: { p_thread_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      get_internal_conversations_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      mark_internal_read_v1: { Args: { p_thread_id: string }; Returns: Json };
       get_documents_v1: {
         Args: {
           p_context_id: string;

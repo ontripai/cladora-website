@@ -98,7 +98,8 @@ select is(jsonb_array_length(customer_api.list_attachable_private_documents_v1('
 select is((customer_api.attach_private_document_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid,(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->'messages'->1->>'id')::uuid,'11900000-0000-4000-8000-000000000036','11900000-0000-4000-8000-000000000037')->>'replayed')::boolean,false,'Owner explicitly shares and attaches');
 select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),2,'Own document now visible after two-party sharing');
 reset role;
-update documents.document_permissions set valid_until=statement_timestamp()-interval '1 second' where membership_id='11900000-0000-4000-8000-000000000002';
+update documents.document_permissions set valid_until=statement_timestamp()-interval '1 second'
+  where document_id='11900000-0000-4000-8000-000000000031' and membership_id='11900000-0000-4000-8000-000000000002';
 set local role authenticated;
 select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),1,'Expired document permission hides its attachment');
 select throws_ok($$select customer_api.authorize_private_attachment_download_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_attachment_id')::uuid)$$,'42501','private_attachment_denied','Expired document permission denies download');
