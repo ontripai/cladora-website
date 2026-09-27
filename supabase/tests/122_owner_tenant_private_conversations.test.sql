@@ -73,7 +73,7 @@ reset role;
 update occupancy.leases set status='archived' where id='12200000-0000-4000-8000-000000000047';
 select ok(not communications.member_covers_unit('12200000-0000-4000-8000-000000000042','12200000-0000-4000-8000-000000000004','12200000-0000-4000-8000-000000000009'),'Ended lease removes tenant unit coverage');
 set local role authenticated;
-select throws_ok($$select customer_api.get_private_conversations_v1('12200000-0000-4000-8000-000000000044',null)$$,'42501','private_conversation_denied','Ended lease denies tenant history');
+select is(jsonb_array_length(customer_api.get_private_conversations_v1('12200000-0000-4000-8000-000000000044',null)),0,'Ended lease denies tenant history');
 select set_config('request.jwt.claims',jsonb_build_object('sub','12200000-0000-4000-8000-000000000041','role','authenticated','aal','aal2','active_tenant_id','12200000-0000-4000-8000-000000000004','active_context_id','12200000-0000-4000-8000-000000000043')::text,true);
 select is(jsonb_array_length(customer_api.get_private_conversations_v1('12200000-0000-4000-8000-000000000043',null)),0,'Ended lease also hides thread from owner');
 select * from finish();

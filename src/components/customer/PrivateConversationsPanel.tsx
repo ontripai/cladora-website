@@ -14,9 +14,9 @@ type Attachable = { id: string; version_id: string; title: string };
 type Unread = { conversation_id: string; unread_count: number };
 
 const words = {
-  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează și atașează", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Încărcați un document sau obțineți permisiunea de vizualizare pentru ambele părți." },
-  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share and attach", download: "Download document", read: "Mark as read", vault: "Upload a document or obtain view access for both participants." },
-  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری و پیوست", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سند بارگذاری کنید یا برای هر دو طرف مجوز مشاهده ثبت کنید." },
+  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează și atașează", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Încărcați un document sau obțineți permisiunea de vizualizare pentru ambele părți.", upload: "Încărcați un document nou", scanning: "Încărcat. Documentul apare pentru atașare după verificarea de securitate.", uploadBusy: "Se încarcă…" },
+  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share and attach", download: "Download document", read: "Mark as read", vault: "Upload a document or obtain view access for both participants.", upload: "Upload new document", scanning: "Uploaded. The document becomes attachable after security scanning.", uploadBusy: "Uploading…" },
+  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری و پیوست", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سند بارگذاری کنید یا برای هر دو طرف مجوز مشاهده ثبت کنید.", upload: "بارگذاری سند جدید", scanning: "بارگذاری شد. سند پس از بررسی امنیتی برای پیوست نمایش داده می‌شود.", uploadBusy: "در حال بارگذاری…" },
 } satisfies Record<Language, Record<string, string>>;
 
 async function readArray<T>(url: string): Promise<T[]> {
@@ -52,6 +52,8 @@ function PrivateConversationsContent({ lang, contextId }: { lang: Language; cont
   const [attachable, setAttachable] = useState<Attachable[]>([]);
   const [documentId, setDocumentId] = useState("");
   const [lastSent, setLastSent] = useState<{ conversation: string; message: string } | null>(null);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploaded, setUploaded] = useState(false);
 
   const reload = useCallback(async () => {
     if (!contextId) return;
@@ -133,6 +135,28 @@ function PrivateConversationsContent({ lang, contextId }: { lang: Language; cont
     } catch { setError(true); }
   }
 
+  async function upload() {
+    if (!contextId || !uploadFile || !selectedId || uploadFile.size > 20 * 1024 * 1024) { setError(true); return; }
+    setBusy(true); setError(false); setUploaded(false);
+    try {
+      const declaredMime = uploadFile.type || "application/pdf";
+      const intentResponse = await fetch("/api/customer/v1/documents/upload-intent", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ context_id: contextId, filename: uploadFile.name, declared_mime: declaredMime, size_bytes: uploadFile.size }),
+      });
+      if (!intentResponse.ok) throw new Error(String(intentResponse.status));
+      const intent = await intentResponse.json() as { intent_id: string };
+      const form = new FormData();
+      form.append("context_id", contextId); form.append("intent_id", intent.intent_id);
+      form.append("title", uploadFile.name); form.append("document_type", "conversation_attachment");
+      form.append("classification", "confidential"); form.append("declared_mime", declaredMime);
+      form.append("file", uploadFile);
+      const uploadResponse = await fetch("/api/customer/v1/documents/upload", { method: "POST", body: form });
+      if (!uploadResponse.ok) throw new Error(String(uploadResponse.status));
+      setUploaded(true); setUploadFile(null);
+    } catch { setError(true); } finally { setBusy(false); }
+  }
+
   async function submit(url: string, body: Record<string, string>) {
     setBusy(true); setError(false);
     try {
@@ -179,6 +203,12 @@ function PrivateConversationsContent({ lang, contextId }: { lang: Language; cont
             {!attachable.length && <p className="text-xs text-slate-600">{t.vault} <Link href={`/${lang}/app/documents`} className="text-blue-700 underline">{t.document}</Link></p>}
             <button type="button" disabled={!documentId || busy || lastSent?.conversation !== selectedId} onClick={() => void attach()} className="rounded-lg border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{t.attach}</button>
           </div>
+          <form className="mt-4 space-y-2 border-t pt-4" onSubmit={(event) => { event.preventDefault(); void upload(); }}>
+            <label htmlFor="private-upload" className="block text-sm font-medium">{t.upload}</label>
+            <input id="private-upload" type="file" required accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx" onChange={(event) => { setUploadFile(event.target.files?.[0] ?? null); setUploaded(false); }} className="block w-full text-sm" />
+            <button type="submit" disabled={!uploadFile || busy} className="rounded-lg border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{busy ? t.uploadBusy : t.upload}</button>
+            {uploaded && <p role="status" className="text-sm text-green-700">{t.scanning}</p>}
+          </form>
           <form className="mt-5 space-y-2" onSubmit={(event) => { event.preventDefault(); if (contextId && reply.trim()) void submit(`/api/customer/v1/private-conversations/${selected.id}/messages`, { context_id: contextId, body: reply.trim(), request_id: crypto.randomUUID() }); }}>
             <label className="block" htmlFor="private-reply">{t.reply}</label>
             <textarea id="private-reply" required maxLength={5000} value={reply} onChange={(event) => setReply(event.target.value)} className="w-full rounded-lg border border-slate-400 p-2" />

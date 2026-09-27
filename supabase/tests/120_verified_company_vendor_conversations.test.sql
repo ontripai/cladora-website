@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(12);
+select plan(15);
 
 insert into auth.users(id,email) values
   ('12000000-0000-4000-8000-000000000001','one120@cladora.test'),
@@ -73,6 +73,13 @@ select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4
 select is(jsonb_array_length(customer_api.list_private_recipients_v1('12000000-0000-4000-8000-000000000011','12000000-0000-4000-8000-000000000009')),3,'Manager discovers company, vendor and other manager');
 select is((customer_api.create_private_conversation_v1('12000000-0000-4000-8000-000000000011','12000000-0000-4000-8000-000000000009','12000000-0000-4000-8000-000000000042','Service question','12000000-0000-4000-8000-000000000051')->>'conversation_id') is not null,true,'Manager creates vendor conversation');
 reset role;
+insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from) values
+ ('12000000-0000-4000-8000-000000000014','module.documents','boolean',true,statement_timestamp()-interval '1 day');
+insert into documents.documents(id,tenant_id,property_id,title,document_type,status,created_by) values
+ ('12000000-0000-4000-8000-000000000056','12000000-0000-4000-8000-000000000004','12000000-0000-4000-8000-000000000005','Other person document','test','active','12000000-0000-4000-8000-000000000001');
+select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000042','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000044')::text,true);
+select ok((documents.create_upload_intent_internal('12000000-0000-4000-8000-000000000044',null,'evidence.pdf','application/pdf',512,null)->>'intent_id') is not null,'Verified vendor may upload a new document');
+select throws_ok($$select documents.create_upload_intent_internal('12000000-0000-4000-8000-000000000044','12000000-0000-4000-8000-000000000056','overwrite.pdf','application/pdf',512,null)$$,'42501','restricted_roles_cannot_version_existing_documents','Vendor cannot overwrite another document');
 update maintenance.vendor_contracts set status='archived' where id='12000000-0000-4000-8000-000000000048';
 set local role authenticated;
 select is(jsonb_array_length(customer_api.get_private_conversations_v1('12000000-0000-4000-8000-000000000011',null)),0,'Contract end revokes existing conversation');
@@ -82,6 +89,7 @@ select ok(not communications.member_covers_unit('12000000-0000-4000-8000-0000000
 select ok(not communications.member_covers_unit('12000000-0000-4000-8000-000000000042','12000000-0000-4000-8000-000000000004','12000000-0000-4000-8000-000000000009'),'Contract revokes vendor');
 select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000042','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000044')::text,true);
 select throws_ok($$select * from documents.resolve_vault_actor('12000000-0000-4000-8000-000000000044','documents.vault.read',false)$$,'42501','relationship_expired','Expired vendor contract denies vault authorization');
+select throws_ok($$select documents.create_upload_intent_internal('12000000-0000-4000-8000-000000000044',null,'after-contract.pdf','application/pdf',512,null)$$,'42501','relationship_expired','Contract end also denies new upload');
 select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000041','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000043')::text,true);
 select throws_ok($$select * from documents.resolve_vault_actor('12000000-0000-4000-8000-000000000043','documents.vault.read',false)$$,'42501','relationship_expired','Revoked staff assignment denies vault authorization');
 select ok(not has_table_privilege('authenticated','maintenance.vendor_portal_memberships','SELECT'),'Vendor binding table stays private');
