@@ -28,8 +28,10 @@ create table communications.private_messages (
   unique (conversation_id, sender_id, client_request_id)
 );
 create index private_conversations_tenant_unit_idx on communications.private_conversations(tenant_id, unit_id);
+create index private_conversations_unit_idx on communications.private_conversations(unit_id);
 create index private_participants_membership_idx on communications.private_participants(membership_id, conversation_id);
 create index private_messages_history_idx on communications.private_messages(conversation_id, sent_at, id);
+create index private_messages_sender_idx on communications.private_messages(sender_id);
 
 alter table communications.private_conversations enable row level security;
 alter table communications.private_participants enable row level security;
@@ -71,6 +73,30 @@ as $$
 $$;
 revoke all on function communications.member_covers_unit(uuid,uuid,uuid) from public, anon, authenticated;
 
+create function communications.context_membership(p_context_id uuid)
+returns uuid language sql stable security definer set search_path=pg_catalog
+as $$
+  select m.id from identity.context_grants g join identity.memberships m
+    on m.id=g.membership_id and m.tenant_id=g.tenant_id
+  where g.id=p_context_id and m.user_id=auth.uid() and m.status='active'
+    and m.starts_at<=statement_timestamp() and (m.ends_at is null or m.ends_at>statement_timestamp())
+    and g.starts_at<=statement_timestamp() and (g.ends_at is null or g.ends_at>statement_timestamp())
+$$;
+revoke all on function communications.context_membership(uuid) from public, anon, authenticated;
+
+create function communications.context_covers_unit(p_context_id uuid, p_unit uuid)
+returns boolean language sql stable security definer set search_path=pg_catalog
+as $$
+  select exists(select 1 from identity.context_grants g
+    join portfolio.units u on u.id=p_unit and u.tenant_id=g.tenant_id
+    join portfolio.buildings b on b.id=u.building_id
+    where g.id=p_context_id and g.membership_id=communications.context_membership(p_context_id)
+      and ((g.scope_type='unit' and g.unit_id=u.id)
+        or (g.scope_type='building' and g.building_id=b.id)
+        or (g.scope_type='property' and g.property_id=b.property_id)))
+$$;
+revoke all on function communications.context_covers_unit(uuid,uuid) from public, anon, authenticated;
+
 create function communications.can_read_private(p_conversation uuid, p_membership uuid)
 returns boolean language sql stable security definer set search_path=pg_catalog
 as $$
@@ -79,7 +105,7 @@ as $$
     join communications.private_participants p on p.conversation_id=c.id
     join identity.memberships m on m.id=p.membership_id and m.tenant_id=c.tenant_id
     where c.id=p_conversation and p.membership_id=p_membership and p.revoked_at is null
-      and m.user_id=auth.uid() and c.tenant_id=app_private.active_tenant_id()
+      and m.user_id=auth.uid()
       and coalesce(auth.jwt()->>'aal','aal1')='aal2'
       and exists(select 1 from platform.customer_workspaces w join platform.workspace_entitlements e
         on e.customer_workspace_id=w.id where w.tenant_id=c.tenant_id and w.lifecycle_status='ACTIVE'
@@ -93,11 +119,11 @@ $$;
 revoke all on function communications.can_read_private(uuid,uuid) from public, anon, authenticated;
 
 create function customer_api.create_private_conversation_v1(
-  p_unit_id uuid, p_recipient_membership_id uuid, p_body text, p_request_id uuid
+  p_context_id uuid, p_unit_id uuid, p_recipient_membership_id uuid, p_body text, p_request_id uuid
 ) returns jsonb language plpgsql security definer set search_path=pg_catalog
 as $$
-declare v_actor uuid := app_private.active_membership_id();
-  v_tenant uuid := app_private.active_tenant_id(); v_thread uuid; v_message uuid;
+declare v_actor uuid := communications.context_membership(p_context_id);
+  v_tenant uuid; v_thread uuid; v_message uuid;
 begin
   if auth.uid() is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2'
       or v_actor is null or p_recipient_membership_id is null
@@ -105,6 +131,7 @@ begin
       or length(trim(coalesce(p_body,''))) not between 1 and 5000 then
     raise exception 'private_conversation_denied' using errcode='42501';
   end if;
+  select tenant_id into v_tenant from identity.memberships where id=v_actor;
   if not communications.member_covers_unit(v_actor,v_tenant,p_unit_id)
      or not communications.member_covers_unit(p_recipient_membership_id,v_tenant,p_unit_id)
      or not exists(select 1 from platform.customer_workspaces w join platform.workspace_entitlements e
@@ -113,14 +140,8 @@ begin
          and (e.valid_until is null or e.valid_until>statement_timestamp())
          and (case when e.override_value_json is not null and e.override_expires_at>statement_timestamp()
            then e.override_value_json='true'::jsonb else e.boolean_value is true end))
-     or not exists (
-       select 1 from identity.context_grants g where g.id=app_private.active_context_id()
-       and g.membership_id=v_actor and g.tenant_id=v_tenant
-       and g.starts_at<=statement_timestamp() and (g.ends_at is null or g.ends_at>statement_timestamp())
-       and ((g.scope_type='unit' and g.unit_id=p_unit_id)
-         or (g.scope_type='building' and exists(select 1 from portfolio.units u where u.id=p_unit_id and u.building_id=g.building_id))
-         or (g.scope_type='property' and exists(select 1 from portfolio.units u join portfolio.buildings b on b.id=u.building_id where u.id=p_unit_id and b.property_id=g.property_id)))
-     ) then raise exception 'private_conversation_denied' using errcode='42501'; end if;
+     or not communications.context_covers_unit(p_context_id,p_unit_id)
+     then raise exception 'private_conversation_denied' using errcode='42501'; end if;
   -- Both identities must be active in the same tenant and have a current,
   -- explicit property/building/unit grant. Raw vendor rows cannot participate.
   insert into communications.private_conversations(tenant_id,unit_id,created_by,client_request_id)
@@ -148,13 +169,15 @@ begin
   return jsonb_build_object('conversation_id',v_thread,'message_id',v_message);
 end; $$;
 
-create function customer_api.send_private_message_v1(p_conversation_id uuid, p_body text, p_request_id uuid)
+create function customer_api.send_private_message_v1(p_context_id uuid, p_conversation_id uuid, p_body text, p_request_id uuid)
 returns jsonb language plpgsql security definer set search_path=pg_catalog
 as $$
-declare v_actor uuid := app_private.active_membership_id(); v_message uuid; v_tenant uuid;
+declare v_actor uuid := communications.context_membership(p_context_id); v_message uuid; v_tenant uuid;
 begin
   if p_request_id is null or length(trim(coalesce(p_body,''))) not between 1 and 5000
-    or not communications.can_read_private(p_conversation_id,v_actor) then
+    or not communications.can_read_private(p_conversation_id,v_actor)
+    or not exists(select 1 from communications.private_conversations c where c.id=p_conversation_id
+      and communications.context_covers_unit(p_context_id,c.unit_id)) then
     raise exception 'private_message_denied' using errcode='42501'; end if;
   select tenant_id into v_tenant from communications.private_conversations where id=p_conversation_id;
   insert into communications.private_messages(conversation_id,sender_id,client_request_id,body)
@@ -178,13 +201,16 @@ begin
   return jsonb_build_object('message_id',v_message,'replayed',false);
 end; $$;
 
-create function customer_api.get_private_conversations_v1(p_conversation_id uuid default null)
+create function customer_api.get_private_conversations_v1(p_context_id uuid, p_conversation_id uuid default null)
 returns jsonb language plpgsql stable security definer set search_path=pg_catalog
 as $$
-declare v_actor uuid := app_private.active_membership_id();
+declare v_actor uuid := communications.context_membership(p_context_id); v_tenant uuid;
 begin
   if auth.uid() is null or v_actor is null then raise exception 'private_conversation_denied' using errcode='42501'; end if;
-  if p_conversation_id is not null and not communications.can_read_private(p_conversation_id,v_actor) then
+  select tenant_id into v_tenant from identity.memberships where id=v_actor;
+  if p_conversation_id is not null and not exists(select 1 from communications.private_conversations c
+    where c.id=p_conversation_id and communications.can_read_private(c.id,v_actor)
+      and communications.context_covers_unit(p_context_id,c.unit_id)) then
     raise exception 'private_conversation_denied' using errcode='42501'; end if;
   return coalesce((select jsonb_agg(jsonb_build_object('id',c.id,'unit_id',c.unit_id,
       'created_at',c.created_at,'participants',(select jsonb_agg(jsonb_build_object('membership_id',p.membership_id,'name',pr.display_name))
@@ -195,16 +221,17 @@ begin
         'body',x.body,'sent_at',x.sent_at) order by x.sent_at,x.id),'[]'::jsonb)
         from (select id,sender_id,body,sent_at from communications.private_messages
           where conversation_id=c.id order by sent_at desc,id desc limit 100) x)) order by c.created_at desc)
-    from communications.private_conversations c where c.tenant_id=app_private.active_tenant_id()
+    from communications.private_conversations c where c.tenant_id=v_tenant
       and (p_conversation_id is null or c.id=p_conversation_id)
-      and communications.can_read_private(c.id,v_actor)), '[]'::jsonb);
+      and communications.can_read_private(c.id,v_actor)
+      and communications.context_covers_unit(p_context_id,c.unit_id)), '[]'::jsonb);
 end; $$;
 
-revoke all on function customer_api.create_private_conversation_v1(uuid,uuid,text,uuid),
-  customer_api.send_private_message_v1(uuid,text,uuid),
-  customer_api.get_private_conversations_v1(uuid) from public, anon;
-grant execute on function customer_api.create_private_conversation_v1(uuid,uuid,text,uuid),
-  customer_api.send_private_message_v1(uuid,text,uuid),
-  customer_api.get_private_conversations_v1(uuid) to authenticated;
+revoke all on function customer_api.create_private_conversation_v1(uuid,uuid,uuid,text,uuid),
+  customer_api.send_private_message_v1(uuid,uuid,text,uuid),
+  customer_api.get_private_conversations_v1(uuid,uuid) from public, anon;
+grant execute on function customer_api.create_private_conversation_v1(uuid,uuid,uuid,text,uuid),
+  customer_api.send_private_message_v1(uuid,uuid,text,uuid),
+  customer_api.get_private_conversations_v1(uuid,uuid) to authenticated;
 
 commit;

@@ -1754,15 +1754,15 @@ export type Database = {
         Returns: Json;
       };
       create_private_conversation_v1: {
-        Args: { p_unit_id: string; p_recipient_membership_id: string; p_body: string; p_request_id: string };
+        Args: { p_context_id: string; p_unit_id: string; p_recipient_membership_id: string; p_body: string; p_request_id: string };
         Returns: Json;
       };
       send_private_message_v1: {
-        Args: { p_conversation_id: string; p_body: string; p_request_id: string };
+        Args: { p_context_id: string; p_conversation_id: string; p_body: string; p_request_id: string };
         Returns: Json;
       };
       get_private_conversations_v1: {
-        Args: { p_conversation_id?: string | null };
+        Args: { p_context_id: string; p_conversation_id?: string | null };
         Returns: Json;
       };
       get_documents_v1: {

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const headers = { "Cache-Control": "no-store, private", Vary: "Cookie" };
 const createSchema = z.object({
+  context_id: z.string().uuid(),
   unit_id: z.string().uuid(),
   recipient_membership_id: z.string().uuid(),
   body: z.string().trim().min(1).max(5000),
@@ -12,12 +13,14 @@ const createSchema = z.object({
 
 export async function GET(request: NextRequest) {
   const id = request.nextUrl.searchParams.get("conversation_id");
+  const context = z.string().uuid().safeParse(request.nextUrl.searchParams.get("context_id"));
   const parsed = id === null ? null : z.string().uuid().safeParse(id);
-  if (parsed && !parsed.success) return NextResponse.json({ error: { code: "INVALID_CONVERSATION_ID" } }, { status: 400, headers });
+  if (!context.success || (parsed && !parsed.success)) return NextResponse.json({ error: { code: "INVALID_CONVERSATION_QUERY" } }, { status: 400, headers });
   const client = await createClient();
   const { data: claims, error } = await client.auth.getClaims();
   if (error || !claims?.claims?.sub) return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401, headers });
   const result = await client.schema("customer_api").rpc("get_private_conversations_v1", {
+    p_context_id: context.data,
     p_conversation_id: parsed?.success ? parsed.data : null,
   });
   if (result.error) return NextResponse.json({ error: { code: result.error.code === "42501" ? "ACCESS_DENIED" : "CONVERSATION_QUERY_FAILED" } }, { status: result.error.code === "42501" ? 403 : 500, headers });
@@ -31,6 +34,7 @@ export async function POST(request: NextRequest) {
   const { data: claims, error } = await client.auth.getClaims();
   if (error || !claims?.claims?.sub) return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401, headers });
   const result = await client.schema("customer_api").rpc("create_private_conversation_v1", {
+    p_context_id: parsed.data.context_id,
     p_unit_id: parsed.data.unit_id,
     p_recipient_membership_id: parsed.data.recipient_membership_id,
     p_body: parsed.data.body,
