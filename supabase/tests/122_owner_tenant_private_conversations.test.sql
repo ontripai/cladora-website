@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(9);
+select plan(11);
 
 insert into auth.users(id,email) values
   ('12200000-0000-4000-8000-000000000001','one122@cladora.test'),
@@ -70,6 +70,21 @@ select set_config('request.jwt.claims',jsonb_build_object('sub','12200000-0000-4
 select is(jsonb_array_length(customer_api.get_private_conversations_v1('12200000-0000-4000-8000-000000000044',null)),1,'Tenant reads owner message');
 select ok((customer_api.send_private_message_v1('12200000-0000-4000-8000-000000000044',(customer_api.get_private_conversations_v1('12200000-0000-4000-8000-000000000044',null)->0->>'id')::uuid,'Tenant reply','12200000-0000-4000-8000-000000000052')->>'message_id') is not null,'Tenant replies');
 reset role;
+-- A file uploaded from an owner unit context must inherit the unit's property;
+-- a caller-supplied property from another workspace must fail closed.
+insert into documents.documents(id,tenant_id,property_id,title,document_type,created_by) values
+ ('12200000-0000-4000-8000-000000000061','12200000-0000-4000-8000-000000000004',null,'Owner file','conversation_attachment','12200000-0000-4000-8000-000000000041'),
+ ('12200000-0000-4000-8000-000000000062','12200000-0000-4000-8000-000000000004','12200000-0000-4000-8000-000000000006','Wrong property','conversation_attachment','12200000-0000-4000-8000-000000000041');
+insert into documents.upload_intents(id,tenant_id,context_id,user_id,bucket_id,object_path,expected_version,declared_mime_type,max_size_bytes,status,server_auth_hash) values
+ ('12200000-0000-4000-8000-000000000063','12200000-0000-4000-8000-000000000004','12200000-0000-4000-8000-000000000043','12200000-0000-4000-8000-000000000041','document-vault','unit-122/owner-a.pdf',1,'application/pdf',100,'consumed','test'),
+ ('12200000-0000-4000-8000-000000000064','12200000-0000-4000-8000-000000000004','12200000-0000-4000-8000-000000000043','12200000-0000-4000-8000-000000000041','document-vault','unit-122/owner-b.pdf',1,'application/pdf',100,'consumed','test');
+insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,size_bytes,uploaded_by,metadata_json) values
+ ('12200000-0000-4000-8000-000000000065','12200000-0000-4000-8000-000000000004','12200000-0000-4000-8000-000000000061',1,'unit-122/owner-a.pdf',repeat('a',64),'application/pdf',10,'12200000-0000-4000-8000-000000000041','{"upload_intent_id":"12200000-0000-4000-8000-000000000063"}');
+select is((select property_id from documents.documents where id='12200000-0000-4000-8000-000000000061'),
+ '12200000-0000-4000-8000-000000000005'::uuid,'Unit upload inherits its verified property');
+select throws_ok($$insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,size_bytes,uploaded_by,metadata_json) values
+ ('12200000-0000-4000-8000-000000000066','12200000-0000-4000-8000-000000000004','12200000-0000-4000-8000-000000000062',1,'unit-122/owner-b.pdf',repeat('b',64),'application/pdf',10,'12200000-0000-4000-8000-000000000041','{"upload_intent_id":"12200000-0000-4000-8000-000000000064"}')$$,
+ '42501','uploaded_document_property_mismatch','Unit upload cannot claim another property');
 update occupancy.leases set status='archived' where id='12200000-0000-4000-8000-000000000047';
 select ok(not communications.member_covers_unit('12200000-0000-4000-8000-000000000042','12200000-0000-4000-8000-000000000004','12200000-0000-4000-8000-000000000009'),'Ended lease removes tenant unit coverage');
 set local role authenticated;
