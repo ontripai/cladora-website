@@ -82,6 +82,7 @@ select ok((documents.create_upload_intent_internal('12000000-0000-4000-8000-0000
 select throws_ok($$select documents.create_upload_intent_internal('12000000-0000-4000-8000-000000000044','12000000-0000-4000-8000-000000000056','overwrite.pdf','application/pdf',512,null)$$,'42501','restricted_roles_cannot_version_existing_documents','Vendor cannot overwrite another document');
 update maintenance.vendor_contracts set status='archived' where id='12000000-0000-4000-8000-000000000048';
 set local role authenticated;
+select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000001','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000011')::text,true);
 select is(jsonb_array_length(customer_api.get_private_conversations_v1('12000000-0000-4000-8000-000000000011',null)),0,'Contract end revokes existing conversation');
 reset role;
 update platform.platform_customer_assignments set status='revoked',revoked_at=statement_timestamp() where platform_user_id='12000000-0000-4000-8000-000000000045';

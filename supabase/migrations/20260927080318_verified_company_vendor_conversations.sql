@@ -32,6 +32,22 @@ create index vendor_portal_memberships_verified_by_idx on maintenance.vendor_por
 alter table maintenance.vendor_portal_memberships enable row level security;
 grant all on maintenance.vendor_portal_memberships to service_role;
 
+create function maintenance.audit_vendor_portal_membership()
+returns trigger language plpgsql security definer set search_path=pg_catalog as $$
+begin
+  insert into audit.events(tenant_id,actor_id,action,entity_type,entity_id,before_snapshot,after_snapshot)
+    values(new.tenant_id,coalesce(auth.uid(),new.verified_by),
+      case when tg_op='INSERT' then 'vendor_portal_membership.create' else 'vendor_portal_membership.update' end,
+      'maintenance.vendor_portal_membership',new.id,
+      case when tg_op='UPDATE' then jsonb_build_object('status',old.status,'revoked_at',old.revoked_at) else null end,
+      jsonb_build_object('vendor_id',new.vendor_id,'membership_id',new.membership_id,
+        'status',new.status,'accepted_at',new.accepted_at,'revoked_at',new.revoked_at));
+  return new;
+end; $$;
+create trigger vendor_portal_membership_audit after insert or update on maintenance.vendor_portal_memberships
+  for each row execute function maintenance.audit_vendor_portal_membership();
+revoke all on function maintenance.audit_vendor_portal_membership() from public,anon,authenticated;
+
 create or replace function communications.member_covers_unit(p_membership uuid, p_tenant uuid, p_unit uuid)
 returns boolean language sql stable security definer set search_path=pg_catalog
 as $$

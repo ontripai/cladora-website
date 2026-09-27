@@ -14,9 +14,9 @@ type Attachable = { id: string; version_id: string; title: string };
 type Unread = { conversation_id: string; unread_count: number };
 
 const words = {
-  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează și atașează", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Încărcați un document sau obțineți permisiunea de vizualizare pentru ambele părți.", upload: "Încărcați un document nou", scanning: "Încărcat. Documentul apare pentru atașare după verificarea de securitate.", uploadBusy: "Se încarcă…" },
-  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share and attach", download: "Download document", read: "Mark as read", vault: "Upload a document or obtain view access for both participants.", upload: "Upload new document", scanning: "Uploaded. The document becomes attachable after security scanning.", uploadBusy: "Uploading…" },
-  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری و پیوست", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سند بارگذاری کنید یا برای هر دو طرف مجوز مشاهده ثبت کنید.", upload: "بارگذاری سند جدید", scanning: "بارگذاری شد. سند پس از بررسی امنیتی برای پیوست نمایش داده می‌شود.", uploadBusy: "در حال بارگذاری…" },
+  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează și atașează", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Încărcați un document sau obțineți permisiunea de vizualizare pentru ambele părți.", upload: "Încărcați un document nou", scanning: "Încărcat. Documentul apare pentru atașare după verificarea de securitate.", uploadBusy: "Se încarcă…", refresh: "Actualizează lista documentelor" },
+  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share and attach", download: "Download document", read: "Mark as read", vault: "Upload a document or obtain view access for both participants.", upload: "Upload new document", scanning: "Uploaded. The document becomes attachable after security scanning.", uploadBusy: "Uploading…", refresh: "Refresh documents" },
+  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری و پیوست", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سند بارگذاری کنید یا برای هر دو طرف مجوز مشاهده ثبت کنید.", upload: "بارگذاری سند جدید", scanning: "بارگذاری شد. سند پس از بررسی امنیتی برای پیوست نمایش داده می‌شود.", uploadBusy: "در حال بارگذاری…", refresh: "به‌روزرسانی فهرست اسناد" },
 } satisfies Record<Language, Record<string, string>>;
 
 async function readArray<T>(url: string): Promise<T[]> {
@@ -29,10 +29,11 @@ async function readArray<T>(url: string): Promise<T[]> {
 
 export function PrivateConversationsPanel({ lang }: { lang: Language }) {
   const { active } = useCustomerContext();
-  return <PrivateConversationsContent key={active?.context_id ?? "no-context"} lang={lang} contextId={active?.context_id} />;
+  return <PrivateConversationsContent key={active?.context_id ?? "no-context"} lang={lang}
+    contextId={active?.context_id} canOpenVault={!['company_staff', 'vendor_contact'].includes(active?.role_code?.toLowerCase() ?? '')} />;
 }
 
-function PrivateConversationsContent({ lang, contextId }: { lang: Language; contextId?: string }) {
+function PrivateConversationsContent({ lang, contextId, canOpenVault }: { lang: Language; contextId?: string; canOpenVault: boolean }) {
   const t = words[lang];
   const [threads, setThreads] = useState<Thread[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -105,6 +106,15 @@ function PrivateConversationsContent({ lang, contextId }: { lang: Language; cont
     const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (!response.ok) throw new Error(String(response.status));
     return response.json() as Promise<{ download_url?: string }>;
+  }
+
+  async function refreshDocuments() {
+    if (!contextId || !selectedId) return;
+    try {
+      const base = `/api/customer/v1/private-conversations/${selectedId}/attachments?context_id=${encodeURIComponent(contextId)}`;
+      const [available, linked] = await Promise.all([readArray<Attachable>(`${base}&available=true`), readArray<Attachment>(base)]);
+      setAttachable(available); setAttachments(linked);
+    } catch { setError(true); }
   }
 
   async function markRead() {
@@ -200,7 +210,8 @@ function PrivateConversationsContent({ lang, contextId }: { lang: Language; cont
           <div className="mt-4 space-y-2">
             <label htmlFor="private-document" className="block">{t.document}</label>
             <select id="private-document" value={documentId} onChange={(event) => setDocumentId(event.target.value)} className="w-full rounded-lg border border-slate-400 p-2"><option value="">{t.select}</option>{attachable.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}</select>
-            {!attachable.length && <p className="text-xs text-slate-600">{t.vault} <Link href={`/${lang}/app/documents`} className="text-blue-700 underline">{t.document}</Link></p>}
+            {!attachable.length && <p className="text-xs text-slate-600">{t.vault} {canOpenVault && <Link href={`/${lang}/app/documents`} className="text-blue-700 underline">{t.document}</Link>}</p>}
+            <button type="button" onClick={() => void refreshDocuments()} className="block text-sm text-blue-700 underline">{t.refresh}</button>
             <button type="button" disabled={!documentId || busy || lastSent?.conversation !== selectedId} onClick={() => void attach()} className="rounded-lg border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{t.attach}</button>
           </div>
           <form className="mt-4 space-y-2 border-t pt-4" onSubmit={(event) => { event.preventDefault(); void upload(); }}>
