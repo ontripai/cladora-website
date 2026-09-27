@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(10);
+select plan(12);
 
 insert into auth.users(id,email) values
   ('12000000-0000-4000-8000-000000000001','one120@cladora.test'),
@@ -80,6 +80,14 @@ reset role;
 update platform.platform_customer_assignments set status='revoked',revoked_at=statement_timestamp() where platform_user_id='12000000-0000-4000-8000-000000000045';
 select ok(not communications.member_covers_unit('12000000-0000-4000-8000-000000000041','12000000-0000-4000-8000-000000000004','12000000-0000-4000-8000-000000000009'),'Company assignment revokes staff');
 select ok(not communications.member_covers_unit('12000000-0000-4000-8000-000000000042','12000000-0000-4000-8000-000000000004','12000000-0000-4000-8000-000000000009'),'Contract revokes vendor');
+insert into documents.documents(id,tenant_id,property_id,title,document_type,status) values
+ ('12000000-0000-4000-8000-000000000052','12000000-0000-4000-8000-000000000004','12000000-0000-4000-8000-000000000005','Access check','test','active');
+set local role authenticated;
+select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000042','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000044')::text,true);
+select is((select count(*)::integer from documents.documents where id='12000000-0000-4000-8000-000000000052'),0,'Expired vendor contract removes direct vault metadata read');
+select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000041','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000043')::text,true);
+select is((select count(*)::integer from documents.documents where id='12000000-0000-4000-8000-000000000052'),0,'Revoked staff assignment removes direct vault metadata read');
+reset role;
 select ok(not has_table_privilege('authenticated','maintenance.vendor_portal_memberships','SELECT'),'Vendor binding table stays private');
 select * from finish();
 rollback;

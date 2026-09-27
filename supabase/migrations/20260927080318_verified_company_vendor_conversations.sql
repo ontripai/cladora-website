@@ -27,6 +27,8 @@ create table maintenance.vendor_portal_memberships (
 );
 create index vendor_portal_memberships_vendor_idx on maintenance.vendor_portal_memberships(vendor_id,status);
 create index vendor_portal_memberships_member_idx on maintenance.vendor_portal_memberships(membership_id,status);
+create index vendor_portal_memberships_tenant_idx on maintenance.vendor_portal_memberships(tenant_id);
+create index vendor_portal_memberships_verified_by_idx on maintenance.vendor_portal_memberships(verified_by);
 alter table maintenance.vendor_portal_memberships enable row level security;
 grant all on maintenance.vendor_portal_memberships to service_role;
 

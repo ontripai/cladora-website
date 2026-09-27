@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(32);
+select plan(35);
 
 insert into auth.users(id,email) values
   ('11900000-0000-4000-8000-000000000001','one119@cladora.test'),
@@ -86,11 +86,22 @@ select is(jsonb_array_length(customer_api.list_attachable_private_documents_v1('
 select is((customer_api.attach_private_document_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid,(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->'messages'->1->>'id')::uuid,'11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000032')->>'replayed')::boolean,false,'Author attaches clean document');
 select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),1,'Recipient sees attachment metadata');
 select is((customer_api.authorize_private_attachment_download_v1('11900000-0000-4000-8000-000000000012',(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)->0->>'id')::uuid)->>'version_id')::uuid,'11900000-0000-4000-8000-000000000032'::uuid,'Authorized clean version is downloadable');
+select set_config('test.private_attachment_id',customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)->0->>'id',true);
+
+reset role;
+insert into documents.documents(id,tenant_id,property_id,title,document_type,status,created_by) values
+ ('11900000-0000-4000-8000-000000000036','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000005','Sender document','test','active','11900000-0000-4000-8000-000000000002');
+insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,scanning_status) values
+ ('11900000-0000-4000-8000-000000000037','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000036',1,'test/119-owned','119-owned-sha','application/pdf','clean');
+set local role authenticated;
+select is(jsonb_array_length(customer_api.list_attachable_private_documents_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),2,'Creator may choose own clean document without existing grants');
+select is((customer_api.attach_private_document_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid,(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->'messages'->1->>'id')::uuid,'11900000-0000-4000-8000-000000000036','11900000-0000-4000-8000-000000000037')->>'replayed')::boolean,false,'Owner explicitly shares and attaches');
+select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),2,'Own document now visible after two-party sharing');
 reset role;
 update documents.document_permissions set valid_until=statement_timestamp()-interval '1 second' where membership_id='11900000-0000-4000-8000-000000000002';
 set local role authenticated;
-select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),0,'Expired document permission hides attachment');
-select throws_ok($$select customer_api.authorize_private_attachment_download_v1('11900000-0000-4000-8000-000000000012',(select id from communications.private_message_documents limit 1))$$,'42501','private_attachment_denied','Expired document permission denies download');
+select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),1,'Expired document permission hides its attachment');
+select throws_ok($$select customer_api.authorize_private_attachment_download_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_attachment_id')::uuid)$$,'42501','private_attachment_denied','Expired document permission denies download');
 reset role;
 insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,scanning_status) values('11900000-0000-4000-8000-000000000035','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000031',2,'test/119-pending','119-pending-sha','application/pdf','scanning_pending');
 set local role authenticated;
