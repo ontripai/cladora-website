@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(17);
+select plan(22);
 
 insert into platform.tenants(id,legal_name,registration_number,status) values
  ('12400000-0000-4000-8000-000000000001','Vault queue test','VAULTQUEUE124','active');
@@ -35,6 +35,18 @@ select is((select state from documents.document_scan_jobs where version_id='1240
 select is((select scanning_status from documents.document_versions where id='12400000-0000-4000-8000-000000000004'),'clean','Only attested version becomes clean');
 select is(public.get_document_scan_queue_status_v1()->>'dead_letter','0','Queue status includes dead-letter count');
 select throws_ok($$select public.complete_document_scan_job_v1((current_setting('test.queue_lease')::jsonb->>'job_id')::uuid,(current_setting('test.queue_lease')::jsonb->>'lease_token')::uuid,'12400000-0000-4000-8000-000000000006','clean',repeat('a',64),'ClamAV test',statement_timestamp())$$,'42501','document_scan_job_lease_invalid','Completed job cannot be re-used');
+
+insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,size_bytes,scanning_status) values
+ ('12400000-0000-4000-8000-000000000007','12400000-0000-4000-8000-000000000001','12400000-0000-4000-8000-000000000003',2,'scan-queue/retries',repeat('b',64),'application/pdf',5,'deferred');
+insert into storage.objects(bucket_id,name) values('document-vault','scan-queue/retries');
+select is((select state from documents.document_scan_jobs where version_id='12400000-0000-4000-8000-000000000007'),'pending','Second version auto-enqueued');
+update documents.document_scan_jobs set attempt_count=4 where version_id='12400000-0000-4000-8000-000000000007';
+select set_config('test.queue_lease',public.claim_document_scan_job_v1('worker-124',900)::text,true);
+select is((current_setting('test.queue_lease')::jsonb->>'attempt_count')::int,5,'Final attempt leased');
+select is(public.fail_document_scan_job_v1((current_setting('test.queue_lease')::jsonb->>'job_id')::uuid,
+ (current_setting('test.queue_lease')::jsonb->>'lease_token')::uuid,'SCAN_FAILED',60)->>'state','dead_letter','Final failure dead-letters job');
+select is((select scanning_status from documents.document_versions where id='12400000-0000-4000-8000-000000000007'),'deferred','Dead-lettered version stays inaccessible');
+select is(public.get_document_scan_queue_status_v1()->>'dead_letter','1','Operator sees dead-letter in status');
 
 select * from finish();
 rollback;

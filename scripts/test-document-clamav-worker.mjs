@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { scanDocumentVersion, scanNextDocument } from './document-clamav-worker.mjs';
+import { scanDocumentVersion, scanNextDocument, checkDocumentScanQueue } from './document-clamav-worker.mjs';
 
 const versionId = '55000000-0000-4000-8000-000000000001';
 const bytes = Buffer.from('synthetic vault fixture');
@@ -76,4 +76,12 @@ assert.deepEqual(await scanNextDocument({ ...failed, workerId: 'worker-001' }), 
   outcome: 'retry', versionId, errorCode: 'SIGNATURE_UPDATE_FAILED',
 });
 assert.equal(failed.calls.at(-1).params.p_retry_after_seconds, 120);
+const queueStatus = result => ({ rpc: async () => ({ data: result, error: null }) });
+assert.deepEqual(await checkDocumentScanQueue({ client: queueStatus({ pending: 1, retry: 0, dead_letter: 0,
+  oldest_pending_at: '2026-09-27T18:00:00Z' }), now: Date.parse('2026-09-27T18:15:00Z') }),
+{ pending: 1, deadLetter: 0, healthy: true });
+await assert.rejects(checkDocumentScanQueue({ client: queueStatus({ pending: 1, retry: 0, dead_letter: 0,
+  oldest_pending_at: '2026-09-27T18:00:00Z' }), now: Date.parse('2026-09-27T19:00:00Z') }), /SCAN_QUEUE_UNHEALTHY/);
+await assert.rejects(checkDocumentScanQueue({ client: queueStatus({ pending: 0, retry: 0, dead_letter: 1,
+  oldest_pending_at: '2026-09-27T18:00:00Z' }) }), /SCAN_QUEUE_UNHEALTHY/);
 console.log('Vault ClamAV worker: clean, quarantine and fail-closed paths passed');

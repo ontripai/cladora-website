@@ -100,6 +100,19 @@ export async function scanNextDocument({ client, workerId, run = command, clamsc
   }
 }
 
+export async function checkDocumentScanQueue({ client, now = Date.now(), maxPendingMinutes = 30 }) {
+  const { data, error } = await client.rpc('get_document_scan_queue_status_v1');
+  if (error || !data) throw new Error('SCAN_QUEUE_STATUS_UNAVAILABLE');
+  const deadLetter = Number(data.dead_letter);
+  const pending = Number(data.pending) + Number(data.retry);
+  const oldest = data.oldest_pending_at ? Date.parse(data.oldest_pending_at) : null;
+  if (!Number.isSafeInteger(deadLetter) || !Number.isSafeInteger(pending)
+    || (oldest !== null && !Number.isFinite(oldest)) || (pending > 0 && oldest === null)) throw new Error('SCAN_QUEUE_STATUS_INVALID');
+  const stale = pending > 0 && oldest !== null && now - oldest > maxPendingMinutes * 60_000;
+  if (deadLetter > 0 || stale) throw new Error('SCAN_QUEUE_UNHEALTHY');
+  return { pending, deadLetter, healthy: true };
+}
+
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const versionId = process.argv[2];
@@ -113,7 +126,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       freshclam: process.env.FRESHCLAM_PATH || 'freshclam' };
     const result = versionId === '--queue'
       ? await scanNextDocument({ ...options, workerId: process.env.DOCUMENT_SCAN_WORKER_ID || 'cladora-vault-worker' })
-      : await scanDocumentVersion({ ...options, versionId });
+      : versionId === '--status' ? await checkDocumentScanQueue({ client })
+        : await scanDocumentVersion({ ...options, versionId });
     process.stdout.write(`${JSON.stringify(result)}\n`);
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : 'SCAN_FAILED'}\n`);
