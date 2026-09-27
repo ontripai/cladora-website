@@ -1765,6 +1765,14 @@ export type Database = {
         Args: { p_context_id: string; p_conversation_id?: string | null };
         Returns: Json;
       };
+      list_private_units_v1: {
+        Args: { p_context_id: string; p_query?: string | null; p_limit?: number; p_offset?: number };
+        Returns: Json;
+      };
+      list_private_recipients_v1: {
+        Args: { p_context_id: string; p_unit_id: string };
+        Returns: Json;
+      };
       get_documents_v1: {
         Args: {
           p_context_id: string;
