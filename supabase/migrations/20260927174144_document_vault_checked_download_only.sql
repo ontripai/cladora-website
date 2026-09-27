@@ -121,5 +121,8 @@ begin
   );
 end;
 $$;
+-- The exposed customer_api wrapper is SECURITY INVOKER. It must be able to
+-- execute this fully guarded function; documents is not a Data API schema.
+grant execute on function documents.authorize_download_internal(uuid,uuid,uuid,boolean) to authenticated;
 
 commit;
