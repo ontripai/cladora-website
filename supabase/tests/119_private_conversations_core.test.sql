@@ -62,6 +62,6 @@ select ok((customer_api.send_private_message_v1('11900000-0000-4000-8000-0000000
 reset role;
 update identity.context_grants set ends_at=statement_timestamp()-interval '1 second' where id='11900000-0000-4000-8000-000000000012';
 set local role authenticated;
-select is(jsonb_array_length(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)),0,'Grant expiry revokes recipient read');
+select throws_ok($$select customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)$$,'42501','private_conversation_denied','Grant expiry revokes recipient read');
 select * from finish();
 rollback;
