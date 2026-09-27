@@ -15,8 +15,14 @@ create table documents.document_scan_attestations (
   recorded_at timestamptz not null default statement_timestamp()
 );
 alter table documents.document_scan_attestations enable row level security;
+create index document_scan_attestations_tenant_id_idx on documents.document_scan_attestations(tenant_id);
 revoke all on documents.document_scan_attestations from public, anon, authenticated;
 grant select, insert on documents.document_scan_attestations to service_role;
+-- The immutable-version trigger runs under the dedicated RPC owner on
+-- retention-enabled installations; it must be able to inspect the attestation.
+grant select on documents.document_scan_attestations to cladora_rpc_owner;
+create policy document_scan_attestations_rpc_owner_read on documents.document_scan_attestations
+for select to cladora_rpc_owner using (true);
 
 create function documents.protect_scan_attestation() returns trigger
 language plpgsql set search_path = pg_catalog as $$
