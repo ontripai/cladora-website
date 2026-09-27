@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(35);
+select plan(37);
 
 insert into auth.users(id,email) values
   ('11900000-0000-4000-8000-000000000001','one119@cladora.test'),
@@ -86,6 +86,11 @@ select is(jsonb_array_length(customer_api.list_attachable_private_documents_v1('
 select is((customer_api.attach_private_document_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid,(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->'messages'->1->>'id')::uuid,'11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000032')->>'replayed')::boolean,false,'Author attaches clean document');
 select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),1,'Recipient sees attachment metadata');
 select is((customer_api.authorize_private_attachment_download_v1('11900000-0000-4000-8000-000000000012',(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)->0->>'id')::uuid)->>'version_id')::uuid,'11900000-0000-4000-8000-000000000032'::uuid,'Authorized clean version is downloadable');
+select set_config('request.jwt.claims',jsonb_build_object('sub','11900000-0000-4000-8000-000000000002','role','authenticated','aal','aal1','active_tenant_id','11900000-0000-4000-8000-000000000004','active_context_id','11900000-0000-4000-8000-000000000012')::text,true);
+select throws_ok($$select customer_api.authorize_document_download_v1('11900000-0000-4000-8000-000000000012','11900000-0000-4000-8000-000000000031',null,false)$$,'42501','document_download_access_denied','Vault download requires AAL2');
+select set_config('request.jwt.claims',jsonb_build_object('sub','11900000-0000-4000-8000-000000000003','role','authenticated','aal','aal2','active_tenant_id','11900000-0000-4000-8000-000000000004','active_context_id','11900000-0000-4000-8000-000000000013')::text,true);
+select throws_ok($$select customer_api.authorize_document_download_v1('11900000-0000-4000-8000-000000000013','11900000-0000-4000-8000-000000000031',null,false)$$,'42501','document_download_access_denied','Same-tenant manager cannot download another property by document ID');
+select set_config('request.jwt.claims',jsonb_build_object('sub','11900000-0000-4000-8000-000000000002','role','authenticated','aal','aal2','active_tenant_id','11900000-0000-4000-8000-000000000004','active_context_id','11900000-0000-4000-8000-000000000012')::text,true);
 select set_config('test.private_attachment_id',customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)->0->>'id',true);
 
 reset role;

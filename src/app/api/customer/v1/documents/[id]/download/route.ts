@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { HEADERS, mapDocumentsRpcError } from "@/lib/customer/documents-api-helper";
 import { authorizeDownloadSchema } from "@/lib/customer/documents-schema";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
@@ -72,7 +73,15 @@ export async function POST(
     );
   }
 
-  const { data: signedData, error: signError } = await supabase.storage
+  // Authenticated sessions cannot read the bucket directly. The checked RPC
+  // above authorizes this exact version before the server signs its path.
+  if (bucketId !== "document-vault") {
+    return NextResponse.json(
+      { error: { code: "STORAGE_ERROR", message: "Unexpected document bucket" } },
+      { status: 500, headers: HEADERS }
+    );
+  }
+  const { data: signedData, error: signError } = await createAdminClient().storage
     .from(bucketId)
     .createSignedUrl(objectPath, 60, {
       download: true, // Forces Content-Disposition: attachment
