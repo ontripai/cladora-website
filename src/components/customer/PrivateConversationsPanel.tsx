@@ -155,9 +155,11 @@ function PrivateConversationsContent({ lang, contextId, canOpenVault }: { lang: 
         body: JSON.stringify({ context_id: contextId, filename: uploadFile.name, declared_mime: declaredMime, size_bytes: uploadFile.size }),
       });
       if (!intentResponse.ok) throw new Error(String(intentResponse.status));
-      const intent = await intentResponse.json() as { intent_id: string };
+      const intent = await intentResponse.json() as { intent_id: string; object_path: string };
+      if (!intent.intent_id || !intent.object_path) throw new Error("Missing upload intent path");
       const form = new FormData();
       form.append("context_id", contextId); form.append("intent_id", intent.intent_id);
+      form.append("object_path", intent.object_path);
       form.append("title", uploadFile.name); form.append("document_type", "conversation_attachment");
       form.append("classification", "confidential"); form.append("declared_mime", declaredMime);
       form.append("file", uploadFile);
