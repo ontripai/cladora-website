@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(37);
+select plan(38);
 
 insert into auth.users(id,email) values
   ('11900000-0000-4000-8000-000000000001','one119@cladora.test'),
@@ -77,6 +77,7 @@ insert into documents.document_versions(id,tenant_id,document_id,version,object_
 insert into documents.document_permissions(id,tenant_id,document_id,membership_id,valid_from) values
  ('11900000-0000-4000-8000-000000000033','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000001',statement_timestamp()-interval '1 day');
 set local role authenticated;
+select is(jsonb_array_length(documents.get_customer_documents('11900000-0000-4000-8000-000000000012','documents',null,null,null,null,null,25,0,'11900000-0000-4000-8000-000000000031')->'rows'),1,'Scoped vault document list resolves its per-statement CTE');
 select is(jsonb_array_length(customer_api.list_attachable_private_documents_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),0,'One-sided document grant cannot be shared');
 reset role;
 insert into documents.document_permissions(id,tenant_id,document_id,membership_id,valid_from) values
