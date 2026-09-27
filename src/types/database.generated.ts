@@ -1773,6 +1773,30 @@ export type Database = {
         Args: { p_context_id: string; p_unit_id: string };
         Returns: Json;
       };
+      attach_private_document_v1: {
+        Args: { p_context_id: string; p_conversation_id: string; p_message_id: string; p_document_id: string; p_version_id: string };
+        Returns: Json;
+      };
+      list_private_attachments_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      list_attachable_private_documents_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      authorize_private_attachment_download_v1: {
+        Args: { p_context_id: string; p_attachment_id: string };
+        Returns: Json;
+      };
+      mark_private_conversation_read_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      get_private_unread_v1: {
+        Args: { p_context_id: string };
+        Returns: Json;
+      };
       get_documents_v1: {
         Args: {
           p_context_id: string;

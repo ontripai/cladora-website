@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(21);
+select plan(32);
 
 insert into auth.users(id,email) values
   ('11900000-0000-4000-8000-000000000001','one119@cladora.test'),
@@ -63,6 +63,38 @@ select set_config('request.jwt.claims',jsonb_build_object('sub','11900000-0000-4
 select is(jsonb_array_length(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)),1,'Recipient reads conversation');
 select is((customer_api.send_private_message_v1('11900000-0000-4000-8000-000000000012',(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->>'id')::uuid,'Reply','11900000-0000-4000-8000-000000000022')->>'replayed')::boolean,false,'Recipient replies');
 select ok((customer_api.send_private_message_v1('11900000-0000-4000-8000-000000000012',(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->>'id')::uuid,'Reply','11900000-0000-4000-8000-000000000022')->>'replayed')::boolean,'Reply retry detected');
+
+select is((customer_api.get_private_unread_v1('11900000-0000-4000-8000-000000000012')->0->>'unread_count')::int,1,'Recipient unread excludes own reply');
+select is((customer_api.mark_private_conversation_read_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)->>'conversation_id')::uuid,current_setting('test.private_conversation_id')::uuid,'Recipient marks read');
+select is((customer_api.get_private_unread_v1('11900000-0000-4000-8000-000000000012')->0->>'unread_count')::int,0,'Recipient unread cleared');
+reset role;
+insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from) values
+ ('11900000-0000-4000-8000-000000000014','module.documents','boolean',true,statement_timestamp()-interval '1 day');
+insert into documents.documents(id,tenant_id,property_id,title,document_type,status)
+ values('11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000005','Private evidence','test','active');
+insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,scanning_status)
+ values('11900000-0000-4000-8000-000000000032','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000031',1,'test/119','119-clean-sha','application/pdf','clean');
+insert into documents.document_permissions(id,tenant_id,document_id,membership_id,valid_from) values
+ ('11900000-0000-4000-8000-000000000033','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000001',statement_timestamp()-interval '1 day');
+set local role authenticated;
+select is(jsonb_array_length(customer_api.list_attachable_private_documents_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),0,'One-sided document grant cannot be shared');
+reset role;
+insert into documents.document_permissions(id,tenant_id,document_id,membership_id,valid_from) values
+ ('11900000-0000-4000-8000-000000000034','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000002',statement_timestamp()-interval '1 day');
+set local role authenticated;
+select is(jsonb_array_length(customer_api.list_attachable_private_documents_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),1,'Document available to both permitted parties');
+select is((customer_api.attach_private_document_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid,(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->'messages'->1->>'id')::uuid,'11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000032')->>'replayed')::boolean,false,'Author attaches clean document');
+select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),1,'Recipient sees attachment metadata');
+select is((customer_api.authorize_private_attachment_download_v1('11900000-0000-4000-8000-000000000012',(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)->0->>'id')::uuid)->>'version_id')::uuid,'11900000-0000-4000-8000-000000000032'::uuid,'Authorized clean version is downloadable');
+reset role;
+update documents.document_permissions set valid_until=statement_timestamp()-interval '1 second' where membership_id='11900000-0000-4000-8000-000000000002';
+set local role authenticated;
+select is(jsonb_array_length(customer_api.list_private_attachments_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid)),0,'Expired document permission hides attachment');
+select throws_ok($$select customer_api.authorize_private_attachment_download_v1('11900000-0000-4000-8000-000000000012',(select id from communications.private_message_documents limit 1))$$,'42501','private_attachment_denied','Expired document permission denies download');
+reset role;
+insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,scanning_status) values('11900000-0000-4000-8000-000000000035','11900000-0000-4000-8000-000000000004','11900000-0000-4000-8000-000000000031',2,'test/119-pending','119-pending-sha','application/pdf','scanning_pending');
+set local role authenticated;
+select throws_ok($$select customer_api.attach_private_document_v1('11900000-0000-4000-8000-000000000012',current_setting('test.private_conversation_id')::uuid,(customer_api.get_private_conversations_v1('11900000-0000-4000-8000-000000000012',null)->0->'messages'->1->>'id')::uuid,'11900000-0000-4000-8000-000000000031','11900000-0000-4000-8000-000000000035')$$,'42501','private_attachment_denied','Pending scanner version denied');
 reset role;
 update identity.context_grants set ends_at=statement_timestamp()-interval '1 second' where id='11900000-0000-4000-8000-000000000012';
 set local role authenticated;
