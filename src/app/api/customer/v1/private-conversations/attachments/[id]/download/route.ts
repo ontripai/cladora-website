@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 
@@ -20,7 +21,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (result.error) return NextResponse.json({ error: { code: result.error.code === "42501" ? "ACCESS_DENIED" : "DOWNLOAD_FAILED" } }, { status: result.error.code === "42501" ? 403 : 500, headers });
   const record = result.data as { object_path?: string; bucket_id?: string; version_id?: string } | null;
   if (!record?.object_path) return NextResponse.json({ error: { code: "STORAGE_ERROR" } }, { status: 500, headers });
-  const signed = await client.storage.from(record.bucket_id ?? "document-vault").createSignedUrl(record.object_path, 60, { download: true });
+  // Storage SELECT is intentionally limited to the original uploader. The
+  // checked RPC above authorizes this recipient; sign only its returned path.
+  if (record.bucket_id !== "document-vault") return NextResponse.json({ error: { code: "STORAGE_ERROR" } }, { status: 500, headers });
+  const signed = await createAdminClient().storage.from("document-vault").createSignedUrl(record.object_path, 60, { download: true });
   if (signed.error || !signed.data?.signedUrl) return NextResponse.json({ error: { code: "SIGNING_FAILED" } }, { status: 500, headers });
   return NextResponse.json({ download_url: signed.data.signedUrl, expires_in_seconds: 60, version_id: record.version_id }, { headers });
 }
