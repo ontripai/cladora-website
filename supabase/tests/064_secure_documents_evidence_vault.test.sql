@@ -31,7 +31,7 @@ select ok(
 );
 select ok(
   not exists(select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'document_vault_tenant_select'),
-  'document vault has no direct authenticated SELECT policy'
+  'document-vault denies direct authenticated Storage SELECT'
 );
 select ok(
   not exists(
