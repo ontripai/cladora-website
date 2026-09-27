@@ -24,18 +24,33 @@ begin
     raise exception 'document_not_found' using errcode = '22000';
   end if;
 
-  -- The vault list is the authoritative classification/scope projection for
-  -- customer roles. Newly shared private-thread documents may additionally be
-  -- viewed with an explicit, current permission and live unit relationship.
+  -- Apply scope and role rules at download time. Private-thread documents may
+  -- additionally be viewed with an explicit permission and live relationship.
   -- Every download requires a currently AAL2-authenticated session.
   if v_actor.aal <> 'aal2' or v_doc.deleted_at is not null or v_doc.status <> 'active' then
     raise exception 'document_download_access_denied' using errcode='42501';
   end if;
   if not (
-    (lower(v_actor.role_code) in
-      ('association_admin','property_manager','president','censor','owner','tenant_resident')
-     and jsonb_array_length(documents.get_customer_documents(
-       p_context_id,'documents',null,null,null,null,null,1,0,p_document_id)->'rows') > 0)
+    (documents.customer_document_scope_matches(v_actor.scope_type,v_actor.property_id,
+       v_actor.building_id,v_actor.unit_id,v_doc.property_id)
+     and case lower(v_actor.role_code)
+       when 'association_admin' then true
+       when 'property_manager' then v_doc.classification<>'restricted'
+       when 'president' then v_doc.classification<>'restricted' and
+         (v_doc.document_type ilike 'governance%' or exists(select 1 from documents.document_links l
+           where l.document_id=v_doc.id and l.entity_type in ('governance.meeting','governance.resolution')))
+       when 'censor' then v_doc.classification<>'restricted' and
+         (v_doc.document_type ilike any(array['audit%','financial%','governance%'])
+          or exists(select 1 from documents.document_links l where l.document_id=v_doc.id
+            and l.entity_type in ('finance.journal','billing.invoice','governance.meeting','governance.resolution'))
+          or exists(select 1 from documents.document_audit_links l where l.document_id=v_doc.id))
+       when 'owner' then v_doc.classification<>'restricted' and
+         exists(select 1 from documents.document_links l where l.document_id=v_doc.id
+           and l.entity_type='portfolio.unit' and l.entity_id=v_actor.unit_id)
+         and communications.member_covers_unit(v_actor.membership_id,v_actor.tenant_id,v_actor.unit_id)
+       when 'tenant_resident' then v_doc.classification='public' and
+         communications.member_covers_unit(v_actor.membership_id,v_actor.tenant_id,v_actor.unit_id)
+       else false end)
     or exists(select 1 from documents.document_permissions perm
        join portfolio.buildings b on b.property_id=v_doc.property_id and b.tenant_id=v_actor.tenant_id
        join portfolio.units u on u.building_id=b.id and u.tenant_id=v_actor.tenant_id and u.status='active'
