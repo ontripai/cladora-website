@@ -24,7 +24,7 @@ async function command(binary, args) {
   }
 }
 
-export async function scanDocumentVersion({ client, versionId, run = command, clamscan = 'clamscan', freshclam = 'freshclam' }) {
+export async function scanDocumentVersion({ client, versionId, run = command, clamscan = 'clamscan', freshclam = 'freshclam', completionJob = null }) {
   if (!UUID.test(versionId)) throw new Error('INVALID_VERSION_ID');
   const signatures = await run(freshclam, ['--quiet']);
   if (signatures.code !== 0) throw new Error('SIGNATURE_UPDATE_FAILED');
@@ -63,12 +63,41 @@ export async function scanDocumentVersion({ client, versionId, run = command, cl
   }
 
   const scannedAt = new Date().toISOString();
-  const { data: recorded, error: recordError } = await client.rpc('record_document_scan_v1', {
-    p_version_id: versionId, p_scan_id: randomUUID(), p_verdict: verdict,
+  const { data: recorded, error: recordError } = await client.rpc(completionJob ? 'complete_document_scan_job_v1' : 'record_document_scan_v1', {
+    ...(completionJob ? { p_job_id: completionJob.job_id, p_lease_token: completionJob.lease_token }
+      : { p_version_id: versionId }),
+    p_scan_id: randomUUID(), p_verdict: verdict,
     p_content_sha256: digest, p_engine_version: engineVersion, p_scanned_at: scannedAt,
   });
   if (recordError || recorded?.verdict !== verdict) throw new Error('SCAN_RECORD_FAILED');
   return { versionId, verdict };
+}
+
+export async function scanNextDocument({ client, workerId, run = command, clamscan = 'clamscan', freshclam = 'freshclam' }) {
+  if (typeof workerId !== 'string' || !/^[A-Za-z0-9._:-]{3,120}$/.test(workerId)) throw new Error('WORKER_ID_INVALID');
+  const { data: job, error: claimError } = await client.rpc('claim_document_scan_job_v1', {
+    p_worker_id: workerId, p_lease_seconds: 900,
+  });
+  if (claimError) throw new Error('SCAN_CLAIM_FAILED');
+  if (!job) return { outcome: 'idle' };
+  if (!UUID.test(job.job_id) || !UUID.test(job.lease_token) || !UUID.test(job.version_id)
+    || !Number.isInteger(job.attempt_count) || job.attempt_count < 1 || job.attempt_count > 10) {
+    throw new Error('SCAN_LEASE_INVALID');
+  }
+  try {
+    const result = await scanDocumentVersion({ client, versionId: job.version_id,
+      completionJob: job, run, clamscan, freshclam });
+    return { outcome: 'completed', ...result };
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'SCAN_FAILED';
+    const errorCode = /^[A-Z0-9_]{3,80}$/.test(reason) ? reason : 'SCAN_FAILED';
+    const { data: failure, error: failError } = await client.rpc('fail_document_scan_job_v1', {
+      p_job_id: job.job_id, p_lease_token: job.lease_token, p_error_code: errorCode,
+      p_retry_after_seconds: Math.min(3600, 60 * 2 ** (job.attempt_count - 1)),
+    });
+    if (failError) throw new Error('SCAN_FAILURE_RECORD_FAILED');
+    return { outcome: failure?.state ?? 'retry', versionId: job.version_id, errorCode };
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
@@ -79,9 +108,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     if (!url || !key) throw new Error('SCANNER_CREDENTIALS_MISSING');
     const { createClient } = await import('@supabase/supabase-js');
     const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-    const result = await scanDocumentVersion({ client, versionId,
+    const options = { client,
       clamscan: process.env.CLAMSCAN_PATH || 'clamscan',
-      freshclam: process.env.FRESHCLAM_PATH || 'freshclam' });
+      freshclam: process.env.FRESHCLAM_PATH || 'freshclam' };
+    const result = versionId === '--queue'
+      ? await scanNextDocument({ ...options, workerId: process.env.DOCUMENT_SCAN_WORKER_ID || 'cladora-vault-worker' })
+      : await scanDocumentVersion({ ...options, versionId });
     process.stdout.write(`${JSON.stringify(result)}\n`);
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : 'SCAN_FAILED'}\n`);
