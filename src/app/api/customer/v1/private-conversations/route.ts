@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
+import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 
 const headers = { "Cache-Control": "no-store, private", Vary: "Cookie" };
 const createSchema = z.object({
@@ -28,7 +30,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const parsed = createSchema.safeParse(await request.json().catch(() => null));
+  if (!hasTrustedMutationOrigin(request)) return NextResponse.json({ error: { code: "BAD_ORIGIN" } }, { status: 403, headers });
+  if (!isApplicationJson(request.headers.get("content-type"))) return NextResponse.json({ error: { code: "UNSUPPORTED_MEDIA_TYPE" } }, { status: 415, headers });
+  const { data: body, errorResponse } = await parseJsonWithLimit<unknown>(request, 16 * 1024);
+  if (errorResponse) return errorResponse;
+  const parsed = createSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: { code: "INVALID_CONVERSATION" } }, { status: 400, headers });
   const client = await createClient();
   const { data: claims, error } = await client.auth.getClaims();

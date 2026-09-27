@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
+import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 
 const schema = z.object({ context_id: z.string().uuid(), body: z.string().trim().min(1).max(5000), request_id: z.string().uuid() });
 const headers = { "Cache-Control": "no-store, private", Vary: "Cookie" };
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  if (!hasTrustedMutationOrigin(request)) return NextResponse.json({ error: { code: "BAD_ORIGIN" } }, { status: 403, headers });
+  if (!isApplicationJson(request.headers.get("content-type"))) return NextResponse.json({ error: { code: "UNSUPPORTED_MEDIA_TYPE" } }, { status: 415, headers });
   const { id } = await params;
   const parsedId = z.string().uuid().safeParse(id);
-  const parsed = schema.safeParse(await request.json().catch(() => null));
+  const { data: body, errorResponse } = await parseJsonWithLimit<unknown>(request, 16 * 1024);
+  if (errorResponse) return errorResponse;
+  const parsed = schema.safeParse(body);
   if (!parsedId.success || !parsed.success) return NextResponse.json({ error: { code: "INVALID_MESSAGE" } }, { status: 400, headers });
   const client = await createClient();
   const { data: claims, error } = await client.auth.getClaims();
