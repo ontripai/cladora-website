@@ -1817,6 +1817,16 @@ export type Database = {
       list_internal_attachments_v1: { Args: { p_thread_id: string }; Returns: Json };
       list_internal_attachable_documents_v1: { Args: { p_thread_id: string }; Returns: Json };
       authorize_internal_attachment_download_v1: { Args: { p_attachment_id: string }; Returns: Json };
+      begin_internal_private_upload_v1: {
+        Args: { p_thread_id: string; p_message_id: string; p_filename: string; p_mime: string; p_size_bytes: number };
+        Returns: Json;
+      };
+      finish_internal_private_upload_v1: {
+        Args: { p_intent_id: string; p_path: string; p_sha256: string; p_size_bytes: number; p_mime: string };
+        Returns: Json;
+      };
+      list_internal_private_documents_v1: { Args: { p_thread_id: string }; Returns: Json };
+      authorize_internal_private_download_v1: { Args: { p_document_id: string }; Returns: Json };
       get_documents_v1: {
         Args: {
           p_context_id: string;
