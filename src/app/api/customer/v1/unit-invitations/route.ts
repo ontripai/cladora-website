@@ -12,13 +12,20 @@ const bodySchema = z.object({ context_id: z.uuid(), workspace_id: z.uuid(), unit
   lang: z.enum(['ro', 'en', 'fa']).default('ro') }).strict();
 
 export async function GET(request: NextRequest) {
-  const unit = z.uuid().safeParse(request.nextUrl.searchParams.get('unit_id'));
   const context = z.uuid().safeParse(request.nextUrl.searchParams.get('context_id'));
-  const workspace = z.uuid().safeParse(request.nextUrl.searchParams.get('workspace_id'));
-  if (!unit.success || !context.success || !workspace.success) return NextResponse.json({ error: 'INVALID_SCOPE' }, { status: 400, headers });
+  if (!context.success) return NextResponse.json({ error: 'INVALID_SCOPE' }, { status: 400, headers });
   const db = await createClient();
   const claims = await db.auth.getClaims();
   if (!claims.data?.claims?.sub) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers });
+  if (!request.nextUrl.searchParams.has('unit_id')) {
+    const result = await db.schema('customer_api').rpc('list_managed_invite_units_v1' as never,
+      { p_context: context.data } as never);
+    if (result.error) return NextResponse.json({ error: 'ACCESS_DENIED' }, { status: 403, headers });
+    return NextResponse.json(result.data, { headers });
+  }
+  const unit = z.uuid().safeParse(request.nextUrl.searchParams.get('unit_id'));
+  const workspace = z.uuid().safeParse(request.nextUrl.searchParams.get('workspace_id'));
+  if (!unit.success || !workspace.success) return NextResponse.json({ error: 'INVALID_SCOPE' }, { status: 400, headers });
   const result = await db.schema('customer_api').rpc('list_unit_invite_parties_v1' as never,
     { p_context: context.data, p_workspace: workspace.data, p_unit: unit.data } as never);
   if (result.error) return NextResponse.json({ error: 'ACCESS_DENIED' }, { status: 403, headers });
