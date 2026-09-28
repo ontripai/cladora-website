@@ -220,6 +220,7 @@ declare v_i communications.unit_invitations;
 begin
   select * into v_i from communications.unit_invitations where id=p_invitation for update;
   if v_i.id is null or v_i.status<>'pending' or auth.uid()<>v_i.invited_by
+    or coalesce(auth.jwt()->>'aal','aal1')<>'aal2'
     or not communications.can_manage_unit_invites(auth.uid(),v_i.inviter_context_id,v_i.workspace_id,v_i.unit_id) then
     raise exception 'unit_invitation_denied' using errcode='42501'; end if;
   update communications.unit_invitations set status='revoked',revoked_at=statement_timestamp()
@@ -227,6 +228,18 @@ begin
   insert into audit.events(tenant_id,actor_id,action,entity_type,entity_id)
     values(v_i.tenant_id,auth.uid(),'unit_invitation.revoke','communications.unit_invitation',v_i.id);
   return true;
+end $$;
+
+create function customer_api.list_managed_unit_invitations_v1(p_context uuid,p_workspace uuid,p_unit uuid)
+returns jsonb language plpgsql stable security definer set search_path=pg_catalog as $$
+begin
+  if auth.uid() is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2'
+    or not communications.can_manage_unit_invites(auth.uid(),p_context,p_workspace,p_unit) then
+    raise exception 'unit_invitation_denied' using errcode='42501'; end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('id',i.id,'email',i.normalized_email,
+    'role',i.role_code,'expires_at',i.expires_at) order by i.created_at desc)
+    from communications.unit_invitations i where i.workspace_id=p_workspace and i.unit_id=p_unit
+      and i.invited_by=auth.uid() and i.status='pending' and i.expires_at>statement_timestamp()),'[]'::jsonb);
 end $$;
 
 create function customer_api.list_my_unit_invitations_v1()
@@ -303,6 +316,7 @@ revoke all on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
  customer_api.list_managed_invite_units_v1(uuid),
  customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
+ customer_api.list_managed_unit_invitations_v1(uuid,uuid,uuid),
  customer_api.revoke_unit_invitation_v1(uuid),
  customer_api.list_my_unit_invitations_v1(),
  customer_api.claim_unit_invitation_v1(uuid,text) from public,anon;
@@ -310,6 +324,7 @@ grant execute on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uui
  customer_api.list_managed_invite_units_v1(uuid),
  customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
+ customer_api.list_managed_unit_invitations_v1(uuid,uuid,uuid),
  customer_api.revoke_unit_invitation_v1(uuid),
  customer_api.list_my_unit_invitations_v1(),
  customer_api.claim_unit_invitation_v1(uuid,text) to authenticated;
