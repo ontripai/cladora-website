@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(25);
+select plan(27);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12700000-0000-4000-8000-000000000001','manager127@cladora.test',statement_timestamp()),
@@ -54,6 +54,12 @@ select throws_ok($$select customer_api.create_unit_invitation_v1(
 select set_config('request.jwt.claims',jsonb_build_object('sub','12700000-0000-4000-8000-000000000001','role','authenticated','aal','aal2')::text,true);
 select is(customer_api.list_managed_invite_units_v1('12700000-0000-4000-8000-000000000012')->>'workspace_id',
  '12700000-0000-4000-8000-000000000010','Managed units resolve their canonical workspace');
+select is(jsonb_array_length(customer_api.list_managed_invite_units_v1(
+ '12700000-0000-4000-8000-000000000012','1',1,0)->'units'),1,
+ 'Manager can search units in workspace');
+select is(jsonb_array_length(customer_api.list_managed_invite_units_v1(
+ '12700000-0000-4000-8000-000000000012','1',1,1)->'units'),0,
+ 'Unit discovery honors page offset');
 select throws_ok($$select customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000013',
  '12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000008','owner','owner127@cladora.test')$$,
