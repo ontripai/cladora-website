@@ -70,16 +70,17 @@ select ok(not has_function_privilege('anon', 'customer_api.approve_document_disp
 select ok(not has_function_privilege('anon', 'customer_api.assign_retention_policy_v1(uuid, uuid, text, text)', 'EXECUTE'), 'anon denied assign_retention_policy_v1');
 select ok(not has_function_privilege('anon', 'customer_api.link_document_entity_v1(uuid, uuid, text, uuid, text)', 'EXECUTE'), 'anon denied link_document_entity_v1');
 
--- 22-23. SECURITY INVOKER and search_path hardening
+-- 22-23. Upload gateways are narrowly scoped definers so authenticated
+-- users can reach private internals; all other document gateways are invokers.
 select ok(
   (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'customer_api' and p.proname in (
      'create_upload_intent_v1', 'finalize_upload_v1', 'authorize_document_download_v1',
      'verify_document_evidence_v1', 'place_legal_hold_v1', 'release_legal_hold_v1',
      'request_document_disposition_v1', 'approve_document_disposition_v1',
-     'assign_retention_policy_v1', 'link_document_entity_v1'
-   ) and p.prosecdef = false) = 10::bigint,
-  'all 10 customer_api document RPCs are SECURITY INVOKER'
+      'assign_retention_policy_v1', 'link_document_entity_v1'
+   ) and p.prosecdef = (p.proname in ('create_upload_intent_v1', 'finalize_upload_v1'))) = 10::bigint,
+  'only two guarded upload gateways use SECURITY DEFINER'
 );
 select ok(
   (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
