@@ -65,11 +65,13 @@ returns boolean language sql stable security definer set search_path=pg_catalog 
 $$;
 revoke all on function communications.can_manage_unit_invites(uuid,uuid,uuid,uuid) from public,anon,authenticated;
 
-create function customer_api.list_managed_invite_units_v1(p_context uuid)
+create function customer_api.list_managed_invite_units_v1(p_context uuid,p_query text default null,
+  p_limit integer default 50,p_offset integer default 0)
 returns jsonb language plpgsql stable security definer set search_path=pg_catalog as $$
 declare v_workspace uuid;
 begin
-  if auth.uid() is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2' then
+  if auth.uid() is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2'
+    or p_limit not between 1 and 100 or p_offset<0 or length(coalesce(p_query,''))>100 then
     raise exception 'unit_invitation_denied' using errcode='42501'; end if;
   select resolved.workspace_id into v_workspace
     from app_private.resolve_workspace_from_customer_context_v1(p_context,false) resolved;
@@ -79,7 +81,8 @@ begin
       from (select u.id,b.name building_name,u.code unit_code from portfolio.units u
         join portfolio.buildings b on b.id=u.building_id
         where communications.can_manage_unit_invites(auth.uid(),p_context,v_workspace,u.id)
-        order by b.name,u.code limit 200) q),'[]'::jsonb));
+          and (p_query is null or u.code ilike '%'||p_query||'%' or b.name ilike '%'||p_query||'%')
+        order by b.name,u.code limit p_limit offset p_offset) q),'[]'::jsonb));
 end $$;
 
 create function communications.unit_party_relationship_valid(p_unit uuid,p_party uuid,p_role text)
@@ -313,7 +316,7 @@ begin
 end $$;
 
 revoke all on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
- customer_api.list_managed_invite_units_v1(uuid),
+ customer_api.list_managed_invite_units_v1(uuid,text,integer,integer),
  customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
  customer_api.list_managed_unit_invitations_v1(uuid,uuid,uuid),
@@ -321,7 +324,7 @@ revoke all on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
  customer_api.list_my_unit_invitations_v1(),
  customer_api.claim_unit_invitation_v1(uuid,text) from public,anon;
 grant execute on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
- customer_api.list_managed_invite_units_v1(uuid),
+ customer_api.list_managed_invite_units_v1(uuid,text,integer,integer),
  customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
  customer_api.list_managed_unit_invitations_v1(uuid,uuid,uuid),
