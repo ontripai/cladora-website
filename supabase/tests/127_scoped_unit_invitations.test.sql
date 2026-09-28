@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(27);
+select plan(28);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12700000-0000-4000-8000-000000000001','manager127@cladora.test',statement_timestamp()),
@@ -89,19 +89,23 @@ select is(jsonb_array_length(customer_api.list_managed_unit_invitations_v1(
  '12700000-0000-4000-8000-000000000007')),2,'Revoked invitation disappears from pending list');
 select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000013',
- '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127')$$,
+ '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127',current_date,null)$$,
  '42501','unit_relationship_registration_denied','Unbound workspace cannot record tenant');
 select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
- '12700000-0000-4000-8000-000000000007','owner','Other owner','Verified title reference 127')$$,
+ '12700000-0000-4000-8000-000000000007','tenant_resident','Future tenant','Verified lease reference 129',current_date+1,null)$$,
+ '42501','unit_relationship_registration_denied','Future relationship cannot grant access today');
+select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007','owner','Other owner','Verified title reference 127',current_date,null)$$,
  '23505','existing_ownership_requires_review','Existing owner is not silently replaced');
 select ok((customer_api.register_unit_invite_relationship_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
- '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127')->>'party_id') is not null,
+ '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127',current_date,null)->>'party_id') is not null,
  'Manager can record a tenant relationship after ownership');
 select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
- '12700000-0000-4000-8000-000000000007','tenant_resident','Second tenant','Verified lease reference 128')$$,
+ '12700000-0000-4000-8000-000000000007','tenant_resident','Second tenant','Verified lease reference 128',current_date,null)$$,
  '23505','existing_lease_requires_review','Active lease is not silently replaced');
 select throws_ok($$select customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
