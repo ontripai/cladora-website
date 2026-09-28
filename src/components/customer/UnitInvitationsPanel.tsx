@@ -11,7 +11,7 @@ const copy = {
   fa: { title: 'دعوت مالک یا مستأجر', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا مالکیت یا قرارداد اجارهٔ فعال این واحد را ثبت کنید.', done: 'دعوت ثبت شد. اگر شخص از قبل حساب دارد، پس از ورود می‌تواند صفحهٔ ادامهٔ دعوت را باز کند.', failed: 'ارسال دعوت انجام نشد.', choose: 'انتخاب کنید' },
 };
 
-export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; contextId: string }) {
+export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: Language; contextId: string; workspaceId: string }) {
   const t = copy[lang];
   const [units, setUnits] = useState<Unit[]>([]);
   const [unitId, setUnitId] = useState('');
@@ -33,12 +33,12 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
   useEffect(() => {
     let cancelled = false;
     if (!unitId) return;
-    void fetch(`/api/customer/v1/unit-invitations?unit_id=${encodeURIComponent(unitId)}`, { cache: 'no-store' })
+    void fetch(`/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}&unit_id=${encodeURIComponent(unitId)}`, { cache: 'no-store' })
       .then(async r => { if (!r.ok) throw new Error(); return r.json() as Promise<Party[]>; })
       .then(items => { if (!cancelled) { setParties(items); setPartyId(''); setLoaded(true); } })
       .catch(() => { if (!cancelled) setStatus(t.failed); });
     return () => { cancelled = true; };
-  }, [unitId, t.failed]);
+  }, [contextId, workspaceId, unitId, t.failed]);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,7 +48,7 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
     try {
       const response = await fetch('/api/customer/v1/unit-invitations', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ unit_id: unitId, party_id: partyId, role: chosen.role_code, email, lang }),
+        body: JSON.stringify({ context_id: contextId, workspace_id: workspaceId, unit_id: unitId, party_id: partyId, role: chosen.role_code, email, lang }),
       });
       if (!response.ok) throw new Error();
       setEmail(''); setStatus(t.done);
