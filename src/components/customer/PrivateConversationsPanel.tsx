@@ -154,8 +154,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
 
   async function upload(file: File) {
     const conversationId = selectedId;
-    const messageId = threads.find((thread) => thread.id === conversationId)?.messages.filter((item) => item.sender_id === membershipId).at(-1)?.id;
-    if (!contextId || !conversationId || !messageId) { setUploadStatus(t.firstMessage); return; }
+    if (!contextId || !conversationId) { setUploadStatus(t.uploadError); return; }
     if (file.size > 20 * 1024 * 1024) { setUploadStatus(t.uploadError); return; }
     setUploadBusy(true); setUploadStatus(t.uploadBusy);
     try {
@@ -189,9 +188,11 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
         const available = await readArray<Attachable>(`${base}&available=true`);
         const approved = available.find((item) => item.id === uploaded.document_id && item.version_id === uploaded.version_id);
         if (!approved) continue;
-        await post(`/api/customer/v1/private-conversations/${conversationId}/attachments`, {
-          context_id: contextId, message_id: messageId, document_id: approved.id, version_id: approved.version_id,
+        await post(`/api/customer/v1/private-conversations/${conversationId}/files`, {
+          context_id: contextId, document_id: approved.id, version_id: approved.version_id,
+          request_id: crypto.randomUUID(),
         });
+        await reload();
         if (selectedId === conversationId) setAttachments(await readArray<Attachment>(base));
         setUploadStatus(t.attached);
         return;
@@ -252,7 +253,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
             return <li key={item.id} className={`flex ${mine ? "justify-start" : "justify-end"}`}>
               <div className={`max-w-[88%] rounded-2xl px-4 py-2.5 shadow-sm sm:max-w-[75%] ${mine ? "rounded-es-sm bg-teal-100 text-slate-900" : "rounded-ee-sm bg-white text-slate-900"}`}>
                 <span className="block text-xs font-semibold text-teal-800">{mine ? t.you : sender?.display_name ?? sender?.name ?? peerName(selected)}</span>
-                <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed">{item.body}</p>
+                {!attachments.some((a) => a.message_id === item.id && item.body === `📎 ${a.title}`) && <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed">{item.body}</p>}
                 {attachments.filter((a) => a.message_id === item.id).map((a) => <button key={a.id} type="button" onClick={() => void download(a.id)} className="mt-2 block break-all text-sm text-teal-800 underline">📎 {a.title}</button>)}
                 <time className="mt-1 block text-end text-xs text-slate-500" dateTime={item.sent_at}>{formatTime(item.sent_at)}</time>
               </div>
@@ -264,9 +265,8 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
               <button type="submit" disabled={busy || !reply.trim()} className="rounded-xl bg-teal-700 px-5 py-3 text-white hover:bg-teal-800 disabled:opacity-50">{busy ? t.busy : t.send}</button></div>
           </form>
           <div className="border-t border-slate-100 bg-white px-4 pb-4">
-            <label htmlFor="private-upload" className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-teal-700 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-teal-50 ${uploadBusy || !ownMessageId ? "pointer-events-none opacity-50" : ""}`}>📎 {uploadBusy ? t.uploadBusy : t.upload}</label>
-            <input id="private-upload" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx" disabled={uploadBusy || !ownMessageId} onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = ""; }} className="sr-only" />
-            {!ownMessageId && <p className="mt-2 text-xs text-slate-600">{t.firstMessage}</p>}
+            <label htmlFor="private-upload" className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-teal-700 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-teal-50 ${uploadBusy ? "pointer-events-none opacity-50" : ""}`}>📎 {uploadBusy ? t.uploadBusy : t.upload}</label>
+            <input id="private-upload" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx" disabled={uploadBusy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = ""; }} className="sr-only" />
             {uploadStatus && <p role="status" className="mt-2 text-sm text-teal-800">{uploadStatus}</p>}
           </div>
           <details className="border-t border-slate-200 px-4 py-4 sm:px-6"><summary className="cursor-pointer font-medium text-teal-800">📎 {t.files}</summary>
