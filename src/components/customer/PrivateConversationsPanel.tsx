@@ -29,12 +29,12 @@ async function readArray<T>(url: string): Promise<T[]> {
 }
 
 export function PrivateConversationsPanel({ lang }: { lang: Language }) {
-  const { active } = useCustomerContext();
+  const { active, dashboard } = useCustomerContext();
   return <><PrivateConversationsContent key={active?.context_id ?? "no-context"} lang={lang}
     contextId={active?.context_id} membershipId={active?.membership_id}
     canOpenVault={!['company_staff', 'vendor_contact'].includes(active?.role_code?.toLowerCase() ?? '')} />
-    {active?.context_id && ['association_admin', 'property_manager'].includes(active.role_code?.toLowerCase() ?? '')
-      && <div className="mx-auto max-w-5xl px-4 pb-8"><UnitInvitationsPanel key={active.context_id} lang={lang} contextId={active.context_id} /></div>}
+    {active?.context_id && dashboard?.contextId === active.context_id && ['association_admin', 'property_manager'].includes(active.role_code?.toLowerCase() ?? '')
+      && <div className="mx-auto max-w-5xl px-4 pb-8"><UnitInvitationsPanel key={active.context_id} lang={lang} contextId={active.context_id} workspaceId={dashboard.workspace_id} /></div>}
   </>;
 }
 
