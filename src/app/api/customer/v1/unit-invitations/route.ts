@@ -7,18 +7,20 @@ import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 
 const headers = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
-const bodySchema = z.object({ unit_id: z.uuid(), party_id: z.uuid(),
+const bodySchema = z.object({ context_id: z.uuid(), workspace_id: z.uuid(), unit_id: z.uuid(), party_id: z.uuid(),
   role: z.enum(['owner', 'tenant_resident']), email: z.email().max(320),
   lang: z.enum(['ro', 'en', 'fa']).default('ro') }).strict();
 
 export async function GET(request: NextRequest) {
   const unit = z.uuid().safeParse(request.nextUrl.searchParams.get('unit_id'));
-  if (!unit.success) return NextResponse.json({ error: 'INVALID_UNIT' }, { status: 400, headers });
+  const context = z.uuid().safeParse(request.nextUrl.searchParams.get('context_id'));
+  const workspace = z.uuid().safeParse(request.nextUrl.searchParams.get('workspace_id'));
+  if (!unit.success || !context.success || !workspace.success) return NextResponse.json({ error: 'INVALID_SCOPE' }, { status: 400, headers });
   const db = await createClient();
   const claims = await db.auth.getClaims();
   if (!claims.data?.claims?.sub) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers });
   const result = await db.schema('customer_api').rpc('list_unit_invite_parties_v1' as never,
-    { p_unit: unit.data } as never);
+    { p_context: context.data, p_workspace: workspace.data, p_unit: unit.data } as never);
   if (result.error) return NextResponse.json({ error: 'ACCESS_DENIED' }, { status: 403, headers });
   return NextResponse.json(result.data, { headers });
 }
@@ -35,6 +37,7 @@ export async function POST(request: NextRequest) {
   const claims = await db.auth.getClaims();
   if (!claims.data?.claims?.sub) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers });
   const result = await db.schema('customer_api').rpc('create_unit_invitation_v1' as never, {
+    p_context: input.data.context_id, p_workspace: input.data.workspace_id,
     p_unit: input.data.unit_id, p_party: input.data.party_id,
     p_role: input.data.role, p_email: input.data.email,
   } as never);
