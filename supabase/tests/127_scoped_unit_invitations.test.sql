@@ -25,6 +25,9 @@ insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_
  ('12700000-0000-4000-8000-000000000013','12700000-0000-4000-8000-000000000004','HYBRID','Second workspace','ACTIVE');
 insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from) values
  ('12700000-0000-4000-8000-000000000010','module.communications','boolean',true,statement_timestamp()-interval '1 day');
+insert into platform.workspace_property_bindings(tenant_id,customer_workspace_id,property_id,binding_source)
+values ('12700000-0000-4000-8000-000000000004','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000005','migration_verified');
 insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
 select '12700000-0000-4000-8000-000000000011','12700000-0000-4000-8000-000000000004',
  '12700000-0000-4000-8000-000000000001',id,'active',statement_timestamp()-interval '1 day'
