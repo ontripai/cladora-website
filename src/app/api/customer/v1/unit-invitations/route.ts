@@ -8,7 +8,7 @@ import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-bo
 
 const headers = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
 const bodySchema = z.object({ context_id: z.uuid(), workspace_id: z.uuid(), unit_id: z.uuid(), party_id: z.uuid(),
-  role: z.enum(['owner', 'tenant_resident']), email: z.email().max(320),
+  role: z.enum(['owner', 'tenant_resident', 'vendor_contact']), email: z.email().max(320),
   lang: z.enum(['ro', 'en', 'fa']).default('ro') }).strict();
 
 export async function GET(request: NextRequest) {
