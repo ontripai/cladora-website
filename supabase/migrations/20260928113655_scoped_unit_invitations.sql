@@ -115,6 +115,9 @@ begin
     and expires_at<=statement_timestamp();
   select id into v_existing from communications.unit_invitations where workspace_id=v_workspace and unit_id=p_unit
     and normalized_email=v_email and role_code=p_role and status='pending';
+  if v_existing is not null and exists(select 1 from communications.unit_invitations i
+    where i.id=v_existing and i.party_id<>p_party) then
+    raise exception 'invitation_party_conflict' using errcode='23505'; end if;
   if v_existing is not null then return jsonb_build_object('id',v_existing,'replayed',true,
     'known_account',exists(select 1 from auth.users where lower(email)=v_email and email_confirmed_at is not null)); end if;
   insert into communications.unit_invitations(tenant_id,workspace_id,unit_id,party_id,
