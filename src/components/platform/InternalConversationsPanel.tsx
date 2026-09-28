@@ -12,9 +12,9 @@ type Attachable = { id: string; version_id: string; title: string };
 type PrivateDocument = { id: string; message_id: string; filename: string; scan_state: string };
 
 const labels = {
-  ro: { title: "Mesaje interne CLADORA", workspace: "Spațiu de lucru", colleague: "Colega sau colegul", select: "Selectați", new: "Conversație nouă", send: "Trimite", reply: "Răspunde", unread: "necitite", mark: "Marchează ca citit", empty: "Nu există conversații în acest spațiu.", error: "Nu s-au putut încărca mesajele interne.", busy: "Se trimite…", document: "Document scanat încărcat de dvs. în spațiul clientului", note: "Documentul poate fi vizibil și altor membri autorizați ai spațiului clientului.", attach: "Atașează la ultimul mesaj propriu", download: "Descarcă documentul", privateUpload: "Încarcă document privat pentru această conversație", scanPending: "Documentul așteaptă scanarea; destinatarul îl poate descărca numai după rezultatul curat.", refresh: "Actualizează documentele" },
-  en: { title: "CLADORA internal messages", workspace: "Workspace", colleague: "Colleague", select: "Select", new: "New conversation", send: "Send", reply: "Reply", unread: "unread", mark: "Mark as read", empty: "No conversations for this workspace.", error: "Internal messages could not be loaded.", busy: "Sending…", document: "Scanned document you uploaded to the customer workspace", note: "Other authorized customer workspace members may also see this document.", attach: "Attach to my latest message", download: "Download document", privateUpload: "Upload a private document for this conversation", scanPending: "Document queued for scanning; the recipient can download it only after a clean result.", refresh: "Refresh documents" },
-  fa: { title: "پیام‌های داخلی CLADORA", workspace: "فضای کاری", colleague: "همکار", select: "انتخاب کنید", new: "گفت‌وگوی جدید", send: "ارسال", reply: "پاسخ", unread: "خوانده‌نشده", mark: "علامت‌گذاری به‌عنوان خوانده‌شده", empty: "برای این فضای کاری گفت‌وگویی وجود ندارد.", error: "بارگذاری پیام‌های داخلی ممکن نشد.", busy: "در حال ارسال…", document: "سند اسکن‌شده‌ای که در فضای مشتری بارگذاری کرده‌اید", note: "ممکن است سایر اعضای مجاز فضای مشتری نیز این سند را ببینند.", attach: "پیوست به آخرین پیام خودم", download: "دریافت سند", privateUpload: "بارگذاری سند خصوصی برای این گفت‌وگو", scanPending: "سند منتظر اسکن است؛ گیرنده فقط پس از نتیجهٔ سالم می‌تواند آن را دریافت کند.", refresh: "به‌روزرسانی اسناد" },
+  ro: { title: "Mesaje interne CLADORA", workspace: "Spațiu de lucru", colleague: "Colega sau colegul", select: "Selectați", new: "Conversație nouă", send: "Trimite", reply: "Răspunde", unread: "necitite", mark: "Marchează ca citit", empty: "Nu există conversații în acest spațiu.", noWorkspace: "Nu aveți o alocare activă la un spațiu de lucru. Un administrator trebuie să vă aloce înainte de a putea folosi mesajele interne.", noColleague: "Nu există colegi eligibili în acest spațiu de lucru. Un administrator trebuie să aloce un alt operator cu un rol permis și autentificare în doi pași.", error: "Nu s-au putut încărca mesajele interne.", busy: "Se trimite…", document: "Document scanat încărcat de dvs. în spațiul clientului", note: "Documentul poate fi vizibil și altor membri autorizați ai spațiului clientului.", attach: "Atașează la ultimul mesaj propriu", download: "Descarcă documentul", privateUpload: "Încarcă document privat pentru această conversație", scanPending: "Documentul așteaptă scanarea; destinatarul îl poate descărca numai după rezultatul curat.", refresh: "Actualizează documentele" },
+  en: { title: "CLADORA internal messages", workspace: "Workspace", colleague: "Colleague", select: "Select", new: "New conversation", send: "Send", reply: "Reply", unread: "unread", mark: "Mark as read", empty: "No conversations for this workspace.", noWorkspace: "You have no active workspace assignment. An administrator must assign you before you can use internal messages.", noColleague: "No eligible colleague is assigned to this workspace. An administrator must assign another operator with a permitted role and two-factor authentication.", error: "Internal messages could not be loaded.", busy: "Sending…", document: "Scanned document you uploaded to the customer workspace", note: "Other authorized customer workspace members may also see this document.", attach: "Attach to my latest message", download: "Download document", privateUpload: "Upload a private document for this conversation", scanPending: "Document queued for scanning; the recipient can download it only after a clean result.", refresh: "Refresh documents" },
+  fa: { title: "پیام‌های داخلی CLADORA", workspace: "فضای کاری", colleague: "همکار", select: "انتخاب کنید", new: "گفت‌وگوی جدید", send: "ارسال", reply: "پاسخ", unread: "خوانده‌نشده", mark: "علامت‌گذاری به‌عنوان خوانده‌شده", empty: "برای این فضای کاری گفت‌وگویی وجود ندارد.", noWorkspace: "هیچ انتساب فعال به فضای کاری ندارید. مدیر باید پیش از استفاده از پیام‌های داخلی شما را به فضای کاری منتسب کند.", noColleague: "همکار مجاز دیگری در این فضای کاری نیست. مدیر باید کاربر دیگری را با نقش مجاز و احراز هویت دومرحله‌ای منتسب کند.", error: "بارگذاری پیام‌های داخلی ممکن نشد.", busy: "در حال ارسال…", document: "سند اسکن‌شده‌ای که در فضای مشتری بارگذاری کرده‌اید", note: "ممکن است سایر اعضای مجاز فضای مشتری نیز این سند را ببینند.", attach: "پیوست به آخرین پیام خودم", download: "دریافت سند", privateUpload: "بارگذاری سند خصوصی برای این گفت‌وگو", scanPending: "سند منتظر اسکن است؛ گیرنده فقط پس از نتیجهٔ سالم می‌تواند آن را دریافت کند.", refresh: "به‌روزرسانی اسناد" },
 } satisfies Record<Language, Record<string, string>>;
 
 const endpoint = "/api/platform/v1/internal-conversations";
@@ -29,8 +29,10 @@ async function read<T>(url: string): Promise<T[]> {
 export function InternalConversationsPanel({ lang }: { lang: Language }) {
   const t = labels[lang];
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
+  const [workspacesLoaded, setWorkspacesLoaded] = useState(false);
   const [workspaceId, setWorkspaceId] = useState("");
   const [colleagues, setColleagues] = useState<Colleague[]>([]);
+  const [colleaguesLoaded, setColleaguesLoaded] = useState(false);
   const [recipientId, setRecipientId] = useState("");
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadId, setThreadId] = useState("");
@@ -48,8 +50,8 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
   useEffect(() => {
     let cancelled = false;
     void read<Workspace>(endpoint).then((data) => {
-      if (!cancelled) { setWorkspaces(data); setWorkspaceId(data[0]?.id ?? ""); }
-    }).catch(() => { if (!cancelled) setError(true); });
+      if (!cancelled) { setWorkspaces(data); setWorkspaceId(data[0]?.id ?? ""); setWorkspacesLoaded(true); }
+    }).catch(() => { if (!cancelled) { setError(true); setWorkspacesLoaded(true); } });
     return () => { cancelled = true; };
   }, []);
 
@@ -58,8 +60,8 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
     if (!workspaceId) return;
     const url = `${endpoint}?workspace_id=${encodeURIComponent(workspaceId)}`;
     void Promise.all([read<Colleague>(`${url}&recipients=true`), read<Thread>(url)]).then(([people, history]) => {
-      if (!cancelled) { setColleagues(people); setThreads(history); setThreadId(history[0]?.id ?? ""); setRecipientId(""); }
-    }).catch(() => { if (!cancelled) setError(true); });
+      if (!cancelled) { setColleagues(people); setThreads(history); setThreadId(history[0]?.id ?? ""); setRecipientId(""); setColleaguesLoaded(true); }
+    }).catch(() => { if (!cancelled) { setError(true); setColleaguesLoaded(true); } });
     return () => { cancelled = true; };
   }, [workspaceId]);
 
@@ -160,8 +162,9 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
   return <main dir={lang === "fa" ? "rtl" : "ltr"} className="mx-auto max-w-5xl space-y-6 p-4 sm:p-8">
     <h1 className="text-2xl font-semibold">{t.title}</h1>
     {error && <p role="alert" className="rounded bg-red-50 p-3 text-red-800">{t.error}</p>}
+    {workspacesLoaded && !error && workspaces.length === 0 && <p role="status" className="rounded bg-amber-50 p-3 text-amber-900">{t.noWorkspace}</p>}
     <label htmlFor="internal-workspace" className="block font-medium">{t.workspace}</label>
-    <select id="internal-workspace" value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setThreadId(""); setAttachments([]); setAttachable([]); setPrivateDocuments([]); }} className="w-full rounded border p-2"><option value="">{t.select}</option>{workspaces.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select>
+    <select id="internal-workspace" value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setColleaguesLoaded(false); setThreadId(""); setAttachments([]); setAttachable([]); setPrivateDocuments([]); }} className="w-full rounded border p-2"><option value="">{t.select}</option>{workspaces.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select>
     {!!workspaceId && <div className="grid gap-6 lg:grid-cols-3">
       <aside className="space-y-2">
         {!threads.length && <p className="text-sm text-slate-600">{t.empty}</p>}
@@ -188,6 +191,7 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
           <h2 className="font-semibold">{t.new}</h2>
           <label htmlFor="internal-recipient" className="block">{t.colleague}</label>
           <select id="internal-recipient" required value={recipientId} onChange={(event) => setRecipientId(event.target.value)} className="w-full rounded border p-2"><option value="">{t.select}</option>{colleagues.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
+          {colleaguesLoaded && !error && colleagues.length === 0 && <p role="status" className="rounded bg-amber-50 p-3 text-amber-900">{t.noColleague}</p>}
           <label htmlFor="internal-message" className="block">{t.new}</label>
           <textarea id="internal-message" required maxLength={5000} value={body} onChange={(event) => setBody(event.target.value)} className="w-full rounded border p-2" />
           <button type="submit" disabled={busy || !recipientId || !body.trim()} className="rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{busy ? t.busy : t.send}</button>
