@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   Bell,
@@ -10,6 +11,7 @@ import {
   FileCheck,
   FileText,
   Megaphone,
+  MessageCircle,
   Plus,
   RefreshCw,
   Search,
@@ -452,6 +454,13 @@ export function CustomerCommunicationsDashboard({
             <p className="mt-1 text-sm text-[#52667A]">{t.sub}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/${lang}/app/communications/private`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#0E9F8E] bg-[#EAF8F5] px-4 py-2.5 text-sm font-bold text-[#0A6E62] shadow-sm transition hover:border-[#087A6E] hover:bg-[#D6F1EB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#087A6E]"
+            >
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              {{ ro: "Conversații private", en: "Private conversations", fa: "گفت‌وگوهای خصوصی" }[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"]}
+            </Link>
             <button
               type="button"
               onClick={() => setShowCreateModal(true)}
