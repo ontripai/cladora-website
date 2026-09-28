@@ -37,3 +37,4 @@ select throws_ok($$select * from documents.resolve_vault_actor('12500000-0000-40
   '42501','permission_denied','Read grant cannot inherit upload from same-named role');
 select * from finish();
 rollback;
+-- Trigger CI for the exact-role regression test.
