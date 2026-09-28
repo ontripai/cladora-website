@@ -1809,6 +1809,14 @@ export type Database = {
       };
       get_internal_conversations_v1: { Args: { p_workspace_id: string }; Returns: Json };
       mark_internal_read_v1: { Args: { p_thread_id: string }; Returns: Json };
+      my_internal_identity_v1: { Args: Record<string, never>; Returns: Json };
+      attach_internal_document_v1: {
+        Args: { p_thread_id: string; p_message_id: string; p_document_id: string; p_version_id: string };
+        Returns: Json;
+      };
+      list_internal_attachments_v1: { Args: { p_thread_id: string }; Returns: Json };
+      list_internal_attachable_documents_v1: { Args: { p_thread_id: string }; Returns: Json };
+      authorize_internal_attachment_download_v1: { Args: { p_attachment_id: string }; Returns: Json };
       get_documents_v1: {
         Args: {
           p_context_id: string;
