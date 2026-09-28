@@ -24,14 +24,13 @@ select ok(exists(select 1 from identity.roles r join identity.role_permissions r
   join identity.permissions p on p.id=rp.permission_id
   where r.code='association_admin' and r.tenant_id is null and rp.effect='allow' and p.code='documents.vault.read'),
   'System role with matching name holds vault read');
-set local role authenticated;
+-- The resolver is private to security-definer gateways; exercise its permission
+-- logic as the test owner while auth.uid() reads the fixture JWT claims.
 select set_config('request.jwt.claims','{"sub":"12500000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
 select throws_ok($$select * from documents.resolve_vault_actor('12500000-0000-4000-8000-000000000005','documents.vault.read',false)$$,
   '42501','permission_denied','Same-named system role cannot grant local membership vault read');
-reset role;
 insert into identity.role_permissions(role_id,permission_id,effect)
   select '12500000-0000-4000-8000-000000000003',id,'allow' from identity.permissions where code='documents.vault.read';
-set local role authenticated;
 select is((select membership_id from documents.resolve_vault_actor('12500000-0000-4000-8000-000000000005','documents.vault.read',false)),
   '12500000-0000-4000-8000-000000000004'::uuid,'Own role vault read grant succeeds');
 select throws_ok($$select * from documents.resolve_vault_actor('12500000-0000-4000-8000-000000000005','documents.vault.upload',false)$$,
