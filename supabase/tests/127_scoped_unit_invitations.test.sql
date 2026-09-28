@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(13);
+select plan(17);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12700000-0000-4000-8000-000000000001','manager127@cladora.test',statement_timestamp()),
@@ -56,6 +56,22 @@ select is(jsonb_array_length(customer_api.list_unit_invite_parties_v1('12700000-
 select set_config('test.invite127',customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010','12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000008','owner','owner127@cladora.test')->>'id',true);
 select ok(current_setting('test.invite127')::uuid is not null,'Manager creates a scoped invite');
+select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000013',
+ '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127')$$,
+ '42501','unit_relationship_registration_denied','Unbound workspace cannot record tenant');
+select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007','owner','Other owner','Verified title reference 127')$$,
+ '23505','existing_ownership_requires_review','Existing owner is not silently replaced');
+select ok((customer_api.register_unit_invite_relationship_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127')->>'party_id') is not null,
+ 'Manager can record a tenant relationship after ownership');
+select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007','tenant_resident','Second tenant','Verified lease reference 128')$$,
+ '23505','existing_lease_requires_review','Active lease is not silently replaced');
 select throws_ok($$select customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
  '12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000009','owner','owner127@cladora.test')$$,
