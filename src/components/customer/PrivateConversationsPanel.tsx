@@ -30,10 +30,11 @@ async function readArray<T>(url: string): Promise<T[]> {
 export function PrivateConversationsPanel({ lang }: { lang: Language }) {
   const { active } = useCustomerContext();
   return <PrivateConversationsContent key={active?.context_id ?? "no-context"} lang={lang}
-    contextId={active?.context_id} canOpenVault={!['company_staff', 'vendor_contact'].includes(active?.role_code?.toLowerCase() ?? '')} />;
+    contextId={active?.context_id} membershipId={active?.membership_id}
+    canOpenVault={!['company_staff', 'vendor_contact'].includes(active?.role_code?.toLowerCase() ?? '')} />;
 }
 
-function PrivateConversationsContent({ lang, contextId, canOpenVault }: { lang: Language; contextId?: string; canOpenVault: boolean }) {
+function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVault }: { lang: Language; contextId?: string; membershipId?: string; canOpenVault: boolean }) {
   const t = words[lang];
   const [threads, setThreads] = useState<Thread[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -52,7 +53,6 @@ function PrivateConversationsContent({ lang, contextId, canOpenVault }: { lang: 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachable, setAttachable] = useState<Attachable[]>([]);
   const [documentId, setDocumentId] = useState("");
-  const [lastSent, setLastSent] = useState<{ conversation: string; message: string } | null>(null);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploaded, setUploaded] = useState(false);
 
@@ -127,10 +127,11 @@ function PrivateConversationsContent({ lang, contextId, canOpenVault }: { lang: 
 
   async function attach() {
     const document = attachable.find((item) => item.id === documentId);
-    if (!contextId || !selectedId || !lastSent || lastSent.conversation !== selectedId || !document) return;
+    const ownMessageId = threads.find((thread) => thread.id === selectedId)?.messages.filter((item) => item.sender_id === membershipId).at(-1)?.id;
+    if (!contextId || !selectedId || !ownMessageId || !document) return;
     setBusy(true);
     try {
-      await post(`/api/customer/v1/private-conversations/${selectedId}/attachments`, { context_id: contextId, message_id: lastSent.message, document_id: document.id, version_id: document.version_id });
+      await post(`/api/customer/v1/private-conversations/${selectedId}/attachments`, { context_id: contextId, message_id: ownMessageId, document_id: document.id, version_id: document.version_id });
       setAttachments(await readArray<Attachment>(`/api/customer/v1/private-conversations/${selectedId}/attachments?context_id=${encodeURIComponent(contextId)}`));
       setDocumentId("");
     } catch { setError(true); } finally { setBusy(false); }
@@ -174,15 +175,15 @@ function PrivateConversationsContent({ lang, contextId, canOpenVault }: { lang: 
     try {
       const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!response.ok) throw new Error(String(response.status));
-      const result = await response.json() as { conversation_id?: string; message_id?: string };
+      const result = await response.json() as { conversation_id?: string };
       await reload();
       if (result.conversation_id) setSelectedId(result.conversation_id);
-      if (result.message_id) setLastSent({ conversation: result.conversation_id ?? selectedId, message: result.message_id });
       setMessage(""); setReply("");
     } catch { setError(true); } finally { setBusy(false); }
   }
 
   const selected = threads.find((item) => item.id === selectedId);
+  const ownMessageId = selected?.messages.filter((item) => item.sender_id === membershipId).at(-1)?.id;
   return <section dir={lang === "fa" ? "rtl" : "ltr"} className="mx-auto max-w-5xl space-y-6 p-4 sm:p-8">
     <Link href={`/${lang}/app/communications`} className="text-sm text-blue-700 underline">{t.back}</Link>
     <h1 className="text-2xl font-semibold">{t.title}</h1>
@@ -214,7 +215,7 @@ function PrivateConversationsContent({ lang, contextId, canOpenVault }: { lang: 
             <select id="private-document" value={documentId} onChange={(event) => setDocumentId(event.target.value)} className="w-full rounded-lg border border-slate-400 p-2"><option value="">{t.select}</option>{attachable.map((d) => <option key={d.id} value={d.id}>{d.title}</option>)}</select>
             {!attachable.length && <p className="text-xs text-slate-600">{t.vault} {canOpenVault && <Link href={`/${lang}/app/documents`} className="text-blue-700 underline">{t.document}</Link>}</p>}
             <button type="button" onClick={() => void refreshDocuments()} className="block text-sm text-blue-700 underline">{t.refresh}</button>
-            <button type="button" disabled={!documentId || busy || lastSent?.conversation !== selectedId} onClick={() => void attach()} className="rounded-lg border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{t.attach}</button>
+            <button type="button" disabled={!documentId || busy || !ownMessageId} onClick={() => void attach()} className="rounded-lg border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{t.attach}</button>
           </div>
           <form className="mt-4 space-y-2 border-t pt-4" onSubmit={(event) => { event.preventDefault(); void upload(); }}>
             <label htmlFor="private-upload" className="block text-sm font-medium">{t.upload}</label>
