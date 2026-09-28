@@ -6,6 +6,7 @@ import type { DashboardRpcResponse } from '@/lib/customer/dashboard-schema';
 
 export type CustomerContext = {
   context_id: string;
+  membership_id: string;
   tenant_name: string;
   role_code: string;
   role_name: string;
