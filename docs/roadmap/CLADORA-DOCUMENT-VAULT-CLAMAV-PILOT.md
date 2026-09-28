@@ -20,3 +20,19 @@ This is a **queue-backed, free software scanner** for private Supabase Storage d
 ## Release gate
 
 Do not activate real customer document exchange until the worker host, secret handling, definition freshness, scan logs, and alerting have been reviewed; the pilot must pass with actual authenticated company, manager, contractor, owner and tenant accounts. Schedule `--queue` on the trusted host (for example, Windows Task Scheduler once per minute), prevent overlapping invocations on the same host, and alert on `dead_letter` and stale `pending` counts. The worker drains **one** job per invocation; the queue uses short leases and row locks so several trusted workers may coexist when needed. Keep exports and other vaults on their separate security gates.
+
+## Windows Server pilot scheduling
+
+Run the following in an elevated Windows PowerShell session **as the same Windows account that will run the task**. Ensure this checkout contains `scripts/windows-vault-scan-provision.ps1` and `scripts/windows-vault-scan-cycle.ps1` and that `npm ci --omit=dev` has succeeded. Never send the worker key to another person or put it in the task arguments.
+
+```powershell
+Set-Location 'C:\AIPROJECTBACKUP\CLADORA-SCANNER'
+& .\scripts\windows-vault-scan-provision.ps1
+& .\scripts\windows-vault-scan-cycle.ps1
+```
+
+The provisioning script saves an account-bound Windows DPAPI encrypted credential in `%ProgramData%\CLADORA\VaultScanner\worker-key.dpapi` with an ACL restricted to that account and SYSTEM. The cycle script processes one queued document, checks queue health, and writes only a bounded event code to `%ProgramData%\CLADORA\VaultScanner\scan-events.jsonl`. Check that the manual cycle returns `idle` or `completed` with exit code zero before adding a schedule.
+
+In Task Scheduler, create a task named `CLADORA Vault Scanner` under the **same account**. On General, select **Run whether user is logged on or not** and enter the Windows account password when prompted; do not use S4U / "Do not store password", because the job requires network access and the user's DPAPI profile. On Triggers, start once in one minute, repeat **every 5 minutes** indefinitely. On Actions, use `C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe` with arguments `-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "C:\AIPROJECTBACKUP\CLADORA-SCANNER\scripts\windows-vault-scan-cycle.ps1"`; set Start in to `C:\AIPROJECTBACKUP\CLADORA-SCANNER`. On Settings, choose **Do not start a new instance** if the task is already running; set a suitable execution time limit greater than the worker's 120-second ClamAV command timeout. After saving, start the task manually once and confirm Last Run Result `0x0`, then review the JSONL log and the application's queue status. A nonzero result, a `dead_letter` entry, or an old pending entry requires investigation; never mark a document clean manually.
+
+DPAPI ciphertext cannot be decrypted by another Windows user or a different server. Re-provision it under the replacement account if the task account or server changes. Protect the host itself, because its administrators and SYSTEM can access this trusted worker.
