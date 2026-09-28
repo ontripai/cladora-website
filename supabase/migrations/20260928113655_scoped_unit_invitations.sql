@@ -42,11 +42,17 @@ returns boolean language sql stable security definer set search_path=pg_catalog 
     join identity.roles r on r.id=m.role_id and lower(r.code) in ('association_admin','property_manager')
     join identity.context_grants g on g.membership_id=m.id and g.tenant_id=u.tenant_id and g.id=p_context
     join platform.customer_workspaces w on w.id=p_workspace and w.tenant_id=u.tenant_id and w.lifecycle_status='ACTIVE'
+    join platform.workspace_property_bindings wb on wb.customer_workspace_id=w.id
+      and wb.tenant_id=u.tenant_id and wb.property_id=b.property_id and wb.status='active'
+      and wb.valid_from<=statement_timestamp() and (wb.valid_to is null or wb.valid_to>statement_timestamp())
     join platform.workspace_entitlements e on e.customer_workspace_id=w.id
       and e.entitlement_key='module.communications' and e.boolean_value=true
       and e.valid_from<=statement_timestamp()
       and (e.valid_until is null or e.valid_until>statement_timestamp())
     where u.id=p_unit and u.status='active' and b.status='active'
+      and not exists (select 1 from platform.workspace_property_bindings other
+        where other.property_id=b.property_id and other.id<>wb.id and other.status='active'
+          and other.valid_from<=statement_timestamp() and (other.valid_to is null or other.valid_to>statement_timestamp()))
       and m.status='active' and m.starts_at<=statement_timestamp()
       and (m.ends_at is null or m.ends_at>statement_timestamp())
       and g.starts_at<=statement_timestamp() and (g.ends_at is null or g.ends_at>statement_timestamp())
