@@ -77,6 +77,51 @@ returns boolean language sql stable security definer set search_path=pg_catalog 
 $$;
 revoke all on function communications.unit_party_relationship_valid(uuid,uuid,text) from public,anon,authenticated;
 
+-- Manager attestation creates only a new, unambiguous relationship. Existing
+-- ownership and leases are never overwritten by an invitation flow.
+create function customer_api.register_unit_invite_relationship_v1(
+  p_context uuid,p_workspace uuid,p_unit uuid,p_role text,p_name text,p_evidence text)
+returns jsonb language plpgsql security definer set search_path=pg_catalog as $$
+declare v_actor uuid := auth.uid(); v_tenant uuid; v_party uuid; v_landlord uuid;
+begin
+  if v_actor is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2'
+    or not communications.can_manage_unit_invites(v_actor,p_context,p_workspace,p_unit)
+    or p_role not in ('owner','tenant_resident')
+    or length(trim(coalesce(p_name,''))) not between 2 and 120
+    or length(trim(coalesce(p_evidence,''))) not between 15 and 500 then
+    raise exception 'unit_relationship_registration_denied' using errcode='42501'; end if;
+  select tenant_id into v_tenant from portfolio.units where id=p_unit for update;
+  if p_role='owner' then
+    if exists(select 1 from portfolio.ownerships o where o.unit_id=p_unit
+      and o.tenant_id=v_tenant and o.valid_from<=current_date
+      and (o.valid_to is null or o.valid_to>current_date)) then
+      raise exception 'existing_ownership_requires_review' using errcode='23505'; end if;
+  else
+    select o.party_id into v_landlord from portfolio.ownerships o
+      where o.unit_id=p_unit and o.tenant_id=v_tenant and o.valid_from<=current_date
+        and (o.valid_to is null or o.valid_to>current_date)
+      order by o.id limit 1;
+    if v_landlord is null or exists(select 1 from occupancy.leases l where l.unit_id=p_unit
+      and l.tenant_id=v_tenant and l.status='active' and l.starts_on<=current_date
+      and (l.ends_on is null or l.ends_on>current_date)) then
+      raise exception 'existing_lease_requires_review' using errcode='23505'; end if;
+  end if;
+  insert into portfolio.parties(tenant_id,type,legal_name)
+    values(v_tenant,'person',trim(p_name)) returning id into v_party;
+  if p_role='owner' then
+    insert into portfolio.ownerships(tenant_id,unit_id,party_id,share,valid_from)
+      values(v_tenant,p_unit,v_party,1,current_date);
+  else
+    insert into occupancy.leases(tenant_id,unit_id,landlord_party_id,tenant_party_id,
+      starts_on,status) values(v_tenant,p_unit,v_landlord,v_party,current_date,'active');
+  end if;
+  insert into audit.events(tenant_id,actor_id,action,entity_type,entity_id,after_snapshot)
+    values(v_tenant,v_actor,'unit_invitation.relationship_attested','portfolio.party',v_party,
+      jsonb_build_object('unit_id',p_unit,'workspace_id',p_workspace,
+        'role_code',p_role,'basis',trim(p_evidence)));
+  return jsonb_build_object('party_id',v_party,'role_code',p_role);
+end $$;
+
 create function customer_api.list_unit_invite_parties_v1(p_context uuid,p_workspace uuid,p_unit uuid)
 returns jsonb language plpgsql stable security definer set search_path=pg_catalog as $$
 declare v_actor uuid := auth.uid();
@@ -201,11 +246,13 @@ begin
 end $$;
 
 revoke all on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
+ customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
  customer_api.revoke_unit_invitation_v1(uuid),
  customer_api.list_my_unit_invitations_v1(),
  customer_api.claim_unit_invitation_v1(uuid,text) from public,anon;
 grant execute on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
+ customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
  customer_api.revoke_unit_invitation_v1(uuid),
  customer_api.list_my_unit_invitations_v1(),
