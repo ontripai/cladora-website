@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(22);
+select plan(25);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12700000-0000-4000-8000-000000000001','manager127@cladora.test',statement_timestamp()),
@@ -70,6 +70,17 @@ select set_config('test.vendor127',customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
  '12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000014','vendor_contact','vendor127@cladora.test')->>'id',true);
 select ok(current_setting('test.vendor127')::uuid is not null,'Contracted vendor receives scoped invitation');
+select set_config('test.revoke127',customer_api.create_unit_invitation_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000014','vendor_contact','outsider127@cladora.test')->>'id',true);
+select is(jsonb_array_length(customer_api.list_managed_unit_invitations_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007')),3,'Manager sees own pending invitations');
+select ok(customer_api.revoke_unit_invitation_v1(current_setting('test.revoke127')::uuid),
+ 'Manager revokes a pending invitation');
+select is(jsonb_array_length(customer_api.list_managed_unit_invitations_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007')),2,'Revoked invitation disappears from pending list');
 select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000013',
  '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127')$$,
