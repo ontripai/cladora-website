@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(12);
+select plan(18);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12600000-0000-4000-8000-000000000001','internal-owner-126@cladora.test',statement_timestamp()),
@@ -42,6 +42,8 @@ select ok(not has_table_privilege('authenticated','platform.internal_message_doc
  'Internal attachment rows have no direct customer read');
 select ok(not has_table_privilege('authenticated','platform.internal_private_documents','SELECT'),
  'Private internal vault rows have no direct customer read');
+select ok(not has_function_privilege('authenticated','public.complete_internal_private_scan_job_v1(uuid,uuid,text,text,text,timestamptz)','EXECUTE'),
+ 'Only the scanner can attest an internal document');
 set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000001','role','authenticated','aal','aal1')::text,true);
 select throws_ok($$select customer_api.attach_internal_document_v1('12600000-0000-4000-8000-000000000021',
@@ -64,6 +66,32 @@ select is((customer_api.attach_internal_document_v1('12600000-0000-4000-8000-000
 select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000002','role','authenticated','aal','aal2')::text,true);
 select throws_ok($$select customer_api.authorize_internal_private_download_v1(current_setting('test.private_internal_id')::uuid)$$,
  '42501','internal_document_denied','Recipient cannot download unscanned private document');
+reset role;
+insert into storage.objects(bucket_id,name) select 'internal-message-vault',object_path
+ from platform.internal_private_documents where id=current_setting('test.private_internal_id')::uuid;
+select set_config('test.private_path',(select object_path from platform.internal_private_documents
+ where id=current_setting('test.private_internal_id')::uuid),true);
+set local role authenticated;
+select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000001','role','authenticated','aal','aal2')::text,true);
+select is(customer_api.finish_internal_private_upload_v1(current_setting('test.private_internal_id')::uuid,
+ current_setting('test.private_path'),
+ repeat('c',64),5,'application/pdf')->>'scan_state','pending','Finalized upload enters scanner queue');
+reset role;
+select set_config('test.private_lease',public.claim_internal_private_scan_job_v1('test-worker-126',900)::text,true);
+select throws_ok($$select public.complete_internal_private_scan_job_v1(
+ (current_setting('test.private_lease')::jsonb->>'job_id')::uuid,
+ (current_setting('test.private_lease')::jsonb->>'lease_token')::uuid,
+ 'clean',repeat('f',64),'ClamAV test',statement_timestamp())$$,
+ '22023','internal_scan_verdict_invalid','Mismatched checksum cannot clear document');
+select is(public.complete_internal_private_scan_job_v1(
+ (current_setting('test.private_lease')::jsonb->>'job_id')::uuid,
+ (current_setting('test.private_lease')::jsonb->>'lease_token')::uuid,
+ 'clean',repeat('c',64),'ClamAV test',statement_timestamp())->>'verdict',
+ 'clean','Scanner attestation releases private document');
+set local role authenticated;
+select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000002','role','authenticated','aal','aal2')::text,true);
+select is(customer_api.authorize_internal_private_download_v1(current_setting('test.private_internal_id')::uuid)->>'bucket_id',
+ 'internal-message-vault','Recipient can download scanned private document');
 select is(jsonb_array_length(customer_api.list_internal_attachments_v1('12600000-0000-4000-8000-000000000021')),1,
  'Recipient sees shared document');
 select set_config('test.internal_attachment',(customer_api.list_internal_attachments_v1('12600000-0000-4000-8000-000000000021')->0->>'id'),true);
@@ -79,5 +107,7 @@ set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000002','role','authenticated','aal','aal2')::text,true);
 select throws_ok($$select customer_api.authorize_internal_attachment_download_v1(current_setting('test.internal_attachment')::uuid)$$,
  '42501','internal_document_denied','Revoked assignment blocks document download');
+select throws_ok($$select customer_api.authorize_internal_private_download_v1(current_setting('test.private_internal_id')::uuid)$$,
+ '42501','internal_document_denied','Revoked assignment also blocks private document download');
 select * from finish();
 rollback;
