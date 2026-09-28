@@ -8,6 +8,7 @@ import {
 } from '@/components/auth/WorkspaceInvitationContinuation';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
 import { UnitInvitationContinuation, type ClaimableUnitInvitation } from '@/components/auth/UnitInvitationContinuation';
+import { UnitInvitationAccountSetup } from '@/components/auth/UnitInvitationAccountSetup';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import type { Language } from '@/types';
@@ -65,11 +66,15 @@ export default async function InvitationContinuationPage(props: {
   const { lang } = await props.params;
   let invitations: ClaimableWorkspaceInvitation[] = [];
   let unitInvitations: ClaimableUnitInvitation[] = [];
+  let needsMfa = false;
 
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
     const { data: claims, error: claimsError } = await supabase.auth.getClaims();
+    if (claimsError || !claims?.claims?.sub) redirect(`/${lang}/login?next=invitation-continuation`);
     if (!claimsError && claims?.claims?.sub) {
+      const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      needsMfa = assurance?.currentLevel !== 'aal2';
       const { data, error } = await supabase
         .schema('customer_api')
         .rpc('list_my_claimable_workspace_invitations_v1');
@@ -96,7 +101,9 @@ export default async function InvitationContinuationPage(props: {
   return (
     <main dir={lang === 'fa' ? 'rtl' : 'ltr'} className="flex min-h-screen items-center justify-center bg-[#F6F9FC] px-4 pb-24 pt-32">
       <div className="w-full max-w-lg">
-        {invitations.length ? (
+        {needsMfa && unitInvitations.length ? (
+          <UnitInvitationAccountSetup lang={lang} />
+        ) : invitations.length ? (
           <WorkspaceInvitationContinuation lang={lang} invitations={invitations} />
         ) : unitInvitations.length ? (
           <UnitInvitationContinuation lang={lang} invitations={unitInvitations} />

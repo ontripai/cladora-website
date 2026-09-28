@@ -14,7 +14,7 @@ export default async function MfaSetupPage({ params, searchParams }: { params: P
   if (!isSupabaseConfigured()) redirect(`/${lang}/login?reason=configuration`);
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) redirect(`/${lang}/login${next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
+  if (error || !data?.claims) redirect(`/${lang}/login${next === 'invitation-continuation' ? '?next=invitation-continuation' : next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
   let platformAccess: boolean | null = null;
   try {
     platformAccess = await hasActivePlatformAccess(supabase);
@@ -25,6 +25,8 @@ export default async function MfaSetupPage({ params, searchParams }: { params: P
   // Explicit owner navigation never grants owner access; the destination rechecks it.
   const continueTo = next === 'owner-portfolio'
     ? `/${lang}/owner-portfolio`
+    : next === 'invitation-continuation' && !platformAccess
+    ? `/${lang}/invitation-continuation`
     : next === 'workspace-access' && !platformAccess
     ? `/${lang}/workspace-access`
     : next === 'cases' && !platformAccess
@@ -35,6 +37,6 @@ export default async function MfaSetupPage({ params, searchParams }: { params: P
   const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (assuranceError || !assurance) redirect(`/${lang}/login?reason=security`);
   if (assurance.currentLevel === 'aal2') redirect(continueTo);
-  if (assurance.nextLevel === 'aal2') redirect(`/${lang}/mfa${next === 'workspace-access' ? '?next=workspace-access' : next === 'cases' ? '?next=cases' : next === 'pilot-reviewer' ? '?next=pilot-reviewer' : next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
+  if (assurance.nextLevel === 'aal2') redirect(`/${lang}/mfa${next === 'invitation-continuation' && !platformAccess ? '?next=invitation-continuation' : next === 'workspace-access' ? '?next=workspace-access' : next === 'cases' ? '?next=cases' : next === 'pilot-reviewer' ? '?next=pilot-reviewer' : next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
   return <main className="mx-auto flex min-h-screen max-w-3xl items-center bg-[#F6F9FC] p-6"><AccountSecurityPanel lang={lang} continueTo={continueTo} /></main>;
 }
