@@ -14,13 +14,16 @@ const schema = z.discriminatedUnion("action", [create, reply, read]);
 export async function GET(request: NextRequest) {
   const workspace = request.nextUrl.searchParams.get("workspace_id");
   const recipient = request.nextUrl.searchParams.get("recipients") === "true";
+  const identity = request.nextUrl.searchParams.get("identity") === "true";
   const parsed = workspace === null ? null : uuid.safeParse(workspace);
   if (parsed && !parsed.success) return NextResponse.json({ error: { code: "INVALID_WORKSPACE" } }, { status: 400, headers });
   if (recipient && !parsed?.success) return NextResponse.json({ error: { code: "INVALID_WORKSPACE" } }, { status: 400, headers });
   const client = await createClient();
   const auth = await client.auth.getClaims();
   if (auth.error || !auth.data?.claims?.sub) return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401, headers });
-  const result = recipient && parsed?.success
+  const result = identity && workspace === null
+    ? await client.schema("customer_api").rpc("my_internal_identity_v1")
+    : recipient && parsed?.success
     ? await client.schema("customer_api").rpc("list_internal_recipients_v1", { p_workspace_id: parsed.data })
     : parsed?.success
       ? await client.schema("customer_api").rpc("get_internal_conversations_v1", { p_workspace_id: parsed.data })
