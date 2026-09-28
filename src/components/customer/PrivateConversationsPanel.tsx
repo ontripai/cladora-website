@@ -182,8 +182,10 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
       setUploadStatus(t.scanning);
       const base = `/api/customer/v1/private-conversations/${conversationId}/attachments?context_id=${encodeURIComponent(contextId)}`;
       // Documents become shareable only after the existing server-side scanner marks the version clean.
-      for (let attempt = 0; attempt < 20; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, 3000));
+      // The trusted scanner runs on a separate scheduled host. Keep following
+      // the upload through at least one full cycle so the clean file attaches.
+      for (let attempt = 0; attempt < 120; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
         const available = await readArray<Attachable>(`${base}&available=true`);
         const approved = available.find((item) => item.id === uploaded.document_id && item.version_id === uploaded.version_id);
         if (!approved) continue;
