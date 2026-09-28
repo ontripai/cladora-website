@@ -79,7 +79,7 @@ export async function scanNextDocument({ client, workerId, run = command, clamsc
     p_worker_id: workerId, p_lease_seconds: 900,
   });
   if (claimError) throw new Error('SCAN_CLAIM_FAILED');
-  if (!job) return { outcome: 'idle' };
+  if (!job) return scanNextInternalDocument({ client, workerId, run, clamscan, freshclam });
   if (!UUID.test(job.job_id) || !UUID.test(job.lease_token) || !UUID.test(job.version_id)
     || !Number.isInteger(job.attempt_count) || job.attempt_count < 1 || job.attempt_count > 10) {
     throw new Error('SCAN_LEASE_INVALID');
@@ -100,6 +100,68 @@ export async function scanNextDocument({ client, workerId, run = command, clamsc
   }
 }
 
+export async function scanNextInternalDocument({ client, workerId, run = command, clamscan = 'clamscan', freshclam = 'freshclam' }) {
+  if (typeof workerId !== 'string' || !/^[A-Za-z0-9._:-]{3,120}$/.test(workerId)) throw new Error('WORKER_ID_INVALID');
+  const { data: job, error: claimError } = await client.rpc('claim_internal_private_scan_job_v1', {
+    p_worker_id: workerId, p_lease_seconds: 900,
+  });
+  if (claimError?.code === 'PGRST202' || claimError?.code === '42883') return { outcome: 'idle' };
+  if (claimError) throw new Error('INTERNAL_SCAN_CLAIM_FAILED');
+  if (!job) return { outcome: 'idle' };
+  if (!UUID.test(job.job_id) || !UUID.test(job.lease_token) || !UUID.test(job.document_id)
+    || !Number.isInteger(job.attempt_count) || job.attempt_count < 1 || job.attempt_count > 5) {
+    throw new Error('INTERNAL_SCAN_LEASE_INVALID');
+  }
+  try {
+    const signatures = await run(freshclam, ['--quiet']);
+    if (signatures.code !== 0) throw new Error('SIGNATURE_UPDATE_FAILED');
+    const engine = await run(clamscan, ['--version']);
+    if (engine.code !== 0 || !engine.stdout?.trim()) throw new Error('CLAMAV_VERSION_UNAVAILABLE');
+    const { data: target, error: targetError } = await client.rpc('get_internal_private_scan_target_v1', {
+      p_document_id: job.document_id,
+    });
+    if (targetError || !target || target.document_id !== job.document_id
+      || target.bucket_id !== 'internal-message-vault' || !SHA256.test(target.sha256)
+      || !Number.isSafeInteger(target.size_bytes) || target.size_bytes < 1 || target.size_bytes > 20971520
+      || typeof target.object_path !== 'string' || !target.object_path || target.object_path.startsWith('/')
+      || target.object_path.split('/').includes('..')) throw new Error('INVALID_INTERNAL_SCAN_TARGET');
+    const { data: blob, error: storageError } = await client.storage.from('internal-message-vault').download(target.object_path);
+    if (storageError || !blob) throw new Error('STORAGE_DOWNLOAD_FAILED');
+    const bytes = Buffer.from(await blob.arrayBuffer());
+    const digest = createHash('sha256').update(bytes).digest('hex');
+    if (bytes.length !== target.size_bytes || digest !== target.sha256) throw new Error('STORAGE_CONTENT_MISMATCH');
+    const directory = await mkdtemp(join(tmpdir(), 'cladora-internal-scan-'));
+    let verdict;
+    try {
+      const file = join(directory, 'document.bin');
+      await writeFile(file, bytes, { flag: 'wx', mode: 0o600 });
+      const result = await run(clamscan, ['--no-summary', '--fail-if-cvd-older-than=2',
+        '--alert-exceeds-max=yes', '--alert-encrypted=yes', file]);
+      if (result.code === 0 && result.stdout?.includes(`${file}: OK`)) verdict = 'clean';
+      else if (result.code === 1 && result.stdout?.includes(`${file}:`) && result.stdout.includes('FOUND')) verdict = 'quarantined';
+      else throw new Error('SCAN_INCOMPLETE');
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+    const { data: recorded, error: recordError } = await client.rpc('complete_internal_private_scan_job_v1', {
+      p_job_id: job.job_id, p_lease_token: job.lease_token, p_verdict: verdict,
+      p_sha256: digest, p_engine_version: engine.stdout.trim().split(/\r?\n/)[0].slice(0, 160),
+      p_scanned_at: new Date().toISOString(),
+    });
+    if (recordError || recorded?.verdict !== verdict) throw new Error('INTERNAL_SCAN_RECORD_FAILED');
+    return { outcome: 'completed', documentId: job.document_id, verdict };
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : 'SCAN_FAILED';
+    const errorCode = /^[A-Z0-9_]{3,80}$/.test(reason) ? reason : 'SCAN_FAILED';
+    const { data: failure, error: failError } = await client.rpc('fail_internal_private_scan_job_v1', {
+      p_job_id: job.job_id, p_lease_token: job.lease_token, p_error_code: errorCode,
+      p_retry_after_seconds: Math.min(3600, 60 * 2 ** (job.attempt_count - 1)),
+    });
+    if (failError) throw new Error('INTERNAL_SCAN_FAILURE_RECORD_FAILED');
+    return { outcome: failure?.state ?? 'retry', documentId: job.document_id, errorCode };
+  }
+}
+
 export async function checkDocumentScanQueue({ client, now = Date.now(), maxPendingMinutes = 30 }) {
   const { data, error } = await client.rpc('get_document_scan_queue_status_v1');
   if (error || !data) throw new Error('SCAN_QUEUE_STATUS_UNAVAILABLE');
@@ -110,7 +172,20 @@ export async function checkDocumentScanQueue({ client, now = Date.now(), maxPend
     || (oldest !== null && !Number.isFinite(oldest)) || (pending > 0 && oldest === null)) throw new Error('SCAN_QUEUE_STATUS_INVALID');
   const stale = pending > 0 && oldest !== null && now - oldest > maxPendingMinutes * 60_000;
   if (deadLetter > 0 || stale) throw new Error('SCAN_QUEUE_UNHEALTHY');
-  return { pending, deadLetter, healthy: true };
+  const { data: internal, error: internalError } = await client.rpc('get_internal_private_scan_queue_status_v1');
+  // The private-vault migration is deployed after the existing worker. A
+  // missing RPC is treated as not-yet-migrated; all other failures are fatal.
+  if (internalError && internalError.code !== 'PGRST202' && internalError.code !== '42883')
+    throw new Error('INTERNAL_SCAN_QUEUE_STATUS_UNAVAILABLE');
+  if (internalError) return { pending, deadLetter, healthy: true };
+  const internalPending = Number(internal?.pending) + Number(internal?.retry);
+  const internalDead = Number(internal?.dead_letter);
+  const internalOldest = internal?.oldest_pending_at ? Date.parse(internal.oldest_pending_at) : null;
+  if (!Number.isSafeInteger(internalPending) || !Number.isSafeInteger(internalDead)
+    || (internalPending > 0 && !Number.isFinite(internalOldest))
+    || internalDead > 0 || (internalOldest !== null && internalPending > 0
+      && now - internalOldest > maxPendingMinutes * 60_000)) throw new Error('INTERNAL_SCAN_QUEUE_UNHEALTHY');
+  return { pending: pending + internalPending, deadLetter: deadLetter + internalDead, healthy: true };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
