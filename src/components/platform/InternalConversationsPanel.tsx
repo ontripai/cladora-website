@@ -7,11 +7,13 @@ type Workspace = { id: string; name: string };
 type Colleague = { id: string; name: string };
 type Message = { id: string; body: string; sent_at: string; sender_id: string };
 type Thread = { id: string; participants: Colleague[]; unread: number; messages: Message[] };
+type Attachment = { id: string; message_id: string; title: string };
+type Attachable = { id: string; version_id: string; title: string };
 
 const labels = {
-  ro: { title: "Mesaje interne CLADORA", workspace: "Spațiu de lucru", colleague: "Colega sau colegul", select: "Selectați", new: "Conversație nouă", send: "Trimite", reply: "Răspunde", unread: "necitite", mark: "Marchează ca citit", empty: "Nu există conversații în acest spațiu.", error: "Nu s-au putut încărca mesajele interne.", busy: "Se trimite…" },
-  en: { title: "CLADORA internal messages", workspace: "Workspace", colleague: "Colleague", select: "Select", new: "New conversation", send: "Send", reply: "Reply", unread: "unread", mark: "Mark as read", empty: "No conversations for this workspace.", error: "Internal messages could not be loaded.", busy: "Sending…" },
-  fa: { title: "پیام‌های داخلی CLADORA", workspace: "فضای کاری", colleague: "همکار", select: "انتخاب کنید", new: "گفت‌وگوی جدید", send: "ارسال", reply: "پاسخ", unread: "خوانده‌نشده", mark: "علامت‌گذاری به‌عنوان خوانده‌شده", empty: "برای این فضای کاری گفت‌وگویی وجود ندارد.", error: "بارگذاری پیام‌های داخلی ممکن نشد.", busy: "در حال ارسال…" },
+  ro: { title: "Mesaje interne CLADORA", workspace: "Spațiu de lucru", colleague: "Colega sau colegul", select: "Selectați", new: "Conversație nouă", send: "Trimite", reply: "Răspunde", unread: "necitite", mark: "Marchează ca citit", empty: "Nu există conversații în acest spațiu.", error: "Nu s-au putut încărca mesajele interne.", busy: "Se trimite…", document: "Document scanat", attach: "Atașează la ultimul mesaj propriu", download: "Descarcă documentul" },
+  en: { title: "CLADORA internal messages", workspace: "Workspace", colleague: "Colleague", select: "Select", new: "New conversation", send: "Send", reply: "Reply", unread: "unread", mark: "Mark as read", empty: "No conversations for this workspace.", error: "Internal messages could not be loaded.", busy: "Sending…", document: "Scanned document", attach: "Attach to my latest message", download: "Download document" },
+  fa: { title: "پیام‌های داخلی CLADORA", workspace: "فضای کاری", colleague: "همکار", select: "انتخاب کنید", new: "گفت‌وگوی جدید", send: "ارسال", reply: "پاسخ", unread: "خوانده‌نشده", mark: "علامت‌گذاری به‌عنوان خوانده‌شده", empty: "برای این فضای کاری گفت‌وگویی وجود ندارد.", error: "بارگذاری پیام‌های داخلی ممکن نشد.", busy: "در حال ارسال…", document: "سند اسکن‌شده", attach: "پیوست به آخرین پیام خودم", download: "دریافت سند" },
 } satisfies Record<Language, Record<string, string>>;
 
 const endpoint = "/api/platform/v1/internal-conversations";
@@ -35,6 +37,10 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
   const [reply, setReply] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [myId, setMyId] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachable, setAttachable] = useState<Attachable[]>([]);
+  const [documentId, setDocumentId] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -54,6 +60,52 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
     return () => { cancelled = true; };
   }, [workspaceId]);
 
+  useEffect(() => {
+    let cancelled = false;
+    if (!threadId) return;
+    const path = `${endpoint}/${encodeURIComponent(threadId)}/attachments`;
+    void Promise.all([read<Attachment>(path), read<Attachable>(`${path}?available=true`)]).then(([linked, available]) => {
+      if (!cancelled) { setAttachments(linked); setAttachable(available); }
+    }).catch(() => { if (!cancelled) setError(true); });
+    return () => { cancelled = true; };
+  }, [threadId, threads]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch(`${endpoint}?identity=true`, { cache: "no-store" }).then(async (response) => {
+      if (!response.ok) throw new Error(String(response.status));
+      return response.json() as Promise<{ id?: string }>;
+    }).then((profile) => { if (!cancelled) setMyId(profile.id ?? ""); }).catch(() => { /* An attachment requires a known sender. */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  async function attach() {
+    const selected = threads.find((thread) => thread.id === threadId);
+    const messageId = selected?.messages.filter((message) => message.sender_id === myId).at(-1)?.id;
+    const document = attachable.find((item) => item.id === documentId);
+    if (!messageId || !document) return;
+    setBusy(true); setError(false);
+    try {
+      const path = `${endpoint}/${encodeURIComponent(threadId)}/attachments`;
+      const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message_id: messageId, document_id: document.id, version_id: document.version_id }) });
+      if (!response.ok) throw new Error(String(response.status));
+      setAttachments(await read<Attachment>(path)); setDocumentId("");
+    } catch { setError(true); } finally { setBusy(false); }
+  }
+
+  async function download(id: string) {
+    try {
+      const response = await fetch(`${endpoint}/attachments/${encodeURIComponent(id)}/download`, {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: "{}",
+      });
+      if (!response.ok) throw new Error(String(response.status));
+      const result = await response.json() as { download_url?: string };
+      if (!result.download_url) throw new Error("Missing signed URL");
+      window.location.assign(result.download_url);
+    } catch { setError(true); }
+  }
+
   async function submit(payload: Record<string, string>) {
     setBusy(true); setError(false);
     try {
@@ -71,11 +123,11 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
     <h1 className="text-2xl font-semibold">{t.title}</h1>
     {error && <p role="alert" className="rounded bg-red-50 p-3 text-red-800">{t.error}</p>}
     <label htmlFor="internal-workspace" className="block font-medium">{t.workspace}</label>
-    <select id="internal-workspace" value={workspaceId} onChange={(event) => setWorkspaceId(event.target.value)} className="w-full rounded border p-2"><option value="">{t.select}</option>{workspaces.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select>
+    <select id="internal-workspace" value={workspaceId} onChange={(event) => { setWorkspaceId(event.target.value); setThreadId(""); setAttachments([]); setAttachable([]); }} className="w-full rounded border p-2"><option value="">{t.select}</option>{workspaces.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</select>
     {!!workspaceId && <div className="grid gap-6 lg:grid-cols-3">
       <aside className="space-y-2">
         {!threads.length && <p className="text-sm text-slate-600">{t.empty}</p>}
-        {threads.map((thread) => <button key={thread.id} type="button" onClick={() => setThreadId(thread.id)} aria-pressed={thread.id === threadId} className={`block w-full rounded border p-3 text-start ${thread.id === threadId ? "border-blue-700 bg-blue-50" : "border-slate-300"}`}>
+        {threads.map((thread) => <button key={thread.id} type="button" onClick={() => { setThreadId(thread.id); setAttachments([]); setAttachable([]); }} aria-pressed={thread.id === threadId} className={`block w-full rounded border p-3 text-start ${thread.id === threadId ? "border-blue-700 bg-blue-50" : "border-slate-300"}`}>
           <span>{thread.participants.map((p) => p.name).join(", ")}</span>
           {!!thread.unread && <span className="ms-2 rounded-full bg-blue-700 px-2 py-0.5 text-xs text-white">{thread.unread} {t.unread}</span>}
           <span className="block text-xs text-slate-600">{thread.messages.at(-1)?.body}</span>
@@ -85,7 +137,8 @@ export function InternalConversationsPanel({ lang }: { lang: Language }) {
         {selected && <section className="space-y-4 rounded border p-4">
           <h2 className="font-semibold">{selected.participants.map((p) => p.name).join(", ")}</h2>
           {!!selected.unread && <button type="button" className="text-sm text-blue-700 underline" onClick={() => void submit({ action: "read", thread_id: selected.id })}>{t.mark}</button>}
-          <ol className="space-y-2">{selected.messages.map((m) => <li key={m.id} className="rounded bg-slate-50 p-3"><p className="whitespace-pre-wrap break-words">{m.body}</p><time className="text-xs text-slate-600" dateTime={m.sent_at}>{new Date(m.sent_at).toLocaleString(lang === "fa" ? "fa-IR" : lang === "ro" ? "ro-RO" : "en-GB")}</time></li>)}</ol>
+          <ol className="space-y-2">{selected.messages.map((m) => <li key={m.id} className="rounded bg-slate-50 p-3"><p className="whitespace-pre-wrap break-words">{m.body}</p><time className="text-xs text-slate-600" dateTime={m.sent_at}>{new Date(m.sent_at).toLocaleString(lang === "fa" ? "fa-IR" : lang === "ro" ? "ro-RO" : "en-GB")}</time>{attachments.filter((item) => item.message_id === m.id).map((item) => <button key={item.id} type="button" onClick={() => void download(item.id)} className="block text-sm text-blue-700 underline">{t.download}: {item.title}</button>)}</li>)}</ol>
+          {!!attachable.length && <div className="space-y-2"><label htmlFor="internal-document" className="block">{t.document}</label><select id="internal-document" className="w-full rounded border p-2" value={documentId} onChange={(event) => setDocumentId(event.target.value)}><option value="">{t.select}</option>{attachable.map((item) => <option value={item.id} key={item.id}>{item.title}</option>)}</select><button type="button" onClick={() => void attach()} disabled={busy || !documentId || !myId || !selected.messages.some((item) => item.sender_id === myId)} className="rounded border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{t.attach}</button></div>}
           <form className="space-y-2" onSubmit={(event) => { event.preventDefault(); if (reply.trim()) void submit({ action: "reply", thread_id: selected.id, body: reply.trim(), request_id: crypto.randomUUID() }); }}>
             <label htmlFor="internal-reply" className="block">{t.reply}</label>
             <textarea id="internal-reply" required maxLength={5000} value={reply} onChange={(event) => setReply(event.target.value)} className="w-full rounded border p-2" />
