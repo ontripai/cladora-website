@@ -184,6 +184,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
       const result = await response.json() as { conversation_id?: string };
       await reload();
       if (result.conversation_id) setSelectedId(result.conversation_id);
+      setCreating(false);
       setMessage(""); setReply("");
     } catch { setError(true); } finally { setBusy(false); }
   }
