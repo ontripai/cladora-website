@@ -5,9 +5,10 @@ create table communications.unit_invitations (
   tenant_id uuid not null references platform.tenants(id),
   workspace_id uuid not null references platform.customer_workspaces(id),
   unit_id uuid not null references portfolio.units(id),
-  party_id uuid not null references portfolio.parties(id),
+  party_id uuid references portfolio.parties(id),
+  vendor_id uuid references maintenance.vendors(id),
   normalized_email text not null,
-  role_code text not null check (role_code in ('owner','tenant_resident')),
+  role_code text not null check (role_code in ('owner','tenant_resident','vendor_contact')),
   status text not null default 'pending' check (status in ('pending','accepted','revoked','expired')),
   invited_by uuid not null references auth.users(id),
   inviter_context_id uuid not null references identity.context_grants(id),
@@ -17,6 +18,8 @@ create table communications.unit_invitations (
   accepted_at timestamptz,
   revoked_at timestamptz,
   check (normalized_email = lower(trim(normalized_email))),
+  check ((role_code='vendor_contact' and vendor_id is not null and party_id is null)
+    or (role_code in ('owner','tenant_resident') and party_id is not null and vendor_id is null)),
   check (expires_at > created_at),
   check ((status='accepted' and accepted_by is not null and accepted_at is not null)
     or (status<>'accepted' and accepted_by is null and accepted_at is null))
@@ -28,6 +31,7 @@ create index unit_invitations_tenant_idx on communications.unit_invitations(tena
 create index unit_invitations_workspace_idx on communications.unit_invitations(workspace_id);
 create index unit_invitations_unit_idx on communications.unit_invitations(unit_id);
 create index unit_invitations_party_idx on communications.unit_invitations(party_id);
+create index unit_invitations_vendor_idx on communications.unit_invitations(vendor_id);
 create index unit_invitations_inviter_idx on communications.unit_invitations(invited_by);
 create index unit_invitations_inviter_context_idx on communications.unit_invitations(inviter_context_id);
 create index unit_invitations_acceptor_idx on communications.unit_invitations(accepted_by);
@@ -94,6 +98,17 @@ returns boolean language sql stable security definer set search_path=pg_catalog 
 $$;
 revoke all on function communications.unit_party_relationship_valid(uuid,uuid,text) from public,anon,authenticated;
 
+create function communications.unit_vendor_contract_valid(p_unit uuid,p_vendor uuid)
+returns boolean language sql stable security definer set search_path=pg_catalog as $$
+  select exists(select 1 from portfolio.units u join portfolio.buildings b on b.id=u.building_id
+    join maintenance.vendors v on v.id=p_vendor and v.tenant_id=u.tenant_id and v.status='approved'
+    join maintenance.vendor_contracts c on c.vendor_id=v.id and c.tenant_id=u.tenant_id
+      and c.property_id=b.property_id and c.status='active'
+      and c.starts_on<=current_date and (c.ends_on is null or c.ends_on>current_date)
+    where u.id=p_unit and u.status='active');
+$$;
+revoke all on function communications.unit_vendor_contract_valid(uuid,uuid) from public,anon,authenticated;
+
 -- Manager attestation creates only a new, unambiguous relationship. Existing
 -- ownership and leases are never overwritten by an invitation flow.
 create function customer_api.register_unit_invite_relationship_v1(
@@ -151,7 +166,11 @@ begin
       from portfolio.parties p where communications.unit_party_relationship_valid(p_unit,p.id,'owner')
       union all
       select distinct p.id,p.legal_name,'tenant_resident'::text
-      from portfolio.parties p where communications.unit_party_relationship_valid(p_unit,p.id,'tenant_resident')) q),'[]'::jsonb);
+      from portfolio.parties p where communications.unit_party_relationship_valid(p_unit,p.id,'tenant_resident')
+      union all
+      select v.id,p.legal_name,'vendor_contact'::text
+      from maintenance.vendors v join portfolio.parties p on p.id=v.party_id and p.tenant_id=v.tenant_id
+      where communications.unit_vendor_contract_valid(p_unit,v.id)) q),'[]'::jsonb);
 end $$;
 
 create function customer_api.create_unit_invitation_v1(p_context uuid,p_workspace uuid,p_unit uuid,p_party uuid,p_role text,p_email text)
@@ -161,16 +180,18 @@ declare v_actor uuid := auth.uid(); v_email text := lower(trim(coalesce(p_email,
 begin
   if v_actor is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2'
     or not communications.can_manage_unit_invites(v_actor,p_context,p_workspace,p_unit)
-    or p_role not in ('owner','tenant_resident')
+    or p_role not in ('owner','tenant_resident','vendor_contact')
     or v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
     or length(v_email)>320 then
     raise exception 'unit_invitation_denied' using errcode='42501'; end if;
   select u.tenant_id,w.id into v_tenant,v_workspace from portfolio.units u
     join platform.customer_workspaces w on w.id=p_workspace and w.tenant_id=u.tenant_id and w.lifecycle_status='ACTIVE'
     where u.id=p_unit;
-  if v_workspace is null or not exists(select 1 from portfolio.parties p where p.id=p_party
-    and p.tenant_id=v_tenant and p.archived_at is null)
-    or not communications.unit_party_relationship_valid(p_unit,p_party,p_role) then
+  if v_workspace is null or (p_role<>'vendor_contact' and
+    (not exists(select 1 from portfolio.parties p where p.id=p_party
+      and p.tenant_id=v_tenant and p.archived_at is null)
+      or not communications.unit_party_relationship_valid(p_unit,p_party,p_role)))
+    or (p_role='vendor_contact' and not communications.unit_vendor_contract_valid(p_unit,p_party)) then
     raise exception 'unit_relationship_required' using errcode='42501'; end if;
   update communications.unit_invitations set status='expired' where workspace_id=v_workspace and unit_id=p_unit
     and normalized_email=v_email and role_code=p_role and status='pending'
@@ -178,12 +199,14 @@ begin
   select id into v_existing from communications.unit_invitations where workspace_id=v_workspace and unit_id=p_unit
     and normalized_email=v_email and role_code=p_role and status='pending';
   if v_existing is not null and exists(select 1 from communications.unit_invitations i
-    where i.id=v_existing and i.party_id<>p_party) then
+    where i.id=v_existing and (case when p_role='vendor_contact' then i.vendor_id else i.party_id end)<>p_party) then
     raise exception 'invitation_party_conflict' using errcode='23505'; end if;
   if v_existing is not null then return jsonb_build_object('id',v_existing,'replayed',true,
     'known_account',exists(select 1 from auth.users where lower(email)=v_email and email_confirmed_at is not null)); end if;
-  insert into communications.unit_invitations(tenant_id,workspace_id,unit_id,party_id,
-    normalized_email,role_code,invited_by,inviter_context_id) values(v_tenant,v_workspace,p_unit,p_party,
+  insert into communications.unit_invitations(tenant_id,workspace_id,unit_id,party_id,vendor_id,
+    normalized_email,role_code,invited_by,inviter_context_id) values(v_tenant,v_workspace,p_unit,
+    case when p_role='vendor_contact' then null else p_party end,
+    case when p_role='vendor_contact' then p_party else null end,
     v_email,p_role,v_actor,p_context) returning id into v_id;
   insert into audit.events(tenant_id,actor_id,action,entity_type,entity_id)
     values(v_tenant,v_actor,'unit_invitation.create','communications.unit_invitation',v_id);
@@ -232,7 +255,8 @@ begin
   if v_i.id is null or v_i.status<>'pending' or v_i.expires_at<=statement_timestamp()
     or v_i.normalized_email<>v_email
     or not communications.can_manage_unit_invites(v_i.invited_by,v_i.inviter_context_id,v_i.workspace_id,v_i.unit_id)
-    or not communications.unit_party_relationship_valid(v_i.unit_id,v_i.party_id,v_i.role_code)
+    or (v_i.role_code='vendor_contact' and not communications.unit_vendor_contract_valid(v_i.unit_id,v_i.vendor_id))
+    or (v_i.role_code<>'vendor_contact' and not communications.unit_party_relationship_valid(v_i.unit_id,v_i.party_id,v_i.role_code))
     or not exists(select 1 from platform.customer_workspaces w where w.id=v_i.workspace_id
       and w.tenant_id=v_i.tenant_id and w.lifecycle_status='ACTIVE') then
     raise exception 'unit_invitation_denied' using errcode='42501'; end if;
@@ -246,15 +270,28 @@ begin
     values(v_i.tenant_id,v_actor,v_role,'active')
     on conflict(tenant_id,user_id,role_id) where status in ('invited','active')
     do update set status='active' returning id into v_membership;
-  if exists(select 1 from identity.membership_parties where membership_id=v_membership
-    and party_id<>v_i.party_id) then raise exception 'unit_party_conflict' using errcode='23505'; end if;
-  insert into identity.membership_parties(membership_id,tenant_id,party_id)
-    values(v_membership,v_i.tenant_id,v_i.party_id)
-    on conflict(membership_id) do nothing;
-  insert into identity.context_grants(membership_id,tenant_id,scope_type,unit_id)
-    select v_membership,v_i.tenant_id,'unit',v_i.unit_id where not exists(
-      select 1 from identity.context_grants g where g.membership_id=v_membership
-        and g.scope_type='unit' and g.unit_id=v_i.unit_id and g.ends_at is null);
+  if v_i.role_code='vendor_contact' then
+    insert into maintenance.vendor_portal_memberships(tenant_id,vendor_id,membership_id,
+      status,verified_by,accepted_at) values(v_i.tenant_id,v_i.vendor_id,v_membership,
+      'active',v_i.invited_by,statement_timestamp())
+      on conflict(tenant_id,membership_id,vendor_id) do update
+        set status='active',verified_by=v_i.invited_by,accepted_at=statement_timestamp(),revoked_at=null;
+    insert into identity.context_grants(membership_id,tenant_id,scope_type,property_id)
+      select v_membership,v_i.tenant_id,'property',b.property_id
+      from portfolio.units u join portfolio.buildings b on b.id=u.building_id where u.id=v_i.unit_id
+        and not exists(select 1 from identity.context_grants g where g.membership_id=v_membership
+          and g.scope_type='property' and g.property_id=b.property_id and g.ends_at is null);
+  else
+    if exists(select 1 from identity.membership_parties where membership_id=v_membership
+      and party_id<>v_i.party_id) then raise exception 'unit_party_conflict' using errcode='23505'; end if;
+    insert into identity.membership_parties(membership_id,tenant_id,party_id)
+      values(v_membership,v_i.tenant_id,v_i.party_id)
+      on conflict(membership_id) do nothing;
+    insert into identity.context_grants(membership_id,tenant_id,scope_type,unit_id)
+      select v_membership,v_i.tenant_id,'unit',v_i.unit_id where not exists(
+        select 1 from identity.context_grants g where g.membership_id=v_membership
+          and g.scope_type='unit' and g.unit_id=v_i.unit_id and g.ends_at is null);
+  end if;
   update communications.unit_invitations set status='accepted',accepted_by=v_actor,
     accepted_at=statement_timestamp() where id=v_i.id;
   insert into audit.events(tenant_id,actor_id,action,entity_type,entity_id)
