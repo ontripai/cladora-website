@@ -61,6 +61,23 @@ returns boolean language sql stable security definer set search_path=pg_catalog 
 $$;
 revoke all on function communications.can_manage_unit_invites(uuid,uuid,uuid,uuid) from public,anon,authenticated;
 
+create function customer_api.list_managed_invite_units_v1(p_context uuid)
+returns jsonb language plpgsql stable security definer set search_path=pg_catalog as $$
+declare v_workspace uuid;
+begin
+  if auth.uid() is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2' then
+    raise exception 'unit_invitation_denied' using errcode='42501'; end if;
+  select resolved.workspace_id into v_workspace
+    from app_private.resolve_workspace_from_customer_context_v1(p_context,false) resolved;
+  if v_workspace is null then raise exception 'workspace_binding_required' using errcode='42501'; end if;
+  return jsonb_build_object('workspace_id',v_workspace,'units',coalesce((
+    select jsonb_agg(to_jsonb(q) order by q.building_name,q.unit_code)
+      from (select u.id,b.name building_name,u.code unit_code from portfolio.units u
+        join portfolio.buildings b on b.id=u.building_id
+        where communications.can_manage_unit_invites(auth.uid(),p_context,v_workspace,u.id)
+        order by b.name,u.code limit 200) q),'[]'::jsonb));
+end $$;
+
 create function communications.unit_party_relationship_valid(p_unit uuid,p_party uuid,p_role text)
 returns boolean language sql stable security definer set search_path=pg_catalog as $$
   select case when p_role='owner' then exists(select 1 from portfolio.ownerships o
@@ -246,12 +263,14 @@ begin
 end $$;
 
 revoke all on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
+ customer_api.list_managed_invite_units_v1(uuid),
  customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
  customer_api.revoke_unit_invitation_v1(uuid),
  customer_api.list_my_unit_invitations_v1(),
  customer_api.claim_unit_invitation_v1(uuid,text) from public,anon;
 grant execute on function customer_api.list_unit_invite_parties_v1(uuid,uuid,uuid),
+ customer_api.list_managed_invite_units_v1(uuid),
  customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text),
  customer_api.create_unit_invitation_v1(uuid,uuid,uuid,uuid,text,text),
  customer_api.revoke_unit_invitation_v1(uuid),
