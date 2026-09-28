@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useCustomerContext } from "./CustomerContextProvider";
+import { UnitInvitationsPanel } from './UnitInvitationsPanel';
 import type { Language } from "@/types";
 
 type Unit = { id: string; property_name: string; building_name: string; unit_code: string };
@@ -29,9 +30,12 @@ async function readArray<T>(url: string): Promise<T[]> {
 
 export function PrivateConversationsPanel({ lang }: { lang: Language }) {
   const { active } = useCustomerContext();
-  return <PrivateConversationsContent key={active?.context_id ?? "no-context"} lang={lang}
+  return <><PrivateConversationsContent key={active?.context_id ?? "no-context"} lang={lang}
     contextId={active?.context_id} membershipId={active?.membership_id}
-    canOpenVault={!['company_staff', 'vendor_contact'].includes(active?.role_code?.toLowerCase() ?? '')} />;
+    canOpenVault={!['company_staff', 'vendor_contact'].includes(active?.role_code?.toLowerCase() ?? '')} />
+    {active?.context_id && ['association_admin', 'property_manager'].includes(active.role_code?.toLowerCase() ?? '')
+      && <div className="mx-auto max-w-5xl px-4 pb-8"><UnitInvitationsPanel key={active.context_id} lang={lang} contextId={active.context_id} /></div>}
+  </>;
 }
 
 function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVault }: { lang: Language; contextId?: string; membershipId?: string; canOpenVault: boolean }) {
