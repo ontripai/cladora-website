@@ -11,9 +11,10 @@ const copy = {
   fa: { title: 'دعوت مالک یا مستأجر', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا رابطهٔ تأییدشده را ثبت کنید.', done: 'دعوت ثبت شد. دارندهٔ حساب موجود پس از ورود می‌تواند آن را بپذیرد.', failed: 'عملیات انجام نشد.', choose: 'انتخاب کنید', register: 'ثبت رابطه', owner: 'مالک', tenant: 'مستأجر', name: 'نام قانونی', evidence: 'شمارهٔ سند بررسی‌شده یا دلیل ثبت رابطه', recorded: 'رابطه ثبت شد. شخص را بررسی و دعوت را ارسال کنید.', existing: 'رابطهٔ فعال دیگری وجود دارد؛ پیش از تغییر، سوابق واحد را بررسی کنید.' },
 };
 
-export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: Language; contextId: string; workspaceId: string }) {
+export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; contextId: string }) {
   const t = copy[lang];
   const [units, setUnits] = useState<Unit[]>([]);
+  const [workspaceId, setWorkspaceId] = useState('');
   const [unitId, setUnitId] = useState('');
   const [parties, setParties] = useState<Party[]>([]);
   const [partyId, setPartyId] = useState('');
@@ -28,15 +29,15 @@ export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: L
 
   useEffect(() => {
     let cancelled = false;
-    void fetch(`/api/customer/v1/private-conversations/recipients?context_id=${encodeURIComponent(contextId)}`, { cache: 'no-store' })
-      .then(async r => { if (!r.ok) throw new Error(); return r.json() as Promise<Unit[]>; })
-      .then(items => { if (!cancelled) { setUnits(items); setUnitId(items[0]?.id ?? ''); } })
+    void fetch(`/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}`, { cache: 'no-store' })
+      .then(async r => { if (!r.ok) throw new Error(); return r.json() as Promise<{workspace_id: string; units: Unit[]}>; })
+      .then(result => { if (!cancelled) { setWorkspaceId(result.workspace_id); setUnits(result.units); setUnitId(result.units[0]?.id ?? ''); } })
       .catch(() => { if (!cancelled) setStatus(t.failed); });
     return () => { cancelled = true; };
   }, [contextId, t.failed]);
   useEffect(() => {
     let cancelled = false;
-    if (!unitId) return;
+    if (!unitId || !workspaceId) return;
     void fetch(`/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}&unit_id=${encodeURIComponent(unitId)}`, { cache: 'no-store' })
       .then(async r => { if (!r.ok) throw new Error(); return r.json() as Promise<Party[]>; })
       .then(items => { if (!cancelled) { setParties(items); setPartyId(current => items.some(item => item.party_id === current) ? current : ''); setLoaded(true); } })
@@ -46,7 +47,7 @@ export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: L
 
   async function register(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!unitId) return;
+    if (!unitId || !workspaceId) return;
     setBusy(true); setStatus('');
     try {
       const response = await fetch('/api/customer/v1/unit-invitations/relationships', {
@@ -84,14 +85,14 @@ export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: L
       <label>{t.party}<select required value={partyId} onChange={event => setPartyId(event.target.value)} className="block w-full rounded border p-2"><option value="">{t.choose}</option>{parties.map(party => <option value={party.party_id} key={`${party.role_code}-${party.party_id}`}>{party.legal_name} · {party.role_code}</option>)}</select></label>
       {loaded && parties.length === 0 && <p role="status" className="sm:col-span-2 rounded bg-amber-50 p-2 text-amber-900">{t.empty}</p>}
       <label>{t.email}<input required type="email" maxLength={320} value={email} onChange={event => setEmail(event.target.value)} className="block w-full rounded border p-2" /></label>
-      <button disabled={busy || !unitId || !partyId} className="self-end rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{t.send}</button>
+      <button disabled={busy || !unitId || !workspaceId || !partyId} className="self-end rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{t.send}</button>
     </form>
     <form onSubmit={event => void register(event)} className="mt-6 grid gap-3 border-t pt-4 sm:grid-cols-2">
       <h3 className="sm:col-span-2 font-semibold">{t.register}</h3>
       <label>{t.party}<select value={role} onChange={event => setRole(event.target.value as typeof role)} className="block w-full rounded border p-2"><option value="owner">{t.owner}</option><option value="tenant_resident">{t.tenant}</option></select></label>
       <label>{t.name}<input required minLength={2} maxLength={120} value={name} onChange={event => setName(event.target.value)} className="block w-full rounded border p-2" /></label>
       <label className="sm:col-span-2">{t.evidence}<textarea required minLength={15} maxLength={500} value={evidence} onChange={event => setEvidence(event.target.value)} className="block w-full rounded border p-2" /></label>
-      <button disabled={busy || !unitId} className="self-end rounded border border-blue-700 px-4 py-2 text-blue-800 disabled:opacity-50">{t.register}</button>
+      <button disabled={busy || !unitId || !workspaceId} className="self-end rounded border border-blue-700 px-4 py-2 text-blue-800 disabled:opacity-50">{t.register}</button>
     </form>
   </section>;
 }
