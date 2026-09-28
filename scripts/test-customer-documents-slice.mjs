@@ -74,6 +74,14 @@ for (const route of DOC_ROUTES) {
 }
 console.log("  ✓ All 10 Route Handlers conform strictly to customer_api gateway and security standards.");
 
+// Uploads must use the tenant-scoped object path issued by the vault intent.
+const uploadRoute = fs.readFileSync(path.join(root, "src/app/api/customer/v1/documents/upload/route.ts"), "utf8");
+const dashboard = fs.readFileSync(path.join(root, "src/components/customer/CustomerDocumentsDashboard.tsx"), "utf8");
+assert.match(dashboard, /formData\.append\("object_path", intentData\.object_path\)/);
+assert.match(uploadRoute, /!objectPath \|\| bucketId !== "document-vault"/);
+assert.doesNotMatch(uploadRoute, /claims\.claims\.sub\}\/\$\{intentId\}/);
+console.log("  ✓ Vault upload uses the exact authorized intent path end to end.");
+
 // =============================================================================
 // Suite 2: Real Server-Side SHA-256 & Bounded Stream Checksum Verification
 // =============================================================================
