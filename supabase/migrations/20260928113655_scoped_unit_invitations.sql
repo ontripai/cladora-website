@@ -131,8 +131,8 @@ begin
   select tenant_id into v_tenant from portfolio.units where id=p_unit for update;
   if p_role='owner' then
     if exists(select 1 from portfolio.ownerships o where o.unit_id=p_unit
-      and o.tenant_id=v_tenant and o.valid_from<=current_date
-      and (o.valid_to is null or o.valid_to>current_date)) then
+      and o.tenant_id=v_tenant and o.valid_from<coalesce(p_ends_on,'infinity'::date)
+      and coalesce(o.valid_to,'infinity'::date)>p_starts_on) then
       raise exception 'existing_ownership_requires_review' using errcode='23505'; end if;
   else
     select o.party_id into v_landlord from portfolio.ownerships o
@@ -140,8 +140,9 @@ begin
         and (o.valid_to is null or o.valid_to>current_date)
       order by o.id limit 1;
     if v_landlord is null or exists(select 1 from occupancy.leases l where l.unit_id=p_unit
-      and l.tenant_id=v_tenant and l.status='active' and l.starts_on<=current_date
-      and (l.ends_on is null or l.ends_on>current_date)) then
+      and l.tenant_id=v_tenant and l.status='active'
+      and l.starts_on<coalesce(p_ends_on,'infinity'::date)
+      and coalesce(l.ends_on,'infinity'::date)>p_starts_on) then
       raise exception 'existing_lease_requires_review' using errcode='23505'; end if;
   end if;
   insert into portfolio.parties(tenant_id,type,legal_name)
