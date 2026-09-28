@@ -5,10 +5,11 @@ import type { Language } from '@/types';
 
 type Unit = { id: string; building_name: string; unit_code: string };
 type Party = { party_id: string; legal_name: string; role_code: 'owner' | 'tenant_resident' | 'vendor_contact' };
+type Pending = { id: string; email: string; role: string; expires_at: string };
 const copy = {
-  ro: { title: 'Invitați proprietarul, chiriașul sau contractantul', unit: 'Unitate', party: 'Persoană și rol', email: 'Email', send: 'Trimite invitația', empty: 'Înregistrați proprietatea ori chiria verificată sau un contract activ cu prestatorul.', done: 'Invitația a fost înregistrată. Persoanele cu cont existent o pot accepta după autentificare.', failed: 'Operațiunea nu a putut fi finalizată.', choose: 'Selectați', register: 'Înregistrați relația', owner: 'Proprietar', tenant: 'Chiriaș', vendor: 'Prestator contractual', name: 'Nume legal', evidence: 'Referință document / justificare verificată', recorded: 'Relația a fost înregistrată. Verificați persoana și trimiteți invitația.', existing: 'O relație activă există deja; verificați registrul înainte de modificare.' },
-  en: { title: 'Invite owner, tenant or contractor', unit: 'Unit', party: 'Person and role', email: 'Email', send: 'Send invitation', empty: 'Register verified ownership or tenancy, or an active vendor contract first.', done: 'Invitation recorded. Existing account holders can accept it after signing in.', failed: 'The operation could not be completed.', choose: 'Select', register: 'Register relationship', owner: 'Owner', tenant: 'Tenant', vendor: 'Contracted vendor', name: 'Legal name', evidence: 'Verified document reference / justification', recorded: 'Relationship recorded. Check the person and send the invitation.', existing: 'An active relationship already exists; review the registry before changing it.' },
-  fa: { title: 'دعوت مالک، مستأجر یا پیمانکار', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا مالکیت، اجاره یا قرارداد فعال پیمانکار را ثبت کنید.', done: 'دعوت ثبت شد. دارندهٔ حساب موجود پس از ورود می‌تواند آن را بپذیرد.', failed: 'عملیات انجام نشد.', choose: 'انتخاب کنید', register: 'ثبت رابطه', owner: 'مالک', tenant: 'مستأجر', vendor: 'پیمانکار دارای قرارداد', name: 'نام قانونی', evidence: 'شمارهٔ سند بررسی‌شده یا دلیل ثبت رابطه', recorded: 'رابطه ثبت شد. شخص را بررسی و دعوت را ارسال کنید.', existing: 'رابطهٔ فعال دیگری وجود دارد؛ پیش از تغییر، سوابق واحد را بررسی کنید.' },
+  ro: { title: 'Invitați proprietarul, chiriașul sau contractantul', unit: 'Unitate', party: 'Persoană și rol', email: 'Email', send: 'Trimite invitația', empty: 'Înregistrați proprietatea ori chiria verificată sau un contract activ cu prestatorul.', done: 'Invitația a fost înregistrată. Veți primi un email; invitația se acceptă după autentificare.', failed: 'Operațiunea nu a putut fi finalizată.', choose: 'Selectați', register: 'Înregistrați relația', owner: 'Proprietar', tenant: 'Chiriaș', vendor: 'Prestator contractual', name: 'Nume legal', evidence: 'Referință document / justificare verificată', recorded: 'Relația a fost înregistrată. Verificați persoana și trimiteți invitația.', existing: 'O relație activă există deja; verificați registrul înainte de modificare.', pending: 'Invitații în așteptare', revoke: 'Revocă' },
+  en: { title: 'Invite owner, tenant or contractor', unit: 'Unit', party: 'Person and role', email: 'Email', send: 'Send invitation', empty: 'Register verified ownership or tenancy, or an active vendor contract first.', done: 'Invitation recorded. An email has been sent; accept the invitation after signing in.', failed: 'The operation could not be completed.', choose: 'Select', register: 'Register relationship', owner: 'Owner', tenant: 'Tenant', vendor: 'Contracted vendor', name: 'Legal name', evidence: 'Verified document reference / justification', recorded: 'Relationship recorded. Check the person and send the invitation.', existing: 'An active relationship already exists; review the registry before changing it.', pending: 'Pending invitations', revoke: 'Revoke' },
+  fa: { title: 'دعوت مالک، مستأجر یا پیمانکار', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا مالکیت، اجاره یا قرارداد فعال پیمانکار را ثبت کنید.', done: 'دعوت ثبت شد. ایمیل دعوت ارسال شد؛ پس از ورود می‌توان آن را پذیرفت.', failed: 'عملیات انجام نشد.', choose: 'انتخاب کنید', register: 'ثبت رابطه', owner: 'مالک', tenant: 'مستأجر', vendor: 'پیمانکار دارای قرارداد', name: 'نام قانونی', evidence: 'شمارهٔ سند بررسی‌شده یا دلیل ثبت رابطه', recorded: 'رابطه ثبت شد. شخص را بررسی و دعوت را ارسال کنید.', existing: 'رابطهٔ فعال دیگری وجود دارد؛ پیش از تغییر، سوابق واحد را بررسی کنید.', pending: 'دعوت‌های در انتظار', revoke: 'لغو دعوت' },
 };
 
 export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; contextId: string }) {
@@ -17,6 +18,7 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
   const [workspaceId, setWorkspaceId] = useState('');
   const [unitId, setUnitId] = useState('');
   const [parties, setParties] = useState<Party[]>([]);
+  const [pending, setPending] = useState<Pending[]>([]);
   const [partyId, setPartyId] = useState('');
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,9 +40,10 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
   useEffect(() => {
     let cancelled = false;
     if (!unitId || !workspaceId) return;
-    void fetch(`/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}&unit_id=${encodeURIComponent(unitId)}`, { cache: 'no-store' })
-      .then(async r => { if (!r.ok) throw new Error(); return r.json() as Promise<Party[]>; })
-      .then(items => { if (!cancelled) { setParties(items); setPartyId(current => items.some(item => item.party_id === current) ? current : ''); setLoaded(true); } })
+    const base = `/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}&unit_id=${encodeURIComponent(unitId)}`;
+    void Promise.all([fetch(base, { cache: 'no-store' }), fetch(`${base}&pending=1`, { cache: 'no-store' })])
+      .then(async ([a, b]) => { if (!a.ok || !b.ok) throw new Error(); return Promise.all([a.json() as Promise<Party[]>, b.json() as Promise<Pending[]>]); })
+      .then(([items, invites]) => { if (!cancelled) { setParties(items); setPending(invites); setPartyId(current => items.some(item => item.party_id === current) ? current : ''); setLoaded(true); } })
       .catch(() => { if (!cancelled) setStatus(t.failed); });
     return () => { cancelled = true; };
   }, [contextId, workspaceId, unitId, revision, t.failed]);
@@ -73,7 +76,19 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
         body: JSON.stringify({ context_id: contextId, workspace_id: workspaceId, unit_id: unitId, party_id: partyId, role: chosen.role_code, email, lang }),
       });
       if (!response.ok) throw new Error();
-      setEmail(''); setStatus(t.done);
+      setEmail(''); setStatus(t.done); setRevision(value => value + 1);
+    } catch { setStatus(t.failed); } finally { setBusy(false); }
+  }
+
+  async function revoke(id: string) {
+    setBusy(true); setStatus('');
+    try {
+      const response = await fetch('/api/customer/v1/unit-invitations', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ invitation_id: id }),
+      });
+      if (!response.ok) throw new Error();
+      setPending(items => items.filter(item => item.id !== id));
     } catch { setStatus(t.failed); } finally { setBusy(false); }
   }
 
@@ -94,5 +109,10 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
       <label className="sm:col-span-2">{t.evidence}<textarea required minLength={15} maxLength={500} value={evidence} onChange={event => setEvidence(event.target.value)} className="block w-full rounded border p-2" /></label>
       <button disabled={busy || !unitId || !workspaceId} className="self-end rounded border border-blue-700 px-4 py-2 text-blue-800 disabled:opacity-50">{t.register}</button>
     </form>
+    {pending.length > 0 && <div className="mt-6 border-t pt-4"><h3 className="font-semibold">{t.pending}</h3>
+      <ul className="mt-2 space-y-2">{pending.map(invite => <li key={invite.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-2">
+        <span>{invite.email} · {invite.role}</span>
+        <button type="button" disabled={busy} onClick={() => void revoke(invite.id)} className="rounded border border-red-700 px-3 py-1 text-red-700 disabled:opacity-50">{t.revoke}</button>
+      </li>)}</ul></div>}
   </section>;
 }
