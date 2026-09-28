@@ -1753,6 +1753,80 @@ export type Database = {
         };
         Returns: Json;
       };
+      create_private_conversation_v1: {
+        Args: { p_context_id: string; p_unit_id: string; p_recipient_membership_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      send_private_message_v1: {
+        Args: { p_context_id: string; p_conversation_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      get_private_conversations_v1: {
+        Args: { p_context_id: string; p_conversation_id?: string | null };
+        Returns: Json;
+      };
+      list_private_units_v1: {
+        Args: { p_context_id: string; p_query?: string | null; p_limit?: number; p_offset?: number };
+        Returns: Json;
+      };
+      list_private_recipients_v1: {
+        Args: { p_context_id: string; p_unit_id: string };
+        Returns: Json;
+      };
+      attach_private_document_v1: {
+        Args: { p_context_id: string; p_conversation_id: string; p_message_id: string; p_document_id: string; p_version_id: string };
+        Returns: Json;
+      };
+      list_private_attachments_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      list_attachable_private_documents_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      authorize_private_attachment_download_v1: {
+        Args: { p_context_id: string; p_attachment_id: string };
+        Returns: Json;
+      };
+      mark_private_conversation_read_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      get_private_unread_v1: {
+        Args: { p_context_id: string };
+        Returns: Json;
+      };
+      list_internal_workspaces_v1: { Args: Record<string, never>; Returns: Json };
+      list_internal_recipients_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      create_internal_conversation_v1: {
+        Args: { p_workspace_id: string; p_recipient_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      send_internal_message_v1: {
+        Args: { p_thread_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      get_internal_conversations_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      mark_internal_read_v1: { Args: { p_thread_id: string }; Returns: Json };
+      my_internal_identity_v1: { Args: Record<string, never>; Returns: Json };
+      attach_internal_document_v1: {
+        Args: { p_thread_id: string; p_message_id: string; p_document_id: string; p_version_id: string };
+        Returns: Json;
+      };
+      list_internal_attachments_v1: { Args: { p_thread_id: string }; Returns: Json };
+      list_internal_attachable_documents_v1: { Args: { p_thread_id: string }; Returns: Json };
+      authorize_internal_attachment_download_v1: { Args: { p_attachment_id: string }; Returns: Json };
+      begin_internal_private_upload_v1: {
+        Args: { p_thread_id: string; p_message_id: string; p_filename: string; p_mime: string; p_size_bytes: number };
+        Returns: Json;
+      };
+      finish_internal_private_upload_v1: {
+        Args: { p_intent_id: string; p_path: string; p_sha256: string; p_size_bytes: number; p_mime: string };
+        Returns: Json;
+      };
+      list_internal_private_documents_v1: { Args: { p_thread_id: string }; Returns: Json };
+      authorize_internal_private_download_v1: { Args: { p_document_id: string }; Returns: Json };
       get_documents_v1: {
         Args: {
           p_context_id: string;

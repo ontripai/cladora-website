@@ -51,6 +51,12 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_FINANCE', 'PLATFORM_AUDITOR'] as PlatformRole[],
     },
     {
+      href: `/${lang}/platform/internal-messages`,
+      label: lang === 'fa' ? 'پیام‌های داخلی' : lang === 'ro' ? 'Mesaje interne' : 'Internal messages',
+      icon: Inbox,
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_SUPPORT'] as PlatformRole[],
+    },
+    {
       href: `/${lang}/platform/contracts`,
       label: lang === 'ro' ? 'Contracte & Facturare' : lang === 'fa' ? 'قراردادها و صدور صورت‌حساب' : 'Contracts & Billing',
       icon: FileCheck2,
