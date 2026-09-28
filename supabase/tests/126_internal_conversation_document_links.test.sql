@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(8);
+select plan(12);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12600000-0000-4000-8000-000000000001','internal-owner-126@cladora.test',statement_timestamp()),
@@ -40,18 +40,30 @@ insert into documents.document_versions(id,tenant_id,document_id,version,object_
 
 select ok(not has_table_privilege('authenticated','platform.internal_message_documents','SELECT'),
  'Internal attachment rows have no direct customer read');
+select ok(not has_table_privilege('authenticated','platform.internal_private_documents','SELECT'),
+ 'Private internal vault rows have no direct customer read');
 set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000001','role','authenticated','aal','aal1')::text,true);
 select throws_ok($$select customer_api.attach_internal_document_v1('12600000-0000-4000-8000-000000000021',
  '12600000-0000-4000-8000-000000000023','12600000-0000-4000-8000-000000000031','12600000-0000-4000-8000-000000000032')$$,
  '42501','internal_document_denied','AAL1 cannot attach');
+select throws_ok($$select customer_api.begin_internal_private_upload_v1('12600000-0000-4000-8000-000000000021',
+ '12600000-0000-4000-8000-000000000023','private.pdf','application/pdf',5)$$,
+ '42501','internal_document_denied','AAL1 cannot create private upload intent');
 select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000001','role','authenticated','aal','aal2')::text,true);
+select set_config('test.private_internal_id',customer_api.begin_internal_private_upload_v1(
+ '12600000-0000-4000-8000-000000000021','12600000-0000-4000-8000-000000000023',
+ 'private.pdf','application/pdf',5)->>'intent_id',true);
+select is(jsonb_array_length(customer_api.list_internal_private_documents_v1('12600000-0000-4000-8000-000000000021')),1,
+ 'Only uploader can see an unscanned private document');
 select is(jsonb_array_length(customer_api.list_internal_attachable_documents_v1('12600000-0000-4000-8000-000000000021')),1,
  'Sender discovers own clean document');
 select is((customer_api.attach_internal_document_v1('12600000-0000-4000-8000-000000000021',
  '12600000-0000-4000-8000-000000000023','12600000-0000-4000-8000-000000000031','12600000-0000-4000-8000-000000000032')->>'replayed')::boolean,false,
  'Sender attaches scanned document');
 select set_config('request.jwt.claims',jsonb_build_object('sub','12600000-0000-4000-8000-000000000002','role','authenticated','aal','aal2')::text,true);
+select throws_ok($$select customer_api.authorize_internal_private_download_v1(current_setting('test.private_internal_id')::uuid)$$,
+ '42501','internal_document_denied','Recipient cannot download unscanned private document');
 select is(jsonb_array_length(customer_api.list_internal_attachments_v1('12600000-0000-4000-8000-000000000021')),1,
  'Recipient sees shared document');
 select set_config('test.internal_attachment',(customer_api.list_internal_attachments_v1('12600000-0000-4000-8000-000000000021')->0->>'id'),true);
