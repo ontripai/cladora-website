@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(12);
+select plan(13);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12700000-0000-4000-8000-000000000001','manager127@cladora.test',statement_timestamp()),
@@ -56,6 +56,10 @@ select is(jsonb_array_length(customer_api.list_unit_invite_parties_v1('12700000-
 select set_config('test.invite127',customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010','12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000008','owner','owner127@cladora.test')->>'id',true);
 select ok(current_setting('test.invite127')::uuid is not null,'Manager creates a scoped invite');
+select throws_ok($$select customer_api.create_unit_invitation_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000009','owner','owner127@cladora.test')$$,
+ '42501','unit_relationship_required','Unverified relationship cannot replace existing invitation');
 reset role;
 select is((select workspace_id::text from communications.unit_invitations where id=current_setting('test.invite127')::uuid),
  '12700000-0000-4000-8000-000000000010','Invitation retains selected workspace');
