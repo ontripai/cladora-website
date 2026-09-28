@@ -7,7 +7,8 @@ import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-bo
 const headers = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
 const schema = z.object({ context_id: z.uuid(), workspace_id: z.uuid(), unit_id: z.uuid(),
   role: z.enum(['owner', 'tenant_resident']), name: z.string().trim().min(2).max(120),
-  evidence: z.string().trim().min(15).max(500) }).strict();
+  evidence: z.string().trim().min(15).max(500),
+  starts_on: z.iso.date(), ends_on: z.iso.date().nullable() }).strict();
 
 export async function POST(request: NextRequest) {
   if (!hasTrustedMutationOrigin(request)) return NextResponse.json({ error: 'BAD_ORIGIN' }, { status: 403, headers });
@@ -24,6 +25,7 @@ export async function POST(request: NextRequest) {
     p_context: input.data.context_id, p_workspace: input.data.workspace_id,
     p_unit: input.data.unit_id, p_role: input.data.role,
     p_name: input.data.name, p_evidence: input.data.evidence,
+    p_starts_on: input.data.starts_on, p_ends_on: input.data.ends_on,
   } as never);
   if (error) return NextResponse.json({ error: error.code === '23505' ? 'RELATIONSHIP_REVIEW_REQUIRED' : 'ACCESS_DENIED' },
     { status: error.code === '23505' ? 409 : 403, headers });
