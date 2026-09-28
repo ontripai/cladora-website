@@ -7,6 +7,7 @@ import {
   type ClaimableWorkspaceInvitation,
 } from '@/components/auth/WorkspaceInvitationContinuation';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
+import { UnitInvitationContinuation, type ClaimableUnitInvitation } from '@/components/auth/UnitInvitationContinuation';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import type { Language } from '@/types';
@@ -63,6 +64,7 @@ export default async function InvitationContinuationPage(props: {
 }) {
   const { lang } = await props.params;
   let invitations: ClaimableWorkspaceInvitation[] = [];
+  let unitInvitations: ClaimableUnitInvitation[] = [];
 
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
@@ -74,7 +76,12 @@ export default async function InvitationContinuationPage(props: {
       if (!error && Array.isArray(data)) {
         invitations = data as unknown as ClaimableWorkspaceInvitation[];
       }
-      if (invitations.length === 0) {
+      const { data: unitData, error: unitError } = await supabase.schema('customer_api')
+        .rpc('list_my_unit_invitations_v1' as never);
+      if (!unitError && Array.isArray(unitData)) {
+        unitInvitations = unitData as ClaimableUnitInvitation[];
+      }
+      if (invitations.length === 0 && unitInvitations.length === 0) {
         const { data: reviewer, error: reviewerError } = await supabase
           .schema('customer_api')
           .rpc('my_pilot_setup_reviewer_v1');
@@ -91,6 +98,8 @@ export default async function InvitationContinuationPage(props: {
       <div className="w-full max-w-lg">
         {invitations.length ? (
           <WorkspaceInvitationContinuation lang={lang} invitations={invitations} />
+        ) : unitInvitations.length ? (
+          <UnitInvitationContinuation lang={lang} invitations={unitInvitations} />
         ) : (
           <Unavailable lang={lang} />
         )}
