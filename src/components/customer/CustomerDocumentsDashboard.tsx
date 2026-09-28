@@ -318,12 +318,14 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
 
       const intentData = await intentRes.json();
       const intentId = intentData.intent_id;
+      if (!intentId || !intentData.object_path) throw new Error("Missing upload intent path");
 
       // Step 2 & 3: Bounded streaming upload & finalize
       setUploadStep(t.streamStep);
       const formData = new FormData();
       formData.append("context_id", active.context_id);
       formData.append("intent_id", intentId);
+      formData.append("object_path", intentData.object_path);
       formData.append("title", uploadTitle || uploadFile.name);
       formData.append("document_type", uploadType);
       formData.append("classification", uploadClassification);
