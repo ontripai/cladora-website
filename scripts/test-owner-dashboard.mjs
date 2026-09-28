@@ -27,12 +27,19 @@ assert.ok(csvCell(' =HYPERLINK("bad")').startsWith('"\''));assert.ok(annualCsv([
 const redirect=path=>{throw Object.assign(Error('redirect'),{path});};
 function links(node){if(!node||typeof node!=='object')return [];return [...(node.props?.href?[node.props.href]:[]),...React.Children.toArray(node.props?.children).flatMap(links)];}
 for(const lang of ['ro','en','fa'])for(const platform of [false,true])for(const owner of [false,true])for(const building of [false,true]){
- const db={auth:{getClaims:async()=>({data:{claims:{sub:'a'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'}})}},schema:()=>({rpc:async name=>({data:name==='has_platform_access_v1'?platform:name==='my_multi_unit_owner_access_v1'?owner:building?[{id:'b'}]:[],error:null})})};
+ const db={auth:{getClaims:async()=>({data:{claims:{sub:'a'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'}})}},schema:()=>({rpc:async name=>({data:name==='has_platform_access_v1'?platform:name==='my_multi_unit_owner_access_v1'?owner:name==='list_my_unit_invitations_v1'?[]:building?[{id:'b'}]:[],error:null})})};
  const Page=load('src/app/[lang]/account/page.tsx',{'next/link':()=>null,'next/navigation':{redirect},'@/lib/supabase/server':{createClient:async()=>db},'@/types':{isSupportedLocale:l=>['ro','en','fa'].includes(l)},'@/components/auth/SignOutButton':{SignOutButton:()=>null}}).default;
  const props={params:Promise.resolve({lang}),searchParams:Promise.resolve({choose:'1'})};
  const hrefs=links(await Page(props));
  assert.equal(hrefs.includes(`/${lang}/owner-portfolio`),owner);assert.equal(hrefs.includes(`/${lang}/platform/overview`),platform);assert.equal(hrefs.includes(`/${lang}/app/dashboard`),building);
  if(Number(platform)+Number(owner)+Number(building)===1)await assert.rejects(()=>Page({...props,searchParams:Promise.resolve({})}),e=>e.path===`/${lang}/${owner?'owner-portfolio':platform?'platform/overview':'app/dashboard'}`);
+}
+// A pending unit invitation must not replace an existing platform, owner or building role.
+for(const lang of ['ro','en','fa']){
+ const db={auth:{getClaims:async()=>({data:{claims:{sub:'a'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'}})}},schema:()=>({rpc:async name=>({data:name==='list_my_unit_invitations_v1'?[{id:'invite'}]:name==='has_platform_access_v1'?true:name==='my_multi_unit_owner_access_v1'?true:[{id:'building'}],error:null})})};
+ const Page=load('src/app/[lang]/account/page.tsx',{'next/link':()=>null,'next/navigation':{redirect},'@/lib/supabase/server':{createClient:async()=>db},'@/types':{isSupportedLocale:l=>['ro','en','fa'].includes(l)},'@/components/auth/SignOutButton':{SignOutButton:()=>null}}).default;
+ const hrefs=links(await Page({params:Promise.resolve({lang}),searchParams:Promise.resolve({})}));
+ for(const path of ['invitation-continuation','owner-portfolio','platform/overview','app/dashboard'])assert.ok(hrefs.includes(`/${lang}/${path}`));
 }
 // Exercise the actual overview route with paged RLS-session reads and fail-closed access.
 for(const access of [true,false,'error']){

@@ -30,5 +30,6 @@ export function UnitInvitationContinuation({ lang, invitations }: { lang: Langua
     </button>)}
     {result && <p role="status">{result}</p>}
     {claimed.length > 0 && <Link href={`/${lang}/app/communications/private`} className="inline-block rounded bg-blue-700 px-4 py-2 text-white">{t.open}</Link>}
+    <Link href={`/${lang}/account?choose=1`} className="block text-teal-800 underline">{lang === 'fa' ? 'بازگشت به نقش‌ها و محیط‌های فعلی' : lang === 'ro' ? 'Înapoi la rolurile și spațiile existente' : 'Back to existing roles and workspaces'}</Link>
   </section>;
 }
