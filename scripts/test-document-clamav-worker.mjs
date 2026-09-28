@@ -65,6 +65,41 @@ assert.equal('p_version_id' in queue.calls.at(-1).params, false);
 const idle = fixture();
 idle.client.rpc = async () => ({ data: null, error: null });
 assert.deepEqual(await scanNextDocument({ ...idle, workerId: 'worker-001' }), { outcome: 'idle' });
+const internal = fixture();
+const internalRpc = internal.client.rpc;
+internal.client.rpc = async (name, params) => {
+  if (name === 'claim_document_scan_job_v1') return { data: null, error: null };
+  if (name === 'claim_internal_private_scan_job_v1') return { data: { job_id: queueId,
+    lease_token: leaseToken, document_id: versionId, attempt_count: 1 }, error: null };
+  if (name === 'get_internal_private_scan_target_v1') return { data: { document_id: versionId,
+    bucket_id: 'internal-message-vault', object_path: 'synthetic/internal.bin',
+    size_bytes: bytes.length, sha256 }, error: null };
+  return internalRpc(name, params);
+};
+internal.client.storage.from = bucket => {
+  assert.equal(bucket, 'internal-message-vault');
+  return { download: async () => ({ data: new Blob([bytes]), error: null }) };
+};
+assert.deepEqual(await scanNextDocument({ ...internal, workerId: 'worker-001' }),
+  { outcome: 'completed', documentId: versionId, verdict: 'clean' });
+assert.equal(internal.calls.at(-1).name, 'complete_internal_private_scan_job_v1');
+const internalMismatch = fixture();
+internalMismatch.client.rpc = async (name, params) => {
+  if (name === 'claim_document_scan_job_v1') return { data: null, error: null };
+  if (name === 'claim_internal_private_scan_job_v1') return { data: { job_id: queueId,
+    lease_token: leaseToken, document_id: versionId, attempt_count: 1 }, error: null };
+  if (name === 'get_internal_private_scan_target_v1') return { data: { document_id: versionId,
+    bucket_id: 'internal-message-vault', object_path: 'synthetic/internal.bin',
+    size_bytes: bytes.length, sha256: 'b'.repeat(64) }, error: null };
+  if (name === 'fail_internal_private_scan_job_v1') return { data: { state: 'retry' }, error: null };
+  return { data: null, error: { code: 'UNEXPECTED_RPC' } };
+};
+internalMismatch.client.storage.from = bucket => {
+  assert.equal(bucket, 'internal-message-vault');
+  return { download: async () => ({ data: new Blob([bytes]), error: null }) };
+};
+assert.deepEqual(await scanNextDocument({ ...internalMismatch, workerId: 'worker-001' }),
+  { outcome: 'retry', documentId: versionId, errorCode: 'STORAGE_CONTENT_MISMATCH' });
 const failed = fixture({ signatureCode: 2 });
 const failedRpc = failed.client.rpc;
 failed.client.rpc = async (name, params) => {
@@ -76,7 +111,8 @@ assert.deepEqual(await scanNextDocument({ ...failed, workerId: 'worker-001' }), 
   outcome: 'retry', versionId, errorCode: 'SIGNATURE_UPDATE_FAILED',
 });
 assert.equal(failed.calls.at(-1).params.p_retry_after_seconds, 120);
-const queueStatus = result => ({ rpc: async () => ({ data: result, error: null }) });
+const queueStatus = result => ({ rpc: async name => ({ data: name === 'get_internal_private_scan_queue_status_v1'
+  ? { pending: 0, retry: 0, dead_letter: 0, oldest_pending_at: null } : result, error: null }) });
 assert.deepEqual(await checkDocumentScanQueue({ client: queueStatus({ pending: 1, retry: 0, dead_letter: 0,
   oldest_pending_at: '2026-09-27T18:00:00Z' }), now: Date.parse('2026-09-27T18:15:00Z') }),
 { pending: 1, deadLetter: 0, healthy: true });
@@ -84,4 +120,8 @@ await assert.rejects(checkDocumentScanQueue({ client: queueStatus({ pending: 1, 
   oldest_pending_at: '2026-09-27T18:00:00Z' }), now: Date.parse('2026-09-27T19:00:00Z') }), /SCAN_QUEUE_UNHEALTHY/);
 await assert.rejects(checkDocumentScanQueue({ client: queueStatus({ pending: 0, retry: 0, dead_letter: 1,
   oldest_pending_at: '2026-09-27T18:00:00Z' }) }), /SCAN_QUEUE_UNHEALTHY/);
+const internalDead = { rpc: async name => ({ data: name === 'get_internal_private_scan_queue_status_v1'
+  ? { pending: 0, retry: 0, dead_letter: 1, oldest_pending_at: '2026-09-27T18:00:00Z' }
+  : { pending: 0, retry: 0, dead_letter: 0, oldest_pending_at: null }, error: null }) };
+await assert.rejects(checkDocumentScanQueue({ client: internalDead }), /INTERNAL_SCAN_QUEUE_UNHEALTHY/);
 console.log('Vault ClamAV worker: clean, quarantine and fail-closed paths passed');
