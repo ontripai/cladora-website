@@ -6,9 +6,9 @@ import type { Language } from '@/types';
 type Unit = { id: string; building_name: string; unit_code: string };
 type Party = { party_id: string; legal_name: string; role_code: 'owner' | 'tenant_resident' };
 const copy = {
-  ro: { title: 'Invitați proprietarul sau chiriașul', unit: 'Unitate', party: 'Persoană și rol', email: 'Email', send: 'Trimite invitația', empty: 'Înregistrați mai întâi proprietatea sau contractul de închiriere activ pentru această unitate.', done: 'Invitația a fost înregistrată. Dacă persoana are deja cont, poate deschide pagina de continuare a invitației după autentificare.', failed: 'Invitația nu a putut fi trimisă.', choose: 'Selectați' },
-  en: { title: 'Invite owner or tenant', unit: 'Unit', party: 'Person and role', email: 'Email', send: 'Send invitation', empty: 'Record the active ownership or lease for this unit first.', done: 'Invitation recorded. If the recipient already has an account, they can open the invitation continuation page after signing in.', failed: 'The invitation could not be sent.', choose: 'Select' },
-  fa: { title: 'دعوت مالک یا مستأجر', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا مالکیت یا قرارداد اجارهٔ فعال این واحد را ثبت کنید.', done: 'دعوت ثبت شد. اگر شخص از قبل حساب دارد، پس از ورود می‌تواند صفحهٔ ادامهٔ دعوت را باز کند.', failed: 'ارسال دعوت انجام نشد.', choose: 'انتخاب کنید' },
+  ro: { title: 'Invitați proprietarul sau chiriașul', unit: 'Unitate', party: 'Persoană și rol', email: 'Email', send: 'Trimite invitația', empty: 'Înregistrați relația verificată înainte de invitație.', done: 'Invitația a fost înregistrată. Persoanele cu cont existent o pot accepta după autentificare.', failed: 'Operațiunea nu a putut fi finalizată.', choose: 'Selectați', register: 'Înregistrați relația', owner: 'Proprietar', tenant: 'Chiriaș', name: 'Nume legal', evidence: 'Referință document / justificare verificată', recorded: 'Relația a fost înregistrată. Verificați persoana și trimiteți invitația.', existing: 'O relație activă există deja; verificați registrul înainte de modificare.' },
+  en: { title: 'Invite owner or tenant', unit: 'Unit', party: 'Person and role', email: 'Email', send: 'Send invitation', empty: 'Register the verified relationship before inviting.', done: 'Invitation recorded. Existing account holders can accept it after signing in.', failed: 'The operation could not be completed.', choose: 'Select', register: 'Register relationship', owner: 'Owner', tenant: 'Tenant', name: 'Legal name', evidence: 'Verified document reference / justification', recorded: 'Relationship recorded. Check the person and send the invitation.', existing: 'An active relationship already exists; review the registry before changing it.' },
+  fa: { title: 'دعوت مالک یا مستأجر', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا رابطهٔ تأییدشده را ثبت کنید.', done: 'دعوت ثبت شد. دارندهٔ حساب موجود پس از ورود می‌تواند آن را بپذیرد.', failed: 'عملیات انجام نشد.', choose: 'انتخاب کنید', register: 'ثبت رابطه', owner: 'مالک', tenant: 'مستأجر', name: 'نام قانونی', evidence: 'شمارهٔ سند بررسی‌شده یا دلیل ثبت رابطه', recorded: 'رابطه ثبت شد. شخص را بررسی و دعوت را ارسال کنید.', existing: 'رابطهٔ فعال دیگری وجود دارد؛ پیش از تغییر، سوابق واحد را بررسی کنید.' },
 };
 
 export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: Language; contextId: string; workspaceId: string }) {
@@ -21,6 +21,10 @@ export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: L
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState('');
+  const [role, setRole] = useState<'owner' | 'tenant_resident'>('owner');
+  const [name, setName] = useState('');
+  const [evidence, setEvidence] = useState('');
+  const [revision, setRevision] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -35,10 +39,27 @@ export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: L
     if (!unitId) return;
     void fetch(`/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}&unit_id=${encodeURIComponent(unitId)}`, { cache: 'no-store' })
       .then(async r => { if (!r.ok) throw new Error(); return r.json() as Promise<Party[]>; })
-      .then(items => { if (!cancelled) { setParties(items); setPartyId(''); setLoaded(true); } })
+      .then(items => { if (!cancelled) { setParties(items); setPartyId(current => items.some(item => item.party_id === current) ? current : ''); setLoaded(true); } })
       .catch(() => { if (!cancelled) setStatus(t.failed); });
     return () => { cancelled = true; };
-  }, [contextId, workspaceId, unitId, t.failed]);
+  }, [contextId, workspaceId, unitId, revision, t.failed]);
+
+  async function register(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!unitId) return;
+    setBusy(true); setStatus('');
+    try {
+      const response = await fetch('/api/customer/v1/unit-invitations/relationships', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ context_id: contextId, workspace_id: workspaceId, unit_id: unitId, role, name, evidence }),
+      });
+      if (response.status === 409) { setStatus(t.existing); return; }
+      if (!response.ok) throw new Error();
+      const result = await response.json() as { party_id: string };
+      setPartyId(result.party_id); setName(''); setEvidence(''); setStatus(t.recorded);
+      setRevision(value => value + 1);
+    } catch { setStatus(t.failed); } finally { setBusy(false); }
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,6 +85,13 @@ export function UnitInvitationsPanel({ lang, contextId, workspaceId }: { lang: L
       {loaded && parties.length === 0 && <p role="status" className="sm:col-span-2 rounded bg-amber-50 p-2 text-amber-900">{t.empty}</p>}
       <label>{t.email}<input required type="email" maxLength={320} value={email} onChange={event => setEmail(event.target.value)} className="block w-full rounded border p-2" /></label>
       <button disabled={busy || !unitId || !partyId} className="self-end rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{t.send}</button>
+    </form>
+    <form onSubmit={event => void register(event)} className="mt-6 grid gap-3 border-t pt-4 sm:grid-cols-2">
+      <h3 className="sm:col-span-2 font-semibold">{t.register}</h3>
+      <label>{t.party}<select value={role} onChange={event => setRole(event.target.value as typeof role)} className="block w-full rounded border p-2"><option value="owner">{t.owner}</option><option value="tenant_resident">{t.tenant}</option></select></label>
+      <label>{t.name}<input required minLength={2} maxLength={120} value={name} onChange={event => setName(event.target.value)} className="block w-full rounded border p-2" /></label>
+      <label className="sm:col-span-2">{t.evidence}<textarea required minLength={15} maxLength={500} value={evidence} onChange={event => setEvidence(event.target.value)} className="block w-full rounded border p-2" /></label>
+      <button disabled={busy || !unitId} className="self-end rounded border border-blue-700 px-4 py-2 text-blue-800 disabled:opacity-50">{t.register}</button>
     </form>
   </section>;
 }
