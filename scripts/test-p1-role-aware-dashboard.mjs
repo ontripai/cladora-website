@@ -360,6 +360,13 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
 
   assert.equal(ALL_38_CUSTOMER_ROUTES.length, 38, 'Must evaluate exactly 38 customer routes');
 
+  // Child routes require exact role allowlisting; arbitrary subpaths stay blocked.
+  for (const role of CANONICAL_ROLES) {
+    assert.equal(isRouteAllowedForPersona(role, '/app/communications/private'), isRouteAllowedForPersona(role, '/app/communications'));
+    assert.equal(isRouteAllowedForPersona(role, '/app/communications/private/unknown'), false);
+  }
+  assert.equal(classifyCustomerRoute('/app/communications/private')?.status, 'permission protected');
+
   let evaluatedCells = 0;
   for (const role of CANONICAL_ROLES) {
     for (const route of ALL_38_CUSTOMER_ROUTES) {
