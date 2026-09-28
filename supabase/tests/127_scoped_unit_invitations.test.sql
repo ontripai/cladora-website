@@ -1,12 +1,13 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(18);
+select plan(22);
 
 insert into auth.users(id,email,email_confirmed_at) values
  ('12700000-0000-4000-8000-000000000001','manager127@cladora.test',statement_timestamp()),
  ('12700000-0000-4000-8000-000000000002','owner127@cladora.test',statement_timestamp()),
- ('12700000-0000-4000-8000-000000000003','outsider127@cladora.test',statement_timestamp());
+ ('12700000-0000-4000-8000-000000000003','outsider127@cladora.test',statement_timestamp()),
+ ('12700000-0000-4000-8000-000000000016','vendor127@cladora.test',statement_timestamp());
 insert into platform.tenants(id,legal_name,registration_number,status) values
  ('12700000-0000-4000-8000-000000000004','Invite 127','INVITE127','active');
 insert into portfolio.properties(id,tenant_id,type,name,status) values
@@ -17,9 +18,16 @@ insert into portfolio.units(id,tenant_id,building_id,code) values
  ('12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000004','12700000-0000-4000-8000-000000000006','1');
 insert into portfolio.parties(id,tenant_id,type,legal_name) values
  ('12700000-0000-4000-8000-000000000008','12700000-0000-4000-8000-000000000004','person','Owner 127'),
- ('12700000-0000-4000-8000-000000000009','12700000-0000-4000-8000-000000000004','person','No lease 127');
+ ('12700000-0000-4000-8000-000000000009','12700000-0000-4000-8000-000000000004','person','No lease 127'),
+ ('12700000-0000-4000-8000-000000000015','12700000-0000-4000-8000-000000000004','company','Vendor 127');
 insert into portfolio.ownerships(tenant_id,unit_id,party_id,share,valid_from) values
  ('12700000-0000-4000-8000-000000000004','12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000008',1,current_date);
+insert into maintenance.vendors(id,tenant_id,party_id,status) values
+ ('12700000-0000-4000-8000-000000000014','12700000-0000-4000-8000-000000000004',
+ '12700000-0000-4000-8000-000000000015','approved');
+insert into maintenance.vendor_contracts(tenant_id,vendor_id,property_id,starts_on,status) values
+ ('12700000-0000-4000-8000-000000000004','12700000-0000-4000-8000-000000000014',
+ '12700000-0000-4000-8000-000000000005',current_date,'active');
 insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_owner,lifecycle_status) values
  ('12700000-0000-4000-8000-000000000010','12700000-0000-4000-8000-000000000004','ASSOCIATION','Invite test','ACTIVE'),
  ('12700000-0000-4000-8000-000000000013','12700000-0000-4000-8000-000000000004','HYBRID','Second workspace','ACTIVE');
@@ -53,11 +61,15 @@ select throws_ok($$select customer_api.create_unit_invitation_v1(
 select throws_ok($$select customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010','12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000009','tenant_resident','outsider127@cladora.test')$$,
  '42501','unit_relationship_required','Unverified lease cannot be invited');
-select is(jsonb_array_length(customer_api.list_unit_invite_parties_v1('12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010','12700000-0000-4000-8000-000000000007')),1,
- 'Manager sees only verified owner');
+select is(jsonb_array_length(customer_api.list_unit_invite_parties_v1('12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010','12700000-0000-4000-8000-000000000007')),2,
+ 'Manager sees owner and contracted vendor');
 select set_config('test.invite127',customer_api.create_unit_invitation_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010','12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000008','owner','owner127@cladora.test')->>'id',true);
 select ok(current_setting('test.invite127')::uuid is not null,'Manager creates a scoped invite');
+select set_config('test.vendor127',customer_api.create_unit_invitation_v1(
+ '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000010',
+ '12700000-0000-4000-8000-000000000007','12700000-0000-4000-8000-000000000014','vendor_contact','vendor127@cladora.test')->>'id',true);
+select ok(current_setting('test.vendor127')::uuid is not null,'Contracted vendor receives scoped invitation');
 select throws_ok($$select customer_api.register_unit_invite_relationship_v1(
  '12700000-0000-4000-8000-000000000012','12700000-0000-4000-8000-000000000013',
  '12700000-0000-4000-8000-000000000007','tenant_resident','Tenant 127','Verified lease reference 127')$$,
@@ -89,7 +101,18 @@ select set_config('request.jwt.claims',jsonb_build_object('sub','12700000-0000-4
 select is(jsonb_array_length(customer_api.list_my_unit_invitations_v1()),1,'Only email owner discovers invite');
 select ok((customer_api.claim_unit_invitation_v1(current_setting('test.invite127')::uuid,'Owner 127')->>'membership_id') is not null,
  'Verified owner accepts invitation');
+select set_config('request.jwt.claims',jsonb_build_object('sub','12700000-0000-4000-8000-000000000016','role','authenticated','aal','aal2')::text,true);
+select ok((customer_api.claim_unit_invitation_v1(current_setting('test.vendor127')::uuid,'Vendor 127')->>'membership_id') is not null,
+ 'Verified contractor accepts invitation');
 reset role;
+select ok(exists(select 1 from maintenance.vendor_portal_memberships vp
+  join identity.memberships m on m.id=vp.membership_id
+  where m.user_id='12700000-0000-4000-8000-000000000016' and vp.vendor_id='12700000-0000-4000-8000-000000000014'
+    and vp.status='active'),'Vendor membership follows approved contract');
+select ok(exists(select 1 from identity.memberships m join identity.context_grants g on g.membership_id=m.id
+  where m.user_id='12700000-0000-4000-8000-000000000016' and g.scope_type='property'
+    and g.property_id='12700000-0000-4000-8000-000000000005'),
+ 'Contractor grant is scoped to the contracted property');
 select ok(exists(select 1 from identity.memberships m join identity.context_grants g on g.membership_id=m.id
   where m.user_id='12700000-0000-4000-8000-000000000002' and g.scope_type='unit'
   and g.unit_id='12700000-0000-4000-8000-000000000007'),
