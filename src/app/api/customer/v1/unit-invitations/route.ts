@@ -18,8 +18,15 @@ export async function GET(request: NextRequest) {
   const claims = await db.auth.getClaims();
   if (!claims.data?.claims?.sub) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers });
   if (!request.nextUrl.searchParams.has('unit_id')) {
+    const paging = z.object({ query: z.string().trim().max(100).optional(),
+      offset: z.coerce.number().int().min(0).default(0) }).safeParse({
+        query: request.nextUrl.searchParams.get('query') ?? undefined,
+        offset: request.nextUrl.searchParams.get('offset') ?? 0,
+      });
+    if (!paging.success) return NextResponse.json({ error: 'INVALID_PAGE' }, { status: 400, headers });
     const result = await db.schema('customer_api').rpc('list_managed_invite_units_v1' as never,
-      { p_context: context.data } as never);
+      { p_context: context.data, p_query: paging.data.query || null, p_limit: 50,
+        p_offset: paging.data.offset } as never);
     if (result.error) return NextResponse.json({ error: 'ACCESS_DENIED' }, { status: 403, headers });
     return NextResponse.json(result.data, { headers });
   }
