@@ -30,6 +30,7 @@ export default async function LoginPage(props: { params: Promise<{ lang: Languag
           caseAccessRequested={next === 'cases'}
           ownerPortfolioRequested={next === 'owner-portfolio'}
           accountRequested={next === 'account'}
+          invitationRequested={next === 'invitation-continuation'}
         />
       </div>
     </main>

@@ -14,7 +14,7 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
   if (!isSupabaseConfigured()) redirect(`/${lang}/login?reason=configuration`);
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
-  if (error || !data?.claims) redirect(`/${lang}/login${next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
+  if (error || !data?.claims) redirect(`/${lang}/login${next === 'invitation-continuation' ? '?next=invitation-continuation' : next === 'owner-portfolio' ? '?next=owner-portfolio' : ''}`);
   let platformAccess: boolean | null = null;
   try {
     platformAccess = await hasActivePlatformAccess(supabase);
@@ -25,6 +25,8 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
   // Explicit owner navigation never grants owner access; the destination rechecks it.
   const continueTo = next === 'owner-portfolio'
     ? `/${lang}/owner-portfolio`
+    : next === 'invitation-continuation' && !platformAccess
+    ? `/${lang}/invitation-continuation`
     : next === 'workspace-access' && !platformAccess
     ? `/${lang}/workspace-access`
     : next === 'cases' && !platformAccess
@@ -37,7 +39,7 @@ export default async function MfaPage({ params, searchParams }: { params: Promis
   if (assuranceError || !assurance) redirect(`/${lang}/login?reason=security`);
   if (assurance.currentLevel === 'aal2') redirect(continueTo);
   if (assurance.nextLevel !== 'aal2') {
-    redirect(`/${lang}/mfa/setup?reason=${platformAccess ? 'platform_required' : 'customer_required'}${next === 'workspace-access' ? '&next=workspace-access' : next === 'cases' ? '&next=cases' : next === 'pilot-reviewer' ? '&next=pilot-reviewer' : next === 'owner-portfolio' ? '&next=owner-portfolio' : ''}`);
+    redirect(`/${lang}/mfa/setup?reason=${platformAccess ? 'platform_required' : 'customer_required'}${next === 'invitation-continuation' && !platformAccess ? '&next=invitation-continuation' : next === 'workspace-access' ? '&next=workspace-access' : next === 'cases' ? '&next=cases' : next === 'pilot-reviewer' ? '&next=pilot-reviewer' : next === 'owner-portfolio' ? '&next=owner-portfolio' : ''}`);
   }
   return <main className="flex min-h-screen items-center justify-center bg-[#F6F9FC] p-6"><MfaChallengeForm lang={lang} continueTo={continueTo} /></main>;
 }
