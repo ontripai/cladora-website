@@ -26,6 +26,12 @@ export async function GET(request: NextRequest) {
   const unit = z.uuid().safeParse(request.nextUrl.searchParams.get('unit_id'));
   const workspace = z.uuid().safeParse(request.nextUrl.searchParams.get('workspace_id'));
   if (!unit.success || !workspace.success) return NextResponse.json({ error: 'INVALID_SCOPE' }, { status: 400, headers });
+  if (request.nextUrl.searchParams.get('pending') === '1') {
+    const result = await db.schema('customer_api').rpc('list_managed_unit_invitations_v1' as never,
+      { p_context: context.data, p_workspace: workspace.data, p_unit: unit.data } as never);
+    if (result.error) return NextResponse.json({ error: 'ACCESS_DENIED' }, { status: 403, headers });
+    return NextResponse.json(result.data, { headers });
+  }
   const result = await db.schema('customer_api').rpc('list_unit_invite_parties_v1' as never,
     { p_context: context.data, p_workspace: workspace.data, p_unit: unit.data } as never);
   if (result.error) return NextResponse.json({ error: 'ACCESS_DENIED' }, { status: 403, headers });
@@ -51,9 +57,13 @@ export async function POST(request: NextRequest) {
   if (result.error) return NextResponse.json({ error: result.error.message.includes('unit_relationship_required')
     ? 'RELATIONSHIP_REQUIRED' : 'ACCESS_DENIED' }, { status: 403, headers });
   const invite = result.data as { id: string; replayed: boolean; known_account: boolean };
-  if (!invite.known_account && !invite.replayed) {
+  if (!invite.replayed) {
     const redirectTo = `${getApplicationOrigin()}/${input.data.lang}/auth/callback?next=/${input.data.lang}/invitation-continuation`;
-    const sent = await createAdminClient().auth.admin.inviteUserByEmail(input.data.email, { redirectTo });
+    const admin = createAdminClient();
+    const sent = invite.known_account
+      ? await admin.auth.signInWithOtp({ email: input.data.email,
+          options: { shouldCreateUser: false, emailRedirectTo: redirectTo } })
+      : await admin.auth.admin.inviteUserByEmail(input.data.email, { redirectTo });
     if (sent.error) {
       await db.schema('customer_api').rpc('revoke_unit_invitation_v1' as never,
         { p_invitation: invite.id } as never);
@@ -61,5 +71,22 @@ export async function POST(request: NextRequest) {
     }
   }
   return NextResponse.json({ id: invite.id,
-    delivery: invite.known_account ? 'existing_account' : 'email_invited' }, { status: 201, headers });
+    delivery: invite.replayed ? 'already_pending' : 'email_invited' }, { status: 201, headers });
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!hasTrustedMutationOrigin(request)) return NextResponse.json({ error: 'BAD_ORIGIN' }, { status: 403, headers });
+  if (!isApplicationJson(request.headers.get('content-type')))
+    return NextResponse.json({ error: 'UNSUPPORTED_MEDIA_TYPE' }, { status: 415, headers });
+  const { data: raw, errorResponse } = await parseJsonWithLimit<unknown>(request, 1024);
+  if (errorResponse) return errorResponse;
+  const input = z.object({ invitation_id: z.uuid() }).strict().safeParse(raw);
+  if (!input.success) return NextResponse.json({ error: 'INVALID_REQUEST' }, { status: 400, headers });
+  const db = await createClient();
+  const claims = await db.auth.getClaims();
+  if (!claims.data?.claims?.sub) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers });
+  const result = await db.schema('customer_api').rpc('revoke_unit_invitation_v1' as never,
+    { p_invitation: input.data.invitation_id } as never);
+  if (result.error) return NextResponse.json({ error: 'ACCESS_DENIED' }, { status: 403, headers });
+  return NextResponse.json({ revoked: true }, { headers });
 }
