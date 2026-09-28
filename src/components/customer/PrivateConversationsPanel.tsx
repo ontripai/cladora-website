@@ -15,9 +15,9 @@ type Attachable = { id: string; version_id: string; title: string };
 type Unread = { conversation_id: string; unread_count: number };
 
 const words = {
-  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează și atașează", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Încărcați un document sau obțineți permisiunea de vizualizare pentru ambele părți.", upload: "Încărcați un document nou", scanning: "Documentul a fost salvat și așteaptă scanarea. După un rezultat curat, actualizați lista pentru a-l atașa. Documentele în carantină nu pot fi descărcate.", uploadBusy: "Se încarcă…", refresh: "Actualizează lista documentelor", files: "Documente și fișiere", write: "Scrieți un mesaj…", you: "Dumneavoastră", chooseConversation: "Alegeți o conversație sau începeți una nouă." },
-  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share and attach", download: "Download document", read: "Mark as read", vault: "Upload a document or obtain view access for both participants.", upload: "Upload new document", scanning: "Document saved and awaiting scanning. After a clean result, refresh the list to attach it. Quarantined documents cannot be downloaded.", uploadBusy: "Uploading…", refresh: "Refresh documents", files: "Documents and files", write: "Write a message…", you: "You", chooseConversation: "Choose a conversation or start a new one." },
-  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری و پیوست", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سند بارگذاری کنید یا برای هر دو طرف مجوز مشاهده ثبت کنید.", upload: "بارگذاری سند جدید", scanning: "سند ذخیره شد و منتظر اسکن است. پس از تأیید سلامت، فهرست را برای پیوست‌کردن به‌روز کنید. سند قرنطینه‌شده قابل دریافت نیست.", uploadBusy: "در حال بارگذاری…", refresh: "به‌روزرسانی فهرست اسناد", files: "اسناد و فایل‌ها", write: "پیام خود را بنویسید…", you: "شما", chooseConversation: "یک گفت‌وگو انتخاب کنید یا گفت‌وگوی جدیدی آغاز کنید." },
+  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează și atașează", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Selectați un document deja aprobat pentru ambele persoane.", upload: "Atașează fișier", scanning: "Fișierul a fost încărcat. Se verifică înainte de partajare…", uploadBusy: "Se încarcă…", refresh: "Actualizează lista documentelor", files: "Documente și fișiere", write: "Scrieți un mesaj…", you: "Dumneavoastră", chooseConversation: "Alegeți o conversație sau începeți una nouă.", attached: "Fișierul a fost verificat și atașat conversației.", pending: "Verificarea continuă. Deschideți Documente și fișiere mai târziu pentru a atașa fișierul aprobat.", uploadError: "Fișierul nu a putut fi atașat. Verificați dimensiunea (maxim 20 MB) și accesul, apoi încercați din nou.", firstMessage: "Trimiteți mai întâi un mesaj, apoi atașați fișierul." },
+  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share and attach", download: "Download document", read: "Mark as read", vault: "Choose a document already approved for both participants.", upload: "Attach file", scanning: "File uploaded. Checking it before sharing…", uploadBusy: "Uploading…", refresh: "Refresh documents", files: "Documents and files", write: "Write a message…", you: "You", chooseConversation: "Choose a conversation or start a new one.", attached: "File checked and attached to the conversation.", pending: "The check is still running. Open Documents and files later to attach the approved file.", uploadError: "Could not attach the file. Check its size (20 MB maximum) and access, then try again.", firstMessage: "Send a message first, then attach your file." },
+  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری و پیوست", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سندی را انتخاب کنید که برای هر دو طرف مجوز مشاهده دارد.", upload: "پیوست فایل", scanning: "فایل بارگذاری شد؛ پیش از اشتراک‌گذاری در حال بررسی است…", uploadBusy: "در حال بارگذاری…", refresh: "به‌روزرسانی فهرست اسناد", files: "اسناد و فایل‌ها", write: "پیام خود را بنویسید…", you: "شما", chooseConversation: "یک گفت‌وگو انتخاب کنید یا گفت‌وگوی جدیدی آغاز کنید.", attached: "فایل بررسی و به گفتگو پیوست شد.", pending: "بررسی فایل هنوز ادامه دارد. بعداً از بخش اسناد و فایل‌ها، فایل تأییدشده را پیوست کنید.", uploadError: "پیوست فایل انجام نشد. حجم آن (حداکثر ۲۰ مگابایت) و دسترسی را بررسی و دوباره تلاش کنید.", firstMessage: "ابتدا یک پیام بفرستید و سپس فایل را پیوست کنید." },
 } satisfies Record<Language, Record<string, string>>;
 
 async function readArray<T>(url: string): Promise<T[]> {
@@ -57,8 +57,8 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [attachable, setAttachable] = useState<Attachable[]>([]);
   const [documentId, setDocumentId] = useState("");
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploaded, setUploaded] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadBusy, setUploadBusy] = useState(false);
   const [creating, setCreating] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -152,14 +152,20 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
     } catch { setError(true); }
   }
 
-  async function upload() {
-    if (!contextId || !uploadFile || !selectedId || uploadFile.size > 20 * 1024 * 1024) { setError(true); return; }
-    setBusy(true); setError(false); setUploaded(false);
+  async function upload(file: File) {
+    const conversationId = selectedId;
+    const messageId = threads.find((thread) => thread.id === conversationId)?.messages.filter((item) => item.sender_id === membershipId).at(-1)?.id;
+    if (!contextId || !conversationId || !messageId) { setUploadStatus(t.firstMessage); return; }
+    if (file.size > 20 * 1024 * 1024) { setUploadStatus(t.uploadError); return; }
+    setUploadBusy(true); setUploadStatus(t.uploadBusy);
     try {
-      const declaredMime = uploadFile.type || "application/pdf";
+      const uploadContext = await fetch(`/api/customer/v1/private-conversations/${conversationId}/upload-context?context_id=${encodeURIComponent(contextId)}`, { cache: "no-store" });
+      if (!uploadContext.ok) throw new Error(String(uploadContext.status));
+      const { property_id: propertyId } = await uploadContext.json() as { property_id: string };
+      const declaredMime = file.type || "application/pdf";
       const intentResponse = await fetch("/api/customer/v1/documents/upload-intent", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context_id: contextId, filename: uploadFile.name, declared_mime: declaredMime, size_bytes: uploadFile.size }),
+        body: JSON.stringify({ context_id: contextId, filename: file.name, declared_mime: declaredMime, size_bytes: file.size }),
       });
       if (!intentResponse.ok) throw new Error(String(intentResponse.status));
       const intent = await intentResponse.json() as { intent_id: string; object_path: string };
@@ -167,13 +173,29 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
       const form = new FormData();
       form.append("context_id", contextId); form.append("intent_id", intent.intent_id);
       form.append("object_path", intent.object_path);
-      form.append("title", uploadFile.name); form.append("document_type", "conversation_attachment");
+      form.append("title", file.name); form.append("document_type", "conversation_attachment");
       form.append("classification", "confidential"); form.append("declared_mime", declaredMime);
-      form.append("file", uploadFile);
+      form.append("property_id", propertyId); form.append("file", file);
       const uploadResponse = await fetch("/api/customer/v1/documents/upload", { method: "POST", body: form });
       if (!uploadResponse.ok) throw new Error(String(uploadResponse.status));
-      setUploaded(true); setUploadFile(null);
-    } catch { setError(true); } finally { setBusy(false); }
+      const uploaded = await uploadResponse.json() as { document_id: string; version_id: string };
+      setUploadStatus(t.scanning);
+      const base = `/api/customer/v1/private-conversations/${conversationId}/attachments?context_id=${encodeURIComponent(contextId)}`;
+      // Documents become shareable only after the existing server-side scanner marks the version clean.
+      for (let attempt = 0; attempt < 20; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        const available = await readArray<Attachable>(`${base}&available=true`);
+        const approved = available.find((item) => item.id === uploaded.document_id && item.version_id === uploaded.version_id);
+        if (!approved) continue;
+        await post(`/api/customer/v1/private-conversations/${conversationId}/attachments`, {
+          context_id: contextId, message_id: messageId, document_id: approved.id, version_id: approved.version_id,
+        });
+        if (selectedId === conversationId) setAttachments(await readArray<Attachment>(base));
+        setUploadStatus(t.attached);
+        return;
+      }
+      setUploadStatus(t.pending);
+    } catch { setUploadStatus(t.uploadError); } finally { setUploadBusy(false); }
   }
 
   async function submit(url: string, body: Record<string, string>) {
@@ -239,6 +261,12 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
             <div className="flex items-end gap-2"><textarea id="private-reply" required rows={2} maxLength={5000} placeholder={t.write} value={reply} onChange={(event) => setReply(event.target.value)} className="min-h-12 flex-1 resize-y rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 outline-none focus:border-teal-600" />
               <button type="submit" disabled={busy || !reply.trim()} className="rounded-xl bg-teal-700 px-5 py-3 text-white hover:bg-teal-800 disabled:opacity-50">{busy ? t.busy : t.send}</button></div>
           </form>
+          <div className="border-t border-slate-100 bg-white px-4 pb-4">
+            <label htmlFor="private-upload" className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border border-teal-700 px-3 py-2 text-sm font-medium text-teal-800 hover:bg-teal-50 ${uploadBusy || !ownMessageId ? "pointer-events-none opacity-50" : ""}`}>📎 {uploadBusy ? t.uploadBusy : t.upload}</label>
+            <input id="private-upload" type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx" disabled={uploadBusy || !ownMessageId} onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = ""; }} className="sr-only" />
+            {!ownMessageId && <p className="mt-2 text-xs text-slate-600">{t.firstMessage}</p>}
+            {uploadStatus && <p role="status" className="mt-2 text-sm text-teal-800">{uploadStatus}</p>}
+          </div>
           <details className="border-t border-slate-200 px-4 py-4 sm:px-6"><summary className="cursor-pointer font-medium text-teal-800">📎 {t.files}</summary>
           <div className="mt-4 space-y-2">
             <label htmlFor="private-document" className="block">{t.document}</label>
@@ -247,12 +275,6 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
             <button type="button" onClick={() => void refreshDocuments()} className="block text-sm text-blue-700 underline">{t.refresh}</button>
             <button type="button" disabled={!documentId || busy || !ownMessageId} onClick={() => void attach()} className="rounded-lg border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{t.attach}</button>
           </div>
-          <form className="mt-4 space-y-2 border-t pt-4" onSubmit={(event) => { event.preventDefault(); void upload(); }}>
-            <label htmlFor="private-upload" className="block text-sm font-medium">{t.upload}</label>
-            <input id="private-upload" type="file" required accept=".pdf,.jpg,.jpeg,.png,.webp,.txt,.doc,.docx,.xls,.xlsx" onChange={(event) => { setUploadFile(event.target.files?.[0] ?? null); setUploaded(false); }} className="block w-full text-sm" />
-            <button type="submit" disabled={!uploadFile || busy} className="rounded-lg border border-blue-700 px-3 py-2 text-blue-700 disabled:opacity-50">{busy ? t.uploadBusy : t.upload}</button>
-            {uploaded && <p role="status" className="text-sm text-green-700">{t.scanning}</p>}
-          </form>
           </details>
         </section>}
         {showComposer && <section className="space-y-3 p-4 sm:p-6">
