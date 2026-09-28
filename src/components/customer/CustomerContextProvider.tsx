@@ -52,9 +52,12 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
         const body = (await response.json()) as { contexts: CustomerContext[] };
         if (cancelled) return;
         setContexts(body.contexts);
+        const requested = preview ? null : new URLSearchParams(window.location.search).get('context');
         const stored = preview ? null : sessionStorage.getItem(STORAGE_KEY);
         setActiveId(
-          body.contexts.some((c) => c.context_id === stored)
+          body.contexts.some((c) => c.context_id === requested)
+            ? requested ?? ''
+            : body.contexts.some((c) => c.context_id === stored)
             ? stored ?? ''
             : body.contexts[0]?.context_id ?? ''
         );

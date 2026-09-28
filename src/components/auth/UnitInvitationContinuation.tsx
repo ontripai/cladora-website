@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { Language } from '@/types';
 
 export type ClaimableUnitInvitation = { id: string; unit: string; building: string; role: string; expires_at: string };
@@ -12,6 +13,7 @@ const copy = {
 };
 export function UnitInvitationContinuation({ lang, invitations }: { lang: Language; invitations: ClaimableUnitInvitation[] }) {
   const t = copy[lang];
+  const router = useRouter();
   const [name, setName] = useState('');
   const [result, setResult] = useState('');
   const [busy, setBusy] = useState(false);
@@ -23,13 +25,18 @@ export function UnitInvitationContinuation({ lang, invitations }: { lang: Langua
       onClick={() => { setBusy(true); setResult(''); void fetch('/api/auth/unit-invitations', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ invitation_id: invite.id, display_name: name.trim() }),
-      }).then(response => { if (!response.ok) throw new Error(); setClaimed(items => [...items, invite.id]); setResult(t.success); })
+      }).then(async response => { if (!response.ok) throw new Error();
+        const accepted = await response.json() as { context_id: string | null };
+        if (accepted.context_id) sessionStorage.setItem('cladora.customer-context.v1', accepted.context_id);
+        setClaimed(items => [...items, invite.id]); setResult(t.success);
+        if (accepted.context_id && invitations.length === 1) router.replace(`/${lang}/app/dashboard`);
+      })
         .catch(() => setResult(t.error)).finally(() => setBusy(false)); }}
       className="block w-full rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">
       {t.accept}: {invite.building} · {invite.unit} · {invite.role}
     </button>)}
     {result && <p role="status">{result}</p>}
-    {claimed.length > 0 && <Link href={`/${lang}/app/communications/private`} className="inline-block rounded bg-blue-700 px-4 py-2 text-white">{t.open}</Link>}
+    {claimed.length > 0 && <Link href={`/${lang}/app/dashboard`} className="inline-block rounded bg-blue-700 px-4 py-2 text-white">{t.open}</Link>}
     <Link href={`/${lang}/account?choose=1`} className="block text-teal-800 underline">{lang === 'fa' ? 'بازگشت به نقش‌ها و محیط‌های فعلی' : lang === 'ro' ? 'Înapoi la rolurile și spațiile existente' : 'Back to existing roles and workspaces'}</Link>
   </section>;
 }

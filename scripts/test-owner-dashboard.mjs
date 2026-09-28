@@ -7,6 +7,13 @@ import React from 'react';
 const require=createRequire(import.meta.url);
 function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url));const m=new Module(filename);m.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);m._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return m.exports;}
 const {ownerOverview}=load('src/lib/owner-portfolio/overview.ts');
+const {claimedUnitContextId}=load('src/lib/auth/unit-invitation-context.ts');
+assert.equal(claimedUnitContextId({membership_id:'owner',unit_id:'A-01'},[
+ {context_id:'reviewer',membership_id:'reviewer',unit_id:null,scope_type:'tenant'},
+ {context_id:'other-unit',membership_id:'owner',unit_id:'A-02',scope_type:'unit'},
+ {context_id:'owner-A-01',membership_id:'owner',unit_id:'A-01',scope_type:'unit'}]),'owner-A-01');
+assert.equal(claimedUnitContextId({membership_id:'owner',unit_id:'A-01'},[
+ {context_id:'tenant-A-01',membership_id:'tenant',unit_id:'A-01',scope_type:'unit'}]),null);
 const {ownerLabel}=load('src/lib/owner-portfolio/labels.ts');
 const {annualCsv,csvCell}=load('src/lib/owner-portfolio/csv.ts',{'./labels':{ownerLabel}});
 for(const lang of ['ro','en','fa']) {
@@ -27,19 +34,19 @@ assert.ok(csvCell(' =HYPERLINK("bad")').startsWith('"\''));assert.ok(annualCsv([
 const redirect=path=>{throw Object.assign(Error('redirect'),{path});};
 function links(node){if(!node||typeof node!=='object')return [];return [...(node.props?.href?[node.props.href]:[]),...React.Children.toArray(node.props?.children).flatMap(links)];}
 for(const lang of ['ro','en','fa'])for(const platform of [false,true])for(const owner of [false,true])for(const building of [false,true]){
- const db={auth:{getClaims:async()=>({data:{claims:{sub:'a'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'}})}},schema:()=>({rpc:async name=>({data:name==='has_platform_access_v1'?platform:name==='my_multi_unit_owner_access_v1'?owner:name==='list_my_unit_invitations_v1'?[]:building?[{id:'b'}]:[],error:null})})};
+ const db={auth:{getClaims:async()=>({data:{claims:{sub:'a'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'}})}},schema:()=>({rpc:async name=>({data:name==='has_platform_access_v1'?platform:name==='my_multi_unit_owner_access_v1'?owner:name==='list_my_unit_invitations_v1'?[]:building?[{context_id:'b',role_name:'Owner',tenant_name:'T',context_label:'A-01',scope_type:'unit'}]:[],error:null})})};
  const Page=load('src/app/[lang]/account/page.tsx',{'next/link':()=>null,'next/navigation':{redirect},'@/lib/supabase/server':{createClient:async()=>db},'@/types':{isSupportedLocale:l=>['ro','en','fa'].includes(l)},'@/components/auth/SignOutButton':{SignOutButton:()=>null}}).default;
  const props={params:Promise.resolve({lang}),searchParams:Promise.resolve({choose:'1'})};
  const hrefs=links(await Page(props));
- assert.equal(hrefs.includes(`/${lang}/owner-portfolio`),owner);assert.equal(hrefs.includes(`/${lang}/platform/overview`),platform);assert.equal(hrefs.includes(`/${lang}/app/dashboard`),building);
- if(Number(platform)+Number(owner)+Number(building)===1)await assert.rejects(()=>Page({...props,searchParams:Promise.resolve({})}),e=>e.path===`/${lang}/${owner?'owner-portfolio':platform?'platform/overview':'app/dashboard'}`);
+ assert.equal(hrefs.includes(`/${lang}/owner-portfolio`),owner);assert.equal(hrefs.includes(`/${lang}/platform/overview`),platform);assert.equal(hrefs.includes(`/${lang}/app/dashboard?context=b`),building);
+ if(Number(platform)+Number(owner)+Number(building)===1)await assert.rejects(()=>Page({...props,searchParams:Promise.resolve({})}),e=>e.path===`/${lang}/${owner?'owner-portfolio':platform?'platform/overview':'app/dashboard?context=b'}`);
 }
 // A pending unit invitation must not replace an existing platform, owner or building role.
 for(const lang of ['ro','en','fa']){
- const db={auth:{getClaims:async()=>({data:{claims:{sub:'a'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'}})}},schema:()=>({rpc:async name=>({data:name==='list_my_unit_invitations_v1'?[{id:'invite'}]:name==='has_platform_access_v1'?true:name==='my_multi_unit_owner_access_v1'?true:[{id:'building'}],error:null})})};
+ const db={auth:{getClaims:async()=>({data:{claims:{sub:'a'}}}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'}})}},schema:()=>({rpc:async name=>({data:name==='list_my_unit_invitations_v1'?[{id:'invite'}]:name==='has_platform_access_v1'?true:name==='my_multi_unit_owner_access_v1'?true:[{context_id:'building',role_name:'Owner',tenant_name:'T',context_label:'A-01',scope_type:'unit'}],error:null})})};
  const Page=load('src/app/[lang]/account/page.tsx',{'next/link':()=>null,'next/navigation':{redirect},'@/lib/supabase/server':{createClient:async()=>db},'@/types':{isSupportedLocale:l=>['ro','en','fa'].includes(l)},'@/components/auth/SignOutButton':{SignOutButton:()=>null}}).default;
  const hrefs=links(await Page({params:Promise.resolve({lang}),searchParams:Promise.resolve({})}));
- for(const path of ['invitation-continuation','owner-portfolio','platform/overview','app/dashboard'])assert.ok(hrefs.includes(`/${lang}/${path}`));
+ for(const path of ['invitation-continuation','owner-portfolio','platform/overview','app/dashboard?context=building'])assert.ok(hrefs.includes(`/${lang}/${path}`));
 }
 // Exercise the actual overview route with paged RLS-session reads and fail-closed access.
 for(const access of [true,false,'error']){
