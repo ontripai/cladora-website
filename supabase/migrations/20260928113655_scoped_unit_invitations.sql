@@ -50,7 +50,9 @@ returns boolean language sql stable security definer set search_path=pg_catalog 
       and wb.tenant_id=u.tenant_id and wb.property_id=b.property_id and wb.status='active'
       and wb.valid_from<=statement_timestamp() and (wb.valid_to is null or wb.valid_to>statement_timestamp())
     join platform.workspace_entitlements e on e.customer_workspace_id=w.id
-      and e.entitlement_key='module.communications' and e.boolean_value=true
+      and e.entitlement_key='module.communications'
+      and (case when e.override_value_json is not null and e.override_expires_at>statement_timestamp()
+        then e.override_value_json='true'::jsonb else e.boolean_value is true end)
       and e.valid_from<=statement_timestamp()
       and (e.valid_until is null or e.valid_until>statement_timestamp())
     where u.id=p_unit and u.status='active' and b.status='active'
