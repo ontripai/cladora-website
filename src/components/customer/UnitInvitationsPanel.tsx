@@ -7,15 +7,19 @@ type Unit = { id: string; building_name: string; unit_code: string };
 type Party = { party_id: string; legal_name: string; role_code: 'owner' | 'tenant_resident' | 'vendor_contact' };
 type Pending = { id: string; email: string; role: string; expires_at: string };
 const copy = {
-  ro: { title: 'Invitați proprietarul, chiriașul sau contractantul', unit: 'Unitate', party: 'Persoană și rol', email: 'Email', send: 'Trimite invitația', empty: 'Înregistrați proprietatea ori chiria verificată sau un contract activ cu prestatorul.', done: 'Invitația a fost înregistrată. Veți primi un email; invitația se acceptă după autentificare.', failed: 'Operațiunea nu a putut fi finalizată.', choose: 'Selectați', register: 'Înregistrați relația', owner: 'Proprietar', tenant: 'Chiriaș', vendor: 'Prestator contractual', name: 'Nume legal', evidence: 'Referință document / justificare verificată', recorded: 'Relația a fost înregistrată. Verificați persoana și trimiteți invitația.', existing: 'O relație activă există deja; verificați registrul înainte de modificare.', pending: 'Invitații în așteptare', revoke: 'Revocă' },
-  en: { title: 'Invite owner, tenant or contractor', unit: 'Unit', party: 'Person and role', email: 'Email', send: 'Send invitation', empty: 'Register verified ownership or tenancy, or an active vendor contract first.', done: 'Invitation recorded. An email has been sent; accept the invitation after signing in.', failed: 'The operation could not be completed.', choose: 'Select', register: 'Register relationship', owner: 'Owner', tenant: 'Tenant', vendor: 'Contracted vendor', name: 'Legal name', evidence: 'Verified document reference / justification', recorded: 'Relationship recorded. Check the person and send the invitation.', existing: 'An active relationship already exists; review the registry before changing it.', pending: 'Pending invitations', revoke: 'Revoke' },
-  fa: { title: 'دعوت مالک، مستأجر یا پیمانکار', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا مالکیت، اجاره یا قرارداد فعال پیمانکار را ثبت کنید.', done: 'دعوت ثبت شد. ایمیل دعوت ارسال شد؛ پس از ورود می‌توان آن را پذیرفت.', failed: 'عملیات انجام نشد.', choose: 'انتخاب کنید', register: 'ثبت رابطه', owner: 'مالک', tenant: 'مستأجر', vendor: 'پیمانکار دارای قرارداد', name: 'نام قانونی', evidence: 'شمارهٔ سند بررسی‌شده یا دلیل ثبت رابطه', recorded: 'رابطه ثبت شد. شخص را بررسی و دعوت را ارسال کنید.', existing: 'رابطهٔ فعال دیگری وجود دارد؛ پیش از تغییر، سوابق واحد را بررسی کنید.', pending: 'دعوت‌های در انتظار', revoke: 'لغو دعوت' },
+  ro: { title: 'Invitați proprietarul, chiriașul sau contractantul', unit: 'Unitate', party: 'Persoană și rol', email: 'Email', send: 'Trimite invitația', empty: 'Înregistrați proprietatea ori chiria verificată sau un contract activ cu prestatorul.', done: 'Invitația a fost înregistrată. Veți primi un email; invitația se acceptă după autentificare.', failed: 'Operațiunea nu a putut fi finalizată.', choose: 'Selectați', register: 'Înregistrați relația', owner: 'Proprietar', tenant: 'Chiriaș', vendor: 'Prestator contractual', name: 'Nume legal', evidence: 'Referință document / justificare verificată', recorded: 'Relația a fost înregistrată. Verificați persoana și trimiteți invitația.', existing: 'O relație activă există deja; verificați registrul înainte de modificare.', pending: 'Invitații în așteptare', revoke: 'Revocă', search: 'Căutați unitatea', more: 'Mai multe unități' },
+  en: { title: 'Invite owner, tenant or contractor', unit: 'Unit', party: 'Person and role', email: 'Email', send: 'Send invitation', empty: 'Register verified ownership or tenancy, or an active vendor contract first.', done: 'Invitation recorded. An email has been sent; accept the invitation after signing in.', failed: 'The operation could not be completed.', choose: 'Select', register: 'Register relationship', owner: 'Owner', tenant: 'Tenant', vendor: 'Contracted vendor', name: 'Legal name', evidence: 'Verified document reference / justification', recorded: 'Relationship recorded. Check the person and send the invitation.', existing: 'An active relationship already exists; review the registry before changing it.', pending: 'Pending invitations', revoke: 'Revoke', search: 'Search units', more: 'More units' },
+  fa: { title: 'دعوت مالک، مستأجر یا پیمانکار', unit: 'واحد', party: 'شخص و نقش', email: 'ایمیل', send: 'ارسال دعوت', empty: 'ابتدا مالکیت، اجاره یا قرارداد فعال پیمانکار را ثبت کنید.', done: 'دعوت ثبت شد. ایمیل دعوت ارسال شد؛ پس از ورود می‌توان آن را پذیرفت.', failed: 'عملیات انجام نشد.', choose: 'انتخاب کنید', register: 'ثبت رابطه', owner: 'مالک', tenant: 'مستأجر', vendor: 'پیمانکار دارای قرارداد', name: 'نام قانونی', evidence: 'شمارهٔ سند بررسی‌شده یا دلیل ثبت رابطه', recorded: 'رابطه ثبت شد. شخص را بررسی و دعوت را ارسال کنید.', existing: 'رابطهٔ فعال دیگری وجود دارد؛ پیش از تغییر، سوابق واحد را بررسی کنید.', pending: 'دعوت‌های در انتظار', revoke: 'لغو دعوت', search: 'جست‌وجوی واحد', more: 'واحدهای بیشتر' },
 };
 
 export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; contextId: string }) {
   const t = copy[lang];
   const [units, setUnits] = useState<Unit[]>([]);
   const [workspaceId, setWorkspaceId] = useState('');
+  const [unitQuery, setUnitQuery] = useState('');
+  const [appliedQuery, setAppliedQuery] = useState('');
+  const [unitOffset, setUnitOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
   const [unitId, setUnitId] = useState('');
   const [parties, setParties] = useState<Party[]>([]);
   const [pending, setPending] = useState<Pending[]>([]);
@@ -31,12 +35,12 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
 
   useEffect(() => {
     let cancelled = false;
-    void fetch(`/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}`, { cache: 'no-store' })
+    void fetch(`/api/customer/v1/unit-invitations?context_id=${encodeURIComponent(contextId)}&query=${encodeURIComponent(appliedQuery)}&offset=${unitOffset}`, { cache: 'no-store' })
       .then(async r => { if (!r.ok) throw new Error(); return r.json() as Promise<{workspace_id: string; units: Unit[]}>; })
-      .then(result => { if (!cancelled) { setWorkspaceId(result.workspace_id); setUnits(result.units); setUnitId(result.units[0]?.id ?? ''); } })
+      .then(result => { if (!cancelled) { setWorkspaceId(result.workspace_id); setUnits(items => unitOffset ? [...items, ...result.units] : result.units); setHasMore(result.units.length === 50); setUnitId(current => current || result.units[0]?.id || ''); } })
       .catch(() => { if (!cancelled) setStatus(t.failed); });
     return () => { cancelled = true; };
-  }, [contextId, t.failed]);
+  }, [contextId, appliedQuery, unitOffset, t.failed]);
   useEffect(() => {
     let cancelled = false;
     if (!unitId || !workspaceId) return;
@@ -94,6 +98,10 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
 
   return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="rounded border p-4">
     <h2 className="mb-3 font-semibold">{t.title}</h2>
+    <form onSubmit={event => { event.preventDefault(); setUnitId(''); setWorkspaceId(''); setUnitOffset(0); setAppliedQuery(unitQuery.trim()); }} className="mb-3 flex flex-wrap gap-2">
+      <input value={unitQuery} maxLength={100} onChange={event => setUnitQuery(event.target.value)} placeholder={t.search} aria-label={t.search} className="rounded border p-2" />
+      <button className="rounded border px-3 py-2">{t.search}</button>
+    </form>
     {status && <p role="status" className="mb-3 rounded bg-slate-100 p-2">{status}</p>}
     <form onSubmit={event => void submit(event)} className="grid gap-3 sm:grid-cols-2">
       <label>{t.unit}<select value={unitId} onChange={event => { setUnitId(event.target.value); setLoaded(false); }} className="block w-full rounded border p-2"><option value="">{t.choose}</option>{units.map(unit => <option value={unit.id} key={unit.id}>{unit.building_name} · {unit.unit_code}</option>)}</select></label>
@@ -102,6 +110,7 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
       <label>{t.email}<input required type="email" maxLength={320} value={email} onChange={event => setEmail(event.target.value)} className="block w-full rounded border p-2" /></label>
       <button disabled={busy || !unitId || !workspaceId || !partyId} className="self-end rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{t.send}</button>
     </form>
+    {hasMore && <button type="button" onClick={() => setUnitOffset(offset => offset + 50)} className="mt-2 rounded border px-3 py-1">{t.more}</button>}
     <form onSubmit={event => void register(event)} className="mt-6 grid gap-3 border-t pt-4 sm:grid-cols-2">
       <h3 className="sm:col-span-2 font-semibold">{t.register}</h3>
       <label>{t.party}<select value={role} onChange={event => setRole(event.target.value as typeof role)} className="block w-full rounded border p-2"><option value="owner">{t.owner}</option><option value="tenant_resident">{t.tenant}</option></select></label>
