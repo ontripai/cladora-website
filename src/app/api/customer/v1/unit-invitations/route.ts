@@ -9,7 +9,7 @@ import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-bo
 const headers = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
 const bodySchema = z.object({ context_id: z.uuid(), workspace_id: z.uuid(), unit_id: z.uuid(), party_id: z.uuid(),
   role: z.enum(['owner', 'tenant_resident', 'vendor_contact']), email: z.email().max(320),
-  lang: z.enum(['ro', 'en', 'fa']).default('ro') }).strict();
+  lang: z.enum(['ro', 'en', 'fa']).default('ro'), owner_portfolio: z.boolean().optional() }).strict();
 
 export async function GET(request: NextRequest) {
   const context = z.uuid().safeParse(request.nextUrl.searchParams.get('context_id'));
@@ -56,11 +56,18 @@ export async function POST(request: NextRequest) {
   const db = await createClient();
   const claims = await db.auth.getClaims();
   if (!claims.data?.claims?.sub) return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401, headers });
-  const result = await db.schema('customer_api').rpc('create_unit_invitation_v1' as never, {
-    p_context: input.data.context_id, p_workspace: input.data.workspace_id,
-    p_unit: input.data.unit_id, p_party: input.data.party_id,
-    p_role: input.data.role, p_email: input.data.email,
-  } as never);
+  if (input.data.owner_portfolio && input.data.role !== 'owner')
+    return NextResponse.json({ error: 'OWNER_ROLE_REQUIRED' }, { status: 400, headers });
+  const result = input.data.owner_portfolio
+    ? await db.schema('customer_api').rpc('create_owner_portfolio_invitation_v1' as never, {
+      p_context: input.data.context_id, p_workspace: input.data.workspace_id,
+      p_unit: input.data.unit_id, p_party: input.data.party_id, p_email: input.data.email,
+    } as never)
+    : await db.schema('customer_api').rpc('create_unit_invitation_v1' as never, {
+      p_context: input.data.context_id, p_workspace: input.data.workspace_id,
+      p_unit: input.data.unit_id, p_party: input.data.party_id,
+      p_role: input.data.role, p_email: input.data.email,
+    } as never);
   if (result.error) return NextResponse.json({ error: result.error.message.includes('unit_relationship_required')
     ? 'RELATIONSHIP_REQUIRED' : 'ACCESS_DENIED' }, { status: 403, headers });
   const invite = result.data as { id: string; replayed: boolean; known_account: boolean };

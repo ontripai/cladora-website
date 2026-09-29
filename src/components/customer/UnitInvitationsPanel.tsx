@@ -5,7 +5,7 @@ import type { Language } from '@/types';
 
 type Unit = { id: string; building_name: string; unit_code: string };
 type Party = { party_id: string; legal_name: string; role_code: 'owner' | 'tenant_resident' | 'vendor_contact' };
-type Pending = { id: string; email: string; role: string; expires_at: string };
+type Pending = { id: string; email: string; role: string; owner_portfolio?: boolean; expires_at: string };
 const copy = {
   ro: { title: 'Invitați proprietarul, chiriașul sau contractantul', unit: 'Unitate', party: 'Persoană și rol', email: 'Email', send: 'Trimite invitația', empty: 'Înregistrați proprietatea ori chiria verificată sau un contract activ cu prestatorul.', done: 'Invitația a fost înregistrată. Destinatarul primește un email și acceptă invitația după autentificare.', failed: 'Operațiunea nu a putut fi finalizată.', choose: 'Selectați', register: 'Înregistrați relația', owner: 'Proprietar', tenant: 'Chiriaș', vendor: 'Prestator contractual', name: 'Nume legal', evidence: 'Referință document / justificare verificată', recorded: 'Relația a fost înregistrată. Verificați persoana și trimiteți invitația.', existing: 'O relație activă există deja; verificați registrul înainte de modificare.', pending: 'Invitații în așteptare', revoke: 'Revocă', already: 'Invitația este deja în așteptare.', starts: 'Data începerii din document', ends: 'Data încetării (opțional)', search: 'Căutați unitatea', more: 'Mai multe unități' },
   en: { title: 'Invite owner, tenant or contractor', unit: 'Unit', party: 'Person and role', email: 'Email', send: 'Send invitation', empty: 'Register verified ownership or tenancy, or an active vendor contract first.', done: 'Invitation recorded. An email has been sent; accept the invitation after signing in.', failed: 'The operation could not be completed.', choose: 'Select', register: 'Register relationship', owner: 'Owner', tenant: 'Tenant', vendor: 'Contracted vendor', name: 'Legal name', evidence: 'Verified document reference / justification', recorded: 'Relationship recorded. Check the person and send the invitation.', existing: 'An active relationship already exists; review the registry before changing it.', pending: 'Pending invitations', revoke: 'Revoke', already: 'This invitation is already pending.', starts: 'Documented start date', ends: 'End date (optional)', search: 'Search units', more: 'More units' },
@@ -25,6 +25,7 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
   const [pending, setPending] = useState<Pending[]>([]);
   const [partyId, setPartyId] = useState('');
   const [email, setEmail] = useState('');
+  const [ownerPortfolio, setOwnerPortfolio] = useState(false);
   const [busy, setBusy] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [status, setStatus] = useState('');
@@ -79,11 +80,11 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
     try {
       const response = await fetch('/api/customer/v1/unit-invitations', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ context_id: contextId, workspace_id: workspaceId, unit_id: unitId, party_id: partyId, role: chosen.role_code, email, lang }),
+        body: JSON.stringify({ context_id: contextId, workspace_id: workspaceId, unit_id: unitId, party_id: partyId, role: chosen.role_code, email, lang, owner_portfolio: ownerPortfolio && chosen.role_code === 'owner' }),
       });
       if (!response.ok) throw new Error();
       const result = await response.json() as { delivery: string };
-      setEmail(''); setStatus(result.delivery === 'already_pending' ? t.already : t.done); setRevision(value => value + 1);
+      setEmail(''); setOwnerPortfolio(false); setStatus(result.delivery === 'already_pending' ? t.already : t.done); setRevision(value => value + 1);
     } catch { setStatus(t.failed); } finally { setBusy(false); }
   }
 
@@ -108,9 +109,10 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
     {status && <p role="status" className="mb-3 rounded bg-slate-100 p-2">{status}</p>}
     <form onSubmit={event => void submit(event)} className="grid gap-3 sm:grid-cols-2">
       <label>{t.unit}<select value={unitId} onChange={event => { setUnitId(event.target.value); setLoaded(false); }} className="block w-full rounded border p-2"><option value="">{t.choose}</option>{units.map(unit => <option value={unit.id} key={unit.id}>{unit.building_name} · {unit.unit_code}</option>)}</select></label>
-      <label>{t.party}<select required value={partyId} onChange={event => setPartyId(event.target.value)} className="block w-full rounded border p-2"><option value="">{t.choose}</option>{parties.map(party => <option value={party.party_id} key={`${party.role_code}-${party.party_id}`}>{party.legal_name} · {party.role_code === 'vendor_contact' ? t.vendor : party.role_code === 'owner' ? t.owner : t.tenant}</option>)}</select></label>
+      <label>{t.party}<select required value={partyId} onChange={event => { setPartyId(event.target.value); setOwnerPortfolio(false); }} className="block w-full rounded border p-2"><option value="">{t.choose}</option>{parties.map(party => <option value={party.party_id} key={`${party.role_code}-${party.party_id}`}>{party.legal_name} · {party.role_code === 'vendor_contact' ? t.vendor : party.role_code === 'owner' ? t.owner : t.tenant}</option>)}</select></label>
       {loaded && parties.length === 0 && <p role="status" className="sm:col-span-2 rounded bg-amber-50 p-2 text-amber-900">{t.empty}</p>}
       <label>{t.email}<input required type="email" maxLength={320} value={email} onChange={event => setEmail(event.target.value)} className="block w-full rounded border p-2" /></label>
+      {parties.find(party => party.party_id === partyId)?.role_code === 'owner' && <label className="sm:col-span-2 flex items-center gap-3 rounded-xl border border-teal-200 bg-teal-50 p-3 text-sm text-teal-950"><input type="checkbox" checked={ownerPortfolio} onChange={event => setOwnerPortfolio(event.target.checked)} className="h-5 w-5" /><span>{lang === 'fa' ? 'دعوت به داشبورد مالک چندواحدی؛ این واحد پس از پذیرش به فهرست املاک شخصی او اضافه می‌شود.' : lang === 'ro' ? 'Invită în portofoliul de proprietar; această unitate va apărea după acceptare.' : 'Invite to the multi-unit owner dashboard; this unit will appear after acceptance.'}</span></label>}
       <button disabled={busy || !unitId || !workspaceId || !partyId} className="self-end rounded bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{t.send}</button>
     </form>
     {hasMore && <button type="button" onClick={() => setUnitOffset(offset => offset + 50)} className="mt-2 rounded border px-3 py-1">{t.more}</button>}
@@ -125,7 +127,7 @@ export function UnitInvitationsPanel({ lang, contextId }: { lang: Language; cont
     </form>
     {pending.length > 0 && <div className="mt-6 border-t pt-4"><h3 className="font-semibold">{t.pending}</h3>
       <ul className="mt-2 space-y-2">{pending.map(invite => <li key={invite.id} className="flex flex-wrap items-center justify-between gap-2 rounded border p-2">
-        <span>{invite.email} · {invite.role}</span>
+        <span>{invite.email} · {invite.owner_portfolio ? lang === 'fa' ? 'مالک چندواحدی' : lang === 'ro' ? 'Proprietar cu mai multe unități' : 'Multi-unit owner' : invite.role}</span>
         <button type="button" disabled={busy} onClick={() => void revoke(invite.id)} className="rounded border border-red-700 px-3 py-1 text-red-700 disabled:opacity-50">{t.revoke}</button>
       </li>)}</ul></div>}
   </section>;
