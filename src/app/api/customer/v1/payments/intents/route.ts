@@ -88,6 +88,12 @@ export async function POST(request: NextRequest) {
     const code = error.code;
     const msg = error.message || "";
     if (code === "42501" || msg.includes("access_denied")) {
+      if (msg.includes("customer_context_access_denied")) {
+        return NextResponse.json(
+          { error: { code: "PAYMENT_CONTEXT_UNAVAILABLE" } },
+          { status: 403, headers: HEADERS }
+        );
+      }
       if (msg.includes("payment_allocation_policy_unconfigured") || msg.includes("beneficiary_account_unconfigured")) {
         return NextResponse.json(
           { error: { code: "PAYMENT_SETUP_REQUIRED", message: msg } },
