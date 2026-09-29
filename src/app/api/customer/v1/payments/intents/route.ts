@@ -77,17 +77,23 @@ export async function POST(request: NextRequest) {
   const { data, error } = await (supabase.schema("customer_api") as any).rpc("create_payment_intent_v1", {
     p_context_id: p.context_id,
     p_unit_id: p.unit_id,
-    p_selected_invoices: p.selected_invoices,
+    p_invoices: p.selected_invoices,
     p_amount: p.amount,
     p_currency: p.currency,
-    p_provider_code: p.provider_code,
     p_payment_method: p.payment_method,
+    p_idempotency_key: idempotencyKey,
   });
 
   if (error) {
     const code = error.code;
     const msg = error.message || "";
     if (code === "42501" || msg.includes("access_denied")) {
+      if (msg.includes("payment_allocation_policy_unconfigured") || msg.includes("beneficiary_account_unconfigured")) {
+        return NextResponse.json(
+          { error: { code: "PAYMENT_SETUP_REQUIRED", message: msg } },
+          { status: 409, headers: HEADERS }
+        );
+      }
       return NextResponse.json(
         { error: { code: "FORBIDDEN", message: "Access denied to create payment intent" } },
         { status: 403, headers: HEADERS }

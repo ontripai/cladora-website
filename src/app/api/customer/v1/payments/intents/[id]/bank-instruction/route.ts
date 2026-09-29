@@ -57,10 +57,20 @@ export async function GET(
 
   const rawInstruction = data as any;
 
+  // The current RPC can return a masked IBAN; it must never become a copyable
+  // destination or a bank QR payload.
+  const iban = String(rawInstruction?.iban ?? "").replace(/\s+/g, "").toUpperCase();
+  if (!/^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/.test(iban)) {
+    return NextResponse.json(
+      { error: { code: "PAYMENT_DESTINATION_UNAVAILABLE", message: "Verified full beneficiary IBAN is not available for payment instructions" } },
+      { status: 409, headers: HEADERS }
+    );
+  }
+
   // Enrich with standard EPC QR code payload
   const instruction = buildBankPaymentInstruction({
-    associationLegalName: rawInstruction.association_legal_name,
-    iban: rawInstruction.iban,
+    associationLegalName: rawInstruction.beneficiary_name,
+    iban,
     bankName: rawInstruction.bank_name,
     amount: Number(rawInstruction.amount),
     currency: rawInstruction.currency || "RON",

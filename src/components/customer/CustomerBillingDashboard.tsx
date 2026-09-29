@@ -215,7 +215,7 @@ const copy = {
     payDirectShort: 'Plătește',
     payDirectDesc: 'Plată securizată direct în contul bancar al asociației de proprietari.',
     nonCustodialNotice: 'Plată directă către asociație. CLADORA nu este comerciant, nu reține fonduri și nu stochează date de card.',
-    bankTransferTab: 'Transfer Bancar / Cod QR',
+    bankTransferTab: 'Transfer bancar',
     cardTab: 'Card bancar',
     cardCheckoutTitle: 'Plată online cu cardul',
     cardDeferredNotice: 'Plata online prin card bancar este în curs de activare pentru asociația dumneavoastră. Vă rugăm să folosiți transferul bancar direct conform instrucțiunilor de mai jos.',
@@ -228,6 +228,8 @@ const copy = {
     copied: 'Copiat!',
     copy: 'Copiază',
     generatingInstruction: 'Se generează instrucțiunile de plată…',
+    paymentSetupRequired: 'Asociația trebuie să configureze politica de plată și contul beneficiar înainte de generarea instrucțiunilor.',
+    destinationUnavailable: 'IBAN-ul complet verificat nu este disponibil. Contactați administratorul asociației.',
   },
   en: {
     title: 'Billing, Charges & Receivables',
@@ -310,7 +312,7 @@ const copy = {
     payDirectShort: 'Pay',
     payDirectDesc: 'Secure direct settlement into the building association bank account.',
     nonCustodialNotice: 'Direct payment to association. CLADORA is non-custodial and never holds funds or card data.',
-    bankTransferTab: 'Bank Transfer / QR Code',
+    bankTransferTab: 'Bank transfer',
     cardTab: 'Debit / Credit Card',
     cardCheckoutTitle: 'Debit / Credit Card Payment',
     cardDeferredNotice: 'Card payment is awaiting merchant onboarding for your association. Please use direct bank transfer with the instructions below.',
@@ -323,6 +325,8 @@ const copy = {
     copied: 'Copied!',
     copy: 'Copy',
     generatingInstruction: 'Generating payment instructions…',
+    paymentSetupRequired: 'The association must configure its payment policy and beneficiary account before instructions can be generated.',
+    destinationUnavailable: 'A verified full beneficiary IBAN is unavailable. Contact the association administrator.',
   },
   fa: {
     title: 'صورتحساب‌ها، هزینه‌ها و مطالبات',
@@ -405,7 +409,7 @@ const copy = {
     payDirectShort: 'پرداخت',
     payDirectDesc: 'تسویه مستقیم و امن به حساب بانکی انجمن ساختمان.',
     nonCustodialNotice: 'پرداخت مستقیم به حساب بانکی انجمن ساختمان. کلادورا وجوه یا اطلاعات کارت را نگهداری نمی‌کند.',
-    bankTransferTab: 'انتقال بانکی / کد QR',
+    bankTransferTab: 'انتقال بانکی',
     cardTab: 'کارت بانکی',
     cardCheckoutTitle: 'پرداخت اینترنتی با کارت',
     cardDeferredNotice: 'پرداخت اینترنتی با کارت در حال اتصال است. لطفاً از انتقال مستقیم بانکی با مشخصات زیر استفاده فرمایید.',
@@ -418,6 +422,8 @@ const copy = {
     copied: 'کپی شد!',
     copy: 'کپی',
     generatingInstruction: 'در حال تولید دستور پرداخت بانکی…',
+    paymentSetupRequired: 'مدیر ساختمان باید سیاست پرداخت و حساب مقصد را تنظیم کند تا دستور پرداخت صادر شود.',
+    destinationUnavailable: 'شماره شبای کامل و تأییدشدهٔ مقصد در دسترس نیست. با مدیر ساختمان تماس بگیرید.',
   }
 };
 
@@ -516,15 +522,15 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
 
       if (!intentRes.ok) {
         const errJson = await intentRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || 'Failed to initialize payment intent');
+        throw new Error(errJson.error?.code === 'PAYMENT_SETUP_REQUIRED' ? t.paymentSetupRequired : errJson.error?.message || 'Failed to initialize payment intent');
       }
 
       const intentData = await intentRes.json();
 
-      const instRes = await fetch(`/api/customer/v1/payments/intents/${intentData.id}/bank-instruction?context_id=${active.context_id}`);
+      const instRes = await fetch(`/api/customer/v1/payments/intents/${intentData.payment_intent_id}/bank-instruction?context_id=${active.context_id}`);
       if (!instRes.ok) {
         const errJson = await instRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || 'Failed to generate bank transfer instruction');
+        throw new Error(errJson.error?.code === 'PAYMENT_DESTINATION_UNAVAILABLE' ? t.destinationUnavailable : errJson.error?.message || 'Failed to generate bank transfer instruction');
       }
 
       const instData = await instRes.json();
@@ -1818,8 +1824,8 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                   </p>
                 </div>
 
-                {/* EPC QR Code Instruction Box */}
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                {/* EPC QR applies to euro SEPA transfers only. */}
+                {payInstruction.epc_qr_payload && <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                     <QrCode className="h-5 w-5 text-emerald-600" />
                     <span>EPC QR Code (SEPA EPC069-12)</span>
@@ -1828,7 +1834,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                   <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-3 font-mono text-[11px] text-slate-100 select-all">
                     {payInstruction.epc_qr_payload}
                   </pre>
-                </div>
+                </div>}
               </div>
             ) : selectedPayTab === 'card' ? (
               <div className="mt-8 rounded-2xl border border-blue-200 bg-blue-50/50 p-6 text-center">
