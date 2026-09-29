@@ -9,6 +9,7 @@ import {
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
 import { UnitInvitationContinuation, type ClaimableUnitInvitation } from '@/components/auth/UnitInvitationContinuation';
 import { UnitInvitationAccountSetup } from '@/components/auth/UnitInvitationAccountSetup';
+import { PropertyManagerInvitationContinuation, type ClaimablePropertyManagerInvitation } from '@/components/auth/PropertyManagerInvitationContinuation';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import type { Language } from '@/types';
@@ -66,6 +67,7 @@ export default async function InvitationContinuationPage(props: {
   const { lang } = await props.params;
   let invitations: ClaimableWorkspaceInvitation[] = [];
   let unitInvitations: ClaimableUnitInvitation[] = [];
+  let propertyManagerInvitations: ClaimablePropertyManagerInvitation[] = [];
   let needsMfa = false;
 
   if (isSupabaseConfigured()) {
@@ -86,7 +88,12 @@ export default async function InvitationContinuationPage(props: {
       if (!unitError && Array.isArray(unitData)) {
         unitInvitations = unitData as ClaimableUnitInvitation[];
       }
-      if (invitations.length === 0 && unitInvitations.length === 0) {
+      const { data: managerData, error: managerError } = await supabase.schema('customer_api')
+        .rpc('list_my_property_manager_invitations_v1' as never);
+      if (!managerError && Array.isArray(managerData)) {
+        propertyManagerInvitations = managerData as ClaimablePropertyManagerInvitation[];
+      }
+      if (invitations.length === 0 && unitInvitations.length === 0 && propertyManagerInvitations.length === 0) {
         const { data: reviewer, error: reviewerError } = await supabase
           .schema('customer_api')
           .rpc('my_pilot_setup_reviewer_v1');
@@ -101,12 +108,14 @@ export default async function InvitationContinuationPage(props: {
   return (
     <main dir={lang === 'fa' ? 'rtl' : 'ltr'} className="flex min-h-screen items-center justify-center bg-[#F6F9FC] px-4 pb-24 pt-32">
       <div className="w-full max-w-lg">
-        {needsMfa && unitInvitations.length ? (
+        {needsMfa && (unitInvitations.length || propertyManagerInvitations.length) ? (
           <UnitInvitationAccountSetup lang={lang} />
         ) : invitations.length ? (
           <WorkspaceInvitationContinuation lang={lang} invitations={invitations} />
         ) : unitInvitations.length ? (
           <UnitInvitationContinuation lang={lang} invitations={unitInvitations} />
+        ) : propertyManagerInvitations.length ? (
+          <PropertyManagerInvitationContinuation lang={lang} invitations={propertyManagerInvitations} />
         ) : (
           <Unavailable lang={lang} />
         )}
