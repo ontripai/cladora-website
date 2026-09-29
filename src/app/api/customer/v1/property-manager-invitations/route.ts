@@ -7,9 +7,12 @@ import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 
 const headers = { 'Cache-Control': 'no-store, private', Vary: 'Cookie' };
+// PostgreSQL accepts any canonical 128-bit UUID. Some deterministic test contexts
+// use non-RFC version/variant bits, so z.uuid() is too restrictive here.
+const postgresUuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 
 export async function GET(request: NextRequest) {
-  const parsed = z.object({ context_id: z.uuid(), property_id: z.uuid().optional() }).safeParse({
+  const parsed = z.object({ context_id: postgresUuid, property_id: z.uuid().optional() }).safeParse({
     context_id: request.nextUrl.searchParams.get('context_id'),
     property_id: request.nextUrl.searchParams.get('property_id') ?? undefined,
   });
@@ -31,7 +34,7 @@ export async function POST(request: NextRequest) {
   if (!isApplicationJson(request.headers.get('content-type'))) return NextResponse.json({ error: 'UNSUPPORTED_MEDIA_TYPE' }, { status: 415, headers });
   const { data: raw, errorResponse } = await parseJsonWithLimit<unknown>(request, 2048);
   if (errorResponse) return errorResponse;
-  const parsed = z.object({ context_id: z.uuid(), property_id: z.uuid(), email: z.email().max(320), lang: z.enum(['ro', 'en', 'fa']).default('ro') }).strict().safeParse(raw);
+  const parsed = z.object({ context_id: postgresUuid, property_id: z.uuid(), email: z.email().max(320), lang: z.enum(['ro', 'en', 'fa']).default('ro') }).strict().safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: 'INVALID_REQUEST' }, { status: 400, headers });
   const db = await createClient();
   const claims = await db.auth.getClaims();
@@ -64,7 +67,7 @@ export async function DELETE(request: NextRequest) {
   if (!isApplicationJson(request.headers.get('content-type'))) return NextResponse.json({ error: 'UNSUPPORTED_MEDIA_TYPE' }, { status: 415, headers });
   const { data: raw, errorResponse } = await parseJsonWithLimit<unknown>(request, 1024);
   if (errorResponse) return errorResponse;
-  const parsed = z.object({ context_id: z.uuid(), invitation_id: z.uuid() }).strict().safeParse(raw);
+  const parsed = z.object({ context_id: postgresUuid, invitation_id: z.uuid() }).strict().safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: 'INVALID_REQUEST' }, { status: 400, headers });
   const db = await createClient();
   const claims = await db.auth.getClaims();
