@@ -4,6 +4,7 @@ import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 import { updateBillRequestSchema } from "@/lib/customer/billing-schema";
 import { mapBillingRpcError } from "../route";
+import { restrictResidentBilling } from "@/lib/customer/billing-visibility";
 
 const HEADERS = {
   "Cache-Control": "no-store, private",
@@ -41,7 +42,7 @@ export async function GET(
     return NextResponse.json(body, { status, headers: HEADERS });
   }
 
-  const res = data as any;
+  const res = restrictResidentBilling(data as any);
   const invoice = res?.invoices?.[0] ?? null;
   if (!invoice) {
     return NextResponse.json({ error: { code: "NOT_FOUND" } }, { status: 404, headers: HEADERS });

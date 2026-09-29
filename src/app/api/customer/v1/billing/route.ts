@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 import { createBillRequestSchema, queryBillingSchema } from "@/lib/customer/billing-schema";
+import { restrictResidentBilling } from "@/lib/customer/billing-visibility";
 
 const HEADERS = {
   'Cache-Control':'no-store, private',
@@ -70,7 +71,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(body, { status, headers: HEADERS });
   }
 
-  return NextResponse.json(data, { headers: HEADERS });
+  return NextResponse.json(restrictResidentBilling(data as any), { headers: HEADERS });
 }
 
 export async function POST(request: NextRequest) {
