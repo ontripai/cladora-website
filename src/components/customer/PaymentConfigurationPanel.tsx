@@ -13,6 +13,8 @@ type Beneficiary = {
   currency: string;
   version: number;
   property_id?: string | null;
+  can_approve?: boolean;
+  can_reject?: boolean;
 };
 type Configuration = {
   payment_allocation_policy: { strategy: string; min_partial_amount: number; version: number } | null;
@@ -29,6 +31,7 @@ const words = {
     iban: 'IBAN complet', newAccount: 'Adaugă cont pentru verificare', submit: 'Trimite la aprobare',
     approve: 'Aprobă', reject: 'Respinge', refresh: 'Actualizează',
     secondPerson: 'Aprobarea necesită un alt administrator cu autentificare în doi pași.',
+    awaitingOther: 'În așteptarea deciziei unui alt administrator.',
     testWarning: 'Un cont de test sau fără IBAN complet verificat nu poate fi folosit pentru transfer.',
     noAccount: 'Nu există un cont beneficiar activ. Instrucțiunile de transfer nu sunt disponibile.',
     error: 'Configurarea nu a putut fi încărcată.', saving: 'Se salvează…',
@@ -42,6 +45,7 @@ const words = {
     iban: 'Full IBAN', newAccount: 'Add account for review', submit: 'Send for approval',
     approve: 'Approve', reject: 'Reject', refresh: 'Refresh',
     secondPerson: 'A different administrator with two factor authentication must approve.',
+    awaitingOther: 'Waiting for a different administrator to review.',
     testWarning: 'A test account or one without a verified full IBAN cannot be used for transfer.',
     noAccount: 'No active beneficiary account. Bank transfer instructions are unavailable.',
     error: 'Payment setup could not be loaded.', saving: 'Saving…',
@@ -55,6 +59,7 @@ const words = {
     iban: 'شماره شبای کامل', newAccount: 'ثبت حساب برای بررسی', submit: 'ارسال برای تأیید',
     approve: 'تأیید', reject: 'رد', refresh: 'به‌روزرسانی',
     secondPerson: 'تأیید باید توسط مدیر دیگری با احراز هویت دومرحله‌ای انجام شود.',
+    awaitingOther: 'در انتظار بررسی مدیر دیگری است.',
     testWarning: 'حساب آزمایشی یا بدون شبای کامل تأییدشده برای انتقال وجه قابل استفاده نیست.',
     noAccount: 'حساب مقصد فعالی وجود ندارد؛ دستور انتقال بانکی در دسترس نیست.',
     error: 'تنظیمات پرداخت بارگذاری نشد.', saving: 'در حال ذخیره…',
@@ -110,7 +115,8 @@ export function PaymentConfigurationPanel({ lang, contextId, canManage }: {
       if (action === 'create_draft') setForm({ association_legal_name: '', bank_name: '', iban: '' });
       await refresh();
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : t.error);
+      const message = cause instanceof Error ? cause.message : t.error;
+      setError(message.startsWith('dual_control_violation_') ? t.awaitingOther : message);
     } finally {
       setBusy(false);
     }
@@ -148,7 +154,7 @@ export function PaymentConfigurationPanel({ lang, contextId, canManage }: {
           <div><span className="font-semibold">{account.association_legal_name}</span><span className="ms-2 text-slate-500">{account.bank_name} · {account.masked_iban} · {t[account.status as keyof typeof t] || account.status}</span></div>
           <div className="flex gap-2">
             {account.status === 'draft' && account.masked_iban !== 'TEST-NO-IBAN' && <button type="button" disabled={busy} onClick={() => void act('submit_approval', { beneficiary_id: account.id })} className="rounded-lg border border-teal-700 px-3 py-1.5 text-xs font-semibold text-teal-800 disabled:opacity-50">{t.submit}</button>}
-            {account.status === 'pending_approval' && <><button type="button" disabled={busy} onClick={() => void act('approve', { beneficiary_id: account.id })} className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">{t.approve}</button><button type="button" disabled={busy} onClick={() => void act('reject', { beneficiary_id: account.id })} className="rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-semibold text-rose-700 disabled:opacity-50">{t.reject}</button></>}
+            {account.status === 'pending_approval' && <>{account.can_approve && <button type="button" disabled={busy} onClick={() => void act('approve', { beneficiary_id: account.id })} className="rounded-lg bg-teal-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50">{t.approve}</button>}{account.can_reject && <button type="button" disabled={busy} onClick={() => void act('reject', { beneficiary_id: account.id })} className="rounded-lg border border-rose-300 px-3 py-1.5 text-xs font-semibold text-rose-700 disabled:opacity-50">{t.reject}</button>}{!account.can_approve && !account.can_reject && <span className="text-xs text-slate-500">{t.awaitingOther}</span>}</>}
           </div>
         </li>)}</ul>}
         <form className="mt-5 grid gap-3 sm:grid-cols-4" onSubmit={(event) => { event.preventDefault(); void act('create_draft', { ...form, currency: 'RON' }); }}>
