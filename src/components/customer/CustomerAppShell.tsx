@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   BarChart3,
@@ -10,6 +10,7 @@ import {
   Building2,
   CalendarCheck,
   CreditCard,
+  CircleUserRound,
   FileSpreadsheet,
   FileText,
   Gauge,
@@ -62,6 +63,7 @@ const copy = {
     context: "Context activ",
     empty: "Nu există niciun context activ alocat.",
     secure: "Context verificat de server",
+    profile: "Profilul meu",
   },
   en: {
     dashboard: "Dashboard",
@@ -88,6 +90,7 @@ const copy = {
     context: "Active context",
     empty: "No active assigned context is available.",
     secure: "Server-verified context",
+    profile: "My profile",
   },
   fa: {
     dashboard: "داشبورد",
@@ -114,6 +117,7 @@ const copy = {
     context: "زمینه فعال",
     empty: "هیچ زمینه تخصیص‌یافته فعالی وجود ندارد.",
     secure: "زمینه تأییدشده توسط سرور",
+    profile: "پروفایل من",
   },
 };
 
@@ -126,6 +130,17 @@ function Shell({
 }) {
   const state = useCustomerContext();
   const t = copy[lang];
+  const [profileName, setProfileName] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => { void fetch("/api/customer/v1/profile", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<{ display_name: string }> : null)
+      .then((profile) => { if (!cancelled && profile) setProfileName(profile.display_name); })
+      .catch(() => {}); };
+    load();
+    window.addEventListener("cladora:profile-updated", load);
+    return () => { cancelled = true; window.removeEventListener("cladora:profile-updated", load); };
+  }, []);
 
   const permissions = state.dashboard?.permissions ?? [];
   const entitlements = state.dashboard?.entitlements ?? [];
@@ -224,6 +239,10 @@ function Shell({
           </label>
         </div>
         <div className="flex items-center gap-2">
+          <Link href={`/${lang}/profile`} aria-label={t.profile} className="flex min-w-0 items-center gap-2 rounded-xl border border-[#E2E8F0] px-2 py-1.5 text-xs font-semibold text-[#102A43] hover:bg-[#F1F5F9]">
+            <CircleUserRound className="h-5 w-5 shrink-0 text-[#0E9F8E]" />
+            <span className="hidden max-w-32 truncate sm:block">{profileName || t.profile}</span>
+          </Link>
           <button
             type="button"
             onClick={state.refresh}
@@ -278,6 +297,7 @@ function Shell({
                 </Link>
               );
             })}
+            <Link href={`/${lang}/profile`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"><CircleUserRound className="h-4 w-4 text-[#0E9F8E]" />{t.profile}</Link>
             {(roleCode === 'association_admin' || roleCode === 'property_manager') && <Link href={`/${lang}/owner-link-review`} className="block rounded-xl px-3 py-2.5 text-xs font-bold text-teal-800">{lang === 'fa' ? 'بررسی اتصال واحد مالکان' : 'Review owner unit links'}</Link>}
           </nav>
           <div className="mt-6 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs text-[#0A6E62]">

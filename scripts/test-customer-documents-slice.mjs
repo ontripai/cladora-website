@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { zipSync, strToU8 } from "fflate";
 import { inspectMagicBytes } from "../src/lib/customer/documents-api-helper.ts";
 import { processUploadStream } from "../src/lib/customer/documents-stream-handler.ts";
 
@@ -186,6 +187,31 @@ assert.deepEqual(inspectMagicBytes(shSample), { success: false, reason: "executa
 // 10. Generic archive rejection
 const zipSample = Buffer.from([0x50, 0x4b, 0x03, 0x04, 0x14, 0x00]);
 assert.deepEqual(inspectMagicBytes(zipSample), { success: false, reason: "unsupported_archive_format_rejected" });
+
+// Office archives can put [Content_Types].xml first; filenames in the central
+// directory distinguish a spreadsheet from a Word document regardless of order.
+const xlsxSample = Buffer.from(zipSync({
+  "[Content_Types].xml": strToU8("<Types/>"),
+  "xl/workbook.xml": strToU8("<workbook/>"),
+  "xl/worksheets/sheet1.xml": strToU8("<worksheet/>"),
+}));
+assert.deepEqual(inspectMagicBytes(xlsxSample), { success: true, mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+const fragmentedXlsx = new ReadableStream({
+  start(controller) {
+    controller.enqueue(xlsxSample.subarray(0, 3));
+    controller.enqueue(xlsxSample.subarray(3));
+    controller.close();
+  },
+});
+const { result: sheetResult } = await processUploadStream(fragmentedXlsx, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 200 * 1024);
+assert.equal(sheetResult.detectedMime, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+const macroSample = Buffer.from(zipSync({
+  "[Content_Types].xml": strToU8("<Types/>"), "xl/workbook.xml": strToU8("<workbook/>"),
+  "xl/vbaProject.bin": new Uint8Array([1, 2]),
+}));
+assert.deepEqual(inspectMagicBytes(macroSample), { success: false, reason: "unsupported_archive_format_rejected" });
+const legacyOffice = Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]);
+assert.deepEqual(inspectMagicBytes(legacyOffice, "application/vnd.ms-excel"), { success: true, mime: "application/vnd.ms-excel" });
 
 console.log("  ✓ Magic byte inspection correctly identifies safe document types.");
 console.log("  ✓ Active content (SVG, HTML, scripts, executables, archives) strictly rejected.");

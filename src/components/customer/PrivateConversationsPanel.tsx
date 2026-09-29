@@ -15,6 +15,12 @@ type Attachable = { id: string; version_id: string; title: string };
 type Unread = { conversation_id: string; unread_count: number };
 type PendingFile = { conversationId: string; documentId: string; versionId: string; requestId: string; createdAt: number };
 
+const fileMimes: Record<string, string> = {
+  pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp",
+  txt: "text/plain", doc: "application/msword", docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  xls: "application/vnd.ms-excel", xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+};
+
 const pendingKey = (membershipId: string, contextId: string) => `cladora:private-files:${membershipId}:${contextId}`;
 function readPendingFiles(key: string): PendingFile[] {
   try {
@@ -33,9 +39,9 @@ async function post(url: string, body: Record<string, string>) {
 }
 
 const words = {
-  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează documentul", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Selectați un document deja aprobat pentru ambele persoane.", upload: "Trimite fișier", scanning: "Fișierul a fost încărcat. Se verifică înainte de partajare; puteți reveni mai târziu…", uploadBusy: "Se încarcă…", refresh: "Actualizează lista documentelor", files: "Folosește un document din seif", write: "Scrieți un mesaj…", you: "Dumneavoastră", chooseConversation: "Alegeți o conversație sau începeți una nouă.", attached: "Fișierul a fost verificat și atașat conversației.", pending: "Verificarea continuă. Deschideți documentele din seif mai târziu pentru a atașa fișierul aprobat.", uploadError: "Fișierul nu a putut fi atașat. Verificați dimensiunea (maxim 200 KB) și accesul, apoi încercați din nou.", fileLimit: "Maximum 200 KB per fișier · mesajul nu este necesar", cancel: "Anulează", firstMessage: "Trimiteți mai întâi un mesaj, apoi atașați fișierul." },
-  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share document", download: "Download document", read: "Mark as read", vault: "Choose a document already approved for both participants.", upload: "Send file", scanning: "File uploaded. Checking it before sharing; you can come back later…", uploadBusy: "Uploading…", refresh: "Refresh documents", files: "Use a vault document", write: "Write a message…", you: "You", chooseConversation: "Choose a conversation or start a new one.", attached: "File checked and attached to the conversation.", pending: "The check is still running. Open vault documents later to attach the approved file.", uploadError: "Could not attach the file. Check its size (200 KB maximum) and access, then try again.", fileLimit: "200 KB per file · no message required", cancel: "Cancel", firstMessage: "Send a message first, then attach your file." },
-  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری سند", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سندی را انتخاب کنید که برای هر دو طرف مجوز مشاهده دارد.", upload: "ارسال فایل", scanning: "فایل بارگذاری شد؛ در حال بررسی است؛ می‌توانید بعداً به گفت‌وگو برگردید…", uploadBusy: "در حال بارگذاری…", refresh: "به‌روزرسانی فهرست اسناد", files: "استفاده از سند خزانه", write: "پیام خود را بنویسید…", you: "شما", chooseConversation: "یک گفت‌وگو انتخاب کنید یا گفت‌وگوی جدیدی آغاز کنید.", attached: "فایل بررسی و به گفتگو پیوست شد.", pending: "بررسی فایل هنوز ادامه دارد. بعداً از بخش اسناد خزانه، فایل تأییدشده را پیوست کنید.", uploadError: "پیوست فایل انجام نشد. حجم آن (حداکثر ۲۰۰ کیلوبایت) و دسترسی را بررسی و دوباره تلاش کنید.", fileLimit: "هر فایل حداکثر ۲۰۰ کیلوبایت؛ نوشتن پیام لازم نیست", cancel: "انصراف", firstMessage: "ابتدا یک پیام بفرستید و سپس فایل را پیوست کنید." },
+  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează documentul", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Selectați un document deja aprobat pentru ambele persoane.", upload: "Trimite fișier", scanning: "Fișierul a fost încărcat. Se verifică înainte de partajare; puteți reveni mai târziu…", uploadBusy: "Se încarcă…", refresh: "Actualizează lista documentelor", files: "Folosește un document din seif", write: "Scrieți un mesaj…", you: "Dumneavoastră", chooseConversation: "Alegeți o conversație sau începeți una nouă.", attached: "Fișierul a fost verificat și atașat conversației.", pending: "Verificarea continuă. Deschideți documentele din seif mai târziu pentru a atașa fișierul aprobat.", uploadError: "Fișierul nu a putut fi atașat. Verificați dimensiunea (maxim 200 KB) și accesul, apoi încercați din nou.", fileLimit: "Maximum 200 KB per fișier · mesajul nu este necesar", invalidFile: "Fișierul nu este acceptat sau este deteriorat. Alegeți PDF, imagine, text, Word sau Excel.", tooLarge: "Fișierul depășește limita de 200 KB.", cancel: "Anulează", firstMessage: "Trimiteți mai întâi un mesaj, apoi atașați fișierul." },
+  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share document", download: "Download document", read: "Mark as read", vault: "Choose a document already approved for both participants.", upload: "Send file", scanning: "File uploaded. Checking it before sharing; you can come back later…", uploadBusy: "Uploading…", refresh: "Refresh documents", files: "Use a vault document", write: "Write a message…", you: "You", chooseConversation: "Choose a conversation or start a new one.", attached: "File checked and attached to the conversation.", pending: "The check is still running. Open vault documents later to attach the approved file.", uploadError: "Could not attach the file. Check its size (200 KB maximum) and access, then try again.", fileLimit: "200 KB per file · no message required", invalidFile: "This file is unsupported or damaged. Choose a PDF, image, text, Word or Excel file.", tooLarge: "This file exceeds 200 KB.", cancel: "Cancel", firstMessage: "Send a message first, then attach your file." },
+  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری سند", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سندی را انتخاب کنید که برای هر دو طرف مجوز مشاهده دارد.", upload: "ارسال فایل", scanning: "فایل بارگذاری شد؛ در حال بررسی است؛ می‌توانید بعداً به گفت‌وگو برگردید…", uploadBusy: "در حال بارگذاری…", refresh: "به‌روزرسانی فهرست اسناد", files: "استفاده از سند خزانه", write: "پیام خود را بنویسید…", you: "شما", chooseConversation: "یک گفت‌وگو انتخاب کنید یا گفت‌وگوی جدیدی آغاز کنید.", attached: "فایل بررسی و به گفتگو پیوست شد.", pending: "بررسی فایل هنوز ادامه دارد. بعداً از بخش اسناد خزانه، فایل تأییدشده را پیوست کنید.", uploadError: "پیوست فایل انجام نشد. حجم آن (حداکثر ۲۰۰ کیلوبایت) و دسترسی را بررسی و دوباره تلاش کنید.", fileLimit: "هر فایل حداکثر ۲۰۰ کیلوبایت؛ نوشتن پیام لازم نیست", invalidFile: "نوع فایل پشتیبانی نمی‌شود یا فایل آسیب دیده است. PDF، تصویر، متن، Word یا Excel انتخاب کنید.", tooLarge: "حجم فایل بیش از ۲۰۰ کیلوبایت است.", cancel: "انصراف", firstMessage: "ابتدا یک پیام بفرستید و سپس فایل را پیوست کنید." },
 } satisfies Record<Language, Record<string, string>>;
 
 async function readArray<T>(url: string): Promise<T[]> {
@@ -222,18 +228,19 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
   async function upload(file: File) {
     const conversationId = selectedId;
     if (!contextId || !conversationId) { setUploadStatus(t.uploadError); return; }
-    if (file.size > 200 * 1024) { setUploadStatus(t.uploadError); return; }
+    if (file.size > 200 * 1024) { setUploadStatus(t.tooLarge); return; }
+    const declaredMime = fileMimes[file.name.split(".").at(-1)?.toLowerCase() ?? ""];
+    if (!declaredMime) { setUploadStatus(t.invalidFile); return; }
     setUploadBusy(true); setUploadStatus(t.uploadBusy);
     try {
       const uploadContext = await fetch(`/api/customer/v1/private-conversations/${conversationId}/upload-context?context_id=${encodeURIComponent(contextId)}`, { cache: "no-store" });
       if (!uploadContext.ok) throw new Error(String(uploadContext.status));
       const { property_id: propertyId } = await uploadContext.json() as { property_id: string };
-      const declaredMime = file.type || "application/pdf";
       const intentResponse = await fetch("/api/customer/v1/documents/upload-intent", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context_id: contextId, filename: file.name, declared_mime: declaredMime, size_bytes: file.size }),
       });
-      if (!intentResponse.ok) throw new Error(String(intentResponse.status));
+      if (!intentResponse.ok) throw new Error(intentResponse.status === 400 ? "INVALID_FILE" : String(intentResponse.status));
       const intent = await intentResponse.json() as { intent_id: string; object_path: string };
       if (!intent.intent_id || !intent.object_path) throw new Error("Missing upload intent path");
       const form = new FormData();
@@ -243,7 +250,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
       form.append("classification", "confidential"); form.append("declared_mime", declaredMime);
       form.append("property_id", propertyId); form.append("file", file);
       const uploadResponse = await fetch("/api/customer/v1/documents/upload", { method: "POST", body: form });
-      if (!uploadResponse.ok) throw new Error(String(uploadResponse.status));
+      if (!uploadResponse.ok) throw new Error(uploadResponse.status === 400 ? "INVALID_FILE" : String(uploadResponse.status));
       const uploaded = await uploadResponse.json() as { document_id: string; version_id: string };
       if (!uploaded.document_id || !uploaded.version_id) throw new Error("Missing document version");
       updatePendingFiles((current) => [...current, {
@@ -251,7 +258,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
         requestId: crypto.randomUUID(), createdAt: Date.now(),
       }]);
       setUploadStatus(t.scanning);
-    } catch { setUploadStatus(t.uploadError); } finally { setUploadBusy(false); }
+    } catch (error) { setUploadStatus(error instanceof Error && error.message === "INVALID_FILE" ? t.invalidFile : t.uploadError); } finally { setUploadBusy(false); }
   }
 
   async function submit(url: string, body: Record<string, string>) {
