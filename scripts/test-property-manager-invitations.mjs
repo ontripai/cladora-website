@@ -12,10 +12,10 @@ assert.match(sql, /revoke all on communications\.property_manager_invitations fr
 assert.match(sql, /status text not null default 'pending' check \(status in \('pending','accepted','revoked','expired'\)\)/i, 'Invitation lifecycle is constrained');
 assert.match(sql, /default \(statement_timestamp\(\)\+interval '72 hours'\)/i, 'Invitations expire after 72 hours');
 assert.match(sql, /coalesce\(auth\.jwt\(\)->>'aal','aal1'\)='aal2'/i, 'Invitation management requires MFA');
-assert.match(sql, /c\.workspace_id=w\.id/i, 'Authorization binds the selected workspace to the supplied context');
-assert.match(sql, /lower\(c\.role_code\) in \('association_admin','property_manager'\)/i, 'Only authorized workspace roles can invite managers');
-assert.match(sql, /c\.scope_type='property' and c\.property_id=p_property/i, 'Property managers are restricted to their own property');
-assert.match(sql, /c\.scope_type='building' and exists/i, 'Building managers can invite only within their building property');
+assert.match(sql, /w\.id=p_workspace[\s\S]{0,100}w\.tenant_id=g\.tenant_id/i, 'Authorization binds the selected workspace to the supplied context');
+assert.match(sql, /lower\(r\.code\) in \('association_admin','property_manager'\)/i, 'Only authorized workspace roles can invite managers');
+assert.match(sql, /g\.scope_type='property' and g\.property_id=p_property/i, 'Property managers are restricted to their own property');
+assert.match(sql, /g\.scope_type='building' and exists/i, 'Building managers can invite only within their building property');
 assert.match(sql, /p\.status='active'/i, 'Inactive properties cannot receive invitations');
 assert.match(sql, /email_confirmed_at is not null/i, 'Only verified matching email addresses can claim invitations');
 assert.match(sql, /i\.normalized_email<>v_email/i, 'Invitations cannot be claimed by another email address');

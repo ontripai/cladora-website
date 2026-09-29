@@ -31,23 +31,26 @@ grant all on communications.property_manager_invitations to service_role;
 create function communications.can_manage_property_manager_invites(p_actor uuid,p_context uuid,p_workspace uuid,p_property uuid)
 returns boolean language sql stable security definer set search_path=pg_catalog as $$
   select exists(
-    select 1 from app_private.resolve_workspace_from_customer_context_v1(p_context,false) c
-    join identity.memberships m on m.id=c.membership_id and m.user_id=p_actor
-      and m.tenant_id=c.tenant_id and m.status='active'
+    select 1 from identity.context_grants g
+    join identity.memberships m on m.id=g.membership_id and m.user_id=p_actor
+      and m.tenant_id=g.tenant_id and m.status='active'
       and m.starts_at<=statement_timestamp() and (m.ends_at is null or m.ends_at>statement_timestamp())
+    join identity.roles r on r.id=m.role_id
     join identity.role_permissions rp on rp.role_id=m.role_id and rp.effect='allow'
     join identity.permissions pm on pm.id=rp.permission_id and pm.code='workspace.role.assign'
-    join platform.customer_workspaces w on w.id=p_workspace and c.workspace_id=w.id
-      and w.tenant_id=c.tenant_id and w.lifecycle_status='ACTIVE'
+    join platform.customer_workspaces w on w.id=p_workspace
+      and w.tenant_id=g.tenant_id and w.lifecycle_status='ACTIVE'
     join platform.workspace_property_bindings b on b.customer_workspace_id=w.id and b.tenant_id=w.tenant_id
       and b.property_id=p_property and b.status='active' and b.valid_from<=statement_timestamp()
       and (b.valid_to is null or b.valid_to>statement_timestamp())
     join portfolio.properties p on p.id=b.property_id and p.tenant_id=b.tenant_id and p.status='active'
-    where coalesce(auth.jwt()->>'aal','aal1')='aal2'
-      and lower(c.role_code) in ('association_admin','property_manager')
-      and ((c.scope_type='tenant' and lower(c.role_code)='association_admin')
-        or (c.scope_type='property' and c.property_id=p_property)
-        or (c.scope_type='building' and exists(select 1 from portfolio.buildings x where x.id=c.building_id and x.property_id=p_property)))
+    where g.id=p_context and g.starts_at<=statement_timestamp()
+      and (g.ends_at is null or g.ends_at>statement_timestamp())
+      and coalesce(auth.jwt()->>'aal','aal1')='aal2'
+      and lower(r.code) in ('association_admin','property_manager')
+      and ((g.scope_type='tenant' and lower(r.code)='association_admin')
+        or (g.scope_type='property' and g.property_id=p_property)
+        or (g.scope_type='building' and exists(select 1 from portfolio.buildings x where x.id=g.building_id and x.property_id=p_property)))
   );
 $$;
 revoke all on function communications.can_manage_property_manager_invites(uuid,uuid,uuid,uuid) from public,anon,authenticated;
