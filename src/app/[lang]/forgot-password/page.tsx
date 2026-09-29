@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
 import type { Language } from '@/types';
+import { authCaptchaTemporarilyDisabled } from '@/lib/security/auth-captcha';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -21,8 +22,8 @@ export async function generateMetadata(props: { params: Promise<{ lang: Language
 
 export default async function ForgotPasswordPage(props: { params: Promise<{ lang: Language }> }) {
   const { lang } = await props.params;
-  const captchaSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || undefined;
-  const captchaRequired = process.env.VERCEL_ENV === 'production';
+  const captchaSiteKey = authCaptchaTemporarilyDisabled ? undefined : process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || undefined;
+  const captchaRequired = !authCaptchaTemporarilyDisabled && process.env.VERCEL_ENV === 'production';
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#F6F9FC] px-4 pb-24 pt-32">
