@@ -229,6 +229,7 @@ const copy = {
     copy: 'Copiază',
     generatingInstruction: 'Se generează instrucțiunile de plată…',
     paymentSetupRequired: 'Asociația trebuie să configureze politica de plată și contul beneficiar înainte de generarea instrucțiunilor.',
+    paymentContextUnavailable: 'Accesul la această factură în contextul ales a expirat sau nu este disponibil. Selectați din nou rolul și contactați administratorul dacă problema persistă.',
     destinationUnavailable: 'IBAN-ul complet verificat nu este disponibil. Contactați administratorul asociației.',
   },
   en: {
@@ -326,6 +327,7 @@ const copy = {
     copy: 'Copy',
     generatingInstruction: 'Generating payment instructions…',
     paymentSetupRequired: 'The association must configure its payment policy and beneficiary account before instructions can be generated.',
+    paymentContextUnavailable: 'Access to this invoice in the selected context has expired or is unavailable. Select your role again and contact the administrator if this continues.',
     destinationUnavailable: 'A verified full beneficiary IBAN is unavailable. Contact the association administrator.',
   },
   fa: {
@@ -423,6 +425,7 @@ const copy = {
     copy: 'کپی',
     generatingInstruction: 'در حال تولید دستور پرداخت بانکی…',
     paymentSetupRequired: 'مدیر ساختمان باید سیاست پرداخت و حساب مقصد را تنظیم کند تا دستور پرداخت صادر شود.',
+    paymentContextUnavailable: 'دسترسی به این صورتحساب در نقش انتخابی منقضی شده یا در دسترس نیست. نقش خود را دوباره انتخاب کنید و اگر مشکل ادامه داشت با مدیر ساختمان تماس بگیرید.',
     destinationUnavailable: 'شماره شبای کامل و تأییدشدهٔ مقصد در دسترس نیست. با مدیر ساختمان تماس بگیرید.',
   }
 };
@@ -522,7 +525,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
 
       if (!intentRes.ok) {
         const errJson = await intentRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.code === 'PAYMENT_SETUP_REQUIRED' ? t.paymentSetupRequired : errJson.error?.message || 'Failed to initialize payment intent');
+        throw new Error(errJson.error?.code === 'PAYMENT_SETUP_REQUIRED' ? t.paymentSetupRequired : errJson.error?.code === 'PAYMENT_CONTEXT_UNAVAILABLE' ? t.paymentContextUnavailable : errJson.error?.message || 'Failed to initialize payment intent');
       }
 
       const intentData = await intentRes.json();
@@ -1766,6 +1769,13 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 <RefreshCw className="h-8 w-8 animate-spin text-emerald-600 mb-3" />
                 <p className="text-sm font-medium">{t.generatingInstruction}</p>
               </div>
+            ) : selectedPayTab === 'card' ? (
+              <div className="mt-8 rounded-2xl border border-blue-200 bg-blue-50/50 p-6 text-center">
+                <DollarSign className="mx-auto mb-2 h-10 w-10 text-blue-500" />
+                <h4 className="text-sm font-bold text-blue-900">{t.cardCheckoutTitle}</h4>
+                <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-blue-700">{t.cardDeferredNotice}</p>
+                <button type="button" onClick={() => setSelectedPayTab('bank')} className="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">{t.bankTransferTab}</button>
+              </div>
             ) : payError ? (
               <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">
                 <p className="font-bold">{payError}</p>
@@ -1835,23 +1845,6 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                     {payInstruction.epc_qr_payload}
                   </pre>
                 </div>}
-              </div>
-            ) : selectedPayTab === 'card' ? (
-              <div className="mt-8 rounded-2xl border border-blue-200 bg-blue-50/50 p-6 text-center">
-                <DollarSign className="mx-auto h-10 w-10 text-blue-500 mb-2" />
-                <h4 className="text-sm font-bold text-blue-900">{t.cardCheckoutTitle}</h4>
-                <p className="mt-2 text-xs text-blue-700 leading-relaxed max-w-md mx-auto">
-                  {t.cardDeferredNotice}
-                </p>
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPayTab('bank')}
-                    className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
-                  >
-                    {t.bankTransferTab}
-                  </button>
-                </div>
               </div>
             ) : null}
 
