@@ -13,11 +13,29 @@ type Thread = { id: string; unit_id: string; participants: Recipient[]; messages
 type Attachment = { id: string; message_id: string; title: string };
 type Attachable = { id: string; version_id: string; title: string };
 type Unread = { conversation_id: string; unread_count: number };
+type PendingFile = { conversationId: string; documentId: string; versionId: string; requestId: string; createdAt: number };
+
+const pendingKey = (membershipId: string, contextId: string) => `cladora:private-files:${membershipId}:${contextId}`;
+function readPendingFiles(key: string): PendingFile[] {
+  try {
+    const stored: unknown = JSON.parse(localStorage.getItem(key) || "[]");
+    if (!Array.isArray(stored)) return [];
+    return stored.filter((item): item is PendingFile => item !== null && typeof item === "object"
+      && ["conversationId", "documentId", "versionId", "requestId"].every((field) => typeof item[field] === "string")
+      && typeof item.createdAt === "number" && Number.isFinite(item.createdAt));
+  } catch { return []; }
+}
+
+async function post(url: string, body: Record<string, string>) {
+  const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!response.ok) throw new Error(String(response.status));
+  return response.json() as Promise<{ download_url?: string }>;
+}
 
 const words = {
-  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează documentul", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Selectați un document deja aprobat pentru ambele persoane.", upload: "Trimite fișier", scanning: "Fișierul a fost încărcat. Se verifică înainte de partajare…", uploadBusy: "Se încarcă…", refresh: "Actualizează lista documentelor", files: "Folosește un document din seif", write: "Scrieți un mesaj…", you: "Dumneavoastră", chooseConversation: "Alegeți o conversație sau începeți una nouă.", attached: "Fișierul a fost verificat și atașat conversației.", pending: "Verificarea continuă. Deschideți documentele din seif mai târziu pentru a atașa fișierul aprobat.", uploadError: "Fișierul nu a putut fi atașat. Verificați dimensiunea (maxim 200 KB) și accesul, apoi încercați din nou.", fileLimit: "Maximum 200 KB per fișier · mesajul nu este necesar", cancel: "Anulează", firstMessage: "Trimiteți mai întâi un mesaj, apoi atașați fișierul." },
-  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share document", download: "Download document", read: "Mark as read", vault: "Choose a document already approved for both participants.", upload: "Send file", scanning: "File uploaded. Checking it before sharing…", uploadBusy: "Uploading…", refresh: "Refresh documents", files: "Use a vault document", write: "Write a message…", you: "You", chooseConversation: "Choose a conversation or start a new one.", attached: "File checked and attached to the conversation.", pending: "The check is still running. Open vault documents later to attach the approved file.", uploadError: "Could not attach the file. Check its size (200 KB maximum) and access, then try again.", fileLimit: "200 KB per file · no message required", cancel: "Cancel", firstMessage: "Send a message first, then attach your file." },
-  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری سند", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سندی را انتخاب کنید که برای هر دو طرف مجوز مشاهده دارد.", upload: "ارسال فایل", scanning: "فایل بارگذاری شد؛ پیش از اشتراک‌گذاری در حال بررسی است…", uploadBusy: "در حال بارگذاری…", refresh: "به‌روزرسانی فهرست اسناد", files: "استفاده از سند خزانه", write: "پیام خود را بنویسید…", you: "شما", chooseConversation: "یک گفت‌وگو انتخاب کنید یا گفت‌وگوی جدیدی آغاز کنید.", attached: "فایل بررسی و به گفتگو پیوست شد.", pending: "بررسی فایل هنوز ادامه دارد. بعداً از بخش اسناد خزانه، فایل تأییدشده را پیوست کنید.", uploadError: "پیوست فایل انجام نشد. حجم آن (حداکثر ۲۰۰ کیلوبایت) و دسترسی را بررسی و دوباره تلاش کنید.", fileLimit: "هر فایل حداکثر ۲۰۰ کیلوبایت؛ نوشتن پیام لازم نیست", cancel: "انصراف", firstMessage: "ابتدا یک پیام بفرستید و سپس فایل را پیوست کنید." },
+  ro: { title: "Conversații private", back: "Înapoi la comunicări", new: "Conversație nouă", unit: "Unitate", recipient: "Destinatar", body: "Mesaj", send: "Trimite", reply: "Răspunde", empty: "Nu există conversații în acest context.", unavailable: "Conversațiile nu sunt disponibile în acest context.", loading: "Se încarcă…", select: "Selectați", more: "Mai multe unități", history: "Istoric mesaje", busy: "Se trimite…", unread: "necitite", document: "Document din seif", attach: "Partajează documentul", download: "Descarcă documentul", read: "Marchează ca citit", vault: "Selectați un document deja aprobat pentru ambele persoane.", upload: "Trimite fișier", scanning: "Fișierul a fost încărcat. Se verifică înainte de partajare; puteți reveni mai târziu…", uploadBusy: "Se încarcă…", refresh: "Actualizează lista documentelor", files: "Folosește un document din seif", write: "Scrieți un mesaj…", you: "Dumneavoastră", chooseConversation: "Alegeți o conversație sau începeți una nouă.", attached: "Fișierul a fost verificat și atașat conversației.", pending: "Verificarea continuă. Deschideți documentele din seif mai târziu pentru a atașa fișierul aprobat.", uploadError: "Fișierul nu a putut fi atașat. Verificați dimensiunea (maxim 200 KB) și accesul, apoi încercați din nou.", fileLimit: "Maximum 200 KB per fișier · mesajul nu este necesar", cancel: "Anulează", firstMessage: "Trimiteți mai întâi un mesaj, apoi atașați fișierul." },
+  en: { title: "Private conversations", back: "Back to communications", new: "New conversation", unit: "Unit", recipient: "Recipient", body: "Message", send: "Send", reply: "Reply", empty: "No conversations in this context.", unavailable: "Conversations are unavailable in this context.", loading: "Loading…", select: "Select", more: "More units", history: "Message history", busy: "Sending…", unread: "unread", document: "Vault document", attach: "Share document", download: "Download document", read: "Mark as read", vault: "Choose a document already approved for both participants.", upload: "Send file", scanning: "File uploaded. Checking it before sharing; you can come back later…", uploadBusy: "Uploading…", refresh: "Refresh documents", files: "Use a vault document", write: "Write a message…", you: "You", chooseConversation: "Choose a conversation or start a new one.", attached: "File checked and attached to the conversation.", pending: "The check is still running. Open vault documents later to attach the approved file.", uploadError: "Could not attach the file. Check its size (200 KB maximum) and access, then try again.", fileLimit: "200 KB per file · no message required", cancel: "Cancel", firstMessage: "Send a message first, then attach your file." },
+  fa: { title: "گفت‌وگوهای خصوصی", back: "بازگشت به ارتباطات", new: "گفت‌وگوی جدید", unit: "واحد", recipient: "گیرنده", body: "پیام", send: "ارسال", reply: "پاسخ", empty: "در این فضای کاری گفت‌وگویی وجود ندارد.", unavailable: "گفت‌وگوها در این فضای کاری در دسترس نیستند.", loading: "در حال بارگذاری…", select: "انتخاب کنید", more: "واحدهای بیشتر", history: "سابقهٔ پیام‌ها", busy: "در حال ارسال…", unread: "خوانده‌نشده", document: "سند از خزانه", attach: "اشتراک‌گذاری سند", download: "دریافت سند", read: "علامت‌گذاری به‌عنوان خوانده‌شده", vault: "سندی را انتخاب کنید که برای هر دو طرف مجوز مشاهده دارد.", upload: "ارسال فایل", scanning: "فایل بارگذاری شد؛ در حال بررسی است؛ می‌توانید بعداً به گفت‌وگو برگردید…", uploadBusy: "در حال بارگذاری…", refresh: "به‌روزرسانی فهرست اسناد", files: "استفاده از سند خزانه", write: "پیام خود را بنویسید…", you: "شما", chooseConversation: "یک گفت‌وگو انتخاب کنید یا گفت‌وگوی جدیدی آغاز کنید.", attached: "فایل بررسی و به گفتگو پیوست شد.", pending: "بررسی فایل هنوز ادامه دارد. بعداً از بخش اسناد خزانه، فایل تأییدشده را پیوست کنید.", uploadError: "پیوست فایل انجام نشد. حجم آن (حداکثر ۲۰۰ کیلوبایت) و دسترسی را بررسی و دوباره تلاش کنید.", fileLimit: "هر فایل حداکثر ۲۰۰ کیلوبایت؛ نوشتن پیام لازم نیست", cancel: "انصراف", firstMessage: "ابتدا یک پیام بفرستید و سپس فایل را پیوست کنید." },
 } satisfies Record<Language, Record<string, string>>;
 
 async function readArray<T>(url: string): Promise<T[]> {
@@ -59,8 +77,26 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
   const [documentId, setDocumentId] = useState("");
   const [uploadStatus, setUploadStatus] = useState("");
   const [uploadBusy, setUploadBusy] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
   const [creating, setCreating] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const pendingStorageKey = contextId && membershipId ? pendingKey(membershipId, contextId) : "";
+
+  useEffect(() => {
+    if (!pendingStorageKey) return;
+    const restore = () => setPendingFiles(readPendingFiles(pendingStorageKey));
+    const timer = window.setTimeout(restore, 0);
+    const onStorage = (event: StorageEvent) => { if (event.key === pendingStorageKey) restore(); };
+    window.addEventListener("storage", onStorage);
+    return () => { window.clearTimeout(timer); window.removeEventListener("storage", onStorage); };
+  }, [pendingStorageKey]);
+
+  const updatePendingFiles = useCallback((change: (current: PendingFile[]) => PendingFile[]) => {
+    if (!pendingStorageKey) return;
+    const next = change(readPendingFiles(pendingStorageKey));
+    localStorage.setItem(pendingStorageKey, JSON.stringify(next));
+    setPendingFiles(next);
+  }, [pendingStorageKey]);
 
   const reload = useCallback(async () => {
     if (!contextId) return;
@@ -75,6 +111,43 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
     setUnread(newUnread);
     setSelectedId((current) => newThreads.some((row) => row.id === current) ? current : newThreads[0]?.id ?? "");
   }, [contextId]);
+
+  // The file is sent as soon as the scanner approves it. Keep this work separate
+  // from the composer so leaving and reopening the page does not lose the file.
+  useEffect(() => {
+    if (!contextId || !pendingStorageKey || pendingFiles.length === 0) return;
+    let cancelled = false;
+    let checking = false;
+    async function checkPending() {
+      if (checking || cancelled) return;
+      checking = true;
+      try {
+        for (const file of pendingFiles) {
+          if (cancelled) break;
+          if (Date.now() - file.createdAt >= 7 * 24 * 60 * 60 * 1000) {
+            updatePendingFiles((current) => current.filter((item) => item.requestId !== file.requestId));
+            setUploadStatus(t.pending);
+            continue;
+          }
+          try {
+            const base = `/api/customer/v1/private-conversations/${file.conversationId}/attachments?context_id=${encodeURIComponent(contextId!)}`;
+            const available = await readArray<Attachable>(`${base}&available=true`);
+            if (!available.some((item) => item.id === file.documentId && item.version_id === file.versionId) || cancelled) continue;
+            await post(`/api/customer/v1/private-conversations/${file.conversationId}/files`, {
+              context_id: contextId!, document_id: file.documentId, version_id: file.versionId, request_id: file.requestId,
+            });
+            updatePendingFiles((current) => current.filter((item) => item.requestId !== file.requestId));
+            if (selectedId === file.conversationId) setUploadStatus(t.attached);
+            await reload();
+            if (selectedId === file.conversationId) setAttachments(await readArray<Attachment>(base));
+          } catch { /* A temporary network or scanner delay is retried on the next check. */ }
+        }
+      } finally { checking = false; }
+    }
+    void checkPending();
+    const timer = window.setInterval(() => void checkPending(), 30000);
+    return () => { cancelled = true; window.clearInterval(timer); };
+  }, [contextId, pendingStorageKey, pendingFiles, reload, selectedId, t, updatePendingFiles]);
 
   useEffect(() => {
     let cancelled = false;
@@ -107,12 +180,6 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
     }).catch(() => { if (!cancelled) setError(true); });
     return () => { cancelled = true; };
   }, [contextId, selectedId, threads]);
-
-  async function post(url: string, body: Record<string, string>) {
-    const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    if (!response.ok) throw new Error(String(response.status));
-    return response.json() as Promise<{ download_url?: string }>;
-  }
 
   async function refreshDocuments() {
     if (!contextId || !selectedId) return;
@@ -178,26 +245,12 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
       const uploadResponse = await fetch("/api/customer/v1/documents/upload", { method: "POST", body: form });
       if (!uploadResponse.ok) throw new Error(String(uploadResponse.status));
       const uploaded = await uploadResponse.json() as { document_id: string; version_id: string };
+      if (!uploaded.document_id || !uploaded.version_id) throw new Error("Missing document version");
+      updatePendingFiles((current) => [...current, {
+        conversationId, documentId: uploaded.document_id, versionId: uploaded.version_id,
+        requestId: crypto.randomUUID(), createdAt: Date.now(),
+      }]);
       setUploadStatus(t.scanning);
-      const base = `/api/customer/v1/private-conversations/${conversationId}/attachments?context_id=${encodeURIComponent(contextId)}`;
-      // Documents become shareable only after the existing server-side scanner marks the version clean.
-      // The trusted scanner runs on a separate scheduled host. Keep following
-      // the upload through at least one full cycle so the clean file attaches.
-      for (let attempt = 0; attempt < 120; attempt++) {
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        const available = await readArray<Attachable>(`${base}&available=true`);
-        const approved = available.find((item) => item.id === uploaded.document_id && item.version_id === uploaded.version_id);
-        if (!approved) continue;
-        await post(`/api/customer/v1/private-conversations/${conversationId}/files`, {
-          context_id: contextId, document_id: approved.id, version_id: approved.version_id,
-          request_id: crypto.randomUUID(),
-        });
-        await reload();
-        if (selectedId === conversationId) setAttachments(await readArray<Attachment>(base));
-        setUploadStatus(t.attached);
-        return;
-      }
-      setUploadStatus(t.pending);
     } catch { setUploadStatus(t.uploadError); } finally { setUploadBusy(false); }
   }
 
@@ -268,7 +321,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
               <button type="submit" disabled={busy || !reply.trim()} className="min-h-12 rounded-xl bg-teal-700 px-4 text-white hover:bg-teal-800 disabled:opacity-50">{busy ? t.busy : t.send}</button>
             </div>
             <p className="mt-2 text-xs text-slate-500">{t.fileLimit}</p>
-            {uploadStatus && <p role="status" className="mt-2 text-sm text-teal-800">{uploadStatus}</p>}
+            {(pendingFiles.some((item) => item.conversationId === selectedId) || uploadStatus) && <p role="status" className="mt-2 text-sm text-teal-800">{pendingFiles.some((item) => item.conversationId === selectedId) ? t.scanning : uploadStatus}</p>}
           </form>
           <details className="border-t border-slate-100 px-4 py-3 sm:px-6"><summary className="cursor-pointer text-sm font-medium text-teal-800">{t.files}</summary>
           <div className="mt-4 space-y-2">
