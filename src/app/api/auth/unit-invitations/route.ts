@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   const result = await db.schema('customer_api').rpc('claim_unit_invitation_v1' as never,
     { p_invitation: input.data.invitation_id, p_display_name: input.data.display_name } as never);
   if (result.error) return NextResponse.json({ error: 'INVITATION_UNAVAILABLE' }, { status: 403, headers });
-  const claim = result.data as unknown as { membership_id: string; unit_id: string };
+  const claim = result.data as unknown as { membership_id: string; unit_id: string; owner_portfolio?: boolean };
   const { data: contexts, error: contextsError } = await db.schema('customer_api').rpc('list_contexts_v1');
   const contextId = !contextsError && Array.isArray(contexts)
     ? claimedUnitContextId(claim, contexts) : null;
