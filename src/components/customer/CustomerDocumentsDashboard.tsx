@@ -68,6 +68,8 @@ const copy = {
     download: "Download",
     downloading: "Authorizing signed download…",
     scannerDeferred: "Scanner: Deferred (Unscanned)",
+    scannerClean: "Scanner: Clean",
+    scannerQuarantined: "Scanner: Quarantined",
     scannerDeferredNotice: "Caution: Malware scanning is deferred. Normal download is blocked. Only admin inspection is authorized.",
     verifiedEvidence: "Verified Statutory Evidence",
     legalHoldActive: "Active Legal Hold (Disposition Frozen)",
@@ -122,6 +124,8 @@ const copy = {
     download: "Descarcă",
     downloading: "Se autorizează descărcarea semnată…",
     scannerDeferred: "Scanare: Amânată (Neinspectat)",
+    scannerClean: "Scanare: Sigur",
+    scannerQuarantined: "Scanare: Carantină",
     scannerDeferredNotice: "Atenție: Scanarea malware este amânată. Descărcarea normală este blocată.",
     verifiedEvidence: "Dovadă Legală Verificată",
     legalHoldActive: "Blocare Juridică Activă",
@@ -176,6 +180,8 @@ const copy = {
     download: "دانلود فایل",
     downloading: "در حال دریافت لینک امن امضاشده…",
     scannerDeferred: "وضعیت پویش: معوق (بررسی‌نشده)",
+    scannerClean: "وضعیت پویش: پاک",
+    scannerQuarantined: "وضعیت پویش: قرنطینه‌شده",
     scannerDeferredNotice: "هشدار: پویش امنیتی فایل معوق است. دانلود عادی مسدود می‌باشد و صرفاً بازرسی مدیر مجاز است.",
     verifiedEvidence: "مدرک معتبر قانونی (Verified Evidence)",
     legalHoldActive: "توقف حقوقی فعال (تغییر و امحا مسدود)",
@@ -200,7 +206,7 @@ const copy = {
 } as const;
 
 const views: View[] = ["documents", "versions", "categories", "retention", "holds", "evidence", "links", "history"];
-const hidden = new Set(["id", "document_id", "entity_id"]);
+const hidden = new Set(["id", "document_id", "entity_id", "scanning_status"]);
 
 function display(value: unknown) {
   if (value === null || value === undefined || value === "") return "—";
@@ -635,11 +641,12 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                             {t.legalHoldActive}
                           </span>
                         )}
-                        {/* Fail-closed Deferred Scanner Badge (amber tone, never green) */}
-                        <span className="rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 flex items-center gap-1">
-                          <ShieldAlert className="h-3 w-3 text-amber-600" />
-                          {t.scannerDeferred}
-                        </span>
+                        {view === "documents" ? (
+                          <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1 ${row.scanning_status === "clean" ? "border-emerald-300 bg-emerald-50 text-emerald-800" : row.scanning_status === "quarantined" ? "border-red-300 bg-red-50 text-red-800" : "border-amber-300 bg-amber-50 text-amber-800"}`}>
+                            <ShieldAlert className="h-3 w-3" />
+                            {row.scanning_status === "clean" ? t.scannerClean : row.scanning_status === "quarantined" ? t.scannerQuarantined : t.scannerDeferred}
+                          </span>
+                        ) : null}
                       </div>
 
                       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-[#64748B]">
