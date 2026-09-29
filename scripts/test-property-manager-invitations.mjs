@@ -4,6 +4,9 @@ import fs from 'node:fs';
 const migrationPath = 'supabase/migrations/20260929172509_property_scoped_property_manager_invitations_v1.sql';
 assert.ok(fs.existsSync(migrationPath), 'Property manager invitation migration exists');
 const sql = fs.readFileSync(migrationPath, 'utf8');
+const multiWorkspaceMigrationPath = 'supabase/migrations/20260929184000_property_manager_invitation_mult_workspace_admin_v1.sql';
+assert.ok(fs.existsSync(multiWorkspaceMigrationPath), 'Multi-workspace admin invitation fix migration exists');
+const multiWorkspaceSql = fs.readFileSync(multiWorkspaceMigrationPath, 'utf8');
 assert.match(sql, /^begin;/m, 'Migration is transactional');
 assert.match(sql, /^commit;/m, 'Migration commits');
 assert.match(sql, /create table communications\.property_manager_invitations/i, 'Invitation records are stored separately');
@@ -36,4 +39,9 @@ for (const fn of [
   assert.match(sql, new RegExp(`function customer_api\\.${fn}`, 'i'), `${fn} is exposed through customer_api`);
   assert.match(sql, new RegExp(`grant execute on function customer_api\\.[\\s\\S]*?${fn}`, 'i'), `${fn} is executable by authenticated users`);
 }
+assert.match(multiWorkspaceSql, /create or replace function customer_api\.list_invitable_manager_properties_v1/i, 'Property choices are resolved across all active workspaces in scope');
+assert.match(multiWorkspaceSql, /from platform\.workspace_property_bindings b[\s\S]*?can_manage_property_manager_invites\(auth\.uid\(\),p_context,w\.id,p\.id\)/i, 'Property listing validates each property against the actual context');
+assert.doesNotMatch(multiWorkspaceSql, /resolve_workspace_from_customer_context_v1/i, 'Tenant-wide admins are not forced through single-workspace resolution');
+assert.match(multiWorkspaceSql, /create or replace function customer_api\.create_property_manager_invitation_v1[\s\S]*?from identity\.context_grants g[\s\S]*?can_manage_property_manager_invites\(v_actor,p_context,w\.id,p\.id\)/i, 'Multi-workspace invitation creation is still scoped to the caller context and property');
+assert.match(multiWorkspaceSql, /create or replace function customer_api\.list_managed_property_manager_invitations_v1/i, 'Pending invitations resolve through the selected bound property');
 console.log('Property manager invitation security contract passed.');

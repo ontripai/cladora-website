@@ -15,6 +15,8 @@ const copy = {
 export function PropertyManagerInvitationsPanel({ lang }: { lang: Language }) {
   const { active } = useCustomerContext();
   const t = copy[lang];
+  const contextId = active?.context_id;
+  const canInvite = Boolean(active && ['association_admin', 'property_manager'].includes(active.role_code));
   const [properties, setProperties] = useState<Property[]>([]);
   const [propertyId, setPropertyId] = useState('');
   const [email, setEmail] = useState('');
@@ -23,19 +25,23 @@ export function PropertyManagerInvitationsPanel({ lang }: { lang: Language }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!active || !['association_admin', 'property_manager'].includes(active.role_code)) return;
-    void fetch(`/api/customer/v1/property-manager-invitations?context_id=${encodeURIComponent(active.context_id)}`, { cache: 'no-store' })
+    if (!contextId || !canInvite) return;
+    let cancelled = false;
+    void fetch(`/api/customer/v1/property-manager-invitations?context_id=${encodeURIComponent(contextId)}`, { cache: 'no-store' })
       .then(async response => { if (!response.ok) throw new Error(); return response.json() as Promise<Property[]>; })
-      .then(rows => { setProperties(rows); setPropertyId(current => rows.some(row => row.id === current) ? current : rows[0]?.id ?? ''); })
-      .catch(() => setStatus(t.failed));
-  }, [active, t.failed]);
+      .then(rows => { if (cancelled) return; setProperties(rows); setPropertyId(rows[0]?.id ?? ''); setStatus(''); })
+      .catch(() => { if (cancelled) return; setProperties([]); setPropertyId(''); setPending([]); setStatus(t.failed); });
+    return () => { cancelled = true; };
+  }, [canInvite, contextId, t.failed]);
 
   useEffect(() => {
-    if (!active || !propertyId) return;
-    void fetch(`/api/customer/v1/property-manager-invitations?context_id=${encodeURIComponent(active.context_id)}&property_id=${encodeURIComponent(propertyId)}`, { cache: 'no-store' })
+    if (!contextId || !propertyId) return;
+    let cancelled = false;
+    void fetch(`/api/customer/v1/property-manager-invitations?context_id=${encodeURIComponent(contextId)}&property_id=${encodeURIComponent(propertyId)}`, { cache: 'no-store' })
       .then(async response => { if (!response.ok) throw new Error(); return response.json() as Promise<Pending[]>; })
-      .then(setPending).catch(() => setPending([]));
-  }, [active, propertyId]);
+      .then(rows => { if (!cancelled) setPending(rows); }).catch(() => { if (!cancelled) setPending([]); });
+    return () => { cancelled = true; };
+  }, [contextId, propertyId]);
 
   if (!active || !['association_admin', 'property_manager'].includes(active.role_code)) return null;
   async function submit(event: React.FormEvent<HTMLFormElement>) {
