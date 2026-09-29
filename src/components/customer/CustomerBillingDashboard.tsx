@@ -1281,7 +1281,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
             </div>
 
             {/* Linked Accounting Journal Proof */}
-            {data?.journal && (
+            {!isResidentView && data?.journal && (
               <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold text-blue-900">

@@ -914,7 +914,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {isValidNumber(k.my_units_count) ? `${formatInt(k.my_units_count)} ${t.kpis.myUnits}` : t.sections.myUnits}
               </span>
               <Link
-                href={`/${lang}/app/documents`}
+                href={`/${lang}/app/ownership`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0E9F8E] hover:underline"
               >
                 <span>{t.actions.viewDetails}</span>
@@ -941,7 +941,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <Link
-                href={`/${lang}/app/billing`}
+                href={`/${lang}/app/invoices`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:underline"
               >
                 <span>{t.actions.viewInvoices}</span>
@@ -995,7 +995,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <Link
-                href={`/${lang}/app/billing`}
+                href={`/${lang}/app/invoices`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:underline"
               >
                 <span>{t.actions.viewInvoices}</span>
