@@ -23,8 +23,6 @@ export async function processUploadStream(
 }> {
   const hash = crypto.createHash("sha256");
   let totalBytes = 0;
-  let firstChunk = true;
-  let detectedMime = "";
   const chunks: Uint8Array[] = [];
 
   const handleChunk = (chunk: Uint8Array) => {
@@ -38,22 +36,6 @@ export async function processUploadStream(
     hash.update(chunk);
     chunks.push(chunk);
 
-    if (firstChunk) {
-      firstChunk = false;
-      const inspection = inspectMagicBytes(Buffer.from(chunk.buffer, chunk.byteOffset, chunk.byteLength));
-      if (!inspection.success) {
-        throw new Error(`mime_inspection_failed: ${inspection.reason}`);
-      }
-      detectedMime = inspection.mime;
-
-      if (declaredMime && detectedMime !== declaredMime) {
-        const isDocx = declaredMime.includes("wordprocessingml") && detectedMime.includes("wordprocessingml");
-        const isXlsx = declaredMime.includes("spreadsheetml") && detectedMime.includes("spreadsheetml");
-        if (!isDocx && !isXlsx) {
-          throw new Error(`mime_mismatch_detected: declared=${declaredMime}, detected=${detectedMime}`);
-        }
-      }
-    }
   };
 
   if (typeof stream?.getReader === "function") {
@@ -79,13 +61,19 @@ export async function processUploadStream(
     throw new Error("zero_byte_upload_rejected");
   }
 
+  const inspection = inspectMagicBytes(Buffer.concat(chunks), declaredMime);
+  if (!inspection.success) throw new Error(`mime_inspection_failed: ${inspection.reason}`);
+  if (declaredMime && inspection.mime !== declaredMime) {
+    throw new Error(`mime_mismatch_detected: declared=${declaredMime}, detected=${inspection.mime}`);
+  }
+
   const serverSha256 = hash.digest("hex");
 
   return {
     result: {
       serverSha256,
       totalBytes,
-      detectedMime: detectedMime || declaredMime,
+      detectedMime: inspection.mime,
     },
     chunks,
   };

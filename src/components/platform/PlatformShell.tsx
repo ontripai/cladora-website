@@ -226,6 +226,7 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
 
           {/* Locale & Exit */}
           <div className="flex items-center gap-4">
+            <Link href={`/${lang}/profile`} className="text-xs font-semibold text-emerald-300 hover:underline">{authCtx.platformUser?.display_name || (lang === 'fa' ? 'پروفایل من' : lang === 'ro' ? 'Profilul meu' : 'My profile')}</Link>
             <Link href={`/${lang}/account?choose=1`} className="text-xs text-emerald-300">{lang === 'fa' ? 'انتخاب محیط' : lang === 'ro' ? 'Schimbă spațiul' : 'Switch workspace'}</Link>
             <div className="flex items-center gap-2 text-xs">
               <Link
