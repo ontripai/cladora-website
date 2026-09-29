@@ -28,6 +28,7 @@ import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
 import { BankStatementImportPanel } from './BankStatementImportPanel';
 import { BankMatchingWorkQueue } from './BankMatchingWorkQueue';
+import { PaymentConfigurationPanel } from './PaymentConfigurationPanel';
 
 type View = 'payments' | 'reconciliation';
 
@@ -807,6 +808,8 @@ export function CustomerPaymentsDashboard({
           {t.reconciliation}
         </button>
       </div>
+
+      {view === 'payments' && <PaymentConfigurationPanel key={active.context_id} lang={lang} contextId={active.context_id} canManage={canManage} />}
 
       {/* KPI Cards */}
       {data?.summary && data.summary.length > 0 && (
