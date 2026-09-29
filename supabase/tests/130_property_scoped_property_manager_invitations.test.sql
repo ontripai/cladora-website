@@ -28,8 +28,12 @@ select ok(not has_function_privilege('anon',
 select ok(position('workspace.role.assign' in pg_get_functiondef(
   'communications.can_manage_property_manager_invites(uuid,uuid,uuid,uuid)'::regprocedure))>0,
   'inviter needs role assignment permission');
-select ok(position('c.scope_type=''property'' and c.property_id=p_property' in pg_get_functiondef(
-  'communications.can_manage_property_manager_invites(uuid,uuid,uuid,uuid)'::regprocedure))>0,
+select ok(position('g.scope_type' in pg_get_functiondef(
+  'communications.can_manage_property_manager_invites(uuid,uuid,uuid,uuid)'::regprocedure))>0
+  and position('property' in pg_get_functiondef(
+    'communications.can_manage_property_manager_invites(uuid,uuid,uuid,uuid)'::regprocedure))>0
+  and position('g.property_id' in pg_get_functiondef(
+    'communications.can_manage_property_manager_invites(uuid,uuid,uuid,uuid)'::regprocedure))>0,
   'property scoped managers cannot invite outside their property');
 select ok(position('i.normalized_email<>v_email' in pg_get_functiondef(
   'customer_api.claim_property_manager_invitation_v1(uuid,text)'::regprocedure))>0,

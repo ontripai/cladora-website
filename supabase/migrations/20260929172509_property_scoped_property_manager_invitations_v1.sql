@@ -24,6 +24,20 @@ create unique index property_manager_invitation_pending_unique
   on communications.property_manager_invitations(workspace_id,property_id,normalized_email) where status='pending';
 create index property_manager_invitation_email_idx
   on communications.property_manager_invitations(normalized_email,status,expires_at);
+create index property_manager_invitation_tenant_idx
+  on communications.property_manager_invitations(tenant_id);
+create index property_manager_invitation_property_idx
+  on communications.property_manager_invitations(property_id);
+create index property_manager_invitation_invited_by_idx
+  on communications.property_manager_invitations(invited_by);
+create index property_manager_invitation_inviter_membership_idx
+  on communications.property_manager_invitations(inviter_membership_id);
+create index property_manager_invitation_inviter_context_idx
+  on communications.property_manager_invitations(inviter_context_id);
+create index property_manager_invitation_accepted_by_idx
+  on communications.property_manager_invitations(accepted_by);
+create index property_manager_invitation_accepted_membership_idx
+  on communications.property_manager_invitations(accepted_membership_id);
 alter table communications.property_manager_invitations enable row level security;
 revoke all on communications.property_manager_invitations from public,anon,authenticated;
 grant all on communications.property_manager_invitations to service_role;
