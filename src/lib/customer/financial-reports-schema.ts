@@ -85,6 +85,8 @@ export const currencySummarySchema = snapshotCurrencySummarySchema;
 
 export const reportTotalsSchema = z
   .object({
+    difference: z.number().optional(),
+    is_balanced: z.boolean().optional(),
     total_debit: z.number().optional(),
     total_credit: z.number().optional(),
     total_income: z.number().optional(),
