@@ -1249,7 +1249,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                     ) : (
                       <tr>
                         <td colSpan={5} className="p-4 text-center text-slate-400">
-                          {t.empty}
+                          {loading ? t.loading : error ? t.error : t.empty}
                         </td>
                       </tr>
                     )}
