@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const uuidSchema = z.string().uuid();
+// Database identifiers include deterministic UUIDs with non-RFC version bits.
+export const uuidSchema = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 
 export const occupancyViewEnum = z.enum([
   "parties",
@@ -37,8 +38,8 @@ export const queryOccupancySchema = z.object({
   query: z.string().trim().max(120).optional(),
   status: z.string().trim().max(40).optional(),
   kind: occupancyKindEnum.optional(),
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format").optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format").optional(),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
   offset: z.coerce.number().int().min(0).default(0),
   id: uuidSchema.optional(),
