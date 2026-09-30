@@ -52,6 +52,10 @@ for (const view of ['units', 'occupancies', 'ownerships', 'unit_detail']) {
     assert.equal(calls.length, 0, 'invalid requests cannot reach RPC');
   }
 }
-assert.ok(schemas.createOccupancyRequestSchema.safeParse({context_id: contextId, unit_id: unitId, kind: 'tenant', starts_at: '2026-09-30'}).success);
-assert.ok(!schemas.createOccupancyRequestSchema.safeParse({context_id: contextId, unit_id: 'SYN-UNIT-001', kind: 'tenant', starts_at: '2026-09-30'}).success);
-console.log('PASS occupancy registry: units, occupancies, ownerships, unit detail, PostgreSQL UUIDs and invalid requests');
+const authorizedPartyId = '80000000-0000-0000-0000-000000000008';
+const validTenantOccupancy = {context_id: contextId, unit_id: unitId, kind: 'tenant', starts_at: '2026-09-30', occupant_party_ids: [authorizedPartyId]};
+assert.ok(schemas.createOccupancyRequestSchema.safeParse(validTenantOccupancy).success);
+assert.ok(!schemas.createOccupancyRequestSchema.safeParse({...validTenantOccupancy, occupant_party_ids: []}).success, 'non-empty occupancy requires a linked party');
+assert.ok(!schemas.createOccupancyRequestSchema.safeParse({...validTenantOccupancy, unit_id: 'SYN-UNIT-001'}).success);
+assert.ok(!schemas.createOccupancyRequestSchema.safeParse({...validTenantOccupancy, occupant_party_ids: [authorizedPartyId, authorizedPartyId]}).success, 'party IDs must be unique');
+console.log('PASS occupancy registry and creation contract: views, UUIDs, invalid requests, linked parties and duplicate rejection');
