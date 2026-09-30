@@ -216,7 +216,10 @@ function display(value: unknown) {
 }
 
 export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: Language; initialDocumentId?: string }) {
-  const { active } = useCustomerContext();
+  const { active, dashboard } = useCustomerContext();
+  const permissions = dashboard?.contextId === active?.context_id ? dashboard?.permissions ?? [] : [];
+  const canUpload = permissions.includes("documents.vault.upload");
+  const canHold = permissions.includes("documents.vault.hold");
   const t = copy[lang];
 
   const [view, setView] = useState<View>("documents");
@@ -297,7 +300,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
   // Perform Handshake Upload
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadFile || !active) return;
+    if (!uploadFile || !active || !canUpload) return;
 
     setUploadError("");
     setUploadSuccess(false);
@@ -398,7 +401,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
 
   // Place Legal Hold
   const handlePlaceLegalHold = async (docId: string) => {
-    if (!active) return;
+    if (!active || !canHold) return;
     const reason = window.prompt(t.holdReasonPrompt);
     if (!reason || reason.trim().length < 5) return;
 
@@ -425,7 +428,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
 
   // Release Legal Hold
   const handleReleaseLegalHold = async (docId: string) => {
-    if (!active) return;
+    if (!active || !canHold) return;
     const reason = window.prompt(t.holdReasonPrompt);
     if (!reason || reason.trim().length < 5) return;
 
@@ -469,14 +472,14 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
             <span className="rounded-full border border-[#B2E5DF] bg-[#EAF8F5] px-3 py-1 text-[11px] font-bold text-[#0A6E62]">
               {t.vaultActive}
             </span>
-            <button
+            {canUpload && <button
               type="button"
               onClick={() => setIsUploadOpen(true)}
               className="flex items-center gap-2 rounded-xl bg-[#0E9F8E] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#0A6E62] transition-colors"
             >
               <UploadCloud className="h-4 w-4" />
               {t.uploadBtn}
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -864,7 +867,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                     <Download className="h-4 w-4 text-[#0E9F8E]" />
                     {t.download}
                   </button>
-                  {selected.legal_hold_status === "active" ? (
+                  {canHold && (selected.legal_hold_status === "active" ? (
                     <button
                       type="button"
                       onClick={() => handleReleaseLegalHold(selected.id as string)}
@@ -882,7 +885,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                       <Lock className="h-4 w-4" />
                       {t.placeHold}
                     </button>
-                  )}
+                  ))}
                 </>
               )}
             </div>
