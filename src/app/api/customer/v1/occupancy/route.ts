@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { queryOccupancySchema } from "@/lib/customer/occupancy-schema";
 import { createClient } from "@/lib/supabase/server";
 
 const HEADERS = {
@@ -7,35 +7,6 @@ const HEADERS = {
   Pragma: "no-cache",
   Vary: "Cookie",
 };
-
-const schema = z.object({
-  context_id: z.string().uuid(),
-  view: z
-    .enum([
-      "parties",
-      "residents",
-      "ownerships",
-      "leases",
-      "occupancies",
-      "mappings",
-      "links",
-      "history",
-      "units",
-      "unit_detail",
-    ])
-    .default("occupancies"),
-  query: z.string().trim().max(120).optional(),
-  status: z.string().trim().max(40).optional(),
-  kind: z
-    .enum(["owner", "tenant", "household_member", "short_stay", "company", "empty"])
-    .optional(),
-  from: z.iso.date().optional(),
-  to: z.iso.date().optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(25),
-  offset: z.coerce.number().int().min(0).default(0),
-  id: z.string().uuid().optional(),
-  unit_id: z.string().uuid().optional(),
-});
 
 function mapRpcError(error: any) {
   const code = error?.code;
@@ -50,7 +21,7 @@ function mapRpcError(error: any) {
 }
 
 export async function GET(request: NextRequest) {
-  const parsed = schema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
+  const parsed = queryOccupancySchema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
   if (!parsed.success) {
     return NextResponse.json({ error: { code: "INVALID_OCCUPANCY_QUERY" } }, { status: 400, headers: HEADERS });
   }
@@ -62,6 +33,10 @@ export async function GET(request: NextRequest) {
   }
 
   const p = parsed.data;
+
+  if (p.view === "unit_detail" && !p.unit_id) {
+    return NextResponse.json({ error: { code: "INVALID_OCCUPANCY_QUERY" } }, { status: 400, headers: HEADERS });
+  }
 
   // Handle unit detail query
   if (p.view === "unit_detail" && p.unit_id) {
@@ -80,12 +55,11 @@ export async function GET(request: NextRequest) {
   }
 
   // Customer API Gateway: delegates to occupancy.get_customer_registry via customer_api
-  const targetView = (p.view === "unit_detail" || p.view === "units") ? "occupancies" : p.view;
   const { data, error: queryError } = await supabase
     .schema("customer_api")
     .rpc("get_occupancy_registry_v1", {
       p_context_id: p.context_id,
-      p_view: targetView,
+      p_view: p.view,
       p_query: p.query ?? null,
       p_status: p.status ?? null,
       p_kind: p.kind ?? null,
