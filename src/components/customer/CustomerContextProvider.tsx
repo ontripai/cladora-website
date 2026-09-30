@@ -105,7 +105,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     () => ({
       contexts,
       active: contexts.find((c) => c.context_id === activeId) ?? null,
-      dashboard,
+      dashboard: dashboard?.contextId === activeId ? dashboard : null,
       loading,
       error,
       select: setActiveId,
