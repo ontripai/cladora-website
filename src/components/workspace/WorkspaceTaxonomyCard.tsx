@@ -10,6 +10,7 @@ export interface WorkspaceTaxonomyCardProps {
   contextId?: string;
   lang: 'ro' | 'en' | 'fa';
   canManage?: boolean;
+  onTransition?: () => void;
   countryCode?: string;
   className?: string;
 }
@@ -136,6 +137,7 @@ export function WorkspaceTaxonomyCard({
   contextId,
   lang,
   canManage = false,
+  onTransition,
   countryCode = '',
   className = '',
 }: WorkspaceTaxonomyCardProps) {
@@ -298,6 +300,7 @@ export function WorkspaceTaxonomyCard({
       setMutationSuccess(true);
       setIsEditing(false);
       await load();
+      onTransition?.();
     } catch {
       setMutationError(dict.error);
     } finally {

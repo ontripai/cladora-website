@@ -312,6 +312,7 @@ const copy = {
 export function CustomerDashboard({ lang }: { lang: Language }) {
   const preview=useDashboardPreview();
   const { active, dashboard, loading, error } = useCustomerContext();
+  const [compositionRevision, setCompositionRevision] = React.useState(0);
   const t = copy[lang] ?? copy.ro;
   const isRtl = lang === 'fa';
   const NextArrow = isRtl ? ArrowLeft : ArrowRight;
@@ -745,13 +746,15 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         <WorkspaceTaxonomyCard
           lang={lang}
           contextId={dashboard.context.id}
-          canManage={permissions.includes('workspace.taxonomy.manage')}
+          canManage={permissions.includes('workspace.taxonomy.manage') && dashboard.context.scope_type !== 'tenant'}
+          onTransition={() => setCompositionRevision((revision) => revision + 1)}
         />
       )}
 
       {/* Workspace Dynamic Composition Modules */}
       {dashboard?.context?.id && (
         <WorkspaceCompositionCard
+          key={`${dashboard.context.id}:${compositionRevision}`}
           lang={lang}
           contextId={dashboard.context.id}
           canManage={permissions.includes('workspace.module.manage')}
