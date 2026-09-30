@@ -3,8 +3,9 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 const HEADERS = { "Cache-Control": "no-store, private", Pragma: "no-cache", Vary: "Cookie" };
+const postgresUuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 const schema = z.object({
-  context_id: z.string().uuid(),
+  context_id: postgresUuid,
   view: z.enum(["access_points", "credentials", "visitors", "access_logs", "credential_history", "visitor_history", "links"]).default("access_points"),
   query: z.string().trim().max(120).optional(),
   status: z.string().trim().max(40).optional(),
