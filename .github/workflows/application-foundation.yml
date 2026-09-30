@@ -40,10 +40,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Inspect patched brace-expansion registry metadata
-        run: |
-          npm view brace-expansion@1.1.21 dist --json
-          npm view brace-expansion@5.0.12 dist --json
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run lint
