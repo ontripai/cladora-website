@@ -55,6 +55,14 @@ export const createOccupancyRequestSchema = z.object({
   occupant_party_ids: z.array(uuidSchema).max(20).optional(),
   role: z.string().trim().max(50).optional(),
   reason: z.string().trim().max(500).optional(),
+}).superRefine((value, ctx) => {
+  const partyIds = value.occupant_party_ids ?? [];
+  if (value.kind !== "empty" && partyIds.length === 0) {
+    ctx.addIssue({code: "custom", path: ["occupant_party_ids"], message: "At least one authorized party is required"});
+  }
+  if (new Set(partyIds).size !== partyIds.length) {
+    ctx.addIssue({code: "custom", path: ["occupant_party_ids"], message: "Party IDs must be unique"});
+  }
 });
 
 export const updateOccupancyRequestSchema = z.object({

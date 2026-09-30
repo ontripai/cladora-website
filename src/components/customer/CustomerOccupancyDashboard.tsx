@@ -155,6 +155,7 @@ const copy = {
     renew_occupancy: "Renew Occupancy",
     transfer_occupancy: "Transfer Unit",
     unit_code: "Unit Code",
+    occupant_party: "Authorized Occupant / Party",
     building: "Building",
     property: "Property",
     occupancy_kind: "Occupancy Type",
@@ -238,6 +239,7 @@ const copy = {
     renew_occupancy: "Prelungește Ocuparea",
     transfer_occupancy: "Transferă Unitatea",
     unit_code: "Cod Unitate",
+    occupant_party: "Parte / rezident autorizat",
     building: "Clădire",
     property: "Proprietate",
     occupancy_kind: "Tip Ocupare",
@@ -321,6 +323,7 @@ const copy = {
     renew_occupancy: "تمدید سکونت",
     transfer_occupancy: "انتقال واحد",
     unit_code: "کد واحد",
+    occupant_party: "شخص / ساکن مجاز",
     building: "ساختمان",
     property: "مجتمع",
     occupancy_kind: "نوع سکونت",
@@ -424,7 +427,16 @@ export function CustomerOccupancyDashboard({
   const [modalType, setModalType] = useState<"create" | "end" | "renew" | "transfer" | null>(null);
   const [modalContextId, setModalContextId] = useState("");
   const [modalUnitLabel, setModalUnitLabel] = useState("");
-  const openModal = (type: "create" | "end" | "renew" | "transfer") => {setModalContextId(active?.context_id ?? ""); setModalType(type);};
+  const [modalPartyId, setModalPartyId] = useState("");
+  const openModal = (type: "create" | "end" | "renew" | "transfer") => {
+    setModalContextId(active?.context_id ?? "");
+    if (type === "create") {
+      setModalUnitId("");
+      setModalUnitLabel("");
+      setModalPartyId("");
+    }
+    setModalType(type);
+  };
   const [modalUnitId, setModalUnitId] = useState("");
   const [modalOccId, setModalOccId] = useState("");
   const [modalKind, setModalKind] = useState("tenant");
@@ -525,12 +537,14 @@ export function CustomerOccupancyDashboard({
       let payload: Record<string, unknown> = {};
 
       if (modalType === "create") {
+        endpoint = "/api/customer/v1/occupancy/create";
         payload = {
           context_id: active.context_id,
           unit_id: modalUnitId,
           kind: modalKind,
           starts_at: modalStartsAt,
           ends_at: modalEndsAt || null,
+          occupant_party_ids: modalPartyId ? [modalPartyId] : [],
           reason: modalReason || null,
         };
       } else if (modalType === "end") {
@@ -1252,6 +1266,11 @@ export function CustomerOccupancyDashboard({
                       onChange={(id, label) => {setModalUnitId(id); setModalUnitLabel(label);}} />
                   </div>
                   <div>
+                    <CustomerRegistryPicker key={`${active.context_id}:parties`} contextId={active.context_id} view="parties" lang={lang}
+                      title={t.occupant_party} value={modalPartyId} disabled={submitting}
+                      onChange={(id) => setModalPartyId(id)} />
+                  </div>
+                  <div>
                     <label className="block font-bold text-[#52667A]">{t.occupancy_kind}</label>
                     <select
                       value={modalKind}
@@ -1357,7 +1376,7 @@ export function CustomerOccupancyDashboard({
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || (modalType === "create" && (!modalUnitId || !modalPartyId))}
                   className="rounded-lg bg-[#0E9F8E] px-4 py-2 font-bold text-white hover:bg-[#0A6E62] disabled:opacity-50"
                 >
                   {submitting ? "…" : t.submit}
