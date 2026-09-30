@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
+import { uuidSchema } from "@/lib/customer/billing-schema";
 
 const HEADERS = {
   "Cache-Control": "no-store, private",
@@ -9,8 +10,8 @@ const HEADERS = {
 };
 
 const queryBreakdownSchema = z.object({
-  context_id: z.string().uuid(),
-  unit_id: z.string().uuid(),
+  context_id: uuidSchema,
+  unit_id: uuidSchema,
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   status: z.string().optional(),

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
+import { CustomerRegistryPicker } from './CustomerRegistryPicker';
 
 interface Invoice {
   id: string;
@@ -180,9 +181,9 @@ const copy = {
     voidStatus: 'Anulate',
     createTitle: 'Creare factură ciornă nouă',
     createDesc: 'Completează datele unității și adaugă liniile tarifare corespunzătoare.',
-    propertyId: 'ID Proprietate',
+    propertyId: 'Proprietate',
     unitId: 'ID Unitate',
-    partyId: 'ID Parte responsabilă (Proprietar/Chiriaș)',
+    partyId: 'Parte responsabilă (Proprietar/Chiriaș)',
     periodStart: 'Început perioadă',
     periodEnd: 'Sfârșit perioadă',
     dueDate: 'Data scadenței',
@@ -278,9 +279,9 @@ const copy = {
     voidStatus: 'Void',
     createTitle: 'Create New Draft Bill',
     createDesc: 'Specify unit, liable party, billing cycle and line items.',
-    propertyId: 'Property ID',
+    propertyId: 'Property',
     unitId: 'Unit ID',
-    partyId: 'Liable Party ID',
+    partyId: 'Liable Party',
     periodStart: 'Period Start',
     periodEnd: 'Period End',
     dueDate: 'Due Date',
@@ -376,9 +377,9 @@ const copy = {
     voidStatus: 'باطل‌شده',
     createTitle: 'ایجاد صورتحساب پیش‌نویس جدید',
     createDesc: 'واحد، طرف مسئول، بازه زمانی دوره و ردیف‌های هزینه را مشخص کنید.',
-    propertyId: 'شناسه ملک',
+    propertyId: 'ملک',
     unitId: 'شناسه واحد',
-    partyId: 'شناسه شخص مسئول (مالک/مستأجر)',
+    partyId: 'شخص مسئول (مالک/مستأجر)',
     periodStart: 'آغاز دوره',
     periodEnd: 'پایان دوره',
     dueDate: 'تاریخ سررسید',
@@ -472,6 +473,9 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   const [targetInvoiceForAction, setTargetInvoiceForAction] = useState<Invoice | null>(null);
 
   // Mutation form states
+  const [createContextId, setCreateContextId] = useState('');
+  const [newUnitLabel, setNewUnitLabel] = useState('');
+  const [newPropertyName, setNewPropertyName] = useState('');
   const [newPropertyId, setNewPropertyId] = useState('');
   const [newUnitId, setNewUnitId] = useState('');
   const [newPartyId, setNewPartyId] = useState('');
@@ -578,24 +582,28 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
       const json = (await response.json()) as BillingData;
       setData(json);
 
-      // Pre-populate creation form fields if available from visible data
-      if (json.invoices?.length > 0 && !newPropertyId) {
-        const first = json.invoices[0];
-        if (first.property_id) setNewPropertyId(first.property_id);
-        if (first.unit_id) setNewUnitId(first.unit_id);
-        if (first.liable_party_id) setNewPartyId(first.liable_party_id);
-      }
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [active, from, offset, query, status, to, newPropertyId]);
+  }, [active, from, offset, query, status, to]);
 
   useEffect(() => {
     const timer = setTimeout(() => void loadData(), 200);
     return () => clearTimeout(timer);
   }, [loadData, nonce]);
+
+  useEffect(() => {
+    if (!showCreateModal || !newUnitId || !active?.context_id || createContextId !== active.context_id) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({context_id: active.context_id, view: 'unit_detail', unit_id: newUnitId});
+    fetch(`/api/customer/v1/occupancy?${params}`, {cache: 'no-store', signal: controller.signal})
+      .then(async response => {if (!response.ok) throw new Error('unit'); return response.json();})
+      .then(detail => {if (!controller.signal.aborted) {setNewPropertyId(detail.property.id); setNewPropertyName(detail.property.name);}})
+      .catch(() => {if (!controller.signal.aborted) setMutationError(t.error);});
+    return () => controller.abort();
+  }, [showCreateModal, newUnitId, active?.context_id, createContextId, t.error]);
 
   // Pagination calculation
   const totalInvoices = data?.total ?? 0;
@@ -616,7 +624,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   // Create Draft Bill Handler
   async function handleCreateDraft(e: React.FormEvent) {
     e.preventDefault();
-    if (!active) return;
+    if (!active || active.context_id !== createContextId || !newPropertyId) return;
     setMutationLoading(true);
     setMutationError(null);
 
@@ -807,6 +815,8 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
               type="button"
               onClick={() => {
                 setMutationError(null);
+                setCreateContextId(active?.context_id ?? '');
+                setNewUnitId(''); setNewUnitLabel(''); setNewPropertyId(''); setNewPropertyName(''); setNewPartyId('');
                 setShowCreateModal(true);
               }}
               className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:ring-2 focus:ring-slate-950 focus:outline-none"
@@ -1387,7 +1397,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
       )}
 
       {/* Create Draft Bill Modal */}
-      {showCreateModal && (
+      {showCreateModal && active?.context_id === createContextId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
           <div
             role="dialog"
@@ -1417,39 +1427,13 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 </div>
               )}
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="font-semibold text-slate-700">{t.propertyId} *</label>
-                  <input
-                    required
-                    value={newPropertyId}
-                    onChange={(e) => setNewPropertyId(e.target.value)}
-                    placeholder="UUID"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 font-mono text-xs focus:border-slate-900 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700">{t.unitId} *</label>
-                  <input
-                    required
-                    value={newUnitId}
-                    onChange={(e) => setNewUnitId(e.target.value)}
-                    placeholder="UUID"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 font-mono text-xs focus:border-slate-900 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700">{t.partyId} *</label>
-                <input
-                  required
-                  value={newPartyId}
-                  onChange={(e) => setNewPartyId(e.target.value)}
-                  placeholder="UUID"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 font-mono text-xs focus:border-slate-900 focus:outline-none"
-                />
-              </div>
+              <CustomerRegistryPicker key={`${active.context_id}:unit`} contextId={active.context_id} view="units" lang={lang}
+                title={t.unit} value={newUnitId} selectedLabel={newUnitLabel} disabled={mutationLoading}
+                onChange={(id, label) => {setNewUnitId(id); setNewUnitLabel(label); setNewPropertyId(''); setNewPropertyName(''); setNewPartyId('');}} />
+              <p>{t.propertyId}: {newPropertyName || '—'}</p>
+              <CustomerRegistryPicker key={`${active.context_id}:party:${newUnitId}`} contextId={active.context_id} view="parties" lang={lang}
+                title={t.partyId} value={newPartyId} disabled={mutationLoading || !newPropertyId}
+                onChange={id => setNewPartyId(id)} />
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
@@ -1576,7 +1560,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={mutationLoading}
+                  disabled={mutationLoading || !newPropertyId || !newUnitId || !newPartyId}
                   className="rounded-xl bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                 >
                   {mutationLoading ? t.saving : t.saveDraft}
