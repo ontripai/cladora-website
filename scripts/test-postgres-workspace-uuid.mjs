@@ -9,9 +9,9 @@ function loadSchema(path) {
   const { outputText } = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   });
-  const module = { exports: {} };
-  new Function('require', 'module', 'exports', outputText)(require, module, module.exports);
-  return module.exports;
+  const schemaModule = { exports: {} };
+  new Function('require', 'module', 'exports', outputText)(require, schemaModule, schemaModule.exports);
+  return schemaModule.exports;
 }
 const valid = ['80000000-0000-0000-0000-000000000004', '80000000-0000-0000-0000-000000000002', 'A8936E74-9582-4517-8C4D-ECED79A7C49B'];
 const invalid = ['', '80000000-0000-0000-0000-00000000000', '80000000-0000-0000-0000-00000000000g', ' 80000000-0000-0000-0000-000000000004', '80000000-0000-0000-0000-000000000004/', null, 42];
