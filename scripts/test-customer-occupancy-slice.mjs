@@ -14,7 +14,6 @@ console.log('[Suite 1] Occupancy Route Handlers Contract & Schema Delegation Ver
 
 const OCCUPANCY_ROUTES = [
   { path: 'src/app/api/customer/v1/occupancy/route.ts', rpc: 'get_occupancy_registry_v1', methods: ['GET'] },
-  { path: 'src/app/api/customer/v1/occupancy/route.ts', rpc: 'get_occupancy_registry_v1', methods: ['GET'] },
   { path: 'src/app/api/customer/v1/occupancy/unit-detail/route.ts', rpc: 'get_unit_occupancy_detail_v1', methods: ['GET'] },
   { path: 'src/app/api/customer/v1/occupancy/create/route.ts', rpc: 'create_occupancy_v1', methods: ['POST'] },
   { path: 'src/app/api/customer/v1/occupancy/update/route.ts', rpc: 'update_occupancy_v1', methods: ['POST', 'PATCH'] },
