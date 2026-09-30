@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { Language } from "@/types";
 import { useCustomerContext } from "./CustomerContextProvider";
+import { CustomerRegistryPicker } from "./CustomerRegistryPicker";
 
 export type AuthorizedRegistryView = "parties" | "residents" | "ownerships" | "leases" | "occupancies" | "mappings" | "links" | "history";
 
@@ -421,6 +422,9 @@ export function CustomerOccupancyDashboard({
 
   // Mutation modal state
   const [modalType, setModalType] = useState<"create" | "end" | "renew" | "transfer" | null>(null);
+  const [modalContextId, setModalContextId] = useState("");
+  const [modalUnitLabel, setModalUnitLabel] = useState("");
+  const openModal = (type: "create" | "end" | "renew" | "transfer") => {setModalContextId(active?.context_id ?? ""); setModalType(type);};
   const [modalUnitId, setModalUnitId] = useState("");
   const [modalOccId, setModalOccId] = useState("");
   const [modalKind, setModalKind] = useState("tenant");
@@ -513,7 +517,7 @@ export function CustomerOccupancyDashboard({
   // Form submit handler
   async function handleMutationSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!active) return;
+    if (!active || active.context_id !== modalContextId) return;
     setSubmitting(true);
     setModalError("");
     try {
@@ -608,8 +612,9 @@ export function CustomerOccupancyDashboard({
               <button
                 type="button"
                 onClick={() => {
-                  setModalType("create");
+                  openModal("create");
                   setModalUnitId("");
+                  setModalUnitLabel("");
                   setModalStartsAt(new Date().toISOString().slice(0, 10));
                   setModalEndsAt("");
                   setModalReason("");
@@ -1039,7 +1044,7 @@ export function CustomerOccupancyDashboard({
                         <button
                           type="button"
                           onClick={() => {
-                            setModalType("end");
+                            openModal("end");
                             setModalOccId(unitDetail.active_occupancy!.id);
                             setModalEndsAt(new Date().toISOString().slice(0, 10));
                             setModalReason("");
@@ -1052,7 +1057,7 @@ export function CustomerOccupancyDashboard({
                         <button
                           type="button"
                           onClick={() => {
-                            setModalType("renew");
+                            openModal("renew");
                             setModalOccId(unitDetail.active_occupancy!.id);
                             setModalEndsAt("");
                             setModalReason("");
@@ -1065,7 +1070,7 @@ export function CustomerOccupancyDashboard({
                         <button
                           type="button"
                           onClick={() => {
-                            setModalType("transfer");
+                            openModal("transfer");
                             setModalOccId(unitDetail.active_occupancy!.id);
                             setModalStartsAt(new Date().toISOString().slice(0, 10));
                             setModalTargetUnitId("");
@@ -1082,8 +1087,9 @@ export function CustomerOccupancyDashboard({
                       <button
                         type="button"
                         onClick={() => {
-                          setModalType("create");
+                          openModal("create");
                           setModalUnitId(unitDetail.unit.id);
+                          setModalUnitLabel(`${unitDetail.building.name} · ${unitDetail.unit.code}`);
                           setModalStartsAt(new Date().toISOString().slice(0, 10));
                           setModalEndsAt("");
                           setModalReason("");
@@ -1207,7 +1213,7 @@ export function CustomerOccupancyDashboard({
       )}
 
       {/* Mutation Form Dialog (Create, End, Renew, Transfer) */}
-      {modalType && (
+      {modalType && active?.context_id === modalContextId && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#102A43]/40 p-4 backdrop-blur-xs"
           role="dialog"
@@ -1241,13 +1247,9 @@ export function CustomerOccupancyDashboard({
               {modalType === "create" && (
                 <>
                   <div>
-                    <label className="block font-bold text-[#52667A]">{t.unit_code} / ID</label>
-                    <input
-                      required
-                      value={modalUnitId}
-                      onChange={(e) => setModalUnitId(e.target.value)}
-                      className="mt-1 w-full rounded-lg border p-2 text-xs focus:border-[#0E9F8E] focus:outline-none"
-                    />
+                    <CustomerRegistryPicker key={active.context_id} contextId={active.context_id} view="units" lang={lang}
+                      title={t.unit_code} value={modalUnitId} selectedLabel={modalUnitLabel} disabled={submitting}
+                      onChange={(id, label) => {setModalUnitId(id); setModalUnitLabel(label);}} />
                   </div>
                   <div>
                     <label className="block font-bold text-[#52667A]">{t.occupancy_kind}</label>
@@ -1316,13 +1318,9 @@ export function CustomerOccupancyDashboard({
               {modalType === "transfer" && (
                 <>
                   <div>
-                    <label className="block font-bold text-[#52667A]">{t.target_unit_id}</label>
-                    <input
-                      required
-                      value={modalTargetUnitId}
-                      onChange={(e) => setModalTargetUnitId(e.target.value)}
-                      className="mt-1 w-full rounded-lg border p-2 text-xs focus:border-[#0E9F8E] focus:outline-none"
-                    />
+                    <CustomerRegistryPicker key={active.context_id} contextId={active.context_id} view="units" lang={lang}
+                      title={t.target_unit_id} value={modalTargetUnitId} disabled={submitting}
+                      onChange={id => setModalTargetUnitId(id)} />
                   </div>
                   <div>
                     <label className="block font-bold text-[#52667A]">
