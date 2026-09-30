@@ -18,7 +18,7 @@ const originalFetch = globalThis.fetch;
 let context;
 let holdStatus = 'none';
 globalThis.fetch = async () => ({ok: true, json: async () => ({
-  rows: [{id: 'doc-1', title: 'Permission fixture', legal_hold_status: holdStatus, scanning_status: 'clean'}],
+  rows: [{id: 'doc-1', title: 'TEST DOCUMENT', legal_hold_status: holdStatus, scanning_status: 'clean'}],
   total: 1, read_only: false, storage_access: true, signed_urls: true,
 })});
 const filename = fileURLToPath(new URL('../src/components/customer/CustomerDocumentsDashboard.tsx', import.meta.url));
@@ -48,7 +48,7 @@ try {
     })));
     await act(async () => new Promise(resolve => setTimeout(resolve, 180)));
     const buttons = [...document.querySelectorAll('button')].map(button => button.textContent.trim());
-    assert.ok(document.body.textContent.includes('Permission fixture'), 'document detail must load');
+    assert.ok(document.body.textContent.includes('TEST DOCUMENT'), 'document detail must load');
     assert.equal(buttons.includes('Upload Document'), scenario.upload);
     assert.equal(buttons.includes(status === 'active' ? 'Release Legal Hold' : 'Place Legal Hold'), scenario.hold);
   }

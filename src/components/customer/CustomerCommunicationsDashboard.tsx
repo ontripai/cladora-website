@@ -836,8 +836,8 @@ function Cells({
       <td className="p-3">{date(when, lang)}</td>
       <td className="p-3 font-bold text-[#102A43]">{show(subject)}</td>
       <td className="p-3">{show(channel)}</td>
-      <td className="p-3 font-mono">{show(value)}</td>
-      <td className="p-3">{show(r.status ?? r.unread ?? r.relation_type)}</td>
+      <td className="p-3 font-mono">{view === "notifications" ? "—" : show(value)}</td>
+      <td className="p-3">{view === "notifications" ? (r.unread ? (lang === "fa" ? "خوانده‌نشده" : lang === "ro" ? "Necitită" : "Unread") : (lang === "fa" ? "خوانده‌شده" : lang === "ro" ? "Citită" : "Read")) : show(r.status ?? r.unread ?? r.relation_type)}</td>
     </>
   );
 }
