@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Loader2, Lock, Mail, PlayCircle } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, PlayCircle } from 'lucide-react';
 import type { Language } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
@@ -24,6 +24,7 @@ interface LoginFormProps {
 export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false, accountRequested = false, invitationRequested = false }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -200,14 +201,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
             <input
               id="loginPassword"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="••••••••"
-              className="w-full rounded-xl border border-[#D3DCE6] py-2.5 pe-3 ps-9 text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#087A6E]"
+              className="w-full rounded-xl border border-[#D3DCE6] py-2.5 pe-10 ps-9 text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#087A6E]"
             />
+            <button
+              type="button"
+              aria-label={
+                lang === 'ro'
+                  ? showPassword ? 'Ascunde parola' : 'Afișează parola'
+                  : lang === 'fa'
+                    ? showPassword ? 'پنهان‌کردن رمز عبور' : 'نمایش رمز عبور'
+                    : showPassword ? 'Hide password' : 'Show password'
+              }
+              aria-pressed={showPassword}
+              aria-controls="loginPassword"
+              onClick={() => setShowPassword((visible) => !visible)}
+              className="absolute end-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#486581] transition-colors hover:bg-[#F0F4F8] hover:text-[#102A43] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087A6E]"
+            >
+              {showPassword ? (
+                <EyeOff aria-hidden="true" className="h-4 w-4" />
+              ) : (
+                <Eye aria-hidden="true" className="h-4 w-4" />
+              )}
+            </button>
           </div>
         </div>
 
