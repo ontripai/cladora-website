@@ -212,7 +212,7 @@ function display(value: unknown) {
   if (value === null || value === undefined || value === "") return "—";
   if (typeof value === "boolean") return value ? "✓" : "—";
   if (typeof value === "object") return JSON.stringify(value);
-  return String(value).replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+  return String(value).replace(/^(\d{4}-\d{2}-\d{2})T(?=\d{2}:)/, "$1 ").replace(/\.\d{3}Z$/, " UTC");
 }
 
 export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: Language; initialDocumentId?: string }) {

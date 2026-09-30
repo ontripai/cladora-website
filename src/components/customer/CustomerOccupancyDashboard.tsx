@@ -191,6 +191,8 @@ const copy = {
     no_active_occupancy: "Unit is currently vacant.",
     no_active_lease: "No active lease registered.",
     no_occupants: "No registered occupants.",
+    no_owners: "No owners registered.",
+    no_events: "No recent events.",
   },
   ro: {
     title: "Registru de Rezidenți și Ocupare",
@@ -272,6 +274,8 @@ const copy = {
     no_active_occupancy: "Unitatea este momentan liberă.",
     no_active_lease: "Niciun contract de închiriere activ.",
     no_occupants: "Niciun rezident înregistrat.",
+    no_owners: "Niciun proprietar înregistrat.",
+    no_events: "Nu există evenimente recente.",
   },
   fa: {
     title: "دفتر ثبت ساکنان و وضعیت سکونت واحدها",
@@ -353,6 +357,8 @@ const copy = {
     no_active_occupancy: "واحد در حال حاضر خالی است.",
     no_active_lease: "هیچ قرارداد اجاره فعالی ثبت نشده است.",
     no_occupants: "ساکنی ثبت نشده است.",
+    no_owners: "مالکی ثبت نشده است.",
+    no_events: "رویداد اخیری ثبت نشده است.",
   },
 } as const;
 
@@ -379,7 +385,7 @@ function display(v: unknown): string {
   if (v === null || v === undefined || v === "") return "—";
   if (typeof v === "boolean") return v ? "✓" : "—";
   if (typeof v === "object") return JSON.stringify(v);
-  return String(v).replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+  return String(v).replace(/^(\d{4}-\d{2}-\d{2})T(?=\d{2}:)/, "$1 ").replace(/\.\d{3}Z$/, " UTC");
 }
 
 export function CustomerOccupancyDashboard({
@@ -393,6 +399,8 @@ export function CustomerOccupancyDashboard({
 }) {
   const { active } = useCustomerContext();
   const t = copy[lang];
+  const occupancyLabels: Record<string, string> = {owner: t.owner, tenant: t.tenant, household_member: t.household_member, short_stay: t.short_stay, company: t.company, empty: t.empty_kind, vacant: t.empty_kind, upcoming: t.planned, active: t.active, planned: t.planned, ended: t.ended, cancelled: t.cancelled};
+  const occupancyLabel = (value: unknown) => occupancyLabels[String(value)] ?? display(value);
 
   const [view, setView] = useState<OccupancyView>(initialView);
   const [query, setQuery] = useState("");
@@ -852,12 +860,12 @@ export function CustomerOccupancyDashboard({
                               : "bg-[#EAF8F5] text-[#0A6E62]"
                           }`}
                         >
-                          {display(row.occupancy_kind)}
+                          {occupancyLabel(row.occupancy_kind)}
                         </span>
                       </td>
                       <td className="p-3">
                         <span className="text-[11px] font-semibold text-[#64748B]">
-                          {display(row.occupancy_lifecycle)}
+                          {occupancyLabel(row.occupancy_lifecycle)}
                         </span>
                       </td>
                       <td className="p-3 font-medium text-[#102A43]">
@@ -1138,7 +1146,7 @@ export function CustomerOccupancyDashboard({
                     </div>
                   ) : (
                     <div className="mt-2 rounded-xl border border-dashed p-3 text-center text-[#7B8A9A]">
-                      No owners registered
+                      {t.no_owners}
                     </div>
                   )}
                 </div>
@@ -1188,7 +1196,7 @@ export function CustomerOccupancyDashboard({
                     </div>
                   ) : (
                     <div className="mt-2 rounded-xl border border-dashed p-3 text-center text-[#7B8A9A]">
-                      No recent events
+                      {t.no_events}
                     </div>
                   )}
                 </div>
