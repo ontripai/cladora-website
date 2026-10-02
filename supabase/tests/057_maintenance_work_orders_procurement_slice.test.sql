@@ -244,7 +244,7 @@ begin
 
   v_quote := maintenance.submit_quote(
     v_ctx_admin_id, v_wo_id, v_vendor_id, 'Q-2026-001', 300.00, 0.00, 'RON',
-    '2026-09-30'::date, '{"valve_model":"Danfoss 15mm"}'::jsonb, v_rfq_id
+    (current_date + 30)::date, '{"valve_model":"Danfoss 15mm"}'::jsonb, v_rfq_id
   );
   v_quote_id := (v_quote->>'id')::uuid;
 
