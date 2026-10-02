@@ -18,6 +18,20 @@ export interface RouteRequirement {
 }
 
 export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
+  // Keep the settings landing route fail-closed while allowing the guarded child page below.
+  {
+    pathPrefix: '/app/settings',
+    exactOnly: true,
+    permissions: ['workspace.settings.read'],
+  },
+
+  // Workspace role visibility is permission gated; mutation endpoints enforce manage + AAL2.
+  {
+    pathPrefix: '/app/settings/roles',
+    exactOnly: true,
+    permissions: ['workspace.role.read'],
+  },
+
   // Controlled residential building onboarding
   {
     pathPrefix: '/app/building-setup',

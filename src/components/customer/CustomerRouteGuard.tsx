@@ -31,11 +31,10 @@ export {
 };
 
 /**
- * Authoritative fail-closed unavailable routes (defined in access-matrix):
+ * Authoritative unavailable routes (defined in access-matrix):
  * - /app/portfolio
- * - /app/settings
- * - /app/accounting/month-close
  * - /app/migration/shadow-ledger
+ * Settings routes are classified individually and remain permission gated.
  */
 
 

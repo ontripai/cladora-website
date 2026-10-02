@@ -22,6 +22,7 @@ import {
   ReceiptText,
   RefreshCw,
   Scale,
+  Shield,
   ShieldCheck,
   UsersRound,
   Wrench,
@@ -40,6 +41,7 @@ import { isRouteAllowedForPersona } from "@/lib/customer/access-matrix";
 const copy = {
   ro: {
     dashboard: "Panou principal",
+    workspaceRoles: "Roluri și permisiuni",
     accounting: "Registru contabil",
     allocations: "Alocări și cote",
     reports: "Rapoarte financiare",
@@ -67,6 +69,7 @@ const copy = {
   },
   en: {
     dashboard: "Dashboard",
+    workspaceRoles: "Workspace roles",
     accounting: "Accounting ledger",
     allocations: "Allocations & rights",
     reports: "Financial reports",
@@ -94,6 +97,7 @@ const copy = {
   },
   fa: {
     dashboard: "داشبورد",
+    workspaceRoles: "نقش‌ها و دسترسی‌ها",
     accounting: "دفتر کل حسابداری",
     allocations: "تسهیم و حقوق مالی",
     reports: "گزارش‌های مالی",
@@ -183,6 +187,7 @@ function Shell({
 
   const navItems = [
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
+    { href: `/${lang}/app/settings/roles`, label: t.workspaceRoles, icon: Shield, visible: hasPerm("workspace.role.read") },
     { href: `/${lang}/app/accounting`, label: t.accounting, icon: FileSpreadsheet, visible: accounting },
     { href: `/${lang}/app/accounting/allocations`, label: t.allocations, icon: Scale, visible: allocations },
     { href: `/${lang}/app/accounting/reports`, label: t.reports, icon: BarChart3, visible: reports },

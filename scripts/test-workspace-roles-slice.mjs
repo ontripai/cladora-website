@@ -151,6 +151,23 @@ assert.match(enDict, /workspaceRoles:\s*\{/, 'EN dictionary contains workspaceRo
 assert.match(roDict, /workspaceRoles:\s*\{/, 'RO dictionary contains workspaceRoles');
 assert.match(faDict, /workspaceRoles:\s*\{/, 'FA dictionary contains workspaceRoles');
 
+const { classifyCustomerRoute } = await import('../src/lib/customer/route-classifier.ts');
+const { isRouteAllowedForPersona, EXPLICITLY_UNAVAILABLE_ROUTES } = await import('../src/lib/customer/access-matrix.ts');
+const roleRoute = classifyCustomerRoute('/app/settings/roles');
+assert.equal(roleRoute?.status, 'permission protected', 'Workspace roles page is permission protected');
+assert.ok(roleRoute?.requirement?.permissions?.includes('workspace.role.read'), 'Workspace roles page requires workspace.role.read');
+assert.ok(!EXPLICITLY_UNAVAILABLE_ROUTES.includes('/app/settings/roles'), 'Workspace roles page is not marked unavailable');
+for (const role of ['association_admin', 'property_manager', 'president', 'censor']) {
+  assert.equal(isRouteAllowedForPersona(role, '/app/settings/roles'), true, `${role} may read workspace roles`);
+}
+for (const role of ['owner', 'tenant_resident']) {
+  assert.equal(isRouteAllowedForPersona(role, '/app/settings/roles'), false, `${role} may not read workspace roles`);
+}
+assert.equal(isRouteAllowedForPersona('association_admin', '/app/settings/roles/unknown'), false, 'Unknown settings children remain blocked');
+const shellSrc = fs.readFileSync('src/components/customer/CustomerAppShell.tsx', 'utf8');
+assert.match(shellSrc, /workspace\.role\.read/, 'Navigation is gated by workspace role read permission');
+assert.match(shellSrc, /app\/settings\/roles/, 'Customer navigation links to workspace roles');
+
 // 6. Prohibited Paths Contract (Zero touch on public site / demo)
 console.log('\n[Suite 6] Prohibited Boundaries Contract');
 const gitStatus = fs.readFileSync('supabase/migrations/20260918120000_workspace_local_roles_permissions.sql', 'utf8');
