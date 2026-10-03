@@ -314,3 +314,12 @@ Application Foundation برای head فوق ناموفق است؛ مرحله npm
 ۶۹ آزمون رفتاری، strict TypeScript و ESLint محلی گذشتند. CI اختصاصی آخرین head در run 37121977881 موفق شد: ۶۹ آزمون، ESLint، typecheck کامل و test:unit موجود. Application Foundation در run 37121977868 ناموفق باقی ماند؛ مانع بررسی‌شده پیشین npm audit بود.
 
 بررسی هسته main نشان داد `identity.scope_type` و قید `identity.context_grants` هنوز tenant/property/building/unit هستند. افزودن Workspace باید همین مرجع canonical، ایجاد و فهرست Contextها، resolver، effective permission و تفویض اختیار را هماهنگ کند. استفاده از grant نوع tenant به‌عنوان مجوز نوشتن عمومی Workspace یا استنتاج آن از اتصال ملک پذیرفته نیست. تغییر قرارداد مشترک باید آزمون عدم گسترش اختیار در AIRPROP و Operations داشته باشد. در این اصلاح، هیچ فایل یا مجوز هسته مشترک تغییر نکرده است.
+
+
+### قرارداد retry سازگار با هسته — 2026-10-03
+
+در head `1dda9d132557f85ed139e0caa03a0629c144b5aa` از #218، `describeServiceCatalogRetry` خروجی قابل مصرف در جدول موجود `platform.idempotency_keys` می‌سازد: tenant_id و actor_id سمت سرور، key دارای namespace نسخه/Workspace/نوع فرمان، و request_hash از محتوای معتبر. جدول یا مرجع هویت جدید ایجاد نمی‌شود. تفاوت کاربر، Context، payload، نسخه یا action با همان کلید، اثرانگشت متفاوت دارد؛ عدم تطابق Context/Workspace با نتیجه مجاز سمت سرور پیش از ساخت descriptor رد می‌شود. ترتیب کلیدهای JSON و حروف UUID نتیجه retry را تغییر نمی‌دهد؛ متن، مبلغ، ترتیب اسناد و کلید retry دقیق حفظ می‌شوند.
+
+این تابع persistence یا قفل دیتابیس نیست. RPC باید پس از اختیار جاری، کلید موجود را اتمیک claim کند، actor/hash را تطبیق دهد و تغییر داده، audit، outbox و ذخیره پاسخ را در همان تراکنش انجام دهد. تابع `phase3a_idempotency_begin_v1` با `on conflict do nothing` به‌تنهایی تضمین‌کننده این پروتکل نیست؛ خواندن اولیه «وجود ندارد» سپس insert بی‌اثر نباید به اجرای فرمان دوم منجر شود. درخواست هم‌زمان و replay بدون مجوز جاری باید در آزمون واقعی دیتابیس پوشش داده شوند.
+
+۹۰ تست رفتاری واقعی source، strict TypeScript و ESLint محلی گذشتند. CI آخرین head در حال اجراست. فایل جدید صرفاً SERVICE است و با مسیرهای تغییرشده AIRPROP #219 و Operations #215 هم‌پوشانی ندارد. مسیر مجوز عمومی Workspace، RPC، UI و آزمون دیتابیس هنوز تکمیل نشده‌اند.
