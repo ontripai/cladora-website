@@ -1,5 +1,5 @@
 begin;
-select plan(57);
+select plan(65);
 do $$
 declare
   v_tenant_id uuid := '13400000-0000-0000-0000-000000000001'::uuid;
@@ -232,5 +232,27 @@ select throws_ok($$insert into airprop.investment_opportunities(tenant_id,idempo
 reset role;
 select ok(has_function_privilege('authenticated','app_private.can_read_airprop_subject_v1(uuid,uuid,text)','execute'),'authenticated can evaluate RLS read predicate');
 select ok(not has_function_privilege('anon','app_private.can_read_airprop_subject_v1(uuid,uuid,text)','execute'),'anonymous cannot evaluate private read predicate');
+
+-- Current physical bindings may change; commercial identity must not follow silently.
+select set_config('test.airprop_rebound_id',(select id::text from airprop.investment_opportunities where idempotency_key='AIRPROP-134-READ'),true);
+insert into airprop.investment_opportunities(tenant_id,property_id,idempotency_key,name,country_code,city,asking_price,currency,input_hash,created_by)
+values('13400000-0000-0000-0000-000000000001','13400000-0000-0000-0000-000000001000','AIRPROP-134-BOUND-LEGACY','Unresolved bound legacy','RO','București',100000,'RON','synthetic-legacy-bound','13400000-0000-0000-0000-000000000010');
+set local role authenticated;
+select is((select count(*)::integer from airprop.investment_opportunities),1,'bound legacy without persisted workspace stays unresolved and hidden');
+reset role;
+update platform.workspace_property_bindings set status='superseded',valid_to=statement_timestamp()
+where property_id='13400000-0000-0000-0000-000000001000' and status='active';
+insert into platform.workspace_property_bindings(tenant_id,customer_workspace_id,property_id,status,binding_source)
+values('13400000-0000-0000-0000-000000000001','13400000-0000-0000-0000-000000000200','13400000-0000-0000-0000-000000001000','active','platform_assignment');
+set local role authenticated;
+select is((select count(*)::integer from airprop.investment_opportunities),0,'rebound subject does not disclose old-workspace opportunity');
+select is((select count(*)::integer from airprop.underwriting_cases),0,'rebound subject does not disclose old-workspace case');
+select is((select count(*)::integer from airprop.underwriting_versions),0,'rebound subject does not disclose old-workspace versions');
+select throws_ok($select customer_api.create_airprop_opportunity_v1('13400000-0000-0000-0000-000010000001','AIRPROP-134-READ','{"name":"Synthetic read opportunity","country_code":"RO","city":"București","asking_price":100000,"currency":"RON","property_id":"13400000-0000-0000-0000-000000001000"}'::jsonb)$,'42501','airprop_workspace_access_denied','identical retry cannot return another workspace result after rebinding');
+select throws_ok($select customer_api.add_airprop_underwriting_version_v1('13400000-0000-0000-0000-000010000001',current_setting('test.airprop_rebound_id')::uuid,'{"acquisition_cost":100000,"annual_rent":10000,"annual_opex":1000,"currency":"RON"}'::jsonb)$,'42501','airprop_workspace_access_denied','known opportunity ID cannot mutate old workspace after rebinding');
+reset role;
+select is((select workspace_id::text from airprop.investment_opportunities where idempotency_key='AIRPROP-134-READ'),'13400000-0000-0000-0000-000000000100','original workspace identity survives physical rebinding');
+select is((select count(*)::integer from audit.events where tenant_id='13400000-0000-0000-0000-000000000001' and action like 'AIRPROP_%'),3,'denied cross-workspace retries create no commercial audit effects');
+
 select * from finish();
 rollback;
