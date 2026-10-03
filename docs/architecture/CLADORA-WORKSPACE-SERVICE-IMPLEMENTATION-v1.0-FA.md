@@ -311,6 +311,6 @@ Application Foundation برای head فوق ناموفق است؛ مرحله npm
 
 در head `679e8e87ce471baa6aeae544a4340601dd765aeb` از #218، سه فرمان ایجاد، ویرایش و گذار وضعیت، `workspace_id` صریح و اجباری دارند. نبود، null و UUID نامعتبر رد می‌شود. این فیلد مقصد درخواست است؛ اختیار ایجاد نمی‌کند. gateway باید آن را با Workspace مجاز در Context معتبر و Workspace ثابت عرضه تطبیق دهد. idempotency نیز باید در همین دامنه Workspace و فرمان باقی بماند.
 
-۶۹ آزمون رفتاری، strict TypeScript و ESLint محلی گذشتند. CI آخرین head هنگام ثبت این بند در حال اجراست؛ نتیجه موفق ۵۷ آزمون head قبلی به این تغییر تعمیم داده نمی‌شود.
+۶۹ آزمون رفتاری، strict TypeScript و ESLint محلی گذشتند. CI اختصاصی آخرین head در run 37121977881 موفق شد: ۶۹ آزمون، ESLint، typecheck کامل و test:unit موجود. Application Foundation در run 37121977868 ناموفق باقی ماند؛ مانع بررسی‌شده پیشین npm audit بود.
 
 بررسی هسته main نشان داد `identity.scope_type` و قید `identity.context_grants` هنوز tenant/property/building/unit هستند. افزودن Workspace باید همین مرجع canonical، ایجاد و فهرست Contextها، resolver، effective permission و تفویض اختیار را هماهنگ کند. استفاده از grant نوع tenant به‌عنوان مجوز نوشتن عمومی Workspace یا استنتاج آن از اتصال ملک پذیرفته نیست. تغییر قرارداد مشترک باید آزمون عدم گسترش اختیار در AIRPROP و Operations داشته باشد. در این اصلاح، هیچ فایل یا مجوز هسته مشترک تغییر نکرده است.
