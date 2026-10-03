@@ -3,6 +3,8 @@ import { currencyConfig, type SupportedCurrency } from '../../config/currencies'
 import { idempotencyKeySchema, uuidSchema } from './workspace-composition-schema';
 
 // Input validation only. Gateways must resolve actor/tenant and authorize every reference.
+// workspace_id is an explicit target, never authority: require it to match the
+// canonical authorized workspace. Do not infer it from a physical grant or tenant.
 const text = (max: number) => z.string().trim().min(1).max(max);
 const labelsSchema = z.strictObject({ ro: text(200), en: text(200), fa: text(200) });
 const timestampSchema = z.iso.datetime({ offset: true });
@@ -54,6 +56,7 @@ export const serviceOfferingRevisionSchema = z.strictObject({
 
 export const createServiceOfferingRequestSchema = z.strictObject({
   context_id: uuidSchema,
+  workspace_id: uuidSchema,
   definition_id: uuidSchema,
   provider_party_id: uuidSchema,
   revision: serviceOfferingRevisionSchema,
@@ -62,6 +65,7 @@ export const createServiceOfferingRequestSchema = z.strictObject({
 
 export const reviseServiceOfferingRequestSchema = z.strictObject({
   context_id: uuidSchema, offering_id: uuidSchema,
+  workspace_id: uuidSchema,
   expected_lock_version: versionSchema,
   revision: serviceOfferingRevisionSchema,
   idempotency_key: idempotencyKeySchema,
@@ -69,6 +73,7 @@ export const reviseServiceOfferingRequestSchema = z.strictObject({
 
 export const transitionServiceOfferingRequestSchema = z.strictObject({
   context_id: uuidSchema, offering_id: uuidSchema, revision_id: uuidSchema,
+  workspace_id: uuidSchema,
   expected_lock_version: versionSchema,
   action: z.enum(['submit', 'publish', 'suspend', 'archive']),
   reason: z.string().trim().min(5).max(500),
