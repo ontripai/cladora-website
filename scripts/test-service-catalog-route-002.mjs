@@ -50,4 +50,22 @@ for (const [code, status] of [['42501', 403], ['23505', 409], ['40001', 409], ['
   await check(`maps ${code} without leaking SQL details`, async () => { result = { data: null, error: { code, message: 'private SQL internal details', details: 'tenant secrets' } }; const response = await post(); assert.equal(response.status, status); assert.doesNotMatch(JSON.stringify(await response.json()), /private|tenant secrets/); assert.equal(response.headers.get('cache-control'), 'no-store, private'); });
 }
 await check('null mutation success is treated as server error', async () => { result = { data: null, error: null }; assert.equal((await post()).status, 500); });
+const definitions = load(new URL('../src/app/api/customer/v1/services/catalog/definitions/route.ts', import.meta.url));
+const definition = { context_id: id, workspace_id: id, code: 'cleaning', labels, idempotency_key: 'define-001' };
+const define = body => definitions.POST(new NextRequest('https://cladora.test/api/customer/v1/services/catalog/definitions', { method: 'POST', headers: { 'content-type': 'application/json' }, body: typeof body === 'string' ? body : JSON.stringify(body) }));
+await check('definition command uses authenticated exact tuple RPC', async () => {
+  result = { data: { definition_id: id, code: 'cleaning', labels }, error: null };
+  assert.equal((await define(definition)).status, 200);
+  assert.deepEqual(calls, [{ name: 'create_service_definition_v1', args: { p_request: definition } }]);
+});
+for (const body of ['broken', { ...definition, tenant_id: id }, { ...definition, code: 'Invalid Code' }, { ...definition, labels: { ro: 'x', en: 'x' } }]) {
+  await check('definition command rejects malformed fields and authority injection', async () => { assert.equal((await define(body)).status, 400); assert.deepEqual(calls, []); });
+}
+await check('definition read uses scoped RPC with private cache headers', async () => {
+  result = { data: [], error: null };
+  const response = await definitions.GET(new NextRequest(`https://cladora.test/api/customer/v1/services/catalog/definitions?context_id=${id}&workspace_id=${id}`));
+  assert.equal(response.status, 200); assert.deepEqual(await response.json(), { definitions: [] }); assert.equal(response.headers.get('cache-control'), 'no-store, private');
+  assert.deepEqual(calls, [{ name: 'list_service_definitions_v1', args: { p_context_id: id, p_workspace_id: id } }]);
+});
+await check('definition auth absence never reaches database', async () => { auth = { data: null, error: null }; assert.equal((await define(definition)).status, 401); assert.deepEqual(calls, []); });
 console.log(`${cases} SERVICE catalogue route cases passed`);
