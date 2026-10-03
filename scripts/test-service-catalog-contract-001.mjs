@@ -54,4 +54,23 @@ check('valid publish command', () => assert.equal(transition.safeParse(command).
 check('publish requires explicit revision', () => assert.equal(transition.safeParse({ ...command, revision_id: undefined }).success, false));
 check('unsafe lock version rejected', () => assert.equal(transition.safeParse({ ...command, expected_lock_version: Number.MAX_SAFE_INTEGER + 1 }).success, false));
 check('fabricated approval rejected', () => assert.equal(transition.safeParse({ ...command, approved: true }).success, false));
-console.log(`${cases} behavioral schema cases passed`);
+const { planOfferingTransition: plan } = load(new URL('../src/lib/customer/service-offering-lifecycle.ts', import.meta.url));
+const now = Date.parse('2026-10-03T11:00:00Z');
+const state = { status: 'draft', lock_version: 1, valid_from: revision.valid_from, valid_until: null };
+check('draft submission increments version without mutating source', () => {
+  assert.deepEqual(plan(state, 'submit', 1, now), { ok: true, status: 'submitted', lock_version: 2 });
+  assert.equal(state.status, 'draft'); assert.equal(state.lock_version, 1);
+});
+check('draft cannot publish directly', () => assert.deepEqual(plan(state, 'publish', 1, now), { ok: false, code: 'INVALID_TRANSITION' }));
+check('stale version conflicts before transition', () => assert.deepEqual(plan(state, 'submit', 2, now), { ok: false, code: 'VERSION_CONFLICT' }));
+check('submitted can publish', () => assert.equal(plan({ ...state, status: 'submitted' }, 'publish', 1, now).status, 'published'));
+check('published must suspend before archive', () => assert.equal(plan({ ...state, status: 'published' }, 'archive', 1, now).code, 'INVALID_TRANSITION'));
+check('published can suspend', () => assert.equal(plan({ ...state, status: 'published' }, 'suspend', 1, now).status, 'suspended'));
+check('suspended can archive', () => assert.equal(plan({ ...state, status: 'suspended' }, 'archive', 1, now).status, 'archived'));
+check('archived is terminal', () => assert.equal(plan({ ...state, status: 'archived' }, 'submit', 1, now).code, 'INVALID_TRANSITION'));
+check('expired revision cannot publish', () => assert.equal(plan({ ...state, status: 'submitted', valid_until: '2026-10-03T11:00:00Z' }, 'publish', 1, now).code, 'REVISION_EXPIRED'));
+check('malformed validity rejected', () => assert.equal(plan({ ...state, valid_from: 'bad' }, 'submit', 1, now).code, 'INVALID_VALIDITY'));
+check('future dated version can publish but read gate must enforce start', () => assert.equal(plan({ ...state, status: 'submitted', valid_from: '2026-10-04T10:00:00Z' }, 'publish', 1, now).ok, true));
+check('expired published revision can still be suspended', () => assert.equal(plan({ ...state, status: 'published', valid_until: '2026-10-03T10:30:00Z' }, 'suspend', 1, now).ok, true));
+check('version overflow rejected', () => assert.equal(plan({ ...state, lock_version: Number.MAX_SAFE_INTEGER }, 'submit', Number.MAX_SAFE_INTEGER, now).code, 'VERSION_CONFLICT'));
+console.log(`${cases} behavioral catalogue cases passed`);
