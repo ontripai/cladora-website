@@ -20,5 +20,6 @@ export default defineConfig([
     'next-env.d.ts',
     'reports/**',
     'scratch/**',
+    'vendor/braces/**',
   ]),
 ]);

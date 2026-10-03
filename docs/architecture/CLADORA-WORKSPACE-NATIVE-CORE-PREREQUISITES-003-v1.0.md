@@ -84,3 +84,32 @@ future work. Recheck open PR paths and main before creating the core migration.
 
 No existing memberships, grants, roles, entitlements, bindings or customer data
 are modified by this audit or the accompanying pure AIRPROP input contract.
+
+## Integration update after the shared core merge
+
+The preceding audit is the historical main `5d1b810` snapshot. CORE #221 has
+since merged as `836bd84`, and dependency reconciliation #220 as `115c288`.
+The implemented core contract supersedes the earlier proposed enum/grant-store
+expansion: explicit `(context_id, workspace_id)` authority uses current canonical
+workspace-scoped local-role assignments under an authenticated tenant Context.
+It introduces no duplicate grant store and no automatic assignment or scope
+widening. The independent AIRPROP input/key helpers remain unchanged.
+
+Future AIRPROP command gateways must use the actual internal
+`resolve_workspace_native_context_v2` and
+`check_workspace_native_permission_v2` contracts within authenticated domain
+RPCs. The resolver provides trusted scope, not permission; current AAL2 and
+canonical permission checks must precede every retry lookup. Target discovery
+is available in repository code through `customer_api.list_workspace_targets_v2`
+and `GET /api/customer/v1/workspace/targets?context_id=...`.
+
+Generic assignment issuance, AIRPROP v2 domain persistence/locking/endpoints,
+nullable-subject read/underwriting integration, legacy resolution and UI remain
+separate work. No remote migration application or production verification is
+claimed by this contract integration. Follow
+`CLADORA-SHARED-WORKSPACE-NATIVE-AUTHORITY-003-v1.0.md` for the canonical
+authority contract and
+`CLADORA-SHARED-DEPENDENCY-RECONCILIATION-002-v1.0.md` for the shared toolchain.
+
+The shared vendor security tests and unchanged raw npm audit gate replace the
+earlier dependency blocker. No temporary audit exception was activated.

@@ -1,0 +1,158 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import ts from 'typescript';
+
+// Execute the actual TypeScript schemas; do not mirror their validation rules.
+const require = createRequire(import.meta.url);
+const cache = new Map();
+function load(file) {
+  if (cache.has(file.href)) return cache.get(file.href);
+  const source = readFileSync(file, 'utf8');
+  const result = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } });
+  const loadedModule = { exports: {} };
+  const localRequire = id => id.startsWith('.') ? load(new URL(`${id}.ts`, file))
+    : id.startsWith('@/') ? load(new URL(`../src/${id.slice(2)}.ts`, import.meta.url)) : require(id);
+  new Function('require', 'module', 'exports', result.outputText)(localRequire, loadedModule, loadedModule.exports);
+  cache.set(file.href, loadedModule.exports);
+  return loadedModule.exports;
+}
+const { createServiceOfferingRequestSchema: create, reviseServiceOfferingRequestSchema: revise,
+  transitionServiceOfferingRequestSchema: transition } = load(new URL('../src/lib/customer/service-catalog-schema.ts', import.meta.url));
+const id = '00000000-0000-0000-0000-000000000001';
+const labels = { ro: 'Curățenie', en: 'Cleaning', fa: 'نظافت' };
+const revision = {
+  labels, description: labels, acquisition_mode: 'direct',
+  price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' },
+  valid_from: '2026-10-03T10:00:00Z', valid_until: null,
+  cancellation_terms: labels, acceptance_criteria: labels, document_version_ids: [],
+};
+const input = { context_id: id, workspace_id: id, definition_id: id, provider_party_id: id, revision, idempotency_key: 'service-001' };
+let cases = 0;
+function check(name, fn) { fn(); cases++; console.log(`OK ${name}`); }
+const rejects = value => assert.equal(create.safeParse(value).success, false);
+check('unsupported currency rejected', () => rejects({ ...input, revision: { ...revision, price: { ...revision.price, currency: 'XYZ' } } }));
+check('prototype key is not a currency', () => rejects({ ...input, revision: { ...revision, price: { ...revision.price, currency: 'constructor' } } }));
+check('fixed amount with fractional minor unit rejected', () => rejects({ ...input, revision: { ...revision, price: { ...revision.price, amount: '120.001' } } }));
+check('unit rate can retain precision for shared financial rounding', () => assert.equal(create.safeParse({ ...input, revision: { ...revision, price: { ...revision.price, kind: 'unit', amount: '0.123456', unit_code: 'hour' } } }).success, true));
+check('valid localized offering and exact decimal amount', () => assert.equal(create.parse(input).revision.price.amount, '120.50'));
+check('deterministic database UUID accepted', () => assert.equal(create.parse(input).context_id, id));
+for (const key of ['tenant_id', 'actor_id', 'status', 'published_at']) {
+  check(`reject client-controlled ${key}`, () => rejects({ ...input, [key]: id }));
+}
+check('nested unknown property rejected', () => rejects({ ...input, revision: { ...revision, status: 'published' } }));
+check('missing Persian label rejected', () => rejects({ ...input, revision: { ...revision, labels: { ro: 'x', en: 'x' } } }));
+check('blank terms rejected', () => rejects({ ...input, revision: { ...revision, cancellation_terms: { ...labels, en: '   ' } } }));
+for (const amount of [-1, 1.2, '-1', '1e3', 'NaN', '01', '1.1234567']) {
+  check(`reject ambiguous amount ${amount}`, () => rejects({ ...input, revision: { ...revision, price: { ...revision.price, amount } } }));
+}
+check('valid_until before start rejected', () => rejects({ ...input, revision: { ...revision, valid_until: '2026-10-03T09:00:00Z' } }));
+check('equal instant with different offsets rejected', () => rejects({ ...input, revision: { ...revision, valid_until: '2026-10-03T13:30:00+03:30' } }));
+check('date without timezone rejected', () => rejects({ ...input, revision: { ...revision, valid_from: '2026-10-03T10:00:00' } }));
+check('direct acquisition without stated price rejected', () => rejects({ ...input, revision: { ...revision, price: { kind: 'quote_required' } } }));
+check('pre-quote allowed without amount', () => assert.equal(create.safeParse({ ...input, revision: { ...revision, acquisition_mode: 'pre_quote', price: { kind: 'quote_required' } } }).success, true));
+check('duplicate document version rejected', () => rejects({ ...input, revision: { ...revision, document_version_ids: [id, id] } }));
+check('invalid idempotency key rejected', () => rejects({ ...input, idempotency_key: 'short' }));
+check('revision requires optimistic version', () => assert.equal(revise.safeParse({ context_id: id, workspace_id: id, offering_id: id, revision, idempotency_key: 'service-001' }).success, false));
+const command = { context_id: id, workspace_id: id, offering_id: id, revision_id: id, expected_lock_version: 1, action: 'publish', reason: 'Reviewed offering', idempotency_key: 'service-001' };
+const revisionCommand = { context_id: id, workspace_id: id, offering_id: id, expected_lock_version: 1, revision, idempotency_key: 'service-001' };
+for (const [name, schema, value] of [['create', create, input], ['revise', revise, revisionCommand], ['transition', transition, command]]) {
+  check(`${name} accepts explicit workspace target`, () => assert.equal(schema.safeParse(value).success, true));
+  for (const workspace_id of [undefined, null, 'invalid']) {
+    check(`${name} rejects workspace target ${workspace_id}`, () => assert.equal(schema.safeParse({ ...value, workspace_id }).success, false));
+  }
+}
+check('valid publish command', () => assert.equal(transition.safeParse(command).success, true));
+check('publish requires explicit revision', () => assert.equal(transition.safeParse({ ...command, revision_id: undefined }).success, false));
+check('unsafe lock version rejected', () => assert.equal(transition.safeParse({ ...command, expected_lock_version: Number.MAX_SAFE_INTEGER + 1 }).success, false));
+check('fabricated approval rejected', () => assert.equal(transition.safeParse({ ...command, approved: true }).success, false));
+const { planOfferingTransition: plan } = load(new URL('../src/lib/customer/service-offering-lifecycle.ts', import.meta.url));
+const now = Date.parse('2026-10-03T11:00:00Z');
+const state = { status: 'draft', lock_version: 1, valid_from: revision.valid_from, valid_until: null };
+check('draft submission increments version without mutating source', () => {
+  assert.deepEqual(plan(state, 'submit', 1, now), { ok: true, status: 'submitted', lock_version: 2 });
+  assert.equal(state.status, 'draft'); assert.equal(state.lock_version, 1);
+});
+check('draft cannot publish directly', () => assert.deepEqual(plan(state, 'publish', 1, now), { ok: false, code: 'INVALID_TRANSITION' }));
+check('stale version conflicts before transition', () => assert.deepEqual(plan(state, 'submit', 2, now), { ok: false, code: 'VERSION_CONFLICT' }));
+check('submitted can publish', () => assert.equal(plan({ ...state, status: 'submitted' }, 'publish', 1, now).status, 'published'));
+check('published must suspend before archive', () => assert.equal(plan({ ...state, status: 'published' }, 'archive', 1, now).code, 'INVALID_TRANSITION'));
+check('published can suspend', () => assert.equal(plan({ ...state, status: 'published' }, 'suspend', 1, now).status, 'suspended'));
+check('suspended can archive', () => assert.equal(plan({ ...state, status: 'suspended' }, 'archive', 1, now).status, 'archived'));
+check('archived is terminal', () => assert.equal(plan({ ...state, status: 'archived' }, 'submit', 1, now).code, 'INVALID_TRANSITION'));
+check('expired revision cannot publish', () => assert.equal(plan({ ...state, status: 'submitted', valid_until: '2026-10-03T11:00:00Z' }, 'publish', 1, now).code, 'REVISION_EXPIRED'));
+check('malformed validity rejected', () => assert.equal(plan({ ...state, valid_from: 'bad' }, 'submit', 1, now).code, 'INVALID_VALIDITY'));
+check('future dated version can publish but read gate must enforce start', () => assert.equal(plan({ ...state, status: 'submitted', valid_from: '2026-10-04T10:00:00Z' }, 'publish', 1, now).ok, true));
+check('expired published revision can still be suspended', () => assert.equal(plan({ ...state, status: 'published', valid_until: '2026-10-03T10:30:00Z' }, 'suspend', 1, now).ok, true));
+check('version overflow rejected', () => assert.equal(plan({ ...state, lock_version: Number.MAX_SAFE_INTEGER }, 'submit', Number.MAX_SAFE_INTEGER, now).code, 'VERSION_CONFLICT'));
+const { projectAuthorizedServiceCatalogItem: project } = load(new URL('../src/lib/customer/service-catalog-projection.ts', import.meta.url));
+const row = { offering_id: id, revision_id: id, status: 'published', revision };
+check('catalogue shows valid published version', () => assert.equal(project(row, now).revision_id, id));
+for (const status of ['draft', 'submitted', 'suspended', 'archived']) {
+  check(`catalogue hides ${status}`, () => assert.equal(project({ ...row, status }, now), null));
+}
+check('future publication is hidden before validity', () => assert.equal(project(row, Date.parse('2026-10-03T09:59:59Z')), null));
+check('publication visible at start boundary', () => assert.notEqual(project(row, Date.parse(revision.valid_from)), null));
+check('publication hidden at end boundary', () => assert.equal(project({ ...row, revision: { ...revision, valid_until: '2026-10-03T11:00:00Z' } }, now), null));
+check('projection excludes internal and private fields', () => {
+  const result = project({ ...row, tenant_id: id, approval_notes: 'private', provider_email: 'private@example.invalid' }, now);
+  assert.deepEqual(Object.keys(result).sort(), ['offering_id', 'revision_id', 'labels', 'description', 'acquisition_mode', 'price', 'valid_from', 'valid_until', 'cancellation_terms', 'acceptance_criteria'].sort());
+  assert.equal('document_version_ids' in result, false);
+});
+check('malformed database payload fails closed', () => assert.equal(project({ ...row, revision_id: 'invalid' }, now), null));
+check('nonfinite server clock fails closed', () => assert.equal(project(row, NaN), null));
+check('projection returns parsed copy not original references', () => {
+  const result = project(row, now); result.labels.en = 'Changed'; assert.equal(row.revision.labels.en, 'Cleaning');
+});
+const { describeServiceCatalogRetry: retry } = load(new URL('../src/lib/customer/service-catalog-retry.ts', import.meta.url));
+const otherId = '00000000-0000-0000-0000-000000000002';
+const resolved = { tenant_id: id, actor_id: id, workspace_id: id, context_id: id };
+const createCommand = { kind: 'create', request: input };
+const descriptor = retry(createCommand, resolved);
+check('retry descriptor uses existing platform table fields only', () => assert.deepEqual(Object.keys(descriptor).sort(), ['tenant_id', 'actor_id', 'key', 'request_hash'].sort()));
+check('identical retry has identical descriptor', () => assert.deepEqual(retry(createCommand, resolved), descriptor));
+check('payload property order does not change retry hash', () => {
+  const reordered = { ...input, revision: { ...revision, price: { currency: 'RON', tax_display: 'included', amount: '120.50', kind: 'fixed' } } };
+  assert.deepEqual(retry({ kind: 'create', request: reordered }, resolved), descriptor);
+});
+check('payload change with reused key produces a conflict fingerprint', () => {
+  const changed = retry({ kind: 'create', request: { ...input, provider_party_id: otherId } }, resolved);
+  assert.equal(changed.key, descriptor.key); assert.notEqual(changed.request_hash, descriptor.request_hash);
+});
+check('changed terms produce a conflict fingerprint', () => assert.notEqual(retry({ kind: 'create', request: { ...input, revision: { ...revision, cancellation_terms: { ...labels, en: 'Changed terms' } } } }, resolved).request_hash, descriptor.request_hash));
+check('changed server actor produces a conflict fingerprint', () => {
+  const changed = retry(createCommand, { ...resolved, actor_id: otherId });
+  assert.equal(changed.key, descriptor.key); assert.notEqual(changed.request_hash, descriptor.request_hash);
+});
+check('tenant is part of hash and canonical table primary key', () => {
+  const changed = retry(createCommand, { ...resolved, tenant_id: otherId });
+  assert.notEqual(changed.tenant_id, descriptor.tenant_id); assert.notEqual(changed.request_hash, descriptor.request_hash);
+});
+check('different workspace has separate key namespace', () => assert.notEqual(retry({ kind: 'create', request: { ...input, workspace_id: otherId } }, { ...resolved, workspace_id: otherId }).key, descriptor.key));
+check('different operation has separate key namespace', () => assert.notEqual(retry({ kind: 'revise', request: revisionCommand }, resolved).key, descriptor.key));
+check('transition action change conflicts within same command key', () => {
+  const a = retry({ kind: 'transition', request: command }, resolved);
+  const b = retry({ kind: 'transition', request: { ...command, action: 'suspend' } }, resolved);
+  assert.equal(a.key, b.key); assert.notEqual(a.request_hash, b.request_hash);
+});
+check('changed lock version conflicts within same command key', () => assert.notEqual(retry({ kind: 'revise', request: { ...revisionCommand, expected_lock_version: 2 } }, resolved).request_hash, retry({ kind: 'revise', request: revisionCommand }, resolved).request_hash));
+check('workspace mismatch rejected before descriptor creation', () => assert.throws(() => retry(createCommand, { ...resolved, workspace_id: otherId }), /SERVICE_CONTEXT_TARGET_MISMATCH/));
+check('context mismatch rejected before descriptor creation', () => assert.throws(() => retry(createCommand, { ...resolved, context_id: otherId }), /SERVICE_CONTEXT_TARGET_MISMATCH/));
+check('changed authorized context conflicts rather than silently replaying', () => assert.notEqual(retry({ kind: 'create', request: { ...input, context_id: otherId } }, { ...resolved, context_id: otherId }).request_hash, descriptor.request_hash));
+check('invalid resolved actor rejected', () => assert.throws(() => retry(createCommand, { ...resolved, actor_id: 'invalid' })));
+check('client authority injection rejected in retry command', () => assert.throws(() => retry({ kind: 'create', request: { ...input, tenant_id: id } }, resolved)));
+check('unknown command rejected', () => assert.throws(() => retry({ kind: 'delete', request: input }, resolved)));
+check('unknown envelope field rejected', () => assert.throws(() => retry({ ...createCommand, approved: true }, resolved)));
+check('case-sensitive retry keys stay distinct', () => assert.notEqual(retry({ kind: 'create', request: { ...input, idempotency_key: 'SERVICE-001' } }, resolved).key, descriptor.key));
+check('UUID case normalization agrees with PostgreSQL equality', () => {
+  const mixedId = 'abcdefab-cdef-abcd-efab-cdefabcdefab';
+  const lower = { ...input, context_id: mixedId, workspace_id: mixedId, definition_id: mixedId, provider_party_id: mixedId, revision: { ...revision, document_version_ids: [mixedId] } };
+  const upper = { ...lower, context_id: mixedId.toUpperCase(), workspace_id: mixedId.toUpperCase(), definition_id: mixedId.toUpperCase(), provider_party_id: mixedId.toUpperCase(), revision: { ...revision, document_version_ids: [mixedId.toUpperCase()] } };
+  const identity = { tenant_id: mixedId, actor_id: mixedId, workspace_id: mixedId, context_id: mixedId };
+  assert.deepEqual(retry({ kind: 'create', request: lower }, identity), retry({ kind: 'create', request: upper }, Object.fromEntries(Object.entries(identity).map(([k, v]) => [k, v.toUpperCase()]))));
+});
+check('retry planning leaves inputs untouched', () => {
+  const before = JSON.stringify({ createCommand, resolved }); retry(createCommand, resolved);
+  assert.equal(JSON.stringify({ createCommand, resolved }), before);
+});
+console.log(`${cases} behavioral catalogue cases passed`);
