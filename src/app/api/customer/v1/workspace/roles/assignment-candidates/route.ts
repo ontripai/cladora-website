@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   if (authError || !claims?.claims?.sub) {
     return NextResponse.json({ error: { code: 'UNAUTHORIZED', message: 'Authentication required' } }, { status: 401, headers });
   }
-  const { data, error } = await (client.schema('customer_api') as any).rpc('list_workspace_role_assignment_candidates_v1', { p_context_id: context.data });
+  const { data, error } = await (client.schema('customer_api') as any).rpc('list_workspace_role_assignment_candidates_v2', { p_context_id: context.data });
   if (error) {
     const mfa = error.message?.includes('mfa_required');
     const denied = error.code === '42501';
