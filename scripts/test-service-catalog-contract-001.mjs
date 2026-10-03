@@ -11,7 +11,8 @@ function load(file) {
   const source = readFileSync(file, 'utf8');
   const result = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } });
   const loadedModule = { exports: {} };
-  const localRequire = id => id.startsWith('.') ? load(new URL(`${id}.ts`, file)) : require(id);
+  const localRequire = id => id.startsWith('.') ? load(new URL(`${id}.ts`, file))
+    : id.startsWith('@/') ? load(new URL(`../src/${id.slice(2)}.ts`, import.meta.url)) : require(id);
   new Function('require', 'module', 'exports', result.outputText)(localRequire, loadedModule, loadedModule.exports);
   cache.set(file.href, loadedModule.exports);
   return loadedModule.exports;
@@ -30,6 +31,10 @@ const input = { context_id: id, definition_id: id, provider_party_id: id, revisi
 let cases = 0;
 function check(name, fn) { fn(); cases++; console.log(`OK ${name}`); }
 const rejects = value => assert.equal(create.safeParse(value).success, false);
+check('unsupported currency rejected', () => rejects({ ...input, revision: { ...revision, price: { ...revision.price, currency: 'XYZ' } } }));
+check('prototype key is not a currency', () => rejects({ ...input, revision: { ...revision, price: { ...revision.price, currency: 'constructor' } } }));
+check('fixed amount with fractional minor unit rejected', () => rejects({ ...input, revision: { ...revision, price: { ...revision.price, amount: '120.001' } } }));
+check('unit rate can retain precision for shared financial rounding', () => assert.equal(create.safeParse({ ...input, revision: { ...revision, price: { ...revision.price, kind: 'unit', amount: '0.123456', unit_code: 'hour' } } }).success, true));
 check('valid localized offering and exact decimal amount', () => assert.equal(create.parse(input).revision.price.amount, '120.50'));
 check('deterministic database UUID accepted', () => assert.equal(create.parse(input).context_id, id));
 for (const key of ['tenant_id', 'actor_id', 'status', 'published_at']) {
