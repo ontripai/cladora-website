@@ -12,12 +12,16 @@ export { EXPLICITLY_UNAVAILABLE_ROUTES, PRE_CONTEXT_ALLOWED_ROUTES, isPreContext
 export interface RouteRequirement {
   pathPrefix: string;
   exactOnly?: boolean;
+  nativeWorkspaceDiscovery?: boolean;
   permissions?: string[];
   entitlements?: string[];
   modules?: string[];
 }
 
 export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
+  // Discovery only: target and module permissions are resolved by the native RPC.
+  { pathPrefix: "/app/airprop", exactOnly: true, nativeWorkspaceDiscovery: true },
+  { pathPrefix: "/app/services", exactOnly: true, nativeWorkspaceDiscovery: true },
   // Keep the settings landing route fail-closed while allowing the guarded child page below.
   {
     pathPrefix: '/app/settings',
