@@ -4,6 +4,7 @@ on:
     paths:
       - 'src/lib/customer/service-catalog-schema.ts'
       - 'src/lib/customer/service-offering-lifecycle.ts'
+      - 'src/lib/customer/service-catalog-projection.ts'
       - 'src/lib/customer/workspace-composition-schema.ts'
       - 'src/config/currencies.ts'
       - 'src/config/locales.ts'
@@ -24,7 +25,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/test-service-catalog-contract-001.mjs
-      - run: npx eslint src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts scripts/test-service-catalog-contract-001.mjs --max-warnings=0
+      - run: npx eslint src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts src/lib/customer/service-catalog-projection.ts scripts/test-service-catalog-contract-001.mjs --max-warnings=0
 
       - run: npm run typecheck
       - run: npm run test:unit
