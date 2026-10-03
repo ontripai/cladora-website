@@ -200,6 +200,32 @@ $$;
 revoke all on function app_private.require_airprop_workspace_context_v1(uuid,text,uuid)
  from public,anon,authenticated,service_role;
 
+
+-- Persist commercial workspace identity. Historical rows remain unresolved.
+alter table platform.customer_workspaces add constraint customer_workspaces_id_tenant_airprop_key unique(id,tenant_id);
+alter table airprop.investment_opportunities add column workspace_id uuid;
+alter table airprop.investment_opportunities add constraint airprop_opportunity_workspace_tenant_fk
+ foreign key(workspace_id,tenant_id) references platform.customer_workspaces(id,tenant_id) on delete restrict;
+create index airprop_opportunity_workspace_status_idx
+ on airprop.investment_opportunities(workspace_id,status,created_at desc,id);
+
+create function airprop.enforce_opportunity_workspace_identity_v1()
+returns trigger language plpgsql security invoker set search_path=pg_catalog
+as $
+begin
+ if old.workspace_id is not null and
+  (new.workspace_id is distinct from old.workspace_id or new.tenant_id is distinct from old.tenant_id
+   or new.property_id is distinct from old.property_id) then
+  raise exception 'airprop_opportunity_scope_immutable' using errcode='55000';
+ end if;
+ return new;
+end;
+$;
+revoke all on function airprop.enforce_opportunity_workspace_identity_v1() from public,anon,authenticated,service_role;
+create trigger airprop_opportunity_workspace_identity_immutable
+ before update on airprop.investment_opportunities
+ for each row execute function airprop.enforce_opportunity_workspace_identity_v1();
+
 -- Existing command cutover: the business and retry semantics remain intact.
 create or replace function app_private.create_airprop_opportunity_internal_v1(p_context_id uuid,p_idempotency_key text,p_payload jsonb)
 returns jsonb language plpgsql security definer set search_path=pg_catalog,airprop,portfolio,audit,extensions
@@ -218,11 +244,13 @@ begin
  v_hash=encode(extensions.digest(convert_to(p_payload::text,'UTF8'),'sha256'),'hex');
  select * into o from airprop.investment_opportunities where tenant_id=a.tenant_id and idempotency_key=p_idempotency_key for update;
  if found then
+  if o.workspace_id is distinct from a.workspace_id or o.property_id is distinct from v_property then
+   raise exception 'airprop_workspace_access_denied' using errcode='42501';end if;
   if o.input_hash<>v_hash then raise exception 'airprop_idempotency_payload_mismatch' using errcode='22023';end if;
   return jsonb_build_object('version',1,'opportunity_id',o.id,'status',o.status,'idempotent',true);
  end if;
- insert into airprop.investment_opportunities(tenant_id,property_id,idempotency_key,name,country_code,city,asking_price,currency,source_ref,input_hash,created_by)
- values(a.tenant_id,v_property,p_idempotency_key,trim(p_payload->>'name'),'RO',trim(p_payload->>'city'),(p_payload->>'asking_price')::numeric,upper(p_payload->>'currency'),nullif(trim(p_payload->>'source_ref'),''),v_hash,auth.uid()) returning * into o;
+ insert into airprop.investment_opportunities(tenant_id,workspace_id,property_id,idempotency_key,name,country_code,city,asking_price,currency,source_ref,input_hash,created_by)
+ values(a.tenant_id,a.workspace_id,v_property,p_idempotency_key,trim(p_payload->>'name'),'RO',trim(p_payload->>'city'),(p_payload->>'asking_price')::numeric,upper(p_payload->>'currency'),nullif(trim(p_payload->>'source_ref'),''),v_hash,auth.uid()) returning * into o;
  insert into audit.events(tenant_id,actor_id,actor_role,action,entity_type,entity_id,after_snapshot,reason)
  values(a.tenant_id,auth.uid(),a.role_code,'AIRPROP_OPPORTUNITY_CREATED','airprop.investment_opportunity',o.id,jsonb_build_object('status',o.status,'country_code',o.country_code,'currency',o.currency),'AIRPROP synthetic/core opportunity evidence');
  return jsonb_build_object('version',1,'opportunity_id',o.id,'status',o.status,'idempotent',false);
@@ -240,6 +268,7 @@ begin
  select * into o from airprop.investment_opportunities where id=p_opportunity_id and tenant_id=ctx.tenant_id;
  if not found then raise exception 'airprop_opportunity_not_found' using errcode='P0002';end if;
  select * into a from app_private.require_airprop_workspace_context_v1(p_context_id,'airprop.underwriting.manage',o.property_id);
+ if o.workspace_id is distinct from a.workspace_id then raise exception 'airprop_workspace_access_denied' using errcode='42501';end if;
  if o.tenant_id<>a.tenant_id then raise exception 'airprop_opportunity_not_found' using errcode='P0002';end if;
  if jsonb_typeof(p_assumptions)<>'object' then raise exception 'airprop_invalid_underwriting' using errcode='22023';end if;
  cost=coalesce((p_assumptions->>'acquisition_cost')::numeric,0);rent=coalesce((p_assumptions->>'annual_rent')::numeric,-1);opex=coalesce((p_assumptions->>'annual_opex')::numeric,-1);
@@ -311,9 +340,27 @@ $$;
 revoke all on function app_private.can_read_airprop_subject_v1(uuid,uuid,text) from public,anon,authenticated,service_role;
 grant execute on function app_private.can_read_airprop_subject_v1(uuid,uuid,text) to authenticated;
 
+
+create function app_private.can_read_airprop_opportunity_v1(p_tenant_id uuid,p_workspace_id uuid,p_property_id uuid)
+returns boolean language plpgsql stable security definer set search_path=pg_catalog,app_private
+as $
+declare r record;
+begin
+ if auth.uid() is null or p_workspace_id is null then return false;end if;
+ if not app_private.can_read_airprop_subject_v1(p_tenant_id,p_property_id,'airprop.opportunity.read') then return false;end if;
+ begin
+  select * into r from app_private.resolve_workspace_from_customer_context_v1(app_private.active_context_id(),false);
+ exception when sqlstate '42501' then return false;
+ end;
+ return coalesce(r.workspace_id=p_workspace_id and r.tenant_id=p_tenant_id,false);
+end;
+$;
+revoke all on function app_private.can_read_airprop_opportunity_v1(uuid,uuid,uuid) from public,anon,authenticated,service_role;
+grant execute on function app_private.can_read_airprop_opportunity_v1(uuid,uuid,uuid) to authenticated;
+
 drop policy airprop_opportunities_context_read on airprop.investment_opportunities;
 create policy airprop_opportunities_context_read on airprop.investment_opportunities for select to authenticated
- using(app_private.can_read_airprop_subject_v1(tenant_id,property_id,'airprop.opportunity.read'));
+ using(app_private.can_read_airprop_opportunity_v1(tenant_id,workspace_id,property_id));
 drop policy airprop_underwriting_cases_context_read on airprop.underwriting_cases;
 create policy airprop_underwriting_cases_context_read on airprop.underwriting_cases for select to authenticated
  using(exists(select 1 from airprop.investment_opportunities o where o.id=opportunity_id and o.tenant_id=underwriting_cases.tenant_id));
