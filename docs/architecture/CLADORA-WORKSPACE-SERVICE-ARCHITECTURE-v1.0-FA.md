@@ -107,7 +107,7 @@ QR مرجع کوتاه‌عمر برای بررسی سرور است. ثبت تح
 
 ## قابلیت‌ها و اختیار
 
-قابلیت‌های پیشنهادی services.catalog، services.orders، services.reservations، services.reception و services.benefits با registry، dependencies، compatibility و entitlement مرکزی تطبیق می‌شوند. مالی، اجرا و امنیت فقط در خدمات نیازمند آن‌ها وابستگی دارند.
+قابلیت‌های پیشنهادی services.catalog، services.orders، services.reservations، services.reception و services.benefits با registry، dependencies، compatibility و entitlement مرکزی تطبیق می‌شوند. این‌ها نام مفهومی قابلیت‌اند؛ کد runtime پیشنهادی به‌ترتیب services_catalog، services_orders، services_reservations، services_reception و services_benefits است، زیرا قاعده module_definitions بررسی‌شده نقطه نمی‌پذیرد. نگاشت entitlement و وابستگی در برنامه اجرای SERVICE ثبت شده و هنوز seed نشده است. مالی، اجرا و امنیت فقط در خدمات نیازمند آن‌ها وابستگی دارند.
 
 | گروه | مجوزهای پیشنهادی |
 | --- | --- |
