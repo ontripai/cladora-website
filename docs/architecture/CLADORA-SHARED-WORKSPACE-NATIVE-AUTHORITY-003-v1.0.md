@@ -1,6 +1,6 @@
 # CLADORA shared workspace native authority — CORE-003 v1.0
 
-Decision: CLADORA-ARCH-SHARED-WORKSPACE-20261003-03. Base: main `5d1b8102db54cb248602450a788bdab2a5bae834`. Consumers: SERVICE and workspace-native AIRPROP; existing Operations and physical AIRPROP continue through v1.
+Decision: CLADORA-ARCH-WORKSPACE-NATIVE-AUTHORITY-20261003-01. Parent: CLADORA-ARCH-SHARED-WORKSPACE-20261003-02. Base: main `5d1b8102db54cb248602450a788bdab2a5bae834`. Consumers: SERVICE and workspace-native AIRPROP; existing Operations and physical AIRPROP continue through v1.
 
 ## Canonical authority contract
 
