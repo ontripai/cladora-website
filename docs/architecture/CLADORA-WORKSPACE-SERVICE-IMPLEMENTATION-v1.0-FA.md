@@ -323,3 +323,12 @@ Application Foundation برای head فوق ناموفق است؛ مرحله npm
 این تابع persistence یا قفل دیتابیس نیست. RPC باید پس از اختیار جاری، کلید موجود را اتمیک claim کند، actor/hash را تطبیق دهد و تغییر داده، audit، outbox و ذخیره پاسخ را در همان تراکنش انجام دهد. تابع `phase3a_idempotency_begin_v1` با `on conflict do nothing` به‌تنهایی تضمین‌کننده این پروتکل نیست؛ خواندن اولیه «وجود ندارد» سپس insert بی‌اثر نباید به اجرای فرمان دوم منجر شود. درخواست هم‌زمان و replay بدون مجوز جاری باید در آزمون واقعی دیتابیس پوشش داده شوند.
 
 ۹۰ تست رفتاری واقعی source، strict TypeScript و ESLint محلی گذشتند. CI اختصاصی آخرین head در run 37122334286 موفق شد: ۹۰ تست، ESLint، typecheck کامل و test:unit موجود. typecheck و test:unit کامل روی همان head محلی نیز گذشتند. Application Foundation در run 37122334259 ناموفق است. فایل جدید صرفاً SERVICE است و با مسیرهای تغییرشده AIRPROP #219 و Operations #215 هم‌پوشانی ندارد. مسیر مجوز عمومی Workspace، RPC، UI و آزمون دیتابیس هنوز تکمیل نشده‌اند.
+
+
+### رفع پیش‌نیاز اختیار در کد هسته — 2026-10-03
+
+PR مشترک [#221](https://github.com/ontripai/cladora-website/pull/221) پس از موفقیت تمام CIهای آخرین head در main با commit `836bd84a1cb933f4b36d62c6d42397bd95b7847d` ادغام شد. مسیر صریح `(context_id, workspace_id)` از Context معتبر tenant و انتساب فعال نقش canonical با scope/ceiling همان Workspace ساخته می‌شود؛ هیچ grant یا هویت موازی ایجاد نمی‌کند. کنترل مجوز از همان هسته allow/deny/delegation/module/entitlement/taxonomy می‌گذرد. SERVICE باید این مسیر را مصرف کند؛ Context فیزیکی یا عضویت tenant به‌تنهایی مجوز این مسیر نیست.
+
+۶۰ سناریوی PostgreSQL، مقایسه ۹۱ ارزیابی قدیمی، ۱۱ آزمون gateway، زنجیره کامل migration/pgTAP/هم‌زمانی دیتابیس، تست‌های AIRPROP و Application Foundation شامل build و بررسی سه‌زبانه گذشتند. شکست audit ثبت‌شده در بندهای قدیمی تاریخی است؛ اجرای تازه پس از اصلاح مشترک main در #215، در audit صفر آسیب‌پذیری گزارش کرد. اصلاح وابستگی دیگری در SERVICE ایجاد نشد.
+
+در بررسی فقط‌خواندنی، محیط عملیاتی ۱۸۴ migration ثبت‌شده دارد و سه migration هسته در تاریخ 2026-10-03 هنوز ثبت نشده‌اند. اعمال و تطبیق تاریخچه آنها باید هماهنگ انجام شود؛ ادغام کد را استقرار دیتابیس نمی‌نامیم. schema/API/UI اختصاصی SERVICE، provisioning عمومی و مراحل بعدی همچنان باقیمانده‌اند.
