@@ -13,6 +13,7 @@ import {
 import type { Language } from '@/types';
 import { isRtlLocale } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
+import { WorkspaceRoleDraftAccessEditor } from './WorkspaceRoleDraftAccessEditor';
 import type {
   GetWorkspaceRolesResponse,
   WorkspaceRoleItem,
@@ -392,6 +393,17 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
                   </div>
                 </div>
 
+                {role.lifecycle_status === 'draft' && (
+                  <WorkspaceRoleDraftAccessEditor
+                    contextId={contextId!}
+                    role={role}
+                    modules={data?.available_modules ?? []}
+                    permissions={data?.available_permissions ?? []}
+                    lang={lang}
+                    onChanged={() => void fetchRoles()}
+                    onMfaRequired={() => setMfaRequired(true)}
+                  />
+                )}
                 {role.lifecycle_status === 'draft' && (
                   <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
                     {role.base_role_id && (

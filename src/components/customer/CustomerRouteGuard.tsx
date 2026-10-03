@@ -181,6 +181,15 @@ export function CustomerRouteGuard({
     return <>{children}</>;
   }
 
+  // Native discovery cannot use a legacy physical dashboard as workspace authority.
+  // This only opens the selector; both target discovery and every domain RPC
+  // independently authenticate and evaluate current canonical core assignments.
+  if (classification.requirement?.nativeWorkspaceDiscovery) {
+    return state.active?.scope_type === 'tenant'
+      ? <>{children}</>
+      : <AccessRestrictedCard lang={lang} reason="context" />;
+  }
+
   // 5. Context requirement (all other customer routes require an assigned context)
   if (!state.active || !state.dashboard) {
     return <AccessRestrictedCard lang={lang} reason="context" />;
