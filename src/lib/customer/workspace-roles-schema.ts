@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-export const uuidSchema = z.string().uuid();
+// PostgreSQL UUIDs include existing deterministic pilot IDs whose version and
+// variant bits are not RFC-generated. Validate their canonical hexadecimal
+// shape; the authenticated RPC still resolves and authorizes every identifier.
+export const uuidSchema = z.string().regex(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  'Invalid UUID format'
+);
 
 export const idempotencyKeySchema = z
   .string()

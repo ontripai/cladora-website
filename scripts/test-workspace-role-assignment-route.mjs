@@ -20,3 +20,30 @@ response=await POST(post());assert.equal(response.status,200);assert.equal(calls
 for(const [code,message,status] of [['42501','mfa_required',403],['42501','private customer scope detail',403],['22023','workspace_role_idempotency_conflict',409],['22023','private validation detail',400],['XX000','private database error',500]]){result={data:null,error:{code,message}};const response=await POST(post());assert.equal(response.status,status);assert.equal(JSON.stringify(await response.json()).includes('private'),false);}
 result={data:null,error:null};assert.equal((await POST(post())).status,500);
 console.log('PASS compiled candidate and assignment gateways: strict queries/payload, user authentication, exact RPC, origin, MFA and sanitized failures');
+
+// Exercise the real role-list gateway with the existing PostgreSQL pilot IDs.
+// These are canonical UUID text but have non-RFC version/variant bits.
+const roleSchemas=mocks['@/lib/customer/workspace-roles-schema'];
+const {GET:listRoles}=load('src/app/api/customer/v1/workspace/roles/route.ts',mocks);
+const pilotContext='80000000-0000-0000-0000-000000000004';
+const roleListRequest=context=>new NextRequest(`https://cladora.test/api/customer/v1/workspace/roles?context_id=${encodeURIComponent(context)}`);
+const invalidIds=['','invalid','80000000-0000-0000-0000-00000000000','80000000-0000-0000-0000-0000000000004','80000000-0000-0000-0000-00000000000g','80000000000000000000000000000004','{80000000-0000-0000-0000-000000000004}',` ${pilotContext}`,`${pilotContext}\n`];
+for(const context of invalidIds){
+  assert.equal(roleSchemas.uuidSchema.safeParse(context).success,false);
+  calls=[];assert.equal((await listRoles(roleListRequest(context))).status,400);assert.equal(calls.length,0);
+}
+for(const context of [pilotContext,uuid,uuid.toUpperCase()]){
+  result={data:{roles:[]},error:null};authenticated=true;calls=[];
+  const response=await listRoles(roleListRequest(context));
+  assert.equal(response.status,200);assert.deepEqual(calls,[{name:'get_workspace_roles_v1',args:{p_context_id:context}}]);
+  assert.match(response.headers.get('cache-control'),/no-store/);
+}
+authenticated=false;calls=[];assert.equal((await listRoles(roleListRequest(pilotContext))).status,401);assert.equal(calls.length,0);authenticated=true;
+for(const message of ['workspace_role_read_permission_required','customer_context_access_denied']){
+  result={data:null,error:{code:'42501',message}};
+  assert.equal((await listRoles(roleListRequest(pilotContext))).status,403);
+}
+result={data:{action:'assign_role',id:uuid},error:null};calls=[];
+assert.equal((await POST(post({...payload,context_id:pilotContext,target_membership_id:'80000000-0000-0000-0000-000000000003'}))).status,200);
+assert.equal(calls.at(-1).args.p_context_id,pilotContext);
+console.log('PASS pilot UUID role-list and assignment regression: canonical PostgreSQL IDs, malformed IDs, authentication, current RPC authorization and no-store');
