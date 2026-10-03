@@ -1,5 +1,5 @@
 begin;
-select plan(34);
+select plan(43);
 
 select has_schema('airprop','AIRPROP schema exists');
 select has_table('airprop','investment_opportunities','opportunity aggregate exists');
@@ -38,6 +38,21 @@ insert into portfolio.parties(id,tenant_id,type,legal_name) values
  ('86700000-0000-0000-0000-000000000001','86200000-0000-0000-0000-000000000001','company','AIRPROP Synthetic Owner SRL'),
  ('86700000-0000-0000-0000-000000000002','86200000-0000-0000-0000-000000000002','company','AIRPROP Isolation Owner SRL');
 
+insert into portfolio.buildings(id,tenant_id,property_id,code,name) values
+ ('86800000-0000-0000-0000-000000000001','86200000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','A086','AIRPROP Synthetic Building');
+insert into portfolio.units(id,tenant_id,building_id,code) values
+ ('86900000-0000-0000-0000-000000000001','86200000-0000-0000-0000-000000000001','86800000-0000-0000-0000-000000000001','U086');
+insert into identity.context_grants(id,membership_id,tenant_id,scope_type,building_id,unit_id) values
+ ('86400000-0000-0000-0000-000000000004','86300000-0000-0000-0000-000000000001','86200000-0000-0000-0000-000000000001','building','86800000-0000-0000-0000-000000000001',null),
+ ('86400000-0000-0000-0000-000000000005','86300000-0000-0000-0000-000000000001','86200000-0000-0000-0000-000000000001','unit',null,'86900000-0000-0000-0000-000000000001');
+
+insert into identity.context_grants(id,membership_id,tenant_id,scope_type,property_id) values
+ ('86400000-0000-0000-0000-000000000003','86300000-0000-0000-0000-000000000001','86200000-0000-0000-0000-000000000001','property','86600000-0000-0000-0000-000000000001');
+
+select ok(not has_function_privilege('anon','app_private.require_airprop_context_v1(uuid,text,uuid)','execute'),'anonymous cannot execute AIRPROP context helper');
+select ok(not has_function_privilege('authenticated','app_private.require_airprop_context_v1(uuid,text,uuid)','execute'),'authenticated cannot execute AIRPROP context helper directly');
+select ok(not has_function_privilege('service_role','app_private.require_airprop_context_v1(uuid,text,uuid)','execute'),'service role cannot execute AIRPROP context helper directly');
+
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000001","active_context_id":"86400000-0000-0000-0000-000000000001"}',true);
 select lives_ok($$select customer_api.create_airprop_opportunity_v1('86400000-0000-0000-0000-000000000001','AIRPROP-086-OPP','{"name":"Synthetic Bucharest Acquisition","country_code":"RO","city":"București","asking_price":750000,"currency":"RON","property_id":"86600000-0000-0000-0000-000000000001","source_ref":"SYNTHETIC-086"}'::jsonb)$$,'AAL2 actor creates Romania opportunity');
@@ -57,6 +72,20 @@ select ok((select count(*) from airprop.property_interests)=1 and(select count(*
 select lives_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'property configuration retry is idempotent');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'lease_operate','2026-01-01','AIRPROP-RO','1.0')$$,'22023','airprop_property_configuration_conflict','conflicting retry rejected');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2027-01-01','AIRPROP-AE-DU','1.0')$$,'22023','airprop_country_pack_not_active','Dubai pack fails closed');
+
+select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000001","active_context_id":"86400000-0000-0000-0000-000000000004"}',true);
+select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000004','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_access_denied','building context cannot configure the parent target');
+select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000001","active_context_id":"86400000-0000-0000-0000-000000000005"}',true);
+select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000005','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_access_denied','unit context cannot configure the parent target');
+
+-- Exercise the public security-invoker gateway with a matching property grant.
+select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000001","active_context_id":"86400000-0000-0000-0000-000000000003"}',true);
+select lives_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000003','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'matching property context can retry configuration');
+select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000003','86600000-0000-0000-0000-000000000002','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_access_denied','property context cannot configure another target');
+select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000003',null,'86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_access_denied','property configuration requires an explicit target');
+select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000001","active_context_id":"86400000-0000-0000-0000-000000000003"}',true);
+select ok((select count(*) from airprop.property_interests)=1 and(select count(*) from airprop.property_operating_models)=1,'denied configuration and allowed retry create no additional records');
+select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000001","active_context_id":"86400000-0000-0000-0000-000000000001"}',true);
 
 reset role;
 select ok((select count(*) from audit.events where tenant_id='86200000-0000-0000-0000-000000000001' and action like 'AIRPROP_%')=4,'opportunity, two versions and property configuration audited');
