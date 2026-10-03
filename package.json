@@ -36,7 +36,9 @@
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
     "db:stop": "supabase stop",
-    "db:types": "supabase gen types typescript --local --schema public,platform,identity,portfolio,occupancy,finance,billing,payments,utilities,assets,maintenance,governance,communications,documents,security_access,migration_hub,audit > src/types/database.generated.ts"
+    "db:types": "supabase gen types typescript --local --schema public,platform,identity,portfolio,occupancy,finance,billing,payments,utilities,assets,maintenance,governance,communications,documents,security_access,migration_hub,audit > src/types/database.generated.ts",
+    "postinstall": "node scripts/apply-braces-depth-guard.mjs",
+    "test:dependency-depth": "node scripts/test-braces-depth-guard.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
