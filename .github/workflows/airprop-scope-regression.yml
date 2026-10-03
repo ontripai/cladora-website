@@ -4,6 +4,8 @@ on:
     paths:
       - 'supabase/migrations/**'
       - 'scripts/test-airprop-scope-ceiling.mjs'
+      - 'scripts/plan-airprop-legacy-workspace-resolution.mjs'
+      - 'scripts/test-airprop-legacy-workspace-resolution.mjs'
       - '.github/workflows/airprop-scope-regression.yml'
   workflow_dispatch:
 permissions:
@@ -29,3 +31,5 @@ jobs:
       - name: Verify scope and authorization regression
         shell: bash
         run: node "$RUNNER_TEMP/airprop-scope/scripts/test-airprop-scope-ceiling.mjs"
+      - name: Verify legacy workspace resolution review contract
+        run: node scripts/test-airprop-legacy-workspace-resolution.mjs
