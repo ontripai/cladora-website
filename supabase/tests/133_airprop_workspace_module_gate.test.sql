@@ -1,5 +1,5 @@
 begin;
-select plan(21);
+select plan(24);
 select ok(exists(select 1 from platform.module_definitions where code='airprop_commercial' and version=1 and lifecycle_status='published' and requires_aal2 and entitlement_key='module.airprop_commercial'),'AIRPROP uses canonical runtime catalogue');
 select lives_ok($$select app_private.validate_airprop_module_bindings_v1()$$,'AIRPROP exact five-binding manifest');
 select lives_ok($$select app_private.validate_module_permission_bindings_v2_seeding_v1()$$,'historic manifest survives added domain');
@@ -117,6 +117,8 @@ end;
 $$;
 update identity.memberships set role_id=(select id from identity.roles where code='airprop_portfolio_director' and tenant_id is null) where id='13300000-0000-0000-0000-000001000001';
 select set_config('request.jwt.claims',jsonb_build_object('sub','13300000-0000-0000-0000-000000000010','aal','aal2')::text,true);
+insert into portfolio.parties(id,tenant_id,type,legal_name)
+values('13300000-0000-0000-0000-000000000400','13300000-0000-0000-0000-000000000001','company','Synthetic AIRPROP commercial party');
 select throws_ok($$select * from app_private.require_airprop_workspace_context_v1('13300000-0000-0000-0000-000010000001','airprop.asset.manage','13300000-0000-0000-0000-000000001000')$$,'42501','airprop_workspace_access_denied','module inactive denies access');
 insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
 select '13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000100',id,code,'active','Synthetic AIRPROP module activation'
@@ -159,8 +161,11 @@ insert into platform.workspace_roles(id,tenant_id,customer_workspace_id,code,nam
  assigned_by_user_id,assigned_by_membership_id,reason,valid_from)
  values('13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000100','13300000-0000-0000-0000-000001000002','13300000-0000-0000-0000-000000000301','property','13300000-0000-0000-0000-000000001000','13300000-0000-0000-0000-000000000010','13300000-0000-0000-0000-000001000001','Synthetic AIRPROP role assignment',statement_timestamp()-interval '1 hour');
 select throws_ok($$select * from app_private.require_airprop_workspace_context_v1('13300000-0000-0000-0000-000010000001','airprop.asset.manage','13300000-0000-0000-0000-000000001000')$$,'42501','airprop_workspace_access_denied','local deny overrides base AIRPROP allow');
+select throws_ok($$select customer_api.configure_airprop_property_v1('13300000-0000-0000-0000-000010000001','13300000-0000-0000-0000-000000001000','13300000-0000-0000-0000-000000000400','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_workspace_access_denied','public command respects local deny');
 select set_config('request.jwt.claims',jsonb_build_object('sub','13300000-0000-0000-0000-000000000020','aal','aal2')::text,true);
 select lives_ok($$select * from app_private.require_airprop_workspace_context_v1('13300000-0000-0000-0000-000010000002','airprop.asset.manage','13300000-0000-0000-0000-000000001000')$$,'local role enables AIRPROP without AIRPROP base role');
+select lives_ok($$select customer_api.configure_airprop_property_v1('13300000-0000-0000-0000-000010000002','13300000-0000-0000-0000-000000001000','13300000-0000-0000-0000-000000000400','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'public command supports canonical local role');
+select is((select count(*)::integer from airprop.property_interests where tenant_id='13300000-0000-0000-0000-000000000001'),1,'local-role command writes exactly one interest');
 select set_config('request.jwt.claims','{}',true);
 select throws_ok($$select * from app_private.require_airprop_workspace_context_v1('13300000-0000-0000-0000-000010000001','airprop.asset.manage','13300000-0000-0000-0000-000000001000')$$,'42501','authentication_required','anonymous denied');
 select ok(not has_function_privilege('anon','app_private.require_airprop_workspace_context_v1(uuid,text,uuid)','execute'),'anon cannot directly invoke private AIRPROP gate');
