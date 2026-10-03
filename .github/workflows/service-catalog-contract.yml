@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'src/lib/customer/service-catalog-schema.ts'
+      - 'src/lib/customer/service-offering-lifecycle.ts'
       - 'src/lib/customer/workspace-composition-schema.ts'
       - 'scripts/test-service-catalog-contract-001.mjs'
       - '.github/workflows/service-catalog-contract.yml'
@@ -21,5 +22,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/test-service-catalog-contract-001.mjs
-      - run: npx tsc --noEmit --strict --skipLibCheck --esModuleInterop --target es2022 --module commonjs src/lib/customer/service-catalog-schema.ts
-      - run: npx eslint src/lib/customer/service-catalog-schema.ts scripts/test-service-catalog-contract-001.mjs --max-warnings=0
+      - run: npx tsc --noEmit --strict --skipLibCheck --esModuleInterop --target es2022 --module commonjs src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts
+      - run: npx eslint src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts scripts/test-service-catalog-contract-001.mjs --max-warnings=0
