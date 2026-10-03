@@ -80,16 +80,19 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
   const ready = availableRoles.some(role => role.id === roleId) && availableMembers.some(member => member.membership_id === memberId)
     && (scope === 'workspace' || !!building);
 
-  const submit = async (event: React.FormEvent) => {
+  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (busy || recoveryBlocked || (!pending && (loading || !ready))) return;
     const retrying = pending !== null;
+    // Native date controls can commit their visible value before React receives
+    // a change event. Snapshot the submitted control before disabling the form.
+    const submittedExpiry = pending ? null : new FormData(event.currentTarget).get('valid_until');
     setBusy(true); setMessage('');
     try {
       const command = pending ?? assignWorkspaceRoleRequestSchema.parse({ context_id: contextId,
         target_membership_id: memberId, workspace_role_id: roleId, scope_type: scope,
         ...(scope === 'building' ? { property_id: building!.property_id, building_id: building!.building_id } : {}),
-        valid_until: expires ? new Date(expires).toISOString() : null, reason,
+        valid_until: submittedExpiry ? new Date(String(submittedExpiry)).toISOString() : null, reason,
         idempotency_key: `assign_${crypto.randomUUID()}` });
       // Persist exact command before sending. Uncertain outcomes keep the same key.
       sessionStorage.setItem(storageKey, JSON.stringify(command)); setPending(command);
@@ -104,6 +107,8 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
       if (result.action !== 'assign_role' || !uuidSchema.safeParse(result.id).success
         || result.membership_id !== command.target_membership_id || result.workspace_role_id !== command.workspace_role_id
         || result.scope_type !== command.scope_type
+        || (command.valid_until ? typeof result.valid_to !== 'string' || Date.parse(result.valid_to) !== Date.parse(command.valid_until)
+          : result.valid_to !== null)
         || (command.scope_type === 'building' && (result.property_id !== command.property_id
           || result.building_id !== command.building_id || result.unit_id !== null))) throw new Error('Unconfirmed assignment');
       sessionStorage.removeItem(storageKey); setPending(null); setMemberId(''); setRoleId(''); setReason(''); setExpires('');
@@ -142,7 +147,7 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
         </select>
       </label>
       <label>{text('Expiry (optional)', 'Expirare (opțional)', 'انقضا (اختیاری)')}
-        <input type="datetime-local" value={expires} onChange={event => setExpires(event.target.value)} className="block w-full rounded border p-2 dark:bg-gray-900" />
+        <input name="valid_until" type="datetime-local" value={expires} onChange={event => setExpires(event.target.value)} className="block w-full rounded border p-2 dark:bg-gray-900" />
       </label>
       <label>{text('Audit reason', 'Motiv audit', 'دلیل تخصیص')}
         <input required minLength={5} maxLength={500} value={reason} onChange={event => setReason(event.target.value)} className="block w-full rounded border p-2 dark:bg-gray-900" />
