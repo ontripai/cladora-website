@@ -140,20 +140,20 @@ select throws_ok($$select * from app_private.require_airprop_workspace_context_v
 update platform.workspace_entitlements set boolean_value=true where customer_workspace_id='13300000-0000-0000-0000-000000000100' and entitlement_key='module.airprop_commercial';
 insert into platform.workspace_roles(id,tenant_id,customer_workspace_id,code,name,scope_ceiling,created_by,valid_from)
  values('13300000-0000-0000-0000-000000000300','13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000100','airprop_test_deny','AIRPROP test deny','property','13300000-0000-0000-0000-000000000010',statement_timestamp()-interval '1 day');
- insert into platform.workspace_role_modules(workspace_role_id,module_definition_id)
- select '13300000-0000-0000-0000-000000000300',id from platform.module_definitions where code='airprop_commercial' and version=1;
- insert into platform.workspace_role_permissions(workspace_role_id,permission_id,effect)
- select '13300000-0000-0000-0000-000000000300',id,'deny' from identity.permissions where code='airprop.asset.manage';
+ insert into platform.workspace_role_modules(tenant_id,workspace_role_id,module_definition_id)
+ select '13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000300',id from platform.module_definitions where code='airprop_commercial' and version=1;
+ insert into platform.workspace_role_permissions(tenant_id,workspace_role_id,permission_id,effect)
+ select '13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000300',id,'deny' from identity.permissions where code='airprop.asset.manage';
  update platform.workspace_roles set lifecycle_status='published' where id='13300000-0000-0000-0000-000000000300';
  insert into platform.workspace_member_roles(tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,property_id,
  assigned_by_user_id,assigned_by_membership_id,reason,valid_from)
  values('13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000100','13300000-0000-0000-0000-000001000001','13300000-0000-0000-0000-000000000300','property','13300000-0000-0000-0000-000000001000','13300000-0000-0000-0000-000000000010','13300000-0000-0000-0000-000001000001','Synthetic AIRPROP role assignment',statement_timestamp()-interval '1 hour');
 insert into platform.workspace_roles(id,tenant_id,customer_workspace_id,code,name,scope_ceiling,created_by,valid_from)
  values('13300000-0000-0000-0000-000000000301','13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000100','airprop_test_allow','AIRPROP test allow','property','13300000-0000-0000-0000-000000000010',statement_timestamp()-interval '1 day');
- insert into platform.workspace_role_modules(workspace_role_id,module_definition_id)
- select '13300000-0000-0000-0000-000000000301',id from platform.module_definitions where code='airprop_commercial' and version=1;
- insert into platform.workspace_role_permissions(workspace_role_id,permission_id,effect)
- select '13300000-0000-0000-0000-000000000301',id,'allow' from identity.permissions where code='airprop.asset.manage';
+ insert into platform.workspace_role_modules(tenant_id,workspace_role_id,module_definition_id)
+ select '13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000301',id from platform.module_definitions where code='airprop_commercial' and version=1;
+ insert into platform.workspace_role_permissions(tenant_id,workspace_role_id,permission_id,effect)
+ select '13300000-0000-0000-0000-000000000001','13300000-0000-0000-0000-000000000301',id,'allow' from identity.permissions where code='airprop.asset.manage';
  update platform.workspace_roles set lifecycle_status='published' where id='13300000-0000-0000-0000-000000000301';
  insert into platform.workspace_member_roles(tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,property_id,
  assigned_by_user_id,assigned_by_membership_id,reason,valid_from)
