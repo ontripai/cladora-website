@@ -113,15 +113,17 @@ select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-00000000
 
 -- The real commands must authorize retries against current module and role state.
 reset role;
-update platform.workspace_modules set status='suspended',reason='Synthetic authorization regression'
+update platform.workspace_modules set status='deactivated',valid_to=statement_timestamp(),deactivated_at=statement_timestamp(),reason='Synthetic authorization regression'
 where customer_workspace_id='86000000-0000-0000-0000-000000000001' and module_code='airprop_commercial';
 set local role authenticated;
 select throws_ok($$select customer_api.create_airprop_opportunity_v1('86400000-0000-0000-0000-000000000001','AIRPROP-086-OPP','{"name":"Synthetic Bucharest Acquisition","country_code":"RO","city":"București","asking_price":750000,"currency":"RON","property_id":"86600000-0000-0000-0000-000000000001","source_ref":"SYNTHETIC-086"}'::jsonb)$$,'42501','airprop_workspace_access_denied','inactive module denies opportunity retry');
 select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000001',(select id from airprop.investment_opportunities limit 1),'{"acquisition_cost":750000,"annual_rent":78000,"annual_opex":19000,"currency":"RON"}'::jsonb)$$,'42501','airprop_workspace_access_denied','inactive module denies underwriting retry');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_workspace_access_denied','inactive module denies configuration retry');
 reset role;
-update platform.workspace_modules set status='active',reason='Synthetic authorization restoration'
-where customer_workspace_id='86000000-0000-0000-0000-000000000001' and module_code='airprop_commercial';
+insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
+select tenant_id,customer_workspace_id,module_definition_id,module_code,'active','Synthetic authorization restoration'
+from platform.workspace_modules where customer_workspace_id='86000000-0000-0000-0000-000000000001'
+and module_code='airprop_commercial' and status='deactivated';
 update platform.workspace_entitlements set boolean_value=false where customer_workspace_id='86000000-0000-0000-0000-000000000001' and entitlement_key='module.airprop_commercial';
 set local role authenticated;
 select throws_ok($$select customer_api.create_airprop_opportunity_v1('86400000-0000-0000-0000-000000000001','AIRPROP-086-OPP','{"name":"Synthetic Bucharest Acquisition","country_code":"RO","city":"București","asking_price":750000,"currency":"RON","property_id":"86600000-0000-0000-0000-000000000001","source_ref":"SYNTHETIC-086"}'::jsonb)$$,'42501','airprop_workspace_access_denied','disabled entitlement denies opportunity retry');
