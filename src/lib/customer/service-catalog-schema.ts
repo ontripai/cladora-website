@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { currencyConfig, type SupportedCurrency } from '../../config/currencies';
 import { idempotencyKeySchema, uuidSchema } from './workspace-composition-schema';
 
 // Input validation only. Gateways must resolve actor/tenant and authorize every reference.
@@ -7,20 +8,27 @@ const labelsSchema = z.strictObject({ ro: text(200), en: text(200), fa: text(200
 const timestampSchema = z.iso.datetime({ offset: true });
 const versionSchema = z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
 const amountSchema = z.string().regex(/^(0|[1-9][0-9]{0,14})(\.[0-9]{1,6})?$/);
+const currencySchema = z.enum(Object.keys(currencyConfig) as [SupportedCurrency, ...SupportedCurrency[]]);
 
 export const servicePriceSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('quote_required') }),
   z.strictObject({
     kind: z.literal('fixed'), amount: amountSchema,
-    currency: z.string().regex(/^[A-Z]{3}$/),
+    currency: currencySchema,
     tax_display: z.enum(['included', 'excluded', 'not_applicable']),
   }),
   z.strictObject({
     kind: z.literal('unit'), amount: amountSchema,
-    currency: z.string().regex(/^[A-Z]{3}$/), unit_code: text(64),
+    currency: currencySchema, unit_code: text(64),
     tax_display: z.enum(['included', 'excluded', 'not_applicable']),
   }),
-]);
+]).superRefine((price, ctx) => {
+  // Fixed totals must be representable in the shared currency's minor unit.
+  // Unit rates may retain six decimals; final rounding belongs to shared finance.
+  if (price.kind === 'fixed' && (price.amount.split('.')[1]?.length ?? 0) > currencyConfig[price.currency].fractionDigits) {
+    ctx.addIssue({ code: 'custom', path: ['amount'], message: 'Fixed amount exceeds currency precision' });
+  }
+});
 
 export const serviceOfferingRevisionSchema = z.strictObject({
   labels: labelsSchema,
