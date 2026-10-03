@@ -93,3 +93,9 @@ This report does not reserve files or notify other conversations automatically. 
 ## Validation still required
 Inspect later overrides across the complete migration chain; compare remote migration history/catalogue read-only; run database/security tests on synthetic local data; verify API and three-language flows; check current main/open branches immediately before edits.
 No remote schema or customer data should be changed merely to complete this discovery.
+
+## Implementation progress — 2026-10-03
+Draft PR #214 implements the whole-physical-subject scope ceiling.
+Stacked draft PR #216 aligns the three existing AIRPROP commands and all five table read policies with shared authorization, runtime module bindings and entitlement gates. At commit 5780fff691e8b15426e46d68c05dbfd56c611f44, its 169 focused pgTAP assertions and both CI workflows passed. This is branch validation, not production deployment or complete AIRPROP product delivery.
+CORE-01/02/03 remain partial: explicit workspace mutation authority, capability UI and further domain catalogues are still required.
+Workspace-native opportunity behavior is now specified in [CLADORA-WORKSPACE-NATIVE-OPPORTUNITY-CONTRACT-v1.0.md](CLADORA-WORKSPACE-NATIVE-OPPORTUNITY-CONTRACT-v1.0.md). This contract separates workspace authority from physical grants, defines persisted identity and legacy resolution, and assigns shared changes across the three works. No other conversation is automatically synchronized by this update.
