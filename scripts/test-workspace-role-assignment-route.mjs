@@ -14,7 +14,7 @@ const payload={context_id:uuid,target_membership_id:uuid,workspace_role_id:uuid,
 const post=(body=payload,origin='https://cladora.test')=>new NextRequest('https://cladora.test/api/customer/v1/workspace/roles/assign',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify(body)});
 for(const query of ['',`context_id=invalid`,`context_id=${uuid}&context_id=${uuid}`,`context_id=${uuid}&tenant_id=${uuid}`]){calls=[];assert.equal((await GET(get(query))).status,400);assert.equal(calls.length,0);}
 authenticated=false;assert.equal((await GET(get(`context_id=${uuid}`))).status,401);assert.equal((await POST(post())).status,401);authenticated=true;
-calls=[];let response=await GET(get(`context_id=${uuid}`));assert.equal(response.status,200);assert.deepEqual(calls,[{name:'list_workspace_role_assignment_candidates_v1',args:{p_context_id:uuid}}]);assert.match(response.headers.get('cache-control'),/no-store/);
+calls=[];let response=await GET(get(`context_id=${uuid}`));assert.equal(response.status,200);assert.deepEqual(calls,[{name:'list_workspace_role_assignment_candidates_v2',args:{p_context_id:uuid}}]);assert.match(response.headers.get('cache-control'),/no-store/);
 calls=[];assert.equal((await POST(post(payload,'https://evil.test'))).status,403);assert.equal((await POST(post({...payload,tenant_id:uuid}))).status,400);assert.equal(calls.length,0);
 response=await POST(post());assert.equal(response.status,200);assert.equal(calls.at(-1).args.p_scope_type,'workspace');assert.equal(calls.at(-1).args.p_property_id,null);
 for(const [code,message,status] of [['42501','mfa_required',403],['42501','private customer scope detail',403],['22023','workspace_role_idempotency_conflict',409],['22023','private validation detail',400],['XX000','private database error',500]]){result={data:null,error:{code,message}};const response=await POST(post());assert.equal(response.status,status);assert.equal(JSON.stringify(await response.json()).includes('private'),false);}
@@ -47,3 +47,12 @@ result={data:{action:'assign_role',id:uuid},error:null};calls=[];
 assert.equal((await POST(post({...payload,context_id:pilotContext,target_membership_id:'80000000-0000-0000-0000-000000000003'}))).status,200);
 assert.equal(calls.at(-1).args.p_context_id,pilotContext);
 console.log('PASS pilot UUID role-list and assignment regression: canonical PostgreSQL IDs, malformed IDs, authentication, current RPC authorization and no-store');
+
+// Building assignment keeps ancestry in the canonical guarded adapter.
+result={data:{action:'assign_role',id:uuid},error:null};authenticated=true;calls=[];
+const buildingPayload={...payload,scope_type:'building',property_id:uuid,building_id:uuid};
+assert.equal((await POST(post(buildingPayload))).status,200);
+assert.equal(calls.at(-1).name,'assign_workspace_building_role_v1');
+assert.equal(calls.at(-1).args.p_building_id,uuid);
+assert.equal(calls.at(-1).args.p_property_id,uuid);
+console.log('PASS building gateway routes to guarded adapter and preserves exact ancestry');
