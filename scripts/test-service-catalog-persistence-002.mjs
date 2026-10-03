@@ -60,6 +60,8 @@ try {
   `);
   await db.exec(readFileSync(new URL('../supabase/migrations/20261003141918_service_catalog_persistence_v1.sql', import.meta.url), 'utf8'));
   await db.exec(readFileSync(new URL('../supabase/migrations/20261003144507_service_catalog_definition_command_v1.sql', import.meta.url), 'utf8'));
+  await db.exec("alter table portfolio.parties add legal_name text not null default 'Provider'");
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003151823_service_catalog_management_read_v1.sql', import.meta.url), 'utf8'));
   await db.exec(`insert into service_catalog.definitions(id,tenant_id,workspace_id,code,labels) values('${definition}','${tenant}','${workspace}','elevator', '${JSON.stringify(labels)}')`);
   await setActor(actor);
   await check('audited definition command creates and exactly replays without duplicate effects', async () => {
@@ -84,6 +86,32 @@ try {
     assert.deepEqual(await mutate('create', command), created);
     for (const table of ['service_catalog.offerings', 'service_catalog.revisions', 'audit.events', 'platform.outbox_events']) assert.equal((await q(`select count(*)::int as n from ${table}`))[0].n, 1);
   });
+  const management = async after => (await q('select customer_api.read_service_catalog_management_v1($1,$2,$3) as result', [context, workspace, after ?? null]))[0].result;
+  const updateDefinition = async request => (await q('select customer_api.update_service_definition_v1($1::jsonb) as result', [JSON.stringify(request)]))[0].result;
+  const definitionUpdate = { context_id: context, workspace_id: workspace, definition_id: definition, expected_lock_version: 1, labels, active: false, reason: 'Suspend service availability', idempotency_key: 'definition-update-001' };
+  await check('management draft projection preserves decimals without consumer exposure', async () => {
+    const result = await management(); assert.equal(result.offerings[0].revisions[0].revision.price.amount, '120.50'); assert.deepEqual(await list(), []);
+    assert.deepEqual(result.providers, [{ provider_party_id: provider, label: 'Provider' }]); assert.doesNotMatch(JSON.stringify(result), /tenant_id|actor_id|tax_id|contact_email/);
+  });
+  await check('read only cannot read management', async () => changed(`delete from app_private.test_authority where actor_id='${actor}' and permission<>'services.catalog.read'`, async () => denied(() => management(), '42501')));
+  await check('publisher only has no providers or manage capability', async () => changed(`delete from app_private.test_authority where actor_id='${actor}' and permission<>'services.catalog.publish'`, async () => { const result = await management(); assert.equal(result.can_manage, false); assert.equal(result.can_publish, true); assert.deepEqual(result.providers, []); }));
+  await check('management checks current workspace authority', async () => { await denied(() => q('select customer_api.read_service_catalog_management_v1($1,$2,null)', [context, foreignWorkspace]), '42501'); await changed(`delete from app_private.test_authority where actor_id='${actor}'`, async () => denied(() => management(), '42501')); });
+  await check('new RPCs reject anonymous actor and service role privilege', async () => {
+    for (const role of ['anon', 'service_role']) for (const signature of ['customer_api.read_service_catalog_management_v1(uuid,uuid,uuid)', 'customer_api.update_service_definition_v1(jsonb)']) assert.equal((await q("select has_function_privilege($1,$2,'EXECUTE') as allowed", [role, signature]))[0].allowed, false);
+    await setActor(null); await denied(() => management(), '42501'); await denied(() => updateDefinition(definitionUpdate), '42501'); await setActor(actor);
+  });
+  await check('definition edit is audited idempotent scoped and version checked', async () => changed('', async () => {
+    const result = await updateDefinition(definitionUpdate); assert.equal(result.lock_version, 2); assert.equal(result.active, false); assert.deepEqual(await updateDefinition(definitionUpdate), result);
+    assert.equal((await q('select count(*)::int n from audit.events where entity_id=$1', [definition]))[0].n, 1); assert.equal((await q('select count(*)::int n from platform.outbox_events where aggregate_id=$1', [definition]))[0].n, 1);
+    for (const [name, request, code] of [['stale', { ...definitionUpdate, idempotency_key: 'definition-stale-001' }, '40001'], ['foreign_target', { ...definitionUpdate, workspace_id: foreignWorkspace }, '42501'], ['forged', { ...definitionUpdate, actor_id: actor }, '22023']]) {
+      await db.exec(`savepoint ${name}`); await denied(() => updateDefinition(request), code); await db.exec(`rollback to savepoint ${name}`);
+    }
+  }));
+  await check('management pagination has no duplicates across 51 offerings', async () => changed('', async () => {
+    for (let i = 0; i < 50; i++) await mutate('create', { ...command, idempotency_key: `page-test-${i.toString().padStart(3, '0')}` });
+    const first = await management(); assert.equal(first.offerings.length, 50); assert.equal(first.next_after, first.offerings.at(-1).offering_id);
+    const second = await management(first.next_after); assert.equal(second.offerings.length, 1); assert.equal(second.next_after, null); assert.equal(new Set([...first.offerings, ...second.offerings].map(row => row.offering_id)).size, 51);
+  }));
   await check('same key changed content conflicts', async () => denied(() => mutate('create', { ...command, revision: { ...revision, price: { ...revision.price, amount: '121.50' } } }), '23505'));
   await check('same key different actor conflicts', async () => { await setActor(approver); await denied(() => mutate('create', command), '23505'); await setActor(actor); });
   await check('retry requires current authority', async () => changed(`delete from app_private.test_authority where actor_id='${actor}'`, async () => denied(() => mutate('create', command), '42501')));
@@ -102,8 +130,10 @@ try {
   });
   await check('submit is atomically versioned and still hidden', async () => { assert.equal((await mutate('transition', transition('submit', 1, 'submit-001'))).lock_version, 2); assert.deepEqual(await list(), []); });
   await check('self-publication denied', async () => denied(() => mutate('transition', transition('publish', 2, 'publish-001')), '42501'));
+  await check('management publication hint enforces separate actor', async () => { assert.equal((await management()).offerings[0].revisions[0].can_publish, false); await setActor(approver); assert.equal((await management()).offerings[0].revisions[0].can_publish, true); await setActor(actor); });
   await setActor(approver);
   await check('separate approver publishes selected immutable version', async () => { assert.equal((await mutate('transition', transition('publish', 2, 'publish-002'))).lock_version, 3); assert.equal((await list())[0].revision_id, created.revision_id); });
+  await check('deactivation hides publication without changing commercial history', async () => changed('', async () => { const before = (await q('select commercial_terms from service_catalog.revisions where id=$1', [created.revision_id]))[0]; await updateDefinition(definitionUpdate); assert.deepEqual(await list(), []); assert.deepEqual((await q('select commercial_terms from service_catalog.revisions where id=$1', [created.revision_id]))[0], before); await updateDefinition({ ...definitionUpdate, active: true, expected_lock_version: 2, idempotency_key: 'definition-reactivate-001' }); assert.equal((await list()).length, 1); }));
   await check('read projection excludes tenant actor provider and documents', async () => { const row = (await list())[0]; for (const key of ['tenant_id', 'created_by', 'provider_party_id', 'document_version_ids', 'status']) assert.equal(Object.hasOwn(row, key), false); });
   await setActor(actor);
   let revised;
@@ -111,6 +141,7 @@ try {
     revised = await mutate('revise', { context_id: context, workspace_id: workspace, offering_id: created.offering_id, expected_lock_version: 3, revision: { ...revision, price: { ...revision.price, amount: '130.00' } }, idempotency_key: 'revise-001' });
     assert.notEqual(revised.revision_id, created.revision_id); assert.equal((await list())[0].price.amount, '120.50');
   });
+  await check('management retains current and published revision pointers', async () => { const row = (await management()).offerings[0]; assert.equal(row.current_revision_id, revised.revision_id); assert.equal(row.published_revision_id, created.revision_id); assert.equal(row.revisions.length, 2); assert.equal(row.lock_version, 4); });
   await check('old published version can be suspended while a new draft exists', async () => { await mutate('transition', transition('suspend', 4, 'suspend-001')); assert.deepEqual(await list(), []); });
   await check('suspended version cannot be resumed or published directly', async () => denied(() => mutate('transition', transition('publish', 5, 'resume-001')), '22023'));
   await check('future and expired published revisions are hidden', async () => {
@@ -139,6 +170,53 @@ try {
     assert.equal((await q("select has_function_privilege('anon','customer_api.mutate_service_catalog_v1(text,jsonb)','EXECUTE') as allowed"))[0].allowed, false);
   });
   if (openConnection) {
+    const waitForDefinitionLock = async pid => {
+      const deadline = Date.now() + 5000;
+      while (Date.now() < deadline) {
+        if ((await q('select wait_event_type from pg_stat_activity where pid=$1', [pid]))[0]?.wait_event_type === 'Lock') return;
+        await new Promise(done => setTimeout(done, 10));
+      }
+      assert.fail('Definition operation did not wait on the concurrent deactivation lock');
+    };
+    await check('identical concurrent definition edits have one audited effect', async () => {
+      const clients = await Promise.all([openConnection(), openConnection()]);
+      try {
+        await Promise.all(clients.map(client => client.query("select set_config('request.jwt.claim.sub',$1,false)", [actor])));
+        const responses = await Promise.all(clients.map(client => client.query('select customer_api.update_service_definition_v1($1::jsonb) as result', [JSON.stringify(definitionUpdate)])));
+        assert.deepEqual(responses[0].rows, responses[1].rows); assert.equal(responses[0].rows[0].result.lock_version, 2);
+        assert.equal((await q('select count(*)::int n from audit.events where entity_id=$1', [definition]))[0].n, 1);
+      } finally { await Promise.all(clients.map(client => client.end())); }
+    });
+    await check('concurrent definition edits with same expected version have one winner', async () => {
+      const clients = await Promise.all([openConnection(), openConnection()]);
+      try {
+        await Promise.all(clients.map(client => client.query("select set_config('request.jwt.claim.sub',$1,false)", [actor])));
+        const outcomes = await Promise.allSettled(clients.map((client, i) => client.query('select customer_api.update_service_definition_v1($1::jsonb)', [JSON.stringify({ ...definitionUpdate, active: true, expected_lock_version: 2, idempotency_key: `definition-race-${i}` })])));
+        assert.equal(outcomes.filter(outcome => outcome.status === 'fulfilled').length, 1); assert.equal(outcomes.find(outcome => outcome.status === 'rejected').reason.code, '40001');
+      } finally { await Promise.all(clients.map(client => client.end())); }
+    });
+    for (const operation of ['create', 'publish']) {
+      await check(`deactivation serializes with concurrent ${operation}`, async () => {
+        let request = { ...command, idempotency_key: 'definition-deactivate-race' };
+        let row;
+        if (operation === 'publish') {
+          row = await mutate('create', { ...command, idempotency_key: 'deactivation-publish-create' });
+          request = { context_id: context, workspace_id: workspace, offering_id: row.offering_id, revision_id: row.revision_id, expected_lock_version: 1, action: 'submit', reason: 'Review commercial terms', idempotency_key: 'deactivation-publish-submit' };
+          await mutate('transition', request); request = { ...request, expected_lock_version: 2, action: 'publish', idempotency_key: 'deactivation-publish-race' };
+        }
+        const clients = await Promise.all([openConnection(), openConnection()]);
+        try {
+          await clients[0].query('begin'); await clients[0].query('update service_catalog.definitions set active=false where id=$1', [definition]);
+          await clients[1].query("select set_config('request.jwt.claim.sub',$1,false)", [operation === 'publish' ? approver : actor]);
+          const pid = (await clients[1].query('select pg_backend_pid() pid')).rows[0].pid;
+          const pending = clients[1].query('select customer_api.mutate_service_catalog_v1($1,$2::jsonb)', [operation === 'publish' ? 'transition' : 'create', JSON.stringify(request)]).then(() => ({ ok: true }), error => ({ ok: false, code: error.code }));
+          await waitForDefinitionLock(pid); await clients[0].query('commit'); assert.deepEqual(await pending, { ok: false, code: '22023' });
+          if (row) { const stored = (await q('select status from service_catalog.revisions where id=$1', [row.revision_id]))[0]; assert.equal(stored.status, 'submitted'); }
+          await q('update service_catalog.definitions set active=true where id=$1', [definition]);
+        } finally { await clients[0].query('rollback'); await Promise.all(clients.map(client => client.end())); }
+      });
+    }
+
     await check('two concurrent identical claims execute once and return identical responses', async () => {
       const clients = await Promise.all([openConnection(), openConnection()]);
       try {
