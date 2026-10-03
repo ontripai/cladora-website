@@ -305,3 +305,12 @@ PR اجرایی [#218](https://github.com/ontripai/cladora-website/pull/218) ا�
 Application Foundation برای head فوق ناموفق است؛ مرحله npm audit در وابستگی‌های موجود شکست می‌خورد. workflow اختصاصی به بررسی کامل typecheck و test:unit نیز گسترش یافت؛ نتیجه نسخه جدید جداگانه باید تأیید شود. این بررسی‌ها جایگزین رفع audit یا آزمون دیتابیس نیستند.
 
 طبق دستور کاربر، شاخه هر PR SERVICE فقط پس از تکمیل و تأیید ادغام حذف می‌شود. هیچ شاخه ادغام‌نشده یا شاخه ورک دیگر در این مسیر حذف نمی‌شود.
+
+
+### اصلاح هدف Workspace — 2026-10-03
+
+در head `679e8e87ce471baa6aeae544a4340601dd765aeb` از #218، سه فرمان ایجاد، ویرایش و گذار وضعیت، `workspace_id` صریح و اجباری دارند. نبود، null و UUID نامعتبر رد می‌شود. این فیلد مقصد درخواست است؛ اختیار ایجاد نمی‌کند. gateway باید آن را با Workspace مجاز در Context معتبر و Workspace ثابت عرضه تطبیق دهد. idempotency نیز باید در همین دامنه Workspace و فرمان باقی بماند.
+
+۶۹ آزمون رفتاری، strict TypeScript و ESLint محلی گذشتند. CI آخرین head هنگام ثبت این بند در حال اجراست؛ نتیجه موفق ۵۷ آزمون head قبلی به این تغییر تعمیم داده نمی‌شود.
+
+بررسی هسته main نشان داد `identity.scope_type` و قید `identity.context_grants` هنوز tenant/property/building/unit هستند. افزودن Workspace باید همین مرجع canonical، ایجاد و فهرست Contextها، resolver، effective permission و تفویض اختیار را هماهنگ کند. استفاده از grant نوع tenant به‌عنوان مجوز نوشتن عمومی Workspace یا استنتاج آن از اتصال ملک پذیرفته نیست. تغییر قرارداد مشترک باید آزمون عدم گسترش اختیار در AIRPROP و Operations داشته باشد. در این اصلاح، هیچ فایل یا مجوز هسته مشترک تغییر نکرده است.
