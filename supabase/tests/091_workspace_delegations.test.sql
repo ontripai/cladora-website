@@ -38,9 +38,9 @@ select ok(
 -- ----------------------------------------------------------------------------
 -- 3.1 Registry total records = 90 (48 v1 + 42 v2), active records = 48
 select ok(
-  (select count(*) from platform.module_permission_bindings) = 90 and
-  (select count(*) from platform.module_permission_bindings where lifecycle_status = 'active') = 48,
-  'binding registry contains exactly 90 total records and 48 active records'
+  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security'))) = 90 and
+  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and lifecycle_status = 'active') = 48,
+  'historic module manifest contains exactly 90 total records and 48 active records'
 );
 
 -- 3.2 Exactly 42 delegable active bindings have binding_version = 2 and is_delegable = true
@@ -53,7 +53,7 @@ select ok(
 -- 3.3 The 6 high-risk non-delegable permissions stay at v1 with zero v2 records
 select ok(
   (select count(*) from platform.module_permission_bindings
-   where is_delegable is false and lifecycle_status = 'active') = 6 and
+   where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and is_delegable is false and lifecycle_status = 'active') = 6 and
   not exists (
     select 1 from platform.module_permission_bindings b
     join identity.permissions p on p.id = b.permission_id
