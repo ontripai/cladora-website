@@ -200,4 +200,90 @@ $$;
 revoke all on function app_private.require_airprop_workspace_context_v1(uuid,text,uuid)
  from public,anon,authenticated,service_role;
 
+-- Existing command cutover: the business and retry semantics remain intact.
+create or replace function app_private.create_airprop_opportunity_internal_v1(p_context_id uuid,p_idempotency_key text,p_payload jsonb)
+returns jsonb language plpgsql security definer set search_path=pg_catalog,airprop,portfolio,audit,extensions
+as $$
+declare a record;o airprop.investment_opportunities%rowtype;v_hash text;v_property uuid;
+begin
+ if auth.uid() is null then raise exception 'authentication_required' using errcode='42501';end if;
+ if coalesce(auth.jwt()->>'aal','aal1')<>'aal2' then raise exception 'mfa_required' using errcode='42501';end if;
+ v_property=nullif(p_payload->>'property_id','')::uuid;
+ select * into a from app_private.require_airprop_workspace_context_v1(p_context_id,'airprop.opportunity.manage',v_property);
+ if p_idempotency_key !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$' then raise exception 'invalid_idempotency_key' using errcode='22023';end if;
+ if jsonb_typeof(p_payload)<>'object' or nullif(trim(p_payload->>'name'),'') is null or upper(coalesce(p_payload->>'country_code',''))<>'RO'
+   or nullif(trim(p_payload->>'city'),'') is null or upper(coalesce(p_payload->>'currency','')) not in('RON','EUR')
+   or coalesce((p_payload->>'asking_price')::numeric,0)<=0 then raise exception 'airprop_invalid_opportunity' using errcode='22023';end if;
+ if v_property is not null and not exists(select 1 from portfolio.properties p where p.id=v_property and p.tenant_id=a.tenant_id) then raise exception 'airprop_property_not_found' using errcode='P0002';end if;
+ v_hash=encode(extensions.digest(convert_to(p_payload::text,'UTF8'),'sha256'),'hex');
+ select * into o from airprop.investment_opportunities where tenant_id=a.tenant_id and idempotency_key=p_idempotency_key for update;
+ if found then
+  if o.input_hash<>v_hash then raise exception 'airprop_idempotency_payload_mismatch' using errcode='22023';end if;
+  return jsonb_build_object('version',1,'opportunity_id',o.id,'status',o.status,'idempotent',true);
+ end if;
+ insert into airprop.investment_opportunities(tenant_id,property_id,idempotency_key,name,country_code,city,asking_price,currency,source_ref,input_hash,created_by)
+ values(a.tenant_id,v_property,p_idempotency_key,trim(p_payload->>'name'),'RO',trim(p_payload->>'city'),(p_payload->>'asking_price')::numeric,upper(p_payload->>'currency'),nullif(trim(p_payload->>'source_ref'),''),v_hash,auth.uid()) returning * into o;
+ insert into audit.events(tenant_id,actor_id,actor_role,action,entity_type,entity_id,after_snapshot,reason)
+ values(a.tenant_id,auth.uid(),a.role_code,'AIRPROP_OPPORTUNITY_CREATED','airprop.investment_opportunity',o.id,jsonb_build_object('status',o.status,'country_code',o.country_code,'currency',o.currency),'AIRPROP synthetic/core opportunity evidence');
+ return jsonb_build_object('version',1,'opportunity_id',o.id,'status',o.status,'idempotent',false);
+end$$;
+
+create or replace function app_private.add_airprop_underwriting_version_internal_v1(p_context_id uuid,p_opportunity_id uuid,p_assumptions jsonb)
+returns jsonb language plpgsql security definer set search_path=pg_catalog,airprop,audit,extensions
+as $$
+declare a record;ctx record;o airprop.investment_opportunities%rowtype;c airprop.underwriting_cases%rowtype;v airprop.underwriting_versions%rowtype;
+ cost numeric;rent numeric;opex numeric;noi numeric;v_hash text;next_version integer;
+begin
+ if auth.uid() is null then raise exception 'authentication_required' using errcode='42501';end if;
+ if coalesce(auth.jwt()->>'aal','aal1')<>'aal2' then raise exception 'mfa_required' using errcode='42501';end if;
+ select * into ctx from app_private.resolve_workspace_from_customer_context_v1(p_context_id,true);
+ select * into o from airprop.investment_opportunities where id=p_opportunity_id and tenant_id=ctx.tenant_id;
+ if not found then raise exception 'airprop_opportunity_not_found' using errcode='P0002';end if;
+ select * into a from app_private.require_airprop_workspace_context_v1(p_context_id,'airprop.underwriting.manage',o.property_id);
+ if o.tenant_id<>a.tenant_id then raise exception 'airprop_opportunity_not_found' using errcode='P0002';end if;
+ if jsonb_typeof(p_assumptions)<>'object' then raise exception 'airprop_invalid_underwriting' using errcode='22023';end if;
+ cost=coalesce((p_assumptions->>'acquisition_cost')::numeric,0);rent=coalesce((p_assumptions->>'annual_rent')::numeric,-1);opex=coalesce((p_assumptions->>'annual_opex')::numeric,-1);
+ if cost<=0 or rent<0 or opex<0 or opex>rent then raise exception 'airprop_invalid_underwriting' using errcode='22023';end if;
+ v_hash=encode(extensions.digest(convert_to(p_assumptions::text,'UTF8'),'sha256'),'hex');noi=rent-opex;
+ insert into airprop.underwriting_cases(tenant_id,opportunity_id,created_by) values(a.tenant_id,p_opportunity_id,auth.uid())
+ on conflict(tenant_id,opportunity_id) do update set updated_at=statement_timestamp() returning * into c;
+ perform pg_advisory_xact_lock(hashtextextended(c.id::text,0));
+ select * into v from airprop.underwriting_versions where underwriting_case_id=c.id and input_hash=v_hash;
+ if found then return jsonb_build_object('version',v.version,'underwriting_case_id',c.id,'results',v.results,'idempotent',true);end if;
+ select coalesce(max(version),0)+1 into next_version from airprop.underwriting_versions where underwriting_case_id=c.id;
+ insert into airprop.underwriting_versions(tenant_id,underwriting_case_id,version,assumptions,results,input_hash,created_by)
+ values(a.tenant_id,c.id,next_version,p_assumptions,jsonb_build_object('annual_noi',noi,'gross_yield',round(rent/cost,8),'net_yield',round(noi/cost,8),'currency',upper(coalesce(p_assumptions->>'currency',o.currency))),v_hash,auth.uid()) returning * into v;
+ update airprop.underwriting_cases set current_version=next_version,status='published',updated_at=statement_timestamp() where id=c.id;
+ update airprop.investment_opportunities set status='underwriting',updated_at=statement_timestamp() where id=p_opportunity_id and status in('draft','qualified','underwriting');
+ insert into audit.events(tenant_id,actor_id,actor_role,action,entity_type,entity_id,after_snapshot,reason)
+ values(a.tenant_id,auth.uid(),a.role_code,'AIRPROP_UNDERWRITING_VERSION_CREATED','airprop.underwriting_case',c.id,jsonb_build_object('version',next_version,'input_hash',v_hash),'AIRPROP deterministic underwriting evidence');
+ return jsonb_build_object('version',next_version,'underwriting_case_id',c.id,'results',v.results,'idempotent',false);
+end$$;
+
+create or replace function app_private.configure_airprop_property_internal_v1(p_context_id uuid,p_property_id uuid,p_party_id uuid,p_interest_kind airprop.interest_kind,p_share numeric,p_model airprop.operating_model_kind,p_valid_from date,p_country_pack_code text default 'AIRPROP-RO',p_country_pack_version text default '1.0')
+returns jsonb language plpgsql security definer set search_path=pg_catalog,airprop,portfolio,audit
+as $$
+declare a record;i airprop.property_interests%rowtype;m airprop.property_operating_models%rowtype;
+begin
+ select * into a from app_private.require_airprop_workspace_context_v1(p_context_id,'airprop.asset.manage',p_property_id);
+ if not exists(select 1 from portfolio.properties p where p.id=p_property_id and p.tenant_id=a.tenant_id) then raise exception 'airprop_property_not_found' using errcode='P0002';end if;
+ if not exists(select 1 from portfolio.parties p where p.id=p_party_id and p.tenant_id=a.tenant_id) then raise exception 'airprop_party_not_found' using errcode='P0002';end if;
+ if p_share<=0 or p_share>1 or p_valid_from is null then raise exception 'airprop_invalid_property_configuration' using errcode='22023';end if;
+ if p_country_pack_code<>'AIRPROP-RO' or p_country_pack_version<>'1.0' then raise exception 'airprop_country_pack_not_active' using errcode='22023';end if;
+ select * into i from airprop.property_interests where tenant_id=a.tenant_id and property_id=p_property_id and party_id=p_party_id and kind=p_interest_kind and valid_from=p_valid_from;
+ select * into m from airprop.property_operating_models where tenant_id=a.tenant_id and property_id=p_property_id and valid_from=p_valid_from;
+ if i.id is not null or m.id is not null then
+  if i.id is null or m.id is null or i.share<>p_share or m.model<>p_model or m.country_pack_code<>p_country_pack_code or m.country_pack_version<>p_country_pack_version then raise exception 'airprop_property_configuration_conflict' using errcode='22023';end if;
+  return jsonb_build_object('version',1,'interest_id',i.id,'operating_model_id',m.id,'idempotent',true);
+ end if;
+ insert into airprop.property_interests(tenant_id,property_id,party_id,kind,share,valid_from,created_by)
+ values(a.tenant_id,p_property_id,p_party_id,p_interest_kind,p_share,p_valid_from,auth.uid()) returning * into i;
+ insert into airprop.property_operating_models(tenant_id,property_id,model,country_pack_code,country_pack_version,valid_from,created_by)
+ values(a.tenant_id,p_property_id,p_model,p_country_pack_code,p_country_pack_version,p_valid_from,auth.uid()) returning * into m;
+ insert into audit.events(tenant_id,actor_id,actor_role,action,entity_type,entity_id,after_snapshot,reason)
+ values(a.tenant_id,auth.uid(),a.role_code,'AIRPROP_PROPERTY_CONFIGURED','portfolio.property',p_property_id,jsonb_build_object('interest_kind',p_interest_kind,'share',p_share,'operating_model',p_model,'country_pack_code',p_country_pack_code,'country_pack_version',p_country_pack_version),'AIRPROP Romania core configuration evidence');
+ return jsonb_build_object('version',1,'interest_id',i.id,'operating_model_id',m.id,'idempotent',false);
+end$$;
+
+
 commit;
