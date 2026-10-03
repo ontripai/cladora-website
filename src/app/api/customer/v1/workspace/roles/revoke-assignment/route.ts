@@ -88,11 +88,21 @@ export async function POST(request: NextRequest) {
         { status: 409, headers: HEADERS }
       );
     }
+    if (msg.includes('workspace_role_idempotency_conflict')) {
+      return NextResponse.json({ error: { code: 'IDEMPOTENCY_CONFLICT', message: 'Request key is already in use' } }, { status: 409, headers: HEADERS });
+    }
+    if (rpcError.code === '42501') {
+      return NextResponse.json({ error: { code: 'FORBIDDEN', message: 'Assignment access denied' } }, { status: 403, headers: HEADERS });
+    }
+    if (rpcError.code === '22023') {
+      return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'Assignment request is invalid' } }, { status: 400, headers: HEADERS });
+    }
     return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: msg } },
+      { error: { code: 'INTERNAL_ERROR', message: 'Could not complete assignment request' } },
       { status: 500, headers: HEADERS }
     );
   }
 
+  if (!data) return NextResponse.json({ error: { code: 'INTERNAL_ERROR', message: 'Unconfirmed assignment response' } }, { status: 500, headers: HEADERS });
   return NextResponse.json(data, { status: 200, headers: HEADERS });
 }

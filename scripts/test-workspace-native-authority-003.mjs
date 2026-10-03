@@ -198,4 +198,8 @@ try {
     const { runAirpropNativeRuntimeTests } = await import('./test-airprop-native-runtime-004.mjs');
     await runAirpropNativeRuntimeTests({ db, q, check, changed, setActor, id, tenant, otherTenant, user, otherUser, workspace, secondWorkspace, foreignWorkspace, context, otherContext, physicalContext, localRole, member, property });
   }
+  if (process.argv.includes('--role-assignment')) {
+    const { runWorkspaceRoleAssignmentTests } = await import('./test-workspace-role-assignment-runtime.mjs');
+    await runWorkspaceRoleAssignmentTests({ db,q,check,changed,setActor,id,tenant,user,otherUser,workspace,secondWorkspace,context,otherContext,physicalContext,member });
+  }
 } finally { await db.close(); }

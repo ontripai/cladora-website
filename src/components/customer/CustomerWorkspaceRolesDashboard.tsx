@@ -14,6 +14,7 @@ import type { Language } from '@/types';
 import { isRtlLocale } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
 import { WorkspaceRoleDraftAccessEditor } from './WorkspaceRoleDraftAccessEditor';
+import { WorkspaceRoleAssignmentEditor } from './WorkspaceRoleAssignmentEditor';
 import type {
   GetWorkspaceRolesResponse,
   WorkspaceRoleItem,
@@ -35,6 +36,7 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [mfaRequired, setMfaRequired] = useState<boolean>(false);
+  const assignmentMfaRequired = useCallback(() => setMfaRequired(true), []);
   const [activeTab, setActiveTab] = useState<'roles' | 'assignments'>('roles');
 
   // Modals state
@@ -429,7 +431,9 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded-xl">
+        <div className="space-y-4">
+          {contextId && data?.workspace_id && <WorkspaceRoleAssignmentEditor key={`${contextId}:${data.workspace_id}`} lang={lang} contextId={contextId} workspaceId={data.workspace_id} roles={data.roles} onChanged={fetchRoles} onMfaRequired={assignmentMfaRequired} />}
+          <div className="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded-xl">
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300 text-xs uppercase">
               <tr>
@@ -482,6 +486,7 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

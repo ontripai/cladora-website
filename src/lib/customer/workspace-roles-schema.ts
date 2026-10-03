@@ -167,7 +167,7 @@ export const assignWorkspaceRoleRequestSchema = z.object({
   valid_until: z.string().datetime().nullable().optional(),
   reason: z.string().trim().min(5, 'Reason must be at least 5 characters').max(500),
   idempotency_key: idempotencyKeySchema,
-});
+}).strict();
 
 export const revokeWorkspaceRoleAssignmentRequestSchema = z.object({
   context_id: uuidSchema,
@@ -175,7 +175,7 @@ export const revokeWorkspaceRoleAssignmentRequestSchema = z.object({
   expected_lock_version: z.number().int().positive(),
   reason: z.string().trim().min(5, 'Reason must be at least 5 characters').max(500),
   idempotency_key: idempotencyKeySchema,
-});
+}).strict();
 
 export type WorkspaceRoleItem = z.infer<typeof workspaceRoleItemSchema>;
 export type WorkspaceMemberRoleAssignmentItem = z.infer<typeof workspaceMemberRoleAssignmentItemSchema>;
