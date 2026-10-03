@@ -72,7 +72,15 @@ export function buildResolutionPlan(input) {
         if (!property || property.tenant_id !== opportunity.tenant_id) entry.reasons.push('subject_tenant_mismatch');
         const created = instant(opportunity.created_at);
         if (!Number.isFinite(created)) entry.reasons.push('invalid_opportunity_time');
-        const historical = [...bindings.values()].filter(binding => {
+        const subjectBindings = [...bindings.values()].filter(binding => binding.property_id === opportunity.property_id);
+        const invalidHistory = subjectBindings.some(binding => {
+          const from = instant(binding.valid_from);
+          const to = binding.valid_to == null ? Infinity : instant(binding.valid_to);
+          return !uuid.test(binding.tenant_id ?? '') || !uuid.test(binding.customer_workspace_id ?? '')
+            || !Number.isFinite(from) || Number.isNaN(to) || to <= from;
+        });
+        if (invalidHistory) entry.reasons.push('invalid_subject_binding_history');
+        const historical = subjectBindings.filter(binding => {
           const from = instant(binding.valid_from);
           const to = binding.valid_to == null ? Infinity : instant(binding.valid_to);
           return binding.property_id === opportunity.property_id
