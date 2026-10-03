@@ -1,0 +1,29 @@
+name: AIRPROP opportunity contract
+on:
+  pull_request:
+    paths:
+      - 'src/lib/airprop/**'
+      - 'scripts/test-airprop-opportunity-contract-v2.mjs'
+      - '.github/workflows/airprop-opportunity-contract.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify actual compiled contract and idempotency behavior
+        run: node scripts/test-airprop-opportunity-contract-v2.mjs
+      - name: Lint AIRPROP contract
+        run: npx eslint src/lib/airprop/opportunity-contract-v2.ts src/lib/airprop/opportunity-idempotency-v2.ts scripts/test-airprop-opportunity-contract-v2.mjs --max-warnings=0
+      - run: npm run typecheck
+      - run: npm run test:unit
