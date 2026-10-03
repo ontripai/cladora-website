@@ -22,10 +22,10 @@ The page compiles and its mounted component is tested. A live signed-in producti
 
 ## Remaining integration
 
-Native Context/role/module provisioning and dashboard/menu integration remain shared-core prerequisites. The new route is present, but this change does not insert a navigation entry whose legacy dashboard permission proof cannot yet establish native Workspace access. Workspace targets have no canonical human-readable name field in the existing contract; the UI uses ordered localized Workspace labels without inventing schema fields.
+Native Context/role/module provisioning remains a shared-core prerequisite. After #224 merged during this work, SERVICE adopted its canonical `nativeWorkspaceDiscovery` route classification and tenant-Context discovery navigation. This allows discovery presentation only: actual targets, entitlements and permissions are checked by canonical RPCs after explicit selection. SERVICE adds its exact route and localized link, preserving AIRPROP behavior. Unknown descendants remain fail-closed. Workspace targets have no canonical human-readable name field in the existing contract; the UI uses ordered localized Workspace labels without inventing schema fields.
 
 Management forms for creating/revising/submitting/publishing offerings and definition editing/deactivation are not supplied here. Authorized secure document linking is still blocked by #222. Orders, reservations, reception/custody and benefits remain later SERVICE runtime packages. These limitations are explicit; this slice is not full product completion.
 
 ## Scope
 
-New SERVICE definition migration, gateway, consumer component/page, UI test and this versioned document; updates only the SERVICE-owned test scripts/workflow from #222. No AIRPROP or Operations source/configuration is changed. No main package or lockfile change. No production data, invitation, email or financial transaction is created.
+New SERVICE definition migration, gateway, consumer component/page, UI test and this versioned document; updates SERVICE-owned test scripts/workflow from #222. Two shared presentation files receive the exact SERVICE route/link, using the latest main implementation from #224. AIRPROP and Operations domain implementations and existing navigation stay intact. No main package or lockfile change. No production data, invitation, email or financial transaction is created.
