@@ -76,7 +76,7 @@ revoke all on function app_private.context_covers_workspace_target_v1(uuid,text,
  app_private.check_scoped_effective_permission_v1(uuid,text,text,text,uuid)
  from public,anon,authenticated,service_role;
 comment on function app_private.check_scoped_effective_permission_v1(uuid,text,text,text,uuid)
- is 'Internal additive adapter: context ceiling AND canonical effective permission; caller-specific AAL and mutation binding gates remain required. No domain caller cutover.';
+ is 'Internal additive adapter: context ceiling AND canonical effective permission; caller-specific AAL and mutation binding gates remain required. AIRPROP command and read adapters use this shared scope ceiling.';
 
 -- AIRPROP is a runtime module in the existing catalogue; workspace activation is separate.
 insert into platform.module_definitions(code,version,name,labels_json,description,category,is_active,lifecycle_status,
@@ -285,5 +285,46 @@ begin
  return jsonb_build_object('version',1,'interest_id',i.id,'operating_model_id',m.id,'idempotent',false);
 end$$;
 
+
+
+-- RLS uses the same core scope/permission engine as command authorization.
+create function app_private.can_read_airprop_subject_v1(
+ p_tenant_id uuid,p_property_id uuid,p_permission text
+) returns boolean language plpgsql stable security definer
+set search_path=pg_catalog,app_private
+as $$
+declare r record; ctx uuid;
+begin
+ if auth.uid() is null or coalesce(auth.jwt()->>'aal','aal1')<>'aal2'
+  or p_tenant_id is null or p_property_id is null or p_permission is null
+  or p_permission not in('airprop.opportunity.read','airprop.asset.read')
+  or p_tenant_id is distinct from app_private.active_tenant_id() then return false;end if;
+ ctx:=app_private.active_context_id();
+ begin
+  select * into r from app_private.resolve_workspace_from_customer_context_v1(ctx,false);
+ exception when sqlstate '42501' then return false;
+ end;
+ if r.tenant_id is distinct from p_tenant_id then return false;end if;
+ return app_private.check_scoped_effective_permission_v1(ctx,p_permission,'airprop_commercial','property',p_property_id);
+end;
+$$;
+revoke all on function app_private.can_read_airprop_subject_v1(uuid,uuid,text) from public,anon,authenticated,service_role;
+grant execute on function app_private.can_read_airprop_subject_v1(uuid,uuid,text) to authenticated;
+
+drop policy airprop_opportunities_context_read on airprop.investment_opportunities;
+create policy airprop_opportunities_context_read on airprop.investment_opportunities for select to authenticated
+ using(app_private.can_read_airprop_subject_v1(tenant_id,property_id,'airprop.opportunity.read'));
+drop policy airprop_underwriting_cases_context_read on airprop.underwriting_cases;
+create policy airprop_underwriting_cases_context_read on airprop.underwriting_cases for select to authenticated
+ using(exists(select 1 from airprop.investment_opportunities o where o.id=opportunity_id and o.tenant_id=underwriting_cases.tenant_id));
+drop policy airprop_underwriting_versions_context_read on airprop.underwriting_versions;
+create policy airprop_underwriting_versions_context_read on airprop.underwriting_versions for select to authenticated
+ using(exists(select 1 from airprop.underwriting_cases c where c.id=underwriting_case_id and c.tenant_id=underwriting_versions.tenant_id));
+drop policy airprop_property_interests_context_read on airprop.property_interests;
+create policy airprop_property_interests_context_read on airprop.property_interests for select to authenticated
+ using(app_private.can_read_airprop_subject_v1(tenant_id,property_id,'airprop.asset.read'));
+drop policy airprop_operating_models_context_read on airprop.property_operating_models;
+create policy airprop_operating_models_context_read on airprop.property_operating_models for select to authenticated
+ using(app_private.can_read_airprop_subject_v1(tenant_id,property_id,'airprop.asset.read'));
 
 commit;
