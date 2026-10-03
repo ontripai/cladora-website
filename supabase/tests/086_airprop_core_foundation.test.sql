@@ -111,13 +111,14 @@ select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-00000000
 select ok((select count(*) from airprop.property_interests)=1 and(select count(*) from airprop.property_operating_models)=1,'denied configuration and allowed retry create no additional records');
 select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000001","active_context_id":"86400000-0000-0000-0000-000000000001"}',true);
 
+select set_config('test.airprop_opportunity_id',(select id::text from airprop.investment_opportunities limit 1),true);
 -- The real commands must authorize retries against current module and role state.
 reset role;
 update platform.workspace_modules set status='deactivated',valid_to=statement_timestamp(),deactivated_at=statement_timestamp(),reason='Synthetic authorization regression'
 where customer_workspace_id='86000000-0000-0000-0000-000000000001' and module_code='airprop_commercial';
 set local role authenticated;
 select throws_ok($$select customer_api.create_airprop_opportunity_v1('86400000-0000-0000-0000-000000000001','AIRPROP-086-OPP','{"name":"Synthetic Bucharest Acquisition","country_code":"RO","city":"București","asking_price":750000,"currency":"RON","property_id":"86600000-0000-0000-0000-000000000001","source_ref":"SYNTHETIC-086"}'::jsonb)$$,'42501','airprop_workspace_access_denied','inactive module denies opportunity retry');
-select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000001',(select id from airprop.investment_opportunities limit 1),'{"acquisition_cost":750000,"annual_rent":78000,"annual_opex":19000,"currency":"RON"}'::jsonb)$$,'42501','airprop_workspace_access_denied','inactive module denies underwriting retry');
+select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000001',current_setting('test.airprop_opportunity_id')::uuid,'{"acquisition_cost":750000,"annual_rent":78000,"annual_opex":19000,"currency":"RON"}'::jsonb)$$,'42501','airprop_workspace_access_denied','inactive module denies underwriting retry');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_workspace_access_denied','inactive module denies configuration retry');
 reset role;
 insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
@@ -127,7 +128,7 @@ and module_code='airprop_commercial' and status='deactivated';
 update platform.workspace_entitlements set boolean_value=false where customer_workspace_id='86000000-0000-0000-0000-000000000001' and entitlement_key='module.airprop_commercial';
 set local role authenticated;
 select throws_ok($$select customer_api.create_airprop_opportunity_v1('86400000-0000-0000-0000-000000000001','AIRPROP-086-OPP','{"name":"Synthetic Bucharest Acquisition","country_code":"RO","city":"București","asking_price":750000,"currency":"RON","property_id":"86600000-0000-0000-0000-000000000001","source_ref":"SYNTHETIC-086"}'::jsonb)$$,'42501','airprop_workspace_access_denied','disabled entitlement denies opportunity retry');
-select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000001',(select id from airprop.investment_opportunities limit 1),'{"acquisition_cost":750000,"annual_rent":78000,"annual_opex":19000,"currency":"RON"}'::jsonb)$$,'42501','airprop_workspace_access_denied','disabled entitlement denies underwriting retry');
+select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000001',current_setting('test.airprop_opportunity_id')::uuid,'{"acquisition_cost":750000,"annual_rent":78000,"annual_opex":19000,"currency":"RON"}'::jsonb)$$,'42501','airprop_workspace_access_denied','disabled entitlement denies underwriting retry');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_workspace_access_denied','disabled entitlement denies configuration retry');
 reset role;
 update platform.workspace_entitlements set boolean_value=true where customer_workspace_id='86000000-0000-0000-0000-000000000001' and entitlement_key='module.airprop_commercial';
@@ -136,7 +137,7 @@ where rp.role_id=r.id and rp.permission_id=p.id and r.code='airprop_portfolio_di
 and p.code in('airprop.opportunity.manage','airprop.underwriting.manage','airprop.asset.manage');
 set local role authenticated;
 select throws_ok($$select customer_api.create_airprop_opportunity_v1('86400000-0000-0000-0000-000000000001','AIRPROP-086-OPP','{"name":"Synthetic Bucharest Acquisition","country_code":"RO","city":"București","asking_price":750000,"currency":"RON","property_id":"86600000-0000-0000-0000-000000000001","source_ref":"SYNTHETIC-086"}'::jsonb)$$,'42501','airprop_workspace_access_denied','current role denial blocks opportunity retry');
-select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000001',(select id from airprop.investment_opportunities limit 1),'{"acquisition_cost":750000,"annual_rent":78000,"annual_opex":19000,"currency":"RON"}'::jsonb)$$,'42501','airprop_workspace_access_denied','current role denial blocks underwriting retry');
+select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000001',current_setting('test.airprop_opportunity_id')::uuid,'{"acquisition_cost":750000,"annual_rent":78000,"annual_opex":19000,"currency":"RON"}'::jsonb)$$,'42501','airprop_workspace_access_denied','current role denial blocks underwriting retry');
 select throws_ok($$select customer_api.configure_airprop_property_v1('86400000-0000-0000-0000-000000000001','86600000-0000-0000-0000-000000000001','86700000-0000-0000-0000-000000000001','legal_owner',1,'own_asset','2026-01-01','AIRPROP-RO','1.0')$$,'42501','airprop_workspace_access_denied','current role denial blocks configuration retry');
 reset role;
 update identity.role_permissions rp set effect='allow' from identity.roles r,identity.permissions p
@@ -153,7 +154,7 @@ select ok((select count(*) from finance.journals where tenant_id='86200000-0000-
 
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"86100000-0000-0000-0000-000000000002","aal":"aal2","active_tenant_id":"86200000-0000-0000-0000-000000000002","active_context_id":"86400000-0000-0000-0000-000000000002"}',true);
-select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000002',(select id from airprop.investment_opportunities limit 1),'{"acquisition_cost":750000,"annual_rent":72000,"annual_opex":18000}'::jsonb)$$,'P0002','airprop_opportunity_not_found','cross-tenant underwriting hidden');
+select throws_ok($$select customer_api.add_airprop_underwriting_version_v1('86400000-0000-0000-0000-000000000002',current_setting('test.airprop_opportunity_id')::uuid,'{"acquisition_cost":750000,"annual_rent":72000,"annual_opex":18000}'::jsonb)$$,'P0002','airprop_opportunity_not_found','cross-tenant underwriting hidden');
 
 reset role;
 select throws_ok($$update airprop.underwriting_versions set results='{}'::jsonb where version=1$$,'55000','airprop_underwriting_version_immutable','underwriting history is immutable');
