@@ -1,0 +1,31 @@
+name: AIRPROP scope regression
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - 'scripts/test-airprop-scope-ceiling.mjs'
+      - '.github/workflows/airprop-scope-regression.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scope-regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Prepare isolated PostgreSQL fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          fixture="$RUNNER_TEMP/airprop-scope"
+          mkdir -p "$fixture/scripts" "$fixture/supabase/migrations"
+          cp scripts/test-airprop-scope-ceiling.mjs "$fixture/scripts/"
+          cp supabase/migrations/20261003074837_airprop_property_scope_ceiling.sql "$fixture/supabase/migrations/"
+          npm install --prefix "$fixture" --no-save --package-lock=false --ignore-scripts @electric-sql/pglite@0.5.8
+      - name: Verify scope and authorization regression
+        shell: bash
+        run: node "$RUNNER_TEMP/airprop-scope/scripts/test-airprop-scope-ceiling.mjs"
