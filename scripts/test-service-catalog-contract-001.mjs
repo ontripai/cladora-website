@@ -78,4 +78,23 @@ check('malformed validity rejected', () => assert.equal(plan({ ...state, valid_f
 check('future dated version can publish but read gate must enforce start', () => assert.equal(plan({ ...state, status: 'submitted', valid_from: '2026-10-04T10:00:00Z' }, 'publish', 1, now).ok, true));
 check('expired published revision can still be suspended', () => assert.equal(plan({ ...state, status: 'published', valid_until: '2026-10-03T10:30:00Z' }, 'suspend', 1, now).ok, true));
 check('version overflow rejected', () => assert.equal(plan({ ...state, lock_version: Number.MAX_SAFE_INTEGER }, 'submit', Number.MAX_SAFE_INTEGER, now).code, 'VERSION_CONFLICT'));
+const { projectAuthorizedServiceCatalogItem: project } = load(new URL('../src/lib/customer/service-catalog-projection.ts', import.meta.url));
+const row = { offering_id: id, revision_id: id, status: 'published', revision };
+check('catalogue shows valid published version', () => assert.equal(project(row, now).revision_id, id));
+for (const status of ['draft', 'submitted', 'suspended', 'archived']) {
+  check(`catalogue hides ${status}`, () => assert.equal(project({ ...row, status }, now), null));
+}
+check('future publication is hidden before validity', () => assert.equal(project(row, Date.parse('2026-10-03T09:59:59Z')), null));
+check('publication visible at start boundary', () => assert.notEqual(project(row, Date.parse(revision.valid_from)), null));
+check('publication hidden at end boundary', () => assert.equal(project({ ...row, revision: { ...revision, valid_until: '2026-10-03T11:00:00Z' } }, now), null));
+check('projection excludes internal and private fields', () => {
+  const result = project({ ...row, tenant_id: id, approval_notes: 'private', provider_email: 'private@example.invalid' }, now);
+  assert.deepEqual(Object.keys(result).sort(), ['offering_id', 'revision_id', 'labels', 'description', 'acquisition_mode', 'price', 'valid_from', 'valid_until', 'cancellation_terms', 'acceptance_criteria'].sort());
+  assert.equal('document_version_ids' in result, false);
+});
+check('malformed database payload fails closed', () => assert.equal(project({ ...row, revision_id: 'invalid' }, now), null));
+check('nonfinite server clock fails closed', () => assert.equal(project(row, NaN), null));
+check('projection returns parsed copy not original references', () => {
+  const result = project(row, now); result.labels.en = 'Changed'; assert.equal(row.revision.labels.en, 'Cleaning');
+});
 console.log(`${cases} behavioral catalogue cases passed`);
