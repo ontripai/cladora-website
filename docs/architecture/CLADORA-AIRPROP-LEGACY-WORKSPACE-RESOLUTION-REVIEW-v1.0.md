@@ -52,4 +52,6 @@ This remains a specification, not an existing endpoint:
 Only the eventual authorized gateway may apply the plan. A review_candidate is not executable approval. Production inventory and historical verification precede release. Unbound rows remain preserved and unavailable until the workspace-native authority contract exists.
 
 ## Validation
-20 standalone checks cover explicit mapping, tenant/activity/evidence/independence, unbound scope, historical intervals and ambiguity, current-versus-historical bindings, deterministic hashing, stale snapshots, duplicate/unknown proposals and already-scoped preservation. CI executes the planner tests alongside AIRPROP scope regression. Existing SQL regression count remains 182; standalone checks are a separate suite.
+25 standalone checks cover explicit mapping, tenant/activity/evidence/independence, unbound scope, historical intervals and ambiguity, current-versus-historical bindings, deterministic hashing, stale snapshots, duplicate/unknown proposals and already-scoped preservation. CI executes the planner tests alongside AIRPROP scope regression. Existing SQL regression count remains 182; standalone checks are a separate suite.
+
+Malformed subject-binding history also blocks a review candidate, even when another valid binding matches. Missing tenant/workspace identities, invalid timestamps, zero-length and reversed intervals must be corrected in the authoritative source before review. This prevents silently discarding malformed companion evidence.
