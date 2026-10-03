@@ -104,4 +104,55 @@ check('nonfinite server clock fails closed', () => assert.equal(project(row, NaN
 check('projection returns parsed copy not original references', () => {
   const result = project(row, now); result.labels.en = 'Changed'; assert.equal(row.revision.labels.en, 'Cleaning');
 });
+const { describeServiceCatalogRetry: retry } = load(new URL('../src/lib/customer/service-catalog-retry.ts', import.meta.url));
+const otherId = '00000000-0000-0000-0000-000000000002';
+const resolved = { tenant_id: id, actor_id: id, workspace_id: id, context_id: id };
+const createCommand = { kind: 'create', request: input };
+const descriptor = retry(createCommand, resolved);
+check('retry descriptor uses existing platform table fields only', () => assert.deepEqual(Object.keys(descriptor).sort(), ['tenant_id', 'actor_id', 'key', 'request_hash'].sort()));
+check('identical retry has identical descriptor', () => assert.deepEqual(retry(createCommand, resolved), descriptor));
+check('payload property order does not change retry hash', () => {
+  const reordered = { ...input, revision: { ...revision, price: { currency: 'RON', tax_display: 'included', amount: '120.50', kind: 'fixed' } } };
+  assert.deepEqual(retry({ kind: 'create', request: reordered }, resolved), descriptor);
+});
+check('payload change with reused key produces a conflict fingerprint', () => {
+  const changed = retry({ kind: 'create', request: { ...input, provider_party_id: otherId } }, resolved);
+  assert.equal(changed.key, descriptor.key); assert.notEqual(changed.request_hash, descriptor.request_hash);
+});
+check('changed terms produce a conflict fingerprint', () => assert.notEqual(retry({ kind: 'create', request: { ...input, revision: { ...revision, cancellation_terms: { ...labels, en: 'Changed terms' } } } }, resolved).request_hash, descriptor.request_hash));
+check('changed server actor produces a conflict fingerprint', () => {
+  const changed = retry(createCommand, { ...resolved, actor_id: otherId });
+  assert.equal(changed.key, descriptor.key); assert.notEqual(changed.request_hash, descriptor.request_hash);
+});
+check('tenant is part of hash and canonical table primary key', () => {
+  const changed = retry(createCommand, { ...resolved, tenant_id: otherId });
+  assert.notEqual(changed.tenant_id, descriptor.tenant_id); assert.notEqual(changed.request_hash, descriptor.request_hash);
+});
+check('different workspace has separate key namespace', () => assert.notEqual(retry({ kind: 'create', request: { ...input, workspace_id: otherId } }, { ...resolved, workspace_id: otherId }).key, descriptor.key));
+check('different operation has separate key namespace', () => assert.notEqual(retry({ kind: 'revise', request: revisionCommand }, resolved).key, descriptor.key));
+check('transition action change conflicts within same command key', () => {
+  const a = retry({ kind: 'transition', request: command }, resolved);
+  const b = retry({ kind: 'transition', request: { ...command, action: 'suspend' } }, resolved);
+  assert.equal(a.key, b.key); assert.notEqual(a.request_hash, b.request_hash);
+});
+check('changed lock version conflicts within same command key', () => assert.notEqual(retry({ kind: 'revise', request: { ...revisionCommand, expected_lock_version: 2 } }, resolved).request_hash, retry({ kind: 'revise', request: revisionCommand }, resolved).request_hash));
+check('workspace mismatch rejected before descriptor creation', () => assert.throws(() => retry(createCommand, { ...resolved, workspace_id: otherId }), /SERVICE_CONTEXT_TARGET_MISMATCH/));
+check('context mismatch rejected before descriptor creation', () => assert.throws(() => retry(createCommand, { ...resolved, context_id: otherId }), /SERVICE_CONTEXT_TARGET_MISMATCH/));
+check('changed authorized context conflicts rather than silently replaying', () => assert.notEqual(retry({ kind: 'create', request: { ...input, context_id: otherId } }, { ...resolved, context_id: otherId }).request_hash, descriptor.request_hash));
+check('invalid resolved actor rejected', () => assert.throws(() => retry(createCommand, { ...resolved, actor_id: 'invalid' })));
+check('client authority injection rejected in retry command', () => assert.throws(() => retry({ kind: 'create', request: { ...input, tenant_id: id } }, resolved)));
+check('unknown command rejected', () => assert.throws(() => retry({ kind: 'delete', request: input }, resolved)));
+check('unknown envelope field rejected', () => assert.throws(() => retry({ ...createCommand, approved: true }, resolved)));
+check('case-sensitive retry keys stay distinct', () => assert.notEqual(retry({ kind: 'create', request: { ...input, idempotency_key: 'SERVICE-001' } }, resolved).key, descriptor.key));
+check('UUID case normalization agrees with PostgreSQL equality', () => {
+  const mixedId = 'abcdefab-cdef-abcd-efab-cdefabcdefab';
+  const lower = { ...input, context_id: mixedId, workspace_id: mixedId, definition_id: mixedId, provider_party_id: mixedId, revision: { ...revision, document_version_ids: [mixedId] } };
+  const upper = { ...lower, context_id: mixedId.toUpperCase(), workspace_id: mixedId.toUpperCase(), definition_id: mixedId.toUpperCase(), provider_party_id: mixedId.toUpperCase(), revision: { ...revision, document_version_ids: [mixedId.toUpperCase()] } };
+  const identity = { tenant_id: mixedId, actor_id: mixedId, workspace_id: mixedId, context_id: mixedId };
+  assert.deepEqual(retry({ kind: 'create', request: lower }, identity), retry({ kind: 'create', request: upper }, Object.fromEntries(Object.entries(identity).map(([k, v]) => [k, v.toUpperCase()]))));
+});
+check('retry planning leaves inputs untouched', () => {
+  const before = JSON.stringify({ createCommand, resolved }); retry(createCommand, resolved);
+  assert.equal(JSON.stringify({ createCommand, resolved }), before);
+});
 console.log(`${cases} behavioral catalogue cases passed`);
