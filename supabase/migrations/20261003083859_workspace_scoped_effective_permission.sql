@@ -211,7 +211,7 @@ create index airprop_opportunity_workspace_status_idx
 
 create function airprop.enforce_opportunity_workspace_identity_v1()
 returns trigger language plpgsql security invoker set search_path=pg_catalog
-as $
+as $$
 begin
  if old.workspace_id is not null and
   (new.workspace_id is distinct from old.workspace_id or new.tenant_id is distinct from old.tenant_id
@@ -220,7 +220,7 @@ begin
  end if;
  return new;
 end;
-$;
+$$;
 revoke all on function airprop.enforce_opportunity_workspace_identity_v1() from public,anon,authenticated,service_role;
 create trigger airprop_opportunity_workspace_identity_immutable
  before update on airprop.investment_opportunities
@@ -343,7 +343,7 @@ grant execute on function app_private.can_read_airprop_subject_v1(uuid,uuid,text
 
 create function app_private.can_read_airprop_opportunity_v1(p_tenant_id uuid,p_workspace_id uuid,p_property_id uuid)
 returns boolean language plpgsql stable security definer set search_path=pg_catalog,app_private
-as $
+as $$
 declare r record;
 begin
  if auth.uid() is null or p_workspace_id is null then return false;end if;
@@ -354,7 +354,7 @@ begin
  end;
  return coalesce(r.workspace_id=p_workspace_id and r.tenant_id=p_tenant_id,false);
 end;
-$;
+$$;
 revoke all on function app_private.can_read_airprop_opportunity_v1(uuid,uuid,uuid) from public,anon,authenticated,service_role;
 grant execute on function app_private.can_read_airprop_opportunity_v1(uuid,uuid,uuid) to authenticated;
 
