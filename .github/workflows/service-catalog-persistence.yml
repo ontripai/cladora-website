@@ -1,0 +1,55 @@
+name: SERVICE catalogue persistence
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261003141918_service_catalog_persistence_v1.sql'
+      - 'src/app/api/customer/v1/services/catalog/route.ts'
+      - 'src/lib/customer/service-catalog-*.ts'
+      - 'scripts/test-service-catalog-*.mjs'
+      - '.github/workflows/service-catalog-persistence.yml'
+      - 'package.json'
+      - 'package-lock.json'
+permissions:
+  contents: read
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-service-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.3
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-persistence-002.mjs
+      - run: node scripts/test-service-catalog-route-002.mjs
+      - run: node scripts/test-service-catalog-contract-001.mjs
+      - run: npx eslint src/app/api/customer/v1/services/catalog/route.ts scripts/test-service-catalog-persistence-002.mjs scripts/test-service-catalog-route-002.mjs --max-warnings=0
+      - run: npm run typecheck
+      - run: npm run test:unit
+  concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_catalog_test_only
+          POSTGRES_DB: service_catalog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-service-driver" --ignore-scripts --no-audit --no-fund --save-exact pg@8.16.3
+      - name: Actual PostgreSQL mutation and separate-connection concurrency
+        env:
+          CLADORA_SERVICE_TEST_DATABASE_URL: postgresql://postgres:service_catalog_test_only@localhost:5432/service_catalog_test
+        run: CLADORA_PG_PACKAGE="file://$RUNNER_TEMP/cladora-service-driver/node_modules/pg/lib/index.js" node scripts/test-service-catalog-persistence-002.mjs
