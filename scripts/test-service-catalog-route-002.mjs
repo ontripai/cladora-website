@@ -68,4 +68,26 @@ await check('definition read uses scoped RPC with private cache headers', async 
   assert.deepEqual(calls, [{ name: 'list_service_definitions_v1', args: { p_context_id: id, p_workspace_id: id } }]);
 });
 await check('definition auth absence never reaches database', async () => { auth = { data: null, error: null }; assert.equal((await define(definition)).status, 401); assert.deepEqual(calls, []); });
+const management = load(new URL('../src/app/api/customer/v1/services/catalog/management/route.ts', import.meta.url));
+const manage = query => management.GET(new NextRequest(`https://cladora.test/api/customer/v1/services/catalog/management?${query}`));
+auth = { data: { claims: { sub: 'actor' } }, error: null };
+await check('management uses exact tuple cursor and private headers', async () => {
+  result = { data: { can_manage: true }, error: null };
+  const response = await manage(`context_id=${id}&workspace_id=${id}&after=${id}`);
+  assert.equal(response.status, 200); assert.equal(response.headers.get('cache-control'), 'no-store, private');
+  assert.deepEqual(calls, [{ name: 'read_service_catalog_management_v1', args: { p_context_id: id, p_workspace_id: id, p_after: id } }]);
+});
+for (const query of ['', `context_id=${id}&workspace_id=${id}&after=bad`, `context_id=${id}&workspace_id=${id}&after=${id}&after=${id}`, `context_id=${id}&workspace_id=${id}&can_manage=true`]) {
+  await check('management rejects malformed cursor or authority injection', async () => { assert.equal((await manage(query)).status, 400); assert.deepEqual(calls, []); });
+}
+await check('anonymous management read never reaches RPC', async () => { auth = { data: null, error: null }; assert.equal((await manage(`context_id=${id}&workspace_id=${id}`)).status, 401); assert.deepEqual(calls, []); auth = { data: { claims: { sub: 'actor' } }, error: null }; });
+await check('management denial hides private SQL', async () => { result = { data: null, error: { code: '42501', message: 'private SQL' } }; const response = await manage(`context_id=${id}&workspace_id=${id}`); assert.equal(response.status, 403); assert.doesNotMatch(JSON.stringify(await response.json()), /private SQL/); });
+const definitionEdit = { context_id: id, workspace_id: id, definition_id: id, expected_lock_version: 1, labels, active: false, reason: 'Disable service definition', idempotency_key: 'definition-edit-001' };
+const editDefinition = (body = definitionEdit, headers = {}) => management.POST(new NextRequest('https://cladora.test/api/customer/v1/services/catalog/management', { method: 'POST', headers: { 'content-type': 'application/json', ...headers }, body: typeof body === 'string' ? body : JSON.stringify(body) }));
+await check('definition edit sends only validated request', async () => { result = { data: { definition_id: id, lock_version: 2 }, error: null }; assert.equal((await editDefinition()).status, 200); assert.deepEqual(calls, [{ name: 'update_service_definition_v1', args: { p_request: definitionEdit } }]); });
+for (const body of ['broken', { ...definitionEdit, actor_id: id }, { ...definitionEdit, active: 'false' }, { ...definitionEdit, expected_lock_version: 0 }, { ...definitionEdit, labels: { en: 'x' } }]) {
+  await check('definition edit rejects malformed fields and authority injection', async () => { assert.equal((await editDefinition(body)).status, 400); assert.deepEqual(calls, []); });
+}
+await check('definition edit rejects cross origin and non JSON', async () => { assert.equal((await editDefinition(definitionEdit, { origin: 'https://evil.test' })).status, 403); assert.equal((await editDefinition(definitionEdit, { 'content-type': 'text/plain' })).status, 400); assert.deepEqual(calls, []); });
+await check('anonymous definition edit never reaches RPC', async () => { auth = { data: null, error: null }; assert.equal((await editDefinition()).status, 401); assert.deepEqual(calls, []); });
 console.log(`${cases} SERVICE catalogue route cases passed`);

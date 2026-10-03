@@ -7,6 +7,9 @@ on:
       - 'src/app/api/customer/v1/services/catalog/route.ts'
       - 'src/app/api/customer/v1/services/catalog/definitions/route.ts'
       - 'src/components/customer/CustomerServiceCatalog.tsx'
+      - 'src/components/customer/CustomerServiceManagement.tsx'
+      - 'src/app/api/customer/v1/services/catalog/management/route.ts'
+      - 'supabase/migrations/*_service_catalog_management_read_v1.sql'
       - 'src/app/[lang]/app/services/page.tsx'
       - 'src/lib/customer/service-catalog-*.ts'
       - 'scripts/test-service-catalog-*.mjs'
@@ -30,7 +33,7 @@ jobs:
       - run: node scripts/test-service-catalog-route-002.mjs
       - run: node scripts/test-service-catalog-ui-003.mjs
       - run: node scripts/test-service-catalog-contract-001.mjs
-      - run: npx eslint src/app/api/customer/v1/services/catalog/route.ts src/app/api/customer/v1/services/catalog/definitions/route.ts src/components/customer/CustomerServiceCatalog.tsx 'src/app/[lang]/app/services/page.tsx' scripts/test-service-catalog-persistence-002.mjs scripts/test-service-catalog-route-002.mjs scripts/test-service-catalog-ui-003.mjs --max-warnings=0
+      - run: npx eslint src/app/api/customer/v1/services/catalog/management/route.ts src/components/customer/CustomerServiceManagement.tsx 'src/lib/customer/service-catalog-management-*.ts' src/app/api/customer/v1/services/catalog/route.ts src/app/api/customer/v1/services/catalog/definitions/route.ts src/components/customer/CustomerServiceCatalog.tsx 'src/app/[lang]/app/services/page.tsx' scripts/test-service-catalog-persistence-002.mjs scripts/test-service-catalog-route-002.mjs scripts/test-service-catalog-ui-003.mjs --max-warnings=0
       - run: npm run typecheck
       - run: npm run test:unit
   concurrency:
