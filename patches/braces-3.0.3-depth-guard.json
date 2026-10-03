@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "package": "braces",
+  "package_version": "3.0.3",
+  "advisory": "GHSA-vfj7-8cjw-p6xm",
+  "source": "https://github.com/micromatch/braces/pull/72",
+  "status": "local depth-only derivative; preserves 3.0.3 stringify parent semantics; no released fix or audit exemption",
+  "files": [
+    {
+      "path": "lib/parse.js",
+      "original_sha256": "e572166565f15fa6ad9865ae49d678218e32aabfd1b3720f6d0d43d39800d310",
+      "patched_sha256": "1c4c081f14a2a7305a2d77945d6dcbece9825991e2ea676bbb6666c415a01a80",
+      "replacements": [
+        {
+          "before": "  const opts = options || {};",
+          "after": "  const opts = options || {};\n  const maxDepth = require('./cladora-depth-limit')(opts);"
+        },
+        {
+          "before": "      block = push({ type: 'paren', nodes: [] });",
+          "after": "      if (stack.length > maxDepth) throw new RangeError('Brace pattern nesting exceeds maxDepth');\n      block = push({ type: 'paren', nodes: [] });"
+        },
+        {
+          "before": "      block = push(brace);",
+          "after": "      if (stack.length > maxDepth) throw new RangeError('Brace pattern nesting exceeds maxDepth');\n      block = push(brace);"
+        }
+      ]
+    },
+    {
+      "path": "lib/compile.js",
+      "original_sha256": "dc98f22eee3d511785d92a00758d5f0d48efed5f5813bdecc2de430c529b5c9f",
+      "patched_sha256": "8b87ed7c40ec3d87340b4c38eff85650dc40bc8f455a75027083ea8bad538e9d",
+      "replacements": [
+        {
+          "before": "  const walk = (node, parent = {}) => {",
+          "after": "  const maxDepth = require('./cladora-depth-limit')(options);\n  const walk = (node, parent = {}, depth = 0) => {\n    if (depth > maxDepth) throw new RangeError('Brace AST nesting exceeds maxDepth');"
+        },
+        {
+          "before": "output += walk(child, node);",
+          "after": "output += walk(child, node, child.nodes ? depth + 1 : depth);"
+        }
+      ]
+    },
+    {
+      "path": "lib/expand.js",
+      "original_sha256": "41ccc196ebfa7b7781a634e721eb744e4e7bcb54cba427a7e3d6806a1b9e58f7",
+      "patched_sha256": "a153f837f4e67a384d9af806a2c6e6edeb37edc84648cff3215eee52fb765c41",
+      "replacements": [
+        {
+          "before": "  const walk = (node, parent = {}) => {",
+          "after": "  const maxDepth = require('./cladora-depth-limit')(options);\n  const walk = (node, parent = {}, depth = 0) => {\n    if (depth > maxDepth) throw new RangeError('Brace AST nesting exceeds maxDepth');"
+        },
+        {
+          "before": "walk(child, node);",
+          "after": "walk(child, node, child.nodes ? depth + 1 : depth);"
+        }
+      ]
+    },
+    {
+      "path": "lib/stringify.js",
+      "original_sha256": "379f22d77bfa1478341ccd49c5e4267464aabcbba03558bab332aac23fc6f23a",
+      "patched_sha256": "ce7a03449f93f3f9b5906bf991706152d3739b3ea78525e6070ef1ce5b9f4a22",
+      "replacements": [
+        {
+          "before": "  const stringify = (node, parent = {}) => {",
+          "after": "  const maxDepth = require('./cladora-depth-limit')(options);\n  const stringify = (node, parent = {}, depth = 0) => {\n    if (depth > maxDepth) throw new RangeError('Brace AST nesting exceeds maxDepth');"
+        },
+        {
+          "before": "output += stringify(child);",
+          "after": "output += stringify(child, undefined, child.nodes ? depth + 1 : depth);"
+        }
+      ]
+    },
+    {
+      "path": "lib/cladora-depth-limit.js",
+      "original_sha256": null,
+      "patched_sha256": "63fbf86ad500853aeed5a58e276507bb321c4a6e013215a6d81d1a90c15049e0",
+      "content": "'use strict';\n\n// CLADORA depth-only backport for CVE-2026-93687. No upstream release claimed.\nmodule.exports = (options = {}) => {\n  const value = options.maxDepth;\n  if (value === undefined) return 100;\n  if (typeof value !== 'number' || !Number.isFinite(value) || value < 1) {\n    throw new TypeError('maxDepth must be a finite positive number');\n  }\n  return Math.min(100, Math.floor(value));\n};\n"
+    }
+  ]
+}

@@ -33,7 +33,9 @@ const append = (queue = '', stash = '', enclose = false) => {
 const expand = (ast, options = {}) => {
   const rangeLimit = options.rangeLimit === undefined ? 1000 : options.rangeLimit;
 
-  const walk = (node, parent = {}) => {
+  const maxDepth = require('./cladora-depth-limit')(options);
+  const walk = (node, parent = {}, depth = 0) => {
+    if (depth > maxDepth) throw new RangeError('Brace AST nesting exceeds maxDepth');
     node.queue = [];
 
     let p = parent;
@@ -100,7 +102,7 @@ const expand = (ast, options = {}) => {
       }
 
       if (child.nodes) {
-        walk(child, node);
+        walk(child, node, child.nodes ? depth + 1 : depth);
       }
     }
 

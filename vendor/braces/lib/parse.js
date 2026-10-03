@@ -2,9 +2,6 @@
 
 const stringify = require('./stringify');
 
-// Hard cap on recursive AST walkers; see GHSA-vfj7-8cjw-p6xm.
-const MAX_DEPTH = 100;
-
 /**
  * Constants
  */
@@ -37,6 +34,7 @@ const parse = (input, options = {}) => {
   }
 
   const opts = options || {};
+  const maxDepth = require('./cladora-depth-limit')(opts);
   const max = typeof opts.maxLength === 'number' ? Math.min(MAX_LENGTH, opts.maxLength) : MAX_LENGTH;
   if (input.length > max) {
     throw new SyntaxError(`Input length (${input.length}), exceeds max characters (${max})`);
@@ -146,6 +144,7 @@ const parse = (input, options = {}) => {
      */
 
     if (value === CHAR_LEFT_PARENTHESES) {
+      if (stack.length > maxDepth) throw new RangeError('Brace pattern nesting exceeds maxDepth');
       block = push({ type: 'paren', nodes: [] });
       stack.push(block);
       push({ type: 'text', value });
@@ -199,9 +198,6 @@ const parse = (input, options = {}) => {
 
     if (value === CHAR_LEFT_CURLY_BRACE) {
       depth++;
-      if (depth > MAX_DEPTH) {
-        throw new SyntaxError(`Brace nesting depth (${depth}) exceeds max depth (${MAX_DEPTH})`);
-      }
 
       const dollar = prev.value && prev.value.slice(-1) === '$' || block.dollar === true;
       const brace = {
@@ -215,6 +211,7 @@ const parse = (input, options = {}) => {
         nodes: []
       };
 
+      if (stack.length > maxDepth) throw new RangeError('Brace pattern nesting exceeds maxDepth');
       block = push(brace);
       stack.push(block);
       push({ type: 'open', value });

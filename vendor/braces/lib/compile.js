@@ -4,7 +4,9 @@ const fill = require('fill-range');
 const utils = require('./utils');
 
 const compile = (ast, options = {}) => {
-  const walk = (node, parent = {}) => {
+  const maxDepth = require('./cladora-depth-limit')(options);
+  const walk = (node, parent = {}, depth = 0) => {
+    if (depth > maxDepth) throw new RangeError('Brace AST nesting exceeds maxDepth');
     const invalidBlock = utils.isInvalidBrace(parent);
     const invalidNode = node.invalid === true && options.escapeInvalid === true;
     const invalid = invalidBlock === true || invalidNode === true;
@@ -47,7 +49,7 @@ const compile = (ast, options = {}) => {
 
     if (node.nodes) {
       for (const child of node.nodes) {
-        output += walk(child, node);
+        output += walk(child, node, child.nodes ? depth + 1 : depth);
       }
     }
 

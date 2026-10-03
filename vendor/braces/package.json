@@ -1,7 +1,7 @@
 {
   "name": "braces",
-  "description": "Internal security backport of braces 3.0.3 with a 100-level nesting limit",
-  "version": "3.0.4-cladora.1",
+  "description": "Internal depth-only security backport of braces 3.0.3; not an upstream release",
+  "version": "3.0.4-cladora.2",
   "homepage": "https://github.com/micromatch/braces",
   "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
   "contributors": [
@@ -18,7 +18,8 @@
   "license": "MIT",
   "files": [
     "index.js",
-    "lib"
+    "lib",
+    "CLADORA-SECURITY.md"
   ],
   "main": "index.js",
   "engines": {

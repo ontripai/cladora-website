@@ -3,7 +3,9 @@
 const utils = require('./utils');
 
 module.exports = (ast, options = {}) => {
-  const stringify = (node, parent = {}) => {
+  const maxDepth = require('./cladora-depth-limit')(options);
+  const stringify = (node, parent = {}, depth = 0) => {
+    if (depth > maxDepth) throw new RangeError('Brace AST nesting exceeds maxDepth');
     const invalidBlock = options.escapeInvalid && utils.isInvalidBrace(parent);
     const invalidNode = node.invalid === true && options.escapeInvalid === true;
     let output = '';
@@ -21,7 +23,7 @@ module.exports = (ast, options = {}) => {
 
     if (node.nodes) {
       for (const child of node.nodes) {
-        output += stringify(child);
+        output += stringify(child, undefined, child.nodes ? depth + 1 : depth);
       }
     }
     return output;
