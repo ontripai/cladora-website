@@ -5,6 +5,8 @@ on:
     paths:
       - 'patches/**'
       - 'scripts/*braces-depth-guard.mjs'
+      - 'scripts/*shared-dependency-audit.mjs'
+      - 'scripts/fixtures/braces-audit-report-20261003.json'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/shared-dependency-depth.yml'
@@ -13,6 +15,8 @@ on:
     paths:
       - 'patches/**'
       - 'scripts/*braces-depth-guard.mjs'
+      - 'scripts/*shared-dependency-audit.mjs'
+      - 'scripts/fixtures/braces-audit-report-20261003.json'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/shared-dependency-depth.yml'
@@ -32,4 +36,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run test:dependency-depth
+      - run: node scripts/test-shared-dependency-audit.mjs
       - run: git diff --check
