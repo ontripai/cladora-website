@@ -3,20 +3,18 @@ name: Shared dependency depth guard
 on:
   pull_request:
     paths:
+      - 'vendor/**'
       - 'patches/**'
-      - 'scripts/*braces-depth-guard.mjs'
-      - 'scripts/*shared-dependency-audit.mjs'
-      - 'scripts/fixtures/braces-audit-report-20261003.json'
+      - 'scripts/test-braces-depth-security.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/shared-dependency-depth.yml'
   push:
     branches: [main]
     paths:
+      - 'vendor/**'
       - 'patches/**'
-      - 'scripts/*braces-depth-guard.mjs'
-      - 'scripts/*shared-dependency-audit.mjs'
-      - 'scripts/fixtures/braces-audit-report-20261003.json'
+      - 'scripts/test-braces-depth-security.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/shared-dependency-depth.yml'
@@ -35,6 +33,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run test:dependency-depth
-      - run: node scripts/test-shared-dependency-audit.mjs
+      - run: node scripts/test-braces-depth-security.mjs
+      - run: npm audit --audit-level=high
       - run: git diff --check

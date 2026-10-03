@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { applyBracesDepthGuard, prepareBracesDepthGuard } from './apply-braces-depth-guard.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(join(root, 'package.json'));
@@ -30,57 +28,23 @@ try {
     assert.equal(sha(content), file.original_sha256);
     writeFileSync(path, content);
   }
-  check('all patch sources are verified before any write', () => {
-    const drifted = join(fixture, 'drifted'); cpSync(reference, drifted, { recursive: true });
-    writeFileSync(join(drifted, 'lib/expand.js'), '// unexpected bytes\n');
-    assert.throws(() => applyBracesDepthGuard(drifted), /Unexpected braces source bytes/);
-    assert.equal(sha(readFileSync(join(drifted, 'lib/parse.js'))), manifest.files[0].original_sha256);
-    assert.equal(existsSync(join(drifted, 'lib/cladora-depth-limit.js')), false);
+  check('installed vendored identity is explicitly internal', () => {
+    assert.equal(require(join(packageRoot, 'package.json')).version, '3.0.4-cladora.2');
   });
-  check('different release fails closed', () => {
-    const changed = join(fixture, 'changed'); cpSync(reference, changed, { recursive: true });
-    writeFileSync(join(changed, 'package.json'), JSON.stringify({ name: 'braces', version: '3.0.4' }));
-    assert.throws(() => prepareBracesDepthGuard(changed), /Unexpected braces release/);
+  check('installed sources match every vendored source and metadata file', () => {
+    const files = ['index.js', 'package.json', 'LICENSE', 'CLADORA-SECURITY.md', ...readdirSync(join(root, 'vendor/braces/lib')).map((path) => `lib/${path}`)];
+    for (const path of files) assert.equal(sha(readFileSync(join(packageRoot, path))), sha(readFileSync(join(root, 'vendor/braces', path))), path);
   });
-  const cliFixture = (name, copies) => {
-    const target = join(fixture, name);
-    mkdirSync(join(target, 'scripts'), { recursive: true });
-    mkdirSync(join(target, 'patches'), { recursive: true });
-    cpSync(join(root, 'scripts/apply-braces-depth-guard.mjs'), join(target, 'scripts/apply-braces-depth-guard.mjs'));
-    cpSync(join(root, 'patches/braces-3.0.3-depth-guard.json'), join(target, 'patches/braces-3.0.3-depth-guard.json'));
-    writeFileSync(join(target, 'package.json'), '{}');
-    writeFileSync(join(target, 'package-lock.json'), JSON.stringify({ packages: copies }));
-    return { target, run: () => spawnSync(process.execPath, [join(target, 'scripts/apply-braces-depth-guard.mjs')], { encoding: 'utf8' }) };
-  };
-  check('installer supports omitted development-only copies', () => {
-    const test = cliFixture('omitted', { 'node_modules/braces': { dev: true } });
-    assert.equal(test.run().status, 0);
-  });
-  check('installer rejects missing non-development copies', () => {
-    const test = cliFixture('missing', { 'node_modules/braces': {} });
-    assert.notEqual(test.run().status, 0);
-  });
-  check('installer patches every locked installed copy', () => {
-    const paths = ['node_modules/braces', 'node_modules/consumer/node_modules/braces'];
-    const test = cliFixture('multiple', Object.fromEntries(paths.map((path) => [path, { dev: true }])));
-    for (const path of paths) cpSync(reference, join(test.target, path), { recursive: true });
-    assert.equal(test.run().status, 0);
-    for (const path of paths) assert.ok(prepareBracesDepthGuard(join(test.target, path)).every((file) => !file.changed));
-    assert.equal(test.run().status, 0);
-  });
-  check('unexpected nested copy prevents writes to all copies', () => {
-    const paths = ['node_modules/braces', 'node_modules/consumer/node_modules/braces'];
-    const test = cliFixture('multiple-drift', Object.fromEntries(paths.map((path) => [path, { dev: true }])));
-    for (const path of paths) cpSync(reference, join(test.target, path), { recursive: true });
-    writeFileSync(join(test.target, paths[1], 'lib/expand.js'), '// drift');
-    assert.notEqual(test.run().status, 0);
-    assert.equal(sha(readFileSync(join(test.target, paths[0], 'lib/parse.js'))), manifest.files[0].original_sha256);
-  });
-  const first = applyBracesDepthGuard(packageRoot);
-  check('apply is idempotent and source identity remains 3.0.3', () => {
-    assert.ok(first === 0 || first === 5); assert.equal(applyBracesDepthGuard(packageRoot), 0);
-    assert.equal(require(join(packageRoot, 'package.json')).version, '3.0.3');
-    assert.ok(prepareBracesDepthGuard(packageRoot).every((file) => !file.changed));
+  check('all locked braces copies use the reviewed artifact and integrity', () => {
+    const lock = JSON.parse(readFileSync(join(root, 'package-lock.json'), 'utf8'));
+    const copies = Object.entries(lock.packages).filter(([path]) => /(^|\/)node_modules\/braces$/.test(path));
+    assert.deepEqual(copies.map(([path]) => path), ['node_modules/braces']);
+    const integrity = 'sha512-' + createHash('sha512').update(readFileSync(join(root, 'vendor/braces-3.0.4-cladora.2.tgz'))).digest('base64');
+    for (const [, metadata] of copies) {
+      assert.equal(metadata.version, '3.0.4-cladora.2');
+      assert.equal(metadata.resolved, 'file:vendor/braces-3.0.4-cladora.2.tgz');
+      assert.equal(metadata.integrity, integrity);
+    }
   });
   check('shared toolchain consumers resolve the guarded installation', () => {
     for (const consumer of ['micromatch', 'chokidar']) {
@@ -97,7 +61,10 @@ try {
   for (const depth of [101, 1000, 4998]) {
     for (const method of ['parse', 'compile', 'expand', 'stringify']) check(`${method} rejects string depth ${depth}`, () => assert.throws(() => patched[method](nest(depth)), /nesting exceeds maxDepth/));
   }
-  check('parenthesis nesting is bounded too', () => assert.throws(() => patched.parse(nest(101, '(', ')')), /nesting exceeds maxDepth/));
+  for (const method of ['parse', 'compile', 'expand', 'stringify']) {
+    check(`${method} bounds parenthesis-only input`, () => assert.throws(() => patched[method](nest(4998, '(', ')')), /nesting exceeds maxDepth/));
+    check(`${method} bounds mixed parenthesis and brace nesting`, () => assert.throws(() => patched[method]('('.repeat(60) + nest(60) + ')'.repeat(60)), /nesting exceeds maxDepth/));
+  }
   for (const method of ['parse', 'compile', 'expand', 'stringify']) {
     check(`${method} accepts the 100-level boundary`, () => assert.doesNotThrow(() => patched[method](nest(100))));
     check(`${method} preserves normal 100-level output`, () => {
@@ -125,6 +92,12 @@ try {
   check('actual micromatch consumer preserves ordinary matching and rejects hostile input', () => {
     const micromatch = require('micromatch'); assert.deepEqual(micromatch(['a.ts', 'b.js', 'c.md'], '*.{ts,js}'), ['a.ts', 'b.js']);
     assert.throws(() => micromatch.braces(nest(101)), /nesting exceeds maxDepth/);
+  });
+  check('Next ESLint nested fast-glob resolves the reviewed braces', () => {
+    const nextRequire = createRequire(require.resolve('@next/eslint-plugin-next/package.json'));
+    const globRequire = createRequire(nextRequire.resolve('fast-glob/package.json'));
+    const matchRequire = createRequire(globRequire.resolve('micromatch/package.json'));
+    assert.equal(dirname(matchRequire.resolve('braces/package.json')), packageRoot);
   });
   check('actual fast-glob consumer works with existing source patterns', () => {
     const glob = require('fast-glob'); assert.ok(glob.sync('src/lib/customer/*.{ts,tsx}', { cwd: root }).includes('src/lib/customer/billing-schema.ts'));
