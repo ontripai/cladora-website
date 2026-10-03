@@ -24,3 +24,6 @@ jobs:
       - run: node scripts/test-service-catalog-contract-001.mjs
       - run: npx tsc --noEmit --strict --skipLibCheck --esModuleInterop --target es2022 --module commonjs src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts
       - run: npx eslint src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts scripts/test-service-catalog-contract-001.mjs --max-warnings=0
+
+      - run: npm run typecheck
+      - run: npm run test:unit
