@@ -27,7 +27,7 @@ const revision = {
   valid_from: '2026-10-03T10:00:00Z', valid_until: null,
   cancellation_terms: labels, acceptance_criteria: labels, document_version_ids: [],
 };
-const input = { context_id: id, definition_id: id, provider_party_id: id, revision, idempotency_key: 'service-001' };
+const input = { context_id: id, workspace_id: id, definition_id: id, provider_party_id: id, revision, idempotency_key: 'service-001' };
 let cases = 0;
 function check(name, fn) { fn(); cases++; console.log(`OK ${name}`); }
 const rejects = value => assert.equal(create.safeParse(value).success, false);
@@ -53,8 +53,15 @@ check('direct acquisition without stated price rejected', () => rejects({ ...inp
 check('pre-quote allowed without amount', () => assert.equal(create.safeParse({ ...input, revision: { ...revision, acquisition_mode: 'pre_quote', price: { kind: 'quote_required' } } }).success, true));
 check('duplicate document version rejected', () => rejects({ ...input, revision: { ...revision, document_version_ids: [id, id] } }));
 check('invalid idempotency key rejected', () => rejects({ ...input, idempotency_key: 'short' }));
-check('revision requires optimistic version', () => assert.equal(revise.safeParse({ context_id: id, offering_id: id, revision, idempotency_key: 'service-001' }).success, false));
-const command = { context_id: id, offering_id: id, revision_id: id, expected_lock_version: 1, action: 'publish', reason: 'Reviewed offering', idempotency_key: 'service-001' };
+check('revision requires optimistic version', () => assert.equal(revise.safeParse({ context_id: id, workspace_id: id, offering_id: id, revision, idempotency_key: 'service-001' }).success, false));
+const command = { context_id: id, workspace_id: id, offering_id: id, revision_id: id, expected_lock_version: 1, action: 'publish', reason: 'Reviewed offering', idempotency_key: 'service-001' };
+const revisionCommand = { context_id: id, workspace_id: id, offering_id: id, expected_lock_version: 1, revision, idempotency_key: 'service-001' };
+for (const [name, schema, value] of [['create', create, input], ['revise', revise, revisionCommand], ['transition', transition, command]]) {
+  check(`${name} accepts explicit workspace target`, () => assert.equal(schema.safeParse(value).success, true));
+  for (const workspace_id of [undefined, null, 'invalid']) {
+    check(`${name} rejects workspace target ${workspace_id}`, () => assert.equal(schema.safeParse({ ...value, workspace_id }).success, false));
+  }
+}
 check('valid publish command', () => assert.equal(transition.safeParse(command).success, true));
 check('publish requires explicit revision', () => assert.equal(transition.safeParse({ ...command, revision_id: undefined }).success, false));
 check('unsafe lock version rejected', () => assert.equal(transition.safeParse({ ...command, expected_lock_version: Number.MAX_SAFE_INTEGER + 1 }).success, false));
