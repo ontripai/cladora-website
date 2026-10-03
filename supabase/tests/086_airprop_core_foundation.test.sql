@@ -84,12 +84,12 @@ select ok((select count(*) from airprop.investment_opportunities)=1,'one opportu
 
 select is((select workspace_id::text from airprop.investment_opportunities limit 1),'86000000-0000-0000-0000-000000000001','command persists the trusted workspace identity');
 reset role;
-select throws_ok($update airprop.investment_opportunities set workspace_id='86000000-0000-0000-0000-000000000002' where tenant_id='86200000-0000-0000-0000-000000000001'$,'55000','airprop_opportunity_scope_immutable','ordinary updates cannot move an opportunity to another workspace');
-select throws_ok($update airprop.investment_opportunities set property_id=null where tenant_id='86200000-0000-0000-0000-000000000001'$,'55000','airprop_opportunity_scope_immutable','ordinary updates cannot remove persisted subject scope');
-select throws_ok($insert into airprop.investment_opportunities(tenant_id,workspace_id,idempotency_key,name,country_code,city,asking_price,currency,input_hash,created_by)
-values('86200000-0000-0000-0000-000000000001','86000000-0000-0000-0000-000000000002','AIRPROP-086-BADWS','Wrong tenant workspace','RO','București',1000,'RON','hash','86100000-0000-0000-0000-000000000001')$,'23503',null,'database rejects workspace and tenant mismatch');
-select throws_ok($insert into airprop.investment_opportunities(tenant_id,workspace_id,idempotency_key,name,country_code,city,asking_price,currency,input_hash,created_by)
-values('86200000-0000-0000-0000-000000000001','86000000-0000-0000-0000-000000000099','AIRPROP-086-NOWS','Missing workspace','RO','București',1000,'RON','hash','86100000-0000-0000-0000-000000000001')$,'23503',null,'database rejects nonexistent workspace');
+select throws_ok($$update airprop.investment_opportunities set workspace_id='86000000-0000-0000-0000-000000000002' where tenant_id='86200000-0000-0000-0000-000000000001'$$,'55000','airprop_opportunity_scope_immutable','ordinary updates cannot move an opportunity to another workspace');
+select throws_ok($$update airprop.investment_opportunities set property_id=null where tenant_id='86200000-0000-0000-0000-000000000001'$$,'55000','airprop_opportunity_scope_immutable','ordinary updates cannot remove persisted subject scope');
+select throws_ok($$insert into airprop.investment_opportunities(tenant_id,workspace_id,idempotency_key,name,country_code,city,asking_price,currency,input_hash,created_by)
+values('86200000-0000-0000-0000-000000000001','86000000-0000-0000-0000-000000000002','AIRPROP-086-BADWS','Wrong tenant workspace','RO','București',1000,'RON','hash','86100000-0000-0000-0000-000000000001')$$,'23503',null,'database rejects workspace and tenant mismatch');
+select throws_ok($$insert into airprop.investment_opportunities(tenant_id,workspace_id,idempotency_key,name,country_code,city,asking_price,currency,input_hash,created_by)
+values('86200000-0000-0000-0000-000000000001','86000000-0000-0000-0000-000000000099','AIRPROP-086-NOWS','Missing workspace','RO','București',1000,'RON','hash','86100000-0000-0000-0000-000000000001')$$,'23503',null,'database rejects nonexistent workspace');
 set local role authenticated;
 
 select lives_ok($$select customer_api.create_airprop_opportunity_v1('86400000-0000-0000-0000-000000000001','AIRPROP-086-OPP','{"name":"Synthetic Bucharest Acquisition","country_code":"RO","city":"București","asking_price":750000,"currency":"RON","property_id":"86600000-0000-0000-0000-000000000001","source_ref":"SYNTHETIC-086"}'::jsonb)$$,'opportunity retry is idempotent');
