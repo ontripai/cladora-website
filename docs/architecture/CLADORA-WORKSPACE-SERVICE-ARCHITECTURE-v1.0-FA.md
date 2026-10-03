@@ -179,12 +179,16 @@ Mutation، ممیزی و ثبت رویداد خروجی اتمیک‌اند. ا�
 
 ## پذیرش قرارداد مشترک سه حوزه
 
-این ورک قرارداد [CLADORA-SHARED-WORKSPACE-ARCHITECTURE-v1.0.md](CLADORA-SHARED-WORKSPACE-ARCHITECTURE-v1.0.md)، تصمیم CLADORA-ARCH-SHARED-WORKSPACE-20261003-01، و [ثبت تغییرات مشترک](CLADORA-AIRPROP-CORE-MAPPING-AND-SHARED-CHANGE-REGISTER-v1.0.md) را از PR #213 در commit cfb6b7bf34ce9b746a84e097e83d2076b0c76101 خوانده و برای SERVICE مبنا قرار می‌دهد. این پذیرش در همین ورک است؛ پذیرش چت‌های دیگر یا ادغام اسناد در main را اعلام نمی‌کند.
+این ورک قرارداد [CLADORA-SHARED-WORKSPACE-ARCHITECTURE-v1.0.md](https://github.com/ontripai/cladora-website/blob/cfb6b7bf34ce9b746a84e097e83d2076b0c76101/docs/architecture/CLADORA-SHARED-WORKSPACE-ARCHITECTURE-v1.0.md)، تصمیم CLADORA-ARCH-SHARED-WORKSPACE-20261003-01، و [ثبت تغییرات مشترک](https://github.com/ontripai/cladora-website/blob/cfb6b7bf34ce9b746a84e097e83d2076b0c76101/docs/architecture/CLADORA-AIRPROP-CORE-MAPPING-AND-SHARED-CHANGE-REGISTER-v1.0.md) را از PR #213 در commit cfb6b7bf34ce9b746a84e097e83d2076b0c76101 خوانده و برای SERVICE مبنا قرار می‌دهد. این پذیرش در همین ورک است؛ پذیرش چت‌های دیگر یا ادغام اسناد در main را اعلام نمی‌کند.
 
 این سند جزئیات حوزه SERVICE را تکمیل می‌کند. در موضوع مشترک، قرارداد مرکزی مرجع است؛ اختلاف جدید ابتدا در ثبت تغییرات مشترک حل می‌شود. ResourceReference و محدوده resource پیشنهاد توسعه CORE-04 هستند، نه موجودیت پیاده‌سازی‌شده یا جایگزین خودکار resolver فعلی.
 
-وابستگی‌ها: اختیار و رجیستری CORE-01/02/03؛ منابع CORE-04؛ اشخاص و روابط CORE-05؛ توافق CORE-06؛ مالی CORE-07؛ رویداد CORE-08؛ اسناد و گفتگو CORE-09؛ دسترس‌پذیری CORE-10؛ اتصال دستور کار CORE-11؛ رابط و گزارش CORE-12. اجرای اختیار با [قرارداد اجرای مشترک 001](CLADORA-SHARED-CORE-EXECUTION-001-v1.0.md) تطبیق می‌یابد.
+وابستگی‌ها: اختیار و رجیستری CORE-01/02/03؛ منابع CORE-04؛ اشخاص و روابط CORE-05؛ توافق CORE-06؛ مالی CORE-07؛ رویداد CORE-08؛ اسناد و گفتگو CORE-09؛ دسترس‌پذیری CORE-10؛ اتصال دستور کار CORE-11؛ رابط و گزارش CORE-12. اجرای اختیار با [قرارداد اجرای مشترک 001](https://github.com/ontripai/cladora-website/blob/cfb6b7bf34ce9b746a84e097e83d2076b0c76101/docs/architecture/CLADORA-SHARED-CORE-EXECUTION-001-v1.0.md) تطبیق می‌یابد.
 
 platform.outbox_events و platform.idempotency_keys طبق نگاشت مرکزی پایه موجودند؛ توسعه SERVICE از همان زیرساخت استفاده می‌کند و bus یا دفتر idempotency موازی نمی‌سازد. وجود جدول به‌تنهایی اجرای worker و بازیابی را ثابت نمی‌کند. AIRPROP چرخه کامل تجاری، توافق و مأموریت را پوشش می‌دهد؛ SERVICE به مراجع مجاز آن متصل می‌شود.
 
 شواهد main در جدول این سند از PRهای باز جداست. PR #216 تغییر توابع اختیار را پیشنهاد می‌کند؛ بنابراین نتیجه جستجوی migrationهای main درباره نبود بازتعریف، به شاخه آن PR یا وضعیت پس از ادغام تعمیم داده نمی‌شود.
+
+## وضعیت نهایی بسته طراحی
+
+معماری و قرارداد اجرایی پنج بسته در [برنامه اجرای SERVICE](CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md) ثبت شده‌اند. بسته برای بررسی معماری آماده است؛ نام‌های فیزیکی، gapهای هسته و شواهد آزمون runtime هنوز تعیین یا تکمیل نشده‌اند. ارجاع‌های مشترک به commit بررسی‌شده #213 متصل‌اند تا پیش از ادغام نیز قابل مراجعه باشند.
