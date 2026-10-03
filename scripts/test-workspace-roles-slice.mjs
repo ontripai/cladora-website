@@ -142,6 +142,14 @@ assert.ok(fs.existsSync(uiPagePath), 'UI settings page exists');
 const uiSrc = fs.readFileSync(uiComponentPath, 'utf8');
 assert.match(uiSrc, /isRtlLocale\(lang\)/, 'UI component checks RTL orientation');
 assert.match(uiSrc, /\/mfa/, 'UI component links to MFA page for AAL2');
+const accessEditorPath = 'src/components/customer/WorkspaceRoleDraftAccessEditor.tsx';
+assert.ok(fs.existsSync(accessEditorPath), 'Draft role access editor exists');
+const accessEditorSrc = fs.readFileSync(accessEditorPath, 'utf8');
+assert.match(uiSrc, /WorkspaceRoleDraftAccessEditor/, 'Draft roles expose the access editor');
+assert.match(accessEditorSrc, /workspace\/roles\/modules\/attach/, 'Module attachment uses the authenticated customer API');
+assert.match(accessEditorSrc, /workspace\/roles\/permissions\/attach/, 'Permission attachment uses the authenticated customer API');
+assert.match(accessEditorSrc, /expected_lock_version:\s*role\.lock_version/, 'Mutations use optimistic concurrency');
+assert.match(accessEditorSrc, /onMfaRequired\(\)/, 'AAL2 failures are surfaced to the dashboard');
 
 const enDict = fs.readFileSync('src/dictionaries/en.ts', 'utf8');
 const roDict = fs.readFileSync('src/dictionaries/ro.ts', 'utf8');
