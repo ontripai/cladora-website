@@ -49,6 +49,7 @@ const copy = {
     utilities: "Contoare și utilități",
     assets: "Active",
     airprop: "Workspace AIRPROP",
+    services: "Servicii în spațiul de lucru",
     maintenance: "Mentenanță",
     procurement: "Furnizori și achiziții",
     governance: "Guvernanță",
@@ -78,6 +79,7 @@ const copy = {
     utilities: "Meters & utilities",
     assets: "Assets",
     airprop: "AIRPROP workspace",
+    services: "Workspace services",
     maintenance: "Maintenance",
     procurement: "Vendors & procurement",
     governance: "Governance",
@@ -107,6 +109,7 @@ const copy = {
     utilities: "کنتورها و خدمات",
     assets: "دارایی‌ها",
     airprop: "ورک‌اسپیس AIRPROP",
+    services: "خدمات فضای کاری",
     maintenance: "نگهداری",
     procurement: "فروشندگان و تدارکات",
     governance: "حاکمیت",
@@ -188,7 +191,7 @@ function Shell({
   const roleCode = state.dashboard?.context?.role_code;
   // Native discovery is presentation-only; canonical target and module gates
   // are evaluated by the database on each AIRPROP read and mutation.
-  const isAllowedForRole = (path: string) => (state.active?.scope_type === "tenant" && path === "/app/airprop") || isRouteAllowedForPersona(roleCode, path);
+  const isAllowedForRole = (path: string) => (state.active?.scope_type === "tenant" && ["/app/airprop", "/app/services"].includes(path)) || isRouteAllowedForPersona(roleCode, path);
 
   const navItems = [
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
@@ -199,6 +202,7 @@ function Shell({
     { href: `/${lang}/app/accounting/month-close`, label: t.monthClose, icon: CalendarCheck, visible: monthClose },
     { href: `/${lang}/app/meters`, label: t.utilities, icon: Gauge, visible: utilities },
     { href: `/${lang}/app/airprop`, label: t.airprop, icon: BriefcaseBusiness, visible: state.active?.scope_type === "tenant" },
+    { href: `/${lang}/app/services`, label: t.services, icon: BriefcaseBusiness, visible: state.active?.scope_type === "tenant" },
     { href: `/${lang}/app/assets`, label: t.assets, icon: Boxes, visible: assets },
     { href: `/${lang}/app/maintenance`, label: t.maintenance, icon: Wrench, visible: maintenance },
     { href: `/${lang}/app/vendors`, label: t.procurement, icon: BriefcaseBusiness, visible: procurement },

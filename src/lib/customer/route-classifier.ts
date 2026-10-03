@@ -21,6 +21,7 @@ export interface RouteRequirement {
 export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
   // Discovery only: target and module permissions are resolved by the native RPC.
   { pathPrefix: "/app/airprop", exactOnly: true, nativeWorkspaceDiscovery: true },
+  { pathPrefix: "/app/services", exactOnly: true, nativeWorkspaceDiscovery: true },
   // Keep the settings landing route fail-closed while allowing the guarded child page below.
   {
     pathPrefix: '/app/settings',

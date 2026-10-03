@@ -59,8 +59,21 @@ try {
     insert into app_private.test_authority select u.id,'${workspace}'::uuid,p from auth.users u cross join unnest(array['services.catalog.read','services.catalog.manage','services.catalog.publish']) p;
   `);
   await db.exec(readFileSync(new URL('../supabase/migrations/20261003141918_service_catalog_persistence_v1.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003144507_service_catalog_definition_command_v1.sql', import.meta.url), 'utf8'));
   await db.exec(`insert into service_catalog.definitions(id,tenant_id,workspace_id,code,labels) values('${definition}','${tenant}','${workspace}','elevator', '${JSON.stringify(labels)}')`);
   await setActor(actor);
+  await check('audited definition command creates and exactly replays without duplicate effects', async () => {
+    await changed('', async () => {
+      const request = { context_id: context, workspace_id: workspace, code: 'cleaning', labels, idempotency_key: 'definition-001' };
+      const define = async value => (await q('select customer_api.create_service_definition_v1($1::jsonb) as result', [JSON.stringify(value)]))[0].result;
+      const row = await define(request); assert.deepEqual(await define(request), row);
+      assert.equal((await q('select count(*)::int n from audit.events where entity_id=$1', [row.definition_id]))[0].n, 1);
+      assert.equal((await q('select count(*)::int n from platform.outbox_events where aggregate_id=$1', [row.definition_id]))[0].n, 1);
+      assert.equal((await q('select customer_api.list_service_definitions_v1($1,$2) as result', [context, workspace]))[0].result.length, 2);
+      await db.exec('savepoint conflict'); await denied(() => define({ ...request, labels: { ...labels, en: 'Changed' } }), '23505'); await db.exec('rollback to savepoint conflict');
+      await db.exec('savepoint cross_workspace'); await denied(() => define({ ...request, workspace_id: foreignWorkspace }), '42501'); await db.exec('rollback to savepoint cross_workspace');
+    });
+  });
   await check('no offerings before publication', async () => assert.deepEqual(await list(), []));
   let created;
   await check('create persists draft with exact decimal commercial version', async () => {
