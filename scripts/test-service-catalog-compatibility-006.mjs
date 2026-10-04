@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const { PGlite } = await import(process.env.CLADORA_PGLITE_PACKAGE || '@electric-sql/pglite');
+const db = new PGlite();
+const sql = readFileSync(new URL('../supabase/migrations/20261004083058_service_catalog_registry_compatibility_v1.sql', import.meta.url), 'utf8');
+try {
+  await db.exec(`create schema platform;
+    create table platform.module_definitions(id int primary key,code text,version int,lifecycle_status text);
+    create table platform.property_profiles(id int primary key,code text);
+    create table platform.operating_models(id int primary key,code text);
+    create table platform.module_property_profile_compatibilities(module_definition_id int references platform.module_definitions,property_profile_id int references platform.property_profiles,compatibility_level text,reason text,unique(module_definition_id,property_profile_id));
+    create table platform.module_operating_model_compatibilities(module_definition_id int references platform.module_definitions,operating_model_id int references platform.operating_models,compatibility_level text,reason text,unique(module_definition_id,operating_model_id));
+    insert into platform.module_definitions values(1,'services_catalog',1,'published'),(2,'airprop_commercial',1,'published'),(3,'services_catalog',2,'draft');
+    insert into platform.property_profiles values(1,'residential_condominium'),(2,'industrial_estate'),(3,'mixed_use_estate');
+    insert into platform.operating_models values(1,'association_managed'),(2,'third_party_managed'),(3,'owner_operated');
+    insert into platform.module_property_profile_compatibilities values(1,3,'review_required','Existing explicit review'),(2,1,'compatible','Existing AIRPROP mapping');
+    insert into platform.module_operating_model_compatibilities values(1,3,'incompatible','Existing explicit restriction'),(2,1,'compatible','Existing AIRPROP mapping');`);
+  await db.exec(sql);
+  const profiles = (await db.query('select * from platform.module_property_profile_compatibilities order by module_definition_id,property_profile_id')).rows;
+  const models = (await db.query('select * from platform.module_operating_model_compatibilities order by module_definition_id,operating_model_id')).rows;
+  assert.equal(profiles.length,4); assert.equal(models.length,4);
+  assert.equal(profiles[0].compatibility_level,'compatible'); assert.equal(models[0].compatibility_level,'compatible');
+  assert.equal(profiles[2].reason,'Existing explicit review'); assert.equal(models[2].reason,'Existing explicit restriction');
+  assert.equal(profiles[3].reason,'Existing AIRPROP mapping'); assert.equal(models[3].reason,'Existing AIRPROP mapping');
+  assert.equal(profiles.some(row=>row.module_definition_id===3),false);
+  assert.equal(models.some(row=>row.module_definition_id===3),false);
+  await db.exec(sql);
+  assert.deepEqual((await db.query('select * from platform.module_property_profile_compatibilities order by module_definition_id,property_profile_id')).rows,profiles);
+  assert.deepEqual((await db.query('select * from platform.module_operating_model_compatibilities order by module_definition_id,operating_model_id')).rows,models);
+  console.log('PASS actual compatibility migration: fills SERVICE v1 gaps, preserves explicit review/restriction, preserves AIRPROP, excludes draft versions, safe repeat');
+} finally { await db.close(); }
