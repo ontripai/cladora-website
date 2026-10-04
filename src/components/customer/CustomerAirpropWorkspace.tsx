@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import type { Language } from '@/types';
+import { CustomerAirpropUnderwriting } from './CustomerAirpropUnderwriting';
 import { useCustomerContext } from './CustomerContextProvider';
 import { createAirpropOpportunityV2Schema } from '@/lib/airprop/opportunity-contract-v2';
 
@@ -20,7 +21,7 @@ export function CustomerAirpropWorkspace({ lang }: { lang: Language }) {
 }
 function WorkspaceSelection({ contextId, lang }: { contextId: string; lang: Language }) {
  const t=copy[lang]; const [targets,setTargets]=useState<Target[]|null>(null),[workspace,setWorkspace]=useState(''),[error,setError]=useState(false);
- useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v1/workspace/targets?context_id=${encodeURIComponent(contextId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error();const body=await r.json();if(!Array.isArray(body.workspaces))throw new Error();setTargets(body.workspaces);}).catch(()=>{if(!controller.signal.aborted)setError(true);});return()=>controller.abort();},[contextId]);
+ useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v1/workspace/targets?context_id=${encodeURIComponent(contextId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error();const body=await r.json();if(!Array.isArray(body.workspaces))throw new Error();if(controller.signal.aborted)return;setTargets(body.workspaces);}).catch(()=>{if(!controller.signal.aborted)setError(true);});return()=>controller.abort();},[contextId]);
  if(error)return <p role="alert">{t.error}</p>;
  if(!targets)return <p role="status">{t.loading}</p>;
  if(!targets.length)return <p>{t.empty}</p>;
@@ -30,13 +31,16 @@ function WorkspaceSelection({ contextId, lang }: { contextId: string; lang: Lang
 function OpportunityPanel({ contextId,workspaceId,lang }: { contextId:string;workspaceId:string;lang:Language }) {
  const t=copy[lang]; const [rows,setRows]=useState<Opportunity[]|null>(null),[loadError,setLoadError]=useState(false),[nonce,setNonce]=useState(0),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[uncertain,setUncertain]=useState(false);
  const [name,setName]=useState(''),[city,setCity]=useState(''),[price,setPrice]=useState(''),[currency,setCurrency]=useState('EUR');
+ const [selectedOpportunity,setSelectedOpportunity]=useState('');
+ const selected=rows?.find(row=>row.opportunity_id===selectedOpportunity);
+ const evaluate=lang==='fa'?'ارزیابی':lang==='ro'?'Analizează':'Evaluate';
  const pending=useRef<ReturnType<typeof createAirpropOpportunityV2Schema.parse>|null>(null);
  const alive=useRef(true);
  const storageKey=`cladora.airprop.pending.v2:${contextId}:${workspaceId}`;
  const [recovering,setRecovering]=useState(true);
  useEffect(()=>{let cancelled=false;Promise.resolve().then(()=>{if(cancelled)return;try{const saved=sessionStorage.getItem(storageKey);if(saved){const parsed=createAirpropOpportunityV2Schema.safeParse(JSON.parse(saved));if(parsed.success&&parsed.data.context_id===contextId&&parsed.data.workspace_id===workspaceId){pending.current=parsed.data;const p=parsed.data.payload;setName(p.name);setCity(p.city);setPrice(p.asking_price);setCurrency(p.currency);setUncertain(true);setMessage(t.pending);}else sessionStorage.removeItem(storageKey);}}catch{setMessage(t.error);}setRecovering(false);});return()=>{cancelled=true;};},[storageKey,contextId,workspaceId,t.pending,t.error]);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
- useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v2/airprop/opportunities?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error();const body=await r.json();if(!Array.isArray(body.opportunities))throw new Error();setRows(body.opportunities);setLoadError(false);}).catch(()=>{if(!controller.signal.aborted)setLoadError(true);});return()=>controller.abort();},[contextId,workspaceId,nonce]);
+ useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v2/airprop/opportunities?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error();const body=await r.json();if(!Array.isArray(body.opportunities))throw new Error();if(controller.signal.aborted)return;setRows(body.opportunities);setLoadError(false);}).catch(()=>{if(!controller.signal.aborted)setLoadError(true);});return()=>controller.abort();},[contextId,workspaceId,nonce]);
  async function submit(event:React.FormEvent){event.preventDefault();if(busy)return;
   if(!pending.current){const parsed=createAirpropOpportunityV2Schema.safeParse({version:2,context_id:contextId,workspace_id:workspaceId,idempotency_key:crypto.randomUUID(),payload:{name,city,asking_price:price,currency,country_code:'RO'}});if(!parsed.success){setMessage(t.invalid);return;}pending.current=parsed.data;}
   try{sessionStorage.setItem(storageKey,JSON.stringify(pending.current));}catch{setMessage(t.error);return;}
@@ -55,6 +59,7 @@ function OpportunityPanel({ contextId,workspaceId,lang }: { contextId:string;wor
   <label>{t.currency}<select className="block w-full rounded border p-2" value={currency} onChange={e=>setCurrency(e.target.value)}><option>EUR</option><option>RON</option></select></label>
  </fieldset><button disabled={busy||recovering} className="rounded bg-slate-900 px-4 py-2 text-white">{busy?t.loading:uncertain?t.retry:t.create}</button><p role="status" aria-live="polite">{message}</p></form>
  <div className="flex items-center justify-between"><h2 className="text-xl font-semibold">{t.opportunities}</h2><button onClick={()=>setNonce(n=>n+1)}>{t.refresh}</button></div>
- {loadError?<p role="alert">{t.error}</p>:!rows?<p>{t.loading}</p>:!rows.length?<p>{t.none}</p>:<div className="overflow-x-auto"><table className="w-full text-start"><thead><tr>{[t.name,t.city,t.price,t.status].map(x=><th key={x} className="p-2 text-start">{x}</th>)}</tr></thead><tbody>{rows.map(row=><tr key={row.opportunity_id}><td className="p-2">{row.name}</td><td className="p-2">{row.city}</td><td className="p-2" dir="ltr">{row.asking_price} {row.currency}</td><td className="p-2">{t[row.status as keyof typeof t]??row.status}</td></tr>)}</tbody></table></div>}
+ {loadError?<p role="alert">{t.error}</p>:!rows?<p>{t.loading}</p>:!rows.length?<p>{t.none}</p>:<div className="overflow-x-auto"><table className="w-full text-start"><thead><tr>{[t.name,t.city,t.price,t.status,evaluate].map(x=><th key={x} className="p-2 text-start">{x}</th>)}</tr></thead><tbody>{rows.map(row=><tr key={row.opportunity_id}><td className="p-2">{row.name}</td><td className="p-2">{row.city}</td><td className="p-2" dir="ltr">{row.asking_price} {row.currency}</td><td className="p-2">{t[row.status as keyof typeof t]??row.status}</td><td className="p-2"><button type="button" aria-pressed={selectedOpportunity===row.opportunity_id} aria-label={`${evaluate}: ${row.name}`} onClick={()=>setSelectedOpportunity(row.opportunity_id)}>{evaluate}</button></td></tr>)}</tbody></table></div>}
+ {selected&&!loadError&&<CustomerAirpropUnderwriting contextId={contextId} workspaceId={workspaceId} opportunityId={selected.opportunity_id} opportunityName={selected.name} currency={selected.currency} lang={lang}/>}
  </div>;
 }
