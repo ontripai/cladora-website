@@ -15,6 +15,7 @@ import type {
   CustomerWorkspace,
   WorkspaceLifecycleStatus,
 } from "@/types/platform";
+import { ServiceCatalogPilotAccessDialog } from "@/components/platform/ServiceCatalogPilotAccessDialog";
 import { WorkspaceAccessBasisDialog } from "@/components/platform/WorkspaceAccessBasisDialog";
 import { isPrimaryWorkspaceRoleAvailable, primaryWorkspaceRole } from "@/lib/customer/primary-workspace-role";
 
@@ -235,6 +236,7 @@ export function OperationalWorkspacesTable({
   const [retryCount, setRetryCount] = useState(0);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [inviteWorkspace, setInviteWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [serviceWorkspace, setServiceWorkspace] = useState<CustomerWorkspace | null>(null);
   const [basisWorkspace, setBasisWorkspace] = useState<CustomerWorkspace | null>(null);
   const [transitionWorkspace, setTransitionWorkspace] = useState<CustomerWorkspace | null>(null);
   const [transitionBusy, setTransitionBusy] = useState(false);
@@ -402,7 +404,7 @@ export function OperationalWorkspacesTable({
                       : "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{workspace.lifecycle_status === 'PROVISIONING' ? labels.activate : labels.advance}</button>}
+                    <div className="flex flex-wrap gap-2">{canTransition && workspace.environment === "PILOT" && workspace.lifecycle_status === "ACTIVE" && <button type="button" onClick={() => setServiceWorkspace(workspace)} className="rounded border border-emerald-400/40 px-2 py-1 text-emerald-200">{lang === "fa" ? "دسترسی خدمات" : lang === "ro" ? "Acces servicii" : "Service access"}</button>}{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{workspace.lifecycle_status === 'PROVISIONING' ? labels.activate : labels.advance}</button>}
                     {workspace.lifecycle_status === "PROVISIONING" && isPrimaryWorkspaceRoleAvailable(workspace.workspace_type) ? (
                       <button
                         type="button"
@@ -470,6 +472,7 @@ export function OperationalWorkspacesTable({
           {notice}
         </p>
       ) : null}
+      {serviceWorkspace ? <ServiceCatalogPilotAccessDialog key={serviceWorkspace.id} workspace={serviceWorkspace} lang={lang} onClose={() => setServiceWorkspace(null)} /> : null}
       {basisWorkspace ? <WorkspaceAccessBasisDialog workspace={basisWorkspace} lang={lang} onClose={() => setBasisWorkspace(null)} /> : null}
       {inviteWorkspace ? (
         <InvitationDialog
