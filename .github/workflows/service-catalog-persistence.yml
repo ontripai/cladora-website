@@ -21,6 +21,11 @@ on:
       - 'src/components/platform/OperationalWorkspacesTable.tsx'
       - 'src/app/api/platform/v1/workspaces/*/service-access/route.ts'
       - '.github/workflows/service-catalog-persistence.yml'
+      - 'supabase/migrations/*_service_request_persistence_v1.sql'
+      - 'src/app/api/customer/v1/services/requests/route.ts'
+      - 'src/components/customer/CustomerServiceRequests.tsx'
+      - 'src/lib/customer/service-request-*.ts'
+      - 'scripts/test-service-request-*.mjs'
       - 'package.json'
       - 'package-lock.json'
 permissions:
@@ -38,6 +43,10 @@ jobs:
       - run: npm install --prefix "$RUNNER_TEMP/cladora-service-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.3
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-persistence-002.mjs
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-compatibility-006.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-request-persistence-010.mjs
+      - run: node scripts/test-service-request-route-010.mjs
+      - run: node scripts/test-service-request-ui-010.mjs
+      - run: npx eslint src/components/customer/CustomerServiceRequests.tsx src/app/api/customer/v1/services/requests/route.ts src/lib/customer/service-request-read-schema.ts scripts/test-service-request-*-010.mjs --max-warnings=0
       - run: node scripts/test-service-catalog-route-002.mjs
       - run: node scripts/test-service-catalog-ui-003.mjs
       - run: node scripts/test-service-catalog-contract-001.mjs
@@ -71,3 +80,30 @@ jobs:
         env:
           CLADORA_SERVICE_TEST_DATABASE_URL: postgresql://postgres:service_catalog_test_only@localhost:5432/service_catalog_test
         run: CLADORA_PG_PACKAGE="file://$RUNNER_TEMP/cladora-service-driver/node_modules/pg/lib/index.js" node scripts/test-service-catalog-persistence-002.mjs
+
+  request-concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_request_test_only
+          POSTGRES_DB: service_request_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Requests with actual separate PostgreSQL connections
+        env:
+          CLADORA_SERVICE_REQUEST_TEST_DATABASE_URL: postgresql://postgres:service_request_test_only@localhost:5432/service_request_test
+        run: node scripts/test-service-request-persistence-010.mjs
