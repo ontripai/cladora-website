@@ -34,7 +34,7 @@ for (const lang of ['fa', 'ro', 'en']) for (const status of ['prepared', 'active
   const Page = load('src/app/[lang]/account/page.tsx', {
     'next/link': () => null, 'next/navigation': {redirect: () => {throw Error('unexpected redirect');}},
     '@/lib/supabase/server': {createClient: async () => db}, '@/types': {isSupportedLocale: () => true},
-    '@/components/auth/SignOutButton': {SignOutButton: () => null},
+    '@/lib/customer/service-catalog-review-targets': {listServiceReviewTargets: async () => []}, '@/components/auth/SignOutButton': {SignOutButton: () => null},
   }).default;
   const hrefs = links(await Page({params: Promise.resolve({lang}), searchParams: Promise.resolve({choose: '1'})}));
   assert.ok(hrefs.includes(`/${lang}/app/dashboard?context=owner`));
