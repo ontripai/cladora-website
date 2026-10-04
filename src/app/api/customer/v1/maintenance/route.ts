@@ -1,9 +1,10 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {z} from 'zod';
+import {maintenanceUuidSchema} from '@/lib/customer/maintenance-schema';
 import {createClient} from '@/lib/supabase/server';
 
 const HEADERS={'Cache-Control':'no-store, private',Pragma:'no-cache',Vary:'Cookie'};
-const schema=z.object({context_id:z.string().uuid(),view:z.enum(['assets','components','plans','work_orders','tasks','vendors','sla','costs','history']).default('assets'),query:z.string().trim().max(120).optional(),status:z.string().trim().max(40).optional(),priority:z.enum(['low','normal','high','urgent','emergency']).optional(),from:z.iso.date().optional(),to:z.iso.date().optional(),limit:z.coerce.number().int().min(1).max(100).default(25),offset:z.coerce.number().int().min(0).default(0),id:z.string().uuid().optional()});
+const schema=z.object({context_id:maintenanceUuidSchema,view:z.enum(['assets','components','plans','work_orders','tasks','vendors','sla','costs','history']).default('assets'),query:z.string().trim().max(120).optional(),status:z.string().trim().max(40).optional(),priority:z.enum(['low','normal','high','urgent','emergency']).optional(),from:z.iso.date().optional(),to:z.iso.date().optional(),limit:z.coerce.number().int().min(1).max(100).default(25),offset:z.coerce.number().int().min(0).default(0),id:maintenanceUuidSchema.optional()});
 
 export async function GET(request:NextRequest){
  const parsed=schema.safeParse(Object.fromEntries(request.nextUrl.searchParams));if(!parsed.success)return NextResponse.json({error:{code:'INVALID_MAINTENANCE_QUERY'}},{status:400,headers:HEADERS});
