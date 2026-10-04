@@ -6,7 +6,7 @@ create temp table asset_guard_fixture as select gen_random_uuid() as tenant_a,ge
 insert into auth.users(id,email) select user_id,'asset-guard-142@test.local' from asset_guard_fixture;
 insert into platform.tenants(id,legal_name,registration_number,status) select tenant_a,'Asset guard A','ASSET-GUARD-142-A','active' from asset_guard_fixture union all select tenant_b,'Asset guard B','ASSET-GUARD-142-B','active' from asset_guard_fixture;
 insert into portfolio.properties(id,tenant_id,type,name) select prop_a,tenant_a,'condominium','Allowed' from asset_guard_fixture union all select prop_other,tenant_a,'condominium','Other property' from asset_guard_fixture union all select prop_b,tenant_b,'condominium','Other tenant' from asset_guard_fixture;
-insert into assets.asset_categories(id,tenant_id,code,name) select cat_a,tenant_a,'PILOT','Pilot' from asset_guard_fixture union all select cat_b,tenant_b,'PILOT','Pilot B' from asset_guard_fixture;
+insert into assets.asset_categories(id,tenant_id,code,name,status) select cat_a,tenant_a,'PILOT','Pilot','active' from asset_guard_fixture union all select cat_b,tenant_b,'PILOT','Pilot B','active' from asset_guard_fixture;
 insert into identity.memberships(id,tenant_id,user_id,role_id,status) select membership_id,tenant_a,user_id,(select id from identity.roles where code='property_manager' and tenant_id is null),'active' from asset_guard_fixture;
 insert into identity.context_grants(id,membership_id,tenant_id,scope_type,property_id) select context_id,membership_id,tenant_a,'property',prop_a from asset_guard_fixture;
 select set_config('request.jwt.claims',jsonb_build_object('sub',user_id,'role','authenticated','aal','aal1')::text,true) from asset_guard_fixture;
