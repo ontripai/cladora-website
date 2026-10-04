@@ -189,7 +189,7 @@ begin
 
   select * into po from maintenance.purchase_orders where id = p_purchase_order_id and tenant_id = v.tenant_id for update;
   if not found then raise exception 'purchase_order_not_found' using errcode = 'P0002'; end if;
-  perform maintenance.assert_work_order_authority_v1(p_context_id,po.work_order_id,'maintenance.purchase_orders.issue');
+  perform maintenance.assert_work_order_authority_v1(p_context_id,po.work_order_id,'maintenance.procurement.manage');
 
   if po.status <> 'approved' then
     raise exception 'purchase_order_must_be_approved_to_issue' using errcode = '22023';
