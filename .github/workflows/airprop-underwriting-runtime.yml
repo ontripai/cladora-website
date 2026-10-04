@@ -2,7 +2,7 @@ name: AIRPROP underwriting runtime
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261004074606_airprop_native_underwriting_v2.sql'
+      - 'supabase/migrations/20261004090538_airprop_native_underwriting_v2.sql'
       - 'src/app/api/customer/v2/airprop/**'
       - 'src/lib/airprop/**'
       - 'scripts/test-airprop-underwriting*.mjs'
