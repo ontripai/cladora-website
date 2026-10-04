@@ -192,7 +192,7 @@ create temporary table acquisition_test_response(payload jsonb);
 create function pg_temp.acquisition_command(p_mode text,p_context uuid,p_document_context uuid,p_revision integer,p_key text,p_decision text default 'approve') returns jsonb language plpgsql as $$
 declare c airprop.diligence_cases; s airprop.diligence_submissions; p airprop.acquisition_proposals;
 begin
- select * into c from airprop.diligence_cases where id=(select (payload->>'diligence_case_id')::uuid from diligence_test_response limit 1);
+ select * into c from airprop.diligence_cases where id=(select (result->>'diligence_case_id')::uuid from diligence_test_response limit 1);
  select * into s from airprop.diligence_submissions where diligence_case_id=c.id;
  if p_mode='propose' then return customer_api.propose_airprop_acquisition_v1(p_context,c.workspace_id,c.opportunity_id,c.id,p_document_context,s.id,s.revision,c.underwriting_version,'Synthetic internal acquisition proposal',p_key);end if;
  select * into p from airprop.acquisition_proposals where diligence_case_id=c.id;

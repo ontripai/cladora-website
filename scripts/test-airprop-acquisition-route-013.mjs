@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';import {createRequire,Module} from 'node:module';import {fileURLToPath} from 'node:url';import ts from 'typescript';
 const require=createRequire(import.meta.url);
-function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),module=new Module(filename);module.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);module._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);return module.exports;}
+function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),compiled=new Module(filename);compiled.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);compiled._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);return compiled.exports;}
 const {NextRequest}=require('next/server'),id=n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
 const target={context_id:id(1),workspace_id:id(2),opportunity_id:id(3),diligence_case_id:id(4),document_context_id:id(5)},base={version:1,...target,action:'propose',expected_submission_id:id(6),expected_diligence_revision:2,expected_underwriting_version:1,rationale:'Synthetic proposal',idempotency_key:'acquisition-route-013'};
 const response={version:1,workspace_id:id(2),opportunity_id:id(3),diligence_case_id:id(4),proposal_id:id(7),decision_revision:1,status:'pending',idempotent:false};
