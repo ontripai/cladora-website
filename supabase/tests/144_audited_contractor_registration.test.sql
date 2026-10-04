@@ -49,10 +49,11 @@ select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8
 select set_config('request.jwt.claims','{"sub":"14400000-0000-4000-8000-000000000099","role":"authenticated","aal":"aal2"}',true);
 select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')$$,'42501',null,'another user cannot use context');
 select set_config('request.jwt.claims','{"sub":"14400000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
-update platform.workspace_modules set status='deactivated',valid_to=statement_timestamp(),deactivated_at=statement_timestamp() where customer_workspace_id='14400000-0000-4000-8000-000000000006' and module_code='maintenance';
-select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')$$,'42501',null,'disabled module denies registry');
 update identity.context_grants set ends_at=statement_timestamp()-interval '1 hour' where id='14400000-0000-4000-8000-000000000012';
 select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')$$,'42501',null,'expired context denied');
+insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values('14400000-0000-4000-8000-000000000014','14400000-0000-4000-8000-000000000002','14400000-0000-4000-8000-000000000004','tenant',statement_timestamp()-interval '1 day');
+update platform.workspace_modules set status='deactivated',valid_to=statement_timestamp(),deactivated_at=statement_timestamp() where customer_workspace_id='14400000-0000-4000-8000-000000000006' and module_code='maintenance';
+select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000014')$$,'42501',null,'disabled module denies registry');
 select ok(not has_function_privilege('anon','customer_api.register_contractor_v1(uuid,uuid,text,text)','EXECUTE'),'anonymous registration denied');
 select ok(not has_function_privilege('anon','customer_api.approve_contractor_v1(uuid,uuid,text)','EXECUTE'),'anonymous approval denied');
 select ok(not has_function_privilege('authenticated','maintenance.contractor_actor_v1(uuid,text)','EXECUTE'),'authority helper private');
