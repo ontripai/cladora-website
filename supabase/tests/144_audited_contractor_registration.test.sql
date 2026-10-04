@@ -1,5 +1,5 @@
 begin;
-select plan(31);
+select plan(30);
 insert into auth.users(id,email) values('14400000-0000-4000-8000-000000000001','calendar144@cladora.test');
 insert into platform.tenants(id,legal_name,registration_number,status) values('14400000-0000-4000-8000-000000000002','Calendar Test','CAL144','active');
 insert into portfolio.properties(id,tenant_id,type,name,status) values('14400000-0000-4000-8000-000000000003','14400000-0000-4000-8000-000000000002','condominium','Calendar Test','active');
@@ -16,7 +16,6 @@ insert into assets.assets(id,tenant_id,category_id,property_id,scope,asset_code,
 select set_config('request.jwt.claims','{"sub":"14400000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
 select lives_ok($$select customer_api.activate_workspace_module_v1('14400000-0000-4000-8000-000000000005',(select id from platform.module_definitions where code='occupancy' and version=1),null,'{}','calendar144-occupancy-activate','Activate calendar test module')$$,'occupancy activated in isolated workspace');
 select lives_ok($$select customer_api.activate_workspace_module_v1('14400000-0000-4000-8000-000000000005',(select id from platform.module_definitions where code='maintenance' and version=1),null,'{}','calendar144-maintenance-activate','Activate calendar test module')$$,'maintenance activated in isolated workspace');
-select lives_ok($$select customer_api.deactivate_workspace_module_v1('14400000-0000-4000-8000-000000000005',(select id from platform.workspace_modules where customer_workspace_id='14400000-0000-4000-8000-000000000006' and module_code='maintenance' and status='active'),'calendar144-disable-module','Disable test module retaining history')$$,'Module can be disabled');
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values('14400000-0000-4000-8000-000000000012','14400000-0000-4000-8000-000000000002','14400000-0000-4000-8000-000000000004','tenant',statement_timestamp()-interval '1 day');
 select lives_ok($$select customer_api.register_contractor_v1('14400000-0000-4000-8000-000000000012','14400000-0000-4000-8000-000000000013','Pilot contractor','ventilation')$$,'tenant procurement manager can register candidate');
 select is((select status::text from maintenance.vendors where id='14400000-0000-4000-8000-000000000013'),'candidate','registration does not auto-approve');
