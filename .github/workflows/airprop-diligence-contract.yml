@@ -1,0 +1,23 @@
+name: AIRPROP diligence contract
+on:
+  pull_request:
+    paths:
+      - 'src/lib/airprop/diligence-contract-v1.ts'
+      - 'scripts/test-airprop-diligence-contract-010.mjs'
+      - '.github/workflows/airprop-diligence-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-airprop-diligence-contract-010.mjs
+      - run: npm run typecheck
