@@ -2,6 +2,8 @@ name: SERVICE catalogue contract
 on:
   pull_request:
     paths:
+      - 'src/lib/customer/service-request-schema.ts'
+      - 'scripts/test-service-request-contract-009.mjs'
       - 'src/lib/customer/service-catalog-schema.ts'
       - 'src/lib/customer/service-offering-lifecycle.ts'
       - 'src/lib/customer/service-catalog-projection.ts'
@@ -26,6 +28,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/test-service-catalog-contract-001.mjs
+      - run: node scripts/test-service-request-contract-009.mjs
+      - run: npx eslint src/lib/customer/service-request-schema.ts scripts/test-service-request-contract-009.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts src/lib/customer/service-catalog-projection.ts src/lib/customer/service-catalog-retry.ts scripts/test-service-catalog-contract-001.mjs --max-warnings=0
 
       - run: npm run typecheck
