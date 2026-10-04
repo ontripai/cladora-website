@@ -56,6 +56,7 @@ for (const lang of ['ro','en','fa']) for (const platform of [false,true]) {
       '@/components/auth/TurnstileWidget':{TurnstileWidget:()=>null},
       '@/components/brand/CladoraBrand':{CladoraBrand:()=>null},
       '@/lib/auth/post-auth-route':{resolvePostAuthRoute:async()=>destination},
+      '@/lib/auth/login-error':load('src/lib/auth/login-error.ts',{}),
     });
     const tree=LoginForm({lang,captchaRequired:false,ownerPortfolioRequested:true});
     await find(tree,n=>n.type==='form').props.onSubmit({preventDefault(){}});

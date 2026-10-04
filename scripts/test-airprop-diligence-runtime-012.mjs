@@ -24,7 +24,7 @@ export async function runAirpropDiligenceReviewTests(f){
  await db.exec(extract(file('20260928083600_vault_actor_exact_membership_role.sql'),'documents.resolve_vault_actor'));
  await db.exec(extract(file('20260829005100_customer_document_vault_secure_evidence.sql'),'documents.customer_document_scope_matches'));
  await db.exec(extract(file('20260927211358_document_vault_checked_download_only.sql'),'documents.authorize_download_internal'));
- await db.exec(file('20261004120213_airprop_diligence_review_v1.sql'));
+ await db.exec(file('20261004123006_airprop_diligence_review_v1.sql'));
  const submissionPermission=(await q("select id from identity.permissions where code='airprop.diligence.submit'"))[0].id;
  const opportunity=(await q('select customer_api.create_airprop_opportunity_v2($1,$2,$3,$4::jsonb) r',[context,workspace,'diligence-review-opp-012',JSON.stringify({name:'Diligence review 012',country_code:'RO',city:'Bucuresti',currency:'EUR',asking_price:'100000'})]))[0].r.opportunity_id;
  await q('select customer_api.create_airprop_underwriting_v2($1,$2,$3,$4,0,$5::jsonb)',[context,workspace,opportunity,'diligence-review-eval-012',JSON.stringify({acquisition_cost:'100000',annual_rent:'8000',annual_opex:'1000',currency:'EUR'})]);

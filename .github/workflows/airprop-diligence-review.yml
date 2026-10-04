@@ -2,7 +2,7 @@ name: AIRPROP diligence evidence review
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261004120213_airprop_diligence_review_v1.sql'
+      - 'supabase/migrations/20261004123006_airprop_diligence_review_v1.sql'
       - 'src/app/api/customer/v2/airprop/**'
       - 'src/lib/airprop/**'
       - 'src/components/customer/CustomerAirprop*.tsx'
