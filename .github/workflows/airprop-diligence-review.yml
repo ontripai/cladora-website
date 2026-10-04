@@ -1,0 +1,49 @@
+name: AIRPROP diligence evidence review
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261004120213_airprop_diligence_review_v1.sql'
+      - 'src/app/api/customer/v2/airprop/**'
+      - 'src/lib/airprop/**'
+      - 'src/components/customer/CustomerAirprop*.tsx'
+      - 'scripts/test-airprop-diligence*.mjs'
+      - 'scripts/test-workspace-native-authority-003.mjs'
+      - 'scripts/airprop-local-postgres-adapter.mjs'
+      - '.github/workflows/airprop-diligence-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-airprop-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - name: Actual authority, opportunity and underwriting migrations in disposable PostgreSQL
+        run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-airprop-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-workspace-native-authority-003.mjs --airprop-diligence-review
+      - name: Independent PostgreSQL sessions, revocation after lock and legacy writer
+        run: CLADORA_PGLITE_PACKAGE="file://$GITHUB_WORKSPACE/scripts/airprop-local-postgres-adapter.mjs" node scripts/test-workspace-native-authority-003.mjs --airprop-diligence-review
+      - run: node scripts/test-airprop-diligence-route-012.mjs
+      - run: node scripts/test-airprop-diligence-ui-012.mjs
+      - run: node scripts/test-airprop-diligence-contract-010.mjs
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:db:static
