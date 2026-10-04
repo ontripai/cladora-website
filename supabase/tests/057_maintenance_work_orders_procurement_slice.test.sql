@@ -199,6 +199,16 @@ begin
   perform set_config('request.jwt.claim.sub', v_admin_id::text, true);
   perform set_config('request.jwt.claim.role', 'authenticated', true);
   perform set_config('request.jwt.claims', jsonb_build_object('sub', v_admin_id::text, 'role', 'authenticated', 'aal', 'aal2')::text, true);
+  -- Canonical workspace authority prerequisites for legacy lifecycle fixtures.
+  insert into platform.workspace_property_bindings(tenant_id,customer_workspace_id,property_id,status,binding_source)
+  values(v_tenant_id,v_ws_id,v_prop_id,'active','migration_verified');
+  insert into platform.workspace_taxonomy_assignments(tenant_id,customer_workspace_id,property_profile_id,operating_model_id,status,valid_from,created_by)
+  values(v_tenant_id,v_ws_id,(select id from platform.property_profiles where code='residential_condominium' and version=1),(select id from platform.operating_models where code='association_managed' and version=1),'active',statement_timestamp(),v_admin_id);
+  insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
+  values(v_ws_id,'module.occupancy','boolean',true,statement_timestamp());
+  perform customer_api.activate_workspace_module_v1(v_ctx_admin_id,(select id from platform.module_definitions where code='occupancy' and version=1),null,'{}','authority-057-occupancy','Activate isolated fixture occupancy module');
+  perform customer_api.activate_workspace_module_v1(v_ctx_admin_id,(select id from platform.module_definitions where code='maintenance' and version=1),null,'{}','authority-057-maintenance','Activate isolated fixture maintenance module');
+
 
   -- Insert explicit test SLA policies for P1TEST fixture
   insert into maintenance.sla_policies (
