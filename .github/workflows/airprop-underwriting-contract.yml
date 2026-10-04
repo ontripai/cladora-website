@@ -1,0 +1,29 @@
+name: AIRPROP underwriting contract
+on:
+  pull_request:
+    paths:
+      - 'src/lib/airprop/**'
+      - 'scripts/test-airprop-underwriting-contract-v2.mjs'
+      - '.github/workflows/airprop-underwriting-contract.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify actual compiled underwriting arithmetic and retry contract
+        run: node scripts/test-airprop-underwriting-contract-v2.mjs
+      - name: Lint underwriting contract
+        run: npx eslint src/lib/airprop/underwriting-contract-v2.ts src/lib/airprop/underwriting-idempotency-v2.ts scripts/test-airprop-underwriting-contract-v2.mjs --max-warnings=0
+      - run: npm run typecheck
+      - run: npm run test:unit
