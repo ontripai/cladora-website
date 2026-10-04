@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 export async function runAirpropAcquisitionTests(f){
  const {db,q,check,changed,setActor,id,tenant,user,otherUser,grantorUser,workspace,secondWorkspace,context,otherContext,grantorContext,physicalContext,localRole,emptyLocalRole,grantorLocalRole,otherMember,grantorMember,property}=f;
- await db.exec(readFileSync(new URL('../supabase/migrations/20261004130456_airprop_acquisition_decision_v1.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261004181830_airprop_acquisition_decision_v1.sql',import.meta.url),'utf8'));
  await db.exec(`insert into auth.users(id) values('${grantorUser}') on conflict do nothing;`);
  const c=(await q('select d.* from airprop.diligence_cases d join airprop.diligence_submissions s on s.diligence_case_id=d.id'))[0],s=(await q('select * from airprop.diligence_submissions where diligence_case_id=$1',[c.id]))[0];
  const guarded=async fn=>{let saved=false;try{await db.exec('savepoint acquisition_expected_failure');saved=true;}catch(e){if(e.code!=='25P01')throw e;}try{return await fn();}finally{if(saved){await db.exec('rollback to savepoint acquisition_expected_failure');await db.exec('release savepoint acquisition_expected_failure');}}};

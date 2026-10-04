@@ -31,3 +31,9 @@ Actual disposable native/Vault/AIRPROP migrations cover proposal/replay, authors
 Merge, exact-head CI, production migration identity, deployment SHA and live fail-closed UI must be verified separately. Pilot review/approval remains blocked without eligible independently verified evidence and separate authorized human reviewers; isolated success is not a production approval claim. The complete commercial lifecycle (agreements, rights, mandates, handover, finance and settlement) remains in later architecture slices.
 
 Independent Operations #251 was incorporated before release validation; its payable migration and fixture 150 are preserved unchanged. AIRPROP uses a distinct fixture 151.
+
+## Production migration reconciliation
+
+All 13 workflows passed on the initial reviewed head, including the full migration/pgTAP chain and independent PostgreSQL decision contention/revocation checks. Actual-route (31 checks), mounted three-language acquisition UI (13 scenarios), diligence UI regression and TypeScript passed again during takeover. The unchanged SQL was applied once through the migration API and recorded as `20261004181830_airprop_acquisition_decision_v1`; repository identity and the runtime fixture are aligned with that record. Local and recorded SQL SHA-256 both equal `5c07e1608b1ab88bfd355a339b4783b1ab2a2b4a1f7c66c5ff50680946d124ab`.
+
+Catalog checks confirm RLS enabled on both new tables with direct customer table access closed; anonymous and service-role RPC execution remains closed. Private acquisition helpers are not customer-callable. No proposal or vote was created in production. The current pilot has one diligence case, zero submissions and no independently verified document; final live submission/decision acceptance therefore remains blocked. The browser session must be re-established before signed-in production UI acceptance.
