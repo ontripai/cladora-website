@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { isSupportedLocale } from '@/types';
 import { SignOutButton } from '@/components/auth/SignOutButton';
+import { listServiceReviewTargets } from '@/lib/customer/service-catalog-review-targets';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { robots: { index: false, follow: false } };
@@ -30,7 +31,10 @@ export default async function AccountPage({params,searchParams}:{params:Promise<
   ]);
   if(platform.error||owner.error||contexts.error) return <main className="mx-auto max-w-3xl p-8" dir={lang==='fa'?'rtl':'ltr'}><h1 className="text-2xl font-bold">{t.title}</h1><p role="alert" className="mt-4">{t.failed}</p></main>;
   const hasReviewer=!reviewer.error&&reviewer.data&&typeof reviewer.data==='object'&&'status' in reviewer.data&&['prepared','active'].includes(String(reviewer.data.status));
+  let hasServiceReview=false;
+  try { hasServiceReview=(await listServiceReviewTargets(db)).length>0; } catch { /* Dedicated page reports discovery failures; no access is inferred. */ }
   const choices=[
+    ...(hasServiceReview?[{href:`/${lang}/service-review`,title:lang==='fa'?'تأیید کاتالوگ SERVICE':lang==='ro'?'Aprobarea catalogului SERVICE':'SERVICE catalogue approval',text:lang==='fa'?'پیشنهادهای خدمات در فضای کاری مجاز شما':lang==='ro'?'Oferte în spațiul autorizat':'Service offers in your authorized workspace'}]:[]),
     ...(owner.data===true?[{href:`/${lang}/owner-portfolio`,title:t.owner,text:t.ownerText}]:[]),
     ...(platform.data===true?[{href:`/${lang}/platform/overview`,title:t.platform,text:t.platformText}]:[]),
     ...(hasReviewer?[{href:`/${lang}/pilot-reviewer`,title:lang==='fa'?'بازبینی مستقل راه‌اندازی':lang==='ro'?'Aprobarea independentă a clădirii':'Independent building setup review',text:lang==='fa'?'بررسی پرونده‌های ارسالی در مدت دسترسی مجاز':lang==='ro'?'Dosare trimise în perioada autorizată':'Submitted setups within the authorized access period'}]:[]),
