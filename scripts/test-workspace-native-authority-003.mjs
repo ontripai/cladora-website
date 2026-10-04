@@ -194,9 +194,13 @@ try {
     try { assert.equal((await q('select * from customer_api.list_workspace_targets_v2($1)', [context])).length, 1); await denied(() => resolve()); } finally { await db.exec('reset role'); }
   });
   console.log(`${cases} PostgreSQL native workspace authority cases passed`);
-  if (process.argv.includes('--airprop-runtime')) {
+  if (process.argv.includes('--airprop-runtime') || process.argv.includes('--airprop-underwriting')) {
     const { runAirpropNativeRuntimeTests } = await import('./test-airprop-native-runtime-004.mjs');
     await runAirpropNativeRuntimeTests({ db, q, check, changed, setActor, id, tenant, otherTenant, user, otherUser, workspace, secondWorkspace, foreignWorkspace, context, otherContext, physicalContext, localRole, member, property });
+  }
+  if (process.argv.includes('--airprop-underwriting')) {
+    const { runAirpropUnderwritingTests } = await import('./test-airprop-underwriting-runtime-007.mjs');
+    await runAirpropUnderwritingTests({ db,q,check,changed,setActor,id,tenant,otherTenant,user,otherUser,workspace,secondWorkspace,foreignWorkspace,context,otherContext,physicalContext,localRole,member,property });
   }
   if (process.argv.includes('--role-assignment')) {
     const { runWorkspaceRoleAssignmentTests } = await import('./test-workspace-role-assignment-runtime.mjs');
