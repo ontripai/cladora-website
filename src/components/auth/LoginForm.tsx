@@ -9,6 +9,7 @@ import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
 import { resolvePostAuthRoute } from '@/lib/auth/post-auth-route';
+import { loginErrorMessage } from '@/lib/auth/login-error';
 
 interface LoginFormProps {
   lang: Language;
@@ -74,7 +75,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
     try {
       const supabase = createClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
         options: { captchaToken: captchaToken ?? undefined },
       });
@@ -82,13 +83,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
       if (signInError) {
         setCaptchaToken(null);
         setCaptchaAttempt((value) => value + 1);
-        setError(
-          lang === 'ro'
-            ? 'Emailul sau parola nu sunt corecte.'
-            : lang === 'fa'
-              ? 'ایمیل یا رمز عبور صحیح نیست.'
-              : 'The email or password is incorrect.',
-        );
+        setError(loginErrorMessage(signInError, lang));
         return;
       }
 
