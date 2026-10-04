@@ -147,6 +147,6 @@ select ok(not has_table_privilege('authenticated','airprop.diligence_cases','SEL
 select ok(not has_function_privilege('service_role','customer_api.create_airprop_diligence_draft_v1(uuid,uuid,uuid,integer,text)','EXECUTE'),'no privileged client execute');
 select set_config('request.jwt.claims','{"sub":"14600000-0000-0000-0000-000000000020","aal":"aal1"}',true);
 select throws_ok($$select customer_api.list_airprop_diligence_drafts_v1('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14600000-0000-0000-0000-000000000100'))$$,'42501','mfa_required','draft read requires MFA');
-select lives_ok($$select app_private.validate_airprop_module_bindings_v1()$$,'six-action exact manifest');
+select lives_ok($$select app_private.validate_airprop_module_bindings_v1()$$,'current exact module manifest');
 select * from finish();
 rollback;

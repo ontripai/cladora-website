@@ -194,17 +194,21 @@ try {
     try { assert.equal((await q('select * from customer_api.list_workspace_targets_v2($1)', [context])).length, 1); await denied(() => resolve()); } finally { await db.exec('reset role'); }
   });
   console.log(`${cases} PostgreSQL native workspace authority cases passed`);
-  if (process.argv.includes('--airprop-runtime') || process.argv.includes('--airprop-underwriting') || process.argv.includes('--airprop-diligence')) {
+  if (process.argv.includes('--airprop-runtime') || process.argv.includes('--airprop-underwriting') || (process.argv.includes('--airprop-diligence') || process.argv.includes('--airprop-diligence-review'))) {
     const { runAirpropNativeRuntimeTests } = await import('./test-airprop-native-runtime-004.mjs');
     await runAirpropNativeRuntimeTests({ db, q, check, changed, setActor, id, tenant, otherTenant, user, otherUser, workspace, secondWorkspace, foreignWorkspace, context, otherContext, physicalContext, localRole, member, property });
   }
-  if (process.argv.includes('--airprop-underwriting') || process.argv.includes('--airprop-diligence')) {
+  if (process.argv.includes('--airprop-underwriting') || (process.argv.includes('--airprop-diligence') || process.argv.includes('--airprop-diligence-review'))) {
     const { runAirpropUnderwritingTests } = await import('./test-airprop-underwriting-runtime-007.mjs');
     await runAirpropUnderwritingTests({ db,q,check,changed,setActor,id,tenant,otherTenant,user,otherUser,workspace,secondWorkspace,foreignWorkspace,context,otherContext,physicalContext,localRole,member,property });
   }
-  if (process.argv.includes('--airprop-diligence')) {
+  if ((process.argv.includes('--airprop-diligence') || process.argv.includes('--airprop-diligence-review'))) {
     const { runAirpropDiligenceTests } = await import('./test-airprop-diligence-runtime-011.mjs');
     await runAirpropDiligenceTests({db,q,check,changed,setActor,id,tenant,user,workspace,secondWorkspace,context,physicalContext,localRole,member});
+  }
+  if (process.argv.includes('--airprop-diligence-review')) {
+    const { runAirpropDiligenceReviewTests } = await import('./test-airprop-diligence-runtime-012.mjs');
+    await runAirpropDiligenceReviewTests({db,q,check,changed,setActor,id,tenant,user,otherUser,workspace,secondWorkspace,context,physicalContext,localRole,member,property});
   }
   if (process.argv.includes('--role-assignment')) {
     const { runWorkspaceRoleAssignmentTests } = await import('./test-workspace-role-assignment-runtime.mjs');
