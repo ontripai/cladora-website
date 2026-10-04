@@ -1,7 +1,7 @@
 begin;
 select plan(24);
 select ok(exists(select 1 from platform.module_definitions where code='airprop_commercial' and version=1 and lifecycle_status='published' and requires_aal2 and entitlement_key='module.airprop_commercial'),'AIRPROP uses canonical runtime catalogue');
-select lives_ok($$select app_private.validate_airprop_module_bindings_v1()$$,'AIRPROP exact five-binding manifest');
+select lives_ok($$select app_private.validate_airprop_module_bindings_v1()$$,'AIRPROP exact current binding manifest');
 select lives_ok($$select app_private.validate_module_permission_bindings_v2_seeding_v1()$$,'historic manifest survives added domain');
 select is((select count(*)::integer from platform.workspace_modules where module_code='airprop_commercial'),0,'migration does not activate any workspace');
 select is((select count(*)::integer from platform.workspace_entitlements where entitlement_key='module.airprop_commercial'),0,'migration grants no entitlement');
