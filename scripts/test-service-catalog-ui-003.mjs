@@ -19,6 +19,7 @@ let managementData; let loseResponse = false; let mutationDeferred;
 const fetch = async (url, options) => {
   calls.push({ url, options });
   if (url.includes('/workspace/targets')) return Response.json({ workspaces: [firstWorkspace, secondWorkspace].map(workspace_id => ({ workspace_id, workspace_type: 'ASSOCIATION', environment: 'PILOT' })) });
+  if (url.includes('/services/requests')) return Response.json({can_request:false,beneficiaries:[],requests:[]});
   if (options?.method === 'POST') {
     if (mutationDeferred) return mutationDeferred.promise;
     if (loseResponse) { loseResponse = false; throw new Error('response lost after commit'); }
