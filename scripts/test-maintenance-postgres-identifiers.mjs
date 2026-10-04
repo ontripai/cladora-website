@@ -52,3 +52,22 @@ for(const message of ['customer_context_access_denied','mfa_required','maintenan
 }
 rpcError={code:'40001',message:'private revision detail'};assert.equal((await calendar.POST(post())).status,409);
 console.log('PASS maintenance PostgreSQL identifiers: real schemas and gateways, pilot/RFC IDs, malformed IDs, origin, strict payload, authentication, authorization, MFA and conflict');
+
+// Exercise the separate start gateway: stored IDs must reach the guarded RPC.
+rpcError=null;
+const start=load('src/app/api/customer/v1/work-orders/[id]/start/route.ts',mocks);
+const startPost=(context_id=pilot,origin='https://cladora.test')=>new NextRequest('https://cladora.test/api/customer/v1/work-orders/'+pilot+'/start',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({context_id,notes:'  Pilot start  '})});
+const startParams=id=>({params:Promise.resolve({id})});
+for(const id of [pilot,normal,normal.toUpperCase()]){
+ calls=[];const response=await start.POST(startPost(id),startParams(id));assert.equal(response.status,200);assert.deepEqual(calls,[{name:'start_work_order_v1',args:{p_context_id:id,p_work_order_id:id,p_notes:'Pilot start'}}]);assert.match(response.headers.get('cache-control'),/no-store/);
+}
+for(const id of invalid){
+ calls=[];assert.equal((await start.POST(startPost(id),startParams(pilot))).status,400);assert.equal((await start.POST(startPost(),startParams(id))).status,400);assert.equal(calls.length,0);
+}
+calls=[];assert.equal((await start.POST(startPost(pilot,'https://evil.test'),startParams(pilot))).status,403);assert.equal(calls.length,0);
+authenticated=false;calls=[];assert.equal((await start.POST(startPost(),startParams(pilot))).status,401);assert.equal(calls.length,0);authenticated=true;
+for(const message of ['customer_context_access_denied','mfa_required','maintenance_permission_required']){
+ rpcError={code:'42501',message};assert.equal((await start.POST(startPost(),startParams(pilot))).status,403);
+}
+rpcError={code:'P0001',message:'invalid_work_order_transition'};assert.equal((await start.POST(startPost(),startParams(pilot))).status,409);
+console.log('PASS work-order start PostgreSQL IDs, invalid context/path rejection, exact RPC, origin, authentication, permissions, MFA and conflict');
