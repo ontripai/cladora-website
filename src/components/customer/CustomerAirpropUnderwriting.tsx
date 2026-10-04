@@ -15,7 +15,7 @@ const signedDecimal = z.string().max(100).regex(/^-?\d+(?:\.\d+)?$/);
 const results = z.object({annual_noi:signedDecimal,gross_yield:decimal,net_yield:signedDecimal,currency:z.string().regex(/^[A-Z]{3}$/)});
 const historySchema = z.object({version:z.literal(2),workspace_id:z.string(),opportunity_id:z.string(),currency:z.enum(['EUR','RON']),underwriting_case_id:z.string().nullable(),current_version:z.number().int().nonnegative(),versions:z.array(z.object({evaluation_version:z.number().int().positive(),created_at:z.string(),assumptions:z.object({acquisition_cost:decimal,annual_rent:decimal,annual_opex:decimal,currency:z.string().regex(/^[a-zA-Z]{3}$/).nullable()}),results})).max(100)});
 const savedSchema = z.object({version:z.literal(2),workspace_id:z.string(),opportunity_id:z.string(),underwriting_case_id:z.string(),evaluation_version:z.number().int().positive(),results,status:z.literal('underwriting'),idempotent:z.boolean()});
-type Props = {contextId:string;workspaceId:string;opportunityId:string;opportunityName:string;currency:string;lang:Language};
+type Props = {contextId:string;workspaceId:string;opportunityId:string;opportunityName:string;currency:string;lang:Language;onSaved?:()=>void};
 type Command = ReturnType<typeof createAirpropUnderwritingV2Schema.parse>;
 // Moving the decimal point preserves the server's exact ratio without Number conversion.
 function percent(ratio:string) { const sign=ratio.startsWith('-')?'-':'';const [whole,fraction='']=(sign?ratio.slice(1):ratio).split('.');const digits=fraction.padEnd(2,'0');return `${sign}${(whole+digits.slice(0,2)).replace(/^0+(?=\d)/,'')}${digits.length>2?`.${digits.slice(2)}`:''}%`; }
@@ -24,7 +24,7 @@ export function CustomerAirpropUnderwriting(props:Props) {
  // A changed authority or resource mounts a fresh state machine even if a caller forgets its key.
  return <Evaluation key={`${props.contextId}:${props.workspaceId}:${props.opportunityId}`} {...props}/>;
 }
-function Evaluation({contextId,workspaceId,opportunityId,opportunityName,currency,lang}:Props) {
+function Evaluation({contextId,workspaceId,opportunityId,opportunityName,currency,lang,onSaved}:Props) {
  const t=copy[lang];
  const [history,setHistory]=useState<z.infer<typeof historySchema>|null>(null),[loadError,setLoadError]=useState(false),[reload,setReload]=useState(0);
  const [cost,setCost]=useState(''),[rent,setRent]=useState(''),[opex,setOpex]=useState('');
@@ -40,7 +40,7 @@ function Evaluation({contextId,workspaceId,opportunityId,opportunityName,currenc
   try{sessionStorage.setItem(storageKey,JSON.stringify(command));}catch{setBlocked(true);setMessage('storage');return;}
   inflight.current=true;setBusy(true);setMessage(null);
   try{const r=await fetch('/api/customer/v2/airprop/underwriting',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(command)});const body=await r.json();if(generation.current!==epoch)return;
-   if(r.ok){const parsed=savedSchema.parse(body);if(parsed.workspace_id!==workspaceId||parsed.opportunity_id!==opportunityId||parsed.results.currency!==command.assumptions.currency||parsed.evaluation_version!==command.expected_version+1)throw new Error();sessionStorage.removeItem(storageKey);pending.current=null;setUncertain(false);setMessage('success');refresh();}
+   if(r.ok){const parsed=savedSchema.parse(body);if(parsed.workspace_id!==workspaceId||parsed.opportunity_id!==opportunityId||parsed.results.currency!==command.assumptions.currency||parsed.evaluation_version!==command.expected_version+1)throw new Error();sessionStorage.removeItem(storageKey);pending.current=null;setUncertain(false);setMessage('success');refresh();onSaved?.();}
    else if(r.status>=500){setUncertain(true);setMessage('pending');}
    else if(r.status===409&&['VERSION_CONFLICT','CONTENT_CONFLICT','STATE_CONFLICT','IDEMPOTENCY_CONFLICT'].includes(body.error?.code)){sessionStorage.removeItem(storageKey);pending.current=null;setUncertain(false);setMessage('conflict');setHistory(null);setLoadError(true);}
    else {setUncertain(true);setMessage(body.error?.code==='MFA_REQUIRED'?'mfa':r.status===401||r.status===403?'denied':'pending');}

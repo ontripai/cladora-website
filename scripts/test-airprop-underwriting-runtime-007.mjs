@@ -19,7 +19,7 @@ export async function runAirpropUnderwritingTests(f) {
  insert into identity.permissions values ('${manage}','airprop.underwriting.manage');
  insert into identity.role_permissions select role_id,'${manage}','allow' from identity.memberships where id='${member}';
  insert into platform.module_permission_bindings(id,module_definition_id,permission_id) values ('${id(302)}','${moduleId}','${manage}');`);
- await db.exec(readFileSync(new URL('../supabase/migrations/20261004074606_airprop_native_underwriting_v2.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261004090538_airprop_native_underwriting_v2.sql',import.meta.url),'utf8'));
  await setActor();
  const opps=await q('select id,property_id from airprop.investment_opportunities order by created_at,id');
  const opp=opps.find(o=>!o.property_id).id,bound=opps.find(o=>o.property_id).id;
