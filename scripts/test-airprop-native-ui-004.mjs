@@ -13,7 +13,7 @@ function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,i
 const context='11111111-1111-4111-8111-111111111111',workspace='22222222-2222-4222-8222-222222222222';
 let active={context_id:context},mode='targets',calls=[];
 globalThis.fetch=async(url,options={})=>{calls.push({url,options});if(url.includes('/workspace/targets'))return{ok:true,json:async()=>({workspaces:mode==='empty'?[]:[{workspace_id:workspace,environment:'PILOT'}]})};if(options.method==='POST'){if(mode==='uncertain')throw new Error('connection lost');return{ok:true,json:async()=>({version:2,workspace_id:workspace,opportunity_id:context,idempotent:true})};}return{ok:true,json:async()=>({opportunities:[]})};};
-const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{'./CustomerContextProvider':{useCustomerContext:()=>({active})},'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
+const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{'./CustomerContextProvider':{useCustomerContext:()=>({active})},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
 const root=createRoot(document.getElementById('root'));
 const render=async(key,lang='en')=>act(async()=>{root.render(React.createElement(CustomerAirpropWorkspace,{key,lang}));});
 const choose=async()=>act(async()=>{const select=document.querySelector('select');select.value=workspace;select.dispatchEvent(new dom.window.Event('change',{bubbles:true}));});
