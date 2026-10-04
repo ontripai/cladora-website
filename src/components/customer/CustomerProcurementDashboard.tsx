@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { Language } from "@/types";
 import { useCustomerContext } from "./CustomerContextProvider";
+import ContractorRegistrationPanel from "./ContractorRegistrationPanel";
 
 export type ProcurementView = "vendors" | "contracts" | "quotes" | "purchase_orders" | "sla";
 type Row = Record<string, unknown> & { id?: string };
@@ -508,6 +509,8 @@ export function CustomerProcurementDashboard({ lang, initialView = "vendors" }: 
           </span>
         </div>
       </header>
+
+      {active && view === "vendors" && <ContractorRegistrationPanel contextId={active.context_id} scope={active.scope_type} lang={lang} onChanged={load} />}
 
       {actionMessage ? (
         <div
