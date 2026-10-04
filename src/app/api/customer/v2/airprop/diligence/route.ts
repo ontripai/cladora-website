@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
-import { createAirpropDiligenceDraftV1Schema } from '@/lib/airprop/diligence-contract-v1';
+import { createAirpropDiligenceDraftV1Schema } from '@/lib/airprop/diligence-draft-contract-v1';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 

@@ -11,7 +11,7 @@ const opportunity='00000000-0000-0000-0000-000000000001';
 const base={version:1,context_id:context,workspace_id:workspace,opportunity_id:opportunity,idempotency_key:'gateway-test-0001',expected_underwriting_version:1};
 let auth={data:{claims:{sub:'principal'}},error:null},result={data:{version:2,idempotent:false,workspace_id:workspace,opportunity_id:context},error:null},calls=[],cases=0;
 const {POST,GET}=load('src/app/api/customer/v2/airprop/diligence/route.ts',{
- '@/lib/airprop/diligence-contract-v1':load('src/lib/airprop/diligence-contract-v1.ts'),
+ '@/lib/airprop/diligence-draft-contract-v1':load('src/lib/airprop/diligence-draft-contract-v1.ts'),
  '@/lib/security/same-origin':load('src/lib/security/same-origin.ts'),
  '@/lib/security/request-body':load('src/lib/security/request-body.ts'),
  '@/lib/supabase/server':{createClient:async()=>({auth:{getClaims:async()=>auth},schema:name=>{assert.equal(name,'customer_api');return{rpc:async(name,args)=>{calls.push({name,args});return result;}};}})},

@@ -47,12 +47,6 @@ export const submitAirpropDiligenceReviewV1Schema = z.strictObject({
   idempotency_key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/),
 });
 
-export const createAirpropDiligenceDraftV1Schema = z.strictObject({
-  version: z.literal(1), context_id: uuid, workspace_id: uuid, opportunity_id: uuid,
-  expected_underwriting_version: version,
-  idempotency_key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/),
-});
-
 /** Pure review-readiness rules over a freshly authorized server snapshot and policy.
  * No permission, evidence access, scan verification, approval or state transition is
  * established here. Never accept the snapshot/policy from a mutation request. */

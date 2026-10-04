@@ -2,7 +2,7 @@ name: AIRPROP diligence drafts runtime
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261004105823_airprop_diligence_drafts_v1.sql'
+      - 'supabase/migrations/20261004112140_airprop_diligence_drafts_v1.sql'
       - 'src/app/api/customer/v2/airprop/**'
       - 'src/lib/airprop/**'
       - 'scripts/test-airprop-diligence*.mjs'

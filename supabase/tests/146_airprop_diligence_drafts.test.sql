@@ -3,27 +3,27 @@ begin;
 select plan(15);
 do $$
 declare
-  v_tenant_id uuid := '14500000-0000-0000-0000-000000000001'::uuid;
-  v_tenant2_id uuid := '14500000-0000-0000-0000-000000000002'::uuid;
-  v_user_admin_id uuid := '14500000-0000-0000-0000-000000000010'::uuid;
-  v_user_member_id uuid := '14500000-0000-0000-0000-000000000020'::uuid;
-  v_user_other_id uuid := '14500000-0000-0000-0000-000000000030'::uuid;
-  v_ws_id uuid := '14500000-0000-0000-0000-000000000100'::uuid;
-  v_ws2_id uuid := '14500000-0000-0000-0000-000000000200'::uuid;
-  v_prop_id uuid := '14500000-0000-0000-0000-000000001000'::uuid;
-  v_prop2_id uuid := '14500000-0000-0000-0000-000000002000'::uuid;
-  v_bld_id uuid := '14500000-0000-0000-0000-000000010000'::uuid;
-  v_bld2_id uuid := '14500000-0000-0000-0000-000000020000'::uuid;
-  v_unit1_id uuid := '14500000-0000-0000-0000-000000100001'::uuid;
-  v_unit2_id uuid := '14500000-0000-0000-0000-000000100002'::uuid;
+  v_tenant_id uuid := '14600000-0000-0000-0000-000000000001'::uuid;
+  v_tenant2_id uuid := '14600000-0000-0000-0000-000000000002'::uuid;
+  v_user_admin_id uuid := '14600000-0000-0000-0000-000000000010'::uuid;
+  v_user_member_id uuid := '14600000-0000-0000-0000-000000000020'::uuid;
+  v_user_other_id uuid := '14600000-0000-0000-0000-000000000030'::uuid;
+  v_ws_id uuid := '14600000-0000-0000-0000-000000000100'::uuid;
+  v_ws2_id uuid := '14600000-0000-0000-0000-000000000200'::uuid;
+  v_prop_id uuid := '14600000-0000-0000-0000-000000001000'::uuid;
+  v_prop2_id uuid := '14600000-0000-0000-0000-000000002000'::uuid;
+  v_bld_id uuid := '14600000-0000-0000-0000-000000010000'::uuid;
+  v_bld2_id uuid := '14600000-0000-0000-0000-000000020000'::uuid;
+  v_unit1_id uuid := '14600000-0000-0000-0000-000000100001'::uuid;
+  v_unit2_id uuid := '14600000-0000-0000-0000-000000100002'::uuid;
   v_admin_role_id uuid;
   v_member_role_id uuid;
-  v_mem_admin_id uuid := '14500000-0000-0000-0000-000001000001'::uuid;
-  v_mem_target_id uuid := '14500000-0000-0000-0000-000001000002'::uuid;
-  v_mem_other_id uuid := '14500000-0000-0000-0000-000001000003'::uuid;
-  v_ctx_admin_id uuid := '14500000-0000-0000-0000-000010000001'::uuid;
-  v_ctx_admin_ws2_id uuid := '14500000-0000-0000-0000-000010000003'::uuid;
-  v_ctx_member_id uuid := '14500000-0000-0000-0000-000010000002'::uuid;
+  v_mem_admin_id uuid := '14600000-0000-0000-0000-000001000001'::uuid;
+  v_mem_target_id uuid := '14600000-0000-0000-0000-000001000002'::uuid;
+  v_mem_other_id uuid := '14600000-0000-0000-0000-000001000003'::uuid;
+  v_ctx_admin_id uuid := '14600000-0000-0000-0000-000010000001'::uuid;
+  v_ctx_admin_ws2_id uuid := '14600000-0000-0000-0000-000010000003'::uuid;
+  v_ctx_member_id uuid := '14600000-0000-0000-0000-000010000002'::uuid;
   v_profile_id uuid;
   v_model_id uuid;
 begin
@@ -112,41 +112,41 @@ begin
 end;
 $$;
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
- ('14500000-0000-0000-0000-000010000010','14500000-0000-0000-0000-000000000001','14500000-0000-0000-0000-000001000002','tenant',now()-interval '1 day');
+ ('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000001','14600000-0000-0000-0000-000001000002','tenant',now()-interval '1 day');
 insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
- select '14500000-0000-0000-0000-000000000001','14500000-0000-0000-0000-000000000100',id,code,'active','Synthetic AIRPROP flow'
+ select '14600000-0000-0000-0000-000000000001','14600000-0000-0000-0000-000000000100',id,code,'active','Synthetic AIRPROP flow'
  from platform.module_definitions where code='airprop_commercial';
 insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
- values('14500000-0000-0000-0000-000000000100','module.airprop_commercial','boolean',true,now()-interval '1 day');
-select set_config('request.jwt.claims','{"sub":"14500000-0000-0000-0000-000000000010","role":"authenticated","aal":"aal2"}',true);
+ values('14600000-0000-0000-0000-000000000100','module.airprop_commercial','boolean',true,now()-interval '1 day');
+select set_config('request.jwt.claims','{"sub":"14600000-0000-0000-0000-000000000010","role":"authenticated","aal":"aal2"}',true);
 select lives_ok($flow$do $$
 declare result jsonb; role_id uuid; version integer;
 begin
- result=customer_api.create_workspace_role_draft_v1('14500000-0000-0000-0000-000010000001','airprop_diligence_writer','AIRPROP flow reader writer','Synthetic authorized flow','workspace',null,'Synthetic authorized flow','flow_create_145');
+ result=customer_api.create_workspace_role_draft_v1('14600000-0000-0000-0000-000010000001','airprop_diligence_writer','AIRPROP flow reader writer','Synthetic authorized flow','workspace',null,'Synthetic authorized flow','flow_create_146');
  role_id=(result->>'id')::uuid;
- perform customer_api.attach_workspace_role_module_v1('14500000-0000-0000-0000-000010000001',role_id,(select id from platform.module_definitions where code='airprop_commercial'),1,'Synthetic module attachment','flow_module_145');
- perform customer_api.attach_workspace_role_permission_v1('14500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.read'),'allow',2,'Synthetic read attachment','flow_read_145');
- perform customer_api.attach_workspace_role_permission_v1('14500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,'Synthetic manage attachment','flow_manage_145');
- perform customer_api.attach_workspace_role_permission_v1('14500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.underwriting.manage'),'allow',4,'Synthetic underwriting attachment','flow_underwriting_145');
- perform customer_api.attach_workspace_role_permission_v1('14500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.manage'),'allow',5,'Synthetic diligence attachment','flow_diligence_145');
- perform customer_api.publish_workspace_role_v1('14500000-0000-0000-0000-000010000001',role_id,6,'Synthetic publish role','flow_publish_145');
+ perform customer_api.attach_workspace_role_module_v1('14600000-0000-0000-0000-000010000001',role_id,(select id from platform.module_definitions where code='airprop_commercial'),1,'Synthetic module attachment','flow_module_146');
+ perform customer_api.attach_workspace_role_permission_v1('14600000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.read'),'allow',2,'Synthetic read attachment','flow_read_146');
+ perform customer_api.attach_workspace_role_permission_v1('14600000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,'Synthetic manage attachment','flow_manage_146');
+ perform customer_api.attach_workspace_role_permission_v1('14600000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.underwriting.manage'),'allow',4,'Synthetic underwriting attachment','flow_underwriting_146');
+ perform customer_api.attach_workspace_role_permission_v1('14600000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.manage'),'allow',5,'Synthetic diligence attachment','flow_diligence_146');
+ perform customer_api.publish_workspace_role_v1('14600000-0000-0000-0000-000010000001',role_id,6,'Synthetic publish role','flow_publish_146');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($$select customer_api.assign_workspace_role_v1('14500000-0000-0000-0000-000010000001','14500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_145')$$,'assign explicit diligence role');
-select set_config('request.jwt.claims','{"sub":"14500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
-select lives_ok($$select customer_api.create_airprop_opportunity_v2('14500000-0000-0000-0000-000010000010','14500000-0000-0000-0000-000000000100','diligence_opportunity_145','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
+select lives_ok($$select customer_api.assign_workspace_role_v1('14600000-0000-0000-0000-000010000001','14600000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_146')$$,'assign explicit diligence role');
+select set_config('request.jwt.claims','{"sub":"14600000-0000-0000-0000-000000000020","aal":"aal2"}',true);
+select lives_ok($$select customer_api.create_airprop_opportunity_v2('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100','diligence_opportunity_146','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);
-select lives_ok($$select customer_api.create_airprop_underwriting_v2('14500000-0000-0000-0000-000010000010','14500000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14500000-0000-0000-0000-000000000100'),'diligence_eval_145',0,'{"acquisition_cost":"100000","annual_rent":"8000","annual_opex":"1000","currency":"EUR"}')$$,'evaluate exact baseline');
-select lives_ok($$insert into diligence_test_response select customer_api.create_airprop_diligence_draft_v1('14500000-0000-0000-0000-000010000010','14500000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14500000-0000-0000-0000-000000000100'),1,'diligence_draft_145')$$,'create exact-version draft through gateway');
-select is((select count(*) from airprop.diligence_cases where tenant_id='14500000-0000-0000-0000-000000000001'),1::bigint,'one draft');
+select lives_ok($$select customer_api.create_airprop_underwriting_v2('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14600000-0000-0000-0000-000000000100'),'diligence_eval_146',0,'{"acquisition_cost":"100000","annual_rent":"8000","annual_opex":"1000","currency":"EUR"}')$$,'evaluate exact baseline');
+select lives_ok($$insert into diligence_test_response select customer_api.create_airprop_diligence_draft_v1('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14600000-0000-0000-0000-000000000100'),1,'diligence_draft_146')$$,'create exact-version draft through gateway');
+select is((select count(*) from airprop.diligence_cases where tenant_id='14600000-0000-0000-0000-000000000001'),1::bigint,'one draft');
 select ok((select result->>'status'='draft' and result->>'underwriting_version'='1' from diligence_test_response),'draft exact baseline');
-select ok(customer_api.create_airprop_diligence_draft_v1('14500000-0000-0000-0000-000010000010','14500000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14500000-0000-0000-0000-000000000100'),1,'diligence_draft_145')->>'idempotent'='true','same-key replay');
-select is((select count(*) from audit.events where tenant_id='14500000-0000-0000-0000-000000000001' and action='AIRPROP_DILIGENCE_DRAFT_CREATED'),1::bigint,'one audit');
-select is((select count(*) from platform.outbox_events where tenant_id='14500000-0000-0000-0000-000000000001' and event_type='airprop.diligence.draft_created.v1'),1::bigint,'one outbox event');
+select ok(customer_api.create_airprop_diligence_draft_v1('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14600000-0000-0000-0000-000000000100'),1,'diligence_draft_146')->>'idempotent'='true','same-key replay');
+select is((select count(*) from audit.events where tenant_id='14600000-0000-0000-0000-000000000001' and action='AIRPROP_DILIGENCE_DRAFT_CREATED'),1::bigint,'one audit');
+select is((select count(*) from platform.outbox_events where tenant_id='14600000-0000-0000-0000-000000000001' and event_type='airprop.diligence.draft_created.v1'),1::bigint,'one outbox event');
 select throws_ok($$update airprop.diligence_cases set status='draft'$$,'22023','airprop_diligence_draft_immutable','immutable initial draft');
 select ok(not has_table_privilege('authenticated','airprop.diligence_cases','SELECT'),'no direct customer read');
 select ok(not has_function_privilege('service_role','customer_api.create_airprop_diligence_draft_v1(uuid,uuid,uuid,integer,text)','EXECUTE'),'no privileged client execute');
-select set_config('request.jwt.claims','{"sub":"14500000-0000-0000-0000-000000000020","aal":"aal1"}',true);
-select throws_ok($$select customer_api.list_airprop_diligence_drafts_v1('14500000-0000-0000-0000-000010000010','14500000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14500000-0000-0000-0000-000000000100'))$$,'42501','mfa_required','draft read requires MFA');
+select set_config('request.jwt.claims','{"sub":"14600000-0000-0000-0000-000000000020","aal":"aal1"}',true);
+select throws_ok($$select customer_api.list_airprop_diligence_drafts_v1('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14600000-0000-0000-0000-000000000100'))$$,'42501','mfa_required','draft read requires MFA');
 select lives_ok($$select app_private.validate_airprop_module_bindings_v1()$$,'six-action exact manifest');
 select * from finish();
 rollback;

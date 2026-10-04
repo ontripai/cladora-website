@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire,Module} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import ts from 'typescript';
+const require=createRequire(import.meta.url);
+function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);return mod.exports;}
+const pilot='80000000-0000-0000-0000-000000000004';let authenticated=true,calls=[],rpcError=null;
+const mocks={'@/lib/customer/maintenance-schema':load('src/lib/customer/maintenance-schema.ts'),'@/lib/customer/maintenance-api-helper':load('src/lib/customer/maintenance-api-helper.ts'),'@/lib/security/same-origin':load('src/lib/security/same-origin.ts'),'@/lib/security/request-body':load('src/lib/security/request-body.ts'),'@/lib/supabase/server':{createClient:async()=>({auth:{getClaims:async()=>({data:{claims:authenticated?{sub:pilot}:{}},error:null})},schema:name=>{assert.equal(name,'customer_api');return {rpc:async(name,args)=>{calls.push({name,args});return {data:{success:true},error:rpcError};}};}})}};
+const gateway=load('src/app/api/customer/v1/work-orders/[id]/checklist/route.ts',mocks);const {NextRequest}=require('next/server');const params={params:Promise.resolve({id:pilot})};
+const payload={context_id:pilot,item_id:pilot,notes:'Synthetic checklist result'};
+const get=id=>new NextRequest(`https://cladora.test/api/customer/v1/work-orders/${pilot}/checklist?context_id=${encodeURIComponent(id)}`);
+const post=(body=payload,origin='https://cladora.test',type='application/json')=>new NextRequest(`https://cladora.test/api/customer/v1/work-orders/${pilot}/checklist`,{method:'POST',headers:{origin,'content-type':type},body:JSON.stringify(body)});
+assert.equal((await gateway.GET(get(pilot),params)).status,200);assert.deepEqual(calls.pop(),{name:'work_order_checklist_v1',args:{p_context_id:pilot,p_work_order_id:pilot,p_item_id:null,p_notes:null}});
+const response=await gateway.POST(post(),params);assert.equal(response.status,200);assert.match(response.headers.get('cache-control'),/no-store/);assert.deepEqual(calls.pop(),{name:'work_order_checklist_v1',args:{p_context_id:pilot,p_work_order_id:pilot,p_item_id:pilot,p_notes:payload.notes}});
+for(const body of [{...payload,context_id:'invalid'},{...payload,tenant_id:pilot},{...payload,completed_by:pilot},{...payload,completed:false},{...payload,notes:'short'}])assert.equal((await gateway.POST(post(body),params)).status,400);assert.equal(calls.length,0);
+assert.equal((await gateway.POST(post(payload,'https://evil.test'),params)).status,403);assert.equal((await gateway.POST(post(payload,'https://cladora.test','text/plain'),params)).status,415);assert.equal(calls.length,0);
+authenticated=false;assert.equal((await gateway.GET(get(pilot),params)).status,401);assert.equal((await gateway.POST(post(),params)).status,401);authenticated=true;
+rpcError={code:'42501',message:'mfa_required'};assert.equal((await gateway.POST(post(),params)).status,403);rpcError={code:'40001',message:'checklist_result_already_recorded'};assert.equal((await gateway.POST(post(),params)).status,409);
+console.log('PASS checklist gateway: exact RPC, canonical stored UUID, strict notes/payload, origin, authentication and conflict');

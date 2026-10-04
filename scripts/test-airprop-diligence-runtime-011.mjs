@@ -14,7 +14,7 @@ export async function runAirpropDiligenceTests(f) {
  insert into platform.module_permission_bindings(module_definition_id,permission_id) values('${id(203)}','${id(401)}'),('${id(203)}','${id(402)}');
  update platform.module_permission_bindings b set is_delegable=false,permission_mode=case when p.code like '%.read' then 'read' else 'manage' end
  from identity.permissions p where b.permission_id=p.id and b.module_definition_id='${id(203)}';`);
- await db.exec(readFileSync(new URL('../supabase/migrations/20261004105823_airprop_diligence_drafts_v1.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261004112140_airprop_diligence_drafts_v1.sql',import.meta.url),'utf8'));
  await setActor();
  const permission=(await q("select id from identity.permissions where code='airprop.diligence.manage'"))[0].id;
  const opportunity=(await q('select customer_api.create_airprop_opportunity_v2($1,$2,$3,$4::jsonb) r',[context,workspace,'diligence-opportunity-0001',JSON.stringify({name:'Synthetic diligence',country_code:'RO',city:'București',currency:'EUR',asking_price:'100000'})]))[0].r.opportunity_id;
