@@ -38,9 +38,6 @@ select throws_ok($$select customer_api.approve_contractor_v1('14400000-0000-4000
 select throws_ok($$select customer_api.register_contractor_v1('14400000-0000-4000-8000-000000000012','14400000-0000-4000-8000-000000000022','Foreign contractor','pump')$$,'P0002',null,'foreign vendor UUID cannot be reused');
 select is(jsonb_array_length(customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')->'vendors'),2,'foreign vendor excluded from choices');
 select throws_ok($$select customer_api.register_contractor_v1('14400000-0000-4000-8000-000000000012','14400000-0000-4000-8000-000000000014','Invalid category','unknown')$$,'22023',null,'invalid category rejected');
-update platform.workspace_modules set status='deactivated',valid_to=statement_timestamp(),deactivated_at=statement_timestamp() where customer_workspace_id='14400000-0000-4000-8000-000000000006' and module_code='maintenance';
-select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')$$,'42501',null,'disabled module denies registry');
-update platform.workspace_modules set status='active',valid_to=null,deactivated_at=null where customer_workspace_id='14400000-0000-4000-8000-000000000006' and module_code='maintenance';
 update identity.memberships set role_id=(select id from identity.roles where code='owner' and tenant_id is null and is_system limit 1) where id='14400000-0000-4000-8000-000000000004';
 select throws_ok($$select customer_api.register_contractor_v1('14400000-0000-4000-8000-000000000012','14400000-0000-4000-8000-000000000014','Unauthorized owner','pump')$$,'42501',null,'owner cannot register contractors');
 select throws_ok($$select customer_api.approve_contractor_v1('14400000-0000-4000-8000-000000000012','14400000-0000-4000-8000-000000000013','Unauthorized owner cannot approve contractor')$$,'42501',null,'owner cannot approve contractors');
@@ -52,6 +49,8 @@ select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8
 select set_config('request.jwt.claims','{"sub":"14400000-0000-4000-8000-000000000099","role":"authenticated","aal":"aal2"}',true);
 select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')$$,'42501',null,'another user cannot use context');
 select set_config('request.jwt.claims','{"sub":"14400000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
+update platform.workspace_modules set status='deactivated',valid_to=statement_timestamp(),deactivated_at=statement_timestamp() where customer_workspace_id='14400000-0000-4000-8000-000000000006' and module_code='maintenance';
+select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')$$,'42501',null,'disabled module denies registry');
 update identity.context_grants set ends_at=statement_timestamp()-interval '1 hour' where id='14400000-0000-4000-8000-000000000012';
 select throws_ok($$select customer_api.list_contractors_v1('14400000-0000-4000-8000-000000000012')$$,'42501',null,'expired context denied');
 select ok(not has_function_privilege('anon','customer_api.register_contractor_v1(uuid,uuid,text,text)','EXECUTE'),'anonymous registration denied');
