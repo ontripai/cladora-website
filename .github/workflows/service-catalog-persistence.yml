@@ -4,6 +4,7 @@ on:
     paths:
       - 'supabase/migrations/20261003141918_service_catalog_persistence_v1.sql'
       - 'supabase/migrations/20261003144507_service_catalog_definition_command_v1.sql'
+      - 'supabase/migrations/*_service_catalog_registry_compatibility_v1.sql'
       - 'src/app/api/customer/v1/services/catalog/route.ts'
       - 'src/app/api/customer/v1/services/catalog/definitions/route.ts'
       - 'src/components/customer/CustomerServiceCatalog.tsx'
@@ -34,6 +35,7 @@ jobs:
       - run: npm ci
       - run: npm install --prefix "$RUNNER_TEMP/cladora-service-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.3
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-persistence-002.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-compatibility-006.mjs
       - run: node scripts/test-service-catalog-route-002.mjs
       - run: node scripts/test-service-catalog-ui-003.mjs
       - run: node scripts/test-service-catalog-contract-001.mjs
