@@ -194,21 +194,25 @@ try {
     try { assert.equal((await q('select * from customer_api.list_workspace_targets_v2($1)', [context])).length, 1); await denied(() => resolve()); } finally { await db.exec('reset role'); }
   });
   console.log(`${cases} PostgreSQL native workspace authority cases passed`);
-  if (process.argv.includes('--airprop-runtime') || process.argv.includes('--airprop-underwriting') || (process.argv.includes('--airprop-diligence') || process.argv.includes('--airprop-diligence-review'))) {
+  if (process.argv.includes('--airprop-runtime') || process.argv.includes('--airprop-underwriting') || (process.argv.includes('--airprop-diligence') || (process.argv.includes('--airprop-diligence-review') || process.argv.includes('--airprop-acquisition')))) {
     const { runAirpropNativeRuntimeTests } = await import('./test-airprop-native-runtime-004.mjs');
     await runAirpropNativeRuntimeTests({ db, q, check, changed, setActor, id, tenant, otherTenant, user, otherUser, workspace, secondWorkspace, foreignWorkspace, context, otherContext, physicalContext, localRole, member, property });
   }
-  if (process.argv.includes('--airprop-underwriting') || (process.argv.includes('--airprop-diligence') || process.argv.includes('--airprop-diligence-review'))) {
+  if (process.argv.includes('--airprop-underwriting') || (process.argv.includes('--airprop-diligence') || (process.argv.includes('--airprop-diligence-review') || process.argv.includes('--airprop-acquisition')))) {
     const { runAirpropUnderwritingTests } = await import('./test-airprop-underwriting-runtime-007.mjs');
     await runAirpropUnderwritingTests({ db,q,check,changed,setActor,id,tenant,otherTenant,user,otherUser,workspace,secondWorkspace,foreignWorkspace,context,otherContext,physicalContext,localRole,member,property });
   }
-  if ((process.argv.includes('--airprop-diligence') || process.argv.includes('--airprop-diligence-review'))) {
+  if ((process.argv.includes('--airprop-diligence') || (process.argv.includes('--airprop-diligence-review') || process.argv.includes('--airprop-acquisition')))) {
     const { runAirpropDiligenceTests } = await import('./test-airprop-diligence-runtime-011.mjs');
     await runAirpropDiligenceTests({db,q,check,changed,setActor,id,tenant,user,workspace,secondWorkspace,context,physicalContext,localRole,member});
   }
-  if (process.argv.includes('--airprop-diligence-review')) {
+  if ((process.argv.includes('--airprop-diligence-review') || process.argv.includes('--airprop-acquisition'))) {
     const { runAirpropDiligenceReviewTests } = await import('./test-airprop-diligence-runtime-012.mjs');
     await runAirpropDiligenceReviewTests({db,q,check,changed,setActor,id,tenant,user,otherUser,workspace,secondWorkspace,context,physicalContext,localRole,member,property});
+  }
+  if (process.argv.includes('--airprop-acquisition')) {
+    const { runAirpropAcquisitionTests } = await import('./test-airprop-acquisition-runtime-013.mjs');
+    await runAirpropAcquisitionTests({db,q,check,changed,setActor,id,tenant,user,otherUser,grantorUser,workspace,secondWorkspace,context,otherContext,grantorContext,physicalContext,localRole,emptyLocalRole,grantorLocalRole,member,otherMember,grantorMember,property});
   }
   if (process.argv.includes('--role-assignment')) {
     const { runWorkspaceRoleAssignmentTests } = await import('./test-workspace-role-assignment-runtime.mjs');
