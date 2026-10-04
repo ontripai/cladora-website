@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CustomerWorkspace } from '@/types/platform';
 
+type Mode = 'catalog' | 'requests';
 type Locale = 'ro' | 'en' | 'fa';
 type Access = {
   workspace: Pick<CustomerWorkspace, 'id' | 'environment' | 'lifecycle_status'>;
@@ -23,8 +24,13 @@ function canPrepare(access: Access, now: number) {
       Date.parse(item.valid_from) <= now && (!item.valid_until || Date.parse(item.valid_until) > now)));
 }
 
-export function ServiceCatalogPilotAccessDialog({ workspace, lang, onClose }: { workspace: CustomerWorkspace; lang: Locale; onClose: () => void }) {
+export function ServiceCatalogPilotAccessDialog({ workspace, lang, onClose, mode = 'catalog' }: { workspace: CustomerWorkspace; lang: Locale; onClose: () => void; mode?: Mode }) {
   const labels = copy[lang];
+  const isRequest = mode === 'requests';
+  const title = isRequest ? ({ ro: 'Acces pilot la cereri de servicii', en: 'Service requests pilot access', fa: 'دسترسی پایلوت به درخواست خدمات' })[lang] : labels.title;
+  const expiryLabel = ({ ro: 'Data expirării (maximum 72 de ore)', en: 'Expiry date (maximum 72 hours)', fa: 'زمان انقضا (حداکثر ۷۲ ساعت)' })[lang];
+  const invalidExpiry = ({ ro: 'Alege o dată viitoare în următoarele 72 de ore.', en: 'Choose a future expiry within 72 hours.', fa: 'زمان انقضا باید در آینده و حداکثر تا ۷۲ ساعت دیگر باشد.' })[lang];
+  const entitlementKey = isRequest ? 'module.services_orders' : 'module.services_catalog';
   const [access, setAccess] = useState<Access | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -36,7 +42,7 @@ export function ServiceCatalogPilotAccessDialog({ workspace, lang, onClose }: { 
   const active = useRef(true);
   const request = useRef<AbortController | null>(null);
   const dialog = useRef<HTMLDialogElement | null>(null);
-  const readUrl = `/api/platform/v1/workspaces/${workspace.id}/service-access`;
+  const readUrl = `/api/platform/v1/workspaces/${workspace.id}/${isRequest ? 'service-request-access' : 'service-access'}`;
   useEffect(() => {
     active.current = true;
     const modal = dialog.current;
@@ -69,7 +75,7 @@ export function ServiceCatalogPilotAccessDialog({ workspace, lang, onClose }: { 
         return;
       }
       if (!canPrepare(current, Date.now())) { if (active.current) { setAccess(current); setCheckedAt(Date.now()); setDecision(null); setError(labels.changed); } return; }
-      const response = await fetch(`/api/platform/v1/workspaces/${workspace.id}/entitlements/module.services_catalog`, {
+      const response = await fetch(`/api/platform/v1/workspaces/${workspace.id}/entitlements/${entitlementKey}`, {
         method: 'PUT', credentials: 'same-origin', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(decision), signal: controller.signal,
       });
@@ -80,7 +86,7 @@ export function ServiceCatalogPilotAccessDialog({ workspace, lang, onClose }: { 
   }
 
   return <dialog ref={dialog} dir={lang === 'fa' ? 'rtl' : 'ltr'} onCancel={event => { event.preventDefault(); if (!busy) onClose(); }} aria-labelledby="service-pilot-title" className="m-auto max-h-[90vh] w-[calc(100%-2rem)] max-w-xl space-y-4 overflow-y-auto rounded-xl border border-[#1E3A5A] bg-[#0F2236] p-6 text-sm text-white backdrop:bg-black/75">
-      <div className="flex items-start justify-between gap-4"><h2 id="service-pilot-title" className="text-lg font-bold">{labels.title}</h2><button type="button" disabled={busy} onClick={onClose} className="rounded border border-slate-500 px-3 py-2">{labels.close}</button></div>
+      <div className="flex items-start justify-between gap-4"><h2 id="service-pilot-title" className="text-lg font-bold">{title}</h2><button type="button" disabled={busy} onClick={onClose} className="rounded border border-slate-500 px-3 py-2">{labels.close}</button></div>
       <p>{workspace.tenant_legal_name || workspace.commercial_owner} · {workspace.commercial_owner}</p>
       <p className="break-all font-mono text-xs text-slate-400">{workspace.id}</p>
       <p className="text-slate-300">{labels.intro}</p>
@@ -89,10 +95,13 @@ export function ServiceCatalogPilotAccessDialog({ workspace, lang, onClose }: { 
       {access && !canPrepare(access, checkedAt) && !saved && <p className="text-amber-200">{labels.blocked}{access.entitlement?.override_expires_at && <> · {labels.expires}: {new Date(access.entitlement.override_expires_at).toLocaleString(lang)}</>}</p>}
       {access && canPrepare(access, checkedAt) && !decision && !saved && <form className="space-y-4" onSubmit={event => {
         event.preventDefault(); const form = new FormData(event.currentTarget); const hours = Number(form.get('hours')); const reason = String(form.get('reason') || '').trim();
-        if (![24, 48, 72].includes(hours) || reason.length < 15 || reason.length > 500) return;
-        setError(''); setDecision({ value_type: 'boolean', boolean_value: false, override_value_json: true, override_reason: reason, override_expires_at: new Date(Date.now() + hours * 3600000).toISOString() });
+        const now = Date.now();
+        const expiry = isRequest ? Date.parse(String(form.get('expires') || '')) : now + hours * 3600000;
+        if (reason.length < 15 || reason.length > 500 || (!isRequest && ![24, 48, 72].includes(hours))) return;
+        if (!Number.isFinite(expiry) || expiry <= now || expiry > now + 72 * 3600000) { setError(invalidExpiry); return; }
+        setError(''); setDecision({ value_type: 'boolean', boolean_value: false, override_value_json: true, override_reason: reason, override_expires_at: new Date(expiry).toISOString() });
       }}>
-        <label className="block">{labels.duration}<select name="hours" defaultValue="24" className="mt-2 w-full rounded border border-slate-500 bg-[#081320] p-3">{[24,48,72].map(hours => <option key={hours} value={hours}>{hours}</option>)}</select></label>
+        {isRequest ? <label className="block">{expiryLabel}<input name="expires" type="datetime-local" required className="mt-2 w-full rounded border border-slate-500 bg-[#081320] p-3" /></label> : <label className="block">{labels.duration}<select name="hours" defaultValue="24" className="mt-2 w-full rounded border border-slate-500 bg-[#081320] p-3">{[24,48,72].map(hours => <option key={hours} value={hours}>{hours}</option>)}</select></label>}
         <label className="block">{labels.reason}<textarea name="reason" required minLength={15} maxLength={500} className="mt-2 w-full rounded border border-slate-500 bg-[#081320] p-3" /></label>
         <button className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320]">{labels.review}</button>
       </form>}
