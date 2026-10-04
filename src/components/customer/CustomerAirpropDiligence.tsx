@@ -1,4 +1,5 @@
 'use client';
+import { CustomerAirpropAcquisition } from './CustomerAirpropAcquisition';
 import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import type { Language } from '@/types';
@@ -81,7 +82,9 @@ function ReviewEditor({native,caseId,docContext,lang,reloadParent}:{native:Nativ
  </div>)}<button type="button" disabled={content.findings.length>=128} className="rounded border px-3 py-2" onClick={()=>mutate({...content,findings:[...content.findings,{finding_id:crypto.randomUUID(),severity:'blocking',status:'open',summary:'',evidence_version_ids:[]}]})}>{t.add}</button>
  </fieldset><button disabled={disabled} className="rounded bg-slate-900 px-4 py-2 text-white">{t.save}</button>
  <button type="button" disabled={disabled||dirty||!review.can_submit||!review.ready_for_review} className="ms-3 rounded bg-blue-700 px-4 py-2 text-white" onClick={()=>send('submit')}>{t.submit}</button>{review.status!=='submitted'&&!review.ready_for_review&&<p>{t.notReady}</p>}
- </form></>}
+ </form>
+ <CustomerAirpropAcquisition contextId={native.context_id} workspaceId={native.workspace_id} opportunityId={native.opportunity_id} diligenceCaseId={caseId} documentContextId={docContext} lang={lang} refreshToken={nonce+reloadParent}/>
+ </>}
  {command.uncertain&&<button type="button" disabled={command.busy||command.blocked||command.recovering} className="rounded bg-slate-900 px-4 py-2 text-white" onClick={()=>command.pending.current&&void command.send(command.pending.current)}>{t.retry}</button>}<p role="status" aria-live="polite">{command.message?t[command.message]:''}</p>
  </div>;
 }
