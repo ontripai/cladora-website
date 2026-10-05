@@ -70,6 +70,13 @@ function Offerings({ contextId, workspaceId, lang }: { contextId: string; worksp
   const [items, setItems] = useState<Item[] | null>(null);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
+  async function refreshCatalog() {
+    const response = await fetch(`/api/customer/v1/services/catalog?${new URLSearchParams({ context_id: contextId, workspace_id: workspaceId })}`, { credentials: 'same-origin', cache: 'no-store' });
+    if (!response.ok) throw new Error(response.status === 401 ? 'session' : response.status === 403 || response.status === 404 ? 'denied' : 'retry');
+    const data = offeringsSchema.parse(await response.json());
+    setItems(data.offerings);
+    return data.offerings;
+  }
   useEffect(() => {
     const controller = new AbortController();
     void (async () => {
@@ -84,8 +91,7 @@ function Offerings({ contextId, workspaceId, lang }: { contextId: string; worksp
   }, [contextId, workspaceId, attempt, t.denied, t.error, fetch]);
   if (error) return <Notice text={error} retry={() => { setError(''); setItems(null); setAttempt(n => n + 1); }} retryLabel={t.retry} />;
   if (items === null) return <Notice text={t.loading} />;
-  if (!items.length) return <><Notice text={t.empty} /><CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items}/></>;
-  return <><div className="grid gap-5 md:grid-cols-2">{items.map(item => <article key={item.revision_id} className="rounded-2xl border bg-white p-6">
+  return <>{!items.length ? <Notice text={t.empty} /> : <div className="grid gap-5 md:grid-cols-2">{items.map(item => <article key={item.revision_id} className="rounded-2xl border bg-white p-6">
     <span className="rounded-full bg-[#EAF8F5] px-3 py-1 text-xs font-semibold text-[#087A6E]">{t[item.acquisition_mode]}</span>
     <h2 className="mt-4 text-xl font-bold text-[#102A43]">{item.labels[lang]}</h2><p className="mt-2 whitespace-pre-line text-sm text-[#52667A]">{item.description[lang]}</p>
     <div className="my-5 rounded-xl bg-[#F6F9FC] p-4">{item.price.kind === 'quote_required' ? <p>{t.quote}</p> : <>
@@ -93,7 +99,7 @@ function Offerings({ contextId, workspaceId, lang }: { contextId: string; worksp
     </>}</div><details className="border-t pt-4"><summary className="cursor-pointer text-sm font-semibold text-[#087A6E]">{t.terms}</summary>
       <h3 className="mt-4 text-sm font-bold">{t.cancellation}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.cancellation_terms[lang]}</p>
       <h3 className="mt-4 text-sm font-bold">{t.acceptance}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.acceptance_criteria[lang]}</p>
-    </details></article>)}</div><CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items}/></>;
+    </details></article>)}</div>}<CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items} onRefreshCatalog={refreshCatalog}/></>;
 }
 function Notice({ text, retry, retryLabel }: { text: string; retry?: () => void; retryLabel?: string }) {
   return <div role="status" className="rounded-2xl border bg-white p-8 text-center text-sm text-[#52667A]">{text}{retry ? <button type="button" onClick={retry} className="ms-3 rounded-xl bg-[#0E9F8E] px-4 py-2 font-semibold text-white">{retryLabel}</button> : null}</div>;
