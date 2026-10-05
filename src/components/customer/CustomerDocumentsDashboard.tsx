@@ -50,6 +50,10 @@ const copy = {
     fileHint: "PDF, Word, Excel, WebP, PNG, JPEG, Plain text. Executables, scripts, HTML & SVG are strictly rejected.",
     docTitle: "Document Title",
     docType: "Document Type",
+    property: "Property (optional)",
+    noProperty: "General document without a property",
+    propertyLoading: "Loading available properties…",
+    propertyError: "Available properties could not be loaded. Refresh and try again.",
     classification: "Classification",
     uploading: "Processing bounded upload…",
     intentStep: "1. Authorizing upload handshake intent…",
@@ -106,6 +110,10 @@ const copy = {
     fileHint: "PDF, Word, Excel, WebP, PNG, JPEG, Text simplu. Executabilele, scripturile, HTML și SVG sunt strict respinse.",
     docTitle: "Titlu Document",
     docType: "Tip Document",
+    property: "Proprietate (opțional)",
+    noProperty: "Document general fără proprietate",
+    propertyLoading: "Se încarcă proprietățile disponibile…",
+    propertyError: "Proprietățile disponibile nu au putut fi încărcate. Reîncărcați și încercați din nou.",
     classification: "Clasificare",
     uploading: "Procesare flux încărcare…",
     intentStep: "1. Se autorizează intenția de încărcare…",
@@ -162,6 +170,10 @@ const copy = {
     fileHint: "فرمت‌های مجاز: PDF، Word، Excel، WebP، PNG، JPEG، متن ساده. فایل‌های اجرایی، اسکریپت، HTML و SVG اکیداً رد می‌شوند.",
     docTitle: "عنوان سند",
     docType: "نوع سند",
+    property: "ملک (اختیاری)",
+    noProperty: "سند عمومی بدون ملک",
+    propertyLoading: "در حال دریافت املاک مجاز…",
+    propertyError: "فهرست املاک مجاز بارگذاری نشد؛ صفحه را بازخوانی و دوباره تلاش کنید.",
     classification: "طبقه‌بندی محرمانگی",
     uploading: "در حال پردازش جریان بارگذاری امن…",
     intentStep: "۱. احراز هویت و صدور مجوز بارگذاری (Intent)…",
@@ -240,10 +252,39 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadType, setUploadType] = useState("general");
   const [uploadClassification, setUploadClassification] = useState("internal");
+  const [uploadPropertyId, setUploadPropertyId] = useState("");
+  const [uploadProperties, setUploadProperties] = useState<{ id: string; name: string }[] | null>(null);
+  const [uploadPropertiesContextId, setUploadPropertiesContextId] = useState("");
+  const [uploadPropertiesError, setUploadPropertiesError] = useState(false);
+  const availableUploadProperties = uploadPropertiesContextId === active?.context_id ? uploadProperties : null;
   const [uploadStep, setUploadStep] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isUploadOpen || !active || !canUpload) return;
+    const controller = new AbortController();
+    fetch(`/api/customer/v1/documents/upload-properties?context_id=${encodeURIComponent(active.context_id)}`,
+      { cache: "no-store", credentials: "same-origin", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("property choices");
+        return response.json() as Promise<{ properties: { id: string; name: string }[] }>;
+      })
+      .then((body) => {
+        if (!controller.signal.aborted) {
+          setUploadProperties(body.properties);
+          setUploadPropertiesContextId(active.context_id);
+          setUploadPropertyId(body.properties.length === 1 ? body.properties[0].id : "");
+          setUploadPropertiesError(false);
+        }
+      })
+      .catch(() => { if (!controller.signal.aborted) {
+        setUploadPropertiesContextId(active.context_id);
+        setUploadPropertiesError(true);
+      } });
+    return () => controller.abort();
+  }, [isUploadOpen, active, canUpload]);
 
   // Download & Hold feedback
   const [actionNotice, setActionNotice] = useState<string | null>(null);
@@ -300,7 +341,8 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
   // Perform Handshake Upload
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadFile || !active || !canUpload) return;
+    if (!uploadFile || !active || !canUpload || !availableUploadProperties || uploadPropertiesError) return;
+    if (uploadPropertyId && !availableUploadProperties.some((property) => property.id === uploadPropertyId)) return;
 
     setUploadError("");
     setUploadSuccess(false);
@@ -338,6 +380,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
       formData.append("title", uploadTitle || uploadFile.name);
       formData.append("document_type", uploadType);
       formData.append("classification", uploadClassification);
+      if (uploadPropertyId) formData.append("property_id", uploadPropertyId);
       formData.append("declared_mime", uploadFile.type || "application/pdf");
       formData.append("file", uploadFile);
 
@@ -474,7 +517,12 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
             </span>
             {canUpload && <button
               type="button"
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => {
+                setUploadProperties(null);
+                setUploadPropertiesContextId("");
+                setUploadPropertiesError(false);
+                setIsUploadOpen(true);
+              }}
               className="flex items-center gap-2 rounded-xl bg-[#0E9F8E] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#0A6E62] transition-colors"
             >
               <UploadCloud className="h-4 w-4" />
@@ -770,6 +818,18 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
               </div>
 
               {/* Document Type & Classification */}
+              <div>
+                <label htmlFor="upload-property" className="block text-xs font-bold text-[#334155]">{t.property}</label>
+                <select id="upload-property" value={uploadPropertyId}
+                  disabled={!availableUploadProperties || uploadPropertiesError || !!uploadStep}
+                  onChange={(e) => setUploadPropertyId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[#CBD5E1] p-2 text-xs">
+                  <option value="">{t.noProperty}</option>
+                  {availableUploadProperties?.map((property) => <option key={property.id} value={property.id}>{property.name}</option>)}
+                </select>
+                {!availableUploadProperties && !uploadPropertiesError && <p className="mt-1 text-xs text-[#64748B]">{t.propertyLoading}</p>}
+                {uploadPropertiesError && <p role="alert" className="mt-1 text-xs text-red-700">{t.propertyError}</p>}
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#334155]">{t.docType}</label>
@@ -830,7 +890,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                 </button>
                 <button
                   type="submit"
-                  disabled={Boolean(uploadStep) || !uploadFile}
+                  disabled={Boolean(uploadStep) || !uploadFile || !availableUploadProperties || uploadPropertiesError}
                   className="rounded-lg bg-[#0E9F8E] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#0A6E62] disabled:opacity-50"
                 >
                   {t.confirmUpload}
