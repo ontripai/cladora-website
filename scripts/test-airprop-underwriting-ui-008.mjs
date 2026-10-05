@@ -32,11 +32,17 @@ const seed=()=>sessionStorage.setItem(storageKey,JSON.stringify(command));
 try{
  await render('empty');assert.match(document.body.textContent,/No evaluations yet/);assert.equal(document.querySelector('fieldset').disabled,false);assert.ok(calls[0].url.includes(`opportunity_id=${opportunity}`));
  await submit();assert.equal(posts().length,0,'invalid empty form never reaches POST');assert.match(document.body.textContent,/positive acquisition cost/);
+ assert.equal(document.querySelectorAll('[aria-invalid="true"]').length,3);
+ assert.equal(document.activeElement.name,'acquisition_cost');
+ for(const input of document.querySelectorAll('[aria-invalid="true"]'))assert.ok(document.getElementById(input.getAttribute('aria-describedby'))?.textContent);
+ await fill(['100000','6000','7000']);await submit();assert.equal(posts().length,0);
+ assert.equal(document.activeElement.name,'annual_opex');assert.match(document.body.textContent,/must not exceed annual rent/);
+ assert.deepEqual([...document.querySelectorAll('input')].map(x=>x.value),['100000','6000','7000']);
  seed();post=async()=>{throw new Error('lost response');};await render('lost');await submit();assert.deepEqual(JSON.parse(posts().at(-1).options.body),command);assert.equal(document.querySelector('fieldset').disabled,true);assert.ok(sessionStorage.getItem(storageKey));
- await render('recovered');post=async()=>response({error:{code:'MFA_REQUIRED'}},403);await submit();assert.match(document.body.textContent,/multi-factor/);assert.deepEqual(JSON.parse(posts().at(-1).options.body),command);assert.ok(sessionStorage.getItem(storageKey));
+ await render('recovered');post=async()=>response({error:{code:'MFA_REQUIRED'}},403);await submit();assert.match(document.body.textContent,/Verify your identity/);assert.deepEqual(JSON.parse(posts().at(-1).options.body),command);assert.ok(sessionStorage.getItem(storageKey));
  post=async()=>response({error:{code:'AIRPROP_ACCESS_DENIED'}},403);await submit();assert.match(document.body.textContent,/current access/);assert.ok(sessionStorage.getItem(storageKey));
  post=async()=>response({},503);await submit();assert.match(document.body.textContent,/uncertain/);assert.ok(sessionStorage.getItem(storageKey));
- post=async()=>success();get=async()=>response(history(opportunity,1));await submit();assert.equal(sessionStorage.getItem(storageKey),null);assert.match(document.body.textContent,/Evaluation saved/);assert.match(document.body.textContent,/6\.000000%/);assert.match(document.body.textContent,/5000\.0000 EUR/);
+ post=async()=>success();get=async()=>response(history(opportunity,1));await submit();assert.equal(sessionStorage.getItem(storageKey),null);assert.match(document.body.textContent,/Evaluation saved/);assert.match(document.body.textContent,/6\.000000%/);assert.match(document.body.textContent,/5000\.0000 EUR/);assert.equal(document.querySelector('time').dateTime,'2026-10-04T12:00:00Z');assert.match(document.querySelector('time').textContent,/4 Oct 2026.*12:00 UTC/);
  seed();await render('conflict');post=async()=>response({error:{code:'VERSION_CONFLICT'}},409);await submit();assert.equal(sessionStorage.getItem(storageKey),null);assert.equal(document.querySelector('fieldset').disabled,true);assert.match(document.body.textContent,/Refresh history before/);await refresh();assert.equal(document.querySelector('fieldset').disabled,false);
  // A real form edit uses the refreshed server version and preserves decimal strings.
  await fill(['100001.0001','6000','1000']);post=async()=>response({},500);await submit();const revised=JSON.parse(posts().at(-1).options.body);assert.equal(revised.expected_version,1);assert.equal(revised.assumptions.acquisition_cost,'100001.0001');assert.equal(revised.assumptions.annual_rent,'6000.0000');assert.notEqual(revised.idempotency_key,command.idempotency_key);
