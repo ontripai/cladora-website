@@ -25,3 +25,7 @@ The additive [AIRPROP lifecycle alignment 014 v1.1](../architecture/CLADORA-AIRP
 `READY-FOR-AIRPROP-CORE-DISCOVERY-NOT-IMPLEMENTATION`
 
 Implementation remains blocked until this package is reviewed and a separate execution task authorizes a numbered migration and test.
+
+## UX directive adopted 2026-10-05
+
+[UX-DEC-001: user directive v1.0](UX-DEC-001-source-v1.0.md) complements lifecycle v1.1. [AIRPROP UX-015: gaps, first fixes and verification](UX-015-adoption-and-gaps.md) is part of the permanent workstream handoff. Open UX and security checks remain explicit; attachment does not mean full implementation conformity.

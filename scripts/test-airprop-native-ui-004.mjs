@@ -3,11 +3,11 @@ import {readFileSync} from 'node:fs';
 import {createRequire,Module} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import React,{act} from 'react';
-import {createRoot} from 'react-dom/client';
 import {JSDOM} from 'jsdom';
 import ts from 'typescript';
 const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div>',{url:'https://cladora.test'}),saved=new Map();
 for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
+const {createRoot}=await import('react-dom/client');
 const originalFetch=globalThis.fetch;
 function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return mod.exports;}
 const context='11111111-1111-4111-8111-111111111111',workspace='22222222-2222-4222-8222-222222222222';
@@ -20,6 +20,15 @@ const choose=async()=>act(async()=>{const select=document.querySelector('select'
 try{
  await render('explicit');assert.equal(document.querySelector('select').value,'');assert.equal(calls.some(x=>x.url.includes('/v2/airprop')),false,'no inferred first workspace');
  await choose();assert.equal(document.querySelector('form')!==null,true);assert.equal(calls.some(x=>x.url.includes(`workspace_id=${workspace}`)),true);
+ // Validation must identify the field, retain entered values and avoid a request.
+ const beforeInvalid=calls.filter(x=>x.options.method==='POST').length;
+ const setInput=(field,value)=>{const input=document.querySelector(`[name="${field}"]`);Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));};
+ await act(async()=>{setInput('name',' ');setInput('city',' ');setInput('asking_price','0');});
+ await act(async()=>document.querySelector('form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true})));
+ assert.equal(calls.filter(x=>x.options.method==='POST').length,beforeInvalid);
+ assert.equal(document.querySelectorAll('[aria-invalid="true"]').length,3);
+ assert.equal(document.activeElement.getAttribute('name'),'name');
+ for(const field of document.querySelectorAll('[aria-invalid="true"]'))assert.ok(document.getElementById(field.getAttribute('aria-describedby'))?.textContent);
  mode='empty';await render('empty');assert.match(document.body.textContent,/No authorized workspace/);assert.equal(document.querySelector('form'),null);
  active=null;await render('missing');assert.match(document.body.textContent,/Select a context/);active={context_id:context};
  const pending={version:2,context_id:context,workspace_id:workspace,idempotency_key:'persisted-test-01',payload:{name:'Saved opportunity',city:'București',country_code:'RO',currency:'EUR',asking_price:'12.3000',property_id:null,source_ref:null}};
