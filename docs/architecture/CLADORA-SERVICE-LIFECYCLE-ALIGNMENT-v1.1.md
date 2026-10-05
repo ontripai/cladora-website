@@ -24,3 +24,9 @@ Before any handover/order integration, consume the Core contract owned by the st
 ## Handoff checkpoint
 
 Repository: `ontripai/cladora-website`. Baseline `7d317d3` (#259). Current branch `cladora-service-quote-publication-015`. Source reference attached unchanged. Local checks for 015 cover DB/API/mounted UI/typecheck; CI, remote migration and production status must be recorded from release evidence and not inferred here. Existing temporary pilot permission does not authorize the new publication permission. Required account for future pilot validation: Mahmoud, as explicitly named in the user session; no credentials are stored in this document.
+
+## UX directive and successor handoff
+
+The user-supplied [UX and Background Controls Directive v1.0](references/CLADORA-UX-Background-Controls-Directive-v1.0.docx) supplements this lifecycle reference. Local decision `UX-DEC-001` applies to existing and new SERVICE flows and must accompany successor sessions. See [SERVICE UX 016](CLADORA-SERVICE-UX-016-v1.0.md) for observed gaps, ownership and validation limits. No independent chat notification is claimed.
+
+Release 015 checkpoint: PR #261 squash merged as `23014127c4d3f4ca5b8eaeaa60c58637eb6d0b40`; Production deployment `dpl_7wpdhcqkevEvyBs5duxn15uFiuML` READY; migration remote version `20261005075657` applied; completed branch deleted. Publication permission was not granted and live presentation was not exercised.
