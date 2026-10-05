@@ -1,0 +1,7 @@
+# Maintenance dashboard context authority
+
+The existing nine-view maintenance dashboard correctly applies the explicit physical context, but its legacy assets-read contract did not recheck canonical installed-module authority for each target. Vendor assignment and active-contract counts also aggregated outside the selected context. This slice adds canonical maintenance.assets.read checks to every target predicate, including detail, row counts and all KPI aggregates; component rows require visibility of both assets. Vendor counts include only same-tenant, visible work orders/contracts. Query bounds reject null view/limit/offset.
+
+Preserves the existing mandatory AAL2, caller-owned current context, resident ownership/lease, legacy assets-read permission, response shape, gateway SECURITY INVOKER and existing internal reader ownership/ACL. No new function, role, direct table grants, module activation, assignment or write action is added. This is security hardening of the existing dashboard permission contract; it does not add support for previously unsupported base roles or change financial permissions.
+
+Authenticated rollback-only pgTAP fixtures verify exact property/building/unit lists, details, vendor counts, cost totals, live canonical module revocation with legacy entitlement still true, expired context, MFA, null bounds and closed ACLs. Financial rows in tests are isolated read fixtures only. The production work order 74 and financial data remain untouched. PR #253 read gateways and parallel SERVICE/AIRPROP work are preserved.
