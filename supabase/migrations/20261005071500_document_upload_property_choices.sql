@@ -2,7 +2,7 @@ begin;
 
 -- The vault upload form may bind a document to a property. Return only active
 -- properties in the caller's live document-upload context.
-create function customer_api.list_document_upload_properties_v1(p_context_id uuid)
+create function documents.list_upload_properties_internal_v1(p_context_id uuid)
 returns jsonb language plpgsql stable security definer set search_path=pg_catalog as $$
 declare v record;
 begin
@@ -25,6 +25,13 @@ begin
   ),'[]'::jsonb);
 end $$;
 
+revoke all on function documents.list_upload_properties_internal_v1(uuid) from public,anon,service_role;
+grant execute on function documents.list_upload_properties_internal_v1(uuid) to authenticated;
+
+create function customer_api.list_document_upload_properties_v1(p_context_id uuid)
+returns jsonb language sql stable security invoker set search_path=pg_catalog as $$
+  select documents.list_upload_properties_internal_v1(p_context_id)
+$$;
 revoke all on function customer_api.list_document_upload_properties_v1(uuid) from public,anon,service_role;
 grant execute on function customer_api.list_document_upload_properties_v1(uuid) to authenticated;
 
