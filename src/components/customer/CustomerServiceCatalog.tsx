@@ -9,6 +9,8 @@ import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
 import { serviceOfferingRevisionSchema } from '@/lib/customer/service-catalog-schema';
 import { CustomerServiceManagement } from './CustomerServiceManagement';
 import { CustomerServiceRequests } from './CustomerServiceRequests';
+import { CustomerServiceQuotes, serviceQuoteCopy } from './CustomerServiceQuotes';
+import { CustomerServiceQuotePublications, quotePublicationCopy } from './CustomerServiceQuotePublications';
 import { serviceManagementCopy } from '@/lib/customer/service-catalog-management-copy';
 
 const copy = {
@@ -37,7 +39,9 @@ function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Languag
   const t = copy[lang];
   const [targets, setTargets] = useState<Target[] | null>(null);
   const [selected, setSelected] = useState('');
+  const [publication, setPublication] = useState<'coordinator'|'recipient'|null>(null);
   const [manage, setManage] = useState(false);
+  const [quotes, setQuotes] = useState(false);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
@@ -56,9 +60,9 @@ function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Languag
   if (targets === null) return <Notice text={t.loading} />;
   if (!targets.length) return <Notice text={t.noTargets} />;
   return <div className="space-y-5"><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
-    <select aria-label={t.choose} value={selected} onChange={event => { setSelected(event.target.value); setManage(false); }} className="w-full rounded-xl border p-3">
+    <select aria-label={t.choose} value={selected} onChange={event => { setSelected(event.target.value); setManage(false); setQuotes(false); setPublication(null); }} className="w-full rounded-xl border p-3">
       <option value="">{t.choose}</option>{targets.map((target, index) => <option key={target.workspace_id} value={target.workspace_id}>{t.workspace} {index + 1}</option>)}
-    </select></label>{selected ? <><div className="flex flex-wrap gap-3"><button type="button" aria-pressed={!manage} onClick={() => setManage(false)} className="rounded-xl border bg-white px-4 py-2 font-semibold">{t.title}</button><button type="button" aria-pressed={manage} onClick={() => setManage(true)} className="rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white">{serviceManagementCopy[lang].title}</button></div>{manage ? <CustomerServiceManagement key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : <Offerings key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} />}</> : null}</div>;
+    </select></label>{selected ? <><div className="flex flex-wrap gap-3"><button type="button" aria-pressed={!manage && !quotes && !publication} onClick={() => { setManage(false); setQuotes(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{t.title}</button><button type="button" aria-pressed={manage && !publication} onClick={() => { setManage(true); setQuotes(false); setPublication(null); }} className="rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white">{serviceManagementCopy[lang].title}</button><button type="button" aria-pressed={quotes && !publication} onClick={() => { setQuotes(true); setManage(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{serviceQuoteCopy[lang].title}</button>{(['coordinator','recipient'] as const).map(mode=><button key={mode} type="button" aria-pressed={publication===mode} onClick={()=>{setPublication(mode);setManage(false);setQuotes(false);}} className="rounded-xl border bg-white px-4 py-2 font-semibold">{quotePublicationCopy[lang][mode]}</button>)}</div>{publication ? <CustomerServiceQuotePublications contextId={contextId} workspaceId={selected} lang={lang} mode={publication}/> : quotes ? <CustomerServiceQuotes key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : manage ? <CustomerServiceManagement key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : <Offerings key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} />}</> : null}</div>;
 }
 function Offerings({ contextId, workspaceId, lang }: { contextId: string; workspaceId: string; lang: Language }) {
   const fetch = useDashboardFetch();
