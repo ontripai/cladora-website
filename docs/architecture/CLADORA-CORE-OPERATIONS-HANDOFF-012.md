@@ -53,3 +53,9 @@ Reinspection: PR 261 is now merged as 2301412 and its canonical lifecycle attach
 | SEC-01 / SEC-04 / QA-04 | Maintenance database dashboard | Scoped authenticated fixtures | PR 258 checks target authority and vendor aggregate scope | Server denies unauthorized reads independently of UI | Core/Operations | Finish combined-head runtime CI and bounded release verification | Original-head database job 111539948499 passed pgTAP, all concurrency steps, catalog and advisors | Release pending |
 
 The gaps above are source-review findings, not live usability test results. Track QA-01 through QA-06 for each UI correction. No session, permission, module, financial data or production migration is changed by attaching this directive. Finish the existing database authority slice before implementing the separately recorded UI corrections; shared patterns remain owned by this workstream.
+
+## Release reconciliation after UX correction
+
+At the 2026-10-05 continuation, PR #258 merged as `5aa7ad73cc7b230b1883a4fcad03b5a5fc7c4eda`, its reviewed migration was applied once remotely as `20261005122509`, and Production was READY. PR #267 then merged as `1503c1a1a380719e978b8e51d0caf2b7eef29459`; all eight GitHub workflows passed, Vercel Production deployment `dpl_CEKKuJcDuJDQ9ixHE1fnadMuCRBA` was READY with the production aliases, and its merged branch was deleted. The four dashboard UX rows above are completed by source/test/CI/deployment evidence; authenticated live usability, keyboard and mobile visual acceptance are not claimed. This section supersedes only their historical pending labels and the PR #258 release sequence.
+
+The next Core task is LC-C01. See [core lifecycle reference 013](CLADORA-CORE-LIFECYCLE-REFERENCE-013-v0.1.md) for the source-backed map and current multi-workspace binding conflict. That reference is a mapping checkpoint, not LC-C01 runtime completion.
