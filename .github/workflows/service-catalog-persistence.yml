@@ -32,6 +32,10 @@ on:
       - 'scripts/test-service-self-person-*-012.mjs'
       - 'supabase/migrations/*_service_request_self_person_v1.sql'
       - 'src/lib/customer/service-quote-*.ts'
+      - 'src/components/customer/CustomerServiceQuotePublications.tsx'
+      - 'src/app/api/customer/v1/services/quotes/publications/route.ts'
+      - 'scripts/test-service-quote-publication-*-015.mjs'
+      - 'supabase/migrations/*_service_quote_publication_v1.sql'
       - 'src/components/customer/CustomerServiceQuotes.tsx'
       - 'src/app/api/customer/v1/services/quotes/route.ts'
       - 'scripts/test-service-quote-*-014.mjs'
@@ -56,6 +60,10 @@ jobs:
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-persistence-002.mjs
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-compatibility-006.mjs
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-request-persistence-010.mjs
+      - run: node scripts/test-service-quote-publication-route-015.mjs
+      - run: node scripts/test-service-quote-publication-ui-015.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-quote-publication-db-015.mjs
+      - run: npx eslint src/components/customer/CustomerServiceQuotePublications.tsx src/lib/customer/service-quote-publication-schema.ts src/app/api/customer/v1/services/quotes/publications/route.ts scripts/test-service-quote-publication-*-015.mjs --max-warnings=0
       - run: node scripts/test-service-quote-route-014.mjs
       - run: node scripts/test-service-quote-ui-014.mjs
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-quote-db-014.mjs
@@ -183,3 +191,30 @@ jobs:
         env:
           CLADORA_SERVICE_REQUEST_TEST_DATABASE_URL: postgresql://postgres:service_quote_test_only@localhost:5432/service_quote_test
         run: node scripts/test-service-quote-db-014.mjs
+
+  publication-concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_publication_test_only
+          POSTGRES_DB: service_publication_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Separate-connection publication and version-creation race
+        env:
+          CLADORA_SERVICE_REQUEST_TEST_DATABASE_URL: postgresql://postgres:service_publication_test_only@localhost:5432/service_publication_test
+        run: node scripts/test-service-quote-publication-db-015.mjs
