@@ -65,6 +65,9 @@ const copy = {
     reconciliation: "Reconciliere",
     audit: "Jurnal audit",
     context: "Context activ",
+    unsavedContext: "Există modificări nesalvate. Salvează-le sau renunță la ele înainte de schimbarea contextului.",
+    keepContext: "Continuați editarea",
+    discardContext: "Renunțați și schimbați contextul",
     empty: "Nu există niciun context activ alocat.",
     secure: "Context verificat de server",
     profile: "Profilul meu",
@@ -95,6 +98,9 @@ const copy = {
     reconciliation: "Reconciliation",
     audit: "Audit log",
     context: "Active context",
+    unsavedContext: "There are unsaved changes. Save them or discard them before changing context.",
+    keepContext: "Keep editing",
+    discardContext: "Discard changes and switch",
     empty: "No active assigned context is available.",
     secure: "Server-verified context",
     profile: "My profile",
@@ -125,6 +131,9 @@ const copy = {
     reconciliation: "تطبیق بانکی",
     audit: "گزارش بازرسی",
     context: "زمینه فعال",
+    unsavedContext: "تغییرات ذخیره‌نشده دارید. پیش از تغییر زمینه، آن‌ها را ثبت کنید یا کنار بگذارید.",
+    keepContext: "ادامهٔ ویرایش",
+    discardContext: "کنارگذاشتن تغییرات و تغییر زمینه",
     empty: "هیچ زمینه تخصیص‌یافته فعالی وجود ندارد.",
     secure: "زمینه تأییدشده توسط سرور",
     profile: "پروفایل من",
@@ -241,7 +250,7 @@ function Shell({
               aria-label={t.context}
               value={state.active?.context_id ?? ""}
               onChange={(e) => state.select(e.target.value)}
-              disabled={!state.contexts.length}
+              disabled={!state.contexts.length || state.pendingContextId !== null}
               className="max-w-[230px] rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2"
             >
               <option value="">{t.empty}</option>
@@ -273,6 +282,16 @@ function Shell({
           <SignOutButton lang={lang} variant="customer" />
         </div>
       </header>
+
+      {state.pendingContextId !== null && (
+        <section role="alert" aria-labelledby="context-change-warning" className="border-b border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:px-6">
+          <p id="context-change-warning" className="mb-2 font-semibold">{t.unsavedContext}</p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" autoFocus onClick={state.cancelContextChange} className="rounded-lg border border-amber-800 px-3 py-2 font-semibold">{t.keepContext}</button>
+            <button type="button" onClick={state.confirmContextChange} className="rounded-lg bg-amber-900 px-3 py-2 font-semibold text-white">{t.discardContext}</button>
+          </div>
+        </section>
+      )}
 
       {/* Mobile Horizontal Navigation Bar */}
       <nav

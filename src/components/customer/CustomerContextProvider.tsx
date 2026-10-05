@@ -1,7 +1,7 @@
 'use client';
 import {useDashboardFetch,useDashboardPreview} from '@/components/dashboard-lab/DashboardTransport';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { DashboardRpcResponse } from '@/lib/customer/dashboard-schema';
 
 export type CustomerContext = {
@@ -23,6 +23,10 @@ type State = {
   loading: boolean;
   error: string | null;
   select: (id: string) => void;
+  pendingContextId: string | null;
+  registerUnsavedGuard: (key: string, dirty: boolean, discard: () => void) => () => void;
+  confirmContextChange: () => void;
+  cancelContextChange: () => void;
   refresh: () => void;
 };
 
@@ -38,8 +42,30 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
+  const [pendingContextId, setPendingContextId] = useState<string | null>(null);
+  const unsavedGuards = useRef(new Map<string, () => void>());
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
+  const registerUnsavedGuard = useCallback((key: string, dirty: boolean, discard: () => void) => {
+    if (dirty) unsavedGuards.current.set(key, discard);
+    else unsavedGuards.current.delete(key);
+    return () => {
+      if (unsavedGuards.current.get(key) === discard) unsavedGuards.current.delete(key);
+    };
+  }, []);
+  const select = useCallback((id: string) => {
+    if (id === activeId) return;
+    if (unsavedGuards.current.size) setPendingContextId(id);
+    else setActiveId(id);
+  }, [activeId]);
+  const cancelContextChange = useCallback(() => setPendingContextId(null), []);
+  const confirmContextChange = useCallback(() => {
+    if (pendingContextId === null) return;
+    Array.from(unsavedGuards.current.values()).forEach((discard) => discard());
+    unsavedGuards.current.clear();
+    setActiveId(pendingContextId);
+    setPendingContextId(null);
+  }, [pendingContextId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -108,10 +134,14 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
       dashboard: dashboard?.contextId === activeId ? dashboard : null,
       loading,
       error,
-      select: setActiveId,
+      select,
+      pendingContextId,
+      registerUnsavedGuard,
+      confirmContextChange,
+      cancelContextChange,
       refresh,
     }),
-    [contexts, activeId, dashboard, loading, error, refresh]
+    [contexts, activeId, dashboard, loading, error, select, pendingContextId, registerUnsavedGuard, confirmContextChange, cancelContextChange, refresh]
   );
 
   return <Context.Provider value={value}>{children}</Context.Provider>;
