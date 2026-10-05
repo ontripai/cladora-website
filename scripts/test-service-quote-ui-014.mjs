@@ -12,10 +12,12 @@ const require=createRequire(import.meta.url);const cache=new Map();
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const party=uuid(1),requestId=uuid(2),revision=uuid(3),context=uuid(4),workspace=uuid(5);
 globalThis.FormData=window.FormData;
-let writes=[],lose=false,deferred=null,deny=false,historyFail=false,conflict=false;
+let writes=[],lose=false,deferred=null,deny=false,historyFail=false,conflict=false,offline=false,session=false;
 const fetch=async(url,options)=>{
  if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(lose){lose=false;throw new Error('Lost reply');}return Response.json({quote_id:uuid(6),version:1,status:'draft'},{status:conflict?409:200});}
  if(historyFail&&writes.length)throw new Error('History unavailable');
+ if(offline)throw new Error('Offline');
+ if(session)return Response.json({error:{code:'SESSION'}},{status:401});
  return Response.json({requests:[{request_id:requestId,published_revision_id:revision,beneficiary_party_id:party,beneficiary_label:'Verified person',provider_label:'Synthetic provider',description:'Synthetic request',quotes:[]}]},{status:deny?403:200});
 };
 function load(file) {
@@ -45,7 +47,9 @@ try{
  await check('Confirmed write survives failed history refresh',async()=>{writes=[];historyFail=true;await render();await fill();fields();await submit();assert.match(document.body.textContent,/Draft saved/);assert.doesNotMatch(document.body.textContent,/Result unknown/);historyFail=false;});
  await check('Double submission sends once and obsolete reply stays hidden',async()=>{writes=[];let resolve;deferred={promise:new Promise(done=>{resolve=done;})};await render();await fill();fields();await act(async()=>{const form=document.querySelector('form');form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));});assert.equal(writes.length,1);await render();await act(async()=>resolve(Response.json({quote_id:uuid(6),version:1,status:'draft'})));assert.doesNotMatch(document.body.textContent,/Draft saved/);deferred=null;});
  await check('Denied read hides form',async()=>{deny=true;await render();assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/unavailable/);deny=false;});
- await check('Conflict freezes command and requires refresh',async()=>{writes=[];conflict=true;await render();await fill();fields();await submit();assert.match(document.body.textContent,/request changed/);assert.equal(document.querySelector('button[type="submit"]').disabled,true);conflict=false;});
+ await check('Offline read offers retry without claiming denial',async()=>{offline=true;await render();assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/Check your connection/);offline=false;await act(async()=>document.querySelector('button').click());assert.ok(document.querySelector('form'));});
+ await check('Session read asks for sign-in',async()=>{session=true;await render();assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/session needs verification/);session=false;});
+ await check('Conflict refresh preserves uncontrolled draft fields and resets command key',async()=>{writes=[];conflict=true;await render();await fill();fields();await submit();assert.match(document.body.textContent,/request changed/);assert.equal(document.querySelector('button[type="submit"]').disabled,true);conflict=false;await act(async()=>document.querySelector('button[type="button"]').click());assert.equal(document.querySelector('textarea').value,'Synthetic quote scope');assert.equal(document.querySelector('input[name="amount"]').value,'120.50');assert.equal(document.querySelector('input[name="expiry"]').value,'2099-01-01T12:00');await submit();assert.equal(writes.length,2);assert.notEqual(writes[0].idempotency_key,writes[1].idempotency_key);});
  await check('Invalid amount and past expiry never send',async()=>{writes=[];await render();await fill();fields();document.querySelector('input[name="amount"]').value='1.234';await submit();assert.equal(writes.length,0);fields();document.querySelector('input[name="expiry"]').value='2000-01-01T12:00';await submit();assert.equal(writes.length,0);});
  await check('Exact shared-currency decimal conversion and boundaries',async()=>{for(const code of ['RON','EUR','GBP','USD']){assert.equal(minor('0.1',code),'10');assert.equal(minor('0',code),'0');assert.equal(minor('90071992547409.93',code),'9007199254740993');assert.equal(major('9007199254740993',code),'90071992547409.93');assert.equal(major('0',code),'0.00');for(const bad of ['01','-1','1.234','1e2','10000000000000000','1,23'])assert.equal(minor(bad,code),null);}});
  console.log(`${cases} SERVICE quote UI scenarios passed`);

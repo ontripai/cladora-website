@@ -12,18 +12,36 @@ export const serviceQuoteCopy = {
   fa: { title:'پیش‌نویس پیشنهادها', loading:'در حال دریافت درخواست‌ها…', denied:'مدیریت پیشنهاد برای این حساب فعال نیست.', empty:'درخواست خدمتی وجود ندارد.', request:'درخواست خدمت', choose:'انتخاب کنید', scope:'شرح خدمت پیشنهادی', amount:'مبلغ کل', currency:'ارز', expiry:'معتبر تا', beneficiary:'پرداخت‌کنندهٔ پیشنهادی', provider:'ارائه‌دهندهٔ خدمت', save:'ذخیرهٔ نسخهٔ جدید پیش‌نویس', retry:'تکرار همان پیش‌نویس', refresh:'به‌روزرسانی', draft:'پیش‌نویس', version:'نسخه', success:'پیش‌نویس ذخیره شد؛ تأیید طرف، سفارش یا پرداختی ایجاد نشد.', error:'نتیجه مشخص نیست؛ همان پیش‌نویس را برای بررسی تکرار کنید.', conflict:'درخواست تغییر کرده است؛ ابتدا اطلاعات را به‌روز کنید.', invalid:'درخواست، شرح، مبلغ و زمان انقضای آینده را بررسی کنید.', note:'این پیش‌نویس هماهنگ‌کننده است. پرداخت‌کنندهٔ پیشنهادی همان شخص درخواست است؛ پذیرش او مرحله‌ای جداگانه است و این ثبت تعهدی ایجاد نمی‌کند.', bounded:'۵۰ درخواست اخیر و ۱۰ نسخهٔ اخیر هر درخواست نمایش داده می‌شود.' },
 };
 type Read = z.infer<typeof serviceQuoteReadSchema>;
+const readCopy={
+  en:{session:'Your session needs verification. Sign in again.',load:'Requests could not be loaded. Check your connection and try again.',retry:'Try again'},
+  ro:{session:'Sesiunea necesită verificare. Autentifică-te din nou.',load:'Cererile nu au putut fi încărcate. Verifică conexiunea și reîncearcă.',retry:'Încearcă din nou'},
+  fa:{session:'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.',load:'درخواست‌ها دریافت نشدند؛ اتصال را بررسی و دوباره تلاش کنید.',retry:'تلاش دوباره'},
+};
 export function CustomerServiceQuotes({contextId,workspaceId,lang}:{contextId:string;workspaceId:string;lang:Language}) {
   const fetch = useDashboardFetch(); const t=serviceQuoteCopy[lang];
   const [data,setData]=useState<Read|null>(null); const [notice,setNotice]=useState(''); const [selected,setSelected]=useState('');
   const [pending,setPending]=useState<CreateServiceQuoteDraft|null>(null); const [busy,setBusy]=useState(false); const [blocked,setBlocked]=useState(false);
+  const [readStatus,setReadStatus]=useState<'loading'|'ready'|'denied'|'session'|'retry'>('loading'); const [readAttempt,setReadAttempt]=useState(0);
   const alive=useRef(true); const submitting=useRef(false); const writeAbort=useRef<AbortController|null>(null);
   const query=new URLSearchParams({context_id:contextId,workspace_id:workspaceId}).toString();
   useEffect(()=>{alive.current=true;const controller=new AbortController();
     void fetch(`/api/customer/v1/services/quotes?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal})
-      .then(async response=>{if(!response.ok)throw new Error('denied');return serviceQuoteReadSchema.parse(await response.json());})
-      .then(value=>{if(!controller.signal.aborted)setData(value);}).catch(()=>{if(!controller.signal.aborted)setNotice(t.denied);});
+      .then(async response=>{if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');return serviceQuoteReadSchema.parse(await response.json());})
+      .then(value=>{if(!controller.signal.aborted){setData(value);setReadStatus('ready');}}).catch(reason=>{if(!controller.signal.aborted)setReadStatus(reason instanceof Error&&['session','denied'].includes(reason.message)?reason.message as 'session'|'denied':'retry');});
     return ()=>{alive.current=false;controller.abort();writeAbort.current?.abort();};
-  },[fetch,query,t.denied]);
+  },[fetch,query,readAttempt]);
+  async function refreshBlocked(){
+    if(busy||submitting.current)return;
+    setBusy(true);
+    try {
+      const response=await fetch(`/api/customer/v1/services/quotes?${query}`,{cache:'no-store',credentials:'same-origin'});
+      if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');
+      const next=serviceQuoteReadSchema.parse(await response.json());
+      if(!alive.current)return;
+      setData(next);setPending(null);setBlocked(false);setNotice('');
+    }catch(reason){if(alive.current)setNotice(reason instanceof Error&&reason.message==='denied'?t.denied:reason instanceof Error&&reason.message==='session'?readCopy[lang].session:readCopy[lang].load);}
+    finally{if(alive.current)setBusy(false);}
+  }
   const request=data?.requests.find(item=>item.request_id===selected);
   async function submit(event:FormEvent<HTMLFormElement>) {
     event.preventDefault();if(submitting.current)return;
@@ -49,8 +67,8 @@ export function CustomerServiceQuotes({contextId,workspaceId,lang}:{contextId:st
   }
   return <section className="space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t.title}</h2>
     <p className="text-sm">{t.note}</p>{notice?<p role="status">{notice}</p>:null}
-    {blocked?<button type="button" onClick={()=>window.location.reload()} className="rounded-xl border px-4 py-2">{t.refresh}</button>:null}
-    {!data?<p>{notice?'':t.loading}</p>:<><p className="text-xs text-slate-600">{t.bounded}</p>
+    {blocked?<button type="button" disabled={busy} onClick={()=>void refreshBlocked()} className="rounded-xl border px-4 py-2">{t.refresh}</button>:null}
+    {!data?<div role="status"><p>{readStatus==='loading'?t.loading:readStatus==='denied'?t.denied:readStatus==='session'?readCopy[lang].session:readCopy[lang].load}</p>{readStatus==='retry'?<button type="button" onClick={()=>{setReadStatus('loading');setReadAttempt(n=>n+1);}} className="rounded-xl border px-4 py-2">{readCopy[lang].retry}</button>:null}</div>:<><p className="text-xs text-slate-600">{t.bounded}</p>
       {data.requests.length?<form onSubmit={event=>void submit(event)} className="space-y-3">
         <label className="block">{t.request}<select value={selected} disabled={busy||!!pending} onChange={e=>setSelected(e.target.value)} className="block w-full rounded-xl border p-3"><option value="">{t.choose}</option>{data.requests.map(item=><option key={item.request_id} value={item.request_id}>{item.description.slice(0,120)}</option>)}</select></label>
         {request?<><p>{t.beneficiary}: {request.beneficiary_label}</p><p>{t.provider}: {request.provider_label}</p></>:null}
