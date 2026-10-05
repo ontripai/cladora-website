@@ -1,6 +1,6 @@
 'use client';
 import { CustomerAirpropAcquisition } from './CustomerAirpropAcquisition';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
@@ -19,7 +19,9 @@ type Command=z.infer<typeof diligenceReviewCommandV1Schema>|z.infer<typeof creat
 type Props={contextId:string;workspaceId:string;opportunityId:string;opportunityName:string;lang:Language;refreshToken?:number};
 export function CustomerAirpropDiligence(props:Props){return <Diligence key={`${props.contextId}:${props.workspaceId}:${props.opportunityId}`} {...props}/>;}
 function Diligence({contextId,workspaceId,opportunityId,opportunityName,lang,refreshToken}:Props){
- const t=copy[lang],{contexts}=useCustomerContext();const [reload,setReload]=useState(0),[cases,setCases]=useState<{diligence_case_id:string;underwriting_version:number}[]|null>(null),[baseline,setBaseline]=useState(0),[selected,setSelected]=useState(''),[docContext,setDocContext]=useState(''),[failed,setFailed]=useState(false),[unsaved,setUnsaved]=useState(false),[pendingChange,setPendingChange]=useState<{kind:'refresh'|'context'|'case';value?:string}|null>(null);
+ const t=copy[lang],{contexts,registerUnsavedGuard}=useCustomerContext();const [reload,setReload]=useState(0),[cases,setCases]=useState<{diligence_case_id:string;underwriting_version:number}[]|null>(null),[baseline,setBaseline]=useState(0),[selected,setSelected]=useState(''),[docContext,setDocContext]=useState(''),[failed,setFailed]=useState(false),[unsaved,setUnsaved]=useState(false),[pendingChange,setPendingChange]=useState<{kind:'refresh'|'context'|'case';value?:string}|null>(null);
+ const discardForContextChange=useCallback(()=>setUnsaved(false),[]);
+ useEffect(()=>registerUnsavedGuard(`airprop-diligence:${contextId}:${workspaceId}:${opportunityId}`,unsaved,discardForContextChange),[registerUnsavedGuard,contextId,workspaceId,opportunityId,unsaved,discardForContextChange]);
  const native={context_id:contextId,workspace_id:workspaceId,opportunity_id:opportunityId};
  const query=new URLSearchParams(native).toString();
  useEffect(()=>{const c=new AbortController();Promise.all([fetch(`/api/customer/v2/airprop/diligence?${query}`,{cache:'no-store',signal:c.signal}),fetch(`/api/customer/v2/airprop/underwriting?${query}&limit=1`,{cache:'no-store',signal:c.signal})]).then(async([a,b])=>{if(!a.ok||!b.ok)throw new Error();const drafts=z.object({version:z.literal(1),workspace_id:uuid,opportunity_id:uuid,drafts:z.array(z.object({diligence_case_id:uuid,underwriting_version:z.number().int().positive()})).max(50)}).parse(await a.json());const history=z.object({workspace_id:uuid,opportunity_id:uuid,current_version:z.number().int().nonnegative()}).parse(await b.json());if([drafts,history].some(x=>x.workspace_id!==workspaceId||x.opportunity_id!==opportunityId))throw new Error();if(!c.signal.aborted){setCases(drafts.drafts);setBaseline(history.current_version);setFailed(false);}}).catch(()=>{if(!c.signal.aborted){setCases(null);setFailed(true);}});return()=>c.abort();},[query,workspaceId,opportunityId,reload,refreshToken]);

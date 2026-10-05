@@ -29,3 +29,5 @@ Implementation remains blocked until this package is reviewed and a separate exe
 ## UX directive adopted 2026-10-05
 
 [UX-DEC-001: user directive v1.0](UX-DEC-001-source-v1.0.md) complements lifecycle v1.1. [AIRPROP UX-015: gaps, first fixes and verification](UX-015-adoption-and-gaps.md) is part of the permanent workstream handoff. Open UX and security checks remain explicit; attachment does not mean full implementation conformity.
+
+AIRPROP diligence protects its local unsaved edits against both in-module navigation and shared workspace-context changes. See [CLADORA UX-018](../architecture/CLADORA-UX-018-unsaved-context-guard.md) for the shell contract and registered forms.
