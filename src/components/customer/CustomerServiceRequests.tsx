@@ -14,7 +14,7 @@ const copy = {
 type Read = z.infer<typeof serviceRequestReadSchema>;
 type Offering = { offering_id:string; revision_id:string; labels:Record<Language,string>; acquisition_mode:string };
 // The parent keys by context/workspace; pending commands cannot cross either scope.
-export function CustomerServiceRequests({contextId,workspaceId,lang,offerings}:{contextId:string;workspaceId:string;lang:Language;offerings:Offering[]}) {
+export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,onRefreshCatalog}:{contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>}) {
   const fetch = useDashboardFetch(); const t=copy[lang];
   const fieldId=useId();
   const [fieldErrors,setFieldErrors]=useState({offering:false,party:false,description:false});
@@ -22,15 +22,31 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings}:{
   const [data,setData]=useState<Read|null>(null); const [notice,setNotice]=useState('');
   const [offering,setOffering]=useState(''); const [party,setParty]=useState(''); const [description,setDescription]=useState('');
   const [pending,setPending]=useState<CreateServiceRequest|null>(null); const [busy,setBusy]=useState(false); const [conflict,setConflict]=useState(false);
+  const [readStatus,setReadStatus]=useState<'loading'|'ready'|'denied'|'session'|'retry'>('loading'); const [readAttempt,setReadAttempt]=useState(0);
   const alive=useRef(true); const writeAbort=useRef<AbortController|null>(null); const submitting=useRef(false);
   const query=new URLSearchParams({context_id:contextId,workspace_id:workspaceId}).toString();
   useEffect(()=>{alive.current=true;const controller=new AbortController();
     void fetch(`/api/customer/v1/services/requests?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal})
-      .then(async response=>{if(!response.ok)throw new Error('denied');return serviceRequestReadSchema.parse(await response.json());})
-      .then(value=>{if(!controller.signal.aborted)setData(value);})
-      .catch(()=>{if(!controller.signal.aborted)setNotice(t.unavailable);});
+      .then(async response=>{if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');return serviceRequestReadSchema.parse(await response.json());})
+      .then(value=>{if(!controller.signal.aborted){setData(value);setReadStatus('ready');}})
+      .catch(reason=>{if(!controller.signal.aborted)setReadStatus(reason instanceof Error&&['session','denied'].includes(reason.message)?reason.message as 'session'|'denied':'retry');});
     return ()=>{alive.current=false;controller.abort();writeAbort.current?.abort();};
-  },[fetch,query,t.unavailable]);
+  },[fetch,query,readAttempt]);
+  async function refreshConflict(){
+    if(busy||!onRefreshCatalog)return;
+    setBusy(true);
+    try {
+      const updatedOfferings=await onRefreshCatalog();
+      const response=await fetch(`/api/customer/v1/services/requests?${query}`,{cache:'no-store',credentials:'same-origin'});
+      if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');
+      const updated=serviceRequestReadSchema.parse(await response.json());
+      if(!alive.current)return;
+      setData(updated);setPending(null);setConflict(false);setNotice('');
+      if(!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
+      if(!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
+    }catch(reason){if(alive.current)setNotice(reason instanceof Error&&reason.message==='denied'?t.unavailable:reason instanceof Error&&reason.message==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'به‌روزرسانی انجام نشد؛ اتصال را بررسی و دوباره تلاش کنید.':lang==='ro'?'Actualizarea a eșuat; verifică conexiunea și reîncearcă.':'Refresh failed; check your connection and try again.');}
+    finally{if(alive.current)setBusy(false);}
+  }
   async function submit(){
     if(submitting.current||conflict)return;
     const selected=offerings.find(item=>item.offering_id===offering);
@@ -54,8 +70,8 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings}:{
     }catch{if(alive.current&&!controller.signal.aborted)setNotice(t.error);}finally{submitting.current=false;if(alive.current)setBusy(false);}
   }
   return <section dir={lang==='fa'?'rtl':'ltr'} className="space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t.title}</h2>
-    {notice?<p role="status">{notice}</p>:null}{conflict?<button type="button" onClick={()=>window.location.reload()} className="rounded-xl border px-4 py-2">{t.refresh}</button>:null}
-    {!data?<p>{notice?'':t.loading}</p>:<>
+    {notice?<p role="status">{notice}</p>:null}{conflict?<button type="button" disabled={busy} onClick={()=>void refreshConflict()} className="rounded-xl border px-4 py-2">{t.refresh}</button>:null}
+    {!data?<div role="status"><p>{readStatus==='loading'?t.loading:readStatus==='denied'?t.unavailable:readStatus==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'دریافت درخواست‌ها ناموفق بود؛ اتصال را بررسی کنید.':lang==='ro'?'Cererile nu au putut fi încărcate; verifică conexiunea.':'Requests could not be loaded; check your connection.'}</p>{readStatus==='retry'?<button type="button" onClick={()=>{setReadStatus('loading');setReadAttempt(n=>n+1);}} className="rounded-xl border px-4 py-2">{lang==='fa'?'تلاش دوباره':lang==='ro'?'Încearcă din nou':'Try again'}</button>:null}</div>:<>
     {data.can_request&&data.beneficiaries.length?<div className="space-y-3">
       <p className="text-sm">{t.disclaimer}</p>
       <label className="block">{t.offering}<select ref={offeringRef} aria-invalid={fieldErrors.offering} aria-describedby={fieldErrors.offering?`${fieldId}-offering-error`:undefined} value={offering} disabled={busy||!!pending} onChange={e=>{setOffering(e.target.value);setFieldErrors(old=>({...old,offering:false}));}} className="block w-full rounded-xl border p-3"><option value="">{t.choose}</option>{offerings.filter(item=>item.acquisition_mode!=='reservation').map(item=><option key={item.offering_id} value={item.offering_id}>{item.labels[lang]}</option>)}</select></label>
