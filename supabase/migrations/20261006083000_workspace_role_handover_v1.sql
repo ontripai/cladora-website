@@ -82,9 +82,24 @@ begin
     return app_private.workspace_role_handover_lineage_valid_v1(
       parent.id,p_permission_id,p_seen||p_assignment_id);
   end if;
+  if p_permission_id is null and child.scope_type='workspace' then
+    return exists(select 1 from platform.workspace_member_roles source
+      join platform.workspace_roles wr on wr.id=source.workspace_role_id
+      where source.membership_id=link.manager_membership_id
+        and source.tenant_id=child.tenant_id
+        and source.customer_workspace_id=child.customer_workspace_id
+        and source.scope_type='workspace'
+        and source.valid_from<=statement_timestamp()
+        and (source.valid_to is null or source.valid_to>statement_timestamp())
+        and wr.lifecycle_status='published'
+        and wr.valid_from<=statement_timestamp()
+        and (wr.valid_to is null or wr.valid_to>statement_timestamp())
+        and app_private.workspace_role_handover_lineage_valid_v1(
+          source.id,null,p_seen||p_assignment_id));
+  end if;
   -- A base-role authority remains live only while its current role grants the
   -- permission. A changed membership role, expiry, or explicit deny cuts access.
-  return exists(select 1 from identity.memberships m
+  if exists(select 1 from identity.memberships m
     join identity.role_permissions rp on rp.role_id=m.role_id and rp.effect='allow'
     join identity.permissions p on p.id=rp.permission_id
     where m.id=link.manager_membership_id
@@ -93,10 +108,76 @@ begin
       join identity.role_permissions rp on rp.role_id=m.role_id and rp.effect='deny'
       join identity.permissions p on p.id=rp.permission_id
       where m.id=link.manager_membership_id
-        and (p.id=p_permission_id or (p_permission_id is null and p.code='workspace.role.assign')));
+        and (p.id=p_permission_id or (p_permission_id is null and p.code='workspace.role.assign'))) then
+    return true;
+  end if;
+  if p_permission_id is null then return false; end if;
+  return exists(select 1 from platform.workspace_member_roles source
+    join platform.workspace_roles wr on wr.id=source.workspace_role_id
+    join platform.workspace_role_permissions rp on rp.workspace_role_id=wr.id
+    where source.membership_id=link.manager_membership_id
+      and source.tenant_id=child.tenant_id
+      and source.customer_workspace_id=child.customer_workspace_id
+      and source.valid_from<=statement_timestamp()
+      and (source.valid_to is null or source.valid_to>statement_timestamp())
+      and wr.lifecycle_status='published' and wr.valid_from<=statement_timestamp()
+      and (wr.valid_to is null or wr.valid_to>statement_timestamp())
+      and rp.permission_id=p_permission_id and rp.effect='allow'
+      and (source.scope_type='workspace'
+        or (child.scope_type<>'workspace' and source.scope_type='property'
+          and source.property_id=child.property_id)
+        or (child.scope_type in ('building','unit') and source.scope_type='building'
+          and source.building_id=child.building_id)
+        or (child.scope_type='unit' and source.scope_type='unit'
+          and source.unit_id=child.unit_id))
+      and app_private.workspace_role_handover_lineage_valid_v1(
+        source.id,p_permission_id,p_seen||p_assignment_id));
 end;
 $$;
 revoke all on function app_private.workspace_role_handover_lineage_valid_v1(uuid,uuid,uuid[])
+  from public,anon,authenticated,service_role;
+
+create function app_private.workspace_role_manager_has_sources_v1(
+  p_manager_id uuid,p_workspace_id uuid,p_role_id uuid,p_scope_type text,
+  p_property_id uuid,p_building_id uuid,p_unit_id uuid,p_valid_until timestamptz
+) returns boolean language plpgsql stable security definer set search_path=pg_catalog
+as $$
+declare permission_row record; base_role_id uuid;
+begin
+  select role_id into base_role_id from identity.memberships where id=p_manager_id;
+  if not found then return false; end if;
+  for permission_row in select rp.permission_id from platform.workspace_role_permissions rp
+    where rp.workspace_role_id=p_role_id and rp.effect='allow' loop
+    if exists(select 1 from identity.role_permissions rp
+      where rp.role_id=base_role_id and rp.permission_id=permission_row.permission_id
+        and rp.effect='allow')
+      and not exists(select 1 from identity.role_permissions rp
+        where rp.role_id=base_role_id and rp.permission_id=permission_row.permission_id
+          and rp.effect='deny') then continue; end if;
+    if not exists(select 1 from platform.workspace_member_roles source
+      join platform.workspace_roles wr on wr.id=source.workspace_role_id
+      join platform.workspace_role_permissions rp on rp.workspace_role_id=wr.id
+      where source.membership_id=p_manager_id and source.customer_workspace_id=p_workspace_id
+        and source.valid_from<=statement_timestamp()
+        and (source.valid_to is null or (p_valid_until is not null and source.valid_to>=p_valid_until))
+        and wr.lifecycle_status='published' and wr.valid_from<=statement_timestamp()
+        and (wr.valid_to is null or (p_valid_until is not null and wr.valid_to>=p_valid_until))
+        and rp.permission_id=permission_row.permission_id and rp.effect='allow'
+        and (source.scope_type='workspace'
+          or (p_scope_type<>'workspace' and source.scope_type='property'
+            and source.property_id=p_property_id)
+          or (p_scope_type in ('building','unit') and source.scope_type='building'
+            and source.building_id=p_building_id)
+          or (p_scope_type='unit' and source.scope_type='unit'
+            and source.unit_id=p_unit_id))
+        and app_private.workspace_role_handover_lineage_valid_v1(
+          source.id,permission_row.permission_id)) then return false; end if;
+  end loop;
+  return true;
+end;
+$$;
+revoke all on function app_private.workspace_role_manager_has_sources_v1(
+  uuid,uuid,uuid,text,uuid,uuid,uuid,timestamptz)
   from public,anon,authenticated,service_role;
 
 -- One transaction transfers the same role and scope to a successor. Historic
@@ -239,12 +320,9 @@ begin
       and (a.valid_to is null or (p_valid_until is not null and a.valid_to>=p_valid_until))
       and app_private.workspace_role_handover_lineage_valid_v1(a.id,null)
     order by a.valid_to desc nulls first,a.id limit 1;
-  if parent_id is null and exists(select 1 from platform.workspace_role_permissions rp
-    where rp.workspace_role_id=previous.workspace_role_id and rp.effect='allow'
-      and (not exists(select 1 from identity.role_permissions base
-        where base.role_id=actor.role_id and base.permission_id=rp.permission_id and base.effect='allow')
-        or exists(select 1 from identity.role_permissions denied
-          where denied.role_id=actor.role_id and denied.permission_id=rp.permission_id and denied.effect='deny'))) then
+  if parent_id is null and not app_private.workspace_role_manager_has_sources_v1(
+    actor.membership_id,actor.workspace_id,previous.workspace_role_id,previous.scope_type,
+    previous.property_id,previous.building_id,previous.unit_id,p_valid_until) then
     raise exception 'workspace_handover_authority_provenance_required' using errcode='42501';
   end if;
 
