@@ -50,11 +50,14 @@ authenticated = true;
 const success = await POST(post());
 assert.equal(success.status, 200);
 assert.equal(success.headers.get('cache-control'), 'no-store, private');
-assert.deepEqual(calls.at(-1), { name: 'handover_workspace_role_v1', args: {
+assert.deepEqual(calls.at(-1), { name: 'handover_workspace_role_v2', args: {
   p_context_id: uuid, p_assignment_id: uuid, p_expected_lock_version: 1,
+  p_authority_context_id: null,
   p_successor_membership_id: successor, p_valid_until: null,
   p_reason: 'Staff transition', p_idempotency_key: 'handover-test-001',
 } });
+assert.equal((await POST(post({ ...payload, authority_context_id: successor }))).status, 200);
+assert.equal(calls.at(-1).args.p_authority_context_id, successor);
 for (const [code, message, status] of [['42501', 'mfa_required', 403],
   ['42501', 'private authority detail', 403], ['40001', 'private conflict', 409],
   ['22023', 'private input detail', 400], ['XX000', 'private database detail', 500]]) {
