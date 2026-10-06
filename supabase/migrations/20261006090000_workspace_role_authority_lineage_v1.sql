@@ -179,7 +179,7 @@ create or replace function app_private.workspace_member_role_authority_active_v1
 ) returns boolean language plpgsql stable security definer
 set search_path=pg_catalog,platform,identity,portfolio,app_private as $$
 declare
- a record; s record; m record; wr record; v_code text; v_module text;
+ a record; s record; grantor_rec record; wr record; v_code text; v_module text;
  v_prop uuid; v_bld uuid; v_unit uuid; v_workspace_id uuid;
 begin
  if p_assignment_id is null or p_assignment_id=any(coalesce(p_path,'{}'::uuid[]))
@@ -229,11 +229,11 @@ begin
  if not found then return false; end if;
 
  if s.source_kind='identity_role' then
-   select grantor.* into m from identity.memberships grantor
+   select grantor.* into grantor_rec from identity.memberships grantor
     where grantor.id=a.assigned_by_membership_id and grantor.tenant_id=a.tenant_id
       and grantor.status='active' and grantor.starts_at<=statement_timestamp()
       and (grantor.ends_at is null or grantor.ends_at>statement_timestamp());
-   if not found or m.role_id is distinct from s.source_identity_role_id
+   if not found or grantor_rec.role_id is distinct from s.source_identity_role_id
       or not exists(select 1 from identity.role_permissions rp
          where rp.role_id=m.role_id and rp.permission_id=p_permission_id and rp.effect='allow')
       or exists(select 1 from identity.role_permissions rp
@@ -261,7 +261,7 @@ begin
      array_append(coalesce(p_path,'{}'::uuid[]),a.id));
  end if;
  return false;
-exception when others then raise notice 'workspace_member_role_authority_active_v1 error: %',sqlerrm; return false;
+exception when others then return false;
 end;
 $$;
 revoke all on function app_private.workspace_member_role_authority_active_v1(uuid,uuid,uuid,text,uuid,uuid[]) from public,anon,authenticated,service_role;
