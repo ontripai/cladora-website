@@ -185,6 +185,7 @@ export const revokeWorkspaceRoleAssignmentRequestSchema = z.object({
 
 export const handoverWorkspaceRoleRequestSchema = z.object({
   context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
   assignment_id: uuidSchema,
   expected_lock_version: z.number().int().positive(),
   successor_membership_id: uuidSchema,
