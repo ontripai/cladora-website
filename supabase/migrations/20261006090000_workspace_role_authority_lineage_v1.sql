@@ -261,7 +261,7 @@ begin
      array_append(coalesce(p_path,'{}'::uuid[]),a.id));
  end if;
  return false;
-exception when others then return false;
+exception when others then raise notice 'workspace_member_role_authority_active_v1 error: %',sqlerrm; return false;
 end;
 $$;
 revoke all on function app_private.workspace_member_role_authority_active_v1(uuid,uuid,uuid,text,uuid,uuid[]) from public,anon,authenticated,service_role;
