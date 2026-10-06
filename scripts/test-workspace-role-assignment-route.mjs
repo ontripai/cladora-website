@@ -52,7 +52,7 @@ console.log('PASS pilot UUID role-list and assignment regression: canonical Post
 result={data:{action:'assign_role',id:uuid},error:null};authenticated=true;calls=[];
 const buildingPayload={...payload,scope_type:'building',property_id:uuid,building_id:uuid};
 assert.equal((await POST(post(buildingPayload))).status,200);
-assert.equal(calls.at(-1).name,'assign_workspace_building_role_v1');
+assert.equal(calls.at(-1).name,'assign_workspace_role_v2');
 assert.equal(calls.at(-1).args.p_building_id,uuid);
 assert.equal(calls.at(-1).args.p_property_id,uuid);
 console.log('PASS building gateway routes to guarded adapter and preserves exact ancestry');
