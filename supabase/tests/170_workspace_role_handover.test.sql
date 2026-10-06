@@ -1,5 +1,5 @@
 begin;
-select plan(33);
+select plan(38);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -237,12 +237,58 @@ select ok((select created_by from airprop.investment_opportunities
   'new action belongs to successor');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
+select lives_ok($flow$do $$
+declare role_id uuid; result jsonb;
+begin
+  result:=customer_api.create_workspace_role_draft_v1(
+    '17000000-0000-0000-0000-000010000001','handover_composite',
+    'Composite handover role','Synthetic combined permissions','property',null,
+    'Synthetic combined permissions','handover_composite_create_170');
+  role_id:=(result->>'id')::uuid;
+  perform customer_api.attach_workspace_role_module_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,
+    (select id from platform.module_definitions where code='airprop_commercial'),1,
+    'Synthetic module attachment','handover_composite_module_170');
+  perform customer_api.attach_workspace_role_permission_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,
+    (select id from identity.permissions where code='airprop.opportunity.read'),'allow',2,
+    'Synthetic read attachment','handover_composite_read_170');
+  perform customer_api.attach_workspace_role_permission_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,
+    (select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,
+    'Synthetic manage attachment','handover_composite_manage_170');
+  perform customer_api.publish_workspace_role_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,4,
+    'Synthetic publish role','handover_composite_publish_170');
+end; $$;$flow$,'publish role assembled from distinct manager sources');
+select lives_ok($$select customer_api.assign_workspace_role_v2(
+  '17000000-0000-0000-0000-000010000001',null,
+  '17000000-0000-0000-0000-000001000002',
+  (select id from platform.workspace_roles where code='handover_composite'),
+  'property','17000000-0000-0000-0000-000000001000',null,null,now()+interval '12 hours',
+  'Synthetic combined assignment','handover_composite_assign_170')$$,
+  'manager grants role from two local authority sources');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000020","aal":"aal2"}',true);
+select ok(app_private.check_scoped_effective_permission_v1(
+  '17000000-0000-0000-0000-000010000002','airprop.opportunity.manage','airprop_commercial',
+  'property','17000000-0000-0000-0000-000000001000'),'combined role initially grants manage');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 select customer_api.revoke_workspace_role_assignment_v1(
   '17000000-0000-0000-0000-000010000001',
   (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
     on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000001'
     and r.code='handover_native_reader'),1,
   'Synthetic native manager revoked','handover_native_revoke_170');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000020","aal":"aal2"}',true);
+select ok(not app_private.check_scoped_effective_permission_v1(
+  '17000000-0000-0000-0000-000010000002','airprop.opportunity.manage','airprop_commercial',
+  'property','17000000-0000-0000-0000-000000001000'),'revoked manager source removes manage');
+select ok(app_private.check_scoped_effective_permission_v1(
+  '17000000-0000-0000-0000-000010000002','airprop.opportunity.read','airprop_commercial',
+  'property','17000000-0000-0000-0000-000000001000'),'remaining manager source retains read');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
 select ok((select count(*) from customer_api.list_workspace_targets_v2(
