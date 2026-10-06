@@ -207,7 +207,7 @@ select lives_ok($$select customer_api.create_airprop_opportunity_v2(
   'previous member records earlier action');
 select ok((select created_by from airprop.investment_opportunities
   where tenant_id='17000000-0000-0000-0000-000000000001'
-    and idempotency_key='handover_before_170')='17000000-0000-0000-0000-000000000020',
+    and idempotency_key like '%/handover_before_170')='17000000-0000-0000-0000-000000000020',
   'earlier action remains attributed to previous member');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
@@ -233,7 +233,7 @@ select lives_ok($$select customer_api.create_airprop_opportunity_v2(
   'successor records new action');
 select ok((select created_by from airprop.investment_opportunities
   where tenant_id='17000000-0000-0000-0000-000000000001'
-    and idempotency_key='handover_after_170')='17000000-0000-0000-0000-000000000030',
+    and idempotency_key like '%/handover_after_170')='17000000-0000-0000-0000-000000000030',
   'new action belongs to successor');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
