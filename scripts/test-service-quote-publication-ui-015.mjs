@@ -12,9 +12,9 @@ const require=createRequire(import.meta.url);const cache=new Map();
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const context=uuid(4),workspace=uuid(5);
 globalThis.FormData=window.FormData;
-let writes=[],lose=false,deferred=null,deny=false,historyFail=false,conflict=false,canPublish=true,quoteState='draft',readStatus=200,offline=false;
+let writes=[],lose=false,deferred=null,deny=false,historyFail=false,conflict=false,canPublish=true,quoteState='draft',readStatus=200,writeStatus=200,offline=false;
 const fetch=async(url,options)=>{
- if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(lose){lose=false;throw new Error('Lost reply');}return Response.json({quote_id:uuid(6),version:1,status:'presented'},{status:conflict?409:200});}
+ if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(lose){lose=false;throw new Error('Lost reply');}return Response.json({quote_id:uuid(6),version:1,status:'presented'},{status:conflict?409:writeStatus});}
  if(offline)throw new Error('Offline');
  if(historyFail&&writes.length)throw new Error('History unavailable');
  return Response.json({can_publish:canPublish,quotes:[{quote_id:uuid(6),version:1,description:'Synthetic request',scope:'Synthetic scope',total_minor:'9007199254740993',currency:'RON',valid_until:'2099-01-01T00:00:00Z',published_at:null,provider_label:'Provider',beneficiary_label:'Person',state:writes.length&&!lose?'presented':quoteState}]},{status:deny?403:readStatus});
@@ -33,7 +33,7 @@ function load(file) {
 const {CustomerServiceQuotePublications:Component,quotePublicationCopy:copy}=load(new URL('../src/components/customer/CustomerServiceQuotePublications.tsx',import.meta.url));
 const root=createRoot(document.getElementById('root'));let key=0;
 const render=async(lang='en',mode='coordinator',ws=workspace,newKey=true)=>act(async()=>root.render(React.createElement(Component,{key:newKey?++key:key,contextId:context,workspaceId:ws,lang,mode})));
-const publishButton=()=>Array.from(document.querySelectorAll('button')).find(b=>/Present this|Retry the same|Prezintă această|ارائهٔ این نسخه|تکرار همان/.test(b.textContent));
+const publishButton=()=>Array.from(document.querySelectorAll('button')).find(b=>/Present this|Retry the same|Prezintă această|Reîncearcă aceeași|ارائهٔ این نسخه|تکرار همان/.test(b.textContent));
 const click=async()=>act(async()=>publishButton().click());
 let cases=0;const check=async(name,fn)=>{await fn();cases++;console.log('PASS '+name);};
 try{
@@ -45,6 +45,24 @@ try{
  quoteState='draft';
  await check('Denied read hides all quotes',async()=>{deny=true;await render();assert.doesNotMatch(document.body.textContent,/Synthetic scope/);assert.equal(publishButton(),undefined);deny=false;});
  await check('Conflict blocks duplicate action until refresh',async()=>{writes=[];conflict=true;await render();await click();assert.match(document.body.textContent,/proposal changed/);assert.equal(publishButton().disabled,true);conflict=false;});
+ await check('Write denial and expired session have actionable messages in each language',async()=>{
+   for(const lang of ['en','ro','fa'])for(const status of [401,403,404]){
+     writes=[];writeStatus=status;await render(lang);await click();
+     assert.ok(document.body.textContent.includes(status===401?copy[lang].signIn:copy[lang].writeDenied));
+     assert.ok(!document.body.textContent.includes(copy[lang].conflict));
+     assert.equal(publishButton().disabled,true);
+   }
+   writeStatus=200;
+ });
+ await check('Failed conflict refresh retains blocked command until a successful read',async()=>{
+   writes=[];conflict=true;await render();await click();const command=writes[0];conflict=false;writes=[];
+   offline=true;await act(async()=>document.querySelector('button').click());
+   assert.ok(document.body.textContent.includes(copy.en.loadError));
+   assert.equal(publishButton().disabled,true);
+   offline=false;await act(async()=>document.querySelector('button').click());
+   assert.equal(publishButton().disabled,false);
+   await click();assert.equal(writes.length,1);assert.notEqual(writes[0].idempotency_key,command.idempotency_key);
+ });
  await check('Double click sends once and same-instance scope switch discards late reply',async()=>{writes=[];let resolve;deferred={promise:new Promise(done=>{resolve=done;})};await render();await act(async()=>{const button=publishButton();button.click();button.click();});assert.equal(writes.length,1);await render('en','coordinator',uuid(99),false);await act(async()=>resolve(Response.json({quote_id:uuid(6),version:1,status:'presented'})));assert.doesNotMatch(document.body.textContent,/available to the requester for review/);deferred=null;});
  await check('Network and server failures offer refresh without alleging access denial',async()=>{writes=[];for(const status of [500,503]){readStatus=status;await render();assert.ok(document.body.textContent.includes(copy.en.loadError));assert.ok(!document.body.textContent.includes(copy.en.denied));}readStatus=200;offline=true;await render();assert.ok(document.body.textContent.includes(copy.en.loadError));offline=false;await act(async()=>document.querySelector('button').click());assert.match(document.body.textContent,/Synthetic scope/);});
  await check('Expired session has a specific recovery instruction',async()=>{readStatus=401;await render();assert.ok(document.body.textContent.includes(copy.en.signIn));assert.doesNotMatch(document.body.textContent,/Synthetic scope/);readStatus=200;});
