@@ -183,6 +183,16 @@ export const revokeWorkspaceRoleAssignmentRequestSchema = z.object({
   idempotency_key: idempotencyKeySchema,
 }).strict();
 
+export const handoverWorkspaceRoleRequestSchema = z.object({
+  context_id: uuidSchema,
+  assignment_id: uuidSchema,
+  expected_lock_version: z.number().int().positive(),
+  successor_membership_id: uuidSchema,
+  valid_until: z.string().datetime().nullable().optional(),
+  reason: z.string().trim().min(5).max(500),
+  idempotency_key: idempotencyKeySchema,
+}).strict();
+
 export type WorkspaceRoleItem = z.infer<typeof workspaceRoleItemSchema>;
 export type WorkspaceMemberRoleAssignmentItem = z.infer<typeof workspaceMemberRoleAssignmentItemSchema>;
 export type GetWorkspaceRolesResponse = z.infer<typeof getWorkspaceRolesResponseSchema>;
