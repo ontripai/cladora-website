@@ -285,6 +285,7 @@ select ok(app_private.check_effective_permission_v2(
  '13500000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial',
  'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
  'descendant access returns when grantor authority is restored');
+select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000040","aal":"aal2"}',true);
 select ok(app_private.check_effective_permission_v2(
  '13500000-0000-0000-0000-000010000005','airprop.opportunity.manage','airprop_commercial',
  'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
