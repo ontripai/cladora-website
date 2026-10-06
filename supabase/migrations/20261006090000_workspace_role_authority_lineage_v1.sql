@@ -316,6 +316,11 @@ begin
    end if;
    return new;
  end if;
+ if new.authority_policy_version=1 and new.assigned_by_context_grant_id is null
+    and session_user in ('postgres','supabase_admin') then
+   -- Preserve historical fixtures and privileged migration backfills only.
+   return new;
+ end if;
  if new.authority_policy_version<>2 or new.assigned_by_context_grant_id is null then
    raise exception 'workspace_member_role_authority_required' using errcode='42501';
  end if;
