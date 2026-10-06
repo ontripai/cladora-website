@@ -134,7 +134,7 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.acquisition.approve'),'allow',8,'Synthetic decision attachment','flow_approve_151');
  perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,9,'Synthetic publish role','flow_publish_151');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($$select customer_api.assign_workspace_role_v1('15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_151')$$,'assign explicit diligence role');
+select lives_ok($$select customer_api.assign_workspace_role_v1('15100000-0000-0000-0000-000010000011','15100000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_151')$$,'assign explicit diligence role');
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select lives_ok($$select customer_api.create_airprop_opportunity_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100','diligence_opportunity_151','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);

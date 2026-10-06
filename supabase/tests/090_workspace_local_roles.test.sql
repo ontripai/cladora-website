@@ -720,7 +720,7 @@ select lives_ok(
 
 -- 6.11 Direct update of immutable fields on member assignment is prohibited
 select throws_ok(
-  $$update platform.workspace_member_roles set workspace_role_id = '09000000-0000-0000-0000-000000000001'::uuid, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to is null$$,
+  $$update platform.workspace_member_roles set workspace_role_id = '09000000-0000-0000-0000-000000000001'::uuid, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to > statement_timestamp()$$,
   '42501',
   'workspace_member_role_fields_immutable',
   'modifying immutable fields on workspace member role is prohibited by trigger'
@@ -1204,8 +1204,8 @@ select ok(exists(
 select ok(exists(
   select 1 from audit.events
   where action = 'WORKSPACE_ROLE_ASSIGNMENT_REVOKED'
-    and (before_snapshot->>'valid_to') is null
-), 'audit event WORKSPACE_ROLE_ASSIGNMENT_REVOKED captured true pre-update before_snapshot with valid_to IS NULL');
+    and (before_snapshot->>'valid_to') is not null
+), 'audit event WORKSPACE_ROLE_ASSIGNMENT_REVOKED captured true pre-update before_snapshot with bounded valid_to');
 
 -- 8.14 Audit revocation captured post-update after_snapshot with valid_to NOT NULL
 select ok(exists(

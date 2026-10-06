@@ -148,7 +148,7 @@ select r.id,p.id,'allow'
 from identity.roles r cross join identity.permissions p
 where r.code='association_admin' and r.tenant_id is null and r.is_system
   and p.code in ('airprop.opportunity.read','airprop.opportunity.manage','maintenance.requests.read')
-on conflict do nothing;
+on conflict (role_id,permission_id) do update set effect='allow';
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000010","role":"authenticated","aal":"aal2"}',true);
 select ok(not has_function_privilege('anon','customer_api.list_workspace_role_assignment_candidates_v1(uuid)','execute'),'anonymous cannot enumerate candidates');
 select ok(not has_function_privilege('authenticated','app_private.require_workspace_role_assignment_context_v1(uuid)','execute'),'internal helper is not exposed');
@@ -181,18 +181,17 @@ select ok((select count(*)=2 and bool_and(source_kind='identity_role')
   join platform.workspace_member_roles a on a.id=s.assignment_id
   where a.membership_id='13500000-0000-0000-0000-000001000002'),
   'each delegated permission has an identity-role authority source');
-insert into identity.role_permissions(role_id,permission_id,effect)
-select (select role_id from identity.memberships where id='13500000-0000-0000-0000-000001000001'),
-       id,'deny' from identity.permissions where code='airprop.opportunity.manage';
+update identity.role_permissions set effect='deny'
+where role_id=(select role_id from identity.memberships where id='13500000-0000-0000-0000-000001000001')
+  and permission_id=(select id from identity.permissions where code='airprop.opportunity.manage');
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok(not app_private.check_effective_permission_v2(
  '13500000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial',
  'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
  'grantor permission reduction immediately disables descendant access');
-delete from identity.role_permissions
+update identity.role_permissions set effect='allow'
 where role_id=(select role_id from identity.memberships where id='13500000-0000-0000-0000-000001000001')
-  and permission_id=(select id from identity.permissions where code='airprop.opportunity.manage')
-  and effect='deny';
+  and permission_id=(select id from identity.permissions where code='airprop.opportunity.manage');
 select ok(app_private.check_effective_permission_v2(
  '13500000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial',
  'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
