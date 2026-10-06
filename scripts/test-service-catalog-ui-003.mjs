@@ -15,10 +15,11 @@ let calls = [];
 let catalogue = [];
 let deferred;
 let status = 200;
+let targetStatus = 200;
 let managementData; let loseResponse = false; let mutationDeferred;
 const fetch = async (url, options) => {
   calls.push({ url, options });
-  if (url.includes('/workspace/targets')) return Response.json({ workspaces: [firstWorkspace, secondWorkspace].map(workspace_id => ({ workspace_id, workspace_type: 'ASSOCIATION', environment: 'PILOT' })) });
+  if (url.includes('/workspace/targets')) return Response.json(targetStatus === 200 ? { workspaces: [firstWorkspace, secondWorkspace].map(workspace_id => ({ workspace_id, workspace_type: 'ASSOCIATION', environment: 'PILOT' })) } : { error: { code: 'DENIED' } }, { status: targetStatus });
   if (url.includes('/services/requests')) return Response.json({can_request:false,beneficiaries:[],requests:[]});
   if (options?.method === 'POST') {
     if (mutationDeferred) return mutationDeferred.promise;
@@ -73,6 +74,24 @@ try {
   });
   await check('access denial is shown as access denial with no retained data', async () => {
     status = 403; await choose(firstWorkspace); assert.match(document.body.textContent, /Service access is unavailable/); assert.equal(document.querySelector('article'), null);
+    assert.equal([...document.querySelectorAll('button')].some(button => button.textContent === 'Check access again'), true);
+  });
+  await check('catalogue session error asks for sign-in, without transient retry', async () => {
+    status = 401; await choose(secondWorkspace); assert.match(document.body.textContent, /session needs verification/);
+    assert.equal([...document.querySelectorAll('button')].some(button => button.textContent === 'Try again'), false);
+  });
+  await check('catalogue server error offers retry in the same workspace', async () => {
+    status = 503; await choose(firstWorkspace); assert.match(document.body.textContent, /Services could not be loaded/);
+    status = 200; await act(async () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Try again').click());
+    assert.equal(document.querySelector('select').value, firstWorkspace);
+  });
+  await check('target discovery errors distinguish session and denied access', async () => {
+    targetStatus = 401; active = { context_id: '00000000-0000-0000-0000-000000000005' }; await render('en');
+    assert.match(document.body.textContent, /session needs verification/);
+    targetStatus = 403; active = { context_id: '00000000-0000-0000-0000-000000000006' }; await render('en');
+    assert.match(document.body.textContent, /Ask the workspace administrator/);
+    assert.equal([...document.querySelectorAll('button')].some(button => button.textContent === 'Check access again'), true);
+    targetStatus = 200;
   });
   const { serviceManagementCopy } = load(new URL('../src/lib/customer/service-catalog-management-copy.ts', import.meta.url));
   const revision = { ...item, document_version_ids: [] }; delete revision.offering_id; delete revision.revision_id;
