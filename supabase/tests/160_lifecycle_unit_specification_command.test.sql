@@ -52,12 +52,12 @@ values('16000000-0000-4000-8000-000000000002','16000000-0000-4000-8000-000000000
 
 select throws_ok($$select customer_api.record_core_unit_specification_v1(
  '16000000-0000-4000-8000-000000000008','16000000-0000-4000-8000-000000000006',
- '16000000-0000-4000-8000-000000000005',0,'P-01',1,50,2,'test://plan/1')$$,
+ '16000000-0000-4000-8000-000000000005',0,'P-01',1::smallint,50::numeric,2::smallint,'test://plan/1')$$,
  '22023','core_unit_specification_invalid','Anonymous command denied before mutation');
 select set_config('request.jwt.claims','{"sub":"16000000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
 select throws_ok($$select customer_api.record_core_unit_specification_v1(
  '16000000-0000-4000-8000-000000000008','16000000-0000-4000-8000-000000000006',
- '16000000-0000-4000-8000-000000000005',0,'P-01',1,50,2,'test://plan/1')$$,
+ '16000000-0000-4000-8000-000000000005',0,'P-01',1::smallint,50::numeric,2::smallint,'test://plan/1')$$,
  '42501','core_unit_specification_access_denied','Role alone cannot replace property mandate');
 insert into platform.workspace_property_authorities
  (id,tenant_id,property_id,customer_workspace_id,purpose,authority_source,evidence_reference,valid_from)
@@ -66,15 +66,15 @@ values('16000000-0000-4000-8000-000000000010','16000000-0000-4000-8000-000000000
  'property_operations','synthetic','test://mandate',now()-interval '1 day');
 select lives_ok($$select customer_api.record_core_unit_specification_v1(
  '16000000-0000-4000-8000-000000000008','16000000-0000-4000-8000-000000000006',
- '16000000-0000-4000-8000-000000000005',0,'P-01',1,50,2,'test://plan/1')$$,
+ '16000000-0000-4000-8000-000000000005',0,'P-01',1::smallint,50::numeric,2::smallint,'test://plan/1')$$,
  'Authorized initial snapshot');
 select lives_ok($$select customer_api.record_core_unit_specification_v1(
  '16000000-0000-4000-8000-000000000008','16000000-0000-4000-8000-000000000006',
- '16000000-0000-4000-8000-000000000005',1,'Final-01',1,52,2,'test://plan/2')$$,
+ '16000000-0000-4000-8000-000000000005',1,'Final-01',1::smallint,52::numeric,2::smallint,'test://plan/2')$$,
  'Authorized revision preserves UUID');
 select throws_ok($$select customer_api.record_core_unit_specification_v1(
  '16000000-0000-4000-8000-000000000008','16000000-0000-4000-8000-000000000006',
- '16000000-0000-4000-8000-000000000005',1,'Stale',1,53,2,'test://stale')$$,
+ '16000000-0000-4000-8000-000000000005',1,'Stale',1::smallint,53::numeric,2::smallint,'test://stale')$$,
  '40001','core_unit_specification_version_conflict','Stale expected version denied');
 select is((select array_agg(unit_code order by version) from portfolio.unit_specification_versions
  where unit_id='16000000-0000-4000-8000-000000000005'),array['P-01','Final-01']::text[],
@@ -84,7 +84,7 @@ update platform.workspace_property_authorities set status='revoked',revoked_at=s
 where id='16000000-0000-4000-8000-000000000010';
 select throws_ok($$select customer_api.record_core_unit_specification_v1(
  '16000000-0000-4000-8000-000000000008','16000000-0000-4000-8000-000000000006',
- '16000000-0000-4000-8000-000000000005',2,'After revoke',1,54,2,'test://revoke')$$,
+ '16000000-0000-4000-8000-000000000005',2,'After revoke',1::smallint,54::numeric,2::smallint,'test://revoke')$$,
  '42501','core_unit_specification_access_denied','Revoked mandate denies new revision');
 select is((select count(*) from portfolio.unit_specification_versions),2::bigint,'Denied writes leave history intact');
 select ok(not has_table_privilege('authenticated','portfolio.unit_specification_versions','INSERT'),
