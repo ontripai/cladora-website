@@ -6,6 +6,7 @@ import { useCustomerContext } from "./CustomerContextProvider";
 
 type Subject = { id: string; code: string; building: string };
 type Party = { id: string; name: string };
+type Property = { id: string; name: string };
 type Proposal = { id: string; unit_id: string; kind: string; source_party_id: string | null;
   target_party_id: string; effective_from: string; proposed_at: string; proposed_by: string;
   decision: string | null; review_id: string | null };
@@ -38,7 +39,9 @@ export function RelationshipReviewPanel({ lang }: { lang: Language }) {
   const { active, dashboard } = useCustomerContext();
   const contextId = active?.context_id;
   const workspaceId = dashboard?.workspace_id;
-  const propertyId = dashboard?.context.property_id;
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState("");
+  const propertyId = dashboard?.context.property_id || selectedProperty;
   const [units, setUnits] = useState<Subject[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -51,6 +54,17 @@ export function RelationshipReviewPanel({ lang }: { lang: Language }) {
     ? new URLSearchParams({ context_id: contextId, workspace_id: workspaceId, property_id: propertyId }) : null;
   const scope = `${contextId ?? ""}/${workspaceId ?? ""}/${propertyId ?? ""}`;
   const ready = loadedScope === scope;
+
+  useEffect(() => {
+    if (!contextId || !workspaceId || dashboard?.context.property_id) return;
+    const abort = new AbortController();
+    const params = new URLSearchParams({ context_id: contextId, workspace_id: workspaceId, view: "properties" });
+    void fetch(`/api/customer/v1/core/relationships?${params}`, { cache: "no-store", signal: abort.signal })
+      .then(async response => { if (!response.ok) throw new Error(); return response.json() as Promise<{ properties: Property[] }>; })
+      .then(data => { if (!abort.signal.aborted) { setProperties(data.properties); setSelectedProperty(data.properties[0]?.id ?? ""); } })
+      .catch(() => { if (!abort.signal.aborted) setMessage(t.unavailable); });
+    return () => abort.abort();
+  }, [contextId, workspaceId, dashboard?.context.property_id, t.unavailable]);
 
   const reload = useCallback(async (signal?: AbortSignal) => {
     if (!base) return;
@@ -109,7 +123,8 @@ export function RelationshipReviewPanel({ lang }: { lang: Language }) {
   const label = (id: string | null) => parties.find(p => p.id === id)?.name ?? (id ? id.slice(0, 8) : "—");
   return <section className="card-proptech space-y-5 bg-white p-5" dir={lang === "fa" ? "rtl" : "ltr"}>
     <div><h2 className="text-xl font-bold">{t.title}</h2><p className="mt-1 text-sm text-slate-600">{t.note}</p></div>
-    {!propertyId ? <p role="status">{t.property}</p> : !ready ? <p role="status">{message || t.unavailable}</p> : <>
+    {!dashboard?.context.property_id && properties.length > 0 && <label>{t.property}<select value={selectedProperty} onChange={e => setSelectedProperty(e.target.value)} className="ms-2 rounded border p-2">{properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
+    {!propertyId ? <p role="status">{message || t.property}</p> : !ready ? <p role="status">{message || t.unavailable}</p> : <>
       <form onSubmit={propose} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
         <label>{t.unit}<select name="unit" required className="block w-full rounded border p-2"><option value="">{t.select}</option>{units.map(u => <option key={u.id} value={u.id}>{u.building} · {u.code}</option>)}</select></label>
         <label>{t.kind}<select value={kind} onChange={e => setKind(e.target.value)} className="block w-full rounded border p-2"><option value="contractual_buyer">{t.buyer}</option><option value="ownership_transfer">{t.transfer}</option><option value="lease">{t.lease}</option></select></label>

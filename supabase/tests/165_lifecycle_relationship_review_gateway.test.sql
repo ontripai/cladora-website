@@ -1,5 +1,5 @@
 begin;
-select plan(18);
+select plan(20);
 insert into auth.users(id,email) values ('16500000-0000-4000-8000-000000000001','proposer165@cladora.test'), ('16500000-0000-4000-8000-000000000011','reviewer165@cladora.test'), ('16500000-0000-4000-8000-000000000012','outsider165@cladora.test');
 insert into platform.tenants(id,legal_name,registration_number,status) values
  ('16500000-0000-4000-8000-000000000002','Core identity tenant','LC160','active');
@@ -159,6 +159,9 @@ select is((select jsonb_array_length(customer_api.list_core_relationship_subject
  '16500000-0000-4000-8000-000000000016','16500000-0000-4000-8000-000000000006',
  '16500000-0000-4000-8000-000000000003')->'units')),1,
  'Authorized workspace sees its property unit choice');
+select is((select jsonb_array_length(customer_api.list_core_relationship_properties_v1(
+ '16500000-0000-4000-8000-000000000016','16500000-0000-4000-8000-000000000006')->'properties')),1,
+ 'Tenant-scoped reviewer sees only a mandated property');
 select set_config('request.jwt.claims','{"sub":"16500000-0000-4000-8000-000000000012","role":"authenticated","aal":"aal2"}',true);
 select throws_ok($$select customer_api.list_core_relationship_proposals_v1(
  '16500000-0000-4000-8000-000000000016','16500000-0000-4000-8000-000000000006',
@@ -168,6 +171,9 @@ select throws_ok($$select customer_api.list_core_relationship_subjects_v1(
  '16500000-0000-4000-8000-000000000016','16500000-0000-4000-8000-000000000006',
  '16500000-0000-4000-8000-000000000003')$$,
  '42501','core_relationship_access_denied','Unrelated account cannot enumerate parties');
+select throws_ok($$select customer_api.list_core_relationship_properties_v1(
+ '16500000-0000-4000-8000-000000000016','16500000-0000-4000-8000-000000000006')$$,
+ '42501','core_relationship_access_denied','Unrelated account cannot enumerate properties');
 update platform.workspace_property_authorities set status='revoked',revoked_at=statement_timestamp(),
  valid_to=statement_timestamp(),revocation_reason='Test revoke'
 where id='16500000-0000-4000-8000-000000000010';

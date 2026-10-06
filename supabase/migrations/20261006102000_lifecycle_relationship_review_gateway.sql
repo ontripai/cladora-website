@@ -212,4 +212,31 @@ revoke all on function customer_api.list_core_relationship_subjects_v1(uuid,uuid
  from public,anon,service_role;
 grant execute on function customer_api.list_core_relationship_subjects_v1(uuid,uuid,uuid)
  to authenticated;
+
+create function customer_api.list_core_relationship_properties_v1(
+ p_context_id uuid,p_workspace_id uuid
+) returns jsonb language plpgsql volatile security definer set search_path=pg_catalog as $$
+declare v_rows jsonb;
+begin
+ if auth.uid() is null or p_context_id is null or p_workspace_id is null
+  or app_private.check_workspace_native_permission_v2(
+   p_context_id,p_workspace_id,'core.relationships.read','core_unit_identity') is not true then
+  raise exception 'core_relationship_access_denied' using errcode='42501';
+ end if;
+ select coalesce(jsonb_agg(jsonb_build_object('id',p.id,'name',p.name)
+  order by p.name,p.id),'[]'::jsonb) into v_rows
+ from portfolio.properties p
+ join platform.customer_workspaces w on w.id=p_workspace_id and w.tenant_id=p.tenant_id
+ where exists(select 1 from platform.workspace_property_authorities a
+  where a.property_id=p.id and a.tenant_id=p.tenant_id and a.customer_workspace_id=w.id
+   and a.purpose='property_operations' and a.status='active' and a.valid_from<=clock_timestamp()
+   and (a.valid_to is null or a.valid_to>clock_timestamp()))
+  and app_private.current_workspace_property_mandate_v1(
+   p_context_id,p_workspace_id,p.id,'property_operations') is not null;
+ return jsonb_build_object('properties',v_rows);
+end;$$;
+revoke all on function customer_api.list_core_relationship_properties_v1(uuid,uuid)
+ from public,anon,service_role;
+grant execute on function customer_api.list_core_relationship_properties_v1(uuid,uuid)
+ to authenticated;
 commit;
