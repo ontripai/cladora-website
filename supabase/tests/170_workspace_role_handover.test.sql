@@ -1,5 +1,5 @@
 begin;
-select plan(29);
+select plan(33);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -179,8 +179,12 @@ begin
     '17000000-0000-0000-0000-000010000001',role_id,
     (select id from identity.permissions where code='airprop.opportunity.read'),'allow',2,
     'Synthetic read attachment','handover_native_read_170');
+  perform customer_api.attach_workspace_role_permission_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,
+    (select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,
+    'Synthetic manage attachment','handover_native_manage_170');
   perform customer_api.publish_workspace_role_v1(
-    '17000000-0000-0000-0000-000010000001',role_id,3,
+    '17000000-0000-0000-0000-000010000001',role_id,4,
     'Synthetic publish role','handover_native_publish_170');
 end; $$;$flow$,'publish native workspace role');
 select lives_ok($$select customer_api.assign_workspace_role_v1(
@@ -194,6 +198,19 @@ select lives_ok($$select customer_api.assign_workspace_role_v2(
   (select id from platform.workspace_roles where code='handover_native_reader'),
   'workspace',null,null,null,now()+interval '1 day',
   'Synthetic old native authority','handover_native_old_170')$$,'old member holds native scope');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000020","aal":"aal2"}',true);
+select lives_ok($$select customer_api.create_airprop_opportunity_v2(
+  '17000000-0000-0000-0000-000010000012','17000000-0000-0000-0000-000000000100',
+  'handover_before_170',
+  '{"name":"Before handover","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"12.3400"}')$$,
+  'previous member records earlier action');
+select ok((select created_by from airprop.investment_opportunities
+  where tenant_id='17000000-0000-0000-0000-000000000001'
+    and idempotency_key='handover_before_170')='17000000-0000-0000-0000-000000000020',
+  'earlier action remains attributed to previous member');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 select lives_ok($$select customer_api.handover_workspace_role_v2(
   '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000010000011',
   (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
@@ -209,6 +226,15 @@ select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
 select ok((select count(*) from customer_api.list_workspace_targets_v2(
   '17000000-0000-0000-0000-000010000013'))=1,'successor gains native discovery');
+select lives_ok($$select customer_api.create_airprop_opportunity_v2(
+  '17000000-0000-0000-0000-000010000013','17000000-0000-0000-0000-000000000100',
+  'handover_after_170',
+  '{"name":"After handover","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"12.3400"}')$$,
+  'successor records new action');
+select ok((select created_by from airprop.investment_opportunities
+  where tenant_id='17000000-0000-0000-0000-000000000001'
+    and idempotency_key='handover_after_170')='17000000-0000-0000-0000-000000000030',
+  'new action belongs to successor');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 select customer_api.revoke_workspace_role_assignment_v1(
