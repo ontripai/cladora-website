@@ -27,6 +27,17 @@ create index workspace_role_authority_source_parent_idx
 alter table platform.workspace_member_role_authority_sources enable row level security;
 revoke all on platform.workspace_member_role_authority_sources from public,anon,authenticated,service_role;
 
+create or replace function app_private.guard_workspace_role_authority_source_immutable_v1()
+returns trigger language plpgsql security definer set search_path=pg_catalog as $$
+begin
+ raise exception 'workspace_role_authority_source_immutable' using errcode='42501';
+end;
+$$;
+revoke all on function app_private.guard_workspace_role_authority_source_immutable_v1() from public,anon,authenticated,service_role;
+create trigger trg_workspace_role_authority_source_immutable
+before update or delete on platform.workspace_member_role_authority_sources
+for each row execute function app_private.guard_workspace_role_authority_source_immutable_v1();
+
 create or replace function app_private.workspace_role_scope_contains_v1(
  p_parent_type text,p_parent_property uuid,p_parent_building uuid,p_parent_unit uuid,
  p_child_type text,p_child_property uuid,p_child_building uuid,p_child_unit uuid
@@ -189,10 +200,10 @@ begin
    case when p_target_scope_type='building' then p_target_scope_id when p_target_scope_type='unit' then (select u.building_id from portfolio.units u where u.id=p_target_scope_id) end,
    case when p_target_scope_type='unit' then p_target_scope_id end
  ) then return false; end if;
- if not app_private.workspace_context_covers_role_scope_v1(
-   a.assigned_by_context_grant_id,a.tenant_id,p_target_scope_type,p_target_scope_id) then return false; end if;
  if a.authority_policy_version=1 then return true; end if;
  if a.authority_policy_version<>2 then return false; end if;
+ if not app_private.workspace_context_covers_role_scope_v1(
+   a.assigned_by_context_grant_id,a.tenant_id,p_target_scope_type,p_target_scope_id) then return false; end if;
 
  select p.code into v_code from identity.permissions p where p.id=p_permission_id;
  select md.code into v_module from platform.module_definitions md where md.id=p_module_id
