@@ -424,7 +424,7 @@ begin
       v_source_role,v_source_assignment,
       v_pair_depth);
  end loop;
- if v_child_pairs=0 then raise exception 'workspace_role_empty' using errcode='22023'; end if;
+ -- A deny-only role is valid and carries no delegable allow pairs.
 
  -- Require a strict proper subset of the assigner's currently effective,
  -- delegable authority pairs at this exact scope.
@@ -462,7 +462,7 @@ begin
      and app_private.workspace_member_role_authority_active_v1(
        parent.id,rp.permission_id,rm.module_definition_id,new.scope_type,v_scope_id,'{}'::uuid[])
  ) authority;
- if v_child_pairs>=v_parent_pairs then
+ if v_child_pairs>0 and v_child_pairs>=v_parent_pairs then
    raise exception 'workspace_role_peer_or_superior_grant_prohibited' using errcode='42501';
  end if;
 
@@ -470,6 +470,7 @@ begin
  -- parent assignment and active workspace access basis. No active open-ended
  -- access basis exists in this schema, so open-ended assignments are impossible.
  v_cap:=least(coalesce(v_cap,'infinity'::timestamptz),
+   coalesce(new.valid_to,'infinity'::timestamptz),
    coalesce(v_actor.ends_at,'infinity'::timestamptz),
    coalesce((select m.ends_at from identity.memberships m where m.id=new.membership_id),'infinity'::timestamptz),
    coalesce(v_ctx.ends_at,'infinity'::timestamptz),

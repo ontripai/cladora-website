@@ -582,7 +582,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid, -- Unit 101
-    null,
+    now() + interval '1 day',
     'Assign unit inspector to Unit 101',
     'idem_assign_unit_101'
   )$$,
@@ -711,7 +711,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid,
-    null,
+    now() + interval '1 day',
     'Reassign for permission testing',
     'idem_reassign_unit_101'
   )$$,
@@ -844,7 +844,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     null,
-    null,
+    now() + interval '1 day',
     'Assign deny role at building scope',
     'idem_assign_deny_bld'
   )$$,
@@ -1012,7 +1012,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid,
-    null,
+    now() + interval '1 day',
     'Assign doc viewer at unit scope',
     'idem_assign_doc_viewer'
   )$$,
@@ -1151,7 +1151,7 @@ select ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid,
-    null,
+    now() + interval '1 day',
     'Assign unit inspector to Unit 101',
     'idem_assign_unit_101'
   ))->>'action' = 'assign_role',

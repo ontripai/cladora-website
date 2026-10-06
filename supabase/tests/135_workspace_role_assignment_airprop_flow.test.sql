@@ -81,8 +81,8 @@ begin
   -- Context Grants
   insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at, ends_at) values
     (v_ctx_admin_id, v_tenant_id, v_mem_admin_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '12 hours'),
-    (v_ctx_admin_ws2_id, v_tenant_id, v_mem_admin_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day'),
-    (v_ctx_member_id, v_tenant_id, v_mem_target_id, 'property', v_prop_id, statement_timestamp() - interval '1 day')
+    (v_ctx_admin_ws2_id, v_tenant_id, v_mem_admin_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day', null),
+    (v_ctx_member_id, v_tenant_id, v_mem_target_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', null)
   on conflict (id) do nothing;
 
   -- Active Taxonomy Assignment
