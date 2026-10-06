@@ -1,5 +1,74 @@
 begin;
 
+-- Only new handovers carry lineage. Existing assignments keep their established
+-- semantics until explicitly migrated under a reviewed authority contract.
+create table platform.workspace_role_handover_lineage (
+  successor_assignment_id uuid primary key references platform.workspace_member_roles(id),
+  manager_membership_id uuid not null references identity.memberships(id),
+  manager_context_id uuid not null references identity.context_grants(id),
+  parent_assignment_id uuid references platform.workspace_member_roles(id),
+  created_at timestamptz not null default statement_timestamp(),
+  check (parent_assignment_id is distinct from successor_assignment_id)
+);
+revoke all on platform.workspace_role_handover_lineage from public,anon,authenticated,service_role;
+
+create function app_private.workspace_role_handover_lineage_valid_v1(
+  p_assignment_id uuid,p_permission_id uuid,p_seen uuid[] default '{}'::uuid[]
+) returns boolean language plpgsql stable security definer set search_path=pg_catalog
+as $$
+declare
+  link platform.workspace_role_handover_lineage%rowtype;
+  child platform.workspace_member_roles%rowtype;
+  parent platform.workspace_member_roles%rowtype;
+begin
+  if p_assignment_id is null or p_assignment_id=any(p_seen)
+    or cardinality(p_seen)>=16 then return false; end if;
+  select * into child from platform.workspace_member_roles where id=p_assignment_id;
+  if not found or child.valid_from>statement_timestamp()
+    or (child.valid_to is not null and child.valid_to<=statement_timestamp()) then return false; end if;
+  select * into link from platform.workspace_role_handover_lineage
+    where successor_assignment_id=p_assignment_id;
+  if not found then return true; end if;
+  if not exists(select 1 from identity.memberships m
+    join identity.context_grants g on g.id=link.manager_context_id
+      and g.membership_id=m.id and g.tenant_id=m.tenant_id
+    where m.id=link.manager_membership_id and m.tenant_id=child.tenant_id
+      and m.status='active' and m.starts_at<=statement_timestamp()
+      and (m.ends_at is null or m.ends_at>statement_timestamp())
+      and g.starts_at<=statement_timestamp()
+      and (g.ends_at is null or g.ends_at>statement_timestamp())) then return false; end if;
+  if link.parent_assignment_id is not null then
+    select * into parent from platform.workspace_member_roles where id=link.parent_assignment_id;
+    if not found or parent.tenant_id<>child.tenant_id
+      or parent.customer_workspace_id<>child.customer_workspace_id
+      or parent.membership_id<>link.manager_membership_id
+      or parent.workspace_role_id<>child.workspace_role_id
+      or parent.scope_type<>child.scope_type
+      or parent.property_id is distinct from child.property_id
+      or parent.building_id is distinct from child.building_id
+      or parent.unit_id is distinct from child.unit_id
+      or (parent.valid_to is not null and child.valid_to is not null and parent.valid_to<child.valid_to)
+      or (parent.valid_to is not null and child.valid_to is null) then return false; end if;
+    return app_private.workspace_role_handover_lineage_valid_v1(
+      parent.id,p_permission_id,p_seen||p_assignment_id);
+  end if;
+  -- A base-role authority remains live only while its current role grants the
+  -- permission. A changed membership role, expiry, or explicit deny cuts access.
+  return exists(select 1 from identity.memberships m
+    join identity.role_permissions rp on rp.role_id=m.role_id and rp.effect='allow'
+    join identity.permissions p on p.id=rp.permission_id
+    where m.id=link.manager_membership_id
+      and (p.id=p_permission_id or (p_permission_id is null and p.code='workspace.role.assign')))
+    and not exists(select 1 from identity.memberships m
+      join identity.role_permissions rp on rp.role_id=m.role_id and rp.effect='deny'
+      join identity.permissions p on p.id=rp.permission_id
+      where m.id=link.manager_membership_id
+        and (p.id=p_permission_id or (p_permission_id is null and p.code='workspace.role.assign')));
+end;
+$$;
+revoke all on function app_private.workspace_role_handover_lineage_valid_v1(uuid,uuid,uuid[])
+  from public,anon,authenticated,service_role;
+
 -- One transaction transfers the same role and scope to a successor. Historic
 -- assignment rows and domain audit actor IDs remain immutable.
 create function customer_api.handover_workspace_role_v1(
@@ -26,6 +95,7 @@ declare
   actor_context_end timestamptz;
   successor_membership_end timestamptz;
   role_end timestamptz;
+  parent_id uuid;
 begin
   if p_idempotency_key is null or p_idempotency_key !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$'
     or p_reason is null or length(btrim(p_reason)) < 5 then
@@ -128,11 +198,34 @@ begin
     raise exception 'workspace_handover_authority_subset_required' using errcode='42501';
   end if;
 
+  select a.id into parent_id from platform.workspace_member_roles a
+    where a.tenant_id=actor.tenant_id and a.customer_workspace_id=actor.workspace_id
+      and a.membership_id=actor.membership_id and a.workspace_role_id=previous.workspace_role_id
+      and a.scope_type=previous.scope_type
+      and a.property_id is not distinct from previous.property_id
+      and a.building_id is not distinct from previous.building_id
+      and a.unit_id is not distinct from previous.unit_id
+      and a.valid_from<=statement_timestamp()
+      and (a.valid_to is null or (p_valid_until is not null and a.valid_to>=p_valid_until))
+      and app_private.workspace_role_handover_lineage_valid_v1(a.id,null)
+    order by a.valid_to desc nulls first,a.id limit 1;
+  if parent_id is null and exists(select 1 from platform.workspace_role_permissions rp
+    where rp.workspace_role_id=previous.workspace_role_id and rp.effect='allow'
+      and (not exists(select 1 from identity.role_permissions base
+        where base.role_id=actor.role_id and base.permission_id=rp.permission_id and base.effect='allow')
+        or exists(select 1 from identity.role_permissions denied
+          where denied.role_id=actor.role_id and denied.permission_id=rp.permission_id and denied.effect='deny'))) then
+    raise exception 'workspace_handover_authority_provenance_required' using errcode='42501';
+  end if;
+
   derived_key := 'handover:'||substr(payload_hash,1,48);
   new_assignment := customer_api.assign_workspace_role_v1(
     p_context_id,p_successor_membership_id,previous.workspace_role_id,
     previous.scope_type,previous.property_id,previous.building_id,previous.unit_id,
     p_valid_until,p_reason,derived_key||':assign');
+  insert into platform.workspace_role_handover_lineage(
+    successor_assignment_id,manager_membership_id,manager_context_id,parent_assignment_id)
+  values((new_assignment->>'id')::uuid,actor.membership_id,p_context_id,parent_id);
   revoked := customer_api.revoke_workspace_role_assignment_v1(
     p_context_id,previous.id,p_expected_lock_version,p_reason,derived_key||':revoke');
   result := jsonb_build_object('action','handover_role','previous',revoked,
