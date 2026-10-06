@@ -51,6 +51,30 @@ try{
  await check('Session read asks for sign-in',async()=>{session=true;await render();assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/session needs verification/);session=false;});
  await check('Conflict refresh preserves uncontrolled draft fields and resets command key',async()=>{writes=[];conflict=true;await render();await fill();fields();await submit();assert.match(document.body.textContent,/request changed/);assert.equal(document.querySelector('button[type="submit"]').disabled,true);conflict=false;await act(async()=>document.querySelector('button[type="button"]').click());assert.equal(document.querySelector('textarea').value,'Synthetic quote scope');assert.equal(document.querySelector('input[name="amount"]').value,'120.50');assert.equal(document.querySelector('input[name="expiry"]').value,'2099-01-01T12:00');await submit();assert.equal(writes.length,2);assert.notEqual(writes[0].idempotency_key,writes[1].idempotency_key);});
  await check('Invalid amount and past expiry never send',async()=>{writes=[];await render();await fill();fields();document.querySelector('input[name="amount"]').value='1.234';await submit();assert.equal(writes.length,0);fields();document.querySelector('input[name="expiry"]').value='2000-01-01T12:00';await submit();assert.equal(writes.length,0);});
+ for(const lang of ['en','ro','fa'])await check(lang+' identifies invalid fields and focuses the first',async()=>{
+   writes=[];await render(lang);await submit();
+   const request=document.querySelector('select'),scope=document.querySelector('textarea'),amount=document.querySelector('input[name="amount"]'),expiry=document.querySelector('input[name="expiry"]');
+   assert.equal(document.activeElement,request);
+   for(const control of [request,scope,amount,expiry]){
+     assert.equal(control.getAttribute('aria-invalid'),'true');
+     assert.equal(document.getElementById(control.getAttribute('aria-describedby')).textContent.length>0,true);
+   }
+   assert.equal(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
+   assert.equal(writes.length,0);
+   await fill();const editedScope=document.querySelector('textarea'),editedAmount=document.querySelector('input[name="amount"]'),editedExpiry=document.querySelector('input[name="expiry"]');editedScope.value='   ';editedAmount.value='1.234';editedExpiry.value='2000-01-01T12:00';await submit();
+   assert.ok(document.activeElement===editedScope);
+   assert.equal(editedScope.value,'   ');
+   assert.equal(editedAmount.value,'1.234');
+   assert.equal(editedExpiry.value,'2000-01-01T12:00');
+ });
+ await check('Correcting each field clears its own error and zero amount is accepted',async()=>{
+   writes=[];await render();await fill();fields();document.querySelector('input[name="amount"]').value='-1';await submit();
+   const amount=document.querySelector('input[name="amount"]');assert.equal(document.activeElement,amount);
+   assert.equal(amount.getAttribute('aria-invalid'),'true');
+   Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set.call(amount,'0');
+   await act(async()=>amount.dispatchEvent(new window.Event('input',{bubbles:true})));
+   assert.equal(amount.getAttribute('aria-invalid'),'false');await submit();assert.equal(writes.length,1);assert.equal(writes[0].total_minor,'0');
+ });
  await check('Exact shared-currency decimal conversion and boundaries',async()=>{for(const code of ['RON','EUR','GBP','USD']){assert.equal(minor('0.1',code),'10');assert.equal(minor('0',code),'0');assert.equal(minor('90071992547409.93',code),'9007199254740993');assert.equal(major('9007199254740993',code),'90071992547409.93');assert.equal(major('0',code),'0.00');for(const bad of ['01','-1','1.234','1e2','10000000000000000','1,23'])assert.equal(minor(bad,code),null);}});
  console.log(`${cases} SERVICE quote UI scenarios passed`);
 }finally{await act(async()=>root.unmount());dom.window.close();}
