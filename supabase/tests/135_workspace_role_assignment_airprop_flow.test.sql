@@ -175,7 +175,7 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('13500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,'Synthetic manage attachment','flow_manage_135');
  perform customer_api.publish_workspace_role_v1('13500000-0000-0000-0000-000010000001',role_id,4,'Synthetic publish role','flow_publish_135');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($flow$do $
+select lives_ok($flow$do $$
 declare result jsonb; role_id uuid;
 begin
  result=customer_api.create_workspace_role_draft_v1('13500000-0000-0000-0000-000010000001','airprop_flow_child_manager','AIRPROP flow child manager','Synthetic delegated child authority','workspace',null,'Synthetic child authority','flow_child_create_135');
