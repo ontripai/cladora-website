@@ -223,7 +223,7 @@ grant execute on function customer_api.revoke_workspace_role_assignment_v2(
 revoke execute on function customer_api.assign_workspace_role_v1(
   uuid,uuid,uuid,text,uuid,uuid,uuid,timestamptz,text,text) from authenticated;
 revoke execute on function customer_api.assign_workspace_building_role_v1(
-  uuid,uuid,uuid,uuid,timestamptz,text,text) from authenticated;
+  uuid,uuid,uuid,text,uuid,uuid,uuid,timestamptz,text,text) from authenticated;
 revoke execute on function customer_api.revoke_workspace_role_assignment_v1(
   uuid,uuid,integer,text,text) from authenticated;
 notify pgrst,'reload schema';
