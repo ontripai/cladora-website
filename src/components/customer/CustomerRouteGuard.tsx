@@ -185,7 +185,10 @@ export function CustomerRouteGuard({
   // This only opens the selector; both target discovery and every domain RPC
   // independently authenticate and evaluate current canonical core assignments.
   if (classification.requirement?.nativeWorkspaceDiscovery) {
-    return state.active?.scope_type === 'tenant'
+    // The Core page discovers only authorized native contexts inside its RPC.
+    // Setup reviewers have no customer dashboard and keep their review context
+    // out of the ordinary dashboard selector.
+    return (appPath === '/app/ownership/relationships' || state.active?.scope_type === 'tenant')
       ? <>{children}</>
       : <AccessRestrictedCard lang={lang} reason="context" />;
   }

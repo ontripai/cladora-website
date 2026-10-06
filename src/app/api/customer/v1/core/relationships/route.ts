@@ -10,9 +10,10 @@ const key = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/);
 const reference = z.string().trim().min(15).max(500);
 const reason = z.string().trim().min(8).max(500);
 const date = z.iso.date();
-const query = z.object({ context_id: uuidSchema, workspace_id: uuidSchema, property_id: uuidSchema.optional(),
-  view: z.enum(["proposals", "subjects", "properties"]).default("proposals") }).strict().superRefine((value, ctx) => {
-  if (value.view !== "properties" && !value.property_id) ctx.addIssue({ code: "custom", message: "property_id required" });
+const query = z.object({ context_id: uuidSchema.optional(), workspace_id: uuidSchema.optional(), property_id: uuidSchema.optional(),
+  view: z.enum(["proposals", "subjects", "properties", "contexts"]).default("proposals") }).strict().superRefine((value, ctx) => {
+  if (value.view !== "contexts" && (!value.context_id || !value.workspace_id)) ctx.addIssue({ code: "custom", message: "context and workspace required" });
+  if (!["properties", "contexts"].includes(value.view) && !value.property_id) ctx.addIssue({ code: "custom", message: "property_id required" });
 });
 const common = { context_id: uuidSchema, workspace_id: uuidSchema,
   request_id: uuidSchema, idempotency_key: key, evidence_reference: reference, reason };
@@ -43,9 +44,10 @@ export async function GET(request: NextRequest) {
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401, headers: HEADERS });
   const p = parsed.data;
-  const name = p.view === "subjects" ? "list_core_relationship_subjects_v1" :
+  const name = p.view === "contexts" ? "list_core_relationship_contexts_v1" :
+    p.view === "subjects" ? "list_core_relationship_subjects_v1" :
     p.view === "properties" ? "list_core_relationship_properties_v1" : "list_core_relationship_proposals_v1";
-  const args = p.view === "properties" ? { p_context_id: p.context_id, p_workspace_id: p.workspace_id } :
+  const args = p.view === "contexts" ? {} : p.view === "properties" ? { p_context_id: p.context_id, p_workspace_id: p.workspace_id } :
     { p_context_id: p.context_id, p_workspace_id: p.workspace_id, p_property_id: p.property_id };
   const { data, error } = await (supabase.schema("customer_api") as any).rpc(name, args);
   if (error) return failure(error);

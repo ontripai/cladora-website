@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import type { Language } from "@/types";
-import { useCustomerContext } from "./CustomerContextProvider";
 
 type Subject = { id: string; code: string; building: string };
 type Party = { id: string; name: string };
-type Property = { id: string; name: string };
+type NativeContext = { context_id: string; workspace_id: string; property_id: string;
+  property_name: string; can_propose: boolean; can_review: boolean };
 type Proposal = { id: string; unit_id: string; kind: string; source_party_id: string | null;
   target_party_id: string; effective_from: string; proposed_at: string; proposed_by: string;
   decision: string | null; review_id: string | null };
@@ -36,12 +36,12 @@ const copy = {
 
 export function RelationshipReviewPanel({ lang }: { lang: Language }) {
   const t = copy[lang];
-  const { active, dashboard } = useCustomerContext();
-  const contextId = active?.context_id;
-  const workspaceId = dashboard?.workspace_id;
-  const [properties, setProperties] = useState<Property[]>([]);
-  const [selectedProperty, setSelectedProperty] = useState("");
-  const propertyId = dashboard?.context.property_id || selectedProperty;
+  const [contexts, setContexts] = useState<NativeContext[]>([]);
+  const [selectedScope, setSelectedScope] = useState("");
+  const current = contexts.find(c => `${c.context_id}/${c.workspace_id}/${c.property_id}` === selectedScope);
+  const contextId = current?.context_id;
+  const workspaceId = current?.workspace_id;
+  const propertyId = current?.property_id;
   const [units, setUnits] = useState<Subject[]>([]);
   const [parties, setParties] = useState<Party[]>([]);
   const [proposals, setProposals] = useState<Proposal[]>([]);
@@ -56,15 +56,14 @@ export function RelationshipReviewPanel({ lang }: { lang: Language }) {
   const ready = loadedScope === scope;
 
   useEffect(() => {
-    if (!contextId || !workspaceId || dashboard?.context.property_id) return;
     const abort = new AbortController();
-    const params = new URLSearchParams({ context_id: contextId, workspace_id: workspaceId, view: "properties" });
-    void fetch(`/api/customer/v1/core/relationships?${params}`, { cache: "no-store", signal: abort.signal })
-      .then(async response => { if (!response.ok) throw new Error(); return response.json() as Promise<{ properties: Property[] }>; })
-      .then(data => { if (!abort.signal.aborted) { setProperties(data.properties); setSelectedProperty(data.properties[0]?.id ?? ""); } })
+    void fetch("/api/customer/v1/core/relationships?view=contexts", { cache: "no-store", signal: abort.signal })
+      .then(async response => { if (!response.ok) throw new Error(); return response.json() as Promise<{ contexts: NativeContext[] }>; })
+      .then(data => { if (!abort.signal.aborted) { setContexts(data.contexts); const first = data.contexts[0];
+        setSelectedScope(first ? `${first.context_id}/${first.workspace_id}/${first.property_id}` : ""); } })
       .catch(() => { if (!abort.signal.aborted) setMessage(t.unavailable); });
     return () => abort.abort();
-  }, [contextId, workspaceId, dashboard?.context.property_id, t.unavailable]);
+  }, [t.unavailable]);
 
   const reload = useCallback(async (signal?: AbortSignal) => {
     if (!base) return;
@@ -123,9 +122,9 @@ export function RelationshipReviewPanel({ lang }: { lang: Language }) {
   const label = (id: string | null) => parties.find(p => p.id === id)?.name ?? (id ? id.slice(0, 8) : "—");
   return <section className="card-proptech space-y-5 bg-white p-5" dir={lang === "fa" ? "rtl" : "ltr"}>
     <div><h2 className="text-xl font-bold">{t.title}</h2><p className="mt-1 text-sm text-slate-600">{t.note}</p></div>
-    {!dashboard?.context.property_id && properties.length > 0 && <label>{t.property}<select value={selectedProperty} onChange={e => setSelectedProperty(e.target.value)} className="ms-2 rounded border p-2">{properties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
+    {contexts.length > 0 && <label>{t.property}<select value={selectedScope} onChange={e => setSelectedScope(e.target.value)} className="ms-2 rounded border p-2">{contexts.map(c => <option key={`${c.context_id}/${c.workspace_id}/${c.property_id}`} value={`${c.context_id}/${c.workspace_id}/${c.property_id}`}>{c.property_name}</option>)}</select></label>}
     {!propertyId ? <p role="status">{message || t.property}</p> : !ready ? <p role="status">{message || t.unavailable}</p> : <>
-      <form onSubmit={propose} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
+      {current?.can_propose && <form onSubmit={propose} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
         <label>{t.unit}<select name="unit" required className="block w-full rounded border p-2"><option value="">{t.select}</option>{units.map(u => <option key={u.id} value={u.id}>{u.building} · {u.code}</option>)}</select></label>
         <label>{t.kind}<select value={kind} onChange={e => setKind(e.target.value)} className="block w-full rounded border p-2"><option value="contractual_buyer">{t.buyer}</option><option value="ownership_transfer">{t.transfer}</option><option value="lease">{t.lease}</option></select></label>
         {kind !== "contractual_buyer" && <label>{t.source}<select name="source" required className="block w-full rounded border p-2"><option value="">{t.select}</option>{parties.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>}
@@ -135,12 +134,12 @@ export function RelationshipReviewPanel({ lang }: { lang: Language }) {
         <label>{t.evidence}<input name="evidence" minLength={15} maxLength={500} required className="block w-full rounded border p-2" /></label>
         <label>{t.reason}<input name="reason" minLength={8} maxLength={500} required className="block w-full rounded border p-2" /></label>
         <button disabled={busy} className="rounded-lg bg-teal-700 px-4 py-2 font-semibold text-white disabled:opacity-50">{t.send}</button>
-      </form>
+      </form>}
       <div><h3 className="font-bold">{t.proposals}</h3>{proposals.length === 0 && <p className="text-sm">{t.empty}</p>}
         <div className="space-y-3">{proposals.map(p => <article key={p.id} className="rounded-xl border p-3 text-sm">
           <p>{units.find(u => u.id === p.unit_id)?.code ?? p.unit_id.slice(0, 8)} · {p.kind} · {label(p.source_party_id)} → {label(p.target_party_id)} · {p.effective_from}</p>
           <p className="mt-1 text-slate-600">{p.decision ?? t.pending}</p>
-          {!p.review_id && <form className="mt-3 flex flex-wrap gap-2" onSubmit={e => { e.preventDefault(); void review(e.currentTarget, p, "verified"); }}>
+          {!p.review_id && current?.can_review && <form className="mt-3 flex flex-wrap gap-2" onSubmit={e => { e.preventDefault(); void review(e.currentTarget, p, "verified"); }}>
             <input name="evidence" aria-label={t.evidence} placeholder={t.evidence} minLength={15} maxLength={500} required className="rounded border p-2" />
             <input name="reason" aria-label={t.reason} placeholder={t.reason} minLength={8} maxLength={500} required className="rounded border p-2" />
             <button disabled={busy} className="rounded bg-teal-700 px-3 py-2 text-white">{t.approve}</button>
