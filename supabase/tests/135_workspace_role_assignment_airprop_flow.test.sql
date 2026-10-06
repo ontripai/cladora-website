@@ -75,7 +75,7 @@ begin
   insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at, ends_at) values
     (v_mem_admin_id, v_tenant_id, v_user_admin_id, v_admin_role_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '7 days'),
     (v_mem_target_id, v_tenant_id, v_user_member_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '10 days'),
-    (v_mem_other_id, v_tenant2_id, v_user_other_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day')
+    (v_mem_other_id, v_tenant2_id, v_user_other_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day', null)
   on conflict (id) do nothing;
 
   -- Context Grants
