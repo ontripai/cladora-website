@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(29);
+select plan(31);
 do $$
 declare
   v_tenant_id uuid := '13500000-0000-0000-0000-000000000001'::uuid;
@@ -192,13 +192,13 @@ select ok(not app_private.check_effective_permission_v2(
 update identity.role_permissions set effect='allow'
 where role_id=(select role_id from identity.memberships where id='13500000-0000-0000-0000-000001000001')
   and permission_id=(select id from identity.permissions where code='airprop.opportunity.manage');
-select app_private.workspace_member_role_authority_active_v1(
+select ok(app_private.workspace_member_role_authority_active_v1(
  (select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),
  (select id from identity.permissions where code='airprop.opportunity.manage'),
  (select id from platform.module_definitions where code='airprop_commercial'),
- 'workspace',null,'{}'::uuid[]) as authority_debug;
-select app_private.native_workspace_scope_for_membership_v2(
- '13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000001000002','13500000-0000-0000-0000-000000000100') as native_scope_debug;
+ 'workspace',null,'{}'::uuid[]), 'restored descendant lineage remains active');
+select ok(app_private.native_workspace_scope_for_membership_v2(
+ '13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000001000002','13500000-0000-0000-0000-000000000100'), 'target tenant context resolves the exact assigned workspace');
 select ok(app_private.check_effective_permission_v2(
  '13500000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial',
  'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),

@@ -8,7 +8,7 @@
 -- Workspace Taxonomy != Module Activation != Entitlement != Permission != Role != Delegation != Country Pack
 -- =============================================================================
 begin;
-select plan(97);
+select plan(98);
 
 -- 1. Structural & Table Schema Verification (6 assertions)
 select ok(to_regclass('platform.module_permission_bindings') is not null, 'platform.module_permission_bindings table exists');
@@ -734,6 +734,35 @@ select throws_ok(
 select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000020', 'aal', 'aal1')::text, true);
 
 -- 7.1 Path B Allow: Unit 101 has allow -> returns true
+
+select ok(app_private.workspace_role_identity_source_current_v1(
+ (select a.assigned_by_context_grant_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select a.assigned_by_membership_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select s.source_identity_role_id from platform.workspace_member_role_authority_sources s
+  join platform.workspace_member_roles a on a.id=s.assignment_id
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+    and s.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
+  order by a.created_at desc limit 1),
+ (select a.tenant_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select a.customer_workspace_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select id from identity.permissions where code='maintenance.requests.manage'),
+ (select id from platform.module_definitions where code='maintenance'),
+ 'unit','09000000-0000-0000-0000-000000100001'),
+ 'grantor identity source is still current at the exact unit scope');
+
 select ok(app_private.workspace_member_role_authority_active_v1(
  (select id from platform.workspace_member_roles where membership_id='09000000-0000-0000-0000-000001000002' and workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector') order by created_at desc limit 1),
  (select id from identity.permissions where code='maintenance.requests.manage'),
