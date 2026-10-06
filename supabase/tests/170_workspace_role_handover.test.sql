@@ -30,8 +30,8 @@ begin
     from platform.property_profiles p cross join platform.operating_models o
     where p.code='residential_condominium' and p.version=1
       and o.code='association_managed' and o.version=1;
-  select id into admin_role from identity.roles where code='association_admin' and tenant_id is null limit 1;
-  select id into owner_role from identity.roles where code='owner' and tenant_id is null limit 1;
+  select r.id into admin_role from identity.roles r where r.code='association_admin' and r.tenant_id is null limit 1;
+  select r.id into owner_role from identity.roles r where r.code='owner' and r.tenant_id is null limit 1;
   insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
     values(admin_mem,tenant_id,admin_id,admin_role,'active',now()-interval '1 day'),
       (old_mem,tenant_id,old_id,owner_role,'active',now()-interval '1 day'),
