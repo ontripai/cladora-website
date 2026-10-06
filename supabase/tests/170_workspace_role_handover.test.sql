@@ -7,6 +7,7 @@ do $$
 declare
   tenant_id uuid := '17000000-0000-0000-0000-000000000001';
   ws_id uuid := '17000000-0000-0000-0000-000000000100';
+  prop_id uuid := '17000000-0000-0000-0000-000000001000';
   admin_id uuid := '17000000-0000-0000-0000-000000000010';
   old_id uuid := '17000000-0000-0000-0000-000000000020';
   next_id uuid := '17000000-0000-0000-0000-000000000030';
@@ -24,6 +25,10 @@ begin
     values(tenant_id,'Handover tenant','RO-TEST-170','active');
   insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_owner,environment,lifecycle_status)
     values(ws_id,tenant_id,'ASSOCIATION','Owner 170','PILOT','ACTIVE');
+  insert into portfolio.properties(id,tenant_id,type,name,status)
+    values(prop_id,tenant_id,'condominium','Handover property','active');
+  insert into platform.workspace_property_bindings(tenant_id,customer_workspace_id,property_id,status,binding_source)
+    values(tenant_id,ws_id,prop_id,'active','platform_assignment');
   insert into platform.workspace_taxonomy_assignments(
     tenant_id,customer_workspace_id,property_profile_id,operating_model_id,status,valid_from,created_by,country_code)
     select tenant_id,ws_id,p.id,o.id,'active',now()-interval '1 day',admin_id,'RO'
@@ -36,10 +41,10 @@ begin
     values(admin_mem,tenant_id,admin_id,admin_role,'active',now()-interval '1 day'),
       (old_mem,tenant_id,old_id,owner_role,'active',now()-interval '1 day'),
       (next_mem,tenant_id,next_id,owner_role,'active',now()-interval '1 day');
-  insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at)
-    values('17000000-0000-0000-0000-000010000001',tenant_id,admin_mem,'tenant',now()-interval '1 day'),
-      ('17000000-0000-0000-0000-000010000002',tenant_id,old_mem,'tenant',now()-interval '1 day'),
-      ('17000000-0000-0000-0000-000010000003',tenant_id,next_mem,'tenant',now()-interval '1 day');
+  insert into identity.context_grants(id,tenant_id,membership_id,scope_type,property_id,starts_at)
+    values('17000000-0000-0000-0000-000010000001',tenant_id,admin_mem,'property',prop_id,now()-interval '1 day'),
+      ('17000000-0000-0000-0000-000010000002',tenant_id,old_mem,'property',prop_id,now()-interval '1 day'),
+      ('17000000-0000-0000-0000-000010000003',tenant_id,next_mem,'property',prop_id,now()-interval '1 day');
   insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
     select tenant_id,ws_id,id,code,'active','Synthetic handover' from platform.module_definitions
       where code='airprop_commercial';
@@ -47,7 +52,7 @@ begin
     values(ws_id,'module.airprop_commercial','boolean',true,now()-interval '1 day');
   perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'aal','aal2')::text,true);
   result := customer_api.create_workspace_role_draft_v1('17000000-0000-0000-0000-000010000001',
-    'handover_reader','Handover reader','Synthetic role handover','workspace',null,
+    'handover_reader','Handover reader','Synthetic role handover','property',prop_id,
     'Synthetic role handover','handover_create_170');
   role_id := (result->>'id')::uuid;
   perform customer_api.attach_workspace_role_module_v1('17000000-0000-0000-0000-000010000001',
@@ -67,7 +72,7 @@ select ok(not has_function_privilege('anon',
 select lives_ok($$select customer_api.assign_workspace_role_v1(
   '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000002',
   (select id from platform.workspace_roles where code='handover_reader'),
-  'workspace',null,null,null,now()+interval '1 day','Synthetic first assignment','handover_assign_170')$$,
+  'property','17000000-0000-0000-0000-000000001000',null,null,now()+interval '1 day','Synthetic first assignment','handover_assign_170')$$,
   'manager assigns old member');
 select throws_ok($$select customer_api.handover_workspace_role_v1(
   '17000000-0000-0000-0000-000010000001',
@@ -106,12 +111,14 @@ select ok((select count(*) from audit.events where action='WORKSPACE_ROLE_HANDED
   and tenant_id='17000000-0000-0000-0000-000000000001')=1,'one transfer audit');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000020","aal":"aal2"}',true);
-select ok((select count(*) from customer_api.list_workspace_targets_v2(
-  '17000000-0000-0000-0000-000010000002'))=0,'previous member loses discovery');
+select ok(not app_private.check_scoped_effective_permission_v1(
+  '17000000-0000-0000-0000-000010000002','airprop.opportunity.read','airprop_commercial',
+  'property','17000000-0000-0000-0000-000000001000'),'previous member loses scoped permission');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
-select ok((select count(*) from customer_api.list_workspace_targets_v2(
-  '17000000-0000-0000-0000-000010000003'))=1,'successor gains workspace discovery');
+select ok(app_private.check_scoped_effective_permission_v1(
+  '17000000-0000-0000-0000-000010000003','airprop.opportunity.read','airprop_commercial',
+  'property','17000000-0000-0000-0000-000000001000'),'successor gains scoped permission');
 select ok((select count(*) from platform.workspace_member_roles where membership_id=
   '17000000-0000-0000-0000-000001000002' and assigned_by_user_id=
   '17000000-0000-0000-0000-000000000010')=1,'historic assignment attribution survives');
