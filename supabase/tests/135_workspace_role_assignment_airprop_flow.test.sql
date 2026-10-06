@@ -140,11 +140,12 @@ select is((select valid_to from platform.workspace_member_roles where membership
 select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000001','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '30 days','Synthetic bounded assignment','flow_assign_135')$$,'exact assignment retry succeeds');
 set local role postgres;
 update identity.memberships set ends_at=statement_timestamp()+interval '5 days' where id='13500000-0000-0000-0000-000001000001';
-set local role authenticated;
+set local role postgres;
 select is((select valid_to from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),(select ends_at from identity.memberships where id='13500000-0000-0000-0000-000001000001'),'shortening a manager term shortens delegated access');
 select ok(exists(select 1 from audit.events where action='WORKSPACE_ROLE_ASSIGNMENT_SUPERVISOR_CAPPED' and entity_id=(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')),'automatic child-role cap is recorded in the audit log');
 select ok((select count(*) from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')=1,'retry creates one assignment');
 select ok(exists(select 1 from audit.events where action='WORKSPACE_ROLE_ASSIGNED' and tenant_id='13500000-0000-0000-0000-000000000001'),'assignment audit contains tenant');
+set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok((select count(*) from customer_api.list_workspace_targets_v2('13500000-0000-0000-0000-000010000010'))=1,'assigned account discovers one exact workspace');
 select lives_ok($$select customer_api.create_airprop_opportunity_v2('13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000000000100','flow_opportunity_135','{"name":"Synthetic AIRPROP authorized flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"12.3400"}')$$,'authorized account creates native opportunity without physical subject');
@@ -155,7 +156,9 @@ select throws_ok($$select customer_api.list_airprop_opportunities_v2('13500000-0
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 select lives_ok($$select customer_api.revoke_workspace_role_assignment_v1('13500000-0000-0000-0000-000010000001',(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),2,'Synthetic revoke before expiry','flow_revoke_135')$$,'future-expiring assignment can be revoked early');
 select lives_ok($$select customer_api.revoke_workspace_role_assignment_v1('13500000-0000-0000-0000-000010000001',(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),2,'Synthetic revoke before expiry','flow_revoke_135')$$,'revocation exact retry succeeds');
+set local role postgres;
 select ok((select lock_version from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')=3,'revocation retry increments version once after automatic supervisor cap');
+set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok((select count(*) from customer_api.list_workspace_targets_v2('13500000-0000-0000-0000-000010000010'))=0,'revocation removes workspace discovery');
 select throws_ok($$select customer_api.create_airprop_opportunity_v2('13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000000000100','flow_opportunity_135','{"name":"Synthetic AIRPROP authorized flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"12.3400"}')$$,'42501','workspace_native_context_access_denied','revoked account cannot replay successful commercial command');
