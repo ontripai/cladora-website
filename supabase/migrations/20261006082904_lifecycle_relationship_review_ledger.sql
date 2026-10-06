@@ -25,6 +25,11 @@ create index relationship_proposals_subject_idx
  on portfolio.relationship_proposals(tenant_id,unit_id,proposed_at desc);
 create index relationship_proposals_workspace_idx
  on portfolio.relationship_proposals(customer_workspace_id,proposed_at desc);
+create index relationship_proposals_property_idx on portfolio.relationship_proposals(property_id);
+create index relationship_proposals_unit_idx on portfolio.relationship_proposals(unit_id);
+create index relationship_proposals_source_party_idx on portfolio.relationship_proposals(source_party_id);
+create index relationship_proposals_target_party_idx on portfolio.relationship_proposals(target_party_id);
+create index relationship_proposals_proposed_by_idx on portfolio.relationship_proposals(proposed_by);
 
 create table portfolio.relationship_reviews (
  id uuid primary key default gen_random_uuid(),
@@ -37,6 +42,7 @@ create table portfolio.relationship_reviews (
  reviewed_at timestamptz not null default statement_timestamp()
 );
 create index relationship_reviews_tenant_idx on portfolio.relationship_reviews(tenant_id,reviewed_at desc);
+create index relationship_reviews_reviewed_by_idx on portfolio.relationship_reviews(reviewed_by);
 
 create function app_private.guard_relationship_proposal_v1()
 returns trigger language plpgsql security definer set search_path=pg_catalog as $$
