@@ -119,12 +119,9 @@ begin
       and (a.valid_to is null or (p_valid_until is not null and a.valid_to>=p_valid_until))
       and app_private.workspace_role_handover_lineage_valid_v1(a.id,null)
     order by a.valid_to desc nulls first,a.id limit 1;
-  if parent_id is null and exists(select 1 from platform.workspace_role_permissions rp
-    where rp.workspace_role_id=p_workspace_role_id and rp.effect='allow'
-      and (not exists(select 1 from identity.role_permissions base
-        where base.role_id=actor.role_id and base.permission_id=rp.permission_id and base.effect='allow')
-        or exists(select 1 from identity.role_permissions denied
-          where denied.role_id=actor.role_id and denied.permission_id=rp.permission_id and denied.effect='deny'))) then
+  if parent_id is null and not app_private.workspace_role_manager_has_sources_v1(
+    actor.membership_id,actor.workspace_id,p_workspace_role_id,p_scope_type,
+    target_property,target_building,p_unit_id,p_valid_until) then
     raise exception 'workspace_role_assignment_authority_provenance_required' using errcode='42501';
   end if;
   result:=customer_api.assign_workspace_role_v1(p_context_id,p_target_membership_id,
