@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(24);
+select plan(27);
 do $$
 declare
   v_tenant_id uuid := '13500000-0000-0000-0000-000000000001'::uuid;
@@ -72,9 +72,9 @@ begin
   select id into v_admin_role_id from identity.roles where lower(code) = 'association_admin' and tenant_id is null and is_system = true limit 1;
   select id into v_member_role_id from identity.roles where lower(code) = 'owner' and tenant_id is null and is_system = true limit 1;
 
-  insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at) values
-    (v_mem_admin_id, v_tenant_id, v_user_admin_id, v_admin_role_id, 'active', statement_timestamp() - interval '1 day'),
-    (v_mem_target_id, v_tenant_id, v_user_member_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day'),
+  insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at, ends_at) values
+    (v_mem_admin_id, v_tenant_id, v_user_admin_id, v_admin_role_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '7 days'),
+    (v_mem_target_id, v_tenant_id, v_user_member_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day', statement_timestamp() + interval '10 days'),
     (v_mem_other_id, v_tenant2_id, v_user_other_id, v_member_role_id, 'active', statement_timestamp() - interval '1 day')
   on conflict (id) do nothing;
 
@@ -135,8 +135,14 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('13500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,'Synthetic manage attachment','flow_manage_135');
  perform customer_api.publish_workspace_role_v1('13500000-0000-0000-0000-000010000001',role_id,4,'Synthetic publish role','flow_publish_135');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000001','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'assign published workspace role with future expiry');
-select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000001','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'exact assignment retry succeeds');
+select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000001','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '30 days','Synthetic bounded assignment','flow_assign_135')$$,'assignment beyond manager term is accepted but capped');
+select is((select valid_to from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),(select ends_at from identity.memberships where id='13500000-0000-0000-0000-000001000001'),'delegated role ends with the assigning manager term');
+select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000001','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '30 days','Synthetic bounded assignment','flow_assign_135')$$,'exact assignment retry succeeds');
+set local role postgres;
+update identity.memberships set ends_at=statement_timestamp()+interval '5 days' where id='13500000-0000-0000-0000-000001000001';
+set local role authenticated;
+select is((select valid_to from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),(select ends_at from identity.memberships where id='13500000-0000-0000-0000-000001000001'),'shortening a manager term shortens delegated access');
+select ok(exists(select 1 from audit.events where action='WORKSPACE_ROLE_ASSIGNMENT_SUPERVISOR_CAPPED' and entity_id=(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')),'automatic child-role cap is recorded in the audit log');
 select ok((select count(*) from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')=1,'retry creates one assignment');
 select ok(exists(select 1 from audit.events where action='WORKSPACE_ROLE_ASSIGNED' and tenant_id='13500000-0000-0000-0000-000000000001'),'assignment audit contains tenant');
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
@@ -147,9 +153,9 @@ select ok((select count(*) from airprop.investment_opportunities where workspace
 select ok(jsonb_array_length(customer_api.list_airprop_opportunities_v2('13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000000000100',50)->'opportunities')=1,'account can read its native opportunity');
 select throws_ok($$select customer_api.list_airprop_opportunities_v2('13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000000000200',50)$$,'42501','workspace_native_context_access_denied','second workspace denied');
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000010","aal":"aal2"}',true);
-select lives_ok($$select customer_api.revoke_workspace_role_assignment_v1('13500000-0000-0000-0000-000010000001',(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),1,'Synthetic revoke before expiry','flow_revoke_135')$$,'future-expiring assignment can be revoked early');
-select lives_ok($$select customer_api.revoke_workspace_role_assignment_v1('13500000-0000-0000-0000-000010000001',(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),1,'Synthetic revoke before expiry','flow_revoke_135')$$,'revocation exact retry succeeds');
-select ok((select lock_version from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')=2,'revocation retry increments version once');
+select lives_ok($$select customer_api.revoke_workspace_role_assignment_v1('13500000-0000-0000-0000-000010000001',(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),2,'Synthetic revoke before expiry','flow_revoke_135')$$,'future-expiring assignment can be revoked early');
+select lives_ok($$select customer_api.revoke_workspace_role_assignment_v1('13500000-0000-0000-0000-000010000001',(select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),2,'Synthetic revoke before expiry','flow_revoke_135')$$,'revocation exact retry succeeds');
+select ok((select lock_version from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')=3,'revocation retry increments version once after automatic supervisor cap');
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok((select count(*) from customer_api.list_workspace_targets_v2('13500000-0000-0000-0000-000010000010'))=0,'revocation removes workspace discovery');
 select throws_ok($$select customer_api.create_airprop_opportunity_v2('13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000000000100','flow_opportunity_135','{"name":"Synthetic AIRPROP authorized flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"12.3400"}')$$,'42501','workspace_native_context_access_denied','revoked account cannot replay successful commercial command');
