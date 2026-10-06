@@ -53,8 +53,9 @@ export async function POST(request: NextRequest) {
   }
 
   const { data, error: rpcError } = await (supabase.schema('customer_api') as any)
-    .rpc(parsed.data.scope_type === 'building' ? 'assign_workspace_building_role_v1' : 'assign_workspace_role_v1', {
+    .rpc('assign_workspace_role_v2', {
       p_context_id: parsed.data.context_id,
+      p_authority_context_id: parsed.data.authority_context_id ?? null,
       p_target_membership_id: parsed.data.target_membership_id,
       p_workspace_role_id: parsed.data.workspace_role_id,
       p_scope_type: parsed.data.scope_type,
