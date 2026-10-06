@@ -52,7 +52,7 @@ begin
     values(ws_id,'module.airprop_commercial','boolean',true,now()-interval '1 day');
   perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'aal','aal2')::text,true);
   result := customer_api.create_workspace_role_draft_v1('17000000-0000-0000-0000-000010000001',
-    'handover_reader','Handover reader','Synthetic role handover','property',prop_id,
+    'handover_reader','Handover reader','Synthetic role handover','property',null,
     'Synthetic role handover','handover_create_170');
   role_id := (result->>'id')::uuid;
   perform customer_api.attach_workspace_role_module_v1('17000000-0000-0000-0000-000010000001',
