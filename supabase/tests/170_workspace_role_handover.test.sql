@@ -191,15 +191,19 @@ select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 select customer_api.revoke_workspace_role_assignment_v1(
   '17000000-0000-0000-0000-000010000001',
-  (select id from platform.workspace_member_roles where membership_id='17000000-0000-0000-0000-000001000001'),
+  (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
+    on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000001'
+    and r.code='handover_reader'),
   1,'Synthetic manager authority revoked','handover_manager_revoke_170');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
 select ok(not app_private.check_scoped_effective_permission_v1(
   '17000000-0000-0000-0000-000010000003','airprop.opportunity.read','airprop_commercial',
   'property','17000000-0000-0000-0000-000000001000'),'successor loses permission when manager authority ends');
-select ok((select count(*) from platform.workspace_member_roles where membership_id=
-  '17000000-0000-0000-0000-000001000002' and assigned_by_user_id=
-  '17000000-0000-0000-0000-000000000010')=1,'historic assignment attribution survives');
+select ok((select count(*) from platform.workspace_member_roles a join platform.workspace_roles r
+  on r.id=a.workspace_role_id where a.membership_id=
+  '17000000-0000-0000-0000-000001000002' and r.code='handover_reader'
+  and a.assigned_by_user_id='17000000-0000-0000-0000-000000000010')=1,
+  'historic assignment attribution survives');
 select * from finish();
 rollback;
