@@ -183,7 +183,7 @@ begin
  perform customer_api.attach_workspace_role_module_v1('13500000-0000-0000-0000-000010000001',role_id,(select id from platform.module_definitions where code='airprop_commercial'),1,'Attach child module','flow_child_module_135');
  perform customer_api.attach_workspace_role_permission_v1('13500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',2,'Attach child manage permission','flow_child_manage_135');
  perform customer_api.publish_workspace_role_v1('13500000-0000-0000-0000-000010000001',role_id,3,'Publish child role','flow_child_publish_135');
-end; $;$flow$,'publish narrower child role through canonical commands');
+end; $$;$flow$,'publish narrower child role through canonical commands');
 select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000004','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'assign published workspace role with future expiry');
 select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000004','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'exact assignment retry succeeds');
 select ok((select count(*) from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')=1,'retry creates one assignment');
@@ -209,7 +209,7 @@ select lives_ok($$select customer_api.assign_workspace_role_v1(
  (select id from platform.workspace_roles where code='airprop_flow_child_manager'),
  'workspace',null,null,null,now()+interval '1 day','Narrow delegated child role','flow_child_assign_135')$$,
  'manager with active parent role assigns a narrower child role');
-select ok((select count(*)=1 and bool_and(source_kind='workspace_role_assignment' and authority_depth=1)
+select ok((select count(*)=1 and bool_and(source_kind='workspace_role_assignment' and s.authority_depth=1)
  from platform.workspace_member_role_authority_sources s
  join platform.workspace_member_roles a on a.id=s.assignment_id
  where a.membership_id='13500000-0000-0000-0000-000001000004'),

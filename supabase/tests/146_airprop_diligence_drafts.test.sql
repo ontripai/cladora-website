@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(16);
+select plan(17);
 do $$
 declare
   v_tenant_id uuid := '14600000-0000-0000-0000-000000000001'::uuid;
@@ -140,6 +140,7 @@ values ('14600000-0000-0000-0000-000000000001','14600000-0000-0000-0000-00000000
  '14600000-0000-0000-0000-000001000001','Legacy explicit diligence assignment')$$,'legacy workspace role assignment remains available');
 select set_config('request.jwt.claims','{"sub":"14600000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok(app_private.native_workspace_scope_for_membership_v2('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000001000002','14600000-0000-0000-0000-000000000100'),'legacy assignment resolves target native context');
+select ok(app_private.check_effective_permission_v2('14600000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial','workspace','14600000-0000-0000-0000-000000000100','14600000-0000-0000-0000-000000000100'),'legacy workspace role permits the assigned AIRPROP module permission');
 select lives_ok($$select customer_api.create_airprop_opportunity_v2('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100','diligence_opportunity_146','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);
 select lives_ok($$select customer_api.create_airprop_underwriting_v2('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14600000-0000-0000-0000-000000000100'),'diligence_eval_146',0,'{"acquisition_cost":"100000","annual_rent":"8000","annual_opex":"1000","currency":"EUR"}')$$,'evaluate exact baseline');

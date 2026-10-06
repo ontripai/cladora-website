@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(48);
+select plan(50);
 do $$
 declare
   v_tenant_id uuid := '15100000-0000-0000-0000-000000000001'::uuid;
@@ -141,7 +141,9 @@ values
  ('15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',now(),now()+interval '1 day','15100000-0000-0000-0000-000000000010','15100000-0000-0000-0000-000001000001','Legacy explicit diligence assignment')$$,'legacy workspace role assignment remains available');
 
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000020","aal":"aal2"}',true);
-select lives_ok($$select customer_api.create_airprop_opportunity_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100','diligence_opportunity_151','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
+select ok(app_private.native_workspace_scope_for_membership_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000001000002','15100000-0000-0000-0000-000000000100'),'legacy reviewer role resolves its native workspace');
+select ok(app_private.check_effective_permission_v2('15100000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial','workspace','15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000000000100'),'legacy reviewer role supplies AIRPROP manage permission');
+select lives_ok($select customer_api.create_airprop_opportunity_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100','diligence_opportunity_151','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);
 select lives_ok($$select customer_api.create_airprop_underwriting_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='15100000-0000-0000-0000-000000000100'),'diligence_eval_151',0,'{"acquisition_cost":"100000","annual_rent":"8000","annual_opex":"1000","currency":"EUR"}')$$,'evaluate exact baseline');
 select lives_ok($$insert into diligence_test_response select customer_api.create_airprop_diligence_draft_v1('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='15100000-0000-0000-0000-000000000100'),1,'diligence_draft_151')$$,'create exact-version draft through gateway');
