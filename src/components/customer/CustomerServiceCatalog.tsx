@@ -18,6 +18,14 @@ const copy = {
   en: { title: 'Workspace services', subtitle: 'Explore available services and their terms in your workspace.', choose: 'Choose a workspace', workspace: 'Workspace', loading: 'Loading services…', noContext: 'Choose your working context first.', noTargets: 'No workspace can be selected in this context.', empty: 'No published services are available in this workspace yet.', denied: 'Service access is unavailable for your account in this workspace.', error: 'Services could not be loaded.', retry: 'Try again', terms: 'Cancellation and acceptance terms', cancellation: 'Cancellation terms', acceptance: 'Acceptance criteria', quote: 'Price after request review', included: 'Tax included', excluded: 'Tax calculated separately', not_applicable: 'Tax does not apply', direct: 'Stated price', pre_quote: 'Request a quote', on_site: 'On-site assessment', project: 'Project', reservation: 'Reservation' },
   ro: { title: 'Serviciile spațiului de lucru', subtitle: 'Descoperă serviciile disponibile și condițiile lor în spațiul tău de lucru.', choose: 'Alege un spațiu de lucru', workspace: 'Spațiu de lucru', loading: 'Se încarcă serviciile…', noContext: 'Alege mai întâi contextul de lucru.', noTargets: 'Nu există un spațiu de lucru selectabil în acest context.', empty: 'Nu există încă servicii publicate în acest spațiu de lucru.', denied: 'Accesul la servicii nu este disponibil pentru contul tău în acest spațiu.', error: 'Serviciile nu au putut fi încărcate.', retry: 'Încearcă din nou', terms: 'Condiții de anulare și acceptare', cancellation: 'Condiții de anulare', acceptance: 'Criterii de acceptare', quote: 'Preț după evaluarea cererii', included: 'Taxe incluse', excluded: 'Taxe calculate separat', not_applicable: 'Taxele nu se aplică', direct: 'Preț stabilit', pre_quote: 'Cerere de ofertă', on_site: 'Evaluare la fața locului', project: 'Proiect', reservation: 'Rezervare' },
 };
+const accessCopy = {
+  fa: { session: 'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.', denied: 'دسترسی به خدمات این فضای کاری فعال نیست. برای بررسی دسترسی با مدیر فضای کاری تماس بگیرید.', check: 'بررسی دوبارهٔ دسترسی' },
+  en: { session: 'Your session needs verification. Sign in again.', denied: 'Service access is unavailable in this workspace. Ask the workspace administrator to check your access.', check: 'Check access again' },
+  ro: { session: 'Sesiunea necesită verificare. Autentifică-te din nou.', denied: 'Accesul la servicii nu este disponibil în acest spațiu. Solicită administratorului să verifice accesul.', check: 'Verifică din nou accesul' },
+};
+type LoadFailure = 'session' | 'denied' | 'retry';
+function classifyLoad(response: Response): LoadFailure { return response.status === 401 ? 'session' : [403, 404].includes(response.status) ? 'denied' : 'retry'; }
+function failureMessage(lang: Language, kind: LoadFailure) { return kind === 'session' ? accessCopy[lang].session : kind === 'denied' ? accessCopy[lang].denied : copy[lang].error; }
 const targetsSchema = z.strictObject({ workspaces: z.array(z.strictObject({ workspace_id: uuidSchema, workspace_type: z.string(), environment: z.string() })) });
 const shape = serviceOfferingRevisionSchema.shape;
 const offeringsSchema = z.strictObject({ offerings: z.array(z.strictObject({ offering_id: uuidSchema, revision_id: uuidSchema,
@@ -42,21 +50,21 @@ function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Languag
   const [publication, setPublication] = useState<'coordinator'|'recipient'|null>(null);
   const [manage, setManage] = useState(false);
   const [quotes, setQuotes] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<LoadFailure | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     void (async () => {
       try {
         const response = await fetch(`/api/customer/v1/workspace/targets?${new URLSearchParams({ context_id: contextId })}`, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal });
-        if (!response.ok) throw new Error(response.status === 403 ? t.denied : t.error);
+        if (!response.ok) throw new Error(classifyLoad(response));
         const data = targetsSchema.parse(await response.json());
         if (!controller.signal.aborted) setTargets(data.workspaces);
-      } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error && reason.message === t.denied ? t.denied : t.error); }
+      } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error && ['session', 'denied'].includes(reason.message) ? reason.message as LoadFailure : 'retry'); }
     })();
     return () => controller.abort();
-  }, [contextId, attempt, t.denied, t.error, fetch]);
-  if (error) return <Notice text={error} retry={() => { setError(''); setTargets(null); setSelected(''); setAttempt(n => n + 1); }} retryLabel={t.retry} />;
+  }, [contextId, attempt, fetch]);
+  if (error) return <Notice text={failureMessage(lang, error)} retry={error === 'session' ? undefined : () => { setError(null); setTargets(null); setSelected(''); setAttempt(n => n + 1); }} retryLabel={error === 'denied' ? accessCopy[lang].check : t.retry} />;
   if (targets === null) return <Notice text={t.loading} />;
   if (!targets.length) return <Notice text={t.noTargets} />;
   return <div className="space-y-5"><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
@@ -68,7 +76,7 @@ function Offerings({ contextId, workspaceId, lang }: { contextId: string; worksp
   const fetch = useDashboardFetch();
   const t = copy[lang];
   const [items, setItems] = useState<Item[] | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<LoadFailure | null>(null);
   const [attempt, setAttempt] = useState(0);
   async function refreshCatalog() {
     const response = await fetch(`/api/customer/v1/services/catalog?${new URLSearchParams({ context_id: contextId, workspace_id: workspaceId })}`, { credentials: 'same-origin', cache: 'no-store' });
@@ -82,14 +90,14 @@ function Offerings({ contextId, workspaceId, lang }: { contextId: string; worksp
     void (async () => {
       try {
         const response = await fetch(`/api/customer/v1/services/catalog?${new URLSearchParams({ context_id: contextId, workspace_id: workspaceId })}`, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal });
-        if (!response.ok) throw new Error(response.status === 403 ? t.denied : t.error);
+        if (!response.ok) throw new Error(classifyLoad(response));
         const data = offeringsSchema.parse(await response.json());
         if (!controller.signal.aborted) setItems(data.offerings);
-      } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error && reason.message === t.denied ? t.denied : t.error); }
+      } catch (reason) { if (!controller.signal.aborted) setError(reason instanceof Error && ['session', 'denied'].includes(reason.message) ? reason.message as LoadFailure : 'retry'); }
     })();
     return () => controller.abort();
-  }, [contextId, workspaceId, attempt, t.denied, t.error, fetch]);
-  if (error) return <Notice text={error} retry={() => { setError(''); setItems(null); setAttempt(n => n + 1); }} retryLabel={t.retry} />;
+  }, [contextId, workspaceId, attempt, fetch]);
+  if (error) return <Notice text={failureMessage(lang, error)} retry={error === 'session' ? undefined : () => { setError(null); setItems(null); setAttempt(n => n + 1); }} retryLabel={error === 'denied' ? accessCopy[lang].check : t.retry} />;
   if (items === null) return <Notice text={t.loading} />;
   return <>{!items.length ? <Notice text={t.empty} /> : <div className="grid gap-5 md:grid-cols-2">{items.map(item => <article key={item.revision_id} className="rounded-2xl border bg-white p-6">
     <span className="rounded-full bg-[#EAF8F5] px-3 py-1 text-xs font-semibold text-[#087A6E]">{t[item.acquisition_mode]}</span>
