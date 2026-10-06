@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(38);
+select plan(42);
 do $$
 declare
   v_tenant_id uuid := '13500000-0000-0000-0000-000000000001'::uuid;
@@ -235,6 +235,31 @@ select ok(not app_private.check_effective_permission_v2(
 update identity.role_permissions set effect='allow'
 where role_id=(select role_id from identity.memberships where id='13500000-0000-0000-0000-000001000001')
   and permission_id=(select id from identity.permissions where code='airprop.opportunity.manage');
+select ok(exists(select 1 from platform.workspace_member_role_authority_sources s
+ join platform.workspace_member_roles a on a.id=s.assignment_id
+ where a.membership_id='13500000-0000-0000-0000-000001000002'
+ and s.source_kind='identity_role' and s.permission_id=(select id from identity.permissions where code='airprop.opportunity.manage')),
+ 'manager assignment stores its expected identity authority source');
+select ok(exists(select 1 from platform.workspace_member_roles a
+ where a.membership_id='13500000-0000-0000-0000-000001000002'
+ and a.scope_type='workspace' and a.valid_to>statement_timestamp()
+ and app_private.workspace_role_scope_contains_v1(a.scope_type,a.property_id,a.building_id,a.unit_id,'workspace',null,null,null)),
+ 'active manager assignment covers the exact workspace target');
+select ok(exists(select 1 from platform.workspace_member_roles a
+ join platform.workspace_role_permissions rp on rp.workspace_role_id=a.workspace_role_id
+ join platform.workspace_role_modules rm on rm.workspace_role_id=rp.workspace_role_id
+ where a.membership_id='13500000-0000-0000-0000-000001000002'
+ and rp.permission_id=(select id from identity.permissions where code='airprop.opportunity.manage')
+ and rp.effect='allow' and rm.module_definition_id=(select id from platform.module_definitions where code='airprop_commercial')),
+ 'manager role includes its exact allow permission and module');
+select ok(app_private.workspace_role_identity_source_current_v1(
+ (select assigned_by_context_grant_id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),
+ (select assigned_by_membership_id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),
+ (select source_identity_role_id from platform.workspace_member_role_authority_sources s join platform.workspace_member_roles a on a.id=s.assignment_id where a.membership_id='13500000-0000-0000-0000-000001000002' and s.permission_id=(select id from identity.permissions where code='airprop.opportunity.manage')),
+ '13500000-0000-0000-0000-000000000001','13500000-0000-0000-0000-000000000100',
+ (select id from identity.permissions where code='airprop.opportunity.manage'),
+ (select id from platform.module_definitions where code='airprop_commercial'),'workspace',null),
+ 'manager identity source remains current for the workspace manage permission');
 select ok(app_private.workspace_member_role_authority_active_v1(
  (select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),
  (select id from identity.permissions where code='airprop.opportunity.manage'),

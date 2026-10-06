@@ -8,7 +8,7 @@
 -- Workspace Taxonomy != Module Activation != Entitlement != Permission != Role != Delegation != Country Pack
 -- =============================================================================
 begin;
-select plan(98);
+select plan(101);
 
 -- 1. Structural & Table Schema Verification (6 assertions)
 select ok(to_regclass('platform.module_permission_bindings') is not null, 'platform.module_permission_bindings table exists');
@@ -763,6 +763,33 @@ select ok(app_private.workspace_role_identity_source_current_v1(
  'unit','09000000-0000-0000-0000-000000100001'),
  'grantor identity source is still current at the exact unit scope');
 
+select ok(exists(
+ select 1 from platform.workspace_member_role_authority_sources s
+ join platform.workspace_member_roles a on a.id=s.assignment_id
+ where a.membership_id='09000000-0000-0000-0000-000001000002'
+   and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+   and s.source_kind='identity_role'
+   and s.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
+   and s.module_definition_id=(select id from platform.module_definitions where code='maintenance')),
+ 'assignment has the expected stored identity source');
+select ok(exists(
+ select 1 from platform.workspace_member_roles a
+ where a.membership_id='09000000-0000-0000-0000-000001000002'
+   and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+   and a.valid_to>statement_timestamp()
+   and app_private.workspace_role_scope_contains_v1(a.scope_type,a.property_id,a.building_id,a.unit_id,
+     'unit',(select b.property_id from portfolio.buildings b where b.id='09000000-0000-0000-0000-000000010000'),
+     '09000000-0000-0000-0000-000000010000','09000000-0000-0000-0000-000000100001')),
+ 'active assignment scope contains the exact target unit');
+select ok(exists(
+ select 1 from platform.workspace_member_roles a
+ join platform.workspace_role_permissions rp on rp.workspace_role_id=a.workspace_role_id
+ join platform.workspace_role_modules rm on rm.workspace_role_id=rp.workspace_role_id
+ where a.membership_id='09000000-0000-0000-0000-000001000002'
+   and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+   and rp.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
+   and rp.effect='allow' and rm.module_definition_id=(select id from platform.module_definitions where code='maintenance')),
+ 'published unit role has the exact allow permission and module');
 select ok(app_private.workspace_member_role_authority_active_v1(
  (select id from platform.workspace_member_roles where membership_id='09000000-0000-0000-0000-000001000002' and workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector') order by created_at desc limit 1),
  (select id from identity.permissions where code='maintenance.requests.manage'),
