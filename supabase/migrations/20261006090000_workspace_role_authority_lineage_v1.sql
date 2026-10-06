@@ -229,10 +229,10 @@ begin
  if not found then return false; end if;
 
  if s.source_kind='identity_role' then
-   select m.* into m from identity.memberships m
-    where m.id=a.assigned_by_membership_id and m.tenant_id=a.tenant_id
-      and m.status='active' and m.starts_at<=statement_timestamp()
-      and (m.ends_at is null or m.ends_at>statement_timestamp());
+   select grantor.* into m from identity.memberships grantor
+    where grantor.id=a.assigned_by_membership_id and grantor.tenant_id=a.tenant_id
+      and grantor.status='active' and grantor.starts_at<=statement_timestamp()
+      and (grantor.ends_at is null or grantor.ends_at>statement_timestamp());
    if not found or m.role_id is distinct from s.source_identity_role_id
       or not exists(select 1 from identity.role_permissions rp
          where rp.role_id=m.role_id and rp.permission_id=p_permission_id and rp.effect='allow')
