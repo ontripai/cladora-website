@@ -19,6 +19,10 @@ create table portfolio.unit_specification_versions (
 );
 create index unit_specification_versions_tenant_unit_idx
   on portfolio.unit_specification_versions (tenant_id,unit_id,version desc);
+create index unit_specification_versions_building_idx
+  on portfolio.unit_specification_versions (building_id);
+create index unit_specification_versions_recorded_by_idx
+  on portfolio.unit_specification_versions (recorded_by);
 
 create function app_private.guard_unit_specification_version_v1()
 returns trigger language plpgsql security definer set search_path=pg_catalog
