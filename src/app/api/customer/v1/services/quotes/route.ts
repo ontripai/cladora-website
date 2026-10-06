@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
   try { body = await request.json(); } catch { return failure('INVALID_REQUEST', 400); }
   const command = createServiceQuoteDraftSchema.safeParse(body);
   if (!command.success) return failure('INVALID_REQUEST', 400);
+  if (claims.claims.aal !== 'aal2') return failure('MFA_REQUIRED', 403);
   const { data, error } = await supabase.schema('customer_api').rpc('create_service_quote_draft_v1' as never, { p_request: command.data } as never);
   if (error) return rpcFailure(error.code);
   if (!data) return failure('SERVICE_QUERY_FAILED', 500);

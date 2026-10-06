@@ -48,12 +48,13 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
         } else { setRecoveryBlocked(true); setMessage('Saved request could not be recovered.'); }
       }
     } catch { setRecoveryBlocked(true); setMessage('Saved request could not be recovered.'); }
+      let mfaRequired = false;
       try {
         const res = await fetch(`/api/customer/v1/workspace/roles/assignment-candidates?context_id=${contextId}`, { cache: 'no-store', signal: controller.signal });
         const result = await res.json();
         if (!current) return;
         if (!res.ok) {
-          if (result?.error?.code === 'MFA_REQUIRED') onMfaRequired();
+          if (result?.error?.code === 'MFA_REQUIRED') { mfaRequired = true; onMfaRequired(); }
           throw new Error('Assignment access denied');
         }
         if (result.workspace_id !== workspaceId || !Array.isArray(result.members) || !Array.isArray(result.buildings)
@@ -65,7 +66,9 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
           throw new Error('Invalid member response');
         }
         setMembers(result.members); setBuildings(result.buildings);
-      } catch { if (current) setMessage(lang === 'fa' ? 'بارگذاری اعضای مجاز انجام نشد.' : lang === 'ro' ? 'Membrii autorizați nu au putut fi încărcați.' : 'Could not load authorized members.'); }
+      } catch { if (current) setMessage(mfaRequired
+        ? lang === 'fa' ? 'برای تخصیص نقش با برنامهٔ Authenticator وارد شوید.' : lang === 'ro' ? 'Autentifică-te cu aplicația Authenticator pentru a atribui roluri.' : 'Sign in with your Authenticator to assign roles.'
+        : lang === 'fa' ? 'بارگذاری اعضای مجاز انجام نشد.' : lang === 'ro' ? 'Membrii autorizați nu au putut fi încărcați.' : 'Could not load authorized members.'); }
       finally { if (current) setLoading(false); }
     })();
     return () => { current = false; controller.abort(); };
