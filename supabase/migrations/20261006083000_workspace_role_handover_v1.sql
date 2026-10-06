@@ -36,7 +36,37 @@ begin
       and m.status='active' and m.starts_at<=statement_timestamp()
       and (m.ends_at is null or m.ends_at>statement_timestamp())
       and g.starts_at<=statement_timestamp()
-      and (g.ends_at is null or g.ends_at>statement_timestamp())) then return false; end if;
+      and (g.ends_at is null or g.ends_at>statement_timestamp())
+      and (g.scope_type='tenant'
+        or (child.scope_type<>'workspace' and g.scope_type='property'
+          and g.property_id=child.property_id)
+        or (child.scope_type in ('building','unit') and g.scope_type='building'
+          and g.building_id=child.building_id)
+        or (child.scope_type='unit' and g.scope_type='unit'
+          and g.unit_id=child.unit_id))) then return false; end if;
+  if p_permission_id is not null and (
+    exists(select 1 from identity.memberships m
+      join identity.role_permissions rp on rp.role_id=m.role_id
+      where m.id=link.manager_membership_id and rp.permission_id=p_permission_id
+        and rp.effect='deny')
+    or exists(select 1 from platform.workspace_member_roles d
+      join platform.workspace_role_permissions rp on rp.workspace_role_id=d.workspace_role_id
+      join platform.workspace_roles wr on wr.id=d.workspace_role_id
+      where d.membership_id=link.manager_membership_id
+        and d.customer_workspace_id=child.customer_workspace_id
+        and d.valid_from<=statement_timestamp()
+        and (d.valid_to is null or d.valid_to>statement_timestamp())
+        and wr.lifecycle_status='published' and wr.valid_from<=statement_timestamp()
+        and (wr.valid_to is null or wr.valid_to>statement_timestamp())
+        and rp.permission_id=p_permission_id and rp.effect='deny'
+        and (d.scope_type='workspace'
+          or (child.scope_type<>'workspace' and d.scope_type='property'
+            and d.property_id=child.property_id)
+          or (child.scope_type in ('building','unit') and d.scope_type='building'
+            and d.building_id=child.building_id)
+          or (child.scope_type='unit' and d.scope_type='unit'
+            and d.unit_id=child.unit_id)))
+  ) then return false; end if;
   if link.parent_assignment_id is not null then
     select * into parent from platform.workspace_member_roles where id=link.parent_assignment_id;
     if not found or parent.tenant_id<>child.tenant_id
