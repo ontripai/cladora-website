@@ -54,3 +54,18 @@ For every T01–T10 claim, the owning workstream records exact code/API/UI path,
 4. Bind the Operations defect/warranty/work-order references to the shared handover and SERVICE execution-step contract. Run the synthetic two-unit T01–T10 scenario only after the dependencies exist and report each outcome separately.
 
 No real property transfer, payment, invitation or pilot work-order mutation was performed for this mapping. The handoff document `CLADORA-CORE-OPERATIONS-HANDOFF-012.md` records historical observations; PR #258 and #267 are subsequently merged and their release status must not be inferred from its older open rows.
+
+## Implementation checkpoint, 2026-10-06
+
+The preceding map describes its 2026-10-05 baseline. Core subsequently shipped two deliberately private LC-C01 foundations:
+
+| Slice | Reviewed source | Production evidence | Boundary |
+|---|---|---|---|
+| Purpose-bound temporal relationship | PR #273, `supabase/migrations/20261005161945_lifecycle_workspace_property_authority.sql`, pgTAP 154 | Squash `c3a93177c5289d26c2b91f2d8086f2eeaf452e68`; remote migration `20261005162757` | `platform.workspace_property_authorities` allows distinct authorized workspaces and purposes for one canonical property without changing legacy operator bindings. It has no customer table access. |
+| Exact relationship lookup | PR #274, `supabase/migrations/20261005195055_lifecycle_property_mandate_resolver.sql`, pgTAP 155 | Squash `41d99e1ef91818379a513de48a13819860614dbc`; remote migration `20261006052147`; database CI attempt 2 passed static and runtime jobs; Vercel production `dpl_AcNrQzNd88oJVNvnJ7LQRmPoQ528` READY | `app_private.current_workspace_property_mandate_v1(context, workspace, property, purpose)` returns an ID only with an authenticated, currently scoped workspace-native context and a current relationship. Direct execution is revoked from customer and service roles. |
+
+The remote post-migration catalog check found the private function present, with `anon` and `authenticated` EXECUTE revoked. The new authority table held zero records at that check. Neither PR added a customer API, backfilled pilot subjects, changed legacy property bindings, granted document/finance visibility, nor completed an AIRPROP or SERVICE consumer. PR #274's merged branch was deleted after the production release. Later SERVICE main commit `8474c44691e5bca4604c35add070305524ba546c` has its own READY deployment; do not attribute it to Core.
+
+### Consumer integration gate still open
+
+For one proposed command, the owning domain must pin the explicit context, workspace, canonical property and purpose; resolve the current mandate at execution time; separately enforce current module entitlement, target-specific effective permission, evidence/business prerequisites and record visibility; then test revocation and two simultaneous workspaces with distinct private records. A returned mandate ID alone grants none of those rights. Existing customer routes still use legacy binding behavior until individually migrated and reviewed. T08 and whole LC-C01 acceptance therefore remain open.
