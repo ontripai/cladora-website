@@ -15,7 +15,7 @@ const between = (start, end, from = 0) => {
   assert.ok(a >= 0 && b > a, `Fixture section missing: ${start}`);
   return fixture.slice(a + start.length, b);
 };
-const setup = between('select plan(20);', 'select throws_ok');
+const setup = between('select plan(21);', 'select throws_ok');
 const mandate = 'insert into platform.workspace_property_authorities' + between(
   'insert into platform.workspace_property_authorities', 'select lives_ok');
 const reviewerSection = fixture.indexOf('Independent account without reviewer role denied');

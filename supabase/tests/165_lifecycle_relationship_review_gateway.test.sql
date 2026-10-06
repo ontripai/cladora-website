@@ -1,5 +1,5 @@
 begin;
-select plan(20);
+select plan(21);
 insert into auth.users(id,email) values ('16500000-0000-4000-8000-000000000001','proposer165@cladora.test'), ('16500000-0000-4000-8000-000000000011','reviewer165@cladora.test'), ('16500000-0000-4000-8000-000000000012','outsider165@cladora.test');
 insert into platform.tenants(id,legal_name,registration_number,status) values
  ('16500000-0000-4000-8000-000000000002','Core identity tenant','LC160','active');
@@ -134,6 +134,15 @@ values('16500000-0000-4000-8000-000000000002','16500000-0000-4000-8000-000000000
  '16500000-0000-4000-8000-000000000015','16500000-0000-4000-8000-000000000019',
  'workspace','16500000-0000-4000-8000-000000000001','16500000-0000-4000-8000-000000000007',
  'Synthetic reviewer assignment',now()-interval '1 hour');
+insert into identity.membership_parties(membership_id,tenant_id,party_id,valid_from)
+values('16500000-0000-4000-8000-000000000015','16500000-0000-4000-8000-000000000002',
+ '16500000-0000-4000-8000-000000000013',now()-interval '1 day');
+select throws_ok($$select customer_api.review_core_relationship_v1(
+ '16500000-0000-4000-8000-000000000016','16500000-0000-4000-8000-000000000006',
+ (select id from portfolio.relationship_proposals where request_id='16500000-0000-4000-8000-000000000017'),
+ 'verified','test://review-evidence','Independent review','16500000-0000-4000-8000-000000000018','review-key-165')$$,
+ '42501','core_relationship_access_denied','Linked transaction party cannot review even with reviewer role');
+delete from identity.membership_parties where membership_id='16500000-0000-4000-8000-000000000015';
 select lives_ok($$select customer_api.review_core_relationship_v1(
  '16500000-0000-4000-8000-000000000016','16500000-0000-4000-8000-000000000006',
  (select id from portfolio.relationship_proposals where request_id='16500000-0000-4000-8000-000000000017'),

@@ -129,7 +129,8 @@ begin
   or p_reason is null or length(btrim(p_reason)) not between 8 and 500 then
   raise exception 'core_relationship_invalid' using errcode='22023';
  end if;
- select tenant_id,property_id,customer_workspace_id,proposed_by into v_proposal
+ select tenant_id,property_id,customer_workspace_id,proposed_by,
+  source_party_id,target_party_id into v_proposal
  from portfolio.relationship_proposals where id=p_proposal_id;
  if not found or v_proposal.customer_workspace_id is distinct from p_workspace_id
   or v_proposal.proposed_by=auth.uid() then
@@ -139,6 +140,16 @@ begin
  v_tenant:=app_private.assert_relationship_workspace_v1(
   p_context_id,p_workspace_id,v_proposal.property_id,'core.relationships.review');
  if v_tenant is distinct from v_proposal.tenant_id then
+  raise exception 'core_relationship_access_denied' using errcode='42501';
+ end if;
+ -- An account linked to either party in this tenant cannot independently
+ -- verify its own transaction, even when it also has a staff membership.
+ if exists(select 1 from identity.membership_parties mp
+  join identity.memberships m on m.id=mp.membership_id and m.tenant_id=mp.tenant_id
+  where m.user_id=auth.uid() and m.tenant_id=v_tenant
+   and mp.party_id in (v_proposal.source_party_id,v_proposal.target_party_id)
+   and mp.valid_from<=clock_timestamp()
+   and (mp.valid_until is null or mp.valid_until>clock_timestamp())) then
   raise exception 'core_relationship_access_denied' using errcode='42501';
  end if;
  select id,request_hash,reviewed_by into v_existing from portfolio.relationship_reviews
