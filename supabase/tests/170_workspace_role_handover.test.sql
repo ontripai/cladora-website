@@ -24,6 +24,12 @@ begin
     values(tenant_id,'Handover tenant','RO-TEST-170','active');
   insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_owner,environment,lifecycle_status)
     values(ws_id,tenant_id,'ASSOCIATION','Owner 170','PILOT','ACTIVE');
+  insert into platform.workspace_taxonomy_assignments(
+    tenant_id,customer_workspace_id,property_profile_id,operating_model_id,status,valid_from,created_by,country_code)
+    select tenant_id,ws_id,p.id,o.id,'active',now()-interval '1 day',admin_id,'RO'
+    from platform.property_profiles p cross join platform.operating_models o
+    where p.code='residential_condominium' and p.version=1
+      and o.code='association_managed' and o.version=1;
   select id into admin_role from identity.roles where code='association_admin' and tenant_id is null limit 1;
   select id into owner_role from identity.roles where code='owner' and tenant_id is null limit 1;
   insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
