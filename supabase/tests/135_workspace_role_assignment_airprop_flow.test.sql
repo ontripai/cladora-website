@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(24);
+select plan(29);
 do $$
 declare
   v_tenant_id uuid := '13500000-0000-0000-0000-000000000001'::uuid;
@@ -79,8 +79,8 @@ begin
   on conflict (id) do nothing;
 
   -- Context Grants
-  insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at) values
-    (v_ctx_admin_id, v_tenant_id, v_mem_admin_id, 'property', v_prop_id, statement_timestamp() - interval '1 day'),
+  insert into identity.context_grants (id, tenant_id, membership_id, scope_type, property_id, starts_at, ends_at) values
+    (v_ctx_admin_id, v_tenant_id, v_mem_admin_id, 'property', v_prop_id, statement_timestamp() - interval '1 day', statement_timestamp() + interval '12 hours'),
     (v_ctx_admin_ws2_id, v_tenant_id, v_mem_admin_id, 'property', v_prop2_id, statement_timestamp() - interval '1 day'),
     (v_ctx_member_id, v_tenant_id, v_mem_target_id, 'property', v_prop_id, statement_timestamp() - interval '1 day')
   on conflict (id) do nothing;
@@ -111,6 +111,10 @@ begin
   on conflict do nothing;
 end;
 $$;
+insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at,ends_at)
+ values ('13500000-0000-0000-0000-000010000004','13500000-0000-0000-0000-000000000001',
+   '13500000-0000-0000-0000-000001000001','tenant',now()-interval '1 day',now()+interval '12 hours')
+ on conflict(id) do nothing;
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
  ('13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000000000001','13500000-0000-0000-0000-000001000002','tenant',now()-interval '1 day');
 insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
@@ -118,6 +122,33 @@ insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_de
  from platform.module_definitions where code='airprop_commercial';
 insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
  values('13500000-0000-0000-0000-000000000100','module.airprop_commercial','boolean',true,now()-interval '1 day');
+-- Make this rollback-only flow an explicitly delegable AIRPROP fixture.
+update platform.module_permission_bindings b
+set lifecycle_status='deprecated', valid_to=statement_timestamp()
+from platform.module_definitions md, identity.permissions p
+where b.module_definition_id=md.id and b.permission_id=p.id
+  and ((md.code='airprop_commercial' and p.code in ('airprop.opportunity.read','airprop.opportunity.manage'))
+    or (md.code='maintenance' and p.code='maintenance.requests.read'))
+  and b.lifecycle_status='active' and b.valid_to is null;
+insert into platform.module_permission_bindings
+ (module_definition_id,permission_id,binding_version,permission_mode,
+  is_assignable_to_local_role,is_delegable,requires_aal2,lifecycle_status,valid_from)
+select md.id,p.id,coalesce(max(old.binding_version),0)+1,
+       case when p.code like '%.read' then 'read' else 'manage' end,
+       true,true,false,'active',statement_timestamp()
+from platform.module_definitions md
+join identity.permissions p on p.code in ('airprop.opportunity.read','airprop.opportunity.manage','maintenance.requests.read')
+left join platform.module_permission_bindings old
+  on old.module_definition_id=md.id and old.permission_id=p.id
+where (md.code='airprop_commercial' and p.code in ('airprop.opportunity.read','airprop.opportunity.manage'))
+   or (md.code='maintenance' and p.code='maintenance.requests.read')
+group by md.id,p.id,p.code;
+insert into identity.role_permissions(role_id,permission_id,effect)
+select r.id,p.id,'allow'
+from identity.roles r cross join identity.permissions p
+where r.code='association_admin' and r.tenant_id is null and r.is_system
+  and p.code in ('airprop.opportunity.read','airprop.opportunity.manage','maintenance.requests.read')
+on conflict do nothing;
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000010","role":"authenticated","aal":"aal2"}',true);
 select ok(not has_function_privilege('anon','customer_api.list_workspace_role_assignment_candidates_v1(uuid)','execute'),'anonymous cannot enumerate candidates');
 select ok(not has_function_privilege('authenticated','app_private.require_workspace_role_assignment_context_v1(uuid)','execute'),'internal helper is not exposed');
@@ -135,9 +166,37 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('13500000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,'Synthetic manage attachment','flow_manage_135');
  perform customer_api.publish_workspace_role_v1('13500000-0000-0000-0000-000010000001',role_id,4,'Synthetic publish role','flow_publish_135');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000001','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'assign published workspace role with future expiry');
-select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000001','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'exact assignment retry succeeds');
+select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000004','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'assign published workspace role with future expiry');
+select lives_ok($$select customer_api.assign_workspace_role_v1('13500000-0000-0000-0000-000010000004','13500000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_flow_reader_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','flow_assign_135')$$,'exact assignment retry succeeds');
 select ok((select count(*) from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002')=1,'retry creates one assignment');
+select ok((select assigned_by_context_grant_id='13500000-0000-0000-0000-000010000004'
+  and authority_policy_version=2 from platform.workspace_member_roles
+  where membership_id='13500000-0000-0000-0000-000001000002'),'assignment stores exact grantor context and policy version');
+select ok((select valid_to=(select ends_at from identity.context_grants
+  where id='13500000-0000-0000-0000-000010000004')
+  from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002'),
+  'assignment expiry is capped to the manager context');
+select ok((select count(*)=2 and bool_and(source_kind='identity_role')
+  from platform.workspace_member_role_authority_sources s
+  join platform.workspace_member_roles a on a.id=s.assignment_id
+  where a.membership_id='13500000-0000-0000-0000-000001000002'),
+  'each delegated permission has an identity-role authority source');
+insert into identity.role_permissions(role_id,permission_id,effect)
+select (select role_id from identity.memberships where id='13500000-0000-0000-0000-000001000001'),
+       id,'deny' from identity.permissions where code='airprop.opportunity.manage';
+select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
+select ok(not app_private.check_effective_permission_v2(
+ '13500000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial',
+ 'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
+ 'grantor permission reduction immediately disables descendant access');
+delete from identity.role_permissions
+where role_id=(select role_id from identity.memberships where id='13500000-0000-0000-0000-000001000001')
+  and permission_id=(select id from identity.permissions where code='airprop.opportunity.manage')
+  and effect='deny';
+select ok(app_private.check_effective_permission_v2(
+ '13500000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial',
+ 'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
+ 'descendant access returns when grantor authority is restored');
 select ok(exists(select 1 from audit.events where action='WORKSPACE_ROLE_ASSIGNED' and tenant_id='13500000-0000-0000-0000-000000000001'),'assignment audit contains tenant');
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok((select count(*) from customer_api.list_workspace_targets_v2('13500000-0000-0000-0000-000010000010'))=1,'assigned account discovers one exact workspace');
