@@ -7,9 +7,14 @@ import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-bo
 
 const HEADERS = { "Cache-Control": "no-store, private", Pragma: "no-cache", Vary: "Cookie" };
 const common = { context_id: uuidSchema, workspace_id: uuidSchema };
+const mutationIdentity = {
+  request_id: uuidSchema,
+  idempotency_key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/),
+};
 const querySchema = z.object({ ...common, unit_id: uuidSchema }).strict();
 const specificationSchema = z.object({
   ...common,
+  ...mutationIdentity,
   action: z.literal("record_specification"),
   unit_id: uuidSchema,
   expected_version: z.number().int().min(0),
@@ -21,6 +26,7 @@ const specificationSchema = z.object({
 }).strict();
 const lineageSchema = z.object({
   ...common,
+  ...mutationIdentity,
   action: z.literal("record_lineage"),
   property_id: uuidSchema,
   kind: z.enum(["split", "merge"]),
@@ -75,15 +81,17 @@ export async function POST(request: NextRequest) {
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401, headers: HEADERS });
   const p = parsed.data;
-  const rpc = p.action === "record_specification" ? "record_core_unit_specification_v1" : "record_core_unit_lineage_v1";
+  const rpc = p.action === "record_specification" ? "record_core_unit_specification_v2" : "record_core_unit_lineage_v2";
   const args = p.action === "record_specification" ? {
     p_context_id: p.context_id, p_workspace_id: p.workspace_id, p_unit_id: p.unit_id,
     p_expected_version: p.expected_version, p_unit_code: p.unit_code, p_floor: p.floor,
     p_area_m2: p.area_m2, p_bedrooms: p.bedrooms, p_source_reference: p.source_reference,
+    p_request_id: p.request_id, p_idempotency_key: p.idempotency_key,
   } : {
     p_context_id: p.context_id, p_workspace_id: p.workspace_id, p_property_id: p.property_id,
     p_kind: p.kind, p_predecessor_unit_ids: p.predecessor_unit_ids,
     p_successor_unit_ids: p.successor_unit_ids, p_source_reference: p.source_reference,
+    p_request_id: p.request_id, p_idempotency_key: p.idempotency_key,
   };
   const { data, error } = await (supabase.schema("customer_api") as any).rpc(rpc, args);
   if (error) return rpcFailure(error);
