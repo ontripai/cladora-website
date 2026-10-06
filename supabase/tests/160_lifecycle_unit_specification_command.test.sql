@@ -1,5 +1,5 @@
 begin;
-select plan(12);
+select plan(14);
 insert into auth.users(id,email) values ('16000000-0000-4000-8000-000000000001','core160@cladora.test');
 insert into platform.tenants(id,legal_name,registration_number,status) values
  ('16000000-0000-4000-8000-000000000002','Core identity tenant','LC160','active');
@@ -79,6 +79,20 @@ select throws_ok($$select customer_api.record_core_unit_specification_v1(
 select is((select array_agg(unit_code order by version) from portfolio.unit_specification_versions
  where unit_id='16000000-0000-4000-8000-000000000005'),array['P-01','Final-01']::text[],
  'Both snapshots retained');
+select is((select distinct customer_workspace_id from portfolio.unit_specification_versions
+ where unit_id='16000000-0000-4000-8000-000000000005'),
+ '16000000-0000-4000-8000-000000000006'::uuid,'Command attributes both snapshots to exact workspace');
+insert into platform.tenants(id,legal_name,registration_number,status) values
+ ('16000000-0000-4000-8000-000000000020','Other tenant','LC160B','active');
+insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_owner,lifecycle_status) values
+ ('16000000-0000-4000-8000-000000000021','16000000-0000-4000-8000-000000000020',
+ 'ASSOCIATION','Other operator','ACTIVE');
+select throws_ok($$insert into portfolio.unit_specification_versions
+ (tenant_id,unit_id,version,building_id,unit_code,source_reference,recorded_by,customer_workspace_id)
+ values('16000000-0000-4000-8000-000000000002','16000000-0000-4000-8000-000000000005',3,
+ '16000000-0000-4000-8000-000000000004','Foreign','test://foreign',
+ '16000000-0000-4000-8000-000000000001','16000000-0000-4000-8000-000000000021')$$,
+ '42501','core_evidence_workspace_mismatch','Foreign tenant workspace cannot claim snapshot provenance');
 update platform.workspace_property_authorities set status='revoked',revoked_at=statement_timestamp(),
  valid_to=statement_timestamp(),revocation_reason='Synthetic revocation'
 where id='16000000-0000-4000-8000-000000000010';
