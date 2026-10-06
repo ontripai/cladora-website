@@ -1,5 +1,5 @@
 begin;
-select plan(25);
+select plan(29);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -139,6 +139,26 @@ update identity.context_grants set ends_at=null
   where id='17000000-0000-0000-0000-000010000001';
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
+select lives_ok($$select customer_api.renew_workspace_role_assignment_v1(
+  '17000000-0000-0000-0000-000010000001',null,
+  (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
+    on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000003'
+    and r.code='handover_reader' and a.valid_to>statement_timestamp()),
+  1,now()+interval '18 hours','Synthetic bounded extension','handover_renew_170')$$,
+  'manager renews successor term atomically');
+select lives_ok($$select customer_api.renew_workspace_role_assignment_v1(
+  '17000000-0000-0000-0000-000010000001',null,
+  (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
+    on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000003'
+    and r.code='handover_reader' and a.valid_to<=statement_timestamp()),
+  1,now()+interval '18 hours','Synthetic bounded extension','handover_renew_170')$$,
+  'exact renewal retry returns stored result');
+select ok((select count(*) from platform.workspace_member_roles a join platform.workspace_roles r
+  on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000003'
+    and r.code='handover_reader' and a.valid_to>statement_timestamp())=1,
+  'renewal leaves one active successor assignment');
+select ok((select count(*) from audit.events where action='WORKSPACE_ROLE_RENEWED'
+  and tenant_id='17000000-0000-0000-0000-000000000001')=1,'one renewal audit');
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
   ('17000000-0000-0000-0000-000010000011','17000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000001000001','tenant',now()-interval '1 day'),
   ('17000000-0000-0000-0000-000010000012','17000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000001000002','tenant',now()-interval '1 day'),
