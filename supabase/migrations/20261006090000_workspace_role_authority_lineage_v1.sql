@@ -255,7 +255,7 @@ begin
        parent.scope_type,parent.property_id,parent.building_id,parent.unit_id,
        a.scope_type,a.property_id,a.building_id,a.unit_id);
    if not found then return false; end if;
-   if s.authority_depth>4 or s.authority_depth<>parent.authority_depth+1 then return false; end if;
+   if s.authority_depth>4 or s.authority_depth<>wr.authority_depth+1 then return false; end if;
    return app_private.workspace_member_role_authority_active_v1(
      parent.id,p_permission_id,p_module_id,p_target_scope_type,p_target_scope_id,
      array_append(coalesce(p_path,'{}'::uuid[]),a.id));
