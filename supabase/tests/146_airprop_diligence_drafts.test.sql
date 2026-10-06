@@ -113,8 +113,6 @@ end;
 $$;
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
  ('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000001','14600000-0000-0000-0000-000001000002','tenant',now()-interval '1 day');
-insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
- ('14600000-0000-0000-0000-000010000011','14600000-0000-0000-0000-000000000001','14600000-0000-0000-0000-000001000001','tenant',now()-interval '1 day');
 insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
  select '14600000-0000-0000-0000-000000000001','14600000-0000-0000-0000-000000000100',id,code,'active','Synthetic AIRPROP flow'
  from platform.module_definitions where code='airprop_commercial';
@@ -133,7 +131,13 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('14600000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.manage'),'allow',5,'Synthetic diligence attachment','flow_diligence_146');
  perform customer_api.publish_workspace_role_v1('14600000-0000-0000-0000-000010000001',role_id,6,'Synthetic publish role','flow_publish_146');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($$select customer_api.assign_workspace_role_v1('14600000-0000-0000-0000-000010000011','14600000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_146')$$,'assign explicit diligence role');
+select lives_ok($$insert into platform.workspace_member_roles
+  (tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,valid_from,valid_to,
+   assigned_by_user_id,assigned_by_membership_id,reason)
+values ('14600000-0000-0000-0000-000000000001','14600000-0000-0000-0000-000000000100',
+ '14600000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),
+ 'workspace',now(),now()+interval '1 day','14600000-0000-0000-0000-000000000010',
+ '14600000-0000-0000-0000-000001000001','Legacy explicit diligence assignment')$$,'legacy workspace role assignment remains available');
 select set_config('request.jwt.claims','{"sub":"14600000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select lives_ok($$select customer_api.create_airprop_opportunity_v2('14600000-0000-0000-0000-000010000010','14600000-0000-0000-0000-000000000100','diligence_opportunity_146','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);

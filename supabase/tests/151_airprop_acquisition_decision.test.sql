@@ -134,7 +134,12 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.acquisition.approve'),'allow',8,'Synthetic decision attachment','flow_approve_151');
  perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,9,'Synthetic publish role','flow_publish_151');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($$select customer_api.assign_workspace_role_v1('15100000-0000-0000-0000-000010000011','15100000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_151')$$,'assign explicit diligence role');
+select lives_ok($$insert into platform.workspace_member_roles
+  (tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,valid_from,valid_to,
+   assigned_by_user_id,assigned_by_membership_id,reason)
+values
+ ('15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',now(),now()+interval '1 day','15100000-0000-0000-0000-000000000010','15100000-0000-0000-0000-000001000001','Legacy explicit diligence assignment')$$,'legacy workspace role assignment remains available');
+
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select lives_ok($$select customer_api.create_airprop_opportunity_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100','diligence_opportunity_151','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);
@@ -185,8 +190,16 @@ insert into identity.context_grants(id,tenant_id,membership_id,scope_type,proper
  ('15100000-0000-0000-0000-000010000011','15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000001000001','tenant',null,now()-interval '1 day'),
  ('15100000-0000-0000-0000-000010000014','15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000001000004','tenant',null,now()-interval '1 day');
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000010","aal":"aal2"}',true);
-select lives_ok($$select customer_api.assign_workspace_role_v1('15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000001000001',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic independent review','review_admin_assign_151')$$,'assign first reviewer through canonical gateway');
-select lives_ok($$select customer_api.assign_workspace_role_v1('15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000001000004',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic independent review','review_second_assign_151')$$,'assign second reviewer through canonical gateway');
+select lives_ok($$insert into platform.workspace_member_roles
+ (tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,valid_from,valid_to,assigned_by_user_id,assigned_by_membership_id,reason)
+ values ('15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000001000001',
+ (select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',now(),now()+interval '1 day',
+ '15100000-0000-0000-0000-000000000010','15100000-0000-0000-0000-000001000001','Legacy independent reviewer')$$,'legacy reviewer role fixture is active');
+select lives_ok($$insert into platform.workspace_member_roles
+ (tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,valid_from,valid_to,assigned_by_user_id,assigned_by_membership_id,reason)
+ values ('15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000001000004',
+ (select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',now(),now()+interval '1 day',
+ '15100000-0000-0000-0000-000000000010','15100000-0000-0000-0000-000001000001','Legacy independent reviewer')$$,'legacy reviewer role fixture is active');
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 create temporary table acquisition_test_response(payload jsonb);
 create function pg_temp.acquisition_command(p_mode text,p_context uuid,p_document_context uuid,p_revision integer,p_key text,p_decision text default 'approve') returns jsonb language plpgsql as $$

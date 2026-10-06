@@ -8,7 +8,7 @@
 -- Workspace Taxonomy != Module Activation != Entitlement != Permission != Role != Delegation != Country Pack
 -- =============================================================================
 begin;
-select plan(96);
+select plan(97);
 
 -- 1. Structural & Table Schema Verification (6 assertions)
 select ok(to_regclass('platform.module_permission_bindings') is not null, 'platform.module_permission_bindings table exists');
@@ -734,6 +734,12 @@ select throws_ok(
 select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000020', 'aal', 'aal1')::text, true);
 
 -- 7.1 Path B Allow: Unit 101 has allow -> returns true
+select ok(app_private.workspace_member_role_authority_active_v1(
+ (select id from platform.workspace_member_roles where membership_id='09000000-0000-0000-0000-000001000002' and workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector') order by created_at desc limit 1),
+ (select id from identity.permissions where code='maintenance.requests.manage'),
+ (select id from platform.module_definitions where code='maintenance'),
+ 'unit','09000000-0000-0000-0000-000000100001','{}'::uuid[]),
+ 'delegated source remains active for the exact assigned unit permission');
 select ok(
   app_private.check_effective_permission_v1(
     '09000000-0000-0000-0000-000010000002'::uuid,
