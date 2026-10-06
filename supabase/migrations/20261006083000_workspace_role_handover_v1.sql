@@ -99,6 +99,7 @@ begin
   if not exists(select 1 from identity.context_grants g
     where g.membership_id=p_successor_membership_id and g.tenant_id=actor.tenant_id
       and g.starts_at<=statement_timestamp() and (g.ends_at is null or g.ends_at>statement_timestamp())
+      and (g.ends_at is null or (p_valid_until is not null and g.ends_at>=p_valid_until))
       and (g.scope_type='tenant'
         or (previous.scope_type<>'workspace' and g.scope_type='property'
           and g.property_id=previous.property_id)
