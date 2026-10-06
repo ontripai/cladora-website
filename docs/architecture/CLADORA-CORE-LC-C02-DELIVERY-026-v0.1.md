@@ -1,0 +1,26 @@
+# Core LC-C02 delivery 026 v0.1
+
+Date: 2026-10-06 UTC. Repository: `ontripai/cladora-website`. Production database: `jyomlehahwlyqzoacrvp`.
+
+## Verified implementation
+
+| Contract | Evidence | State |
+| --- | --- | --- |
+| Stable canonical unit UUID and private immutable specification versions | PR #280; migration `20261006060827`; pgTAP `156` | In production |
+| Private immutable split/merge graph, subject and cycle guard | PR #281; migration `20261006064156`; pgTAP `157` | In production |
+| One predecessor and one successor transition per unit | PR #282; migration `20261006065116`; pgTAP `158` | In production |
+| Synthetic two planned unit T01 identity, revision, split and historical ownership reference isolation | PR #284; pgTAP `159` | CI verified; no production fixture |
+| Authorized exact property specification revision with version conflict and revocation | PR #285; migration `20261006071524`; pgTAP `160` | In production |
+| Authorized exact property split/merge event with revocation and graph guards | PR #286; migration `20261006072700`; pgTAP `161` | In production |
+| Originating workspace on new customer-command evidence; old unattributed history stays private | PR #289; migration `20261006073930`; pgTAP `160`, `161` | In production |
+| Workspace-scoped private history read, separate permission, live mandate and revocation | PR #290; migration `20261006074812`; pgTAP `162` | In production |
+
+The Database tests and AIRPROP scope regression checks passed on the final PR #290 head `ec85cb3abdb338d8612c31d238ef9bb5cf069367`. Squash merge `e4eb6a176d49a23ff97e7cb4b5ff5fbb670ba93b` deployed READY to Vercel Production (`dpl_Ei76ZsNuyvx4aDbsDgPMgQqndo5D`). The production catalog confirms both write commands and the read command exist, `authenticated` has RPC execution, `service_role` has none for these customer commands, and both private evidence tables contain zero rows. No `core_unit_identity` workspace module is active. The three most recent Core migrations were independently found in remote migration history; test fixtures roll back.
+
+## Limits and next gates
+
+This completes a **Core backend slice** of LC-C02 and synthetic T01 identity behavior. It does not constitute acceptance of T01 across AIRPROP presale screens, SERVICE eligibility, or the complete T01–T10 lifecycle. There is no customer HTTP/UI route for these new RPCs, no real pilot property authority evidence, no production role assignment or module activation, and no real end-to-end four-account rehearsal. Do not infer a customer's right from a canonical unit UUID or the mandate ID alone.
+
+Before a live pilot, bind a concrete canonical property and actual evidence to a property-operations mandate, activate the module only for the intended workspace, assign the three distinct rights to appropriate roles, review a customer gateway and UI, and exercise the flow with authorized accounts. AIRPROP and SERVICE must separately verify their references, stage transitions, and record visibility against this Core contract. LC-C03 temporal relationship/access transfer and T08 multi-workspace effects remain separate work.
+
+The read RPC intentionally returns only snapshots and lineage attributed to the current workspace; private internal records with NULL origin and other workspace records stay hidden. It does not change a unit's current code, status, ownership or historical relationships.
