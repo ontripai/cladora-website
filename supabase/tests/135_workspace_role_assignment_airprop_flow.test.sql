@@ -204,7 +204,16 @@ select r.id,p.id,'allow' from identity.roles r cross join identity.permissions p
 where r.code='owner' and r.tenant_id is null and r.is_system and p.code='workspace.role.assign'
 on conflict(role_id,permission_id) do update set effect='allow';
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
-select lives_ok($$select customer_api.assign_workspace_role_v1(
+select diag('CHILDBG ' || jsonb_build_object(
+ 'actor',auth.uid(),
+ 'actor_memberships',(select jsonb_agg(jsonb_build_object('id',m.id,'role_id',m.role_id,'status',m.status)) from identity.memberships m where m.user_id=auth.uid()),
+ 'parent',(select jsonb_build_object('id',a.id,'member',a.membership_id,'role',a.workspace_role_id,'scope',a.scope_type,'policy',a.authority_policy_version,'depth',a.authority_depth,'assigned_by',a.assigned_by_membership_id,'ctx',a.assigned_by_context_grant_id)
+   from platform.workspace_member_roles a where a.membership_id='13500000-0000-0000-0000-000001000002' and a.workspace_role_id=(select id from platform.workspace_roles where code='airprop_flow_reader_writer') order by a.created_at desc limit 1),
+ 'parent_effective',(select app_private.workspace_member_role_authority_active_v1(a.id,(select id from identity.permissions where code='airprop.opportunity.manage'),(select id from platform.module_definitions where code='airprop_commercial'),'workspace','13500000-0000-0000-0000-000000000100','{}'::uuid[])
+   from platform.workspace_member_roles a where a.membership_id='13500000-0000-0000-0000-000001000002' and a.workspace_role_id=(select id from platform.workspace_roles where code='airprop_flow_reader_writer') order by a.created_at desc limit 1),
+ 'permission_delegable',exists(select 1 from platform.module_permission_bindings b join platform.module_definitions md on md.id=b.module_definition_id join identity.permissions p on p.id=b.permission_id where md.code='airprop_commercial' and p.code='airprop.opportunity.manage' and b.is_assignable_to_local_role and b.is_delegable and b.lifecycle_status='active' and b.valid_from<=statement_timestamp() and (b.valid_to is null or b.valid_to>statement_timestamp()))
+)::text);
+select lives_ok($select customer_api.assign_workspace_role_v1(
  '13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000001000004',
  (select id from platform.workspace_roles where code='airprop_flow_child_manager'),
  'workspace',null,null,null,now()+interval '1 day','Narrow delegated child role','flow_child_assign_135')$$,
