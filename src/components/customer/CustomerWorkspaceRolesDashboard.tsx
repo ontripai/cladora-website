@@ -15,6 +15,7 @@ import { isRtlLocale } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
 import { WorkspaceRoleDraftAccessEditor } from './WorkspaceRoleDraftAccessEditor';
 import { WorkspaceRoleAssignmentEditor } from './WorkspaceRoleAssignmentEditor';
+import { WorkspaceRoleTermActions } from './WorkspaceRoleTermActions';
 import type {
   GetWorkspaceRolesResponse,
   WorkspaceRoleItem,
@@ -31,6 +32,8 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
   const isRtl = isRtlLocale(lang);
   const state = useCustomerContext();
   const contextId = state.active?.context_id;
+  const authorityContextId = state.contexts.find(c => c.membership_id === state.active?.membership_id
+    && c.scope_type === 'tenant')?.context_id ?? null;
 
   const [data, setData] = useState<GetWorkspaceRolesResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -215,6 +218,7 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           context_id: contextId,
+          ...(assignment.scope_type === 'workspace' ? { authority_context_id: authorityContextId } : {}),
           assignment_id: assignment.id,
           expected_lock_version: assignment.lock_version,
           reason: reason.trim(),
@@ -432,7 +436,7 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {contextId && data?.workspace_id && <WorkspaceRoleAssignmentEditor key={`${contextId}:${data.workspace_id}`} lang={lang} contextId={contextId} workspaceId={data.workspace_id} roles={data.roles} onChanged={fetchRoles} onMfaRequired={assignmentMfaRequired} />}
+          {contextId && data?.workspace_id && <WorkspaceRoleAssignmentEditor key={`${contextId}:${data.workspace_id}`} lang={lang} contextId={contextId} authorityContextId={authorityContextId} workspaceId={data.workspace_id} roles={data.roles} onChanged={fetchRoles} onMfaRequired={assignmentMfaRequired} />}
           <div className="overflow-x-auto border border-gray-200 dark:border-gray-800 rounded-xl">
           <table className="w-full text-sm text-left">
             <thead className="bg-gray-50 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300 text-xs uppercase">
@@ -473,6 +477,10 @@ export function CustomerWorkspaceRolesDashboard({ lang }: { lang: Language }) {
                     </td>
                     <td className="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">{a.reason}</td>
                     <td className="px-4 py-3 text-right">
+                      {contextId && <WorkspaceRoleTermActions assignment={a} contextId={contextId}
+                        authorityContextId={authorityContextId} lang={lang} onChanged={fetchRoles}
+                        onMfaRequired={assignmentMfaRequired} />}
+                      {' · '}
                       <button
                         onClick={() => void handleRevokeAssignment(a)}
                         disabled={actionLoading}
