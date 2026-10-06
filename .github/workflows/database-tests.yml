@@ -10,6 +10,7 @@ on:
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
+      - "scripts/test-core-relationship-concurrency.mjs"
       - "scripts/test-statutory-funds-concurrency.mjs"
       - "scripts/test-retention-concurrency-contract.mjs"
       - "scripts/test-retention-manifest-vectors.mjs"
@@ -28,6 +29,7 @@ on:
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
+      - "scripts/test-core-relationship-concurrency.mjs"
       - "scripts/test-statutory-funds-concurrency.mjs"
       - "scripts/test-retention-concurrency-contract.mjs"
       - "scripts/test-retention-manifest-vectors.mjs"
@@ -75,6 +77,10 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Run independent Core relationship review race
+        run: timeout 60s node scripts/test-core-relationship-concurrency.mjs
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run real multi-connection financial close concurrency tests
         run: timeout 60s node scripts/test-financial-close-concurrency.mjs
         env:
