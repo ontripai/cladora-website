@@ -800,6 +800,9 @@ select diag('AUTHDBG ' || jsonb_build_object(
    '09000000-0000-0000-0000-000000010000','09000000-0000-0000-0000-000000100001'),
  'source_kind',src.source_kind,'source_role',src.source_identity_role_id,'grantor_role',gm.role_id,
  'context_covers',app_private.workspace_context_covers_role_scope_v1(a.assigned_by_context_grant_id,a.tenant_id,'unit','09000000-0000-0000-0000-000000100001'),
+ 'role_deny',exists(select 1 from platform.workspace_role_permissions rp join platform.workspace_role_modules rm on rm.workspace_role_id=rp.workspace_role_id where rp.workspace_role_id=a.workspace_role_id and rp.permission_id=src.permission_id and rm.module_definition_id=src.module_definition_id and rp.effect='deny'),
+ 'module_active',(select md.is_active and md.lifecycle_status in ('active','published') from platform.module_definitions md where md.id=src.module_definition_id),
+ 'authority_helper',app_private.workspace_member_role_authority_active_v1(a.id,src.permission_id,src.module_definition_id,'unit','09000000-0000-0000-0000-000000100001','{}'::uuid[]),
  'source_current',app_private.workspace_role_identity_source_current_v1(a.assigned_by_context_grant_id,a.assigned_by_membership_id,src.source_identity_role_id,a.tenant_id,a.customer_workspace_id,src.permission_id,src.module_definition_id,'unit','09000000-0000-0000-0000-000000100001'),
  'delegable',exists(select 1 from platform.module_permission_bindings b where b.permission_id=src.permission_id and b.module_definition_id=src.module_definition_id and b.is_delegable and b.is_assignable_to_local_role and b.lifecycle_status='active' and b.valid_from<=statement_timestamp() and (b.valid_to is null or b.valid_to>statement_timestamp()))
 )::text)
