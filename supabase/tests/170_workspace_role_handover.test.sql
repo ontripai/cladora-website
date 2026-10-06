@@ -1,5 +1,5 @@
 begin;
-select plan(13);
+select plan(14);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -70,6 +70,11 @@ select ok(not has_function_privilege('anon',
   'customer_api.handover_workspace_role_v1(uuid,uuid,integer,uuid,timestamptz,text,text)','execute'),
   'handover is not public');
 select lives_ok($$select customer_api.assign_workspace_role_v1(
+  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000001',
+  (select id from platform.workspace_roles where code='handover_reader'),
+  'property','17000000-0000-0000-0000-000000001000',null,null,now()+interval '2 days',
+  'Synthetic manager authority','handover_manager_170')$$,'manager has effective role permission');
+select lives_ok($$select customer_api.assign_workspace_role_v1(
   '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000002',
   (select id from platform.workspace_roles where code='handover_reader'),
   'property','17000000-0000-0000-0000-000000001000',null,null,now()+interval '1 day','Synthetic first assignment','handover_assign_170')$$,
@@ -101,7 +106,7 @@ select lives_ok($$select customer_api.handover_workspace_role_v1(
   1,'17000000-0000-0000-0000-000001000003',now()+interval '12 hours',
   'Synthetic role transfer','handover_ok_170')$$,'exact retry returns saved result');
 select ok((select count(*) from platform.workspace_member_roles where customer_workspace_id=
-  '17000000-0000-0000-0000-000000000100')=2,'retry leaves exactly two immutable assignments');
+  '17000000-0000-0000-0000-000000000100')=3,'retry leaves manager and two immutable assignments');
 select ok((select valid_to<=statement_timestamp() from platform.workspace_member_roles where membership_id=
   '17000000-0000-0000-0000-000001000002'),'old assignment ended');
 select ok((select assigned_by_membership_id='17000000-0000-0000-0000-000001000001'
