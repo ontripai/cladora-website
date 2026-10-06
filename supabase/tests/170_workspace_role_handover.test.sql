@@ -1,5 +1,5 @@
 begin;
-select plan(15);
+select plan(22);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -124,6 +124,69 @@ select set_config('request.jwt.claims',
 select ok(app_private.check_scoped_effective_permission_v1(
   '17000000-0000-0000-0000-000010000003','airprop.opportunity.read','airprop_commercial',
   'property','17000000-0000-0000-0000-000000001000'),'successor gains scoped permission');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
+insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
+  ('17000000-0000-0000-0000-000010000011','17000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000001000001','tenant',now()-interval '1 day'),
+  ('17000000-0000-0000-0000-000010000012','17000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000001000002','tenant',now()-interval '1 day'),
+  ('17000000-0000-0000-0000-000010000013','17000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000001000003','tenant',now()-interval '1 day');
+select lives_ok($flow$do $$
+declare role_id uuid; result jsonb;
+begin
+  result := customer_api.create_workspace_role_draft_v1(
+    '17000000-0000-0000-0000-000010000001','handover_native_reader',
+    'Native handover reader','Synthetic workspace role','workspace',null,
+    'Synthetic workspace role','handover_native_create_170');
+  role_id := (result->>'id')::uuid;
+  perform customer_api.attach_workspace_role_module_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,
+    (select id from platform.module_definitions where code='airprop_commercial'),1,
+    'Synthetic module attachment','handover_native_module_170');
+  perform customer_api.attach_workspace_role_permission_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,
+    (select id from identity.permissions where code='airprop.opportunity.read'),'allow',2,
+    'Synthetic read attachment','handover_native_read_170');
+  perform customer_api.publish_workspace_role_v1(
+    '17000000-0000-0000-0000-000010000001',role_id,3,
+    'Synthetic publish role','handover_native_publish_170');
+end; $$;$flow$,'publish native workspace role');
+select lives_ok($$select customer_api.assign_workspace_role_v1(
+  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000001',
+  (select id from platform.workspace_roles where code='handover_native_reader'),
+  'workspace',null,null,null,now()+interval '2 days',
+  'Synthetic manager native authority','handover_native_manager_170')$$,'manager holds native scope');
+select lives_ok($$select customer_api.assign_workspace_role_v1(
+  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000002',
+  (select id from platform.workspace_roles where code='handover_native_reader'),
+  'workspace',null,null,null,now()+interval '1 day',
+  'Synthetic old native authority','handover_native_old_170')$$,'old member holds native scope');
+select lives_ok($$select customer_api.handover_workspace_role_v2(
+  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000010000011',
+  (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
+    on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000002'
+    and r.code='handover_native_reader'),1,'17000000-0000-0000-0000-000001000003',
+  now()+interval '12 hours','Synthetic native transfer','handover_native_ok_170')$$,
+  'dual context transfers workspace scope');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000020","aal":"aal2"}',true);
+select ok((select count(*) from customer_api.list_workspace_targets_v2(
+  '17000000-0000-0000-0000-000010000012'))=0,'old member loses native discovery');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
+select ok((select count(*) from customer_api.list_workspace_targets_v2(
+  '17000000-0000-0000-0000-000010000013'))=1,'successor gains native discovery');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
+select customer_api.revoke_workspace_role_assignment_v1(
+  '17000000-0000-0000-0000-000010000001',
+  (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
+    on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000001'
+    and r.code='handover_native_reader'),1,
+  'Synthetic native manager revoked','handover_native_revoke_170');
+select set_config('request.jwt.claims',
+  '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
+select ok((select count(*) from customer_api.list_workspace_targets_v2(
+  '17000000-0000-0000-0000-000010000013'))=0,'successor native scope ends with manager authority');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 select customer_api.revoke_workspace_role_assignment_v1(
