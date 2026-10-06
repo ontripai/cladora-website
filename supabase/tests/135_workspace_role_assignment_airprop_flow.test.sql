@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(42);
+select plan(44);
 do $$
 declare
   v_tenant_id uuid := '13500000-0000-0000-0000-000000000001'::uuid;
@@ -216,6 +216,16 @@ select ok((select count(*)=1 and bool_and(source_kind='workspace_role_assignment
  'child permission cites the parent assignment at depth one');
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000040","aal":"aal2"}',true);
 select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000040","aal":"aal2"}',true);
+select ok(app_private.workspace_member_role_authority_active_v1(
+ (select id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000004'),
+ (select id from identity.permissions where code='airprop.opportunity.manage'),
+ (select id from platform.module_definitions where code='airprop_commercial'),
+ 'workspace','13500000-0000-0000-0000-000000000100','{}'::uuid[]),
+ 'child authority resolves through the active parent lineage');
+select ok(app_private.native_workspace_scope_for_membership_v2(
+ '13500000-0000-0000-0000-000010000005','13500000-0000-0000-0000-000001000004','13500000-0000-0000-0000-000000000100'),
+ 'child tenant context resolves its exact workspace');
+select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000040","aal":"aal2"}',true);
 select ok(app_private.check_effective_permission_v2(
  '13500000-0000-0000-0000-000010000005','airprop.opportunity.manage','airprop_commercial',
  'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
@@ -270,6 +280,7 @@ select ok(app_private.workspace_member_role_authority_active_v1(
  'workspace',null,'{}'::uuid[]), 'restored descendant lineage remains active');
 select ok(app_private.native_workspace_scope_for_membership_v2(
  '13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000001000002','13500000-0000-0000-0000-000000000100'), 'target tenant context resolves the exact assigned workspace');
+select set_config('request.jwt.claims','{"sub":"13500000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok(app_private.check_effective_permission_v2(
  '13500000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial',
  'workspace','13500000-0000-0000-0000-000000000100','13500000-0000-0000-0000-000000000100'),
