@@ -790,32 +790,6 @@ select ok(exists(
    and rp.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
    and rp.effect='allow' and rm.module_definition_id=(select id from platform.module_definitions where code='maintenance')),
  'published unit role has the exact allow permission and module');
-select diag('AUTHDBG ' || jsonb_build_object(
- 'assignment',a.id,'policy',a.authority_policy_version,'scope_type',a.scope_type,'scope_id',coalesce(a.unit_id,a.building_id,a.property_id),
- 'valid',a.valid_from<=statement_timestamp() and (a.valid_to is null or a.valid_to>statement_timestamp()),
- 'member_active',m.status='active' and m.starts_at<=statement_timestamp() and (m.ends_at is null or m.ends_at>statement_timestamp()),
- 'role_status',wr.lifecycle_status,'role_valid',wr.valid_from<=statement_timestamp() and (wr.valid_to is null or wr.valid_to>statement_timestamp()),
- 'scope_contains',app_private.workspace_role_scope_contains_v1(a.scope_type,a.property_id,a.building_id,a.unit_id,'unit',
-   (select b.property_id from portfolio.buildings b where b.id='09000000-0000-0000-0000-000000010000'),
-   '09000000-0000-0000-0000-000000010000','09000000-0000-0000-0000-000000100001'),
- 'source_kind',src.source_kind,'source_role',src.source_identity_role_id,'grantor_role',gm.role_id,
- 'context_covers',app_private.workspace_context_covers_role_scope_v1(a.assigned_by_context_grant_id,a.tenant_id,'unit','09000000-0000-0000-0000-000000100001'),
- 'role_deny',exists(select 1 from platform.workspace_role_permissions rp join platform.workspace_role_modules rm on rm.workspace_role_id=rp.workspace_role_id where rp.workspace_role_id=a.workspace_role_id and rp.permission_id=src.permission_id and rm.module_definition_id=src.module_definition_id and rp.effect='deny'),
- 'module_active',(select md.is_active and md.lifecycle_status in ('active','published') from platform.module_definitions md where md.id=src.module_definition_id),
- 'authority_helper',app_private.workspace_member_role_authority_active_v1(a.id,src.permission_id,src.module_definition_id,'unit','09000000-0000-0000-0000-000000100001','{}'::uuid[]),
- 'source_current',app_private.workspace_role_identity_source_current_v1(a.assigned_by_context_grant_id,a.assigned_by_membership_id,src.source_identity_role_id,a.tenant_id,a.customer_workspace_id,src.permission_id,src.module_definition_id,'unit','09000000-0000-0000-0000-000000100001'),
- 'delegable',exists(select 1 from platform.module_permission_bindings b where b.permission_id=src.permission_id and b.module_definition_id=src.module_definition_id and b.is_delegable and b.is_assignable_to_local_role and b.lifecycle_status='active' and b.valid_from<=statement_timestamp() and (b.valid_to is null or b.valid_to>statement_timestamp()))
-)::text)
-from platform.workspace_member_roles a
-join identity.memberships m on m.id=a.membership_id
-join platform.workspace_roles wr on wr.id=a.workspace_role_id
-join platform.workspace_member_role_authority_sources src on src.assignment_id=a.id
-left join identity.memberships gm on gm.id=a.assigned_by_membership_id
-where a.membership_id='09000000-0000-0000-0000-000001000002'
- and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
- and src.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
- and src.module_definition_id=(select id from platform.module_definitions where code='maintenance')
-order by a.created_at desc limit 1;
 select ok(app_private.workspace_member_role_authority_active_v1(
  (select id from platform.workspace_member_roles where membership_id='09000000-0000-0000-0000-000001000002' and workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector') order by created_at desc limit 1),
  (select id from identity.permissions where code='maintenance.requests.manage'),
