@@ -1,5 +1,5 @@
 begin;
-select plan(9);
+select plan(10);
 insert into auth.users(id,email) values ('16100000-0000-4000-8000-000000000001','core161@cladora.test');
 insert into platform.tenants(id,legal_name,registration_number,status) values
  ('16100000-0000-4000-8000-000000000002','Core identity tenant','LC161','active');
@@ -84,6 +84,8 @@ select throws_ok($$select customer_api.record_core_unit_lineage_v1(
  array['16100000-0000-4000-8000-000000000011','16100000-0000-4000-8000-000000000012']::uuid[],
  'test://again')$$,'23505','unit_lineage_transition_conflict','Duplicate transition denied');
 select is((select count(*) from portfolio.unit_lineage_events),1::bigint,'Only one event retained');
+select is((select customer_workspace_id from portfolio.unit_lineage_events limit 1),
+ '16100000-0000-4000-8000-000000000006'::uuid,'Command attributes event to exact workspace');
 update platform.workspace_property_authorities set status='revoked',revoked_at=statement_timestamp(),
  valid_to=statement_timestamp(),revocation_reason='Synthetic revocation'
 where id='16100000-0000-4000-8000-000000000010';
