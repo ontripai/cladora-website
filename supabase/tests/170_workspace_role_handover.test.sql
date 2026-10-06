@@ -1,5 +1,5 @@
 begin;
-select plan(23);
+select plan(25);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -69,13 +69,19 @@ $$;
 select ok(not has_function_privilege('anon',
   'customer_api.handover_workspace_role_v1(uuid,uuid,integer,uuid,timestamptz,text,text)','execute'),
   'handover is not public');
+select ok(not has_function_privilege('authenticated',
+  'customer_api.assign_workspace_role_v1(uuid,uuid,uuid,text,uuid,uuid,uuid,timestamptz,text,text)','execute'),
+  'old generic assignment entry point is closed to authenticated callers');
+select ok(not has_function_privilege('authenticated',
+  'customer_api.revoke_workspace_role_assignment_v1(uuid,uuid,integer,text,text)','execute'),
+  'old generic revoke entry point is closed to authenticated callers');
 select lives_ok($$select customer_api.assign_workspace_role_v1(
   '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000001',
   (select id from platform.workspace_roles where code='handover_reader'),
   'property','17000000-0000-0000-0000-000000001000',null,null,now()+interval '2 days',
   'Synthetic manager authority','handover_manager_170')$$,'manager has effective role permission');
-select lives_ok($$select customer_api.assign_workspace_role_v1(
-  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000002',
+select lives_ok($$select customer_api.assign_workspace_role_v2(
+  '17000000-0000-0000-0000-000010000001',null,'17000000-0000-0000-0000-000001000002',
   (select id from platform.workspace_roles where code='handover_reader'),
   'property','17000000-0000-0000-0000-000000001000',null,null,now()+interval '1 day','Synthetic first assignment','handover_assign_170')$$,
   'manager assigns old member');
@@ -162,8 +168,9 @@ select lives_ok($$select customer_api.assign_workspace_role_v1(
   (select id from platform.workspace_roles where code='handover_native_reader'),
   'workspace',null,null,null,now()+interval '2 days',
   'Synthetic manager native authority','handover_native_manager_170')$$,'manager holds native scope');
-select lives_ok($$select customer_api.assign_workspace_role_v1(
-  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000002',
+select lives_ok($$select customer_api.assign_workspace_role_v2(
+  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000010000011',
+  '17000000-0000-0000-0000-000001000002',
   (select id from platform.workspace_roles where code='handover_native_reader'),
   'workspace',null,null,null,now()+interval '1 day',
   'Synthetic old native authority','handover_native_old_170')$$,'old member holds native scope');
