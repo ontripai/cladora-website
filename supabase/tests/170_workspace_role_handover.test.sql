@@ -1,5 +1,5 @@
 begin;
-select plan(12);
+select plan(13);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -75,6 +75,16 @@ select throws_ok($$select customer_api.handover_workspace_role_v1(
   1,'17000000-0000-0000-0000-000001000003',now()+interval '2 days',
   'Synthetic excessive duration','handover_long_170')$$,'42501',
   'workspace_handover_expiry_exceeds_previous','successor expiry cannot exceed old grant');
+update identity.context_grants set ends_at=now()+interval '6 hours'
+  where id='17000000-0000-0000-0000-000010000003';
+select throws_ok($$select customer_api.handover_workspace_role_v1(
+  '17000000-0000-0000-0000-000010000001',
+  (select id from platform.workspace_member_roles where membership_id='17000000-0000-0000-0000-000001000002'),
+  1,'17000000-0000-0000-0000-000001000003',now()+interval '12 hours',
+  'Synthetic excessive context duration','handover_context_170')$$,'42501',
+  'workspace_handover_successor_context_required','successor context must cover the full term');
+update identity.context_grants set ends_at=null
+  where id='17000000-0000-0000-0000-000010000003';
 select lives_ok($$select customer_api.handover_workspace_role_v1(
   '17000000-0000-0000-0000-000010000001',
   (select id from platform.workspace_member_roles where membership_id='17000000-0000-0000-0000-000001000002'),
