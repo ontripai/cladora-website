@@ -24,8 +24,9 @@ export async function POST(request: NextRequest) {
   if (authError || !claims?.claims?.sub) {
     return NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401, headers });
   }
-  const { data, error } = await (supabase.schema('customer_api') as any).rpc('handover_workspace_role_v1', {
+  const { data, error } = await (supabase.schema('customer_api') as any).rpc('handover_workspace_role_v2', {
     p_context_id: parsed.data.context_id,
+    p_authority_context_id: parsed.data.authority_context_id ?? null,
     p_assignment_id: parsed.data.assignment_id,
     p_expected_lock_version: parsed.data.expected_lock_version,
     p_successor_membership_id: parsed.data.successor_membership_id,
