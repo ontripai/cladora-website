@@ -1,5 +1,5 @@
 begin;
-select plan(22);
+select plan(23);
 
 -- Reuse the canonical AIRPROP fixture from test 135 with distinct IDs via a
 -- transaction-local setup below. The role is published through the public API.
@@ -124,6 +124,13 @@ select set_config('request.jwt.claims',
 select ok(app_private.check_scoped_effective_permission_v1(
   '17000000-0000-0000-0000-000010000003','airprop.opportunity.read','airprop_commercial',
   'property','17000000-0000-0000-0000-000000001000'),'successor gains scoped permission');
+update identity.context_grants set ends_at=now()
+  where id='17000000-0000-0000-0000-000010000001';
+select ok(not app_private.check_scoped_effective_permission_v1(
+  '17000000-0000-0000-0000-000010000003','airprop.opportunity.read','airprop_commercial',
+  'property','17000000-0000-0000-0000-000000001000'),'successor loses permission when manager context ends');
+update identity.context_grants set ends_at=null
+  where id='17000000-0000-0000-0000-000010000001';
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
