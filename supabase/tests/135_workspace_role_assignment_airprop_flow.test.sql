@@ -214,7 +214,7 @@ select diag('CHILDBG ' || jsonb_build_object(
  'parent_role_deny',exists(select 1 from platform.workspace_role_permissions rp join platform.workspace_role_modules rm on rm.workspace_role_id=rp.workspace_role_id where rp.workspace_role_id=(select workspace_role_id from platform.workspace_member_roles where membership_id='13500000-0000-0000-0000-000001000002' order by created_at desc limit 1) and rp.permission_id=(select id from identity.permissions where code='airprop.opportunity.manage') and rm.module_definition_id=(select id from platform.module_definitions where code='airprop_commercial') and rp.effect='deny'),
  'permission_delegable',exists(select 1 from platform.module_permission_bindings b join platform.module_definitions md on md.id=b.module_definition_id join identity.permissions p on p.id=b.permission_id where md.code='airprop_commercial' and p.code='airprop.opportunity.manage' and b.is_assignable_to_local_role and b.is_delegable and b.lifecycle_status='active' and b.valid_from<=statement_timestamp() and (b.valid_to is null or b.valid_to>statement_timestamp()))
 )::text);
-select lives_ok($select customer_api.assign_workspace_role_v1(
+select lives_ok($$select customer_api.assign_workspace_role_v1(
  '13500000-0000-0000-0000-000010000010','13500000-0000-0000-0000-000001000004',
  (select id from platform.workspace_roles where code='airprop_flow_child_manager'),
  'workspace',null,null,null,now()+interval '1 day','Narrow delegated child role','flow_child_assign_135')$$,
