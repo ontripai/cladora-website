@@ -59,6 +59,7 @@ const copy = {
     documents: "Documente",
     occupancy: "Ocupare și rezidenți",
     ownership: "Proprietate și contracte",
+    relationships: "Propuneri și verificări relații",
     security: "Acces și securitate",
     billing: "Facturi și creanțe",
     payments: "Plăți",
@@ -92,6 +93,7 @@ const copy = {
     documents: "Documents",
     occupancy: "Occupancy & residents",
     ownership: "Ownership & leases",
+    relationships: "Relationship proposals & reviews",
     security: "Access & security",
     billing: "Billing & receivables",
     payments: "Payments",
@@ -125,6 +127,7 @@ const copy = {
     documents: "اسناد",
     occupancy: "سکونت و ساکنان",
     ownership: "مالکیت و اجاره‌ها",
+    relationships: "پیشنهاد و بررسی رابطهٔ واحد",
     security: "دسترسی و امنیت",
     billing: "صورتحساب‌ها و مطالبات",
     payments: "پرداخت‌ها",
@@ -200,7 +203,7 @@ function Shell({
   const roleCode = state.dashboard?.context?.role_code;
   // Native discovery is presentation-only; canonical target and module gates
   // are evaluated by the database on each AIRPROP read and mutation.
-  const isAllowedForRole = (path: string) => (state.active?.scope_type === "tenant" && ["/app/airprop", "/app/services"].includes(path)) || isRouteAllowedForPersona(roleCode, path);
+  const isAllowedForRole = (path: string) => (state.active?.scope_type === "tenant" && ["/app/airprop", "/app/services", "/app/ownership/relationships"].includes(path)) || isRouteAllowedForPersona(roleCode, path);
 
   const navItems = [
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
@@ -222,6 +225,7 @@ function Shell({
     { href: `/${lang}/app/documents`, label: t.documents, icon: FileText, visible: documents },
     { href: `/${lang}/app/occupancy`, label: t.occupancy, icon: UsersRound, visible: occupancy },
     { href: `/${lang}/app/ownership`, label: t.ownership, icon: Landmark, visible: ownership },
+    { href: `/${lang}/app/ownership/relationships`, label: t.relationships, icon: Landmark, visible: state.active?.scope_type === "tenant" },
     { href: `/${lang}/app/security-access`, label: t.security, icon: KeyRound, visible: security },
     { href: `/${lang}/app/billing`, label: t.billing, icon: ReceiptText, visible: billing },
     { href: `/${lang}/app/payments`, label: t.payments, icon: CreditCard, visible: payments },

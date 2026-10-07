@@ -164,6 +164,7 @@ export const publishWorkspaceRoleRequestSchema = z.object({
 
 export const assignWorkspaceRoleRequestSchema = z.object({
   context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
   target_membership_id: uuidSchema,
   workspace_role_id: uuidSchema,
   scope_type: scopeTypeSchema,
@@ -177,9 +178,31 @@ export const assignWorkspaceRoleRequestSchema = z.object({
 
 export const revokeWorkspaceRoleAssignmentRequestSchema = z.object({
   context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
   assignment_id: uuidSchema,
   expected_lock_version: z.number().int().positive(),
   reason: z.string().trim().min(5, 'Reason must be at least 5 characters').max(500),
+  idempotency_key: idempotencyKeySchema,
+}).strict();
+
+export const handoverWorkspaceRoleRequestSchema = z.object({
+  context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
+  assignment_id: uuidSchema,
+  expected_lock_version: z.number().int().positive(),
+  successor_membership_id: uuidSchema,
+  valid_until: z.string().datetime().nullable().optional(),
+  reason: z.string().trim().min(5).max(500),
+  idempotency_key: idempotencyKeySchema,
+}).strict();
+
+export const renewWorkspaceRoleAssignmentRequestSchema = z.object({
+  context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
+  assignment_id: uuidSchema,
+  expected_lock_version: z.number().int().positive(),
+  valid_until: z.string().datetime(),
+  reason: z.string().trim().min(5).max(500),
   idempotency_key: idempotencyKeySchema,
 }).strict();
 

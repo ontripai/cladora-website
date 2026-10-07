@@ -53,8 +53,9 @@ export async function POST(request: NextRequest) {
   }
 
   const { data, error: rpcError } = await (supabase.schema('customer_api') as any)
-    .rpc('revoke_workspace_role_assignment_v1', {
+    .rpc('revoke_workspace_role_assignment_v2', {
       p_context_id: parsed.data.context_id,
+      p_authority_context_id: parsed.data.authority_context_id ?? null,
       p_assignment_id: parsed.data.assignment_id,
       p_expected_lock_version: parsed.data.expected_lock_version,
       p_reason: parsed.data.reason,
