@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(25);
+select plan(27);
 do $$
 declare
   v_tenant_id uuid := '14900000-0000-0000-0000-000000000001'::uuid;
@@ -132,8 +132,16 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('14900000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.submit'),'allow',6,'Synthetic submission attachment','flow_submit_149');
  perform customer_api.publish_workspace_role_v1('14900000-0000-0000-0000-000010000001',role_id,7,'Synthetic publish role','flow_publish_149');
 end; $$;$flow$,'publish role through canonical commands');
-select lives_ok($$select customer_api.assign_workspace_role_v1('14900000-0000-0000-0000-000010000001','14900000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_149')$$,'assign explicit diligence role');
+select lives_ok($$insert into platform.workspace_member_roles
+  (tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,valid_from,valid_to,
+   assigned_by_user_id,assigned_by_membership_id,reason)
+values ('14900000-0000-0000-0000-000000000001','14900000-0000-0000-0000-000000000100',
+ '14900000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),
+ 'workspace',now(),now()+interval '1 day','14900000-0000-0000-0000-000000000010',
+ '14900000-0000-0000-0000-000001000001','Legacy explicit diligence assignment')$$,'legacy workspace role assignment remains available');
 select set_config('request.jwt.claims','{"sub":"14900000-0000-0000-0000-000000000020","aal":"aal2"}',true);
+select ok(app_private.native_workspace_scope_for_membership_v2('14900000-0000-0000-0000-000010000010','14900000-0000-0000-0000-000001000002','14900000-0000-0000-0000-000000000100'),'legacy reviewer role resolves its native workspace');
+select ok(app_private.check_effective_permission_v2('14900000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial','workspace','14900000-0000-0000-0000-000000000100','14900000-0000-0000-0000-000000000100'),'legacy reviewer role supplies AIRPROP manage permission');
 select lives_ok($$select customer_api.create_airprop_opportunity_v2('14900000-0000-0000-0000-000010000010','14900000-0000-0000-0000-000000000100','diligence_opportunity_149','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);
 select lives_ok($$select customer_api.create_airprop_underwriting_v2('14900000-0000-0000-0000-000010000010','14900000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14900000-0000-0000-0000-000000000100'),'diligence_eval_149',0,'{"acquisition_cost":"100000","annual_rent":"8000","annual_opex":"1000","currency":"EUR"}')$$,'evaluate exact baseline');

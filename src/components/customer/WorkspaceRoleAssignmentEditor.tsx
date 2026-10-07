@@ -8,8 +8,8 @@ type Member = { membership_id: string; member_name: string | null; role_code: st
 type Building = { building_id: string; property_id: string; name: string };
 type Command = ReturnType<typeof assignWorkspaceRoleRequestSchema.parse>;
 
-export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, roles, onChanged, onMfaRequired }: {
-  lang: Language; contextId: string; workspaceId: string; roles: WorkspaceRoleItem[];
+export function WorkspaceRoleAssignmentEditor({ lang, contextId, authorityContextId, workspaceId, roles, onChanged, onMfaRequired }: {
+  lang: Language; contextId: string; authorityContextId: string | null; workspaceId: string; roles: WorkspaceRoleItem[];
   onChanged: () => void; onMfaRequired: () => void;
 }) {
   const text = (en: string, ro: string, fa: string) => lang === 'fa' ? fa : lang === 'ro' ? ro : en;
@@ -81,6 +81,7 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
   const availableMembers = members.filter(member => scope === 'workspace' ? member.workspace_eligible : member.building_ids.includes(buildingId));
   const building = buildings.find(item => item.building_id === buildingId);
   const ready = availableRoles.some(role => role.id === roleId) && availableMembers.some(member => member.membership_id === memberId)
+    && (scope !== 'workspace' || !!authorityContextId)
     && (scope === 'workspace' || !!building);
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -93,6 +94,7 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
     setBusy(true); setMessage('');
     try {
       const command = pending ?? assignWorkspaceRoleRequestSchema.parse({ context_id: contextId,
+        ...(scope === 'workspace' ? { authority_context_id: authorityContextId } : {}),
         target_membership_id: memberId, workspace_role_id: roleId, scope_type: scope,
         ...(scope === 'building' ? { property_id: building!.property_id, building_id: building!.building_id } : {}),
         valid_until: submittedExpiry ? new Date(String(submittedExpiry)).toISOString() : null, reason,
@@ -127,7 +129,7 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
     <fieldset disabled={busy || recoveryBlocked || pending !== null || loading} className="grid gap-3 sm:grid-cols-2">
       <label>{text('Assignment scope', 'Domeniul atribuirii', 'محدودهٔ تخصیص')}
         <select value={scope} onChange={event => { setScope(event.target.value as 'workspace' | 'building'); setMemberId(''); setRoleId(''); setBuildingId(''); }} className="block w-full rounded border p-2 dark:bg-gray-900">
-          <option value="workspace">{text('Workspace', 'Workspace', 'ورک‌اسپیس')}</option>
+          <option value="workspace" disabled={!authorityContextId}>{text('Workspace', 'Workspace', 'ورک‌اسپیس')}</option>
           <option value="building">{text('One building', 'O clădire', 'یک ساختمان')}</option>
         </select>
       </label>
@@ -159,6 +161,7 @@ export function WorkspaceRoleAssignmentEditor({ lang, contextId, workspaceId, ro
     {pending && <p role="status">{text('A saved request is awaiting confirmation. Retry uses the same member, role and key.', 'O cerere salvată așteaptă confirmarea. Reîncercarea folosește același membru, rol și cheie.', 'درخواست ذخیره‌شده منتظر تأیید است. تکرار با همان عضو، نقش و کلید انجام می‌شود.')}</p>}
     <button type="submit" disabled={busy || recoveryBlocked || (!pending && (loading || !ready || reason.trim().length < 5))} className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50">{pending ? text('Retry saved request', 'Reîncearcă cererea salvată', 'تکرار درخواست ذخیره‌شده') : text('Assign role', 'Atribuie rolul', 'تخصیص نقش')}</button>
     {!loading && !availableRoles.length && <p>{text('Publish a role compatible with the selected scope first.', 'Publicați mai întâi un rol compatibil cu domeniul selectat.', 'ابتدا نقش سازگار با محدودهٔ انتخاب‌شده را منتشر کنید.')}</p>}
+    {scope === 'workspace' && !authorityContextId && <p role="status">{text('A tenant context for this manager is required for whole-workspace roles.', 'Este necesar un context de tenant al acestui manager pentru roluri la nivel de workspace.', 'برای نقش کل ورک‌اسپیس، زمینهٔ مستأجر متعلق به همین مدیر لازم است.')}</p>}
     {message && <p role="status" aria-live="polite">{message}</p>}
   </form>;
 }

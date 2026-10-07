@@ -9,6 +9,8 @@ on:
       - 'src/lib/customer/workspace-roles-schema.ts'
       - 'src/components/customer/*Role*.tsx'
       - 'scripts/test-workspace-role-assignment*.mjs'
+      - 'scripts/test-workspace-role-handover-route.mjs'
+      - 'scripts/test-workspace-role-renewal-route.mjs'
       - 'scripts/test-workspace-native-authority-003.mjs'
       - '.github/workflows/workspace-role-assignment.yml'
   workflow_dispatch:
@@ -40,4 +42,6 @@ jobs:
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-role-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-workspace-native-authority-003.mjs --airprop-runtime --role-assignment
       - run: CLADORA_PGLITE_PACKAGE="file://$GITHUB_WORKSPACE/scripts/airprop-local-postgres-adapter.mjs" node scripts/test-workspace-native-authority-003.mjs --airprop-runtime --role-assignment
       - run: node scripts/test-workspace-role-assignment-route.mjs
+      - run: node scripts/test-workspace-role-handover-route.mjs
+      - run: node scripts/test-workspace-role-renewal-route.mjs
       - run: node scripts/test-workspace-role-assignment-ui.mjs
