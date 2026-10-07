@@ -37,6 +37,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
 
   // Form State
   const [role, setRole] = useState<string>('');
+  const [portfolioScope, setPortfolioScope] = useState<'single_building' | 'multi_building_portfolio'>('single_building');
   const [propertyType, setPropertyType] = useState<string>('');
   const [stage, setStage] = useState<string>('');
   const [services, setServices] = useState<string[]>([]);
@@ -98,10 +99,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
     const compiledMessage = `
 [CLADORA PARTNERSHIP INQUIRY]
 • Applicant Role: ${role}
-• Property / Typology: ${propertyType}
-• Current Lifecycle Stage: ${stage}
+• Asset Scope: ${portfolioScope === 'multi_building_portfolio' ? 'Multi-Building Portfolio' : 'Single Building Asset'}
+• Property Typology: ${propertyType}
+• Current Lifecycle Need: ${stage}
 • Desired Services: ${services.join(', ')}
-• Workspace Readiness: ${workspaceStatus}
+• Workspace Status: ${workspaceStatus}
 • Location / City: ${city || 'Not specified'}
 • Units Count: ${unitsCount || 'Not specified'}
 • Project Notes: ${additionalNotes.trim() || 'No additional notes provided.'}
@@ -116,6 +118,14 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
           email: email.trim(),
           phone: phone.trim() || null,
           message: compiledMessage,
+          role: role || null,
+          propertyType: propertyType || null,
+          portfolioScope: portfolioScope,
+          stage: stage || null,
+          services: services,
+          workspaceStatus: workspaceStatus || null,
+          city: city.trim() || null,
+          unitsCount: unitsCount.trim() || null,
           locale: lang,
           sourcePage: `/${lang}/contact`,
           consentPrivacy: true,
@@ -153,29 +163,27 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
 
   const roles = [
     { id: 'developer', label: lang === 'ro' ? 'Dezvoltator / Constructor' : lang === 'fa' ? 'سازنده یا عرضه‌کننده ملک' : 'Developer / Builder', icon: Building },
-    { id: 'owner_single', label: lang === 'ro' ? 'Proprietar individual' : lang === 'fa' ? 'مالک یک یا چند واحد مسکونی' : 'Single Unit Owner', icon: KeyRound },
-    { id: 'owner_portfolio', label: lang === 'ro' ? 'Proprietar portofoliu (Multi-imobil)' : lang === 'fa' ? 'مالک چندواحدی / صاحب سبد املاک' : 'Multi-Property Landlord', icon: TrendingUp },
+    { id: 'owner_portfolio', label: lang === 'ro' ? 'Proprietar portofoliu / Multi-unitate' : lang === 'fa' ? 'مالک چندواحدی / صاحب سبد املاک' : 'Multi-Unit Landlord / Portfolio Owner', icon: TrendingUp },
+    { id: 'owner_single', label: lang === 'ro' ? 'Proprietar individual (Locuință / Spațiu)' : lang === 'fa' ? 'مالک تک‌واحدی (مسکونی یا تجاری)' : 'Individual Property Owner', icon: KeyRound },
+    { id: 'property_manager', label: lang === 'ro' ? 'Manager de proprietăți / Companie de administrare' : lang === 'fa' ? 'مدیر مجتمع یا شرکت مدیریت املاک' : 'Property / Estate Manager', icon: Layers },
     { id: 'association_board', label: lang === 'ro' ? 'Asociație de proprietari / Comitet' : lang === 'fa' ? 'مدیر ساختمان یا انجمن مالکان' : 'HOA / Resident Board', icon: Building2 },
-    { id: 'property_manager', label: lang === 'ro' ? 'Manager de proprietăți / Companie' : lang === 'fa' ? 'مدیر مجتمع یا شرکت مدیریت املاک' : 'Property / Estate Manager', icon: Layers },
-    { id: 'service_provider', label: lang === 'ro' ? 'Furnizor de servicii / Tehnician' : lang === 'fa' ? 'ارائه‌دهنده خدمات یا تیم فنی' : 'Service Provider / Contractor', icon: Wrench },
-    { id: 'tenant', label: lang === 'ro' ? 'Chiriaș / Utilizator spațiu' : lang === 'fa' ? 'مستأجر یا بهره‌بردار' : 'Tenant / Occupant', icon: User },
+    { id: 'service_provider', label: lang === 'ro' ? 'Furnizor de servicii tehnice / Contractor' : lang === 'fa' ? 'ارائه‌دهنده خدمات، پیمانکار یا تیم فنی' : 'Service Provider / Contractor', icon: Wrench },
+    { id: 'tenant', label: lang === 'ro' ? 'Chiriaș / Utilizator spațiu' : lang === 'fa' ? 'مستأجر یا بهره‌بردار تجاری/مسکونی' : 'Tenant / Occupant', icon: User },
   ];
 
   const propertyTypes = [
-    { id: 'residential_condo', label: lang === 'ro' ? 'Bloc rezidențial / Condominiu' : lang === 'fa' ? 'مجتمع مسکونی / آپارتمان‌ها' : 'Residential Condominium' },
-    { id: 'residential_villas', label: lang === 'ro' ? 'Comunitate de vile / Ansamblu' : lang === 'fa' ? 'شهرک ویلایی / خانه ویلایی' : 'Villa Community' },
-    { id: 'commercial_office', label: lang === 'ro' ? 'Clădire de birouri / Business Center' : lang === 'fa' ? 'برج اداری / مجتمع دفاتر' : 'Office Tower / Business Center' },
-    { id: 'retail_mall', label: lang === 'ro' ? 'Spațiu comercial / Mall / Retail' : lang === 'fa' ? 'مرکز خرید / پاساژ / تجاری' : 'Retail Center / Mall' },
-    { id: 'industrial_logistics', label: lang === 'ro' ? 'Parc logistic / Depozit / Industrial' : lang === 'fa' ? 'انبار / شهرک و پارک صنعتی' : 'Logistics / Warehouse / Industrial' },
-    { id: 'mixed_use', label: lang === 'ro' ? 'Ansamblu mixt (Locuințe + Birouri + Retail)' : lang === 'fa' ? 'پروژه مختلط (مسکونی، تجاری، اداری)' : 'Mixed-Use Development' },
+    { id: 'residential', label: lang === 'ro' ? 'Rezidențial (Blocuri, condominii, vile)' : lang === 'fa' ? 'مسکونی (آپارتمان‌ها، برج‌ها، ویلایی)' : 'Residential (Condos, apartments, villas)' },
+    { id: 'commercial', label: lang === 'ro' ? 'Comercial & Birouri (Clădiri de birouri, retail, mall)' : lang === 'fa' ? 'تجاری و اداری (برج‌های اداری، مراکز خرید، دفاتر)' : 'Commercial & Offices (Office towers, retail, business centers)' },
+    { id: 'industrial', label: lang === 'ro' ? 'Industrial & Logistică (Depozite, hale, parcuri logistice)' : lang === 'fa' ? 'صنعتی و لجستیک (انبارها، سوله‌ها، پارک‌های صنعتی)' : 'Industrial & Logistics (Warehouses, industrial parks, depots)' },
+    { id: 'mixed_use', label: lang === 'ro' ? 'Ansamblu mixt (Rezidențial + Comercial + Birouri)' : lang === 'fa' ? 'کاربری مختلط (ترکیب مسکونی، تجاری و اداری)' : 'Mixed-Use Development (Residential, commercial & office)' },
   ];
 
   const stages = [
-    { id: 'planning_presale', label: lang === 'ro' ? 'Planificare, autorizare sau pre-vânzare' : lang === 'fa' ? 'برنامه‌ریزی، پیش‌فروش یا عرضه اولیه' : 'Planning, Pre-sale & Marketing' },
-    { id: 'handover_commissioning', label: lang === 'ro' ? 'În curs de finalizare & predare-primire' : lang === 'fa' ? 'در حال اتمام ساخت و تحویل واحدها' : 'Under Completion & Handover' },
-    { id: 'active_operation', label: lang === 'ro' ? 'Clădire finalizată, în exploatare și locuire' : lang === 'fa' ? 'ساختمان تکمیل‌شده، در حال بهره‌برداری و سکونت' : 'Active Living & Operations' },
-    { id: 'rental_management', label: lang === 'ro' ? 'Gestiune activă a chiriilor și chiriașilor' : lang === 'fa' ? 'مدیریت فعال اجاره و روابط مستأجران' : 'Tenancy & Rental Management' },
-    { id: 'service_needed', label: lang === 'ro' ? 'Nevoie specifică de servicii tehnice sau contabile' : lang === 'fa' ? 'نیاز فوری به خدمات فنی، تعمیرات یا حسابداری' : 'Specific Service or Facility Need' },
+    { id: 'presale_resale', label: lang === 'ro' ? 'Pre-vânzare, vânzare & cesiuni (AIRPROP)' : lang === 'fa' ? 'پیش‌فروش، فروش مجدد و واگذاری (AIRPROP)' : 'Pre-sales, Resale & Handover (AIRPROP)' },
+    { id: 'rental_leasing', label: lang === 'ro' ? 'Închiriere, contracte & gestiune chiriași' : lang === 'fa' ? 'اجاره، قراردادها و مدیریت مستأجران' : 'Long-term Leasing & Tenancy Management' },
+    { id: 'operations_maintenance', label: lang === 'ro' ? 'Servicii curente, mentenanță tehnică & intervenții' : lang === 'fa' ? 'خدمات جاری، نگهداری فنی و دستورکارها' : 'Daily Operations, Facility Maintenance & Work Orders' },
+    { id: 'management_transition', label: lang === 'ro' ? 'Schimbare sau preluare administrație (Tranziție management)' : lang === 'fa' ? 'تغییر مدیریت، تحویل و تحول یا انتقال اداره ساختمان' : 'Management Handover & Transition' },
+    { id: 'active_living', label: lang === 'ro' ? 'Administrare curentă & comunitate activă' : lang === 'fa' ? 'مدیریت و بهره‌برداری جاری ساختمان و ساکنان' : 'Active Living & Ongoing Administration' },
   ];
 
   const availableServices = [
@@ -187,9 +195,10 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
   ];
 
   const workspaceStatuses = [
-    { id: 'new_workspace', label: lang === 'ro' ? 'Avem nevoie de configurarea unui nou Workspace' : lang === 'fa' ? 'نیاز به ایجاد و پیکربندی یک محیط کاری (Workspace) جدید داریم' : 'We need a newly provisioned Workspace' },
-    { id: 'existing_workspace', label: lang === 'ro' ? 'Organizația noastră are deja un Workspace și dorim conectare/extindere' : lang === 'fa' ? 'محیط کاری فعال داریم و قصد اتصال ملک جدید یا گسترش خدمات داریم' : 'We have an active Workspace and wish to connect a new property' },
-    { id: 'consultation_only', label: lang === 'ro' ? 'Evaluare preliminară și consultanță pentru proiectul nostru' : lang === 'fa' ? 'در حال بررسی اولیه هستیم و نیازمند مشاوره متناسب با پروژه می‌باشیم' : 'Preliminary discovery and advisory review' },
+    { id: 'existing_workspace_service', label: lang === 'ro' ? 'Avem deja un Workspace CLADORA activ și solicităm servicii / module noi' : lang === 'fa' ? 'یک Workspace فعال در کلادورا داریم و متقاضی سفارش خدمات یا ماژول جدید هستیم' : 'We have an active CLADORA Workspace and request new services / modules' },
+    { id: 'new_workspace', label: lang === 'ro' ? 'Configurarea unui nou Workspace pentru proprietate sau portofoliu' : lang === 'fa' ? 'نیاز به ایجاد و پیکربندی یک Workspace جدید برای ملک یا سبد املاک داریم' : 'We need a newly provisioned Workspace for our property or portfolio' },
+    { id: 'migration_existing', label: lang === 'ro' ? 'Migrare de la o administrație clasică sau soft anterior către CLADORA' : lang === 'fa' ? 'مهاجرت از سیستم سنتی یا نرم‌افزار قبلی به پلتفرم CLADORA' : 'Migration from legacy property software or traditional management' },
+    { id: 'consultation_only', label: lang === 'ro' ? 'Evaluare preliminară și consultanță arhitecturală pentru proiect' : lang === 'fa' ? 'در حال بررسی اولیه هستیم و نیازمند مشاوره معماری پلتفرم متناسب با پروژه می‌باشیم' : 'Preliminary discovery and architecture consultation' },
   ];
 
   if (submissionSuccess) {
@@ -318,32 +327,72 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
             </div>
           )}
 
-          {/* Step 2: Property Typology */}
+          {/* Step 2: Property Typology & Scope */}
           {currentStep === 2 && (
-            <div className="space-y-4 animate-in fade-in duration-150">
-              <h3 className="text-base sm:text-lg font-bold text-[#102A43]">
-                {lang === 'ro' ? '2. Ce tip de proprietate gestionezi sau deții?' : lang === 'fa' ? '۲. نوع ملک یا مجموعه موردنظر چیست؟' : '2. What type of property or portfolio do you represent?'}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {propertyTypes.map((p) => {
-                  const isSelected = propertyType === p.id;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setPropertyType(p.id)}
-                      className={`p-4 rounded-2xl border text-start transition-all ${
-                        isSelected
-                          ? 'border-[#0E9F8E] bg-[#EAF8F5] text-[#102A43] shadow-2xs ring-1 ring-[#0E9F8E]'
-                          : 'border-[#E2E8F0] bg-white text-[#334E68] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
-                      }`}
-                    >
-                      <span className="text-xs sm:text-sm font-bold block">
-                        {p.label}
-                      </span>
-                    </button>
-                  );
-                })}
+            <div className="space-y-5 animate-in fade-in duration-150">
+              {/* Asset Scope */}
+              <div className="space-y-2">
+                <span className="text-xs font-semibold text-[#627D98] uppercase tracking-wider block">
+                  {lang === 'ro' ? 'Domeniu & Scară Gestiune' : lang === 'fa' ? 'مقیاس و دامنه مدیریت املاک' : 'Asset Scope & Scale'}
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPortfolioScope('single_building')}
+                    className={`p-3 rounded-xl border text-start flex items-center justify-between transition-all ${
+                      portfolioScope === 'single_building'
+                        ? 'border-[#0E9F8E] bg-[#EAF8F5] text-[#102A43] ring-1 ring-[#0E9F8E]'
+                        : 'border-[#E2E8F0] bg-white text-[#334E68] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    <span className="text-xs sm:text-sm font-bold">
+                      {lang === 'ro' ? 'Imobil / Clădire unică' : lang === 'fa' ? 'تک‌ساختمان / ملک منفرد' : 'Single Building Asset'}
+                    </span>
+                    {portfolioScope === 'single_building' && <CheckCircle2 className="w-4 h-4 text-[#0E9F8E] shrink-0" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPortfolioScope('multi_building_portfolio')}
+                    className={`p-3 rounded-xl border text-start flex items-center justify-between transition-all ${
+                      portfolioScope === 'multi_building_portfolio'
+                        ? 'border-[#0E9F8E] bg-[#EAF8F5] text-[#102A43] ring-1 ring-[#0E9F8E]'
+                        : 'border-[#E2E8F0] bg-white text-[#334E68] hover:bg-[#F8FAFC]'
+                    }`}
+                  >
+                    <span className="text-xs sm:text-sm font-bold">
+                      {lang === 'ro' ? 'Portofoliu multi-clădire' : lang === 'fa' ? 'سبد املاک چندگانه (چندین ساختمان)' : 'Multi-Building Portfolio'}
+                    </span>
+                    {portfolioScope === 'multi_building_portfolio' && <CheckCircle2 className="w-4 h-4 text-[#0E9F8E] shrink-0" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Property Typology */}
+              <div className="space-y-3">
+                <h3 className="text-base sm:text-lg font-bold text-[#102A43]">
+                  {lang === 'ro' ? '2. Ce tip de folosință sau tipologie are proprietatea?' : lang === 'fa' ? '۲. نوع کاربری یا تیپولوژی غالب ملک چیست؟' : '2. What is the predominant property typology?'}
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {propertyTypes.map((p) => {
+                    const isSelected = propertyType === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setPropertyType(p.id)}
+                        className={`p-4 rounded-2xl border text-start transition-all ${
+                          isSelected
+                            ? 'border-[#0E9F8E] bg-[#EAF8F5] text-[#102A43] shadow-2xs ring-1 ring-[#0E9F8E]'
+                            : 'border-[#E2E8F0] bg-white text-[#334E68] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
+                        }`}
+                      >
+                        <span className="text-xs sm:text-sm font-bold block">
+                          {p.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
