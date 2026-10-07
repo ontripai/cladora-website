@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(50);
+select plan(66);
 do $$
 declare
   v_tenant_id uuid := '15100000-0000-0000-0000-000000000001'::uuid;
@@ -96,18 +96,19 @@ begin
     (v_tenant_id, v_ws2_id, v_profile_id, v_model_id, 'active', statement_timestamp() - interval '1 day', v_user_admin_id, 'RO')
   on conflict do nothing;
 
-  -- Active Modules & Entitlements for Maintenance and Documents
+  -- Active Modules & Entitlements for Maintenance, Documents and Core identity
   insert into platform.workspace_modules (
     tenant_id, customer_workspace_id, module_definition_id, module_code, status, reason
   ) select v_tenant_id, v_ws_id, id, code, 'active', 'Initial test activation'
-  from platform.module_definitions where code in ('maintenance', 'documents')
+  from platform.module_definitions where code in ('maintenance', 'documents', 'core_unit_identity')
   on conflict do nothing;
 
   insert into platform.workspace_entitlements (
     customer_workspace_id, entitlement_key, value_type, boolean_value, valid_from
   ) values
     (v_ws_id, 'module.maintenance', 'boolean', true, statement_timestamp() - interval '1 day'),
-    (v_ws_id, 'module.documents', 'boolean', true, statement_timestamp() - interval '1 day')
+    (v_ws_id, 'module.documents', 'boolean', true, statement_timestamp() - interval '1 day'),
+    (v_ws_id, 'module.core_unit_identity', 'boolean', true, statement_timestamp() - interval '1 day')
   on conflict do nothing;
 end;
 $$;
@@ -117,7 +118,12 @@ insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_de
  select '15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000000100',id,code,'active','Synthetic AIRPROP flow'
  from platform.module_definitions where code='airprop_commercial';
 insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
- values('15100000-0000-0000-0000-000000000100','module.airprop_commercial','boolean',true,now()-interval '1 day');
+values('15100000-0000-0000-0000-000000000100','module.airprop_commercial','boolean',true,now()-interval '1 day');
+insert into platform.workspace_property_authorities
+ (id,tenant_id,property_id,customer_workspace_id,purpose,authority_source,evidence_reference,valid_from)
+values('15100000-0000-0000-0000-000000000901','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000001000','15100000-0000-0000-0000-000000000100',
+ 'property_operations','synthetic','test://t03-property-mandate',now()-interval '1 day');
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000010","role":"authenticated","aal":"aal2"}',true);
 select lives_ok($flow$do $$
 declare result jsonb; role_id uuid; version integer;
@@ -125,14 +131,17 @@ begin
  result=customer_api.create_workspace_role_draft_v1('15100000-0000-0000-0000-000010000001','airprop_diligence_writer','AIRPROP flow reader writer','Synthetic authorized flow','workspace',null,'Synthetic authorized flow','flow_create_151');
  role_id=(result->>'id')::uuid;
  perform customer_api.attach_workspace_role_module_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from platform.module_definitions where code='airprop_commercial'),1,'Synthetic module attachment','flow_module_151');
- perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.read'),'allow',2,'Synthetic read attachment','flow_read_151');
- perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',3,'Synthetic manage attachment','flow_manage_151');
- perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.underwriting.manage'),'allow',4,'Synthetic underwriting attachment','flow_underwriting_151');
- perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.manage'),'allow',5,'Synthetic diligence attachment','flow_diligence_151');
- perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.submit'),'allow',6,'Synthetic submission attachment','flow_submit_151');
- perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.acquisition.propose'),'allow',7,'Synthetic proposal attachment','flow_propose_151');
- perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.acquisition.approve'),'allow',8,'Synthetic decision attachment','flow_approve_151');
- perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,9,'Synthetic publish role','flow_publish_151');
+ perform customer_api.attach_workspace_role_module_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from platform.module_definitions where code='core_unit_identity'),2,'Synthetic Core module attachment','flow_core_module_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.read'),'allow',3,'Synthetic read attachment','flow_read_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.opportunity.manage'),'allow',4,'Synthetic manage attachment','flow_manage_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.underwriting.manage'),'allow',5,'Synthetic underwriting attachment','flow_underwriting_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.manage'),'allow',6,'Synthetic diligence attachment','flow_diligence_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.diligence.submit'),'allow',7,'Synthetic submission attachment','flow_submit_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.acquisition.propose'),'allow',8,'Synthetic proposal attachment','flow_propose_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.acquisition.approve'),'allow',9,'Synthetic decision attachment','flow_approve_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.presale.execute'),'allow',10,'Synthetic presale attachment','flow_presale_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='core.relationships.execute'),'allow',11,'Synthetic relationship execution attachment','flow_relationship_execute_151');
+ perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,12,'Synthetic publish role','flow_publish_151');
 end; $$;$flow$,'publish role through canonical commands');
 select lives_ok($$insert into platform.workspace_member_roles
   (tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,valid_from,valid_to,
@@ -143,7 +152,7 @@ values
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok(app_private.native_workspace_scope_for_membership_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000001000002','15100000-0000-0000-0000-000000000100'),'legacy reviewer role resolves its native workspace');
 select ok(app_private.check_effective_permission_v2('15100000-0000-0000-0000-000010000010','airprop.opportunity.manage','airprop_commercial','workspace','15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000000000100'),'legacy reviewer role supplies AIRPROP manage permission');
-select lives_ok($$select customer_api.create_airprop_opportunity_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100','diligence_opportunity_151','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000"}')$$,'create native opportunity');
+select lives_ok($$select customer_api.create_airprop_opportunity_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100','diligence_opportunity_151','{"name":"Synthetic diligence flow","country_code":"RO","city":"Bucuresti","currency":"EUR","asking_price":"100000","property_id":"15100000-0000-0000-0000-000000001000"}')$$,'create native opportunity');
 create temporary table diligence_test_response(result jsonb);
 select lives_ok($$select customer_api.create_airprop_underwriting_v2('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='15100000-0000-0000-0000-000000000100'),'diligence_eval_151',0,'{"acquisition_cost":"100000","annual_rent":"8000","annual_opex":"1000","currency":"EUR"}')$$,'evaluate exact baseline');
 select lives_ok($$insert into diligence_test_response select customer_api.create_airprop_diligence_draft_v1('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='15100000-0000-0000-0000-000000000100'),1,'diligence_draft_151')$$,'create exact-version draft through gateway');
@@ -156,7 +165,7 @@ values('15100000-0000-0000-0000-000000000702','15100000-0000-0000-0000-000000000
 insert into storage.objects(bucket_id,name)values('document-vault','synthetic/diligence-151.txt');
 select lives_ok($$select public.record_document_scan_v1('15100000-0000-0000-0000-000000000702','15100000-0000-0000-0000-000000000703','clean',repeat('a',64),'ClamAV synthetic 149',statement_timestamp())$$,'trusted scanner records actual attestation');
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000010","aal":"aal2"}',true);
-select lives_ok($$select customer_api.verify_document_evidence_v1('15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000000000701','diligence','verified','Synthetic independent verification')$$,'independent verifier uses existing Vault gateway');
+select lives_ok($$select customer_api.verify_document_evidence_v1('15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000000000701','signed_presale','verified','Synthetic independent verification')$$,'independent verifier uses existing Vault gateway');
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 create function pg_temp.review_command(p_mode text,p_revision integer,p_key text,p_snapshot jsonb default null) returns jsonb language plpgsql as $$
 declare c airprop.diligence_cases;begin
@@ -230,6 +239,71 @@ select is(pg_temp.acquisition_command('read','15100000-0000-0000-0000-0000100000
 select is((select count(*) from airprop.acquisition_decisions where proposal_id=(select (payload->>'proposal_id')::uuid from acquisition_test_response)),2::bigint,'two append-only decisions');
 select is((select status from airprop.investment_opportunities where workspace_id='15100000-0000-0000-0000-000000000100'),'underwriting','internal decision does not execute or approve opportunity');
 select ok(pg_temp.acquisition_command('decide','15100000-0000-0000-0000-000010000014','15100000-0000-0000-0000-000010000004',2,'second_approve_151')->>'idempotent'='true','terminal exact replay');
+
+-- T03: independently reviewed signed presale creates only a contractual-buyer fact.
+insert into portfolio.parties(id,tenant_id,type,legal_name)
+values('15100000-0000-0000-0000-000000000801','15100000-0000-0000-0000-000000000001','person','Synthetic presale buyer');
+insert into portfolio.relationship_proposals(
+ id,tenant_id,property_id,unit_id,customer_workspace_id,kind,target_party_id,
+ effective_from,evidence_reference,reason,proposed_by,request_id,idempotency_key,request_hash)
+values('15100000-0000-0000-0000-000000000802','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000001000','15100000-0000-0000-0000-000000100001',
+ '15100000-0000-0000-0000-000000000100','contractual_buyer',
+ '15100000-0000-0000-0000-000000000801',current_date,
+ 'urn:cladora:document-version:15100000-0000-0000-0000-000000000702',
+ 'Synthetic signed presale proposal','15100000-0000-0000-0000-000000000020',
+ '15100000-0000-0000-0000-000000000803','t03-proposal-151',repeat('a',64));
+insert into portfolio.relationship_reviews(
+ id,proposal_id,tenant_id,decision,evidence_reference,reason,reviewed_by,
+ request_id,idempotency_key,request_hash)
+values('15100000-0000-0000-0000-000000000804','15100000-0000-0000-0000-000000000802',
+ '15100000-0000-0000-0000-000000000001','verified',
+ 'urn:cladora:document-version:15100000-0000-0000-0000-000000000702',
+ 'Independent signed presale verification','15100000-0000-0000-0000-000000000010',
+ '15100000-0000-0000-0000-000000000805','t03-review-151',repeat('b',64));
+create function pg_temp.activate_t03(p_signed_on date,p_key text) returns jsonb language sql as $$
+ select customer_api.activate_airprop_contractual_buyer_v1(
+  '15100000-0000-0000-0000-000010000014','15100000-0000-0000-0000-000000000100',
+  '15100000-0000-0000-0000-000000001000',
+  (select id from airprop.investment_opportunities where workspace_id='15100000-0000-0000-0000-000000000100'),
+  '15100000-0000-0000-0000-000000000802','15100000-0000-0000-0000-000010000004',
+  '15100000-0000-0000-0000-000000000702',p_signed_on,current_date,p_key)
+$$;
+select lives_ok($$select pg_temp.activate_t03(current_date,'activate-t03-151')$$,
+ 'verified signed presale activates contractual buyer');
+select is(pg_temp.activate_t03(current_date,'activate-t03-151')->>'status','contractual_buyer',
+ 'receipt identifies purpose-limited relationship');
+select is(pg_temp.activate_t03(current_date,'activate-t03-151')->>'idempotent','true',
+ 'exact T03 replay returns original receipt');
+select throws_ok($$select pg_temp.activate_t03(current_date-1,'activate-t03-151')$$,
+ '23505','airprop_presale_idempotency_conflict','changed T03 replay conflicts');
+select is((select count(*) from airprop.presale_contracts where relationship_proposal_id=
+ '15100000-0000-0000-0000-000000000802'),1::bigint,'one immutable presale contract');
+select is((select count(*) from portfolio.contractual_buyer_relationships where unit_id=
+ '15100000-0000-0000-0000-000000100001'),1::bigint,'one contractual-buyer relationship');
+select is((select count(*) from portfolio.ownerships where unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'presale grants no title');
+select is((select count(*) from occupancy.leases where unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'presale grants no tenancy');
+select is((select count(*) from communications.unit_invitations where unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'presale sends no owner invitation');
+select is((select count(*) from platform.owner_unit_links where canonical_unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'presale creates no owner account link');
+select is((select count(*) from identity.membership_parties where party_id=
+ '15100000-0000-0000-0000-000000000801'),0::bigint,'buyer receives no account-party authority');
+select ok(not has_table_privilege('authenticated','airprop.presale_contracts','SELECT,INSERT,UPDATE,DELETE')
+ and not has_table_privilege('service_role','portfolio.contractual_buyer_relationships','INSERT'),
+ 'presale and relationship tables stay behind the gateway');
+select throws_ok($$delete from airprop.presale_contracts where relationship_proposal_id=
+ '15100000-0000-0000-0000-000000000802'$$,'55000','contractual_buyer_history_immutable',
+ 'presale history is immutable');
+select throws_ok($$update portfolio.contractual_buyer_relationships set valid_to=current_date+1
+ where unit_id='15100000-0000-0000-0000-000000100001'$$,'55000',
+ 'contractual_buyer_history_immutable','relationship history is immutable');
+select is((select count(*) from audit.events where tenant_id='15100000-0000-0000-0000-000000000001'
+ and action='AIRPROP_PRESALE_ACTIVATED'),1::bigint,'one T03 audit event');
+select is((select count(*) from platform.outbox_events where tenant_id='15100000-0000-0000-0000-000000000001'
+ and event_type='core.relationship.contractual_buyer_activated.v1'),1::bigint,'one T03 outbox event');
 select throws_ok($$delete from airprop.acquisition_proposals where tenant_id='15100000-0000-0000-0000-000000000001'$$,'22023','airprop_acquisition_decision_immutable','proposal history cannot be deleted');
 select throws_ok($$update airprop.acquisition_decisions set decision='reject' where proposal_id=(select (payload->>'proposal_id')::uuid from acquisition_test_response)$$,'22023','airprop_acquisition_decision_immutable','decision cannot be changed');
 select ok(not has_table_privilege('authenticated','airprop.acquisition_decisions','SELECT,INSERT,UPDATE,DELETE'),'customer tables closed');
