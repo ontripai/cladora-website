@@ -52,6 +52,26 @@ const ContactPayloadSchema = z
     consentPrivacy: z.literal(true, {
       message: 'You must accept the privacy policy to submit this request.',
     }),
+    role: z.string().trim().max(100).optional().nullable(),
+    propertyType: z.string().trim().max(100).optional().nullable(),
+    portfolioScope: z.string().trim().max(100).optional().nullable(),
+    stage: z.string().trim().max(100).optional().nullable(),
+    services: z.array(z.string().trim().max(100)).optional().nullable(),
+    workspaceStatus: z.string().trim().max(100).optional().nullable(),
+    city: z.string().trim().max(100).optional().nullable(),
+    unitsCount: z
+      .string()
+      .trim()
+      .max(10)
+      .optional()
+      .nullable()
+      .refine(
+        (val) => {
+          if (!val || val === '') return true;
+          return /^[1-9]\d*$/.test(val) && Number(val) >= 1 && Number(val) <= 10000;
+        },
+        { message: 'Units count must be a positive integer between 1 and 10,000.' }
+      ),
     honeypot: z.string().optional(),
     turnstileToken: z.string().optional().nullable(),
   })
@@ -236,6 +256,40 @@ export async function POST(request: NextRequest) {
     const { createAdminClient } = await import('../../../../lib/supabase/admin.ts');
     const supabase = createAdminClient();
 
+    // Map applicant_type according to database constraint: ('association','management_company','owner','company','other')
+    let mappedApplicantType: 'association' | 'management_company' | 'owner' | 'company' | 'other' | null = null;
+    if (data.role === 'association_board') mappedApplicantType = 'association';
+    else if (data.role === 'property_manager') mappedApplicantType = 'management_company';
+    else if (data.role === 'owner_single' || data.role === 'owner_portfolio') mappedApplicantType = 'owner';
+    else if (data.role === 'developer' || data.role === 'service_provider') mappedApplicantType = 'company';
+    else if (data.role) mappedApplicantType = 'other';
+
+    // Map requested_workspace_type according to constraint: ('residential','commercial','retail','office','industrial','mixed','shared','other')
+    let mappedWorkspaceType: 'residential' | 'commercial' | 'retail' | 'office' | 'industrial' | 'mixed' | 'shared' | 'other' | null = null;
+    if (data.propertyType === 'residential') mappedWorkspaceType = 'residential';
+    else if (data.propertyType === 'commercial') mappedWorkspaceType = 'commercial';
+    else if (data.propertyType === 'industrial') mappedWorkspaceType = 'industrial';
+    else if (data.propertyType === 'mixed_use' || data.propertyType === 'mixed') mappedWorkspaceType = 'mixed';
+    else if (data.propertyType) mappedWorkspaceType = 'other';
+
+    const parsedUnits = data.unitsCount && data.unitsCount.trim() !== ''
+      ? parseInt(data.unitsCount.trim(), 10)
+      : null;
+
+    const enrichedMetadata = {
+      ...initialMetadata,
+      structuredIntake: {
+        role: data.role || null,
+        propertyType: data.propertyType || null,
+        portfolioScope: data.portfolioScope || null,
+        stage: data.stage || null,
+        services: data.services || [],
+        workspaceStatus: data.workspaceStatus || null,
+        city: data.city || null,
+        unitsCount: data.unitsCount || null,
+      },
+    };
+
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       const candidateReferenceId = generateReferenceId('contact');
 
@@ -245,6 +299,10 @@ export async function POST(request: NextRequest) {
         full_name: data.fullName,
         email: normalizedEmail,
         phone: data.phone || null,
+        city: data.city || null,
+        units_count: parsedUnits,
+        applicant_type: mappedApplicantType,
+        requested_workspace_type: mappedWorkspaceType,
         message: data.message,
         locale: data.locale,
         source_page: data.sourcePage || null,
@@ -258,7 +316,7 @@ export async function POST(request: NextRequest) {
         consent_timestamp: nowIso,
         ip_hash: ipHash,
         user_agent: sanitizedUserAgent,
-        metadata: initialMetadata,
+        metadata: enrichedMetadata,
         submission_fingerprint: submissionFingerprint,
         fingerprint_bucket: fingerprintBucket,
       });

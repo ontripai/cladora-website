@@ -107,6 +107,15 @@ const nextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/:lang(ro|en|fa)/pilot',
+        destination: '/:lang/contact',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
