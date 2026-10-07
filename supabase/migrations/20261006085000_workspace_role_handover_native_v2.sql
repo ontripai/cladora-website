@@ -167,7 +167,7 @@ begin
 
   derived_key := 'handover:'||substr(payload_hash,1,48);
   new_assignment := customer_api.assign_workspace_role_v1(
-    p_context_id,p_successor_membership_id,previous.workspace_role_id,
+    p_authority_context_id,p_successor_membership_id,previous.workspace_role_id,
     previous.scope_type,previous.property_id,previous.building_id,previous.unit_id,
     p_valid_until,p_reason,derived_key||':assign');
   insert into platform.workspace_role_handover_lineage(
