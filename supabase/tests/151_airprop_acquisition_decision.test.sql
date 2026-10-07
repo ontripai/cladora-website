@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(64);
+select plan(91);
 do $$
 declare
   v_tenant_id uuid := '15100000-0000-0000-0000-000000000001'::uuid;
@@ -141,7 +141,8 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.acquisition.approve'),'allow',9,'Synthetic decision attachment','flow_approve_151');
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.presale.execute'),'allow',10,'Synthetic presale attachment','flow_presale_151');
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='core.relationships.execute'),'allow',11,'Synthetic relationship execution attachment','flow_relationship_execute_151');
- perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,12,'Synthetic publish role','flow_publish_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='core.relationships.transfer'),'allow',12,'Synthetic ownership transfer attachment','flow_relationship_transfer_151');
+ perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,13,'Synthetic publish role','flow_publish_151');
 end; $$;$flow$,'publish role through canonical commands');
 select lives_ok($$select customer_api.assign_workspace_role_v1('15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000001000002',(select id from platform.workspace_roles where code='airprop_diligence_writer'),'workspace',null,null,null,now()+interval '1 day','Synthetic bounded assignment','diligence_assign_151')$$,'assign explicit diligence role');
 select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000020","aal":"aal2"}',true);
@@ -289,6 +290,118 @@ select is((select count(*) from audit.events where tenant_id='15100000-0000-0000
  and action='AIRPROP_PRESALE_ACTIVATED'),1::bigint,'one T03 audit event');
 select is((select count(*) from platform.outbox_events where tenant_id='15100000-0000-0000-0000-000000000001'
  and event_type='core.relationship.contractual_buyer_activated.v1'),1::bigint,'one T03 outbox event');
+
+-- T06: the reviewed signed deed closes the exact old interval and starts the
+-- successor. It does not copy account, role, document or payment authority.
+insert into portfolio.parties(id,tenant_id,type,legal_name)
+values('15100000-0000-0000-0000-000000000811','15100000-0000-0000-0000-000000000001','person','Synthetic deed seller');
+insert into portfolio.ownerships(id,tenant_id,unit_id,party_id,share,valid_from)
+values('15100000-0000-0000-0000-000000000812','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000100001','15100000-0000-0000-0000-000000000811',1,current_date-30);
+insert into documents.documents(id,tenant_id,property_id,title,document_type,classification,created_by)
+values('15100000-0000-0000-0000-000000000813','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000001000','Synthetic signed deed','legal','restricted',
+ '15100000-0000-0000-0000-000000000020');
+insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,
+ mime_type,size_bytes,uploaded_by,created_at)
+values('15100000-0000-0000-0000-000000000814','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000000813',1,'synthetic/deed-151.txt',repeat('d',64),
+ 'text/plain',20,'15100000-0000-0000-0000-000000000020',now()-interval '1 minute');
+insert into storage.objects(bucket_id,name) values('document-vault','synthetic/deed-151.txt');
+select lives_ok($$select public.record_document_scan_v1(
+ '15100000-0000-0000-0000-000000000814','15100000-0000-0000-0000-000000000815',
+ 'clean',repeat('d',64),'ClamAV synthetic T06',statement_timestamp())$$,
+ 'trusted scanner attests deed bytes');
+select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000010","aal":"aal2"}',true);
+select lives_ok($$select customer_api.verify_document_evidence_v1(
+ '15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000000000813',
+ 'signed_deed','verified','Independent deed verification')$$,
+ 'independent verifier marks signed deed evidence');
+insert into portfolio.relationship_proposals(
+ id,tenant_id,property_id,unit_id,customer_workspace_id,kind,source_party_id,target_party_id,
+ effective_from,evidence_reference,reason,proposed_by,request_id,idempotency_key,request_hash)
+values('15100000-0000-0000-0000-000000000816','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000001000','15100000-0000-0000-0000-000000100001',
+ '15100000-0000-0000-0000-000000000100','ownership_transfer',
+ '15100000-0000-0000-0000-000000000811','15100000-0000-0000-0000-000000000801',
+ current_date,'urn:cladora:document-version:15100000-0000-0000-0000-000000000814',
+ 'Synthetic verified deed transfer','15100000-0000-0000-0000-000000000020',
+ '15100000-0000-0000-0000-000000000817','t06-proposal-151',repeat('e',64));
+insert into portfolio.relationship_reviews(
+ id,proposal_id,tenant_id,decision,evidence_reference,reason,reviewed_by,
+ request_id,idempotency_key,request_hash)
+values('15100000-0000-0000-0000-000000000818','15100000-0000-0000-0000-000000000816',
+ '15100000-0000-0000-0000-000000000001','verified',
+ 'urn:cladora:document-version:15100000-0000-0000-0000-000000000814',
+ 'Independent signed deed review','15100000-0000-0000-0000-000000000010',
+ '15100000-0000-0000-0000-000000000819','t06-review-151',repeat('f',64));
+select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000040","aal":"aal2"}',true);
+create function pg_temp.execute_t06(p_share numeric,p_key text) returns jsonb language sql as $$
+ select customer_api.execute_verified_ownership_transfer_v1(
+  '15100000-0000-0000-0000-000010000014','15100000-0000-0000-0000-000000000100',
+  '15100000-0000-0000-0000-000000001000','15100000-0000-0000-0000-000000000816',
+  '15100000-0000-0000-0000-000010000004','15100000-0000-0000-0000-000000000814',
+  '15100000-0000-0000-0000-000000000812',current_date-30,p_share,p_key)
+$$;
+select lives_ok($$select pg_temp.execute_t06(1,'execute-t06-151')$$,
+ 'verified deed executes exact ownership transition');
+select is(pg_temp.execute_t06(1,'execute-t06-151')->>'status','transferred',
+ 'T06 receipt identifies completed transfer');
+select is(pg_temp.execute_t06(1,'execute-t06-151')->>'idempotent','true',
+ 'exact T06 replay returns original receipt');
+select throws_ok($$select pg_temp.execute_t06(.5,'execute-t06-151')$$,
+ '23505','core_ownership_transfer_idempotency_conflict','changed payload cannot replay');
+select is((select valid_to from portfolio.ownerships where id=
+ '15100000-0000-0000-0000-000000000812'),current_date,'seller interval closes on deed date');
+select ok((select finalized_at is not null from portfolio.ownerships where id=
+ '15100000-0000-0000-0000-000000000812'),'seller interval is finalized');
+select is((select count(*) from portfolio.ownerships where unit_id=
+ '15100000-0000-0000-0000-000000100001' and party_id=
+ '15100000-0000-0000-0000-000000000801' and valid_from=current_date and valid_to is null),
+ 1::bigint,'buyer receives one current canonical interval');
+select is((select count(*) from portfolio.ownership_transfers where relationship_proposal_id=
+ '15100000-0000-0000-0000-000000000816'),1::bigint,'one immutable transfer receipt');
+select is((select count(*) from portfolio.ownership_transfer_manifests),1::bigint,
+ 'one allowlisted transfer manifest');
+select ok((select transferable_facts->'excluded' ?& array['seller_private_documents',
+ 'private_conversations','credentials','workspace_roles','payment_authority']
+ from portfolio.ownership_transfer_manifests),'manifest explicitly excludes private authority');
+select is((select count(*) from portfolio.relationship_terminations),1::bigint,
+ 'contractual-buyer phase has append-only termination receipt');
+select is((select count(*) from occupancy.leases where unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'T06 creates or changes no lease');
+select is((select count(*) from communications.unit_invitations where unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'T06 sends no owner invitation');
+select is((select count(*) from platform.owner_unit_links where canonical_unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'T06 creates no owner account link');
+select is((select count(*) from identity.membership_parties where party_id=
+ '15100000-0000-0000-0000-000000000801'),0::bigint,'T06 creates no account-party authority');
+select ok(not has_table_privilege('authenticated','portfolio.ownership_transfers','SELECT,INSERT,UPDATE,DELETE')
+ and not has_table_privilege('service_role','portfolio.ownership_transfer_manifests','INSERT'),
+ 'transfer history and manifest remain behind gateway');
+select throws_ok($$delete from portfolio.ownership_transfers$$,'55000',
+ 'ownership_transfer_history_immutable','transfer receipt is immutable');
+select throws_ok($$update portfolio.ownership_transfer_manifests set manifest_version=1$$,
+ '55000','ownership_transfer_history_immutable','transfer manifest is immutable');
+select is((select count(*) from occupancy.lifecycle_events where event_type=
+ 'verified_ownership_transfer'),2::bigint,'both ownership interval events are recorded');
+select is((select count(*) from audit.events where action='CORE_OWNERSHIP_TRANSFER_EXECUTED'),
+ 1::bigint,'one T06 audit event');
+select is((select count(*) from platform.outbox_events where event_type=
+ 'core.relationship.ownership_transferred.v1'),1::bigint,'one T06 outbox event');
+select is((select unit_id from portfolio.ownerships where party_id=
+ '15100000-0000-0000-0000-000000000801' and valid_from=current_date),
+ '15100000-0000-0000-0000-000000100001'::uuid,'canonical unit UUID is unchanged');
+select is((select party_id from portfolio.ownerships where id=
+ '15100000-0000-0000-0000-000000000812'),
+ '15100000-0000-0000-0000-000000000811'::uuid,'historical seller attribution is preserved');
+select is((select count(*) from portfolio.ownerships where unit_id=
+ '15100000-0000-0000-0000-000000100001' and party_id=
+ '15100000-0000-0000-0000-000000000811' and (valid_to is null or valid_to>current_date)),
+ 0::bigint,'former owner has no current title after transfer');
+select is((select count(*) from documents.document_permissions where document_id=
+ '15100000-0000-0000-0000-000000000813'),0::bigint,
+ 'deed execution does not copy document ACLs');
 select throws_ok($$delete from airprop.acquisition_proposals where tenant_id='15100000-0000-0000-0000-000000000001'$$,'22023','airprop_acquisition_decision_immutable','proposal history cannot be deleted');
 select throws_ok($$update airprop.acquisition_decisions set decision='reject' where proposal_id=(select (payload->>'proposal_id')::uuid from acquisition_test_response)$$,'22023','airprop_acquisition_decision_immutable','decision cannot be changed');
 select ok(not has_table_privilege('authenticated','airprop.acquisition_decisions','SELECT,INSERT,UPDATE,DELETE'),'customer tables closed');
