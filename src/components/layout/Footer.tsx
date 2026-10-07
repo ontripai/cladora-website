@@ -173,7 +173,7 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
             © {currentYear} CLADORA. {lang === 'ro' ? 'Toate drepturile rezervate.' : lang === 'fa' ? 'کلیه حقوق محفوظ است.' : 'All rights reserved.'}
           </p>
           <div className="flex items-center gap-4 text-[11px]">
-            <span>{lang === 'ro' ? 'Mediu unificat pentru operațiuni, servicii și colaborare imobiliară' : lang === 'fa' ? 'محیط یکپارچه همکاری، مدیریت و خدمات املاک' : 'Unified environment for property operations & services'}</span>
+            <span>{lang === 'ro' ? 'Evidență conformă în partidă simplă și control analitic suplimentar.' : lang === 'fa' ? 'ثبت دفاتر قانونی و ابزار کنترل تحلیلی تکمیلی.' : 'Statutory simple-entry records with supplemental analytical control.'}</span>
           </div>
         </div>
 

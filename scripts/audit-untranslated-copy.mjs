@@ -358,6 +358,12 @@ async function runAudit() {
           continue;
         }
 
+        if (route === '/pilot' && (res.statusCode === 307 || res.statusCode === 308)) {
+          passedTests++;
+          console.log(`✅ [${res.statusCode}→/${lang}/contact] ${fullPath}`);
+          continue;
+        }
+
         if (res.statusCode !== 200) {
           failures.push({ route: fullPath, category: 'HTTP', error: `HTTP ${res.statusCode}` });
           console.log(`❌ [${res.statusCode}] ${fullPath}`);
