@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BadgeCheck, ChevronLeft, ChevronRight, DoorOpen, RefreshCw, Search, ShieldCheck, X } from "lucide-react";
 import type { Language } from "@/types";
 import { useCustomerContext } from "./CustomerContextProvider";
+import { PropertyManagerInvitationsPanel } from "./PropertyManagerInvitationsPanel";
 
 export type SecurityView = "access_points" | "credentials" | "visitors" | "access_logs" | "credential_history" | "visitor_history" | "links";
 type Row = Record<string, unknown> & { id?: string };
@@ -95,6 +96,7 @@ export function CustomerSecurityAccessDashboard({ lang, initialView = "access_po
   const number = (value: number) => new Intl.NumberFormat(locales[lang]).format(value);
 
   return <div className="space-y-5" dir={lang === "fa" ? "rtl" : "ltr"}>
+    <PropertyManagerInvitationsPanel key={active?.context_id ?? "no-context"} lang={lang} />
     <header className="card-proptech border border-[#D3DCE6] bg-white p-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0E9F8E]"><ShieldCheck className="h-4 w-4" />{t.eyebrow}</div><h1 className="mt-1 text-2xl font-extrabold text-[#102A43]">{t.title}</h1><p className="mt-1 max-w-3xl text-xs text-[#52667A]">{t.sub}</p></div><span className="rounded-full border border-[#B2E5DF] bg-[#EAF8F5] px-3 py-1 text-[11px] font-bold text-[#0A6E62]">{t.readonly}</span></div></header>
     <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">{[[t.points, summary.access_points ?? 0], [t.active_credentials, summary.active_credentials ?? 0], [t.valid_visitors, summary.valid_visitors ?? 0], [t.recent_denied, summary.recent_denied ?? 0]].map(([label, value]) => <div key={String(label)} className="card-proptech bg-white p-4"><div className="text-[11px] text-[#52667A]">{label}</div><div className="mt-1 text-xl font-extrabold">{number(Number(value))}</div></div>)}</section>
     <section className="card-proptech overflow-hidden bg-white">

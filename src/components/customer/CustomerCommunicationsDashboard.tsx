@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import {
   AlertCircle,
   Bell,
@@ -10,6 +11,7 @@ import {
   FileCheck,
   FileText,
   Megaphone,
+  MessageCircle,
   Plus,
   RefreshCw,
   Search,
@@ -351,6 +353,9 @@ export function CustomerCommunicationsDashboard({
 }) {
   const t = copy[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
   const { active } = useCustomerContext();
+  const canManageNotices = ["association_admin", "property_manager", "president"].includes(
+    active?.role_code?.toLowerCase() ?? ""
+  );
   const [view, setView] = useState<View>(initialView);
   const [data, setData] = useState<Payload | null>(null);
   const [loading, setLoading] = useState(true);
@@ -452,14 +457,21 @@ export function CustomerCommunicationsDashboard({
             <p className="mt-1 text-sm text-[#52667A]">{t.sub}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <button
+            <Link
+              href={`/${lang}/app/communications/private`}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#0E9F8E] bg-[#EAF8F5] px-4 py-2.5 text-sm font-bold text-[#0A6E62] shadow-sm transition hover:border-[#087A6E] hover:bg-[#D6F1EB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#087A6E]"
+            >
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              {{ ro: "Conversații private", en: "Private conversations", fa: "گفت‌وگوهای خصوصی" }[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"]}
+            </Link>
+            {canManageNotices ? <button
               type="button"
               onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-2 rounded-xl bg-[#0E9F8E] px-4 py-2.5 text-xs font-bold text-white transition hover:bg-[#087A6E]"
             >
               <Plus className="h-4 w-4" />
               {t.newNotice}
-            </button>
+            </button> : null}
             <div className="h-fit rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] px-3 py-2 text-xs font-bold text-[#0A6E62]">
               <ShieldCheck className="me-2 inline h-4 w-4" />
               {t.readonly}
@@ -714,7 +726,7 @@ export function CustomerCommunicationsDashboard({
       ) : null}
 
       {/* Create Draft Notice Modal */}
-      {showCreateModal ? (
+      {showCreateModal && canManageNotices ? (
         <CreateNoticeModal
           lang={lang}
           close={() => setShowCreateModal(false)}
@@ -824,8 +836,8 @@ function Cells({
       <td className="p-3">{date(when, lang)}</td>
       <td className="p-3 font-bold text-[#102A43]">{show(subject)}</td>
       <td className="p-3">{show(channel)}</td>
-      <td className="p-3 font-mono">{show(value)}</td>
-      <td className="p-3">{show(r.status ?? r.unread ?? r.relation_type)}</td>
+      <td className="p-3 font-mono">{view === "notifications" ? "—" : show(value)}</td>
+      <td className="p-3">{view === "notifications" ? (r.unread ? (lang === "fa" ? "خوانده‌نشده" : lang === "ro" ? "Necitită" : "Unread") : (lang === "fa" ? "خوانده‌شده" : lang === "ro" ? "Citită" : "Read")) : show(r.status ?? r.unread ?? r.relation_type)}</td>
     </>
   );
 }

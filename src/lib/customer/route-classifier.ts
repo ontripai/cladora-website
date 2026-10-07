@@ -12,12 +12,31 @@ export { EXPLICITLY_UNAVAILABLE_ROUTES, PRE_CONTEXT_ALLOWED_ROUTES, isPreContext
 export interface RouteRequirement {
   pathPrefix: string;
   exactOnly?: boolean;
+  nativeWorkspaceDiscovery?: boolean;
   permissions?: string[];
   entitlements?: string[];
   modules?: string[];
 }
 
 export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
+  // Discovery only: target and module permissions are resolved by the native RPC.
+  { pathPrefix: "/app/airprop", exactOnly: true, nativeWorkspaceDiscovery: true },
+  { pathPrefix: "/app/services", exactOnly: true, nativeWorkspaceDiscovery: true },
+  { pathPrefix: "/app/ownership/relationships", exactOnly: true, nativeWorkspaceDiscovery: true },
+  // Keep the settings landing route fail-closed while allowing the guarded child page below.
+  {
+    pathPrefix: '/app/settings',
+    exactOnly: true,
+    permissions: ['workspace.settings.read'],
+  },
+
+  // Workspace role visibility is permission gated; mutation endpoints enforce manage + AAL2.
+  {
+    pathPrefix: '/app/settings/roles',
+    exactOnly: true,
+    permissions: ['workspace.role.read'],
+  },
+
   // Controlled residential building onboarding
   {
     pathPrefix: '/app/building-setup',

@@ -23,6 +23,34 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
       desc: 'CLADORA محیط یکپارچهٔ همکاری، مدیریت و خدمات برای ملک، ساختمان، واحد، فضا و دارایی است؛ از زمان تعریف و پیش‌فروش تا تحویل، بهره‌برداری، نگهداری و معاملات بعدی.',
     },
   },
+  '/pricing': {
+    ro: {
+      title: 'Tarife transparente & Calculator flexibil',
+      desc: 'Tarife transparente de la 0.60 € / unitate / lună. Calculează investiția pentru asociația sau portofoliul tău.',
+    },
+    en: {
+      title: 'Transparent Pricing & Cost Calculator',
+      desc: 'Predictable pricing starting from 0.60 € / unit / month. Calculate investment for your HOA or portfolio.',
+    },
+    fa: {
+      title: 'تعرفه‌ها و محاسبه‌گر شفاف هزینه‌ها',
+      desc: 'تعرفه‌های شفاف از ۰.۶۰ یورو به ازای هر واحد در ماه. محاسبه دقیق هزینه‌ها متناسب با تعداد واحدها.',
+    },
+  },
+  '/pilot': {
+    ro: {
+      title: 'Program Pilot București-Ilfov',
+      desc: 'Solicită evaluarea unui spațiu rezidențial, comercial, industrial, de birouri sau comun pentru programul pilot CLADORA.',
+    },
+    en: {
+      title: 'Bucharest-Ilfov Pilot Cohort',
+      desc: 'Request an assessment of residential, commercial, industrial, office or shared spaces for the CLADORA pilot.',
+    },
+    fa: {
+      title: 'برنامه پایلوت بخارست-ایلفوف',
+      desc: 'درخواست ارزیابی فضاهای مسکونی، تجاری، صنعتی، اداری یا مشترک برای پایلوت کلادورا.',
+    },
+  },
   '/platform': {
     ro: {
       title: 'Arhitectura Platformei & Modelul Universal Workspace',

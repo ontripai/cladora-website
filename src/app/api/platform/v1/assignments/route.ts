@@ -25,7 +25,7 @@ export async function GET(request: Request) {
   const scope = params.get('scope');
   const q = (params.get('q') ?? '').trim().slice(0, 100).replace(/[^a-zA-Z0-9\u0100-\u024f\u0600-\u06ff\s._-]/g, '');
   const supabase = await createClient();
-  let query = supabase.schema('platform').from('platform_customer_assignments').select('*', { count: 'exact' });
+  let query = supabase.schema('customer_api').from('platform_customer_assignments_v1').select('*', { count: 'exact' });
   if (status && ['active', 'revoked', 'expired'].includes(status)) query = query.eq('status', status);
   if (scope && SCOPES.includes(scope as typeof SCOPES[number])) query = query.eq('scope_type', scope);
   if (q) query = query.or(`assignment_reason.ilike.%${q}%,scope_id.ilike.%${q}%`);
@@ -34,8 +34,8 @@ export async function GET(request: Request) {
   const userIds = Array.from(new Set((data ?? []).map((item) => item.platform_user_id)));
   const workspaceIds = Array.from(new Set((data ?? []).map((item) => item.customer_workspace_id)));
   const [{ data: users }, { data: workspaces }] = await Promise.all([
-    userIds.length ? supabase.schema('platform').from('platform_users').select('id,display_name,employee_ref').in('id', userIds) : Promise.resolve({ data: [] }),
-    workspaceIds.length ? supabase.schema('platform').from('customer_workspaces').select('id,tenant_id,workspace_type,environment,lifecycle_status').in('id', workspaceIds) : Promise.resolve({ data: [] }),
+    userIds.length ? supabase.schema('customer_api').from('platform_users_v1').select('id,display_name,employee_ref').in('id', userIds) : Promise.resolve({ data: [] }),
+    workspaceIds.length ? supabase.schema('customer_api').from('customer_workspaces_v1').select('id,tenant_id,workspace_type,environment,lifecycle_status').in('id', workspaceIds) : Promise.resolve({ data: [] }),
   ]);
   return NextResponse.json({
     assignments: (data ?? []).map((item) => ({ ...item, user: (users ?? []).find((u) => u.id === item.platform_user_id) ?? null, workspace: (workspaces ?? []).find((w) => w.id === item.customer_workspace_id) ?? null })),
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('grant_customer_assignment', {
+    const { data, error } = await supabase.schema('customer_api').rpc('grant_customer_assignment_v1', {
       p_platform_user_id: platform_user_id,
       p_customer_workspace_id: customer_workspace_id,
       p_scope_type: scope_type || 'workspace',

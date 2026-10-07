@@ -68,9 +68,9 @@ export async function POST(request: NextRequest) {
     fileStream = request.body;
   }
 
-  if (!contextId || !intentId) {
+  if (!contextId || !intentId || !objectPath || bucketId !== "document-vault") {
     return NextResponse.json(
-      { error: { code: "INVALID_REQUEST", message: "context_id and intent_id are required" } },
+      { error: { code: "INVALID_REQUEST", message: "A document-vault upload intent and its object path are required" } },
       { status: 400, headers: HEADERS }
     );
   }
@@ -95,10 +95,6 @@ export async function POST(request: NextRequest) {
       { error: { code: "STREAM_PROCESSING_ERROR", message: msg } },
       { status: 400, headers: HEADERS }
     );
-  }
-
-  if (!objectPath) {
-    objectPath = `${claims.claims.sub}/${intentId}/v1.bin`;
   }
 
   // 3. Upload bytes to storage bucket using authenticated client

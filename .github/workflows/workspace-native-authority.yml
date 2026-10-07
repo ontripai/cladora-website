@@ -1,0 +1,36 @@
+name: Shared workspace native authority
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261003122445_workspace_native_context_authority_v2.sql'
+      - 'supabase/migrations/20260917120000_workspace_dynamic_composition.sql'
+      - 'supabase/migrations/20260919120000_workspace_delegations_approvals.sql'
+      - 'supabase/migrations/20261003083859_workspace_scoped_effective_permission.sql'
+      - 'supabase/migrations/20260902074312_customer_password_optional_mfa_policy.sql'
+      - 'src/app/api/customer/v1/workspace/targets/route.ts'
+      - 'src/lib/customer/workspace-composition-schema.ts'
+      - 'scripts/test-workspace-native-authority-003.mjs'
+      - 'scripts/test-workspace-native-targets-route-003.mjs'
+      - '.github/workflows/workspace-native-authority.yml'
+      - 'package.json'
+      - 'package-lock.json'
+permissions:
+  contents: read
+jobs:
+  authority:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install pinned isolated PostgreSQL test adapter
+        run: npm install --prefix "$RUNNER_TEMP/cladora-native-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.3
+      - name: Execute actual native authority migration in PostgreSQL
+        run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-native-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-workspace-native-authority-003.mjs
+      - run: node scripts/test-workspace-native-targets-route-003.mjs
+      - run: npx eslint scripts/test-workspace-native-authority-003.mjs scripts/test-workspace-native-targets-route-003.mjs src/app/api/customer/v1/workspace/targets/route.ts --max-warnings=0
+      - run: npm run typecheck
+      - run: npm run test:unit

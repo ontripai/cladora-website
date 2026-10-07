@@ -1,0 +1,47 @@
+name: Workspace role assignment
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261003153509_workspace_role_assignment_completion.sql'
+      - 'supabase/migrations/*_workspace_role_building_assignment_choices.sql'
+      - 'supabase/tests/135_workspace_role_assignment_airprop_flow.test.sql'
+      - 'src/app/api/customer/v1/workspace/roles/**'
+      - 'src/lib/customer/workspace-roles-schema.ts'
+      - 'src/components/customer/*Role*.tsx'
+      - 'scripts/test-workspace-role-assignment*.mjs'
+      - 'scripts/test-workspace-role-handover-route.mjs'
+      - 'scripts/test-workspace-role-renewal-route.mjs'
+      - 'scripts/test-workspace-native-authority-003.mjs'
+      - '.github/workflows/workspace-role-assignment.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-role-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-role-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-workspace-native-authority-003.mjs --airprop-runtime --role-assignment
+      - run: CLADORA_PGLITE_PACKAGE="file://$GITHUB_WORKSPACE/scripts/airprop-local-postgres-adapter.mjs" node scripts/test-workspace-native-authority-003.mjs --airprop-runtime --role-assignment
+      - run: node scripts/test-workspace-role-assignment-route.mjs
+      - run: node scripts/test-workspace-role-handover-route.mjs
+      - run: node scripts/test-workspace-role-renewal-route.mjs
+      - run: node scripts/test-workspace-role-assignment-ui.mjs

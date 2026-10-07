@@ -1,6 +1,12 @@
 import { z } from 'zod';
 
-export const uuidSchema = z.string().uuid();
+// PostgreSQL UUIDs include existing deterministic pilot IDs whose version and
+// variant bits are not RFC-generated. Validate their canonical hexadecimal
+// shape; the authenticated RPC still resolves and authorizes every identifier.
+export const uuidSchema = z.string().regex(
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+  'Invalid UUID format'
+);
 
 export const idempotencyKeySchema = z
   .string()
@@ -158,6 +164,7 @@ export const publishWorkspaceRoleRequestSchema = z.object({
 
 export const assignWorkspaceRoleRequestSchema = z.object({
   context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
   target_membership_id: uuidSchema,
   workspace_role_id: uuidSchema,
   scope_type: scopeTypeSchema,
@@ -167,15 +174,37 @@ export const assignWorkspaceRoleRequestSchema = z.object({
   valid_until: z.string().datetime().nullable().optional(),
   reason: z.string().trim().min(5, 'Reason must be at least 5 characters').max(500),
   idempotency_key: idempotencyKeySchema,
-});
+}).strict();
 
 export const revokeWorkspaceRoleAssignmentRequestSchema = z.object({
   context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
   assignment_id: uuidSchema,
   expected_lock_version: z.number().int().positive(),
   reason: z.string().trim().min(5, 'Reason must be at least 5 characters').max(500),
   idempotency_key: idempotencyKeySchema,
-});
+}).strict();
+
+export const handoverWorkspaceRoleRequestSchema = z.object({
+  context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
+  assignment_id: uuidSchema,
+  expected_lock_version: z.number().int().positive(),
+  successor_membership_id: uuidSchema,
+  valid_until: z.string().datetime().nullable().optional(),
+  reason: z.string().trim().min(5).max(500),
+  idempotency_key: idempotencyKeySchema,
+}).strict();
+
+export const renewWorkspaceRoleAssignmentRequestSchema = z.object({
+  context_id: uuidSchema,
+  authority_context_id: uuidSchema.optional(),
+  assignment_id: uuidSchema,
+  expected_lock_version: z.number().int().positive(),
+  valid_until: z.string().datetime(),
+  reason: z.string().trim().min(5).max(500),
+  idempotency_key: idempotencyKeySchema,
+}).strict();
 
 export type WorkspaceRoleItem = z.infer<typeof workspaceRoleItemSchema>;
 export type WorkspaceMemberRoleAssignmentItem = z.infer<typeof workspaceMemberRoleAssignmentItemSchema>;

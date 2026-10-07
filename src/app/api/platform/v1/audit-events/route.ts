@@ -35,12 +35,19 @@ export async function GET(request: Request) {
   const offset = Math.max(Number(searchParams.get('offset')) || 0, 0);
 
   const supabase = await createClient();
-  const { data, count, error } = await supabase
-    .schema('audit')
-    .from('events')
-    .select('*', { count: 'exact' })
-    .order('occurred_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  const { data, error } = await supabase
+    .schema('customer_api')
+    .rpc('list_control_plane_audit_events_v1', {
+      p_limit: limit,
+      p_offset: offset,
+      p_query: null,
+      p_action: null,
+      p_actor_role: null,
+      p_entity_type: null,
+      p_workspace_id: null,
+      p_occurred_from: null,
+      p_occurred_until: null,
+    });
 
   if (error) {
     return NextResponse.json(
@@ -49,14 +56,17 @@ export async function GET(request: Request) {
     );
   }
 
+  const rows = (data ?? []) as Array<Record<string, unknown> & { total_count: number }>;
+  const total = Number(rows[0]?.total_count ?? 0);
+
   return NextResponse.json(
     {
-      events: data,
+      events: rows.map(({ total_count: _totalCount, ...event }) => event),
       pagination: {
-        total: count ?? 0,
+        total,
         limit,
         offset,
-        hasMore: (offset + limit) < (count ?? 0),
+        hasMore: (offset + limit) < total,
       },
     },
     { status: 200, headers: NO_CACHE_HEADERS }

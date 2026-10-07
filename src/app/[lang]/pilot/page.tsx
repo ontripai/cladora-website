@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
+import { permanentRedirect } from 'next/navigation';
 import { Language } from '@/types';
 import { getRouteMetadata } from '@/config/routes-metadata';
 
@@ -22,6 +22,6 @@ export default async function PilotPage(
   }
 ) {
   const params = await props.params;
-  // Redirect legacy pilot quota route to universal partnership inquiry
-  redirect(`/${params.lang}/contact`);
+  // Permanent redirect legacy pilot quota route to universal partnership inquiry (HTTP 308)
+  permanentRedirect(`/${params.lang}/contact`);
 }

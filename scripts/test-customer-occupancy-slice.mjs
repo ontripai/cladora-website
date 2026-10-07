@@ -169,6 +169,11 @@ assert.ok(dashboardContent.includes('fa:'), 'Must contain Persian dictionary');
 
 // RTL support
 assert.ok(dashboardContent.includes('dir={lang === "fa" ? "rtl" : "ltr"}'), 'Must apply dynamic RTL dir attribute');
+assert.ok(dashboardContent.includes('endpoint = "/api/customer/v1/occupancy/create"'), 'Create form must call the POST creation route');
+assert.ok(dashboardContent.includes('occupant_party_ids: modalPartyId ? [modalPartyId] : []'), 'Create form must link an authorized party to a non-empty occupancy');
+assert.ok(dashboardContent.includes('view="parties"'), 'Create form must use the authorized party registry');
+const occupancySchemaContent = fs.readFileSync(path.join(root, 'src/lib/customer/occupancy-schema.ts'), 'utf8');
+assert.ok(occupancySchemaContent.includes('At least one authorized party is required'), 'Non-empty occupancy creation must require a linked party');
 
 // All 9 core metrics in UI
 const requiredMetrics = [

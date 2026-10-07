@@ -215,7 +215,6 @@ const root = process.cwd();
 
   // Fail-closed mock routes list
   assert.ok(content.includes('/app/portfolio'), 'Must block /app/portfolio');
-  assert.ok(content.includes('/app/settings'), 'Must block /app/settings');
   assert.ok(content.includes('/app/migration/shadow-ledger'), 'Must block /app/migration/shadow-ledger');
 
   // Explicitly allowed routes
@@ -256,7 +255,7 @@ const root = process.cwd();
 
   console.log(`  ✓ All ${expectedMappings.length} route permission/entitlement rules mapped correctly`);
   console.log('  ✓ Explicitly allowed routes (/app/dashboard, /app/onboarding) configured');
-  console.log('  ✓ Fail-closed blocking for /app/portfolio, /app/settings, /app/accounting/month-close, /app/migration/shadow-ledger');
+  console.log('  ✓ Mock routes blocked; settings routes are permission protected and fail closed');
   console.log('  ✓ Trilingual Access Restricted UI with back to Dashboard link');
   console.log('  ✓ Public /demo preserved');
 }
@@ -570,10 +569,13 @@ const root = process.cwd();
   assert.equal(classifyCustomerRoute('/app/dashboard')?.status, 'explicitly allowed');
   assert.equal(classifyCustomerRoute('/app/onboarding')?.status, 'pre-context allowed');
 
-  // - Three mock routes must be explicitly unavailable
+  // - Mock routes remain unavailable; settings routes fail closed behind permissions.
   assert.equal(classifyCustomerRoute('/app/portfolio')?.status, 'explicitly unavailable');
-  assert.equal(classifyCustomerRoute('/app/settings')?.status, 'explicitly unavailable');
   assert.equal(classifyCustomerRoute('/app/migration/shadow-ledger')?.status, 'explicitly unavailable');
+  assert.equal(classifyCustomerRoute('/app/settings')?.status, 'permission protected');
+  assert.equal(classifyCustomerRoute('/app/settings/roles')?.status, 'permission protected');
+  assert.equal(classifyCustomerRoute('/app/settings/roles')?.requirement?.permissions?.[0], 'workspace.role.read');
+  assert.equal(classifyCustomerRoute('/app/settings/roles/unknown'), null);
 
   // - month-close and reports are permission protected
   assert.equal(classifyCustomerRoute('/app/accounting/month-close')?.status, 'permission protected');

@@ -1,0 +1,38 @@
+name: Shared dependency depth guard
+
+on:
+  pull_request:
+    paths:
+      - 'vendor/**'
+      - 'patches/**'
+      - 'scripts/test-braces-depth-security.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/shared-dependency-depth.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'vendor/**'
+      - 'patches/**'
+      - 'scripts/test-braces-depth-security.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/shared-dependency-depth.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  depth-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-braces-depth-security.mjs
+      - run: npm audit --audit-level=high
+      - run: git diff --check

@@ -12,7 +12,6 @@
 
 export const EXPLICITLY_UNAVAILABLE_ROUTES = [
   '/app/portfolio',
-  '/app/settings',
   '/app/migration/shadow-ledger',
 ] as const;
 
@@ -77,6 +76,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     forbiddenData: ['cross_tenant_data'],
     allowedNavLinks: [
       '/app/dashboard',
+      '/app/settings/roles',
+      '/app/building-setup',
       '/app/accounting',
       '/app/accounting/allocations',
       '/app/accounting/reports',
@@ -92,6 +93,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/governance',
       '/app/meetings',
       '/app/communications',
+      '/app/communications/private',
       '/app/notifications',
       '/app/documents',
       '/app/documents/[id]',
@@ -144,6 +146,8 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     forbiddenData: ['cross_tenant_data'],
     allowedNavLinks: [
       '/app/dashboard',
+      '/app/settings/roles',
+      '/app/building-setup',
       '/app/accounting',
       '/app/accounting/allocations',
       '/app/accounting/reports',
@@ -157,6 +161,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/vendor-contracts',
       '/app/vendor-sla',
       '/app/communications',
+      '/app/communications/private',
       '/app/notifications',
       '/app/documents',
       '/app/documents/[id]',
@@ -222,6 +227,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     ],
     allowedNavLinks: [
       '/app/dashboard',
+      '/app/settings/roles',
       '/app/governance',
       '/app/meetings',
       '/app/documents',
@@ -230,6 +236,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/vendor-contracts',
       '/app/vendor-sla',
       '/app/communications',
+      '/app/communications/private',
       '/app/notifications',
       '/app/accounting',
       '/app/accounting/allocations',
@@ -296,6 +303,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     ],
     allowedNavLinks: [
       '/app/dashboard',
+      '/app/settings/roles',
       '/app/accounting',
       '/app/accounting/allocations',
       '/app/accounting/reports',
@@ -383,6 +391,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/governance',
       '/app/meetings',
       '/app/communications',
+      '/app/communications/private',
       '/app/notifications',
       '/app/invoices',
       '/app/payments',
@@ -469,6 +478,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
       '/app/documents',
       '/app/documents/[id]',
       '/app/communications',
+      '/app/communications/private',
       '/app/notifications',
       '/app/invoices',
       '/app/payments',

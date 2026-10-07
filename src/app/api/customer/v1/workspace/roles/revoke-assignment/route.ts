@@ -25,13 +25,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const body = await parseJsonWithLimit(request, 16 * 1024);
-  if (!body) {
-    return NextResponse.json(
-      { error: { code: 'PAYLOAD_TOO_LARGE', message: 'Payload exceeded 16KB limit or invalid JSON' } },
-      { status: 413, headers: HEADERS }
-    );
-  }
+  const { data: body, errorResponse } = await parseJsonWithLimit(request, 16 * 1024);
+  if (errorResponse) return errorResponse;
 
   const parsed = revokeWorkspaceRoleAssignmentRequestSchema.safeParse(body);
   if (!parsed.success) {
@@ -58,8 +53,9 @@ export async function POST(request: NextRequest) {
   }
 
   const { data, error: rpcError } = await (supabase.schema('customer_api') as any)
-    .rpc('revoke_workspace_role_assignment_v1', {
+    .rpc('revoke_workspace_role_assignment_v2', {
       p_context_id: parsed.data.context_id,
+      p_authority_context_id: parsed.data.authority_context_id ?? null,
       p_assignment_id: parsed.data.assignment_id,
       p_expected_lock_version: parsed.data.expected_lock_version,
       p_reason: parsed.data.reason,
@@ -93,11 +89,21 @@ export async function POST(request: NextRequest) {
         { status: 409, headers: HEADERS }
       );
     }
+    if (msg.includes('workspace_role_idempotency_conflict')) {
+      return NextResponse.json({ error: { code: 'IDEMPOTENCY_CONFLICT', message: 'Request key is already in use' } }, { status: 409, headers: HEADERS });
+    }
+    if (rpcError.code === '42501') {
+      return NextResponse.json({ error: { code: 'FORBIDDEN', message: 'Assignment access denied' } }, { status: 403, headers: HEADERS });
+    }
+    if (rpcError.code === '22023') {
+      return NextResponse.json({ error: { code: 'INVALID_REQUEST', message: 'Assignment request is invalid' } }, { status: 400, headers: HEADERS });
+    }
     return NextResponse.json(
-      { error: { code: 'INTERNAL_ERROR', message: msg } },
+      { error: { code: 'INTERNAL_ERROR', message: 'Could not complete assignment request' } },
       { status: 500, headers: HEADERS }
     );
   }
 
+  if (!data) return NextResponse.json({ error: { code: 'INTERNAL_ERROR', message: 'Unconfirmed assignment response' } }, { status: 500, headers: HEADERS });
   return NextResponse.json(data, { status: 200, headers: HEADERS });
 }

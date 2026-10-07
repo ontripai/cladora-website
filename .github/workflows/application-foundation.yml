@@ -5,6 +5,10 @@ on:
     paths:
       - 'src/**'
       - 'scripts/test-supabase-foundation.mjs'
+      - 'scripts/test-occupancy-unit-registry-route.mjs'
+      - 'scripts/test-braces-depth-security.mjs'
+      - 'vendor/**'
+      - 'patches/**'
       - 'package.json'
       - 'package-lock.json'
       - 'next.config.mjs'
@@ -17,6 +21,10 @@ on:
     paths:
       - 'src/**'
       - 'scripts/test-supabase-foundation.mjs'
+      - 'scripts/test-occupancy-unit-registry-route.mjs'
+      - 'scripts/test-braces-depth-security.mjs'
+      - 'vendor/**'
+      - 'patches/**'
       - 'package.json'
       - 'package-lock.json'
       - 'next.config.mjs'

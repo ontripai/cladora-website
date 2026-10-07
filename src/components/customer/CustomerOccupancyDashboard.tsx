@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { Language } from "@/types";
 import { useCustomerContext } from "./CustomerContextProvider";
+import { CustomerRegistryPicker } from "./CustomerRegistryPicker";
 
 export type AuthorizedRegistryView = "parties" | "residents" | "ownerships" | "leases" | "occupancies" | "mappings" | "links" | "history";
 
@@ -154,6 +155,7 @@ const copy = {
     renew_occupancy: "Renew Occupancy",
     transfer_occupancy: "Transfer Unit",
     unit_code: "Unit Code",
+    occupant_party: "Authorized Occupant / Party",
     building: "Building",
     property: "Property",
     occupancy_kind: "Occupancy Type",
@@ -191,6 +193,8 @@ const copy = {
     no_active_occupancy: "Unit is currently vacant.",
     no_active_lease: "No active lease registered.",
     no_occupants: "No registered occupants.",
+    no_owners: "No owners registered.",
+    no_events: "No recent events.",
   },
   ro: {
     title: "Registru de Rezidenți și Ocupare",
@@ -235,6 +239,7 @@ const copy = {
     renew_occupancy: "Prelungește Ocuparea",
     transfer_occupancy: "Transferă Unitatea",
     unit_code: "Cod Unitate",
+    occupant_party: "Parte / rezident autorizat",
     building: "Clădire",
     property: "Proprietate",
     occupancy_kind: "Tip Ocupare",
@@ -272,6 +277,8 @@ const copy = {
     no_active_occupancy: "Unitatea este momentan liberă.",
     no_active_lease: "Niciun contract de închiriere activ.",
     no_occupants: "Niciun rezident înregistrat.",
+    no_owners: "Niciun proprietar înregistrat.",
+    no_events: "Nu există evenimente recente.",
   },
   fa: {
     title: "دفتر ثبت ساکنان و وضعیت سکونت واحدها",
@@ -316,6 +323,7 @@ const copy = {
     renew_occupancy: "تمدید سکونت",
     transfer_occupancy: "انتقال واحد",
     unit_code: "کد واحد",
+    occupant_party: "شخص / ساکن مجاز",
     building: "ساختمان",
     property: "مجتمع",
     occupancy_kind: "نوع سکونت",
@@ -353,6 +361,8 @@ const copy = {
     no_active_occupancy: "واحد در حال حاضر خالی است.",
     no_active_lease: "هیچ قرارداد اجاره فعالی ثبت نشده است.",
     no_occupants: "ساکنی ثبت نشده است.",
+    no_owners: "مالکی ثبت نشده است.",
+    no_events: "رویداد اخیری ثبت نشده است.",
   },
 } as const;
 
@@ -379,7 +389,7 @@ function display(v: unknown): string {
   if (v === null || v === undefined || v === "") return "—";
   if (typeof v === "boolean") return v ? "✓" : "—";
   if (typeof v === "object") return JSON.stringify(v);
-  return String(v).replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+  return String(v).replace(/^(\d{4}-\d{2}-\d{2})T(?=\d{2}:)/, "$1 ").replace(/\.\d{3}Z$/, " UTC");
 }
 
 export function CustomerOccupancyDashboard({
@@ -393,6 +403,8 @@ export function CustomerOccupancyDashboard({
 }) {
   const { active } = useCustomerContext();
   const t = copy[lang];
+  const occupancyLabels: Record<string, string> = {owner: t.owner, tenant: t.tenant, household_member: t.household_member, short_stay: t.short_stay, company: t.company, empty: t.empty_kind, vacant: t.empty_kind, upcoming: t.planned, active: t.active, planned: t.planned, ended: t.ended, cancelled: t.cancelled};
+  const occupancyLabel = (value: unknown) => occupancyLabels[String(value)] ?? display(value);
 
   const [view, setView] = useState<OccupancyView>(initialView);
   const [query, setQuery] = useState("");
@@ -413,6 +425,18 @@ export function CustomerOccupancyDashboard({
 
   // Mutation modal state
   const [modalType, setModalType] = useState<"create" | "end" | "renew" | "transfer" | null>(null);
+  const [modalContextId, setModalContextId] = useState("");
+  const [modalUnitLabel, setModalUnitLabel] = useState("");
+  const [modalPartyId, setModalPartyId] = useState("");
+  const openModal = (type: "create" | "end" | "renew" | "transfer") => {
+    setModalContextId(active?.context_id ?? "");
+    if (type === "create") {
+      setModalUnitId("");
+      setModalUnitLabel("");
+      setModalPartyId("");
+    }
+    setModalType(type);
+  };
   const [modalUnitId, setModalUnitId] = useState("");
   const [modalOccId, setModalOccId] = useState("");
   const [modalKind, setModalKind] = useState("tenant");
@@ -505,7 +529,7 @@ export function CustomerOccupancyDashboard({
   // Form submit handler
   async function handleMutationSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!active) return;
+    if (!active || active.context_id !== modalContextId) return;
     setSubmitting(true);
     setModalError("");
     try {
@@ -513,12 +537,14 @@ export function CustomerOccupancyDashboard({
       let payload: Record<string, unknown> = {};
 
       if (modalType === "create") {
+        endpoint = "/api/customer/v1/occupancy/create";
         payload = {
           context_id: active.context_id,
           unit_id: modalUnitId,
           kind: modalKind,
           starts_at: modalStartsAt,
           ends_at: modalEndsAt || null,
+          occupant_party_ids: modalPartyId ? [modalPartyId] : [],
           reason: modalReason || null,
         };
       } else if (modalType === "end") {
@@ -600,8 +626,9 @@ export function CustomerOccupancyDashboard({
               <button
                 type="button"
                 onClick={() => {
-                  setModalType("create");
+                  openModal("create");
                   setModalUnitId("");
+                  setModalUnitLabel("");
                   setModalStartsAt(new Date().toISOString().slice(0, 10));
                   setModalEndsAt("");
                   setModalReason("");
@@ -852,12 +879,12 @@ export function CustomerOccupancyDashboard({
                               : "bg-[#EAF8F5] text-[#0A6E62]"
                           }`}
                         >
-                          {display(row.occupancy_kind)}
+                          {occupancyLabel(row.occupancy_kind)}
                         </span>
                       </td>
                       <td className="p-3">
                         <span className="text-[11px] font-semibold text-[#64748B]">
-                          {display(row.occupancy_lifecycle)}
+                          {occupancyLabel(row.occupancy_lifecycle)}
                         </span>
                       </td>
                       <td className="p-3 font-medium text-[#102A43]">
@@ -1031,7 +1058,7 @@ export function CustomerOccupancyDashboard({
                         <button
                           type="button"
                           onClick={() => {
-                            setModalType("end");
+                            openModal("end");
                             setModalOccId(unitDetail.active_occupancy!.id);
                             setModalEndsAt(new Date().toISOString().slice(0, 10));
                             setModalReason("");
@@ -1044,7 +1071,7 @@ export function CustomerOccupancyDashboard({
                         <button
                           type="button"
                           onClick={() => {
-                            setModalType("renew");
+                            openModal("renew");
                             setModalOccId(unitDetail.active_occupancy!.id);
                             setModalEndsAt("");
                             setModalReason("");
@@ -1057,7 +1084,7 @@ export function CustomerOccupancyDashboard({
                         <button
                           type="button"
                           onClick={() => {
-                            setModalType("transfer");
+                            openModal("transfer");
                             setModalOccId(unitDetail.active_occupancy!.id);
                             setModalStartsAt(new Date().toISOString().slice(0, 10));
                             setModalTargetUnitId("");
@@ -1074,8 +1101,9 @@ export function CustomerOccupancyDashboard({
                       <button
                         type="button"
                         onClick={() => {
-                          setModalType("create");
+                          openModal("create");
                           setModalUnitId(unitDetail.unit.id);
+                          setModalUnitLabel(`${unitDetail.building.name} · ${unitDetail.unit.code}`);
                           setModalStartsAt(new Date().toISOString().slice(0, 10));
                           setModalEndsAt("");
                           setModalReason("");
@@ -1138,7 +1166,7 @@ export function CustomerOccupancyDashboard({
                     </div>
                   ) : (
                     <div className="mt-2 rounded-xl border border-dashed p-3 text-center text-[#7B8A9A]">
-                      No owners registered
+                      {t.no_owners}
                     </div>
                   )}
                 </div>
@@ -1188,7 +1216,7 @@ export function CustomerOccupancyDashboard({
                     </div>
                   ) : (
                     <div className="mt-2 rounded-xl border border-dashed p-3 text-center text-[#7B8A9A]">
-                      No recent events
+                      {t.no_events}
                     </div>
                   )}
                 </div>
@@ -1199,7 +1227,7 @@ export function CustomerOccupancyDashboard({
       )}
 
       {/* Mutation Form Dialog (Create, End, Renew, Transfer) */}
-      {modalType && (
+      {modalType && active?.context_id === modalContextId && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-[#102A43]/40 p-4 backdrop-blur-xs"
           role="dialog"
@@ -1233,13 +1261,14 @@ export function CustomerOccupancyDashboard({
               {modalType === "create" && (
                 <>
                   <div>
-                    <label className="block font-bold text-[#52667A]">{t.unit_code} / ID</label>
-                    <input
-                      required
-                      value={modalUnitId}
-                      onChange={(e) => setModalUnitId(e.target.value)}
-                      className="mt-1 w-full rounded-lg border p-2 text-xs focus:border-[#0E9F8E] focus:outline-none"
-                    />
+                    <CustomerRegistryPicker key={active.context_id} contextId={active.context_id} view="units" lang={lang}
+                      title={t.unit_code} value={modalUnitId} selectedLabel={modalUnitLabel} disabled={submitting}
+                      onChange={(id, label) => {setModalUnitId(id); setModalUnitLabel(label);}} />
+                  </div>
+                  <div>
+                    <CustomerRegistryPicker key={`${active.context_id}:parties`} contextId={active.context_id} view="parties" lang={lang}
+                      title={t.occupant_party} value={modalPartyId} disabled={submitting}
+                      onChange={(id) => setModalPartyId(id)} />
                   </div>
                   <div>
                     <label className="block font-bold text-[#52667A]">{t.occupancy_kind}</label>
@@ -1308,13 +1337,9 @@ export function CustomerOccupancyDashboard({
               {modalType === "transfer" && (
                 <>
                   <div>
-                    <label className="block font-bold text-[#52667A]">{t.target_unit_id}</label>
-                    <input
-                      required
-                      value={modalTargetUnitId}
-                      onChange={(e) => setModalTargetUnitId(e.target.value)}
-                      className="mt-1 w-full rounded-lg border p-2 text-xs focus:border-[#0E9F8E] focus:outline-none"
-                    />
+                    <CustomerRegistryPicker key={active.context_id} contextId={active.context_id} view="units" lang={lang}
+                      title={t.target_unit_id} value={modalTargetUnitId} disabled={submitting}
+                      onChange={id => setModalTargetUnitId(id)} />
                   </div>
                   <div>
                     <label className="block font-bold text-[#52667A]">
@@ -1351,7 +1376,7 @@ export function CustomerOccupancyDashboard({
                 </button>
                 <button
                   type="submit"
-                  disabled={submitting}
+                  disabled={submitting || (modalType === "create" && (!modalUnitId || !modalPartyId))}
                   className="rounded-lg bg-[#0E9F8E] px-4 py-2 font-bold text-white hover:bg-[#0A6E62] disabled:opacity-50"
                 >
                   {submitting ? "…" : t.submit}

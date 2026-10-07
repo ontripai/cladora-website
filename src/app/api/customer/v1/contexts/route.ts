@@ -8,5 +8,7 @@ export async function GET(){
   // Customer API Gateway: delegates to platform.list_my_customer_contexts
   const {data,error:queryError}=await supabase.schema('customer_api').rpc('list_contexts_v1');
   if(queryError)return NextResponse.json({error:{code:'CONTEXT_QUERY_FAILED'}},{status:500,headers:HEADERS});
-  return NextResponse.json({contexts:data??[]},{headers:HEADERS});
+  // Setup reviewers use their dedicated, time-limited review flow, not a customer dashboard.
+  const contexts=(data??[]).filter(context=>context.role_code!=='building_setup_reviewer');
+  return NextResponse.json({contexts},{headers:HEADERS});
 }

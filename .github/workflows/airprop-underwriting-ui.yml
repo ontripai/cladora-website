@@ -1,0 +1,32 @@
+name: AIRPROP underwriting UI
+on:
+  pull_request:
+    paths:
+      - 'src/components/customer/CustomerAirpropUnderwriting.tsx'
+      - 'src/components/customer/CustomerAirpropWorkspace.tsx'
+      - 'src/lib/airprop/**'
+      - 'src/app/api/customer/v2/airprop/**'
+      - 'scripts/test-airprop-underwriting-ui-008.mjs'
+      - 'scripts/test-airprop-native-ui-004.mjs'
+      - '.github/workflows/airprop-underwriting-ui.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-airprop-underwriting-ui-008.mjs
+      - run: node scripts/test-airprop-native-ui-004.mjs
+      - run: node scripts/test-airprop-underwriting-contract-v2.mjs
+      - run: node scripts/test-airprop-underwriting-route-007.mjs
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:i18n

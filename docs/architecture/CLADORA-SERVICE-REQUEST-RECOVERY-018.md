@@ -1,0 +1,7 @@
+# SERVICE request recovery 018
+
+The request form now distinguishes a denied read (403/404), a session verification failure (401), and a retryable network/server/invalid-response failure. The latter has an explicit retry in the same workspace. A definite write conflict retains the entered service, beneficiary and description while re-reading both the published catalogue and the request projection. Only after both reads succeed does it discard the stale idempotency command and allow a fresh submission. If a choice is no longer available, that choice is cleared for validation; the description remains. Unknown write outcomes still freeze and retry the exact command and key.
+
+The catalogue refresh updates its existing mounted view rather than reloading the page. No workspace is selected automatically and no command crosses the existing context/workspace remount boundary. This is a UI-only change with no migration, grant, notification, acceptance, order or payment action.
+
+Validation: 16 mounted request scenarios cover localized validation, denied/offline/session reads, retry, definitive conflict recovery and new command key, frozen unknown-outcome retry, confirmed write after failed history, duplicate submission and obsolete response. TypeScript and focused ESLint pass. Full keyboard/mobile browser acceptance, cross-workspace unsaved-form navigation and live authorized pilot request remain outside this package; shared context-change protection belongs to Core. Expired pilot grants must not be extended implicitly.

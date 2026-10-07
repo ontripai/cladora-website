@@ -109,7 +109,13 @@ async function run() {
   const F_ADMIN_MEM = crypto.randomUUID();
   const F_ADMIN_CTX = crypto.randomUUID();
   const F_ROLE = crypto.randomUUID();
+  const F_BUILDING = crypto.randomUUID();
+  const F_OLD_USER = crypto.randomUUID();
+  const F_OLD_MEM = crypto.randomUUID();
+  const F_NEXT_USERS = [crypto.randomUUID(), crypto.randomUUID()];
+  const F_NEXT_MEMS = [crypto.randomUUID(), crypto.randomUUID()];
   const ROLE_CODE = `role_${crypto.randomBytes(4).toString('hex')}`;
+  const EXTRA_PERMISSION_CODE = `${ROLE_CODE}.extra`;
   const F_IDEM_WINNER = `idem_win_${crypto.randomBytes(6).toString('hex')}`;
   const F_IDEM_LOSER = `idem_lose_${crypto.randomBytes(6).toString('hex')}`;
 
@@ -307,6 +313,104 @@ async function run() {
     assert.equal(finalRoleRes.rows[0].lifecycle_status, 'published');
     assert.equal(finalRoleRes.rows[0].lock_version, 2, 'Role lock_version remained unchanged at 2');
     console.log('  ✔ Confirmed 0 duplicate audit, idempotency, or relationship records on replay.');
+
+    console.log('\n[Phase 3] Atomic handover race with two successor candidates...');
+    await observer.query(`
+      INSERT INTO portfolio.buildings(id,tenant_id,property_id,code,name,status)
+      VALUES ('${F_BUILDING}','${F_TENANT}','${F_PROP}','B-1','Concurrent handover building','active');
+      INSERT INTO platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)
+      SELECT '${F_TENANT}','${F_WS}',id,code,'active','Ephemeral handover'
+      FROM platform.module_definitions WHERE code='maintenance';
+      INSERT INTO platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
+      VALUES ('${F_WS}','module.maintenance','boolean',true,now()-interval '1 day');
+      -- This ephemeral fixture opts the exercised permission into delegation
+      -- and gives the manager one additional pair, so the transferred role is
+      -- a strict subset under the bounded-authority contract.
+      UPDATE platform.module_permission_bindings b
+      SET lifecycle_status='deprecated',valid_to=statement_timestamp()
+      FROM platform.module_definitions md,identity.permissions p
+      WHERE b.module_definition_id=md.id AND b.permission_id=p.id
+        AND md.code='maintenance' AND p.code='maintenance.requests.manage'
+        AND b.lifecycle_status='active' AND b.valid_to IS NULL;
+      INSERT INTO identity.permissions(code,resource,action,description)
+      VALUES ('${EXTRA_PERMISSION_CODE}','maintenance.concurrent','${EXTRA_PERMISSION_CODE}',
+        'Ephemeral concurrency authority ceiling');
+      INSERT INTO platform.module_permission_bindings(
+        module_definition_id,permission_id,binding_version,permission_mode,
+        is_assignable_to_local_role,is_delegable,requires_aal2,lifecycle_status,valid_from)
+      SELECT md.id,p.id,coalesce(max(old.binding_version),0)+1,
+        'manage',true,true,false,'active',statement_timestamp()
+      FROM platform.module_definitions md
+      JOIN identity.permissions p ON p.code IN (
+        'maintenance.requests.manage','${EXTRA_PERMISSION_CODE}')
+      LEFT JOIN platform.module_permission_bindings old
+        ON old.module_definition_id=md.id AND old.permission_id=p.id
+      WHERE md.code='maintenance'
+      GROUP BY md.id,p.id;
+      INSERT INTO identity.role_permissions(role_id,permission_id,effect)
+      SELECT r.id,p.id,'allow'
+      FROM identity.roles r CROSS JOIN identity.permissions p
+      WHERE r.code='association_admin' AND r.tenant_id IS NULL
+        AND p.code IN ('maintenance.requests.manage','${EXTRA_PERMISSION_CODE}')
+      ON CONFLICT ON CONSTRAINT role_permissions_pkey DO UPDATE SET effect='allow';
+      INSERT INTO auth.users(id,email) VALUES
+      ('${F_OLD_USER}','old_${F_OLD_USER}@test.local'),
+      ('${F_NEXT_USERS[0]}','next_${F_NEXT_USERS[0]}@test.local'),
+      ('${F_NEXT_USERS[1]}','next_${F_NEXT_USERS[1]}@test.local');
+      INSERT INTO identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
+      SELECT v.id,'${F_TENANT}',v.user_id,r.id,'active',now()-interval '1 day'
+      FROM (VALUES ('${F_OLD_MEM}'::uuid,'${F_OLD_USER}'::uuid),
+        ('${F_NEXT_MEMS[0]}'::uuid,'${F_NEXT_USERS[0]}'::uuid),
+        ('${F_NEXT_MEMS[1]}'::uuid,'${F_NEXT_USERS[1]}'::uuid)) v(id,user_id)
+      CROSS JOIN identity.roles r WHERE r.code='owner' AND r.tenant_id IS NULL;
+      INSERT INTO identity.context_grants(tenant_id,membership_id,scope_type,property_id,starts_at)
+      SELECT '${F_TENANT}',v.id,'property','${F_PROP}',now()-interval '1 day'
+      FROM (VALUES ('${F_OLD_MEM}'::uuid),('${F_NEXT_MEMS[0]}'::uuid),
+        ('${F_NEXT_MEMS[1]}'::uuid)) v(id);
+      INSERT INTO platform.workspace_member_roles(tenant_id,customer_workspace_id,membership_id,
+        workspace_role_id,scope_type,property_id,building_id,valid_from,valid_to,
+        assigned_by_user_id,assigned_by_membership_id,lock_version,reason)
+      VALUES ('${F_TENANT}','${F_WS}','${F_ADMIN_MEM}','${F_ROLE}','building',
+        '${F_PROP}','${F_BUILDING}',now()-interval '1 hour',now()+interval '2 days',
+        '${F_ADMIN_USER}','${F_ADMIN_MEM}',1,'Ephemeral manager authority'),
+      ('${F_TENANT}','${F_WS}','${F_OLD_MEM}','${F_ROLE}','building',
+        '${F_PROP}','${F_BUILDING}',now()-interval '1 hour',now()+interval '1 day',
+        '${F_ADMIN_USER}','${F_ADMIN_MEM}',1,'Ephemeral previous assignment');
+    `);
+    const oldRow = await observer.query(`SELECT id FROM platform.workspace_member_roles
+      WHERE membership_id=$1 AND workspace_role_id=$2`, [F_OLD_MEM, F_ROLE]);
+    assert.equal(oldRow.rows.length, 1);
+    const oldAssignmentId = oldRow.rows[0].id;
+    await c1.query('BEGIN');
+    await c1.query(`SET LOCAL role='authenticated'; SET LOCAL request.jwt.claims='{"sub":"${F_ADMIN_USER}","role":"authenticated","aal":"aal2"}';`);
+    await c1.query(`SELECT customer_api.handover_workspace_role_v2($1,null,$2,1,$3,now()+interval '12 hours',$4,$5)`,
+      [F_ADMIN_CTX, oldAssignmentId, F_NEXT_MEMS[0], 'Concurrent handover winner', `handover_win_${crypto.randomBytes(6).toString('hex')}`]);
+    await c2.query('BEGIN');
+    await c2.query(`SET LOCAL role='authenticated'; SET LOCAL request.jwt.claims='{"sub":"${F_ADMIN_USER}","role":"authenticated","aal":"aal2"}';`);
+    let loserError = null;
+    const loser = (async () => {
+      try {
+        await c2.query(`SELECT customer_api.handover_workspace_role_v2($1,null,$2,1,$3,now()+interval '12 hours',$4,$5)`,
+          [F_ADMIN_CTX, oldAssignmentId, F_NEXT_MEMS[1], 'Concurrent handover loser', `handover_lose_${crypto.randomBytes(6).toString('hex')}`]);
+        await c2.query('COMMIT');
+      } catch (error) {
+        loserError = error;
+        await c2.query('ROLLBACK').catch(() => {});
+      }
+    })();
+    assert.ok(await waitForBlockingByPid(observer,pid2,pid1,4000), 'second handover blocks on prior assignment');
+    await c1.query('COMMIT');
+    await loser;
+    assert.ok(loserError);
+    assert.equal(loserError.code,'42501');
+    const handoverState = await observer.query(`
+      SELECT (SELECT count(*) FROM platform.workspace_member_roles WHERE membership_id=ANY($1::uuid[])
+        AND valid_to>statement_timestamp()) AS successors,
+        (SELECT count(*) FROM audit.events WHERE action='WORKSPACE_ROLE_HANDED_OVER'
+          AND tenant_id=$2) AS audits`, [F_NEXT_MEMS,F_TENANT]);
+    assert.equal(Number(handoverState.rows[0].successors),1);
+    assert.equal(Number(handoverState.rows[0].audits),1);
+    console.log('  ✔ Second handover blocked and failed; exactly one successor and audit remain.');
 
   } finally {
     console.log('\n[Teardown] In ephemeral container, fixtures remain safely until container teardown (zero trigger bypass).');

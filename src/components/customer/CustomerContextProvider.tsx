@@ -1,10 +1,12 @@
 'use client';
+import {useDashboardFetch,useDashboardPreview} from '@/components/dashboard-lab/DashboardTransport';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { DashboardRpcResponse } from '@/lib/customer/dashboard-schema';
 
 export type CustomerContext = {
   context_id: string;
+  membership_id: string;
   tenant_name: string;
   role_code: string;
   role_name: string;
@@ -21,6 +23,10 @@ type State = {
   loading: boolean;
   error: string | null;
   select: (id: string) => void;
+  pendingContextId: string | null;
+  registerUnsavedGuard: (key: string, dirty: boolean, discard: () => void) => () => void;
+  confirmContextChange: () => void;
+  cancelContextChange: () => void;
   refresh: () => void;
 };
 
@@ -28,14 +34,38 @@ const Context = createContext<State | null>(null);
 const STORAGE_KEY = 'cladora.customer-context.v1';
 
 export function CustomerContextProvider({ children }: { children: React.ReactNode }) {
+  const fetch=useDashboardFetch();
+  const preview=useDashboardPreview();
   const [contexts, setContexts] = useState<CustomerContext[]>([]);
   const [activeId, setActiveId] = useState('');
   const [dashboard, setDashboard] = useState<CustomerDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
+  const [pendingContextId, setPendingContextId] = useState<string | null>(null);
+  const unsavedGuards = useRef(new Map<string, () => void>());
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
+  const registerUnsavedGuard = useCallback((key: string, dirty: boolean, discard: () => void) => {
+    if (dirty) unsavedGuards.current.set(key, discard);
+    else unsavedGuards.current.delete(key);
+    return () => {
+      if (unsavedGuards.current.get(key) === discard) unsavedGuards.current.delete(key);
+    };
+  }, []);
+  const select = useCallback((id: string) => {
+    if (id === activeId) return;
+    if (unsavedGuards.current.size) setPendingContextId(id);
+    else setActiveId(id);
+  }, [activeId]);
+  const cancelContextChange = useCallback(() => setPendingContextId(null), []);
+  const confirmContextChange = useCallback(() => {
+    if (pendingContextId === null) return;
+    Array.from(unsavedGuards.current.values()).forEach((discard) => discard());
+    unsavedGuards.current.clear();
+    setActiveId(pendingContextId);
+    setPendingContextId(null);
+  }, [pendingContextId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -48,9 +78,12 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
         const body = (await response.json()) as { contexts: CustomerContext[] };
         if (cancelled) return;
         setContexts(body.contexts);
-        const stored = sessionStorage.getItem(STORAGE_KEY);
+        const requested = preview ? null : new URLSearchParams(window.location.search).get('context');
+        const stored = preview ? null : sessionStorage.getItem(STORAGE_KEY);
         setActiveId(
-          body.contexts.some((c) => c.context_id === stored)
+          body.contexts.some((c) => c.context_id === requested)
+            ? requested ?? ''
+            : body.contexts.some((c) => c.context_id === stored)
             ? stored ?? ''
             : body.contexts[0]?.context_id ?? ''
         );
@@ -63,7 +96,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetch,preview]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -72,7 +105,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
       setLoading(true);
       setError(null);
       try {
-        sessionStorage.setItem(STORAGE_KEY, activeId);
+        if (!preview) sessionStorage.setItem(STORAGE_KEY, activeId);
         const response = await fetch(
           `/api/customer/v1/dashboard?context_id=${encodeURIComponent(activeId)}`,
           { cache: 'no-store' }
@@ -92,19 +125,23 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     return () => {
       cancelled = true;
     };
-  }, [activeId, nonce]);
+  }, [activeId, nonce,fetch,preview]);
 
   const value = useMemo<State>(
     () => ({
       contexts,
       active: contexts.find((c) => c.context_id === activeId) ?? null,
-      dashboard,
+      dashboard: dashboard?.contextId === activeId ? dashboard : null,
       loading,
       error,
-      select: setActiveId,
+      select,
+      pendingContextId,
+      registerUnsavedGuard,
+      confirmContextChange,
+      cancelContextChange,
       refresh,
     }),
-    [contexts, activeId, dashboard, loading, error, refresh]
+    [contexts, activeId, dashboard, loading, error, select, pendingContextId, registerUnsavedGuard, confirmContextChange, cancelContextChange, refresh]
   );
 
   return <Context.Provider value={value}>{children}</Context.Provider>;

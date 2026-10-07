@@ -4,9 +4,10 @@ import { HEADERS, mapMaintenanceRpcError } from "@/lib/customer/maintenance-api-
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 import { z } from "zod";
+import { maintenanceUuidSchema } from "@/lib/customer/maintenance-schema";
 
 const startSchema = z.object({
-  context_id: z.string().uuid(),
+  context_id: maintenanceUuidSchema,
   notes: z.string().trim().max(1000).optional().nullable(),
 });
 
@@ -22,6 +23,9 @@ export async function POST(
   }
 
   const { id: workOrderId } = await params;
+  if (!maintenanceUuidSchema.safeParse(workOrderId).success) {
+    return NextResponse.json({ error: { code: "INVALID_REQUEST", message: "Invalid work order UUID" } }, { status: 400, headers: HEADERS });
+  }
   const { data: bodyJson, errorResponse } = await parseJsonWithLimit<unknown>(request, 10 * 1024);
   if (errorResponse || !bodyJson) {
     return errorResponse ?? NextResponse.json({ error: { code: "INVALID_JSON", message: "Invalid body" } }, { status: 400, headers: HEADERS });

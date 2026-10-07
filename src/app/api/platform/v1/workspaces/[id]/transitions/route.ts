@@ -71,7 +71,7 @@ export async function POST(
     const { target_status, expected_version, reason } = parsed.data;
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('transition_workspace_lifecycle', {
+    const { data, error } = await supabase.schema('customer_api').rpc('transition_workspace_lifecycle_v1', {
       p_workspace_id: workspaceId,
       p_target_status: target_status,
       p_expected_version: expected_version,

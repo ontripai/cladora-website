@@ -8,7 +8,7 @@
 -- Workspace Taxonomy != Module Activation != Entitlement != Permission != Role != Delegation != Country Pack
 -- =============================================================================
 begin;
-select plan(96);
+select plan(101);
 
 -- 1. Structural & Table Schema Verification (6 assertions)
 select ok(to_regclass('platform.module_permission_bindings') is not null, 'platform.module_permission_bindings table exists');
@@ -582,7 +582,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid, -- Unit 101
-    null,
+    now() + interval '1 day',
     'Assign unit inspector to Unit 101',
     'idem_assign_unit_101'
   )$$,
@@ -711,7 +711,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid,
-    null,
+    now() + interval '1 day',
     'Reassign for permission testing',
     'idem_reassign_unit_101'
   )$$,
@@ -720,7 +720,7 @@ select lives_ok(
 
 -- 6.11 Direct update of immutable fields on member assignment is prohibited
 select throws_ok(
-  $$update platform.workspace_member_roles set workspace_role_id = '09000000-0000-0000-0000-000000000001'::uuid, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to is null$$,
+  $$update platform.workspace_member_roles set workspace_role_id = '09000000-0000-0000-0000-000000000001'::uuid, lock_version = lock_version + 1 where customer_workspace_id = '09000000-0000-0000-0000-000000000100'::uuid and valid_to > statement_timestamp()$$,
   '42501',
   'workspace_member_role_fields_immutable',
   'modifying immutable fields on workspace member role is prohibited by trigger'
@@ -734,6 +734,68 @@ select throws_ok(
 select set_config('request.jwt.claims', jsonb_build_object('sub', '09000000-0000-0000-0000-000000000020', 'aal', 'aal1')::text, true);
 
 -- 7.1 Path B Allow: Unit 101 has allow -> returns true
+
+select ok(app_private.workspace_role_identity_source_current_v1(
+ (select a.assigned_by_context_grant_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select a.assigned_by_membership_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select s.source_identity_role_id from platform.workspace_member_role_authority_sources s
+  join platform.workspace_member_roles a on a.id=s.assignment_id
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+    and s.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
+  order by a.created_at desc limit 1),
+ (select a.tenant_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select a.customer_workspace_id from platform.workspace_member_roles a
+  where a.membership_id='09000000-0000-0000-0000-000001000002'
+    and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+  order by a.created_at desc limit 1),
+ (select id from identity.permissions where code='maintenance.requests.manage'),
+ (select id from platform.module_definitions where code='maintenance'),
+ 'unit','09000000-0000-0000-0000-000000100001'),
+ 'grantor identity source is still current at the exact unit scope');
+
+select ok(exists(
+ select 1 from platform.workspace_member_role_authority_sources s
+ join platform.workspace_member_roles a on a.id=s.assignment_id
+ where a.membership_id='09000000-0000-0000-0000-000001000002'
+   and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+   and s.source_kind='identity_role'
+   and s.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
+   and s.module_definition_id=(select id from platform.module_definitions where code='maintenance')),
+ 'assignment has the expected stored identity source');
+select ok(exists(
+ select 1 from platform.workspace_member_roles a
+ where a.membership_id='09000000-0000-0000-0000-000001000002'
+   and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+   and a.valid_to>statement_timestamp()
+   and app_private.workspace_role_scope_contains_v1(a.scope_type,a.property_id,a.building_id,a.unit_id,
+     'unit',(select b.property_id from portfolio.buildings b where b.id='09000000-0000-0000-0000-000000010000'),
+     '09000000-0000-0000-0000-000000010000','09000000-0000-0000-0000-000000100001')),
+ 'active assignment scope contains the exact target unit');
+select ok(exists(
+ select 1 from platform.workspace_member_roles a
+ join platform.workspace_role_permissions rp on rp.workspace_role_id=a.workspace_role_id
+ join platform.workspace_role_modules rm on rm.workspace_role_id=rp.workspace_role_id
+ where a.membership_id='09000000-0000-0000-0000-000001000002'
+   and a.workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector')
+   and rp.permission_id=(select id from identity.permissions where code='maintenance.requests.manage')
+   and rp.effect='allow' and rm.module_definition_id=(select id from platform.module_definitions where code='maintenance')),
+ 'published unit role has the exact allow permission and module');
+select ok(app_private.workspace_member_role_authority_active_v1(
+ (select id from platform.workspace_member_roles where membership_id='09000000-0000-0000-0000-000001000002' and workspace_role_id=(select id from platform.workspace_roles where code='unit_inspector') order by created_at desc limit 1),
+ (select id from identity.permissions where code='maintenance.requests.manage'),
+ (select id from platform.module_definitions where code='maintenance'),
+ 'unit','09000000-0000-0000-0000-000000100001','{}'::uuid[]),
+ 'delegated source remains active for the exact assigned unit permission');
 select ok(
   app_private.check_effective_permission_v1(
     '09000000-0000-0000-0000-000010000002'::uuid,
@@ -844,7 +906,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     null,
-    null,
+    now() + interval '1 day',
     'Assign deny role at building scope',
     'idem_assign_deny_bld'
   )$$,
@@ -1012,7 +1074,7 @@ select lives_ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid,
-    null,
+    now() + interval '1 day',
     'Assign doc viewer at unit scope',
     'idem_assign_doc_viewer'
   )$$,
@@ -1151,7 +1213,7 @@ select ok(
     '09000000-0000-0000-0000-000000001000'::uuid,
     '09000000-0000-0000-0000-000000010000'::uuid,
     '09000000-0000-0000-0000-000000100001'::uuid,
-    null,
+    now() + interval '1 day',
     'Assign unit inspector to Unit 101',
     'idem_assign_unit_101'
   ))->>'action' = 'assign_role',
@@ -1204,8 +1266,8 @@ select ok(exists(
 select ok(exists(
   select 1 from audit.events
   where action = 'WORKSPACE_ROLE_ASSIGNMENT_REVOKED'
-    and (before_snapshot->>'valid_to') is null
-), 'audit event WORKSPACE_ROLE_ASSIGNMENT_REVOKED captured true pre-update before_snapshot with valid_to IS NULL');
+    and (before_snapshot->>'valid_to') is not null
+), 'audit event WORKSPACE_ROLE_ASSIGNMENT_REVOKED captured true pre-update before_snapshot with bounded valid_to');
 
 -- 8.14 Audit revocation captured post-update after_snapshot with valid_to NOT NULL
 select ok(exists(

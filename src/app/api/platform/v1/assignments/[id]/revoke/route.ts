@@ -50,7 +50,7 @@ export async function POST(
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('revoke_customer_assignment', {
+    const { data, error } = await supabase.schema('customer_api').rpc('revoke_customer_assignment_v1', {
       p_assignment_id: assignmentId,
       p_reason: revoke_reason.trim(),
     });

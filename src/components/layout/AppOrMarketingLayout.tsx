@@ -14,7 +14,7 @@ interface LayoutWrapperProps {
 
 export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, children }) => {
   const pathname = usePathname();
-  const isAppRoute = pathname?.includes(`/${lang}/app`);
+  const isAppRoute = pathname?.includes(`/${lang}/app`) || pathname === `/${lang}/account` || pathname === `/${lang}/owner-portfolio`;
 
   return (
     <DemoProvider>

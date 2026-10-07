@@ -12,7 +12,7 @@ export type DetectedMimeResult =
  * Inspect magic bytes of the initial chunk of a file to identify MIME type
  * and reject active content (SVG, HTML, executables, scripts).
  */
-export function inspectMagicBytes(buffer: Buffer): DetectedMimeResult {
+export function inspectMagicBytes(buffer: Buffer, declaredMime?: string): DetectedMimeResult {
   if (!buffer || buffer.length === 0) {
     return { success: false, reason: "zero_byte_content_rejected" };
   }
@@ -93,16 +93,28 @@ export function inspectMagicBytes(buffer: Buffer): DetectedMimeResult {
     buffer[2] === 0x03 &&
     buffer[3] === 0x04
   ) {
-    // OpenXML documents are ZIP archives with [Content_Types].xml
-    // Inspect up to 4096 bytes for OpenXML markers
-    const zipScan = buffer.subarray(0, Math.min(buffer.length, 4096)).toString("latin1");
-    if (zipScan.includes("word/") || zipScan.includes("[Content_Types].xml")) {
-      return { success: true, mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
+    // Read ZIP central-directory names, which remain uncompressed and may be
+    // anywhere near the end of an Office document regardless of entry order.
+    const names = new Set<string>();
+    for (let offset = 0; offset + 46 <= buffer.length; offset++) {
+      if (buffer.readUInt32LE(offset) !== 0x02014b50) continue;
+      const nameLength = buffer.readUInt16LE(offset + 28);
+      const extraLength = buffer.readUInt16LE(offset + 30);
+      const commentLength = buffer.readUInt16LE(offset + 32);
+      const end = offset + 46 + nameLength + extraLength + commentLength;
+      if (end > buffer.length) continue;
+      names.add(buffer.subarray(offset + 46, offset + 46 + nameLength).toString("utf8"));
+      offset = end - 1;
     }
-    if (zipScan.includes("xl/") || zipScan.includes("worksheets/")) {
+    if (!names.has("[Content_Types].xml") || Array.from(names).some((name) => /(?:^|\/)vbaProject\.bin$/i.test(name))) {
+      return { success: false, reason: "unsupported_archive_format_rejected" };
+    }
+    if (names.has("xl/workbook.xml") && !names.has("word/document.xml")) {
       return { success: true, mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" };
     }
-    // Generic archive files are not allowed without specific inspection
+    if (names.has("word/document.xml") && !names.has("xl/workbook.xml")) {
+      return { success: true, mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" };
+    }
     return { success: false, reason: "unsupported_archive_format_rejected" };
   }
 
@@ -114,7 +126,7 @@ export function inspectMagicBytes(buffer: Buffer): DetectedMimeResult {
     buffer[2] === 0x11 &&
     buffer[3] === 0xe0
   ) {
-    return { success: true, mime: "application/msword" };
+    return { success: true, mime: declaredMime === "application/vnd.ms-excel" ? declaredMime : "application/msword" };
   }
 
   // Plain text inspection: Valid UTF-8, no zero bytes

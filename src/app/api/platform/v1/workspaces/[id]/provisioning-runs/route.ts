@@ -53,7 +53,7 @@ export async function POST(
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('create_provisioning_run', {
+    const { data, error } = await supabase.schema('customer_api').rpc('create_provisioning_run_v1', {
       p_workspace_id: workspaceId,
       p_idempotency_key: idempotency_key.trim(),
       p_task_types: task_types,

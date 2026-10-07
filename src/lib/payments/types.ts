@@ -111,7 +111,7 @@ export interface BankPaymentInstruction {
   amount: number;
   currency: string;
   structured_reference: string;
-  epc_qr_payload: string;
+  epc_qr_payload: string | null;
   unit_code: string;
   expires_at?: string;
 }

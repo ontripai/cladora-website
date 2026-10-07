@@ -68,7 +68,20 @@ export async function POST(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.schema('platform').rpc('create_workspace_invitation', {
+  const { data: invitationRole, error: invitationRoleError } = await supabase
+    .schema('customer_api')
+    .from('workspace_primary_admin_roles_v1')
+    .select('id')
+    .eq('id', parsed.role_id)
+    .maybeSingle();
+  if (invitationRoleError || !invitationRole) {
+    return NextResponse.json(
+      { error: { code: 'INVALID_PRIMARY_ADMIN_ROLE', message: 'The selected role cannot receive a primary administrator invitation.' } },
+      { status: 400, headers: NO_CACHE_HEADERS },
+    );
+  }
+
+  const { data, error } = await supabase.schema('customer_api').rpc('create_workspace_invitation_v1', {
     p_workspace_id: workspaceId,
     p_email: parsed.email,
     p_role_id: parsed.role_id,
@@ -101,12 +114,12 @@ export async function POST(
 
   try {
     const origin = getApplicationOrigin();
-    const redirectTo = `${origin}/${parsed.lang}/auth/callback`;
+    const redirectTo = `${origin}/${parsed.lang}/auth/callback?next=/${parsed.lang}/invitation-continuation`;
     const admin = createAdminClient();
     const { error: inviteError } = await admin.auth.admin.inviteUserByEmail(parsed.email, { redirectTo });
     if (inviteError) throw inviteError;
   } catch {
-    await supabase.schema('platform').rpc('revoke_workspace_invitation', {
+    await supabase.schema('customer_api').rpc('revoke_workspace_invitation_v1', {
       p_invitation_id: row.invitation_id,
       p_reason: 'Auth delivery failed; invitation revoked automatically',
     });

@@ -1,7 +1,8 @@
 'use client';
+import {useDashboardPreview} from '@/components/dashboard-lab/DashboardTransport';
 
 import React from 'react';
-import Link from 'next/link';
+import {DashboardLink as Link} from '@/components/dashboard-lab/DashboardTransport';
 import {
   ArrowLeft,
   ArrowRight,
@@ -309,7 +310,9 @@ const copy = {
 } as const;
 
 export function CustomerDashboard({ lang }: { lang: Language }) {
+  const preview=useDashboardPreview();
   const { active, dashboard, loading, error } = useCustomerContext();
+  const [compositionRevision, setCompositionRevision] = React.useState(0);
   const t = copy[lang] ?? copy.ro;
   const isRtl = lang === 'fa';
   const NextArrow = isRtl ? ArrowLeft : ArrowRight;
@@ -715,11 +718,11 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
               <h1 className="text-2xl font-bold font-display text-[#102A43]">{t.title}</h1>
               {getBadge()}
             </div>
-            <p className="mt-1 text-xs text-[#52667A]">{t.subtitle}</p>
+            <p className="mt-1 text-xs text-[#52667A]">{preview ? (lang==='fa'?'پیش‌نمایش نقش با دادهٔ فرضی':lang==='ro'?'Previzualizarea rolului cu date fictive':'Role preview with fictional data') : t.subtitle}</p>
           </div>
           <div className="flex items-center gap-2 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] px-3 py-1.5 text-xs font-bold text-[#0A6E62]">
             <ShieldCheck className="h-4 w-4" />
-            <span>{t.verifiedBadge}</span>
+            <span>{preview ? (lang==='fa'?'دادهٔ آزمایشی':lang==='ro'?'Date de test':'Test data') : t.verifiedBadge}</span>
           </div>
         </div>
 
@@ -743,13 +746,15 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
         <WorkspaceTaxonomyCard
           lang={lang}
           contextId={dashboard.context.id}
-          canManage={permissions.includes('workspace.taxonomy.manage')}
+          canManage={permissions.includes('workspace.taxonomy.manage') && dashboard.context.scope_type !== 'tenant'}
+          onTransition={() => setCompositionRevision((revision) => revision + 1)}
         />
       )}
 
       {/* Workspace Dynamic Composition Modules */}
       {dashboard?.context?.id && (
         <WorkspaceCompositionCard
+          key={`${dashboard.context.id}:${compositionRevision}`}
           lang={lang}
           contextId={dashboard.context.id}
           canManage={permissions.includes('workspace.module.manage')}
@@ -912,7 +917,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {isValidNumber(k.my_units_count) ? `${formatInt(k.my_units_count)} ${t.kpis.myUnits}` : t.sections.myUnits}
               </span>
               <Link
-                href={`/${lang}/app/documents`}
+                href={`/${lang}/app/ownership`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0E9F8E] hover:underline"
               >
                 <span>{t.actions.viewDetails}</span>
@@ -939,7 +944,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <Link
-                href={`/${lang}/app/billing`}
+                href={`/${lang}/app/invoices`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:underline"
               >
                 <span>{t.actions.viewInvoices}</span>
@@ -993,7 +998,7 @@ export function CustomerDashboard({ lang }: { lang: Language }) {
                 {isValidNumber(k.outstanding_amount) ? formatCurrency(k.outstanding_amount) : '-'}
               </span>
               <Link
-                href={`/${lang}/app/billing`}
+                href={`/${lang}/app/invoices`}
                 className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2563EB] hover:underline"
               >
                 <span>{t.actions.viewInvoices}</span>

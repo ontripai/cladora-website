@@ -7,11 +7,17 @@ import {
   ChevronRight,
   LoaderCircle,
   RefreshCw,
+  Send,
+  UserPlus,
+  X,
 } from "lucide-react";
 import type {
   CustomerWorkspace,
   WorkspaceLifecycleStatus,
 } from "@/types/platform";
+import { ServiceCatalogPilotAccessDialog } from "@/components/platform/ServiceCatalogPilotAccessDialog";
+import { WorkspaceAccessBasisDialog } from "@/components/platform/WorkspaceAccessBasisDialog";
+import { isPrimaryWorkspaceRoleAvailable, primaryWorkspaceRole } from "@/lib/customer/primary-workspace-role";
 
 const PAGE_SIZE = 20;
 type Locale = "ro" | "en" | "fa";
@@ -25,6 +31,12 @@ interface WorkspaceResponse {
     offset: number;
     hasMore: boolean;
   };
+}
+
+interface InvitationRole {
+  id: string;
+  code: "association_admin" | "property_manager";
+  name: string;
 }
 
 const copy = {
@@ -41,11 +53,33 @@ const copy = {
     next: "Următorul",
     page: "Pagina",
     workspace: "Spațiu de lucru și entitate",
+    owner: "Responsabil comercial",
+    activate: "Activează spațiul de lucru",
+    advance: "Treci la etapa următoare",
+    advanceReason: "Motivul schimbării etapei",
+    advanceSuccess: "Etapa spațiului de lucru a fost actualizată.",
+    advanceFailed: "Schimbarea etapei a eșuat. Reîmprospătează și încearcă din nou.",
     type: "Tip",
     environment: "Mediu",
     status: "Stare ciclu de viață",
     version: "Versiune",
     activated: "Activat la",
+    actions: "Acțiuni",
+    invite: "Invită administrator",
+    inviteTitle: "Invită administratorul principal",
+    inviteIntro: "Invitația este disponibilă numai în etapa PROVISIONING și expiră în cel mult 72 de ore.",
+    email: "E-mail",
+    role: "Rol",
+    reason: "Motivul invitației",
+    reasonPlaceholder: "Activarea administratorului principal al asociației",
+    expiry: "Valabilitate",
+    hours: "ore",
+    cancel: "Anulează",
+    send: "Trimite invitația",
+    sending: "Se trimite…",
+    sent: "Invitația a fost trimisă în siguranță.",
+    invitationFailed: "Invitația nu a putut fi trimisă.",
+    rolesFailed: "Rolurile de invitație nu au putut fi încărcate.",
   },
   en: {
     title: "Registered workspaces",
@@ -60,11 +94,33 @@ const copy = {
     next: "Next",
     page: "Page",
     workspace: "Workspace & entity",
+    owner: "Commercial owner",
+    activate: "Activate workspace",
+    advance: "Advance stage",
+    advanceReason: "Reason for stage change",
+    advanceSuccess: "Workspace stage updated.",
+    advanceFailed: "Stage change failed. Refresh and retry.",
     type: "Type",
     environment: "Environment",
     status: "Lifecycle status",
     version: "Version",
     activated: "Activated",
+    actions: "Actions",
+    invite: "Invite administrator",
+    inviteTitle: "Invite primary administrator",
+    inviteIntro: "Invitations are available only during PROVISIONING and expire within 72 hours.",
+    email: "Email",
+    role: "Role",
+    reason: "Invitation reason",
+    reasonPlaceholder: "Activate the association's primary administrator",
+    expiry: "Validity",
+    hours: "hours",
+    cancel: "Cancel",
+    send: "Send invitation",
+    sending: "Sending…",
+    sent: "The invitation was sent securely.",
+    invitationFailed: "The invitation could not be sent.",
+    rolesFailed: "Invitation roles could not be loaded.",
   },
   fa: {
     title: "محیط‌های کاری ثبت‌شده",
@@ -78,11 +134,33 @@ const copy = {
     next: "بعدی",
     page: "صفحه",
     workspace: "محیط کاری و مجموعه",
+    owner: "مسئول تجاری",
+    activate: "فعال‌سازی محیط کاری",
+    advance: "مرحلهٔ بعد",
+    advanceReason: "دلیل تغییر مرحله",
+    advanceSuccess: "مرحلهٔ محیط کاری تغییر کرد.",
+    advanceFailed: "تغییر مرحله انجام نشد؛ صفحه را تازه‌سازی کنید.",
     type: "نوع",
     environment: "محیط",
     status: "وضعیت چرخه حیات",
     version: "نسخه",
     activated: "تاریخ فعال‌سازی",
+    actions: "عملیات",
+    invite: "دعوت مدیر ساختمان",
+    inviteTitle: "دعوت مدیر اصلی ساختمان",
+    inviteIntro: "دعوت فقط در مرحله PROVISIONING ممکن است و حداکثر تا ۷۲ ساعت اعتبار دارد.",
+    email: "ایمیل",
+    role: "نقش",
+    reason: "دلیل دعوت",
+    reasonPlaceholder: "فعال‌سازی مدیر اصلی ساختمان",
+    expiry: "مدت اعتبار",
+    hours: "ساعت",
+    cancel: "انصراف",
+    send: "ارسال دعوت‌نامه",
+    sending: "در حال ارسال…",
+    sent: "دعوت‌نامه به‌صورت امن ارسال شد.",
+    invitationFailed: "ارسال دعوت‌نامه انجام نشد.",
+    rolesFailed: "دریافت نقش‌های دعوت ناموفق بود.",
   },
 } as const;
 
@@ -104,10 +182,48 @@ function localeCode(lang: Locale) {
   return lang === "ro" ? "ro-RO" : lang === "fa" ? "fa-IR" : "en-GB";
 }
 
+const nextStage: Partial<Record<WorkspaceLifecycleStatus, WorkspaceLifecycleStatus>> = {
+  LEAD: 'UNDER_REVIEW',
+  UNDER_REVIEW: 'APPROVED',
+  APPROVED: 'CONTRACT_PENDING',
+  CONTRACT_PENDING: 'PAYMENT_PENDING',
+  PAYMENT_PENDING: 'PROVISIONING',
+  PROVISIONING: 'ACTIVE',
+};
+
+const suggestedTransitionReasons: Record<Locale, Partial<Record<WorkspaceLifecycleStatus, string>>> = {
+  fa: {
+    PROVISIONING: 'درخواست فعال‌سازی محیط کاری پس از تکمیل راه‌اندازی مدیر اصلی.',
+    LEAD: 'آغاز بررسی درخواست و نیازهای راه‌اندازی محیط کاری.',
+    UNDER_REVIEW: 'تأیید درخواست محیط کاری برای ادامه فرایند راه‌اندازی.',
+    APPROVED: 'انتقال درخواست تأییدشده به مرحله آماده‌سازی قرارداد.',
+    CONTRACT_PENDING: 'انتقال محیط کاری به مرحله بررسی وضعیت پرداخت.',
+    PAYMENT_PENDING: 'انتقال محیط کاری به مرحله آماده‌سازی فنی و بررسی پیش‌نیازهای فعال‌سازی.',
+  },
+  ro: {
+    PROVISIONING: 'Solicitarea activării spațiului de lucru după finalizarea configurării administratorului principal.',
+    LEAD: 'Începerea evaluării cererii și a cerințelor de configurare a spațiului de lucru.',
+    UNDER_REVIEW: 'Aprobarea cererii pentru continuarea configurării spațiului de lucru.',
+    APPROVED: 'Trecerea cererii aprobate la etapa de pregătire a contractului.',
+    CONTRACT_PENDING: 'Trecerea spațiului de lucru la etapa de verificare a stării plății.',
+    PAYMENT_PENDING: 'Trecerea spațiului de lucru la pregătirea tehnică și verificarea condițiilor de activare.',
+  },
+  en: {
+    PROVISIONING: 'Request workspace activation after primary administrator onboarding is complete.',
+    LEAD: 'Begin reviewing the workspace request and setup requirements.',
+    UNDER_REVIEW: 'Approve the workspace request to continue the setup process.',
+    APPROVED: 'Move the approved request to contract preparation.',
+    CONTRACT_PENDING: 'Move the workspace to payment status review.',
+    PAYMENT_PENDING: 'Move the workspace to technical preparation and activation prerequisite checks.',
+  },
+};
+
 export function OperationalWorkspacesTable({
   lang: requestedLang,
+  canTransition = false,
 }: {
   lang: string;
+  canTransition?: boolean;
 }) {
   const lang: Locale =
     requestedLang === "ro" || requestedLang === "fa" ? requestedLang : "en";
@@ -119,6 +235,14 @@ export function OperationalWorkspacesTable({
   const [offset, setOffset] = useState(0);
   const [retryCount, setRetryCount] = useState(0);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [inviteWorkspace, setInviteWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [requestWorkspace, setRequestWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [serviceWorkspace, setServiceWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [basisWorkspace, setBasisWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [transitionWorkspace, setTransitionWorkspace] = useState<CustomerWorkspace | null>(null);
+  const [transitionBusy, setTransitionBusy] = useState(false);
+  const [transitionError, setTransitionError] = useState('');
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -232,6 +356,9 @@ export function OperationalWorkspacesTable({
                 <th scope="col" className="px-4 py-3">
                   {labels.activated}
                 </th>
+                <th scope="col" className="px-4 py-3">
+                  {labels.actions}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#1E3A5A] text-slate-300">
@@ -241,9 +368,8 @@ export function OperationalWorkspacesTable({
                   className="transition hover:bg-[#12283E]"
                 >
                   <td className="px-4 py-3">
-                    <div className="font-bold text-white">
-                      {workspace.commercial_owner}
-                    </div>
+                    <div className="font-bold text-white">{workspace.tenant_legal_name || workspace.commercial_owner}</div>
+                    <div className="text-[10px] text-slate-400">{labels.owner}: {workspace.commercial_owner}</div>
                     <div className="font-mono text-[10px] text-slate-400">
                       ID: {workspace.id} · Tenant: {workspace.tenant_id}
                     </div>
@@ -277,6 +403,24 @@ export function OperationalWorkspacesTable({
                           timeZone: "UTC",
                         }).format(new Date(workspace.activated_at))
                       : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap gap-2">{canTransition && workspace.environment === "PILOT" && workspace.lifecycle_status === "ACTIVE" && <button type="button" onClick={() => setServiceWorkspace(workspace)} className="rounded border border-emerald-400/40 px-2 py-1 text-emerald-200">{lang === "fa" ? "دسترسی خدمات" : lang === "ro" ? "Acces servicii" : "Service access"}</button>}{canTransition && workspace.environment === "PILOT" && workspace.lifecycle_status === "ACTIVE" && <button type="button" onClick={() => setRequestWorkspace(workspace)} className="rounded border border-emerald-400/40 px-2 py-1 text-emerald-200">{lang === "fa" ? "دسترسی درخواست خدمات" : lang === "ro" ? "Acces cereri servicii" : "Service request access"}</button>}{canTransition && <button type="button" onClick={() => setBasisWorkspace(workspace)} className="rounded border border-amber-400/40 px-2 py-1 text-amber-200">{lang === 'fa' ? 'مبنای دسترسی' : lang === 'ro' ? 'Temei acces' : 'Access basis'}</button>}{canTransition && nextStage[workspace.lifecycle_status] && <button type="button" onClick={() => { setTransitionError(''); setTransitionWorkspace(workspace); }} className="rounded border border-teal-500/40 px-2 py-1 text-teal-300">{workspace.lifecycle_status === 'PROVISIONING' ? labels.activate : labels.advance}</button>}
+                    {workspace.lifecycle_status === "PROVISIONING" && isPrimaryWorkspaceRoleAvailable(workspace.workspace_type) ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNotice(null);
+                          setInviteWorkspace(workspace);
+                        }}
+                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-500/40 bg-emerald-950/70 px-3 py-2 font-bold text-emerald-300 hover:bg-emerald-900/70"
+                      >
+                        <UserPlus className="h-4 w-4" aria-hidden="true" />
+                        {labels.invite}
+                      </button>
+                    ) : (
+                      <span className="text-slate-600">—</span>
+                    )}</div>
                   </td>
                 </tr>
               ))}
@@ -324,6 +468,169 @@ export function OperationalWorkspacesTable({
           </button>
         </nav>
       ) : null}
+      {notice ? (
+        <p role="status" className="border-t border-emerald-500/30 bg-emerald-950/50 px-4 py-3 text-xs font-bold text-emerald-300">
+          {notice}
+        </p>
+      ) : null}
+      {requestWorkspace ? <ServiceCatalogPilotAccessDialog key={`requests-${requestWorkspace.id}`} mode="requests" workspace={requestWorkspace} lang={lang} onClose={() => setRequestWorkspace(null)} /> : null}
+      {serviceWorkspace ? <ServiceCatalogPilotAccessDialog key={serviceWorkspace.id} workspace={serviceWorkspace} lang={lang} onClose={() => setServiceWorkspace(null)} /> : null}
+      {basisWorkspace ? <WorkspaceAccessBasisDialog workspace={basisWorkspace} lang={lang} onClose={() => setBasisWorkspace(null)} /> : null}
+      {inviteWorkspace ? (
+        <InvitationDialog
+          lang={lang}
+          workspace={inviteWorkspace}
+          labels={labels}
+          onClose={() => setInviteWorkspace(null)}
+          onSent={() => {
+            setInviteWorkspace(null);
+            setNotice(labels.sent);
+          }}
+        />
+      ) : null}
+      {transitionWorkspace && nextStage[transitionWorkspace.lifecycle_status] && <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4" role="presentation">
+        <form className="w-full max-w-lg space-y-4 rounded-xl border border-[#1E3A5A] bg-[#0F2236] p-6 text-sm text-white" onSubmit={async (event) => {
+          event.preventDefault(); setTransitionBusy(true); setTransitionError('');
+          const reason = String(new FormData(event.currentTarget).get('reason') || '').trim();
+          try {
+            const response = await fetch(`/api/platform/v1/workspaces/${transitionWorkspace.id}/transitions`, {
+              method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ target_status: nextStage[transitionWorkspace.lifecycle_status], expected_version: transitionWorkspace.version, reason }),
+            });
+            if (!response.ok) throw new Error();
+            setTransitionWorkspace(null); setNotice(labels.advanceSuccess); setRetryCount(value => value + 1);
+          } catch { setTransitionError(labels.advanceFailed); }
+          finally { setTransitionBusy(false); }
+        }}>
+          <h2 className="font-bold">{transitionWorkspace.tenant_legal_name || transitionWorkspace.commercial_owner}</h2>
+          <p>{transitionWorkspace.lifecycle_status} → {nextStage[transitionWorkspace.lifecycle_status]}</p>
+          <p className="text-xs text-amber-200">{lang === 'fa' ? 'تغییر مرحله به‌تنهایی هیچ دعوت یا ایمیلی ارسال نمی‌کند.' : lang === 'ro' ? 'Schimbarea etapei nu trimite invitații sau e-mailuri.' : 'Changing the stage does not send an invitation or email.'}</p>
+          <label className="block">{labels.advanceReason}<textarea key={`${transitionWorkspace.id}:${transitionWorkspace.lifecycle_status}:${lang}`} name="reason" defaultValue={suggestedTransitionReasons[lang][transitionWorkspace.lifecycle_status] ?? ''} minLength={3} maxLength={500} required className="mt-2 w-full rounded border border-[#1E3A5A] bg-[#081320] p-3" /></label>
+          {transitionError && <p role="alert" className="text-rose-300">{transitionError}</p>}
+          <div className="flex gap-2"><button disabled={transitionBusy} className="rounded bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">{transitionWorkspace.lifecycle_status === 'PROVISIONING' ? labels.activate : labels.advance}</button><button type="button" onClick={() => setTransitionWorkspace(null)} className="rounded border border-[#1E3A5A] px-4 py-2">{labels.cancel}</button></div>
+        </form>
+      </div>}
     </section>
+  );
+}
+
+function InvitationDialog({
+  lang,
+  workspace,
+  labels,
+  onClose,
+  onSent,
+}: {
+  lang: Locale;
+  workspace: CustomerWorkspace;
+  labels: (typeof copy)[Locale];
+  onClose: () => void;
+  onSent: () => void;
+}) {
+  const [roles, setRoles] = useState<InvitationRole[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/api/platform/v1/workspaces/invitation-roles', {
+      credentials: 'same-origin',
+      cache: 'no-store',
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        const body = await response.json() as { roles?: InvitationRole[] };
+        if (!response.ok) throw new Error('ROLE_CATALOG_UNAVAILABLE');
+        setRoles(body.roles ?? []);
+        setRolesLoading(false);
+      })
+      .catch((requestError: unknown) => {
+        if (requestError instanceof DOMException && requestError.name === 'AbortError') return;
+        setError(labels.rolesFailed);
+        setRolesLoading(false);
+      });
+    return () => controller.abort();
+  }, [labels.rolesFailed]);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError(null);
+    const form = new FormData(event.currentTarget);
+    const response = await fetch(`/api/platform/v1/workspaces/${workspace.id}/invitations`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: form.get('email'),
+        role_id: form.get('role_id'),
+        lang,
+        reason: form.get('reason'),
+        expires_in_hours: Number(form.get('expires_in_hours')),
+      }),
+    });
+    setBusy(false);
+    if (!response.ok) {
+      const body = await response.json().catch(() => null) as { error?: { code?: string } } | null;
+      setError(body?.error?.code === 'ACTIVE_INVITATION_EXISTS'
+        ? `${labels.invitationFailed} ACTIVE_INVITATION_EXISTS`
+        : labels.invitationFailed);
+      return;
+    }
+    onSent();
+  }
+
+  const preferredRole = primaryWorkspaceRole(workspace.workspace_type);
+  const compatibleRoles = isPrimaryWorkspaceRoleAvailable(workspace.workspace_type)
+    ? roles.filter(role => role.code === preferredRole) : [];
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4" role="presentation">
+      <form onSubmit={submit} className="w-full max-w-xl space-y-5 rounded-xl border border-[#1E3A5A] bg-[#0F2236] p-6 text-start text-sm text-white" aria-labelledby="workspace-invitation-title">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 id="workspace-invitation-title" className="text-lg font-bold">{labels.inviteTitle}</h2>
+            <p className="mt-1 text-xs text-slate-400">{workspace.commercial_owner}</p>
+          </div>
+          <button type="button" onClick={onClose} className="rounded-lg border border-[#1E3A5A] p-2 text-slate-300" aria-label={labels.cancel}>
+            <X className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+        <p className="rounded-lg border border-amber-500/30 bg-amber-950/40 p-3 text-xs text-amber-200">{labels.inviteIntro}</p>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.email}</span>
+          <input required name="email" type="email" autoComplete="email" maxLength={320} className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3" />
+        </label>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.role}</span>
+          <select required name="role_id" disabled={rolesLoading || compatibleRoles.length === 0} defaultValue="" className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3">
+            <option value="" disabled>{rolesLoading ? '…' : labels.role}</option>
+            {compatibleRoles.map((role) => (
+              <option key={role.id} value={role.id}>{role.name} · {role.code}</option>
+            ))}
+          </select>
+        </label>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.reason}</span>
+          <textarea required name="reason" minLength={3} maxLength={500} placeholder={labels.reasonPlaceholder} className="min-h-24 w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3" />
+        </label>
+        <label className="block space-y-2">
+          <span className="font-bold">{labels.expiry}</span>
+          <select name="expires_in_hours" defaultValue="72" className="w-full rounded-lg border border-[#1E3A5A] bg-[#081320] p-3">
+            {[24, 48, 72].map((hours) => <option key={hours} value={hours}>{hours} {labels.hours}</option>)}
+          </select>
+        </label>
+        {error ? <p role="alert" className="rounded-lg border border-rose-500/40 bg-rose-950/50 p-3 text-xs text-rose-200">{error}</p> : null}
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="rounded-lg border border-[#1E3A5A] px-4 py-2 text-slate-200">{labels.cancel}</button>
+          <button disabled={busy || rolesLoading || compatibleRoles.length === 0} className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 font-bold text-[#081320] disabled:opacity-50">
+            {busy ? <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Send className="h-4 w-4" aria-hidden="true" />}
+            {busy ? labels.sending : labels.send}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }

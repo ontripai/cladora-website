@@ -62,6 +62,10 @@ for (const unsafeNext of [
 assert.equal(resolveAuthEmailDestination('de', 'recovery', null), null);
 assert.equal(resolveAuthEmailDestination('en', 'invite', '/en/app/dashboard'), null);
 assert.equal(resolveAuthEmailDestination('en', 'invite', '/en/invitation-continuation'), '/en/invitation-continuation');
+assert.equal(resolveAuthEmailDestination('en', 'magiclink', '/en/invitation-continuation'), '/en/invitation-continuation');
+assert.equal(resolveAuthEmailDestination('en', 'magiclink', '/en/invitation-continuation?next=unsafe'), null);
+assert.equal(resolveAuthEmailDestination('fa', 'invite', '/fa/pilot-reviewer'), '/fa/pilot-reviewer');
+assert.equal(resolveAuthEmailDestination('fa', 'invite', '/fa/pilot-reviewer?workspace=unsafe'), null);
 assert.equal(resolveAuthEmailDestination('en', 'invite', '/en/invitation-continuation?workspace=unsafe'), null);
 
 for (const key of [

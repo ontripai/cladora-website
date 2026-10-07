@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   BarChart3,
@@ -10,6 +10,7 @@ import {
   Building2,
   CalendarCheck,
   CreditCard,
+  CircleUserRound,
   FileSpreadsheet,
   FileText,
   Gauge,
@@ -21,6 +22,7 @@ import {
   ReceiptText,
   RefreshCw,
   Scale,
+  Shield,
   ShieldCheck,
   UsersRound,
   Wrench,
@@ -39,12 +41,15 @@ import { isRouteAllowedForPersona } from "@/lib/customer/access-matrix";
 const copy = {
   ro: {
     dashboard: "Panou principal",
+    workspaceRoles: "Roluri și permisiuni",
     accounting: "Registru contabil",
     allocations: "Alocări și cote",
     reports: "Rapoarte financiare",
     monthClose: "Închidere de lună",
     utilities: "Contoare și utilități",
     assets: "Active",
+    airprop: "Workspace AIRPROP",
+    services: "Servicii în spațiul de lucru",
     maintenance: "Mentenanță",
     procurement: "Furnizori și achiziții",
     governance: "Guvernanță",
@@ -54,23 +59,31 @@ const copy = {
     documents: "Documente",
     occupancy: "Ocupare și rezidenți",
     ownership: "Proprietate și contracte",
+    relationships: "Propuneri și verificări relații",
     security: "Acces și securitate",
     billing: "Facturi și creanțe",
     payments: "Plăți",
     reconciliation: "Reconciliere",
     audit: "Jurnal audit",
     context: "Context activ",
+    unsavedContext: "Există modificări nesalvate. Salvează-le sau renunță la ele înainte de schimbarea contextului.",
+    keepContext: "Continuați editarea",
+    discardContext: "Renunțați și schimbați contextul",
     empty: "Nu există niciun context activ alocat.",
     secure: "Context verificat de server",
+    profile: "Profilul meu",
   },
   en: {
     dashboard: "Dashboard",
+    workspaceRoles: "Workspace roles",
     accounting: "Accounting ledger",
     allocations: "Allocations & rights",
     reports: "Financial reports",
     monthClose: "Month close",
     utilities: "Meters & utilities",
     assets: "Assets",
+    airprop: "AIRPROP workspace",
+    services: "Workspace services",
     maintenance: "Maintenance",
     procurement: "Vendors & procurement",
     governance: "Governance",
@@ -80,23 +93,31 @@ const copy = {
     documents: "Documents",
     occupancy: "Occupancy & residents",
     ownership: "Ownership & leases",
+    relationships: "Relationship proposals & reviews",
     security: "Access & security",
     billing: "Billing & receivables",
     payments: "Payments",
     reconciliation: "Reconciliation",
     audit: "Audit log",
     context: "Active context",
+    unsavedContext: "There are unsaved changes. Save them or discard them before changing context.",
+    keepContext: "Keep editing",
+    discardContext: "Discard changes and switch",
     empty: "No active assigned context is available.",
     secure: "Server-verified context",
+    profile: "My profile",
   },
   fa: {
     dashboard: "داشبورد",
+    workspaceRoles: "نقش‌ها و دسترسی‌ها",
     accounting: "دفتر کل حسابداری",
     allocations: "تسهیم و حقوق مالی",
     reports: "گزارش‌های مالی",
     monthClose: "بستن ماه",
     utilities: "کنتورها و خدمات",
     assets: "دارایی‌ها",
+    airprop: "ورک‌اسپیس AIRPROP",
+    services: "خدمات فضای کاری",
     maintenance: "نگهداری",
     procurement: "فروشندگان و تدارکات",
     governance: "حاکمیت",
@@ -106,14 +127,19 @@ const copy = {
     documents: "اسناد",
     occupancy: "سکونت و ساکنان",
     ownership: "مالکیت و اجاره‌ها",
+    relationships: "پیشنهاد و بررسی رابطهٔ واحد",
     security: "دسترسی و امنیت",
     billing: "صورتحساب‌ها و مطالبات",
     payments: "پرداخت‌ها",
     reconciliation: "تطبیق بانکی",
     audit: "گزارش بازرسی",
     context: "زمینه فعال",
+    unsavedContext: "تغییرات ذخیره‌نشده دارید. پیش از تغییر زمینه، آن‌ها را ثبت کنید یا کنار بگذارید.",
+    keepContext: "ادامهٔ ویرایش",
+    discardContext: "کنارگذاشتن تغییرات و تغییر زمینه",
     empty: "هیچ زمینه تخصیص‌یافته فعالی وجود ندارد.",
     secure: "زمینه تأییدشده توسط سرور",
+    profile: "پروفایل من",
   },
 };
 
@@ -126,6 +152,17 @@ function Shell({
 }) {
   const state = useCustomerContext();
   const t = copy[lang];
+  const [profileName, setProfileName] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    const load = () => { void fetch("/api/customer/v1/profile", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() as Promise<{ display_name: string }> : null)
+      .then((profile) => { if (!cancelled && profile) setProfileName(profile.display_name); })
+      .catch(() => {}); };
+    load();
+    window.addEventListener("cladora:profile-updated", load);
+    return () => { cancelled = true; window.removeEventListener("cladora:profile-updated", load); };
+  }, []);
 
   const permissions = state.dashboard?.permissions ?? [];
   const entitlements = state.dashboard?.entitlements ?? [];
@@ -164,15 +201,20 @@ function Shell({
     audit = hasPerm("audit.events.read");
 
   const roleCode = state.dashboard?.context?.role_code;
-  const isAllowedForRole = (path: string) => isRouteAllowedForPersona(roleCode, path);
+  // Native discovery is presentation-only; canonical target and module gates
+  // are evaluated by the database on each AIRPROP read and mutation.
+  const isAllowedForRole = (path: string) => (state.active?.scope_type === "tenant" && ["/app/airprop", "/app/services", "/app/ownership/relationships"].includes(path)) || isRouteAllowedForPersona(roleCode, path);
 
   const navItems = [
     { href: `/${lang}/app/dashboard`, label: t.dashboard, icon: Home, visible: true },
+    { href: `/${lang}/app/settings/roles`, label: t.workspaceRoles, icon: Shield, visible: hasPerm("workspace.role.read") },
     { href: `/${lang}/app/accounting`, label: t.accounting, icon: FileSpreadsheet, visible: accounting },
     { href: `/${lang}/app/accounting/allocations`, label: t.allocations, icon: Scale, visible: allocations },
     { href: `/${lang}/app/accounting/reports`, label: t.reports, icon: BarChart3, visible: reports },
     { href: `/${lang}/app/accounting/month-close`, label: t.monthClose, icon: CalendarCheck, visible: monthClose },
     { href: `/${lang}/app/meters`, label: t.utilities, icon: Gauge, visible: utilities },
+    { href: `/${lang}/app/airprop`, label: t.airprop, icon: BriefcaseBusiness, visible: state.active?.scope_type === "tenant" },
+    { href: `/${lang}/app/services`, label: t.services, icon: BriefcaseBusiness, visible: state.active?.scope_type === "tenant" },
     { href: `/${lang}/app/assets`, label: t.assets, icon: Boxes, visible: assets },
     { href: `/${lang}/app/maintenance`, label: t.maintenance, icon: Wrench, visible: maintenance },
     { href: `/${lang}/app/vendors`, label: t.procurement, icon: BriefcaseBusiness, visible: procurement },
@@ -183,6 +225,7 @@ function Shell({
     { href: `/${lang}/app/documents`, label: t.documents, icon: FileText, visible: documents },
     { href: `/${lang}/app/occupancy`, label: t.occupancy, icon: UsersRound, visible: occupancy },
     { href: `/${lang}/app/ownership`, label: t.ownership, icon: Landmark, visible: ownership },
+    { href: `/${lang}/app/ownership/relationships`, label: t.relationships, icon: Landmark, visible: state.active?.scope_type === "tenant" },
     { href: `/${lang}/app/security-access`, label: t.security, icon: KeyRound, visible: security },
     { href: `/${lang}/app/billing`, label: t.billing, icon: ReceiptText, visible: billing },
     { href: `/${lang}/app/payments`, label: t.payments, icon: CreditCard, visible: payments },
@@ -211,7 +254,7 @@ function Shell({
               aria-label={t.context}
               value={state.active?.context_id ?? ""}
               onChange={(e) => state.select(e.target.value)}
-              disabled={!state.contexts.length}
+              disabled={!state.contexts.length || state.pendingContextId !== null}
               className="max-w-[230px] rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2"
             >
               <option value="">{t.empty}</option>
@@ -224,6 +267,10 @@ function Shell({
           </label>
         </div>
         <div className="flex items-center gap-2">
+          <Link href={`/${lang}/profile`} aria-label={t.profile} className="flex min-w-0 items-center gap-2 rounded-xl border border-[#E2E8F0] px-2 py-1.5 text-xs font-semibold text-[#102A43] hover:bg-[#F1F5F9]">
+            <CircleUserRound className="h-5 w-5 shrink-0 text-[#0E9F8E]" />
+            <span className="hidden max-w-32 truncate sm:block">{profileName || t.profile}</span>
+          </Link>
           <button
             type="button"
             onClick={state.refresh}
@@ -239,6 +286,16 @@ function Shell({
           <SignOutButton lang={lang} variant="customer" />
         </div>
       </header>
+
+      {state.pendingContextId !== null && (
+        <section role="alert" aria-labelledby="context-change-warning" className="border-b border-amber-400 bg-amber-50 px-4 py-3 text-sm text-amber-950 sm:px-6">
+          <p id="context-change-warning" className="mb-2 font-semibold">{t.unsavedContext}</p>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" autoFocus onClick={state.cancelContextChange} className="rounded-lg border border-amber-800 px-3 py-2 font-semibold">{t.keepContext}</button>
+            <button type="button" onClick={state.confirmContextChange} className="rounded-lg bg-amber-900 px-3 py-2 font-semibold text-white">{t.discardContext}</button>
+          </div>
+        </section>
+      )}
 
       {/* Mobile Horizontal Navigation Bar */}
       <nav
@@ -258,6 +315,7 @@ function Shell({
             </Link>
           );
         })}
+        {(roleCode === 'association_admin' || roleCode === 'property_manager') && <Link href={`/${lang}/owner-link-review`} className="rounded-lg border px-3 py-2 text-teal-800">{lang === 'fa' ? 'اتصال واحد مالکان' : 'Owner unit links'}</Link>}
       </nav>
 
       <div className="flex">
@@ -277,6 +335,8 @@ function Shell({
                 </Link>
               );
             })}
+            <Link href={`/${lang}/profile`} className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"><CircleUserRound className="h-4 w-4 text-[#0E9F8E]" />{t.profile}</Link>
+            {(roleCode === 'association_admin' || roleCode === 'property_manager') && <Link href={`/${lang}/owner-link-review`} className="block rounded-xl px-3 py-2.5 text-xs font-bold text-teal-800">{lang === 'fa' ? 'بررسی اتصال واحد مالکان' : 'Review owner unit links'}</Link>}
           </nav>
           <div className="mt-6 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs text-[#0A6E62]">
             <div className="flex items-center gap-2 font-bold">

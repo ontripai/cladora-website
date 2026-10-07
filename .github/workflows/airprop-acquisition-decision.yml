@@ -1,0 +1,62 @@
+name: AIRPROP internal acquisition decision
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/*airprop_acquisition_decision*.sql'
+      - 'supabase/migrations/*lifecycle_contractual_buyer*.sql'
+      - 'supabase/migrations/*lifecycle_verified_ownership_transfer*.sql'
+      - 'supabase/migrations/*lifecycle_verified_lease_handover*.sql'
+      - 'supabase/tests/151_airprop_acquisition_decision.test.sql'
+      - 'supabase/tests/152_verified_lease_handover_contract.test.sql'
+      - 'src/app/api/customer/v2/core/lease-transitions/**'
+      - 'src/lib/core/lease-handover-v1.ts'
+      - 'src/app/api/customer/v2/airprop/**'
+      - 'src/lib/airprop/**'
+      - 'src/components/customer/CustomerAirprop*.tsx'
+      - 'scripts/test-airprop-acquisition*.mjs'
+      - 'scripts/test-airprop-presale*.mjs'
+      - 'scripts/test-core-ownership-transfer*.mjs'
+      - 'scripts/test-core-lease-transition*.mjs'
+      - 'scripts/test-workspace-native-authority-003.mjs'
+      - 'scripts/airprop-local-postgres-adapter.mjs'
+      - '.github/workflows/airprop-acquisition-decision.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  decision:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-airprop-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - name: Actual authority, Vault and dual-control migrations in disposable PostgreSQL
+        run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-airprop-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-workspace-native-authority-003.mjs --airprop-acquisition
+      - name: Independent PostgreSQL sessions, duplicate votes and revocation after lock
+        run: CLADORA_PGLITE_PACKAGE="file://$GITHUB_WORKSPACE/scripts/airprop-local-postgres-adapter.mjs" node scripts/test-workspace-native-authority-003.mjs --airprop-acquisition
+      - run: node scripts/test-airprop-acquisition-route-013.mjs
+      - run: node scripts/test-airprop-presale-route-014.mjs
+      - run: node scripts/test-core-ownership-transfer-route-015.mjs
+      - run: node scripts/test-core-lease-transition-route-016.mjs
+      - run: node scripts/test-airprop-acquisition-ui-013.mjs
+      - run: node scripts/test-airprop-diligence-ui-012.mjs
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:db:static

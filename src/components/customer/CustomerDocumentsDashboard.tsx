@@ -50,6 +50,10 @@ const copy = {
     fileHint: "PDF, Word, Excel, WebP, PNG, JPEG, Plain text. Executables, scripts, HTML & SVG are strictly rejected.",
     docTitle: "Document Title",
     docType: "Document Type",
+    property: "Property (optional)",
+    noProperty: "General document without a property",
+    propertyLoading: "Loading available properties…",
+    propertyError: "Available properties could not be loaded. Refresh and try again.",
     classification: "Classification",
     uploading: "Processing bounded upload…",
     intentStep: "1. Authorizing upload handshake intent…",
@@ -68,6 +72,8 @@ const copy = {
     download: "Download",
     downloading: "Authorizing signed download…",
     scannerDeferred: "Scanner: Deferred (Unscanned)",
+    scannerClean: "Scanner: Clean",
+    scannerQuarantined: "Scanner: Quarantined",
     scannerDeferredNotice: "Caution: Malware scanning is deferred. Normal download is blocked. Only admin inspection is authorized.",
     verifiedEvidence: "Verified Statutory Evidence",
     legalHoldActive: "Active Legal Hold (Disposition Frozen)",
@@ -104,6 +110,10 @@ const copy = {
     fileHint: "PDF, Word, Excel, WebP, PNG, JPEG, Text simplu. Executabilele, scripturile, HTML și SVG sunt strict respinse.",
     docTitle: "Titlu Document",
     docType: "Tip Document",
+    property: "Proprietate (opțional)",
+    noProperty: "Document general fără proprietate",
+    propertyLoading: "Se încarcă proprietățile disponibile…",
+    propertyError: "Proprietățile disponibile nu au putut fi încărcate. Reîncărcați și încercați din nou.",
     classification: "Clasificare",
     uploading: "Procesare flux încărcare…",
     intentStep: "1. Se autorizează intenția de încărcare…",
@@ -122,6 +132,8 @@ const copy = {
     download: "Descarcă",
     downloading: "Se autorizează descărcarea semnată…",
     scannerDeferred: "Scanare: Amânată (Neinspectat)",
+    scannerClean: "Scanare: Sigur",
+    scannerQuarantined: "Scanare: Carantină",
     scannerDeferredNotice: "Atenție: Scanarea malware este amânată. Descărcarea normală este blocată.",
     verifiedEvidence: "Dovadă Legală Verificată",
     legalHoldActive: "Blocare Juridică Activă",
@@ -158,6 +170,10 @@ const copy = {
     fileHint: "فرمت‌های مجاز: PDF، Word، Excel، WebP، PNG، JPEG، متن ساده. فایل‌های اجرایی، اسکریپت، HTML و SVG اکیداً رد می‌شوند.",
     docTitle: "عنوان سند",
     docType: "نوع سند",
+    property: "ملک (اختیاری)",
+    noProperty: "سند عمومی بدون ملک",
+    propertyLoading: "در حال دریافت املاک مجاز…",
+    propertyError: "فهرست املاک مجاز بارگذاری نشد؛ صفحه را بازخوانی و دوباره تلاش کنید.",
     classification: "طبقه‌بندی محرمانگی",
     uploading: "در حال پردازش جریان بارگذاری امن…",
     intentStep: "۱. احراز هویت و صدور مجوز بارگذاری (Intent)…",
@@ -176,6 +192,8 @@ const copy = {
     download: "دانلود فایل",
     downloading: "در حال دریافت لینک امن امضاشده…",
     scannerDeferred: "وضعیت پویش: معوق (بررسی‌نشده)",
+    scannerClean: "وضعیت پویش: پاک",
+    scannerQuarantined: "وضعیت پویش: قرنطینه‌شده",
     scannerDeferredNotice: "هشدار: پویش امنیتی فایل معوق است. دانلود عادی مسدود می‌باشد و صرفاً بازرسی مدیر مجاز است.",
     verifiedEvidence: "مدرک معتبر قانونی (Verified Evidence)",
     legalHoldActive: "توقف حقوقی فعال (تغییر و امحا مسدود)",
@@ -200,17 +218,20 @@ const copy = {
 } as const;
 
 const views: View[] = ["documents", "versions", "categories", "retention", "holds", "evidence", "links", "history"];
-const hidden = new Set(["id", "document_id", "entity_id"]);
+const hidden = new Set(["id", "document_id", "entity_id", "scanning_status"]);
 
 function display(value: unknown) {
   if (value === null || value === undefined || value === "") return "—";
   if (typeof value === "boolean") return value ? "✓" : "—";
   if (typeof value === "object") return JSON.stringify(value);
-  return String(value).replace("T", " ").replace(/\.\d{3}Z$/, " UTC");
+  return String(value).replace(/^(\d{4}-\d{2}-\d{2})T(?=\d{2}:)/, "$1 ").replace(/\.\d{3}Z$/, " UTC");
 }
 
 export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: Language; initialDocumentId?: string }) {
-  const { active } = useCustomerContext();
+  const { active, dashboard } = useCustomerContext();
+  const permissions = dashboard?.contextId === active?.context_id ? dashboard?.permissions ?? [] : [];
+  const canUpload = permissions.includes("documents.vault.upload");
+  const canHold = permissions.includes("documents.vault.hold");
   const t = copy[lang];
 
   const [view, setView] = useState<View>("documents");
@@ -231,10 +252,39 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadType, setUploadType] = useState("general");
   const [uploadClassification, setUploadClassification] = useState("internal");
+  const [uploadPropertyId, setUploadPropertyId] = useState("");
+  const [uploadProperties, setUploadProperties] = useState<{ id: string; name: string }[] | null>(null);
+  const [uploadPropertiesContextId, setUploadPropertiesContextId] = useState("");
+  const [uploadPropertiesError, setUploadPropertiesError] = useState(false);
+  const availableUploadProperties = uploadPropertiesContextId === active?.context_id ? uploadProperties : null;
   const [uploadStep, setUploadStep] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!isUploadOpen || !active || !canUpload) return;
+    const controller = new AbortController();
+    fetch(`/api/customer/v1/documents/upload-properties?context_id=${encodeURIComponent(active.context_id)}`,
+      { cache: "no-store", credentials: "same-origin", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error("property choices");
+        return response.json() as Promise<{ properties: { id: string; name: string }[] }>;
+      })
+      .then((body) => {
+        if (!controller.signal.aborted) {
+          setUploadProperties(body.properties);
+          setUploadPropertiesContextId(active.context_id);
+          setUploadPropertyId(body.properties.length === 1 ? body.properties[0].id : "");
+          setUploadPropertiesError(false);
+        }
+      })
+      .catch(() => { if (!controller.signal.aborted) {
+        setUploadPropertiesContextId(active.context_id);
+        setUploadPropertiesError(true);
+      } });
+    return () => controller.abort();
+  }, [isUploadOpen, active, canUpload]);
 
   // Download & Hold feedback
   const [actionNotice, setActionNotice] = useState<string | null>(null);
@@ -291,7 +341,8 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
   // Perform Handshake Upload
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadFile || !active) return;
+    if (!uploadFile || !active || !canUpload || !availableUploadProperties || uploadPropertiesError) return;
+    if (uploadPropertyId && !availableUploadProperties.some((property) => property.id === uploadPropertyId)) return;
 
     setUploadError("");
     setUploadSuccess(false);
@@ -318,15 +369,18 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
 
       const intentData = await intentRes.json();
       const intentId = intentData.intent_id;
+      if (!intentId || !intentData.object_path) throw new Error("Missing upload intent path");
 
       // Step 2 & 3: Bounded streaming upload & finalize
       setUploadStep(t.streamStep);
       const formData = new FormData();
       formData.append("context_id", active.context_id);
       formData.append("intent_id", intentId);
+      formData.append("object_path", intentData.object_path);
       formData.append("title", uploadTitle || uploadFile.name);
       formData.append("document_type", uploadType);
       formData.append("classification", uploadClassification);
+      if (uploadPropertyId) formData.append("property_id", uploadPropertyId);
       formData.append("declared_mime", uploadFile.type || "application/pdf");
       formData.append("file", uploadFile);
 
@@ -390,7 +444,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
 
   // Place Legal Hold
   const handlePlaceLegalHold = async (docId: string) => {
-    if (!active) return;
+    if (!active || !canHold) return;
     const reason = window.prompt(t.holdReasonPrompt);
     if (!reason || reason.trim().length < 5) return;
 
@@ -417,7 +471,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
 
   // Release Legal Hold
   const handleReleaseLegalHold = async (docId: string) => {
-    if (!active) return;
+    if (!active || !canHold) return;
     const reason = window.prompt(t.holdReasonPrompt);
     if (!reason || reason.trim().length < 5) return;
 
@@ -461,14 +515,19 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
             <span className="rounded-full border border-[#B2E5DF] bg-[#EAF8F5] px-3 py-1 text-[11px] font-bold text-[#0A6E62]">
               {t.vaultActive}
             </span>
-            <button
+            {canUpload && <button
               type="button"
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => {
+                setUploadProperties(null);
+                setUploadPropertiesContextId("");
+                setUploadPropertiesError(false);
+                setIsUploadOpen(true);
+              }}
               className="flex items-center gap-2 rounded-xl bg-[#0E9F8E] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#0A6E62] transition-colors"
             >
               <UploadCloud className="h-4 w-4" />
               {t.uploadBtn}
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -633,11 +692,12 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                             {t.legalHoldActive}
                           </span>
                         )}
-                        {/* Fail-closed Deferred Scanner Badge (amber tone, never green) */}
-                        <span className="rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800 flex items-center gap-1">
-                          <ShieldAlert className="h-3 w-3 text-amber-600" />
-                          {t.scannerDeferred}
-                        </span>
+                        {view === "documents" ? (
+                          <span className={`rounded-md border px-2 py-0.5 text-[10px] font-semibold flex items-center gap-1 ${row.scanning_status === "clean" ? "border-emerald-300 bg-emerald-50 text-emerald-800" : row.scanning_status === "quarantined" ? "border-red-300 bg-red-50 text-red-800" : "border-amber-300 bg-amber-50 text-amber-800"}`}>
+                            <ShieldAlert className="h-3 w-3" />
+                            {row.scanning_status === "clean" ? t.scannerClean : row.scanning_status === "quarantined" ? t.scannerQuarantined : t.scannerDeferred}
+                          </span>
+                        ) : null}
                       </div>
 
                       <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-[#64748B]">
@@ -758,6 +818,18 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
               </div>
 
               {/* Document Type & Classification */}
+              <div>
+                <label htmlFor="upload-property" className="block text-xs font-bold text-[#334155]">{t.property}</label>
+                <select id="upload-property" value={uploadPropertyId}
+                  disabled={!availableUploadProperties || uploadPropertiesError || !!uploadStep}
+                  onChange={(e) => setUploadPropertyId(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-[#CBD5E1] p-2 text-xs">
+                  <option value="">{t.noProperty}</option>
+                  {availableUploadProperties?.map((property) => <option key={property.id} value={property.id}>{property.name}</option>)}
+                </select>
+                {!availableUploadProperties && !uploadPropertiesError && <p className="mt-1 text-xs text-[#64748B]">{t.propertyLoading}</p>}
+                {uploadPropertiesError && <p role="alert" className="mt-1 text-xs text-red-700">{t.propertyError}</p>}
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#334155]">{t.docType}</label>
@@ -818,7 +890,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                 </button>
                 <button
                   type="submit"
-                  disabled={Boolean(uploadStep) || !uploadFile}
+                  disabled={Boolean(uploadStep) || !uploadFile || !availableUploadProperties || uploadPropertiesError}
                   className="rounded-lg bg-[#0E9F8E] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#0A6E62] disabled:opacity-50"
                 >
                   {t.confirmUpload}
@@ -855,7 +927,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                     <Download className="h-4 w-4 text-[#0E9F8E]" />
                     {t.download}
                   </button>
-                  {selected.legal_hold_status === "active" ? (
+                  {canHold && (selected.legal_hold_status === "active" ? (
                     <button
                       type="button"
                       onClick={() => handleReleaseLegalHold(selected.id as string)}
@@ -873,7 +945,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                       <Lock className="h-4 w-4" />
                       {t.placeHold}
                     </button>
-                  )}
+                  ))}
                 </>
               )}
             </div>

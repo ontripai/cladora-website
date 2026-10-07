@@ -1,0 +1,27 @@
+name: AIRPROP commercial lifecycle
+on:
+  pull_request:
+    paths:
+      - 'src/lib/airprop/commercial-lifecycle-v1.ts'
+      - 'src/app/api/customer/v2/airprop/commercial-lifecycle/route.ts'
+      - 'scripts/test-airprop-commercial-lifecycle-route-018.mjs'
+      - 'supabase/migrations/20261007104000_airprop_commercial_lifecycle_v1.sql'
+      - 'supabase/tests/171_airprop_commercial_lifecycle.test.sql'
+      - '.github/workflows/airprop-commercial-lifecycle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-airprop-commercial-lifecycle-route-018.mjs
+      - run: npm run typecheck
+      - run: npm run lint

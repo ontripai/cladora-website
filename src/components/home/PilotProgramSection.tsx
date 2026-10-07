@@ -30,10 +30,10 @@ export const PilotProgramSection: React.FC<PilotSectionProps> = ({ lang }) => {
       ? 'پشتیبانی فنی و حسابداری اختصاصی هنگام بستن نخستین دوره مالی'
       : 'Dedicated technical onboarding support during the first month-close',
     lang === 'ro' 
-      ? 'Configurare gratuită a tiparului tehnic al clădirii (Building DNA)' 
+      ? 'Evaluarea inițială a tipului de spațiu și a funcțiilor necesare'
       : lang === 'fa'
-      ? 'تنظیم و ثبت رایگان شناسنامه فنی و فرمول‌های اختصاصی سازه (Building DNA)'
-      : 'Complimentary building technical profile setup (Building DNA)',
+      ? 'ارزیابی اولیه نوع ورک‌اسپیس و امکانات موردنیاز'
+      : 'Initial assessment of workspace type and required features',
     lang === 'ro' 
       ? 'Garanție de tarif blocat pe 24 luni după finalizarea pilotului' 
       : lang === 'fa'
@@ -67,18 +67,18 @@ export const PilotProgramSection: React.FC<PilotSectionProps> = ({ lang }) => {
 
               <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-white tracking-tight">
                 {lang === 'ro' 
-                  ? 'Înscrie-ți asociația sau portofoliul în programul pilot CLADORA' 
+                  ? 'Solicită evaluarea spațiului tău pentru pilotul CLADORA'
                   : lang === 'fa'
-                  ? 'ثبت‌نام مجتمع یا سبد املاک شما در برنامه پایلوت کلادورا'
-                  : 'Enroll Your Association or Portfolio in the CLADORA Pilot Cohort'}
+                  ? 'درخواست ارزیابی ورک‌اسپیس در پایلوت کلادورا'
+                  : 'Request a CLADORA Pilot Workspace Assessment'}
               </h2>
 
               <p className="text-base text-[#CBD5E1] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Lucrăm direct cu comitetele executive, administratorii profesioniști și proprietarii de portofoliu pentru a asigura o tranziție curată și transparentă la noul standard de administrare.'
+                  ? 'Acceptăm solicitări pentru spații rezidențiale, comerciale, industriale, de birouri și comune. Potrivirea funcțiilor și condițiile pilotului sunt evaluate individual înainte de activare.'
                   : lang === 'fa'
-                  ? 'ما مستقیماً در کنار هیئت‌مدیره مجتمع‌ها، مدیران حرفه‌ای و سرمایه‌گذاران املاک قرار می‌گیریم تا انتقالی مطمئن، شفاف و بی‌دغدغه به استاندارد نوین مدیریت ساختمان را تضمین کنیم.'
-                  : 'We partner directly with executive boards, property managers, and portfolio landlords to ensure clean, explainable residential operations.'}
+                  ? 'برای فضاهای مسکونی، تجاری، صنعتی، اداری و مشترک درخواست می‌پذیریم. تناسب امکانات و شرایط پایلوت پیش از فعال‌سازی جداگانه بررسی می‌شود.'
+                  : 'Submit a request for residential, commercial, industrial, office or shared spaces. Feature fit and pilot conditions are assessed individually before activation.'}
               </p>
 
               <div className="space-y-3 pt-2">
@@ -119,28 +119,28 @@ export const PilotProgramSection: React.FC<PilotSectionProps> = ({ lang }) => {
                 <div className="space-y-3 text-xs">
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                     <div className="font-bold text-white">
-                      {lang === 'ro' ? 'Asociații de Bloc (30–300 Unități)' : lang === 'fa' ? 'مجتمع‌های مسکونی (۳۰ تا ۳۰۰ واحد)' : 'Condo Associations (30–300 Units)'}
+                      {lang === 'ro' ? 'Spații rezidențiale și mixte' : lang === 'fa' ? 'فضاهای مسکونی و چندمنظوره' : 'Residential and mixed-use spaces'}
                     </div>
                     <div className="text-[#CBD5E1] mt-0.5">
-                      {lang === 'ro' ? 'Blocuri vechi sau ansambluri noi din Sectoarele 1-6 sau Ilfov' : lang === 'fa' ? 'ساختمان‌های سنتی یا برج‌های نوساز در مناطق شهری بخارست و حومه' : 'Residential buildings in urban districts'}
+                      {lang === 'ro' ? 'O clădire sau un ansamblu; fiecare spațiu este evaluat separat' : lang === 'fa' ? 'یک ساختمان یا یک مجموعه؛ هر ورک‌اسپیس جدا بررسی می‌شود' : 'A building or a complex; each workspace is assessed separately'}
                     </div>
                   </div>
 
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                     <div className="font-bold text-white">
-                      {lang === 'ro' ? 'Proprietari Multi-Apartamente' : lang === 'fa' ? 'مالکان و سرمایه‌گذاران چند واحدی' : 'Portfolio Landlords (2+ Units)'}
+                      {lang === 'ro' ? 'Spații comerciale, retail și birouri' : lang === 'fa' ? 'فضاهای تجاری، فروشگاهی و اداری' : 'Commercial, retail and office spaces'}
                     </div>
                     <div className="text-[#CBD5E1] mt-0.5">
-                      {lang === 'ro' ? 'Deținători de 2+ locuințe închiriate în București/Ilfov' : lang === 'fa' ? 'مالکانی که ۲ یا چند واحد استیجاری دارند' : 'Owners managing multiple rental units'}
+                      {lang === 'ro' ? 'Solicitări evaluate în funcție de cerințele operaționale' : lang === 'fa' ? 'ارزیابی درخواست بر اساس نیازهای عملیاتی' : 'Requests assessed against operational needs'}
                     </div>
                   </div>
 
                   <div className="p-3 rounded-xl bg-white/5 border border-white/10">
                     <div className="font-bold text-white">
-                      {lang === 'ro' ? 'Firme de Administrare Imobile' : lang === 'fa' ? 'شرکت‌های مدیریت ساختمان' : 'Property Management Firms'}
+                      {lang === 'ro' ? 'Spații industriale și comune între clădiri' : lang === 'fa' ? 'فضاهای صنعتی و مشترک چندساختمانی' : 'Industrial and cross-building shared spaces'}
                     </div>
                     <div className="text-[#CBD5E1] mt-0.5">
-                      {lang === 'ro' ? 'Companii care doresc să automatizeze închiderea lunară' : lang === 'fa' ? 'مجموعه‌هایی که به دنبال خودکارسازی بستن دوره‌ها و جلب رضایت مشتریانند' : 'Companies scaling multi-building operations'}
+                      {lang === 'ro' ? 'Inclusiv solicitări pentru mai multe spații de lucru' : lang === 'fa' ? 'شامل درخواست برای چند ورک‌اسپیس' : 'Including requests for multiple workspaces'}
                     </div>
                   </div>
                 </div>

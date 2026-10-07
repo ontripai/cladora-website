@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.schema('platform').rpc('preview_retention_workers_v1', {
+  const { data, error } = await supabase.schema('customer_api').rpc('preview_retention_workers_v1', {
     p_tenant_id: query.tenantId,
     p_limit: query.limit,
   });

@@ -73,7 +73,7 @@ export async function POST(
     }
 
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('create_workspace_contract', {
+    const { data, error } = await supabase.schema('customer_api').rpc('create_workspace_contract_v1', {
       p_workspace_id: workspaceId,
       p_contract_ref: contract_ref.trim(),
       p_plan_id: plan_id || null,

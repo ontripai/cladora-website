@@ -9,6 +9,7 @@ import {
   FileCheck2,
   Layers,
   Users2,
+  Inbox,
   KeyRound,
   Terminal,
   FileText,
@@ -35,6 +36,8 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
   const isRtl = isRtlLocale(lang as 'ro' | 'en' | 'fa');
 
   const navItems = [
+    {href:`/${lang}/platform/module-registry`,label:lang==='fa'?'نگاشت و نیاز ماژول‌ها':lang==='ro'?'Harta și necesarul modulelor':'Module map and requirements',icon:Layers,roles:['PLATFORM_SUPER_ADMIN'] as PlatformRole[]},
+    {href:`/${lang}/platform/dashboard-lab`,label:lang==='fa'?'آزمایش داشبوردها':lang==='ro'?'Testare tablouri':'Test dashboards',icon:Layers,roles:['PLATFORM_SUPER_ADMIN'] as PlatformRole[]},
     {
       href: `/${lang}/platform/overview`,
       label: lang === 'ro' ? 'Prezentare Generală' : lang === 'fa' ? 'نمای کلی پلتفرم' : 'Platform Overview',
@@ -46,6 +49,12 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       label: lang === 'ro' ? 'Spații de Lucru & Clienți' : lang === 'fa' ? 'محیط‌های کاری و مشتریان' : 'Customers & Workspaces',
       icon: Building2,
       roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_FINANCE', 'PLATFORM_AUDITOR'] as PlatformRole[],
+    },
+    {
+      href: `/${lang}/platform/internal-messages`,
+      label: lang === 'fa' ? 'پیام‌های داخلی' : lang === 'ro' ? 'Mesaje interne' : 'Internal messages',
+      icon: Inbox,
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_SUPPORT'] as PlatformRole[],
     },
     {
       href: `/${lang}/platform/contracts`,
@@ -66,10 +75,22 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
       roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_AUDITOR'] as PlatformRole[],
     },
     {
+      href: `/${lang}/platform/start-requests`,
+      label: lang === 'ro' ? 'Cereri noi' : lang === 'fa' ? 'درخواست‌های شروع' : 'Start Requests',
+      icon: Inbox,
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_SALES'] as PlatformRole[],
+    },
+    {
+      href: `/${lang}/platform/owner-unit-links`,
+      label: lang === 'ro' ? 'Conectări proprietari' : lang === 'fa' ? 'تأیید اتصال واحدهای مالکان' : 'Owner Unit Links',
+      icon: FileCheck2,
+      roles: ['PLATFORM_SUPER_ADMIN'] as PlatformRole[],
+    },
+    {
       href: `/${lang}/platform/assignments`,
       label: lang === 'ro' ? 'Alocări Clienți' : lang === 'fa' ? 'تخصیص مشتریان به کارشناسان' : 'Customer Assignments',
       icon: KeyRound,
-      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR'] as PlatformRole[],
+      roles: ['PLATFORM_SUPER_ADMIN', 'PLATFORM_OPERATIONS', 'PLATFORM_AUDITOR', 'PLATFORM_SALES', 'PLATFORM_CONTRACTS', 'PLATFORM_ONBOARDING', 'PLATFORM_FINANCE', 'PLATFORM_SUPPORT'] as PlatformRole[],
     },
     {
       href: `/${lang}/platform/provisioning`,
@@ -205,6 +226,8 @@ export function PlatformShell({ children, lang, authCtx }: PlatformShellProps) {
 
           {/* Locale & Exit */}
           <div className="flex items-center gap-4">
+            <Link href={`/${lang}/profile`} className="text-xs font-semibold text-emerald-300 hover:underline">{authCtx.platformUser?.display_name || (lang === 'fa' ? 'پروفایل من' : lang === 'ro' ? 'Profilul meu' : 'My profile')}</Link>
+            <Link href={`/${lang}/account?choose=1`} className="text-xs text-emerald-300">{lang === 'fa' ? 'انتخاب محیط' : lang === 'ro' ? 'Schimbă spațiul' : 'Switch workspace'}</Link>
             <div className="flex items-center gap-2 text-xs">
               <Link
                 href={`/ro/platform/overview`}

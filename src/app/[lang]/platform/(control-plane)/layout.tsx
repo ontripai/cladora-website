@@ -25,13 +25,12 @@ export default async function PlatformControlPlaneLayout(
     redirect(`/${lang}/login?reason=configuration`);
   }
 
-  const authCtx = await getPlatformAuthContext();
-
-  if (!authCtx.isAuthorized || !authCtx.platformUser) {
-    redirect(`/${lang}/login?reason=unauthorized_platform`);
+  const supabase = await createClient();
+  const { data: claims, error: claimsError } = await supabase.auth.getClaims();
+  if (claimsError || !claims?.claims?.sub) {
+    redirect(`/${lang}/login`);
   }
 
-  const supabase = await createClient();
   const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
   if (factorsError) redirect(`/${lang}/login?reason=security`);
   if (!(factors?.totp ?? []).some((factor) => factor.status === 'verified')) {
@@ -41,6 +40,14 @@ export default async function PlatformControlPlaneLayout(
   if (assuranceError) redirect(`/${lang}/login?reason=security`);
   if (assurance.currentLevel !== 'aal2') {
     redirect(`/${lang}/mfa`);
+  }
+
+  // Platform data is protected by AAL2-aware RLS. Resolve the user's Platform
+  // record only after the session has crossed that assurance boundary.
+  const authCtx = await getPlatformAuthContext();
+
+  if (!authCtx.isAuthorized || !authCtx.platformUser) {
+    redirect(`/${lang}/login?reason=unauthorized_platform`);
   }
 
   return (

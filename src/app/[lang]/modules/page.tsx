@@ -146,8 +146,8 @@ export default async function ModulesPage(props: { params: Promise<{ lang: Langu
             {lang === 'ro'
               ? 'Platforma combină modulele esențiale de gestiune, tranzacții și mentenanță pe o fundație unică de adevăr faptic. Fiecare organizație activează exact modulele necesare profilului său de proprietate.'
               : lang === 'fa'
-              ? 'کلادورا ماژول‌های اصلی مدیریت، معاملات و نگهداری را بر بستر یکپارچه حقیقت مالی و هویت پایدار ملک ارائه می‌دهد. هر Workspace متناسب با کاربری خود ماژول‌های موردنیاز را فعال می‌سازد.'
-              : 'CLADORA unifies core accounting, commercial transactions, and technical facility operations on a shared factual core. Workspaces configure precisely the modules required.'}
+              ? 'کلادورا ماژول‌های اصلی مدیریت، معاملات، تقویم و نگهداری پیشگیرانه تأسیسات را بر بستر یکپارچه حقیقت مالی و هویت پایدار ملک ارائه می‌دهد. هر Workspace متناسب با کاربری خود ماژول‌های موردنیاز را فعال می‌سازد.'
+              : 'CLADORA unifies core accounting, commercial transactions, calendar maintenance, and facility operations on a shared factual core. Workspaces configure precisely the modules required.'}
           </p>
         </div>
 

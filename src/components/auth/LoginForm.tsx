@@ -2,24 +2,30 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { ArrowRight, Loader2, Lock, Mail, PlayCircle } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, PlayCircle } from 'lucide-react';
 import type { Language } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
+import { resolvePostAuthRoute } from '@/lib/auth/post-auth-route';
+import { loginErrorMessage } from '@/lib/auth/login-error';
 
 interface LoginFormProps {
   lang: Language;
   captchaRequired: boolean;
   captchaSiteKey?: string;
+  workspaceAccessRequested?: boolean;
+  caseAccessRequested?: boolean;
+  ownerPortfolioRequested?: boolean;
+  accountRequested?: boolean;
+  invitationRequested?: boolean;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey }) => {
-  const router = useRouter();
+export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false, accountRequested = false, invitationRequested = false }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -69,7 +75,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
     try {
       const supabase = createClient();
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
         options: { captchaToken: captchaToken ?? undefined },
       });
@@ -77,19 +83,35 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
       if (signInError) {
         setCaptchaToken(null);
         setCaptchaAttempt((value) => value + 1);
-        setError(
-          lang === 'ro'
-            ? 'Emailul sau parola nu sunt corecte.'
-            : lang === 'fa'
-              ? 'ایمیل یا رمز عبور صحیح نیست.'
-              : 'The email or password is incorrect.',
-        );
+        setError(loginErrorMessage(signInError, lang));
         return;
       }
 
-      const { data: assurance, error: assuranceError } =
-        await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-      if (assuranceError) {
+      let destination: string;
+      try {
+        destination = await resolvePostAuthRoute(supabase, lang);
+        if (workspaceAccessRequested && !destination.includes('/platform/')) {
+          destination = destination.includes('/mfa')
+            ? `${destination}${destination.includes('?') ? '&' : '?'}next=workspace-access`
+            : `/${lang}/workspace-access`;
+        }
+        if (caseAccessRequested && !destination.includes('/platform/')) {
+          destination = destination.includes('/mfa')
+            ? `${destination}${destination.includes('?') ? '&' : '?'}next=cases`
+            : `/${lang}/cases`;
+        }
+        if (accountRequested && !destination.includes('/mfa')) destination = `/${lang}/account`;
+        if (invitationRequested) {
+          destination = destination.includes('/mfa')
+            ? `${destination}${destination.includes('?') ? '&' : '?'}next=invitation-continuation`
+            : `/${lang}/invitation-continuation`;
+        }
+        if (ownerPortfolioRequested) {
+          destination = destination.includes('/mfa')
+            ? `${destination}${destination.includes('?') ? '&' : '?'}next=owner-portfolio`
+            : `/${lang}/owner-portfolio`;
+        }
+      } catch {
         await supabase.auth.signOut();
         setError(
           lang === 'ro'
@@ -101,14 +123,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
         return;
       }
 
-      if (assurance.nextLevel === 'aal2' && assurance.currentLevel !== 'aal2') {
-        router.replace(`/${lang}/mfa`);
-        router.refresh();
-        return;
-      }
-
-      router.replace(`/${lang}/app/dashboard`);
-      router.refresh();
+      // A full document navigation makes the newly issued Auth/MFA cookies
+      // visible to the first server-rendered protected route.
+      window.location.replace(destination);
     } catch {
       setCaptchaToken(null);
       setCaptchaAttempt((value) => value + 1);
@@ -179,14 +196,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
             <input
               id="loginPassword"
               name="password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete="current-password"
               required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="••••••••"
-              className="w-full rounded-xl border border-[#D3DCE6] py-2.5 pe-3 ps-9 text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#087A6E]"
+              className="w-full rounded-xl border border-[#D3DCE6] py-2.5 pe-10 ps-9 text-xs text-[#102A43] focus:outline-none focus:ring-2 focus:ring-[#087A6E]"
             />
+            <button
+              type="button"
+              aria-label={
+                lang === 'ro'
+                  ? showPassword ? 'Ascunde parola' : 'Afișează parola'
+                  : lang === 'fa'
+                    ? showPassword ? 'پنهان‌کردن رمز عبور' : 'نمایش رمز عبور'
+                    : showPassword ? 'Hide password' : 'Show password'
+              }
+              aria-pressed={showPassword}
+              aria-controls="loginPassword"
+              onClick={() => setShowPassword((visible) => !visible)}
+              className="absolute end-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 text-[#486581] transition-colors hover:bg-[#F0F4F8] hover:text-[#102A43] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#087A6E]"
+            >
+              {showPassword ? (
+                <EyeOff aria-hidden="true" className="h-4 w-4" />
+              ) : (
+                <Eye aria-hidden="true" className="h-4 w-4" />
+              )}
+            </button>
           </div>
         </div>
 

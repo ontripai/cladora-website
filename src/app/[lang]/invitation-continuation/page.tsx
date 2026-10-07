@@ -1,11 +1,15 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { AlertTriangle } from 'lucide-react';
 import {
   WorkspaceInvitationContinuation,
   type ClaimableWorkspaceInvitation,
 } from '@/components/auth/WorkspaceInvitationContinuation';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
+import { UnitInvitationContinuation, type ClaimableUnitInvitation } from '@/components/auth/UnitInvitationContinuation';
+import { UnitInvitationAccountSetup } from '@/components/auth/UnitInvitationAccountSetup';
+import { PropertyManagerInvitationContinuation, type ClaimablePropertyManagerInvitation } from '@/components/auth/PropertyManagerInvitationContinuation';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
 import type { Language } from '@/types';
@@ -23,16 +27,19 @@ const unavailableCopy = {
     title: 'Invitația nu este disponibilă',
     message: 'Invitația nu poate fi continuată. Poate fi expirată, anulată, deja utilizată sau indisponibilă pentru această sesiune.',
     action: 'Înapoi la autentificare',
+    caseAction: 'Invitație pentru dosar? Deschide portalul dosarelor',
   },
   en: {
     title: 'Invitation unavailable',
     message: 'This invitation cannot be continued. It may be expired, cancelled, already used, or unavailable for this session.',
     action: 'Back to sign in',
+    caseAction: 'Invited to a case? Open the cases portal',
   },
   fa: {
     title: 'دعوت‌نامه در دسترس نیست',
     message: 'ادامه این دعوت‌نامه ممکن نیست. ممکن است منقضی، لغو، قبلاً استفاده‌شده یا برای این نشست نامعتبر باشد.',
     action: 'بازگشت به ورود',
+    caseAction: 'دعوت به پرونده دارید؟ به پنل پرونده‌ها بروید',
   },
 } as const;
 
@@ -47,6 +54,9 @@ function Unavailable({ lang }: { lang: Language }) {
       <Link href={`/${lang}/login`} className="inline-flex w-full items-center justify-center rounded-xl bg-[#087A6E] px-4 py-3 text-xs font-extrabold text-white">
         {t.action}
       </Link>
+      <Link href={`/${lang}/cases`} className="inline-flex w-full items-center justify-center rounded-xl border border-[#087A6E] px-4 py-3 text-xs font-extrabold text-[#087A6E]">
+        {t.caseAction}
+      </Link>
     </div>
   );
 }
@@ -56,21 +66,56 @@ export default async function InvitationContinuationPage(props: {
 }) {
   const { lang } = await props.params;
   let invitations: ClaimableWorkspaceInvitation[] = [];
+  let unitInvitations: ClaimableUnitInvitation[] = [];
+  let propertyManagerInvitations: ClaimablePropertyManagerInvitation[] = [];
+  let needsMfa = false;
 
   if (isSupabaseConfigured()) {
     const supabase = await createClient();
     const { data: claims, error: claimsError } = await supabase.auth.getClaims();
+    if (claimsError || !claims?.claims?.sub) redirect(`/${lang}/login?next=invitation-continuation`);
     if (!claimsError && claims?.claims?.sub) {
-      const { data, error } = await supabase.schema('platform').rpc('list_my_claimable_workspace_invitations');
-      if (!error && Array.isArray(data)) invitations = data;
+      const { data: assurance } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      needsMfa = assurance?.currentLevel !== 'aal2';
+      const { data, error } = await supabase
+        .schema('customer_api')
+        .rpc('list_my_claimable_workspace_invitations_v1');
+      if (!error && Array.isArray(data)) {
+        invitations = data as unknown as ClaimableWorkspaceInvitation[];
+      }
+      const { data: unitData, error: unitError } = await supabase.schema('customer_api')
+        .rpc('list_my_unit_invitations_v1' as never);
+      if (!unitError && Array.isArray(unitData)) {
+        unitInvitations = unitData as ClaimableUnitInvitation[];
+      }
+      const { data: managerData, error: managerError } = await supabase.schema('customer_api')
+        .rpc('list_my_property_manager_invitations_v1' as never);
+      if (!managerError && Array.isArray(managerData)) {
+        propertyManagerInvitations = managerData as ClaimablePropertyManagerInvitation[];
+      }
+      if (invitations.length === 0 && unitInvitations.length === 0 && propertyManagerInvitations.length === 0) {
+        const { data: reviewer, error: reviewerError } = await supabase
+          .schema('customer_api')
+          .rpc('my_pilot_setup_reviewer_v1');
+        if (!reviewerError && reviewer && typeof reviewer === 'object'
+          && 'status' in reviewer && (reviewer.status === 'prepared' || reviewer.status === 'active')) {
+          redirect(`/${lang}/pilot-reviewer`);
+        }
+      }
     }
   }
 
   return (
     <main dir={lang === 'fa' ? 'rtl' : 'ltr'} className="flex min-h-screen items-center justify-center bg-[#F6F9FC] px-4 pb-24 pt-32">
       <div className="w-full max-w-lg">
-        {invitations.length ? (
+        {needsMfa && (unitInvitations.length || propertyManagerInvitations.length) ? (
+          <UnitInvitationAccountSetup lang={lang} />
+        ) : invitations.length ? (
           <WorkspaceInvitationContinuation lang={lang} invitations={invitations} />
+        ) : unitInvitations.length ? (
+          <UnitInvitationContinuation lang={lang} invitations={unitInvitations} />
+        ) : propertyManagerInvitations.length ? (
+          <PropertyManagerInvitationContinuation lang={lang} invitations={propertyManagerInvitations} />
         ) : (
           <Unavailable lang={lang} />
         )}

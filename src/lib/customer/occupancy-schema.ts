@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-export const uuidSchema = z.string().uuid();
+// Database identifiers include deterministic UUIDs with non-RFC version bits.
+export const uuidSchema = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 
 export const occupancyViewEnum = z.enum([
   "parties",
@@ -37,8 +38,8 @@ export const queryOccupancySchema = z.object({
   query: z.string().trim().max(120).optional(),
   status: z.string().trim().max(40).optional(),
   kind: occupancyKindEnum.optional(),
-  from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format").optional(),
-  to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format").optional(),
+  from: z.iso.date().optional(),
+  to: z.iso.date().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
   offset: z.coerce.number().int().min(0).default(0),
   id: uuidSchema.optional(),
@@ -54,6 +55,14 @@ export const createOccupancyRequestSchema = z.object({
   occupant_party_ids: z.array(uuidSchema).max(20).optional(),
   role: z.string().trim().max(50).optional(),
   reason: z.string().trim().max(500).optional(),
+}).superRefine((value, ctx) => {
+  const partyIds = value.occupant_party_ids ?? [];
+  if (value.kind !== "empty" && partyIds.length === 0) {
+    ctx.addIssue({code: "custom", path: ["occupant_party_ids"], message: "At least one authorized party is required"});
+  }
+  if (new Set(partyIds).size !== partyIds.length) {
+    ctx.addIssue({code: "custom", path: ["occupant_party_ids"], message: "Party IDs must be unique"});
+  }
 });
 
 export const updateOccupancyRequestSchema = z.object({

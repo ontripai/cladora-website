@@ -16,8 +16,22 @@ This package defines AIRPROP as a real-estate investment and management operatin
 5. [`AIRPROP-COUNTRY-PACK-CONTRACT-v1.0.md`](AIRPROP-COUNTRY-PACK-CONTRACT-v1.0.md) — Romania-first and Dubai-ready localization contract.
 6. [`AIRPROP-MIGRATION-TEST-PLAN-v1.0.md`](AIRPROP-MIGRATION-TEST-PLAN-v1.0.md) — forward-only implementation sequence and acceptance gates.
 
-## Governing verdict
+## Lifecycle alignment added 2026-10-05
+
+The additive [AIRPROP lifecycle alignment 014 v1.1](../architecture/CLADORA-AIRPROP-LIFECYCLE-014-v1.1.md) records the later implementation baseline, LC-A01–A03 gaps, shared-core requests and acceptance order. The original package status below is historical and is not the current runtime status. No previous architecture document is replaced.
+
+## Original governing verdict
 
 `READY-FOR-AIRPROP-CORE-DISCOVERY-NOT-IMPLEMENTATION`
 
 Implementation remains blocked until this package is reviewed and a separate execution task authorizes a numbered migration and test.
+
+## UX directive adopted 2026-10-05
+
+[UX-DEC-001: user directive v1.0](UX-DEC-001-source-v1.0.md) complements lifecycle v1.1. [AIRPROP UX-015: gaps, first fixes and verification](UX-015-adoption-and-gaps.md) is part of the permanent workstream handoff. Open UX and security checks remain explicit; attachment does not mean full implementation conformity.
+
+AIRPROP diligence protects its local unsaved edits against both in-module navigation and shared workspace-context changes. See [CLADORA UX-018](../architecture/CLADORA-UX-018-unsaved-context-guard.md) for the shell contract and registered forms.
+
+## Commercial lifecycle implementation added 2026-10-07
+
+[AIRPROP commercial lifecycle 018 v1.0](../architecture/CLADORA-AIRPROP-COMMERCIAL-LIFECYCLE-018-v1.0.md) records the AIRPROP-owned LC-A01 listing, applicant and reservation runtime, LC-A02 obligation schedule, and bounded LC-A03 resale, lease and management links. It consumes the existing Core facts and does not duplicate shared ownership, lease, authority, document or payment records.

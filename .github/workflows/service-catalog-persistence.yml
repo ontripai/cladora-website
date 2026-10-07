@@ -1,0 +1,220 @@
+name: SERVICE catalogue persistence
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261003141918_service_catalog_persistence_v1.sql'
+      - 'supabase/migrations/20261003144507_service_catalog_definition_command_v1.sql'
+      - 'supabase/migrations/*_service_catalog_registry_compatibility_v1.sql'
+      - 'src/app/api/customer/v1/services/catalog/route.ts'
+      - 'src/app/api/customer/v1/services/catalog/definitions/route.ts'
+      - 'src/components/customer/CustomerServiceCatalog.tsx'
+      - 'src/components/customer/CustomerServiceManagement.tsx'
+      - 'src/app/api/customer/v1/services/catalog/management/route.ts'
+      - 'supabase/migrations/*_service_catalog_management_read_v1.sql'
+      - 'src/app/[lang]/app/services/page.tsx'
+      - 'src/lib/customer/service-catalog-*.ts'
+      - 'src/app/[lang]/service-review/page.tsx'
+      - 'src/app/[lang]/account/page.tsx'
+      - 'scripts/test-service-catalog-*.mjs'
+      - 'scripts/test-service-pilot-access-005.mjs'
+      - 'scripts/test-service-request-pilot-access-011.mjs'
+      - 'src/components/platform/ServiceCatalogPilotAccessDialog.tsx'
+      - 'src/components/platform/OperationalWorkspacesTable.tsx'
+      - 'src/app/api/platform/v1/workspaces/*/service-access/route.ts'
+      - 'src/app/api/platform/v1/workspaces/*/service-request-access/route.ts'
+      - '.github/workflows/service-catalog-persistence.yml'
+      - 'supabase/migrations/*_service_request_persistence_v1.sql'
+      - 'src/app/api/customer/v1/services/requests/route.ts'
+      - 'src/components/customer/CustomerServiceRequests.tsx'
+      - 'src/components/customer/ServicePilotSelfPerson.tsx'
+      - 'src/app/api/customer/v1/services/self-person/route.ts'
+      - 'src/lib/customer/service-self-person-schema.ts'
+      - 'scripts/test-service-self-person-*-012.mjs'
+      - 'supabase/migrations/*_service_request_self_person_v1.sql'
+      - 'src/lib/customer/service-quote-*.ts'
+      - 'src/components/customer/CustomerServiceQuotePublications.tsx'
+      - 'src/app/api/customer/v1/services/quotes/publications/route.ts'
+      - 'scripts/test-service-quote-publication-*-015.mjs'
+      - 'supabase/migrations/*_service_quote_publication_v1.sql'
+      - 'src/components/customer/CustomerServiceQuotes.tsx'
+      - 'src/app/api/customer/v1/services/quotes/route.ts'
+      - 'scripts/test-service-quote-*-014.mjs'
+      - 'supabase/migrations/*_service_quote_draft_runtime_v1.sql'
+      - 'src/lib/customer/service-request-*.ts'
+      - 'scripts/test-service-request-*.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+permissions:
+  contents: read
+jobs:
+  catalogue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-service-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.3
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-persistence-002.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-catalog-compatibility-006.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-request-persistence-010.mjs
+      - run: node scripts/test-service-quote-publication-route-015.mjs
+      - run: node scripts/test-service-quote-publication-ui-015.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-quote-publication-db-015.mjs
+      - run: npx eslint src/components/customer/CustomerServiceQuotePublications.tsx src/lib/customer/service-quote-publication-schema.ts src/app/api/customer/v1/services/quotes/publications/route.ts scripts/test-service-quote-publication-*-015.mjs --max-warnings=0
+      - run: node scripts/test-service-quote-route-014.mjs
+      - run: node scripts/test-service-quote-ui-014.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-quote-db-014.mjs
+      - run: npx eslint src/components/customer/CustomerServiceQuotes.tsx src/lib/customer/service-quote-read-schema.ts src/app/api/customer/v1/services/quotes/route.ts scripts/test-service-quote-*-014.mjs --max-warnings=0
+      - run: node scripts/test-service-request-route-010.mjs
+      - run: node scripts/test-service-request-ui-010.mjs
+      - run: node scripts/test-service-self-person-route-012.mjs
+      - run: node scripts/test-service-self-person-ui-012.mjs
+      - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-self-person-db-012.mjs
+      - run: npx eslint src/components/customer/ServicePilotSelfPerson.tsx src/app/api/customer/v1/services/self-person/route.ts src/lib/customer/service-self-person-schema.ts scripts/test-service-self-person-*-012.mjs --max-warnings=0
+      - run: npx eslint src/components/customer/CustomerServiceRequests.tsx src/app/api/customer/v1/services/requests/route.ts src/lib/customer/service-request-read-schema.ts scripts/test-service-request-*-010.mjs --max-warnings=0
+      - run: node scripts/test-service-catalog-route-002.mjs
+      - run: node scripts/test-service-catalog-ui-003.mjs
+      - run: node scripts/test-service-catalog-contract-001.mjs
+      - run: node scripts/test-service-pilot-access-005.mjs
+      - run: node scripts/test-service-request-pilot-access-011.mjs
+      - run: npx eslint src/components/platform/ServiceCatalogPilotAccessDialog.tsx 'src/app/api/platform/v1/workspaces/[id]/service-request-access/route.ts' scripts/test-service-request-pilot-access-011.mjs --max-warnings=0
+      - run: node scripts/test-service-catalog-review-entry-007.mjs
+      - run: npx eslint src/app/api/customer/v1/services/catalog/management/route.ts src/components/customer/CustomerServiceManagement.tsx 'src/lib/customer/service-catalog-management-*.ts' src/app/api/customer/v1/services/catalog/route.ts src/app/api/customer/v1/services/catalog/definitions/route.ts src/components/customer/CustomerServiceCatalog.tsx 'src/app/[lang]/app/services/page.tsx' scripts/test-service-catalog-persistence-002.mjs scripts/test-service-catalog-route-002.mjs scripts/test-service-catalog-ui-003.mjs --max-warnings=0
+      - run: npm run typecheck
+      - run: npm run test:unit
+  concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_catalog_test_only
+          POSTGRES_DB: service_catalog_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-service-driver" --ignore-scripts --no-audit --no-fund --save-exact pg@8.16.3
+      - name: Actual PostgreSQL mutation and separate-connection concurrency
+        env:
+          CLADORA_SERVICE_TEST_DATABASE_URL: postgresql://postgres:service_catalog_test_only@localhost:5432/service_catalog_test
+        run: CLADORA_PG_PACKAGE="file://$RUNNER_TEMP/cladora-service-driver/node_modules/pg/lib/index.js" node scripts/test-service-catalog-persistence-002.mjs
+
+  request-concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_request_test_only
+          POSTGRES_DB: service_request_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Requests with actual separate PostgreSQL connections
+        env:
+          CLADORA_SERVICE_REQUEST_TEST_DATABASE_URL: postgresql://postgres:service_request_test_only@localhost:5432/service_request_test
+        run: node scripts/test-service-request-persistence-010.mjs
+
+  self-person-concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_self_person_test_only
+          POSTGRES_DB: service_self_person_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Self-person enrollment with separate PostgreSQL connections
+        env:
+          CLADORA_SERVICE_REQUEST_TEST_DATABASE_URL: postgresql://postgres:service_self_person_test_only@localhost:5432/service_self_person_test
+        run: node scripts/test-service-self-person-db-012.mjs
+
+  quote-concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_quote_test_only
+          POSTGRES_DB: service_quote_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Actual PostgreSQL quote versions and separate-connection concurrency
+        env:
+          CLADORA_SERVICE_REQUEST_TEST_DATABASE_URL: postgresql://postgres:service_quote_test_only@localhost:5432/service_quote_test
+        run: node scripts/test-service-quote-db-014.mjs
+
+  publication-concurrency:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: service_publication_test_only
+          POSTGRES_DB: service_publication_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Separate-connection publication and version-creation race
+        env:
+          CLADORA_SERVICE_REQUEST_TEST_DATABASE_URL: postgresql://postgres:service_publication_test_only@localhost:5432/service_publication_test
+        run: node scripts/test-service-quote-publication-db-015.mjs

@@ -24,14 +24,14 @@ export async function GET(request: Request) {
   const status = params.get('status');
   const q = (params.get('q') ?? '').trim().slice(0, 100).replace(/[^a-zA-Z0-9\u0100-\u024f\u0600-\u06ff\s._-]/g, '');
   const supabase = await createClient();
-  let query = supabase.schema('platform').from('subscription_plans').select('*', { count: 'exact' });
+  let query = supabase.schema('customer_api').from('subscription_plans_v1').select('*', { count: 'exact' });
   if (status && STATUSES.includes(status as typeof STATUSES[number])) query = query.eq('status', status);
   if (q) query = query.or(`display_name.ilike.%${q}%,plan_code.ilike.%${q}%`);
   const { data, count, error } = await query.order('plan_code').order('version', { ascending: false }).range(offset, offset + limit - 1);
   if (error) return NextResponse.json({ error: { code: 'DATABASE_QUERY_FAILED' } }, { status: 500, headers: HEADERS });
   const ids = (data ?? []).map((plan) => plan.id);
   const { data: counts, error: countsError } = ids.length
-    ? await supabase.rpc('get_plan_dependency_counts', { p_plan_ids: ids })
+    ? await supabase.schema('customer_api').rpc('get_plan_dependency_counts_v1', { p_plan_ids: ids })
     : { data: [], error: null };
   if (countsError) return NextResponse.json({ error: { code: 'DEPENDENCY_QUERY_FAILED' } }, { status: 500, headers: HEADERS });
   const dependencyCounts = (counts ?? []) as Array<{ plan_id: string; workspace_count: number; contract_count: number }>;
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: { code: 'INVALID_PLAN_PARAMETERS' } }, { status: 400, headers: HEADERS });
     }
     const supabase = await createClient();
-    const { data, error } = await supabase.rpc('create_subscription_plan_version', {
+    const { data, error } = await supabase.schema('customer_api').rpc('create_subscription_plan_version_v1', {
       p_plan_code: body.plan_code, p_display_name: body.display_name,
       p_feature_catalogue: body.feature_catalogue, p_limit_schema: body.limit_schema,
       p_effective_from: body.effective_from || new Date().toISOString(), p_effective_until: body.effective_until || null,

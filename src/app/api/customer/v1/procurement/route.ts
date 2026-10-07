@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { maintenanceUuidSchema } from "@/lib/customer/maintenance-schema";
 
 const HEADERS = { "Cache-Control": "no-store, private", Pragma: "no-cache", Vary: "Cookie" };
 const schema = z.object({
-  context_id: z.string().uuid(),
+  context_id: maintenanceUuidSchema,
   view: z.enum(["vendors", "contracts", "quotes", "purchase_orders", "sla"]).default("vendors"),
   query: z.string().trim().max(120).optional(),
   status: z.string().trim().max(40).optional(),
@@ -13,7 +14,7 @@ const schema = z.object({
   to: z.iso.date().optional(),
   limit: z.coerce.number().int().min(1).max(100).default(25),
   offset: z.coerce.number().int().min(0).default(0),
-  id: z.string().uuid().optional(),
+  id: maintenanceUuidSchema.optional(),
 });
 
 export async function GET(request: NextRequest) {

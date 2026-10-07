@@ -21,6 +21,7 @@ import {
   Layers,
 } from "lucide-react";
 import type { Language } from "@/types";
+import { EquipmentRegistrationPanel } from "./EquipmentRegistrationPanel";
 import { useCustomerContext } from "./CustomerContextProvider";
 
 interface Asset {
@@ -480,6 +481,8 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
           </button>
         </div>
       </div>
+
+      {active?.context_id && <EquipmentRegistrationPanel lang={lang} contextId={active.context_id} onRegistered={loadAssets} />}
 
       {/* Notifications */}
       {errorMsg && (

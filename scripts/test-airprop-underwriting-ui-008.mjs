@@ -1,0 +1,71 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire,Module} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import React,{act} from 'react';
+import {JSDOM} from 'jsdom';
+import ts from 'typescript';
+const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div>',{url:'https://cladora.test'}),saved=new Map();
+for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
+const {createRoot}=await import('react-dom/client');
+const originalFetch=globalThis.fetch;
+function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return mod.exports;}
+const context='11111111-1111-4111-8111-111111111111',workspace='22222222-2222-4222-8222-222222222222',opportunity='33333333-3333-4333-8333-333333333333',other='44444444-4444-4444-8444-444444444444';
+const props={contextId:context,workspaceId:workspace,opportunityId:opportunity,opportunityName:'First opportunity',currency:'EUR',lang:'en'};
+const command={version:2,context_id:context,workspace_id:workspace,opportunity_id:opportunity,idempotency_key:'persisted-evaluation-001',expected_version:0,assumptions:{acquisition_cost:'100000.0000',annual_rent:'6000.0000',annual_opex:'1000.0000',currency:'EUR'}};
+const storageKey=`cladora.airprop.underwriting.pending.v2:${context}:${workspace}:${opportunity}`;
+const result={annual_noi:'5000.0000',gross_yield:'0.06000000',net_yield:'0.05000000',currency:'EUR'};
+const history=(op=opportunity,version=0)=>({version:2,workspace_id:workspace,opportunity_id:op,currency:'EUR',underwriting_case_id:version?context:null,current_version:version,versions:version?[{evaluation_version:version,created_at:'2026-10-04T12:00:00Z',assumptions:command.assumptions,results:result}]:[]});
+const response=(body,status=200)=>({ok:status>=200&&status<300,status,json:async()=>body});
+const success=()=>response({version:2,workspace_id:workspace,opportunity_id:opportunity,underwriting_case_id:context,evaluation_version:1,results:result,status:'underwriting',idempotent:true});
+let calls=[],post=async()=>success(),get=async url=>response(history(new URL(url,'https://cladora.test').searchParams.get('opportunity_id')));
+globalThis.fetch=async(url,options={})=>{calls.push({url,options});return options.method==='POST'?post(url,options):get(url,options);};
+const contract=load('src/lib/airprop/underwriting-contract-v2.ts');
+const {CustomerAirpropUnderwriting}=load('src/components/customer/CustomerAirpropUnderwriting.tsx',{'@/lib/airprop/underwriting-contract-v2':contract});
+const root=createRoot(document.getElementById('root'));
+const render=async(key,override={})=>act(async()=>root.render(React.createElement(CustomerAirpropUnderwriting,{...props,...override,key})));
+const submit=async()=>act(async()=>document.querySelector('form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true})));
+const refresh=async()=>act(async()=>[...document.querySelectorAll('button')].find(x=>x.textContent==='Refresh history').click());
+const fill=async(values)=>act(async()=>{[...document.querySelectorAll('form input')].forEach((input,i)=>{Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,values[i]);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});});
+const posts=()=>calls.filter(x=>x.options.method==='POST');
+const seed=()=>sessionStorage.setItem(storageKey,JSON.stringify(command));
+try{
+ await render('empty');assert.match(document.body.textContent,/No evaluations yet/);assert.equal(document.querySelector('fieldset').disabled,false);assert.ok(calls[0].url.includes(`opportunity_id=${opportunity}`));
+ await submit();assert.equal(posts().length,0,'invalid empty form never reaches POST');assert.match(document.body.textContent,/positive acquisition cost/);
+ assert.equal(document.querySelectorAll('[aria-invalid="true"]').length,3);
+ assert.equal(document.activeElement.name,'acquisition_cost');
+ for(const input of document.querySelectorAll('[aria-invalid="true"]'))assert.ok(document.getElementById(input.getAttribute('aria-describedby'))?.textContent);
+ await fill(['100000','6000','7000']);await submit();assert.equal(posts().length,0);
+ assert.equal(document.activeElement.name,'annual_opex');assert.match(document.body.textContent,/must not exceed annual rent/);
+ assert.deepEqual([...document.querySelectorAll('input')].map(x=>x.value),['100000','6000','7000']);
+ seed();post=async()=>{throw new Error('lost response');};await render('lost');await submit();assert.deepEqual(JSON.parse(posts().at(-1).options.body),command);assert.equal(document.querySelector('fieldset').disabled,true);assert.ok(sessionStorage.getItem(storageKey));
+ await render('recovered');post=async()=>response({error:{code:'MFA_REQUIRED'}},403);await submit();assert.match(document.body.textContent,/Verify your identity/);assert.deepEqual(JSON.parse(posts().at(-1).options.body),command);assert.ok(sessionStorage.getItem(storageKey));
+ post=async()=>response({error:{code:'AIRPROP_ACCESS_DENIED'}},403);await submit();assert.match(document.body.textContent,/current access/);assert.ok(sessionStorage.getItem(storageKey));
+ post=async()=>response({},503);await submit();assert.match(document.body.textContent,/uncertain/);assert.ok(sessionStorage.getItem(storageKey));
+ post=async()=>success();get=async()=>response(history(opportunity,1));await submit();assert.equal(sessionStorage.getItem(storageKey),null);assert.match(document.body.textContent,/Evaluation saved/);assert.match(document.body.textContent,/6\.000000%/);assert.match(document.body.textContent,/5000\.0000 EUR/);assert.equal(document.querySelector('time').dateTime,'2026-10-04T12:00:00Z');assert.match(document.querySelector('time').textContent,/4 Oct 2026.*12:00 UTC/);
+ seed();await render('conflict');post=async()=>response({error:{code:'VERSION_CONFLICT'}},409);await submit();assert.equal(sessionStorage.getItem(storageKey),null);assert.equal(document.querySelector('fieldset').disabled,true);assert.match(document.body.textContent,/Refresh history before/);await refresh();assert.equal(document.querySelector('fieldset').disabled,false);
+ // A real form edit uses the refreshed server version and preserves decimal strings.
+ await fill(['100001.0001','6000','1000']);post=async()=>response({},500);await submit();const revised=JSON.parse(posts().at(-1).options.body);assert.equal(revised.expected_version,1);assert.equal(revised.assumptions.acquisition_cost,'100001.0001');assert.equal(revised.assumptions.annual_rent,'6000.0000');assert.notEqual(revised.idempotency_key,command.idempotency_key);
+ // Scope changes never publish late GET or POST results into the new opportunity.
+ seed();let release;post=()=>new Promise(resolve=>{release=resolve;});await render('late-post');let dispatched;await act(async()=>{dispatched=document.querySelector('form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));});assert.equal(dispatched,false);await render('late-post',{opportunityId:other,opportunityName:'Other opportunity'});await act(async()=>release(success()));assert.equal(document.body.textContent.includes('Evaluation saved'),false);assert.ok(sessionStorage.getItem(storageKey),'old scope retains recoverable pending request');
+ let releaseGet;get=(url)=>url.includes(opportunity)?new Promise(resolve=>{releaseGet=resolve;}):Promise.resolve(response(history(other)));await render('late-get');await render('late-get',{opportunityId:other,opportunityName:'Other opportunity'});await act(async()=>releaseGet(response(history(opportunity,99))));assert.equal(document.body.textContent.includes('99'),false);
+ // Malformed/mismatched successful responses are uncertain, never discarded.
+ get=async()=>response(history());seed();await render('wrong-scope');post=async()=>response({...await success().json(),opportunity_id:other});await submit();assert.ok(sessionStorage.getItem(storageKey));assert.match(document.body.textContent,/uncertain/);
+ // Duplicate submit events while one call awaits do not dispatch twice.
+ seed();await render('double');post=()=>new Promise(resolve=>{release=resolve;});const before=posts().length;await act(async()=>{const f=document.querySelector('form');f.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));f.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));});assert.equal(posts().length,before+1);await act(async()=>release(success()));
+ sessionStorage.setItem(storageKey,'corrupt');await render('corrupt');const beforeCorrupt=posts().length;await submit();assert.equal(posts().length,beforeCorrupt);assert.match(document.body.textContent,/could not be recovered/);
+ sessionStorage.clear();const originalSet=dom.window.Storage.prototype.setItem;dom.window.Storage.prototype.setItem=()=>{throw new Error('disabled');};await render('no-storage');await fill(['100000','6000','1000']);const beforeStorage=posts().length;await submit();assert.equal(posts().length,beforeStorage);assert.match(document.body.textContent,/could not be recovered or stored/);dom.window.Storage.prototype.setItem=originalSet;
+ const legacy={...history(opportunity,1),versions:[{...history(opportunity,1).versions[0],results:{...result,annual_noi:'-0.0001',net_yield:'-0.00000001'}}]};get=async()=>response(legacy);await render('negative-legacy');assert.match(document.body.textContent,/-0\.000001%/);assert.match(document.body.textContent,/-0\.0001 EUR/);
+ const missingCurrency={...history(opportunity,1),versions:[{...history(opportunity,1).versions[0],assumptions:{...command.assumptions,currency:null}}]};get=async()=>response(missingCurrency);await render('legacy-default-currency');assert.match(document.body.textContent,/5000\.0000 EUR/);
+ const legacyCurrency={...history(opportunity,1),versions:[{...history(opportunity,1).versions[0],assumptions:{...command.assumptions,currency:'usd'},results:{...result,currency:'USD'}}]};get=async()=>response(legacyCurrency);await render('legacy-recorded-currency');assert.match(document.body.textContent,/5000\.0000 USD/);assert.equal(document.querySelector('form').textContent.includes('Currency: EUR'),true);
+ // Boundary and localization checks use actual immutable history, without numeric coercion.
+ const huge={...history(opportunity,2),versions:[{...history(opportunity,2).versions[0],results:{...result,gross_yield:'99999999999999999999.99999999'},assumptions:{...command.assumptions,acquisition_cost:'9999999999999999.9999'}}]};get=async()=>response(huge);
+ for(const [lang,label] of [['en','Evaluation'],['ro','Analiză'],['fa','ارزیابی']]){await render(`locale-${lang}`,{lang});assert.equal(document.querySelector('section').getAttribute('dir'),lang==='fa'?'rtl':'ltr');assert.ok(document.body.textContent.includes(label));assert.match(document.body.textContent,/99999999999999999999(?:99)\.999999%/);assert.match(document.body.textContent,/9999999999999999\.9999 EUR/);}
+ // Actual integration exposes an explicit per-opportunity choice and mounts the selected evaluator.
+ const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{'./CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},'./CustomerContextProvider':{useCustomerContext:()=>({active:{context_id:context}})},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting},'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
+ let evaluated=false;calls=[];globalThis.fetch=async(url,options={})=>{calls.push({url,options});if(url.includes('/workspace/targets'))return response({workspaces:[{workspace_id:workspace,environment:'PILOT'}]});if(options.method==='POST'&&url.includes('/underwriting')){evaluated=true;return success();}if(url.includes('/opportunities'))return response({opportunities:[{opportunity_id:opportunity,name:'First opportunity',city:'București',currency:'EUR',asking_price:'100000.0000',status:evaluated?'underwriting':'draft'}]});return response(history(opportunity,evaluated?1:0));};
+ await act(async()=>root.render(React.createElement(CustomerAirpropWorkspace,{lang:'en'})));await act(async()=>{const select=document.querySelector('select');select.value=workspace;select.dispatchEvent(new dom.window.Event('change',{bubbles:true}));});assert.equal(calls.some(x=>x.url.includes('/underwriting')),false);await act(async()=>document.querySelector('[aria-label="Evaluate: First opportunity"]').click());assert.ok(calls.some(x=>x.url.includes('/underwriting')));assert.equal(document.querySelectorAll('form').length,2);
+ await act(async()=>{const section=document.querySelector('[aria-label="Evaluation: First opportunity"]');[...section.querySelectorAll('input')].forEach((input,i)=>{Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,['100000','6000','1000'][i]);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});});
+ await act(async()=>document.querySelector('[aria-label="Evaluation: First opportunity"] form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true})));assert.ok(evaluated);assert.equal(document.querySelector('table tbody tr td:nth-child(4)').textContent,'Underwriting','confirmed evaluation refreshes parent opportunity status');
+ console.log('PASS mounted underwriting UI: scoped history, precise results, explicit selection, recovery/exact retries, MFA/revocation, conflicts, stale responses, duplicate submits, corrupt storage and EN/RO/FA');
+}finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;for(const [key,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}dom.window.close();}

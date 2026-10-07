@@ -3,7 +3,10 @@ export type PlatformRole =
   | 'PLATFORM_OPERATIONS'
   | 'PLATFORM_FINANCE'
   | 'PLATFORM_SUPPORT'
-  | 'PLATFORM_AUDITOR';
+  | 'PLATFORM_AUDITOR'
+  | 'PLATFORM_SALES'
+  | 'PLATFORM_CONTRACTS'
+  | 'PLATFORM_ONBOARDING';
 
 export type WorkspaceType =
   | 'ASSOCIATION'
@@ -62,6 +65,7 @@ export interface PlatformRoleAssignment {
 export interface CustomerWorkspace {
   id: string;
   tenant_id: string;
+  tenant_legal_name?: string;
   workspace_type: WorkspaceType;
   lifecycle_status: WorkspaceLifecycleStatus;
   commercial_owner: string;

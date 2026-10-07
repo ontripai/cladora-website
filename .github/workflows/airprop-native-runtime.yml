@@ -1,0 +1,52 @@
+name: AIRPROP native runtime
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261003142455_airprop_workspace_native_opportunities_v2.sql'
+      - 'src/app/api/customer/v2/airprop/**'
+      - 'src/components/customer/CustomerAirpropWorkspace.tsx'
+      - 'src/components/customer/CustomerRouteGuard.tsx'
+      - 'src/components/customer/CustomerAppShell.tsx'
+      - 'src/lib/customer/route-classifier.ts'
+      - 'src/app/[lang]/app/airprop/**'
+      - 'scripts/test-airprop-native*.mjs'
+      - 'scripts/airprop-local-postgres-adapter.mjs'
+      - 'scripts/test-workspace-native-authority-003.mjs'
+      - '.github/workflows/airprop-native-runtime.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm install --prefix "$RUNNER_TEMP/cladora-airprop-pg" --ignore-scripts --no-audit --no-fund --save-exact @electric-sql/pglite@0.5.8
+      - name: Execute canonical authority and AIRPROP migration in isolated PostgreSQL
+        run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-airprop-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-workspace-native-authority-003.mjs --airprop-runtime
+      - name: Verify real multi-session PostgreSQL serialization
+        run: CLADORA_PGLITE_PACKAGE="file://$GITHUB_WORKSPACE/scripts/airprop-local-postgres-adapter.mjs" node scripts/test-workspace-native-authority-003.mjs --airprop-runtime
+      - run: node scripts/test-airprop-native-route-004.mjs
+      - run: node scripts/test-airprop-native-ui-004.mjs
+      - run: node scripts/test-airprop-opportunity-contract-v2.mjs
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:db:static

@@ -16,7 +16,7 @@ const copy = {
   fa: { title: 'امنیت واقعی حساب', mfa: 'برنامه Authenticator و TOTP', enabled: 'فعال', disabled: 'اختیاری · فعال نشده', enroll: 'راه‌اندازی 2FA', code: 'کد ۶ رقمی', verify: 'تأیید و فعال‌سازی', remove: 'حذف عامل دوم', currentPassword: 'رمز عبور فعلی', password: 'رمز جدید (حداقل ۸ نویسه، یک حرف و یک عدد)', confirm: 'تکرار رمز جدید', update: 'تغییر رمز عبور', sessions: 'خروج سایر نشست‌ها', logout: 'خروج امن', saved: 'تغییر با موفقیت ذخیره شد.', generic: 'انجام عملیات ممکن نشد.' },
 } as const;
 
-export function AccountSecurityPanel({ lang }: { lang: Language }) {
+export function AccountSecurityPanel({ lang, continueTo }: { lang: Language; continueTo?: string }) {
   const t = copy[lang];
   const router = useRouter();
   const [factors, setFactors] = useState<TotpFactor[]>([]);
@@ -73,8 +73,7 @@ export function AccountSecurityPanel({ lang }: { lang: Language }) {
       if (verifyError) throw verifyError;
       const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (assuranceError || assurance.currentLevel !== 'aal2') throw assuranceError ?? new Error('MFA assurance level was not elevated.');
-      router.replace(`/${lang}/app/dashboard`);
-      router.refresh();
+      window.location.replace(continueTo ?? `/${lang}/app/dashboard`);
     });
   }
 

@@ -30,8 +30,8 @@ const {
   dashboardRpcResponseSchema,
 } = await import('../src/lib/customer/dashboard-schema.ts');
 
-// All 38 customer portal routes
-const ALL_38_CUSTOMER_ROUTES = [
+// All 39 customer portal routes
+const ALL_39_CUSTOMER_ROUTES = [
   '/app/access-logs',
   '/app/accounting',
   '/app/accounting/allocations',
@@ -66,13 +66,14 @@ const ALL_38_CUSTOMER_ROUTES = [
   '/app/residents',
   '/app/security-access',
   '/app/settings',
+  '/app/settings/roles',
   '/app/vendor-contracts',
   '/app/vendor-sla',
   '/app/vendors',
   '/app/visitors',
 ];
 
-// Independent Authoritative Expected 6 x 37 Access Matrix Contract
+// Independent Authoritative Expected 6 x 39 Access Matrix Contract
 const EXPECTED_ROUTE_ACCESS_MATRIX = {
   association_admin: {
     '/app/access-logs': true,
@@ -109,6 +110,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/residents': true,
     '/app/security-access': true,
     '/app/settings': false,
+    '/app/settings/roles': true,
     '/app/vendor-contracts': true,
     '/app/vendor-sla': true,
     '/app/vendors': true,
@@ -149,6 +151,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/residents': true,
     '/app/security-access': true,
     '/app/settings': false,
+    '/app/settings/roles': true,
     '/app/vendor-contracts': true,
     '/app/vendor-sla': true,
     '/app/vendors': true,
@@ -189,6 +192,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/residents': false,
     '/app/security-access': false,
     '/app/settings': false,
+    '/app/settings/roles': true,
     '/app/vendor-contracts': true,
     '/app/vendor-sla': true,
     '/app/vendors': true,
@@ -229,6 +233,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/residents': false,
     '/app/security-access': false,
     '/app/settings': false,
+    '/app/settings/roles': true,
     '/app/vendor-contracts': false,
     '/app/vendor-sla': false,
     '/app/vendors': false,
@@ -269,6 +274,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/residents': false,
     '/app/security-access': false,
     '/app/settings': false,
+    '/app/settings/roles': false,
     '/app/vendor-contracts': false,
     '/app/vendor-sla': false,
     '/app/vendors': false,
@@ -309,6 +315,7 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     '/app/residents': false,
     '/app/security-access': false,
     '/app/settings': false,
+    '/app/settings/roles': false,
     '/app/vendor-contracts': false,
     '/app/vendor-sla': false,
     '/app/vendors': false,
@@ -353,16 +360,24 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
 }
 
 // -----------------------------------------------------------------------------
-// Suite 2: Independent 6 x 38 Expected Matrix Verification
+// Suite 2: Independent 6 x 39 Expected Matrix Verification
 // -----------------------------------------------------------------------------
 {
-  console.log('\n[Suite 2] Independent 6 x 38 Expected Matrix Verification');
+  console.log('\n[Suite 2] Independent 6 x 39 Expected Matrix Verification');
 
-  assert.equal(ALL_38_CUSTOMER_ROUTES.length, 38, 'Must evaluate exactly 38 customer routes');
+  assert.equal(ALL_39_CUSTOMER_ROUTES.length, 39, 'Must evaluate exactly 39 customer routes');
+
+  // Child routes require exact role allowlisting; arbitrary subpaths stay blocked.
+  for (const role of CANONICAL_ROLES) {
+    assert.equal(isRouteAllowedForPersona(role, '/app/communications/private'), isRouteAllowedForPersona(role, '/app/communications'));
+    assert.equal(isRouteAllowedForPersona(role, '/app/communications/private/unknown'), false);
+  }
+  assert.equal(classifyCustomerRoute('/app/communications/private')?.status, 'permission protected');
+  assert.equal(classifyCustomerRoute('/app/settings/roles')?.requirement?.permissions?.includes('workspace.role.read'), true);
 
   let evaluatedCells = 0;
   for (const role of CANONICAL_ROLES) {
-    for (const route of ALL_38_CUSTOMER_ROUTES) {
+    for (const route of ALL_39_CUSTOMER_ROUTES) {
       const expectedAllowed = EXPECTED_ROUTE_ACCESS_MATRIX[role][route];
       assert.notEqual(
         expectedAllowed,
@@ -380,11 +395,17 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
     }
   }
 
-  assert.equal(evaluatedCells, 6 * 38, 'Must evaluate exactly 228 matrix cells');
+  assert.equal(evaluatedCells, 6 * 39, 'Must evaluate exactly 234 matrix cells');
 
   // Explicit contract checks
   // 1. Property manager blocked from governance and meetings
   assert.equal(isRouteAllowedForPersona('property_manager', '/app/governance'), false);
+  for (const role of ['association_admin', 'property_manager']) {
+    assert.equal(isRouteAllowedForPersona(role, '/fa/app/building-setup'), true);
+  }
+  for (const role of ['president', 'censor', 'owner', 'tenant_resident']) {
+    assert.equal(isRouteAllowedForPersona(role, '/fa/app/building-setup'), false);
+  }
   assert.equal(isRouteAllowedForPersona('property_manager', '/app/meetings'), false);
 
   // 2. President allowed allocations, payments, reconciliation
@@ -412,18 +433,18 @@ const EXPECTED_ROUTE_ACCESS_MATRIX = {
   assert.ok(PRE_CONTEXT_ALLOWED_ROUTES.includes('/app/onboarding'));
 
   // 6. Unknown role fails closed on ALL routes
-  for (const route of ALL_38_CUSTOMER_ROUTES) {
+  for (const route of ALL_39_CUSTOMER_ROUTES) {
     assert.equal(isRouteAllowedForPersona('contractor', route), false, `Unknown role must fail closed on ${route}`);
     assert.equal(isRouteAllowedForPersona(null, route), false, `Null role must fail closed on ${route}`);
   }
 
-  console.log(`  ✓ All ${evaluatedCells} (6x38) route cells match independent expected contract`);
+  console.log(`  ✓ All ${evaluatedCells} (6x39) route cells match independent expected contract`);
   console.log('  ✓ Property Manager governance/meetings blocked');
   console.log('  ✓ President allocations/payments/reconciliation allowed');
   console.log('  ✓ Owner ownership allowed; billing/receivables/meters blocked');
   console.log('  ✓ Tenant Resident billing/receivables blocked; invoices/payments/meters allowed');
   console.log('  ✓ Pre-Context /app/onboarding policy validated');
-  console.log('  ✓ Unknown role rejected across all 38 routes');
+  console.log('  ✓ Unknown role rejected across all 39 routes');
 }
 
 // -----------------------------------------------------------------------------

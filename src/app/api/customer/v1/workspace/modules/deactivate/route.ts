@@ -31,13 +31,8 @@ export async function POST(request: NextRequest) {
   }
 
   // 3. Parse and Limit Body Size (16KB strict limit)
-  const body = await parseJsonWithLimit(request, 16 * 1024);
-  if (!body) {
-    return NextResponse.json(
-      { error: { code: 'PAYLOAD_TOO_LARGE', message: 'Payload exceeded 16KB limit or invalid JSON' } },
-      { status: 413, headers: HEADERS }
-    );
-  }
+  const { data: body, errorResponse } = await parseJsonWithLimit(request, 16 * 1024);
+  if (errorResponse) return errorResponse;
 
   // 4. Zod Schema Validation
   const parsed = deactivateWorkspaceModuleRequestSchema.safeParse(body);

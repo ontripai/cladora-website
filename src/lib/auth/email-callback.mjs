@@ -29,8 +29,8 @@ const DEFAULT_DESTINATIONS = {
 
 const ALLOWED_NEXT_PATHS = {
   email: (lang) => [`/${lang}/app/dashboard`],
-  invite: (lang) => [`/${lang}/invitation-continuation`],
-  magiclink: (lang) => [`/${lang}/app/dashboard`],
+  invite: (lang) => [`/${lang}/invitation-continuation`, `/${lang}/cases`, `/${lang}/pilot-reviewer`],
+  magiclink: (lang) => [`/${lang}/app/dashboard`, `/${lang}/invitation-continuation`],
   recovery: (lang) => [`/${lang}/reset-password`],
   signup: (lang) => [`/${lang}/app/dashboard`],
   email_change: (lang) => [`/${lang}/app/settings`],
@@ -168,6 +168,7 @@ export function resolvePkceDestination(lang, rawNext) {
     `/${lang}/reset-password`,
     `/${lang}/app/dashboard`,
     `/${lang}/invitation-continuation`,
+    `/${lang}/pilot-reviewer`,
     `/${lang}/app/settings`,
   ];
 

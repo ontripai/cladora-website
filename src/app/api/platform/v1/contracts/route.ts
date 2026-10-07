@@ -35,8 +35,8 @@ export async function GET(request: Request) {
   const offset = Math.max(Number(searchParams.get("offset")) || 0, 0);
   const supabase = await createClient();
   let query = supabase
-    .schema("platform")
-    .from("workspace_contracts")
+    .schema("customer_api")
+    .from("workspace_contracts_v1")
     .select("*", { count: "exact" });
 
   if (!hasPlatformRole(authCtx, "PLATFORM_SUPER_ADMIN")) {
@@ -70,15 +70,15 @@ export async function GET(request: Request) {
   const now = new Date().toISOString();
   const [workspaces, plans, entitlements] = await Promise.all([
     workspaceIds.length
-      ? supabase.schema("platform").from("customer_workspaces").select("id, commercial_owner, workspace_type, environment, lifecycle_status").in("id", workspaceIds)
+      ? supabase.schema("customer_api").from("customer_workspaces_v1").select("id, commercial_owner, workspace_type, environment, lifecycle_status").in("id", workspaceIds)
       : Promise.resolve({ data: [], error: null }),
     planIds.length
-      ? supabase.schema("platform").from("subscription_plans").select("id, plan_code, version, display_name, status").in("id", planIds)
+      ? supabase.schema("customer_api").from("subscription_plans_v1").select("id, plan_code, version, display_name, status").in("id", planIds)
       : Promise.resolve({ data: [], error: null }),
     workspaceIds.length
       ? supabase
-          .schema("platform")
-          .from("workspace_entitlements")
+          .schema("customer_api")
+          .from("workspace_entitlements_v1")
           .select("*")
           .in("customer_workspace_id", workspaceIds)
           .lte("valid_from", now)

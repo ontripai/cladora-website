@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
+import { CustomerRegistryPicker } from './CustomerRegistryPicker';
 
 interface Invoice {
   id: string;
@@ -180,9 +181,9 @@ const copy = {
     voidStatus: 'Anulate',
     createTitle: 'Creare factură ciornă nouă',
     createDesc: 'Completează datele unității și adaugă liniile tarifare corespunzătoare.',
-    propertyId: 'ID Proprietate',
+    propertyId: 'Proprietate',
     unitId: 'ID Unitate',
-    partyId: 'ID Parte responsabilă (Proprietar/Chiriaș)',
+    partyId: 'Parte responsabilă (Proprietar/Chiriaș)',
     periodStart: 'Început perioadă',
     periodEnd: 'Sfârșit perioadă',
     dueDate: 'Data scadenței',
@@ -215,7 +216,7 @@ const copy = {
     payDirectShort: 'Plătește',
     payDirectDesc: 'Plată securizată direct în contul bancar al asociației de proprietari.',
     nonCustodialNotice: 'Plată directă către asociație. CLADORA nu este comerciant, nu reține fonduri și nu stochează date de card.',
-    bankTransferTab: 'Transfer Bancar / Cod QR',
+    bankTransferTab: 'Transfer bancar',
     cardTab: 'Card bancar',
     cardCheckoutTitle: 'Plată online cu cardul',
     cardDeferredNotice: 'Plata online prin card bancar este în curs de activare pentru asociația dumneavoastră. Vă rugăm să folosiți transferul bancar direct conform instrucțiunilor de mai jos.',
@@ -228,6 +229,9 @@ const copy = {
     copied: 'Copiat!',
     copy: 'Copiază',
     generatingInstruction: 'Se generează instrucțiunile de plată…',
+    paymentSetupRequired: 'Asociația trebuie să configureze politica de plată și contul beneficiar înainte de generarea instrucțiunilor.',
+    paymentContextUnavailable: 'Accesul la această factură în contextul ales a expirat sau nu este disponibil. Selectați din nou rolul și contactați administratorul dacă problema persistă.',
+    destinationUnavailable: 'IBAN-ul complet verificat nu este disponibil. Contactați administratorul asociației.',
   },
   en: {
     title: 'Billing, Charges & Receivables',
@@ -275,9 +279,9 @@ const copy = {
     voidStatus: 'Void',
     createTitle: 'Create New Draft Bill',
     createDesc: 'Specify unit, liable party, billing cycle and line items.',
-    propertyId: 'Property ID',
+    propertyId: 'Property',
     unitId: 'Unit ID',
-    partyId: 'Liable Party ID',
+    partyId: 'Liable Party',
     periodStart: 'Period Start',
     periodEnd: 'Period End',
     dueDate: 'Due Date',
@@ -310,7 +314,7 @@ const copy = {
     payDirectShort: 'Pay',
     payDirectDesc: 'Secure direct settlement into the building association bank account.',
     nonCustodialNotice: 'Direct payment to association. CLADORA is non-custodial and never holds funds or card data.',
-    bankTransferTab: 'Bank Transfer / QR Code',
+    bankTransferTab: 'Bank transfer',
     cardTab: 'Debit / Credit Card',
     cardCheckoutTitle: 'Debit / Credit Card Payment',
     cardDeferredNotice: 'Card payment is awaiting merchant onboarding for your association. Please use direct bank transfer with the instructions below.',
@@ -323,6 +327,9 @@ const copy = {
     copied: 'Copied!',
     copy: 'Copy',
     generatingInstruction: 'Generating payment instructions…',
+    paymentSetupRequired: 'The association must configure its payment policy and beneficiary account before instructions can be generated.',
+    paymentContextUnavailable: 'Access to this invoice in the selected context has expired or is unavailable. Select your role again and contact the administrator if this continues.',
+    destinationUnavailable: 'A verified full beneficiary IBAN is unavailable. Contact the association administrator.',
   },
   fa: {
     title: 'صورتحساب‌ها، هزینه‌ها و مطالبات',
@@ -370,9 +377,9 @@ const copy = {
     voidStatus: 'باطل‌شده',
     createTitle: 'ایجاد صورتحساب پیش‌نویس جدید',
     createDesc: 'واحد، طرف مسئول، بازه زمانی دوره و ردیف‌های هزینه را مشخص کنید.',
-    propertyId: 'شناسه ملک',
+    propertyId: 'ملک',
     unitId: 'شناسه واحد',
-    partyId: 'شناسه شخص مسئول (مالک/مستأجر)',
+    partyId: 'شخص مسئول (مالک/مستأجر)',
     periodStart: 'آغاز دوره',
     periodEnd: 'پایان دوره',
     dueDate: 'تاریخ سررسید',
@@ -405,7 +412,7 @@ const copy = {
     payDirectShort: 'پرداخت',
     payDirectDesc: 'تسویه مستقیم و امن به حساب بانکی انجمن ساختمان.',
     nonCustodialNotice: 'پرداخت مستقیم به حساب بانکی انجمن ساختمان. کلادورا وجوه یا اطلاعات کارت را نگهداری نمی‌کند.',
-    bankTransferTab: 'انتقال بانکی / کد QR',
+    bankTransferTab: 'انتقال بانکی',
     cardTab: 'کارت بانکی',
     cardCheckoutTitle: 'پرداخت اینترنتی با کارت',
     cardDeferredNotice: 'پرداخت اینترنتی با کارت در حال اتصال است. لطفاً از انتقال مستقیم بانکی با مشخصات زیر استفاده فرمایید.',
@@ -418,6 +425,9 @@ const copy = {
     copied: 'کپی شد!',
     copy: 'کپی',
     generatingInstruction: 'در حال تولید دستور پرداخت بانکی…',
+    paymentSetupRequired: 'مدیر ساختمان باید سیاست پرداخت و حساب مقصد را تنظیم کند تا دستور پرداخت صادر شود.',
+    paymentContextUnavailable: 'دسترسی به این صورتحساب در نقش انتخابی منقضی شده یا در دسترس نیست. نقش خود را دوباره انتخاب کنید و اگر مشکل ادامه داشت با مدیر ساختمان تماس بگیرید.',
+    destinationUnavailable: 'شماره شبای کامل و تأییدشدهٔ مقصد در دسترس نیست. با مدیر ساختمان تماس بگیرید.',
   }
 };
 
@@ -463,6 +473,9 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   const [targetInvoiceForAction, setTargetInvoiceForAction] = useState<Invoice | null>(null);
 
   // Mutation form states
+  const [createContextId, setCreateContextId] = useState('');
+  const [newUnitLabel, setNewUnitLabel] = useState('');
+  const [newPropertyName, setNewPropertyName] = useState('');
   const [newPropertyId, setNewPropertyId] = useState('');
   const [newUnitId, setNewUnitId] = useState('');
   const [newPartyId, setNewPartyId] = useState('');
@@ -516,15 +529,15 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
 
       if (!intentRes.ok) {
         const errJson = await intentRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || 'Failed to initialize payment intent');
+        throw new Error(errJson.error?.code === 'PAYMENT_SETUP_REQUIRED' ? t.paymentSetupRequired : errJson.error?.code === 'PAYMENT_CONTEXT_UNAVAILABLE' ? t.paymentContextUnavailable : errJson.error?.message || 'Failed to initialize payment intent');
       }
 
       const intentData = await intentRes.json();
 
-      const instRes = await fetch(`/api/customer/v1/payments/intents/${intentData.id}/bank-instruction?context_id=${active.context_id}`);
+      const instRes = await fetch(`/api/customer/v1/payments/intents/${intentData.payment_intent_id}/bank-instruction?context_id=${active.context_id}`);
       if (!instRes.ok) {
         const errJson = await instRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || 'Failed to generate bank transfer instruction');
+        throw new Error(errJson.error?.code === 'PAYMENT_DESTINATION_UNAVAILABLE' ? t.destinationUnavailable : errJson.error?.message || 'Failed to generate bank transfer instruction');
       }
 
       const instData = await instRes.json();
@@ -569,24 +582,28 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
       const json = (await response.json()) as BillingData;
       setData(json);
 
-      // Pre-populate creation form fields if available from visible data
-      if (json.invoices?.length > 0 && !newPropertyId) {
-        const first = json.invoices[0];
-        if (first.property_id) setNewPropertyId(first.property_id);
-        if (first.unit_id) setNewUnitId(first.unit_id);
-        if (first.liable_party_id) setNewPartyId(first.liable_party_id);
-      }
     } catch {
       setError(true);
     } finally {
       setLoading(false);
     }
-  }, [active, from, offset, query, status, to, newPropertyId]);
+  }, [active, from, offset, query, status, to]);
 
   useEffect(() => {
     const timer = setTimeout(() => void loadData(), 200);
     return () => clearTimeout(timer);
   }, [loadData, nonce]);
+
+  useEffect(() => {
+    if (!showCreateModal || !newUnitId || !active?.context_id || createContextId !== active.context_id) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({context_id: active.context_id, view: 'unit_detail', unit_id: newUnitId});
+    fetch(`/api/customer/v1/occupancy?${params}`, {cache: 'no-store', signal: controller.signal})
+      .then(async response => {if (!response.ok) throw new Error('unit'); return response.json();})
+      .then(detail => {if (!controller.signal.aborted) {setNewPropertyId(detail.property.id); setNewPropertyName(detail.property.name);}})
+      .catch(() => {if (!controller.signal.aborted) setMutationError(t.error);});
+    return () => controller.abort();
+  }, [showCreateModal, newUnitId, active?.context_id, createContextId, t.error]);
 
   // Pagination calculation
   const totalInvoices = data?.total ?? 0;
@@ -607,7 +624,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   // Create Draft Bill Handler
   async function handleCreateDraft(e: React.FormEvent) {
     e.preventDefault();
-    if (!active) return;
+    if (!active || active.context_id !== createContextId || !newPropertyId) return;
     setMutationLoading(true);
     setMutationError(null);
 
@@ -798,6 +815,8 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
               type="button"
               onClick={() => {
                 setMutationError(null);
+                setCreateContextId(active?.context_id ?? '');
+                setNewUnitId(''); setNewUnitLabel(''); setNewPropertyId(''); setNewPropertyName(''); setNewPartyId('');
                 setShowCreateModal(true);
               }}
               className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:ring-2 focus:ring-slate-950 focus:outline-none"
@@ -1249,7 +1268,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                     ) : (
                       <tr>
                         <td colSpan={5} className="p-4 text-center text-slate-400">
-                          {t.empty}
+                          {loading ? t.loading : error ? t.error : t.empty}
                         </td>
                       </tr>
                     )}
@@ -1281,7 +1300,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
             </div>
 
             {/* Linked Accounting Journal Proof */}
-            {data?.journal && (
+            {!isResidentView && data?.journal && (
               <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50/40 p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-xs font-bold text-blue-900">
@@ -1378,7 +1397,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
       )}
 
       {/* Create Draft Bill Modal */}
-      {showCreateModal && (
+      {showCreateModal && active?.context_id === createContextId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
           <div
             role="dialog"
@@ -1408,39 +1427,13 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 </div>
               )}
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label className="font-semibold text-slate-700">{t.propertyId} *</label>
-                  <input
-                    required
-                    value={newPropertyId}
-                    onChange={(e) => setNewPropertyId(e.target.value)}
-                    placeholder="UUID"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 font-mono text-xs focus:border-slate-900 focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="font-semibold text-slate-700">{t.unitId} *</label>
-                  <input
-                    required
-                    value={newUnitId}
-                    onChange={(e) => setNewUnitId(e.target.value)}
-                    placeholder="UUID"
-                    className="mt-1 w-full rounded-xl border border-slate-200 p-2 font-mono text-xs focus:border-slate-900 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700">{t.partyId} *</label>
-                <input
-                  required
-                  value={newPartyId}
-                  onChange={(e) => setNewPartyId(e.target.value)}
-                  placeholder="UUID"
-                  className="mt-1 w-full rounded-xl border border-slate-200 p-2 font-mono text-xs focus:border-slate-900 focus:outline-none"
-                />
-              </div>
+              <CustomerRegistryPicker key={`${active.context_id}:unit`} contextId={active.context_id} view="units" lang={lang}
+                title={t.unit} value={newUnitId} selectedLabel={newUnitLabel} disabled={mutationLoading}
+                onChange={(id, label) => {setNewUnitId(id); setNewUnitLabel(label); setNewPropertyId(''); setNewPropertyName(''); setNewPartyId('');}} />
+              <p>{t.propertyId}: {newPropertyName || '—'}</p>
+              <CustomerRegistryPicker key={`${active.context_id}:party:${newUnitId}`} contextId={active.context_id} view="parties" lang={lang}
+                title={t.partyId} value={newPartyId} disabled={mutationLoading || !newPropertyId}
+                onChange={id => setNewPartyId(id)} />
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div>
@@ -1567,7 +1560,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 </button>
                 <button
                   type="submit"
-                  disabled={mutationLoading}
+                  disabled={mutationLoading || !newPropertyId || !newUnitId || !newPartyId}
                   className="rounded-xl bg-slate-900 px-4 py-2 font-semibold text-white hover:bg-slate-800 disabled:opacity-50"
                 >
                   {mutationLoading ? t.saving : t.saveDraft}
@@ -1760,6 +1753,13 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 <RefreshCw className="h-8 w-8 animate-spin text-emerald-600 mb-3" />
                 <p className="text-sm font-medium">{t.generatingInstruction}</p>
               </div>
+            ) : selectedPayTab === 'card' ? (
+              <div className="mt-8 rounded-2xl border border-blue-200 bg-blue-50/50 p-6 text-center">
+                <DollarSign className="mx-auto mb-2 h-10 w-10 text-blue-500" />
+                <h4 className="text-sm font-bold text-blue-900">{t.cardCheckoutTitle}</h4>
+                <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-blue-700">{t.cardDeferredNotice}</p>
+                <button type="button" onClick={() => setSelectedPayTab('bank')} className="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">{t.bankTransferTab}</button>
+              </div>
             ) : payError ? (
               <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">
                 <p className="font-bold">{payError}</p>
@@ -1818,8 +1818,8 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                   </p>
                 </div>
 
-                {/* EPC QR Code Instruction Box */}
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                {/* EPC QR applies to euro SEPA transfers only. */}
+                {payInstruction.epc_qr_payload && <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
                     <QrCode className="h-5 w-5 text-emerald-600" />
                     <span>EPC QR Code (SEPA EPC069-12)</span>
@@ -1828,24 +1828,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                   <pre className="mt-3 overflow-x-auto rounded-xl bg-slate-900 p-3 font-mono text-[11px] text-slate-100 select-all">
                     {payInstruction.epc_qr_payload}
                   </pre>
-                </div>
-              </div>
-            ) : selectedPayTab === 'card' ? (
-              <div className="mt-8 rounded-2xl border border-blue-200 bg-blue-50/50 p-6 text-center">
-                <DollarSign className="mx-auto h-10 w-10 text-blue-500 mb-2" />
-                <h4 className="text-sm font-bold text-blue-900">{t.cardCheckoutTitle}</h4>
-                <p className="mt-2 text-xs text-blue-700 leading-relaxed max-w-md mx-auto">
-                  {t.cardDeferredNotice}
-                </p>
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPayTab('bank')}
-                    className="rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
-                  >
-                    {t.bankTransferTab}
-                  </button>
-                </div>
+                </div>}
               </div>
             ) : null}
 

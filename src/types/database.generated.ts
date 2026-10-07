@@ -1061,7 +1061,10 @@ export type Database = {
         | 'PLATFORM_OPERATIONS'
         | 'PLATFORM_FINANCE'
         | 'PLATFORM_SUPPORT'
-        | 'PLATFORM_AUDITOR';
+        | 'PLATFORM_AUDITOR'
+        | 'PLATFORM_SALES'
+        | 'PLATFORM_CONTRACTS'
+        | 'PLATFORM_ONBOARDING';
       workspace_type: 'ASSOCIATION' | 'PROPERTY_MANAGER' | 'OWNER_PORTFOLIO' | 'HYBRID';
       workspace_lifecycle_status:
         | 'LEAD'
@@ -1428,21 +1431,41 @@ export type Database = {
     };
   };
   customer_api: {
-    Tables: {
-      [key: string]: {
-        Row: Record<string, unknown>;
-        Insert: Record<string, unknown>;
-        Update: Record<string, unknown>;
-        Relationships: [];
-      };
-    };
+    Tables: Record<never, never>;
     Views: {
-      [key: string]: {
-        Row: Record<string, unknown>;
+      platform_users_v1: { Row: Database['platform']['Tables']['platform_users']['Row']; Relationships: [] };
+      platform_role_assignments_v1: { Row: Database['platform']['Tables']['platform_role_assignments']['Row']; Relationships: [] };
+      platform_customer_assignments_v1: { Row: Database['platform']['Tables']['platform_customer_assignments']['Row']; Relationships: [] };
+      customer_staff_responsibilities_v1: { Row: {
+        id: string; customer_workspace_id: string; platform_user_id: string; responsibility: string;
+        status: string; valid_from: string; valid_until: string | null; assigned_by: string;
+        assignment_reason: string; revoked_at: string | null; revoked_by: string | null;
+        revoke_reason: string | null; created_at: string;
+      }; Relationships: [] };
+      customer_workspaces_v1: { Row: Database['platform']['Tables']['customer_workspaces']['Row'] & { tenant_legal_name: string }; Relationships: [] };
+      subscription_plans_v1: { Row: Database['platform']['Tables']['subscription_plans']['Row']; Relationships: [] };
+      provisioning_runs_v1: { Row: Database['platform']['Tables']['provisioning_runs']['Row']; Relationships: [] };
+      provisioning_tasks_v1: { Row: Database['platform']['Tables']['provisioning_tasks']['Row']; Relationships: [] };
+      workspace_contracts_v1: { Row: Database['platform']['Tables']['workspace_contracts']['Row']; Relationships: [] };
+      workspace_entitlements_v1: { Row: Database['platform']['Tables']['workspace_entitlements']['Row']; Relationships: [] };
+      workspace_primary_admin_roles_v1: {
+        Row: { id: string; code: string; name: string };
         Relationships: [];
       };
     };
     Functions: {
+      prepare_pilot_setup_reviewer_v1: { Args: { p_workspace_id: string; p_email: string; p_reason: string }; Returns: Json };
+      revoke_pilot_setup_reviewer_v1: { Args: { p_id: string; p_reason: string }; Returns: Json };
+      claim_pilot_setup_reviewer_v1: { Args: { p_workspace_id: string; p_display_name: string; p_locale: string }; Returns: Json };
+      my_pilot_setup_reviewer_v1: { Args: { p_workspace_id?: string }; Returns: Json };
+      get_my_primary_admin_onboarding_v1: {
+        Args: { p_workspace_id: string }
+        Returns: { customer_workspace_id: string; workspace_version: number; onboarding_completed: boolean }[]
+      }
+      complete_primary_admin_onboarding_v1: {
+        Args: { p_workspace_id: string; p_expected_version: number; p_reason: string }
+        Returns: Json
+      }
       get_dashboard_v1: {
         Args: { p_context_id: string };
         Returns: Json;
@@ -1469,6 +1492,100 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: boolean;
       };
+      has_platform_access_v1: {
+        Args: Record<PropertyKey, never>;
+        Returns: boolean;
+      };
+      get_my_platform_auth_context_v1: {
+        Args: Record<PropertyKey, never>;
+        Returns: Json;
+      };
+      get_control_plane_overview_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      list_support_access_v1: {
+        Args: { p_limit: number; p_offset: number; p_query: string | null; p_status: string | null; p_workspace_id: string | null };
+        Returns: Json;
+      };
+      list_support_workspaces_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      request_support_access_v1: {
+        Args: { p_workspace_id: string; p_ticket_ref: string; p_purpose: string; p_requested_scope: string; p_sensitivity_level: string; p_duration_minutes: number; p_evidence: Json };
+        Returns: Json;
+      };
+      approve_support_access_v1: { Args: { p_request_id: string; p_evidence: Json }; Returns: Json };
+      cancel_support_access_request_v1: { Args: { p_request_id: string; p_reason: string }; Returns: Json };
+      revoke_support_access_v1: { Args: { p_grant_id: string; p_reason: string }; Returns: Json };
+      list_control_plane_audit_events_v1: {
+        Args: { p_limit: number; p_offset: number; p_query: string | null; p_action: string | null; p_actor_role: string | null; p_entity_type: string | null; p_workspace_id: string | null; p_occurred_from: string | null; p_occurred_until: string | null };
+        Returns: Json;
+      };
+      get_plan_dependency_counts_v1: { Args: { p_plan_ids: string[] }; Returns: Json };
+      create_subscription_plan_version_v1: {
+        Args: { p_plan_code: string; p_display_name: string; p_feature_catalogue: Json; p_limit_schema: Json; p_effective_from: string; p_effective_until: string | null; p_reason: string };
+        Returns: Json;
+      };
+      activate_subscription_plan_v1: { Args: { p_plan_id: string; p_reason: string }; Returns: Json };
+      retire_subscription_plan_v1: { Args: { p_plan_id: string; p_reason: string }; Returns: Json };
+      list_provisionable_workspaces_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      create_provisioning_run_v1: { Args: { p_workspace_id: string; p_idempotency_key: string; p_task_types: string[] }; Returns: Json };
+      cancel_provisioning_run_v1: { Args: { p_run_id: string; p_reason: string }; Returns: Json };
+      retry_provisioning_task_v1: { Args: { p_task_id: string; p_reason: string }; Returns: Json };
+      grant_customer_assignment_v1: {
+        Args: { p_platform_user_id: string; p_customer_workspace_id: string; p_scope_type: string; p_scope_id: string | null; p_valid_from: string; p_valid_until: string | null; p_reason: string };
+        Returns: Json;
+      };
+      revoke_customer_assignment_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
+      assign_customer_staff_responsibility_v1: { Args: { p_workspace_id: string; p_platform_user_id: string; p_responsibility: string; p_reason: string; p_valid_until: string | null }; Returns: Json };
+      revoke_customer_staff_responsibility_v1: { Args: { p_id: string; p_reason: string }; Returns: Json };
+      transfer_customer_commercial_owner_v1: { Args: { p_workspace_id: string; p_new_user_id: string; p_reason: string }; Returns: Json };
+      create_workspace_contract_v1: {
+        Args: { p_workspace_id: string; p_contract_ref: string; p_plan_id: string | null; p_currency: string; p_start_date: string; p_end_date: string | null; p_commercial_terms: Json };
+        Returns: Json;
+      };
+      transition_workspace_lifecycle_v1: { Args: { p_workspace_id: string; p_target_status: string; p_expected_version: number; p_reason: string }; Returns: Json };
+      create_customer_workspace_v1: { Args: { p_tenant_id: string; p_workspace_type: string; p_commercial_owner: string; p_environment: string }; Returns: Json };
+      create_pilot_workspace_v1: { Args: { p_legal_name: string; p_registration_number: string; p_default_locale: string; p_commercial_owner: string }; Returns: Json };
+      prepare_workspace_access_basis_v1: { Args: { p_workspace_id: string; p_email: string; p_role_id: string; p_mode: string; p_duration_hours: number | null; p_contract_id: string | null; p_payment_reference: string | null; p_payment_amount: number | null; p_payment_currency: string | null; p_paid_on: string | null; p_paid_through: string | null; p_evidence_note: string }; Returns: Json };
+      list_workspace_access_bases_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      list_my_prepared_workspace_access_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      activate_prepared_workspace_access_v1: { Args: { p_basis_id: string; p_display_name: string; p_locale: string }; Returns: Json };
+      revoke_workspace_access_basis_v1: { Args: { p_basis_id: string; p_reason: string }; Returns: Json };
+      create_platform_operator_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_role: string; p_reason: string }; Returns: Json };
+      create_platform_operator_multi_role_v1: { Args: { p_email: string; p_employee_ref: string; p_display_name: string; p_roles: string[]; p_reason: string }; Returns: Json };
+      grant_platform_operator_role_v1: { Args: { p_platform_user_id: string; p_role: string; p_reason: string }; Returns: Json };
+      grant_platform_operator_roles_v1: { Args: { p_platform_user_id: string; p_roles: string[]; p_reason: string }; Returns: Json };
+      list_start_requests_v1: { Args: { p_limit?: number }; Returns: Json };
+      open_customer_case_v1: { Args: { p_lead_id: string; p_reason: string }; Returns: Json };
+      my_case_invitations_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      claim_customer_case_v1: { Args: { p_invitation_id: string }; Returns: Json };
+      my_customer_cases_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      get_customer_case_v1: { Args: { p_case_id: string }; Returns: Json };
+      post_customer_case_message_v1: { Args: { p_case_id: string; p_body: string; p_visibility: string }; Returns: Json };
+      assign_customer_case_staff_v1: { Args: { p_case_id: string; p_platform_user_id: string; p_duty: string; p_status: string; p_reason: string }; Returns: Json };
+      mark_customer_case_read_v1: { Args: { p_case_id: string }; Returns: number };
+      link_customer_case_workspace_v1: { Args: { p_case_id: string; p_workspace_id: string; p_contract_id: string | null; p_reason: string }; Returns: Json };
+      list_case_workspace_options_v1: { Args: { p_case_id: string }; Returns: Json };
+      list_case_prepared_workspaces_v1: { Args: { p_case_id: string }; Returns: Json };
+      create_case_workspace_v1: { Args: { p_case_id: string; p_workspace_type: string; p_profile_code: string; p_model_code: string; p_commercial_owner: string; p_reason: string }; Returns: Json };
+      begin_customer_case_document_v1: { Args: { p_case_id: string; p_document_id: string | null; p_title: string; p_visibility: string; p_mime_type: string; p_byte_size: number; p_sha256: string }; Returns: Json };
+      get_customer_case_documents_v1: { Args: { p_case_id: string }; Returns: Json };
+      review_customer_case_document_v1: { Args: { p_version_id: string; p_verdict: string; p_evidence: string }; Returns: Json };
+      get_customer_case_download_v1: { Args: { p_version_id: string }; Returns: Json };
+      get_customer_case_inspection_v1: { Args: { p_version_id: string }; Returns: Json };
+      assign_start_request_v1: { Args: { p_lead_id: string; p_assignee_id: string | null; p_reason: string }; Returns: Json };
+      update_start_request_v1: { Args: { p_lead_id: string; p_status: string; p_reason: string }; Returns: Json };
+      revoke_platform_operator_role_v1: { Args: { p_assignment_id: string; p_reason: string }; Returns: Json };
+      set_workspace_entitlement_v1: {
+        Args: { p_workspace_id: string; p_entitlement_key: string; p_value_type: string; p_numeric_value: number | null; p_boolean_value: boolean | null; p_text_value: string | null; p_json_value: Json | null; p_override_value_json: Json | null; p_override_reason: string | null; p_override_expires_at: string | null };
+        Returns: Json;
+      };
+      create_workspace_invitation_v1: { Args: { p_workspace_id: string; p_email: string; p_role_id: string; p_scope_type: string; p_expires_in: string; p_reason: string }; Returns: Json };
+      revoke_workspace_invitation_v1: { Args: { p_invitation_id: string; p_reason: string }; Returns: Json };
+      list_my_claimable_workspace_invitations_v1: { Args: Record<PropertyKey, never>; Returns: Json };
+      claim_workspace_invitation_v1: {
+        Args: { p_invitation_id: string; p_display_name: string; p_locale: string; p_timezone: string };
+        Returns: Json;
+      };
+      get_retention_operations_v1: { Args: { p_section: string; p_tenant_id: string | null; p_status: string | null; p_limit: number; p_offset: number }; Returns: Json };
+      preview_retention_workers_v1: { Args: { p_tenant_id: string | null; p_limit: number }; Returns: Json };
       get_ledger_v1: {
         Args: {
           p_context_id: string;
@@ -1636,6 +1753,80 @@ export type Database = {
         };
         Returns: Json;
       };
+      create_private_conversation_v1: {
+        Args: { p_context_id: string; p_unit_id: string; p_recipient_membership_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      send_private_message_v1: {
+        Args: { p_context_id: string; p_conversation_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      get_private_conversations_v1: {
+        Args: { p_context_id: string; p_conversation_id?: string | null };
+        Returns: Json;
+      };
+      list_private_units_v1: {
+        Args: { p_context_id: string; p_query?: string | null; p_limit?: number; p_offset?: number };
+        Returns: Json;
+      };
+      list_private_recipients_v1: {
+        Args: { p_context_id: string; p_unit_id: string };
+        Returns: Json;
+      };
+      attach_private_document_v1: {
+        Args: { p_context_id: string; p_conversation_id: string; p_message_id: string; p_document_id: string; p_version_id: string };
+        Returns: Json;
+      };
+      list_private_attachments_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      list_attachable_private_documents_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      authorize_private_attachment_download_v1: {
+        Args: { p_context_id: string; p_attachment_id: string };
+        Returns: Json;
+      };
+      mark_private_conversation_read_v1: {
+        Args: { p_context_id: string; p_conversation_id: string };
+        Returns: Json;
+      };
+      get_private_unread_v1: {
+        Args: { p_context_id: string };
+        Returns: Json;
+      };
+      list_internal_workspaces_v1: { Args: Record<string, never>; Returns: Json };
+      list_internal_recipients_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      create_internal_conversation_v1: {
+        Args: { p_workspace_id: string; p_recipient_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      send_internal_message_v1: {
+        Args: { p_thread_id: string; p_body: string; p_request_id: string };
+        Returns: Json;
+      };
+      get_internal_conversations_v1: { Args: { p_workspace_id: string }; Returns: Json };
+      mark_internal_read_v1: { Args: { p_thread_id: string }; Returns: Json };
+      my_internal_identity_v1: { Args: Record<string, never>; Returns: Json };
+      attach_internal_document_v1: {
+        Args: { p_thread_id: string; p_message_id: string; p_document_id: string; p_version_id: string };
+        Returns: Json;
+      };
+      list_internal_attachments_v1: { Args: { p_thread_id: string }; Returns: Json };
+      list_internal_attachable_documents_v1: { Args: { p_thread_id: string }; Returns: Json };
+      authorize_internal_attachment_download_v1: { Args: { p_attachment_id: string }; Returns: Json };
+      begin_internal_private_upload_v1: {
+        Args: { p_thread_id: string; p_message_id: string; p_filename: string; p_mime: string; p_size_bytes: number };
+        Returns: Json;
+      };
+      finish_internal_private_upload_v1: {
+        Args: { p_intent_id: string; p_path: string; p_sha256: string; p_size_bytes: number; p_mime: string };
+        Returns: Json;
+      };
+      list_internal_private_documents_v1: { Args: { p_thread_id: string }; Returns: Json };
+      authorize_internal_private_download_v1: { Args: { p_document_id: string }; Returns: Json };
       get_documents_v1: {
         Args: {
           p_context_id: string;

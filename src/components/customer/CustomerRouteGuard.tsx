@@ -31,11 +31,10 @@ export {
 };
 
 /**
- * Authoritative fail-closed unavailable routes (defined in access-matrix):
+ * Authoritative unavailable routes (defined in access-matrix):
  * - /app/portfolio
- * - /app/settings
- * - /app/accounting/month-close
  * - /app/migration/shadow-ledger
+ * Settings routes are classified individually and remain permission gated.
  */
 
 
@@ -180,6 +179,18 @@ export function CustomerRouteGuard({
   // 4. Pre-context route policy check (e.g. onboarding before context assignment)
   if (classification.status === 'pre-context allowed') {
     return <>{children}</>;
+  }
+
+  // Native discovery cannot use a legacy physical dashboard as workspace authority.
+  // This only opens the selector; both target discovery and every domain RPC
+  // independently authenticate and evaluate current canonical core assignments.
+  if (classification.requirement?.nativeWorkspaceDiscovery) {
+    // The Core page discovers only authorized native contexts inside its RPC.
+    // Setup reviewers have no customer dashboard and keep their review context
+    // out of the ordinary dashboard selector.
+    return (appPath === '/app/ownership/relationships' || state.active?.scope_type === 'tenant')
+      ? <>{children}</>
+      : <AccessRestrictedCard lang={lang} reason="context" />;
   }
 
   // 5. Context requirement (all other customer routes require an assigned context)

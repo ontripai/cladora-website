@@ -67,13 +67,13 @@ export function buildBankPaymentInstruction(params: GenerateInstructionParams): 
   const cleanIban = params.iban.replace(/\s+/g, "").toUpperCase();
   const formattedReference = `CLADORA-${params.unitCode}-${params.clientReference}`.toUpperCase();
 
-  const epcPayload = generateEpcQrPayload({
+  const epcPayload = params.currency.toUpperCase() === "EUR" ? generateEpcQrPayload({
     beneficiaryName: params.associationLegalName,
     iban: cleanIban,
     amount: params.amount,
     currency: params.currency || "RON",
     reference: formattedReference,
-  });
+  }) : null;
 
   return {
     association_legal_name: params.associationLegalName,

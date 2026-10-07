@@ -1653,7 +1653,7 @@ export function CustomerUtilitiesDashboard({ lang }: { lang: string }) {
             {/* Pagination Controls */}
             <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/50 p-3 text-xs text-slate-500">
               <div>
-                {offset + 1}–{Math.min(offset + limit, totalCount)} / {totalCount}
+                {totalCount === 0 ? 0 : offset + 1}–{Math.min(offset + limit, totalCount)} / {totalCount}
               </div>
               <div className="flex items-center gap-2">
                 <button
