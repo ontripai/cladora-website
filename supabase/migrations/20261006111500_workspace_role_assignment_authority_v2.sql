@@ -124,7 +124,9 @@ begin
     target_property,target_building,p_unit_id,p_valid_until) then
     raise exception 'workspace_role_assignment_authority_provenance_required' using errcode='42501';
   end if;
-  result:=customer_api.assign_workspace_role_v1(p_context_id,p_target_membership_id,
+  result:=customer_api.assign_workspace_role_v1(
+    case when p_scope_type='workspace' then p_authority_context_id else p_context_id end,
+    p_target_membership_id,
     p_workspace_role_id,p_scope_type,
     case when p_scope_type='workspace' then null else target_property end,
     case when p_scope_type in ('building','unit') then target_building else null end,
