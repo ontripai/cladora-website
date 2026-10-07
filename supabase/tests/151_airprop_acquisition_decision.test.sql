@@ -1,6 +1,6 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
-select plan(93);
+select plan(126);
 do $$
 declare
   v_tenant_id uuid := '15100000-0000-0000-0000-000000000001'::uuid;
@@ -142,7 +142,8 @@ begin
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='airprop.presale.execute'),'allow',10,'Synthetic presale attachment','flow_presale_151');
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='core.relationships.execute'),'allow',11,'Synthetic relationship execution attachment','flow_relationship_execute_151');
  perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='core.relationships.transfer'),'allow',12,'Synthetic ownership transfer attachment','flow_relationship_transfer_151');
- perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,13,'Synthetic publish role','flow_publish_151');
+ perform customer_api.attach_workspace_role_permission_v1('15100000-0000-0000-0000-000010000001',role_id,(select id from identity.permissions where code='core.relationships.lease'),'allow',13,'Synthetic lease transition attachment','flow_relationship_lease_151');
+ perform customer_api.publish_workspace_role_v1('15100000-0000-0000-0000-000010000001',role_id,14,'Synthetic publish role','flow_publish_151');
 end; $$;$flow$,'publish role through canonical commands');
 select lives_ok($$insert into platform.workspace_member_roles
   (tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,valid_from,valid_to,
@@ -417,6 +418,159 @@ select is((select count(*) from portfolio.ownerships where unit_id=
 select is((select count(*) from documents.document_permissions where document_id=
  '15100000-0000-0000-0000-000000000813'),0::bigint,
  'deed execution does not copy document ACLs');
+
+-- T07 activation: a separately reviewed signed lease creates the canonical
+-- lease, tenant occupancy and allowlisted handover receipt, but no title,
+-- account, role, private-document or settlement authority.
+insert into portfolio.parties(id,tenant_id,type,legal_name)
+values('15100000-0000-0000-0000-000000000821','15100000-0000-0000-0000-000000000001','person','Synthetic lease tenant');
+insert into documents.documents(id,tenant_id,property_id,title,document_type,classification,created_by)
+values('15100000-0000-0000-0000-000000000822','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000001000','Synthetic signed lease','legal','restricted',
+ '15100000-0000-0000-0000-000000000020');
+insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,
+ mime_type,size_bytes,uploaded_by,created_at)
+values('15100000-0000-0000-0000-000000000823','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000000822',1,'synthetic/lease-151.txt',repeat('8',64),
+ 'text/plain',20,'15100000-0000-0000-0000-000000000020',now()-interval '1 minute');
+insert into storage.objects(bucket_id,name) values('document-vault','synthetic/lease-151.txt');
+select lives_ok($$select public.record_document_scan_v1(
+ '15100000-0000-0000-0000-000000000823','15100000-0000-0000-0000-000000000824',
+ 'clean',repeat('8',64),'ClamAV synthetic T07',statement_timestamp())$$,
+ 'trusted scanner attests signed lease bytes');
+select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000010","aal":"aal2"}',true);
+select lives_ok($$select customer_api.verify_document_evidence_v1(
+ '15100000-0000-0000-0000-000010000001','15100000-0000-0000-0000-000000000822',
+ 'signed_lease','verified','Independent signed lease verification')$$,
+ 'independent verifier marks signed lease evidence');
+insert into portfolio.relationship_proposals(
+ id,tenant_id,property_id,unit_id,customer_workspace_id,kind,source_party_id,target_party_id,
+ effective_from,evidence_reference,reason,proposed_by,request_id,idempotency_key,request_hash)
+values('15100000-0000-0000-0000-000000000825','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000001000','15100000-0000-0000-0000-000000100001',
+ '15100000-0000-0000-0000-000000000100','lease',
+ '15100000-0000-0000-0000-000000000801','15100000-0000-0000-0000-000000000821',
+ current_date,'urn:cladora:document-version:15100000-0000-0000-0000-000000000823',
+ 'Synthetic verified signed lease','15100000-0000-0000-0000-000000000020',
+ '15100000-0000-0000-0000-000000000826','t07-proposal-151',repeat('9',64));
+insert into portfolio.relationship_reviews(
+ id,proposal_id,tenant_id,decision,evidence_reference,reason,reviewed_by,
+ request_id,idempotency_key,request_hash)
+values('15100000-0000-0000-0000-000000000827','15100000-0000-0000-0000-000000000825',
+ '15100000-0000-0000-0000-000000000001','verified',
+ 'urn:cladora:document-version:15100000-0000-0000-0000-000000000823',
+ 'Independent signed lease review','15100000-0000-0000-0000-000000000010',
+ '15100000-0000-0000-0000-000000000828','t07-review-151',repeat('0',64));
+select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000040","aal":"aal2"}',true);
+create function pg_temp.execute_t07(p_status text,p_key text) returns jsonb language sql as $$
+ select customer_api.execute_verified_lease_handover_v1(
+  '15100000-0000-0000-0000-000010000014','15100000-0000-0000-0000-000000000100',
+  '15100000-0000-0000-0000-000000001000','15100000-0000-0000-0000-000000000825',
+  '15100000-0000-0000-0000-000010000004','15100000-0000-0000-0000-000000000823',
+  p_status,'{"currency":"RON","rent_amount":3200,"deposit_amount":6400,"due_day":5}'::jsonb,
+  '{"meter_readings":[{"label":"electricity","value":123,"unit":"kWh"}],"keys_count":2,"open_defects":["paint"],"accepted_items":["intercom"]}'::jsonb,p_key)
+$$;
+select lives_ok($$select pg_temp.execute_t07('accepted','execute-t07-151')$$,
+ 'verified signed lease activates canonical lease and handover');
+select is(pg_temp.execute_t07('accepted','execute-t07-151')->>'status','active',
+ 'T07 receipt identifies active lease');
+select is(pg_temp.execute_t07('accepted','execute-t07-151')->>'idempotent','true',
+ 'exact T07 activation replay returns original receipt');
+select throws_ok($$select pg_temp.execute_t07('partial','execute-t07-151')$$,
+ '23505','core_lease_handover_idempotency_conflict','changed T07 activation replay conflicts');
+select is((select count(*) from occupancy.leases where unit_id='15100000-0000-0000-0000-000000100001'
+ and tenant_party_id='15100000-0000-0000-0000-000000000821' and status='active'),1::bigint,
+ 'one canonical active lease is created');
+select is((select count(*) from occupancy.occupancies o join occupancy.occupants x on x.occupancy_id=o.id
+ where o.unit_id='15100000-0000-0000-0000-000000100001' and o.status='active'
+ and x.party_id='15100000-0000-0000-0000-000000000821' and x.role='tenant'),1::bigint,
+ 'one canonical active tenant occupancy is created');
+select is((select count(*) from occupancy.lease_handover_receipts where relationship_proposal_id=
+ '15100000-0000-0000-0000-000000000825'),1::bigint,'one immutable handover receipt');
+select is((select schedule_snapshot->>'currency' from occupancy.lease_handover_receipts where relationship_proposal_id=
+ '15100000-0000-0000-0000-000000000825'),'RON','allowlisted schedule is preserved');
+select is((select transferable_facts->>'keys_count' from occupancy.lease_handover_receipts where relationship_proposal_id=
+ '15100000-0000-0000-0000-000000000825'),'2','allowlisted handover facts are preserved');
+select is((select count(*) from portfolio.ownerships where unit_id='15100000-0000-0000-0000-000000100001'
+ and party_id='15100000-0000-0000-0000-000000000821'),0::bigint,'lease grants no title');
+select is((select count(*) from communications.unit_invitations where unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'lease sends no invitation');
+select is((select count(*) from platform.owner_unit_links where canonical_unit_id=
+ '15100000-0000-0000-0000-000000100001'),0::bigint,'lease creates no owner account link');
+select is((select count(*) from identity.membership_parties where party_id=
+ '15100000-0000-0000-0000-000000000821'),0::bigint,'lease creates no account-party authority');
+select is((select count(*) from occupancy.lease_termination_receipts),0::bigint,
+ 'activation performs no implicit termination or settlement');
+select throws_ok($$delete from occupancy.lease_handover_receipts where relationship_proposal_id=
+ '15100000-0000-0000-0000-000000000825'$$,'55000','lease_transition_history_immutable',
+ 'handover receipt is immutable');
+select is((select count(*) from audit.events where action='CORE_LEASE_HANDOVER_EXECUTED'),1::bigint,
+ 'one T07 handover audit event');
+select is((select count(*) from platform.outbox_events where event_type=
+ 'core.relationship.lease_handover.v1'),1::bigint,'one T07 handover outbox event');
+
+-- T07 termination is intentionally a separate command and a separate lease.
+insert into portfolio.parties(id,tenant_id,type,legal_name) values
+ ('15100000-0000-0000-0000-000000000831','15100000-0000-0000-0000-000000000001','person','Synthetic prior landlord'),
+ ('15100000-0000-0000-0000-000000000832','15100000-0000-0000-0000-000000000001','person','Synthetic prior tenant');
+insert into portfolio.ownerships(id,tenant_id,unit_id,party_id,share,valid_from)
+values('15100000-0000-0000-0000-000000000833','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000100002','15100000-0000-0000-0000-000000000831',1,current_date-30);
+insert into occupancy.leases(id,tenant_id,unit_id,landlord_party_id,tenant_party_id,starts_on,status)
+values('15100000-0000-0000-0000-000000000834','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000100002','15100000-0000-0000-0000-000000000831',
+ '15100000-0000-0000-0000-000000000832',current_date-1,'active');
+insert into occupancy.occupancies(id,tenant_id,unit_id,kind,status,starts_at)
+values('15100000-0000-0000-0000-000000000835','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000100002','tenant','active',now()-interval '1 day');
+insert into occupancy.occupants(occupancy_id,party_id,role)
+values('15100000-0000-0000-0000-000000000835','15100000-0000-0000-0000-000000000832','tenant');
+insert into occupancy.access_assets(id,tenant_id,unit_id,asset_type,serial_hash,status)
+values('15100000-0000-0000-0000-000000000836','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000100002','key','synthetic-t07-key-151','active');
+insert into occupancy.access_assignments(id,tenant_id,asset_id,party_id,starts_at)
+values('15100000-0000-0000-0000-000000000837','15100000-0000-0000-0000-000000000001',
+ '15100000-0000-0000-0000-000000000836','15100000-0000-0000-0000-000000000832',now()-interval '1 day');
+create function pg_temp.terminate_t07(p_access uuid[],p_reason text,p_key text) returns jsonb language sql as $$
+ select customer_api.terminate_verified_lease_v1(
+  '15100000-0000-0000-0000-000010000014','15100000-0000-0000-0000-000000000100',
+  '15100000-0000-0000-0000-000000001000','15100000-0000-0000-0000-000000000834',
+  current_date-1,current_date,p_access,p_reason,p_key)
+$$;
+select throws_ok($$select pg_temp.terminate_t07(array['15100000-0000-0000-0000-000000000838'::uuid],
+ 'Verified lease termination','terminate-t07-wrong-151')$$,
+ '22023','core_lease_termination_access_mismatch','termination rejects an incomplete access baseline');
+select lives_ok($$select pg_temp.terminate_t07(array['15100000-0000-0000-0000-000000000837'::uuid],
+ 'Verified lease termination','terminate-t07-151')$$,'termination closes exact lease, occupancy and access baseline');
+select is(pg_temp.terminate_t07(array['15100000-0000-0000-0000-000000000837'::uuid],
+ 'Verified lease termination','terminate-t07-151')->>'status','terminated','T07 termination receipt is returned');
+select is(pg_temp.terminate_t07(array['15100000-0000-0000-0000-000000000837'::uuid],
+ 'Verified lease termination','terminate-t07-151')->>'idempotent','true','exact termination replay returns original receipt');
+select throws_ok($$select pg_temp.terminate_t07(array['15100000-0000-0000-0000-000000000837'::uuid],
+ 'Changed verified termination','terminate-t07-151')$$,'23505','core_lease_termination_idempotency_conflict',
+ 'changed termination replay conflicts');
+select is((select status::text from occupancy.leases where id='15100000-0000-0000-0000-000000000834'),
+ 'archived','terminated lease is archived');
+select ok((select ends_at is not null and returned_at is not null from occupancy.access_assignments
+ where id='15100000-0000-0000-0000-000000000837'),'matching tenant access is ended and returned');
+select is((select status::text from occupancy.occupancies where id='15100000-0000-0000-0000-000000000835'),
+ 'ended','matching tenant occupancy is ended');
+select ok((select cardinality(ended_access_assignment_ids)=1 and cardinality(ended_occupancy_ids)=1
+ and settlement_status='separate' from occupancy.lease_termination_receipts where lease_id=
+ '15100000-0000-0000-0000-000000000834'),'termination receipt counts exact effects and keeps settlement separate');
+select is((select count(*) from audit.events where action='CORE_LEASE_TERMINATED'),1::bigint,
+ 'one T07 termination audit event');
+select is((select count(*) from platform.outbox_events where event_type=
+ 'core.relationship.lease_terminated.v1'),1::bigint,'one T07 termination outbox event');
+select is((select count(*) from portfolio.ownerships where id='15100000-0000-0000-0000-000000000833'
+ and valid_to is null),1::bigint,'lease termination leaves title unchanged');
+select is((select count(*) from documents.document_permissions where document_id=
+ '15100000-0000-0000-0000-000000000822'),0::bigint,'lease lifecycle copies no private document ACL');
+select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000040","aal":"aal1"}',true);
+select throws_ok($$select pg_temp.terminate_t07(array['15100000-0000-0000-0000-000000000837'::uuid],
+ 'Verified lease termination','terminate-t07-151')$$,'42501','mfa_required',
+ 'AAL2 is required even for a successful termination replay');
+select set_config('request.jwt.claims','{"sub":"15100000-0000-0000-0000-000000000040","aal":"aal2"}',true);
 select throws_ok($$delete from airprop.acquisition_proposals where tenant_id='15100000-0000-0000-0000-000000000001'$$,'22023','airprop_acquisition_decision_immutable','proposal history cannot be deleted');
 select throws_ok($$update airprop.acquisition_decisions set decision='reject' where proposal_id=(select (payload->>'proposal_id')::uuid from acquisition_test_response)$$,'22023','airprop_acquisition_decision_immutable','decision cannot be changed');
 select ok(not has_table_privilege('authenticated','airprop.acquisition_decisions','SELECT,INSERT,UPDATE,DELETE'),'customer tables closed');
