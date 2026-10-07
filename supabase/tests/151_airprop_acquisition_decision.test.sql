@@ -272,7 +272,7 @@ select is((select count(*) from occupancy.leases where unit_id=
  '15100000-0000-0000-0000-000000100001'),0::bigint,'presale grants no tenancy');
 select is((select count(*) from communications.unit_invitations where unit_id=
  '15100000-0000-0000-0000-000000100001'),0::bigint,'presale sends no owner invitation');
-select is((select count(*) from platform.owner_unit_links where unit_id=
+select is((select count(*) from platform.owner_unit_links where canonical_unit_id=
  '15100000-0000-0000-0000-000000100001'),0::bigint,'presale creates no owner account link');
 select is((select count(*) from identity.membership_parties where party_id=
  '15100000-0000-0000-0000-000000000801'),0::bigint,'buyer receives no account-party authority');
