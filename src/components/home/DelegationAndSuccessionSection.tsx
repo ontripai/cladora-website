@@ -99,14 +99,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Fără mandate nelimitate implicite:' : lang === 'fa' ? 'عدم وجود نقش بی‌پایان بدون مبنای معتبر:' : 'No unbounded roles without valid basis:'}
+                    {lang === 'ro' ? 'Acces fără termen doar pe baze active:' : lang === 'fa' ? 'دسترسی بدون تاریخ پایان مشروط به اعتبار مبانی:' : 'Open-ended access conditioned on active bases:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Rolurile fără termen de expirare sunt permise exclusiv dacă există un temei juridic atestat (de exemplu, proprietatea tabulară verificată).'
+                      ? 'Accesul fără dată de expirare fixă este permis doar pe durata validității tuturor temeiurilor necesare (inclusiv autoritatea părinte și mandatul din Workspace) și rămâne revocabil sau caduc la încetarea acestora.'
                       : lang === 'fa'
-                      ? 'بدون پایان بودن یک نقش تنها در صورتی مجاز است که مبنای حقوقی نامحدود (مانند سند قطعی مالکیت) به شکل معتبر در سیستم ثبت شده باشد.'
-                      : 'Perpetual roles are permitted only when supported by verified permanent legal grounds (such as registered title ownership).'}
+                      ? 'دسترسی بدون تاریخ پایان تنها تا زمان استمرار اعتبار کلیه مبانی لازم (از جمله اختیار والد و مبنای دسترسی Workspace) مجاز است و در صورت تغییر یا ابطال مبنا، همچنان قابل لغو یا بی‌اثرشدن خواهد بود.'
+                      : 'Access without a set expiration date is permissible only while all prerequisite grounds (including parent authority and active Workspace entitlement) remain valid, and remains strictly revocable or voidable if any basis lapses.'}
                   </span>
                 </div>
               </li>
