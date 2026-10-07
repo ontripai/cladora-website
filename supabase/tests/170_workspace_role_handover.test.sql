@@ -50,6 +50,7 @@ begin
       where code='airprop_commercial';
   insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
     values(ws_id,'module.airprop_commercial','boolean',true,now()-interval '1 day');
+  -- The grantor must retain a strict authority superset under lineage policy v2.
   insert into identity.role_permissions(role_id,permission_id,effect)
     select admin_role,p.id,'allow' from identity.permissions p
     where p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.underwriting.manage')
