@@ -92,6 +92,8 @@ create index contractual_buyer_subject_idx
 create index contractual_buyer_party_idx
  on portfolio.contractual_buyer_relationships(tenant_id,buyer_party_id,valid_from,valid_to);
 create index contractual_buyer_property_idx on portfolio.contractual_buyer_relationships(property_id);
+create index contractual_buyer_unit_idx on portfolio.contractual_buyer_relationships(unit_id);
+create index contractual_buyer_buyer_party_idx on portfolio.contractual_buyer_relationships(buyer_party_id);
 create index contractual_buyer_actor_idx on portfolio.contractual_buyer_relationships(created_by);
 
 alter table airprop.presale_contracts enable row level security;
