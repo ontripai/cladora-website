@@ -50,6 +50,26 @@ begin
       where code='airprop_commercial';
   insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
     values(ws_id,'module.airprop_commercial','boolean',true,now()-interval '1 day');
+  update platform.module_permission_bindings b
+    set lifecycle_status='deprecated',valid_to=statement_timestamp()
+    from platform.module_definitions md,identity.permissions p
+    where b.module_definition_id=md.id and b.permission_id=p.id
+      and md.code='airprop_commercial'
+      and p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.underwriting.manage')
+      and b.lifecycle_status='active' and b.valid_to is null;
+  insert into platform.module_permission_bindings(
+    module_definition_id,permission_id,binding_version,permission_mode,
+    is_assignable_to_local_role,is_delegable,requires_aal2,lifecycle_status,valid_from)
+    select md.id,p.id,coalesce(max(old.binding_version),0)+1,
+      case when p.code like '%.read' then 'read' else 'manage' end,
+      true,true,false,'active',statement_timestamp()
+    from platform.module_definitions md
+    join identity.permissions p
+      on p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.underwriting.manage')
+    left join platform.module_permission_bindings old
+      on old.module_definition_id=md.id and old.permission_id=p.id
+    where md.code='airprop_commercial'
+    group by md.id,p.id,p.code;
   -- The rollback-only fixture gives the grantor a strict authority superset;
   -- production role permissions are not changed by this test.
   insert into identity.role_permissions(role_id,permission_id,effect)
@@ -194,6 +214,14 @@ begin
     '17000000-0000-0000-0000-000010000001',role_id,4,
     'Synthetic publish role','handover_native_publish_170');
 end; $$;$flow$,'publish native workspace role');
+insert into platform.workspace_member_roles(
+  tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,
+  valid_from,valid_to,assigned_by_user_id,assigned_by_membership_id,reason)
+select '17000000-0000-0000-0000-000000000001','17000000-0000-0000-0000-000000000100',
+  '17000000-0000-0000-0000-000001000001',r.id,'workspace',now()-interval '1 day',
+  now()+interval '2 days','17000000-0000-0000-0000-000000000010',
+  '17000000-0000-0000-0000-000001000001','Synthetic existing policy-v1 workspace authority'
+from platform.workspace_roles r where r.code='handover_native_reader';
 select ok(app_private.native_workspace_scope_for_membership_v2(
   '17000000-0000-0000-0000-000010000011','17000000-0000-0000-0000-000001000001',
   '17000000-0000-0000-0000-000000000100'),'manager holds native scope');
@@ -295,7 +323,7 @@ select ok(app_private.check_scoped_effective_permission_v1(
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
 select ok((select count(*) from customer_api.list_workspace_targets_v2(
-  '17000000-0000-0000-0000-000010000013'))=0,'successor native scope ends with manager authority');
+  '17000000-0000-0000-0000-000010000013'))=1,'successor retains discovery through remaining read authority');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
 update identity.role_permissions set effect='deny'
