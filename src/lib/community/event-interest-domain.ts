@@ -161,6 +161,7 @@ export function applyEventCommand(
 ): CommandResult {
   if (!authority.membership_active) return reject(state, 'AUTHORITY_DENIED');
   if (!authority.capability_active) return reject(state, 'CAPABILITY_INACTIVE');
+  if (authority.context_id !== command.context_id) return reject(state, 'IDEMPOTENCY_CONTEXT_MISMATCH');
   if (authority.workspace_id !== command.workspace_id) return reject(state, 'WORKSPACE_MISMATCH');
 
   const fingerprint = stableFingerprint({ schema_version: 1, actor_user_id: authority.actor_user_id, context_id: authority.context_id, workspace_id: command.workspace_id, command });

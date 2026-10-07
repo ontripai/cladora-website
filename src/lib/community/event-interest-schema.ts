@@ -54,6 +54,7 @@ export const authoritySnapshotSchema = z.object({
 const commandBase = z.object({
   command_id: uuid,
   idempotency_key: idempotencyKey,
+  context_id: uuid,
   workspace_id: uuid,
   expected_version: z.number().int().nonnegative(),
   reason: z.string().trim().min(5).max(500),

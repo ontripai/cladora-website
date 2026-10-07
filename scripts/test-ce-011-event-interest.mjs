@@ -20,7 +20,7 @@ const ids = {
 };
 let serial = 1;
 const commandId = () => `60000000-0000-0000-0000-${String(serial++).padStart(12, '0')}`;
-const base = (type, expected_version, extra = {}) => eventCommandSchema.parse({ type, command_id: commandId(), idempotency_key: `ce011.test.${serial}.key`, workspace_id: ids.workspace, expected_version, reason: 'CE-011 executable acceptance test', ...extra });
+const base = (type, expected_version, extra = {}) => eventCommandSchema.parse({ type, command_id: commandId(), idempotency_key: `ce011.test.${serial}.key`, context_id: ids.context, workspace_id: ids.workspace, expected_version, reason: 'CE-011 executable acceptance test', ...extra });
 const authority = (overrides = {}) => authoritySnapshotSchema.parse({ tenant_id: ids.tenant, context_id: ids.context, actor_user_id: ids.actor, membership_id: ids.manager, represented_party_id: null, workspace_id: ids.workspace, membership_active: true, capability_active: true, capability_code: 'ce.event.basic', module_code: 'community_events', audience_policy_id: ids.audiencePolicy, audience_policy_version: 1, audience_result: 'eligible', assurance_level: 'aal1', evaluated_at: now, role_codes: ['event_manager'], permissions: ['events.event.read', 'events.event.publish', 'events.event.cancel', 'events.interest.manage_self', 'events.attendance.record', 'events.attendance.correct'], ...overrides });
 const target = (membership_id, role_codes = ['resident']) => ({ membership_id, workspace_id: ids.workspace, membership_active: true, role_codes });
 const now = '2026-10-08T08:00:00.000Z';
@@ -35,10 +35,13 @@ assert.equal(timezoneSchema.safeParse('Europe/Not-A-Zone').success, false);
 let state = emptyCe011State();
 const create = createEvent(ids.event, ids.occurrence);
 rejectedUnchanged(state, applyEventCommand(state, create, authority({ capability_active: false }), now), 'CAPABILITY_INACTIVE');
+rejectedUnchanged(state, applyEventCommand(state, create, authority({ permissions: ['events.event.cancel'] }), now), 'AUTHORITY_DENIED');
 state = ok(applyEventCommand(state, create, authority(), now));
 assert.equal(state.events[ids.event].community_ref, null);
 assert.equal('capacity' in state.events[ids.event], false);
-state = ok(applyEventCommand(state, base('publish_event', 1, { event_id: ids.event }), authority(), now));
+const publish = base('publish_event', 1, { event_id: ids.event });
+rejectedUnchanged(state, applyEventCommand(state, publish, authority({ permissions: ['events.event.cancel'] }), now), 'AUTHORITY_DENIED');
+state = ok(applyEventCommand(state, publish, authority(), now));
 
 const crossWorkspace = { ...base('register_interest', 2, { event_id: ids.event, expected_interest_version: 0 }), workspace_id: ids.otherWorkspace };
 rejectedUnchanged(state, applyEventCommand(state, crossWorkspace, authority(), now), 'WORKSPACE_MISMATCH');
@@ -79,7 +82,9 @@ const attendanceId = attendance.command_id;
 assert.equal(state.attendance[attendanceId].observed_local, '2026-10-10T15:10');
 assert.equal(state.attendance[attendanceId].timezone, 'Europe/Bucharest');
 
-state = ok(applyEventCommand(state, base('cancel_event', 2, { event_id: ids.event }), authority(), now));
+const cancel = base('cancel_event', 2, { event_id: ids.event });
+rejectedUnchanged(state, applyEventCommand(state, cancel, authority({ permissions: ['events.event.publish'] }), now), 'AUTHORITY_DENIED');
+state = ok(applyEventCommand(state, cancel, authority(), now));
 const cancelledAttendance = base('record_attendance', 3, { event_id: ids.event, target_membership_id: ids.otherMember, observed_local: '2026-10-10T15:15', timezone: 'Europe/Bucharest' });
 rejectedUnchanged(state, applyEventCommand(state, cancelledAttendance, authority(), now, target(ids.otherMember)), 'INVALID_STATE');
 const correction = base('correct_attendance', 3, { event_id: ids.event, attendance_id: attendanceId, expected_attendance_version: 1, attended: false, observed_local: '2026-10-10T15:12', timezone: 'Europe/Bucharest', reason: 'Correct observed attendance after event cancellation' });
