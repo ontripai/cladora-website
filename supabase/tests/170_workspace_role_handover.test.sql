@@ -74,7 +74,7 @@ begin
   insert into identity.role_permissions(role_id,permission_id,effect)
   select admin_role,p.id,'allow' from identity.permissions p
   where p.code in ('airprop.opportunity.read','airprop.opportunity.manage')
-  on conflict(role_id,permission_id) do update set effect='allow';
+  on conflict on constraint role_permissions_pkey do update set effect='allow';
   perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'aal','aal2')::text,true);
   result := customer_api.create_workspace_role_draft_v1('17000000-0000-0000-0000-000010000001',
     'handover_reader','Handover reader','Synthetic role handover','property',null,
