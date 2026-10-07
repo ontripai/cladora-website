@@ -115,6 +115,7 @@ async function run() {
   const F_NEXT_USERS = [crypto.randomUUID(), crypto.randomUUID()];
   const F_NEXT_MEMS = [crypto.randomUUID(), crypto.randomUUID()];
   const ROLE_CODE = `role_${crypto.randomBytes(4).toString('hex')}`;
+  const EXTRA_PERMISSION_CODE = `${ROLE_CODE}.extra`;
   const F_IDEM_WINNER = `idem_win_${crypto.randomBytes(6).toString('hex')}`;
   const F_IDEM_LOSER = `idem_lose_${crypto.randomBytes(6).toString('hex')}`;
 
@@ -322,6 +323,36 @@ async function run() {
       FROM platform.module_definitions WHERE code='maintenance';
       INSERT INTO platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
       VALUES ('${F_WS}','module.maintenance','boolean',true,now()-interval '1 day');
+      -- This ephemeral fixture opts the exercised permission into delegation
+      -- and gives the manager one additional pair, so the transferred role is
+      -- a strict subset under the bounded-authority contract.
+      UPDATE platform.module_permission_bindings b
+      SET lifecycle_status='deprecated',valid_to=statement_timestamp()
+      FROM platform.module_definitions md,identity.permissions p
+      WHERE b.module_definition_id=md.id AND b.permission_id=p.id
+        AND md.code='maintenance' AND p.code='maintenance.requests.manage'
+        AND b.lifecycle_status='active' AND b.valid_to IS NULL;
+      INSERT INTO identity.permissions(code,resource,action,description)
+      VALUES ('${EXTRA_PERMISSION_CODE}','maintenance.concurrent','${EXTRA_PERMISSION_CODE}',
+        'Ephemeral concurrency authority ceiling');
+      INSERT INTO platform.module_permission_bindings(
+        module_definition_id,permission_id,binding_version,permission_mode,
+        is_assignable_to_local_role,is_delegable,requires_aal2,lifecycle_status,valid_from)
+      SELECT md.id,p.id,coalesce(max(old.binding_version),0)+1,
+        'manage',true,true,false,'active',statement_timestamp()
+      FROM platform.module_definitions md
+      JOIN identity.permissions p ON p.code IN (
+        'maintenance.requests.manage','${EXTRA_PERMISSION_CODE}')
+      LEFT JOIN platform.module_permission_bindings old
+        ON old.module_definition_id=md.id AND old.permission_id=p.id
+      WHERE md.code='maintenance'
+      GROUP BY md.id,p.id;
+      INSERT INTO identity.role_permissions(role_id,permission_id,effect)
+      SELECT r.id,p.id,'allow'
+      FROM identity.roles r CROSS JOIN identity.permissions p
+      WHERE r.code='association_admin' AND r.tenant_id IS NULL
+        AND p.code IN ('maintenance.requests.manage','${EXTRA_PERMISSION_CODE}')
+      ON CONFLICT ON CONSTRAINT role_permissions_pkey DO UPDATE SET effect='allow';
       INSERT INTO auth.users(id,email) VALUES
       ('${F_OLD_USER}','old_${F_OLD_USER}@test.local'),
       ('${F_NEXT_USERS[0]}','next_${F_NEXT_USERS[0]}@test.local'),
@@ -352,14 +383,14 @@ async function run() {
     const oldAssignmentId = oldRow.rows[0].id;
     await c1.query('BEGIN');
     await c1.query(`SET LOCAL role='authenticated'; SET LOCAL request.jwt.claims='{"sub":"${F_ADMIN_USER}","role":"authenticated","aal":"aal2"}';`);
-    await c1.query(`SELECT customer_api.handover_workspace_role_v1($1,$2,1,$3,now()+interval '12 hours',$4,$5)`,
+    await c1.query(`SELECT customer_api.handover_workspace_role_v2($1,null,$2,1,$3,now()+interval '12 hours',$4,$5)`,
       [F_ADMIN_CTX, oldAssignmentId, F_NEXT_MEMS[0], 'Concurrent handover winner', `handover_win_${crypto.randomBytes(6).toString('hex')}`]);
     await c2.query('BEGIN');
     await c2.query(`SET LOCAL role='authenticated'; SET LOCAL request.jwt.claims='{"sub":"${F_ADMIN_USER}","role":"authenticated","aal":"aal2"}';`);
     let loserError = null;
     const loser = (async () => {
       try {
-        await c2.query(`SELECT customer_api.handover_workspace_role_v1($1,$2,1,$3,now()+interval '12 hours',$4,$5)`,
+        await c2.query(`SELECT customer_api.handover_workspace_role_v2($1,null,$2,1,$3,now()+interval '12 hours',$4,$5)`,
           [F_ADMIN_CTX, oldAssignmentId, F_NEXT_MEMS[1], 'Concurrent handover loser', `handover_lose_${crypto.randomBytes(6).toString('hex')}`]);
         await c2.query('COMMIT');
       } catch (error) {
