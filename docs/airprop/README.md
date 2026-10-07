@@ -31,3 +31,7 @@ Implementation remains blocked until this package is reviewed and a separate exe
 [UX-DEC-001: user directive v1.0](UX-DEC-001-source-v1.0.md) complements lifecycle v1.1. [AIRPROP UX-015: gaps, first fixes and verification](UX-015-adoption-and-gaps.md) is part of the permanent workstream handoff. Open UX and security checks remain explicit; attachment does not mean full implementation conformity.
 
 AIRPROP diligence protects its local unsaved edits against both in-module navigation and shared workspace-context changes. See [CLADORA UX-018](../architecture/CLADORA-UX-018-unsaved-context-guard.md) for the shell contract and registered forms.
+
+## Commercial lifecycle implementation added 2026-10-07
+
+[AIRPROP commercial lifecycle 018 v1.0](../architecture/CLADORA-AIRPROP-COMMERCIAL-LIFECYCLE-018-v1.0.md) records the AIRPROP-owned LC-A01 listing, applicant and reservation runtime, LC-A02 obligation schedule, and bounded LC-A03 resale, lease and management links. It consumes the existing Core facts and does not duplicate shared ownership, lease, authority, document or payment records.
