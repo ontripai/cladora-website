@@ -57,7 +57,7 @@ begin
   from platform.module_definitions md,identity.permissions p
   where b.module_definition_id=md.id and b.permission_id=p.id
     and md.code='airprop_commercial'
-    and p.code in ('airprop.opportunity.read','airprop.opportunity.manage')
+    and p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.asset.read')
     and b.lifecycle_status='active' and b.valid_to is null;
   insert into platform.module_permission_bindings(
     module_definition_id,permission_id,binding_version,permission_mode,
@@ -66,14 +66,14 @@ begin
     case when p.code like '%.read' then 'read' else 'manage' end,
     true,true,false,'active',statement_timestamp()
   from platform.module_definitions md
-  join identity.permissions p on p.code in ('airprop.opportunity.read','airprop.opportunity.manage')
+  join identity.permissions p on p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.asset.read')
   left join platform.module_permission_bindings old
     on old.module_definition_id=md.id and old.permission_id=p.id
   where md.code='airprop_commercial'
   group by md.id,p.id,p.code;
   insert into identity.role_permissions(role_id,permission_id,effect)
   select admin_role,p.id,'allow' from identity.permissions p
-  where p.code in ('airprop.opportunity.read','airprop.opportunity.manage')
+  where p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.asset.read')
   on conflict on constraint role_permissions_pkey do update set effect='allow';
   perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'aal','aal2')::text,true);
   result := customer_api.create_workspace_role_draft_v1('17000000-0000-0000-0000-000010000001',
@@ -210,6 +210,21 @@ begin
     '17000000-0000-0000-0000-000010000001',role_id,4,
     'Synthetic publish role','handover_native_publish_170');
 end; $$;$flow$,'publish native workspace role');
+-- Seed only the manager's pre-existing native workspace basis. This is a
+-- rollback-only historical fixture; all subordinate commands below use the
+-- policy-v2 public contract and must record live per-permission lineage.
+insert into platform.workspace_member_roles(
+  tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,
+  valid_from,valid_to,assigned_by_user_id,assigned_by_membership_id,
+  authority_policy_version,lock_version,reason)
+select '17000000-0000-0000-0000-000000000001',
+  '17000000-0000-0000-0000-000000000100',
+  '17000000-0000-0000-0000-000001000001',r.id,'workspace',
+  now()-interval '1 day',now()+interval '2 days',
+  '17000000-0000-0000-0000-000000000020',
+  '17000000-0000-0000-0000-000001000002',1,1,
+  'Synthetic pre-existing manager workspace basis'
+from platform.workspace_roles r where r.code='handover_native_reader';
 select lives_ok($$select customer_api.assign_workspace_role_v2(
   '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000010000011',
   '17000000-0000-0000-0000-000001000002',

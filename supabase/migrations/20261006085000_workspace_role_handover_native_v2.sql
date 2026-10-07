@@ -170,10 +170,8 @@ begin
     p_context_id,p_authority_context_id,p_successor_membership_id,previous.workspace_role_id,
     previous.scope_type,previous.property_id,previous.building_id,previous.unit_id,
     p_valid_until,p_reason,derived_key||':assign');
-  insert into platform.workspace_role_handover_lineage(
-    successor_assignment_id,manager_membership_id,manager_context_id,parent_assignment_id)
-  values((new_assignment->>'id')::uuid,actor.membership_id,
-    coalesce(p_authority_context_id,p_context_id),parent_id);
+  -- assign_workspace_role_v2 records and verifies the immutable authority
+  -- lineage, including exact retries. Do not insert the same row twice here.
   revoked := customer_api.revoke_workspace_role_assignment_v1(
     p_context_id,previous.id,p_expected_lock_version,p_reason,derived_key||':revoke');
   result := jsonb_build_object('action','handover_role','previous',revoked,
