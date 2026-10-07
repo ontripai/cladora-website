@@ -166,8 +166,8 @@ begin
   end if;
 
   derived_key := 'handover:'||substr(payload_hash,1,48);
-  new_assignment := customer_api.assign_workspace_role_v1(
-    p_context_id,p_successor_membership_id,previous.workspace_role_id,
+  new_assignment := customer_api.assign_workspace_role_v2(
+    p_context_id,p_authority_context_id,p_successor_membership_id,previous.workspace_role_id,
     previous.scope_type,previous.property_id,previous.building_id,previous.unit_id,
     p_valid_until,p_reason,derived_key||':assign');
   insert into platform.workspace_role_handover_lineage(
@@ -196,5 +196,9 @@ revoke all on function customer_api.handover_workspace_role_v2(uuid,uuid,uuid,in
  from public,anon,service_role;
 grant execute on function customer_api.handover_workspace_role_v2(uuid,uuid,uuid,integer,uuid,timestamptz,text,text)
  to authenticated;
+-- The dual-context v2 command is the only customer handover entry point.
+-- Keeping v1 executable would bypass the explicit workspace authority context.
+revoke execute on function customer_api.handover_workspace_role_v1(
+  uuid,uuid,integer,uuid,timestamptz,text,text) from authenticated;
 notify pgrst,'reload schema';
 commit;
