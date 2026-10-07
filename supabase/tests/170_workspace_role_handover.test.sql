@@ -107,6 +107,7 @@ select ok((select count(*)=3 from identity.role_permissions rp
     where id='17000000-0000-0000-0000-000001000001')
     and rp.effect='allow' and p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.underwriting.manage')),
   'manager has broader direct AIRPROP authority');
+-- Workspace assignment must persist the verified tenant authority context.
 select lives_ok($$select customer_api.assign_workspace_role_v2(
   '17000000-0000-0000-0000-000010000001',null,'17000000-0000-0000-0000-000001000002',
   (select id from platform.workspace_roles where code='handover_reader'),
