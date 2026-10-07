@@ -61,11 +61,12 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close mobile menu on path change
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setMobileMenuOpen(false);
     setActiveDropdown(null);
-  }, [pathname]);
+  }
 
   const toggleDropdown = (name: 'solutions' | 'services') => {
     setActiveDropdown((prev) => (prev === name ? null : name));
