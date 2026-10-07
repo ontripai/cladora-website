@@ -72,7 +72,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
     if (currentStep === 4) return services.length > 0;
     if (currentStep === 5) return !!workspaceStatus;
     if (currentStep === 6) {
-      return fullName.trim().length >= 2 && email.trim().includes('@') && privacyConsent;
+      const isUnitsValid = !unitsCount.trim() || (/^[1-9]\d*$/.test(unitsCount.trim()) && Number(unitsCount.trim()) <= 10000);
+      return fullName.trim().length >= 2 && email.trim().includes('@') && privacyConsent && isUnitsValid;
     }
     return true;
   };

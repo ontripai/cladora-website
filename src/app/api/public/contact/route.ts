@@ -59,7 +59,19 @@ const ContactPayloadSchema = z
     services: z.array(z.string().trim().max(100)).optional().nullable(),
     workspaceStatus: z.string().trim().max(100).optional().nullable(),
     city: z.string().trim().max(100).optional().nullable(),
-    unitsCount: z.string().trim().max(50).optional().nullable(),
+    unitsCount: z
+      .string()
+      .trim()
+      .max(10)
+      .optional()
+      .nullable()
+      .refine(
+        (val) => {
+          if (!val || val === '') return true;
+          return /^[1-9]\d*$/.test(val) && Number(val) >= 1 && Number(val) <= 10000;
+        },
+        { message: 'Units count must be a positive integer between 1 and 10,000.' }
+      ),
     honeypot: z.string().optional(),
     turnstileToken: z.string().optional().nullable(),
   })
@@ -260,8 +272,8 @@ export async function POST(request: NextRequest) {
     else if (data.propertyType === 'mixed_use' || data.propertyType === 'mixed') mappedWorkspaceType = 'mixed';
     else if (data.propertyType) mappedWorkspaceType = 'other';
 
-    const parsedUnits = data.unitsCount && !isNaN(Number(data.unitsCount))
-      ? Math.min(10000, Math.max(1, parseInt(data.unitsCount, 10)))
+    const parsedUnits = data.unitsCount && data.unitsCount.trim() !== ''
+      ? parseInt(data.unitsCount.trim(), 10)
       : null;
 
     const enrichedMetadata = {
