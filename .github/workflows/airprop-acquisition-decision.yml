@@ -4,12 +4,14 @@ on:
     paths:
       - 'supabase/migrations/*airprop_acquisition_decision*.sql'
       - 'supabase/migrations/*lifecycle_contractual_buyer*.sql'
+      - 'supabase/migrations/*lifecycle_verified_ownership_transfer*.sql'
       - 'supabase/tests/151_airprop_acquisition_decision.test.sql'
       - 'src/app/api/customer/v2/airprop/**'
       - 'src/lib/airprop/**'
       - 'src/components/customer/CustomerAirprop*.tsx'
       - 'scripts/test-airprop-acquisition*.mjs'
       - 'scripts/test-airprop-presale*.mjs'
+      - 'scripts/test-core-ownership-transfer*.mjs'
       - 'scripts/test-workspace-native-authority-003.mjs'
       - 'scripts/airprop-local-postgres-adapter.mjs'
       - '.github/workflows/airprop-acquisition-decision.yml'
@@ -46,6 +48,7 @@ jobs:
         run: CLADORA_PGLITE_PACKAGE="file://$GITHUB_WORKSPACE/scripts/airprop-local-postgres-adapter.mjs" node scripts/test-workspace-native-authority-003.mjs --airprop-acquisition
       - run: node scripts/test-airprop-acquisition-route-013.mjs
       - run: node scripts/test-airprop-presale-route-014.mjs
+      - run: node scripts/test-core-ownership-transfer-route-015.mjs
       - run: node scripts/test-airprop-acquisition-ui-013.mjs
       - run: node scripts/test-airprop-diligence-ui-012.mjs
       - run: npm run lint
