@@ -50,6 +50,10 @@ begin
       where code='airprop_commercial';
   insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
     values(ws_id,'module.airprop_commercial','boolean',true,now()-interval '1 day');
+  insert into identity.role_permissions(role_id,permission_id,effect)
+    select admin_role,p.id,'allow' from identity.permissions p
+    where p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.underwriting.manage')
+    on conflict(role_id,permission_id) do update set effect='allow';
   perform set_config('request.jwt.claims',jsonb_build_object('sub',admin_id,'aal','aal2')::text,true);
   result := customer_api.create_workspace_role_draft_v1('17000000-0000-0000-0000-000010000001',
     'handover_reader','Handover reader','Synthetic role handover','property',null,
@@ -75,11 +79,12 @@ select ok(not has_function_privilege('authenticated',
 select ok(not has_function_privilege('authenticated',
   'customer_api.revoke_workspace_role_assignment_v1(uuid,uuid,integer,text,text)','execute'),
   'old generic revoke entry point is closed to authenticated callers');
-select lives_ok($$select customer_api.assign_workspace_role_v1(
-  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000001',
-  (select id from platform.workspace_roles where code='handover_reader'),
-  'property','17000000-0000-0000-0000-000000001000',null,null,now()+interval '2 days',
-  'Synthetic manager authority','handover_manager_170')$$,'manager has effective role permission');
+select ok((select count(*)=3 from identity.role_permissions rp
+  join identity.permissions p on p.id=rp.permission_id
+  where rp.role_id=(select role_id from identity.memberships
+    where id='17000000-0000-0000-0000-000001000001')
+    and rp.effect='allow' and p.code in ('airprop.opportunity.read','airprop.opportunity.manage','airprop.underwriting.manage')),
+  'manager has broader direct AIRPROP authority');
 select lives_ok($$select customer_api.assign_workspace_role_v2(
   '17000000-0000-0000-0000-000010000001',null,'17000000-0000-0000-0000-000001000002',
   (select id from platform.workspace_roles where code='handover_reader'),
@@ -112,7 +117,7 @@ select lives_ok($$select customer_api.handover_workspace_role_v1(
   1,'17000000-0000-0000-0000-000001000003',now()+interval '12 hours',
   'Synthetic role transfer','handover_ok_170')$$,'exact retry returns saved result');
 select ok((select count(*) from platform.workspace_member_roles where customer_workspace_id=
-  '17000000-0000-0000-0000-000000000100')=3,'retry leaves manager and two immutable assignments');
+  '17000000-0000-0000-0000-000000000100')=2,'retry leaves two immutable assignments');
 select ok((select valid_to<=statement_timestamp() from platform.workspace_member_roles where membership_id=
   '17000000-0000-0000-0000-000001000002'),'old assignment ended');
 select ok((select assigned_by_membership_id='17000000-0000-0000-0000-000001000001'
@@ -187,11 +192,9 @@ begin
     '17000000-0000-0000-0000-000010000001',role_id,4,
     'Synthetic publish role','handover_native_publish_170');
 end; $$;$flow$,'publish native workspace role');
-select lives_ok($$select customer_api.assign_workspace_role_v1(
-  '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000001000001',
-  (select id from platform.workspace_roles where code='handover_native_reader'),
-  'workspace',null,null,null,now()+interval '2 days',
-  'Synthetic manager native authority','handover_native_manager_170')$$,'manager holds native scope');
+select ok(app_private.native_workspace_scope_for_membership_v2(
+  '17000000-0000-0000-0000-000010000011','17000000-0000-0000-0000-000001000001',
+  '17000000-0000-0000-0000-000000000100'),'manager holds native scope');
 select lives_ok($$select customer_api.assign_workspace_role_v2(
   '17000000-0000-0000-0000-000010000001','17000000-0000-0000-0000-000010000011',
   '17000000-0000-0000-0000-000001000002',
@@ -275,17 +278,15 @@ select ok(app_private.check_scoped_effective_permission_v1(
   'property','17000000-0000-0000-0000-000000001000'),'combined role initially grants manage');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
-select customer_api.revoke_workspace_role_assignment_v1(
-  '17000000-0000-0000-0000-000010000001',
-  (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
-    on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000001'
-    and r.code='handover_native_reader'),1,
-  'Synthetic native manager revoked','handover_native_revoke_170');
+update identity.role_permissions set effect='deny'
+  where role_id=(select role_id from identity.memberships
+    where id='17000000-0000-0000-0000-000001000001')
+    and permission_id=(select id from identity.permissions where code='airprop.opportunity.manage');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000020","aal":"aal2"}',true);
 select ok(not app_private.check_scoped_effective_permission_v1(
   '17000000-0000-0000-0000-000010000002','airprop.opportunity.manage','airprop_commercial',
-  'property','17000000-0000-0000-0000-000000001000'),'revoked manager source removes manage');
+  'property','17000000-0000-0000-0000-000000001000'),'reduced manager source removes manage');
 select ok(app_private.check_scoped_effective_permission_v1(
   '17000000-0000-0000-0000-000010000002','airprop.opportunity.read','airprop_commercial',
   'property','17000000-0000-0000-0000-000000001000'),'remaining manager source retains read');
@@ -295,12 +296,10 @@ select ok((select count(*) from customer_api.list_workspace_targets_v2(
   '17000000-0000-0000-0000-000010000013'))=0,'successor native scope ends with manager authority');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000010","aal":"aal2"}',true);
-select customer_api.revoke_workspace_role_assignment_v1(
-  '17000000-0000-0000-0000-000010000001',
-  (select a.id from platform.workspace_member_roles a join platform.workspace_roles r
-    on r.id=a.workspace_role_id where a.membership_id='17000000-0000-0000-0000-000001000001'
-    and r.code='handover_reader'),
-  1,'Synthetic manager authority revoked','handover_manager_revoke_170');
+update identity.role_permissions set effect='deny'
+  where role_id=(select role_id from identity.memberships
+    where id='17000000-0000-0000-0000-000001000001')
+    and permission_id=(select id from identity.permissions where code='airprop.opportunity.read');
 select set_config('request.jwt.claims',
   '{"sub":"17000000-0000-0000-0000-000000000030","aal":"aal2"}',true);
 select ok(not app_private.check_scoped_effective_permission_v1(
