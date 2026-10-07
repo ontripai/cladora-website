@@ -4,15 +4,22 @@ import { getSiteUrl } from '@/config/site';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl();
   const languages = ['ro', 'en', 'fa'] as const;
-  const staticLastMod = new Date('2026-09-05T00:00:00.000Z');
+  const staticLastMod = new Date('2026-10-07T00:00:00.000Z');
 
   const publicRoutes = [
     '',
+    '/platform',
+    '/solutions',
+    '/airprop',
+    '/service',
+    '/operations',
+    '/lifecycle',
+    '/contact',
+    '/resources/faq',
     '/about',
     '/accessibility',
     '/association',
     '/building-dna',
-    '/contact',
     '/cookies',
     '/financial-truth',
     '/manager',
@@ -20,11 +27,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/migration',
     '/modules',
     '/pilot',
-    '/platform',
     '/portfolio',
     '/pricing',
     '/privacy',
-    '/resources/faq',
     '/security',
     '/solutions/associations',
     '/solutions/property-managers',
@@ -43,7 +48,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
         url: `${baseUrl}/${lang}${route}`,
         lastModified: staticLastMod,
         changeFrequency: route === '' ? 'daily' : 'weekly',
-        priority: route === '' ? 1.0 : (route.startsWith('/solutions') || route === '/pricing' || route === '/platform' ? 0.9 : 0.7),
+        priority: route === '' ? 1.0 : (route === '/platform' || route.startsWith('/solutions') || route === '/airprop' || route === '/service' || route === '/lifecycle' ? 0.9 : 0.7),
         alternates: {
           languages: {
             ro: `${baseUrl}/ro${route}`,

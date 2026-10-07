@@ -11,58 +11,100 @@ interface RouteContent {
 export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteContent>> = {
   '/': {
     ro: {
-      title: 'Sistemul de Operare pentru Active Rezidențiale & Contabilitate',
-      desc: 'CLADORA este concepută pentru a susține registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.',
+      title: 'Mediul Unificat de Colaborare, Gestiune & Servicii Imobiliare',
+      desc: 'CLADORA este mediul unificat de colaborare, gestiune și servicii pentru proprietăți, clădiri, unități, spații și active. Însoțește proprietatea de la pre-vânzare până la exploatare și tranzacții ulterioare.',
     },
     en: {
-      title: 'Residential Asset Operating System & Statutory Accounting',
-      desc: 'CLADORA is designed to support statutory simple-entry accounting, supplemental double-entry controls, 5D owner-tenant rights, and meter OCR on an auditable platform.',
+      title: 'Unified Environment for Property Operations, Management & Services',
+      desc: 'CLADORA is the unified environment for collaboration, management, and services across properties, units, and physical assets—preserving record continuity from pre-sales through decades of operation.',
     },
     fa: {
-      title: 'سیستم‌عامل مدیریت دارایی‌های مسکونی و حسابداری قانونی',
-      desc: 'کلادورا برای پشتیبانی از دفاتر قانونی حسابداری یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک ۵ بعدی حقوق مالک و مستأجر و قرائت تصویری کنتورها طراحی شده است.',
-    },
-  },
-  '/pricing': {
-    ro: {
-      title: 'Tarife transparente & Calculator flexibil',
-      desc: 'Tarife transparente de la 0.60 € / unitate / lună. Calculează investiția pentru asociația sau portofoliul tău.',
-    },
-    en: {
-      title: 'Transparent Pricing & Cost Calculator',
-      desc: 'Predictable pricing starting from 0.60 € / unit / month. Calculate investment for your HOA or portfolio.',
-    },
-    fa: {
-      title: 'تعرفه‌ها و محاسبه‌گر شفاف هزینه‌ها',
-      desc: 'تعرفه‌های شفاف از ۰.۶۰ یورو به ازای هر واحد در ماه. محاسبه دقیق هزینه‌ها متناسب با تعداد واحدها.',
-    },
-  },
-  '/pilot': {
-    ro: {
-      title: 'Program Pilot București-Ilfov',
-      desc: 'Înscrie-te în cohorta pilot CLADORA pentru primele 10 asociații și 2 companii de administrare din București-Ilfov.',
-    },
-    en: {
-      title: 'Bucharest-Ilfov Pilot Cohort',
-      desc: 'Join the CLADORA pilot cohort for the first 10 associations and 2 property management firms in Bucharest-Ilfov.',
-    },
-    fa: {
-      title: 'برنامه پایلوت بخارست-ایلفوف',
-      desc: 'ثبت‌نام در برنامه پایلوت کلادورا ویژه ۱۰ مجتمع مسکونی و ۲ شرکت مدیریت املاک در بخارست و ایلفوف.',
+      title: 'محیط یکپارچهٔ همکاری، مدیریت و خدمات ملک، فضا و دارایی',
+      desc: 'CLADORA محیط یکپارچهٔ همکاری، مدیریت و خدمات برای ملک، ساختمان، واحد، فضا و دارایی است؛ از زمان تعریف و پیش‌فروش تا تحویل، بهره‌برداری، نگهداری و معاملات بعدی.',
     },
   },
   '/platform': {
     ro: {
-      title: 'Arhitectura Platformei & Tehnologie',
-      desc: 'Explorează arhitectura modulară CLADORA: 17 nuclee logice, evidență conformă în partidă simplă, registru analitic suplimentar și reconciliere asistată.',
+      title: 'Arhitectura Platformei & Modelul Universal Workspace',
+      desc: 'Descoperă arhitectura CLADORA: identitatea persistentă a activelor, modelul Universal Workspace, delegarea autorității cu termen și predarea transparentă a responsabilităților.',
     },
     en: {
-      title: 'Platform Architecture & Technology',
-      desc: 'Explore the CLADORA modular architecture: 17 logical cores, statutory simple-entry truth, supplemental ledger controls, and assisted reconciliation.',
+      title: 'Platform Architecture & Universal Workspace Model',
+      desc: 'Explore CLADORA architecture: persistent property identity, universal workspace boundaries, time-bound delegation, and accountable succession handover.',
     },
     fa: {
-      title: 'معماری فنی و ساختار یکپارچه پلتفرم',
-      desc: 'بررسی معماری ماژولار کلادورا شامل ۱۷ هسته نرم‌افزاری تخصصی، دفاتر قانونی یک‌طرفه، کنترل‌های تحلیلی تکمیلی و تطبیق ساختاریافته.',
+      title: 'معماری جامع پلتفرم و مدل Workspace',
+      desc: 'معماری یکپارچه کلادورا: هویت پایدار ملک، مرزهای مستقل Workspace، تفویض اختیار زمان‌دار و تحویل مسئولیت با حفظ کامل سوابق تاریخی.',
+    },
+  },
+  '/airprop': {
+    ro: {
+      title: 'AIRPROP — Vânzări, Pre-vânzări, Închirieri & Mandate Imobiliare',
+      desc: 'Prezentarea proprietății, gestionarea oportunităților calificate, antecontracte, gestiune chirii și transfer direct către exploatare pe nucleul comun CLADORA.',
+    },
+    en: {
+      title: 'AIRPROP — Real Estate Marketing, Pre-Sales, Leasing & Mandates',
+      desc: 'Property showcase, verified inquiries, pre-sales contracts, lease administration, and property management mandates bridging straight into living operations.',
+    },
+    fa: {
+      title: 'AIRPROP — عرضه، پیش‌فروش، معاملات و اجاره ملک',
+      desc: 'معرفی و عرضه ملک، متقاضیان و فرصت‌ها، پیش‌فروش، مدیریت روابط موجر و مستأجر، واگذاری مدیریت و اتصال مستقیم فرایند تجاری به تحویل و بهره‌برداری.',
+    },
+  },
+  '/service': {
+    ro: {
+      title: 'SERVICE — Catalog de Servicii, Ofertare Concurențială & Recepție',
+      desc: 'Lansarea cererilor de servicii, compararea devizelor de cost și timp, comenzi de lucru, recepție semnată și înregistrarea permanentă a istoricului pe activ.',
+    },
+    en: {
+      title: 'SERVICE — Service Marketplace, Quote Comparison & Execution',
+      desc: 'Structured service requests, side-by-side quote comparison, milestone work orders, verified digital sign-offs, and permanent asset service logs.',
+    },
+    fa: {
+      title: 'SERVICE — کاتالوگ خدمات، استعلام قیمت، سفارش و نظارت',
+      desc: 'انتخاب خدمات، ثبت نیاز، دریافت و مقایسه پیشنهادها، توافق بر دامنه و هزینه، پیگیری اجرا، پذیرش نتیجه و ثبت ماندگار در شناسنامه دارایی.',
+    },
+  },
+  '/operations': {
+    ro: {
+      title: 'Operațiuni & Mentenanță — Echipamente, Revizii & Comenzi de Lucru',
+      desc: 'Registru digital de echipamente tehnice, planuri preventive periodice, tichete de avarie, comenzi de lucru dispecerizate și rapoarte de disponibilitate.',
+    },
+    en: {
+      title: 'Operations & Maintenance — Asset Registers, Preventative Plans & Work Orders',
+      desc: 'Technical equipment registries, scheduled preventative maintenance plans, fault ticket triage, work order dispatch, and auditable maintenance logbooks.',
+    },
+    fa: {
+      title: 'عملیات فنی و نگهداری دوره‌ای — شناسنامه تجهیزات و دستورکارها',
+      desc: 'ثبت و پیگیری تجهیزات فنی، برنامه‌های نگهداری دوره‌ای، اعلام خرابی، صدور دستورکار با تخصیص مسئول و ثبت سوابق سرویس و هزینه‌ها.',
+    },
+  },
+  '/lifecycle': {
+    ro: {
+      title: 'Ciclul de Viață al Proprietății — De la Pre-vânzare la Succesiune',
+      desc: 'Urmărirea neîntreruptă a proprietății prin 6 etape: definire, predare-primire, exploatare activă, mentenanță tehnică, închiriere și predarea responsabilității către succesori.',
+    },
+    en: {
+      title: 'Property Lifecycle — From Pre-Sales to Accountable Succession',
+      desc: 'Unbroken operational continuity across 6 stages: project definition, handover, active living, technical maintenance, leasing, and subsequent transfers.',
+    },
+    fa: {
+      title: 'چرخهٔ عمر ملک — از تعریف و پیش‌فروش تا تحویل مسئولیت',
+      desc: 'پیوستگی سوابق و خدمات در تمام مراحل زندگی ملک: تعریف و پیش‌فروش، تحویل و راه‌اندازی، بهره‌برداری، نگهداری، اجاره و معاملات بعدی با حفظ امضاهای گذشته.',
+    },
+  },
+  '/solutions': {
+    ro: {
+      title: 'Soluții pe Roluri & Tipuri de Proprietate (Rezidențial, Comercial, Industrial)',
+      desc: 'Matricea completă de soluții CLADORA pentru dezvoltatori, proprietari, asociații, administratori, chiriași și echipe tehnice în medii rezidențiale, de birouri sau industriale.',
+    },
+    en: {
+      title: 'Solutions Matrix by Stakeholder & Property Typology',
+      desc: 'Comprehensive solutions for developers, portfolio owners, residential boards, managers, tenants, and contractors across residential, commercial, and industrial estates.',
+    },
+    fa: {
+      title: 'راهکارهای تخصصی بر اساس نقش مخاطب و نوع ملک',
+      desc: 'ماتریس جامع راهکارهای کلادورا برای سازندگان، مالکان، انجمن‌ها، مدیران، مستأجران و پیمانکاران در املاک مسکونی، تجاری، اداری، صنعتی و مختلط.',
     },
   },
   '/modules': {

@@ -40,41 +40,40 @@ export async function generateMetadata(
   const isRo = params.lang === 'ro';
   const isFa = params.lang === 'fa';
 
-  let title = 'CLADORA | Residential Asset Operating System & Statutory Accounting';
-  let description = 'CLADORA unifies statutory simple-entry accounting, supplemental double-entry controls, 5D owner-tenant rights, and meter OCR on an auditable platform.';
+  let title = 'CLADORA | Unified Environment for Property Operations, Management & Services';
+  let description = 'CLADORA is the unified environment for collaboration, management, and services across properties, buildings, units, spaces, and assets—preserving record continuity from pre-sales through decades of operation.';
   let keywords = [
-    'homeowner association software',
-    'condo management operating system',
-    'statutory simple entry accounting',
+    'property management platform',
+    'universal workspace os',
+    'real estate lifecycle operations',
+    'airprop sales and leasing',
+    'facility maintenance work orders',
     'double entry analytical ledger',
-    'tenant meter readings ocr',
-    'residential portfolio software',
     'cladora',
   ];
 
   if (isRo) {
-    title = 'CLADORA | Sistemul de Operare pentru Active Rezidențiale & Contabilitate';
-    description = 'CLADORA este concepută pentru a susține registrele statutare în partidă simplă, Legea 196/2018, controlul analitic suplimentar în partidă dublă, drepturile proprietar-chiriaș și citirea contoarelor într-un singur sistem de operare.';
+    title = 'CLADORA | Mediul Unificat de Colaborare, Gestiune & Servicii Imobiliare';
+    description = 'CLADORA este mediul unificat de colaborare, gestiune și servicii pentru proprietăți, clădiri, unități, spații și active. Însoțește proprietatea de la pre-vânzare până la exploatare și tranzacții ulterioare, păstrând continuitatea evidențelor autorizate.';
     keywords = [
-      'soft asociatie de proprietari',
-      'program administrare bloc',
-      'contabilitate asociatii proprietari legea 196 2018',
-      'avizier digital',
-      'citire contoare ocr',
-      'software gestiune chirii portofoliu proprietar',
-      'migrare xisoft bloc manager',
+      'soft administrare imobile',
+      'platforma gestiune proprietati',
+      'workspace imobiliar universal',
+      'airprop vanzari si inchirieri',
+      'mentenanta tehnica si revizii',
+      'evidenta statutara si contabilitate analitica',
       'cladora',
     ];
   } else if (isFa) {
-    title = 'کلادورا | سیستم‌عامل مدیریت دارایی‌های مسکونی و کنترل‌های حسابداری';
-    description = 'کلادورا برای پشتیبانی از دفاتر قانونی حسابداری یک‌طرفه (قانون ۱۹۶/۲۰۱۸)، کنترل تحلیلی تکمیلی دوطرفه، تفکیک ۵ بعدی حقوق مالک و مستأجر و قرائت تصویری کنتورها طراحی شده است.';
+    title = 'CLADORA | محیط یکپارچهٔ همکاری، مدیریت و خدمات ملک، فضا و دارایی';
+    description = 'CLADORA محیط یکپارچهٔ همکاری، مدیریت و خدمات برای ملک، ساختمان، واحد، فضا و دارایی است. از زمان تعریف و پیش‌فروش تا تحویل، بهره‌برداری، نگهداری و معاملات بعدی، پیوستگی سوابق مجاز را حفظ می‌کند.';
     keywords = [
-      'نرم افزار مدیریت ساختمان',
-      'حسابداری انجمن مالکان',
       'سامانه جامع مدیریت املاک',
-      'تابلو اعلانات دیجیتال ساختمان',
-      'قرائت هوشمند کنتور آب با عکس',
-      'مدیریت سبد املاک استیجاری',
+      'پلتفرم یکپارچه ملک و ساختمان',
+      'معماری ورک‌اسپیس املاک',
+      'سامانه ایرپراپ خرید و فروش و اجاره',
+      'تعمیرات و نگهداری دوره‌ای ساختمان',
+      'دفاتر مالی و تسهیم شفاف هزینه‌ها',
       'کلادورا',
     ];
   }
@@ -161,7 +160,7 @@ export default async function LangLayout(
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'CLADORA Asset OS',
+    name: 'CLADORA Universal Property & Asset OS',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web, iOS, Android',
     offers: {
@@ -170,10 +169,10 @@ export default async function LangLayout(
       priceCurrency: 'EUR',
     },
     description: isRo
-      ? 'Sistem de operare pentru active rezidențiale: conceput pentru susținerea registrelor statutare în partidă simplă, control analitic în partidă dublă, Legea 196/2018 și administrare portofoliu.'
+      ? 'CLADORA este mediul unificat de colaborare, gestiune și servicii pentru proprietăți, clădiri, unități, spații și active. Însoțește proprietatea de la pre-vânzare până la exploatare și tranzacții ulterioare.'
       : isFa
-      ? 'سیستم‌عامل مدیریت دارایی‌های مسکونی: طراحی‌شده برای پشتیبانی از دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی، تفکیک حقوق مالک و مستأجر و مدیریت مجتمع‌ها.'
-      : 'Residential Asset Operating System designed to support statutory simple-entry accounting, supplemental double-entry controls, meter OCR, and multi-property portfolio management.',
+      ? 'CLADORA محیط یکپارچهٔ همکاری، مدیریت و خدمات برای ملک، ساختمان، واحد، فضا و دارایی است؛ از تعریف و پیش‌فروش تا بهره‌برداری، نگهداری و معاملات بعدی.'
+      : 'CLADORA is the unified environment for collaboration, management, and services across properties, buildings, units, spaces, and physical assets.',
     creator: {
       '@type': 'Organization',
       name: 'CLADORA',
@@ -197,7 +196,7 @@ export default async function LangLayout(
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`font-sans min-h-screen bg-[#F6F9FC] text-[#102A43] antialiased ${locale.isRtl ? 'font-vazirmatn' : ''}`}>
+      <body className={`font-sans min-h-screen bg-[#F6F9FC] text-[#102A43] antialiased overflow-x-hidden ${locale.isRtl ? 'font-vazirmatn' : ''}`}>
         <AppOrMarketingLayout lang={params.lang}>
           {children}
         </AppOrMarketingLayout>

@@ -8,7 +8,6 @@ import {
   Building2, 
   Layers, 
   ShieldCheck, 
-  Cpu, 
   ChevronDown, 
   Menu, 
   X, 
@@ -16,12 +15,17 @@ import {
   TrendingUp, 
   KeyRound, 
   Home, 
-  FileSpreadsheet, 
-  PlayCircle, 
   Sparkles, 
   Users, 
   HelpCircle,
-  Database
+  Briefcase,
+  Wrench,
+  Compass,
+  FileCheck2,
+  Boxes,
+  Store,
+  Factory,
+  Building
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
@@ -34,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeDropdown, setActiveDropdown] = useState<'solutions' | 'modules' | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<'solutions' | 'services' | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -57,254 +61,308 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const solutions = [
+  // Close mobile menu on path change
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setActiveDropdown(null);
+  }, [pathname]);
+
+  const toggleDropdown = (name: 'solutions' | 'services') => {
+    setActiveDropdown((prev) => (prev === name ? null : name));
+  };
+
+  const solutionsAudiences = [
     {
-      title: lang === 'ro' ? 'Asociații de Proprietari' : lang === 'fa' ? 'انجمن‌های مالکان' : 'Homeowner Associations',
-      desc: lang === 'ro' ? 'Gestiune Legea 196/2018, liste de plată, cenzori și adunări generale' : lang === 'fa' ? 'محاسبه شارژ قانونی، دسترسی بازرسان و برگزاری مجامع عمومی' : 'Statutory compliance, payment lists, censors, and AGM governance',
-      href: `/${lang}/solutions/associations`,
-      icon: Building2,
-      tag: lang === 'ro' ? 'Association OS' : lang === 'fa' ? 'Association OS • سیستم مدیریت انجمن مالکان' : 'Association OS'
+      title: lang === 'ro' ? 'Dezvoltatori & Constructori' : lang === 'fa' ? 'سازندگان و عرضه‌کنندگان ملک' : 'Developers & Builders',
+      desc: lang === 'ro' ? 'Identitate inițială, pre-vânzare, documente tehnice și protocol de predare' : lang === 'fa' ? 'تعریف اولیه هویت پروژه، ارتباط پیش‌فروش، اسناد و تحویل واحدها' : 'Property identity, pre-sales tracking, document vault, and handover',
+      href: `/${lang}/solutions#developers`,
+      icon: Building,
+      badge: lang === 'ro' ? 'Pre-vânzare & Predare' : lang === 'fa' ? 'پیش‌فروش و تحویل' : 'Pre-sale & Handover'
     },
     {
-      title: lang === 'ro' ? 'Proprietari cu Portofoliu' : lang === 'fa' ? 'مالکان دارای چند ملک' : 'Multi-Property Owners',
-      desc: lang === 'ro' ? 'Consolidare apartamente, monitorizare chirii, randament net și contracte' : lang === 'fa' ? 'پایش تجمیعی املاک، بازده خالص، وصول اجاره و تفکیک هزینه‌ها' : 'Consolidated rental income, net yields, tenant costs, and contracts',
+      title: lang === 'ro' ? 'Proprietari & Portofolii' : lang === 'fa' ? 'مالکان و صاحبان سبد املاک' : 'Owners & Portfolio Landlords',
+      desc: lang === 'ro' ? 'Urmărire consolidată pe mai multe clădiri, chirii, costuri și randamente' : lang === 'fa' ? 'پایش تجمیعی املاک در ساختمان‌های مختلف، وصول اجاره و بازده خالص' : 'Consolidated tracking across buildings, rents, expenses, and asset value',
       href: `/${lang}/solutions/property-owners`,
       icon: TrendingUp,
-      tag: lang === 'fa' ? 'Portfolio OS • سیستم مدیریت سبد املاک' : 'Portfolio OS'
+      badge: lang === 'ro' ? 'Multi-imobil' : lang === 'fa' ? 'چندملکی' : 'Multi-Property'
     },
     {
-      title: lang === 'ro' ? 'Companii de Administrare' : lang === 'fa' ? 'شرکت‌های مدیریت املاک' : 'Property Management Firms',
-      desc: lang === 'ro' ? 'Închidere centralizată multi-bloc, SLA mentenanță și furnizori' : lang === 'fa' ? 'بستن دسته‌ای دوره‌ها، دیسپچ تیکت‌های فنی و پایش SLA' : 'Multi-association batch close, maintenance SLAs, and operations',
+      title: lang === 'ro' ? 'Asociații de Proprietari' : lang === 'fa' ? 'انجمن‌های مالکان و هیئت‌مدیره' : 'HOAs & Residential Boards',
+      desc: lang === 'ro' ? 'Conformitate legală, cote clare, adunări generale și transparență' : lang === 'fa' ? 'محاسبه دقیق سهم شارژ، برگزاری مجامع، صورت‌های مالی و شفافیت' : 'Statutory allocations, general meetings, payment lists, and governance',
+      href: `/${lang}/solutions/associations`,
+      icon: Building2,
+      badge: lang === 'ro' ? 'Guvernanță' : lang === 'fa' ? 'مدیریت و شفافیت' : 'Governance'
+    },
+    {
+      title: lang === 'ro' ? 'Companii de Administrare' : lang === 'fa' ? 'مدیران مجتمع و شرکت‌های مدیریت' : 'Property & Estate Managers',
+      desc: lang === 'ro' ? 'Gestiune multi-clădire, contracte de servicii, SLA și mentenanță' : lang === 'fa' ? 'مدیریت چندمجموعه‌ای، قراردادهای خدمات، نظارت بر نگهداری و تسویه' : 'Multi-building operations, vendor contracts, SLAs, and facilities',
       href: `/${lang}/solutions/property-managers`,
       icon: Layers,
-      tag: lang === 'fa' ? 'Manager OS • سیستم شرکت‌های مدیریت املاک' : 'Manager OS'
+      badge: lang === 'ro' ? 'Operațiuni' : lang === 'fa' ? 'عملیات و قراردادها' : 'Operations'
     },
     {
-      title: lang === 'ro' ? 'Proprietari & Rezidenți' : lang === 'fa' ? 'مالکان و ساکنان' : 'Owners & Residents',
-      desc: lang === 'ro' ? 'Transparență totală la calculul cotelor, index contoare și plăți' : lang === 'fa' ? 'شفافیت کامل در فیش شارژ، ثبت تصویری کنتورها و پرداخت' : 'Explainable charges, online meter submission, and notices',
-      href: `/${lang}/solutions/residents`,
-      icon: Home,
-      tag: lang === 'ro' ? 'Aplicația Rezidenților' : lang === 'fa' ? 'اپلیکیشن مالکان و ساکنان' : 'Resident App'
-    },
-    {
-      title: lang === 'ro' ? 'Chiriași' : lang === 'fa' ? 'مستأجران' : 'Tenants',
-      desc: lang === 'ro' ? 'Acces strict la cheltuielile operaționale de consum și tichete' : lang === 'fa' ? 'مشاهده مصارف انشعابات بدون دسترسی به صندوق‌های مالک' : 'Direct access to consumption costs without owner ledger access',
+      title: lang === 'ro' ? 'Chiriași & Rezidenți' : lang === 'fa' ? 'مستأجران و ساکنان' : 'Tenants & Occupants',
+      desc: lang === 'ro' ? 'Vizualizare consumuri proprii, solicitări de service și notificări' : lang === 'fa' ? 'شفافیت در مصارف و هزینه‌ها، ثبت نیازهای خدماتی بدون دسترسی به اسناد مالک' : 'Personal consumption transparency, service requests, and notices',
       href: `/${lang}/solutions/tenants`,
       icon: KeyRound,
-      tag: lang === 'ro' ? 'Portalul Chiriașilor' : lang === 'fa' ? 'پرتال مستأجران' : 'Tenant Portal'
+      badge: lang === 'ro' ? 'Servicii Zilnice' : lang === 'fa' ? 'خدمات روزمره' : 'Daily Living'
+    },
+    {
+      title: lang === 'ro' ? 'Furnizori de Servicii' : lang === 'fa' ? 'ارائه‌دهندگان خدمات و تیم‌های فنی' : 'Service Providers & Vendors',
+      desc: lang === 'ro' ? 'Primire comenzi de lucru, transmitere devize, execuție și recepție' : lang === 'fa' ? 'دریافت دستورکار، ارائه پیشنهاد قیمت، ثبت اجرای کار و پذیرش رسمی' : 'Work orders, quotes, dispatch tracking, verified acceptance, and logs',
+      href: `/${lang}/solutions#providers`,
+      icon: Wrench,
+      badge: lang === 'ro' ? 'Recepție Servicii' : lang === 'fa' ? 'پذیرش و تسویه' : 'Work Orders'
     }
   ];
 
-  const modulesPreview = [
+  const servicesList = [
     {
-      title: lang === 'ro' ? 'C01 — Financial Truth & Contabilitate' : lang === 'fa' ? 'C01 — حسابداری و دفاتر قانونی' : 'C01 — Financial Truth & Accounting',
-      desc: lang === 'ro' ? 'Conceput pentru partidă simplă statutară, control analitic în partidă dublă și stornare' : lang === 'fa' ? 'طراحی‌شده برای دفاتر قانونی یک‌طرفه، کنترل تحلیلی تکمیلی دوطرفه و سند اصلاحی' : 'Designed for statutory simple-entry, supplemental double-entry ledger, auditable reversals',
-      href: `/${lang}/modules`
+      title: 'AIRPROP',
+      subtitle: lang === 'ro' ? 'Vânzare, Închiriere & Tranzacții' : lang === 'fa' ? 'عرضه، خرید، پیش‌فروش، فروش و اجاره' : 'Property Sales, Pre-sale & Leasing',
+      desc: lang === 'ro' 
+        ? 'Prezentarea proprietății, gestionarea oportunităților, verificare documente, rezervări, pre-vânzări, închirieri și mandat de administrare.'
+        : lang === 'fa'
+        ? 'معرفی و عرضه ملک، متقاضیان و فرصت‌ها، بررسی شرایط و اسناد، رزرو، پیش‌فروش، اجاره و واگذاری مدیریت با انتقال امن به بهره‌برداری.'
+        : 'Property showcase, verified inquiries, underwriting, reservations, sales, leasing, and property management mandates.',
+      href: `/${lang}/airprop`,
+      icon: Sparkles,
+      color: 'text-amber-600 bg-amber-50 border-amber-200'
     },
     {
-      title: lang === 'ro' ? 'C02 — Alocare & Drepturi 5D' : lang === 'fa' ? 'C02 — تسهیم هزینه‌ها و تفکیک حقوق' : 'C02 — Allocation & Rights Engine',
-      desc: lang === 'ro' ? 'Algoritmi CPI, persoane, suprafață și separare debitor/plătitor' : lang === 'fa' ? 'فرمول‌های مشاعات، نفرات و تفکیک مدیون از پرداخت‌کننده' : 'Statutory CPI shares, person count, and debtor/payer isolation',
-      href: `/${lang}/modules`
+      title: 'SERVICE',
+      subtitle: lang === 'ro' ? 'Catalog, Cereri, Ofertare & Recepție' : lang === 'fa' ? 'کاتالوگ خدمات، سفارش، نظارت و پذیرش' : 'Service Catalog, Quotes & Verification',
+      desc: lang === 'ro'
+        ? 'Alegerea serviciilor, lansarea cererii, compararea ofertelor de cost și termen, urmărirea execuției și atașarea rezultatului la istoricul activului.'
+        : lang === 'fa'
+        ? 'انتخاب خدمات، ثبت نیاز، دریافت و مقایسه پیشنهادها، توافق بر دامنه و هزینه، پیگیری اجرا، پذیرش نتیجه و ثبت سابقه روی دارایی.'
+        : 'Service catalog, request brief, quote comparison, scope/cost agreement, execution tracking, sign-off, and permanent asset history.',
+      href: `/${lang}/service`,
+      icon: Briefcase,
+      color: 'text-teal-600 bg-teal-50 border-teal-200'
     },
     {
-      title: lang === 'ro' ? 'C08 — Contoare & Consum' : lang === 'fa' ? 'C08 — قرائت کنتورها و هوش مصنوعی' : 'C08 — Utilities & Meter Readings',
-      desc: lang === 'ro' ? 'Citire index foto OCR, detecție anomalii și validare' : lang === 'fa' ? 'استخراج خودکار ارقام با عکس، تشخیص نشتی و اتلاف شبکه' : 'Photo OCR validation, anomaly detection, and radio meters',
-      href: `/${lang}/modules`
-    },
-    {
-      title: lang === 'ro' ? 'C16 — Migrare & Shadow Ledger' : lang === 'fa' ? 'C16 — مهاجرت کنترل‌شده و دفتر کل موازی' : 'C16 — Shadow Ledger Migration',
-      desc: lang === 'ro' ? 'Reconciliere asistată cu softurile vechi în paralel' : lang === 'fa' ? 'تطبیق هم‌زمان با سامانه‌های قبلی تا رفع کامل مغایرت‌ها' : 'Assisted parallel reconciliation against legacy exports',
-      href: `/${lang}/modules`
+      title: lang === 'ro' ? 'Operațiuni & Mentenanță' : lang === 'fa' ? 'عملیات فنی و نگهداری دوره‌ای' : 'Operations & Maintenance',
+      subtitle: lang === 'ro' ? 'Active tehnice, planuri preventive & tichete' : lang === 'fa' ? 'تجهیزات، برنامه‌ریزی دوره‌ای و دستورکار' : 'Asset registry, preventive plans & work orders',
+      desc: lang === 'ro'
+        ? 'Evidența echipamentelor, calendare de revizie periodică, semnalare defecțiuni, comenzi de lucru și rapoarte de service pentru persoanele autorizate.'
+        : lang === 'fa'
+        ? 'ثبت و ردیابی تجهیزات و دارایی‌ها، نگهداری دوره‌ای، اعلام خرابی، دستورکار با مسئول اجرا، سوابق سرویس و مدارک هزینه.'
+        : 'Asset equipment registries, recurring maintenance schedules, breakdown reporting, work orders, service logs, and auditable history.',
+      href: `/${lang}/operations`,
+      icon: Wrench,
+      color: 'text-blue-600 bg-blue-50 border-blue-200'
     }
   ];
 
   return (
-    <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-200 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] shadow-sm py-3'
-          : 'bg-[#F6F9FC]/90 backdrop-blur-sm border-b border-transparent py-4'
+    <header 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-[#E2E8F0] py-3' 
+          : 'bg-white/80 backdrop-blur-sm border-b border-[#F0F4F8] py-4'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 w-full">
           
-          {/* Logo */}
-          <Link href={`/${lang}`} aria-label="CLADORA" className="group rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0E9F8E]">
-            <CladoraBrand
-              variant="primary"
-              className="h-8 w-auto transition-transform group-hover:scale-[1.02] sm:h-10"
-              priority
-            />
-          </Link>
+          {/* Brand Logo */}
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+            <CladoraBrand variant="primary" className="h-6 sm:h-8 w-auto max-w-[130px] sm:max-w-none shrink-0" />
+          </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1 xl:gap-2" ref={dropdownRef}>
-            <Link
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-sm font-semibold text-[#334E68]" ref={dropdownRef}>
+            
+            {/* 1. Platform & Workspace */}
+            <Link 
               href={`/${lang}/platform`}
-              className="px-3.5 py-2 rounded-lg text-sm font-semibold text-[#52667A] hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors"
+              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors ${
+                pathname?.includes(`/${lang}/platform`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
+              }`}
             >
-              {lang === 'ro' ? 'Platformă' : lang === 'fa' ? 'معماری پلتفرم' : 'Platform'}
+              {lang === 'ro' ? 'Platformă & Workspace' : lang === 'fa' ? 'پلتفرم و Workspace' : 'Platform & Workspace'}
             </Link>
 
-            {/* Solutions Dropdown */}
+            {/* 2. Solutions Dropdown */}
             <div className="relative">
               <button
                 type="button"
-                onClick={() => setActiveDropdown(activeDropdown === 'solutions' ? null : 'solutions')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                  activeDropdown === 'solutions'
-                    ? 'text-[#0E9F8E] bg-[#EAF8F5]'
-                    : 'text-[#52667A] hover:text-[#102A43] hover:bg-[#F0F4F8]'
+                onClick={() => toggleDropdown('solutions')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors ${
+                  activeDropdown === 'solutions' || pathname?.includes(`/${lang}/solutions`)
+                    ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]'
+                    : ''
                 }`}
               >
                 <span>{lang === 'ro' ? 'Soluții' : lang === 'fa' ? 'راهکارها' : 'Solutions'}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'solutions' ? 'rotate-180 text-[#0E9F8E]' : ''}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'solutions' ? 'rotate-180' : ''}`} />
               </button>
 
               {activeDropdown === 'solutions' && (
-                <div className="absolute top-full start-0 mt-2 w-[480px] bg-white rounded-2xl border border-[#E2E8F0] shadow-elevated p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="text-xs font-bold text-[#7B8A9A] uppercase tracking-wider px-3 pb-2 border-b border-[#F0F4F8]">
-                    {lang === 'ro' ? 'Soluții pe Tipuri de Utilizatori' : lang === 'fa' ? 'راهکارهای تفکیک‌شده بر اساس نقش' : 'Solutions by Customer Type'}
-                  </div>
-                  <div className="mt-2 space-y-1">
-                    {solutions.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          onClick={() => setActiveDropdown(null)}
-                          className="flex items-start gap-3 p-3 rounded-xl hover:bg-[#F6F9FC] transition-colors group"
-                        >
-                          <div className="w-9 h-9 rounded-lg bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center shrink-0 group-hover:bg-[#0E9F8E] group-hover:text-white transition-colors">
-                            <Icon className="w-5 h-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-bold text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
-                                {item.title}
-                              </span>
-                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F0F4F8] text-[#52667A]">
-                                {item.tag}
-                              </span>
-                            </div>
-                            <p className="text-xs text-[#52667A] mt-0.5 line-clamp-1">
-                              {item.desc}
-                            </p>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Modules Dropdown */}
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setActiveDropdown(activeDropdown === 'modules' ? null : 'modules')}
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                  activeDropdown === 'modules'
-                    ? 'text-[#0E9F8E] bg-[#EAF8F5]'
-                    : 'text-[#52667A] hover:text-[#102A43] hover:bg-[#F0F4F8]'
-                }`}
-              >
-                <span>{lang === 'ro' ? 'Module' : lang === 'fa' ? 'ماژول‌ها' : 'Modules'}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'modules' ? 'rotate-180 text-[#0E9F8E]' : ''}`} />
-              </button>
-
-              {activeDropdown === 'modules' && (
-                <div className="absolute top-full start-0 mt-2 w-[460px] bg-white rounded-2xl border border-[#E2E8F0] shadow-elevated p-4 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#F0F4F8]">
-                    <span className="text-xs font-bold text-[#7B8A9A] uppercase tracking-wider">
-                      {lang === 'ro' ? 'Arhitectura Celor 17 Nuclee' : lang === 'fa' ? 'معماری ۱۷ هسته نرم‌افزاری' : 'The 17 Logical Cores'}
+                <div className={`absolute top-full mt-2 w-[540px] p-4 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] grid grid-cols-2 gap-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${lang === 'fa' ? 'right-0' : 'left-0'}`}>
+                  <div className="col-span-2 pb-2 mb-1 border-b border-[#F0F4F8] flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#627D98]">
+                      {lang === 'ro' ? 'Pe roluri & tipuri de proprietate' : lang === 'fa' ? 'بر اساس مخاطب و نوع ملک' : 'By Audience & Property Type'}
                     </span>
-                    <Link
-                      href={`/${lang}/modules`}
+                    <Link 
+                      href={`/${lang}/solutions`}
                       onClick={() => setActiveDropdown(null)}
-                      className="text-xs font-bold text-[#0E9F8E] hover:underline"
+                      className="text-xs font-bold text-[#0E9F8E] hover:underline flex items-center gap-1"
                     >
-                      {lang === 'ro' ? 'Toate cele 17' : lang === 'fa' ? 'مشاهده همه ۱۷ هسته' : 'View all 17'} →
+                      {lang === 'ro' ? 'Vezi toate soluțiile' : lang === 'fa' ? 'نمای کلی راهکارها' : 'View all solutions'}
+                      <ArrowRight className="w-3 h-3" />
                     </Link>
                   </div>
-                  <div className="mt-2 space-y-1">
-                    {modulesPreview.map((item, idx) => (
+                  {solutionsAudiences.map((item, idx) => {
+                    const Icon = item.icon;
+                    return (
                       <Link
                         key={idx}
                         href={item.href}
                         onClick={() => setActiveDropdown(null)}
-                        className="block p-2.5 rounded-xl hover:bg-[#F6F9FC] transition-colors"
+                        className="p-2.5 rounded-xl hover:bg-[#F8FAFC] border border-transparent hover:border-[#E2E8F0] transition-all group"
                       >
-                        <div className="text-xs font-bold text-[#102A43] hover:text-[#0E9F8E]">
-                          {item.title}
+                        <div className="flex items-center gap-2 mb-1">
+                          <div className="w-7 h-7 rounded-lg bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center group-hover:bg-[#0E9F8E] group-hover:text-white transition-colors">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span className="font-bold text-xs text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                            {item.title}
+                          </span>
                         </div>
-                        <div className="text-[11px] text-[#52667A] mt-0.5">
+                        <p className="text-[11px] text-[#627D98] line-clamp-2 leading-relaxed">
                           {item.desc}
-                        </div>
+                        </p>
                       </Link>
-                    ))}
+                    );
+                  })}
+                  
+                  {/* Property Types Footer Bar */}
+                  <div className="col-span-2 pt-2 border-t border-[#F0F4F8] flex items-center justify-between text-[11px] text-[#627D98] bg-[#F8FAFC] -mx-4 -mb-4 p-3 rounded-b-2xl">
+                    <span className="font-semibold text-[#102A43]">
+                      {lang === 'ro' ? 'Medii acoperite:' : lang === 'fa' ? 'انواع املاک:' : 'Covered environments:'}
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span>{lang === 'ro' ? 'Rezidențial' : lang === 'fa' ? 'مسکونی' : 'Residential'}</span>
+                      <span>•</span>
+                      <span>{lang === 'ro' ? 'Comercial & Birouri' : lang === 'fa' ? 'تجاری و اداری' : 'Commercial & Office'}</span>
+                      <span>•</span>
+                      <span>{lang === 'ro' ? 'Logistic & Industrial' : lang === 'fa' ? 'صنعتی و انبار' : 'Industrial'}</span>
+                      <span>•</span>
+                      <span>{lang === 'ro' ? 'Mixt' : lang === 'fa' ? 'مختلط' : 'Mixed-use'}</span>
+                    </span>
                   </div>
                 </div>
               )}
             </div>
 
-            <Link
-              href={`/${lang}/migration`}
-              className="px-3.5 py-2 rounded-lg text-sm font-semibold text-[#52667A] hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors"
+            {/* 3. Services Dropdown (AIRPROP, SERVICE, Operations) */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => toggleDropdown('services')}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors ${
+                  activeDropdown === 'services' || pathname?.includes(`/${lang}/airprop`) || pathname?.includes(`/${lang}/service`) || pathname?.includes(`/${lang}/operations`)
+                    ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]'
+                    : ''
+                }`}
+              >
+                <span>{lang === 'ro' ? 'Servicii & Module' : lang === 'fa' ? 'خدمات محصول' : 'Services & Domains'}</span>
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'services' ? 'rotate-180' : ''}`} />
+              </button>
+
+              {activeDropdown === 'services' && (
+                <div className={`absolute top-full mt-2 w-[460px] p-4 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] space-y-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${lang === 'fa' ? 'right-0' : 'left-0'}`}>
+                  <div className="pb-2 border-b border-[#F0F4F8]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#627D98]">
+                      {lang === 'ro' ? 'Pilonii operaționali CLADORA' : lang === 'fa' ? 'حوزه‌های اصلی خدمات کلادورا' : 'Core CLADORA Service Domains'}
+                    </span>
+                  </div>
+                  {servicesList.map((svc, idx) => {
+                    const Icon = svc.icon;
+                    return (
+                      <Link
+                        key={idx}
+                        href={svc.href}
+                        onClick={() => setActiveDropdown(null)}
+                        className="flex items-start gap-3 p-3 rounded-xl hover:bg-[#F8FAFC] border border-transparent hover:border-[#E2E8F0] transition-all group"
+                      >
+                        <div className={`w-9 h-9 rounded-xl border flex items-center justify-center shrink-0 ${svc.color}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-xs text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                              {svc.title}
+                            </span>
+                            <span className="text-[10px] text-[#627D98] font-medium">
+                              {svc.subtitle}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-[#627D98] mt-0.5 line-clamp-2 leading-relaxed">
+                            {svc.desc}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 4. Property Lifecycle */}
+            <Link 
+              href={`/${lang}/lifecycle`}
+              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors ${
+                pathname?.includes(`/${lang}/lifecycle`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
+              }`}
             >
-              {lang === 'ro' ? 'Migrare Controlată' : lang === 'fa' ? 'مهاجرت کنترل‌شده' : 'Migration'}
+              {lang === 'ro' ? 'Ciclul de Viață' : lang === 'fa' ? 'چرخهٔ عمر ملک' : 'Property Lifecycle'}
             </Link>
 
-            <Link
-              href={`/${lang}/pricing`}
-              className="px-3.5 py-2 rounded-lg text-sm font-semibold text-[#52667A] hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors"
+            {/* 5. Guides & FAQ */}
+            <Link 
+              href={`/${lang}/resources/faq`}
+              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors ${
+                pathname?.includes(`/${lang}/resources/faq`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
+              }`}
             >
-              {lang === 'ro' ? 'Tarife' : lang === 'fa' ? 'تعرفه‌ها' : 'Pricing'}
-            </Link>
-
-            <Link
-              href={`/${lang}/pilot`}
-              className="px-3.5 py-2 rounded-lg text-sm font-semibold text-[#0E9F8E] hover:bg-[#EAF8F5] transition-colors flex items-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>{lang === 'ro' ? 'Program Pilot' : lang === 'fa' ? 'برنامه پایلوت' : 'Pilot Cohort'}</span>
+              {lang === 'ro' ? 'Ghid & FAQ' : lang === 'fa' ? 'راهنما و پرسش‌ها' : 'Guides & FAQ'}
             </Link>
           </nav>
 
-          {/* Desktop Right CTAs + Flag Language Switcher */}
+          {/* Right Action Bar */}
           <div className="hidden lg:flex items-center gap-3">
-            
-            {/* Accessible Flag Language Switcher */}
+            {/* Language Switcher */}
             <LanguageSwitcher currentLang={lang} variant="header" />
 
+            {/* Sign In Button */}
             <Link
               href={`/${lang}/login`}
-              className="px-3.5 py-2 rounded-xl text-xs font-bold text-[#102A43] hover:bg-[#F0F4F8] transition-colors"
+              className="px-3.5 py-2 text-xs font-bold text-[#102A43] hover:text-[#0E9F8E] hover:bg-[#F0F4F8] rounded-xl transition-colors border border-transparent hover:border-[#D3DCE6]"
             >
-              {lang === 'ro' ? 'Autentificare' : lang === 'fa' ? 'ورود به حساب' : 'Sign in'}
+              {lang === 'ro' ? 'Autentificare' : lang === 'fa' ? 'ورود' : 'Sign In'}
             </Link>
 
+            {/* Start Partnership CTA */}
             <Link
-              href={`/${lang}/demo`}
-              className="px-4 py-2.5 rounded-xl bg-[#102A43] hover:bg-[#173F5F] text-white text-xs font-bold shadow-sm transition-all flex items-center gap-2"
+              href={`/${lang}/contact`}
+              className="px-4 py-2 text-xs font-bold text-white bg-[#0E9F8E] hover:bg-[#0A7E71] rounded-xl shadow-sm transition-all hover:shadow hover:-translate-y-0.5 flex items-center gap-1.5"
             >
-              <PlayCircle className="w-4 h-4 text-[#75CFC3]" />
-              <span>{lang === 'ro' ? 'Demo Interactiv' : lang === 'fa' ? 'دموی تعاملی' : 'Live Sandbox'}</span>
+              <span>{lang === 'ro' ? 'Solicită Parteneriat' : lang === 'fa' ? 'درخواست شروع همکاری' : 'Start Partnership'}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          {/* Mobile Hamburger Button */}
+          {/* Mobile Menu Toggle Button */}
           <div className="flex items-center gap-2 lg:hidden">
             <LanguageSwitcher currentLang={lang} variant="header" />
-            
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-[#102A43] hover:bg-[#F0F4F8] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-              aria-label={mobileMenuOpen ? 'Închide meniul' : 'Deschide meniul'}
+              className="p-2 text-[#334E68] hover:text-[#102A43] hover:bg-[#F0F4F8] rounded-xl transition-colors"
+              aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -313,101 +371,86 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Menu Dropdown Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-[65px] bg-white z-50 overflow-y-auto p-6 space-y-6 animate-in slide-in-from-top-4 duration-200">
-          
-          <div className="space-y-2">
-            <div className="text-xs font-bold text-[#7B8A9A] uppercase tracking-wider pb-2 border-b border-[#F0F4F8]">
-              {lang === 'ro' ? 'Navigare Principală' : lang === 'fa' ? 'بخش‌های اصلی' : 'Main Navigation'}
-            </div>
-            
+        <div className="lg:hidden border-t border-[#E2E8F0] bg-white px-4 pt-3 pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
+          <nav className="flex flex-col space-y-1">
             <Link
               href={`/${lang}/platform`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2.5 text-base font-bold text-[#102A43]"
+              className="px-3 py-2.5 rounded-xl text-sm font-bold text-[#102A43] hover:bg-[#F0F4F8]"
             >
-              {lang === 'ro' ? 'Arhitectura Platformei' : lang === 'fa' ? 'معماری پلتفرم' : 'Platform Architecture'}
+              {lang === 'ro' ? 'Platformă & Workspace' : lang === 'fa' ? 'پلتفرم و Workspace' : 'Platform & Workspace'}
             </Link>
 
             <Link
-              href={`/${lang}/modules`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2.5 text-base font-bold text-[#102A43]"
+              href={`/${lang}/solutions`}
+              className="px-3 py-2.5 rounded-xl text-sm font-bold text-[#102A43] hover:bg-[#F0F4F8]"
             >
-              {lang === 'ro' ? 'Cele 17 Module Logice' : lang === 'fa' ? 'مشاهده ۱۷ هسته نرم‌افزاری' : 'The 17 Logical Cores'}
+              {lang === 'ro' ? 'Soluții pe Roluri & Tipuri de Proprietate' : lang === 'fa' ? 'راهکارها بر اساس نقش و نوع ملک' : 'Solutions & Audiences'}
             </Link>
 
-            <Link
-              href={`/${lang}/migration`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2.5 text-base font-bold text-[#102A43]"
-            >
-              {lang === 'ro' ? 'Migrare Controlată (Shadow Ledger)' : lang === 'fa' ? 'مهاجرت کنترل‌شده (Shadow Ledger)' : 'Controlled Migration (Shadow Ledger)'}
-            </Link>
-
-            <Link
-              href={`/${lang}/pricing`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2.5 text-base font-bold text-[#102A43]"
-            >
-              {lang === 'ro' ? 'Tarife & Calculator' : lang === 'fa' ? 'تعرفه‌ها و محاسبه‌گر' : 'Pricing & Calculator'}
-            </Link>
-
-            <Link
-              href={`/${lang}/pilot`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="block py-2.5 text-base font-bold text-[#0E9F8E]"
-            >
-              {lang === 'ro' ? 'Program Pilot' : lang === 'fa' ? 'برنامه پایلوت' : 'Pilot Cohort'}
-            </Link>
-          </div>
-
-          {/* Solutions List */}
-          <div className="space-y-2 pt-2 border-t border-[#F0F4F8]">
-            <div className="text-xs font-bold text-[#7B8A9A] uppercase tracking-wider pb-2">
-              {lang === 'ro' ? 'Soluții pe Roluri' : lang === 'fa' ? 'راهکارها بر اساس نقش' : 'Solutions by Persona'}
+            <div className="px-3 py-2 text-xs font-bold text-[#627D98] uppercase tracking-wider">
+              {lang === 'ro' ? 'Servicii & Module' : lang === 'fa' ? 'خدمات و ارکان محصول' : 'Services & Domains'}
             </div>
-            {solutions.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-between py-2 text-sm font-semibold text-[#52667A] hover:text-[#102A43]"
-              >
-                <span>{item.title}</span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EAF8F5] text-[#0A6E62]">
-                  {item.tag}
-                </span>
-              </Link>
-            ))}
-          </div>
 
-          {/* Mobile Language Switcher (3-flag grid) */}
-          <div className="pt-4 border-t border-[#F0F4F8]">
-            <LanguageSwitcher currentLang={lang} variant="mobile-drawer" />
-          </div>
-
-          {/* Mobile CTAs */}
-          <div className="pt-4 space-y-3">
             <Link
-              href={`/${lang}/demo`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#102A43] text-white text-sm font-bold flex items-center justify-center gap-2 shadow-sm"
+              href={`/${lang}/airprop`}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#334E68] hover:bg-[#F8FAFC] flex items-center justify-between"
             >
-              <PlayCircle className="w-4 h-4 text-[#75CFC3]" />
-              <span>{lang === 'ro' ? 'Deschide Demo Interactiv' : lang === 'fa' ? 'ورود به دموی تعاملی' : 'Open Live Sandbox'}</span>
+              <span>AIRPROP — {lang === 'ro' ? 'Vânzări & Închirieri' : lang === 'fa' ? 'عرضه، فروش و اجاره' : 'Sales & Leasing'}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#627D98]" />
             </Link>
 
+            <Link
+              href={`/${lang}/service`}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#334E68] hover:bg-[#F8FAFC] flex items-center justify-between"
+            >
+              <span>SERVICE — {lang === 'ro' ? 'Cereri & Ofertare' : lang === 'fa' ? 'سفارش و نظارت بر خدمات' : 'Quotes & Execution'}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#627D98]" />
+            </Link>
+
+            <Link
+              href={`/${lang}/operations`}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#334E68] hover:bg-[#F8FAFC] flex items-center justify-between"
+            >
+              <span>{lang === 'ro' ? 'Operațiuni & Mentenanță' : lang === 'fa' ? 'عملیات فنی و نگهداری' : 'Operations & Maintenance'}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#627D98]" />
+            </Link>
+
+            <Link
+              href={`/${lang}/lifecycle`}
+              className="px-3 py-2.5 rounded-xl text-sm font-bold text-[#102A43] hover:bg-[#F0F4F8]"
+            >
+              {lang === 'ro' ? 'Ciclul de Viață al Proprietății' : lang === 'fa' ? 'چرخهٔ عمر ملک' : 'Property Lifecycle'}
+            </Link>
+
+            <Link
+              href={`/${lang}/resources/faq`}
+              className="px-3 py-2.5 rounded-xl text-sm font-bold text-[#102A43] hover:bg-[#F0F4F8]"
+            >
+              {lang === 'ro' ? 'Ghid & Întrebări Frecvente' : lang === 'fa' ? 'راهنما و پرسش‌های متداول' : 'Guides & FAQ'}
+            </Link>
+          </nav>
+
+          <div className="pt-3 border-t border-[#E2E8F0] space-y-2">
             <Link
               href={`/${lang}/login`}
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#F0F4F8] text-[#102A43] text-sm font-bold flex items-center justify-center"
+              className="w-full py-2.5 text-center text-xs font-bold text-[#102A43] bg-[#F0F4F8] hover:bg-[#E2E8F0] rounded-xl block"
             >
-              {lang === 'ro' ? 'Autentificare în Cont' : lang === 'fa' ? 'ورود به حساب کاربری' : 'Sign in to Account'}
+              {lang === 'ro' ? 'Autentificare în Workspace' : lang === 'fa' ? 'ورود به محیط کاری' : 'Sign In to Workspace'}
             </Link>
-          </div>
 
+            <Link
+              href={`/${lang}/contact`}
+              className="w-full py-2.5 text-center text-xs font-bold text-white bg-[#0E9F8E] hover:bg-[#0A7E71] rounded-xl block shadow-sm"
+            >
+              {lang === 'ro' ? 'Solicită Începerea Colaborării' : lang === 'fa' ? 'درخواست شروع همکاری' : 'Start Partnership Inquiry'}
+            </Link>
+
+            <div className="pt-2">
+              <LanguageSwitcher currentLang={lang} variant="mobile-drawer" />
+            </div>
+          </div>
         </div>
       )}
     </header>
