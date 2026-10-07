@@ -67,6 +67,7 @@ create table airprop.presale_contracts(
  unique(tenant_id,workspace_id,idempotency_key)
 );
 create index presale_contracts_workspace_idx on airprop.presale_contracts(workspace_id,recorded_at desc);
+create index presale_contracts_tenant_idx on airprop.presale_contracts(tenant_id);
 create index presale_contracts_opportunity_idx on airprop.presale_contracts(opportunity_id);
 create index presale_contracts_unit_idx on airprop.presale_contracts(unit_id,effective_from,effective_to);
 create index presale_contracts_buyer_idx on airprop.presale_contracts(buyer_party_id);
