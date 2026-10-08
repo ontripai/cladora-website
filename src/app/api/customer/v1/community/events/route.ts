@@ -12,6 +12,7 @@ const querySchema = z.object({ context_id: uuid, workspace_id: uuid }).strict();
 const fail = (code: string, status: number) => NextResponse.json({ error: { code } }, { status, headers: HEADERS });
 
 function rpcFailure(error: { code?: string }) {
+  if (['42883', 'PGRST202'].includes(error.code ?? '')) return fail('CE_EVENT_CONNECTION_NOT_READY', 503);
   if (error.code === '42501') return fail('CE_EVENT_ACCESS_DENIED', 403);
   if (['23505', '23514', '40001'].includes(error.code ?? '')) return fail('CE_EVENT_CONFLICT', 409);
   if (['22023', '22P02'].includes(error.code ?? '')) return fail('INVALID_REQUEST', 400);

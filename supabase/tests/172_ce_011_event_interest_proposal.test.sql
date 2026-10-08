@@ -1,7 +1,7 @@
-\ir ../proposals/ce_011_event_interest_operational_v1.sql
+\ir fixtures/ce_011_event_interest_operational_v1.sql
 
 begin;
-select plan(34);
+select plan(43);
 
 select has_schema('community', 'CE-011 community schema exists in the ephemeral database');
 select has_table('community', 'events', 'Event aggregate exists');
@@ -100,6 +100,44 @@ select ok(
 select ok(
   pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%record_expected_version%',
   'Interest and attendance mutations enforce record-level optimistic versions'
+);
+select ok(
+  pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%not(p_request?''expected_version'')%',
+  'RPC rejects a missing aggregate expected_version before comparison'
+);
+select ok(
+  pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%not(p_request?''expected_interest_version'')%',
+  'RPC rejects a missing interest expected version before comparison'
+);
+select ok(
+  pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%not(p_request?''expected_attendance_version'')%',
+  'RPC rejects a missing attendance expected version before comparison'
+);
+
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000000001', true);
+select throws_ok(
+  $$select customer_api.command_ce_event_v1('{"type":"publish_event","command_id":"10000000-0000-0000-0000-000000000001","idempotency_key":"ce011.direct.missing.aggregate","context_id":"20000000-0000-0000-0000-000000000001","workspace_id":"30000000-0000-0000-0000-000000000001","event_id":"40000000-0000-0000-0000-000000000001","reason":"Direct missing aggregate version"}'::jsonb)$$,
+  '22023', 'invalid_request', 'Missing aggregate expected_version is rejected inside the RPC'
+);
+select throws_ok(
+  $$select customer_api.command_ce_event_v1('{"type":"publish_event","command_id":"10000000-0000-0000-0000-000000000002","idempotency_key":"ce011.direct.null.aggregate","context_id":"20000000-0000-0000-0000-000000000001","workspace_id":"30000000-0000-0000-0000-000000000001","event_id":"40000000-0000-0000-0000-000000000001","expected_version":null,"reason":"Direct null aggregate version"}'::jsonb)$$,
+  '22023', 'invalid_request', 'Null aggregate expected_version is rejected inside the RPC'
+);
+select throws_ok(
+  $$select customer_api.command_ce_event_v1('{"type":"register_interest","command_id":"10000000-0000-0000-0000-000000000003","idempotency_key":"ce011.direct.missing.interest","context_id":"20000000-0000-0000-0000-000000000001","workspace_id":"30000000-0000-0000-0000-000000000001","event_id":"40000000-0000-0000-0000-000000000001","expected_version":1,"reason":"Direct missing interest version"}'::jsonb)$$,
+  '22023', 'invalid_request', 'Missing expected_interest_version is rejected inside the RPC'
+);
+select throws_ok(
+  $$select customer_api.command_ce_event_v1('{"type":"register_interest","command_id":"10000000-0000-0000-0000-000000000004","idempotency_key":"ce011.direct.null.interest","context_id":"20000000-0000-0000-0000-000000000001","workspace_id":"30000000-0000-0000-0000-000000000001","event_id":"40000000-0000-0000-0000-000000000001","expected_version":1,"expected_interest_version":null,"reason":"Direct null interest version"}'::jsonb)$$,
+  '22023', 'invalid_request', 'Null expected_interest_version is rejected inside the RPC'
+);
+select throws_ok(
+  $$select customer_api.command_ce_event_v1('{"type":"correct_attendance","command_id":"10000000-0000-0000-0000-000000000005","idempotency_key":"ce011.direct.missing.attendance","context_id":"20000000-0000-0000-0000-000000000001","workspace_id":"30000000-0000-0000-0000-000000000001","event_id":"40000000-0000-0000-0000-000000000001","expected_version":1,"reason":"Direct missing attendance version"}'::jsonb)$$,
+  '22023', 'invalid_request', 'Missing expected_attendance_version is rejected inside the RPC'
+);
+select throws_ok(
+  $$select customer_api.command_ce_event_v1('{"type":"correct_attendance","command_id":"10000000-0000-0000-0000-000000000006","idempotency_key":"ce011.direct.null.attendance","context_id":"20000000-0000-0000-0000-000000000001","workspace_id":"30000000-0000-0000-0000-000000000001","event_id":"40000000-0000-0000-0000-000000000001","expected_version":1,"expected_attendance_version":null,"reason":"Direct null attendance version"}'::jsonb)$$,
+  '22023', 'invalid_request', 'Null expected_attendance_version is rejected inside the RPC'
 );
 
 select * from finish();
