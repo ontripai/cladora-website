@@ -54,8 +54,11 @@ select ok(
 
 -- 3.3 The 6 high-risk non-delegable permissions stay at v1 with zero v2 records
 select ok(
-  (select count(*) from platform.module_permission_bindings
-   where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and is_delegable is false and lifecycle_status = 'active') = 6 and
+  (select count(*) from platform.module_permission_bindings b
+   join identity.permissions p on p.id=b.permission_id
+   where b.module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security'))
+     and p.code in ('billing.cancel','payments.reverse','payments.reconcile','utilities.tariffs.manage','governance.votes.administer','governance.minutes.finalize')
+     and b.binding_version=1 and b.is_delegable is false and b.lifecycle_status = 'active') = 6 and
   not exists (
     select 1 from platform.module_permission_bindings b
     join identity.permissions p on p.id = b.permission_id
