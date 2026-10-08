@@ -1,0 +1,27 @@
+name: AIRPROP valuation contract
+on:
+  pull_request:
+    paths:
+      - 'src/lib/airprop/valuation-contract-v1.ts'
+      - 'scripts/test-airprop-valuation-contract-01a.mjs'
+      - 'docs/airprop/AP-VAL-01A-CONTRACT-AND-DOMAIN-v1.0.md'
+      - 'docs/airprop/V14-AIRPROP-EXECUTION-REPORT.md'
+      - '.github/workflows/airprop-valuation-contract.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-airprop-valuation-contract-01a.mjs
+      - run: npm run typecheck
+      - run: npm run lint
+
