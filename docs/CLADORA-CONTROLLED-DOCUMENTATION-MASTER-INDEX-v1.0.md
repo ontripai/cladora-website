@@ -56,3 +56,7 @@ The authoritative parent definition is:
 - Marketing and demo content do not prove production capability.
 
 Historical versions remain preserved and must not be silently rewritten.
+
+## Integrated four-work execution baseline v1.4
+
+The user-approved 2026-10-08 execution scope, including AP-VAL-01 and PM-01, is registered in [the current control index](control/README.md). [The v1.4 plan](roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md) governs the updated execution scope; historical entries above remain evidence of their stated scope, not proof of newly implemented capabilities. Until this documentation PR is merged, consumers must pin its branch commit. No runtime, migration, production rollout or automated closure is introduced by this documentation update.
