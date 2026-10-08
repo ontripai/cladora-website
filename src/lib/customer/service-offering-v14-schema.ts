@@ -190,8 +190,9 @@ export function evaluateServiceOfferingEligibility(
   }
   if (offering.coverage.kind === 'geographic') return 'PREREQUISITE_MISSING';
 
-  if (request.resource !== null && offering.eligibility.required_resource_types.length > 0
-    && !offering.eligibility.required_resource_types.includes(request.resource.resource_type)) return 'PREREQUISITE_MISSING';
+  if (offering.eligibility.required_resource_types.length > 0
+    && (request.resource === null
+      || !offering.eligibility.required_resource_types.includes(request.resource.resource_type))) return 'PREREQUISITE_MISSING';
   if (offering.eligibility.required_capabilities.some(code => !request.capabilityCodes.has(code))
     || offering.eligibility.required_policy_codes.some(code => !request.policyCodes.has(code))) return 'PREREQUISITE_MISSING';
   return 'OK';

@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import type { Language } from '@/types';
 import type { z } from 'zod';
 import type { serviceResourceReferenceSchema } from '@/lib/customer/service-offering-v14-schema';
@@ -48,18 +49,21 @@ export function ServiceResourcePicker({
   disabled?: boolean;
 }) {
   const t = copy[lang];
-  const errorId = 'service-resource-error';
+  const instanceId = useId().replace(/:/g, '');
+  const selectId = `service-resource-${instanceId}`;
+  const helpId = `${selectId}-help`;
+  const errorId = `${selectId}-error`;
   return <fieldset dir={lang === 'fa' ? 'rtl' : 'ltr'} disabled={disabled} className="min-w-0 space-y-2">
-    <label htmlFor="service-resource" className="block text-sm font-semibold text-[#102A43]">{t.label}</label>
+    <label htmlFor={selectId} className="block text-sm font-semibold text-[#102A43]">{t.label}</label>
     <select
-      id="service-resource"
+      id={selectId}
       value={value ? referenceValue(value) : ''}
       onChange={event => {
         const selected = resources.find(resource => referenceValue(resource.reference) === event.target.value);
         onChange(selected?.reference ?? null);
       }}
       aria-invalid={Boolean(error)}
-      aria-describedby={error ? errorId : 'service-resource-help'}
+      aria-describedby={error ? errorId : helpId}
       className="w-full min-w-0 rounded-xl border border-[#C7D3DD] bg-white px-3 py-3 text-base text-[#102A43] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#087A6E] disabled:bg-[#F1F5F8]"
     >
       <option value="">{t.placeholder}</option>
@@ -67,7 +71,7 @@ export function ServiceResourcePicker({
         {resource.label}{resource.detail ? ` — ${resource.detail}` : ''}
       </option>)}
     </select>
-    <p id="service-resource-help" className="text-xs text-[#52667A]">{t.help}</p>
+    <p id={helpId} className="text-xs text-[#52667A]">{t.help}</p>
     {error ? <p id={errorId} role="alert" className="text-sm font-medium text-[#A61B1B]">{error}</p> : null}
   </fieldset>;
 }

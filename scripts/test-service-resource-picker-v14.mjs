@@ -54,6 +54,25 @@ try {
   assert.equal(document.querySelector('select').getAttribute('aria-invalid'), 'true');
   assert.match(document.querySelector('[role="alert"]').textContent, /دسترسی/);
   assert.doesNotMatch(document.body.textContent, /00000000-0000/);
+
+  await act(async () => root.render(React.createElement(React.Fragment, null,
+    React.createElement(ServiceResourcePicker, {
+      lang: 'en', resources, value: null, error: 'First error', onChange: () => {},
+    }),
+    React.createElement(ServiceResourcePicker, {
+      lang: 'en', resources, value: null, error: 'Second error', onChange: () => {},
+    }),
+  )));
+  const selectors = [...document.querySelectorAll('select')];
+  const labels = [...document.querySelectorAll('label')];
+  const alerts = [...document.querySelectorAll('[role="alert"]')];
+  assert.equal(selectors.length, 2);
+  assert.equal(new Set(selectors.map(element => element.id)).size, 2);
+  assert.equal(new Set(alerts.map(element => element.id)).size, 2);
+  selectors.forEach((element, index) => {
+    assert.equal(labels[index].htmlFor, element.id);
+    assert.equal(element.getAttribute('aria-describedby'), alerts[index].id);
+  });
   console.log('PASS V14 SERVICE named resource picker: RO/EN/FA, RTL, mobile width, accessible error and retained selection');
 } finally {
   await act(async () => root.unmount()); dom.window.close();

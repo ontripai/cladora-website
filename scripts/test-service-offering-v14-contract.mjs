@@ -74,6 +74,18 @@ assert.equal(evaluateServiceOfferingEligibility(offering, { ...trusted, effectiv
 assert.equal(evaluateServiceOfferingEligibility(offering, { ...trusted, policyCodes: new Set() }), 'PREREQUISITE_MISSING');
 assert.equal(evaluateServiceOfferingEligibility({ ...offering, offeringValidUntil: '2026-10-08T11:00:00Z' }, trusted), 'OFFERING_UNAVAILABLE');
 
+const workspaceOffering = { ...offering, coverage: { kind: 'workspace' } };
+assert.equal(evaluateServiceOfferingEligibility(workspaceOffering, { ...trusted, resource: null }), 'PREREQUISITE_MISSING');
+assert.equal(evaluateServiceOfferingEligibility({
+  ...workspaceOffering,
+  eligibility: { ...workspaceOffering.eligibility, required_resource_types: [] },
+}, { ...trusted, resource: null }), 'OK');
+assert.equal(evaluateServiceOfferingEligibility(workspaceOffering, trusted), 'OK');
+assert.equal(evaluateServiceOfferingEligibility(workspaceOffering, {
+  ...trusted,
+  resource: { ...resource, resource_type: 'vehicle' },
+}), 'PREREQUISITE_MISSING');
+
 const evidence = {
   evidence_id: id(20), workspace_id: id(2), resource, service_request_id: id(21), service_order_id: null,
   category: 'renovation', status: 'estimated', amount_minor: '125000', currency: 'RON', occurred_on: '2026-10-08',
