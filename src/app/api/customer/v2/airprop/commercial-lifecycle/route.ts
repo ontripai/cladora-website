@@ -43,6 +43,22 @@ export async function POST(request: NextRequest) {
       rpc = 'reserve_airprop_listing_v1';
       args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_listing_id: command.listing_id, p_applicant_id: command.applicant_id, p_reserved_until: command.reserved_until, p_idempotency_key: command.idempotency_key };
       break;
+    case 'edit_listing':
+    case 'withdraw_listing':
+    case 'republish_listing':
+      rpc = 'control_airprop_listing_v1';
+      args = {
+        p_context_id: command.context_id,
+        p_workspace_id: command.workspace_id,
+        p_listing_id: command.listing_id,
+        p_action: command.action === 'edit_listing' ? 'edit' : command.action === 'withdraw_listing' ? 'withdraw' : 'republish',
+        p_expected_version: command.expected_version,
+        p_available_from: command.action === 'withdraw_listing' ? null : command.available_from,
+        p_available_until: command.action === 'withdraw_listing' ? null : command.available_until,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotency_key,
+      };
+      break;
     case 'record_obligation_schedule':
       rpc = 'record_airprop_obligation_schedule_v1';
       args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_presale_contract_id: command.presale_contract_id, p_currency: command.currency, p_total_amount: command.total_amount, p_terms: command.terms, p_financial_source_reference: command.financial_source_reference, p_idempotency_key: command.idempotency_key };

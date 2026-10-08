@@ -39,6 +39,31 @@ export const commercialLifecycleCommandV1Schema = z.union([
   }),
   z.strictObject({
     ...base,
+    action: z.literal('edit_listing'),
+    listing_id: uuid,
+    expected_version: z.number().int().positive(),
+    available_from: isoTimestamp,
+    available_until: isoTimestamp.nullable(),
+    reason: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
+    action: z.literal('withdraw_listing'),
+    listing_id: uuid,
+    expected_version: z.number().int().positive(),
+    reason: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
+    action: z.literal('republish_listing'),
+    listing_id: uuid,
+    expected_version: z.number().int().positive(),
+    available_from: isoTimestamp,
+    available_until: isoTimestamp.nullable(),
+    reason: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
     action: z.literal('record_obligation_schedule'),
     presale_contract_id: uuid,
     currency: z.string().regex(/^[A-Z]{3}$/),
@@ -62,6 +87,10 @@ export const commercialLifecycleCommandV1Schema = z.union([
     effective_to: isoDate.nullable(),
   }),
 ]).superRefine((value, ctx) => {
+  if ((value.action === 'edit_listing' || value.action === 'republish_listing')
+    && value.available_until !== null && value.available_until <= value.available_from) {
+    ctx.addIssue({ code: 'custom', path: ['available_until'], message: 'invalid_period' });
+  }
   if (value.action !== 'link_execution') return;
   if (value.kind !== 'management_mandate' && value.unit_id === null) {
     ctx.addIssue({ code: 'custom', path: ['unit_id'], message: 'unit_required' });
