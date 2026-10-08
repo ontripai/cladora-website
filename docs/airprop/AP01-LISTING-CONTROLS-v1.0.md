@@ -6,7 +6,7 @@
 
 **Parent delivery:** AIRPROP commercial lifecycle v1 / PR #310
 
-**Status:** Implemented on a development branch; database runtime acceptance pending
+**Status:** Implemented and CI-verified; review acceptance pending
 
 ## Scope
 
@@ -35,6 +35,7 @@ This additive slice closes the AP01 control gap for an existing AIRPROP listing.
 | TypeScript typecheck | Passed |
 | ESLint | Passed |
 | Database package static contract | 238 migrations, 163 test files, 5126 assertions passed |
-| Local pgTAP runtime | Blocked: Docker/Podman is not installed in the execution environment |
+| Local pgTAP runtime | Not available: Docker/Podman is not installed in the execution environment |
+| GitHub Actions database runtime | `Database tests` run #1077 passed |
 
 The migration file is a development artifact only. It has not been applied to Supabase Production.
