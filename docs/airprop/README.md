@@ -35,3 +35,7 @@ AIRPROP diligence protects its local unsaved edits against both in-module naviga
 ## Commercial lifecycle implementation added 2026-10-07
 
 [AIRPROP commercial lifecycle 018 v1.0](../architecture/CLADORA-AIRPROP-COMMERCIAL-LIFECYCLE-018-v1.0.md) records the AIRPROP-owned LC-A01 listing, applicant and reservation runtime, LC-A02 obligation schedule, and bounded LC-A03 resale, lease and management links. It consumes the existing Core facts and does not duplicate shared ownership, lease, authority, document or payment records.
+
+## CLADORA v1.4 execution added 2026-10-08
+
+[AP-VAL-01A valuation contract and domain baseline](AP-VAL-01A-CONTRACT-AND-DOMAIN-v1.0.md) defines the independent AIRPROP Slice A contracts without a migration, production model or automatic listing-price publication. The [v1.4 AIRPROP execution report](V14-AIRPROP-EXECUTION-REPORT.md) records status, evidence, blockers and next steps until PM-01 is available.
