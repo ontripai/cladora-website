@@ -13,4 +13,4 @@
 
 قراردادهای مصرفی این ورک عبارت‌اند از C01/C02 برای اختیار و فعال‌سازی CE‑010/012، C01–C03 برای CE‑011، audit/idempotency/outbox مشترک، reference امن Documents و قرارداد اختیاری Communications. خلاصهٔ مجاز AP‑VAL‑01 فقط در Guide یا تجربهٔ موج بعد قابل مصرف است و هیچ وابستگی تازه‌ای برای سه قابلیت پایه ایجاد نمی‌کند.
 
-وضعیت انتشار همهٔ ردیف‌ها `not_released` است. هیچ migration، اتصال عمومی صفحه، Push، merge، Production change یا انتشار در این چرخه انجام نشده است.
+وضعیت انتشار همهٔ ردیف‌ها `not_released` است. هیچ migration، اتصال عمومی صفحه، merge، Production change یا انتشار در این چرخه انجام نشده است. تلاش Push عادی شاخه در ۸ اکتبر ۲۰۲۶ از مسیر HTTPS به دلیل نبود credential تعاملی با پیام `could not read Username for 'https://github.com'` رد شد؛ این خطا نتیجهٔ آزمون یا رد محتوای کد نیست و Draft PR به همین علت ساخته نشد.
