@@ -27,9 +27,9 @@ insert into platform.workspace_property_bindings(tenant_id,customer_workspace_id
  ('d1010000-0000-4000-8000-000000000010','d1010000-0000-4000-8000-000000000101','d1010000-0000-4000-8000-000000001101','active','platform_assignment',statement_timestamp()-interval '1 day'),
  ('d1010000-0000-4000-8000-000000000010','d1010000-0000-4000-8000-000000000101','d1010000-0000-4000-8000-000000001102','active','platform_assignment',statement_timestamp()-interval '1 day');
 insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
-select 'd1010000-0000-4000-8000-000000000301','d1010000-0000-4000-8000-000000000010','d1010000-0000-4000-8000-000000000001',id,'active',statement_timestamp()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null and is_system
+select 'd1010000-0000-4000-8000-000000000301'::uuid,'d1010000-0000-4000-8000-000000000010'::uuid,'d1010000-0000-4000-8000-000000000001'::uuid,id,'active',statement_timestamp()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null and is_system
 union all
-select 'd1010000-0000-4000-8000-000000000302','d1010000-0000-4000-8000-000000000010','d1010000-0000-4000-8000-000000000002',id,'active',statement_timestamp()-interval '1 day' from identity.roles where code='owner' and tenant_id is null and is_system;
+select 'd1010000-0000-4000-8000-000000000302'::uuid,'d1010000-0000-4000-8000-000000000010'::uuid,'d1010000-0000-4000-8000-000000000002'::uuid,id,'active',statement_timestamp()-interval '1 day' from identity.roles where code='owner' and tenant_id is null and is_system;
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
  ('d1010000-0000-4000-8000-000000000401','d1010000-0000-4000-8000-000000000010','d1010000-0000-4000-8000-000000000301','tenant',statement_timestamp()-interval '1 day'),
  ('d1010000-0000-4000-8000-000000000402','d1010000-0000-4000-8000-000000000010','d1010000-0000-4000-8000-000000000302','tenant',statement_timestamp()-interval '1 day');
