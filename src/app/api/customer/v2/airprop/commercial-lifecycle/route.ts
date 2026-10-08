@@ -43,6 +43,23 @@ export async function POST(request: NextRequest) {
       rpc = 'reserve_airprop_listing_v1';
       args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_listing_id: command.listing_id, p_applicant_id: command.applicant_id, p_reserved_until: command.reserved_until, p_idempotency_key: command.idempotency_key };
       break;
+    case 'cancel_reservation':
+    case 'expire_reservation':
+    case 'extend_reservation':
+    case 'convert_reservation':
+      rpc = 'control_airprop_reservation_v1';
+      args = {
+        p_context_id: command.context_id,
+        p_workspace_id: command.workspace_id,
+        p_reservation_id: command.reservation_id,
+        p_action: command.action === 'cancel_reservation' ? 'cancel' : command.action === 'expire_reservation' ? 'expire' : command.action === 'extend_reservation' ? 'extend' : 'convert',
+        p_expected_version: command.expected_version,
+        p_reserved_until: command.action === 'extend_reservation' ? command.reserved_until : null,
+        p_conversion_reference: command.action === 'convert_reservation' ? command.conversion_reference : null,
+        p_reason: command.reason,
+        p_idempotency_key: command.idempotency_key,
+      };
+      break;
     case 'edit_listing':
     case 'withdraw_listing':
     case 'republish_listing':
