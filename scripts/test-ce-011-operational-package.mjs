@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
 const sql = fs.readFileSync('supabase/proposals/ce_011_event_interest_operational_v1.sql', 'utf8');
-const fixture = fs.readFileSync('supabase/tests/fixtures/ce_011_event_interest_operational_v1.sql', 'utf8');
+const fixture = fs.readFileSync('supabase/tests/fixtures/ce_011_event_interest_operational_v1.inc', 'utf8');
 const route = fs.readFileSync('src/app/api/customer/v1/community/events/route.ts', 'utf8');
 
 assert.equal(fixture, sql, 'The isolated pgTAP fixture must exactly match the reviewed proposal');

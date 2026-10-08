@@ -1,4 +1,4 @@
-\ir fixtures/ce_011_event_interest_operational_v1.sql
+\ir fixtures/ce_011_event_interest_operational_v1.inc
 
 begin;
 select plan(43);
@@ -98,7 +98,7 @@ select ok(
   'Post-cancellation attendance correction requires an explicit reason'
 );
 select ok(
-  pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%record_expected_version%',
+  pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%v_record_expected%',
   'Interest and attendance mutations enforce record-level optimistic versions'
 );
 select ok(

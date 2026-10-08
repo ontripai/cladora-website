@@ -276,14 +276,17 @@ begin
   else update community.event_interests set status=case when v_command='register_interest' then 'interested' else 'withdrawn' end,version=version+1,updated_by=v_actor,updated_at=clock_timestamp() where id=v_interest.id returning * into v_interest;end if;
   v_result_version:=v_interest.version;v_entity_type:='event_interest';v_entity_id:=v_interest.id;
  elsif v_command='record_attendance' then
-  if v_event.status<>'published' or v_event.version<>v_expected then raise exception 'ce_event_version_conflict' using errcode='40001';end if;
+  if v_event.status<>'published' then raise exception 'ce_event_status_rejects_new_attendance' using errcode='40001';end if;
+  if v_event.version<>v_expected then raise exception 'ce_event_version_conflict' using errcode='40001';end if;
   if exists(select 1 from community.event_attendance where event_id=v_event_id and membership_id=v_member_id) then raise exception 'ce_attendance_exists' using errcode='23505';end if;
   select id into strict v_occurrence_id from community.event_occurrences where event_id=v_event_id and timezone=p_request->>'timezone';
   insert into community.event_attendance(tenant_id,workspace_id,event_id,occurrence_id,membership_id,attended,observed_local,timezone,version,updated_by)
   values(v_scope.tenant_id,v_workspace,v_event_id,v_occurrence_id,v_member_id,true,(p_request->>'observed_local')::timestamp,p_request->>'timezone',1,v_actor) returning * into v_attendance;
   v_result_version:=1;v_entity_type:='event_attendance';v_entity_id:=v_attendance.id;
  elsif v_command='correct_attendance' then
-  if v_event.status='draft' or v_event.version<>v_expected or(v_event.status='cancelled' and length(v_reason)<12) then raise exception 'ce_event_version_conflict' using errcode='40001';end if;
+  if v_event.status='draft' then raise exception 'ce_event_status_rejects_attendance_correction' using errcode='40001';end if;
+  if v_event.version<>v_expected then raise exception 'ce_event_version_conflict' using errcode='40001';end if;
+  if v_event.status='cancelled' and length(v_reason)<12 then raise exception 'ce_event_cancelled_correction_reason_required' using errcode='22023';end if;
   select * into v_attendance from community.event_attendance where id=(p_request->>'attendance_id')::uuid and event_id=v_event_id for update;
   v_record_expected:=(p_request->>'expected_attendance_version')::integer;
   if not found or v_attendance.version<>v_record_expected or v_attendance.timezone<>p_request->>'timezone' then raise exception 'ce_attendance_version_conflict' using errcode='40001';end if;
