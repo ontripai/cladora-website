@@ -19,6 +19,93 @@ where d.is_active = true
   and p.code in ('workspace.role.read','workspace.role.manage')
 on conflict (module_definition_id, permission_id, binding_version) do nothing;
 
+-- The two bindings above are cross-cutting disclosure gates, not additions to
+-- either domain's permission manifest. Keep the existing fail-closed manifest
+-- validators exact while excluding only these explicitly named Core gates.
+create or replace function app_private.validate_module_permission_bindings_v2_seeding_v1()
+returns void language plpgsql security definer
+set search_path = pg_catalog, platform, identity
+as $$
+declare
+  v_total_count integer;
+  v_active_count integer;
+  v_delegable_active_count integer;
+  v_non_delegable_active_count integer;
+  v_v2_non_delegable_count integer;
+begin
+  select count(*) into v_total_count
+  from platform.module_permission_bindings b
+  join platform.module_definitions m on m.id=b.module_definition_id
+  join identity.permissions p on p.id=b.permission_id
+  where m.code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')
+    and p.code not in ('workspace.role.read','workspace.role.manage');
+  if v_total_count<>90 then raise exception 'module_permission_bindings_total_count_mismatch: expected 90, got %',v_total_count using errcode='P0002'; end if;
+
+  select count(*) into v_active_count
+  from platform.module_permission_bindings b
+  join platform.module_definitions m on m.id=b.module_definition_id
+  join identity.permissions p on p.id=b.permission_id
+  where m.code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')
+    and p.code not in ('workspace.role.read','workspace.role.manage') and b.lifecycle_status='active';
+  if v_active_count<>48 then raise exception 'module_permission_bindings_active_count_mismatch: expected 48, got %',v_active_count using errcode='P0002'; end if;
+
+  select count(*) into v_delegable_active_count
+  from platform.module_permission_bindings b
+  join platform.module_definitions m on m.id=b.module_definition_id
+  join identity.permissions p on p.id=b.permission_id
+  where m.code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')
+    and p.code not in ('workspace.role.read','workspace.role.manage')
+    and b.lifecycle_status='active' and b.is_delegable=true;
+  if v_delegable_active_count<>42 then raise exception 'delegable_active_count_mismatch: expected 42, got %',v_delegable_active_count using errcode='P0002'; end if;
+
+  select count(*) into v_non_delegable_active_count
+  from platform.module_permission_bindings b
+  join platform.module_definitions m on m.id=b.module_definition_id
+  join identity.permissions p on p.id=b.permission_id
+  where m.code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')
+    and p.code not in ('workspace.role.read','workspace.role.manage')
+    and b.lifecycle_status='active' and b.is_delegable=false;
+  if v_non_delegable_active_count<>6 then raise exception 'non_delegable_active_count_mismatch: expected 6, got %',v_non_delegable_active_count using errcode='P0002'; end if;
+
+  select count(*) into v_v2_non_delegable_count
+  from platform.module_permission_bindings b
+  join identity.permissions p on p.id=b.permission_id
+  where p.code in ('billing.cancel','payments.reverse','payments.reconcile','utilities.tariffs.manage','governance.votes.administer','governance.minutes.finalize')
+    and b.binding_version=2;
+  if v_v2_non_delegable_count<>0 then raise exception 'non_delegable_permissions_must_not_have_v2_records' using errcode='P0002'; end if;
+end;
+$$;
+revoke all on function app_private.validate_module_permission_bindings_v2_seeding_v1() from public,anon,authenticated,service_role;
+
+create or replace function app_private.validate_airprop_module_bindings_v1()
+returns void language plpgsql stable security definer set search_path=pg_catalog as $$
+declare actual integer; matched integer;
+begin
+ select count(*) into actual from platform.module_permission_bindings b
+ join platform.module_definitions m on m.id=b.module_definition_id
+ join identity.permissions p on p.id=b.permission_id
+ where m.code='airprop_commercial' and m.version=1
+   and p.code not in ('workspace.role.read','workspace.role.manage');
+ select count(*) into matched from platform.module_permission_bindings b
+ join platform.module_definitions m on m.id=b.module_definition_id
+ join identity.permissions p on p.id=b.permission_id
+ join(values
+  ('airprop.opportunity.read','read'),('airprop.opportunity.manage','manage'),
+  ('airprop.underwriting.manage','manage'),('airprop.asset.read','read'),
+  ('airprop.asset.manage','manage'),('airprop.diligence.manage','manage'),
+  ('airprop.diligence.submit','manage'),('airprop.acquisition.propose','manage'),
+  ('airprop.acquisition.approve','manage'),('airprop.presale.execute','manage')
+ ) x(code,mode) on p.code=x.code and b.permission_mode=x.mode
+ where m.code='airprop_commercial' and m.version=1 and b.binding_version=1
+  and b.is_assignable_to_local_role and not b.is_delegable and b.requires_aal2
+  and b.lifecycle_status='active' and b.valid_to is null;
+ if actual<>10 or matched<>10 then raise exception 'airprop_module_binding_manifest_mismatch' using errcode='P0002'; end if;
+end;$$;
+revoke all on function app_private.validate_airprop_module_bindings_v1() from public,anon,authenticated,service_role;
+
+select app_private.validate_module_permission_bindings_v2_seeding_v1();
+select app_private.validate_airprop_module_bindings_v1();
+
 create or replace function app_private.check_workspace_disclosure_permission_v1(
   p_context_id uuid,
   p_workspace_id uuid,

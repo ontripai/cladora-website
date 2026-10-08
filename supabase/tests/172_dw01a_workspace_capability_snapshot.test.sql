@@ -1,12 +1,20 @@
 -- CLADORA DW-01A runtime pgTAP contract, v1.2.
 -- Runs only inside the disposable database created by `supabase test db`.
 begin;
-select plan(25);
+select plan(28);
 
 select has_function('customer_api','get_workspace_capability_snapshot_v1',array['uuid','uuid'],'reader has exactly context_id + workspace_id');
 select ok(not has_function_privilege('anon','customer_api.get_workspace_capability_snapshot_v1(uuid,uuid)','EXECUTE'),'anon denied');
 select ok(has_function_privilege('authenticated','customer_api.get_workspace_capability_snapshot_v1(uuid,uuid)','EXECUTE'),'authenticated may call bounded RPC');
 select ok(not has_function_privilege('service_role','customer_api.get_workspace_capability_snapshot_v1(uuid,uuid)','EXECUTE'),'service_role direct call denied');
+select lives_ok($$select app_private.validate_module_permission_bindings_v2_seeding_v1()$$,'historic module manifest remains exact with cross-cutting disclosure gates');
+select lives_ok($$select app_private.validate_airprop_module_bindings_v1()$$,'AIRPROP domain manifest remains exact with cross-cutting disclosure gates');
+select ok(not exists(
+  select 1 from platform.module_permission_bindings b
+  join identity.permissions p on p.id=b.permission_id
+  where p.code in ('workspace.role.read','workspace.role.manage')
+  group by b.module_definition_id,p.code having count(*)<>1
+),'each disclosure gate has at most one binding per module');
 
 -- Real callers: an aggregate-authorized administrator and a caller with valid
 -- Workspace access but without workspace.role.read/manage.

@@ -89,7 +89,9 @@ assert.match(migration, /check_workspace_disclosure_permission_v1/, 'Runtime rea
 assert.match(migration, /check_effective_permission_v2\(/, 'Disclosure authorization invokes the canonical effective-authority evaluator');
 assert.match(migration, /workspace\.role\.read/, 'Resource-count disclosure permission is explicit');
 assert.match(migration, /workspace\.role\.manage/, 'Contract-status disclosure permission is explicit');
-assert.match(runtimePgTap, /select plan\(25\)/, 'Runtime pgTAP plan is current');
+assert.match(runtimePgTap, /select plan\(28\)/, 'Runtime pgTAP plan is current');
+assert.match(runtimePgTap, /validate_module_permission_bindings_v2_seeding_v1/, 'Runtime pgTAP protects the historic module manifest');
+assert.match(runtimePgTap, /validate_airprop_module_bindings_v1/, 'Runtime pgTAP protects the AIRPROP domain manifest');
 assert.match(runtimePgTap, /explicit denies take precedence/, 'Runtime pgTAP covers deny precedence');
 assert.match(runtimePgTap, /permission revocation is effective/, 'Runtime pgTAP covers permission revocation');
 

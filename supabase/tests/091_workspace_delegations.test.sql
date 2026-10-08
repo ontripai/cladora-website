@@ -36,10 +36,12 @@ select ok(
 -- ----------------------------------------------------------------------------
 -- 3. Binding Forward-Versioning & Handoff Integrity (5 assertions)
 -- ----------------------------------------------------------------------------
--- 3.1 Registry total records = 90 (48 v1 + 42 v2), active records = 48
+-- 3.1 Historic domain manifest = 90 (48 v1 + 42 v2), active records = 48.
+-- Cross-cutting Core disclosure gates are validated by DW-01A, not counted as
+-- domain permissions in this historic manifest.
 select ok(
-  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security'))) = 90 and
-  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and lifecycle_status = 'active') = 48,
+  (select count(*) from platform.module_permission_bindings b join identity.permissions p on p.id=b.permission_id where b.module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and p.code not in ('workspace.role.read','workspace.role.manage')) = 90 and
+  (select count(*) from platform.module_permission_bindings b join identity.permissions p on p.id=b.permission_id where b.module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and p.code not in ('workspace.role.read','workspace.role.manage') and b.lifecycle_status = 'active') = 48,
   'historic module manifest contains exactly 90 total records and 48 active records'
 );
 
