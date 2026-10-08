@@ -50,12 +50,12 @@ insert into platform.workspace_entitlements(customer_workspace_id,entitlement_ke
  ('d1010000-0000-4000-8000-000000000101','module.documents','boolean',true,statement_timestamp()-interval '2 days',statement_timestamp()-interval '1 day',null,null),
  ('d1010000-0000-4000-8000-000000000101','module.security','boolean',false,statement_timestamp()-interval '2 days',null,'true'::jsonb,statement_timestamp()+interval '1 day');
 
-create temporary function pg_temp.dw01a_snapshot(p_user uuid,p_context uuid,p_workspace uuid) returns jsonb language plpgsql as $$
+create function pg_temp.dw01a_snapshot(p_user uuid,p_context uuid,p_workspace uuid) returns jsonb language plpgsql as $$
 begin
  perform set_config('request.jwt.claims',jsonb_build_object('sub',p_user,'role','authenticated','aal','aal2')::text,true);
  return customer_api.get_workspace_capability_snapshot_v1(p_context,p_workspace);
 end $$;
-create temporary function pg_temp.dw01a_has_forbidden_refs(p jsonb) returns boolean language sql immutable as $$ select
+create function pg_temp.dw01a_has_forbidden_refs(p jsonb) returns boolean language sql immutable as $$ select
  jsonb_path_exists(p,'$.resources.resource_ids[*]') or jsonb_path_exists(p,'$.resources.visible_count ? (@ != null)')
  or jsonb_path_exists(p,'$.resources.total_count ? (@ != null)') or jsonb_path_exists(p,'$.capabilities[*].module.definition_id ? (@ != null)')
  or jsonb_path_exists(p,'$.capabilities[*].module.activation_id ? (@ != null)') or jsonb_path_exists(p,'$.capabilities[*].entitlement.entitlement_id ? (@ != null)')
