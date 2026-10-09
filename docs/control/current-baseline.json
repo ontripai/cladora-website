@@ -3,7 +3,7 @@
   "baseline_version": "1.4",
   "date": "2026-10-08",
   "plan_status": "user-approved direction and work assignments",
-  "repository_status": "documentation branch; merge pending",
+  "repository_status": "in_review in Draft PR #313; merge pending",
   "repository": "ontripai/cladora-website",
   "observed_main_commit": "436e7a634020a846da212aa60501f25455d39850",
   "baseline_commit_resolution": "Use the containing Git commit SHA. A file cannot embed its own enclosing commit hash. Never treat observed_main_commit as this new baseline commit.",
@@ -63,6 +63,30 @@
     "Core_DW01A": "Reported prepared; database assertions require actual evidence. Local later files not asserted present on main.",
     "CE011": "Domain/UI reported tested; persistence/RLS/concurrency remain separately tracked; delivery commit must be verified in work repository."
   },
+  "work_packages": [
+    {
+      "id": "V14-DOC-BASELINE-01",
+      "name": "CLADORA v1.4 controlled documentation baseline",
+      "owner": "PM / Documentation",
+      "status": "in_review",
+      "branch": "docs/cladora-v1.4-controlled-baseline",
+      "pull_request": 313,
+      "delivery_commit": "7432f8fe7d0d10fd0539bc6160b102f863ea918d",
+      "expected_output": "Versioned baseline, coordination matrix, PM-01 lifecycle and controlled source registry"
+    },
+    {
+      "id": "PM01-A",
+      "name": "Private oversight registry contract",
+      "owner": "PM / Documentation; Core/Platform owns future runtime implementation",
+      "status": "ready",
+      "depends_on": [
+        "V14-DOC-BASELINE-01"
+      ],
+      "branch": "feat/pm01-private-oversight-registry",
+      "pull_request": null,
+      "expected_output": "Versioned logical inventory, visibility and authority rules, command/receipt boundary, GitHub synchronization rules and acceptance matrix; documentation only"
+    }
+  ],
   "runtime_installed_by_this_baseline": false,
   "constraints": [
     "No production migration or deployment",
