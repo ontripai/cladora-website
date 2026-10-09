@@ -39,12 +39,14 @@ Executed locally on the changed code:
 - static database contract: 237 migrations / 165 test files / 5280 assertions;
 - proposal/fixture byte comparison and `git diff --check`: passed.
 
-Runtime evidence at code head `541375339c2314e2f7054e8e7c90d0d2ef9eeed7`:
+Runtime evidence for the unchanged CE012 code at rebased code head `4b37fa99e9255c194fcc2f3edcc56e82ae082568`:
 
 - [Database tests run 37924008670](https://github.com/ontripai/cladora-website/actions/runs/37924008670): CE012 plan 60 passed; the complete 165-file / 5280-assertion suite passed.
 - [CE Community run 37924008676](https://github.com/ontripai/cladora-website/actions/runs/37924008676): domain and 55 HTTP checks passed; exact-key replay, competing revision, document becoming unavailable while publish waited, and membership suspension while replay waited all passed on real PostgreSQL connections.
 - [Application Foundation run 37924008671](https://github.com/ontripai/cladora-website/actions/runs/37924008671): successful.
 - Vercel Preview `dpl_Eygkbs8DwZ4SqvBN4bzRscFyENDq`, same code head, READY; target is Preview, not Production.
+
+After parent PR #313 merged, Draft PR #318 was retargeted to `main` and the CE branch was rebased without content changes. Exact delivery head `a6f487b5dbf30f57218b39561fd790f56ac8d60a` is 18 commits ahead and 0 behind its `main` base. [Database tests run 37929468827](https://github.com/ontripai/cladora-website/actions/runs/37929468827), [CE Community run 37929468789](https://github.com/ontripai/cladora-website/actions/runs/37929468789) and [Application Foundation run 37929468777](https://github.com/ontripai/cladora-website/actions/runs/37929468777) all passed at that exact head. Vercel Preview `dpl_GNFCD873CP1ntj8wL7A78okiRxsz` is READY at the same SHA. The PR diff contains only CE-owned files and no central-control document or migration.
 
 ## Independent remaining gates
 
