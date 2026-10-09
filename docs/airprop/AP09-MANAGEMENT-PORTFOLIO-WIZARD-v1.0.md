@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP08-RPT-01 / Draft PR #344 at `215b0db1dd10e826e0578f7a62bcc5da98510bc8`
 
-**Status:** Locally verified; exact-head Draft PR CI pending
+**Status:** Exact-head CI verified on Draft PR #346; review acceptance pending
 
 ## Scope
 
@@ -30,6 +30,8 @@ The read route accepts only `context_id` and `workspace_id`, requires authentica
 | Database package static contract | 245 migrations, 170 test files and 5364 assertions passed |
 | ESLint / diff check | Passed |
 | Production build | Webpack compilation passed; repository-wide Next route type generation remains blocked by pre-existing non-AIRPROP route exports |
-| Exact-head CI | Pending Draft PR |
+| Application Foundation | Run `37930832096` passed lint, unit, application contract, typecheck, production build, three-language audit and diff check |
+| AIRPROP exact-head checks | Commercial `37930832067`, native `37930832020`, underwriting UI `37930832108` and all other triggered AIRPROP workflows passed at `a4a176086db873f74090cd92d1fb62fd9152e0ea` |
+| Vercel Preview | Passed for the same implementation head: `F1KQbnTrPHGQ5tWAzqiYAtGULuGg` |
 
 No Supabase Remote or Production migration and no Production deployment was performed.

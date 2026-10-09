@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP09-UX-01 on `feat/airprop-ap09-management-wizard`
 
-**Status:** Deterministic rendered integration passed; authenticated browser E2E blocked
+**Status:** Deterministic rendered integration and exact-head CI passed; authenticated browser E2E blocked
 
 ## Deterministic scenario
 
