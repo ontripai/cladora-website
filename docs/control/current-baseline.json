@@ -18,7 +18,7 @@
   "artifacts": [
     {
       "path": "docs/CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md",
-      "sha256": "6df775f7e81a47ca81f8ee6ec1381c48244a51d43ba5562f50720f1e27e31507"
+      "sha256": "5417214f29510b77e2ccbbe2f18b5deb53bf162886a0d1250a3e0088369c5320"
     },
     {
       "path": "docs/control/PM-01-WORK-LIFECYCLE-v1.0.md",
@@ -26,11 +26,15 @@
     },
     {
       "path": "docs/control/README.md",
-      "sha256": "6b99c3f1abccc301a2ce393647d368071b87ff3d54b4de90db92e30f64a299bf"
+      "sha256": "14c2b17165478550ad7970c11cbe0349a31d7ec2536ccfdfd8abbdb86355c436"
+    },
+    {
+      "path": "docs/control/PM-01-PRIVATE-OVERSIGHT-REGISTRY-v1.0.md",
+      "sha256": "b441da0fea0414231b88cfa8a74338c643ed65efc79ee333a082d58108375c9a"
     },
     {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.0.md",
-      "sha256": "92172c303f8935bd1880866e37aafbe439a4aabd1c0cf30b0b9d09ea1728dd77"
+      "sha256": "eb9c80571f3cddb00c1c47bd11662add2e69aa1474bb13fc2f37adeb1670fff2"
     },
     {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
@@ -78,12 +82,13 @@
       "id": "PM01-A",
       "name": "Private oversight registry contract",
       "owner": "PM / Documentation; Core/Platform owns future runtime implementation",
-      "status": "ready",
+      "status": "in_review",
       "depends_on": [
         "V14-DOC-BASELINE-01"
       ],
       "branch": "feat/pm01-private-oversight-registry",
-      "pull_request": null,
+      "pull_request": 322,
+      "delivery_commit": "21750ffc81cdcf5cb62da3e0041ef20ffe2894a0",
       "expected_output": "Versioned logical inventory, visibility and authority rules, command/receipt boundary, GitHub synchronization rules and acceptance matrix; documentation only"
     }
   ],
