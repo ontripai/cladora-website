@@ -34,9 +34,9 @@ begin
  if p_kind='resale' then
   begin
    if p_unit_id is null or p_effective_to is not null
-    or jsonb_typeof(p_commercial_terms->'price')<>'string'
+    or jsonb_typeof(p_commercial_terms->'price') is distinct from 'string'
     or (p_commercial_terms->>'price') !~ '^(0|[1-9][0-9]{0,15})(\.[0-9]{1,4})?$'
-    or jsonb_typeof(p_commercial_terms->'currency')<>'string'
+    or jsonb_typeof(p_commercial_terms->'currency') is distinct from 'string'
     or (p_commercial_terms->>'currency') !~ '^[A-Z]{3}$' then
     raise exception 'airprop_resale_receipt_invalid' using errcode='22023';
    end if;
