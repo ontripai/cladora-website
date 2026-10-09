@@ -6,6 +6,19 @@ const requestKey = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/);
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const isoTimestamp = z.string().datetime({ offset: true });
 const commercialAmount = /^(0|[1-9][0-9]{0,15})(\.[0-9]{1,4})?$/;
+const managementCapability = z.enum([
+  'listing',
+  'lease_administration',
+  'maintenance_coordination',
+  'owner_reporting',
+  'rent_collection',
+  'supplier_coordination',
+]);
+const managementScope = z.strictObject({
+  capabilities: z.array(managementCapability).min(1).max(6)
+    .refine(value => new Set(value).size === value.length),
+  notes: z.string().trim().min(1).max(1000).optional(),
+});
 
 const base = {
   version: z.literal(1),
@@ -101,6 +114,22 @@ export const commercialLifecycleCommandV1Schema = z.union([
   }),
   z.strictObject({
     ...base,
+    action: z.literal('request_management_mandate'),
+    property_id: uuid,
+    owner_party_id: uuid,
+    scope: managementScope,
+    valid_from: isoDate,
+    valid_to: isoDate,
+    proposal_evidence_reference: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
+    action: z.literal('accept_management_mandate'),
+    mandate_request_id: uuid,
+    acceptance_evidence_reference: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
     action: z.literal('link_execution'),
     property_id: uuid,
     unit_id: uuid.nullable(),
@@ -111,6 +140,9 @@ export const commercialLifecycleCommandV1Schema = z.union([
     effective_to: isoDate.nullable(),
   }),
 ]).superRefine((value, ctx) => {
+  if (value.action === 'request_management_mandate' && value.valid_to <= value.valid_from) {
+    ctx.addIssue({ code: 'custom', path: ['valid_to'], message: 'invalid_period' });
+  }
   if ((value.action === 'edit_listing' || value.action === 'republish_listing')
     && value.available_until !== null && value.available_until <= value.available_from) {
     ctx.addIssue({ code: 'custom', path: ['available_until'], message: 'invalid_period' });

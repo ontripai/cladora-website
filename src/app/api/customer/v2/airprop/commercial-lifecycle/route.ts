@@ -80,6 +80,14 @@ export async function POST(request: NextRequest) {
       rpc = 'record_airprop_obligation_schedule_v1';
       args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_presale_contract_id: command.presale_contract_id, p_currency: command.currency, p_total_amount: command.total_amount, p_terms: command.terms, p_financial_source_reference: command.financial_source_reference, p_idempotency_key: command.idempotency_key };
       break;
+    case 'request_management_mandate':
+      rpc = 'request_airprop_management_mandate_v1';
+      args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_property_id: command.property_id, p_owner_party_id: command.owner_party_id, p_scope: command.scope, p_valid_from: command.valid_from, p_valid_to: command.valid_to, p_proposal_evidence_reference: command.proposal_evidence_reference, p_idempotency_key: command.idempotency_key };
+      break;
+    case 'accept_management_mandate':
+      rpc = 'accept_airprop_management_mandate_v1';
+      args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_mandate_request_id: command.mandate_request_id, p_acceptance_evidence_reference: command.acceptance_evidence_reference, p_idempotency_key: command.idempotency_key };
+      break;
     case 'link_execution':
       rpc = 'link_airprop_commercial_execution_v1';
       args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_property_id: command.property_id, p_unit_id: command.unit_id, p_kind: command.kind, p_core_record_id: command.core_record_id, p_commercial_terms: command.commercial_terms, p_effective_from: command.effective_from, p_effective_to: command.effective_to, p_idempotency_key: command.idempotency_key };
