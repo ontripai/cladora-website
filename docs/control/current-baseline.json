@@ -18,7 +18,7 @@
   "artifacts": [
     {
       "path": "docs/CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md",
-      "sha256": "5417214f29510b77e2ccbbe2f18b5deb53bf162886a0d1250a3e0088369c5320"
+      "sha256": "42fa0e5699f5d5dd5e860eabce81f524fca915e62dc5eda5b5556f72965389e5"
     },
     {
       "path": "docs/control/PM-01-WORK-LIFECYCLE-v1.0.md",
@@ -26,11 +26,15 @@
     },
     {
       "path": "docs/control/README.md",
-      "sha256": "14c2b17165478550ad7970c11cbe0349a31d7ec2536ccfdfd8abbdb86355c436"
+      "sha256": "a0729d600aea1cee854f1cdfff78e85c923f4b87769185b1febd89d01c7fefa6"
     },
     {
       "path": "docs/control/PM-01-PRIVATE-OVERSIGHT-REGISTRY-v1.0.md",
       "sha256": "b441da0fea0414231b88cfa8a74338c643ed65efc79ee333a082d58108375c9a"
+    },
+    {
+      "path": "docs/control/PM-01-RUNTIME-READINESS-INVENTORY-v1.0.md",
+      "sha256": "28d4b6231f3171dfd0613cbca478646d224f4d78e98b3b4505eea92b4aef8ab4"
     },
     {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.0.md",
@@ -90,6 +94,18 @@
       "pull_request": 322,
       "delivery_commit": "21750ffc81cdcf5cb62da3e0041ef20ffe2894a0",
       "expected_output": "Versioned logical inventory, visibility and authority rules, command/receipt boundary, GitHub synchronization rules and acceptance matrix; documentation only"
+    },
+    {
+      "id": "PM01-B",
+      "name": "Core/Platform runtime readiness inventory",
+      "owner": "Core/Platform; PM / Documentation owns control and evidence records",
+      "status": "in_progress",
+      "depends_on": [
+        "PM01-A"
+      ],
+      "branch": "docs/pm01-runtime-readiness-inventory",
+      "pull_request": null,
+      "expected_output": "Read-only current-schema and authority inventory, non-tenant internal scope decision, proposed physical records/routes and explicit runtime approval/test gates; documentation only"
     }
   ],
   "runtime_installed_by_this_baseline": false,
