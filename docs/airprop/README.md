@@ -41,3 +41,5 @@ AIRPROP diligence protects its local unsaved edits against both in-module naviga
 [AP-VAL-01A valuation contract and domain baseline](AP-VAL-01A-CONTRACT-AND-DOMAIN-v1.0.md) defines the independent AIRPROP Slice A contracts without a migration, production model or automatic listing-price publication. The [v1.4 AIRPROP execution report](V14-AIRPROP-EXECUTION-REPORT.md) records status, evidence, blockers and next steps until PM-01 is available.
 
 [AP01-LC-01 listing controls](AP01-LISTING-CONTROLS-v1.0.md) add versioned edit, withdrawal and republish commands to the existing commercial listing lifecycle. Production migration and deployment require separate authorization.
+
+[AP02-RSV-01 reservation controls](AP02-RESERVATION-CONTROLS-v1.0.md) add versioned cancel, expiry, extension and commercial handoff transitions while preserving the existing exclusive-winner constraint. They do not create ownership, membership, canonical leases or financial postings.

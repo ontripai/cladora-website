@@ -7,8 +7,10 @@ on:
       - 'scripts/test-airprop-commercial-lifecycle-route-018.mjs'
       - 'supabase/migrations/20261007104000_airprop_commercial_lifecycle_v1.sql'
       - 'supabase/migrations/20261008135433_airprop_listing_controls_v1.sql'
+      - 'supabase/migrations/20261008195900_airprop_reservation_controls_v1.sql'
       - 'supabase/tests/171_airprop_commercial_lifecycle.test.sql'
       - 'supabase/tests/172_airprop_listing_controls.test.sql'
+      - 'supabase/tests/173_airprop_reservation_controls.test.sql'
       - '.github/workflows/airprop-commercial-lifecycle.yml'
   workflow_dispatch:
 permissions:
