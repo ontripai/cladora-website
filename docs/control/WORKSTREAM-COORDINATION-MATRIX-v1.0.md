@@ -11,7 +11,7 @@
 
 All rows below were `OPEN`, `Draft` and reported `CLEAN` by GitHub at observation time. “Green” means every check present in the live PR rollup succeeded; it does not mean that a work package is accepted, merged, migrated or deployed to Production.
 
-| PR | Execution owner | Purpose | Base | Live head | Live CI / Vercel | Expected bounded output |
+| PR | Execution owner | Purpose | Base | Observed head | Live CI / Vercel | Expected bounded output |
 | --- | --- | --- | --- | --- | --- | --- |
 | [#313](https://github.com/ontripai/cladora-website/pull/313) | PM / Documentation | Publish the controlled CLADORA v1.4 baseline, PM-01 lifecycle, UX/UI/CSS registry and four-workstream routing | `main` | `2fb9d7d264666d68d2f0063110c99b8a7a76acb9` | Vercel green; no repository workflow check is present in the rollup | Versioned documentation baseline and coordination record only |
 | [#314](https://github.com/ontripai/cladora-website/pull/314) | AIRPROP | Establish the `AP-VAL-01A` valuation contract baseline | `docs/cladora-v1.4-controlled-baseline` (#313) | `53f603a345cca4e1d0494d4533578dc795f7d6c4` | All 9 repository checks green; Vercel green | Versioned valuation contracts, deterministic provenance/fingerprint behavior, tests and execution report; no runtime integration |
@@ -23,14 +23,19 @@ All rows below were `OPEN`, `Draft` and reported `CLEAN` by GitHub at observatio
 | [#320](https://github.com/ontripai/cladora-website/pull/320) | SERVICE | Define the `SV01E-F` exact-quote acceptance boundary | `feat/service-v14-offering-sv01b` (#317) | `7a1b773b34a09651e61b686e56b798a73f979102` | All 14 repository checks green; Vercel green | Strict customer intent and server-snapshot decision contract; no Order persistence, Finance posting or operational route |
 | [#321](https://github.com/ontripai/cladora-website/pull/321) | SERVICE | Define the `SV01K/L` collaboration subject-link contract | `feat/service-v14-order-sv01ef-contract` (#320) | `c08dc8c633272690e45a6d0e8e62e0d1729b5b23` | All 14 repository checks green; Vercel green | Fail-closed Communications/Vault reference-link contract and tests; operational adapter remains an explicit dependency |
 | [#322](https://github.com/ontripai/cladora-website/pull/322) | PM / Documentation | Define the `PM01-A` private oversight registry contract | `docs/cladora-v1.4-controlled-baseline` (#313) | `21750ffc81cdcf5cb62da3e0041ef20ffe2894a0` | Documentation validation green; Vercel Preview pending at initial observation | Versioned logical registry, visibility/authority, command/receipt, GitHub synchronization and acceptance contracts; no runtime installation |
+| [#323](https://github.com/ontripai/cladora-website/pull/323) | Core/Platform + PM / Documentation | Deliver the `PM01-B` runtime readiness inventory and successor authorization gate | `feat/pm01-private-oversight-registry` (#322) | `1008cf769efa33a17122bca1c80e7632f77c2a69` | Head check context **not registered**: zero statuses and zero check runs; neither SUCCESS nor FAILURE | Read-only schema/authority inventory, non-tenant scope decision, proposed physical/API boundary and Runtime Authorization Gate; no runtime installation |
 
 GitHub lists `ontripai` as the author of every PR above. The execution-owner column records domain ownership, not GitHub account identity or approval authority.
+
+For #323, `1008cf769efa33a17122bca1c80e7632f77c2a69` is the head inspected immediately before adding the Gate artifact. The containing documentation commit necessarily postdates that observation and cannot embed its own SHA. Its live head and checks must be queried separately; the zero-context finding above applies only to `1008cf7`.
 
 ## Stack invariants
 
 - Preserve `#313 → #314 → #315 → #319`; AP02 remains based on AP01, AP01 remains based on valuation, and valuation remains based on the controlled documentation baseline.
 - Preserve `#317 → #320 → #321` as the independent SERVICE stack.
 - Preserve `#313 → #322` as the documentation/oversight stack; runtime implementation remains a later Core/Platform package requiring separate authorization.
+- Preserve `#322 → #323` as the PM successor-gate stack; #323 remains documentation-only and cannot authorize the later runtime package.
+- No independent documentation package follows PM01-B. The proposed `PM01-RUNTIME-01` successor is Core/Platform runtime/migration work and cannot start until its independent design, implementation and environment authorizations are explicit.
 - PRs #316, #317 and their descendants remain independent of unavailable CE/private references. PR #318 consumes the documentation baseline directly.
 - Do not duplicate an existing branch or PR. Update the applicable existing Draft PR and re-read its live head before making a change.
 - A green check, Vercel Preview or merged ancestor is evidence only. It does not authorize merge, Supabase migration, Production deployment, Secret changes or Production configuration changes.
