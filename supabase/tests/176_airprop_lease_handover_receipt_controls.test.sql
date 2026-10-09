@@ -41,6 +41,9 @@ insert into portfolio.units(id,tenant_id,building_id,code,status) values
 insert into portfolio.parties(id,tenant_id,type,legal_name) values
  ('17600000-0000-4000-8000-000000000009','17600000-0000-4000-8000-000000000003','person','Landlord 176'),
  ('17600000-0000-4000-8000-000000000010','17600000-0000-4000-8000-000000000003','person','Tenant 176');
+insert into portfolio.ownerships(id,tenant_id,unit_id,party_id,share,valid_from) values
+ ('17600000-0000-4000-8000-000000000021','17600000-0000-4000-8000-000000000003',
+  '17600000-0000-4000-8000-000000000007','17600000-0000-4000-8000-000000000009',1,'2026-01-01');
 insert into platform.workspace_property_bindings(tenant_id,customer_workspace_id,property_id,status,binding_source) values
  ('17600000-0000-4000-8000-000000000003','17600000-0000-4000-8000-000000000004',
   '17600000-0000-4000-8000-000000000005','active','platform_assignment');
