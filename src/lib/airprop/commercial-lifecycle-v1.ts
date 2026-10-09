@@ -5,6 +5,7 @@ const uuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-
 const requestKey = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/);
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const isoTimestamp = z.string().datetime({ offset: true });
+const commercialAmount = /^(0|[1-9][0-9]{0,15})(\.[0-9]{1,4})?$/;
 
 const base = {
   version: z.literal(1),
@@ -120,6 +121,19 @@ export const commercialLifecycleCommandV1Schema = z.union([
   }
   if (value.kind === 'management_mandate' && value.unit_id !== null) {
     ctx.addIssue({ code: 'custom', path: ['unit_id'], message: 'unit_not_allowed' });
+  }
+  if (value.kind === 'resale') {
+    const price = value.commercial_terms.price;
+    const currency = value.commercial_terms.currency;
+    if (typeof price !== 'string' || !commercialAmount.test(price) || Number(price) <= 0) {
+      ctx.addIssue({ code: 'custom', path: ['commercial_terms', 'price'], message: 'invalid_resale_price' });
+    }
+    if (typeof currency !== 'string' || !/^[A-Z]{3}$/.test(currency)) {
+      ctx.addIssue({ code: 'custom', path: ['commercial_terms', 'currency'], message: 'invalid_resale_currency' });
+    }
+    if (value.effective_to !== null) {
+      ctx.addIssue({ code: 'custom', path: ['effective_to'], message: 'resale_is_point_in_time' });
+    }
   }
   if (value.effective_to !== null && value.effective_to <= value.effective_from) {
     ctx.addIssue({ code: 'custom', path: ['effective_to'], message: 'invalid_period' });
