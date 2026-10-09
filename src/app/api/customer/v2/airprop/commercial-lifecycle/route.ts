@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { commercialLifecycleCommandV1Schema, commercialLifecycleResponseV1Schema } from '@/lib/airprop/commercial-lifecycle-v1';
+import { commercialLifecycleCommandV1Schema, commercialLifecycleResponseV1Schema, managementPortfolioQueryV1Schema, managementPortfolioResponseV1Schema } from '@/lib/airprop/commercial-lifecycle-v1';
 import { diligenceFailure, diligenceHeaders } from '@/lib/airprop/diligence-route-response';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
@@ -12,6 +12,22 @@ function databaseFailure(error: { code?: string; message?: string }) {
   const conflict = error.code === '23P01' || error.code === '23505';
   const invalid = ['22023', '22P02', '22003'].includes(error.code ?? '');
   return diligenceFailure(conflict ? 'COMMERCIAL_CONFLICT' : invalid ? 'INVALID_REQUEST' : 'AIRPROP_COMMERCIAL_FAILED', conflict ? 409 : invalid ? 400 : 500);
+}
+
+export async function GET(request: NextRequest) {
+  const parsed = managementPortfolioQueryV1Schema.safeParse(Object.fromEntries(request.nextUrl.searchParams));
+  if (!parsed.success) return diligenceFailure('INVALID_PARAMETERS', 400);
+  const db = await createClient();
+  const { data: claims, error: authError } = await db.auth.getClaims();
+  if (authError || !claims?.claims?.sub) return diligenceFailure('UNAUTHORIZED', 401);
+  const { data, error } = await db.schema('customer_api').rpc('read_airprop_management_portfolio_v1' as never, {
+    p_context_id: parsed.data.context_id,
+    p_workspace_id: parsed.data.workspace_id,
+  } as never);
+  if (error) return databaseFailure(error);
+  const response = managementPortfolioResponseV1Schema.safeParse(data);
+  if (!response.success) return diligenceFailure('AIRPROP_COMMERCIAL_FAILED', 500);
+  return NextResponse.json(response.data, { headers: diligenceHeaders });
 }
 
 export async function POST(request: NextRequest) {

@@ -196,3 +196,40 @@ export const commercialLifecycleResponseV1Schema = z.object({
   version: z.literal(1),
   idempotent: z.boolean(),
 }).passthrough();
+
+export const managementPortfolioQueryV1Schema = z.strictObject({
+  context_id: uuid,
+  workspace_id: uuid,
+});
+
+export const managementPortfolioResponseV1Schema = z.strictObject({
+  version: z.literal(1),
+  idempotent: z.literal(true),
+  as_of: isoTimestamp,
+  properties: z.array(z.strictObject({
+    mandate_request_id: uuid,
+    property: z.strictObject({ id: uuid, label: z.string().trim().min(1).max(255) }),
+    owner: z.strictObject({ party_id: uuid, label: z.string().trim().min(1).max(255) }),
+    scope: managementScope,
+    valid_from: isoDate,
+    valid_to: isoDate,
+    status: z.literal('accepted'),
+    action_links: z.array(z.strictObject({
+      action_link_id: uuid,
+      core_record_type: z.literal('maintenance.work_order'),
+      core_record_id: uuid,
+      unit_id: uuid.nullable(),
+      source_status_snapshot: z.enum(['scheduled', 'assigned', 'in_progress', 'blocked', 'completed', 'verified']),
+      linked_at: isoTimestamp,
+    })).max(500),
+  })).max(500),
+  operations: z.strictObject({
+    detail_owner: z.literal('Operations'),
+    mode: z.literal('canonical_references_only'),
+  }),
+  finance: z.strictObject({
+    detail_owner: z.literal('Finance'),
+    mode: z.literal('not_connected'),
+    reason: z.literal('canonical_receipt_contract_unavailable'),
+  }),
+});

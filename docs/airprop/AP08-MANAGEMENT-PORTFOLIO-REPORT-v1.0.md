@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP07-OPS-01 / Draft PR #343 at `0a927f543e354ee53097453b70072c1e3054aace`
 
-**Status:** Locally assembled; exact-head verification pending
+**Status:** Exact-head CI verified; review acceptance pending
 
 ## Scope
 
@@ -31,6 +31,7 @@ Named blockers:
 | AP08 pgTAP contract | 24 assertions cover AAL2, current authority, revoke, cross-property non-disclosure, expired mandate, owner/property labels, Operations snapshot boundary, Finance blocker and zero write effects |
 | AIRPROP commercial route | 43 checks passed; context/workspace-only mapping has no client tenant or Finance filter |
 | TypeScript / ESLint / diff check | Passed |
-| GitHub Actions database runtime | Pending exact-head Draft PR CI |
+| GitHub Actions database runtime | Run `37928834714`: 170 files / 5364 assertions passed, including AP08 24/24 |
+| Exact-head checks | Commercial `37928834802`, foundation `37928834750`, all AIRPROP workflows and Vercel Preview passed at `215b0db1dd10e826e0578f7a62bcc5da98510bc8` |
 
 Fixtures are synthetic and use no human account. The migration is an unmerged development artifact and has not been applied to Supabase Remote or Production.
