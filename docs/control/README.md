@@ -7,6 +7,7 @@
 - [برنامه کامل فارسی v1.4](../roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md)
 - [نسخه Word همان برنامه](../roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.docx)
 - [فهرست نسخه‌ها و منابع واقعی](current-baseline.json)
+- [ماتریس هماهنگی PRهای فعال](WORKSTREAM-COORDINATION-MATRIX-v1.0.md)
 - [چرخه شروع و اتمام و اصلاح](PM-01-WORK-LIFECYCLE-v1.0.md)
 - [مرجع UX و UI و CSS](UX-UI-CSS-REGISTRY-v1.0.md)
 - [فهرست مادر موجود](../CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md)

@@ -18,7 +18,7 @@
   "artifacts": [
     {
       "path": "docs/CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md",
-      "sha256": "3c7bd69334ba018ad69a6703fbba02c12bcc65952ade2a06b62d6f619a39b0ab"
+      "sha256": "6df775f7e81a47ca81f8ee6ec1381c48244a51d43ba5562f50720f1e27e31507"
     },
     {
       "path": "docs/control/PM-01-WORK-LIFECYCLE-v1.0.md",
@@ -26,7 +26,11 @@
     },
     {
       "path": "docs/control/README.md",
-      "sha256": "5615dd8e3d91b9bd56571c30aa0011d05ebe863d80b99d4748b370a4519decba"
+      "sha256": "6b99c3f1abccc301a2ce393647d368071b87ff3d54b4de90db92e30f64a299bf"
+    },
+    {
+      "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.0.md",
+      "sha256": "92172c303f8935bd1880866e37aafbe439a4aabd1c0cf30b0b9d09ea1728dd77"
     },
     {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
