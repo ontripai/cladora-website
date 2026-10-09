@@ -34,3 +34,5 @@ console.log('  ✔ Requests pin domain source/version, audience policy and chann
 console.log('  ✔ Receipts distinguish acceptance from delivery and statutory evidence.');
 console.log('  ✔ Recipient identifiers and provider payloads remain withheld.');
 console.log('  ✔ Existing communications, audit, idempotency and outbox sources remain canonical.');
+
+await import('./test-core-fin-01-financial-receipt.mjs');
