@@ -1,7 +1,7 @@
 # CE012-OPS-01 — Experience Guide operational proposal
 
 Owner: Community & Experience. Branch: `feat/ce-011-event-interest`. Draft PR: #318.
-Status: implementation prepared; PostgreSQL/pgTAP and concurrency verification pending CI. No acceptance or release is claimed.
+Status: technically complete and in_review; PostgreSQL/pgTAP and concurrency verification passed in disposable CI. No acceptance or release is claimed.
 
 ## Scope
 
@@ -39,11 +39,12 @@ Executed locally on the changed code:
 - static database contract: 237 migrations / 165 test files / 5280 assertions;
 - proposal/fixture byte comparison and `git diff --check`: passed.
 
-Runtime evidence introduced by this package remains pending CI:
+Runtime evidence at code head `541375339c2314e2f7054e8e7c90d0d2ef9eeed7`:
 
-- `174_ce_012_experience_guide_proposal.test.sql`: 60 assertions using real C01/C02/C03 and the existing Documents gateway with transaction-local synthetic registry data;
-- `test-ce-012-concurrency.mjs`: exact-key replay, competing revision, document becoming unavailable while publish waits, and membership suspension while replay waits;
-- the CE workflow runs both CE010 and CE012 against one explicitly local disposable Supabase instance.
+- [Database tests run 37924008670](https://github.com/ontripai/cladora-website/actions/runs/37924008670): CE012 plan 60 passed; the complete 165-file / 5280-assertion suite passed.
+- [CE Community run 37924008676](https://github.com/ontripai/cladora-website/actions/runs/37924008676): domain and 55 HTTP checks passed; exact-key replay, competing revision, document becoming unavailable while publish waited, and membership suspension while replay waited all passed on real PostgreSQL connections.
+- [Application Foundation run 37924008671](https://github.com/ontripai/cladora-website/actions/runs/37924008671): successful.
+- Vercel Preview `dpl_Eygkbs8DwZ4SqvBN4bzRscFyENDq`, same code head, READY; target is Preview, not Production.
 
 ## Independent remaining gates
 
