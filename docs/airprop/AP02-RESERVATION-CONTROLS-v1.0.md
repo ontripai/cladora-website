@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP01-LC-01 / Draft PR #315 at `6e6f6fc4996446798df9b4d85518eca762be8657`
 
-**Status:** Locally verified; exact-head ephemeral database runtime pending
+**Status:** Exact-head CI verified; review acceptance pending
 
 ## Scope
 
@@ -38,8 +38,9 @@ This additive slice controls an existing AIRPROP exclusive commercial reservatio
 | Database package static contract | 239 migrations, 164 test files, 5185 assertions passed |
 | Reservation pgTAP contract | 39 assertions cover direct RPC success/failure, replay, stale/null version, authority denial, audit/revision effects, listing/applicant transitions and the single-winner overlap constraint |
 | Local pgTAP runtime | Not executed: the managed Docker socket denied access and no local Supabase CLI is installed |
-| GitHub Actions database runtime | Pending exact-head push to Draft PR #319 |
+| GitHub Actions database runtime | 39/39 assertions passed; database run `37921276462` |
+| Exact-head application checks | Commercial run `37921276448`; foundation run `37921276455`; Vercel Preview passed |
 
 The route and database fixtures are synthetic and use no human account. The overlap assertion exercises the database exclusion constraint directly; a separate simultaneous-session race harness is not claimed. Ephemeral GitHub Actions is required for pgTAP runtime evidence.
 
-The migration file is a development artifact only. It has not been applied to Supabase Production.
+The exact tested head is `bea9e3064f1695b54eb5f468ffe41e1eae3e94cb` on Draft PR #319. Green CI and its receipt are not review acceptance or closure. The migration file is a development artifact only and has not been applied to Supabase Production.
