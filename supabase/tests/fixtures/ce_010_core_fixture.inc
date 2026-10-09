@@ -14,10 +14,10 @@ insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_
  (pg_temp.ce010_id(21),pg_temp.ce010_id(1),'ASSOCIATION','CE010 fixture','PILOT','ACTIVE'),
  (pg_temp.ce010_id(22),pg_temp.ce010_id(2),'ASSOCIATION','CE010 fixture','PILOT','ACTIVE');
 insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
-select pg_temp.ce010_id(30),pg_temp.ce010_id(1),pg_temp.ce010_id(10),id,'active',now()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null
-union all select pg_temp.ce010_id(31),pg_temp.ce010_id(1),pg_temp.ce010_id(11),id,'active',now()-interval '1 day' from identity.roles where code='owner' and tenant_id is null
-union all select pg_temp.ce010_id(32),pg_temp.ce010_id(1),pg_temp.ce010_id(12),id,'active',now()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null
-union all select pg_temp.ce010_id(33),pg_temp.ce010_id(2),pg_temp.ce010_id(13),id,'active',now()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null;
+select pg_temp.ce010_id(30),pg_temp.ce010_id(1),pg_temp.ce010_id(10),id,'active'::identity.membership_status,now()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null
+union all select pg_temp.ce010_id(31),pg_temp.ce010_id(1),pg_temp.ce010_id(11),id,'active'::identity.membership_status,now()-interval '1 day' from identity.roles where code='owner' and tenant_id is null
+union all select pg_temp.ce010_id(32),pg_temp.ce010_id(1),pg_temp.ce010_id(12),id,'active'::identity.membership_status,now()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null
+union all select pg_temp.ce010_id(33),pg_temp.ce010_id(2),pg_temp.ce010_id(13),id,'active'::identity.membership_status,now()-interval '1 day' from identity.roles where code='association_admin' and tenant_id is null;
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at)
 select pg_temp.ce010_id(40+n),case when n=3 then pg_temp.ce010_id(2) else pg_temp.ce010_id(1) end,pg_temp.ce010_id(30+n),'tenant',now()-interval '1 day'
 from generate_series(0,3) n;
