@@ -35,3 +35,5 @@ console.log('  ✔ Proposals pin immutable source, amounts, payers and approval 
 console.log('  ✔ Posting authority remains separate from business approval.');
 console.log('  ✔ Posted, rejected and reversal receipts have non-overlapping evidence rules.');
 console.log('  ✔ Existing Finance gateways and ledgers remain canonical.');
+
+await import('./test-core-ops-01-execution-receipt.mjs');
