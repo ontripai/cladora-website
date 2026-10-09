@@ -38,3 +38,5 @@ console.log('  ✔ Requests pin source/resource versions and optional Finance pr
 console.log('  ✔ Accepted receipts reference the existing canonical Work Order lifecycle.');
 console.log('  ✔ Rejected receipts expose no Work Order, status or Finance identifiers.');
 console.log('  ✔ Domain state and Operations execution remain separate.');
+
+await import('./test-core-bk-01-shared-capacity.mjs');
