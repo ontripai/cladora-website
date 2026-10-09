@@ -14,6 +14,7 @@ on:
       - 'src/lib/customer/service-booking-v14-schema.ts'
       - 'src/lib/customer/service-portfolio-v14-schema.ts'
       - 'src/lib/customer/service-finance-v14-schema.ts'
+      - 'src/lib/customer/service-experience-v14-schema.ts'
       - 'src/components/customer/ServiceResourcePicker.tsx'
       - 'src/lib/customer/service-offering-lifecycle.ts'
       - 'src/lib/customer/service-catalog-projection.ts'
@@ -29,6 +30,7 @@ on:
       - 'scripts/test-service-booking-v14-contract.mjs'
       - 'scripts/test-service-portfolio-v14-contract.mjs'
       - 'scripts/test-service-finance-v14-contract.mjs'
+      - 'scripts/test-service-experience-v14-contract.mjs'
       - 'scripts/test-service-resource-picker-v14.mjs'
       - '.github/workflows/service-catalog-contract.yml'
       - 'package.json'
@@ -60,6 +62,7 @@ jobs:
       - run: npx eslint src/lib/customer/service-booking-v14-schema.ts scripts/test-service-booking-v14-contract.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-portfolio-v14-schema.ts scripts/test-service-portfolio-v14-contract.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-finance-v14-schema.ts scripts/test-service-finance-v14-contract.mjs --max-warnings=0
+      - run: npx eslint src/lib/customer/service-experience-v14-schema.ts scripts/test-service-experience-v14-contract.mjs --max-warnings=0
       - run: npx eslint src/components/customer/ServiceResourcePicker.tsx scripts/test-service-resource-picker-v14.mjs --max-warnings=0
 
       - run: npm run typecheck
