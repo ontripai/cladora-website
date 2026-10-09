@@ -2,7 +2,7 @@
 
 Owner: Community & Experience. Baseline: CLADORA v1.4, `2fb9d7d264666d68d2f0063110c99b8a7a76acb9`.
 Branch: `feat/ce-011-event-interest`. Draft PR: #318.
-Status: implementation prepared; PostgreSQL/pgTAP and concurrency verification pending CI. No acceptance or release is claimed.
+Status: technically complete and in_review; PostgreSQL/pgTAP and concurrency verification passed in disposable CI. No acceptance or release is claimed.
 
 ## Scope and ownership
 
@@ -57,7 +57,15 @@ Database verification introduced by this package:
 - `.github/workflows/ce-community.yml`: CE-owned route/domain and real concurrency workflow. It uses pinned CLI 2.84.2 and an explicitly local disposable database. The concurrency runner refuses a remote host or a missing `CLADORA_EPHEMERAL_DB=1` guard.
 - `ce_010_community_operational_v1.inc` must exactly match the proposal. Proposed Core seeds exist only in the separate synthetic test fixture; they are not shipped in the proposal.
 
-Local Supabase startup was attempted but did not reach a usable database: ECR access was denied; the supported Docker registry mirror then exhausted the managed daemon's layer storage. PostgreSQL execution is therefore pending CI, not reported PASS. No existing CE011 runtime suite was rerun locally; reference its original successful head `d12baf5c78eb846e1704646b931f876ea5a41b2e`, Database tests run `37812059448`, Application Foundation run `37812059553`, and READY Preview `dpl_Dg5Ys5foA2UjA35hWRM7AAyaEhSd`.
+Local Supabase startup was attempted but did not reach a usable database: ECR access was denied; the supported Docker registry mirror then exhausted the managed daemon's layer storage. Local PostgreSQL execution is not reported PASS; successful runtime evidence comes from disposable GitHub CI. No existing CE011 runtime suite was rerun locally; reference its original successful head `d12baf5c78eb846e1704646b931f876ea5a41b2e`, Database tests run `37812059448`, Application Foundation run `37812059553`, and READY Preview `dpl_Dg5Ys5foA2UjA35hWRM7AAyaEhSd`.
+
+Runtime evidence at code head `1d6e183b978823a9317322454321173537a9c67a`:
+
+- [Database tests run 37922107522](https://github.com/ontripai/cladora-website/actions/runs/37922107522): successful static and PostgreSQL jobs; CE010 64 assertions passed; full suite 164 files / 5220 assertions passed.
+- [CE Community run 37922107595](https://github.com/ontripai/cladora-website/actions/runs/37922107595): domain, 55 HTTP checks and all four real PostgreSQL race scenarios passed.
+- [Application Foundation run 37922107549](https://github.com/ontripai/cladora-website/actions/runs/37922107549): successful.
+- Vercel Preview `dpl_AXy6sMxmfUdvT1hnWZdpRTTBJgde`, same code head, READY; target is Preview, not Production.
+- Initial delivery `27db648d3145c285d51ce393494a426e04429612` failed the isolated fixture because UNION membership-status literals inferred text. The tested code head adds explicit enum casts to all four fixture rows; no production schema or proposal change was needed.
 
 ## Independent remaining gates
 
