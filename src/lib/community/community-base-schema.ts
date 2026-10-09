@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { eventAudienceSchema } from './event-interest-schema.ts';
 
-const uuid = z.string().uuid();
+const uuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 const idempotencyKey = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/);
 
 export const proposedCe010Permissions = [
@@ -29,7 +29,7 @@ const commandBase = z.object({
   idempotency_key: idempotencyKey,
   context_id: uuid,
   workspace_id: uuid,
-  expected_version: z.number().int().nonnegative(),
+  expected_version: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
   reason: z.string().trim().min(5).max(500),
 }).strict();
 
