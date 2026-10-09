@@ -32,3 +32,5 @@ console.log('  ✔ Existing Workspace-native resolution and boolean authority st
 console.log('  ✔ Deny reasons and internal authority identifiers are not invented or exposed.');
 console.log('  ✔ Point-in-time decisions require command-time authority re-evaluation.');
 console.log('  ✔ Resource/domain prerequisites remain independently owned.');
+
+await import('./test-core-com-01-communication-receipt.mjs');
