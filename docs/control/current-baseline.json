@@ -41,6 +41,14 @@
       "sha256": "331b1676f7f8fbe3fe46b48bbd173fe8cb006d38734702152472ffc091435ef4"
     },
     {
+      "path": "docs/control/PM-01-RUNTIME-01-IMPLEMENTATION-EVIDENCE-v1.0.md",
+      "sha256": "17e3e7c6f27df360583e36689cc6db4929740d0e9972f1d786efe4a082bab842"
+    },
+    {
+      "path": "docs/control/PM-01-RUNTIME-01-ROLLBACK-CONTRACT-v1.0.md",
+      "sha256": "da7e4882556ef71ae52c2adfb175d851154434fe322c9337ec0fd79cde8d8b53"
+    },
+    {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.0.md",
       "sha256": "978993d874be456149f9316b5214561955cfe6ea57047b45031487ad2f1862e2"
     },
@@ -111,6 +119,21 @@
       "pull_request": 323,
       "delivery_commit": "cda126690178ed266c93b6ce97a7ac9c30a05676",
       "expected_output": "Read-only current-schema and authority inventory, non-tenant internal scope decision, proposed physical records/routes and explicit runtime approval/test gates; documentation only"
+    },
+    {
+      "id": "PM01-RUNTIME-01",
+      "name": "Private oversight Core/Platform runtime",
+      "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
+      "status": "in_review",
+      "depends_on": [
+        "PM01-B"
+      ],
+      "branch": "feat/pm01-runtime-01-private-oversight",
+      "pull_request": 324,
+      "delivery_commit": "2553a52881ece6613d0bb2bcf234794dee921130",
+      "implementation_base": "450b99a6378c2ce0f9c77f880b5369b10e5975c9",
+      "migration": "supabase/migrations/20261009094331_pm01_private_oversight_runtime_v1.sql",
+      "expected_output": "Private program-scoped PM registry, deny-first RLS/ACL and versioned functions, hard-disabled bounded gateway, command/receipt/outbox/audit atomicity, isolated concurrency and rollback evidence; no Remote or Production rollout"
     }
   ],
   "runtime_authorization_gate": {
@@ -119,16 +142,19 @@
     "proposed_successor_id": "PM01-RUNTIME-01",
     "kind": "Core/Platform runtime and migration implementation",
     "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
-    "status": "authorization_required",
+    "status": "implementation_in_review",
     "depends_on": [
       "PM01-B review outcome",
       "explicit runtime design authorization",
       "explicit implementation authorization",
       "separate environment-specific authorizations"
     ],
-    "branch": null,
-    "pull_request": null,
+    "branch": "feat/pm01-runtime-01-private-oversight",
+    "pull_request": 324,
     "migration_logical_name": "pm01_private_oversight_runtime_v1",
+    "migration_file": "supabase/migrations/20261009094331_pm01_private_oversight_runtime_v1.sql",
+    "implementation_base": "450b99a6378c2ce0f9c77f880b5369b10e5975c9",
+    "delivery_commit": "2553a52881ece6613d0bb2bcf234794dee921130",
     "expected_output": "Private program-scoped PM registry, bounded server gateway, isolated migration/RLS/ACL/concurrency/rollback evidence and no implicit Production rollout",
     "head_check_context": {
       "commit": "1008cf769efa33a17122bca1c80e7632f77c2a69",
