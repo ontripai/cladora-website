@@ -103,7 +103,9 @@ select throws_ok($$insert into airprop.exclusive_reservations
  '23P01',null,'single-winner exclusion rejects an overlapping active reservation');
 select lives_ok($$select customer_api.control_airprop_reservation_v1(
  '17300000-0000-4000-8000-000000000012','17300000-0000-4000-8000-000000000004','17300000-0000-4000-8000-000000000030','extend',1,'2026-10-20T00:00:00Z',null,'Extend the reservation after applicant confirmation.','reservation-extend-173')$$,'authorized extension succeeds');
-select ok((select version=2 and status='active' and reserved_until>statement_timestamp()+interval '2 days' from airprop.exclusive_reservations where id='17300000-0000-4000-8000-000000000030') and (select status='reserved' from airprop.market_listings where id='17300000-0000-4000-8000-000000000016'),'extension advances version and preserves reserved listing');
+select ok((select version=2 and status='active' and reserved_until>statement_timestamp()+interval '2 days' from airprop.exclusive_reservations where id='17300000-0000-4000-8000-000000000030')
+ and (select status='reserved' from airprop.market_listings where id='17300000-0000-4000-8000-000000000016')
+ and (select status='accepted' from airprop.applicants where id='17300000-0000-4000-8000-000000000025'),'extension advances version and preserves reserved listing and accepted applicant');
 select ok((select count(*)=1 from airprop.reservation_revisions where reservation_id='17300000-0000-4000-8000-000000000030') and (select count(*)=1 from audit.events where entity_id='17300000-0000-4000-8000-000000000030' and action='AIRPROP_RESERVATION_EXTEND'),'extension records one revision and audit event');
 select is((select customer_api.control_airprop_reservation_v1(
  '17300000-0000-4000-8000-000000000012','17300000-0000-4000-8000-000000000004','17300000-0000-4000-8000-000000000030','extend',1,'2026-10-20T00:00:00Z',null,'Extend the reservation after applicant confirmation.','reservation-extend-173')->>'idempotent'),'true','exact replay returns prior receipt');

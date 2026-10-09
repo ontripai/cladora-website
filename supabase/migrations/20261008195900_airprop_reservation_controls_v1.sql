@@ -115,6 +115,8 @@ begin
   v_listing_status='completed';
   update airprop.applicants set status='rejected'
    where listing_id=v_listing.id and id<>v_reservation.applicant_id and status='active';
+ elsif p_action='extend' then
+  v_listing_status='reserved';
  else
   v_listing_status=case when v_listing.available_until is null or v_listing.available_until>v_now
    then 'published' else 'withdrawn' end;
