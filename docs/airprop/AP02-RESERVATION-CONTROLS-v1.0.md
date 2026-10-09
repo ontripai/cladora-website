@@ -4,9 +4,9 @@
 
 **Program baseline:** CLADORA v1.4 at `2fb9d7d264666d68d2f0063110c99b8a7a76acb9`
 
-**Parent delivery:** AP01-LC-01 / Draft PR #315 at `27a69d2d2067a0770115f08c29fcc7d19605f91a`
+**Parent delivery:** AP01-LC-01 / Draft PR #315 at `6e6f6fc4996446798df9b4d85518eca762be8657`
 
-**Status:** Locally verified; ephemeral database runtime and Draft PR evidence pending
+**Status:** Locally verified; exact-head ephemeral database runtime pending
 
 ## Scope
 
@@ -35,10 +35,11 @@ This additive slice controls an existing AIRPROP exclusive commercial reservatio
 | Route positive and negative checks | 27 passed |
 | TypeScript typecheck | Passed |
 | ESLint | Passed |
-| Database package static contract | 239 migrations, 164 test files, 5142 assertions passed |
-| Local pgTAP runtime | Not available: Supabase CLI and Docker/Podman are absent from the execution image |
-| GitHub Actions database runtime | Pending Draft PR push |
+| Database package static contract | 239 migrations, 164 test files, 5185 assertions passed |
+| Reservation pgTAP contract | 39 assertions cover direct RPC success/failure, replay, stale/null version, authority denial, audit/revision effects, listing/applicant transitions and the single-winner overlap constraint |
+| Local pgTAP runtime | Not executed: the managed Docker socket denied access and no local Supabase CLI is installed |
+| GitHub Actions database runtime | Pending exact-head push to Draft PR #319 |
 
-The route checks use synthetic requests and no human account. Ephemeral GitHub Actions is required for pgTAP runtime evidence.
+The route and database fixtures are synthetic and use no human account. The overlap assertion exercises the database exclusion constraint directly; a separate simultaneous-session race harness is not claimed. Ephemeral GitHub Actions is required for pgTAP runtime evidence.
 
 The migration file is a development artifact only. It has not been applied to Supabase Production.
