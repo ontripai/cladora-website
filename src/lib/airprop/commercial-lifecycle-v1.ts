@@ -130,6 +130,12 @@ export const commercialLifecycleCommandV1Schema = z.union([
   }),
   z.strictObject({
     ...base,
+    action: z.literal('link_management_work_order'),
+    mandate_request_id: uuid,
+    work_order_id: uuid,
+  }),
+  z.strictObject({
+    ...base,
     action: z.literal('link_execution'),
     property_id: uuid,
     unit_id: uuid.nullable(),

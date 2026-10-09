@@ -25,8 +25,9 @@ const commands = [
  { ...base, action: 'link_execution', property_id: id(4), unit_id: null, kind: 'management_mandate', core_record_id: id(11), commercial_terms: { fee: '10' }, effective_from: '2026-10-07', effective_to: null },
  { ...base, idempotency_key: 'mandate-request-018', action: 'request_management_mandate', property_id: id(4), owner_party_id: id(7), scope: { capabilities: ['listing', 'owner_reporting'] }, valid_from: '2026-10-10', valid_to: '2027-10-10', proposal_evidence_reference: 'urn:document:mandate-proposal-018' },
  { ...base, idempotency_key: 'mandate-accept-018', action: 'accept_management_mandate', mandate_request_id: id(14), acceptance_evidence_reference: 'urn:document:mandate-acceptance-018' },
+ { ...base, idempotency_key: 'mandate-work-order-018', action: 'link_management_work_order', mandate_request_id: id(14), work_order_id: id(15) },
 ];
-const expectedRpc = ['publish_airprop_listing_v1','submit_airprop_applicant_v1','reserve_airprop_listing_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_listing_v1','control_airprop_listing_v1','control_airprop_listing_v1','record_airprop_obligation_schedule_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','request_airprop_management_mandate_v1','accept_airprop_management_mandate_v1'];
+const expectedRpc = ['publish_airprop_listing_v1','submit_airprop_applicant_v1','reserve_airprop_listing_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_listing_v1','control_airprop_listing_v1','control_airprop_listing_v1','record_airprop_obligation_schedule_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','request_airprop_management_mandate_v1','accept_airprop_management_mandate_v1','link_airprop_management_work_order_v1'];
 let auth = { data: { claims: { sub: 'principal' } }, error: null }, result = { data: { version: 1, idempotent: false, record_id: id(12) }, error: null }, calls = [], cases = 0;
 const contract = load('src/lib/airprop/commercial-lifecycle-v1.ts');
 const route = load('src/app/api/customer/v2/airprop/commercial-lifecycle/route.ts', { '@/lib/airprop/commercial-lifecycle-v1': contract, '@/lib/airprop/diligence-route-response': load('src/lib/airprop/diligence-route-response.ts'), '@/lib/security/same-origin': load('src/lib/security/same-origin.ts'), '@/lib/security/request-body': load('src/lib/security/request-body.ts'), '@/lib/supabase/server': { createClient: async () => ({ auth: { getClaims: async () => auth }, schema: () => ({ rpc: async (name, args) => { calls.push({ name, args }); return result; } }) }) } });
@@ -79,6 +80,15 @@ await check('management mandate request and acceptance map no software authority
   await route.POST(post(commands[15]));
   assert.equal(calls.at(-1).name, 'accept_airprop_management_mandate_v1');
   assert.equal('p_authority_id' in calls.at(-1).args, false);
+});
+await check('management work-order link maps only canonical identifiers', async () => {
+  await route.POST(post(commands[16]));
+  const call = calls.at(-1);
+  assert.equal(call.name, 'link_airprop_management_work_order_v1');
+  assert.equal(call.args.p_work_order_id, id(15));
+  assert.equal('p_create_work_order' in call.args, false);
+  assert.equal('p_payment' in call.args, false);
+  assert.equal('p_outbox_event' in call.args, false);
 });
 await check('origin and media type are enforced before database access', async () => { assert.equal((await route.POST(post(commands[0],{origin:'https://evil.test'}))).status,403); assert.equal((await route.POST(post(commands[0],{'content-type':'text/plain'}))).status,415); assert.equal(calls.length,0); });
 await check('authentication is required', async () => { auth={data:null,error:null};assert.equal((await route.POST(post(commands[0]))).status,401);assert.equal(calls.length,0);auth={data:{claims:{sub:'principal'}},error:null}; });
