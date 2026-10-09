@@ -150,4 +150,4 @@ One transaction must lock the authoritative row and persist domain change, trans
 
 ## Exit state
 
-PM01-B is complete as a documentation/readiness package when this inventory, scope decision, proposed physical/API boundary and verification gates are reviewed. Runtime remains blocked until the approvals above are explicit. The next runtime implementation package must use a separate Core/Platform branch and Draft PR and must not be inferred from acceptance of this documentation.
+PM01-B is complete as a documentation/readiness package when this inventory, scope decision, proposed physical/API boundary and verification gates are reviewed. [The PM01 Runtime Authorization Gate](PM-01-RUNTIME-AUTHORIZATION-GATE-v1.0.md) records that no further independent documentation package remains and enumerates the separate approvals required for the proposed `PM01-RUNTIME-01` successor. Runtime remains blocked until those approvals are explicit. The next runtime implementation package must use a separate Core/Platform branch and Draft PR and must not be inferred from acceptance of this documentation.

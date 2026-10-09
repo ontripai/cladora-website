@@ -18,7 +18,7 @@
   "artifacts": [
     {
       "path": "docs/CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md",
-      "sha256": "42fa0e5699f5d5dd5e860eabce81f524fca915e62dc5eda5b5556f72965389e5"
+      "sha256": "90d26099b14abe1f0996adac2a07662cda184f5b547785abeffc6d483bde8baa"
     },
     {
       "path": "docs/control/PM-01-WORK-LIFECYCLE-v1.0.md",
@@ -26,7 +26,7 @@
     },
     {
       "path": "docs/control/README.md",
-      "sha256": "a0729d600aea1cee854f1cdfff78e85c923f4b87769185b1febd89d01c7fefa6"
+      "sha256": "138f0eddf0b5a10ad9d77fadf2956fb14cbfde8f8226c7e6a08d867b732d95f2"
     },
     {
       "path": "docs/control/PM-01-PRIVATE-OVERSIGHT-REGISTRY-v1.0.md",
@@ -34,11 +34,15 @@
     },
     {
       "path": "docs/control/PM-01-RUNTIME-READINESS-INVENTORY-v1.0.md",
-      "sha256": "28d4b6231f3171dfd0613cbca478646d224f4d78e98b3b4505eea92b4aef8ab4"
+      "sha256": "2467655b0360945233060b7a012402769b8bef9d853027f90db4c47ef9aaf85c"
+    },
+    {
+      "path": "docs/control/PM-01-RUNTIME-AUTHORIZATION-GATE-v1.0.md",
+      "sha256": "331b1676f7f8fbe3fe46b48bbd173fe8cb006d38734702152472ffc091435ef4"
     },
     {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.0.md",
-      "sha256": "9f5ec3f22b28c0c336addd2e1c061302bdbbb886cfc06a79f22cb139098a2d80"
+      "sha256": "978993d874be456149f9316b5214561955cfe6ea57047b45031487ad2f1862e2"
     },
     {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
@@ -109,6 +113,31 @@
       "expected_output": "Read-only current-schema and authority inventory, non-tenant internal scope decision, proposed physical records/routes and explicit runtime approval/test gates; documentation only"
     }
   ],
+  "runtime_authorization_gate": {
+    "artifact": "docs/control/PM-01-RUNTIME-AUTHORIZATION-GATE-v1.0.md",
+    "independent_documentation_package_remaining": false,
+    "proposed_successor_id": "PM01-RUNTIME-01",
+    "kind": "Core/Platform runtime and migration implementation",
+    "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
+    "status": "authorization_required",
+    "depends_on": [
+      "PM01-B review outcome",
+      "explicit runtime design authorization",
+      "explicit implementation authorization",
+      "separate environment-specific authorizations"
+    ],
+    "branch": null,
+    "pull_request": null,
+    "migration_logical_name": "pm01_private_oversight_runtime_v1",
+    "expected_output": "Private program-scoped PM registry, bounded server gateway, isolated migration/RLS/ACL/concurrency/rollback evidence and no implicit Production rollout",
+    "head_check_context": {
+      "commit": "1008cf769efa33a17122bca1c80e7632f77c2a69",
+      "state": "not registered",
+      "observed_at": "2026-10-09 UTC",
+      "evidence": "zero GitHub commit statuses and zero check runs",
+      "interpretation": "neither SUCCESS nor FAILURE"
+    }
+  },
   "runtime_installed_by_this_baseline": false,
   "constraints": [
     "No production migration or deployment",
