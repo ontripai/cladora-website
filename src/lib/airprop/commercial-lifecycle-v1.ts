@@ -136,6 +136,10 @@ export const commercialLifecycleCommandV1Schema = z.union([
   }),
   z.strictObject({
     ...base,
+    action: z.literal('read_management_portfolio'),
+  }),
+  z.strictObject({
+    ...base,
     action: z.literal('link_execution'),
     property_id: uuid,
     unit_id: uuid.nullable(),

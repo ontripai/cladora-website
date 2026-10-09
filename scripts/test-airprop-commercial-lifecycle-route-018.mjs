@@ -26,8 +26,9 @@ const commands = [
  { ...base, idempotency_key: 'mandate-request-018', action: 'request_management_mandate', property_id: id(4), owner_party_id: id(7), scope: { capabilities: ['listing', 'owner_reporting'] }, valid_from: '2026-10-10', valid_to: '2027-10-10', proposal_evidence_reference: 'urn:document:mandate-proposal-018' },
  { ...base, idempotency_key: 'mandate-accept-018', action: 'accept_management_mandate', mandate_request_id: id(14), acceptance_evidence_reference: 'urn:document:mandate-acceptance-018' },
  { ...base, idempotency_key: 'mandate-work-order-018', action: 'link_management_work_order', mandate_request_id: id(14), work_order_id: id(15) },
+ { ...base, idempotency_key: 'mandate-report-018', action: 'read_management_portfolio' },
 ];
-const expectedRpc = ['publish_airprop_listing_v1','submit_airprop_applicant_v1','reserve_airprop_listing_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_listing_v1','control_airprop_listing_v1','control_airprop_listing_v1','record_airprop_obligation_schedule_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','request_airprop_management_mandate_v1','accept_airprop_management_mandate_v1','link_airprop_management_work_order_v1'];
+const expectedRpc = ['publish_airprop_listing_v1','submit_airprop_applicant_v1','reserve_airprop_listing_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_reservation_v1','control_airprop_listing_v1','control_airprop_listing_v1','control_airprop_listing_v1','record_airprop_obligation_schedule_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1','request_airprop_management_mandate_v1','accept_airprop_management_mandate_v1','link_airprop_management_work_order_v1','read_airprop_management_portfolio_v1'];
 let auth = { data: { claims: { sub: 'principal' } }, error: null }, result = { data: { version: 1, idempotent: false, record_id: id(12) }, error: null }, calls = [], cases = 0;
 const contract = load('src/lib/airprop/commercial-lifecycle-v1.ts');
 const route = load('src/app/api/customer/v2/airprop/commercial-lifecycle/route.ts', { '@/lib/airprop/commercial-lifecycle-v1': contract, '@/lib/airprop/diligence-route-response': load('src/lib/airprop/diligence-route-response.ts'), '@/lib/security/same-origin': load('src/lib/security/same-origin.ts'), '@/lib/security/request-body': load('src/lib/security/request-body.ts'), '@/lib/supabase/server': { createClient: async () => ({ auth: { getClaims: async () => auth }, schema: () => ({ rpc: async (name, args) => { calls.push({ name, args }); return result; } }) }) } });
@@ -89,6 +90,14 @@ await check('management work-order link maps only canonical identifiers', async 
   assert.equal('p_create_work_order' in call.args, false);
   assert.equal('p_payment' in call.args, false);
   assert.equal('p_outbox_event' in call.args, false);
+});
+await check('management portfolio report maps current context without client filters', async () => {
+  await route.POST(post(commands[17]));
+  const call = calls.at(-1);
+  assert.equal(call.name, 'read_airprop_management_portfolio_v1');
+  assert.deepEqual(Object.keys(call.args).sort(), ['p_context_id', 'p_workspace_id']);
+  assert.equal('p_tenant_id' in call.args, false);
+  assert.equal('p_include_finance' in call.args, false);
 });
 await check('origin and media type are enforced before database access', async () => { assert.equal((await route.POST(post(commands[0],{origin:'https://evil.test'}))).status,403); assert.equal((await route.POST(post(commands[0],{'content-type':'text/plain'}))).status,415); assert.equal(calls.length,0); });
 await check('authentication is required', async () => { auth={data:null,error:null};assert.equal((await route.POST(post(commands[0]))).status,401);assert.equal(calls.length,0);auth={data:{claims:{sub:'principal'}},error:null}; });
