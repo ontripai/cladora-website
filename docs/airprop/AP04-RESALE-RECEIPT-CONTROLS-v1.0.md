@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP03-OBL-01 / Draft PR #333 at `d769460aa7bb3ab2df72931b8de38b4a248e03e3`
 
-**Status:** Locally verified; exact-head ephemeral database runtime pending
+**Status:** Exact-head CI verified; review acceptance pending
 
 ## Scope
 
@@ -36,8 +36,9 @@ The canonical seller and buyer ownership intervals and the immutable Core transf
 | TypeScript typecheck | Passed |
 | ESLint | Passed |
 | `git diff --check` | Passed |
-| GitHub Actions database runtime | Pending exact-head Draft PR CI |
+| GitHub Actions database runtime | AP04 33/33; all 166 files / 5248 assertions passed in run `37924327757` |
+| Exact-head checks | Commercial `37924327826`, foundation `37924327841`, all AIRPROP workflows and Vercel Preview passed |
 
 Fixtures are synthetic and use no human account. The database advisory lock and uniqueness are tested contractually; no separate simultaneous-session AP04 race harness is claimed.
 
-The migration is an unmerged development artifact. It has not been applied to Supabase Remote or Production.
+The exact tested head is `fe2492c9eb5122f24a1ddc688acd1ee8ee6fd515` on Draft PR #340. Green CI and its receipt are not review acceptance or closure. The migration is an unmerged development artifact and has not been applied to Supabase Remote or Production.

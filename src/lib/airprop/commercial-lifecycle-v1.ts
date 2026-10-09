@@ -135,6 +135,16 @@ export const commercialLifecycleCommandV1Schema = z.union([
       ctx.addIssue({ code: 'custom', path: ['effective_to'], message: 'resale_is_point_in_time' });
     }
   }
+  if (value.kind === 'lease') {
+    const rentAmount = value.commercial_terms.rent_amount;
+    const currency = value.commercial_terms.currency;
+    if (typeof rentAmount !== 'number' || !Number.isFinite(rentAmount) || rentAmount <= 0) {
+      ctx.addIssue({ code: 'custom', path: ['commercial_terms', 'rent_amount'], message: 'invalid_lease_rent' });
+    }
+    if (typeof currency !== 'string' || !/^[A-Z]{3}$/.test(currency)) {
+      ctx.addIssue({ code: 'custom', path: ['commercial_terms', 'currency'], message: 'invalid_lease_currency' });
+    }
+  }
   if (value.effective_to !== null && value.effective_to <= value.effective_from) {
     ctx.addIssue({ code: 'custom', path: ['effective_to'], message: 'invalid_period' });
   }
