@@ -23,6 +23,7 @@ All rows below were `OPEN`, `Draft` and reported `CLEAN` by GitHub at observatio
 | [#320](https://github.com/ontripai/cladora-website/pull/320) | SERVICE | Define the `SV01E-F` exact-quote acceptance boundary | `feat/service-v14-offering-sv01b` (#317) | `7a1b773b34a09651e61b686e56b798a73f979102` | All 14 repository checks green; Vercel green | Strict customer intent and server-snapshot decision contract; no Order persistence, Finance posting or operational route |
 | [#321](https://github.com/ontripai/cladora-website/pull/321) | SERVICE | Define the `SV01K/L` collaboration subject-link contract | `feat/service-v14-order-sv01ef-contract` (#320) | `c08dc8c633272690e45a6d0e8e62e0d1729b5b23` | All 14 repository checks green; Vercel green | Fail-closed Communications/Vault reference-link contract and tests; operational adapter remains an explicit dependency |
 | [#322](https://github.com/ontripai/cladora-website/pull/322) | PM / Documentation | Define the `PM01-A` private oversight registry contract | `docs/cladora-v1.4-controlled-baseline` (#313) | `21750ffc81cdcf5cb62da3e0041ef20ffe2894a0` | Documentation validation green; Vercel Preview pending at initial observation | Versioned logical registry, visibility/authority, command/receipt, GitHub synchronization and acceptance contracts; no runtime installation |
+| [#323](https://github.com/ontripai/cladora-website/pull/323) | Core/Platform + PM / Documentation | Deliver the `PM01-B` runtime readiness inventory | `feat/pm01-private-oversight-registry` (#322) | `cda126690178ed266c93b6ce97a7ac9c30a05676` | Documentation validation green; Vercel Preview pending at initial observation | Read-only schema/authority inventory, non-tenant scope decision, proposed physical/API boundary and explicit runtime gates; no runtime installation |
 
 GitHub lists `ontripai` as the author of every PR above. The execution-owner column records domain ownership, not GitHub account identity or approval authority.
 
@@ -31,6 +32,7 @@ GitHub lists `ontripai` as the author of every PR above. The execution-owner col
 - Preserve `#313 → #314 → #315 → #319`; AP02 remains based on AP01, AP01 remains based on valuation, and valuation remains based on the controlled documentation baseline.
 - Preserve `#317 → #320 → #321` as the independent SERVICE stack.
 - Preserve `#313 → #322` as the documentation/oversight stack; runtime implementation remains a later Core/Platform package requiring separate authorization.
+- Preserve `#322 → #323` as the PM successor-gate stack; #323 remains documentation-only and cannot authorize the later runtime package.
 - PRs #316, #317 and their descendants remain independent of unavailable CE/private references. PR #318 consumes the documentation baseline directly.
 - Do not duplicate an existing branch or PR. Update the applicable existing Draft PR and re-read its live head before making a change.
 - A green check, Vercel Preview or merged ancestor is evidence only. It does not authorize merge, Supabase migration, Production deployment, Secret changes or Production configuration changes.

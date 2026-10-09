@@ -38,7 +38,7 @@
     },
     {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.0.md",
-      "sha256": "eb9c80571f3cddb00c1c47bd11662add2e69aa1474bb13fc2f37adeb1670fff2"
+      "sha256": "9f5ec3f22b28c0c336addd2e1c061302bdbbb886cfc06a79f22cb139098a2d80"
     },
     {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
@@ -99,12 +99,13 @@
       "id": "PM01-B",
       "name": "Core/Platform runtime readiness inventory",
       "owner": "Core/Platform; PM / Documentation owns control and evidence records",
-      "status": "in_progress",
+      "status": "in_review",
       "depends_on": [
         "PM01-A"
       ],
       "branch": "docs/pm01-runtime-readiness-inventory",
-      "pull_request": null,
+      "pull_request": 323,
+      "delivery_commit": "cda126690178ed266c93b6ce97a7ac9c30a05676",
       "expected_output": "Read-only current-schema and authority inventory, non-tenant internal scope decision, proposed physical records/routes and explicit runtime approval/test gates; documentation only"
     }
   ],
