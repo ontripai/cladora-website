@@ -11,15 +11,33 @@ const {createRoot}=await import('react-dom/client');
 const originalFetch=globalThis.fetch;
 function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return mod.exports;}
 const context='11111111-1111-4111-8111-111111111111',workspace='22222222-2222-4222-8222-222222222222';
-let active={context_id:context},mode='targets',calls=[];
-globalThis.fetch=async(url,options={})=>{calls.push({url,options});if(url.includes('/workspace/targets'))return{ok:true,json:async()=>({workspaces:mode==='empty'?[]:[{workspace_id:workspace,environment:'PILOT'}]})};if(options.method==='POST'){if(mode==='uncertain')throw new Error('connection lost');return{ok:true,json:async()=>({version:2,workspace_id:workspace,opportunity_id:context,idempotent:true})};}return{ok:true,json:async()=>({opportunities:[]})};};
-const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{'./CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},'./CustomerContextProvider':{useCustomerContext:()=>({active})},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
+const propertyOne='33333333-3333-4333-8333-333333333333',propertyTwo='44444444-4444-4444-8444-444444444444',unitOne='55555555-5555-4555-8555-555555555555',unitTwo='66666666-6666-4666-8666-666666666666';
+const makePortfolio=()=>({version:1,idempotent:true,as_of:'2026-10-09T12:00:00Z',properties:[
+ {mandate_request_id:'77777777-7777-4777-8777-777777777777',property:{id:propertyOne,label:'Old Town Residence'},owner:{party_id:'88888888-8888-4888-8888-888888888888',label:'Ionescu Family'},scope:{capabilities:['listing','maintenance_coordination','owner_reporting']},valid_from:'2026-10-10',valid_to:'2027-10-10',status:'accepted',action_links:[
+  {action_link_id:'99999999-9999-4999-8999-999999999991',core_record_type:'maintenance.work_order',core_record_id:'99999999-9999-4999-8999-999999999992',unit_id:unitOne,source_status_snapshot:'assigned',linked_at:'2026-10-09T10:00:00Z'},
+  {action_link_id:'99999999-9999-4999-8999-999999999993',core_record_type:'maintenance.work_order',core_record_id:'99999999-9999-4999-8999-999999999994',unit_id:unitTwo,source_status_snapshot:'in_progress',linked_at:'2026-10-09T11:00:00Z'}]},
+ {mandate_request_id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',property:{id:propertyTwo,label:'Danube Garden'},owner:{party_id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',label:'Popescu Holdings'},scope:{capabilities:['lease_administration','owner_reporting']},valid_from:'2026-11-01',valid_to:'2027-11-01',status:'accepted',action_links:[{action_link_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',core_record_type:'maintenance.work_order',core_record_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd',unit_id:unitTwo,source_status_snapshot:'completed',linked_at:'2026-10-09T11:30:00Z'}]}
+],operations:{detail_owner:'Operations',mode:'canonical_references_only'},finance:{detail_owner:'Finance',mode:'not_connected',reason:'canonical_receipt_contract_unavailable'}});
+let active={context_id:context},mode='targets',calls=[],portfolio=makePortfolio();
+globalThis.fetch=async(url,options={})=>{calls.push({url,options});if(url.includes('/workspace/targets'))return{ok:true,json:async()=>({workspaces:mode==='empty'?[]:[{workspace_id:workspace,workspace_type:'building',environment:'PILOT'}]})};if(url.includes('/commercial-lifecycle'))return{ok:true,json:async()=>portfolio};if(options.method==='POST'){if(mode==='uncertain')throw new Error('connection lost');return{ok:true,json:async()=>({version:2,workspace_id:workspace,opportunity_id:context,idempotent:true})};}return{ok:true,json:async()=>({opportunities:[]})};};
+const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{'./CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},'./CustomerContextProvider':{useCustomerContext:()=>({active})},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts'),'@/lib/airprop/commercial-lifecycle-v1':load('src/lib/airprop/commercial-lifecycle-v1.ts')});
 const root=createRoot(document.getElementById('root'));
 const render=async(key,lang='en')=>act(async()=>{root.render(React.createElement(CustomerAirpropWorkspace,{key,lang}));});
 const choose=async()=>act(async()=>{const select=document.querySelector('select');select.value=workspace;select.dispatchEvent(new dom.window.Event('change',{bubbles:true}));});
 try{
  await render('explicit');assert.equal(document.querySelector('select').value,'');assert.equal(calls.some(x=>x.url.includes('/v2/airprop')),false,'no inferred first workspace');
  await choose();assert.equal(document.querySelector('form')!==null,true);assert.equal(calls.some(x=>x.url.includes(`workspace_id=${workspace}`)),true);
+ assert.match(document.body.textContent,/Managed portfolio/);assert.match(document.body.textContent,/Old Town Residence/);assert.match(document.body.textContent,/Danube Garden/);
+ assert.equal(document.body.textContent.includes(workspace),false,'workspace UUID is not rendered');
+ for(const hiddenId of [propertyOne,propertyTwo,unitOne,unitTwo])assert.equal(document.body.textContent.includes(hiddenId),false,'resource UUID is not rendered');
+ const propertyButton=[...document.querySelectorAll('button')].find(button=>button.textContent.includes('Danube Garden'));
+ await act(async()=>propertyButton.click());
+ const clickButton=async label=>act(async()=>[...document.querySelectorAll('button')].find(button=>button.textContent.trim()===label).click());
+ await clickButton('Continue');assert.match(document.body.textContent,/Popescu Holdings/);assert.match(document.body.textContent,/Lease administration/);
+ await clickButton('Continue');assert.match(document.body.textContent,/Completed/);assert.match(document.body.textContent,/Live Work Order detail remains in Operations/);assert.match(document.body.textContent,/Finance detail is not connected/);
+ portfolio={...makePortfolio(),properties:[]};
+ await clickButton('Refresh access');assert.match(document.body.textContent,/No currently authorized managed property/);assert.equal(document.body.textContent.includes('Danube Garden'),false,'revoked property is removed on refresh');
+ portfolio=makePortfolio();
  // Validation must identify the field, retain entered values and avoid a request.
  const beforeInvalid=calls.filter(x=>x.options.method==='POST').length;
  const setInput=(field,value)=>{const input=document.querySelector(`[name="${field}"]`);Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,value);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));};
@@ -38,6 +56,9 @@ try{
  assert.equal(sessionStorage.getItem(storageKey)!==null,true);const posted=calls.filter(x=>x.options.method==='POST');assert.deepEqual(JSON.parse(posted.at(-1).options.body),pending);
  mode='success';await act(async()=>document.querySelector('form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true})));
  assert.equal(sessionStorage.getItem(storageKey),null);assert.equal(document.querySelector('fieldset').disabled,false);assert.match(document.body.textContent,/Opportunity saved/);
+ const otherContext='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';active={context_id:otherContext};portfolio={...makePortfolio(),properties:[makePortfolio().properties[1]]};
+ await render('other-context');await choose();assert.match(document.body.textContent,/Danube Garden/);assert.equal(document.body.textContent.includes('Old Town Residence'),false,'property selection does not leak across contexts');assert.equal(calls.some(x=>x.url.includes(`context_id=${otherContext}`)),true);
+ active={context_id:context};portfolio=makePortfolio();
  for(const lang of ['ro','fa']){await render(`locale-${lang}`,lang);await choose();assert.equal(document.querySelector('section').getAttribute('dir'),lang==='fa'?'rtl':'ltr');assert.equal(document.querySelectorAll('label').length,5);}
  const access=load('src/lib/customer/access-matrix.ts');
  const classifier=load('src/lib/customer/route-classifier.ts',{'./access-matrix.ts':access});
@@ -51,5 +72,5 @@ try{
  await act(async()=>root.render(React.createElement(CustomerRouteGuard,{lang:'en'},React.createElement('p',null,'native-selector'))));assert.equal(document.body.textContent.includes('native-selector'),false);
  active={context_id:context,scope_type:'tenant'};pathname='/en/app/airprop/unknown';
  await act(async()=>root.render(React.createElement(CustomerRouteGuard,{lang:'en'},React.createElement('p',null,'native-selector'))));assert.equal(document.body.textContent.includes('native-selector'),false);
- console.log('PASS actual rendered AIRPROP UI: explicit selection, scope fetch, empty/missing access, pending recovery, exact retry, success and RO/FA');
+ console.log('PASS actual rendered AIRPROP UI: explicit named-property wizard, hidden UUIDs, multi-unit owner data, live revocation, context isolation, pending recovery, exact retry, success and EN/RO/FA');
 }finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;for(const [key,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}dom.window.close();}
