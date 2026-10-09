@@ -92,6 +92,10 @@ export async function POST(request: NextRequest) {
       rpc = 'link_airprop_management_work_order_v1';
       args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_mandate_request_id: command.mandate_request_id, p_work_order_id: command.work_order_id, p_idempotency_key: command.idempotency_key };
       break;
+    case 'read_management_portfolio':
+      rpc = 'read_airprop_management_portfolio_v1';
+      args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id };
+      break;
     case 'link_execution':
       rpc = 'link_airprop_commercial_execution_v1';
       args = { p_context_id: command.context_id, p_workspace_id: command.workspace_id, p_property_id: command.property_id, p_unit_id: command.unit_id, p_kind: command.kind, p_core_record_id: command.core_record_id, p_commercial_terms: command.commercial_terms, p_effective_from: command.effective_from, p_effective_to: command.effective_to, p_idempotency_key: command.idempotency_key };
