@@ -91,7 +91,10 @@ npm run test:ap10-auth-fixture:runtime
 
 The runtime command is wired into `Database tests`. The workflow obtains local-only
 keys from `supabase status`, masks them before use, runs the real GoTrue TOTP flow and
-canonical authorization gateway, and always tears down the ephemeral stack.
+canonical authorization gateway, and always tears down the ephemeral stack. Local TOTP
+enrollment and verification are enabled explicitly under `[auth.mfa.totp]` in
+`supabase/config.toml`; this local CLI setting does not change any Remote or Production
+Auth configuration.
 
 ## AIRPROP consumption
 
