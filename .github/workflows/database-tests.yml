@@ -11,6 +11,11 @@ on:
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
       - "scripts/test-core-relationship-concurrency.mjs"
+      - "scripts/lib/ap10-auth-e2e-fixture.mjs"
+      - "scripts/lib/ap10-core-authority-driver.mjs"
+      - "scripts/run-ap10-auth-e2e-fixture.mjs"
+      - "scripts/test-ap10-auth-e2e-fixture.mjs"
+      - "docs/testing/CLADORA-AP10-AUTH-E2E-FIXTURE-v1.0.md"
       - "scripts/test-statutory-funds-concurrency.mjs"
       - "scripts/test-retention-concurrency-contract.mjs"
       - "scripts/test-retention-manifest-vectors.mjs"
@@ -30,6 +35,11 @@ on:
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
       - "scripts/test-workspace-module-activation-concurrency.mjs"
       - "scripts/test-core-relationship-concurrency.mjs"
+      - "scripts/lib/ap10-auth-e2e-fixture.mjs"
+      - "scripts/lib/ap10-core-authority-driver.mjs"
+      - "scripts/run-ap10-auth-e2e-fixture.mjs"
+      - "scripts/test-ap10-auth-e2e-fixture.mjs"
+      - "docs/testing/CLADORA-AP10-AUTH-E2E-FIXTURE-v1.0.md"
       - "scripts/test-statutory-funds-concurrency.mjs"
       - "scripts/test-retention-concurrency-contract.mjs"
       - "scripts/test-retention-manifest-vectors.mjs"
@@ -77,6 +87,24 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Run synthetic AP10 AAL2 and Core authority fixture
+        run: |
+          set -euo pipefail
+          STATUS_JSON=$(supabase status -o json)
+          ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // empty')
+          SERVICE_ROLE_KEY=$(echo "$STATUS_JSON" | jq -r '.SERVICE_ROLE_KEY // empty')
+          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_ROLE_KEY" ]; then
+            echo "::error::Local Supabase keys are required for the AP10 fixture"
+            exit 1
+          fi
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          SUPABASE_ANON_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" npm run test:ap10-auth-fixture:runtime
+        env:
+          CLADORA_AP10_TARGET: local
+          CLADORA_AP10_EPHEMERAL_DATABASE: "1"
+          SUPABASE_URL: http://127.0.0.1:54321
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run independent Core relationship review race
         run: timeout 60s node scripts/test-core-relationship-concurrency.mjs
         env:
