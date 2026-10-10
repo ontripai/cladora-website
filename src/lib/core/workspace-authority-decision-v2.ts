@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
+import { uuidSchema } from '../customer/workspace-composition-schema.ts';
 
 const timestampSchema = z.string().datetime({ offset: true });
 const codeSchema = z.string().regex(/^[a-z0-9_.:-]{3,160}$/);
