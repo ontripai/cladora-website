@@ -4,13 +4,13 @@
 
 **Dependency:** PM01-B, merged PR #323; implementation now rebased directly onto `main`
 
-**Exact implementation base:** `10109bba4d172a09740d8e41b3e0f47cd935e4f6`
+**Exact implementation base:** `506d137dc323761697e5918f50e6bb661b72b30b`
 
 **Branch:** `feat/pm01-runtime-01-private-oversight`
 
 **Migration:** `supabase/migrations/20261009094331_pm01_private_oversight_runtime_v1.sql`
 
-**Delivery state:** Acceptance Finding remediated on the existing Draft PR; delivery-head isolated CI and independent review required; no Remote or Production installation
+**Delivery state:** Acceptance Finding remediated on the existing Draft PR; the previously accepted head was rebased after `main` advanced through PR #318, so delivery-head isolated CI and independent review are required again; no Remote or Production installation
 
 ## Delivered boundary
 
@@ -33,7 +33,7 @@ The original implementation was validated with Supabase CLI `2.72.2` in a dispos
 | Check | Result |
 | --- | --- |
 | Clean full migration-chain reset | Required on every delivery head in `postgres-runtime`; 238 ordered migrations, including the PM01 migration |
-| Full Repository pgTAP | Required on every delivery head; 166 files, 5,256 assertions |
+| Full Repository pgTAP | Required on every delivery head; 169 files, 5,423 assertions |
 | PM01 pgTAP contract/RLS | 87 assertions; includes the manager acceptance-bypass denial and atomic reviewer acceptance |
 | PM01 rollback rehearsal | 8 assertions; transactional pre-data schema removal and rollback |
 | PM01 authorization/atomicity | 25 assertions |
@@ -41,7 +41,7 @@ The original implementation was validated with Supabase CLI `2.72.2` in a dispos
 | PM01 total pgTAP surface | 143 assertions across tests 172–175 |
 | Real two-connection race | Required in `postgres-runtime`; registration replay, lifecycle conflict and atomic acceptance conflict each require one durable winner |
 | Gateway contract | PASS locally; disabled default, strict validation, exact review/decision binding, AAL/origin/media checks and redacted errors |
-| Database package fingerprint check | PASS locally; 238 migrations, 166 tests, 5,256 assertions |
+| Database package fingerprint check | PASS locally; 238 migrations, 169 tests, 5,423 assertions |
 | `pm_private` database lint | Required on the delivery head in the isolated `postgres-runtime` job |
 | TypeScript typecheck | PASS locally |
 | Repository ESLint | PASS locally with zero warnings |

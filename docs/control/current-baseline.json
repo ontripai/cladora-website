@@ -42,11 +42,11 @@
     },
     {
       "path": "docs/control/PM-01-RUNTIME-01-IMPLEMENTATION-EVIDENCE-v1.0.md",
-      "sha256": "cda1d7f4956f78c6266b7643b21c77e8bb12763eb110f122bfaadee97183fda7"
+      "sha256": "7141f1badcd56501b949f470a8ba944a52047a1ccefea93d6ee3f90157f11636"
     },
     {
       "path": "docs/control/PM-01-RUNTIME-01-ACCEPTANCE-RECONCILIATION-v1.0.md",
-      "sha256": "beb48c68a82a4452feee2556ac46708d4b503c52bc2183613f373442cd3e6c34"
+      "sha256": "74244cc74de0bc588113d5c4b6d2c956fc2141515899efce72ef4aa8cc7de905"
     },
     {
       "path": "docs/control/PM-01-RUNTIME-01-ROLLBACK-CONTRACT-v1.0.md",
