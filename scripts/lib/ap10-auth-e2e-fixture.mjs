@@ -171,8 +171,13 @@ export async function runAp10AuthE2EFixture({
       code: generateTotp(totpSecret, now()),
     }), 'mfa_verify');
     totpSecret = null;
-    session = verified?.session;
-    if (!session?.access_token) throw new Error('aal2_session_missing');
+    if (!verified?.access_token || !verified?.refresh_token) throw new Error('aal2_session_missing');
+    const installed = await must(await actorClient.auth.setSession({
+      access_token: verified.access_token,
+      refresh_token: verified.refresh_token,
+    }), 'aal2_session_install');
+    session = installed?.session;
+    if (!session?.access_token || session.user?.id !== userId) throw new Error('aal2_session_invalid');
 
     const assurance = await must(
       await actorClient.auth.mfa.getAuthenticatorAssuranceLevel(session.access_token),
