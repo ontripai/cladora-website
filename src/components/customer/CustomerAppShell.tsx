@@ -58,6 +58,7 @@ const copy = {
     meetings: "Ședințe",
     communications: "Comunicări",
     experienceGuides: "Ghiduri pentru experiență",
+    communityBase: "Comunitate",
     communityEvents: "Evenimente comunitare",
     notifications: "Notificări",
     documents: "Documente",
@@ -94,6 +95,7 @@ const copy = {
     meetings: "Meetings",
     communications: "Communications",
     experienceGuides: "Experience guides",
+    communityBase: "Community",
     communityEvents: "Community events",
     notifications: "Notifications",
     documents: "Documents",
@@ -130,6 +132,7 @@ const copy = {
     meetings: "جلسات",
     communications: "ارتباطات",
     experienceGuides: "راهنماهای تجربه",
+    communityBase: "جامعه",
     communityEvents: "رویدادهای جامعه",
     notifications: "اعلان‌ها",
     documents: "اسناد",
@@ -202,6 +205,8 @@ function Shell({
       hasEnt("module.communications") && hasPerm("communications.feed.read"),
     experienceGuides =
       hasEnt("module.experience_guides") && hasPerm("experience.guide.read"),
+    communityBase =
+      hasEnt("module.community_basic") && hasPerm("community.community.read"),
     communityEvents =
       hasEnt("module.community_events") && hasPerm("events.event.read"),
     notifications =
@@ -234,6 +239,7 @@ function Shell({
     { href: `/${lang}/app/meetings`, label: t.meetings, icon: UsersRound, visible: meetings },
     { href: `/${lang}/app/communications`, label: t.communications, icon: Megaphone, visible: communications },
     { href: `/${lang}/app/experience/guides`, label: t.experienceGuides, icon: Map, visible: experienceGuides },
+    { href: `/${lang}/app/community`, label: t.communityBase, icon: UsersRound, visible: communityBase },
     { href: `/${lang}/app/community/events`, label: t.communityEvents, icon: CalendarDays, visible: communityEvents },
     { href: `/${lang}/app/notifications`, label: t.notifications, icon: Bell, visible: notifications },
     { href: `/${lang}/app/documents`, label: t.documents, icon: FileText, visible: documents },
