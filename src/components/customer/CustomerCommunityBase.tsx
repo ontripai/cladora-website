@@ -13,9 +13,15 @@ export interface CommunityBaseCommands {
 }
 
 const copy = {
-  ro: { sending: 'Se trimite…', saved: 'Ciorna a fost salvată.', reported: 'Raportarea a fost trimisă.', decided: 'Decizia a fost înregistrată.', heading: 'Comunitate', audience: 'Public', announcement: 'Anunț nou', body: 'Textul anunțului', save: 'Salvează ciorna', report: 'Raportează conținut', choose: 'Alege anunțul', reason: 'Motivul raportării', send: 'Trimite raportul', moderation: 'Soluționează raportarea', chooseReport: 'Alege raportarea', dismiss: 'Respinge raportarea', action: 'Necesită acțiune', decide: 'Înregistrează decizia', retry: 'Acțiunea nu a reușit. Datele introduse au fost păstrate.', empty: 'Nu există anunțuri publicate.', pending: 'Comunitatea nu este disponibilă momentan.' },
-  en: { sending: 'Sending…', saved: 'Draft saved.', reported: 'Report sent.', decided: 'Decision recorded.', heading: 'Community', audience: 'Audience', announcement: 'New announcement', body: 'Announcement text', save: 'Save draft', report: 'Report content', choose: 'Choose announcement', reason: 'Reason for report', send: 'Send report', moderation: 'Resolve report', chooseReport: 'Choose report', dismiss: 'Dismiss report', action: 'Action required', decide: 'Record decision', retry: 'The action failed. Your input has been preserved.', empty: 'There are no published announcements.', pending: 'Community is currently unavailable.' },
-  fa: { sending: 'در حال ارسال…', saved: 'پیش‌نویس ذخیره شد.', reported: 'گزارش ارسال شد.', decided: 'تصمیم ثبت شد.', heading: 'جامعه', audience: 'مخاطب', announcement: 'اعلان جدید', body: 'متن اعلان', save: 'ذخیرهٔ پیش‌نویس', report: 'گزارش محتوا', choose: 'انتخاب اعلان', reason: 'دلیل گزارش', send: 'ارسال گزارش', moderation: 'رسیدگی به گزارش', chooseReport: 'انتخاب گزارش', dismiss: 'رد گزارش', action: 'نیازمند اقدام', decide: 'ثبت تصمیم', retry: 'عملیات انجام نشد. ورودی شما حفظ شده است.', empty: 'اعلان منتشرشده‌ای وجود ندارد.', pending: 'جامعه در حال حاضر در دسترس نیست.' },
+  ro: { heading: 'Comunitate', audience: 'Public', announcement: 'Anunț nou', body: 'Textul anunțului', save: 'Salvează ciorna', report: 'Raportează conținut', choose: 'Alege anunțul', reason: 'Motivul raportării', send: 'Trimite raportul', moderation: 'Soluționează raportarea', chooseReport: 'Alege raportarea', dismiss: 'Respinge raportarea', action: 'Necesită acțiune', decide: 'Înregistrează decizia', retry: 'Acțiunea nu a reușit. Datele introduse au fost păstrate.', empty: 'Nu există anunțuri publicate.', pending: 'Comunitatea nu este disponibilă momentan.' },
+  en: { heading: 'Community', audience: 'Audience', announcement: 'New announcement', body: 'Announcement text', save: 'Save draft', report: 'Report content', choose: 'Choose announcement', reason: 'Reason for report', send: 'Send report', moderation: 'Resolve report', chooseReport: 'Choose report', dismiss: 'Dismiss report', action: 'Action required', decide: 'Record decision', retry: 'The action failed. Your input has been preserved.', empty: 'There are no published announcements.', pending: 'Community is currently unavailable.' },
+  fa: { heading: 'جامعه', audience: 'مخاطب', announcement: 'اعلان جدید', body: 'متن اعلان', save: 'ذخیرهٔ پیش‌نویس', report: 'گزارش محتوا', choose: 'انتخاب اعلان', reason: 'دلیل گزارش', send: 'ارسال گزارش', moderation: 'رسیدگی به گزارش', chooseReport: 'انتخاب گزارش', dismiss: 'رد گزارش', action: 'نیازمند اقدام', decide: 'ثبت تصمیم', retry: 'عملیات انجام نشد. ورودی شما حفظ شده است.', empty: 'اعلان منتشرشده‌ای وجود ندارد.', pending: 'جامعه در حال حاضر در دسترس نیست.' },
+} as const;
+
+const feedback = {
+  ro: { sending: 'Se trimite…', saved: 'Ciorna a fost salvată.', reported: 'Raportarea a fost trimisă.', decided: 'Decizia a fost înregistrată.' },
+  en: { sending: 'Sending…', saved: 'Draft saved.', reported: 'Report sent.', decided: 'Decision recorded.' },
+  fa: { sending: 'در حال ارسال…', saved: 'پیش‌نویس ذخیره شد.', reported: 'گزارش ارسال شد.', decided: 'تصمیم ثبت شد.' },
 } as const;
 
 // This lock prevents concurrent UI submissions; server authority and idempotency remain authoritative.
@@ -46,13 +52,13 @@ function useCommunitySubmission(lang: Language, success: string) {
 
 function SubmissionFeedback({ lang, state }: { lang: Language; state: ReturnType<typeof useCommunitySubmission> }) {
   return <>
-    <p role="status" aria-live="polite" aria-atomic="true" className="text-sm text-teal-800">{state.busy ? copy[lang].sending : state.message}</p>
+    <p role="status" aria-live="polite" aria-atomic="true" className="text-sm text-teal-800">{state.busy ? feedback[lang].sending : state.message}</p>
     {state.error ? <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{state.error}</p> : null}
   </>;
 }
 
 function AnnouncementForm({ lang, communityId, commands, onChanged }: { lang: Language; communityId: string; commands: CommunityBaseCommands; onChanged?: () => void }) {
-  const t = copy[lang]; const [body, setBody] = useState(''); const submission = useCommunitySubmission(lang, t.saved);
+  const t = copy[lang]; const [body, setBody] = useState(''); const submission = useCommunitySubmission(lang, feedback[lang].saved);
   async function submit() { if (await submission.run(() => commands.createAnnouncement({ community_id: communityId, body }))) { setBody(''); onChanged?.(); } }
   return <form aria-labelledby={submission.id} aria-busy={submission.busy} className="space-y-3 rounded-xl border p-4" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
     <h2 id={submission.id} className="font-bold">{t.announcement}</h2><SubmissionFeedback lang={lang} state={submission} /><fieldset disabled={submission.busy} className="min-w-0 space-y-3">
@@ -63,7 +69,7 @@ function AnnouncementForm({ lang, communityId, commands, onChanged }: { lang: La
 }
 
 function ReportForm({ lang, view, commands, onChanged }: { lang: Language; view: CommunityBaseView; commands: CommunityBaseCommands; onChanged?: () => void }) {
-  const t = copy[lang]; const options = view.announcements.filter((item) => item.status === 'published' && item.can_report); const [announcementId, setAnnouncementId] = useState(''); const [reason, setReason] = useState(''); const submission = useCommunitySubmission(lang, t.reported);
+  const t = copy[lang]; const options = view.announcements.filter((item) => item.status === 'published' && item.can_report); const [announcementId, setAnnouncementId] = useState(''); const [reason, setReason] = useState(''); const submission = useCommunitySubmission(lang, feedback[lang].reported);
   async function submit() { if (await submission.run(() => commands.reportContent({ community_id: view.community_id, announcement_id: announcementId, reason }))) { setAnnouncementId(''); setReason(''); onChanged?.(); } }
   if (options.length === 0) return null;
   return <form aria-labelledby={submission.id} aria-busy={submission.busy} className="space-y-3 rounded-xl border p-4" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
@@ -76,7 +82,7 @@ function ReportForm({ lang, view, commands, onChanged }: { lang: Language; view:
 }
 
 function ModerationForm({ lang, view, commands, onChanged }: { lang: Language; view: CommunityBaseView; commands: CommunityBaseCommands; onChanged?: () => void }) {
-  const t = copy[lang]; const reports = view.reports.filter((item) => item.status === 'open'); const [reportId, setReportId] = useState(''); const [decision, setDecision] = useState<'dismissed' | 'action_required'>('dismissed'); const [reason, setReason] = useState(''); const submission = useCommunitySubmission(lang, t.decided);
+  const t = copy[lang]; const reports = view.reports.filter((item) => item.status === 'open'); const [reportId, setReportId] = useState(''); const [decision, setDecision] = useState<'dismissed' | 'action_required'>('dismissed'); const [reason, setReason] = useState(''); const submission = useCommunitySubmission(lang, feedback[lang].decided);
   async function submit() { const report = reports.find((item) => item.id === reportId); if (!report) return; if (await submission.run(() => commands.decideReport({ community_id: view.community_id, report_id: report.id, expected_version: report.version, decision, reason }))) { setReportId(''); setReason(''); onChanged?.(); } }
   if (!view.can_decide_reports || reports.length === 0) return null;
   return <form aria-labelledby={submission.id} aria-busy={submission.busy} className="space-y-3 rounded-xl border p-4" onSubmit={(event) => { event.preventDefault(); void submit(); }}><h2 id={submission.id} className="font-bold">{t.moderation}</h2><SubmissionFeedback lang={lang} state={submission} /><fieldset disabled={submission.busy} className="min-w-0 space-y-3">
