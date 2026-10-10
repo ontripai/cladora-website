@@ -9,6 +9,7 @@ import {
   BriefcaseBusiness,
   Building2,
   CalendarCheck,
+  CalendarDays,
   CreditCard,
   CircleUserRound,
   FileSpreadsheet,
@@ -55,6 +56,7 @@ const copy = {
     governance: "Guvernanță",
     meetings: "Ședințe",
     communications: "Comunicări",
+    communityEvents: "Evenimente comunitare",
     notifications: "Notificări",
     documents: "Documente",
     occupancy: "Ocupare și rezidenți",
@@ -89,6 +91,7 @@ const copy = {
     governance: "Governance",
     meetings: "Meetings",
     communications: "Communications",
+    communityEvents: "Community events",
     notifications: "Notifications",
     documents: "Documents",
     occupancy: "Occupancy & residents",
@@ -123,6 +126,7 @@ const copy = {
     governance: "حاکمیت",
     meetings: "جلسات",
     communications: "ارتباطات",
+    communityEvents: "رویدادهای جامعه",
     notifications: "اعلان‌ها",
     documents: "اسناد",
     occupancy: "سکونت و ساکنان",
@@ -192,6 +196,8 @@ function Shell({
     meetings = hasEnt("module.governance") && hasPerm("governance.meetings.read"),
     communications =
       hasEnt("module.communications") && hasPerm("communications.feed.read"),
+    communityEvents =
+      hasEnt("module.community_events") && hasPerm("events.event.read"),
     notifications =
       hasEnt("module.communications") && hasPerm("communications.feed.read"),
     documents = hasEnt("module.documents") && hasPerm("documents.vault.read"),
@@ -221,6 +227,7 @@ function Shell({
     { href: `/${lang}/app/governance`, label: t.governance, icon: Gavel, visible: governance },
     { href: `/${lang}/app/meetings`, label: t.meetings, icon: UsersRound, visible: meetings },
     { href: `/${lang}/app/communications`, label: t.communications, icon: Megaphone, visible: communications },
+    { href: `/${lang}/app/community/events`, label: t.communityEvents, icon: CalendarDays, visible: communityEvents },
     { href: `/${lang}/app/notifications`, label: t.notifications, icon: Bell, visible: notifications },
     { href: `/${lang}/app/documents`, label: t.documents, icon: FileText, visible: documents },
     { href: `/${lang}/app/occupancy`, label: t.occupancy, icon: UsersRound, visible: occupancy },

@@ -308,17 +308,39 @@ end$$;
 
 create function customer_api.read_ce_events_v1(p_context_id uuid,p_workspace_id uuid) returns jsonb
 language plpgsql stable security definer set search_path=pg_catalog as $$
-declare v_scope record;v_items jsonb;begin
+declare
+ v_scope record;v_items jsonb;
+ v_can_publish boolean;v_can_cancel boolean;v_can_interest boolean;v_can_attendance boolean;
+begin
  select * into strict v_scope from app_private.ce_event_authorize_v1(p_context_id,p_workspace_id,'events.event.read');
+ v_can_publish:=coalesce(app_private.check_workspace_native_permission_v2(p_context_id,p_workspace_id,'events.event.publish','community_events'),false);
+ v_can_cancel:=coalesce(app_private.check_workspace_native_permission_v2(p_context_id,p_workspace_id,'events.event.cancel','community_events'),false);
+ v_can_interest:=coalesce(app_private.check_workspace_native_permission_v2(p_context_id,p_workspace_id,'events.interest.manage_self','community_events'),false);
+ v_can_attendance:=coalesce(app_private.check_workspace_native_permission_v2(p_context_id,p_workspace_id,'events.attendance.record','community_events'),false);
  select coalesce(jsonb_agg(x.item order by x.starts_at,x.event_id),'[]') into v_items from(
-  select e.id event_id,o.starts_at,jsonb_build_object('event_id',e.id,'occurrence_id',o.id,'title',e.title,'starts_at',o.starts_at,'ends_at',o.ends_at,'timezone',o.timezone,
-   'status',e.status,'version',e.version,'audience_policy_id',e.audience_policy_id,'audience_policy_version',e.audience_policy_version,
-   'interest_status',i.status,'interest_version',coalesce(i.version,0))item
+  select e.id event_id,o.starts_at,jsonb_build_object(
+   'event_id',e.id,'occurrence_id',o.id,'workspace_id',e.workspace_id,'title',e.title,
+   'starts_at',o.starts_at,'ends_at',o.ends_at,'timezone',o.timezone,'status',e.status,'version',e.version,
+   'audience_kind',e.audience_kind,'interest_status',i.status,'interest_version',coalesce(i.version,0),
+   'can_publish',v_can_publish and e.status='draft','can_cancel',v_can_cancel and e.status='published',
+   'can_register_interest',v_can_interest and e.status='published' and coalesce(i.status,'withdrawn')='withdrawn',
+   'can_withdraw_interest',v_can_interest and e.status='published' and i.status='interested',
+   'can_record_attendance',v_can_attendance and e.status='published',
+   'eligible_attendance_members',case when v_can_attendance and e.status='published' then(
+    select coalesce(jsonb_agg(jsonb_build_object('membership_id',eligible.membership_id,'display_name',eligible.display_name) order by eligible.display_name,eligible.membership_id),'[]')
+    from(select m.id membership_id,p.display_name
+     from identity.memberships m join identity.profiles p on p.user_id=m.user_id
+     where m.tenant_id=v_scope.tenant_id and m.status='active' and m.starts_at<=statement_timestamp()
+      and(m.ends_at is null or m.ends_at>statement_timestamp())
+      and app_private.ce_event_audience_eligible_v1(e.id,m.id)
+     order by p.display_name,m.id limit 500)eligible
+   )else'[]'::jsonb end
+  )item
   from community.events e join community.event_occurrences o on o.event_id=e.id
   left join community.event_interests i on i.event_id=e.id and i.membership_id=v_scope.membership_id
   where e.tenant_id=v_scope.tenant_id and e.workspace_id=p_workspace_id and app_private.ce_event_audience_eligible_v1(e.id,v_scope.membership_id)
   order by o.starts_at,e.id limit 100)x;
- return jsonb_build_object('events',v_items);
+ return jsonb_build_object('workspace_id',p_workspace_id,'events',v_items);
 end$$;
 
 revoke all on function app_private.ce_event_authorize_v1(uuid,uuid,text),app_private.ce_event_audience_eligible_v1(uuid,uuid),app_private.ce_receipt_immutable_v1() from public,anon,authenticated,service_role;
