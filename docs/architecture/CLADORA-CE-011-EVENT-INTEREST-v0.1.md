@@ -1,6 +1,6 @@
 # CE-011 — free event interest and manual attendance
 
-Status: domain and proposal persistence are implemented and tested; the capability-gated customer page is implemented on `feat/ce-011-event-page`. Remote migration and Production activation remain open.
+Status: domain and proposal persistence are implemented and tested; the capability-gated customer page is in review in Draft PR #348 on `feat/ce-011-event-page`. Remote migration and Production activation remain open.
 
 CE-011 models one free event with exactly one occurrence, an explicit audience, optional `community_ref`, publication/cancellation, self interest/withdrawal, and host-recorded attendance with versioned correction. The occurrence carries schedule information only. It contains no seat, slot, quota, waitlist, resource allocation, payment, order, message, credential, or Booking command.
 
