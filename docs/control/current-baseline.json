@@ -1,12 +1,12 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.2",
   "baseline_version": "1.4",
-  "date": "2026-10-08",
-  "plan_status": "user-approved direction and work assignments",
-  "repository_status": "in_review in Draft PR #313; merge pending",
+  "date": "2026-10-10",
+  "plan_status": "user-approved execution in progress under controlled workstream gates",
+  "repository_status": "Documentation #313/#322/#323 and CE #318/#348/#349 merged; 36 PRs open at observation; #347 restacked as independent documentation on current main.",
   "repository": "ontripai/cladora-website",
-  "observed_main_commit": "436e7a634020a846da212aa60501f25455d39850",
-  "baseline_commit_resolution": "Use the containing Git commit SHA. A file cannot embed its own enclosing commit hash. Never treat observed_main_commit as this new baseline commit.",
+  "observed_main_commit": "c0c82133d4a6ef95800c72b9f155fb9a65ae1822",
+  "baseline_commit_resolution": "Use the containing Git commit SHA for this update. A file cannot embed its own enclosing commit hash. observed_main_commit is the live target observed before this documentation branch was created, not the containing documentation commit.",
   "scope": [
     "architecture",
     "execution",
@@ -18,7 +18,7 @@
   "artifacts": [
     {
       "path": "docs/CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md",
-      "sha256": "90d26099b14abe1f0996adac2a07662cda184f5b547785abeffc6d483bde8baa"
+      "sha256": "004cbd79e4ee8208ade76c7d7428b9a6e8026fe54c4739e5835feaab73956911"
     },
     {
       "path": "docs/control/PM-01-WORK-LIFECYCLE-v1.0.md",
@@ -26,7 +26,7 @@
     },
     {
       "path": "docs/control/README.md",
-      "sha256": "138f0eddf0b5a10ad9d77fadf2956fb14cbfde8f8226c7e6a08d867b732d95f2"
+      "sha256": "a734902d0e1a9afe1cc4922ca24d3066e8e1373d95bb5d14ae1a4e38c6039981"
     },
     {
       "path": "docs/control/PM-01-PRIVATE-OVERSIGHT-REGISTRY-v1.0.md",
@@ -45,6 +45,10 @@
       "sha256": "978993d874be456149f9316b5214561955cfe6ea57047b45031487ad2f1862e2"
     },
     {
+      "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.1.md",
+      "sha256": "3dc72bd15179d98ae22b333f960fda8cbfa345ca359c64f12c6cf3822cbeed52"
+    },
+    {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
       "sha256": "556dfac305ea315f37eb4c8fc1308b8eab0d2eb57517928ea23c432a5edc4932"
     },
@@ -55,6 +59,14 @@
     {
       "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
       "sha256": "805ed4f31e9d6a7ba2d05c8ca52ca0763557aac92e05c5f92cfd0b32af238db7"
+    },
+    {
+      "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.2.md",
+      "sha256": "99cc420503d090edd6d6f2f0d825093e17e33a979dc21110dc950cf17a703c7d"
+    },
+    {
+      "path": "docs/control/LIVE-COORDINATION-EVIDENCE-20261010.json",
+      "sha256": "aa8ab5075d80a35587e01fe35c1a36ef9fa2f86a54b0149eaa315782a9db3c4a"
     }
   ],
   "observed_existing_sources": [
@@ -72,45 +84,84 @@
     }
   ],
   "reported_work_artifacts": {
-    "Core_DW01A": "Reported prepared; database assertions require actual evidence. Local later files not asserted present on main.",
-    "CE011": "Domain/UI reported tested; persistence/RLS/concurrency remain separately tracked; delivery commit must be verified in work repository."
+    "Core_DW01A": "Latest authenticated PM report remains pinned to PR #316 at 81fb0744d7ffb1ce682dbb8ae96541da4ffe7b3f and is stale relative to the live Core stacks.",
+    "CE011": "PR #318 merged to main at 506d137dc323761697e5918f50e6bb661b72b30b and the resulting Vercel Production deployment is READY; the CE-owned PM report still requires refresh."
   },
   "work_packages": [
     {
       "id": "V14-DOC-BASELINE-01",
       "name": "CLADORA v1.4 controlled documentation baseline",
       "owner": "PM / Documentation",
-      "status": "in_review",
+      "status": "merged",
       "branch": "docs/cladora-v1.4-controlled-baseline",
       "pull_request": 313,
-      "delivery_commit": "7432f8fe7d0d10fd0539bc6160b102f863ea918d",
+      "delivery_commit": "6642ac33fb4d3d15562a35b65ac9563b45649bf0",
+      "merge_commit": "dd9dd1611858c1a0ce7494d88ae2ca7228fd4771",
       "expected_output": "Versioned baseline, coordination matrix, PM-01 lifecycle and controlled source registry"
     },
     {
       "id": "PM01-A",
       "name": "Private oversight registry contract",
       "owner": "PM / Documentation; Core/Platform owns future runtime implementation",
-      "status": "in_review",
+      "status": "merged",
       "depends_on": [
         "V14-DOC-BASELINE-01"
       ],
       "branch": "feat/pm01-private-oversight-registry",
       "pull_request": 322,
-      "delivery_commit": "21750ffc81cdcf5cb62da3e0041ef20ffe2894a0",
+      "delivery_commit": "ac0a7abf5fa8567b17f94b5d155db1af0d575371",
+      "merge_commit": "1f5eae0e317f6b94b44a7ea974920e1a0ec5f60c",
       "expected_output": "Versioned logical inventory, visibility and authority rules, command/receipt boundary, GitHub synchronization rules and acceptance matrix; documentation only"
     },
     {
       "id": "PM01-B",
       "name": "Core/Platform runtime readiness inventory",
       "owner": "Core/Platform; PM / Documentation owns control and evidence records",
-      "status": "in_review",
+      "status": "merged",
       "depends_on": [
         "PM01-A"
       ],
       "branch": "docs/pm01-runtime-readiness-inventory",
       "pull_request": 323,
-      "delivery_commit": "cda126690178ed266c93b6ce97a7ac9c30a05676",
+      "delivery_commit": "450b99a6378c2ce0f9c77f880b5369b10e5975c9",
+      "merge_commit": "10109bba4d172a09740d8e41b3e0f47cd935e4f6",
       "expected_output": "Read-only current-schema and authority inventory, non-tenant internal scope decision, proposed physical records/routes and explicit runtime approval/test gates; documentation only"
+    },
+    {
+      "id": "PM01-RUNTIME-01",
+      "name": "Private oversight Core/Platform runtime",
+      "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
+      "status": "in_review",
+      "depends_on": [
+        "PM01-B"
+      ],
+      "branch": "feat/pm01-runtime-01-private-oversight",
+      "pull_request": 324,
+      "delivery_commit": "44c0d63f81fcc87231e4f3286eaa1a77ee448f7c",
+      "delivery_commit_resolution": "Exact rebased head reviewed before the containing manifest-correction commit. A file cannot embed its own enclosing Git SHA; the live PR head and fresh checks are authoritative after this correction is committed.",
+      "manifest_correction_commit": "24bda62cc77db587c23d068960c3a313f859e874",
+      "implementation_base": "506d137dc323761697e5918f50e6bb661b72b30b",
+      "migration": "supabase/migrations/20261009094331_pm01_private_oversight_runtime_v1.sql",
+      "expected_output": "Private program-scoped PM registry, deny-first RLS/ACL and versioned functions, hard-disabled bounded gateway, command/receipt/outbox/audit atomicity, isolated concurrency and rollback evidence; no Remote or Production rollout"
+    },
+    {
+      "id": "V14-DOC-COORDINATION-02",
+      "name": "CLADORA v1.4 live coordination and reporting reconciliation",
+      "owner": "PM / Documentation",
+      "status": "in_review",
+      "depends_on": [
+        "V14-DOC-BASELINE-01",
+        "PM01-A",
+        "PM01-B"
+      ],
+      "branch": "docs/cladora-v1.4-live-coordination-20261010",
+      "base_branch": "main",
+      "base_commit": "c0c82133d4a6ef95800c72b9f155fb9a65ae1822",
+      "pull_request": 347,
+      "initial_commit": "43c2282345cdf864fd707e0f665bd2ef0c508733",
+      "delivery_commit": null,
+      "expected_output": "Independent live recovery, exact PR/CI/Preview/PM evidence and four scoped reviews; documentation only",
+      "delivery_commit_resolution": "Use the containing documentation Git SHA and live #347 head."
     }
   ],
   "runtime_authorization_gate": {
@@ -119,24 +170,35 @@
     "proposed_successor_id": "PM01-RUNTIME-01",
     "kind": "Core/Platform runtime and migration implementation",
     "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
-    "status": "authorization_required",
+    "status": "in_review_live_base_revalidation_and_core_report_required",
     "depends_on": [
-      "PM01-B review outcome",
-      "explicit runtime design authorization",
-      "explicit implementation authorization",
-      "separate environment-specific authorizations"
+      "fresh CI and Vercel Preview on the containing manifest-correction head",
+      "Core-authenticated PM report for the resulting exact head",
+      "fresh PM acceptance review",
+      "separate Merge, Remote migration and Production gates"
     ],
-    "branch": null,
-    "pull_request": null,
+    "branch": "feat/pm01-runtime-01-private-oversight",
+    "pull_request": 324,
     "migration_logical_name": "pm01_private_oversight_runtime_v1",
+    "migration_file": "supabase/migrations/20261009094331_pm01_private_oversight_runtime_v1.sql",
+    "implementation_base": "506d137dc323761697e5918f50e6bb661b72b30b",
+    "delivery_commit": "44c0d63f81fcc87231e4f3286eaa1a77ee448f7c",
+    "delivery_commit_resolution": "Exact rebased head reviewed before the containing manifest-correction commit. The GitHub PR head and fresh checks are authoritative for the final documentation-only correction.",
+    "manifest_correction_commit": "24bda62cc77db587c23d068960c3a313f859e874",
     "expected_output": "Private program-scoped PM registry, bounded server gateway, isolated migration/RLS/ACL/concurrency/rollback evidence and no implicit Production rollout",
     "head_check_context": {
-      "commit": "1008cf769efa33a17122bca1c80e7632f77c2a69",
-      "state": "not registered",
-      "observed_at": "2026-10-09 UTC",
-      "evidence": "zero GitHub commit statuses and zero check runs",
-      "interpretation": "neither SUCCESS nor FAILURE"
+      "commit": "24bda62cc77db587c23d068960c3a313f859e874",
+      "observed_at": "2026-10-10T16:32:00+00:00",
+      "state": "16 check runs and Vercel status successful on historical head; 6 current-main commits missing",
+      "interpretation": "Revalidate current-main integration and owner-authenticated report before acceptance; Remote runtime remains absent."
     }
+  },
+  "reporting_control_plane": {
+    "project_ref": "jyomlehahwlyqzoacrvp",
+    "status": "active",
+    "boundary": "Production PM reporting and oversight are active independently of the uninstalled pm_private runtime in PR #324.",
+    "workstream_report_status": "Four summary cycles in_review with stale candidate/report pins; PM-01 in_progress version 21; zero accepted/blocked/superseded cycles and zero decisions at live observation.",
+    "write_gate": "Missing independent OVERSIGHT binding; write-only Hard Stop. Repository review continues."
   },
   "runtime_installed_by_this_baseline": false,
   "constraints": [
@@ -144,5 +206,58 @@
     "No auto-close from CI or PR merge",
     "Reopen creates linked cycle; previous acceptance retained",
     "Reuse canonical authority, audit and resource registries"
+  ],
+  "observed_at": "2026-10-10T16:32:00+00:00",
+  "coordination_artifact": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.2.md",
+  "live_evidence_artifact": "docs/control/LIVE-COORDINATION-EVIDENCE-20261010.json",
+  "external_unmerged_artifacts": [
+    {
+      "path": "docs/control/PM-01-RUNTIME-01-IMPLEMENTATION-EVIDENCE-v1.0.md",
+      "sha256": "7141f1badcd56501b949f470a8ba944a52047a1ccefea93d6ee3f90157f11636",
+      "ref": "24bda62cc77db587c23d068960c3a313f859e874",
+      "pull_request": 324
+    },
+    {
+      "path": "docs/control/PM-01-RUNTIME-01-ACCEPTANCE-RECONCILIATION-v1.0.md",
+      "sha256": "74244cc74de0bc588113d5c4b6d2c956fc2141515899efce72ef4aa8cc7de905",
+      "ref": "24bda62cc77db587c23d068960c3a313f859e874",
+      "pull_request": 324
+    },
+    {
+      "path": "docs/control/PM-01-RUNTIME-01-ROLLBACK-CONTRACT-v1.0.md",
+      "sha256": "da7e4882556ef71ae52c2adfb175d851154434fe322c9337ec0fd79cde8d8b53",
+      "ref": "24bda62cc77db587c23d068960c3a313f859e874",
+      "pull_request": 324
+    }
+  ],
+  "review_records": [
+    {
+      "pr": 353,
+      "head": "83d5ae14e6c67e93bd8f3a383c89d63f28912152",
+      "result": "changes_required"
+    },
+    {
+      "pr": 350,
+      "head": "77f927ebe05e9d2aed6a9e80de0fea93f3bcc549",
+      "result": "no_blocking_finding_in_scoped_review"
+    },
+    {
+      "pr": 352,
+      "head": "dc17ed77012f27df756db1b9a10b385ce2708544",
+      "result": "preparation_coherent_provider_handoff_unresolved"
+    },
+    {
+      "pr": 338,
+      "head": "9152b116d37ff329794ea60138b70d1dcd6a43b5",
+      "result": "consumer_tests_pass_operational_receipt_mapping_unresolved"
+    }
+  ],
+  "change_history": [
+    {
+      "observed_at": "2026-10-10T16:32:00+00:00",
+      "package": "V14-DOC-COORDINATION-02",
+      "change": "Restack documentation on main; reconcile live PM and merged CE; preserve historical evidence; record independent R1-R3 reviews",
+      "consumer_impact": "Core must correct temporal handling and complete AP-PF02 handoff; AIRPROP quality review continues; CE010 build failure holds that head only; scoped PM write remains blocked."
+    }
   ]
 }
