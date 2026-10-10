@@ -3,8 +3,11 @@ on:
   pull_request:
     paths:
       - 'src/lib/airprop/valuation-contract-v1.ts'
+      - 'src/lib/airprop/valuation-quality-v1.ts'
       - 'scripts/test-airprop-valuation-contract-01a.mjs'
+      - 'scripts/test-airprop-valuation-quality-01a.mjs'
       - 'docs/airprop/AP-VAL-01A-CONTRACT-AND-DOMAIN-v1.0.md'
+      - 'docs/airprop/AP-VAL-01A-QUALITY-PIPELINE-v1.0.md'
       - 'docs/airprop/V14-AIRPROP-EXECUTION-REPORT.md'
       - '.github/workflows/airprop-valuation-contract.yml'
   workflow_dispatch:
@@ -22,6 +25,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node scripts/test-airprop-valuation-contract-01a.mjs
+      - run: node scripts/test-airprop-valuation-quality-01a.mjs
       - run: npm run typecheck
       - run: npm run lint
 

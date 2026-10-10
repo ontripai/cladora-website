@@ -38,4 +38,4 @@ AIRPROP diligence protects its local unsaved edits against both in-module naviga
 
 ## CLADORA v1.4 execution added 2026-10-08
 
-[AP-VAL-01A valuation contract and domain baseline](AP-VAL-01A-CONTRACT-AND-DOMAIN-v1.0.md) defines the independent AIRPROP Slice A contracts without a migration, production model or automatic listing-price publication. The [v1.4 AIRPROP execution report](V14-AIRPROP-EXECUTION-REPORT.md) records status, evidence, blockers and next steps until PM-01 is available.
+[AP-VAL-01A valuation contract and domain baseline](AP-VAL-01A-CONTRACT-AND-DOMAIN-v1.0.md) defines the independent AIRPROP Slice A contracts without a migration, production model or automatic listing-price publication. [AP-VAL-01A2 quality pipeline](AP-VAL-01A-QUALITY-PIPELINE-v1.0.md) adds deterministic synthetic-fixture normalization, exact-source deduplication, quarantine and reproducible dataset metadata without claiming a connector or real-market model. The [v1.4 AIRPROP execution report](V14-AIRPROP-EXECUTION-REPORT.md) records status, evidence, blockers and next steps until PM-01 is available.
