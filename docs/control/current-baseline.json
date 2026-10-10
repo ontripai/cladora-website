@@ -134,8 +134,9 @@
       ],
       "branch": "feat/pm01-runtime-01-private-oversight",
       "pull_request": 324,
-      "delivery_commit": "2553a52881ece6613d0bb2bcf234794dee921130",
-      "implementation_base": "450b99a6378c2ce0f9c77f880b5369b10e5975c9",
+      "delivery_commit": "44c0d63f81fcc87231e4f3286eaa1a77ee448f7c",
+      "delivery_commit_resolution": "Exact rebased head reviewed before the containing manifest-correction commit. A file cannot embed its own enclosing Git SHA; the live PR head and fresh checks are authoritative after this correction is committed.",
+      "implementation_base": "506d137dc323761697e5918f50e6bb661b72b30b",
       "migration": "supabase/migrations/20261009094331_pm01_private_oversight_runtime_v1.sql",
       "expected_output": "Private program-scoped PM registry, deny-first RLS/ACL and versioned functions, hard-disabled bounded gateway, command/receipt/outbox/audit atomicity, isolated concurrency and rollback evidence; no Remote or Production rollout"
     }
@@ -146,26 +147,27 @@
     "proposed_successor_id": "PM01-RUNTIME-01",
     "kind": "Core/Platform runtime and migration implementation",
     "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
-    "status": "implementation_in_review",
+    "status": "implementation_rebased_in_review",
     "depends_on": [
-      "PM01-B review outcome",
-      "explicit runtime design authorization",
-      "explicit implementation authorization",
-      "separate environment-specific authorizations"
+      "fresh CI and Vercel Preview on the containing manifest-correction head",
+      "Core-authenticated PM report for the resulting exact head",
+      "fresh PM acceptance review",
+      "separate Merge, Remote migration and Production gates"
     ],
     "branch": "feat/pm01-runtime-01-private-oversight",
     "pull_request": 324,
     "migration_logical_name": "pm01_private_oversight_runtime_v1",
     "migration_file": "supabase/migrations/20261009094331_pm01_private_oversight_runtime_v1.sql",
-    "implementation_base": "450b99a6378c2ce0f9c77f880b5369b10e5975c9",
-    "delivery_commit": "2553a52881ece6613d0bb2bcf234794dee921130",
+    "implementation_base": "506d137dc323761697e5918f50e6bb661b72b30b",
+    "delivery_commit": "44c0d63f81fcc87231e4f3286eaa1a77ee448f7c",
+    "delivery_commit_resolution": "Exact rebased head reviewed before the containing manifest-correction commit. The GitHub PR head and fresh checks are authoritative for the final documentation-only correction.",
     "expected_output": "Private program-scoped PM registry, bounded server gateway, isolated migration/RLS/ACL/concurrency/rollback evidence and no implicit Production rollout",
     "head_check_context": {
-      "commit": "1008cf769efa33a17122bca1c80e7632f77c2a69",
-      "state": "not registered",
-      "observed_at": "2026-10-09 UTC",
-      "evidence": "zero GitHub commit statuses and zero check runs",
-      "interpretation": "neither SUCCESS nor FAILURE"
+      "commit": "44c0d63f81fcc87231e4f3286eaa1a77ee448f7c",
+      "state": "rebased implementation technically revalidated before the containing manifest correction",
+      "observed_at": "2026-10-10 13:21 UTC",
+      "evidence": "0 commits behind main@506d137dc323761697e5918f50e6bb661b72b30b; all 17 GitHub/Vercel rollup contexts succeeded; Vercel Preview dpl_HV8MRVAHjwBqoyqosw581cCBTixR READY; 13/13 controlled hashes verified; PM01 migration SHA-256 e66f382f8f680cc0eeab6df6dd0b848783f3aeee1080cf87452507b2318cb60b unchanged",
+      "interpretation": "The containing documentation-only correction must receive its own fresh CI and Preview. Acceptance, Merge, Remote migration and Production rollout remain separate decisions."
     }
   },
   "runtime_installed_by_this_baseline": false,
