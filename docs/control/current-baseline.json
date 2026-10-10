@@ -58,7 +58,7 @@
     },
     {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.1.md",
-      "sha256": "0f632746eccd6148bb38e9bfdb8b9fd260239997b682f1f0150e59cf88a9d0c0"
+      "sha256": "8767d6df7fdf06942fb75e0a29b6ee6cba1a53488c0af8e579e33c5c941caffa"
     },
     {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
@@ -170,7 +170,7 @@
     "proposed_successor_id": "PM01-RUNTIME-01",
     "kind": "Core/Platform runtime and migration implementation",
     "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
-    "status": "implementation_rebased_in_review",
+    "status": "in_review_core_report_required",
     "depends_on": [
       "fresh CI and Vercel Preview on the containing manifest-correction head",
       "Core-authenticated PM report for the resulting exact head",

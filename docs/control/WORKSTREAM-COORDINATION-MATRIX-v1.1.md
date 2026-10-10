@@ -27,9 +27,9 @@ PR [#324](https://github.com/ontripai/cladora-website/pull/324) remains an open 
 
 | Base | Head | GitHub checks | Vercel Preview | Remote migration | Control result |
 | --- | --- | --- | --- | --- | --- |
-| live `main@506d137dc323761697e5918f50e6bb661b72b30b` | `1deca0dc323b45c9fe54339d40dd3df2b8f983b5` | 17/17 succeeded on the head | `dpl_5cXRUPbycfHswqba3HnU59weJsB9` READY | migration `20261009094331` absent; `pm_private` absent | Historical exact-head acceptance is retained, but Draft exit is stopped because the branch is 20 commits behind live `main` and has merge base `10109bba4d172a09740d8e41b3e0f47cd935e4f6` |
+| `main@506d137dc323761697e5918f50e6bb661b72b30b` | `44c0d63f81fcc87231e4f3286eaa1a77ee448f7c` | all 17 PR rollup contexts succeeded, including `postgres-runtime` | `dpl_HV8MRVAHjwBqoyqosw581cCBTixR` READY | migration `20261009094331` absent; `pm_private` absent | Same-branch rebase delivered with 0 commits behind; four prior patches are range-diff equivalent and migration fingerprint is unchanged; final acceptance waits only for the required Core-authenticated PM report |
 
-Core/Platform must rebase the same branch and PR onto the exact live target, preserve the accepted runtime and migration scope, refresh the reconciliation fingerprints, rerun the complete CI and Preview set, and submit a fresh authenticated PM report. Any semantic conflict, migration fingerprint drift, failed check or unexpected Remote state is a hard stop. PM / Documentation does not rewrite or force-push this Core-owned branch.
+Core/Platform completed the same-branch rebase, preserved the accepted runtime and migration scope, refreshed the reconciliation fingerprints and passed the complete CI and Preview set. It must still submit the exact base/head and evidence through the assigned Core PM credential. PM / Documentation does not impersonate that report and does not rewrite or force-push this Core-owned branch.
 
 ## Active dependency stacks
 
