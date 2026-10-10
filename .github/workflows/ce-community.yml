@@ -1,0 +1,54 @@
+name: CE Community
+on:
+  pull_request:
+    paths:
+      - 'src/lib/community/community-base-*.ts'
+      - 'src/lib/community/experience-guide-*.ts'
+      - 'src/app/api/customer/v1/community/base/**'
+      - 'src/app/api/customer/v1/experience/guides/**'
+      - 'supabase/proposals/ce_010_community_operational_v1.sql'
+      - 'supabase/proposals/ce_012_experience_guide_operational_v1.sql'
+      - 'supabase/tests/173_ce_010_community_proposal.test.sql'
+      - 'supabase/tests/174_ce_012_experience_guide_proposal.test.sql'
+      - 'supabase/tests/fixtures/ce_010_*.inc'
+      - 'supabase/tests/fixtures/ce_012_*.inc'
+      - 'scripts/test-ce-010-*.mjs'
+      - 'scripts/test-ce-012-*.mjs'
+      - '.github/workflows/ce-community.yml'
+permissions:
+  contents: read
+concurrency:
+  group: ce-community-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ce010-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: CE010 and CE012 domain and HTTP boundary
+        run: |
+          node --experimental-strip-types scripts/test-ce-010-community-base.mjs
+          node scripts/test-ce-010-route.mjs
+          node --experimental-strip-types scripts/test-ce-012-experience-guide.mjs
+          node scripts/test-ce-012-route.mjs
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.84.2
+      - name: Start disposable local Supabase
+        run: supabase start
+      - name: Real CE multi-connection races
+        run: |
+          timeout 90s node scripts/test-ce-010-concurrency.mjs
+          timeout 90s node scripts/test-ce-012-concurrency.mjs
+        env:
+          CLADORA_EPHEMERAL_DB: '1'
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Stop disposable local Supabase
+        if: always()
+        run: supabase stop --no-backup
