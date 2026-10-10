@@ -77,6 +77,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedNavLinks: [
       '/app/dashboard',
       '/app/experience/guides',
+      '/app/community',
       '/app/community/events',
       '/app/settings/roles',
       '/app/building-setup',
@@ -149,6 +150,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedNavLinks: [
       '/app/dashboard',
       '/app/experience/guides',
+      '/app/community',
       '/app/community/events',
       '/app/settings/roles',
       '/app/building-setup',
@@ -232,6 +234,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedNavLinks: [
       '/app/dashboard',
       '/app/experience/guides',
+      '/app/community',
       '/app/community/events',
       '/app/settings/roles',
       '/app/governance',
@@ -310,6 +313,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedNavLinks: [
       '/app/dashboard',
       '/app/experience/guides',
+      '/app/community',
       '/app/community/events',
       '/app/settings/roles',
       '/app/accounting',
@@ -395,6 +399,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedNavLinks: [
       '/app/dashboard',
       '/app/experience/guides',
+      '/app/community',
       '/app/community/events',
       '/app/documents',
       '/app/documents/[id]',
@@ -486,6 +491,7 @@ export const PERSONA_ACCESS_MATRIX: Record<CanonicalRole, PersonaMatrixDefinitio
     allowedNavLinks: [
       '/app/dashboard',
       '/app/experience/guides',
+      '/app/community',
       '/app/community/events',
       '/app/documents',
       '/app/documents/[id]',

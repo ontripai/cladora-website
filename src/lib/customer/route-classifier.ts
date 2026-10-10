@@ -170,6 +170,12 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     modules: ['community_events'],
   },
   {
+    pathPrefix: '/app/community',
+    permissions: ['community.community.read'],
+    entitlements: ['module.community_basic'],
+    modules: ['community_basic'],
+  },
+  {
     pathPrefix: '/app/communications',
     permissions: ['communications.feed.read'],
     entitlements: ['module.communications'],

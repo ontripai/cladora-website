@@ -282,18 +282,26 @@ end $$;
 
 create function customer_api.read_ce_community_v1(p_context_id uuid,p_workspace_id uuid) returns jsonb
 language plpgsql stable security definer set search_path=pg_catalog as $$
-declare s record; manager boolean; moderator boolean; communities jsonb; announcements jsonb; reports jsonb; begin
+declare s record; manager boolean; moderator boolean; reporter boolean; communities jsonb; announcements jsonb; reports jsonb; begin
  select * into strict s from app_private.ce_community_authorize_v1(p_context_id,p_workspace_id,'community.community.read');
  manager:=app_private.check_workspace_native_permission_v2(p_context_id,p_workspace_id,'community.announcement.publish','community_basic') is true;
  moderator:=app_private.check_workspace_native_permission_v2(p_context_id,p_workspace_id,'community.report.decide','community_basic') is true;
+ reporter:=app_private.check_workspace_native_permission_v2(p_context_id,p_workspace_id,'community.report.create','community_basic') is true;
  select coalesce(jsonb_agg(q.item order by q.created_at,q.id),'[]') into communities from (
-  select x.id,x.created_at,jsonb_build_object('id',x.id,'name',x.name,'version',x.version) item
+  select x.id,x.created_at,jsonb_build_object('id',x.id,'workspace_id',x.workspace_id,'name',x.name,'version',x.version,
+   'audience_kind',x.audience->>'kind','can_create_announcement',manager,'can_decide_reports',moderator) item
   from community.communities x where x.tenant_id=s.tenant_id and x.workspace_id=p_workspace_id
    and (manager or moderator or app_private.ce_community_audience_allows_v1(p_context_id,p_workspace_id,x.audience))
   order by x.created_at,x.id limit 100
  ) q;
  select coalesce(jsonb_agg(q.item order by q.created_at,q.id),'[]') into announcements from (
-  select a.id,a.created_at,jsonb_build_object('id',a.id,'community_id',a.community_id,'body',a.body,'status',a.status,'version',a.version) item
+  select a.id,a.created_at,jsonb_build_object('id',a.id,'community_id',a.community_id,
+   'title',left(regexp_replace(a.body,E'\\s+',' ','g'),120),'body',a.body,'status',a.status,'version',a.version,
+   'can_report',reporter and a.status='published'
+    and app_private.ce_community_audience_allows_v1(p_context_id,p_workspace_id,c.audience)
+    and app_private.ce_community_audience_allows_v1(p_context_id,p_workspace_id,a.audience)
+    and not exists(select 1 from community.content_reports own where own.target_id=a.id and own.reporter_membership_id=s.membership_id and own.status='open'),
+   'can_publish',manager and a.status='draft','can_cancel',manager and a.status='published') item
   from community.announcements a join community.communities c on c.id=a.community_id
   where a.tenant_id=s.tenant_id and a.workspace_id=p_workspace_id
    and (manager or (a.status='published' and app_private.ce_community_audience_allows_v1(p_context_id,p_workspace_id,c.audience)
@@ -301,12 +309,14 @@ declare s record; manager boolean; moderator boolean; communities jsonb; announc
   order by a.created_at,a.id limit 100
  ) q;
  select coalesce(jsonb_agg(q.item order by q.created_at,q.id),'[]') into reports from (
-  select r.id,r.created_at,jsonb_build_object('id',r.id,'community_id',r.community_id,'target_id',r.target_id,
-   'report_reason',r.report_reason,'status',r.status,'decision_reason',r.decision_reason,'version',r.version) item
-  from community.content_reports r where r.tenant_id=s.tenant_id and r.workspace_id=p_workspace_id and moderator
+  select r.id,r.created_at,jsonb_build_object('id',r.id,'community_id',r.community_id,
+   'target_title',left(regexp_replace(a.body,E'\\s+',' ','g'),120),
+   'report_reason',r.report_reason,'status',r.status,'version',r.version) item
+  from community.content_reports r join community.announcements a on a.id=r.target_id
+  where r.tenant_id=s.tenant_id and r.workspace_id=p_workspace_id and moderator
   order by r.created_at,r.id limit 100
  ) q;
- return jsonb_build_object('communities',communities,'announcements',announcements,'reports',reports,'limit',100);
+ return jsonb_build_object('workspace_id',p_workspace_id,'communities',communities,'announcements',announcements,'reports',reports,'limit',100);
 end $$;
 
 revoke all on function app_private.ce_community_receipt_immutable_v1(),
