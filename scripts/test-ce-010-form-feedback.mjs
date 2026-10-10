@@ -49,6 +49,7 @@ try {
       assert.ok(document.getElementById(form.getAttribute('aria-labelledby'))?.textContent, 'each form has an accessible name');
       const status = form.querySelector('[role="status"]');
       assert.equal(status.getAttribute('aria-live'), 'polite');
+      assert.equal(status.closest('[aria-busy]'), null, 'pending feedback is outside the busy controls region');
       const textarea = form.querySelector('textarea');
       await act(async () => {
         change(textarea, 'Keep this exact input');
@@ -57,13 +58,13 @@ try {
       textarea.focus();
       await act(async () => { submit(form); submit(form); });
       assert.equal(calls.length, 1, 'two synchronous submissions issue exactly one command');
-      assert.equal(form.getAttribute('aria-busy'), 'true');
+      assert.equal(form.querySelector('fieldset').getAttribute('aria-busy'), 'true');
       assert.equal(form.querySelector('fieldset').disabled, true, 'all fields are locked while sending');
       assert.equal(status.textContent, t.sending);
       assert.equal(calls[0][index === 0 ? 'body' : 'reason'], 'Keep this exact input');
       if (index === 2) assert.equal(calls[0].expected_version, 7, 'moderation keeps the server version');
       await act(async () => pending.reject(new Error('Transport failed')));
-      assert.equal(form.getAttribute('aria-busy'), 'false');
+      assert.equal(form.querySelector('fieldset').getAttribute('aria-busy'), 'false');
       assert.equal(form.querySelector('fieldset').disabled, false);
       assert.equal(textarea.value, 'Keep this exact input');
       assert.ok(form.querySelector('[role="alert"]').textContent.includes(t.error));
