@@ -6,6 +6,8 @@
 
 **Target branch:** `main@506d137dc323761697e5918f50e6bb661b72b30b`
 
+**Control PR:** [#347](https://github.com/ontripai/cladora-website/pull/347)
+
 **Status:** Point-in-time control record. It is not merge, migration, Production deployment or branch-deletion authorization.
 
 ## Completed control and delivery packages

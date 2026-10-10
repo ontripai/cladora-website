@@ -58,7 +58,7 @@
     },
     {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.1.md",
-      "sha256": "45159b08f3ea7d7e81297c0d046964e03f015e82eef59caa67d1dc4addb9b7ca"
+      "sha256": "0f632746eccd6148bb38e9bfdb8b9fd260239997b682f1f0150e59cf88a9d0c0"
     },
     {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
@@ -151,14 +151,15 @@
       "id": "V14-DOC-COORDINATION-02",
       "name": "CLADORA v1.4 live coordination and reporting reconciliation",
       "owner": "PM / Documentation",
-      "status": "in_progress",
+      "status": "in_review",
       "depends_on": [
         "V14-DOC-BASELINE-01",
         "PM01-A",
         "PM01-B"
       ],
       "branch": "docs/cladora-v1.4-live-coordination-20261010",
-      "pull_request": null,
+      "pull_request": 347,
+      "initial_commit": "0cf240c3b460cd54a53e12fa1d6f7d8ba2349edb",
       "delivery_commit": null,
       "expected_output": "Versioned live PR dependency map, PM01-RUNTIME-01 base reconciliation and authenticated workstream reporting-gap record; documentation only"
     }
