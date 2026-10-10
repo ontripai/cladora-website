@@ -10,6 +10,28 @@ const required = (name) => {
   return value;
 };
 
+function safeDiagnostic(error) {
+  const parts = [];
+  let current = error;
+  for (let depth = 0; current && depth < 5; depth += 1) {
+    if (typeof current.message === 'string' && /^[a-z][a-z0-9_:-]{2,100}$/i.test(current.message)) {
+      parts.push(current.message);
+    }
+    if (typeof current.code === 'string' && /^[a-z0-9_]{2,80}$/i.test(current.code)) {
+      parts.push(`code_${current.code}`);
+    }
+    if (typeof current.table === 'string' && /^[a-z0-9_]{2,80}$/i.test(current.table)) {
+      parts.push(`table_${current.table}`);
+    }
+    if (typeof current.constraint === 'string' && /^[a-z0-9_]{2,120}$/i.test(current.constraint)) {
+      parts.push(`constraint_${current.constraint}`);
+    }
+    if (Number.isInteger(current.status)) parts.push(`status_${current.status}`);
+    current = current.cause;
+  }
+  return [...new Set(parts)].join(':') || 'ap10_fixture_failed_without_safe_diagnostic';
+}
+
 const target = required('CLADORA_AP10_TARGET').toLowerCase();
 const supabaseUrl = required('SUPABASE_URL');
 const anonKey = required('SUPABASE_ANON_KEY');
@@ -58,6 +80,9 @@ try {
     },
   });
   process.stdout.write(`${JSON.stringify(receipt)}\n`);
+} catch (error) {
+  process.stderr.write(`::error title=AP10 synthetic fixture::${safeDiagnostic(error)}\n`);
+  process.exitCode = 1;
 } finally {
   await pool.end();
 }
