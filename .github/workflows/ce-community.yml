@@ -48,6 +48,7 @@ jobs:
         run: |
           node --experimental-strip-types scripts/test-ce-010-community-base.mjs
           node scripts/test-ce-010-route.mjs
+          node scripts/test-ce-010-form-feedback.mjs
           node --experimental-strip-types scripts/test-ce-012-experience-guide.mjs
           node scripts/test-ce-012-route.mjs
           node --experimental-strip-types scripts/test-ce-012-guide-page.mjs
