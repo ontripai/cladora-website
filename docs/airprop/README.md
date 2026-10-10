@@ -40,6 +40,8 @@ AIRPROP diligence protects its local unsaved edits against both in-module naviga
 
 [AP-VAL-01A valuation contract and domain baseline](AP-VAL-01A-CONTRACT-AND-DOMAIN-v1.0.md) defines the independent AIRPROP Slice A contracts without a migration, production model or automatic listing-price publication. [AP09](AP09-MANAGEMENT-PORTFOLIO-WIZARD-v1.0.md) and [AP10](AP10-MULTI-UNIT-MANAGEMENT-E2E-v1.0.md) record the three-language management wizard, rendered multi-unit integration and authenticated-browser blocker. The [v1.4 AIRPROP execution report](V14-AIRPROP-EXECUTION-REPORT.md) records status, evidence, blockers and next steps until PM-01 is available.
 
+[AIRPROP Core dependency integration boundaries](AIRPROP-CORE-DEPENDENCY-BOUNDARIES-v1.0.md) records the non-guessing consumer interfaces and test plans for `AP10-AUTH-E2E-FIXTURE`, `AP-PF02` and its accepted Core Resource snapshot/relationship/authority dependency, and the subsequent Dynamic Resource read model. It creates no provider fixture or Core contract.
+
 [AP01-LC-01 listing controls](AP01-LISTING-CONTROLS-v1.0.md) add versioned edit, withdrawal and republish commands to the existing commercial listing lifecycle. Production migration and deployment require separate authorization.
 
 [AP02-RSV-01 reservation controls](AP02-RESERVATION-CONTROLS-v1.0.md) add versioned cancel, expiry, extension and commercial handoff transitions while preserving the existing exclusive-winner constraint. They do not create ownership, membership, canonical leases or financial postings.
