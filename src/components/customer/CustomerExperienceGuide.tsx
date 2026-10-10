@@ -30,10 +30,10 @@ function GuideEditor({ lang, guide, targets, commands, onChanged }: { lang: Lang
 
 export function CustomerExperienceGuide({ lang, guide, targets = [], commands, onChanged }: { lang: Language; guide: ExperienceGuideView | null; targets?: NamedGuideTarget[]; commands: ExperienceGuideCommands | null; onChanged?: () => void }) {
   const t = copy[lang];
-  if (!guide || !commands) return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="rounded-2xl border bg-white p-5"><p role="status">{t.pending}</p></section>;
+  if (!guide) return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="rounded-2xl border bg-white p-5"><p role="status">{t.pending}</p></section>;
   return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5 rounded-2xl border bg-white p-4 sm:p-6" aria-labelledby="ce012-guide-title">
     <header><p className="text-xs font-bold uppercase tracking-wide text-teal-700">{t.heading}</p><h1 id="ce012-guide-title" className="text-xl font-bold text-[#102A43]">{guide.title}</h1><p className="text-sm text-[#52667A]">{t.audience}: {guide.audience_label}</p></header>
     <ol className="space-y-4">{guide.steps.map((step, index) => <li key={step.id} className="rounded-xl bg-slate-50 p-4"><h2 className="font-semibold">{index + 1}. {step.title}</h2><p className="mt-2 whitespace-pre-wrap text-sm">{step.body}</p>{step.references.length ? <ul className="mt-3 flex flex-wrap gap-2">{step.references.map((reference) => <li key={reference.id}>{reference.href ? <a className="text-sm font-semibold text-teal-700 underline" href={reference.href}>{reference.label}</a> : <span className="text-sm text-[#52667A]">{reference.label}</span>}</li>)}</ul> : null}</li>)}</ol>
-    {guide.can_edit ? <GuideEditor key={`${guide.workspace_id}:${guide.guide_id}:${guide.version}`} lang={lang} guide={guide} targets={targets} commands={commands} onChanged={onChanged} /> : null}
+    {guide.can_edit && commands ? <GuideEditor key={`${guide.workspace_id}:${guide.guide_id}:${guide.version}`} lang={lang} guide={guide} targets={targets} commands={commands} onChanged={onChanged} /> : null}
   </section>;
 }

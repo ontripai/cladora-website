@@ -158,6 +158,12 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
 
   // Communications & Notifications
   {
+    pathPrefix: '/app/experience/guides',
+    permissions: ['experience.guide.read'],
+    entitlements: ['module.experience_guides'],
+    modules: ['experience_guides'],
+  },
+  {
     pathPrefix: '/app/community/events',
     permissions: ['events.event.read'],
     entitlements: ['module.community_events'],

@@ -6,6 +6,8 @@ on:
       - 'src/lib/community/experience-guide-*.ts'
       - 'src/app/api/customer/v1/community/base/**'
       - 'src/app/api/customer/v1/experience/guides/**'
+      - 'src/app/*/app/experience/guides/**'
+      - 'src/components/customer/CustomerExperienceGuide*.tsx'
       - 'src/app/api/customer/v1/community/events/**'
       - 'src/app/*/app/community/events/**'
       - 'src/components/customer/CustomerEventInterest*.tsx'
@@ -42,12 +44,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: CE010 and CE012 domain and HTTP boundary
+      - name: CE010, CE011 and CE012 domain and HTTP boundary
         run: |
           node --experimental-strip-types scripts/test-ce-010-community-base.mjs
           node scripts/test-ce-010-route.mjs
           node --experimental-strip-types scripts/test-ce-012-experience-guide.mjs
           node scripts/test-ce-012-route.mjs
+          node --experimental-strip-types scripts/test-ce-012-guide-page.mjs
           node --experimental-strip-types scripts/test-ce-011-event-interest.mjs
           node scripts/test-ce-011-route.mjs
           node scripts/test-ce-011-operational-package.mjs

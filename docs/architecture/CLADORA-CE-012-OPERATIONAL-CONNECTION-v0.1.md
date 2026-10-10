@@ -53,6 +53,14 @@ After parent PR #313 merged, Draft PR #318 was retargeted to `main` and the CE b
 1. `CORE-CE012-MAP-01`: confirm the proposed Core module/permission mapping.
 2. `DOCS-CE012-REF-01`: review the exact Documents resolver consumption contract.
 3. `CE012-MIG-01`: separately authorize proposal conversion and installation. No migration file or installed remote version exists.
-4. `CE012-UI-01`: separately authorize public page/menu connection and live browser acceptance.
+4. `CE012-UI-01B`: after `DOCS-CE012-REF-01`, connect a named Documents selector and reference navigation without exposing identifiers.
+
+## CE012-UI-01A — safe read connection
+
+The independent read slice mounts `/app/experience/guides` behind the existing `experience_guides` module, `module.experience_guides` entitlement and `experience.guide.read` permission. It derives the Workspace from the active server-returned dashboard context, validates the exact bounded RPC projection, and shows named Guide and reference labels in RO/EN/FA without displaying a Guide, Workspace, reference or document UUID.
+
+The list deliberately consumes only the opaque reference ID, type and author-supplied label. It does not call the resolver automatically, construct a document URL, or expose `target_id`. A manager may read a draft but sees a view-only notice. Reference editing remains in `CE012-UI-01B` until `DOCS-CE012-REF-01` supplies an accepted named target selector and navigation contract; the base Guide read flow does not wait for that dependency.
+
+An absent Remote RPC remains fail-closed as `503 CE_GUIDE_CONNECTION_NOT_READY`, while an inactive module or missing permission hides the menu and blocks the route. This branch contains no migration, Remote database action, module activation or Production configuration change.
 
 Merge, Supabase Remote migration and Production deployment remain independent approvals. CI, Preview and a coordination receipt do not accept or close this package.
