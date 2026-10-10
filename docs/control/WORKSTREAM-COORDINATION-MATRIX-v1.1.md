@@ -1,6 +1,6 @@
 # CLADORA workstream coordination matrix v1.1
 
-**Observed:** 2026-10-10 13:08 UTC from live GitHub, Vercel and PM reporting data
+**Observed:** 2026-10-10 13:37 UTC from live GitHub, Vercel and PM reporting data
 
 **Repository:** `ontripai/cladora-website`
 
@@ -27,9 +27,9 @@ PR [#324](https://github.com/ontripai/cladora-website/pull/324) remains an open 
 
 | Base | Head | GitHub checks | Vercel Preview | Remote migration | Control result |
 | --- | --- | --- | --- | --- | --- |
-| `main@506d137dc323761697e5918f50e6bb661b72b30b` | `44c0d63f81fcc87231e4f3286eaa1a77ee448f7c` | all 17 PR rollup contexts succeeded, including `postgres-runtime` | `dpl_HV8MRVAHjwBqoyqosw581cCBTixR` READY | migration `20261009094331` absent; `pm_private` absent | Same-branch rebase delivered with 0 commits behind; four prior patches are range-diff equivalent and migration fingerprint is unchanged; final acceptance waits only for the required Core-authenticated PM report |
+| `main@506d137dc323761697e5918f50e6bb661b72b30b` | `24bda62cc77db587c23d068960c3a313f859e874` | all 17 PR rollup contexts succeeded, including `postgres-runtime` | `dpl_DRdWeZ7oatTAhiYYDBSDjz6uRnEw` READY | migration `20261009094331` absent; `pm_private` absent | Same-branch rebase and Documentation-owned semantic-pin correction delivered with 0 commits behind; four runtime patches are range-diff equivalent and migration fingerprint is unchanged; final acceptance waits only for the required Core-authenticated PM report |
 
-Core/Platform completed the same-branch rebase, preserved the accepted runtime and migration scope, refreshed the reconciliation fingerprints and passed the complete CI and Preview set. It must still submit the exact base/head and evidence through the assigned Core PM credential. PM / Documentation does not impersonate that report and does not rewrite or force-push this Core-owned branch.
+Core/Platform completed the same-branch rebase and preserved the accepted runtime and migration scope. PM / Documentation then corrected stale semantic base/head pins in the controlled manifest with documentation-only commit `24bda62cc77db587c23d068960c3a313f859e874`; the complete CI and Preview set passed again on that exact head. Core/Platform must still submit the exact resulting base/head and evidence through the assigned Core PM credential. PM / Documentation does not impersonate that report.
 
 ## Active dependency stacks
 
