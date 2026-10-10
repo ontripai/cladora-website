@@ -26,7 +26,7 @@
     },
     {
       "path": "docs/control/README.md",
-      "sha256": "138f0eddf0b5a10ad9d77fadf2956fb14cbfde8f8226c7e6a08d867b732d95f2"
+      "sha256": "eb5e57682223899c386d2ab15c42c293052986b70bca78a565f837a664227340"
     },
     {
       "path": "docs/control/PM-01-PRIVATE-OVERSIGHT-REGISTRY-v1.0.md",
@@ -42,7 +42,11 @@
     },
     {
       "path": "docs/control/PM-01-RUNTIME-01-IMPLEMENTATION-EVIDENCE-v1.0.md",
-      "sha256": "17e3e7c6f27df360583e36689cc6db4929740d0e9972f1d786efe4a082bab842"
+      "sha256": "cda1d7f4956f78c6266b7643b21c77e8bb12763eb110f122bfaadee97183fda7"
+    },
+    {
+      "path": "docs/control/PM-01-RUNTIME-01-ACCEPTANCE-RECONCILIATION-v1.0.md",
+      "sha256": "beb48c68a82a4452feee2556ac46708d4b503c52bc2183613f373442cd3e6c34"
     },
     {
       "path": "docs/control/PM-01-RUNTIME-01-ROLLBACK-CONTRACT-v1.0.md",
