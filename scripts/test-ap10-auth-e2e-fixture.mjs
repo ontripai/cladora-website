@@ -56,7 +56,14 @@ function clients(events) {
             events.push('mfa-verify');
             assert.equal(factorId, 'factor-1');
             assert.match(code, /^\d{6}$/);
-            return { data: { session: session('aal2') }, error: null };
+            return {
+              data: {
+                access_token: 'private-aal2-token',
+                refresh_token: 'private-aal2-refresh-token',
+                user: { id: 'synthetic-user' },
+              },
+              error: null,
+            };
           },
           async getAuthenticatorAssuranceLevel(token) {
             events.push('aal-inspect');
@@ -68,6 +75,12 @@ function clients(events) {
             assert.equal(factorId, 'factor-1');
             return { data: {}, error: null };
           },
+        },
+        async setSession({ access_token: accessToken, refresh_token: refreshToken }) {
+          events.push('aal2-session-install');
+          assert.equal(accessToken, 'private-aal2-token');
+          assert.equal(refreshToken, 'private-aal2-refresh-token');
+          return { data: { session: session('aal2') }, error: null };
         },
         async signOut({ scope }) {
           events.push('local-sign-out');
@@ -172,6 +185,7 @@ await check('AAL2 session and authority are established before the consumer and 
     'sign-in',
     'mfa-enroll',
     'mfa-verify',
+    'aal2-session-install',
     'aal-inspect',
     'authority-setup',
     'authority-assert-allowed',
