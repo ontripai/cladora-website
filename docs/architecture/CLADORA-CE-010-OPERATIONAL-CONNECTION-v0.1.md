@@ -83,3 +83,17 @@ UI review evidence at implementation commit `26da0c78abeb59d7fba87fb794be9283a13
 4. **CE010-ACT-01:** Workspace capability activation and live browser acceptance remain separate from code deployment and require the installed RPC plus the accepted Core mapping.
 
 Merge, Supabase Remote migration and Production deployment remain separate approvals. Preview/CI success and a coordination receipt cannot accept, close or release a package. Manifest/PM recording belongs to CLADORA Documentation & PM; no private credential is required or requested by this workstream.
+
+## Live reconciliation — 2026-10-10
+
+Read-only recovery confirmed main `c0c82133d4a6ef95800c72b9f155fb9a65ae1822`, merged PRs #318/#348/#349, and open Draft PR #354 at `ea3df23bdf803fcbb9fcf9679df9286659db2e8c`. Completed domain, proposal and mounted-page work is retained without rebuilding it. External or unavailable `CE010` material is not evidence for the repository capability `CE-010`.
+
+At that exact head: Database run `38061591403` (static-contract and postgres-runtime), CE Community `38061591416`, and native runtime `38061591422` passed. Preview `dpl_H9bT7UYFP9udLAwodCjsp1huuQXC` is READY for the same head. Application Foundation `38061591411` passed audit, lint, unit, foundation and typecheck, then failed build in shared Inter font resolution; the three-language built-app audit did not run. One failed-job rerun was requested; its outcome must be checked separately. No all-green claim is made.
+
+### Formal dependency: CORE-CE-BUILD-FONT-01
+
+Owner: Core / application build foundation. Consumer: CE010-UI-01 and subsequent CE UI packages. Trigger: Application Foundation build failure resolving `@vercel/turbopack-next/internal/font/google/font`; diagnostic `next/font/google queries have exactly one entry`, traced to shared `src/app/[lang]/layout.tsx`, using Next 16.3.8 / Node 22.23.3.
+
+Required output: a supported, deterministic shared font/build configuration (or evidence that the transient failure has cleared), preserving Romanian/English/Persian font coverage and the existing layout contract. CE must not patch shared layout, dependencies, build configuration or environment variables to implement this dependency. Verification: Application Foundation build and built-app three-language audit pass on the candidate head; Preview remains READY for that same head. Scope excludes Auth, CAPTCHA, SMTP, DNS, Secrets, remote schema and release actions.
+
+`CE010-UI-01` remains in_review pending this check, independent review and the existing activation/migration gates. CE continues an independent form-feedback slice without waiting for Merge. After confirmed Merge and ancestry verification, only CE branches `feat/ce-011-event-page` and `feat/ce-012-guide-page` were deleted; other workstreams were untouched.
