@@ -6,6 +6,11 @@ on:
       - 'src/lib/community/experience-guide-*.ts'
       - 'src/app/api/customer/v1/community/base/**'
       - 'src/app/api/customer/v1/experience/guides/**'
+      - 'src/app/*/app/experience/guides/**'
+      - 'src/components/customer/CustomerExperienceGuide*.tsx'
+      - 'src/components/customer/CustomerAppShell.tsx'
+      - 'src/lib/customer/access-matrix.ts'
+      - 'src/lib/customer/route-classifier.ts'
       - 'supabase/proposals/ce_010_community_operational_v1.sql'
       - 'supabase/proposals/ce_012_experience_guide_operational_v1.sql'
       - 'supabase/tests/173_ce_010_community_proposal.test.sql'
@@ -37,6 +42,7 @@ jobs:
           node scripts/test-ce-010-route.mjs
           node --experimental-strip-types scripts/test-ce-012-experience-guide.mjs
           node scripts/test-ce-012-route.mjs
+          node --experimental-strip-types scripts/test-ce-012-guide-page.mjs
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
