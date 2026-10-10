@@ -3,7 +3,7 @@
   "baseline_version": "1.4",
   "date": "2026-10-10",
   "plan_status": "user-approved execution in progress under controlled workstream gates",
-  "repository_status": "documentation PRs #313, #322 and #323 and CE PR #318 merged; Core, AIRPROP, SERVICE and PM01-RUNTIME-01 stacks remain open",
+  "repository_status": "documentation PRs #313, #322 and #323 and CE PR #318 merged; Core, AIRPROP, SERVICE, CE and PM01-RUNTIME-01 work remain open",
   "repository": "ontripai/cladora-website",
   "observed_main_commit": "506d137dc323761697e5918f50e6bb661b72b30b",
   "baseline_commit_resolution": "Use the containing Git commit SHA for this update. A file cannot embed its own enclosing commit hash. observed_main_commit is the live target observed before this documentation branch was created, not the containing documentation commit.",
@@ -58,7 +58,7 @@
     },
     {
       "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.1.md",
-      "sha256": "55ce7c9752703c007c58fe4d49249e0aef290845bc0a148549cdf736b4fd7f94"
+      "sha256": "3dc72bd15179d98ae22b333f960fda8cbfa345ca359c64f12c6cf3822cbeed52"
     },
     {
       "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
@@ -202,7 +202,7 @@
     "project_ref": "jyomlehahwlyqzoacrvp",
     "status": "active",
     "boundary": "Production PM reporting and oversight are active independently of the uninstalled pm_private runtime in PR #324.",
-    "workstream_report_status": "CORE, AIRPROP, SERVICE and CE authenticated reports were stale relative to live GitHub state at the 2026-10-10 13:08 UTC observation."
+    "workstream_report_status": "CORE, AIRPROP, SERVICE and CE authenticated reports were stale relative to live GitHub state at the 2026-10-10 13:44 UTC observation."
   },
   "runtime_installed_by_this_baseline": false,
   "constraints": [

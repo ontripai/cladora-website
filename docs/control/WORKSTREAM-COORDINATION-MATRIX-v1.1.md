@@ -1,6 +1,6 @@
 # CLADORA workstream coordination matrix v1.1
 
-**Observed:** 2026-10-10 13:37 UTC from live GitHub, Vercel and PM reporting data
+**Observed:** 2026-10-10 13:44 UTC from live GitHub, Vercel and PM reporting data
 
 **Repository:** `ontripai/cladora-website`
 
@@ -33,14 +33,15 @@ Core/Platform completed the same-branch rebase and preserved the accepted runtim
 
 ## Active dependency stacks
 
-Every PR listed below was open and reported `CLEAN` at observation time. All check contexts present in the rollup were successful; this is evidence only and is not acceptance or rollout authority.
+Every PR listed below was open and reported `CLEAN` at observation time. The terminal PRs sampled for each active chain had successful check rollups and READY Previews; every exact PR check set must still be reread before a state-changing action. This is evidence only and is not acceptance or rollout authority.
 
 | Workstream | Ordered dependency chain | Draft state | Exact heads |
 | --- | --- | --- | --- |
 | AIRPROP | `#314 → #315 → #319 → #333 → #340 → #341 → #342 → #343 → #344 → #346` | all Draft | `53f603a`, `6e6f6fc`, `bea9e30`, `d769460`, `fe2492c`, `b23cf4e`, `622245f`, `0a927f5`, `215b0db`, `e6e316a` |
 | SERVICE | `#317 → #320 → #321 → #325 → #328 → #329 → #332 → #334 → #338` | all Ready | `dc1816b`, `7a1b773`, `c08dc8c`, `3729884`, `c3f05eb`, `c65810d`, `40f832d`, `4ab4a86`, `9152b11` |
-| Core shared contracts | `#316 → #326 → #327 → #330 → #331 → #335 → #336 → #337 → #339` | all Draft | `81fb074`, `2c314b4`, `599ff8d`, `2ac1cc4`, `3c6f097`, `8afed7d`, `aa959e4`, `42ba1c2`, `cf04e67` |
-| Core independent root | `#345` from `main` | Draft | `306c8d79b4683b816ee3a4932a547914d850344d` |
+| Core shared contracts | `#316 → #326 → #327 → #330 → #331 → #335 → #336 → #337 → #339` | all Draft | `8388f65`, `ad23747`, `a20a218`, `3f6dece`, `1ef3090`, `a88a662`, `b25a70f`, `1ce4cf1`, `fbaa940` |
+| Core independent root | `#345` from `main` | Draft | `479ef7b5e489578079d6bfb3636a1d1035f69a9e` |
+| Community & Experience independent roots | `#348`, `#349` from `main` | #348 Ready; #349 Draft | `fa23713447e7b18c4dc1e00ad231cb421a83adf3`, `0b92bd108ed58b733f22f9aaf423dee273e39481` |
 
 The parent of each stacked PR must remain until its child is merged or safely retargeted/rebased and the resulting ancestry, diff, CI and Preview are reverified. A Ready state does not replace acceptance or merge authorization.
 
@@ -50,10 +51,10 @@ The Production PM reporting/oversight control plane in Supabase project `jyomleh
 
 | PM package | Owner | Latest report | Recorded delivery | Required correction |
 | --- | --- | --- | --- | --- |
-| `V14-CORE-01` | CORE | 2026-10-08 16:56 UTC | PR #316 / `81fb0744d7ffb1ce682dbb8ae96541da4ffe7b3f` | Report the current Core stacks and the #324 rebase outcome through the assigned Core credential |
+| `V14-CORE-01` | CORE | 2026-10-08 16:56 UTC | PR #316 / `81fb0744d7ffb1ce682dbb8ae96541da4ffe7b3f` | Report the current Core stacks, including #316 at `8388f65`, #339 at `fbaa940`, #345 at `479ef7b`, and the #324 outcome through the assigned Core credential |
 | `V14-AIRPROP-01` | AIRPROP | 2026-10-08 16:51 UTC | PR #315 / `6e6f6fc4996446798df9b4d85518eca762be8657` | Report the current chain through #346 through the assigned AIRPROP credential |
 | `V14-SERVICE-01` | SERVICE | 2026-10-08 20:13 UTC | PR #321 / `c08dc8c633272690e45a6d0e8e62e0d1729b5b23` | Report the current Ready chain through #338 through the assigned SERVICE credential |
-| `V14-CE-01` | CE | 2026-10-08 19:58 UTC | PR #318 / `b2d5a61b71f091e8da34429f40bed254d026ad91` | Record the merged head, merge commit and verified Production result through the assigned CE credential |
+| `V14-CE-01` | CE | 2026-10-08 19:58 UTC | PR #318 / `b2d5a61b71f091e8da34429f40bed254d026ad91` | Record the #318 merge/Production result and current independent PRs #348/#349 through the assigned CE credential |
 
 PM oversight must not impersonate a workstream report. Each workstream owns its authenticated update; PM may record observed reconciliation and alerts separately.
 
