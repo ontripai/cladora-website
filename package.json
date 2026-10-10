@@ -24,6 +24,8 @@
     "test:document-scanner": "node scripts/test-document-clamav-worker.mjs",
     "test:i18n": "node scripts/audit-untranslated-copy.mjs",
     "test:db:static": "node scripts/check-database-package.mjs",
+    "test:pm-runtime:gateway": "node scripts/test-pm-private-runtime-gateway.mjs",
+    "test:pm-runtime:concurrency": "node scripts/test-pm-private-runtime-concurrency.mjs",
     "test:db:catalog": "node scripts/audit-r10-catalog-evidence.mjs",
     "test:retention:storage": "node scripts/test-retention-storage-contract.mjs",
     "test:retention:concurrency": "node scripts/test-retention-concurrency-contract.mjs",
