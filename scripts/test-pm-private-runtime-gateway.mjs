@@ -88,6 +88,37 @@ const failure = await failingGateway.mutate(post(command), contracts.registerPac
 assert.equal(failure.status, 403);
 assert.deepEqual(await failure.json(), { error: { code: 'ACCESS_DENIED' } });
 
+const lifecycleEnvelope = {
+  program_id: id(2), expected_version: 4, request_id: id(7), idempotency_key: 'pm-runtime-174-transition',
+  reason: 'Bounded lifecycle transition',
+};
+assert.equal(contracts.transitionCycleCommand.safeParse({ ...lifecycleEnvelope, target_state: 'accepted' }).success, false,
+  'Generic transition contract cannot accept a cycle');
+assert.equal(contracts.transitionCycleCommand.safeParse({ ...lifecycleEnvelope, target_state: 'in_review' }).success, false,
+  'Review entry requires an exact delivery binding');
+assert.equal(contracts.transitionCycleCommand.safeParse({
+  ...lifecycleEnvelope, target_state: 'in_review', delivery_commit_sha: 'a'.repeat(40), required_checks: ['isolated-db', 'authorization'],
+}).success, true);
+assert.equal(contracts.transitionCycleCommand.safeParse({
+  ...lifecycleEnvelope, target_state: 'in_review', delivery_commit_sha: 'a'.repeat(40), required_checks: ['isolated-db', 'isolated-db'],
+}).success, false, 'Required acceptance checks must be unique');
+
+const decisionEnvelope = {
+  program_id: id(2), expected_version: 4, request_id: id(8), idempotency_key: 'pm-runtime-174-decision',
+  decision: 'accepted', criteria_snapshot: { checks: 'passed' }, reason: 'Independent review decision',
+};
+assert.equal(contracts.recordDecisionCommand.safeParse(decisionEnvelope).success, false,
+  'Acceptance contract requires the exact delivery commit');
+assert.equal(contracts.recordDecisionCommand.safeParse({ ...decisionEnvelope, commit_sha: 'a'.repeat(40) }).success, true);
+
+const testEnvelope = {
+  program_id: id(2), expected_version: 4, request_id: id(9), idempotency_key: 'pm-runtime-174-test',
+  commit_sha: 'a'.repeat(40), provider: 'github', check_name: 'authorization', provider_run_id: 'run:174', status: 'passed',
+};
+assert.equal(contracts.recordTestCommand.safeParse(testEnvelope).success, false,
+  'Passed test contract requires exact-commit evidence');
+assert.equal(contracts.recordTestCommand.safeParse({ ...testEnvelope, evidence_id: id(10) }).success, true);
+
 const routeFiles = [
   'src/app/api/platform/v1/internal-work/packages/route.ts',
   'src/app/api/platform/v1/internal-work/packages/[id]/route.ts',

@@ -34,6 +34,22 @@ create type pm_private.change_decision as enum ('pending','approved','rejected')
 create type pm_private.test_status as enum ('not_registered','pending','running','passed','failed','cancelled','superseded');
 create type pm_private.publish_state as enum ('pending','publishing','published','failed','dead_letter');
 
+create function pm_private.valid_required_checks_v1(p_checks text[])
+returns boolean
+language sql
+immutable
+strict
+security invoker
+set search_path = pg_catalog
+as $$
+  select cardinality(p_checks) between 1 and 64
+    and not exists (
+      select 1 from unnest(p_checks) check_name
+      where check_name <> btrim(check_name) or length(check_name) not between 1 and 200
+    )
+    and cardinality(p_checks) = (select count(distinct check_name) from unnest(p_checks) check_name);
+$$;
+
 create table pm_private.programs (
   id uuid primary key default gen_random_uuid(),
   code text not null unique check (code ~ '^[A-Z][A-Z0-9_-]{2,63}$'),
@@ -102,6 +118,8 @@ create table pm_private.execution_cycles (
   parent_cycle_id uuid references pm_private.execution_cycles(id) on delete restrict,
   state pm_private.cycle_state not null default 'planned',
   scope_delta text not null default '' check (length(scope_delta) <= 4000),
+  delivery_commit_sha text check (delivery_commit_sha is null or delivery_commit_sha ~ '^[0-9a-f]{40}$'),
+  required_checks text[] not null default '{}'::text[],
   version integer not null default 1 check (version > 0),
   started_at timestamptz,
   ended_at timestamptz,
@@ -109,6 +127,10 @@ create table pm_private.execution_cycles (
   created_at timestamptz not null default statement_timestamp(),
   updated_at timestamptz not null default statement_timestamp(),
   check (ended_at is null or started_at is null or ended_at >= started_at),
+  check (
+    (delivery_commit_sha is null and cardinality(required_checks) = 0)
+    or (delivery_commit_sha is not null and pm_private.valid_required_checks_v1(required_checks))
+  ),
   unique (package_id, cycle_number)
 );
 
@@ -197,11 +219,16 @@ create table pm_private.test_runs (
   unique (provider,provider_run_id,check_name)
 );
 
+create index pm_test_runs_acceptance_gate_idx on pm_private.test_runs
+  (cycle_id,commit_sha,check_name,created_at desc,id desc);
+
 create table pm_private.acceptance_decisions (
   id uuid primary key default gen_random_uuid(),
   program_id uuid not null references pm_private.programs(id) on delete restrict,
   cycle_id uuid not null references pm_private.execution_cycles(id) on delete restrict,
   reviewer_id uuid not null references platform.platform_users(id) on delete restrict,
+  delivery_commit_sha text not null check (delivery_commit_sha ~ '^[0-9a-f]{40}$'),
+  required_checks text[] not null check (pm_private.valid_required_checks_v1(required_checks)),
   criteria_snapshot jsonb not null check (jsonb_typeof(criteria_snapshot) = 'object'),
   decision pm_private.acceptance_decision not null,
   reason text not null check (length(btrim(reason)) between 3 and 2000),
@@ -473,8 +500,8 @@ as $$
     ('planned','ready'),('planned','cancelled'),('ready','in_progress'),('ready','blocked'),
     ('ready','cancelled'),('in_progress','in_review'),('in_progress','blocked'),
     ('in_progress','cancelled'),('blocked','ready'),('blocked','in_progress'),
-    ('blocked','cancelled'),('in_review','in_progress'),('in_review','accepted'),
-    ('in_review','blocked'),('accepted','closed'),('accepted','in_progress')
+    ('blocked','cancelled'),('in_review','in_progress'),('in_review','blocked'),
+    ('accepted','closed')
   );
 $$;
 
@@ -526,7 +553,8 @@ set search_path = pg_catalog
 as $$
 declare actor uuid; package_row record; can_review boolean; result jsonb;
 begin
-  select wp.*,ec.state as cycle_state,ec.cycle_number,ec.version as cycle_version,ec.started_at,ec.ended_at
+  select wp.*,ec.state as cycle_state,ec.cycle_number,ec.version as cycle_version,
+      ec.delivery_commit_sha,ec.required_checks,ec.started_at,ec.ended_at
     into package_row from pm_private.work_packages wp
     left join pm_private.execution_cycles ec on ec.id=wp.current_cycle_id
     where wp.id=p_package_id and wp.program_id=p_program_id;
@@ -539,6 +567,7 @@ begin
       'workstream_id',package_row.workstream_id,'baseline_id',package_row.baseline_id),
     'cycle',jsonb_build_object('id',package_row.current_cycle_id,'number',package_row.cycle_number,
       'state',package_row.cycle_state,'version',package_row.cycle_version,
+      'delivery_commit_sha',package_row.delivery_commit_sha,'required_checks',package_row.required_checks,
       'started_at',package_row.started_at,'ended_at',package_row.ended_at),
     'evidence',case when can_review then (
       select coalesce(jsonb_agg(jsonb_build_object('id',e.id,'commit_sha',e.commit_sha,'type',e.evidence_type,
@@ -628,6 +657,7 @@ as $$
 declare
   program_id uuid; cycle_id uuid; request_id uuid; actor uuid; request_hash text; idempotency_key text;
   expected_version integer; target_state pm_private.cycle_state; prior_state pm_private.cycle_state; reason text;
+  delivery_commit_sha text; required_checks text[]; required_check_count integer; distinct_check_count integer;
   existing pm_private.command_receipts%rowtype; cycle_row record; response jsonb; new_package_status text;
 begin
   if jsonb_typeof(p_command) <> 'object' then raise exception 'pm_invalid_command' using errcode='22023'; end if;
@@ -641,6 +671,35 @@ begin
   if program_id is null or cycle_id is null or request_id is null or expected_version < 1
     or idempotency_key !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$' or length(reason) not between 3 and 2000 then
     raise exception 'pm_invalid_command' using errcode='22023';
+  end if;
+  if target_state = 'accepted' then
+    raise exception 'pm_acceptance_decision_required' using errcode='42501';
+  end if;
+  if target_state = 'in_review' then
+    delivery_commit_sha := lower(p_command->>'delivery_commit_sha');
+    if coalesce(delivery_commit_sha,'') !~ '^[0-9a-f]{40}$'
+      or jsonb_typeof(p_command->'required_checks') <> 'array' then
+      raise exception 'pm_invalid_review_binding' using errcode='22023';
+    end if;
+    if exists (
+      select 1 from jsonb_array_elements(p_command->'required_checks') item(value)
+      where jsonb_typeof(value) <> 'string'
+    ) then
+      raise exception 'pm_invalid_review_binding' using errcode='22023';
+    end if;
+    select array_agg(check_name order by check_name),count(*),count(distinct check_name)
+      into required_checks,required_check_count,distinct_check_count
+      from (
+        select btrim(value) as check_name
+        from jsonb_array_elements_text(p_command->'required_checks')
+      ) checks;
+    if required_check_count not between 1 and 64
+      or distinct_check_count <> required_check_count
+      or exists (select 1 from unnest(required_checks) check_name where length(check_name) not between 1 and 200) then
+      raise exception 'pm_invalid_review_binding' using errcode='22023';
+    end if;
+  elsif p_command ? 'delivery_commit_sha' or p_command ? 'required_checks' then
+    raise exception 'pm_invalid_review_binding' using errcode='22023';
   end if;
   select ec.*,wp.workstream_id,wp.created_by as package_created_by into cycle_row
     from pm_private.execution_cycles ec join pm_private.work_packages wp on wp.id=ec.package_id
@@ -664,19 +723,24 @@ begin
     raise exception 'pm_illegal_transition' using errcode='22023';
   end if;
   prior_state := cycle_row.state;
-  update pm_private.execution_cycles set state=target_state,version=version+1,
-    started_at=case when target_state='in_progress' and started_at is null then statement_timestamp() else started_at end,
+  update pm_private.execution_cycles ec set state=target_state,version=ec.version+1,
+    delivery_commit_sha=case when target_state='in_review' then delivery_commit_sha
+      when target_state='in_progress' then null else ec.delivery_commit_sha end,
+    required_checks=case when target_state='in_review' then required_checks
+      when target_state='in_progress' then '{}'::text[] else ec.required_checks end,
+    started_at=case when target_state='in_progress' and ec.started_at is null then statement_timestamp() else ec.started_at end,
     ended_at=case when target_state in ('closed','superseded','cancelled') then statement_timestamp() else null end
-    where id=cycle_id returning * into cycle_row;
+    where ec.id=cycle_id returning * into cycle_row;
   new_package_status := case target_state
-    when 'in_review' then 'in_review' when 'accepted' then 'accepted' when 'closed' then 'closed'
+    when 'in_review' then 'in_review' when 'closed' then 'closed'
     when 'blocked' then 'blocked' when 'cancelled' then 'cancelled' else 'active' end;
   update pm_private.work_packages set status=new_package_status,version=version+1 where id=cycle_row.package_id;
   insert into pm_private.transitions(program_id,cycle_id,from_state,to_state,actor_id,expected_version,new_version,command_id,reason)
     values(program_id,cycle_id,prior_state,target_state,
       actor,expected_version,cycle_row.version,request_id,reason);
   response := jsonb_build_object('package_id',cycle_row.package_id,'cycle_id',cycle_id,'state',target_state,
-    'cycle_version',cycle_row.version,'idempotent',false);
+    'cycle_version',cycle_row.version,'delivery_commit_sha',cycle_row.delivery_commit_sha,
+    'required_checks',cycle_row.required_checks,'idempotent',false);
   insert into pm_private.outbox_events(program_id,aggregate_type,aggregate_id,aggregate_version,event_type,payload)
     values(program_id,'execution_cycle',cycle_id,cycle_row.version,'pm.cycle.transitioned',
       pm_private.redact_json_v1(response||jsonb_build_object('request_id',request_id,'reason',reason)));
@@ -716,7 +780,7 @@ begin
   if program_id is null or cycle_id is null or request_id is null
     or coalesce((p_command->>'expected_version')::integer,-1) < 1
     or idempotency_key !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$'
-    or commit_sha !~ '^[0-9a-f]{40}$'
+    or coalesce(commit_sha,'') !~ '^[0-9a-f]{40}$'
     or evidence_type not in ('commit','pull_request','ci_run','artifact','document','deployment_observation','migration_observation')
     or length(provider) not between 1 and 64 or length(provider_reference) not between 1 and 500
     or provider_reference ~* '^https?://' or provider_reference ~* '(token|secret|password|credential)'
@@ -789,7 +853,7 @@ begin
   completed_at := nullif(p_command->>'completed_at','')::timestamptz;
   if program_id is null or cycle_id is null or request_id is null
     or coalesce((p_command->>'expected_version')::integer,-1) < 1
-    or idempotency_key !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$' or commit_sha !~ '^[0-9a-f]{40}$'
+    or idempotency_key !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$' or coalesce(commit_sha,'') !~ '^[0-9a-f]{40}$'
     or length(provider) not between 1 and 64 or length(check_name) not between 1 and 200
     or length(provider_run_id) not between 1 and 200 or provider_run_id ~* '^https?://'
     or length(coalesce(summary,'')) > 2000 or (completed_at is not null and started_at is not null and completed_at<started_at) then
@@ -803,6 +867,12 @@ begin
   if evidence_id is not null and not exists (
     select 1 from pm_private.evidence_references e where e.id=evidence_id and e.cycle_id=cycle_id and e.commit_sha=commit_sha
   ) then raise exception 'pm_evidence_mismatch' using errcode='22023'; end if;
+  if run_status = 'passed' and (
+    evidence_id is null or not exists (
+      select 1 from pm_private.evidence_references e
+      where e.id=evidence_id and e.cycle_id=cycle_id and e.commit_sha=commit_sha and e.result='passed'
+    )
+  ) then raise exception 'pm_passed_test_evidence_required' using errcode='22023'; end if;
   actor := pm_private.require_permission_v1(program_id,'pm.evidence.attach',subject.workstream_id,subject.package_id,true);
   request_hash := pm_private.command_hash_v1(p_command);
   perform pg_advisory_xact_lock(hashtextextended(program_id::text||':'||actor::text||':pm.test.record:'||idempotency_key,0));
@@ -842,7 +912,8 @@ as $$
 #variable_conflict use_variable
 declare
   program_id uuid; cycle_id uuid; request_id uuid; actor uuid; request_hash text; idempotency_key text;
-  expected_version integer; decision_value pm_private.acceptance_decision; criteria jsonb; reason text;
+  expected_version integer; decision_value pm_private.acceptance_decision; criteria jsonb; reason text; commit_sha text;
+  new_cycle_version integer; prior_state pm_private.cycle_state;
   existing pm_private.command_receipts%rowtype; subject record; decision_row pm_private.acceptance_decisions%rowtype; response jsonb;
 begin
   if jsonb_typeof(p_command) <> 'object' then raise exception 'pm_invalid_command' using errcode='22023'; end if;
@@ -852,24 +923,23 @@ begin
   expected_version := (p_command->>'expected_version')::integer;
   idempotency_key := p_command->>'idempotency_key';
   decision_value := (p_command->>'decision')::pm_private.acceptance_decision;
+  commit_sha := lower(p_command->>'commit_sha');
   criteria := p_command->'criteria_snapshot';
   reason := btrim(p_command->>'reason');
   if program_id is null or cycle_id is null or request_id is null or expected_version < 1
     or idempotency_key !~ '^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$'
+    or coalesce(commit_sha,'') !~ '^[0-9a-f]{40}$'
     or jsonb_typeof(criteria) <> 'object' or pg_column_size(criteria) > 16384
     or length(reason) not between 3 and 2000 then raise exception 'pm_invalid_command' using errcode='22023';
   end if;
-  select ec.package_id,ec.version,ec.state,wp.workstream_id,wp.created_by into subject
+  select ec.package_id,ec.version,ec.state,ec.delivery_commit_sha,ec.required_checks,
+      wp.workstream_id,wp.created_by
+    into subject
     from pm_private.execution_cycles ec join pm_private.work_packages wp on wp.id=ec.package_id
     where ec.id=cycle_id and ec.program_id=program_id;
   if subject.package_id is null then raise exception 'pm_cycle_not_found' using errcode='P0002'; end if;
-  if subject.version <> expected_version then raise exception 'pm_concurrency_conflict' using errcode='40001'; end if;
-  if subject.state <> 'in_review' then raise exception 'pm_review_state_required' using errcode='22023'; end if;
   actor := pm_private.require_permission_v1(program_id,'pm.review.decide',subject.workstream_id,subject.package_id,true);
   if subject.created_by=actor then raise exception 'pm_self_acceptance_denied' using errcode='42501'; end if;
-  if decision_value='accepted' and not exists (
-    select 1 from pm_private.test_runs tr where tr.cycle_id=cycle_id and tr.status='passed'
-  ) then raise exception 'pm_acceptance_evidence_required' using errcode='22023'; end if;
   request_hash := pm_private.command_hash_v1(p_command);
   perform pg_advisory_xact_lock(hashtextextended(program_id::text||':'||actor::text||':pm.acceptance.record:'||idempotency_key,0));
   select * into existing from pm_private.command_receipts
@@ -879,13 +949,60 @@ begin
     if existing.request_hash <> request_hash then raise exception 'pm_idempotency_conflict' using errcode='23505'; end if;
     return existing.response || jsonb_build_object('idempotent',true);
   end if;
-  insert into pm_private.acceptance_decisions(program_id,cycle_id,reviewer_id,criteria_snapshot,decision,reason)
-    values(program_id,cycle_id,actor,pm_private.redact_json_v1(criteria),decision_value,
+  select ec.package_id,ec.version,ec.state,ec.delivery_commit_sha,ec.required_checks,
+      wp.workstream_id,wp.created_by
+    into subject
+    from pm_private.execution_cycles ec join pm_private.work_packages wp on wp.id=ec.package_id
+    where ec.id=cycle_id and ec.program_id=program_id for update of ec;
+  if subject.version <> expected_version then raise exception 'pm_concurrency_conflict' using errcode='40001'; end if;
+  if subject.state <> 'in_review' then raise exception 'pm_review_state_required' using errcode='22023'; end if;
+  if subject.delivery_commit_sha is null or cardinality(subject.required_checks) = 0 then
+    raise exception 'pm_review_binding_required' using errcode='22023';
+  end if;
+  if commit_sha <> subject.delivery_commit_sha then
+    raise exception 'pm_acceptance_commit_mismatch' using errcode='22023';
+  end if;
+  if decision_value='accepted' and exists (
+    select 1
+    from unnest(subject.required_checks) required(check_name)
+    left join lateral (
+      select tr.status,tr.evidence_id
+      from pm_private.test_runs tr
+      where tr.cycle_id=cycle_id and tr.commit_sha=commit_sha and tr.check_name=required.check_name
+      order by tr.created_at desc,tr.id desc limit 1
+    ) latest on true
+    where latest.status is distinct from 'passed'::pm_private.test_status
+      or latest.evidence_id is null
+      or not exists (
+        select 1 from pm_private.evidence_references e
+        where e.id=latest.evidence_id and e.cycle_id=cycle_id and e.commit_sha=commit_sha and e.result='passed'
+      )
+  ) then raise exception 'pm_acceptance_required_checks_missing' using errcode='22023'; end if;
+  insert into pm_private.acceptance_decisions(
+      program_id,cycle_id,reviewer_id,delivery_commit_sha,required_checks,criteria_snapshot,decision,reason
+    )
+    values(program_id,cycle_id,actor,commit_sha,subject.required_checks,pm_private.redact_json_v1(criteria),decision_value,
       pm_private.redact_json_v1(to_jsonb(reason))#>>'{}') returning * into decision_row;
+  new_cycle_version := expected_version;
+  if decision_value='accepted' then
+    prior_state := subject.state;
+    update pm_private.execution_cycles ec set state='accepted',version=ec.version+1,updated_at=statement_timestamp()
+      where ec.id=cycle_id returning ec.version into new_cycle_version;
+    update pm_private.work_packages wp set status='accepted',version=wp.version+1,updated_at=statement_timestamp()
+      where wp.id=subject.package_id;
+    insert into pm_private.transitions(
+      program_id,cycle_id,from_state,to_state,actor_id,expected_version,new_version,command_id,reason
+    ) values (
+      program_id,cycle_id,prior_state,'accepted',actor,expected_version,new_cycle_version,request_id,
+      'Independent acceptance decision: '||reason
+    );
+  end if;
   response := jsonb_build_object('decision_id',decision_row.id,'cycle_id',cycle_id,'decision',decision_value,
-    'cycle_version',expected_version,'idempotent',false);
+    'state',case when decision_value='accepted' then 'accepted' else subject.state::text end,
+    'cycle_version',new_cycle_version,'delivery_commit_sha',commit_sha,
+    'required_checks',subject.required_checks,'idempotent',false);
   insert into pm_private.outbox_events(program_id,aggregate_type,aggregate_id,aggregate_version,event_type,payload)
-    values(program_id,'acceptance',decision_row.id,1,'pm.acceptance.recorded',
+    values(program_id,'acceptance',decision_row.id,new_cycle_version,'pm.acceptance.recorded',
       pm_private.redact_json_v1(response||jsonb_build_object('request_id',request_id)));
   insert into audit.events(tenant_id,actor_id,actor_role,action,entity_type,entity_id,request_id,after_snapshot,reason)
     values(null,auth.uid(),'PM_INTERNAL','PM_ACCEPTANCE_RECORDED','pm_private.acceptance_decision',decision_row.id,

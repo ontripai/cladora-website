@@ -33,9 +33,22 @@ export const registerPackageCommand = commandEnvelope.extend({
 
 export const transitionCycleCommand = commandEnvelope.extend({
   expected_version: z.number().int().positive(),
-  target_state: z.enum(['ready', 'in_progress', 'in_review', 'accepted', 'blocked', 'closed', 'cancelled']),
+  target_state: z.enum(['ready', 'in_progress', 'in_review', 'blocked', 'closed', 'cancelled']),
   reason: z.string().trim().min(3).max(2000),
-}).strict();
+  delivery_commit_sha: sha.optional(),
+  required_checks: z.array(z.string().trim().min(1).max(200)).min(1).max(64).optional(),
+}).strict().superRefine((value, context) => {
+  const hasReviewBinding = Boolean(value.delivery_commit_sha) && Boolean(value.required_checks);
+  if (value.target_state === 'in_review' && !hasReviewBinding) {
+    context.addIssue({ code: 'custom', message: 'Review entry requires an exact delivery commit and required checks' });
+  }
+  if (value.target_state !== 'in_review' && (value.delivery_commit_sha || value.required_checks)) {
+    context.addIssue({ code: 'custom', message: 'Review binding is only valid when entering in_review' });
+  }
+  if (value.required_checks && new Set(value.required_checks).size !== value.required_checks.length) {
+    context.addIssue({ code: 'custom', path: ['required_checks'], message: 'Required checks must be unique' });
+  }
+});
 
 export const attachEvidenceCommand = commandEnvelope.extend({
   expected_version: z.number().int().positive(),
@@ -59,10 +72,15 @@ export const recordTestCommand = commandEnvelope.extend({
   bounded_summary: z.string().trim().max(2000).optional(),
   started_at: z.string().datetime({ offset: true }).optional(),
   completed_at: z.string().datetime({ offset: true }).optional(),
-}).strict();
+}).strict().superRefine((value, context) => {
+  if (value.status === 'passed' && !value.evidence_id) {
+    context.addIssue({ code: 'custom', path: ['evidence_id'], message: 'Passed tests require exact-commit passed evidence' });
+  }
+});
 
 export const recordDecisionCommand = commandEnvelope.extend({
   expected_version: z.number().int().positive(),
+  commit_sha: sha,
   decision: z.enum(['accepted', 'rejected', 'changes_required']),
   criteria_snapshot: z.record(z.string(), z.unknown()),
   reason: z.string().trim().min(3).max(2000),

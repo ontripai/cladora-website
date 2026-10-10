@@ -168,6 +168,7 @@ select is((pm_private.transition_cycle_internal_v1(jsonb_build_object('program_i
   'request_id','17200000-0000-4000-8000-000000000305','idempotency_key','pm-runtime-172-start'))->>'state'),'in_progress','Ready transitions to in progress');
 select is((pm_private.transition_cycle_internal_v1(jsonb_build_object('program_id','17200000-0000-4000-8000-000000000201',
   'cycle_id',current_setting('test.pm_cycle_id'),'expected_version',3,'target_state','in_review','reason','Work delivered for review',
+  'delivery_commit_sha',repeat('b',40),'required_checks',jsonb_build_array('isolated-db'),
   'request_id','17200000-0000-4000-8000-000000000306','idempotency_key','pm-runtime-172-review'))->>'state'),'in_review','In progress transitions to in review');
 select throws_like($$select pm_private.transition_cycle_internal_v1(jsonb_build_object(
   'program_id','17200000-0000-4000-8000-000000000201','cycle_id',current_setting('test.pm_cycle_id'),
@@ -175,27 +176,32 @@ select throws_like($$select pm_private.transition_cycle_internal_v1(jsonb_build_
   'request_id','17200000-0000-4000-8000-000000000307','idempotency_key','pm-runtime-172-stale'))$$,
   '%pm_concurrency_conflict%','Stale transition is rejected');
 
+select throws_like($$select pm_private.transition_cycle_internal_v1(jsonb_build_object(
+  'program_id','17200000-0000-4000-8000-000000000201','cycle_id',current_setting('test.pm_cycle_id'),
+  'expected_version',4,'target_state','accepted','reason','Manager attempts acceptance bypass',
+  'request_id','17200000-0000-4000-8000-000000000310','idempotency_key','pm-runtime-172-accepted'))$$,
+  '%pm_acceptance_decision_required%','Package manager cannot bypass independent acceptance');
+
 select throws_like($$select pm_private.record_acceptance_internal_v1(jsonb_build_object(
   'program_id','17200000-0000-4000-8000-000000000201','cycle_id',current_setting('test.pm_cycle_id'),
   'expected_version',4,'request_id','17200000-0000-4000-8000-000000000308','idempotency_key','pm-runtime-172-self-review',
-  'decision','accepted','criteria_snapshot',jsonb_build_object('tests','passed'),'reason','Creator cannot accept own work'))$$,
+  'commit_sha',repeat('b',40),'decision','accepted','criteria_snapshot',jsonb_build_object('tests','passed'),
+  'reason','Creator cannot accept own work'))$$,
   '%pm_self_acceptance_denied%','Package creator cannot record own acceptance');
 
 select set_config('request.jwt.claims','{"sub":"17200000-0000-4000-8000-000000000002","role":"authenticated","aal":"aal2"}',true);
 select set_config('test.pm_decision',pm_private.record_acceptance_internal_v1(jsonb_build_object(
   'program_id','17200000-0000-4000-8000-000000000201','cycle_id',current_setting('test.pm_cycle_id'),
   'expected_version',4,'request_id','17200000-0000-4000-8000-000000000309','idempotency_key','pm-runtime-172-accept',
-  'decision','accepted','criteria_snapshot',jsonb_build_object('tests','passed'),'reason','Independent acceptance'))::text,true);
+  'commit_sha',repeat('b',40),'decision','accepted','criteria_snapshot',jsonb_build_object('tests','passed'),
+  'reason','Independent acceptance'))::text,true);
 select is(current_setting('test.pm_decision')::jsonb->>'decision','accepted','Independent reviewer records acceptance');
 select is((select state::text from pm_private.execution_cycles where id=current_setting('test.pm_cycle_id')::uuid),
-  'in_review','Acceptance remains distinct from lifecycle transition');
+  'accepted','Independent acceptance atomically transitions the cycle');
 select is((select count(*) from pm_private.acceptance_decisions where cycle_id=current_setting('test.pm_cycle_id')::uuid),
   1::bigint,'Acceptance ledger is append-only evidence');
 
 select set_config('request.jwt.claims','{"sub":"17200000-0000-4000-8000-000000000001","role":"authenticated","aal":"aal2"}',true);
-select is((pm_private.transition_cycle_internal_v1(jsonb_build_object('program_id','17200000-0000-4000-8000-000000000201',
-  'cycle_id',current_setting('test.pm_cycle_id'),'expected_version',4,'target_state','accepted','reason','Acceptance transition approved',
-  'request_id','17200000-0000-4000-8000-000000000310','idempotency_key','pm-runtime-172-accepted'))->>'state'),'accepted','Acceptance transition is explicit');
 select set_config('test.pm_change',pm_private.request_change_internal_v1(jsonb_build_object(
   'action','request','program_id','17200000-0000-4000-8000-000000000201','package_id',current_setting('test.pm_package_id'),
   'source_cycle_id',current_setting('test.pm_cycle_id'),'expected_version',5,
@@ -220,8 +226,8 @@ select ok((select parent_cycle_id=current_setting('test.pm_cycle_id')::uuid from
   where id=(current_setting('test.pm_change_decision')::jsonb->>'created_cycle_id')::uuid),'New cycle links to its accepted predecessor');
 select ok((select current_cycle_id=(current_setting('test.pm_change_decision')::jsonb->>'created_cycle_id')::uuid
   from pm_private.work_packages where id=current_setting('test.pm_package_id')::uuid),'Package points to the linked successor cycle');
-select is((select count(*) from pm_private.command_receipts),10::bigint,'Successful commands persist one receipt each');
-select is((select count(*) from pm_private.outbox_events),10::bigint,'Successful commands persist one outbox event each');
+select is((select count(*) from pm_private.command_receipts),9::bigint,'Successful commands persist one receipt each');
+select is((select count(*) from pm_private.outbox_events),9::bigint,'Successful commands persist one outbox event each');
 select ok((select bool_and(after_snapshot::text not like '%secret-value%') from audit.events where action like 'PM_%'),
   'Audit snapshots contain no submitted secret fixture');
 

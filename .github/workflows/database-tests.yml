@@ -81,6 +81,10 @@ jobs:
         run: timeout 60s node scripts/test-core-relationship-concurrency.mjs
         env:
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run PM private runtime registration, replay, and transition races
+        run: timeout 60s npm run test:pm-runtime:concurrency
+        env:
+          SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run real multi-connection financial close concurrency tests
         run: timeout 60s node scripts/test-financial-close-concurrency.mjs
         env:
