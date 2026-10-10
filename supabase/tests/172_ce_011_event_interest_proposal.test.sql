@@ -1,7 +1,7 @@
 \ir fixtures/ce_011_event_interest_operational_v1.inc
 
 begin;
-select plan(43);
+select plan(49);
 
 select has_schema('community', 'CE-011 community schema exists in the ephemeral database');
 select has_table('community', 'events', 'Event aggregate exists');
@@ -11,6 +11,7 @@ select has_table('community', 'event_attendance', 'Attendance store exists');
 select has_table('community', 'event_command_receipts', 'Immutable command receipt store exists');
 
 select has_function('customer_api', 'command_ce_event_v1', array['jsonb'], 'CE command gateway exists');
+select has_function('customer_api', 'read_ce_events_v1', array['uuid','uuid'], 'CE page projection gateway exists');
 select has_function('app_private', 'ce_event_authorize_v1', array['uuid','uuid','text'], 'Authority adapter exists');
 select has_function('app_private', 'ce_event_audience_eligible_v1', array['uuid','uuid'], 'Audience evaluator exists');
 
@@ -48,7 +49,9 @@ select is(
   'No direct CE table grants exist for anon or authenticated'
 );
 select ok(has_function_privilege('authenticated','customer_api.command_ce_event_v1(jsonb)','EXECUTE'), 'Authenticated users may call the bounded command gateway');
+select ok(has_function_privilege('authenticated','customer_api.read_ce_events_v1(uuid,uuid)','EXECUTE'), 'Authenticated users may call the bounded Event projection');
 select ok(not has_function_privilege('anon','customer_api.command_ce_event_v1(jsonb)','EXECUTE'), 'Anonymous callers cannot execute the CE command gateway');
+select ok(not has_function_privilege('anon','customer_api.read_ce_events_v1(uuid,uuid)','EXECUTE'), 'Anonymous callers cannot execute the CE Event projection');
 select ok(not has_function_privilege('authenticated','app_private.ce_event_authorize_v1(uuid,uuid,text)','EXECUTE'), 'Private authority adapter is not directly executable');
 select ok(not has_function_privilege('authenticated','app_private.ce_event_audience_eligible_v1(uuid,uuid)','EXECUTE'), 'Private audience evaluator is not directly executable');
 
@@ -100,6 +103,21 @@ select ok(
 select ok(
   pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%v_record_expected%',
   'Interest and attendance mutations enforce record-level optimistic versions'
+);
+select ok(
+  pg_get_functiondef('customer_api.read_ce_events_v1(uuid,uuid)'::regprocedure) like '%can_register_interest%'
+  and pg_get_functiondef('customer_api.read_ce_events_v1(uuid,uuid)'::regprocedure) like '%can_record_attendance%',
+  'Event projection derives action visibility on the server'
+);
+select ok(
+  pg_get_functiondef('customer_api.read_ce_events_v1(uuid,uuid)'::regprocedure) like '%identity.profiles%'
+  and pg_get_functiondef('customer_api.read_ce_events_v1(uuid,uuid)'::regprocedure) like '%ce_event_audience_eligible_v1(e.id,m.id)%',
+  'Attendance choices use named active audience members'
+);
+select ok(
+  pg_get_functiondef('customer_api.read_ce_events_v1(uuid,uuid)'::regprocedure) like '%limit 100%'
+  and pg_get_functiondef('customer_api.read_ce_events_v1(uuid,uuid)'::regprocedure) like '%limit 500%',
+  'Event and attendance projections are bounded'
 );
 select ok(
   pg_get_functiondef('customer_api.command_ce_event_v1(jsonb)'::regprocedure) like '%not(p_request?''expected_version'')%',

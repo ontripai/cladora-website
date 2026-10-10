@@ -9,6 +9,7 @@ import {
   BriefcaseBusiness,
   Building2,
   CalendarCheck,
+  CalendarDays,
   CreditCard,
   CircleUserRound,
   FileSpreadsheet,
@@ -57,6 +58,7 @@ const copy = {
     meetings: "Ședințe",
     communications: "Comunicări",
     experienceGuides: "Ghiduri pentru experiență",
+    communityEvents: "Evenimente comunitare",
     notifications: "Notificări",
     documents: "Documente",
     occupancy: "Ocupare și rezidenți",
@@ -92,6 +94,7 @@ const copy = {
     meetings: "Meetings",
     communications: "Communications",
     experienceGuides: "Experience guides",
+    communityEvents: "Community events",
     notifications: "Notifications",
     documents: "Documents",
     occupancy: "Occupancy & residents",
@@ -127,6 +130,7 @@ const copy = {
     meetings: "جلسات",
     communications: "ارتباطات",
     experienceGuides: "راهنماهای تجربه",
+    communityEvents: "رویدادهای جامعه",
     notifications: "اعلان‌ها",
     documents: "اسناد",
     occupancy: "سکونت و ساکنان",
@@ -198,6 +202,8 @@ function Shell({
       hasEnt("module.communications") && hasPerm("communications.feed.read"),
     experienceGuides =
       hasEnt("module.experience_guides") && hasPerm("experience.guide.read"),
+    communityEvents =
+      hasEnt("module.community_events") && hasPerm("events.event.read"),
     notifications =
       hasEnt("module.communications") && hasPerm("communications.feed.read"),
     documents = hasEnt("module.documents") && hasPerm("documents.vault.read"),
@@ -228,6 +234,7 @@ function Shell({
     { href: `/${lang}/app/meetings`, label: t.meetings, icon: UsersRound, visible: meetings },
     { href: `/${lang}/app/communications`, label: t.communications, icon: Megaphone, visible: communications },
     { href: `/${lang}/app/experience/guides`, label: t.experienceGuides, icon: Map, visible: experienceGuides },
+    { href: `/${lang}/app/community/events`, label: t.communityEvents, icon: CalendarDays, visible: communityEvents },
     { href: `/${lang}/app/notifications`, label: t.notifications, icon: Bell, visible: notifications },
     { href: `/${lang}/app/documents`, label: t.documents, icon: FileText, visible: documents },
     { href: `/${lang}/app/occupancy`, label: t.occupancy, icon: UsersRound, visible: occupancy },

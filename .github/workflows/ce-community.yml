@@ -8,17 +8,25 @@ on:
       - 'src/app/api/customer/v1/experience/guides/**'
       - 'src/app/*/app/experience/guides/**'
       - 'src/components/customer/CustomerExperienceGuide*.tsx'
+      - 'src/app/api/customer/v1/community/events/**'
+      - 'src/app/*/app/community/events/**'
+      - 'src/components/customer/CustomerEventInterest*.tsx'
       - 'src/components/customer/CustomerAppShell.tsx'
+      - 'src/lib/community/event-interest-*.ts'
       - 'src/lib/customer/access-matrix.ts'
       - 'src/lib/customer/route-classifier.ts'
       - 'supabase/proposals/ce_010_community_operational_v1.sql'
       - 'supabase/proposals/ce_012_experience_guide_operational_v1.sql'
+      - 'supabase/proposals/ce_011_event_interest_operational_v1.sql'
       - 'supabase/tests/173_ce_010_community_proposal.test.sql'
       - 'supabase/tests/174_ce_012_experience_guide_proposal.test.sql'
+      - 'supabase/tests/172_ce_011_event_interest_proposal.test.sql'
       - 'supabase/tests/fixtures/ce_010_*.inc'
       - 'supabase/tests/fixtures/ce_012_*.inc'
+      - 'supabase/tests/fixtures/ce_011_*.inc'
       - 'scripts/test-ce-010-*.mjs'
       - 'scripts/test-ce-012-*.mjs'
+      - 'scripts/test-ce-011-*.mjs'
       - '.github/workflows/ce-community.yml'
 permissions:
   contents: read
@@ -36,13 +44,17 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: CE010 and CE012 domain and HTTP boundary
+      - name: CE010, CE011 and CE012 domain and HTTP boundary
         run: |
           node --experimental-strip-types scripts/test-ce-010-community-base.mjs
           node scripts/test-ce-010-route.mjs
           node --experimental-strip-types scripts/test-ce-012-experience-guide.mjs
           node scripts/test-ce-012-route.mjs
           node --experimental-strip-types scripts/test-ce-012-guide-page.mjs
+          node --experimental-strip-types scripts/test-ce-011-event-interest.mjs
+          node scripts/test-ce-011-route.mjs
+          node scripts/test-ce-011-operational-package.mjs
+          node --experimental-strip-types scripts/test-ce-011-event-page.mjs
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
