@@ -55,6 +55,7 @@ jobs:
           node scripts/test-ce-011-route.mjs
           node scripts/test-ce-011-operational-package.mjs
           node --experimental-strip-types scripts/test-ce-011-event-page.mjs
+          node scripts/test-ce-010-form-feedback.mjs
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
