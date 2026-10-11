@@ -50,10 +50,44 @@ const evaluationV1Schema = z.strictObject({
   as_of: instant,
   workspace_id: workspace.nullable(),
   intended_use: valuationSourceUseV1Schema,
+  // Trusted preparation context, never a client assertion or Core authority resolver.
+  has_current_workspace_authority: z.boolean().default(false),
 });
 
-export function evaluateValuationSourceReadinessV1(input: unknown) {
-  const { source, as_of, workspace_id, intended_use } = evaluationV1Schema.parse(input);
+const deniedV1Schema = z.strictObject({
+  contract: z.literal('valuation-source-readiness.v1'),
+  readiness: z.literal('blocked'),
+  reason_code: z.literal('source_usage_denied'),
+});
+export const valuationSourceReadinessV1Schema = z.discriminatedUnion('readiness', [
+  deniedV1Schema,
+  z.strictObject({
+    contract: z.literal('valuation-source-readiness.v1'),
+    readiness: z.literal('evidence_ready'),
+    source_id: text,
+    source_version: text,
+    as_of: instant,
+    intended_use: valuationSourceUseV1Schema,
+    blockers: z.array(z.never()).length(0),
+    requires_current_core_authority: z.literal(true),
+    permits_connector_activation: z.literal(false),
+    permits_publication: z.literal(false),
+  }),
+]);
+export type ValuationSourceReadinessV1 = z.infer<typeof valuationSourceReadinessV1Schema>;
+
+const denied = (): z.infer<typeof deniedV1Schema> => ({
+  contract: 'valuation-source-readiness.v1',
+  readiness: 'blocked',
+  reason_code: 'source_usage_denied',
+});
+
+export function evaluateValuationSourceReadinessV1(input: unknown): ValuationSourceReadinessV1 {
+  const parsed = evaluationV1Schema.safeParse(input);
+  // Do not expose validation issues containing private inventory paths or values.
+  if (!parsed.success) return denied();
+  const { source, as_of, workspace_id, intended_use, has_current_workspace_authority } = parsed.data;
+  if (!workspace_id || !has_current_workspace_authority) return denied();
   const at = Date.parse(as_of);
   const blockers: string[] = [];
   if (source.review_state !== 'verified') blockers.push(`source_${source.review_state}`);
@@ -70,14 +104,15 @@ export function evaluateValuationSourceReadinessV1(input: unknown) {
     if (rawUse && at >= Date.parse(rights.raw_retention_until)) blockers.push('raw_retention_expired');
     if (at >= Date.parse(rights.derived_retention_until)) blockers.push('derived_retention_expired');
   }
+  if (blockers.length > 0) return denied();
   return {
     contract: 'valuation-source-readiness.v1' as const,
     source_id: source.source_id,
     source_version: source.source_version,
     as_of,
     intended_use,
-    readiness: blockers.length === 0 ? 'evidence_ready' as const : 'blocked' as const,
-    blockers: blockers.sort(),
+    readiness: 'evidence_ready',
+    blockers: [],
     // Neither source readiness nor a public license authorizes a Core Resource.
     requires_current_core_authority: true as const,
     permits_connector_activation: false as const,
