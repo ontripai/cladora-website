@@ -12,7 +12,8 @@ import {
   workspaceNativeAuthorityRequestV2Schema,
 } from './workspace-authority-decision-v2.ts';
 
-const timestampSchema = z.string().datetime({ offset: true });
+const timestampSchema = z.string().datetime({ offset: true })
+  .refine((value) => Number.isFinite(Date.parse(value)), 'timestamp_instant_invalid');
 const scopeCodeSchema = z.string().regex(/^[a-z0-9_.:-]{1,128}$/);
 
 const relationshipExpectationV1Schema = z.strictObject({
@@ -186,6 +187,11 @@ function sameAuthorityRequest(
     && authority.target_scope_id === request.authority.target_scope_id;
 }
 
+function sameInstant(left: string, right: string) {
+  const instant = Date.parse(left);
+  return Number.isFinite(instant) && instant === Date.parse(right);
+}
+
 export function evaluateCoreResourceAuthorityV1(
   unparsedRequest: CoreResourceAuthorityRequestV1,
   unparsedEvidence: CoreResourceAuthorityEvidenceV1,
@@ -199,7 +205,7 @@ export function evaluateCoreResourceAuthorityV1(
   if (!sameAuthorityRequest(request, evidence.authority)) {
     return denied(request, parsedTime, 'authority_request_mismatch');
   }
-  if (evidence.authority.evaluated_at !== parsedTime) {
+  if (!sameInstant(evidence.authority.evaluated_at, parsedTime)) {
     return denied(request, parsedTime, 'authority_evaluation_stale');
   }
   if (evidence.authority.decision !== 'allowed') {
@@ -208,7 +214,7 @@ export function evaluateCoreResourceAuthorityV1(
   if (evidence.resource.reference_status !== 'verified') {
     return denied(request, parsedTime, 'resource_not_verified');
   }
-  if (evidence.resource.evaluated_at !== parsedTime) {
+  if (!sameInstant(evidence.resource.evaluated_at, parsedTime)) {
     return denied(request, parsedTime, 'resource_evaluation_stale');
   }
   if (evidence.resource.workspace_id !== request.resource.workspace_id
@@ -242,7 +248,7 @@ export function evaluateCoreResourceAuthorityV1(
   if (relationship.relationship_status !== 'effective') {
     return denied(request, parsedTime, 'relationship_not_effective');
   }
-  if (relationship.evaluated_at !== parsedTime) {
+  if (!sameInstant(relationship.evaluated_at, parsedTime)) {
     return denied(request, parsedTime, 'relationship_evaluation_stale');
   }
   const evaluatedMillis = Date.parse(parsedTime);

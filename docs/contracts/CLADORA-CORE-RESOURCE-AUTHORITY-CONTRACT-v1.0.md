@@ -12,7 +12,7 @@
 
 ## Purpose
 
-This contract combines three already accepted Core facts for one consumer decision:
+This contract combines three existing Core evidence contracts for one consumer decision:
 
 1. the identity and version of a canonical Resource;
 2. a current, purpose-relevant temporal Relationship to that Resource;
@@ -29,7 +29,7 @@ The contract composes, and does not replace:
 - `canonical-resource-reference.v1` over the existing `portfolio.parties`,
   `portfolio.properties`, `portfolio.buildings`, `portfolio.entrances`,
   `portfolio.units` and approved domain asset sources;
-- `resource-relationship.v1` over accepted sources such as
+- `resource-relationship.v1` over canonical implementation sources such as
   `portfolio.ownerships`, occupancy records and
   `platform.workspace_property_authorities`;
 - `workspace-native-effective-authority.v2`, evaluated only by
@@ -70,8 +70,9 @@ at the supplied evaluation timestamp:
 5. Relationship status is `effective`, `valid_from` has passed and `valid_until` has
    not been reached.
 
-The Resource, Relationship and authority evidence must all carry the exact requested
-`evaluation_time`; mixed or stale snapshots are denied.
+The Resource, Relationship and authority evidence must all carry the same instant
+as the requested `evaluation_time`; equivalent valid offsets are accepted, while
+mixed or stale snapshot instants are denied.
 
 Missing, malformed, stale, cross-tenant, cross-Workspace, future, expired, revoked or
 otherwise mismatched evidence is denied. Authority is checked before Resource details
@@ -121,7 +122,29 @@ and covers:
 
 ## Acceptance boundary
 
-This package is submitted to Documentation & PM for contract acceptance. CI, a Draft
+This package has a formal `changes_requested` review at the reviewed head. The
+corrected head is submitted to Documentation & PM for a follow-up decision. CI, a Draft
 PR or a reporting receipt is evidence only. Documentation & PM owns any central
 manifest update. Acceptance does not authorize Merge, Supabase Remote migration,
 `db push`, route enablement or Production deployment.
+
+## Review correction and AIRPROP companion
+
+Documentation & PM R1, recorded in #347 at
+`52c51bd75eed06cb981fa6cb36d4e5ddbd3021f3`, requested temporal instant comparison,
+an explicit AP-PF02 companion mapping and accurate acceptance provenance. Relationship
+interval validation now compares parsed instants, including offset-equivalent dates;
+start remains inclusive and end exclusive in the evaluator. New regression cases are
+in `scripts/test-core-resource-authority-review-r1.mjs`.
+
+The existing `owner-portfolio-projection.v1` canonical-resource item is the companion
+envelope for safe display, party kind and source provenance. The exact field mapping,
+representative limits and historical AIRPROP compatibility boundary are recorded in
+[the AIRPROP dependency handoff](CLADORA-CORE-AIRPROP-RELEASE-HANDOFF-v1.0.md).
+The executable display adapter is versioned as `ap-pf02-core-companion.v1` in
+`src/lib/core/airprop-companion-mapping-v1.ts`. It checks Context and current authority
+before displaying bounded official names and withholds original provenance strings.
+No fields are added to `core-resource-authority.v1`; no existing history is rewritten.
+The decision envelope alone does not resolve the complete AP-PF02 browser/runtime
+dependency. Neither companion schemas nor CI establish installed resolvers or PM
+acceptance. The corrected revision must receive a head-bound follow-up review.
