@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { queryBillingSchema } from "@/lib/customer/billing-schema";
-import { mapBillingRpcError } from "../route";
+import { mapBillingRpcError } from "../rpc-error";
 
 const HEADERS = {
   "Cache-Control": "no-store, private",

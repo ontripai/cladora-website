@@ -16,12 +16,12 @@ console.log('[Suite 1] Exact Consumer Inventory & Schema Delegation Verification
 const EXPECTED_ROUTE_HANDLERS = [
   { path: 'src/app/api/customer/v1/dashboard/route.ts', rpc: 'get_dashboard_v1', internalRpc: 'platform.get_customer_dashboard' },
   { path: 'src/app/api/customer/v1/contexts/route.ts', rpc: 'list_contexts_v1', internalRpc: 'platform.list_my_customer_contexts' },
-  { path: 'src/app/api/customer/v1/accounting/route.ts', rpc: 'get_ledger_v1', internalRpc: 'finance.get_customer_ledger' },
-  { path: 'src/app/api/customer/v1/accounting/periods/route.ts', rpc: 'list_accounting_periods_v1', internalRpc: 'finance.list_customer_accounting_periods' },
-  { path: 'src/app/api/customer/v1/accounting/periods/[id]/close-readiness/route.ts', rpc: 'get_close_readiness_v1', internalRpc: 'finance.get_close_readiness' },
-  { path: 'src/app/api/customer/v1/accounting/periods/[id]/close/route.ts', rpc: 'close_accounting_period_v1', internalRpc: 'finance.close_accounting_period' },
+  { path: 'src/app/api/customer/v1/accounting/route.ts', implementationPath: 'src/app/api/customer/v1/accounting/handler.ts', rpc: 'get_ledger_v1', internalRpc: 'finance.get_customer_ledger' },
+  { path: 'src/app/api/customer/v1/accounting/periods/route.ts', implementationPath: 'src/app/api/customer/v1/accounting/periods/handler.ts', rpc: 'list_accounting_periods_v1', internalRpc: 'finance.list_customer_accounting_periods' },
+  { path: 'src/app/api/customer/v1/accounting/periods/[id]/close-readiness/route.ts', implementationPath: 'src/app/api/customer/v1/accounting/periods/[id]/close-readiness/handler.ts', rpc: 'get_close_readiness_v1', internalRpc: 'finance.get_close_readiness' },
+  { path: 'src/app/api/customer/v1/accounting/periods/[id]/close/route.ts', implementationPath: 'src/app/api/customer/v1/accounting/periods/[id]/close/handler.ts', rpc: 'close_accounting_period_v1', internalRpc: 'finance.close_accounting_period' },
   { path: 'src/app/api/customer/v1/allocations/route.ts', rpc: 'get_allocations_v1', internalRpc: 'finance.get_customer_allocations' },
-  { path: 'src/app/api/customer/v1/financial-reports/route.ts', rpc: 'get_financial_report_v1', internalRpc: 'finance.get_customer_financial_report' },
+  { path: 'src/app/api/customer/v1/financial-reports/route.ts', implementationPath: 'src/app/api/customer/v1/financial-reports/handler.ts', rpc: 'get_financial_report_v1', internalRpc: 'finance.get_customer_financial_report' },
   { path: 'src/app/api/customer/v1/billing/route.ts', rpc: 'get_billing_v1', internalRpc: 'billing.get_customer_billing' },
   { path: 'src/app/api/customer/v1/payments/route.ts', rpc: 'get_payments_v1', internalRpc: 'payments.get_customer_payments' },
   { path: 'src/app/api/customer/v1/utilities/route.ts', rpc: 'get_utilities_v1', internalRpc: 'utilities.get_customer_utilities' },
@@ -46,18 +46,21 @@ assert.equal(EXPECTED_LAYOUT_CONSUMERS.length, 1, 'Must inventory exactly 1 prot
 for (const handler of EXPECTED_ROUTE_HANDLERS) {
   const fullPath = path.join(root, handler.path);
   assert.ok(fs.existsSync(fullPath), `Route handler file ${handler.path} must exist`);
-  const content = fs.readFileSync(fullPath, 'utf8');
+  const implementationPath = handler.implementationPath ?? handler.path;
+  const fullImplementationPath = path.join(root, implementationPath);
+  assert.ok(fs.existsSync(fullImplementationPath), `Route implementation file ${implementationPath} must exist`);
+  const content = fs.readFileSync(fullImplementationPath, 'utf8');
 
   // Must call customer_api schema
   assert.ok(
     content.includes(".schema('customer_api')") || content.includes('.schema("customer_api")'),
-    `${handler.path}: must explicitly select customer_api schema`
+    `${implementationPath}: must explicitly select customer_api schema`
   );
 
   // Must call versioned wrapper function
   assert.ok(
     content.includes(handler.rpc),
-    `${handler.path}: must call versioned wrapper ${handler.rpc}`
+    `${implementationPath}: must call versioned wrapper ${handler.rpc}`
   );
 
   // Must never expose internal schema directly in .schema()
@@ -65,7 +68,7 @@ for (const handler of EXPECTED_ROUTE_HANDLERS) {
   for (const schema of internalSchemas) {
     assert.ok(
       !content.includes(`.schema('${schema}')`) && !content.includes(`.schema("${schema}")`),
-      `${handler.path}: must NOT call internal schema ${schema} directly`
+      `${implementationPath}: must NOT call internal schema ${schema} directly`
     );
   }
 }

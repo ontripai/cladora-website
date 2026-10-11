@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson,parseJsonWithLimit } from "@/lib/security/request-body";
 import { reviewBankMatchSuggestionSchema } from "@/lib/customer/payments-schema";
-import { mapPaymentsRpcError } from "@/app/api/customer/v1/payments/route";
+import { mapPaymentsRpcError } from "@/app/api/customer/v1/payments/rpc-error";
 const HEADERS={"Cache-Control":"no-store, private",Pragma:"no-cache",Vary:"Cookie"};
 export async function POST(request:NextRequest,{params}:{params:Promise<{id:string}>}){
   if(!hasTrustedMutationOrigin(request))return NextResponse.json({error:{code:"UNTRUSTED_ORIGIN"}},{status:403,headers:HEADERS});

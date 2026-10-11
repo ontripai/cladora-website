@@ -15,8 +15,8 @@ import { pilotWorkspaceTypes, pilotWorkspaceSubtypeValid, type PilotWorkspaceTyp
 // Enforce dynamic server execution
 export const dynamic = 'force-dynamic';
 
-export const PILOT_ROLES = ['admin', 'president', 'cenzor', 'owner'] as const;
-export const PILOT_BUILDING_TYPES = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'] as const;
+const PILOT_ROLES = ['admin', 'president', 'cenzor', 'owner'] as const;
+const PILOT_BUILDING_TYPES = ['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8'] as const;
 const PILOT_APPLICANTS = ['association', 'management_company', 'owner', 'multi_unit_owner', 'company', 'other'] as const;
 
 const PilotPayloadSchema = z
