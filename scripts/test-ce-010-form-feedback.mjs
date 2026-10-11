@@ -21,14 +21,17 @@ const container = document.getElementById('root');
 const root = createRoot(container);
 const view = (workspace_id = 'workspace-a') => ({
   community_id: 'community-a', workspace_id, name: 'Named community', audience_label: 'Members',
-  can_create_announcement: true, can_decide_reports: true,
-  announcements: [{ id: 'announcement-a', title: 'Safety notice', body: 'Use the entrance.', status: 'published', version: 2, can_report: true }],
+  version: 3, can_create_announcement: true, can_decide_reports: true,
+  announcements: [
+    { id: 'draft-a', title: 'Draft notice', body: 'Prepare this notice.', status: 'draft', version: 1, can_report: false, can_publish: true, can_cancel: false },
+    { id: 'announcement-a', title: 'Safety notice', body: 'Use the entrance.', status: 'published', version: 2, can_report: true, can_publish: false, can_cancel: true },
+  ],
   reports: [{ id: 'report-a', target_title: 'Safety notice', report_reason: 'Needs review', status: 'open', version: 7 }],
 });
 const translations = {
-  ro: { sending: 'Se trimite…', success: ['Ciorna a fost salvată.', 'Raportarea a fost trimisă.', 'Decizia a fost înregistrată.'], error: 'Datele introduse au fost păstrate.' },
-  en: { sending: 'Sending…', success: ['Draft saved.', 'Report sent.', 'Decision recorded.'], error: 'Your input has been preserved.' },
-  fa: { sending: 'در حال ارسال…', success: ['پیش‌نویس ذخیره شد.', 'گزارش ارسال شد.', 'تصمیم ثبت شد.'], error: 'ورودی شما حفظ شده است.' },
+  ro: { sending: 'Se trimite…', success: ['Ciorna a fost salvată.', 'Raportarea a fost trimisă.', 'Decizia a fost înregistrată.'], actions: [['Publică', 'Anunțul a fost publicat.'], ['Anulează', 'Anunțul a fost anulat.']], error: 'Datele introduse au fost păstrate.' },
+  en: { sending: 'Sending…', success: ['Draft saved.', 'Report sent.', 'Decision recorded.'], actions: [['Publish', 'Announcement published.'], ['Cancel', 'Announcement cancelled.']], error: 'Your input has been preserved.' },
+  fa: { sending: 'در حال ارسال…', success: ['پیش‌نویس ذخیره شد.', 'گزارش ارسال شد.', 'تصمیم ثبت شد.'], actions: [['انتشار', 'اعلان منتشر شد.'], ['لغو', 'اعلان لغو شد.']], error: 'ورودی شما حفظ شده است.' },
 };
 function change(element, value) {
   const proto = element.tagName === 'SELECT' ? dom.window.HTMLSelectElement.prototype : dom.window.HTMLTextAreaElement.prototype;
@@ -82,6 +85,27 @@ try {
       assert.equal(container.querySelectorAll('form')[index].querySelector('[role="status"]').textContent, '', 'feedback is reset across Workspace changes');
       checks += 1;
     }
+    for (const [actionIndex, [label, success]] of t.actions.entries()) {
+      let finish; const calls = []; let refreshes = 0;
+      const command = (input) => { calls.push(input); return new Promise((resolve) => { finish = resolve; }); };
+      const commands = { publishAnnouncement: command, cancelAnnouncement: command };
+      await act(async () => root.render(React.createElement(CustomerCommunityBase, { key: `${lang}:action:${actionIndex}`, lang, view: view(), commands, onChanged: () => { refreshes += 1; } })));
+      const button = [...container.querySelectorAll('button')].find((candidate) => candidate.textContent === label);
+      const action = button.closest('article').querySelector('[aria-busy]');
+      const status = button.closest('article').querySelector('[role="status"]');
+      assert.equal(status.closest('[aria-busy]'), null, 'action feedback is outside the busy controls region');
+      await act(async () => { button.click(); button.click(); });
+      assert.equal(calls.length, 1, 'two synchronous action clicks issue exactly one command');
+      assert.equal(action.getAttribute('aria-busy'), 'true');
+      assert.equal(button.disabled, true);
+      assert.equal(status.textContent, t.sending);
+      assert.deepEqual(calls[0], { community_id: 'community-a', announcement_id: actionIndex === 0 ? 'draft-a' : 'announcement-a', expected_version: actionIndex + 1 });
+      await act(async () => finish());
+      assert.equal(action.getAttribute('aria-busy'), 'false');
+      assert.equal(status.textContent, success);
+      assert.equal(refreshes, 1, 'successful action refreshes once');
+      checks += 1;
+    }
   }
   // A pending command in an old Workspace must not put its success feedback in the new one.
   let finish;
@@ -94,7 +118,7 @@ try {
   await act(async () => finish());
   assert.equal(container.querySelector('textarea').value, '');
   assert.equal(container.querySelector('form [role="status"]').textContent, '');
-  console.log(`CE010-UX-02 passed: ${checks} locale/form scenarios, pending feedback, duplicate-submit lock, exact payloads, failure preservation, successful retry and Workspace reset including late completion.`);
+  console.log(`CE010-UX-02 passed: ${checks} locale/form and action scenarios, pending feedback, duplicate-submit lock, exact payloads, failure preservation, successful retry and Workspace reset including late completion.`);
 } finally {
   await act(async () => root.unmount());
   fs.rmSync(runtime, { force: true });
