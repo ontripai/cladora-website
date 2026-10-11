@@ -1,4 +1,5 @@
 import { createHmac, randomBytes, randomUUID } from 'node:crypto';
+import { assertMatchingDisposableIdentity } from './ap10-target-identity.mjs';
 
 export const AP10_AUTH_FIXTURE_VERSION = 'ap10-auth-e2e-fixture.v1';
 export const AP10_SYNTHETIC_MARKER = 'cladora_ap10_synthetic_fixture';
@@ -111,6 +112,7 @@ export async function runAp10AuthE2EFixture({
   adminClient,
   actorClient,
   authorityDriver,
+  databaseUrl,
   execute,
   runId = randomUUID(),
   now = () => Date.now(),
@@ -128,6 +130,14 @@ export async function runAp10AuthE2EFixture({
     throw new Error('authority_driver_invalid');
   }
   if (typeof execute !== 'function') throw new Error('fixture_execute_required');
+  if (typeof authorityDriver.inspectTarget !== 'function') throw new Error('disposable_target_identity_required');
+  // Outside the side-effect/cleanup block: mismatch must not create a user,
+  // enroll MFA, write authority rows, or even sign out an unrelated session.
+  const proof = await authorityDriver.inspectTarget();
+  assertMatchingDisposableIdentity({
+    target: environment.target, projectRef, supabaseUrl, databaseUrl,
+    adminClient, actorClient, proof,
+  });
 
   const email = syntheticEmail(runId);
   let password = syntheticPassword();

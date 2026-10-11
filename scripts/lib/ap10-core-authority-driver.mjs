@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { inspectLocalDisposableStack, targetUrlIdentity } from './ap10-target-identity.mjs';
 
 const FIXTURE_REASON = 'AP10 synthetic fixture authority';
 const CLEANUP_REASON = 'AP10 synthetic fixture cleanup';
@@ -24,10 +25,26 @@ async function exactlyOne(client, sql, values, code) {
   return result.rows[0];
 }
 
-export function createAp10CoreAuthorityDriver(pool) {
+export function createAp10CoreAuthorityDriver(pool, { databaseUrl, target, inspectStack = inspectLocalDisposableStack } = {}) {
   if (!pool?.connect) throw new Error('postgres_pool_required');
 
   return {
+    async inspectTarget() {
+      const identity = await inspectStack(target);
+      if (identity.databaseTarget !== targetUrlIdentity(databaseUrl, 'database')) {
+        throw new Error('database_target_identity_mismatch');
+      }
+      const client = await pool.connect();
+      try {
+        await client.query('begin read only');
+        const result = await client.query(`select current_database() as database_name,
+          current_setting('transaction_read_only') as transaction_read_only`);
+        if (result.rowCount !== 1) throw new Error('database_identity_unavailable');
+        return Object.freeze({ ...identity, connectedDatabase: result.rows[0].database_name,
+          transactionReadOnly: result.rows[0].transaction_read_only });
+      } catch { throw new Error('database_identity_unavailable'); }
+      finally { await client.query('rollback'); client.release(); }
+    },
     async setup({ userId, runId, target }) {
       const client = await pool.connect();
       const ids = fixtureIds();
@@ -246,12 +263,17 @@ export function createAp10CoreAuthorityDriver(pool) {
           aal: 'aal1',
         })]);
         const denied = await client.query(`
-          select bool_and(not app_private.check_workspace_native_permission_v2(
-            $1,w.workspace_id,'airprop.asset.read','airprop_commercial'
-          )) as denied
+          select w.workspace_id,
+            app_private.check_workspace_native_permission_v2(
+              $1,w.workspace_id,'airprop.asset.read','airprop_commercial'
+            ) as can_read,
+            app_private.check_workspace_native_permission_v2(
+              $1,w.workspace_id,'airprop.asset.manage','airprop_commercial'
+            ) as can_manage
           from unnest($2::uuid[]) as w(workspace_id)
         `, [authority.contextId, authority.workspaceIds]);
-        return denied.rows[0]?.denied === true;
+        return denied.rowCount === authority.workspaceIds.length
+          && denied.rows.every((row) => row.can_read === false && row.can_manage === false);
       } finally {
         await client.query('rollback');
         client.release();

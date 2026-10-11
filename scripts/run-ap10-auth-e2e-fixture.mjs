@@ -3,6 +3,7 @@ import pg from 'pg';
 
 import { runAp10AuthE2EFixture } from './lib/ap10-auth-e2e-fixture.mjs';
 import { createAp10CoreAuthorityDriver } from './lib/ap10-core-authority-driver.mjs';
+import { readLocalProjectRef } from './lib/ap10-target-identity.mjs';
 
 const required = (name) => {
   const value = process.env[name];
@@ -53,12 +54,13 @@ try {
   const receipt = await runAp10AuthE2EFixture({
     target,
     supabaseUrl,
-    projectRef: process.env.CLADORA_AP10_PROJECT_REF,
+    projectRef: target === 'local' ? await readLocalProjectRef() : process.env.CLADORA_AP10_PROJECT_REF,
     productionProjectRef: process.env.CLADORA_PRODUCTION_PROJECT_REF,
     disposableDatabase: process.env.CLADORA_AP10_EPHEMERAL_DATABASE === '1',
+    databaseUrl,
     adminClient,
     actorClient,
-    authorityDriver: createAp10CoreAuthorityDriver(pool),
+    authorityDriver: createAp10CoreAuthorityDriver(pool, { databaseUrl, target }),
     execute: async ({ client, contextId, workspaceIds, propertyIds, unitIds }) => {
       const { data, error } = await client.schema('customer_api').rpc('list_workspace_targets_v2', {
         p_context_id: contextId,

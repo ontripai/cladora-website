@@ -6,7 +6,7 @@
 
 **Consumers:** AIRPROP authenticated browser and gateway tests
 
-**Environments:** disposable Local, Test or Preview only
+**Environments:** disposable Local; Test/Preview remain blocked pending a trusted identity verifier
 
 **Production:** prohibited
 
@@ -14,7 +14,7 @@
 
 `runAp10AuthE2EFixture` creates a synthetic Auth user whose address is in the reserved
 `.invalid` domain, signs in, enrolls and verifies a TOTP factor, and proves that the
-session is `aal2`. It then provisions the accepted Core records rather than a parallel
+session is `aal2`. It then provisions the existing Core records rather than a parallel
 authorization model:
 
 - one canonical tenant and one tenant-scoped `identity.membership` using the existing
@@ -72,7 +72,31 @@ The fixture runs only when `CLADORA_AP10_EPHEMERAL_DATABASE=1` and
 - `test` and `preview` require `CLADORA_AP10_PROJECT_REF` and
   `CLADORA_PRODUCTION_PROJECT_REF`; they must differ and the target URL must match the
   non-Production ref.
-- any mismatch stops before user creation.
+- these labels alone never authorize execution. R1 additionally requires identity
+  proof before the first Auth/authority side effect; mismatch does not run cleanup
+  against an unrelated client.
+
+The runtime verifies the local project ID from checked-in `supabase/config.toml`
+and the live API/database endpoints and key hashes from read-only
+`supabase status --output json`. Both actual clients must match that API endpoint,
+Auth endpoint and the corresponding local key. The driver compares its configured
+PostgreSQL endpoint/database/user to the stack descriptor and probes the connected
+`current_database()` in a `BEGIN READ ONLY` transaction. Proof includes environment
+classification and project ID; missing or mismatched proof fails closed.
+Passwords and key hashes never appear in receipts or diagnostics. No configuration,
+secret or environment variable is changed by this verifier.
+
+The current verifier supports Local only. Test/Preview intentionally fail with
+`disposable_target_identity_unavailable`: their labels, URL and non-production ref
+are insufficient proof. Enabling either requires an independently reviewed trusted
+provisioning verifier; this revision does not add a fallback or remote write.
+
+R1 regressions spy on Auth user/MFA creation and authority setup (which owns
+Membership, Workspace and DB rows), and assert zero mutations for endpoint,
+project, database, environment, key and connected-database mismatches. The driver
+checks explicit AAL1 `read` **and** `manage` denial on every Workspace; null or
+missing decisions fail closed. Existing AAL2 allow, revoke and redacted cleanup
+receipt guarantees are retained.
 
 Private bindings are read only from the execution environment:
 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` and

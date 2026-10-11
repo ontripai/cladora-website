@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { targetUrlIdentity } from './lib/ap10-target-identity.mjs';
 
 import {
   AP10_AUTH_FIXTURE_VERSION,
@@ -18,8 +20,9 @@ function clients(events) {
   const session = (aal) => ({ access_token: `private-${aal}-token`, user: { id: 'synthetic-user' } });
   return {
     adminClient: {
-      auth: {
-        admin: {
+      supabaseUrl: 'http://127.0.0.1:54321', supabaseKey: 'test-admin-key',
+      auth: { url: 'http://127.0.0.1:54321/auth/v1',
+        admin: { url: 'http://127.0.0.1:54321/auth/v1', headers: { apikey: 'test-admin-key', Authorization: 'Bearer test-admin-key' },
           async createUser(input) {
             events.push('create-user');
             assert.equal(input.app_metadata.fixture, 'cladora_ap10_synthetic_fixture');
@@ -42,7 +45,8 @@ function clients(events) {
       },
     },
     actorClient: {
-      auth: {
+      supabaseUrl: 'http://127.0.0.1:54321', supabaseKey: 'test-actor-key',
+      auth: { url: 'http://127.0.0.1:54321/auth/v1', headers: { apikey: 'test-actor-key' },
         async signInWithPassword() {
           events.push('sign-in');
           return { data: { session: session('aal1') }, error: null };
@@ -94,6 +98,14 @@ function clients(events) {
 
 function authority(events) {
   return {
+    async inspectTarget() {
+      events.push('target-inspect');
+      return { source: 'supabase_local_stack_status', environment: 'local', projectRef: 'cladora-local',
+        authTarget: 'http://127.0.0.1:54321', databaseTarget: targetUrlIdentity('postgresql://postgres:test@127.0.0.1:54322/postgres', 'database'),
+        connectedDatabase: 'postgres', transactionReadOnly: 'on',
+        adminKeyHash: createHash('sha256').update('test-admin-key').digest('hex'),
+        actorKeyHash: createHash('sha256').update('test-actor-key').digest('hex') };
+    },
     async setup({ accessToken }) {
       events.push('authority-setup');
       assert.equal(accessToken, 'private-aal2-token');
@@ -164,6 +176,8 @@ await check('AAL2 session and authority are established before the consumer and 
     target: 'local',
     supabaseUrl: 'http://127.0.0.1:54321',
     disposableDatabase: true,
+    projectRef: 'cladora-local',
+    databaseUrl: 'postgresql://postgres:test@127.0.0.1:54322/postgres',
     ...auth,
     authorityDriver: authority(events),
     runId: 'deterministic-run-1',
@@ -181,6 +195,7 @@ await check('AAL2 session and authority are established before the consumer and 
   assert.equal(receipt.consumer, 'passed');
   assert.doesNotMatch(JSON.stringify(receipt), /private-|factor-|synthetic-user|context-|workspace-|unit-/);
   assert.deepEqual(events, [
+    'target-inspect',
     'create-user',
     'sign-in',
     'mfa-enroll',
@@ -204,8 +219,10 @@ await check('consumer failure still performs the complete cleanup chain', async 
   const auth = clients(events);
   await assert.rejects(() => runAp10AuthE2EFixture({
     target: 'local',
-    supabaseUrl: 'http://localhost:54321',
+    supabaseUrl: 'http://127.0.0.1:54321',
     disposableDatabase: true,
+    projectRef: 'cladora-local',
+    databaseUrl: 'postgresql://postgres:test@127.0.0.1:54322/postgres',
     ...auth,
     authorityDriver: authority(events),
     runId: 'deterministic-run-2',
@@ -231,8 +248,10 @@ await check('cleanup failure is never hidden behind a successful receipt', async
   driver.verifyRevoked = async () => false;
   await assert.rejects(() => runAp10AuthE2EFixture({
     target: 'local',
-    supabaseUrl: 'http://localhost:54321',
+    supabaseUrl: 'http://127.0.0.1:54321',
     disposableDatabase: true,
+    projectRef: 'cladora-local',
+    databaseUrl: 'postgresql://postgres:test@127.0.0.1:54322/postgres',
     ...auth,
     authorityDriver: driver,
     runId: 'deterministic-run-3',
@@ -241,3 +260,6 @@ await check('cleanup failure is never hidden behind a successful receipt', async
 });
 
 process.stdout.write(`${cases} AP10 synthetic AAL2 fixture cases passed\n`);
+
+// R1 runs through the existing dedicated/unit CI entry point.
+await import('./test-ap10-auth-e2e-fixture-review-r1.mjs');
