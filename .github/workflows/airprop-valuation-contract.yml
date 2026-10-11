@@ -24,4 +24,3 @@ jobs:
       - run: node scripts/test-airprop-valuation-contract-01a.mjs
       - run: npm run typecheck
       - run: npm run lint
-

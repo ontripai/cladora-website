@@ -39,6 +39,7 @@ export const marketObservationV1Schema = z.strictObject({
   contract: z.literal('market-observation.v1'),
   observation_id: uuid,
   resource_type: z.string().trim().min(1).max(80),
+  workspace_id: uuid,
   transaction_kind: z.enum(['sale', 'rent']),
   evidence_kind: z.enum(['asking', 'verified_transaction', 'external_estimate']),
   source: z.strictObject({
@@ -68,6 +69,9 @@ export const marketObservationV1Schema = z.strictObject({
   if (!value.quarantined && value.quarantine_reasons.length > 0) {
     ctx.addIssue({ code: 'custom', path: ['quarantine_reasons'], message: 'reasons_require_quarantine' });
   }
+  if (value.quarantined && value.quarantine_reasons.length === 0) {
+    ctx.addIssue({ code: 'custom', path: ['quarantine_reasons'], message: 'quarantine_requires_reason' });
+  }
 });
 
 export const valuationRequestReceiptV1Schema = z.strictObject({
@@ -91,6 +95,29 @@ const evidenceSummary = z.strictObject({
   oldest_observed_at: isoTimestamp.nullable(),
   newest_observed_at: isoTimestamp.nullable(),
   freshness_days: z.number().int().nonnegative().nullable(),
+}).superRefine((value, ctx) => {
+  const observationCount = value.asking_count
+    + value.verified_transaction_count
+    + value.external_estimate_count;
+  const hasCompleteWindow = value.oldest_observed_at !== null
+    && value.newest_observed_at !== null
+    && value.freshness_days !== null;
+  const hasAnyWindowValue = value.oldest_observed_at !== null
+    || value.newest_observed_at !== null
+    || value.freshness_days !== null;
+  if (observationCount === 0 && hasAnyWindowValue) {
+    ctx.addIssue({ code: 'custom', path: ['oldest_observed_at'], message: 'zero_evidence_requires_null_window' });
+  }
+  if (observationCount > 0 && !hasCompleteWindow) {
+    ctx.addIssue({ code: 'custom', path: ['oldest_observed_at'], message: 'evidence_requires_complete_window' });
+  }
+  if (value.quarantined_count > observationCount) {
+    ctx.addIssue({ code: 'custom', path: ['quarantined_count'], message: 'quarantined_count_exceeds_observations' });
+  }
+  if (value.oldest_observed_at !== null && value.newest_observed_at !== null
+    && Date.parse(value.oldest_observed_at) > Date.parse(value.newest_observed_at)) {
+    ctx.addIssue({ code: 'custom', path: ['newest_observed_at'], message: 'evidence_window_reversed' });
+  }
 });
 
 const valuationRange = z.strictObject({
@@ -129,9 +156,16 @@ export const resourceValuationResultV1Schema = z.strictObject({
   scope_disclaimer: shortText,
 }).superRefine((value, ctx) => {
   const hasRange = value.sale_range !== null || value.rent_range !== null;
+  const evidenceCount = value.evidence.asking_count
+    + value.evidence.verified_transaction_count
+    + value.evidence.external_estimate_count;
   if (value.outcome === 'sufficient' && !hasRange) ctx.addIssue({ code: 'custom', path: ['outcome'], message: 'sufficient_result_requires_range' });
-  if (value.outcome === 'insufficient_data' && (hasRange || value.missing_inputs.length === 0)) {
-    ctx.addIssue({ code: 'custom', path: ['outcome'], message: 'insufficient_result_requires_missing_inputs_and_no_range' });
+  if (value.outcome === 'sufficient' && evidenceCount === 0) {
+    ctx.addIssue({ code: 'custom', path: ['evidence'], message: 'sufficient_result_requires_evidence' });
+  }
+  if (value.outcome === 'insufficient_data'
+    && (hasRange || value.price_per_area_basis !== null || value.missing_inputs.length === 0)) {
+    ctx.addIssue({ code: 'custom', path: ['outcome'], message: 'insufficient_result_requires_missing_inputs_and_no_numeric_output' });
   }
 });
 
@@ -172,16 +206,25 @@ export const listingPriceDecisionV1Schema = z.strictObject({
 
 export function marketObservationFingerprintV1(input: unknown): string {
   const value = marketObservationV1Schema.parse(input);
+  const canonicalText = (part: string) => part.normalize('NFC').trim();
+  const canonicalDecimal = (part: string) => {
+    const [whole, fraction] = part.split('.');
+    const significantFraction = fraction?.replace(/0+$/, '');
+    return significantFraction ? `${whole}.${significantFraction}` : whole;
+  };
   const identity = [
-    value.source.source_id,
-    value.source.source_record_id,
+    'market-observation-fingerprint.v1',
+    value.workspace_id,
+    canonicalText(value.resource_type),
+    canonicalText(value.source.source_id),
+    value.source.source_type,
+    canonicalText(value.source.source_record_id),
     value.transaction_kind,
     value.evidence_kind,
-    value.observed_at,
-    value.location_key,
+    new Date(value.observed_at).toISOString(),
+    canonicalText(value.location_key),
     value.currency,
-    value.amount,
-  ].map(part => part.normalize('NFC').trim().toLowerCase()).join('|');
-  return createHash('sha256').update(identity).digest('hex');
+    canonicalDecimal(value.amount),
+  ];
+  return createHash('sha256').update(JSON.stringify(identity)).digest('hex');
 }
-
