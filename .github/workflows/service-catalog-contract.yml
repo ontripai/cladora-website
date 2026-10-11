@@ -8,6 +8,7 @@ on:
       - 'scripts/test-service-request-contract-009.mjs'
       - 'src/lib/customer/service-catalog-schema.ts'
       - 'src/lib/customer/service-offering-v14-schema.ts'
+      - 'src/lib/customer/service-order-acceptance-v14-schema.ts'
       - 'src/components/customer/ServiceResourcePicker.tsx'
       - 'src/lib/customer/service-offering-lifecycle.ts'
       - 'src/lib/customer/service-catalog-projection.ts'
@@ -17,6 +18,7 @@ on:
       - 'src/config/locales.ts'
       - 'scripts/test-service-catalog-contract-001.mjs'
       - 'scripts/test-service-offering-v14-contract.mjs'
+      - 'scripts/test-service-order-acceptance-v14-contract.mjs'
       - 'scripts/test-service-resource-picker-v14.mjs'
       - '.github/workflows/service-catalog-contract.yml'
       - 'package.json'
@@ -42,6 +44,7 @@ jobs:
       - run: npx eslint src/lib/customer/service-request-schema.ts scripts/test-service-request-contract-009.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-catalog-schema.ts src/lib/customer/service-offering-lifecycle.ts src/lib/customer/service-catalog-projection.ts src/lib/customer/service-catalog-retry.ts scripts/test-service-catalog-contract-001.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-offering-v14-schema.ts scripts/test-service-offering-v14-contract.mjs --max-warnings=0
+      - run: npx eslint src/lib/customer/service-order-acceptance-v14-schema.ts scripts/test-service-order-acceptance-v14-contract.mjs --max-warnings=0
       - run: npx eslint src/components/customer/ServiceResourcePicker.tsx scripts/test-service-resource-picker-v14.mjs --max-warnings=0
 
       - run: npm run typecheck
