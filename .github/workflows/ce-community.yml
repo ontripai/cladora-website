@@ -54,6 +54,7 @@ jobs:
           node --experimental-strip-types scripts/test-ce-012-experience-guide.mjs
           node scripts/test-ce-012-route.mjs
           node --experimental-strip-types scripts/test-ce-012-guide-page.mjs
+          node scripts/test-ce-011-form-recovery.mjs
           node --experimental-strip-types scripts/test-ce-011-event-interest.mjs
           node scripts/test-ce-011-route.mjs
           node scripts/test-ce-011-operational-package.mjs

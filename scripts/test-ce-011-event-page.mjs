@@ -107,7 +107,10 @@ const mockFetch = async (input, init = {}) => {
   if (url === '/api/customer/v1/contexts') return response({ contexts: [{ context_id: contextId, membership_id: membershipId, tenant_name: 'Test', role_code: 'owner', role_name: 'Owner', scope_type: 'tenant', context_label: 'Home' }] });
   if (url.startsWith('/api/customer/v1/dashboard')) return response({ contextId, workspace_id: workspaceId, context: { role_code: 'owner' }, permissions: ['events.event.read', 'events.interest.manage_self'], entitlements: ['module.community_events'], modules: ['community_events'] });
   if (url.startsWith('/api/customer/v1/community/events') && (!init.method || init.method === 'GET')) return mode === 'not_ready' ? response({ error: { code: 'CE_EVENT_CONNECTION_NOT_READY' } }, 503) : response({ workspace_id: workspaceId, events: [item] });
-  if (url === '/api/customer/v1/community/events' && init.method === 'POST') return response({ ok: true });
+  if (url === '/api/customer/v1/community/events' && init.method === 'POST') {
+    if (mode === 'conflict') { item.version = 3; item.interest_version = 1; mode = 'ready'; return response({ error: { code: 'VERSION_CONFLICT' } }, 409); }
+    return response({ ok: true });
+  }
   throw new Error(`Unexpected test request: ${url}`);
 };
 const container = document.getElementById('root');
@@ -132,6 +135,19 @@ assert.ok(post, 'Mounted action reaches the authenticated Event API');
 const posted = JSON.parse(post.init.body);
 assert.equal(posted.context_id, contextId); assert.equal(posted.workspace_id, workspaceId); assert.equal(posted.event_id, item.event_id);
 assert.equal(posted.expected_version, 2); assert.equal(posted.expected_interest_version, 0); assert.equal(posted.type, 'register_interest');
+mode = 'conflict';
+await act(async () => { interestButton.click(); await Promise.resolve(); });
+await flush();
+assert.match(container.querySelector('[role="alert"]').textContent, /input has been preserved/);
+assert.equal(requests.filter((request) => request.init.method === 'POST').length, 2, 'conflict never automatically retries a mutation');
+await act(async () => { container.querySelectorAll('button').forEach((button) => { if (button.textContent === 'Register interest') button.click(); }); await Promise.resolve(); });
+await flush();
+const retry = JSON.parse(requests.filter((request) => request.init.method === 'POST').at(-1).init.body);
+assert.equal(retry.expected_version, 3, 'explicit retry uses the reloaded Event version');
+assert.equal(retry.expected_interest_version, 1, 'explicit retry uses the reloaded interest version');
+assert.notEqual(retry.command_id, posted.command_id);
+assert.equal(container.querySelector('[role="alert"]'), null);
+assert.match(container.querySelector('[role="status"]').textContent, /Interest registered/);
 await act(async () => root.unmount());
 
 mode = 'not_ready'; requests.length = 0; container.innerHTML = ''; root = createRoot(container);
