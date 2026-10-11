@@ -23,7 +23,7 @@
     "test:export-vault": "node scripts/test-export-artifact-vault.mjs && node scripts/test-export-scanner-001a.mjs && node scripts/test-export-scanner-worker-001.mjs && node scripts/test-export-scanner-runtime-001a.mjs && node scripts/test-export-scanner-observability-001.mjs",
     "test:document-scanner": "node scripts/test-document-clamav-worker.mjs",
     "test:i18n": "node scripts/audit-untranslated-copy.mjs",
-    "test:db:static": "node scripts/check-database-package.mjs",
+    "test:db:static": "node scripts/check-database-package.mjs && node scripts/test-db-hist-01-forward-convergence.mjs",
     "test:db:catalog": "node scripts/audit-r10-catalog-evidence.mjs",
     "test:retention:storage": "node scripts/test-retention-storage-contract.mjs",
     "test:retention:concurrency": "node scripts/test-retention-concurrency-contract.mjs",

@@ -1,0 +1,125 @@
+{
+  "schema_version": "db_hist_01_public_exception_ledger.v1",
+  "task_id": "DB-HIST-01-R8-R1",
+  "scope": "public_product_application_migrations",
+  "status": "blocked_historical_hash_exceptions",
+  "candidate": {
+    "version": "20260913132945",
+    "name": "romanian_statutory_operational_export_pack_forward_reconciliation_v1",
+    "sha256": "fdff99135db6cba70ff480552aff1e8e24516d79c31b50ee9394293c977d0602",
+    "strategy": "forward_only_no_history_repair_or_replay"
+  },
+  "rollout_note": "docs/database/DB-HIST-01-FORWARD-CONVERGENCE-ROLLOUT.md",
+  "historical_hash_exception_count": 11,
+  "entries": [
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "637354adc353ec1932d63fec7e8db51f82800b09e834b6feebdedf68710c95b9",
+      "local_sha256": "dcca865b625115eaf93442d764988ecfd45fcd7c6b4ef743912c1fcde0c019af",
+      "name": "operational_control_plane_overview",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "1222f25ae5b71600e935adbe3918f51818161e3343a40b77b002e7406622bbc8",
+      "version": "20260829004100"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "54232877412cb81a5ebc318ae04f9bf9da1210776ff3a56f651893e28d84cffc",
+      "local_sha256": "aa70460edb27db4d75f7b35fc84558df4e0af233e6dacbddc0d720576b1777a8",
+      "name": "customer_audit_access",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "f52f766b54a4aadcce98d5e799701c9acdb0fac7a45e17945171f31d24ea5fe2",
+      "version": "20260906090000"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "cd8ed91be629381ab928f42abe1229624c9ad75c2a931c3e4a6c6d6e6fcfbb3c",
+      "local_sha256": "393e708359289e1046085b578a46a3c114e34b609c59d8cb37155170caa1330c",
+      "name": "customer_role_aware_dashboard",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "b2e645efae28855dffaa27160d1c931ebd46be2385397c869afc416e677ebe7b",
+      "version": "20260906120000"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "5e65dbb9e4883ca0bc1ea263666dfb1c8b38ee229af2ac999981611cdd77ee5c",
+      "local_sha256": "93a1e9558e93b0eb6044fdf53e7e1bdc04f7e2e5935fb53625382bdd96c3cb10",
+      "name": "association_governance_routine_grants",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "6b0e837c9d76dd749f271aa1367b703d2135a5558084affc488f8e82b7e76994",
+      "version": "20260909083410"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "9e6b1b6a219287bb21be95a97978485996c4331e1bf910045891558b282b27a9",
+      "local_sha256": "c250b076778d8a5edd17d41a300d56d81f2117a406f5c92985ec9c82d3548eaf",
+      "name": "official_communications_delivery_evidence",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "3c1b61555e833c36920dd0e7ca8aca828f9d049c9539921da07dc0325bb85c3f",
+      "version": "20260909115850"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "751b2bdce98949b523e13b45b81b95d44d128a36eb8938745dbf5f53adacf29b",
+      "local_sha256": "4b92dfedf4c556e3c1a2cca5e040da2265e7aa21fa895846d9405146e1c3f178",
+      "name": "building_assets_equipment_registry",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "732615ab946ff8bbbb49fb49dd2e521a62f6916cdc5f4f0b74c3a4ebc50d86af",
+      "version": "20260909152426"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "fa7101d0dd12abb75ee5672818e00139d2593c798104f721ba8bd0ac5b44d854",
+      "local_sha256": "2f61284e8a8f74626fa370b45ffd630cd89bd855cf796e226e435117e8dc1892",
+      "name": "canonical_payment_settlement_gl_parity_repair",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "705fe1f25a5941b63bd85c5f6d88bc6f19978f92a6c0fe375a6a3704e9458a1e",
+      "version": "20260912120000"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "1c0bdfd094a2142921539dfe6af369b217d1350688a6f9b2f6ee50b34231d40a",
+      "local_sha256": "8a0ceb38bd33e6c7b7f98f869ca950f40d98b32f9550c9a769987bbe03e0e159",
+      "name": "canonical_monthly_financial_cycle",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "48db54b4f3ab4657cf49a5d2ade0bfa4f9cb27daf7a7b9b098e02ace633584d1",
+      "version": "20260913082028"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "58be79cd0b74ad6ab1647e365f93803976ca4ac70c13d1a463f64efad30f09cb",
+      "local_sha256": "ea763a5e9c0384403240693011c6d1128ca3c69e3b2ca804ba22c101737a6282",
+      "name": "romanian_statutory_operational_export_pack",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "version": "20260913132944"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "88876003ac50ed016df1a703f97cb6b6cc3e4796f2386a9281d712fd099a741d",
+      "local_sha256": "e3de7aa9d0664e72daa8ba414cbd5691c60d6dca1ca2ec76f1ae6e23b25848b1",
+      "name": "export_artifact_quarantine_scanner_gate",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "f6f028f76fc63888e9900a0a197c268f42af19b100391ebd24beaa79ad8e1720",
+      "version": "20260913162715"
+    },
+    {
+      "classification": "historical_content_exception_forward_converged",
+      "desired_state_sha256": "1a00ddf827801db47c62a9d64485daf5d761f5b574bf35070d46fb751151aeab",
+      "local_sha256": "fdda9c77996592869c1ed8ac701a5282727b50dc39a8b30e3537a7e9cf5ea16f",
+      "name": "document_vault_upload_returning_select",
+      "reason_no_repair": "immutable_applied_history_forward_only_reconciliation_preserves_audit_ledger",
+      "remote_sha256": "88d7811bff9bbb12b4514d4fef9b50fb2d2dcc058c444197d744630113a8ffa6",
+      "version": "20260928053109"
+    }
+  ],
+  "exclusions": {
+    "private_pm_control_plane_entries": {
+      "count": 4,
+      "included": false
+    },
+    "remote_statements": false,
+    "object_definitions": false,
+    "private_r4_r7_evidence": false,
+    "live_catalog_residuals": false
+  }
+}
