@@ -25,7 +25,7 @@ await db.query('insert into portfolio.buildings values ($1,$2)',[id(7),id(6)]);
 await db.query('insert into portfolio.units values ($1,$2)',[id(8),id(7)]);
 for(const [n,scope,p,b,u] of [[10,'tenant',null,null,null],[11,'property',id(6),null,null],[12,'building',null,id(7),null],[13,'unit',null,null,id(8)],[14,'property',id(9),null,null]])
  await db.query("insert into identity.context_grants values ($1,$2,$3,$4,$5,$6,$7,now()-interval '1 day',null)",[id(n),id(4),id(5),scope,p,b,u]);
-await db.exec(readFileSync(new URL('../supabase/migrations/20261003074837_airprop_property_scope_ceiling.sql',import.meta.url),'utf8'));
+await db.exec(readFileSync(new URL('../supabase/migrations/20261003151427_20261003074837_airprop_property_scope_ceiling.sql',import.meta.url),'utf8'));
 let checks=0;
 async function check(n,allowed,prop=id(6),permission='airprop.asset.manage'){
  try{const r=await db.query("select * from app_private.require_airprop_context_v1($1,$2,$3)",[id(n),permission,prop]);assert.equal(allowed,true);assert.equal(r.rows.length,1);}

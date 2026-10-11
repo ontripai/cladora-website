@@ -26,7 +26,7 @@ export async function runWorkspaceRoleAssignmentTests(f) {
  insert into platform.workspace_role_modules values('${roleId}','${id(203)}');
  insert into platform.workspace_role_permissions values('${roleId}','${id(201)}','allow'),('${roleId}','${id(202)}','allow');
  `);
- await db.exec(readFileSync(new URL('../supabase/migrations/20261003153509_workspace_role_assignment_completion.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261003160333_20261003153509_workspace_role_assignment_completion.sql',import.meta.url),'utf8'));
  await db.exec('create trigger workspace_member_role_invariants before insert or update or delete on platform.workspace_member_roles for each row execute function app_private.guard_workspace_member_role_invariants_v1()');
  const assign=async(key='role-flow-001',ctx=physicalContext,expiry='2099-01-01T00:00:00Z')=>(await q('select customer_api.assign_workspace_role_v1($1,$2,$3,$4,null,null,null,$5,$6,$7) result',[ctx,target,roleId,'workspace',expiry,'Synthetic assignment flow',key]))[0].result;
  const revoke=async(key='revoke-flow-001',ctx=physicalContext)=>(await q('select customer_api.revoke_workspace_role_assignment_v1($1,$2,1,$3,$4) result',[ctx,assignment.id,'Synthetic revocation flow',key]))[0].result;

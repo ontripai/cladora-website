@@ -60,7 +60,7 @@ try {
   `);
   const composition = sqlFile('20260917120000_workspace_dynamic_composition.sql');
   const delegated = sqlFile('20260919120000_workspace_delegations_approvals.sql');
-  const ceiling = sqlFile('20261003083859_workspace_scoped_effective_permission.sql');
+  const ceiling = sqlFile('20261003151604_20261003083859_workspace_scoped_effective_permission.sql');
   await db.exec(functionSql(composition, 'app_private.resolve_workspace_from_customer_context_v1'));
   await db.exec(functionSql(sqlFile('20260902074312_customer_password_optional_mfa_policy.sql'), 'app_private.customer_mfa_required'));
   await db.exec(functionSql(delegated, 'app_private.check_direct_effective_permission_v1'));
@@ -114,7 +114,7 @@ try {
     await setActor(); return results;
   }
   const before = await legacySnapshot();
-  await db.exec(sqlFile('20261003122445_workspace_native_context_authority_v2.sql'));
+  await db.exec(sqlFile('20261003151649_20261003122445_workspace_native_context_authority_v2.sql'));
   await check('legacy direct/effective/scoped allow/deny/delegation results unchanged across 91 evaluations', async () => assert.deepEqual(await legacySnapshot(), before));
   await check('explicit native target resolves without a physical binding', async () => { const rows = await resolve(); assert.equal(rows.length, 1); assert.equal(rows[0].workspace_id, workspace); });
   await check('base permission remains behind explicit assignment', async () => assert.equal(await native(), true));

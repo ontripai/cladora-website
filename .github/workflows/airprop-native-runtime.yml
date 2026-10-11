@@ -2,7 +2,7 @@ name: AIRPROP native runtime
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261003142455_airprop_workspace_native_opportunities_v2.sql'
+      - 'supabase/migrations/20261003151713_20261003142455_airprop_workspace_native_opportunities_v2.sql'
       - 'src/app/api/customer/v2/airprop/**'
       - 'src/components/customer/CustomerAirpropWorkspace.tsx'
       - 'src/components/customer/CustomerRouteGuard.tsx'

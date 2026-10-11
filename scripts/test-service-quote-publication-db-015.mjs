@@ -58,10 +58,10 @@ try {
     insert into portfolio.parties values('${provider}','${tenant}',null),('${id(10)}','${otherTenant}',null);
     insert into app_private.test_authority select u.id,'${workspace}'::uuid,p from auth.users u cross join unnest(array['services.catalog.read','services.catalog.manage','services.catalog.publish']) p;
   `);
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261003141918_service_catalog_persistence_v1.sql', import.meta.url), 'utf8'));
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261003144507_service_catalog_definition_command_v1.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003200220_20261003144507_service_catalog_definition_command_v1.sql', import.meta.url), 'utf8'));
   await db.exec("alter table portfolio.parties add legal_name text not null default 'Provider'");
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261003151823_service_catalog_management_read_v1.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003200226_20261003151823_service_catalog_management_read_v1.sql', import.meta.url), 'utf8'));
   await db.exec(`insert into service_catalog.definitions(id,tenant_id,workspace_id,code,labels) values('${definition}','${tenant}','${workspace}','elevator', '${JSON.stringify(labels)}')`);
   await setActor(actor);
 
@@ -76,7 +76,7 @@ try {
     create table platform.module_operating_model_compatibilities(module_definition_id uuid,operating_model_id uuid,compatibility_level text,reason text,unique(module_definition_id,operating_model_id));
     insert into app_private.test_authority values('${actor}','${workspace}','services.orders.read'),('${actor}','${workspace}','services.orders.request');
   `);
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261004181358_service_request_persistence_v1.sql',import.meta.url),'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261004182557_20261004181358_service_request_persistence_v1.sql',import.meta.url),'utf8'));
   const created=await mutate('create',command);
   await mutate('transition',{context_id:context,workspace_id:workspace,offering_id:created.offering_id,revision_id:created.revision_id,expected_lock_version:1,action:'submit',reason:'Synthetic request test',idempotency_key:'request-test-submit'});
   await setActor(approver);
@@ -86,11 +86,11 @@ try {
   const send=async value=>(await q('select customer_api.create_service_request_v1($1::jsonb) result',[JSON.stringify(value)]))[0].result;
   const submitted=await send(request);
   await db.exec('alter table platform.module_permission_bindings add requires_aal2 boolean default false');
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261005061344_service_quote_draft_runtime_v1.sql',import.meta.url),'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261005063120_20261005061344_service_quote_draft_runtime_v1.sql',import.meta.url),'utf8'));
   assert.equal((await q("select requires_aal2 from platform.module_permission_bindings b join identity.permissions p on p.id=b.permission_id where p.code='services.quotes.manage'"))[0].requires_aal2,true);
   const quote={context_id:context,workspace_id:workspace,request_id:submitted.request_id,published_revision_id:created.revision_id,scope:'Synthetic service assessment',total_minor:'9007199254740993',currency:'RON',payer_shares:[{party_id:provider,amount_minor:'9007199254740993'}],valid_until:'2099-01-01T00:00:00Z',idempotency_key:'quote-014-first'};
   const draft=async value=>(await q('select customer_api.create_service_quote_draft_v1($1::jsonb) result',[JSON.stringify(value)]))[0].result;
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261005073529_service_quote_publication_v1.sql',import.meta.url),'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261005075657_20261005073529_service_quote_publication_v1.sql',import.meta.url),'utf8'));
   await db.exec(`insert into app_private.test_authority values('${actor}','${workspace}','services.quotes.manage'),('${approver}','${workspace}','services.orders.read')`);
   const first=await draft(quote);
   const publication={context_id:context,workspace_id:workspace,quote_id:first.quote_id,expected_version:1,idempotency_key:'publish-015-first'};

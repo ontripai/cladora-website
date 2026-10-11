@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 const root = new URL('..', import.meta.url).pathname;
 const migration = [
-  '20260923161000_control_plane_api_gateway.sql',
+  '20260923160821_control_plane_api_gateway.sql',
   '20260924104415_platform_primary_admin_invitation_roles.sql',
 ].map((name) => readFileSync(join(root, 'supabase/migrations', name), 'utf8')).join('\n');
 const config = readFileSync(join(root, 'supabase/config.toml'), 'utf8');

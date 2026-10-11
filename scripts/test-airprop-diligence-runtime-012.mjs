@@ -21,7 +21,7 @@ export async function runAirpropDiligenceReviewTests(f){
  insert into identity.permissions(code) values('documents.vault.read');
  insert into identity.role_permissions select role_id,p.id,'allow' from identity.memberships m cross join identity.permissions p where m.id='${member}' and p.code='documents.vault.read';
  update identity.roles set code='association_admin' where id=(select role_id from identity.memberships where id='${member}');`);
- await db.exec(extract(file('20260928083600_vault_actor_exact_membership_role.sql'),'documents.resolve_vault_actor'));
+ await db.exec(extract(file('20260928101133_20260928083600_vault_actor_exact_membership_role.sql'),'documents.resolve_vault_actor'));
  await db.exec(extract(file('20260829005100_customer_document_vault_secure_evidence.sql'),'documents.customer_document_scope_matches'));
  await db.exec(extract(file('20260927211358_document_vault_checked_download_only.sql'),'documents.authorize_download_internal'));
  await db.exec(file('20261004123006_airprop_diligence_review_v1.sql'));

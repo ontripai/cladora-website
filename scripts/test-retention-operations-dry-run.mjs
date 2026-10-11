@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
-const migration = readFileSync(new URL('../supabase/migrations/20260922184500_retention_operations_read_model_dry_run.sql', import.meta.url), 'utf8');
+const migration = readFileSync(new URL('../supabase/migrations/20260923060219_retention_operations_read_model_dry_run.sql', import.meta.url), 'utf8');
 const api = readFileSync(new URL('../src/app/api/platform/v1/retention-operations/dry-run/route.ts', import.meta.url), 'utf8');
 const contract = readFileSync(new URL('../src/lib/platform/retention-operations.ts', import.meta.url), 'utf8');
 const panel = readFileSync(new URL('../src/components/platform/OperationalRetentionPanel.tsx', import.meta.url), 'utf8');

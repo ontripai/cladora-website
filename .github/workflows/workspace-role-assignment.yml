@@ -2,7 +2,7 @@ name: Workspace role assignment
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261003153509_workspace_role_assignment_completion.sql'
+      - 'supabase/migrations/20261003160333_20261003153509_workspace_role_assignment_completion.sql'
       - 'supabase/migrations/*_workspace_role_building_assignment_choices.sql'
       - 'supabase/tests/135_workspace_role_assignment_airprop_flow.test.sql'
       - 'src/app/api/customer/v1/workspace/roles/**'
