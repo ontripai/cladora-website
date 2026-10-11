@@ -39,3 +39,5 @@ console.log('  ✔ Private, official Workspace and domain-owned records remain s
 console.log('  ✔ Verified links bind canonical identity to relationship evidence.');
 console.log('  ✔ Balances preserve missing-versus-zero semantics and source ownership.');
 console.log('  ✔ Action links require product and current-authority evidence and recheck.');
+
+await import('./test-core-auth-01-workspace-authority.mjs');
