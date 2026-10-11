@@ -15,6 +15,7 @@ on:
       - 'src/components/customer/CustomerEventInterest*.tsx'
       - 'src/components/customer/CustomerAppShell.tsx'
       - 'src/lib/community/event-interest-*.ts'
+      - 'src/lib/community/service-experience-coordination-receipt.ts'
       - 'src/lib/customer/access-matrix.ts'
       - 'src/lib/customer/route-classifier.ts'
       - 'supabase/proposals/ce_010_community_operational_v1.sql'
@@ -29,6 +30,8 @@ on:
       - 'scripts/test-ce-010-*.mjs'
       - 'scripts/test-ce-012-*.mjs'
       - 'scripts/test-ce-011-*.mjs'
+      - 'scripts/test-ce-service-experience-coordination-receipt.mjs'
+      - 'docs/architecture/CLADORA-CE-SV01N-PROVIDER-CONTRACT-v1.0.md'
       - '.github/workflows/ce-community.yml'
 permissions:
   contents: read
@@ -61,6 +64,7 @@ jobs:
           node scripts/test-ce-011-operational-package.mjs
           node --experimental-strip-types scripts/test-ce-011-event-page.mjs
           node scripts/test-ce-010-form-feedback.mjs
+          npm run test:ce:service-experience-provider
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
