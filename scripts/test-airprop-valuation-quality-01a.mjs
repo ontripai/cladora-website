@@ -21,7 +21,7 @@ try {
   const quality = require(join(output, 'valuation-quality-v1.js'));
   const id = n => `${n.repeat(8)}-${n.repeat(4)}-4${n.repeat(3)}-8${n.repeat(3)}-${n.repeat(12)}`;
   const base = {
-    contract: 'market-observation.v1', observation_id: id('1'), resource_type: 'apartment',
+    contract: 'market-observation.v1', observation_id: id('1'), workspace_id: id('9'), resource_type: 'apartment',
     transaction_kind: 'sale', evidence_kind: 'asking', observed_at: '2026-09-20T10:00:00+00:00',
     location_key: 'RO/B/sector-1', currency: 'EUR', amount: '100000', area: '100', area_unit: 'sqm',
     attributes: { bedrooms: 2 }, verification: 'source_verified', quarantined: false, quarantine_reasons: [],
@@ -84,6 +84,10 @@ try {
   });
   check('cross-source records are not silently collapsed', () => {
     const other = { ...base, observation_id: id('2'), source: { ...base.source, source_id: 'licensed-b' } };
+    assert.equal(run([base, other]).summary.duplicates, 0);
+  });
+  check('records from different Workspaces are never deduplicated together', () => {
+    const other = { ...base, observation_id: id('2'), workspace_id: id('8') };
     assert.equal(run([base, other]).summary.duplicates, 0);
   });
   check('stale evidence is quarantined rather than deleted', () => {

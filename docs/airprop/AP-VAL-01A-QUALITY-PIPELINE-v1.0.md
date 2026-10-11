@@ -1,8 +1,8 @@
 # AP-VAL-01A2 — deterministic observation quality pipeline
 
-**Owner:** AIRPROP  
-**Parent:** AP-VAL-01A / Draft PR #314 at `53f603a345cca4e1d0494d4533578dc795f7d6c4`  
-**Status:** Implementation candidate; review acceptance pending  
+**Owner:** AIRPROP
+**Parent:** AP-VAL-01A / Draft PR #314 at `53f603a345cca4e1d0494d4533578dc795f7d6c4`
+**Status:** Implementation candidate; review acceptance pending
 **Scope:** Remaining Slice A quality controls only
 
 ## Purpose
