@@ -35,7 +35,7 @@ function CommunityWorkspace({ lang, contextId, workspaceId }: { lang: Language; 
   useEffect(() => {
     const controller = new AbortController();
     queueMicrotask(() => void load(controller.signal).catch((reason) => {
-      if (!controller.signal.aborted) { setFailure(reason instanceof Error && ['session', 'denied', 'not_ready'].includes(reason.message) ? reason.message as CommunityLoadFailure : 'retry'); setCommunities(null); }
+      if (!controller.signal.aborted) setFailure(reason instanceof Error && ['session', 'denied', 'not_ready'].includes(reason.message) ? reason.message as CommunityLoadFailure : 'retry');
     }));
     return () => controller.abort();
   }, [load, attempt]);
@@ -51,11 +51,14 @@ function CommunityWorkspace({ lang, contextId, workspaceId }: { lang: Language; 
     reportContent: ({ community_id, announcement_id, reason }) => send({ ...newCommunityCommandIdentity(), type: 'report_content', context_id: contextId, workspace_id: workspaceId, community_id, report_id: crypto.randomUUID(), target_type: 'announcement', target_id: announcement_id, expected_version: 0, report_reason: reason, reason: 'Report Community announcement from customer workspace' }),
     decideReport: ({ community_id, report_id, expected_version, decision, reason }) => send({ ...newCommunityCommandIdentity(), type: 'decide_content_report', context_id: contextId, workspace_id: workspaceId, community_id, report_id, expected_version, decision, decision_reason: reason, reason: 'Decide Community content report from customer workspace' }),
   } : null, [selected, contextId, workspaceId, send]);
-  if (failure) { const message = failure === 'session' ? t.session : failure === 'denied' ? t.denied : failure === 'not_ready' ? t.notReady : t.retry; return <Notice lang={lang} text={message} retry={failure === 'session' ? undefined : () => { setFailure(null); setAttempt((value) => value + 1); }} retryLabel={t.again} />; }
+  const failureMessage = failure === 'session' ? t.session : failure === 'denied' ? t.denied : failure === 'not_ready' ? t.notReady : t.retry;
+  const retryInitialLoad = failure === 'session' ? undefined : () => { setFailure(null); setAttempt((value) => value + 1); };
+  const retryRefresh = failure === 'session' ? undefined : () => { void load().catch(() => setFailure('retry')); };
+  if (failure && communities === null) return <Notice lang={lang} text={failureMessage} retry={retryInitialLoad} retryLabel={t.again} />;
   if (communities === null) return <Notice lang={lang} text={t.loading} />;
-  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5"><header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>{!communities.length ? <Notice lang={lang} text={t.empty} /> : <><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold text-[#102A43]">{t.choose}</span><select aria-label={t.choose} value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="w-full rounded-xl border p-3">{communities.map((community) => <option key={community.community_id} value={community.community_id}>{community.name}</option>)}</select></label><CustomerCommunityBase key={`${workspaceId}:${selectedId}`} lang={lang} view={selected} commands={commands} onChanged={() => { void load().catch(() => setFailure('retry')); }} /></>}</section>;
+  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5"><header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>{failure ? <Notice lang={lang} text={failureMessage} retry={retryRefresh} retryLabel={t.again} alert /> : null}{!communities.length ? <Notice lang={lang} text={t.empty} /> : <><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold text-[#102A43]">{t.choose}</span><select aria-label={t.choose} value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="w-full rounded-xl border p-3">{communities.map((community) => <option key={community.community_id} value={community.community_id}>{community.name}</option>)}</select></label><CustomerCommunityBase key={`${workspaceId}:${selectedId}`} lang={lang} view={selected} commands={commands} onChanged={() => { void load().catch(() => setFailure('retry')); }} /></>}</section>;
 }
 
-function Notice({ lang, text, retry, retryLabel }: { lang: Language; text: string; retry?: () => void; retryLabel?: string }) {
-  return <div dir={lang === 'fa' ? 'rtl' : 'ltr'} role="status" className="rounded-2xl border bg-white p-8 text-center text-sm text-[#52667A]">{text}{retry ? <button type="button" onClick={retry} className="ms-3 rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white">{retryLabel}</button> : null}</div>;
+function Notice({ lang, text, retry, retryLabel, alert = false }: { lang: Language; text: string; retry?: () => void; retryLabel?: string; alert?: boolean }) {
+  return <div dir={lang === 'fa' ? 'rtl' : 'ltr'} role={alert ? 'alert' : 'status'} className="rounded-2xl border bg-white p-8 text-center text-sm text-[#52667A]">{text}{retry ? <button type="button" onClick={retry} className="ms-3 rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white">{retryLabel}</button> : null}</div>;
 }

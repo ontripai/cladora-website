@@ -67,7 +67,11 @@ const mockFetch = async (input, init = {}) => {
   if (url === '/api/customer/v1/contexts') return response({ contexts: [{ context_id: contextId, membership_id: id(12), tenant_name: 'Test', role_code: 'association_admin', role_name: 'Administrator', scope_type: 'tenant', context_label: 'Home' }] });
   if (url.startsWith('/api/customer/v1/dashboard')) return response({ contextId, workspace_id: workspaceId, context: { role_code: 'association_admin' }, permissions: ['community.community.read'], entitlements: ['module.community_basic'], modules: ['community_basic'] });
   if (url.startsWith('/api/customer/v1/community/base') && init.method === 'POST') { posts.push(JSON.parse(init.body)); return response({ ok: true }); }
-  if (url.startsWith('/api/customer/v1/community/base')) return mode === 'not_ready' ? response({ error: { code: 'CE_COMMUNITY_CONNECTION_NOT_READY' } }, 503) : response(payload);
+  if (url.startsWith('/api/customer/v1/community/base')) {
+    if (mode === 'not_ready') return response({ error: { code: 'CE_COMMUNITY_CONNECTION_NOT_READY' } }, 503);
+    if (mode === 'refresh_fail') return response({ error: { code: 'CE_COMMUNITY_REFRESH_FAILED' } }, 500);
+    return response(payload);
+  }
   throw new Error(`Unexpected request: ${url}`);
 };
 async function flush() { for (let i = 0; i < 8; i += 1) await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); }); }
@@ -88,9 +92,28 @@ assert.deepEqual(posts.map((post) => post.type), ['publish_announcement', 'cance
 assert.equal(posts[0].expected_version, 1); assert.equal(posts[1].expected_version, 2); assert.equal(posts[2].expected_version, 3); assert.deepEqual(posts[2].audience, { kind: 'workspace' });
 assert.equal(posts[3].expected_version, 0); assert.equal(posts[3].target_id, publishedId); assert.equal(posts[4].expected_version, 1); assert.equal(posts[4].report_id, reportId);
 for (const post of posts) { assert.equal(post.context_id, contextId); assert.equal(post.workspace_id, workspaceId); assert.match(post.command_id, /^[0-9a-f-]{36}$/i); assert.ok(post.idempotency_key.endsWith(post.command_id)); }
+
+// A successful command may fail while refreshing the projection. Keep every
+// unrelated local draft mounted across both the failed refresh and its retry.
+const liveAnnouncementForm = [...container.querySelectorAll('form')].find((form) => /New announcement/.test(form.textContent));
+const liveReportForm = [...container.querySelectorAll('form')].find((form) => /Report content/.test(form.textContent));
+await act(async () => {
+  setValue(liveAnnouncementForm.querySelector('textarea'), 'Keep this unsent announcement');
+  setValue(liveReportForm.querySelector('select'), publishedId);
+  setValue(liveReportForm.querySelector('textarea'), 'Submit only this report');
+});
+mode = 'refresh_fail';
+await act(async () => { liveReportForm.dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true })); await Promise.resolve(); }); await flush();
+assert.equal(container.querySelector('form textarea').value, 'Keep this unsent announcement', 'successful report keeps the unrelated draft after refresh failure');
+assert.match(container.querySelector('[role="alert"]').textContent, /Community could not be loaded/);
+mode = 'ready';
+await act(async () => { byText('Try again').click(); await Promise.resolve(); }); await flush();
+assert.equal(container.querySelector('form textarea').value, 'Keep this unsent announcement', 'explicit refresh retry keeps the unrelated draft');
+assert.equal(container.querySelector('[role="alert"]'), null, 'successful retry clears only the refresh warning');
+
 await act(async () => root.unmount());
 mode = 'not_ready'; requests.length = 0; container.innerHTML = ''; root = createRoot(container); await act(async () => root.render(renderPage())); await flush();
 assert.match(container.textContent, /operational Community connection has not been activated yet/); await act(async () => root.unmount());
 for (const file of runtimeFiles) fs.rmSync(file, { force: true });
 
-console.log('CE-010 mounted Community page acceptance passed: strict named projection, exact versioned commands, no UUID display, capability routing, actionable 503 state, and RO/EN/FA mapping.');
+console.log('CE-010 mounted Community page acceptance passed: strict named projection, exact versioned commands, no UUID display, capability routing, input-preserving refresh recovery, actionable 503 state, and RO/EN/FA mapping.');
