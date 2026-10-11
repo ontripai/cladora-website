@@ -2837,7 +2837,7 @@ declare
   i integer;
 begin
   v_clean := upper(regexp_replace(coalesce(p_iban, ''), '[^A-Za-z0-9]', '', 'g'));
-  
+
   if length(v_clean) < 15 or length(v_clean) > 34 then
     raise exception 'invalid_iban_length' using errcode = '22023';
   end if;
@@ -5624,7 +5624,7 @@ declare
   i integer;
 begin
   v_clean := upper(regexp_replace(coalesce(p_iban, ''), '[^A-Za-z0-9]', '', 'g'));
-  
+
   if length(v_clean) < 15 or length(v_clean) > 34 then
     raise exception 'invalid_iban_length' using errcode = '22023';
   end if;
