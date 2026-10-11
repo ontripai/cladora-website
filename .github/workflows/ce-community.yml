@@ -5,6 +5,8 @@ on:
       - 'src/lib/community/community-base-*.ts'
       - 'src/lib/community/experience-guide-*.ts'
       - 'src/app/api/customer/v1/community/base/**'
+      - 'src/app/*/app/community/**'
+      - 'src/components/customer/CustomerCommunityBase*.tsx'
       - 'src/app/api/customer/v1/experience/guides/**'
       - 'src/app/*/app/experience/guides/**'
       - 'src/components/customer/CustomerExperienceGuide*.tsx'
@@ -48,6 +50,7 @@ jobs:
         run: |
           node --experimental-strip-types scripts/test-ce-010-community-base.mjs
           node scripts/test-ce-010-route.mjs
+          node --experimental-strip-types scripts/test-ce-010-community-page.mjs
           node --experimental-strip-types scripts/test-ce-012-experience-guide.mjs
           node scripts/test-ce-012-route.mjs
           node --experimental-strip-types scripts/test-ce-012-guide-page.mjs

@@ -1,14 +1,14 @@
 # CE010-OPS-01 — Community operational proposal
 
-Owner: Community & Experience. Baseline: CLADORA v1.4, `2fb9d7d264666d68d2f0063110c99b8a7a76acb9`.
-Branch: `feat/ce-011-event-interest`. Draft PR: #318.
-Status: technically complete and in_review; PostgreSQL/pgTAP and concurrency verification passed in disposable CI. No acceptance or release is claimed.
+Owner: Community & Experience. Baseline: CLADORA v1.4; current UI base `main@c0c82133d4a6ef95800c72b9f155fb9a65ae1822`.
+Branch: `feat/ce-010-community-page`. Draft PR: #354. Implementation commit: `26da0c78abeb59d7fba87fb794be9283a133e5e6`.
+Status: operational proposal merged through PR #318; `CE010-UI-01` is technically complete and in_review. No acceptance, remote migration, capability activation or release is claimed.
 
 ## Scope and ownership
 
 The six existing CE010 commands persist Community content policy, in-app announcement drafts/publication/cancellation, and content reports with one versioned, reasoned moderation decision. Community is independently activated by Core; CE creates no activation command or community membership registry. Announcement content does not implement delivery, channels or external messaging. Booking and SERVICE are not prerequisites.
 
-The package adds a review-only SQL proposal, a bounded server HTTP route and isolated tests. It does not create a migration file, install a remote migration, mount a customer page or alter central control documents. The Core adapters, platform idempotency store, shared audit and outbox are reused. Domain response receipts only project the committed result; key collision, fingerprint and expiry remain in `platform.idempotency_keys`.
+The operational package added a review-only SQL proposal, a bounded server HTTP route and isolated tests. PR #354 adds the capability-gated customer page and navigation entry, a strict bounded response adapter and mounted transport tests. It does not create a migration file, install a remote migration or alter central control documents. The page remains hidden without the exact module, entitlement and read permission, while the route fails closed when its RPC is unavailable. The Core adapters, platform idempotency store, shared audit and outbox are reused. Domain response receipts only project the committed result; key collision, fingerprint and expiry remain in `platform.idempotency_keys`.
 
 ## Explicit contract gate: CORE-CE010-MAP-01
 
@@ -41,18 +41,20 @@ Real C01 derives actor, tenant, membership and Workspace from the authenticated 
 
 ## Verification and evidence
 
-Actually executed locally on the changed code:
+Actually executed locally for `CE010-UI-01` on implementation commit `26da0c78abeb59d7fba87fb794be9283a133e5e6`:
 
-- `node scripts/test-ce-010-route.mjs`: 55 checks passed, compiled HTTP handlers with a mocked RPC boundary. This is not live database evidence.
-- `node --experimental-strip-types scripts/test-ce-010-community-base.mjs`: existing domain regression passed after the UUID/version schema correction.
+- `node scripts/test-ce-010-community-page.mjs`: mounted page, strict response validation, named rendering, capability gate, exact mutation versions and actionable `503` passed with an in-memory transport.
+- `node scripts/test-ce-010-route.mjs`: 55 checks passed; this is a compiled mocked-RPC boundary, not live database evidence.
+- `node --experimental-strip-types scripts/test-ce-010-community-base.mjs` and the existing CE010/CE012 UI regression passed.
+- P1 role matrix and Access Foundation passed; 48 routes were classified with zero unclassified routes.
 - `npm run typecheck`: passed.
 - Targeted ESLint: passed.
-- `node scripts/check-database-package.mjs`: 237 migrations, 164 tests, 5220 assertions. Migration count is unchanged.
+- `node scripts/check-database-package.mjs`: 237 migrations, 165 tests, 5296 assertions. Migration count is unchanged.
 - `git diff --check`: passed.
 
 Database verification introduced by this package:
 
-- `supabase/tests/173_ce_010_community_proposal.test.sql`: 64 assertions, real shared Core functions, synthetic transaction-local registry/authority setup and behavioral SQL calls. CI `Database tests` runs this file in the existing disposable Supabase job.
+- `supabase/tests/173_ce_010_community_proposal.test.sql`: 74 assertions, real shared Core functions, synthetic transaction-local registry/authority setup and behavioral SQL calls. The additional assertions cover exact Workspace binding, absence of private tenant authority, named targets, action flags and duplicate-report actions. CI `Database tests` runs this file in the existing disposable Supabase job.
 - `scripts/test-ce-010-concurrency.mjs`: two independent PostgreSQL connections plus an observer; same-key replay, duplicate-report race, competing decisions and membership revocation while a replay waits.
 - `.github/workflows/ce-community.yml`: CE-owned route/domain and real concurrency workflow. It uses pinned CLI 2.84.2 and an explicitly local disposable database. The concurrency runner refuses a remote host or a missing `CLADORA_EPHEMERAL_DB=1` guard.
 - `ce_010_community_operational_v1.inc` must exactly match the proposal. Proposed Core seeds exist only in the separate synthetic test fixture; they are not shipped in the proposal.
@@ -67,11 +69,31 @@ Runtime evidence at code head `1d6e183b978823a9317322454321173537a9c67a`:
 - Vercel Preview `dpl_AXy6sMxmfUdvT1hnWZdpRTTBJgde`, same code head, READY; target is Preview, not Production.
 - Initial delivery `27db648d3145c285d51ce393494a426e04429612` failed the isolated fixture because UNION membership-status literals inferred text. The tested code head adds explicit enum casts to all four fixture rows; no production schema or proposal change was needed.
 
+UI review evidence at implementation commit `26da0c78abeb59d7fba87fb794be9283a133e5e6`:
+
+- Draft PR #354 targets `main@c0c82133d4a6ef95800c72b9f155fb9a65ae1822`; changed files contain no `supabase/migrations` or `docs/control` path.
+- Vercel Preview `dpl_7e6xnEZCxxdEfMZ27mTHFRrPLXmp` is READY for the exact implementation commit. It is a Preview, not a Production activation.
+- GitHub runs `38061370102` (AIRPROP native runtime), `38061370142` (Application Foundation), `38061370101` (CE Community), and `38061370076` (Database tests) provide the PR checks; final status is recorded in PR #354 after the documentation commit.
+
 ## Independent remaining gates
 
 1. **CORE-CE010-MAP-01:** Core confirms the exact read/mutation/module mapping; any change requires a bounded CE adapter update and affected tests.
 2. **CE010-MIG-01:** separate authorization and ownership for conversion/installation of the proposal. No migration file or installed remote version exists for this package.
-3. **CE010-UI-01:** separately authorized public page/menu connection and live API/browser acceptance after persistence is ready.
-4. **CE012-OPS-01:** next independent CE package, using safe Documents references; it does not wait for external delivery or SERVICE.
+3. **CE010-UI-01:** implementation is in review in PR #354. Merge and automatic Production deployment remain a separate gate; live mutation acceptance still requires persistence and capability activation.
+4. **CE010-ACT-01:** Workspace capability activation and live browser acceptance remain separate from code deployment and require the installed RPC plus the accepted Core mapping.
 
 Merge, Supabase Remote migration and Production deployment remain separate approvals. Preview/CI success and a coordination receipt cannot accept, close or release a package. Manifest/PM recording belongs to CLADORA Documentation & PM; no private credential is required or requested by this workstream.
+
+## Live reconciliation — 2026-10-10
+
+Read-only recovery confirmed main `c0c82133d4a6ef95800c72b9f155fb9a65ae1822`, merged PRs #318/#348/#349, and open Draft PR #354 at `ea3df23bdf803fcbb9fcf9679df9286659db2e8c`. Completed domain, proposal and mounted-page work is retained without rebuilding it. External or unavailable `CE010` material is not evidence for the repository capability `CE-010`.
+
+At that exact head: Database run `38061591403` (static-contract and postgres-runtime), CE Community `38061591416`, and native runtime `38061591422` passed. Preview `dpl_H9bT7UYFP9udLAwodCjsp1huuQXC` is READY for the same head. Application Foundation `38061591411` passed audit, lint, unit, foundation and typecheck, then failed build in shared Inter font resolution; the three-language built-app audit did not run. One failed-job rerun was requested; its outcome must be checked separately. No all-green claim is made.
+
+### Formal dependency: CORE-CE-BUILD-FONT-01
+
+Owner: Core / application build foundation. Consumer: CE010-UI-01 and subsequent CE UI packages. Trigger: Application Foundation build failure resolving `@vercel/turbopack-next/internal/font/google/font`; diagnostic `next/font/google queries have exactly one entry`, traced to shared `src/app/[lang]/layout.tsx`, using Next 16.3.8 / Node 22.23.3.
+
+Required output: a supported, deterministic shared font/build configuration (or evidence that the transient failure has cleared), preserving Romanian/English/Persian font coverage and the existing layout contract. CE must not patch shared layout, dependencies, build configuration or environment variables to implement this dependency. Verification: Application Foundation build and built-app three-language audit pass on the candidate head; Preview remains READY for that same head. Scope excludes Auth, CAPTCHA, SMTP, DNS, Secrets, remote schema and release actions.
+
+`CE010-UI-01` remains in_review pending this check, independent review and the existing activation/migration gates. CE continues an independent form-feedback slice without waiting for Merge. After confirmed Merge and ancestry verification, only CE branches `feat/ce-011-event-page` and `feat/ce-012-guide-page` were deleted; other workstreams were untouched.

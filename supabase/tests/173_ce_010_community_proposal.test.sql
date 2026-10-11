@@ -1,6 +1,6 @@
 \ir fixtures/ce_010_community_operational_v1.inc
 begin;
-select plan(64);
+select plan(74);
 
 select is((select count(*) from identity.permissions where code like 'community.%'),0::bigint,'Proposal does not seed Core permissions');
 select is((select count(*) from platform.module_definitions where code='community_basic'),0::bigint,'Proposal does not seed a Core module');
@@ -59,6 +59,10 @@ select lives_ok($$select customer_api.command_ce_community_v1((select create_ann
 
 select set_config('request.jwt.claims','{"sub":"17300000-0000-0000-0000-000000000011","role":"authenticated","aal":"aal2"}',true);
 select is(jsonb_array_length(customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'announcements'),0,'Ordinary member cannot read a draft');
+select is(customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->>'workspace_id',pg_temp.ce010_id(20)::text,'Projection binds the exact Workspace');
+select is((customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'communities'->0->>'can_create_announcement')::boolean,false,'Server withholds announcement creation action from member');
+select is((customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'communities'->0->>'can_decide_reports')::boolean,false,'Server withholds moderation action from member');
+select ok(not(customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))?'tenant_id'),'Projection exposes no tenant authority field');
 select throws_ok($$select customer_api.command_ce_community_v1((select publish_announcement||jsonb_build_object('context_id',pg_temp.ce010_id(41)) from ce010_requests))$$,'42501','ce_community_access_denied','Member cannot publish content');
 select set_config('request.jwt.claims','{"sub":"17300000-0000-0000-0000-000000000010","role":"authenticated","aal":"aal2"}',true);
 update ce010_before set counts=pg_temp.ce010_counts();
@@ -73,8 +77,11 @@ select throws_ok($$select customer_api.command_ce_community_v1((select publish_a
 
 select set_config('request.jwt.claims','{"sub":"17300000-0000-0000-0000-000000000011","role":"authenticated","aal":"aal2"}',true);
 select is(jsonb_array_length(customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'announcements'),1,'Eligible member sees published content');
+select is(customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'announcements'->0->>'title','Synthetic in-app announcement','Projection provides a bounded named announcement choice');
+select is((customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'announcements'->0->>'can_report')::boolean,true,'Server exposes report action only while no own open report exists');
 select is(jsonb_array_length(customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'reports'),0,'Member cannot read moderation reports');
 select lives_ok($$select customer_api.command_ce_community_v1((select report_content from ce010_requests))$$,'Eligible member reports visible CE content');
+select is((customer_api.read_ce_community_v1(pg_temp.ce010_id(41),pg_temp.ce010_id(20))->'announcements'->0->>'can_report')::boolean,false,'Open own report removes duplicate report action');
 select is((customer_api.command_ce_community_v1((select report_content from ce010_requests))->>'replayed')::boolean,true,'Report replay is exactly once');
 update ce010_before set counts=pg_temp.ce010_counts();
 select throws_like($$select customer_api.command_ce_community_v1((select report_content||jsonb_build_object('command_id',pg_temp.ce010_id(86),'report_id',pg_temp.ce010_id(74),'idempotency_key','ce010.duplicate.86') from ce010_requests))$$,'%ce_content_report_active_uq%','Duplicate active report rejected by partial unique constraint');
@@ -105,6 +112,9 @@ select is((select decision_reason from community.content_reports where id=pg_tem
 select is((select after_snapshot->>'decision_reason' from audit.events where tenant_id=pg_temp.ce010_id(1) and action='ce.decide_content_report'),'Synthetic moderator decision','Versioned decision reason is recorded in the shared audit');
 select is((customer_api.command_ce_community_v1((select decide_report from ce010_requests))->>'replayed')::boolean,true,'Decision replay returns original receipt');
 select is(jsonb_array_length(customer_api.read_ce_community_v1(pg_temp.ce010_id(40),pg_temp.ce010_id(20))->'reports'),1,'Authorized moderator can read reports');
+select is((customer_api.read_ce_community_v1(pg_temp.ce010_id(40),pg_temp.ce010_id(20))->'communities'->0->>'can_create_announcement')::boolean,true,'Server exposes announcement creation to authorized manager');
+select is((customer_api.read_ce_community_v1(pg_temp.ce010_id(40),pg_temp.ce010_id(20))->'communities'->0->>'can_decide_reports')::boolean,true,'Server exposes report decisions to authorized moderator');
+select is(customer_api.read_ce_community_v1(pg_temp.ce010_id(40),pg_temp.ce010_id(20))->'reports'->0->>'target_title','Synthetic in-app announcement','Moderator receives a named report target without choosing a UUID');
 select throws_ok($$update community.community_command_receipts set response_json='{}'$$,'42501','ce_community_receipt_immutable','Receipt cannot be overwritten');
 select is((customer_api.command_ce_community_v1(pg_temp.ce010_command('cancel_announcement',87,2,jsonb_build_object('announcement_id',pg_temp.ce010_id(71))))->>'version')::bigint,3::bigint,'Cancel preserves content and advances version');
 select set_config('request.jwt.claims','{"sub":"17300000-0000-0000-0000-000000000011","role":"authenticated","aal":"aal2"}',true);
