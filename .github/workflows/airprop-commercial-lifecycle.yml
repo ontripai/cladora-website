@@ -5,7 +5,7 @@ on:
       - 'src/lib/airprop/commercial-lifecycle-v1.ts'
       - 'src/app/api/customer/v2/airprop/commercial-lifecycle/route.ts'
       - 'scripts/test-airprop-commercial-lifecycle-route-018.mjs'
-      - 'supabase/migrations/20261007104000_airprop_commercial_lifecycle_v1.sql'
+      - 'supabase/migrations/20261007112219_airprop_commercial_lifecycle_v1.sql'
       - 'supabase/tests/171_airprop_commercial_lifecycle.test.sql'
       - '.github/workflows/airprop-commercial-lifecycle.yml'
   workflow_dispatch:

@@ -58,10 +58,10 @@ try {
     insert into portfolio.parties values('${provider}','${tenant}',null),('${id(10)}','${otherTenant}',null);
     insert into app_private.test_authority select u.id,'${workspace}'::uuid,p from auth.users u cross join unnest(array['services.catalog.read','services.catalog.manage','services.catalog.publish']) p;
   `);
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261003141918_service_catalog_persistence_v1.sql', import.meta.url), 'utf8'));
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261003144507_service_catalog_definition_command_v1.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003200220_20261003144507_service_catalog_definition_command_v1.sql', import.meta.url), 'utf8'));
   await db.exec("alter table portfolio.parties add legal_name text not null default 'Provider'");
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261003151823_service_catalog_management_read_v1.sql', import.meta.url), 'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261003200226_20261003151823_service_catalog_management_read_v1.sql', import.meta.url), 'utf8'));
   await db.exec(`insert into service_catalog.definitions(id,tenant_id,workspace_id,code,labels) values('${definition}','${tenant}','${workspace}','elevator', '${JSON.stringify(labels)}')`);
   await setActor(actor);
 
@@ -76,7 +76,7 @@ try {
     create table platform.module_operating_model_compatibilities(module_definition_id uuid,operating_model_id uuid,compatibility_level text,reason text,unique(module_definition_id,operating_model_id));
     insert into app_private.test_authority values('${actor}','${workspace}','services.orders.read'),('${actor}','${workspace}','services.orders.request');
   `);
-  await db.exec(readFileSync(new URL('../supabase/migrations/20261004181358_service_request_persistence_v1.sql',import.meta.url),'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261004182557_20261004181358_service_request_persistence_v1.sql',import.meta.url),'utf8'));
   const created=await mutate('create',command);
   await mutate('transition',{context_id:context,workspace_id:workspace,offering_id:created.offering_id,revision_id:created.revision_id,expected_lock_version:1,action:'submit',reason:'Synthetic request test',idempotency_key:'request-test-submit'});
   await setActor(approver);

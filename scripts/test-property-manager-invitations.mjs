@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const migrationPath = 'supabase/migrations/20260929172509_property_scoped_property_manager_invitations_v1.sql';
+const migrationPath = 'supabase/migrations/20260929181703_20260929172509_property_scoped_property_manager_invitations_v1.sql';
 assert.ok(fs.existsSync(migrationPath), 'Property manager invitation migration exists');
 const sql = fs.readFileSync(migrationPath, 'utf8');
-const multiWorkspaceMigrationPath = 'supabase/migrations/20260929184000_property_manager_invitation_mult_workspace_admin_v1.sql';
+const multiWorkspaceMigrationPath = 'supabase/migrations/20260929183049_property_manager_invitation_mult_workspace_admin_v1.sql';
 assert.ok(fs.existsSync(multiWorkspaceMigrationPath), 'Multi-workspace admin invitation fix migration exists');
 const multiWorkspaceSql = fs.readFileSync(multiWorkspaceMigrationPath, 'utf8');
 const invitationRoute = fs.readFileSync('src/app/api/customer/v1/property-manager-invitations/route.ts', 'utf8');

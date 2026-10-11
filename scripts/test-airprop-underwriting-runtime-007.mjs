@@ -156,7 +156,7 @@ export async function runAirpropUnderwritingTests(f) {
    }finally{await holder.query('rollback');await waiting.query('rollback');if(running)await running.catch(()=>{});await holder.end();await waiting.end();await q("update identity.memberships set status='active' where id=$1",[member]);}
   });
   await check('actual legacy v1 writer serializes with native case and cannot cause duplicate version numbers',async()=>{
-   const legacySource=readFileSync(new URL('../supabase/migrations/20261003083859_workspace_scoped_effective_permission.sql',import.meta.url),'utf8');
+   const legacySource=readFileSync(new URL('../supabase/migrations/20261003151604_20261003083859_workspace_scoped_effective_permission.sql',import.meta.url),'utf8');
    const helperStart=legacySource.indexOf('create function app_private.require_airprop_workspace_context_v1(');
    const helperEnd=legacySource.indexOf('revoke all on function app_private.require_airprop_workspace_context_v1',helperStart);
    const writerStart=legacySource.indexOf('create or replace function app_private.add_airprop_underwriting_version_internal_v1(');

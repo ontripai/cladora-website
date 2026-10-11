@@ -31,7 +31,7 @@ export async function runAirpropNativeRuntimeTests(f) {
  insert into platform.module_operating_model_compatibilities values ('${moduleId}','${id(102)}','compatible');
  insert into platform.workspace_role_modules values ('${localRole}','${moduleId}');
  `);
- await db.exec(readFileSync(new URL('../supabase/migrations/20261003142455_airprop_workspace_native_opportunities_v2.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261003151713_20261003142455_airprop_workspace_native_opportunities_v2.sql',import.meta.url),'utf8'));
  const payload={name:'فرصت آزمایشی',country_code:'RO',city:'București',currency:'EUR',asking_price:'1234567890123456.1234',property_id:null,source_ref:null};
  const create=async (p=payload,key='native-test-0001',ctx=context,ws=workspace)=>(await q('select customer_api.create_airprop_opportunity_v2($1,$2,$3,$4::jsonb) result',[ctx,ws,key,JSON.stringify(p)]))[0].result;
  const list=async (ctx=context,ws=workspace,limit=50)=>(await q('select customer_api.list_airprop_opportunities_v2($1,$2,$3) result',[ctx,ws,limit]))[0].result;

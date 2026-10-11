@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const { PGlite } = await import(process.env.CLADORA_PGLITE_PACKAGE || '@electric-sql/pglite');
 const db = new PGlite();
-const sql = readFileSync(new URL('../supabase/migrations/20261004083058_service_catalog_registry_compatibility_v1.sql', import.meta.url), 'utf8');
+const sql = readFileSync(new URL('../supabase/migrations/20261004083750_20261004083058_service_catalog_registry_compatibility_v1.sql', import.meta.url), 'utf8');
 try {
   await db.exec(`create schema platform;
     create table platform.module_definitions(id int primary key,code text,version int,lifecycle_status text);

@@ -26,7 +26,7 @@ jobs:
           fixture="$RUNNER_TEMP/airprop-scope"
           mkdir -p "$fixture/scripts" "$fixture/supabase/migrations"
           cp scripts/test-airprop-scope-ceiling.mjs "$fixture/scripts/"
-          cp supabase/migrations/20261003074837_airprop_property_scope_ceiling.sql "$fixture/supabase/migrations/"
+          cp supabase/migrations/20261003151427_20261003074837_airprop_property_scope_ceiling.sql "$fixture/supabase/migrations/"
           npm install --prefix "$fixture" --no-save --package-lock=false --ignore-scripts @electric-sql/pglite@0.5.8
       - name: Verify scope and authorization regression
         shell: bash

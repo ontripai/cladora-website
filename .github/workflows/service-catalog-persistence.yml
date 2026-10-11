@@ -2,8 +2,8 @@ name: SERVICE catalogue persistence
 on:
   pull_request:
     paths:
-      - 'supabase/migrations/20261003141918_service_catalog_persistence_v1.sql'
-      - 'supabase/migrations/20261003144507_service_catalog_definition_command_v1.sql'
+      - 'supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql'
+      - 'supabase/migrations/20261003200220_20261003144507_service_catalog_definition_command_v1.sql'
       - 'supabase/migrations/*_service_catalog_registry_compatibility_v1.sql'
       - 'src/app/api/customer/v1/services/catalog/route.ts'
       - 'src/app/api/customer/v1/services/catalog/definitions/route.ts'
