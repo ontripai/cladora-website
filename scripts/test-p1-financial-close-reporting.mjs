@@ -442,7 +442,7 @@ function createStreamFromChunks(chunks) {
   };
 
   // 1. Reports GET
-  checkRoute('src/app/api/customer/v1/financial-reports/route.ts', (content) => ({
+  checkRoute('src/app/api/customer/v1/financial-reports/handler.ts', (content) => ({
     'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
     'Injectable handler exported': content.includes('export async function handleGetFinancialReport'),
     'Checks auth claims': content.includes('getClaims('),
@@ -452,7 +452,7 @@ function createStreamFromChunks(chunks) {
   }));
 
   // 2. Periods GET
-  checkRoute('src/app/api/customer/v1/accounting/periods/route.ts', (content) => ({
+  checkRoute('src/app/api/customer/v1/accounting/periods/handler.ts', (content) => ({
     'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
     'Injectable handler exported': content.includes('export async function handleGetPeriods'),
     'Checks auth claims': content.includes('getClaims('),
@@ -461,7 +461,7 @@ function createStreamFromChunks(chunks) {
   }));
 
   // 3. Readiness GET
-  checkRoute('src/app/api/customer/v1/accounting/periods/[id]/close-readiness/route.ts', (content) => ({
+  checkRoute('src/app/api/customer/v1/accounting/periods/[id]/close-readiness/handler.ts', (content) => ({
     'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
     'Injectable handler exported': content.includes('export async function handleGetCloseReadiness'),
     'Calls get_close_readiness RPC': content.includes('get_close_readiness'),
@@ -470,7 +470,7 @@ function createStreamFromChunks(chunks) {
   }));
 
   // 4. Close POST
-  checkRoute('src/app/api/customer/v1/accounting/periods/[id]/close/route.ts', (content) => ({
+  checkRoute('src/app/api/customer/v1/accounting/periods/[id]/close/handler.ts', (content) => ({
     'Uses user client (never admin)': content.includes('createClient()') && !content.includes('createAdminClient'),
     'Injectable handler exported': content.includes('export async function handlePostClose'),
     'Enforces trusted mutation origin': content.includes('hasTrustedMutationOrigin(request)'),
@@ -623,11 +623,11 @@ function createStreamFromChunks(chunks) {
   const validJournalId = '44444444-4444-4444-4444-444444444444';
 
   // Import route handlers
-  const { handleGetFinancialReport } = await import('../src/app/api/customer/v1/financial-reports/route.ts');
-  const { handleGetPeriods } = await import('../src/app/api/customer/v1/accounting/periods/route.ts');
-  const { handleGetCloseReadiness } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close-readiness/route.ts');
-  const { handlePostClose } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close/route.ts');
-  const { handleGetLedger } = await import('../src/app/api/customer/v1/accounting/route.ts');
+  const { handleGetFinancialReport } = await import('../src/app/api/customer/v1/financial-reports/handler.ts');
+  const { handleGetPeriods } = await import('../src/app/api/customer/v1/accounting/periods/handler.ts');
+  const { handleGetCloseReadiness } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close-readiness/handler.ts');
+  const { handlePostClose } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close/handler.ts');
+  const { handleGetLedger } = await import('../src/app/api/customer/v1/accounting/handler.ts');
 
   // ---------------------------------------------------------------------------
   // Route 1: GET /api/customer/v1/financial-reports
@@ -1126,7 +1126,7 @@ function createStreamFromChunks(chunks) {
 {
   console.log('\n[Suite 7] Byte-Based 10KB Stream Defense Verification');
 
-  const { handlePostClose } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close/route.ts');
+  const { handlePostClose } = await import('../src/app/api/customer/v1/accounting/periods/[id]/close/handler.ts');
   const baseOrigin = 'http://localhost:3000';
   const validContextId = '11111111-1111-1111-1111-111111111111';
   const validPeriodId = '22222222-2222-2222-2222-222222222222';

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 import { issueBillRequestSchema } from "@/lib/customer/billing-schema";
-import { mapBillingRpcError } from "../../route";
+import { mapBillingRpcError } from "../../rpc-error";
 
 const HEADERS = {
   "Cache-Control": "no-store, private",
