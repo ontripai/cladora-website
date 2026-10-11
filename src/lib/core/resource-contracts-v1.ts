@@ -1,7 +1,8 @@
 import { z } from 'zod';
-import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
+import { uuidSchema } from '../customer/workspace-composition-schema.ts';
 
-const timestampSchema = z.string().datetime({ offset: true });
+const timestampSchema = z.string().datetime({ offset: true })
+  .refine((value) => Number.isFinite(Date.parse(value)), 'timestamp_instant_invalid');
 const dateSchema = z.string().date();
 const permissionCodeSchema = z.string().regex(/^[a-z0-9_.:-]{3,128}$/);
 const purposeSchema = z.string().regex(/^[a-z0-9_.:-]{3,128}$/);
@@ -111,7 +112,7 @@ export const resourceRelationshipV1Schema = z.strictObject({
   evaluated_at: timestampSchema,
   action_authorization: z.literal('not_evaluated'),
 }).superRefine((value, ctx) => {
-  if (value.valid_until !== null && value.valid_until <= value.valid_from) {
+  if (value.valid_until !== null && Date.parse(value.valid_until) <= Date.parse(value.valid_from)) {
     ctx.addIssue({ code: 'custom', path: ['valid_until'], message: 'valid_until_must_follow_valid_from' });
   }
 });
