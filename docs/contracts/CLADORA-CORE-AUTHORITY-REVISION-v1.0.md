@@ -96,7 +96,7 @@ the DML writer protocol and require governance review and explicit invalidation.
 
 The Draft must stay unmerged until schema review and an independent migration
 rollout decision. Remote apply, provider execution-role grants, backfill activation
-and consumer wiring each remain separate authorization gates. Existing migrations
-are byte-identical. Rollback before apply is withdrawal of this Draft. After a
+and consumer wiring each remain separate authorization gates. All 246 migrations on main remain byte-identical, including the original
+238-migration DB-HIST baseline and the eight AIRPROP Artifact A migrations. Rollback before apply is withdrawal of this Draft. After a
 future apply, preserve the revision rather than decrementing/reusing it; disable
 consumer wiring first and use a separately reviewed forward migration for changes.
