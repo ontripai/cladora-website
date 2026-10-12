@@ -87,6 +87,21 @@ export type CoreTransactionResultV1 =
       authority?: CurrentAuthorityTransactionDecisionReceiptV1 }
   | { status: 'unknown_commit'; code: 'READBACK_REQUIRED' };
 
+function entitlementBindingsMatch(
+  stored: CurrentAuthorityTransactionDecisionReceiptV1['entitlement'],
+  current: CurrentAuthorityTransactionDecisionReceiptV1['entitlement'],
+): boolean {
+  // Legacy contract-only providers have neither binding. A canonical binding
+  // cannot disappear or be introduced silently when an old receipt is replayed.
+  if (stored === undefined || current === undefined) return stored === current;
+  return stored.contract_version === current.contract_version
+    && stored.workspace_id === current.workspace_id
+    && stored.authority_revision === current.authority_revision
+    && stored.module_definition_id === current.module_definition_id
+    && stored.module_code === current.module_code
+    && stored.entitlement_key === current.entitlement_key;
+}
+
 class AbortTransaction extends Error {
   constructor(readonly result: CoreTransactionResultV1) { super('core_transaction_aborted'); }
 }
@@ -220,7 +235,8 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               || prior.data.authority.authority_version !== command.authority_version
               || prior.data.authority.permission_code !== command.permission_code
               || prior.data.authority.module_code !== command.module_code
-              || prior.data.authority.evaluation_purpose !== command.evaluation_purpose) {
+              || prior.data.authority.evaluation_purpose !== command.evaluation_purpose
+              || !entitlementBindingsMatch(prior.data.authority.entitlement, authority.entitlement)) {
               throw new AbortTransaction({ status: 'denied', code: 'REPLAY_CONFLICT' });
             }
             live = false;

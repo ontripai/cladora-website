@@ -145,10 +145,36 @@ try{
     const before=await effects(),again=await host.execute(cmd,callbacks());assert.equal(again.status,'exact_replay');
     assert.deepEqual(again.receipt,result.receipt);assert.deepEqual(await effects(),before);
   });
+  const replayTampering = [
+    ['Workspace', entitlement => { entitlement.workspace_id=ids.workspaceIds[1]; }],
+    ['revision', entitlement => { entitlement.authority_revision+=1; }],
+    ['module definition', entitlement => { entitlement.module_definition_id=randomUUID(); }],
+    ['module code', entitlement => { entitlement.module_code='services_catalog'; }],
+    ['entitlement key', entitlement => { entitlement.entitlement_key='unrelated.entitlement'; }],
+    ['entitlement removed', null],
+  ];
+  for(const [name,change] of replayTampering){
+    await check(`persisted ${name} change is REPLAY_CONFLICT with zero writes`,async()=>{
+      const cmd=await command(),committed=await host.execute(cmd,callbacks());
+      assert.equal(committed.status,'committed');
+      const altered=structuredClone(committed.receipt);
+      if(change)change(altered.authority.entitlement);else delete altered.authority.entitlement;
+      const key=`core-tx.v1:${cmd.workspace_id}:${cmd.idempotency_key}`;
+      await pool.query('update platform.idempotency_keys set response_ref=$2::jsonb where key=$1',
+        [key,JSON.stringify(altered)]);
+      const before=await effects(),beforeMutations=mutations;
+      const stored=async()=> (await pool.query('select to_jsonb(i) record from platform.idempotency_keys i where key=$1',[key])).rows[0].record;
+      const previous=await stored(),result=await host.execute(cmd,callbacks());
+      assert.equal(result.status,'denied');assert.equal(result.code,'REPLAY_CONFLICT');
+      assert.equal('receipt' in result,false);
+      assert.equal(mutations,beforeMutations);assert.deepEqual(await effects(),before);
+      assert.deepEqual(await stored(),previous);
+    });
+  }
   await check('two concurrent host attempts commit once and replay once',async()=>{
-    const cmd=await command(),before=await effects();const results=await Promise.all([host.execute(cmd,callbacks()),host.execute(cmd,callbacks())]);
+    const cmd=await command(),before=await effects(),beforeMutations=mutations;const results=await Promise.all([host.execute(cmd,callbacks()),host.execute(cmd,callbacks())]);
     assert.deepEqual(results.map(x=>x.status).sort(),['committed','exact_replay']);
-    const after=await effects();assert.equal(after.idem,before.idem+1);assert.equal(after.audit,before.audit+1);assert.equal(after.outbox,before.outbox+1);
+    const after=await effects();assert.equal(mutations,beforeMutations+1);assert.equal(after.idem,before.idem+1);assert.equal(after.audit,before.audit+1);assert.equal(after.outbox,before.outbox+1);
   });
   await check('stale canonical revision is denied with no writes',async()=>{
     const result=await denied(await command({authority_version:await revision()-1}));
