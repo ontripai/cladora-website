@@ -36,7 +36,7 @@
     "test:retention": "npm run test:retention:manifest && npm run test:retention:storage && npm run test:retention:concurrency && npm run test:retention:operations && npm run test:db:static",
     "test:app-foundation": "node scripts/test-supabase-foundation.mjs",
     "test:ce:service-experience-provider": "node --experimental-strip-types scripts/test-ce-service-experience-coordination-receipt.mjs",
-    "test:service-v14": "node scripts/test-service-provider-receipts-v1-contract.mjs && node scripts/test-service-provider-adapters-v1-contract.mjs && node scripts/test-service-runtime-commit-coordinator-v1.mjs && node scripts/test-service-offering-v14-contract.mjs && node scripts/test-service-order-acceptance-v14-contract.mjs && node scripts/test-service-collaboration-v14-contract.mjs && node scripts/test-service-delivery-v14-contract.mjs && node scripts/test-service-booking-v14-contract.mjs && node scripts/test-service-portfolio-v14-contract.mjs && node scripts/test-service-finance-v14-contract.mjs && node scripts/test-service-experience-v14-contract.mjs && node scripts/test-service-resource-picker-v14.mjs && node scripts/test-service-v14-integration.mjs",
+    "test:service-v14": "node scripts/test-service-provider-receipts-v1-contract.mjs && node scripts/test-service-provider-adapters-v1-contract.mjs && node scripts/test-service-runtime-commit-coordinator-v1.mjs && node scripts/test-service-runtime-provider-composition-v1.mjs && node scripts/test-service-offering-v14-contract.mjs && node scripts/test-service-order-acceptance-v14-contract.mjs && node scripts/test-service-collaboration-v14-contract.mjs && node scripts/test-service-delivery-v14-contract.mjs && node scripts/test-service-booking-v14-contract.mjs && node scripts/test-service-portfolio-v14-contract.mjs && node scripts/test-service-finance-v14-contract.mjs && node scripts/test-service-experience-v14-contract.mjs && node scripts/test-service-resource-picker-v14.mjs && node scripts/test-service-v14-integration.mjs",
     "test:service-v14:independent": "node scripts/test-service-independent-review.mjs",
     "test": "npm run test:route-exports && npm run test:unit && npm run test:export-vault && npm run test:document-scanner && npm run test:i18n && npm run test:db:static && npm run test:app-foundation",
     "db:start": "supabase start",
@@ -48,6 +48,7 @@
     "test:service-v14:adapters": "node scripts/test-service-provider-adapters-v1-contract.mjs",
     "test:core-consumer-conformance": "node --no-warnings --experimental-strip-types scripts/test-core-consumer-dependency-conformance.mjs && npm run test:core-current-authority-port && npm run test:core-current-authority-consumers",
     "test:service-v14:runtime-commit": "node scripts/test-service-runtime-commit-coordinator-v1.mjs",
+    "test:service-v14:provider-composition": "node scripts/test-service-runtime-provider-composition-v1.mjs",
     "test:core-current-authority-port": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-transaction-port.mjs",
     "test:core-current-authority-consumers": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-consumer-conformance.mjs"
   },

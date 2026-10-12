@@ -18,6 +18,7 @@ on:
       - 'src/lib/customer/service-provider-receipt-v1-schema.ts'
       - 'src/lib/customer/service-provider-adapter-contracts-v1.ts'
       - 'src/lib/customer/service-runtime-commit-coordinator-v1.ts'
+      - 'src/lib/customer/service-runtime-provider-composition-v1.ts'
       - 'src/components/customer/ServiceResourcePicker.tsx'
       - 'src/lib/customer/service-offering-lifecycle.ts'
       - 'src/lib/customer/service-catalog-projection.ts'
@@ -40,6 +41,7 @@ on:
       - 'scripts/test-service-provider-receipts-v1-contract.mjs'
       - 'scripts/test-service-provider-adapters-v1-contract.mjs'
       - 'scripts/test-service-runtime-commit-coordinator-v1.mjs'
+      - 'scripts/test-service-runtime-provider-composition-v1.mjs'
       - 'scripts/service-receipt-test-fixtures.mjs'
       - '.github/workflows/service-catalog-contract.yml'
       - 'package.json'
@@ -76,6 +78,7 @@ jobs:
       - run: npx eslint src/lib/customer/service-provider-receipt-v1-schema.ts scripts/test-service-provider-receipts-v1-contract.mjs scripts/service-receipt-test-fixtures.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-provider-adapter-contracts-v1.ts scripts/test-service-provider-adapters-v1-contract.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-runtime-commit-coordinator-v1.ts scripts/test-service-runtime-commit-coordinator-v1.mjs --max-warnings=0
+      - run: npx eslint src/lib/customer/service-runtime-provider-composition-v1.ts scripts/test-service-runtime-provider-composition-v1.mjs --max-warnings=0
       - run: npx eslint src/components/customer/ServiceResourcePicker.tsx scripts/test-service-resource-picker-v14.mjs scripts/test-service-v14-integration.mjs scripts/test-service-independent-review.mjs --max-warnings=0
 
       - run: npm run typecheck
