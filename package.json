@@ -46,8 +46,10 @@
     "db:types": "supabase gen types typescript --local --schema public,platform,identity,portfolio,occupancy,finance,billing,payments,utilities,assets,maintenance,governance,communications,documents,security_access,migration_hub,audit > src/types/database.generated.ts",
     "test:braces-depth-security": "node scripts/test-braces-depth-security.mjs",
     "test:service-v14:adapters": "node scripts/test-service-provider-adapters-v1-contract.mjs",
-    "test:core-consumer-conformance": "node --no-warnings --experimental-strip-types scripts/test-core-consumer-dependency-conformance.mjs",
-    "test:service-v14:runtime-commit": "node scripts/test-service-runtime-commit-coordinator-v1.mjs"
+    "test:core-consumer-conformance": "node --no-warnings --experimental-strip-types scripts/test-core-consumer-dependency-conformance.mjs && npm run test:core-current-authority-port && npm run test:core-current-authority-consumers",
+    "test:service-v14:runtime-commit": "node scripts/test-service-runtime-commit-coordinator-v1.mjs",
+    "test:core-current-authority-port": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-transaction-port.mjs",
+    "test:core-current-authority-consumers": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-consumer-conformance.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
