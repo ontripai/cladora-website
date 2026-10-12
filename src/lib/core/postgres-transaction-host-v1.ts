@@ -71,7 +71,14 @@ const receiptSchema = z.strictObject({
   audit_event_id: z.string().regex(/^[1-9][0-9]*$/),
   outbox_event_id: uuid,
   committed_at: z.string().datetime({ offset: true }),
-});
+}).refine(receipt => receipt.authority.decision === 'allowed'
+  && receipt.authority.workspace_id === receipt.workspace_id
+  && receipt.authority.actor_id === receipt.actor_id
+  && receipt.authority.transaction_context.transaction_id === receipt.transaction_id
+  && receipt.authority.transaction_context.command_id === receipt.command_id
+  && receipt.authority.transaction_context.lock.aggregate_type === receipt.aggregate_type
+  && receipt.authority.transaction_context.lock.aggregate_id === receipt.aggregate_id,
+'Persisted authority receipt must bind the complete committed effect identity');
 export type CoreTransactionReceiptV1 = z.infer<typeof receiptSchema>;
 export type CoreTransactionResultV1 =
   | { status: 'committed' | 'exact_replay'; receipt: CoreTransactionReceiptV1 }
@@ -205,7 +212,15 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               || prior.data.transaction_id !== command.transaction_id
               || prior.data.command_id !== command.command_id
               || prior.data.idempotency_key !== command.idempotency_key
-              || prior.data.input_fingerprint !== command.input_fingerprint) {
+              || prior.data.input_fingerprint !== command.input_fingerprint
+              || prior.data.aggregate_type !== command.aggregate_type
+              || prior.data.aggregate_id !== command.aggregate_id
+              || prior.data.aggregate_version !== command.aggregate_version
+              || prior.data.authority.context_id !== command.context_id
+              || prior.data.authority.authority_version !== command.authority_version
+              || prior.data.authority.permission_code !== command.permission_code
+              || prior.data.authority.module_code !== command.module_code
+              || prior.data.authority.evaluation_purpose !== command.evaluation_purpose) {
               throw new AbortTransaction({ status: 'denied', code: 'REPLAY_CONFLICT' });
             }
             live = false;

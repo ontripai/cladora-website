@@ -131,6 +131,28 @@ try {
     const result=await host.execute({...first,input_fingerprint:'tx1:1111111111111111'},wrapped());
     assert.equal(result.code,'REPLAY_CONFLICT');assert.deepEqual(await counts(first),{idem:1,audit:1,outbox:1});
   });
+  await check('tampered stored receipt fails closed without duplicate effects',async()=>{
+    const key=`core-tx.v1:${first.workspace_id}:${first.idempotency_key}`;
+    try {
+      await pool.query(`update platform.idempotency_keys set response_ref=jsonb_set(response_ref,'{aggregate_id}',to_jsonb($3::text))
+        where tenant_id=$1 and key=$2`,[ids.tenantId,key,randomUUID()]);
+      const result=await host.execute(first,wrapped());assert.equal(result.code,'REPLAY_CONFLICT');
+      assert.deepEqual(await counts(first),{idem:1,audit:1,outbox:1});
+    } finally {
+      await pool.query('update platform.idempotency_keys set response_ref=$3::jsonb where tenant_id=$1 and key=$2',
+        [ids.tenantId,key,JSON.stringify(committed.receipt)]);
+    }
+  });
+  await check('expired idempotency row conflicts and cannot replay or repeat effects',async()=>{
+    const key=`core-tx.v1:${first.workspace_id}:${first.idempotency_key}`;
+    try {
+      await pool.query("update platform.idempotency_keys set expires_at=created_at+interval '1 microsecond' where tenant_id=$1 and key=$2",[ids.tenantId,key]);
+      const result=await host.execute(first,wrapped());assert.equal(result.code,'REPLAY_CONFLICT');
+      assert.deepEqual(await counts(first),{idem:1,audit:1,outbox:1});
+    } finally {
+      await pool.query("update platform.idempotency_keys set expires_at=statement_timestamp()+interval '1 day' where tenant_id=$1 and key=$2",[ids.tenantId,key]);
+    }
+  });
   await check('changed actor cannot replay',async()=>{
     const result=await host.execute({...first,actor_id:randomUUID()},wrapped({revoked:true}));assert.equal(result.status,'denied');
     assert.deepEqual(await counts(first),{idem:1,audit:1,outbox:1});
