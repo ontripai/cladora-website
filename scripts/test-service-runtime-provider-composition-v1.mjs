@@ -145,9 +145,9 @@ function authorityReceipt(request, overrides = {}) {
 
 function makeCandidate({ authority = request => authorityReceipt(request), providerOverrides = {} } = {}) {
   const observed = { authorityCalls: 0, providerCalls: 0, effects: 0, authorityRequests: [] };
-  const canonicalProviders = Object.fromEntries(Object.keys(results).map(name => [name, intent => {
+  const canonicalProviders = Object.fromEntries(Object.keys(results).map(name => [name, async intent => {
     observed.providerCalls += 1;
-    return (providerOverrides[name] ?? (() => results[name]))(intent);
+    return await (providerOverrides[name] ?? (async () => results[name]))(intent);
   }]));
   const currentAuthority = {
     recheckAfterLock: async request => {
@@ -282,14 +282,14 @@ for (const state of ['pending', 'unknown_commit']) {
 }
 
 const staleProviders = {
-  subject: () => ({ ...results.subject, receipt: { ...subjectReceipt,
+  subject: async () => ({ ...results.subject, receipt: { ...subjectReceipt,
     source_identity: { ...subjectReceipt.source_identity, version: subjectReceipt.source_identity.version + 1 } } }),
-  deliveryEvidence: () => ({ ...results.deliveryEvidence, receipt: { ...deliveryReceipt,
+  deliveryEvidence: async () => ({ ...results.deliveryEvidence, receipt: { ...deliveryReceipt,
     evidence_references: deliveryReceipt.evidence_references.map(value => ({ ...value,
       source_version: value.source_version + 1 })) } }),
-  stageWorkOrder: () => ({ ...results.stageWorkOrder, receipt: { ...workOrderReceipt,
+  stageWorkOrder: async () => ({ ...results.stageWorkOrder, receipt: { ...workOrderReceipt,
     work_order_version: workOrderReceipt.work_order_version + 1 } }),
-  portfolioAction: () => ({ ...results.portfolioAction, receipt: { ...portfolioReceipt,
+  portfolioAction: async () => ({ ...results.portfolioAction, receipt: { ...portfolioReceipt,
     order_references: portfolioReceipt.order_references.map(value => ({ ...value,
       order_version: value.order_version + 1 })) } }),
 };
@@ -305,12 +305,12 @@ for (const [operation, intent, portName] of cases) {
 
 await check('provider denial before commit has zero writes and no receipt leakage', async () => {
   const denied = { ...results.subject, receipt: { ...subjectReceipt, current_actor_can_read: false } };
-  const candidate = makeCandidate({ providerOverrides: { subject: () => denied } });
+  const candidate = makeCandidate({ providerOverrides: { subject: async () => denied } });
   bounded(await candidate.compose(command('subject_link', subjectIntent), snapshot()), 'denied', 'PROVIDER_DENIED');
   assert.equal(candidate.observed.effects, 0);
 });
 await check('provider exception before commit is bounded unknown with zero writes', async () => {
-  const candidate = makeCandidate({ providerOverrides: { subject: () => { throw new Error('private'); } } });
+  const candidate = makeCandidate({ providerOverrides: { subject: async () => { throw new Error('private'); } } });
   bounded(await candidate.compose(command('subject_link', subjectIntent), snapshot()),
     'unknown', 'PROVIDER_RESULT_UNKNOWN');
   assert.equal(candidate.observed.effects, 0);

@@ -28,7 +28,7 @@ const authorityVersion = 7;
 const authority = { actor_reference_id: actorId, authority_version: authorityVersion, outcome: 'allowed' };
 const lockOrder = [...coordinatorModule.SERVICE_RUNTIME_COMMIT_LOCK_ORDER];
 let pass = 0;
-const check = (name, fn) => { fn(); pass += 1; return name; };
+const check = async (name, fn) => { await fn(); pass += 1; return name; };
 const bounded = (value, status, code) => {
   assert.deepEqual(value, { status, code });
   assert.deepEqual(Object.keys(value).sort(), ['code', 'status']);
@@ -108,10 +108,10 @@ const results = {
     contract: 'portfolio-service-action-projection-receipt.v1', acceptance: 'contract_only', receipt: portfolioReceipt },
 };
 const ports = {
-  subject: () => results.subject,
-  deliveryEvidence: () => results.delivery,
-  stageWorkOrder: () => results.workOrder,
-  portfolioAction: () => results.portfolio,
+  subject: async () => results.subject,
+  deliveryEvidence: async () => results.delivery,
+  stageWorkOrder: async () => results.workOrder,
+  portfolioAction: async () => results.portfolio,
 };
 const coordinator = coordinatorModule.createServiceRuntimeCommitCoordinatorV1(ports);
 const command = (operation, intent, transaction = 40) => ({
@@ -129,8 +129,8 @@ const cases = [
 ];
 
 for (const [operation, intent] of cases) {
-  check(`${operation}: adapter port produces non-executable atomic plan`, () => {
-    const decision = coordinator(command(operation, intent), snapshot());
+  await check(`${operation}: adapter port produces non-executable atomic plan`, async () => {
+    const decision = await coordinator(command(operation, intent), snapshot());
     assert.equal(decision.status, 'planned');
     assert.equal(decision.code, 'CONTRACT_PLAN_READY');
     assert.equal(decision.executable, false);
@@ -141,20 +141,20 @@ for (const [operation, intent] of cases) {
     assert.equal(decision.plan.atomic, true);
     assert.equal(decision.provider_receipt_id, 'f0000000-0000-4000-8000-000000000001');
   });
-  check(`${operation}: full command fingerprint is stable`, () => {
-    const first = coordinator(command(operation, intent), snapshot());
-    const second = coordinator(command(operation, intent), snapshot());
+  await check(`${operation}: full command fingerprint is stable`, async () => {
+    const first = await coordinator(command(operation, intent), snapshot());
+    const second = await coordinator(command(operation, intent), snapshot());
     assert.equal(first.command_fingerprint, second.command_fingerprint);
   });
-  check(`${operation}: cross-Workspace denied with no plan`, () => bounded(
-    coordinator(command(operation, intent), snapshot({ workspace_id: id(90) })), 'denied', 'WORKSPACE_MISMATCH',
+  await check(`${operation}: cross-Workspace denied with no plan`, async () => bounded(
+    await coordinator(command(operation, intent), snapshot({ workspace_id: id(90) })), 'denied', 'WORKSPACE_MISMATCH',
   ));
-  check(`${operation}: revoked authority denied with no provider output`, () => bounded(
-    coordinator(command(operation, intent), snapshot({ current_authority: { ...authority, outcome: 'denied' } })),
+  await check(`${operation}: revoked authority denied with no provider output`, async () => bounded(
+    await coordinator(command(operation, intent), snapshot({ current_authority: { ...authority, outcome: 'denied' } })),
     'denied', 'AUTHORITY_REVOKED',
   ));
-  check(`${operation}: stale authority denied`, () => bounded(
-    coordinator(command(operation, intent), snapshot({ current_authority: { ...authority, authority_version: 8 } })),
+  await check(`${operation}: stale authority denied`, async () => bounded(
+    await coordinator(command(operation, intent), snapshot({ current_authority: { ...authority, authority_version: 8 } })),
     'denied', 'AUTHORITY_STALE',
   ));
 }
@@ -166,64 +166,64 @@ function permutations(values) {
 }
 for (const order of permutations(lockOrder)) {
   const exact = order.every((value, index) => value === lockOrder[index]);
-  check(`lock order ${order.join('>')}`, () => {
-    const decision = coordinator(command('subject_link', subjectIntent), snapshot({ acquired_locks: order }));
+  await check(`lock order ${order.join('>')}`, async () => {
+    const decision = await coordinator(command('subject_link', subjectIntent), snapshot({ acquired_locks: order }));
     if (exact) assert.equal(decision.status, 'planned');
     else bounded(decision, 'denied', 'LOCK_ORDER_VIOLATION');
   });
 }
 for (const locks of [[], lockOrder.slice(0, 1), lockOrder.slice(0, 2), lockOrder.slice(0, 3)]) {
-  check(`partial lock prefix denied ${locks.length}`, () => bounded(
-    coordinator(command('subject_link', subjectIntent), snapshot({ acquired_locks: locks })),
+  await check(`partial lock prefix denied ${locks.length}`, async () => bounded(
+    await coordinator(command('subject_link', subjectIntent), snapshot({ acquired_locks: locks })),
     'denied', 'LOCK_ORDER_VIOLATION',
   ));
 }
 
-check('provider port mismatch is bounded', () => {
-  const bad = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: () => results.portfolio });
-  bounded(bad(command('subject_link', subjectIntent), snapshot()), 'denied', 'PROVIDER_PORT_MISMATCH');
+await check('provider port mismatch is bounded', async () => {
+  const bad = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: async () => results.portfolio });
+  bounded(await bad(command('subject_link', subjectIntent), snapshot()), 'denied', 'PROVIDER_PORT_MISMATCH');
 });
-check('provider port unavailable is bounded', () => {
-  const bad = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: () => ({}) });
-  bounded(bad(command('subject_link', subjectIntent), snapshot()), 'denied', 'PROVIDER_PORT_UNAVAILABLE');
+await check('provider port unavailable is bounded', async () => {
+  const bad = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: async () => ({}) });
+  bounded(await bad(command('subject_link', subjectIntent), snapshot()), 'denied', 'PROVIDER_PORT_UNAVAILABLE');
 });
-check('provider exception becomes unknown without details', () => {
-  const bad = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: () => { throw new Error('private'); } });
-  bounded(bad(command('subject_link', subjectIntent), snapshot()), 'unknown', 'PROVIDER_RESULT_UNKNOWN');
+await check('provider exception becomes unknown without details', async () => {
+  const bad = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: async () => { throw new Error('private'); } });
+  bounded(await bad(command('subject_link', subjectIntent), snapshot()), 'unknown', 'PROVIDER_RESULT_UNKNOWN');
 });
 
-check('stale subject source is denied', () => {
+await check('stale subject source is denied', async () => {
   const stale = { ...results.subject, receipt: { ...subjectReceipt,
     source_identity: { ...subjectReceipt.source_identity, version: subjectReceipt.source_identity.version + 1 } } };
-  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: () => stale });
-  bounded(candidate(command('subject_link', subjectIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
+  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, subject: async () => stale });
+  bounded(await candidate(command('subject_link', subjectIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
 });
-check('stale evidence source is denied', () => {
+await check('stale evidence source is denied', async () => {
   const references = structuredClone(deliveryReceipt.evidence_references);
   references[0].source_version += 1;
   const stale = { ...results.delivery, receipt: { ...deliveryReceipt, evidence_references: references } };
-  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, deliveryEvidence: () => stale });
-  bounded(candidate(command('delivery_evidence', deliveryIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
+  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, deliveryEvidence: async () => stale });
+  bounded(await candidate(command('delivery_evidence', deliveryIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
 });
-check('stale Work Order source is denied', () => {
+await check('stale Work Order source is denied', async () => {
   const stale = { ...results.workOrder, receipt: { ...workOrderReceipt,
     work_order_version: workOrderReceipt.work_order_version + 1 } };
-  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, stageWorkOrder: () => stale });
-  bounded(candidate(command('stage_work_order', workOrderIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
+  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, stageWorkOrder: async () => stale });
+  bounded(await candidate(command('stage_work_order', workOrderIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
 });
-check('stale portfolio Order source is denied', () => {
+await check('stale portfolio Order source is denied', async () => {
   const references = structuredClone(portfolioReceipt.order_references);
   references[0].order_version += 1;
   const stale = { ...results.portfolio, receipt: { ...portfolioReceipt, order_references: references } };
-  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, portfolioAction: () => stale });
-  bounded(candidate(command('portfolio_action', portfolioIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
+  const candidate = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports, portfolioAction: async () => stale });
+  bounded(await candidate(command('portfolio_action', portfolioIntent), snapshot()), 'denied', 'STALE_PROVIDER_SOURCE');
 });
 
 let providerCalls = 0;
 const counted = coordinatorModule.createServiceRuntimeCommitCoordinatorV1({ ...ports,
-  subject: () => { providerCalls += 1; return results.subject; } });
-const first = counted(command('subject_link', subjectIntent), snapshot());
-check('concurrency winner plans exactly once', () => {
+  subject: async () => { providerCalls += 1; return results.subject; } });
+const first = await counted(command('subject_link', subjectIntent), snapshot());
+await check('concurrency winner plans exactly once', async () => {
   assert.equal(first.status, 'planned');
   assert.equal(providerCalls, 1);
 });
@@ -232,21 +232,21 @@ const committedReplay = {
   idempotency_key: subjectIntent.idempotency_key, input_fingerprint: first.command_fingerprint,
   commit_receipt_id: id(70),
 };
-check('concurrency loser returns exact replay without provider call', () => {
-  const replayed = counted(command('subject_link', subjectIntent), snapshot({ replay: committedReplay }));
+await check('concurrency loser returns exact replay without provider call', async () => {
+  const replayed = await counted(command('subject_link', subjectIntent), snapshot({ replay: committedReplay }));
   assert.deepEqual(replayed, { status: 'replayed', code: 'REPLAY_VERIFIED', prior_commit_receipt_id: id(70),
     executable: false });
   assert.equal(providerCalls, 1);
 });
-check('same key changed payload conflicts before provider call', () => {
+await check('same key changed payload conflicts before provider call', async () => {
   const changed = { ...subjectIntent, relation: 'attachment' };
-  bounded(counted(command('subject_link', changed), snapshot({ replay: committedReplay })), 'conflict', 'REPLAY_CONFLICT');
+  bounded(await counted(command('subject_link', changed), snapshot({ replay: committedReplay })), 'conflict', 'REPLAY_CONFLICT');
   assert.equal(providerCalls, 1);
 });
 for (const replayState of ['pending', 'unknown_commit']) {
-  check(`${replayState} record blocks speculative retry`, () => {
+  await check(`${replayState} record blocks speculative retry`, async () => {
     const replay = { ...committedReplay, state: replayState, commit_receipt_id: null };
-    bounded(counted(command('subject_link', subjectIntent), snapshot({ replay })), 'unknown', 'COMMIT_OUTCOME_UNKNOWN');
+    bounded(await counted(command('subject_link', subjectIntent), snapshot({ replay })), 'unknown', 'COMMIT_OUTCOME_UNKNOWN');
     assert.equal(providerCalls, 1);
   });
 }
@@ -259,24 +259,24 @@ const advance = (current, event) => {
 };
 let machine = idle;
 machine = advance(machine, { event: 'acquire_locks', lock_order: lockOrder });
-check('state machine locks first', () => assert.equal(machine.phase, 'locks_acquired'));
+await check('state machine locks first', async () => assert.equal(machine.phase, 'locks_acquired'));
 machine = advance(machine, { event: 'authority_allowed' });
-check('state machine rechecks authority after locks', () => assert.equal(machine.phase, 'authority_rechecked'));
+await check('state machine rechecks authority after locks', async () => assert.equal(machine.phase, 'authority_rechecked'));
 machine = advance(machine, { event: 'providers_verified' });
-check('state machine verifies providers after authority', () => assert.equal(machine.phase, 'providers_verified'));
+await check('state machine verifies providers after authority', async () => assert.equal(machine.phase, 'providers_verified'));
 machine = advance(machine, { event: 'stage_effects' });
-check('staging effects performs no write', () => assert.deepEqual(machine,
+await check('staging effects performs no write', async () => assert.deepEqual(machine,
   { phase: 'effects_staged', effects_observation: 'staged_not_written', retryable: false }));
 machine = advance(machine, { event: 'commit_acknowledged' });
-check('commit acknowledgement exposes one atomic effect set', () => assert.deepEqual(machine,
+await check('commit acknowledgement exposes one atomic effect set', async () => assert.deepEqual(machine,
   { phase: 'committed', effects_observation: 'committed_once', retryable: false }));
-check('committed state cannot commit twice', () => {
+await check('committed state cannot commit twice', async () => {
   const denied = coordinatorModule.transitionServiceRuntimeCommitV1(machine, { event: 'commit_acknowledged' });
   assert.deepEqual(denied, { status: 'denied', code: 'INVALID_STATE_TRANSITION', state: machine });
 });
 
 for (const phase of ['idle', 'locks_acquired', 'authority_rechecked', 'providers_verified', 'effects_staged']) {
-  check(`denial at ${phase} rolls back with zero observed writes`, () => {
+  await check(`denial at ${phase} rolls back with zero observed writes`, async () => {
     const effects = phase === 'effects_staged' ? 'staged_not_written' : 'none';
     const result = coordinatorModule.transitionServiceRuntimeCommitV1(
       { phase, effects_observation: effects, retryable: false }, { event: 'deny' },
@@ -285,7 +285,7 @@ for (const phase of ['idle', 'locks_acquired', 'authority_rechecked', 'providers
       retryable: false } });
   });
 }
-check('wrong state-machine lock order is rejected without advance', () => {
+await check('wrong state-machine lock order is rejected without advance', async () => {
   const wrong = [...lockOrder].reverse();
   const result = coordinatorModule.transitionServiceRuntimeCommitV1(idle, { event: 'acquire_locks', lock_order: wrong });
   assert.deepEqual(result, { status: 'denied', code: 'INVALID_STATE_TRANSITION', state: idle });
@@ -299,37 +299,37 @@ for (const event of [
   { event: 'stage_effects' },
   { event: 'connection_lost_after_commit_attempt' },
 ]) unknown = advance(unknown, event);
-check('lost acknowledgement becomes unknown commit', () => assert.deepEqual(unknown,
+await check('lost acknowledgement becomes unknown commit', async () => assert.deepEqual(unknown,
   { phase: 'unknown_commit', effects_observation: 'unknown', retryable: false }));
-check('unknown commit cannot be acknowledged speculatively', () => {
+await check('unknown commit cannot be acknowledged speculatively', async () => {
   const result = coordinatorModule.transitionServiceRuntimeCommitV1(unknown, { event: 'commit_acknowledged' });
   assert.equal(result.status, 'denied');
   assert.deepEqual(result.state, unknown);
 });
-check('unknown commit recovery can prove committed once', () => {
+await check('unknown commit recovery can prove committed once', async () => {
   const result = advance(unknown, { event: 'recovery_committed' });
   assert.deepEqual(result, { phase: 'committed', effects_observation: 'committed_once', retryable: false });
 });
-check('unknown commit recovery can prove zero-write rollback before retry', () => {
+await check('unknown commit recovery can prove zero-write rollback before retry', async () => {
   const result = advance(unknown, { event: 'recovery_absent' });
   assert.deepEqual(result, { phase: 'rolled_back', effects_observation: 'none', retryable: true });
 });
 
-check('invalid delivery action cannot request evidence port', () => {
+await check('invalid delivery action cannot request evidence port', async () => {
   const other = { ...deliveryIntent, action: 'accept_delivery' };
   delete other.evidence_references;
-  bounded(coordinator(command('delivery_evidence', other), snapshot()), 'denied', 'PROVIDER_NOT_REQUIRED_FOR_ACTION');
+  bounded(await coordinator(command('delivery_evidence', other), snapshot()), 'denied', 'PROVIDER_NOT_REQUIRED_FOR_ACTION');
 });
-check('unknown client field is rejected', () => bounded(
-  coordinator({ ...command('subject_link', subjectIntent), audit_id: id(99) }, snapshot()),
+await check('unknown client field is rejected', async () => bounded(
+  await coordinator({ ...command('subject_link', subjectIntent), audit_id: id(99) }, snapshot()),
   'denied', 'INVALID_COMMIT_INPUT',
 ));
 
 const source = readFileSync(new URL('../src/lib/customer/service-runtime-commit-coordinator-v1.ts', import.meta.url), 'utf8');
-check('coordinator has no runtime I/O', () => assert.doesNotMatch(source,
+await check('coordinator has no runtime I/O', async () => assert.doesNotMatch(source,
   /(?:fetch\s*\(|supabase|\.from\s*\(|\.insert\s*\(|\.update\s*\(|\.delete\s*\()/i));
-check('coordinator remains explicitly non-executable', () => assert.match(source, /executable: false/));
-check('coordinator declares canonical shared effects', () => {
+await check('coordinator remains explicitly non-executable', async () => assert.match(source, /executable: false/));
+await check('coordinator declares canonical shared effects', async () => {
   assert.match(source, /audit\.events/);
   assert.match(source, /platform\.outbox_events/);
   assert.match(source, /platform\.idempotency_keys/);

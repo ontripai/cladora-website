@@ -94,10 +94,18 @@ export const serviceCanonicalProviderPortResultV1Schema = z.discriminatedUnion('
 export type ServiceCanonicalProviderPortResultV1 = z.infer<typeof serviceCanonicalProviderPortResultV1Schema>;
 
 export type ServiceRuntimeCanonicalProviderPortsV1 = {
-  subject: (intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'subject_link' }>['intent']) => unknown;
-  deliveryEvidence: (intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'delivery_evidence' }>['intent']) => unknown;
-  stageWorkOrder: (intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'stage_work_order' }>['intent']) => unknown;
-  portfolioAction: (intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'portfolio_action' }>['intent']) => unknown;
+  subject: (
+    intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'subject_link' }>['intent'],
+  ) => Promise<unknown>;
+  deliveryEvidence: (
+    intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'delivery_evidence' }>['intent'],
+  ) => Promise<unknown>;
+  stageWorkOrder: (
+    intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'stage_work_order' }>['intent'],
+  ) => Promise<unknown>;
+  portfolioAction: (
+    intent: Extract<ServiceRuntimeCommitCommandV1, { operation: 'portfolio_action' }>['intent'],
+  ) => Promise<unknown>;
 };
 
 export type ServiceRuntimeCommitDecisionV1 =
@@ -147,10 +155,10 @@ function exactLockOrder(locks: ServiceRuntimeCommitSnapshotV1['acquired_locks'])
  * the atomic persistence boundary receive separate acceptance.
  */
 export function createServiceRuntimeCommitCoordinatorV1(ports: ServiceRuntimeCanonicalProviderPortsV1) {
-  return function planServiceRuntimeCommitV1(
+  return async function planServiceRuntimeCommitV1(
     commandInput: unknown,
     snapshotInput: unknown,
-  ): ServiceRuntimeCommitDecisionV1 {
+  ): Promise<ServiceRuntimeCommitDecisionV1> {
     const commandResult = serviceRuntimeCommitCommandV1Schema.safeParse(commandInput);
     const snapshotResult = serviceRuntimeCommitSnapshotV1Schema.safeParse(snapshotInput);
     if (!commandResult.success || !snapshotResult.success) return bounded('denied', 'INVALID_COMMIT_INPUT');
@@ -184,10 +192,10 @@ export function createServiceRuntimeCommitCoordinatorV1(ports: ServiceRuntimeCan
 
     let rawPortResult: unknown;
     try {
-      if (command.operation === 'subject_link') rawPortResult = ports.subject(command.intent);
-      else if (command.operation === 'delivery_evidence') rawPortResult = ports.deliveryEvidence(command.intent);
-      else if (command.operation === 'stage_work_order') rawPortResult = ports.stageWorkOrder(command.intent);
-      else rawPortResult = ports.portfolioAction(command.intent);
+      if (command.operation === 'subject_link') rawPortResult = await ports.subject(command.intent);
+      else if (command.operation === 'delivery_evidence') rawPortResult = await ports.deliveryEvidence(command.intent);
+      else if (command.operation === 'stage_work_order') rawPortResult = await ports.stageWorkOrder(command.intent);
+      else rawPortResult = await ports.portfolioAction(command.intent);
     } catch {
       return bounded('unknown', 'PROVIDER_RESULT_UNKNOWN');
     }
