@@ -204,3 +204,9 @@ export const airpropManagementActionLinkCommandV1Schema = z.strictObject({
   mandate_request_id: uuid,
   work_order_id: uuid,
 });
+
+/** Contract-only AP08 read intent. Runtime projection is delivered separately. */
+export const airpropManagementPortfolioReadV1Schema = z.strictObject({
+  ...base,
+  action: z.literal('read_management_portfolio'),
+});
