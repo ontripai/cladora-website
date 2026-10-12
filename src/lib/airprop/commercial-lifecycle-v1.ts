@@ -78,3 +78,37 @@ export const commercialLifecycleResponseV1Schema = z.object({
   version: z.literal(1),
   idempotent: z.boolean(),
 }).passthrough();
+
+/** Contract-only AP01 commands. Runtime/API activation is delivered separately. */
+export const airpropListingControlCommandV1Schema = z.union([
+  z.strictObject({
+    ...base,
+    action: z.literal('edit_listing'),
+    listing_id: uuid,
+    expected_version: z.number().int().positive(),
+    available_from: isoTimestamp,
+    available_until: isoTimestamp.nullable(),
+    reason: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
+    action: z.literal('withdraw_listing'),
+    listing_id: uuid,
+    expected_version: z.number().int().positive(),
+    reason: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
+    action: z.literal('republish_listing'),
+    listing_id: uuid,
+    expected_version: z.number().int().positive(),
+    available_from: isoTimestamp,
+    available_until: isoTimestamp.nullable(),
+    reason: z.string().trim().min(8).max(500),
+  }),
+]).superRefine((value, ctx) => {
+  if ((value.action === 'edit_listing' || value.action === 'republish_listing')
+    && value.available_until !== null && value.available_until <= value.available_from) {
+    ctx.addIssue({ code: 'custom', path: ['available_until'], message: 'invalid_period' });
+  }
+});
