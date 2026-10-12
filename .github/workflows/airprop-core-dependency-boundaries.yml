@@ -1,0 +1,21 @@
+name: AIRPROP Core dependency boundaries
+on:
+  pull_request:
+    paths:
+      - 'docs/airprop/AIRPROP-CORE-DEPENDENCY-BOUNDARIES-v1.0.md'
+      - 'scripts/test-airprop-core-dependency-boundaries.mjs'
+      - '.github/workflows/airprop-core-dependency-boundaries.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-airprop-core-dependency-boundaries.mjs
+      - run: git diff --check
