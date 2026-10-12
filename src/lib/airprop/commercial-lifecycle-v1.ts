@@ -112,3 +112,30 @@ export const airpropListingControlCommandV1Schema = z.union([
     ctx.addIssue({ code: 'custom', path: ['available_until'], message: 'invalid_period' });
   }
 });
+
+/** Contract-only AP02 commands. Runtime/API activation is delivered separately. */
+export const airpropReservationControlCommandV1Schema = z.union([
+  z.strictObject({
+    ...base,
+    action: z.enum(['cancel_reservation', 'expire_reservation']),
+    reservation_id: uuid,
+    expected_version: z.number().int().positive(),
+    reason: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
+    action: z.literal('extend_reservation'),
+    reservation_id: uuid,
+    expected_version: z.number().int().positive(),
+    reserved_until: isoTimestamp,
+    reason: z.string().trim().min(8).max(500),
+  }),
+  z.strictObject({
+    ...base,
+    action: z.literal('convert_reservation'),
+    reservation_id: uuid,
+    expected_version: z.number().int().positive(),
+    conversion_reference: z.string().trim().min(8).max(500),
+    reason: z.string().trim().min(8).max(500),
+  }),
+]);
