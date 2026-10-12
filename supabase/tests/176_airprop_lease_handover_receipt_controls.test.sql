@@ -1,4 +1,9 @@
 begin;
+
+-- Transaction-only fixture for the historical activated gateway contract.
+-- Artifact A leaves these gateways inactive; ROLLBACK removes every test grant.
+grant execute on function customer_api.link_airprop_commercial_execution_v1(uuid,uuid,uuid,uuid,text,uuid,jsonb,date,date,text) to authenticated;
+
 select plan(31);
 
 select has_function('airprop','validate_lease_execution_link_v1',array[]::text[],'AP05 lease receipt validator exists');

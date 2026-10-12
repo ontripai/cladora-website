@@ -1,4 +1,9 @@
 begin;
+
+-- Transaction-only fixture for the historical activated gateway contract.
+-- Artifact A leaves these gateways inactive; ROLLBACK removes every test grant.
+grant execute on function customer_api.link_airprop_management_work_order_v1(uuid,uuid,uuid,uuid,text) to authenticated;
+
 select plan(28);
 
 select has_table('airprop','management_action_links','AP07 management action receipt exists');

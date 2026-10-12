@@ -1,4 +1,9 @@
 begin;
+
+-- Transaction-only fixture for the historical activated gateway contract.
+-- Artifact A leaves these gateways inactive; ROLLBACK removes every test grant.
+grant execute on function customer_api.control_airprop_reservation_v1(uuid,uuid,uuid,text,integer,timestamptz,text,text,text) to authenticated;
+
 select plan(39);
 
 select has_table('airprop','reservation_revisions','reservation revision ledger exists');

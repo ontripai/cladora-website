@@ -1,4 +1,9 @@
 begin;
+
+-- Transaction-only fixture for the historical activated gateway contract.
+-- Artifact A leaves these gateways inactive; ROLLBACK removes every test grant.
+grant execute on function customer_api.record_airprop_obligation_schedule_v1(uuid,uuid,uuid,text,numeric,jsonb,text,text) to authenticated;
+
 select plan(34);
 
 select has_function('customer_api','record_airprop_obligation_schedule_v1',

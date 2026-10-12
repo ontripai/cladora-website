@@ -1,4 +1,10 @@
 begin;
+
+-- Transaction-only fixture for the historical activated gateway contract.
+-- Artifact A leaves these gateways inactive; ROLLBACK removes every test grant.
+grant execute on function customer_api.request_airprop_management_mandate_v1(uuid,uuid,uuid,uuid,jsonb,date,date,text,text) to authenticated;
+grant execute on function customer_api.accept_airprop_management_mandate_v1(uuid,uuid,uuid,text,text) to authenticated;
+
 select plan(33);
 
 select has_table('airprop','management_mandate_requests','AP06 mandate request receipt exists');
