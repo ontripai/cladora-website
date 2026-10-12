@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP02-RSV-01 / Draft PR #319 at `bea9e3064f1695b54eb5f468ffe41e1eae3e94cb`
 
-**Status:** Locally verified; exact-head ephemeral database runtime pending
+**Status:** Exact-head CI verified; review acceptance pending
 
 ## Scope
 
@@ -39,8 +39,9 @@ This is a real cross-workstream dependency, not a reason to introduce an AIRPROP
 | ESLint | Passed |
 | `git diff --check` | Passed |
 | Local pgTAP runtime | Not executed: managed Docker is unavailable and the Supabase CLI cannot create its fixed config directory on the read-only home filesystem |
-| GitHub Actions database runtime | Pending exact-head Draft PR CI |
+| GitHub Actions database runtime | AP03 30/30; all 165 files / 5215 assertions passed in run `37922872768` |
+| Exact-head checks | AIRPROP scope `37922872775`, valuation `37922872806` and Vercel Preview passed |
 
 All fixtures are synthetic and use no human account. The database advisory lock and unique constraints are exercised contractually; a separate simultaneous-session AP03 race harness is not claimed.
 
-The migration is an unmerged development artifact. It has not been applied to Supabase Remote or Production.
+The exact tested head is `d769460aa7bb3ab2df72931b8de38b4a248e03e3` on Draft PR #333. Green CI and its receipt are not review acceptance or closure. The migration is an unmerged development artifact and has not been applied to Supabase Remote or Production.

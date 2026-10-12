@@ -16,6 +16,7 @@ function load(path) {
 }
 
 const {
+  commercialLifecycleCommandV1Schema,
   airpropListingControlCommandV1Schema,
   airpropReservationControlCommandV1Schema,
 } = load('src/lib/airprop/commercial-lifecycle-v1.ts');
@@ -50,4 +51,12 @@ for (const command of [
   { ...reservation, action: 'expire_reservation', actor_id: id(9) },
 ]) assert.equal(airpropReservationControlCommandV1Schema.safeParse(command).success, false);
 
-console.log('AIRPROP commercial contract bundle: 15 checks passed');
+const resale = { ...base, idempotency_key: 'resale-contract-v14', action: 'link_execution', property_id: id(5), unit_id: id(6), kind: 'resale', core_record_id: id(7), commercial_terms: { price: '100.0000', currency: 'EUR' }, effective_from: '2026-10-12', effective_to: null };
+assert.equal(commercialLifecycleCommandV1Schema.safeParse(resale).success, true);
+for (const command of [
+  { ...resale, commercial_terms: { price: '100.0000' } },
+  { ...resale, commercial_terms: { price: '-1', currency: 'EUR' } },
+  { ...resale, effective_to: '2026-10-13' },
+]) assert.equal(commercialLifecycleCommandV1Schema.safeParse(command).success, false);
+
+console.log('AIRPROP commercial contract bundle: 19 checks passed');
