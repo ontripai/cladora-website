@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP05-LSE-01 / Draft PR #341 at `b23cf4eef3742e4ccec43e5fbd0fd755ea84c6c8`
 
-**Status:** Locally verified; exact-head ephemeral database runtime pending
+**Status:** Exact-head CI verified on Draft PR #342
 
 ## Scope
 
@@ -35,6 +35,9 @@ An accepted commercial mandate is therefore not software command authority. Core
 | TypeScript typecheck | Passed |
 | ESLint | Passed |
 | `git diff --check` | Passed |
-| GitHub Actions database runtime | Pending exact-head Draft PR CI |
+| GitHub Actions database runtime | Run `37926577724` passed: AP06 33/33; all 168 files / 5312 assertions passed |
+| Application Foundation | Run `37926577733` passed |
+| AIRPROP commercial lifecycle | Run `37926577678` passed |
+| Vercel | Passed for exact head `622245fc42914f169fb90a4f9e578923300b8a1a` |
 
 Fixtures are synthetic and use no human account. The migration is an unmerged development artifact and has not been applied to Supabase Remote or Production.

@@ -196,3 +196,11 @@ export const airpropManagementMandateCommandV1Schema = z.union([
     acceptance_evidence_reference: z.string().trim().min(8).max(500),
   }),
 ]);
+
+/** Contract-only AP07 command. It never creates or mutates the referenced work order. */
+export const airpropManagementActionLinkCommandV1Schema = z.strictObject({
+  ...base,
+  action: z.literal('link_management_work_order'),
+  mandate_request_id: uuid,
+  work_order_id: uuid,
+});
