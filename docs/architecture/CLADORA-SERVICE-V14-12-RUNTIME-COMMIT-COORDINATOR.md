@@ -11,7 +11,9 @@
 | Stage/Work Order | OPS01 `operations-execution-request-receipt.v1` | `service-order-stage-work-order-adapter.v1` | OPS01 schema exists on `main`; SERVICE stage bridge and runtime issuance are contract-only |
 | Portfolio action | PF01 `owner-portfolio-projection.v1` | `portfolio-service-action-projection-receipt.v1` | PF01 schema exists on `main`; SERVICE Order/action projection bridge and runtime issuance are contract-only |
 
-All injected port results carry `acceptance: contract_only`. A verified adapter result can therefore produce only `CONTRACT_PLAN_READY` with `executable=false`; it cannot activate runtime behavior or imply provider acceptance.
+All five injected provider boundaries, including the Core transactional authority port, return Promises so their future DB-backed implementations can be awaited inside the transaction. The coordinator awaits each canonical source before validating its receipt. Rejection produces only the bounded `PROVIDER_RESULT_UNKNOWN` result. This contract change adds no implementation, I/O, route, persistence, or runtime import.
+
+All injected canonical port results carry `acceptance: contract_only`. A verified adapter result can therefore produce only `CONTRACT_PLAN_READY` with `executable=false`; it cannot activate runtime behavior or imply provider acceptance.
 
 ## Transaction and recovery model
 
