@@ -21,6 +21,7 @@ const {
   airpropReservationControlCommandV1Schema,
   airpropManagementMandateCommandV1Schema,
   airpropManagementActionLinkCommandV1Schema,
+  airpropManagementPortfolioReadV1Schema,
 } = load('src/lib/airprop/commercial-lifecycle-v1.ts');
 const id = value => `00000000-0000-0000-0000-${String(value).padStart(12, '0')}`;
 const base = { version: 1, context_id: id(1), workspace_id: id(2), idempotency_key: 'commercial-contract-v14' };
@@ -81,4 +82,8 @@ const actionLink = { ...base, idempotency_key: 'action-link-contract-v14', actio
 assert.equal(airpropManagementActionLinkCommandV1Schema.safeParse(actionLink).success, true);
 assert.equal(airpropManagementActionLinkCommandV1Schema.safeParse({ ...actionLink, workspace_id: id(12), actor_id: id(13) }).success, false);
 
-console.log('AIRPROP commercial contract bundle: 29 checks passed');
+const portfolioRead = { ...base, idempotency_key: 'portfolio-read-contract-v14', action: 'read_management_portfolio' };
+assert.equal(airpropManagementPortfolioReadV1Schema.safeParse(portfolioRead).success, true);
+assert.equal(airpropManagementPortfolioReadV1Schema.safeParse({ ...portfolioRead, authority: true }).success, false);
+
+console.log('AIRPROP commercial contract bundle: 31 checks passed');
