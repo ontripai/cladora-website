@@ -59,4 +59,11 @@ for (const command of [
   { ...resale, effective_to: '2026-10-13' },
 ]) assert.equal(commercialLifecycleCommandV1Schema.safeParse(command).success, false);
 
-console.log('AIRPROP commercial contract bundle: 19 checks passed');
+const lease = { ...base, idempotency_key: 'lease-contract-v14', action: 'link_execution', property_id: id(5), unit_id: id(6), kind: 'lease', core_record_id: id(8), commercial_terms: { rent_amount: 1500, currency: 'EUR' }, effective_from: '2026-10-12', effective_to: null };
+assert.equal(commercialLifecycleCommandV1Schema.safeParse(lease).success, true);
+for (const command of [
+  { ...lease, commercial_terms: { rent_amount: 0, currency: 'EUR' } },
+  { ...lease, commercial_terms: { rent_amount: 1500, currency: 'euro' } },
+]) assert.equal(commercialLifecycleCommandV1Schema.safeParse(command).success, false);
+
+console.log('AIRPROP commercial contract bundle: 22 checks passed');
