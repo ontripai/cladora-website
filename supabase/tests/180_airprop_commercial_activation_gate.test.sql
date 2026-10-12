@@ -1,0 +1,18 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(11);
+select ok(not has_function_privilege('authenticated','customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)','EXECUTE'),'listing gateway inactive before activation');
+select ok(not has_function_privilege('authenticated','customer_api.control_airprop_reservation_v1(uuid,uuid,uuid,text,integer,timestamptz,text,text,text)','EXECUTE'),'reservation gateway inactive before activation');
+select ok(not has_function_privilege('authenticated','customer_api.record_airprop_obligation_schedule_v1(uuid,uuid,uuid,text,numeric,jsonb,text,text)','EXECUTE'),'presale gateway inactive before activation');
+select ok(not has_function_privilege('authenticated','customer_api.link_airprop_commercial_execution_v1(uuid,uuid,uuid,uuid,text,uuid,jsonb,date,date,text)','EXECUTE'),'execution gateway inactive before activation');
+select ok(not has_function_privilege('authenticated','customer_api.request_airprop_management_mandate_v1(uuid,uuid,uuid,uuid,jsonb,date,date,text,text)','EXECUTE'),'mandate request inactive before activation');
+select ok(not has_function_privilege('authenticated','customer_api.accept_airprop_management_mandate_v1(uuid,uuid,uuid,text,text)','EXECUTE'),'mandate acceptance inactive before activation');
+select ok(not has_function_privilege('authenticated','customer_api.link_airprop_management_work_order_v1(uuid,uuid,uuid,uuid,text)','EXECUTE'),'management action inactive before activation');
+select ok(not has_function_privilege('authenticated','customer_api.read_airprop_management_portfolio_v1(uuid,uuid)','EXECUTE'),'portfolio read inactive before activation');
+select is((select count(*) from airprop.market_listing_revisions)+(select count(*) from airprop.reservation_revisions)+(select count(*) from airprop.purchase_obligation_schedules)+(select count(*) from airprop.commercial_execution_links)+(select count(*) from airprop.management_mandate_requests)+(select count(*) from airprop.management_action_links)+(select count(*) from audit.events),0::bigint,'preactivation business and audit tables start empty');
+set local role authenticated;
+select throws_ok($$select customer_api.control_airprop_listing_v1(null,null,null,'edit',0,null,null,null,null)$$,'42501','permission denied for function control_airprop_listing_v1','authenticated request is denied before activation');
+reset role;
+select is((select count(*) from airprop.market_listing_revisions)+(select count(*) from airprop.reservation_revisions)+(select count(*) from airprop.purchase_obligation_schedules)+(select count(*) from airprop.commercial_execution_links)+(select count(*) from airprop.management_mandate_requests)+(select count(*) from airprop.management_action_links)+(select count(*) from audit.events),0::bigint,'preactivation denial is zero-write');
+select * from finish();
+rollback;

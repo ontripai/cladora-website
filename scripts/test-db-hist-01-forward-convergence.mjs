@@ -13,7 +13,12 @@ const candidateSha256 = 'fdff99135db6cba70ff480552aff1e8e24516d79c31b50ee9394293
 const hash = (value) => createHash('sha256').update(value).digest('hex');
 
 const migrations = readdirSync(migrationsDir).filter((name) => name.endsWith('.sql')).sort();
-assert.equal(migrations.length, 238, 'forward package must contain 238 migrations');
+// The DB-HIST-01 baseline remains immutable when Artifact A appends eight migrations.
+const baseline = migrations.filter((name) => name.slice(0, 14) <= '20261007112219');
+assert.equal(baseline.length, 238, 'forward baseline must contain 238 migrations');
+const baselineManifest = baseline.map((name) => `${name} ${hash(readFileSync(join(migrationsDir, name)))}\n`).join('');
+assert.equal(hash(baselineManifest), 'b66e6fd930fb358e5f5e0fcf21c51020f503a56a250471046c633cba4a709185', 'all 238 baseline migration names and bytes stay immutable');
+assert.equal(migrations.length, 246, 'forward package plus Artifact A must contain exactly 246 migrations');
 assert.equal(migrations.filter((name) => name === candidateName).length, 1, 'forward migration must occur once');
 
 const versions = migrations.map((name) => name.slice(0, 14));
