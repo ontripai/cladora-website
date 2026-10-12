@@ -1,0 +1,45 @@
+name: AIRPROP Core dependency contract integration
+on:
+  pull_request:
+    paths:
+      - 'scripts/test-airprop-pf02-candidate.mjs'
+      - 'scripts/lib/airprop-provider-revisions.mjs'
+      - 'docs/airprop/AP10-MULTI-UNIT-MANAGEMENT-E2E-v1.0.md'
+      - 'docs/airprop/AP-PF02-CANDIDATE-MAPPING-v1.0.md'
+      - '.github/workflows/airprop-core-consumer-integration.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  pf02-candidate-preparation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: consumer
+    env:
+      CLADORA_PF02_PROVIDER_ROOT: ${{ github.workspace }}/pf02-provider
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: consumer
+      - uses: actions/checkout@v4
+        with:
+          ref: 4728fcce8392ebea3a13875ed19ab2895fe0f5a0
+          path: pf02-provider
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm ci
+        working-directory: pf02-provider
+      - run: node scripts/test-airprop-pf02-candidate.mjs
+      - run: node scripts/test-airprop-core-dependency-boundaries.mjs
+      - run: npm run lint
+      - run: npm run typecheck
+      - uses: actions/upload-artifact@v4
+        with:
+          name: airprop-pf02-candidate-${{ github.event.pull_request.head.sha || github.sha }}
+          path: consumer/airprop-pf02-candidate-evidence.json
+          if-no-files-found: error
