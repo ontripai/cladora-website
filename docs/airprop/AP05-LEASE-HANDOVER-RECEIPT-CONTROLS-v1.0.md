@@ -6,7 +6,7 @@
 
 **Parent delivery:** AP04-RSL-01 / Draft PR #340 at `fe2492c9eb5122f24a1ddc688acd1ee8ee6fd515`
 
-**Status:** Locally verified; exact-head ephemeral database runtime pending; Finance receipt integration blocked on FIN01
+**Status:** Exact-head CI verified on Draft PR #341; Finance receipt integration blocked on FIN01
 
 ## Scope and boundary
 
@@ -28,6 +28,9 @@ The controlled plan requires receipt from Finance. No accepted FIN01 source/post
 | TypeScript typecheck | Passed |
 | ESLint | Passed |
 | `git diff --check` | Passed |
-| GitHub Actions database runtime | Pending exact-head Draft PR CI |
+| GitHub Actions database runtime | Run `37925791969` passed: AP05 pgTAP passed; all 167 files / 5279 assertions passed |
+| Application Foundation | Run `37925792137` passed |
+| AIRPROP commercial lifecycle | Run `37925792029` passed |
+| Vercel | Passed for exact head `b23cf4eef3742e4ccec43e5fbd0fd755ea84c6c8` |
 
 Fixtures are synthetic and use no human account. The migration is an unmerged development artifact and has not been applied to Supabase Remote or Production.

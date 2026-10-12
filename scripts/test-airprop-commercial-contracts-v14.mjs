@@ -19,6 +19,7 @@ const {
   commercialLifecycleCommandV1Schema,
   airpropListingControlCommandV1Schema,
   airpropReservationControlCommandV1Schema,
+  airpropManagementMandateCommandV1Schema,
 } = load('src/lib/airprop/commercial-lifecycle-v1.ts');
 const id = value => `00000000-0000-0000-0000-${String(value).padStart(12, '0')}`;
 const base = { version: 1, context_id: id(1), workspace_id: id(2), idempotency_key: 'commercial-contract-v14' };
@@ -66,4 +67,13 @@ for (const command of [
   { ...lease, commercial_terms: { rent_amount: 1500, currency: 'euro' } },
 ]) assert.equal(commercialLifecycleCommandV1Schema.safeParse(command).success, false);
 
-console.log('AIRPROP commercial contract bundle: 22 checks passed');
+const mandate = { ...base, idempotency_key: 'mandate-contract-v14', action: 'request_management_mandate', property_id: id(5), owner_party_id: id(9), scope: { capabilities: ['listing', 'owner_reporting'] }, valid_from: '2026-10-12', valid_to: '2027-10-12', proposal_evidence_reference: 'urn:airprop:mandate:proposal:1' };
+assert.equal(airpropManagementMandateCommandV1Schema.safeParse(mandate).success, true);
+assert.equal(airpropManagementMandateCommandV1Schema.safeParse({ ...base, idempotency_key: 'mandate-accept-v14', action: 'accept_management_mandate', mandate_request_id: id(10), acceptance_evidence_reference: 'urn:airprop:mandate:acceptance:1' }).success, true);
+for (const command of [
+  { ...mandate, valid_to: '2026-10-11' },
+  { ...mandate, scope: { capabilities: ['listing', 'listing'] } },
+  { ...mandate, authority_id: id(11) },
+]) assert.equal(airpropManagementMandateCommandV1Schema.safeParse(command).success, false);
+
+console.log('AIRPROP commercial contract bundle: 27 checks passed');
