@@ -52,7 +52,8 @@
     "test:service-v14:runtime-persistence": "node scripts/test-service-runtime-persistence-v1.mjs",
     "test:service-v14:runtime-persistence:postgres": "node scripts/test-service-runtime-persistence-postgres-v1.mjs",
     "test:core-current-authority-port": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-transaction-port.mjs",
-    "test:core-current-authority-consumers": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-consumer-conformance.mjs"
+    "test:core-current-authority-consumers": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-consumer-conformance.mjs",
+    "test:core-tx-host:postgres": "node scripts/test-core-transaction-host-postgres-v1.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
