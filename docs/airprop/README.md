@@ -43,3 +43,5 @@ AIRPROP diligence protects its local unsaved edits against both in-module naviga
 [AP01-LC-01 listing controls](AP01-LISTING-CONTROLS-v1.0.md) add versioned edit, withdrawal and republish commands to the existing commercial listing lifecycle. Production migration and deployment require separate authorization.
 
 [AP02-RSV-01 reservation controls](AP02-RESERVATION-CONTROLS-v1.0.md) add versioned cancel, expiry, extension and commercial handoff transitions while preserving the existing exclusive-winner constraint. They do not create ownership, membership, canonical leases or financial postings.
+
+[AP09 management portfolio wizard](AP09-MANAGEMENT-PORTFOLIO-WIZARD-v1.0.md) and [AP10 multi-unit management E2E](AP10-MULTI-UNIT-MANAGEMENT-E2E-v1.0.md) preserve the contract and test-fixture boundary; UI/API activation remains in the private runtime bundle.

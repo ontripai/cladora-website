@@ -22,6 +22,8 @@ const {
   airpropManagementMandateCommandV1Schema,
   airpropManagementActionLinkCommandV1Schema,
   airpropManagementPortfolioReadV1Schema,
+  managementPortfolioQueryV1Schema,
+  managementPortfolioResponseV1Schema,
 } = load('src/lib/airprop/commercial-lifecycle-v1.ts');
 const id = value => `00000000-0000-0000-0000-${String(value).padStart(12, '0')}`;
 const base = { version: 1, context_id: id(1), workspace_id: id(2), idempotency_key: 'commercial-contract-v14' };
@@ -86,4 +88,10 @@ const portfolioRead = { ...base, idempotency_key: 'portfolio-read-contract-v14',
 assert.equal(airpropManagementPortfolioReadV1Schema.safeParse(portfolioRead).success, true);
 assert.equal(airpropManagementPortfolioReadV1Schema.safeParse({ ...portfolioRead, authority: true }).success, false);
 
-console.log('AIRPROP commercial contract bundle: 31 checks passed');
+assert.equal(managementPortfolioQueryV1Schema.safeParse({ context_id: id(1), workspace_id: id(2) }).success, true);
+assert.equal(managementPortfolioQueryV1Schema.safeParse({ context_id: id(1), workspace_id: id(2), actor_id: id(3) }).success, false);
+const portfolio = { version: 1, idempotent: true, as_of: '2026-10-12T00:00:00Z', properties: [], operations: { detail_owner: 'Operations', mode: 'canonical_references_only' }, finance: { detail_owner: 'Finance', mode: 'not_connected', reason: 'canonical_receipt_contract_unavailable' } };
+assert.equal(managementPortfolioResponseV1Schema.safeParse(portfolio).success, true);
+assert.equal(managementPortfolioResponseV1Schema.safeParse({ ...portfolio, private_metadata: id(4) }).success, false);
+
+console.log('AIRPROP commercial contract bundle: 35 checks passed');
