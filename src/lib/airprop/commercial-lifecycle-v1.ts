@@ -6,6 +6,19 @@ const requestKey = z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/);
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 const isoTimestamp = z.string().datetime({ offset: true });
 const commercialAmount = /^(0|[1-9][0-9]{0,15})(\.[0-9]{1,4})?$/;
+const managementCapability = z.enum([
+  'listing',
+  'lease_administration',
+  'maintenance_coordination',
+  'owner_reporting',
+  'rent_collection',
+  'supplier_coordination',
+]);
+const managementScope = z.strictObject({
+  capabilities: z.array(managementCapability).min(1).max(6)
+    .refine(value => new Set(value).size === value.length),
+  notes: z.string().trim().min(1).max(1000).optional(),
+});
 
 const base = {
   version: z.literal(1),
@@ -161,5 +174,25 @@ export const airpropReservationControlCommandV1Schema = z.union([
     expected_version: z.number().int().positive(),
     conversion_reference: z.string().trim().min(8).max(500),
     reason: z.string().trim().min(8).max(500),
+  }),
+]);
+
+/** Contract-only AP06 commands. Runtime/API activation is delivered separately. */
+export const airpropManagementMandateCommandV1Schema = z.union([
+  z.strictObject({
+    ...base,
+    action: z.literal('request_management_mandate'),
+    property_id: uuid,
+    owner_party_id: uuid,
+    scope: managementScope,
+    valid_from: isoDate,
+    valid_to: isoDate,
+    proposal_evidence_reference: z.string().trim().min(8).max(500),
+  }).refine(value => value.valid_to > value.valid_from, { path: ['valid_to'], message: 'invalid_period' }),
+  z.strictObject({
+    ...base,
+    action: z.literal('accept_management_mandate'),
+    mandate_request_id: uuid,
+    acceptance_evidence_reference: z.string().trim().min(8).max(500),
   }),
 ]);
