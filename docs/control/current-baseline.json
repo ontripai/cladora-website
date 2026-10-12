@@ -1,148 +1,92 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.3",
   "baseline_version": "1.4",
-  "date": "2026-10-08",
-  "plan_status": "user-approved direction and work assignments",
-  "repository_status": "in_review in Draft PR #313; merge pending",
+  "date": "2026-10-12",
+  "plan_status": "contract consolidation complete; runtime integration gated",
+  "repository_status": "All v1.4 workstream contract branches are merged and deleted; two Documentation/PM pull requests remain open.",
   "repository": "ontripai/cladora-website",
-  "observed_main_commit": "436e7a634020a846da212aa60501f25455d39850",
-  "baseline_commit_resolution": "Use the containing Git commit SHA. A file cannot embed its own enclosing commit hash. Never treat observed_main_commit as this new baseline commit.",
-  "scope": [
-    "architecture",
-    "execution",
-    "technical contracts",
-    "UX/UI/CSS registry",
-    "AP-VAL-01 valuation design",
-    "PM-01 execution lifecycle design"
-  ],
-  "artifacts": [
+  "observed_main_commit": "c7da62b13822cdd93706b008b10b45f70765fc3c",
+  "coordination_artifact": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.3.md",
+  "remote_branch_count_including_main": 3,
+  "open_pull_requests": [
     {
-      "path": "docs/CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md",
-      "sha256": "90d26099b14abe1f0996adac2a07662cda184f5b547785abeffc6d483bde8baa"
+      "number": 324,
+      "owner": "Documentation/PM with Core/Platform runtime dependency",
+      "classification": "private_pm_runtime",
+      "status": "blocked_private_runtime_and_remote_gate"
     },
     {
-      "path": "docs/control/PM-01-WORK-LIFECYCLE-v1.0.md",
-      "sha256": "1e0daf0aa8f41beb129cb932a074a6a9554c7ca54cbf7712496b71a30e2e13c8"
-    },
-    {
-      "path": "docs/control/README.md",
-      "sha256": "138f0eddf0b5a10ad9d77fadf2956fb14cbfde8f8226c7e6a08d867b732d95f2"
-    },
-    {
-      "path": "docs/control/PM-01-PRIVATE-OVERSIGHT-REGISTRY-v1.0.md",
-      "sha256": "b441da0fea0414231b88cfa8a74338c643ed65efc79ee333a082d58108375c9a"
-    },
-    {
-      "path": "docs/control/PM-01-RUNTIME-READINESS-INVENTORY-v1.0.md",
-      "sha256": "2467655b0360945233060b7a012402769b8bef9d853027f90db4c47ef9aaf85c"
-    },
-    {
-      "path": "docs/control/PM-01-RUNTIME-AUTHORIZATION-GATE-v1.0.md",
-      "sha256": "331b1676f7f8fbe3fe46b48bbd173fe8cb006d38734702152472ffc091435ef4"
-    },
-    {
-      "path": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.0.md",
-      "sha256": "978993d874be456149f9316b5214561955cfe6ea57047b45031487ad2f1862e2"
-    },
-    {
-      "path": "docs/control/UX-UI-CSS-REGISTRY-v1.0.md",
-      "sha256": "556dfac305ea315f37eb4c8fc1308b8eab0d2eb57517928ea23c432a5edc4932"
-    },
-    {
-      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.docx",
-      "sha256": "bfd9fa09f2c854d22863a73798b652ff0e31fade5ee151535f6542d6def76019"
-    },
-    {
-      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
-      "sha256": "805ed4f31e9d6a7ba2d05c8ca52ca0763557aac92e05c5f92cfd0b32af238db7"
+      "number": 347,
+      "owner": "Documentation/PM",
+      "classification": "public_control_documentation",
+      "status": "in_review"
     }
   ],
-  "observed_existing_sources": [
-    {
-      "path": "public/brand/design-tokens.json",
-      "blob_sha": "d151e5942642b8cfde1bfb63e4cf724de974fdd6"
+  "workstreams": {
+    "CORE": {
+      "status": "contract_stack_merged_runtime_provider_incomplete",
+      "latest_main_delivery": "7764845507be0f5b1b07a1023e6200f7c1ab55df",
+      "latest_private_pm_evidence_version": 30,
+      "remaining": [
+        "transactional_authority_provider",
+        "authorized_remote_history_convergence",
+        "runtime_provider_evidence"
+      ]
     },
-    {
-      "path": "src/styles/globals.css",
-      "blob_sha": "3b4cd39cadda5caad6e517bc6177a1e07869ebb4"
+    "AIRPROP": {
+      "status": "contract_stack_merged_runtime_bundle_local_only",
+      "latest_main_delivery": "f3f70d49e6cec6b1b905a4538a3cfe09bcb0a112",
+      "latest_private_pm_evidence_version": 41,
+      "remaining": [
+        "migration_first_rollout",
+        "runtime_and_api_deployment",
+        "explicit_activation",
+        "real_http_aal2_acceptance"
+      ]
     },
-    {
-      "path": "docs/architecture/CLADORA-AIRPROP-UNDERWRITING-UI-008-v1.0.md",
-      "blob_sha": "251b294286aa29e4dfe0144bdbcf0aaa6c02a830"
+    "SERVICE": {
+      "status": "contracts_and_coordinator_merged_runtime_providers_missing",
+      "latest_main_delivery": "26de75b914d5d3f265d5bf3d95afc62286797ba4",
+      "latest_private_pm_evidence_version": 53,
+      "remaining": [
+        "canonical_runtime_providers",
+        "aggregate_persistence",
+        "atomic_idempotency_audit_outbox",
+        "unknown_commit_recovery"
+      ]
+    },
+    "CE": {
+      "status": "contracts_and_disabled_bridge_merged_runtime_inactive",
+      "latest_main_delivery": "c7da62b13822cdd93706b008b10b45f70765fc3c",
+      "latest_successful_private_pm_evidence_version": 40,
+      "pm_write_status": "pending_retry_after_private_dns_failure",
+      "remaining": [
+        "documents_provider",
+        "guide_and_receipt_persistence",
+        "command_gateway",
+        "activation_and_runtime_acceptance"
+      ]
     }
-  ],
-  "reported_work_artifacts": {
-    "Core_DW01A": "Reported prepared; database assertions require actual evidence. Local later files not asserted present on main.",
-    "CE011": "Domain/UI reported tested; persistence/RLS/concurrency remain separately tracked; delivery commit must be verified in work repository."
   },
-  "work_packages": [
-    {
-      "id": "V14-DOC-BASELINE-01",
-      "name": "CLADORA v1.4 controlled documentation baseline",
-      "owner": "PM / Documentation",
-      "status": "in_review",
-      "branch": "docs/cladora-v1.4-controlled-baseline",
-      "pull_request": 313,
-      "delivery_commit": "7432f8fe7d0d10fd0539bc6160b102f863ea918d",
-      "expected_output": "Versioned baseline, coordination matrix, PM-01 lifecycle and controlled source registry"
-    },
-    {
-      "id": "PM01-A",
-      "name": "Private oversight registry contract",
-      "owner": "PM / Documentation; Core/Platform owns future runtime implementation",
-      "status": "in_review",
-      "depends_on": [
-        "V14-DOC-BASELINE-01"
-      ],
-      "branch": "feat/pm01-private-oversight-registry",
-      "pull_request": 322,
-      "delivery_commit": "21750ffc81cdcf5cb62da3e0041ef20ffe2894a0",
-      "expected_output": "Versioned logical inventory, visibility and authority rules, command/receipt boundary, GitHub synchronization rules and acceptance matrix; documentation only"
-    },
-    {
-      "id": "PM01-B",
-      "name": "Core/Platform runtime readiness inventory",
-      "owner": "Core/Platform; PM / Documentation owns control and evidence records",
-      "status": "in_review",
-      "depends_on": [
-        "PM01-A"
-      ],
-      "branch": "docs/pm01-runtime-readiness-inventory",
-      "pull_request": 323,
-      "delivery_commit": "cda126690178ed266c93b6ce97a7ac9c30a05676",
-      "expected_output": "Read-only current-schema and authority inventory, non-tenant internal scope decision, proposed physical records/routes and explicit runtime approval/test gates; documentation only"
-    }
-  ],
-  "runtime_authorization_gate": {
-    "artifact": "docs/control/PM-01-RUNTIME-AUTHORIZATION-GATE-v1.0.md",
-    "independent_documentation_package_remaining": false,
-    "proposed_successor_id": "PM01-RUNTIME-01",
-    "kind": "Core/Platform runtime and migration implementation",
-    "owner": "Core/Platform; PM / CLADORA Documentation owns control and evidence records",
-    "status": "authorization_required",
-    "depends_on": [
-      "PM01-B review outcome",
-      "explicit runtime design authorization",
-      "explicit implementation authorization",
-      "separate environment-specific authorizations"
+  "database_history_gate": {
+    "status": "ready_for_authorized_remote_apply",
+    "repository_product_migrations": 238,
+    "remote_product_history": 237,
+    "private_pm_entries": 4,
+    "pending_product_versions": [
+      "20260913132945"
     ],
-    "branch": null,
-    "pull_request": null,
-    "migration_logical_name": "pm01_private_oversight_runtime_v1",
-    "expected_output": "Private program-scoped PM registry, bounded server gateway, isolated migration/RLS/ACL/concurrency/rollback evidence and no implicit Production rollout",
-    "head_check_context": {
-      "commit": "1008cf769efa33a17122bca1c80e7632f77c2a69",
-      "state": "not registered",
-      "observed_at": "2026-10-09 UTC",
-      "evidence": "zero GitHub commit statuses and zero check runs",
-      "interpretation": "neither SUCCESS nor FAILURE"
-    }
+    "pending_migration_sha256": "fdff99135db6cba70ff480552aff1e8e24516d79c31b50ee9394293c977d0602",
+    "unexpected_pending_count": 0,
+    "historical_mismatch_count": 11,
+    "remote_write_authorized": false
   },
   "runtime_installed_by_this_baseline": false,
   "constraints": [
-    "No production migration or deployment",
-    "No auto-close from CI or PR merge",
-    "Reopen creates linked cycle; previous acceptance retained",
-    "Reuse canonical authority, audit and resource registries"
+    "No Remote migration, db push, repair, replay, or manual Production deployment without separate authorization",
+    "No runtime acceptance from CI or contract tests alone",
+    "No private PM binding, evidence, endpoint, or request content in the public Repository",
+    "Reuse canonical Core authority, audit, outbox, idempotency, Resource, and Documents ownership",
+    "Re-read live heads and PM versions before every write or acceptance decision"
   ]
 }
