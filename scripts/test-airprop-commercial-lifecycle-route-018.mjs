@@ -13,7 +13,7 @@ const commands = [
  { ...base, action: 'submit_applicant', listing_id: id(6), party_id: id(7) },
  { ...base, action: 'reserve_listing', listing_id: id(6), applicant_id: id(8), reserved_until: '2026-10-08T10:00:00Z' },
  { ...base, action: 'record_obligation_schedule', presale_contract_id: id(9), currency: 'EUR', total_amount: '100.0000', terms: [{ due_on: '2026-11-01', amount: 100, label: 'Deposit' }], financial_source_reference: 'urn:finance:test' },
- { ...base, action: 'link_execution', property_id: id(4), unit_id: id(5), kind: 'resale', core_record_id: id(10), commercial_terms: { price: '100' }, effective_from: '2026-10-07', effective_to: null },
+ { ...base, action: 'link_execution', property_id: id(4), unit_id: id(5), kind: 'resale', core_record_id: id(10), commercial_terms: { price: '100.0000', currency: 'EUR' }, effective_from: '2026-10-07', effective_to: null },
  { ...base, action: 'link_execution', property_id: id(4), unit_id: null, kind: 'management_mandate', core_record_id: id(11), commercial_terms: { fee: '10' }, effective_from: '2026-10-07', effective_to: null },
 ];
 const expectedRpc = ['publish_airprop_listing_v1','submit_airprop_applicant_v1','reserve_airprop_listing_v1','record_airprop_obligation_schedule_v1','link_airprop_commercial_execution_v1','link_airprop_commercial_execution_v1'];
