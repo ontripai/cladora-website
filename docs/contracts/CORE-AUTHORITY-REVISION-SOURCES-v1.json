@@ -1,0 +1,51 @@
+{
+  "contract": "core-authority-revision-sources.v1",
+  "strategy": "global_commit_coupled_epoch",
+  "sources": [
+    "identity.context_grants",
+    "identity.memberships",
+    "identity.permissions",
+    "identity.role_permissions",
+    "identity.roles",
+    "platform.customer_workspaces",
+    "platform.module_definitions",
+    "platform.module_operating_model_compatibilities",
+    "platform.module_permission_bindings",
+    "platform.module_property_profile_compatibilities",
+    "platform.operating_models",
+    "platform.property_profiles",
+    "platform.workspace_delegation_permissions",
+    "platform.workspace_delegations",
+    "platform.workspace_entitlements",
+    "platform.workspace_member_role_authority_sources",
+    "platform.workspace_member_roles",
+    "platform.workspace_modules",
+    "platform.workspace_property_bindings",
+    "platform.workspace_role_modules",
+    "platform.workspace_role_permissions",
+    "platform.workspace_roles",
+    "platform.workspace_taxonomy_assignments",
+    "portfolio.buildings",
+    "portfolio.units"
+  ],
+  "evaluator_functions": [
+    "check_direct_effective_permission_v2",
+    "check_effective_permission_v2",
+    "check_workspace_native_permission_v2",
+    "customer_mfa_required",
+    "native_workspace_scope_for_membership_v2",
+    "resolve_workspace_from_customer_context_v1",
+    "resolve_workspace_native_context_v2",
+    "workspace_context_covers_role_scope_v1",
+    "workspace_member_role_authority_active_v1",
+    "workspace_role_identity_source_current_v1",
+    "workspace_role_scope_contains_v1",
+    "workspace_role_scope_overlaps_v1"
+  ],
+  "evaluator_definition_sha256": "ebaa8d3d23d29bfb71bc9dc6f735d07c128b3e05c5cb206f97bbdd66dc98ed47",
+  "baseline_migrations": {
+    "count": 238,
+    "last_version": "20261007112219",
+    "sha256": "fb7f3a176cdfe29f7478bc3eea86f53ac2e36b54f97af49dd5c8191ec84f7eb9"
+  }
+}
