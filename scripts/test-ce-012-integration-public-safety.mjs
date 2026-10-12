@@ -7,6 +7,7 @@ const page = read('src/components/customer/CustomerExperienceGuidePage.tsx');
 const client = read('src/lib/community/experience-guide-client.ts');
 const command = read('src/lib/community/experience-guide-command-contract.ts');
 const adapter = read('src/lib/community/experience-guide-editor-adapter.ts');
+const bridge = read('src/lib/community/experience-guide-provider-bridge.ts');
 
 assert.match(page, /commands=\{null\}/, 'production Guide page must not inject commands');
 assert.match(client, /can_edit:\s*false/, 'production Guide projection must remain non-editable');
@@ -20,22 +21,29 @@ const walk = (directory) => {
     if (entry.isDirectory()) walk(absolute);
     else if (/\.(?:ts|tsx|js|mjs)$/.test(entry.name)
       && !absolute.endsWith('experience-guide-editor-adapter.ts')
-      && !absolute.endsWith('experience-guide-command-contract.ts')) {
+      && !absolute.endsWith('experience-guide-command-contract.ts')
+      && !absolute.endsWith('experience-guide-provider-bridge.ts')) {
       const source = read(absolute);
-      if (/experience-guide-editor-adapter|experience-guide-command-contract/.test(source)) productionReferences.push(absolute);
+      if (/experience-guide-editor-adapter|experience-guide-command-contract|experience-guide-provider-bridge/.test(source)) productionReferences.push(absolute);
     }
   }
 };
 walk('src');
 assert.deepEqual(productionReferences, [], 'no production module may activate the local contracts or adapter');
 
-for (const source of [command, adapter]) {
+for (const source of [command, adapter, bridge]) {
   assert.doesNotMatch(source, /@supabase|createClient\s*\(|\.rpc\s*\(|\.from\s*\(/);
   assert.doesNotMatch(source, /CREATE\s+(?:TABLE|FUNCTION|POLICY)|SECURITY\s+DEFINER/i);
 }
 assert.doesNotMatch(adapter, /defaultProvider|defaultCommand|new\s+Supabase|process\.env/);
+assert.doesNotMatch(bridge, /defaultProvider|defaultCommand|new\s+Supabase|process\.env|\bcommit\s*\(/);
 assert.match(adapter, /createCe012GuideCommandExecutor/);
 assert.match(adapter, /createCe012GuideEditorAdapter/);
+assert.match(bridge, /createCe012GuideProviderBridge/);
+assert.match(bridge, /CurrentAuthorityTransactionalPortV1/);
+assert.match(bridge, /current-authority-transaction-port-v1/);
+assert.doesNotMatch(bridge, /canonicalCurrentAuthorityObservation|bindCanonicalCurrentAuthorityObservation/);
+assert.doesNotMatch(bridge, /class\s+.*(?:Authority|Store|Resolver)|new\s+Map/);
 
 const internalMetadata = ['object_path', 'bucket_id', 'sha256', 'mime_type', 'classification', 'owner_id', 'tenant_id'];
 for (const field of internalMetadata) {
