@@ -47,7 +47,7 @@
     "db:types": "supabase gen types typescript --local --schema public,platform,identity,portfolio,occupancy,finance,billing,payments,utilities,assets,maintenance,governance,communications,documents,security_access,migration_hub,audit > src/types/database.generated.ts",
     "test:braces-depth-security": "node scripts/test-braces-depth-security.mjs",
     "test:service-v14:adapters": "node scripts/test-service-provider-adapters-v1-contract.mjs",
-    "test:core-consumer-conformance": "node --no-warnings --experimental-strip-types scripts/test-core-consumer-dependency-conformance.mjs && npm run test:core-current-authority-port && npm run test:core-current-authority-consumers",
+    "test:core-consumer-conformance": "node --no-warnings --experimental-strip-types scripts/test-core-consumer-dependency-conformance.mjs && npm run test:core-current-authority-port && npm run test:core-current-authority-consumers && npm run test:communications-subject-provider",
     "test:service-v14:runtime-commit": "node scripts/test-service-runtime-commit-coordinator-v1.mjs",
     "test:service-v14:provider-composition": "node scripts/test-service-runtime-provider-composition-v1.mjs",
     "test:service-v14:runtime-persistence": "node scripts/test-service-runtime-persistence-v1.mjs",
@@ -59,7 +59,8 @@
     "test:core-tx-provider-evidence:postgres": "node scripts/test-core-tx-provider-evidence-postgres-v1.mjs",
     "test:doc-reference": "node scripts/test-documents-reference-authority-v1.mjs",
     "test:doc-reference:postgres": "node scripts/test-documents-reference-authority-postgres-v1.mjs",
-    "test:service-request-subject-context:postgres": "node scripts/test-service-request-subject-context-postgres-v1.mjs"
+    "test:service-request-subject-context:postgres": "node scripts/test-service-request-subject-context-postgres-v1.mjs",
+    "test:communications-subject-provider": "node --no-warnings --experimental-strip-types scripts/test-communications-private-message-subject-provider-v1.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
