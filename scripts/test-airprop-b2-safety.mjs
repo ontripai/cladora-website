@@ -14,11 +14,11 @@ assert.match(runtime, /createCorePostgresTransactionHostV1\(pool\)/);
 assert.doesNotMatch(runtime, /insert into|update\s+platform|new Map|authorityCache/i);
 assert.match(readFileSync(files[4], 'utf8'), /runtime: null/);
 assert.match(readFileSync(files[0], 'utf8'), /commands: null, can_edit: false/);
-// Frozen from main 140b806462c970932fff22081ffb481674f5502e.
+// Frozen from main 08282c4117216f9e48161d59a6187cb0a1c69431.
 // Includes every file; paths + NUL + bytes + NUL, sorted lexicographically.
 for (const [directory, expected] of [
   ['supabase/migrations', '3cd04c33b66896f2dc6b0f5b86e901d8184931b8afb09526f9d7918d74d6a018'],
-  ['src/lib/core', '7294d4733efa1a57ea4c65cd92b3747a53d896bf29c46ff90dc6cc973d5ed6bb'],
+  ['src/lib/core', '9239ad3ef818b3ada7ec0f4cc2171179bd394ca1422fceab090280c95adf9331'],
 ]) {
   const digest = createHash('sha256');
   const paths = readdirSync(directory, { recursive: true, withFileTypes: true })

@@ -1,7 +1,7 @@
 # AIRPROP-ARTIFACT-B2-20261013-R1
 
 New, pre-activation replacement candidate for the API, runtime adapter, UI and
-AP10 consumer. Baseline: main `140b806462c970932fff22081ffb481674f5502e`.
+AP10 consumer. Baseline: main `08282c4117216f9e48161d59a6187cb0a1c69431`.
 Legacy Artifact B is `payload_unavailable`. Its recorded tree
 `d090b26dd0aee9175a9de0ad72f6ec3453954c81` and patch SHA-256
 `155bd554c36a621fe32f56ca151c5499abfb07f3267f583b24b69cf8f52dc453`
@@ -21,6 +21,9 @@ calls `createCorePostgresTransactionHostV1`, with the unmodified Core
 `resolveAuthority` provider. It creates neither authority truth nor a ledger.
 Core owns serializable scope, revision locks, independent canonical permission
 evaluation, exact replay, existing idempotency/audit/outbox rows and rollback.
+The refreshed Core host keeps its documented v1 compatibility path; its new v2
+provider-evidence package remains Draft and unwired on this main. B2 does not
+activate or claim that separate v2 provider contract.
 The server must resolve actor, selected context, Workspace, Resource and current
 revision, and preserve stable transaction/command IDs and aggregate version
 across exact retries. None of these identities or authority values are accepted
