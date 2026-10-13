@@ -60,9 +60,9 @@ export function buildServiceSubjectLinkCoreCommandV1(
     authority_version: context.authority_version,
     ...SERVICE_SUBJECT_LINK_CORE_BINDING_V1,
     aggregate_id: intent.service_request_id,
-    // Core and the CE audience gate bind the command to the locked current
-    // Request version. The domain mutation advances it exactly once.
-    aggregate_version: intent.expected_request_version,
+    // Core records the resulting aggregate version. Providers and the domain
+    // CAS derive the locked current version as aggregate_version - 1.
+    aggregate_version: intent.expected_request_version + 1,
     provider_source_ids: [intent.reference_id],
     idempotency_key: intent.idempotency_key,
     input_fingerprint: fingerprintServiceProviderInput(intent),
@@ -81,7 +81,7 @@ function commandIntent(command: CoreTransactionCommandV2) {
     context_id: command.context_id,
     workspace_id: command.workspace_id,
     service_request_id: command.aggregate_id,
-    expected_request_version: command.aggregate_version,
+    expected_request_version: command.aggregate_version - 1,
     reference_kind: command.subject_reference.kind,
     reference_id: command.subject_reference.id,
     source_version: command.subject_reference.version,
@@ -97,7 +97,7 @@ function commandMatchesBinding(command: CoreTransactionCommandV2) {
     && command.module_code === SERVICE_SUBJECT_LINK_CORE_BINDING_V1.module_code
     && command.evaluation_purpose === SERVICE_SUBJECT_LINK_CORE_BINDING_V1.evaluation_purpose
     && command.aggregate_type === SERVICE_SUBJECT_LINK_CORE_BINDING_V1.aggregate_type
-    && command.aggregate_version === intent.data.expected_request_version
+    && command.aggregate_version === intent.data.expected_request_version + 1
     && command.subject_reference.request_version === intent.data.source_version
     && command.provider_source_ids.length === 1
     && command.provider_source_ids[0] === intent.data.reference_id

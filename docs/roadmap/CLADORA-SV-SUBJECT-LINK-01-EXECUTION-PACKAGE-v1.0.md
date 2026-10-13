@@ -24,9 +24,10 @@ non-delegable, AAL2 module binding, but assigns it to no role and grants no
 client function access. `services.orders.read` and `services.orders.request`
 cannot authorize the mutation.
 
-The command and CE provider bind `aggregate_version` to the locked current
-Request version. A successful domain mutation increments that version exactly
-once and records the resulting version on the link. The mutation callback
+The command and Core receipt bind `aggregate_version` to the resulting Request
+version. The CE provider and domain CAS derive the locked current version as
+`aggregate_version - 1`. A successful domain mutation increments that version
+exactly once and records the resulting version on the link. The mutation callback
 rechecks the dedicated permission and the CE audience gate after acquiring the
 Request lock.
 

@@ -97,7 +97,7 @@ await check('existing collaboration intent maps to exact Core V2 mutation comman
   assert.equal(command.evaluation_purpose, 'service.request.subject_link');
   assert.equal(command.aggregate_type, 'service_request');
   assert.equal(command.aggregate_id, intent.service_request_id);
-  assert.equal(command.aggregate_version, 4);
+  assert.equal(command.aggregate_version, 5);
   assert.deepEqual(command.provider_source_ids, [intent.reference_id]);
   assert.deepEqual(command.subject_reference, {
     kind: 'message', id: intent.reference_id, version: 7,
@@ -123,6 +123,7 @@ await check('CE-owned Communications Request audience provider accepts metadata 
   assert.equal(calls.length, 2);
   assert.match(calls[0].text, /communications\.resolve_private_message_subject_v1/);
   assert.match(calls[1].text, /communications\.resolve_private_message_request_audience_v1/);
+  assert.equal(calls[1].values.at(-1), 4);
   assert.equal(JSON.stringify(result).includes('participant'), false);
   assert.equal(JSON.stringify(result).includes('beneficiary'), false);
 });

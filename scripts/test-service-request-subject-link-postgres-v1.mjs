@@ -562,7 +562,7 @@ try {
     const before = await effects(requestId);
     committed = await host.execute(committedCommand, providers());
     assert.equal(committed.status, 'committed');
-    assert.equal(committed.receipt.aggregate_version, 1);
+    assert.equal(committed.receipt.aggregate_version, 2);
     assert.equal(committed.receipt.provider_evidence.provider_code,
       'communications.private_message_request_audience');
     assert.equal(committed.receipt.provider_evidence.source_reference, null);
@@ -575,6 +575,22 @@ try {
     assert.deepEqual(link.rows[0], {
       id: committed.receipt.mutation_id, request_version: 2,
       message_id: messageId, message_version: 1, relation: 'conversation',
+    });
+    const versions = await pool.query(`select
+      r.version::int request_version,
+      l.request_version::int link_version,
+      (i.response_ref->>'aggregate_version')::int receipt_version,
+      o.aggregate_version::int outbox_version
+      from service_catalog.requests r
+      join service_catalog.request_subject_links l on l.request_id=r.id
+      join platform.idempotency_keys i
+        on i.response_ref->>'aggregate_id'=r.id::text
+      join platform.outbox_events o on o.aggregate_id=r.id
+        and o.event_type='core.service.request.subject_link.v1'
+      where r.id=$1`, [requestId]);
+    assert.equal(versions.rowCount, 1);
+    assert.deepEqual(versions.rows[0], {
+      request_version: 2, link_version: 2, receipt_version: 2, outbox_version: 2,
     });
   });
 
