@@ -51,6 +51,11 @@ const {
 } = load(new URL(
   '../src/lib/core/communications-private-message-request-audience-provider-v1.ts', import.meta.url,
 ));
+const {
+  resolveCommunicationsPrivateMessageSubjectV1,
+} = load(new URL(
+  '../src/lib/core/communications-private-message-subject-provider-v1.ts', import.meta.url,
+));
 const { createAp10CoreAuthorityDriver } = await import('./lib/ap10-core-authority-driver.mjs');
 
 const pool = new pg.Pool({ connectionString, max: 12 });
@@ -73,6 +78,7 @@ const requestId = randomUUID();
 let mutations = 0;
 let providerCalls = 0;
 let authorityCalls = 0;
+let observedBaseEvidenceId = null;
 let passed = 0;
 const check = async (name, run) => {
   activeCheck = name;
@@ -177,13 +183,20 @@ try {
     await pool.query(`insert into platform.workspace_modules(
         tenant_id,customer_workspace_id,module_definition_id,module_code,status,
         valid_from,activated_at,activated_by,reason
-      ) values($1,$2,$3,$4,'active',statement_timestamp()-interval '1 second',
-        statement_timestamp(),$5,'Communications Request audience fixture')`, [
+      ) select $1,$2,$3,$4,'active',statement_timestamp()-interval '1 second',
+        statement_timestamp(),$5,'Communications Request audience fixture'
+      where not exists(select 1 from platform.workspace_modules
+        where tenant_id=$1 and customer_workspace_id=$2
+          and module_definition_id=$3 and status='active')`, [
       ids.tenantId, workspaceId, row.module_id, moduleCode, actor,
     ]);
     await pool.query(`insert into platform.workspace_entitlements(
         customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from
-      ) values($1,$2,'boolean',true,statement_timestamp()-interval '1 second')`, [
+      ) select $1,$2,'boolean',true,statement_timestamp()-interval '1 second'
+      where not exists(select 1 from platform.workspace_entitlements
+        where customer_workspace_id=$1 and entitlement_key=$2
+          and valid_from<=statement_timestamp()
+          and (valid_until is null or valid_until>statement_timestamp()))`, [
       workspaceId, row.entitlement_key,
     ]);
     await pool.query(`insert into platform.workspace_roles(
@@ -225,6 +238,20 @@ try {
     }
   };
 
+  // Test-only registration of the shared integration profile. Production
+  // ownership and activation stay outside this inactive provider package.
+  await pool.query(`insert into identity.permissions(code,resource,action,description)
+    values('services.orders.subject_link','services.orders','subject_link',
+      'Link an authorized subject to a service Request transaction')
+    on conflict(code) do nothing`);
+  await pool.query(`insert into platform.module_permission_bindings(
+      module_definition_id,permission_id,permission_mode,is_delegable,requires_aal2
+    ) select m.id,p.id,'manage',false,true
+      from platform.module_definitions m cross join identity.permissions p
+      where m.code='services_orders' and m.version=1
+        and p.code='services.orders.subject_link'
+    on conflict(module_definition_id,permission_id,binding_version) do nothing`);
+
   await installRole({
     workspaceId: ids.workspaceIds[0], moduleCode: 'communications',
     permissionCode: 'communications.feed.read', scope: 'unit', unitIndex: 0,
@@ -234,8 +261,16 @@ try {
     permissionCode: 'services.orders.read', scope: 'workspace',
   });
   await installRole({
+    workspaceId: ids.workspaceIds[0], moduleCode: 'services_orders',
+    permissionCode: 'services.orders.subject_link', scope: 'workspace',
+  });
+  await installRole({
     workspaceId: ids.workspaceIds[1], moduleCode: 'services_orders',
     permissionCode: 'services.orders.read', scope: 'workspace',
+  });
+  await installRole({
+    workspaceId: ids.workspaceIds[1], moduleCode: 'services_orders',
+    permissionCode: 'services.orders.subject_link', scope: 'workspace',
   });
 
   await pool.query(`insert into communications.private_conversations(
@@ -262,14 +297,14 @@ try {
     'select revision::text from app_private.canonical_authority_revision_v1 where singleton',
   )).rows[0].revision);
   const command = async ({ workspaceId = ids.workspaceIds[0], messageVersion = 1,
-    requestVersion = 1, ...overrides } = {}) => ({
+    resultVersion = 2, ...overrides } = {}) => ({
     contract_version: 'core-transaction-command.v2',
     transaction_id: randomUUID(), command_id: randomUUID(),
     context_id: ids.contextId, workspace_id: workspaceId, actor_id: actor,
-    authority_version: await revision(), permission_code: 'services.orders.read',
-    module_code: 'services_orders', evaluation_purpose: 'service.request.subject_context',
+    authority_version: await revision(), permission_code: 'services.orders.subject_link',
+    module_code: 'services_orders', evaluation_purpose: 'service.request.subject_link',
     aggregate_type: 'service_request', aggregate_id: requestId,
-    aggregate_version: requestVersion, provider_source_ids: [messageId],
+    aggregate_version: resultVersion, provider_source_ids: [messageId],
     idempotency_key: randomUUID(), input_fingerprint: 'sha256:0123456789abcdef',
     subject_reference: {
       kind: 'message', id: messageId, version: messageVersion,
@@ -277,7 +312,7 @@ try {
     },
     ...overrides,
   });
-  const providers = () => ({
+  const providers = ({ captureBaseEvidence = false } = {}) => ({
       provider_code: communicationsPrivateMessageRequestAudienceProviderCodeV1,
       async resolveAuthority(scope, request) {
         authorityCalls += 1;
@@ -288,6 +323,12 @@ try {
       },
       async validateProviders(scope, cmd, authority) {
         providerCalls += 1;
+        if (captureBaseEvidence) {
+          const baseEvidence = await resolveCommunicationsPrivateMessageSubjectV1(
+            scope, cmd, authority,
+          );
+          observedBaseEvidenceId = baseEvidence.evidence_id;
+        }
         return resolveCommunicationsPrivateMessageRequestAudienceV1(scope, cmd, authority);
       },
       async mutate(_scope, cmd) {
@@ -318,19 +359,78 @@ try {
   let committed;
   await check('beneficiary and provider audience commits status-only evidence through the real Core host', async () => {
     const beforeMutations = mutations;
-    committed = await host.execute(acceptedCommand, providers());
+    committed = await host.execute(acceptedCommand, providers({ captureBaseEvidence: true }));
     assert.equal(committed.status, 'committed');
     assert.equal(mutations, beforeMutations + 1);
     assert.equal(committed.receipt.provider_evidence.provider_code,
       communicationsPrivateMessageRequestAudienceProviderCodeV1);
     assert.equal(committed.receipt.provider_evidence.decision, 'accepted');
-    assert.equal(committed.receipt.authority.permission_code, 'services.orders.read');
+    assert.equal(committed.receipt.authority.permission_code, 'services.orders.subject_link');
     assert.equal(committed.receipt.authority.module_code, 'services_orders');
+    assert.equal(committed.receipt.authority.evaluation_purpose, 'service.request.subject_link');
+    assert.ok(observedBaseEvidenceId);
+    assert.notEqual(committed.receipt.provider_evidence.evidence_id, observedBaseEvidenceId);
     const evidence = JSON.stringify(committed.receipt.provider_evidence);
     for (const forbidden of [
       'body', 'sender_id', 'conversation_id', 'unit_id', 'membership_id', 'participant',
       beneficiaryPartyId, providerPartyId, ids.membershipId, providerMembershipId,
     ]) assert.equal(evidence.includes(forbidden), false, forbidden);
+  });
+
+  await check('beneficiary-only audience denies with zero durable write', async () => {
+    await pool.query(`update communications.private_participants
+      set joined_at=(select sent_at+interval '1 second'
+        from communications.private_messages where id=$2)
+      where conversation_id=$1 and membership_id=$3`, [
+      conversationId, messageId, providerMembershipId,
+    ]);
+    await expectZeroWriteDenial(await command());
+    await pool.query(`update communications.private_participants
+      set joined_at=(select sent_at-interval '1 second'
+        from communications.private_messages where id=$2)
+      where conversation_id=$1 and membership_id=$3`, [
+      conversationId, messageId, providerMembershipId,
+    ]);
+  });
+
+  await check('provider-only audience denies with zero durable write', async () => {
+    await pool.query(`update communications.private_participants
+      set joined_at=(select sent_at+interval '1 second'
+        from communications.private_messages where id=$2)
+      where conversation_id=$1 and membership_id=$3`, [
+      conversationId, messageId, ids.membershipId,
+    ]);
+    await expectZeroWriteDenial(await command());
+    await pool.query(`update communications.private_participants
+      set joined_at=(select sent_at-interval '1 second'
+        from communications.private_messages where id=$2)
+      where conversation_id=$1 and membership_id=$3`, [
+      conversationId, messageId, ids.membershipId,
+    ]);
+  });
+
+  await check('one audience identity is sufficient when beneficiary and provider party IDs match', async () => {
+    await pool.query('update service_catalog.offerings set provider_party_id=$2 where id=$1', [
+      offeringId, beneficiaryPartyId,
+    ]);
+    await pool.query(`update communications.private_participants
+      set joined_at=(select sent_at+interval '1 second'
+        from communications.private_messages where id=$2)
+      where conversation_id=$1 and membership_id=$3`, [
+      conversationId, messageId, providerMembershipId,
+    ]);
+    const result = await host.execute(await command(), providers());
+    assert.equal(result.status, 'committed');
+    assert.equal(result.receipt.provider_evidence.decision, 'accepted');
+    await pool.query('update service_catalog.offerings set provider_party_id=$2 where id=$1', [
+      offeringId, providerPartyId,
+    ]);
+    await pool.query(`update communications.private_participants
+      set joined_at=(select sent_at-interval '1 second'
+        from communications.private_messages where id=$2)
+      where conversation_id=$1 and membership_id=$3`, [
+      conversationId, messageId, providerMembershipId,
+    ]);
   });
 
   await check('exact replay rechecks authority and adds no durable write', async () => {
@@ -393,7 +493,7 @@ try {
   });
 
   await check('stale Request version is bounded and writes nothing', async () => {
-    await expectZeroWriteDenial(await command({ requestVersion: 2 }));
+    await expectZeroWriteDenial(await command({ resultVersion: 3 }));
   });
 
   await check('cross-Workspace command reaches the provider and denies with zero durable write', async () => {

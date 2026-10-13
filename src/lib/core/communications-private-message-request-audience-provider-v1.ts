@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
 import type {
@@ -36,32 +37,52 @@ const deniedRowSchema = z.strictObject({
 const rowSchema = z.discriminatedUnion('decision', [acceptedRowSchema, deniedRowSchema]);
 type AudienceRow = z.input<typeof rowSchema>;
 
-function bindProviderCode(
+function evidenceBase(
   evidence: CoreTransactionProviderEvidenceV1,
   evaluatedAt = evidence.evaluated_at,
+): Omit<CoreTransactionProviderEvidenceV1, 'decision' | 'denial_reason'> {
+  return {
+    contract_version: evidence.contract_version,
+    evidence_id: randomUUID(),
+    provider_code: communicationsPrivateMessageRequestAudienceProviderCodeV1,
+    transaction_id: evidence.transaction_id,
+    command_id: evidence.command_id,
+    workspace_id: evidence.workspace_id,
+    actor_id: evidence.actor_id,
+    context_id: evidence.context_id,
+    authority_decision_id: evidence.authority_decision_id,
+    authority_version: evidence.authority_version,
+    attempt: evidence.attempt,
+    subject_reference: evidence.subject_reference,
+    evaluated_at: evaluatedAt,
+    source_disclosure: 'status_only',
+    source_reference: null,
+  };
+}
+
+function acceptFromEvidence(
+  evidence: CoreTransactionProviderEvidenceV1,
+  evaluatedAt: string,
 ): CoreTransactionProviderEvidenceV1 {
   return coreTransactionProviderEvidenceV1Schema.parse({
-    ...evidence,
-    provider_code: communicationsPrivateMessageRequestAudienceProviderCodeV1,
-    evaluated_at: evaluatedAt,
+    ...evidenceBase(evidence, evaluatedAt),
+    decision: 'accepted',
+    denial_reason: null,
+    reference_state: 'available',
+    current_actor_can_read: true,
   });
 }
 
 function denyFromEvidence(
   evidence: CoreTransactionProviderEvidenceV1,
-  reason: 'STALE_SUBJECT' | 'RELATION_MISMATCH' | 'SUBJECT_DENIED' | 'PROVIDER_UNAVAILABLE',
+  reason: 'SUBJECT_NOT_FOUND' | 'STALE_SUBJECT' | 'RELATION_MISMATCH'
+    | 'SUBJECT_DENIED' | 'PROVIDER_UNAVAILABLE',
   evaluatedAt = evidence.evaluated_at,
 ): CoreTransactionProviderEvidenceV1 {
-  const { reference_state: _referenceState, current_actor_can_read: _canRead, ...base } =
-    evidence as CoreTransactionProviderEvidenceV1 & {
-      reference_state?: 'available'; current_actor_can_read?: true;
-    };
   return coreTransactionProviderEvidenceV1Schema.parse({
-    ...base,
-    provider_code: communicationsPrivateMessageRequestAudienceProviderCodeV1,
+    ...evidenceBase(evidence, evaluatedAt),
     decision: 'denied',
     denial_reason: reason,
-    evaluated_at: evaluatedAt,
   });
 }
 
@@ -80,9 +101,20 @@ export async function resolveCommunicationsPrivateMessageRequestAudienceV1(
   authority: CurrentAuthorityTransactionDecisionReceiptV1,
 ): Promise<CoreTransactionProviderEvidenceV1> {
   const subjectEvidence = await resolveCommunicationsPrivateMessageSubjectV1(scope, command, authority);
-  if (subjectEvidence.decision === 'denied') return bindProviderCode(subjectEvidence);
-  if (command.aggregate_type !== 'service_request') {
+  if (subjectEvidence.decision === 'denied') {
+    return denyFromEvidence(subjectEvidence, subjectEvidence.denial_reason);
+  }
+  if (command.permission_code !== 'services.orders.subject_link'
+      || command.module_code !== 'services_orders'
+      || command.evaluation_purpose !== 'service.request.subject_link'
+      || command.aggregate_type !== 'service_request') {
     return denyFromEvidence(subjectEvidence, 'RELATION_MISMATCH');
+  }
+  // The command binds the resulting aggregate version. The canonical Request
+  // resolver must see the exact pre-mutation version guarded by this command.
+  const expectedRequestVersion = command.aggregate_version - 1;
+  if (!Number.isSafeInteger(expectedRequestVersion) || expectedRequestVersion < 1) {
+    return denyFromEvidence(subjectEvidence, 'STALE_SUBJECT');
   }
 
   // SQL errors are deliberately not caught. In particular a real PostgreSQL
@@ -97,7 +129,7 @@ export async function resolveCommunicationsPrivateMessageRequestAudienceV1(
     command.subject_reference.id,
     command.subject_reference.version,
     command.aggregate_id,
-    command.aggregate_version,
+    expectedRequestVersion,
   ]);
   if (result.rowCount !== 1 || result.rows.length !== 1) {
     return denyFromEvidence(subjectEvidence, 'PROVIDER_UNAVAILABLE');
@@ -111,7 +143,7 @@ export async function resolveCommunicationsPrivateMessageRequestAudienceV1(
     return denyFromEvidence(subjectEvidence,
       row.denial_reason === 'AUDIENCE_DENIED' ? 'SUBJECT_DENIED' : 'STALE_SUBJECT', row.evaluated_at);
   }
-  return bindProviderCode(subjectEvidence, row.evaluated_at);
+  return acceptFromEvidence(subjectEvidence, row.evaluated_at);
 }
 
 export const communicationsPrivateMessageRequestAudienceEvidenceProviderV1: Pick<

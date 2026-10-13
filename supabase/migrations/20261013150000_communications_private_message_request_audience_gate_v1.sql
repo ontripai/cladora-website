@@ -36,6 +36,8 @@ declare
   v_audience_count integer;
   v_resolved_count integer;
   v_compatible_count integer;
+  v_required_party_count integer;
+  v_present_party_count integer;
 begin
   if p_context_id is null or p_workspace_id is null or p_actor_id is null
       or p_message_id is null or p_request_id is null
@@ -190,12 +192,18 @@ begin
   )
   select count(*),count(*) filter(where resolution_count=1),
     count(*) filter(where resolution_count=1
+      and party_id in(v_beneficiary_party_id,v_provider_party_id)),
+    count(distinct party_id) filter(where resolution_count=1
       and party_id in(v_beneficiary_party_id,v_provider_party_id))
-  into v_audience_count,v_resolved_count,v_compatible_count
+  into v_audience_count,v_resolved_count,v_compatible_count,v_present_party_count
   from per_member;
 
+  v_required_party_count := case
+    when v_beneficiary_party_id=v_provider_party_id then 1 else 2 end;
+
   if v_audience_count<1 or v_resolved_count<>v_audience_count
-      or v_compatible_count<>v_audience_count then
+      or v_compatible_count<>v_audience_count
+      or v_present_party_count<>v_required_party_count then
     decision := 'denied'; denial_reason := 'AUDIENCE_DENIED';
     current_actor_can_read := null; request_party_audience_only := null;
     evaluated_at := clock_timestamp(); return next; return;

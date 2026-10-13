@@ -6,6 +6,10 @@ import {
   communicationsPrivateMessageRequestAudienceProviderCodeV1,
   resolveCommunicationsPrivateMessageRequestAudienceV1,
 } from '../src/lib/core/communications-private-message-request-audience-provider-v1.ts';
+import {
+  communicationsPrivateMessageProviderCodeV1,
+  resolveCommunicationsPrivateMessageSubjectV1,
+} from '../src/lib/core/communications-private-message-subject-provider-v1.ts';
 import { coreTransactionProviderEvidenceV1Schema } from
   '../src/lib/core/transaction-provider-evidence-v1.ts';
 
@@ -25,12 +29,12 @@ const command = (overrides = {}) => ({
   workspace_id: workspaceId,
   actor_id: actorId,
   authority_version: 9,
-  permission_code: 'services.orders.read',
+  permission_code: 'services.orders.subject_link',
   module_code: 'services_orders',
-  evaluation_purpose: 'service.request.subject_context',
+  evaluation_purpose: 'service.request.subject_link',
   aggregate_type: 'service_request',
   aggregate_id: requestId,
-  aggregate_version: 5,
+  aggregate_version: 6,
   provider_source_ids: [messageId],
   idempotency_key: 'comm-request-audience-001',
   input_fingerprint: 'sha256:0123456789abcdef',
@@ -48,9 +52,9 @@ const authority = () => ({
   workspace_id: workspaceId,
   actor_id: actorId,
   authority_version: 9,
-  permission_code: 'services.orders.read',
+  permission_code: 'services.orders.subject_link',
   module_code: 'services_orders',
-  evaluation_purpose: 'service.request.subject_context',
+  evaluation_purpose: 'service.request.subject_link',
   transaction_context: {
     transaction_id: transactionId,
     command_id: commandId,
@@ -129,6 +133,20 @@ await check('accepted evidence means current read plus canonical Request-party a
   assert.equal(result.evaluated_at, audienceAccepted.evaluated_at);
 });
 
+await check('CE audience evidence has its own identity and provider code', async () => {
+  const baseHarness = harness([subjectAccepted]);
+  const base = await resolveCommunicationsPrivateMessageSubjectV1(
+    baseHarness.scope, command(), authority(),
+  );
+  const audienceHarness = harness();
+  const audience = await resolveCommunicationsPrivateMessageRequestAudienceV1(
+    audienceHarness.scope, command(), authority(),
+  );
+  assert.equal(base.provider_code, communicationsPrivateMessageProviderCodeV1);
+  assert.equal(audience.provider_code, communicationsPrivateMessageRequestAudienceProviderCodeV1);
+  assert.notEqual(audience.evidence_id, base.evidence_id);
+});
+
 await check('provider object is directly consumable by the Core V2 host', async () => {
   assert.equal(communicationsPrivateMessageRequestAudienceEvidenceProviderV1.provider_code,
     communicationsPrivateMessageRequestAudienceProviderCodeV1);
@@ -139,15 +157,44 @@ await check('provider object is directly consumable by the Core V2 host', async 
 await check('exact Request and message bindings reach the private gate', async () => {
   const profile = command();
   assert.equal(profile.contract_version, 'core-transaction-command.v2');
-  assert.equal(profile.permission_code, 'services.orders.read');
+  assert.equal(profile.permission_code, 'services.orders.subject_link');
   assert.equal(profile.module_code, 'services_orders');
-  assert.equal(profile.evaluation_purpose, 'service.request.subject_context');
+  assert.equal(profile.evaluation_purpose, 'service.request.subject_link');
   const { scope, calls } = harness();
   await resolveCommunicationsPrivateMessageRequestAudienceV1(scope, profile, authority());
   assert.equal(calls.length, 2);
   assert.ok(calls.every(call => /^select\s/i.test(call.text)));
   assert.match(calls[1].text, /resolve_private_message_request_audience_v1/);
   assert.deepEqual(calls[1].values, [id(7), workspaceId, actorId, messageId, 3, requestId, 5]);
+});
+
+for (const [field, value] of [
+  ['permission_code', 'services.orders.read'],
+  ['module_code', 'communications'],
+  ['evaluation_purpose', 'service.request.subject_context'],
+]) {
+  await check(`mismatched ${field} fails closed before Request audience resolution`, async () => {
+    const profile = command({ [field]: value });
+    const profileAuthority = authority();
+    profileAuthority[field] = value;
+    const { scope, calls } = harness();
+    const result = await resolveCommunicationsPrivateMessageRequestAudienceV1(
+      scope, profile, profileAuthority,
+    );
+    assert.equal(result.decision, 'denied');
+    assert.equal(result.denial_reason, 'RELATION_MISMATCH');
+    assert.equal(calls.length, 1);
+  });
+}
+
+await check('result version one cannot name a positive expected Request version', async () => {
+  const { scope, calls } = harness();
+  const result = await resolveCommunicationsPrivateMessageRequestAudienceV1(
+    scope, command({ aggregate_version: 1 }), authority(),
+  );
+  assert.equal(result.decision, 'denied');
+  assert.equal(result.denial_reason, 'STALE_SUBJECT');
+  assert.equal(calls.length, 1);
 });
 
 await check('non-Request aggregate fails closed before the audience gate', async () => {
@@ -219,6 +266,8 @@ await check('SQL consumes canonical owners and has no fallback allow or durable 
   assert.match(sql, /maintenance\.vendor_portal_memberships/);
   assert.match(sql, /resolve_private_message_subject_v1/);
   assert.match(sql, /resolution_count=1/);
+  assert.match(sql, /v_present_party_count<>v_required_party_count/);
+  assert.match(sql, /v_beneficiary_party_id=v_provider_party_id then 1 else 2/);
   assert.match(sql, /p\.revoked_at is null/);
   assert.match(sql, /m\.status='active'/);
   assert.doesNotMatch(sql, /\b(insert|update|delete)\s+(into|communications|service_catalog|identity|maintenance|platform|audit)\b/i);
@@ -226,5 +275,5 @@ await check('SQL consumes canonical owners and has no fallback allow or durable 
   assert.doesNotMatch(sql, /association_admin|property_manager|role_code/i);
 });
 
-assert.equal(passed, 12);
-console.log(`Communications Request audience provider: ${passed}/12 PASS`);
+assert.equal(passed, 17);
+console.log(`Communications Request audience provider: ${passed}/17 PASS`);
