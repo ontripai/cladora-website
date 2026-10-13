@@ -75,6 +75,11 @@ const definitionId = randomUUID();
 const offeringId = randomUUID();
 const revisionId = randomUUID();
 const requestId = randomUUID();
+const samePartyOfferingId = randomUUID();
+const samePartyRevisionId = randomUUID();
+const samePartyRequestId = randomUUID();
+const samePartyConversationId = randomUUID();
+const samePartyMessageId = randomUUID();
 let mutations = 0;
 let providerCalls = 0;
 let authorityCalls = 0;
@@ -157,6 +162,27 @@ try {
       ) values($1,$2,$3,$4,$5,$6,$7,$8,'Communications audience fixture')`, [
       requestId, ids.tenantId, ids.workspaceIds[0], offeringId, revisionId,
       actor, ids.membershipId, beneficiaryPartyId,
+    ]);
+    await pool.query(`insert into service_catalog.offerings(
+        id,tenant_id,workspace_id,definition_id,provider_party_id,
+        current_revision_id,published_revision_id,created_by
+      ) values($1,$2,$3,$4,$5,$6,$6,$7)`, [
+      samePartyOfferingId, ids.tenantId, ids.workspaceIds[0], definitionId,
+      beneficiaryPartyId, samePartyRevisionId, actor,
+    ]);
+    await pool.query(`insert into service_catalog.revisions(
+        id,tenant_id,workspace_id,offering_id,commercial_terms,
+        valid_from,valid_until,status,created_by
+      ) values($1,$2,$3,$4,$5::jsonb,$6,null,'published',$7)`, [
+      samePartyRevisionId, ids.tenantId, ids.workspaceIds[0], samePartyOfferingId,
+      JSON.stringify(terms), terms.valid_from, actor,
+    ]);
+    await pool.query(`insert into service_catalog.requests(
+        id,tenant_id,workspace_id,offering_id,published_revision_id,
+        requester_id,membership_id,beneficiary_party_id,description
+      ) values($1,$2,$3,$4,$5,$6,$7,$8,'Same-party audience fixture')`, [
+      samePartyRequestId, ids.tenantId, ids.workspaceIds[0], samePartyOfferingId,
+      samePartyRevisionId, actor, ids.membershipId, beneficiaryPartyId,
     ]);
     await pool.query('commit');
   } catch (error) {
@@ -285,6 +311,18 @@ try {
     ) values($1,$2,$3,$4,'Private audience fixture body')`, [
     messageId, conversationId, ids.membershipId, randomUUID(),
   ]);
+  await pool.query(`insert into communications.private_conversations(
+      id,tenant_id,unit_id,created_by,client_request_id
+    ) values($1,$2,$3,$4,$5)`, [
+    samePartyConversationId, ids.tenantId, ids.unitIds[0], ids.membershipId, randomUUID(),
+  ]);
+  await pool.query(`insert into communications.private_participants(conversation_id,membership_id)
+    values($1,$2)`, [samePartyConversationId, ids.membershipId]);
+  await pool.query(`insert into communications.private_messages(
+      id,conversation_id,sender_id,client_request_id,body
+    ) values($1,$2,$3,$4,'Same-party private audience fixture body')`, [
+    samePartyMessageId, samePartyConversationId, ids.membershipId, randomUUID(),
+  ]);
   await pool.query(`insert into maintenance.vendors(id,tenant_id,party_id,status)
     values($1,$2,$3,'approved')`, [vendorId, ids.tenantId, unrelatedPartyId]);
   await pool.query(`insert into maintenance.vendor_portal_memberships(
@@ -297,17 +335,18 @@ try {
     'select revision::text from app_private.canonical_authority_revision_v1 where singleton',
   )).rows[0].revision);
   const command = async ({ workspaceId = ids.workspaceIds[0], messageVersion = 1,
-    resultVersion = 2, ...overrides } = {}) => ({
+    resultVersion = 2, aggregateId = requestId, subjectMessageId = messageId,
+    ...overrides } = {}) => ({
     contract_version: 'core-transaction-command.v2',
     transaction_id: randomUUID(), command_id: randomUUID(),
     context_id: ids.contextId, workspace_id: workspaceId, actor_id: actor,
     authority_version: await revision(), permission_code: 'services.orders.subject_link',
     module_code: 'services_orders', evaluation_purpose: 'service.request.subject_link',
-    aggregate_type: 'service_request', aggregate_id: requestId,
-    aggregate_version: resultVersion, provider_source_ids: [messageId],
+    aggregate_type: 'service_request', aggregate_id: aggregateId,
+    aggregate_version: resultVersion, provider_source_ids: [subjectMessageId],
     idempotency_key: randomUUID(), input_fingerprint: 'sha256:0123456789abcdef',
     subject_reference: {
-      kind: 'message', id: messageId, version: messageVersion,
+      kind: 'message', id: subjectMessageId, version: messageVersion,
       relation: 'subject_link', request_version: messageVersion,
     },
     ...overrides,
@@ -410,27 +449,12 @@ try {
   });
 
   await check('one audience identity is sufficient when beneficiary and provider party IDs match', async () => {
-    await pool.query('update service_catalog.offerings set provider_party_id=$2 where id=$1', [
-      offeringId, beneficiaryPartyId,
-    ]);
-    await pool.query(`update communications.private_participants
-      set joined_at=(select sent_at+interval '1 second'
-        from communications.private_messages where id=$2)
-      where conversation_id=$1 and membership_id=$3`, [
-      conversationId, messageId, providerMembershipId,
-    ]);
-    const result = await host.execute(await command(), providers());
+    const result = await host.execute(await command({
+      aggregateId: samePartyRequestId,
+      subjectMessageId: samePartyMessageId,
+    }), providers());
     assert.equal(result.status, 'committed');
     assert.equal(result.receipt.provider_evidence.decision, 'accepted');
-    await pool.query('update service_catalog.offerings set provider_party_id=$2 where id=$1', [
-      offeringId, providerPartyId,
-    ]);
-    await pool.query(`update communications.private_participants
-      set joined_at=(select sent_at-interval '1 second'
-        from communications.private_messages where id=$2)
-      where conversation_id=$1 and membership_id=$3`, [
-      conversationId, messageId, providerMembershipId,
-    ]);
   });
 
   await check('exact replay rechecks authority and adds no durable write', async () => {
