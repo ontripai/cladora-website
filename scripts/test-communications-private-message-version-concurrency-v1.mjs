@@ -81,8 +81,8 @@ try {
   [ids.bindingA, ids.bindingB, ids.tenant, ids.workspaceA, ids.workspaceB, ids.propertyA, ids.propertyB]);
   await pool.query(`insert into communications.private_conversations
     (id,tenant_id,unit_id,created_by,client_request_id) values
-    ($1,$3,$4,$6,$8),($2,$3,$5,$6,$9)`, [ids.conversationA, ids.conversationB,
-    ids.tenant, ids.unitA, ids.unitB, ids.membershipA, ids.membershipB, ids.requestA, ids.requestB]);
+    ($1,$3,$4,$6,$7),($2,$3,$5,$6,$8)`, [ids.conversationA, ids.conversationB,
+    ids.tenant, ids.unitA, ids.unitB, ids.membershipA, ids.requestA, ids.requestB]);
   await pool.query(`insert into communications.private_participants(conversation_id,membership_id) values
     ($1,$2),($1,$3)`, [ids.conversationA, ids.membershipA, ids.membershipB]);
   await pool.query(`insert into communications.private_messages
