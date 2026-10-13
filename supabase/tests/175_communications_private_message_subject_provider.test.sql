@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
-select plan(34);
+select plan(41);
 
 select ok(exists(select 1 from information_schema.columns
   where table_schema='communications' and table_name='private_messages' and column_name='version'),
@@ -23,9 +23,9 @@ select ok(not has_function_privilege('anon',
 select ok(not has_function_privilege('authenticated',
   'communications.resolve_private_message_subject_v1(uuid,uuid,uuid,uuid,bigint)','EXECUTE'),
   'Authenticated resolver execution denied');
-select ok(has_function_privilege('service_role',
+select ok(not has_function_privilege('service_role',
   'communications.resolve_private_message_subject_v1(uuid,uuid,uuid,uuid,bigint)','EXECUTE'),
-  'Only the trusted transaction role can execute the resolver');
+  'Resolver is not granted directly to service_role; the Core transaction host owns invocation');
 
 insert into auth.users(id,email) values
   ('17500000-0000-4000-8000-000000000001','actor175@cladora.test'),
@@ -42,7 +42,8 @@ insert into portfolio.buildings(id,tenant_id,property_id,code,name) values
   ('17500000-0000-4000-8000-000000000006','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000004','A','Primary building'),
   ('17500000-0000-4000-8000-000000000007','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000005','B','Other building');
 insert into portfolio.units(id,tenant_id,building_id,code) values
-  ('17500000-0000-4000-8000-000000000008','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000006','1');
+  ('17500000-0000-4000-8000-000000000008','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000006','1'),
+  ('17500000-0000-4000-8000-000000000024','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000007','2');
 insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
 select ('17500000-0000-4000-8000-0000000000'||n)::uuid,
   '17500000-0000-4000-8000-000000000003',
@@ -67,10 +68,15 @@ insert into platform.workspace_entitlements(
   ('17500000-0000-4000-8000-000000000014','module.communications','boolean',true,statement_timestamp()-interval '1 day');
 insert into communications.private_conversations(
   id,tenant_id,unit_id,created_by,client_request_id
-) values(
+) values
+(
   '17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000003',
   '17500000-0000-4000-8000-000000000008','17500000-0000-4000-8000-000000000009',
   '17500000-0000-4000-8000-000000000019'
+),(
+  '17500000-0000-4000-8000-000000000025','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000024','17500000-0000-4000-8000-000000000009',
+  '17500000-0000-4000-8000-000000000026'
 );
 insert into communications.private_participants(conversation_id,membership_id) values
   ('17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000009'),
@@ -97,7 +103,6 @@ create function pg_temp.provider_counts() returns jsonb language sql stable as $
 $$;
 create temporary table provider_before as select pg_temp.provider_counts() counts;
 
-set local role service_role;
 select set_config('request.jwt.claims',jsonb_build_object(
   'sub','17500000-0000-4000-8000-000000000001','role','service_role','aal','aal2'
 )::text,true);
@@ -136,7 +141,6 @@ select throws_ok($$select * from communications.resolve_private_message_subject_
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000002','17500000-0000-4000-8000-000000000016',1
 )$$,'42501','private_message_subject_denied','Actor binding mismatch denied');
-reset role;
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Stale and authority/scope denials write no domain, idempotency, audit, or outbox rows');
 
@@ -152,33 +156,39 @@ select throws_ok($$update communications.private_messages set version=2
 select throws_ok($$update communications.private_messages set sender_id='17500000-0000-4000-8000-000000000010',version=2
   where id='17500000-0000-4000-8000-000000000016'$$,
   '23514','private_message_identity_immutable','Message identity remains immutable');
+select throws_ok($$update communications.private_messages
+  set conversation_id='17500000-0000-4000-8000-000000000025',version=2
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_identity_immutable','Message cannot move to another Workspace');
 update communications.private_messages set body='Versioned body',version=2
 where id='17500000-0000-4000-8000-000000000016';
 select is((select version from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),2::bigint,
   'Body revision advances version exactly once');
+select throws_ok($$update communications.private_messages set body='Stale writer',version=2
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_version_increment_required','Stale body writer cannot reuse the current version');
 update communications.private_messages set lifecycle_state='quarantined',version=3
 where id='17500000-0000-4000-8000-000000000016';
 select is((select lifecycle_state from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),'quarantined',
   'Quarantine transition advances the canonical row');
 
-set local role service_role;
+update provider_before set counts=pg_temp.provider_counts();
 select is((select lifecycle_state from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',3
 )),'quarantined','Resolver reports the current quarantined lifecycle');
-reset role;
+select is(pg_temp.provider_counts(),(select counts from provider_before),
+  'Quarantined resolution is read-only');
 
 update communications.private_participants set revoked_at=statement_timestamp()
 where conversation_id='17500000-0000-4000-8000-000000000015'
   and membership_id='17500000-0000-4000-8000-000000000009';
 update provider_before set counts=pg_temp.provider_counts();
-set local role service_role;
 select ok((select participant_revoked and not participant_current
   from communications.resolve_private_message_subject_v1(
     '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
     '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',3
   )),'Revoked participant state is explicit and current access is false');
-reset role;
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Revoked resolution is read-only');
 
@@ -186,7 +196,7 @@ update communications.private_messages set lifecycle_state='deleted',version=4
 where id='17500000-0000-4000-8000-000000000016';
 select is((select version from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),4::bigint,
   'Deleted transition advances version');
-set local role service_role;
+update provider_before set counts=pg_temp.provider_counts();
 select is((select lifecycle_state from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',4
@@ -195,7 +205,22 @@ select throws_ok($$select * from communications.resolve_private_message_subject_
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',0
 )$$,'22023','private_message_subject_invalid','Non-positive expected version rejected');
-reset role;
+select is(pg_temp.provider_counts(),(select counts from provider_before),
+  'Deleted and invalid resolution attempts are read-only');
+
+select throws_ok($$delete from communications.private_messages
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '42501','private_message_physical_delete_forbidden','Physical message deletion is forbidden');
+select throws_ok($$insert into communications.private_messages(
+  id,conversation_id,sender_id,client_request_id,body
+) values(
+  '17500000-0000-4000-8000-000000000016','17500000-0000-4000-8000-000000000025',
+  '17500000-0000-4000-8000-000000000009','17500000-0000-4000-8000-000000000027','Reinserted body'
+)$$,'23505',null,'Delete/reinsert cannot reset version or move the message');
+select ok((select conversation_id='17500000-0000-4000-8000-000000000015'::uuid
+    and version=4 and lifecycle_state='deleted'
+  from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),
+  'Failed delete/reinsert preserves canonical identity, version, and lifecycle');
 
 select throws_ok($$insert into communications.private_messages(
   conversation_id,sender_id,client_request_id,body,version

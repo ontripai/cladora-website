@@ -15,6 +15,7 @@ on:
       - "src/lib/core/postgres-transaction-host-v1.ts"
       - "src/lib/core/transaction-provider-evidence-v1.ts"
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
+      - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -53,6 +54,7 @@ on:
       - "src/lib/core/postgres-transaction-host-v1.ts"
       - "src/lib/core/transaction-provider-evidence-v1.ts"
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
+      - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -148,6 +150,11 @@ jobs:
         env:
           DOC_REFERENCE_EPHEMERAL: "1"
           DOC_REFERENCE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Communications message version concurrency regression
+        run: timeout 90s npm run test:communications-message-version:postgres
+        env:
+          COMM_MESSAGE_VERSION_EPHEMERAL: "1"
+          COMM_MESSAGE_VERSION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
         env:

@@ -60,7 +60,8 @@
     "test:doc-reference": "node scripts/test-documents-reference-authority-v1.mjs",
     "test:doc-reference:postgres": "node scripts/test-documents-reference-authority-postgres-v1.mjs",
     "test:service-request-subject-context:postgres": "node scripts/test-service-request-subject-context-postgres-v1.mjs",
-    "test:communications-subject-provider": "node --no-warnings --experimental-strip-types scripts/test-communications-private-message-subject-provider-v1.mjs"
+    "test:communications-subject-provider": "node --no-warnings --experimental-strip-types scripts/test-communications-private-message-subject-provider-v1.mjs",
+    "test:communications-message-version:postgres": "node scripts/test-communications-private-message-version-concurrency-v1.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",

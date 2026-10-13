@@ -16,6 +16,10 @@ security definer
 set search_path = pg_catalog
 as $$
 begin
+  if tg_op = 'DELETE' then
+    raise exception 'private_message_physical_delete_forbidden' using errcode = '42501';
+  end if;
+
   if tg_op = 'INSERT' then
     if new.version <> 1 or new.lifecycle_state <> 'available' then
       raise exception 'private_message_initial_version_invalid' using errcode = '23514';
@@ -46,7 +50,7 @@ revoke all on function communications.enforce_private_message_version_v1()
   from public,anon,authenticated,service_role;
 
 create trigger private_message_version_guard
-before insert or update on communications.private_messages
+before insert or update or delete on communications.private_messages
 for each row execute function communications.enforce_private_message_version_v1();
 
 -- Trusted transaction-scoped resolver. The caller supplies the actor identity
@@ -174,11 +178,7 @@ $$;
 
 revoke all on function communications.resolve_private_message_subject_v1(
   uuid,uuid,uuid,uuid,bigint
-) from public,anon,authenticated;
-grant usage on schema communications to service_role;
-grant execute on function communications.resolve_private_message_subject_v1(
-  uuid,uuid,uuid,uuid,bigint
-) to service_role;
+) from public,anon,authenticated,service_role;
 
 comment on function communications.resolve_private_message_subject_v1(
   uuid,uuid,uuid,uuid,bigint
