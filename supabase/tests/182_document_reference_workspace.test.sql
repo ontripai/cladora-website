@@ -1,0 +1,14 @@
+begin;
+select plan(10);
+select ok(exists(select 1 from information_schema.columns where table_schema='documents' and table_name='documents' and column_name='workspace_id'),'canonical table has exact Workspace');
+select ok((select is_nullable='YES' from information_schema.columns where table_schema='documents' and table_name='documents' and column_name='workspace_id'),'legacy NULL binding remains supported');
+select ok((select column_default is null from information_schema.columns where table_schema='documents' and table_name='documents' and column_name='workspace_id'),'no inferred Workspace default');
+select ok(exists(select 1 from pg_constraint where conrelid='documents.documents'::regclass and conname='document_reference_workspace_tenant_v1' and confrelid='platform.customer_workspaces'::regclass and cardinality(conkey)=2 and cardinality(confkey)=2 and confdeltype='r'),'composite Workspace/tenant FK restricts deletion');
+select ok((select relrowsecurity from pg_class where oid='documents.documents'::regclass),'Documents RLS preserved');
+select ok((select relrowsecurity from pg_class where oid='documents.document_versions'::regclass),'versions RLS preserved');
+select ok(not has_table_privilege('authenticated','documents.documents','SELECT'),'no direct authenticated read');
+select ok(not has_table_privilege('anon','documents.documents','SELECT'),'no anonymous read');
+select ok(not has_table_privilege('authenticated','documents.document_scan_attestations','SELECT'),'scan evidence remains private');
+select ok(not has_table_privilege('authenticated','documents.document_versions','SELECT'),'versions remain private');
+select * from finish();
+rollback;

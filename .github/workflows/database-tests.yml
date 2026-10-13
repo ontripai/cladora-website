@@ -19,6 +19,9 @@ on:
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
       - "scripts/test-core-authority-revision-static.mjs"
+      - "scripts/test-documents-reference-authority-v1.mjs"
+      - "scripts/test-documents-reference-authority-postgres-v1.mjs"
+      - "src/lib/customer/documents-reference-authority-v1.ts"
       - "docs/contracts/CORE-AUTHORITY-REVISION-SOURCES-v1.json"
       - "scripts/lib/ap10-auth-e2e-fixture.mjs"
       - "scripts/lib/ap10-target-identity.mjs"
@@ -54,6 +57,9 @@ on:
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
       - "scripts/test-core-authority-revision-static.mjs"
+      - "scripts/test-documents-reference-authority-v1.mjs"
+      - "scripts/test-documents-reference-authority-postgres-v1.mjs"
+      - "src/lib/customer/documents-reference-authority-v1.ts"
       - "docs/contracts/CORE-AUTHORITY-REVISION-SOURCES-v1.json"
       - "scripts/lib/ap10-auth-e2e-fixture.mjs"
       - "scripts/lib/ap10-target-identity.mjs"
@@ -137,6 +143,11 @@ jobs:
         env:
           CORE_TX_EVIDENCE_EPHEMERAL: "1"
           CORE_TX_EVIDENCE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Documents reference authority PostgreSQL conformance
+        run: timeout 120s npm run test:doc-reference:postgres
+        env:
+          DOC_REFERENCE_EPHEMERAL: "1"
+          DOC_REFERENCE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
         env:

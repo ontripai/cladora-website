@@ -9,7 +9,7 @@ const baseline=readdirSync(directory).filter(f=>f.endsWith('.sql')&&f.slice(0,14
   .map(name=>({name,sha256:hash(readFileSync(join(directory,name)))}));
 assert.equal(baseline.length,manifest.baseline_migrations.count);
 assert.equal(hash(JSON.stringify(baseline)),manifest.baseline_migrations.sha256,'every historical migration stays byte-identical');
-assert.equal(readdirSync(directory).filter(f=>f.endsWith('.sql')).length,247);
+assert.equal(readdirSync(directory).filter(f=>f.endsWith('.sql')&&f.slice(0,14)<='20261012190924').length,247);
 assert.equal(manifest.sources.length,25);assert.equal(new Set(manifest.sources).size,25);
 const migration=readdirSync(directory).filter(f=>f.endsWith('_core_canonical_authority_revision_v1.sql'));
 assert.equal(migration.length,1);
