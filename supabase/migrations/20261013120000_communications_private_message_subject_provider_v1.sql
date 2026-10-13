@@ -175,6 +175,7 @@ $$;
 revoke all on function communications.resolve_private_message_subject_v1(
   uuid,uuid,uuid,uuid,bigint
 ) from public,anon,authenticated;
+grant usage on schema communications to service_role;
 grant execute on function communications.resolve_private_message_subject_v1(
   uuid,uuid,uuid,uuid,bigint
 ) to service_role;
