@@ -16,17 +16,9 @@ import {
 
 export const communicationsPrivateMessageProviderCodeV1 = 'communications.private_message_subject';
 
-type ResolverRow = {
-  message_id: string;
-  message_version: string;
-  workspace_id: string;
-  lifecycle_state: string;
-  participant_current: boolean;
-  participant_revoked: boolean;
-  evaluated_at: string;
-};
-
-const rowSchema = z.strictObject({
+const acceptedRowSchema = z.strictObject({
+  decision: z.literal('accepted'),
+  denial_reason: z.null(),
   message_id: z.string().uuid().transform(value => value.toLowerCase()),
   message_version: z.string().regex(/^[1-9][0-9]*$/),
   workspace_id: z.string().uuid().transform(value => value.toLowerCase()),
@@ -35,6 +27,19 @@ const rowSchema = z.strictObject({
   participant_revoked: z.boolean(),
   evaluated_at: z.string().datetime({ offset: true }),
 });
+const deniedRowSchema = z.strictObject({
+  decision: z.literal('denied'),
+  denial_reason: z.enum(['STALE_SUBJECT', 'SUBJECT_DENIED']),
+  message_id: z.null(),
+  message_version: z.null(),
+  workspace_id: z.null(),
+  lifecycle_state: z.null(),
+  participant_current: z.null(),
+  participant_revoked: z.null(),
+  evaluated_at: z.string().datetime({ offset: true }),
+});
+const rowSchema = z.discriminatedUnion('decision', [acceptedRowSchema, deniedRowSchema]);
+type ResolverRow = z.input<typeof rowSchema>;
 
 function authorityMatchesCommand(
   scope: CoreTransactionScopeV1,
@@ -122,10 +127,11 @@ export async function resolveCommunicationsPrivateMessageSubjectV1(
     return denied(scope, command, authority, 'STALE_SUBJECT');
   }
 
-  let result: { rows: ResolverRow[]; rowCount: number | null };
-  try {
-    result = await scope.query<ResolverRow>(`select
-      message_id::text,message_version::text,workspace_id::text,lifecycle_state,
+  // Expected source denials are rows, never SQL exceptions. Any real database
+  // exception must reach the Core host because PostgreSQL has already marked
+  // its transaction failed; 40001 in particular belongs to the host retry loop.
+  const result = await scope.query<ResolverRow>(`select
+      decision,denial_reason,message_id::text,message_version::text,workspace_id::text,lifecycle_state,
       participant_current,participant_revoked,
       to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as evaluated_at
       from communications.resolve_private_message_subject_v1($1,$2,$3,$4,$5)`, [
@@ -135,14 +141,6 @@ export async function resolveCommunicationsPrivateMessageSubjectV1(
       command.subject_reference.id,
       command.subject_reference.request_version,
     ]);
-  } catch (error) {
-    const sqlState = (error as { code?: string })?.code;
-    if (sqlState === '40001') return denied(scope, command, authority, 'STALE_SUBJECT');
-    if (sqlState === '42501' || sqlState === 'P0002') {
-      return denied(scope, command, authority, 'SUBJECT_DENIED');
-    }
-    return denied(scope, command, authority, 'PROVIDER_UNAVAILABLE');
-  }
 
   if (result.rowCount !== 1 || result.rows.length !== 1) {
     return denied(scope, command, authority, 'SUBJECT_DENIED');
@@ -150,6 +148,9 @@ export async function resolveCommunicationsPrivateMessageSubjectV1(
   const rowResult = rowSchema.safeParse(result.rows[0]);
   if (!rowResult.success) return denied(scope, command, authority, 'PROVIDER_UNAVAILABLE');
   const row = rowResult.data;
+  if (row.decision === 'denied') {
+    return denied(scope, command, authority, row.denial_reason, row.evaluated_at);
+  }
   const version = Number(row.message_version);
   if (!Number.isSafeInteger(version)
       || version !== command.subject_reference.version

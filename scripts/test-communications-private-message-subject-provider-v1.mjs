@@ -86,6 +86,8 @@ function command(overrides = {}) {
 }
 
 const available = {
+  decision: 'accepted',
+  denial_reason: null,
   message_id: messageId,
   message_version: '3',
   workspace_id: workspaceId,
@@ -94,6 +96,17 @@ const available = {
   participant_revoked: false,
   evaluated_at: '2026-10-13T12:00:00.002Z',
 };
+const boundedDenial = reason => ({
+  decision: 'denied',
+  denial_reason: reason,
+  message_id: null,
+  message_version: null,
+  workspace_id: null,
+  lifecycle_state: null,
+  participant_current: null,
+  participant_revoked: null,
+  evaluated_at: '2026-10-13T12:00:00.002Z',
+});
 
 function harness(row = available, sqlError) {
   const calls = [];
@@ -173,17 +186,26 @@ for (const [name, row] of [
   });
 }
 
-for (const [name, sqlState, reason] of [
-  ['stale version', '40001', 'STALE_SUBJECT'],
-  ['cross-Workspace or unreadable source', '42501', 'SUBJECT_DENIED'],
-  ['unexpected provider failure', 'XX000', 'PROVIDER_UNAVAILABLE'],
+for (const [name, row, reason] of [
+  ['stale version', boundedDenial('STALE_SUBJECT'), 'STALE_SUBJECT'],
+  ['cross-Workspace or unreadable source', boundedDenial('SUBJECT_DENIED'), 'SUBJECT_DENIED'],
 ]) {
   await check(`${name} returns bounded Core evidence`, async () => {
-    const { scope } = harness(null, sqlState);
+    const { scope } = harness(row);
     const result = await resolveCommunicationsPrivateMessageSubjectV1(scope, command(), authority());
     assert.equal(result.decision, 'denied');
     assert.equal(result.denial_reason, reason);
     assert.equal(result.source_reference, null);
+  });
+}
+
+for (const sqlState of ['40001', 'XX000']) {
+  await check(`real PostgreSQL ${sqlState} is propagated to the Core host`, async () => {
+    const { scope } = harness(null, sqlState);
+    await assert.rejects(
+      resolveCommunicationsPrivateMessageSubjectV1(scope, command(), authority()),
+      error => error.code === sqlState,
+    );
   });
 }
 
@@ -247,5 +269,5 @@ await check('missing source row is denied without a reference payload', async ()
   assert.equal(result.source_reference, null);
 });
 
-assert.equal(passed, 26);
-console.log(`Communications private-message Core evidence provider: ${passed}/26 PASS`);
+assert.equal(passed, 27);
+console.log(`Communications private-message Core evidence provider: ${passed}/27 PASS`);

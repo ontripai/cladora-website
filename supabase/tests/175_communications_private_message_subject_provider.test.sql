@@ -122,25 +122,25 @@ select ok((select participant_current and not participant_revoked
 select is((select count(*) from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
-) r cross join lateral jsonb_object_keys(to_jsonb(r))),6::bigint,'Resolver exposes exactly six bounded fields');
+) r cross join lateral jsonb_object_keys(to_jsonb(r))),8::bigint,'Resolver exposes exactly eight bounded fields');
 select ok(not exists(select 1 from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
 ) r cross join lateral jsonb_object_keys(to_jsonb(r)) as keys(key)
 where key in ('body','sender_id','conversation_id','unit_id','membership_id','participants')),
   'Body, source internals, and participant identities are absent');
-select throws_ok($$select * from communications.resolve_private_message_subject_v1(
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',2
-)$$,'40001','private_message_version_conflict','Stale expected version fails closed');
-select throws_ok($$select * from communications.resolve_private_message_subject_v1(
+)),'STALE_SUBJECT','Stale expected version is a bounded row and leaves the transaction usable');
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000014',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
-)$$,'42501','private_message_subject_denied','Cross-Workspace resolution shares a bounded denial');
-select throws_ok($$select * from communications.resolve_private_message_subject_v1(
+)),'SUBJECT_DENIED','Cross-Workspace resolution shares a bounded denial row');
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000002','17500000-0000-4000-8000-000000000016',1
-)$$,'42501','private_message_subject_denied','Actor binding mismatch denied');
+)),'SUBJECT_DENIED','Actor binding mismatch returns a bounded denial row');
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Stale and authority/scope denials write no domain, idempotency, audit, or outbox rows');
 
@@ -173,10 +173,12 @@ select is((select lifecycle_state from communications.private_messages where id=
   'Quarantine transition advances the canonical row');
 
 update provider_before set counts=pg_temp.provider_counts();
-select is((select lifecycle_state from communications.resolve_private_message_subject_v1(
+select ok((select decision='denied' and denial_reason='SUBJECT_DENIED'
+    and message_id is null and lifecycle_state is null
+  from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',3
-)),'quarantined','Resolver reports the current quarantined lifecycle');
+)),'Quarantined lifecycle returns only a bounded denial');
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Quarantined resolution is read-only');
 
@@ -184,11 +186,12 @@ update communications.private_participants set revoked_at=statement_timestamp()
 where conversation_id='17500000-0000-4000-8000-000000000015'
   and membership_id='17500000-0000-4000-8000-000000000009';
 update provider_before set counts=pg_temp.provider_counts();
-select ok((select participant_revoked and not participant_current
+select ok((select decision='denied' and denial_reason='SUBJECT_DENIED'
+    and participant_revoked is null and participant_current is null
   from communications.resolve_private_message_subject_v1(
     '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
     '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',3
-  )),'Revoked participant state is explicit and current access is false');
+  )),'Revoked participant returns only a bounded denial');
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Revoked resolution is read-only');
 
@@ -197,14 +200,16 @@ where id='17500000-0000-4000-8000-000000000016';
 select is((select version from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),4::bigint,
   'Deleted transition advances version');
 update provider_before set counts=pg_temp.provider_counts();
-select is((select lifecycle_state from communications.resolve_private_message_subject_v1(
+select ok((select decision='denied' and denial_reason='SUBJECT_DENIED'
+    and message_id is null and lifecycle_state is null
+  from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',4
-)),'deleted','Resolver reports deleted lifecycle without returning content');
-select throws_ok($$select * from communications.resolve_private_message_subject_v1(
+)),'Deleted lifecycle returns only a bounded denial');
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',0
-)$$,'22023','private_message_subject_invalid','Non-positive expected version rejected');
+)),'SUBJECT_DENIED','Non-positive expected version returns a bounded denial');
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Deleted and invalid resolution attempts are read-only');
 
