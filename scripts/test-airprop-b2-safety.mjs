@@ -39,6 +39,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'CE Communications / PR #377',
       sha256: '339b1b88e89072fd95c0e07a8821084877c722c4f121bb6f0a16dfde73f96080',
     },
+    '20261013145654_service_request_subject_provider_v2.sql': {
+      owner: 'SERVICE / PR #383',
+      sha256: 'a4765535e180c39c633afb4a8b4f03c898c25c91ec31a906e73aa780c036ae98',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
