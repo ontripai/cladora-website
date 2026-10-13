@@ -87,6 +87,7 @@ declare
   v_property_id uuid;
   v_binding_count integer;
   v_bound_workspace uuid;
+  v_core_workspace_context boolean := false;
   v_current boolean;
 begin
   if p_context_id is null or p_workspace_id is null or p_actor_id is null
@@ -133,8 +134,14 @@ begin
   from portfolio.units u
   join portfolio.buildings b on b.id=u.building_id and b.tenant_id=u.tenant_id
   where u.id=v_conversation.unit_id and u.tenant_id=v_conversation.tenant_id;
+  v_core_workspace_context := app_private.native_workspace_scope_for_membership_v2(
+    p_context_id,v_membership,p_workspace_id
+  );
   if v_property_id is null
-      or not communications.context_covers_unit(p_context_id,v_conversation.unit_id) then
+      or not (
+        communications.context_covers_unit(p_context_id,v_conversation.unit_id)
+        or v_core_workspace_context
+      ) then
     decision := 'denied'; denial_reason := 'SUBJECT_DENIED';
     return next; return;
   end if;
@@ -171,11 +178,26 @@ begin
     return next; return;
   end if;
 
-  v_current := v_participant.revoked_at is null
-    and communications.can_read_private(v_conversation.id,v_membership)
-    and communications.member_covers_unit(
-      v_membership,v_conversation.tenant_id,v_conversation.unit_id
-    );
+  v_current := v_participant.revoked_at is null and (
+    communications.can_read_private(v_conversation.id,v_membership)
+    or (
+      v_core_workspace_context
+      and coalesce(auth.jwt()->>'aal','aal1')='aal2'
+      and exists (
+        select 1
+        from identity.memberships m
+        join identity.roles r on r.id=m.role_id
+        join identity.role_permissions rp on rp.role_id=r.id and rp.effect='allow'
+        join identity.permissions perm on perm.id=rp.permission_id
+        where m.id=v_membership and m.tenant_id=v_conversation.tenant_id
+          and m.user_id=auth.uid() and m.status='active'
+          and m.starts_at<=statement_timestamp()
+          and (m.ends_at is null or m.ends_at>statement_timestamp())
+          and lower(r.code) in ('association_admin','property_manager','president')
+          and perm.code='communications.feed.read'
+      )
+    )
+  );
 
   if not v_current or v_participant.revoked_at is not null
       or v_message.lifecycle_state <> 'available' then

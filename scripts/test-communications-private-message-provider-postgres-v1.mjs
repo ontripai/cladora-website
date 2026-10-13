@@ -81,17 +81,13 @@ try {
     actor, `comm-provider-${randomUUID()}@example.invalid`,
   ]);
   const ids = await driver.setup({ userId: actor, runId: randomUUID(), target: 'local' });
-  // AP10 intentionally begins with a tenant-wide context and AIRPROP system
-  // persona. Private-message discovery rejects tenant-wide scope, so this
-  // integration fixture narrows that same canonical membership and context to
-  // the exact property while preserving AP10's Workspace-local Core authority.
+  // AP10 intentionally begins with a tenant-wide Core context and AIRPROP
+  // system persona. Keep that context exact for the real Core host, while using
+  // the existing Communications reader role on the same canonical membership.
   await pool.query(`update identity.memberships set role_id=(
       select id from identity.roles
       where code='association_admin' and tenant_id is null and is_system
     ) where id=$1`, [ids.membershipId]);
-  await pool.query(`update identity.context_grants set
-      scope_type='property',property_id=$2,building_id=null,unit_id=null
-    where id=$1`, [ids.contextId, ids.propertyIds[0]]);
   await pool.query(`insert into platform.workspace_entitlements(
       customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from
     ) values($1,'module.communications','boolean',true,statement_timestamp()-interval '1 second')`,
