@@ -21,6 +21,9 @@ on:
       - "scripts/test-service-request-subject-provider-postgres-v2.mjs"
       - "scripts/test-service-request-subject-provider-v2.mjs"
       - "src/lib/customer/service-request-subject-provider-v2.ts"
+      - "scripts/test-service-request-subject-link-v1.mjs"
+      - "scripts/test-service-request-subject-link-postgres-v1.mjs"
+      - "src/lib/customer/service-request-subject-link-v1.ts"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -65,6 +68,9 @@ on:
       - "scripts/test-service-request-subject-provider-postgres-v2.mjs"
       - "scripts/test-service-request-subject-provider-v2.mjs"
       - "src/lib/customer/service-request-subject-provider-v2.ts"
+      - "scripts/test-service-request-subject-link-v1.mjs"
+      - "scripts/test-service-request-subject-link-postgres-v1.mjs"
+      - "src/lib/customer/service-request-subject-link-v1.ts"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -180,6 +186,11 @@ jobs:
         env:
           SERVICE_REQUEST_PROVIDER_EPHEMERAL: "1"
           SERVICE_REQUEST_PROVIDER_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run SERVICE private-message subject link through the Core transaction host
+        run: timeout 180s npm run test:service-subject-link:postgres
+        env:
+          SERVICE_SUBJECT_LINK_EPHEMERAL: "1"
+          SERVICE_SUBJECT_LINK_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
         env:
