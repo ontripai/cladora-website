@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/20261013062342_service_request_subject_context_v1.sql'
+      - 'src/lib/core/transaction-provider-evidence-v1.ts'
       - 'src/lib/customer/service-request-subject-context-v1.ts'
       - 'scripts/test-service-request-subject-context-postgres-v1.mjs'
       - '.github/workflows/service-request-subject-context.yml'
@@ -11,6 +12,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/migrations/20261013062342_service_request_subject_context_v1.sql'
+      - 'src/lib/core/transaction-provider-evidence-v1.ts'
       - 'src/lib/customer/service-request-subject-context-v1.ts'
       - 'scripts/test-service-request-subject-context-postgres-v1.mjs'
       - '.github/workflows/service-request-subject-context.yml'

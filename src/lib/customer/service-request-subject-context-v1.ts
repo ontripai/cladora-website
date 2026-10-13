@@ -1,4 +1,8 @@
 import { z } from 'zod';
+import {
+  coreTransactionSubjectReferenceV1Schema,
+  type CoreTransactionSubjectReferenceV1,
+} from '../core/transaction-provider-evidence-v1';
 import { uuidSchema } from './workspace-composition-schema';
 
 export const SERVICE_REQUEST_SUBJECT_CONTEXT_CONTRACT = 'service-request-subject-context.v1' as const;
@@ -13,3 +17,17 @@ export const serviceRequestSubjectContextV1Schema = z.strictObject({
 }).refine(value => value.actor_party_snapshot.party_id.toLowerCase()
   === value.audience_party_snapshot.party_ids[0].toLowerCase(), 'exact_request_party_audience_required');
 export type ServiceRequestSubjectContextV1 = z.infer<typeof serviceRequestSubjectContextV1Schema>;
+
+/** Canonical Core host subject identity; no SERVICE-owned copy of the Core shape. */
+export function serviceRequestSubjectContextToCoreReferenceV1(
+  input: ServiceRequestSubjectContextV1,
+): CoreTransactionSubjectReferenceV1 {
+  const context = serviceRequestSubjectContextV1Schema.parse(input);
+  return coreTransactionSubjectReferenceV1Schema.parse({
+    kind: 'service_request',
+    id: context.request_id,
+    version: context.request_version,
+    relation: 'request_party',
+    request_version: context.request_version,
+  });
+}
