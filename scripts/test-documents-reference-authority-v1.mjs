@@ -13,46 +13,72 @@ export function load(url) {
     ?load(new URL(name.endsWith('.ts')?name:`${name}.ts`,url)):require(name),mod,mod.exports);
   return mod.exports;
 }
+
 const api=load(new URL('../src/lib/customer/documents-reference-authority-v1.ts',import.meta.url));
-const request={contract_version:'documents-reference-authority.v1',context_id:randomUUID(),workspace_id:randomUUID(),
-  command_id:randomUUID(),authority_version:1,document_id:randomUUID(),document_version_id:randomUUID(),
-  document_version:1,evaluation_mode:'new_command'};
+const core=load(new URL('../src/lib/core/transaction-provider-evidence-v1.ts',import.meta.url));
+const ids={transaction:randomUUID(),command:randomUUID(),context:randomUUID(),workspace:randomUUID(),
+  actor:randomUUID(),document:randomUUID(),version:randomUUID(),decision:randomUUID()};
+const command={contract_version:'core-transaction-command.v2',transaction_id:ids.transaction,
+  command_id:ids.command,context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,
+  authority_version:1,permission_code:'documents.vault.read',module_code:'documents',
+  evaluation_purpose:'documents.reference.read',aggregate_type:'documents.document',
+  aggregate_id:ids.document,aggregate_version:1,provider_source_ids:[ids.document,ids.version],
+  idempotency_key:'documents-reference-test',input_fingerprint:'doc1:0123456789abcdef',
+  subject_reference:{kind:'documents.document_version',id:ids.version,version:1,relation:'read',request_version:1}};
+const authority={contract_version:'core-current-authority-transaction-port-receipt.v1',decision:'allowed',
+  decision_id:ids.decision,context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,
+  authority_version:1,permission_code:'documents.vault.read',module_code:'documents',
+  evaluation_purpose:'documents.reference.read',source_contract:'workspace-native-effective-authority.v2',
+  evaluator:'app_private.check_workspace_native_permission_v2',source_disclosure:'status_only',source_reference:null,
+  actor_status:'current',denial_reason:null,evaluated_at:new Date().toISOString(),
+  transaction_context:{transaction_id:ids.transaction,command_id:ids.command,attempt:1,
+    isolation_level:'serializable',lock:{kind:'command_aggregate',workspace_id:ids.workspace,
+      aggregate_type:'documents.document',aggregate_id:ids.document,acquired_at:new Date().toISOString()}}};
+const scope={transaction_id:ids.transaction,database_transaction_id:'1',workspace_id:ids.workspace,
+  tenant_id:randomUUID(),actor_id:ids.actor,attempt:1,query:async()=>{throw new Error('private SQL detail');}};
 let checks=0;
 const check=async(name,fn)=>{await fn();console.log(`ok ${++checks} - ${name}`);};
-await check('strict request rejects client authority, content and undeclared fields',()=>{
-  assert.equal(api.documentsReferenceAuthorityRequestV1Schema.safeParse(request).success,true);
-  for(const field of ['actor_id','tenant_id','safe_label','permission_code','module_code','content','object_path','receipt']) {
-    assert.equal(api.documentsReferenceAuthorityRequestV1Schema.safeParse({...request,[field]:randomUUID()}).success,false);
-  }
-  for(const value of [0,-1,1.5,Number.MAX_SAFE_INTEGER+1]) {
-    assert.equal(api.documentsReferenceAuthorityRequestV1Schema.safeParse({...request,document_version:value}).success,false);
-    assert.equal(api.documentsReferenceAuthorityRequestV1Schema.safeParse({...request,authority_version:value}).success,false);
-  }
-});
-await check('invalid or cross-Workspace request never queries or writes',async()=>{
-  const scope={workspace_id:request.workspace_id,query(){throw new Error('must not query');}};
-  assert.equal((await api.resolveDocumentsReferenceAuthorityV1(scope,{...request,content:'private'})).code,'INVALID_REQUEST');
-  assert.equal((await api.resolveDocumentsReferenceAuthorityV1(scope,{...request,workspace_id:randomUUID()})).decision,'denied');
-});
-await check('SQL errors are bounded; serialization abort propagates to the Core host',async()=>{
-  const error=Object.assign(new Error('private SQL and credentials'),{code:'42501'});
-  const scope={workspace_id:request.workspace_id,query:async()=>{throw error;}};
-  assert.deepEqual(await api.resolveDocumentsReferenceAuthorityV1(scope,request),{
-    contract_version:'documents-reference-authority.v1',decision:'denied',evidence:null,code:'PROVIDER_UNAVAILABLE'});
-  error.code='40001';
-  await assert.rejects(()=>api.resolveDocumentsReferenceAuthorityV1(scope,request),e=>e===error);
-});
-await check('denial evidence is always null and result schema rejects unrelated permission data',()=>{
-  const denial={contract_version:'documents-reference-authority.v1',decision:'denied',code:'AUTHORITY_DENIED',evidence:null};
-  assert.equal(api.documentsReferenceAuthorityResultV1Schema.safeParse(denial).success,true);
-  for(const extra of [{evidence:{document_id:request.document_id}},{permissions:['unrelated']},{content:'private'}]) {
-    assert.equal(api.documentsReferenceAuthorityResultV1Schema.safeParse({...denial,...extra}).success,false);
+
+await check('provider identity and output are the canonical Core evidence contract',async()=>{
+  assert.equal(api.documentsReferenceAuthorityProviderCodeV1,'documents-reference-authority.v1');
+  const result=await api.validateDocumentsReferenceAuthorityV1(scope,command,authority);
+  assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'PROVIDER_UNAVAILABLE');
+  assert.equal(core.coreTransactionProviderEvidenceV1Schema.safeParse(result).success,true);
+  assert.equal(result.source_disclosure,'status_only');assert.equal(result.source_reference,null);
+  for(const field of ['content','title','sha256','mime_type','object_path','bucket_id','tenant_id','permissions','entitlement']) {
+    assert.ok(!(field in result));
   }
 });
-await check('provider stays unwired and imports the canonical Core provider directly',()=>{
+await check('subject, relation and command mismatches deny before querying',async()=>{
+  const noQuery={...scope,query(){throw new Error('must not query');}};
+  for(const changed of [
+    {...command,aggregate_type:'documents.other'},
+    {...command,subject_reference:{...command.subject_reference,kind:'documents.document'}},
+    {...command,subject_reference:{...command.subject_reference,relation:'write'}},
+    {...command,subject_reference:{...command.subject_reference,request_version:2}},
+    {...command,aggregate_version:2},
+    {...command,provider_source_ids:[ids.version]},
+  ]) {
+    const result=await api.validateDocumentsReferenceAuthorityV1(noQuery,changed,authority);
+    assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'RELATION_MISMATCH');
+    assert.equal(core.coreTransactionProviderEvidenceV1Schema.safeParse(result).success,true);
+  }
+});
+await check('authority binding mismatch denies before querying',async()=>{
+  const result=await api.validateDocumentsReferenceAuthorityV1(
+    {...scope,query(){throw new Error('must not query');}},command,{...authority,authority_version:2});
+  assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'SUBJECT_DENIED');
+});
+await check('serialization abort escapes to the Core host',async()=>{
+  const error=Object.assign(new Error('retry'),{code:'40001'});
+  await assert.rejects(()=>api.validateDocumentsReferenceAuthorityV1(
+    {...scope,query:async()=>{throw error;}},command,authority),e=>e===error);
+});
+await check('source consumes Core v2 types without resolving or duplicating authority interfaces',()=>{
   const source=readFileSync(new URL('../src/lib/customer/documents-reference-authority-v1.ts',import.meta.url),'utf8');
-  assert.match(source,/import \{ resolveAuthority \} from '..\/core\/current-authority-postgres-provider-v1'/);
-  assert.match(source,/scope: CoreTransactionScopeV1/);
+  assert.match(source,/CoreTransactionProvidersV2/);
+  assert.match(source,/CoreTransactionProviderEvidenceV1/);
+  assert.doesNotMatch(source,/current-authority-postgres-provider|resolveAuthority|interface\s+CoreTransaction/);
   assert.doesNotMatch(source,/\b(?:insert into|update documents|delete from|set_config|authorize_download_internal|object_path|metadata_json)\b/i);
 });
 console.log(`Documents reference contract: ${checks}/${checks} PASS`);
