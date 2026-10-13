@@ -54,7 +54,8 @@
     "test:core-current-authority-port": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-transaction-port.mjs",
     "test:core-current-authority-consumers": "node --no-warnings --experimental-strip-types scripts/test-core-current-authority-consumer-conformance.mjs",
     "test:core-tx-host:postgres": "node scripts/test-core-transaction-host-postgres-v1.mjs",
-    "test:core-authority-revision:postgres": "node scripts/test-core-authority-revision-postgres-v1.mjs"
+    "test:core-authority-revision:postgres": "node scripts/test-core-authority-revision-postgres-v1.mjs",
+    "test:core-tx-provider-evidence:postgres": "node scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",

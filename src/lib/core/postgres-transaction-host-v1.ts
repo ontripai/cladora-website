@@ -10,6 +10,12 @@ import {
   type CurrentAuthorityTransactionDecisionReceiptV1,
 } from './current-authority-transaction-port-v1';
 
+import {
+  coreTransactionSubjectReferenceV1Schema, coreTransactionProviderEvidenceV1Schema,
+  coreTransactionAcceptedProviderEvidenceV1Schema, coreSubjectReferencesMatch,
+  type CoreTransactionProviderEvidenceV1, type CoreTransactionAcceptedProviderEvidenceV1,
+} from './transaction-provider-evidence-v1';
+
 const uuid = z.string().uuid().transform(value => value.toLowerCase());
 const code = z.string().regex(/^[a-z0-9_.:-]{3,160}$/);
 export const coreTransactionCommandV1Schema = z.strictObject({
@@ -31,6 +37,15 @@ export const coreTransactionCommandV1Schema = z.strictObject({
   input_fingerprint: z.string().regex(/^[a-z0-9]+:[a-f0-9]{16,64}$/),
 });
 export type CoreTransactionCommandV1 = z.infer<typeof coreTransactionCommandV1Schema>;
+export const coreTransactionCommandV2Schema = coreTransactionCommandV1Schema.extend({
+  contract_version: z.literal('core-transaction-command.v2'),
+  subject_reference: coreTransactionSubjectReferenceV1Schema,
+}).refine(command => command.provider_source_ids.includes(command.subject_reference.id),
+  'Subject must be included in the existing provider-source lock set');
+export type CoreTransactionCommandV2 = z.infer<typeof coreTransactionCommandV2Schema>;
+const commandSchema = z.discriminatedUnion('contract_version', [
+  coreTransactionCommandV1Schema, coreTransactionCommandV2Schema,
+]);
 
 /** Trusted server providers only: never expose this capability to a route/client. */
 export interface CoreTransactionScopeV1 {
@@ -49,11 +64,20 @@ export interface CoreTransactionProvidersV1 {
   resolveAuthority(scope: CoreTransactionScopeV1, request: CurrentAuthorityTransactionRequestV1):
     Promise<CanonicalCurrentAuthorityObservationV1>;
   /** Read-only provider validation. No network effects, durable writes or cached allow. */
-  validateProviders(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1): Promise<boolean>;
+  validateProviders(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1,
+    authority: CurrentAuthorityTransactionDecisionReceiptV1): Promise<boolean>;
   /** Domain-owner mutation in the supplied SQL scope; no independent transaction. */
   mutate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1): Promise<{ mutation_id: string }>;
 }
-const receiptSchema = z.strictObject({
+export interface CoreTransactionProvidersV2 {
+  readonly provider_code: string;
+  resolveAuthority(scope: CoreTransactionScopeV1, request: CurrentAuthorityTransactionRequestV1):
+    Promise<CanonicalCurrentAuthorityObservationV1>;
+  validateProviders(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV2,
+    authority: CurrentAuthorityTransactionDecisionReceiptV1): Promise<CoreTransactionProviderEvidenceV1>;
+  mutate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV2): Promise<{ mutation_id: string }>;
+}
+const receiptBaseSchema = z.strictObject({
   contract_version: z.literal('core-transaction-receipt.v1'),
   receipt_version: z.literal(1),
   receipt_id: uuid,
@@ -71,21 +95,53 @@ const receiptSchema = z.strictObject({
   audit_event_id: z.string().regex(/^[1-9][0-9]*$/),
   outbox_event_id: uuid,
   committed_at: z.string().datetime({ offset: true }),
-}).refine(receipt => receipt.authority.decision === 'allowed'
+});
+const receiptAuthorityMatchesEffect = (receipt: Pick<z.infer<typeof receiptBaseSchema>,
+  'authority' | 'workspace_id' | 'actor_id' | 'transaction_id' | 'command_id'
+  | 'aggregate_type' | 'aggregate_id'>) => receipt.authority.decision === 'allowed'
   && receipt.authority.workspace_id === receipt.workspace_id
   && receipt.authority.actor_id === receipt.actor_id
   && receipt.authority.transaction_context.transaction_id === receipt.transaction_id
   && receipt.authority.transaction_context.command_id === receipt.command_id
   && receipt.authority.transaction_context.lock.aggregate_type === receipt.aggregate_type
-  && receipt.authority.transaction_context.lock.aggregate_id === receipt.aggregate_id,
-'Persisted authority receipt must bind the complete committed effect identity');
+  && receipt.authority.transaction_context.lock.aggregate_id === receipt.aggregate_id;
+const receiptSchema = receiptBaseSchema.refine(receiptAuthorityMatchesEffect,
+  'Persisted authority receipt must bind the complete committed effect identity');
 export type CoreTransactionReceiptV1 = z.infer<typeof receiptSchema>;
+const receiptV2Schema = receiptBaseSchema.extend({
+  contract_version: z.literal('core-transaction-receipt.v2'),
+  receipt_version: z.literal(2),
+  subject_reference: coreTransactionSubjectReferenceV1Schema,
+  provider_evidence: coreTransactionAcceptedProviderEvidenceV1Schema,
+}).refine(receipt => receiptAuthorityMatchesEffect(receipt) && coreSubjectReferencesMatch(receipt.subject_reference, receipt.provider_evidence.subject_reference)
+  && receipt.provider_evidence.transaction_id === receipt.transaction_id
+  && receipt.provider_evidence.command_id === receipt.command_id
+  && receipt.provider_evidence.workspace_id === receipt.workspace_id
+  && receipt.provider_evidence.actor_id === receipt.actor_id
+  && receipt.provider_evidence.context_id === receipt.authority.context_id
+  && receipt.provider_evidence.authority_decision_id === receipt.authority.decision_id
+  && receipt.provider_evidence.authority_version === receipt.authority.authority_version
+  && receipt.provider_evidence.attempt === receipt.authority.transaction_context.attempt
+  && Date.parse(receipt.provider_evidence.evaluated_at) >= Date.parse(receipt.authority.evaluated_at)
+  && Date.parse(receipt.provider_evidence.evaluated_at) <= Date.parse(receipt.committed_at),
+'Persisted provider evidence must bind subject, authority and committed transaction');
+export type CoreTransactionReceiptV2 = z.infer<typeof receiptV2Schema>;
+const persistedReceiptSchema = z.union([receiptSchema, receiptV2Schema]);
 export type CoreTransactionResultV1 =
   | { status: 'committed' | 'exact_replay'; receipt: CoreTransactionReceiptV1 }
   | { status: 'denied'; code: 'INVALID_COMMAND' | 'WORKSPACE_UNAVAILABLE' | 'REPLAY_CONFLICT'
       | 'AUTHORITY_DENIED' | 'PROVIDER_UNAVAILABLE' | 'TRANSACTION_FAILED';
       authority?: CurrentAuthorityTransactionDecisionReceiptV1 }
   | { status: 'unknown_commit'; code: 'READBACK_REQUIRED' };
+
+export type CoreTransactionResultV2 =
+  | { status: 'committed' | 'exact_replay'; receipt: CoreTransactionReceiptV2 }
+  | Exclude<CoreTransactionResultV1, { status: 'committed' | 'exact_replay' }>;
+type CoreTransactionResult = CoreTransactionResultV1 | CoreTransactionResultV2;
+export interface CoreTransactionHostV1 {
+  execute(command: unknown, providers: CoreTransactionProvidersV1): Promise<CoreTransactionResultV1>;
+  execute(command: unknown, providers: CoreTransactionProvidersV2): Promise<CoreTransactionResultV2>;
+}
 
 function entitlementBindingsMatch(
   stored: CurrentAuthorityTransactionDecisionReceiptV1['entitlement'],
@@ -103,16 +159,22 @@ function entitlementBindingsMatch(
 }
 
 class AbortTransaction extends Error {
-  constructor(readonly result: CoreTransactionResultV1) { super('core_transaction_aborted'); }
+  constructor(readonly result: CoreTransactionResult) { super('core_transaction_aborted'); }
 }
 
 /** One backend connection, transaction, lock context and canonical ledger set. Unwired by default. */
 export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>) {
   return {
-    async execute(commandValue: unknown, providers: CoreTransactionProvidersV1): Promise<CoreTransactionResultV1> {
-      const parsed = coreTransactionCommandV1Schema.safeParse(commandValue);
+    async execute(commandValue: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2): Promise<CoreTransactionResult> {
+      const parsed = commandSchema.safeParse(commandValue);
       if (!parsed.success) return { status: 'denied', code: 'INVALID_COMMAND' };
       const command = parsed.data;
+      const providerCode = command.contract_version === 'core-transaction-command.v2'
+        ? (providers as CoreTransactionProvidersV2).provider_code : undefined;
+      if (command.contract_version === 'core-transaction-command.v2'
+        && (typeof providerCode !== 'string' || !/^[a-z][a-z0-9_.:-]{0,79}$/.test(providerCode))) {
+        return { status: 'denied', code: 'PROVIDER_UNAVAILABLE' };
+      }
       // Copy per attempt: a provider cannot alter the authoritative command bindings.
       for (let attempt = 1; attempt <= 3; attempt += 1) {
         let client: PoolClient | undefined;
@@ -219,7 +281,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
           );
           if (previous.rowCount) {
             const row = previous.rows[0];
-            const prior = receiptSchema.safeParse(row.response_ref);
+            const prior = persistedReceiptSchema.safeParse(row.response_ref);
             if (row.actor_id !== command.actor_id || row.request_hash !== requestHash
               || !prior.success || row.expires_at.getTime() <= Date.now()
               || prior.data.workspace_id !== command.workspace_id
@@ -236,14 +298,44 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               || prior.data.authority.permission_code !== command.permission_code
               || prior.data.authority.module_code !== command.module_code
               || prior.data.authority.evaluation_purpose !== command.evaluation_purpose
-              || !entitlementBindingsMatch(prior.data.authority.entitlement, authority.entitlement)) {
+              || !entitlementBindingsMatch(prior.data.authority.entitlement, authority.entitlement)
+              || (command.contract_version === 'core-transaction-command.v2'
+                ? prior.data.contract_version !== 'core-transaction-receipt.v2'
+                  || !coreSubjectReferencesMatch(prior.data.subject_reference, command.subject_reference)
+                  || prior.data.provider_evidence.provider_code !== providerCode
+                : prior.data.contract_version !== 'core-transaction-receipt.v1')) {
               throw new AbortTransaction({ status: 'denied', code: 'REPLAY_CONFLICT' });
             }
             live = false;
             await client.query('rollback');
-            return { status: 'exact_replay', receipt: prior.data };
+            return prior.data.contract_version === 'core-transaction-receipt.v2'
+              ? { status: 'exact_replay', receipt: prior.data }
+              : { status: 'exact_replay', receipt: prior.data };
           }
-          if (!await invoke(() => providers.validateProviders(scope, structuredClone(command)))) {
+          let providerEvidence: CoreTransactionAcceptedProviderEvidenceV1 | undefined;
+          if (command.contract_version === 'core-transaction-command.v2') {
+            const value = await invoke(() => (providers as CoreTransactionProvidersV2).validateProviders(
+              scope, structuredClone(command), structuredClone(authority)));
+            const evidence = coreTransactionProviderEvidenceV1Schema.safeParse(value);
+            const now = await client.query<{ now: string }>('select clock_timestamp()::text as now');
+            if (!evidence.success || evidence.data.decision !== 'accepted'
+              || evidence.data.provider_code !== providerCode
+              || evidence.data.transaction_id !== command.transaction_id
+              || evidence.data.command_id !== command.command_id
+              || evidence.data.workspace_id !== command.workspace_id
+              || evidence.data.actor_id !== command.actor_id
+              || evidence.data.context_id !== command.context_id
+              || evidence.data.authority_decision_id !== authority.decision_id
+              || evidence.data.authority_version !== authority.authority_version
+              || evidence.data.attempt !== attempt
+              || !coreSubjectReferencesMatch(evidence.data.subject_reference, command.subject_reference)
+              || Date.parse(evidence.data.evaluated_at) < Date.parse(authority.evaluated_at)
+              || Date.parse(evidence.data.evaluated_at) > Date.parse(now.rows[0].now)) {
+              throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+            }
+            providerEvidence = evidence.data;
+          } else if (await invoke(() => (providers as CoreTransactionProvidersV1).validateProviders(
+            scope, structuredClone(command), structuredClone(authority))) !== true) {
             throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
           }
           // Only now may any persistent effect be staged.
@@ -251,7 +343,9 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             (tenant_id,actor_id,key,request_hash,expires_at) values($1,$2,$3,$4,statement_timestamp()+interval '1 day')`,
           [tenantId, command.actor_id, key, requestHash]);
           phase = 'mutation';
-          const mutation = await invoke(() => providers.mutate(scope, structuredClone(command)));
+          const mutation = await invoke(() => command.contract_version === 'core-transaction-command.v2'
+            ? (providers as CoreTransactionProvidersV2).mutate(scope, structuredClone(command))
+            : (providers as CoreTransactionProvidersV1).mutate(scope, structuredClone(command)));
           const mutationId = uuid.parse(mutation.mutation_id);
           const receiptId = randomUUID();
           const audit = await client.query<{ id: string }>(`insert into audit.events
@@ -272,8 +366,12 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               transaction_id: command.transaction_id, mutation_id: mutationId,
             }), command.command_id]);
           const now = await client.query<{ now: string }>('select clock_timestamp()::text as now');
-          const receipt = receiptSchema.parse({
-            contract_version: 'core-transaction-receipt.v1', receipt_version: 1, receipt_id: receiptId,
+          const receipt = persistedReceiptSchema.parse({
+            ...(command.contract_version === 'core-transaction-command.v2'
+              ? { contract_version: 'core-transaction-receipt.v2', receipt_version: 2,
+                subject_reference: command.subject_reference, provider_evidence: providerEvidence }
+              : { contract_version: 'core-transaction-receipt.v1', receipt_version: 1 }),
+            receipt_id: receiptId,
             transaction_id: command.transaction_id, command_id: command.command_id,
             workspace_id: command.workspace_id, actor_id: command.actor_id,
             aggregate_type: command.aggregate_type, aggregate_id: command.aggregate_id,
@@ -287,7 +385,9 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
           live = false;
           commitAttempted = true;
           await client.query('commit');
-          return { status: 'committed', receipt };
+          return receipt.contract_version === 'core-transaction-receipt.v2'
+            ? { status: 'committed', receipt }
+            : { status: 'committed', receipt };
         } catch (error) {
           live = false;
           if (client) await client.query('rollback').catch(() => { rollbackFailed = true; });
@@ -306,5 +406,5 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
       }
       return { status: 'denied', code: 'TRANSACTION_FAILED' };
     },
-  };
+  } as CoreTransactionHostV1;
 }
