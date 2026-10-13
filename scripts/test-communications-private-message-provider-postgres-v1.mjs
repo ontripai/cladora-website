@@ -5,6 +5,14 @@ import { createRequire } from 'node:module';
 import pg from 'pg';
 import ts from 'typescript';
 
+const workflowEscape = value => String(value).replaceAll('%', '%25')
+  .replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+process.on('uncaughtExceptionMonitor', error => {
+  const code = typeof error?.code === 'string' ? error.code : 'NO_SQLSTATE';
+  const message = error instanceof Error ? error.message : 'unknown_failure';
+  console.error(`::error title=Communications Core TX host regression::${workflowEscape(`${code}: ${message}`)}`);
+});
+
 const connectionString = process.env.COMM_MESSAGE_PROVIDER_TEST_DATABASE_URL;
 if (!connectionString || process.env.COMM_MESSAGE_PROVIDER_EPHEMERAL !== '1') {
   throw new Error('Explicit disposable Communications provider target required');
