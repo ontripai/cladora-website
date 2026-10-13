@@ -62,6 +62,17 @@ insert into platform.workspace_property_bindings(
 ) values
   ('17500000-0000-4000-8000-000000000017','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000013','17500000-0000-4000-8000-000000000004','active','migration_verified'),
   ('17500000-0000-4000-8000-000000000018','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000014','17500000-0000-4000-8000-000000000005','active','migration_verified');
+insert into platform.workspace_taxonomy_assignments(
+  tenant_id,customer_workspace_id,property_profile_id,operating_model_id,
+  status,valid_from,notes,created_by
+)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000013',
+  p.id,o.id,'active',statement_timestamp()-interval '1 day',
+  'Communications provider pgTAP fixture','17500000-0000-4000-8000-000000000001'
+from platform.property_profiles p
+cross join platform.operating_models o
+where p.code='residential_condominium' and p.version=1
+  and o.code='association_managed' and o.version=1;
 insert into platform.workspace_entitlements(
   customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from
 ) values
