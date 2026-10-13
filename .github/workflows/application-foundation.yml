@@ -52,6 +52,7 @@ jobs:
       - run: npm audit --audit-level=high
       - run: npm run lint
       - run: npm run test:unit
+      - run: npm run test:airprop-b2
       - run: npm run test:app-foundation
       - run: npx tsc --noEmit
       - run: npm run build

@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { Language } from '@/types';
 import { CustomerAirpropDiligence } from './CustomerAirpropDiligence';
 import { CustomerAirpropUnderwriting } from './CustomerAirpropUnderwriting';
+import { CustomerAirpropB2Workspace } from './CustomerAirpropB2';
 import { useCustomerContext } from './CustomerContextProvider';
 import { createAirpropOpportunityV2Schema } from '@/lib/airprop/opportunity-contract-v2';
 
@@ -27,7 +28,7 @@ function WorkspaceSelection({ contextId, lang }: { contextId: string; lang: Lang
  if(!targets)return <p role="status">{t.loading}</p>;
  if(!targets.length)return <p>{t.empty}</p>;
  return <div className="space-y-6"><label className="block">{t.choose}<select className="ms-3 rounded border p-2" value={workspace} onChange={e=>setWorkspace(e.target.value)}><option value="">—</option>{targets.map(x=><option key={x.workspace_id} value={x.workspace_id}>{x.workspace_id} · {x.environment}</option>)}</select></label>
-  {workspace&&<OpportunityPanel key={workspace} contextId={contextId} workspaceId={workspace} lang={lang}/>}</div>;
+  {workspace&&<><CustomerAirpropB2Workspace key={`b2:${contextId}:${workspace}`} lang={lang} contextId={contextId} workspaceId={workspace}/><OpportunityPanel key={workspace} contextId={contextId} workspaceId={workspace} lang={lang}/></>}</div>;
 }
 function OpportunityPanel({ contextId,workspaceId,lang }: { contextId:string;workspaceId:string;lang:Language }) {
  const t=copy[lang]; const [rows,setRows]=useState<Opportunity[]|null>(null),[loadError,setLoadError]=useState(false),[nonce,setNonce]=useState(0),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[uncertain,setUncertain]=useState(false);
