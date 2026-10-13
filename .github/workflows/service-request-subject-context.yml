@@ -1,0 +1,44 @@
+name: SERVICE request subject context
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261013062342_service_request_subject_context_v1.sql'
+      - 'src/lib/customer/service-request-subject-context-v1.ts'
+      - 'scripts/test-service-request-subject-context-postgres-v1.mjs'
+      - '.github/workflows/service-request-subject-context.yml'
+      - 'package.json'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/20261013062342_service_request_subject_context_v1.sql'
+      - 'src/lib/customer/service-request-subject-context-v1.ts'
+      - 'scripts/test-service-request-subject-context-postgres-v1.mjs'
+      - '.github/workflows/service-request-subject-context.yml'
+permissions:
+  contents: read
+jobs:
+  postgres-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: disposable_ci_only
+          POSTGRES_DB: service_subject_context_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d service_subject_context_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test:service-request-subject-context:postgres
+        env:
+          SERVICE_SUBJECT_CONTEXT_EPHEMERAL: '1'
+          SERVICE_SUBJECT_CONTEXT_TEST_DATABASE_URL: postgresql://postgres:disposable_ci_only@127.0.0.1:5432/service_subject_context_test
+      - run: git diff --check
