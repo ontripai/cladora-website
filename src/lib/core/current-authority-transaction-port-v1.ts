@@ -42,6 +42,17 @@ export const currentAuthorityTransactionRequestV1Schema = z.strictObject({
   transaction_context: currentAuthorityTransactionContextV1Schema,
 });
 
+// Optional for older contract-only adapters. The canonical PostgreSQL provider
+// always emits this binding; it conveys no entitlement rows or override values.
+export const canonicalAuthorityEntitlementBindingV1Schema = z.strictObject({
+  contract_version: z.literal('core-authority-entitlement-binding.v1'),
+  workspace_id: uuidSchema,
+  module_definition_id: uuidSchema,
+  module_code: codeSchema,
+  entitlement_key: z.string().min(1).max(160).nullable(),
+  authority_revision: authorityVersionSchema,
+});
+
 export const canonicalCurrentAuthorityObservationV1Schema = z.strictObject({
   contract_version: z.literal('core-current-authority-observation.v1'),
   source_contract: z.literal('workspace-native-effective-authority.v2'),
@@ -59,6 +70,7 @@ export const canonicalCurrentAuthorityObservationV1Schema = z.strictObject({
   actor_status: z.enum(['current', 'revoked']),
   decision: z.enum(['allowed', 'denied']),
   evaluated_at: timestampSchema,
+  entitlement: canonicalAuthorityEntitlementBindingV1Schema.optional(),
 });
 
 const decisionReceiptBaseV1Schema = z.strictObject({
@@ -77,6 +89,7 @@ const decisionReceiptBaseV1Schema = z.strictObject({
   source_disclosure: z.literal('status_only'),
   source_reference: z.null(),
   evaluated_at: timestampSchema,
+  entitlement: canonicalAuthorityEntitlementBindingV1Schema.optional(),
   rechecked_after_lock: z.boolean(),
   transaction_bound: z.literal(true),
   reusable_as_command_authority: z.literal(false),
@@ -143,6 +156,7 @@ function requestBoundReceipt(
     source_disclosure: 'status_only' as const,
     source_reference: null,
     evaluated_at: observation.evaluated_at,
+    ...(observation.entitlement ? { entitlement: observation.entitlement } : {}),
     rechecked_after_lock:
       Date.parse(observation.evaluated_at) >= Date.parse(request.transaction_context.lock.acquired_at),
     transaction_bound: true as const,
@@ -190,6 +204,11 @@ export function bindCanonicalCurrentAuthorityObservationV1(
     || observation.actor_id !== request.actor_id
     || observation.permission_code !== request.permission_code
     || observation.module_code !== request.module_code
+    || (observation.entitlement !== undefined && (
+      observation.entitlement.workspace_id !== observation.workspace_id
+      || observation.entitlement.module_code !== observation.module_code
+      || observation.entitlement.authority_revision !== observation.authority_version
+    ))
   ) {
     denialReason = 'AUTHORITY_BINDING_MISMATCH';
   } else if (observation.actor_status === 'revoked') {
