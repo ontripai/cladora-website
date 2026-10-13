@@ -25,9 +25,9 @@ const command = (overrides = {}) => ({
   workspace_id: workspaceId,
   actor_id: actorId,
   authority_version: 9,
-  permission_code: 'services.orders.request',
+  permission_code: 'services.orders.read',
   module_code: 'services_orders',
-  evaluation_purpose: 'service.order.subject_link',
+  evaluation_purpose: 'service.request.subject_context',
   aggregate_type: 'service_request',
   aggregate_id: requestId,
   aggregate_version: 5,
@@ -48,9 +48,9 @@ const authority = () => ({
   workspace_id: workspaceId,
   actor_id: actorId,
   authority_version: 9,
-  permission_code: 'services.orders.request',
+  permission_code: 'services.orders.read',
   module_code: 'services_orders',
-  evaluation_purpose: 'service.order.subject_link',
+  evaluation_purpose: 'service.request.subject_context',
   transaction_context: {
     transaction_id: transactionId,
     command_id: commandId,
@@ -137,8 +137,13 @@ await check('provider object is directly consumable by the Core V2 host', async 
 });
 
 await check('exact Request and message bindings reach the private gate', async () => {
+  const profile = command();
+  assert.equal(profile.contract_version, 'core-transaction-command.v2');
+  assert.equal(profile.permission_code, 'services.orders.read');
+  assert.equal(profile.module_code, 'services_orders');
+  assert.equal(profile.evaluation_purpose, 'service.request.subject_context');
   const { scope, calls } = harness();
-  await resolveCommunicationsPrivateMessageRequestAudienceV1(scope, command(), authority());
+  await resolveCommunicationsPrivateMessageRequestAudienceV1(scope, profile, authority());
   assert.equal(calls.length, 2);
   assert.ok(calls.every(call => /^select\s/i.test(call.text)));
   assert.match(calls[1].text, /resolve_private_message_request_audience_v1/);

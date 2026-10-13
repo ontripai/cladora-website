@@ -104,13 +104,21 @@ begin
     evaluated_at := clock_timestamp(); return next; return;
   end;
 
-  select m,c into v_message,v_conversation
+  select m.* into v_message
   from communications.private_messages m
   join communications.private_conversations c on c.id=m.conversation_id
   where m.id=p_message_id and m.version=p_expected_message_version
     and m.lifecycle_state='available';
   if not found then
     decision := 'denied'; denial_reason := 'STALE_SUBJECT';
+    current_actor_can_read := null; request_party_audience_only := null;
+    evaluated_at := clock_timestamp(); return next; return;
+  end if;
+  select c.* into v_conversation
+  from communications.private_conversations c
+  where c.id=v_message.conversation_id;
+  if not found then
+    decision := 'denied'; denial_reason := 'AUDIENCE_DENIED';
     current_actor_can_read := null; request_party_audience_only := null;
     evaluated_at := clock_timestamp(); return next; return;
   end if;

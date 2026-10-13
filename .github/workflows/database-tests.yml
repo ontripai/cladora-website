@@ -17,6 +17,7 @@ on:
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
       - "scripts/test-communications-private-message-provider-postgres-v1.mjs"
+      - "scripts/test-communications-private-message-request-audience-postgres-v1.mjs"
       - "scripts/test-service-request-subject-provider-postgres-v2.mjs"
       - "scripts/test-service-request-subject-provider-v2.mjs"
       - "src/lib/customer/service-request-subject-provider-v2.ts"
@@ -60,6 +61,7 @@ on:
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
       - "scripts/test-communications-private-message-provider-postgres-v1.mjs"
+      - "scripts/test-communications-private-message-request-audience-postgres-v1.mjs"
       - "scripts/test-service-request-subject-provider-postgres-v2.mjs"
       - "scripts/test-service-request-subject-provider-v2.mjs"
       - "src/lib/customer/service-request-subject-provider-v2.ts"
@@ -168,6 +170,11 @@ jobs:
         env:
           COMM_MESSAGE_PROVIDER_EPHEMERAL: "1"
           COMM_MESSAGE_PROVIDER_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Communications Request audience through the Core transaction host
+        run: timeout 120s npm run test:communications-request-audience:postgres
+        env:
+          COMM_REQUEST_AUDIENCE_EPHEMERAL: "1"
+          COMM_REQUEST_AUDIENCE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run SERVICE Request provider through the Core transaction host
         run: timeout 120s npm run test:service-request-subject-provider:postgres
         env:
