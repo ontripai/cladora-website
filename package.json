@@ -62,7 +62,7 @@
     "test:service-request-subject-context:postgres": "node scripts/test-service-request-subject-context-postgres-v1.mjs",
     "test:service-request-subject-provider": "node --no-warnings --experimental-strip-types scripts/test-service-request-subject-provider-v2.mjs",
     "test:service-request-subject-provider:postgres": "node scripts/test-service-request-subject-provider-postgres-v2.mjs",
-    "test:communications-subject-provider": "node --no-warnings --experimental-strip-types scripts/test-communications-private-message-subject-provider-v1.mjs",
+    "test:communications-subject-provider": "node --no-warnings --experimental-strip-types scripts/test-communications-private-message-subject-provider-v1.mjs && node --no-warnings --experimental-strip-types scripts/test-communications-private-message-request-audience-v1.mjs",
     "test:communications-message-version:postgres": "node scripts/test-communications-private-message-version-concurrency-v1.mjs",
     "test:communications-subject-provider:postgres": "node scripts/test-communications-private-message-provider-postgres-v1.mjs"
   },
