@@ -136,9 +136,9 @@ select throws_ok($$select * from communications.resolve_private_message_subject_
   '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000002','17500000-0000-4000-8000-000000000016',1
 )$$,'42501','private_message_subject_denied','Actor binding mismatch denied');
+reset role;
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Stale and authority/scope denials write no domain, idempotency, audit, or outbox rows');
-reset role;
 
 select throws_ok($$update communications.private_messages set body='Changed without version'
   where id='17500000-0000-4000-8000-000000000016'$$,
@@ -178,9 +178,9 @@ select ok((select participant_revoked and not participant_current
     '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
     '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',3
   )),'Revoked participant state is explicit and current access is false');
+reset role;
 select is(pg_temp.provider_counts(),(select counts from provider_before),
   'Revoked resolution is read-only');
-reset role;
 
 update communications.private_messages set lifecycle_state='deleted',version=4
 where id='17500000-0000-4000-8000-000000000016';
@@ -210,18 +210,14 @@ select throws_ok($$insert into communications.private_messages(
   '17500000-0000-4000-8000-000000000022','Invalid initial lifecycle','deleted'
 )$$,'23514','private_message_initial_version_invalid','Message cannot start deleted');
 
-insert into platform.workspace_property_bindings(
+select throws_ok($$insert into platform.workspace_property_bindings(
   id,tenant_id,customer_workspace_id,property_id,status,binding_source
 ) values(
   '17500000-0000-4000-8000-000000000023','17500000-0000-4000-8000-000000000003',
   '17500000-0000-4000-8000-000000000014','17500000-0000-4000-8000-000000000004',
   'active','migration_verified'
-);
-set local role service_role;
-select throws_ok($$select * from communications.resolve_private_message_subject_v1(
-  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
-  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',4
-)$$,'42501','private_message_subject_denied','Ambiguous Workspace binding fails closed');
+)$$,'P0001','workspace_property_binding_overlap',
+  'Canonical Workspace binding guard prevents ambiguous resolution inputs');
 
 select * from finish();
 rollback;
