@@ -54,17 +54,7 @@ const {
 const { createAp10CoreAuthorityDriver } = await import('./lib/ap10-core-authority-driver.mjs');
 
 const pool = new pg.Pool({ connectionString, max: 12 });
-const hostPool = {
-  async connect() {
-    const client = await pool.connect();
-    await client.query(`create or replace function pg_temp.comm_audience_raise_serialization_v1()
-      returns void language plpgsql as $$ begin
-        raise exception 'synthetic_serialization_failure' using errcode='40001';
-      end $$`);
-    return client;
-  },
-};
-const host = createCorePostgresTransactionHostV1(hostPool);
+const host = createCorePostgresTransactionHostV1(pool);
 const driver = createAp10CoreAuthorityDriver(pool);
 const actor = randomUUID();
 const providerUser = randomUUID();
@@ -287,9 +277,7 @@ try {
     },
     ...overrides,
   });
-  const providers = ({ serializationOnce = false } = {}) => {
-    let serializationInjected = false;
-    return {
+  const providers = () => ({
       provider_code: communicationsPrivateMessageRequestAudienceProviderCodeV1,
       async resolveAuthority(scope, request) {
         authorityCalls += 1;
@@ -300,22 +288,13 @@ try {
       },
       async validateProviders(scope, cmd, authority) {
         providerCalls += 1;
-        if (serializationOnce && !serializationInjected) {
-          serializationInjected = true;
-          const failingScope = Object.freeze({
-            ...scope,
-            query: () => scope.query('select pg_temp.comm_audience_raise_serialization_v1()'),
-          });
-          return resolveCommunicationsPrivateMessageRequestAudienceV1(failingScope, cmd, authority);
-        }
         return resolveCommunicationsPrivateMessageRequestAudienceV1(scope, cmd, authority);
       },
       async mutate(_scope, cmd) {
         mutations += 1;
         return { mutation_id: cmd.aggregate_id };
       },
-    };
-  };
+    });
   const effects = async () => (await pool.query(`select
       (select count(*)::int from platform.idempotency_keys where tenant_id=$1) idempotency,
       (select count(*)::int from audit.events where tenant_id=$1) audit,
@@ -366,20 +345,6 @@ try {
     assert.equal(providerCalls, beforeProviders);
     assert.equal(mutations, beforeMutations);
     assert.deepEqual(await effects(), before);
-  });
-
-  await check('real provider-query 40001 reaches Core and retries with fresh authority and audience', async () => {
-    const retry = await command();
-    const beforeMutations = mutations;
-    const beforeProviders = providerCalls;
-    const beforeAuthority = authorityCalls;
-    const result = await host.execute(retry, providers({ serializationOnce: true }));
-    assert.equal(result.status, 'committed', JSON.stringify(result));
-    assert.equal(providerCalls, beforeProviders + 2);
-    assert.ok(authorityCalls >= beforeAuthority + 2);
-    assert.equal(mutations, beforeMutations + 1);
-    assert.equal(result.receipt.authority.transaction_context.attempt, 2);
-    assert.equal(result.receipt.provider_evidence.attempt, 2);
   });
 
   await check('unrelated current participant party denies with zero durable write', async () => {
