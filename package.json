@@ -58,7 +58,8 @@
     "test:core-authority-revision:postgres": "node scripts/test-core-authority-revision-postgres-v1.mjs",
     "test:core-tx-provider-evidence:postgres": "node scripts/test-core-tx-provider-evidence-postgres-v1.mjs",
     "test:doc-reference": "node scripts/test-documents-reference-authority-v1.mjs",
-    "test:doc-reference:postgres": "node scripts/test-documents-reference-authority-postgres-v1.mjs"
+    "test:doc-reference:postgres": "node scripts/test-documents-reference-authority-postgres-v1.mjs",
+    "test:service-request-subject-context:postgres": "node scripts/test-service-request-subject-context-postgres-v1.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
