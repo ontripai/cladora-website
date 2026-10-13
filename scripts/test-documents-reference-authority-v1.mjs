@@ -16,6 +16,7 @@ export function load(url) {
 
 const api=load(new URL('../src/lib/customer/documents-reference-authority-v1.ts',import.meta.url));
 const core=load(new URL('../src/lib/core/transaction-provider-evidence-v1.ts',import.meta.url));
+const authorityPort=load(new URL('../src/lib/core/current-authority-transaction-port-v1.ts',import.meta.url));
 const ids={transaction:randomUUID(),command:randomUUID(),context:randomUUID(),workspace:randomUUID(),
   actor:randomUUID(),document:randomUUID(),version:randomUUID(),decision:randomUUID()};
 const command={contract_version:'core-transaction-command.v2',transaction_id:ids.transaction,
@@ -25,21 +26,31 @@ const command={contract_version:'core-transaction-command.v2',transaction_id:ids
   aggregate_id:ids.document,aggregate_version:1,provider_source_ids:[ids.document,ids.version],
   idempotency_key:'documents-reference-test',input_fingerprint:'doc1:0123456789abcdef',
   subject_reference:{kind:'documents.document_version',id:ids.version,version:1,relation:'read',request_version:1}};
-const authority={contract_version:'core-current-authority-transaction-port-receipt.v1',decision:'allowed',
+const authorityRequest={contract_version:'core-current-authority-transaction-port-request.v1',
   decision_id:ids.decision,context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,
   authority_version:1,permission_code:'documents.vault.read',module_code:'documents',
-  evaluation_purpose:'documents.reference.read',source_contract:'workspace-native-effective-authority.v2',
-  evaluator:'app_private.check_workspace_native_permission_v2',source_disclosure:'status_only',source_reference:null,
-  actor_status:'current',denial_reason:null,evaluated_at:new Date().toISOString(),
+  evaluation_purpose:'documents.reference.read',
   transaction_context:{transaction_id:ids.transaction,command_id:ids.command,attempt:1,
     isolation_level:'serializable',lock:{kind:'command_aggregate',workspace_id:ids.workspace,
       aggregate_type:'documents.document',aggregate_id:ids.document,acquired_at:new Date().toISOString()}}};
+const authority=authorityPort.bindCanonicalCurrentAuthorityObservationV1(authorityRequest,{
+  contract_version:'core-current-authority-observation.v1',source_contract:'workspace-native-effective-authority.v2',
+  decision_id:ids.decision,context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,
+  authority_version:1,permission_code:'documents.vault.read',module_code:'documents',
+  transaction_context:authorityRequest.transaction_context,
+  evaluator:'app_private.check_workspace_native_permission_v2',source_disclosure:'status_only',source_reference:null,
+  actor_status:'current',decision:'allowed',evaluated_at:new Date().toISOString(),
+});
 const scope={transaction_id:ids.transaction,database_transaction_id:'1',workspace_id:ids.workspace,
   tenant_id:randomUUID(),actor_id:ids.actor,attempt:1,query:async()=>{throw new Error('private SQL detail');}};
 let checks=0;
 const check=async(name,fn)=>{await fn();console.log(`ok ${++checks} - ${name}`);};
 
 await check('provider identity and output are the canonical Core evidence contract',async()=>{
+  assert.equal(authorityPort.currentAuthorityTransactionDecisionReceiptV1Schema.safeParse(authority).success,true);
+  assert.equal(authority.contract_version,'core-current-authority-decision-receipt.v1');
+  assert.equal(authority.receipt_version,1);
+  assert.equal(authority.rechecked_after_lock,true);assert.equal(authority.transaction_bound,true);
   assert.equal(api.documentsReferenceAuthorityProviderCodeV1,'documents-reference-authority.v1');
   const result=await api.validateDocumentsReferenceAuthorityV1(scope,command,authority);
   assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'PROVIDER_UNAVAILABLE');
