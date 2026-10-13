@@ -32,7 +32,8 @@ It never invokes download authorization, which writes an access event.
 The old canonical table has no exact Workspace. Migration
 `20261013063739_document_reference_exact_workspace_v1.sql` adds one nullable
 `workspace_id` and a composite `(workspace_id,tenant_id)` foreign key to Core's
-existing unique `(id,tenant_id)`. No new unique index, table, authority source,
+existing unique `(id,tenant_id)`, plus the covering index required by the
+repository's all-FK index invariant. No new unique index, table, authority source,
 routine, grant, role, inferred default, legacy rewrite or ledger is introduced.
 
 Legacy uploads and rows remain compatible with NULL. Reference resolution denies

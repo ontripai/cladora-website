@@ -1,9 +1,10 @@
 begin;
-select plan(10);
+select plan(11);
 select ok(exists(select 1 from information_schema.columns where table_schema='documents' and table_name='documents' and column_name='workspace_id'),'canonical table has exact Workspace');
 select ok((select is_nullable='YES' from information_schema.columns where table_schema='documents' and table_name='documents' and column_name='workspace_id'),'legacy NULL binding remains supported');
 select ok((select column_default is null from information_schema.columns where table_schema='documents' and table_name='documents' and column_name='workspace_id'),'no inferred Workspace default');
 select ok(exists(select 1 from pg_constraint where conrelid='documents.documents'::regclass and conname='document_reference_workspace_tenant_v1' and confrelid='platform.customer_workspaces'::regclass and cardinality(conkey)=2 and cardinality(confkey)=2 and confdeltype='r'),'composite Workspace/tenant FK restricts deletion');
+select ok(exists(select 1 from pg_index ix join pg_constraint fk on fk.conrelid=ix.indrelid where fk.conname='document_reference_workspace_tenant_v1' and ix.indisvalid and ix.indisready and (ix.indkey::smallint[])[0:cardinality(fk.conkey)-1]=fk.conkey),'new foreign key has the required covering index');
 select ok((select relrowsecurity from pg_class where oid='documents.documents'::regclass),'Documents RLS preserved');
 select ok((select relrowsecurity from pg_class where oid='documents.document_versions'::regclass),'versions RLS preserved');
 select ok(not has_table_privilege('authenticated','documents.documents','SELECT'),'no direct authenticated read');
