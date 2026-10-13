@@ -276,6 +276,11 @@ try {
       from platform.module_definitions m cross join identity.permissions p
       where m.code='services_orders' and m.version=1
         and p.code='services.orders.subject_link'
+        and not exists(select 1 from platform.module_permission_bindings b
+          where b.module_definition_id=m.id and b.permission_id=p.id
+            and b.lifecycle_status='active'
+            and b.valid_from<=statement_timestamp()
+            and (b.valid_to is null or b.valid_to>statement_timestamp()))
     on conflict(module_definition_id,permission_id,binding_version) do nothing`);
 
   await installRole({
