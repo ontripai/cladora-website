@@ -3,18 +3,26 @@ on:
   pull_request:
     paths:
       - 'supabase/migrations/20261013062342_service_request_subject_context_v1.sql'
+      - 'supabase/migrations/20261013145654_service_request_subject_provider_v2.sql'
       - 'src/lib/core/transaction-provider-evidence-v1.ts'
       - 'src/lib/customer/service-request-subject-context-v1.ts'
+      - 'src/lib/customer/service-request-subject-provider-v2.ts'
       - 'scripts/test-service-request-subject-context-postgres-v1.mjs'
+      - 'scripts/test-service-request-subject-provider-v2.mjs'
+      - 'scripts/test-service-request-subject-provider-postgres-v2.mjs'
       - '.github/workflows/service-request-subject-context.yml'
       - 'package.json'
   push:
     branches: [main]
     paths:
       - 'supabase/migrations/20261013062342_service_request_subject_context_v1.sql'
+      - 'supabase/migrations/20261013145654_service_request_subject_provider_v2.sql'
       - 'src/lib/core/transaction-provider-evidence-v1.ts'
       - 'src/lib/customer/service-request-subject-context-v1.ts'
+      - 'src/lib/customer/service-request-subject-provider-v2.ts'
       - 'scripts/test-service-request-subject-context-postgres-v1.mjs'
+      - 'scripts/test-service-request-subject-provider-v2.mjs'
+      - 'scripts/test-service-request-subject-provider-postgres-v2.mjs'
       - '.github/workflows/service-request-subject-context.yml'
 permissions:
   contents: read
@@ -39,6 +47,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run test:service-request-subject-provider
       - run: npm run test:service-request-subject-context:postgres
         env:
           SERVICE_SUBJECT_CONTEXT_EPHEMERAL: '1'
