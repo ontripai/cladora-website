@@ -370,6 +370,20 @@ try {
     assert.deepEqual(await effects(), before);
   });
 
+  await check('real audience-query 40001 reaches Core and retries with fresh authority', async () => {
+    const retry = await command();
+    const beforeMutations = mutations;
+    const beforeProviders = providerCalls;
+    const beforeAuthority = authorityCalls;
+    const result = await host.execute(retry, providers({ serializationOnce: true }));
+    assert.equal(result.status, 'committed', JSON.stringify(result));
+    assert.equal(providerCalls, beforeProviders + 2);
+    assert.ok(authorityCalls >= beforeAuthority + 2);
+    assert.equal(mutations, beforeMutations + 1);
+    assert.equal(result.receipt.authority.transaction_context.attempt, 2);
+    assert.equal(result.receipt.provider_evidence.attempt, 2);
+  });
+
   await check('unrelated current participant party denies with zero durable write', async () => {
     await pool.query('update identity.membership_parties set party_id=$2 where membership_id=$1', [
       providerMembershipId, unrelatedPartyId,
@@ -421,20 +435,6 @@ try {
 
   await check('cross-Workspace command reaches the provider and denies with zero durable write', async () => {
     await expectZeroWriteDenial(await command({ workspaceId: ids.workspaceIds[1] }));
-  });
-
-  await check('real audience-query 40001 reaches Core and retries with fresh authority', async () => {
-    const retry = await command();
-    const beforeMutations = mutations;
-    const beforeProviders = providerCalls;
-    const beforeAuthority = authorityCalls;
-    const result = await host.execute(retry, providers({ serializationOnce: true }));
-    assert.equal(result.status, 'committed');
-    assert.equal(providerCalls, beforeProviders + 2);
-    assert.ok(authorityCalls >= beforeAuthority + 2);
-    assert.equal(mutations, beforeMutations + 1);
-    assert.equal(result.receipt.authority.transaction_context.attempt, 2);
-    assert.equal(result.receipt.provider_evidence.attempt, 2);
   });
 
   await check('private audience resolver has no public or API-role execution grant', async () => {
