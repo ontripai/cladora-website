@@ -304,9 +304,7 @@ try {
           serializationInjected = true;
           const failingScope = Object.freeze({
             ...scope,
-            query: (text, values) => String(text).includes('resolve_private_message_request_audience_v1')
-              ? scope.query('select pg_temp.comm_audience_raise_serialization_v1()')
-              : scope.query(text, values),
+            query: () => scope.query('select pg_temp.comm_audience_raise_serialization_v1()'),
           });
           return resolveCommunicationsPrivateMessageRequestAudienceV1(failingScope, cmd, authority);
         }
@@ -370,7 +368,7 @@ try {
     assert.deepEqual(await effects(), before);
   });
 
-  await check('real audience-query 40001 reaches Core and retries with fresh authority', async () => {
+  await check('real provider-query 40001 reaches Core and retries with fresh authority and audience', async () => {
     const retry = await command();
     const beforeMutations = mutations;
     const beforeProviders = providerCalls;
