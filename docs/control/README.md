@@ -7,7 +7,8 @@
 - [برنامه کامل فارسی v1.4](../roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md)
 - [نسخه Word همان برنامه](../roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.docx)
 - [فهرست وضعیت جاری و Gateهای Runtime](current-baseline.json)
-- [ماتریس هماهنگی زنده v1.3](WORKSTREAM-COORDINATION-MATRIX-v1.3.md)
+- [ماتریس هماهنگی جاری v1.4](WORKSTREAM-COORDINATION-MATRIX-v1.4.md)
+- [snapshot تاریخی v1.3](WORKSTREAM-COORDINATION-MATRIX-v1.3.md)
 - [ماتریس تاریخی v1.0](WORKSTREAM-COORDINATION-MATRIX-v1.0.md)
 - [چرخه شروع و اتمام و اصلاح](PM-01-WORK-LIFECYCLE-v1.0.md)
 - [قرارداد رجیستری نظارت خصوصی PM01-A](PM-01-PRIVATE-OVERSIGHT-REGISTRY-v1.0.md)
@@ -25,7 +26,11 @@
 | SERVICE CLADORA 02 | V14 SERVICE 01 | 15, 26, 30 |
 | CLADORA Community & Experience 01 | V14 CE 01 | 10–11, 17, 26, 30; full 122-feature appendix |
 
-هر ورک baseline جاری را با commit دقیق ثبت و فقط دامنه خود را اجرا کند. هیچ دانسته محلی، آزمون اجرا‌نشده یا status گزارش‌شده به واقعیت جاری Production تبدیل نمی‌شود. قراردادهای چهار ورک ادغام شده‌اند، اما Runtime و Release تا عبور از Gateهای ثبت‌شده در ماتریس v1.3 پذیرفته نیستند.
+هر ورک baseline جاری را با commit دقیق ثبت و فقط دامنه خود را اجرا کند. هیچ دانسته محلی، آزمون اجرا‌نشده یا status گزارش‌شده به واقعیت جاری Production تبدیل نمی‌شود. قراردادهای چهار ورک ادغام شده‌اند، اما Runtime و Release تا عبور از Gateهای ثبت‌شده در ماتریس v1.4 پذیرفته نیستند.
+
+## Next isolated implementation
+
+بستهٔ [SV-REQUEST-PROVIDER-V2-01](../roadmap/CLADORA-SERVICE-REQUEST-PROVIDER-V2-01-EXECUTION-PACKAGE-v1.0.md) تحویل بعدی SERVICE است؛ Core بازبینی قرارداد و مرز authority را انجام می‌دهد. Documents & PM مالک هماهنگی و ادغام است؛ Documents & Vault مالک provider محصول اسناد است. این دو ورک یکی نیستند.
 
 ## Change control
 
