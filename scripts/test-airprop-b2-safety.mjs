@@ -37,7 +37,7 @@ const migrationResult = validateProtectedDirectory({
     },
     '20261013120000_communications_private_message_subject_provider_v1.sql': {
       owner: 'CE Communications / PR #377',
-      sha256: '2d11a3b225398fbac17aaa59aa5c992aa22de5ba14a3a9468d9db11f19b12ca8',
+      sha256: '339b1b88e89072fd95c0e07a8821084877c722c4f121bb6f0a16dfde73f96080',
     },
   },
   label: 'AIRPROP B2 migration baseline',
@@ -51,7 +51,7 @@ const coreResult = validateProtectedDirectory({
   reviewedAdditions: {
     'communications-private-message-subject-provider-v1.ts': {
       owner: 'CE Communications / PR #377',
-      sha256: 'd342585e18dc6ebbc9f6f89ab057b9e9fdbe0ba094f1776962779e2d2ae6cbfd',
+      sha256: '2633525211cf4b6579290e1820fc099f76f3bc6b2a5f5afda819d7df73096a01',
     },
   },
   label: 'AIRPROP B2 Core baseline',
