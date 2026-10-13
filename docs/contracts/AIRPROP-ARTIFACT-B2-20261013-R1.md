@@ -73,7 +73,7 @@ reads, checks Workspace/property projection binding and keeps HTTP/AAL2 marked
 | Replay conflict: zero additional writes | Existing Core request/receipt fingerprint and locks | Real host exact replay and changed-input conflict; counters and no insert on conflicting attempt |
 | Provider failure: zero durable writes | Provider gate before staging, host rollback, bounded API failures | Canonical provider failure, closed EXECUTE, failed domain mutation rollback all idempotency/domain/audit/outbox effects; API error redaction |
 | Uncertain commit does not retry writes | Existing Core unknown-commit result, API 409 | Runtime commit-ack failure uses one connection; public read-back-required boundary |
-| UI integration and locales | `CustomerAirpropWorkspace.tsx`, `CustomerAirpropB2.tsx` | Rendered EN/RO/FA fixtures, RTL, labels/statuses, no raw IDs/forms, stale request suppression and immediate clear; existing native UI suite |
+| UI integration and locales | `CustomerAirpropWorkspace.tsx`, `CustomerAirpropB2.tsx` | Rendered EN/RO/FA fixtures, RTL, labels/statuses, no raw IDs/forms, stale request suppression and immediate clear; existing native and underwriting UI suites |
 | AP10 consumer | `scripts/lib/ap10-airprop-b2-consumer.mjs` | Two Workspace/property fixture, three-unit input, explicit unavailable read counts, invalid fixture/controls/cross-property negatives |
 | No migrations, grants, C/D, Documents, new ledger or Remote writes | Exact manifest below; closed composition | Safety scans, all 247 baseline migration bytes/file set and all Core files frozen; Git diff scope review |
 | Mandatory Repository checks | Existing Application Foundation plus `test:airprop-b2` | Route exports, unit, app foundation, typecheck, lint, build, built-app locale audit, high-severity dependency audit, diff whitespace |
@@ -90,6 +90,7 @@ Modified:
 - `.github/workflows/application-foundation.yml`
 - `package.json`
 - `scripts/test-airprop-native-ui-004.mjs`
+- `scripts/test-airprop-underwriting-ui-008.mjs`
 - `src/components/customer/CustomerAirpropWorkspace.tsx`
 
 Added:
