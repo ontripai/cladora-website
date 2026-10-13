@@ -13,6 +13,8 @@ on:
       - "scripts/test-core-relationship-concurrency.mjs"
       - "scripts/test-core-transaction-host-postgres-v1.mjs"
       - "src/lib/core/postgres-transaction-host-v1.ts"
+      - "src/lib/core/transaction-provider-evidence-v1.ts"
+      - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -46,6 +48,8 @@ on:
       - "scripts/test-core-relationship-concurrency.mjs"
       - "scripts/test-core-transaction-host-postgres-v1.mjs"
       - "src/lib/core/postgres-transaction-host-v1.ts"
+      - "src/lib/core/transaction-provider-evidence-v1.ts"
+      - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -128,6 +132,11 @@ jobs:
         env:
           CORE_AUTH_PROVIDER_EPHEMERAL: "1"
           CORE_AUTH_PROVIDER_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run typed Core TX provider evidence PostgreSQL conformance
+        run: timeout 180s npm run test:core-tx-provider-evidence:postgres
+        env:
+          CORE_TX_EVIDENCE_EPHEMERAL: "1"
+          CORE_TX_EVIDENCE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
         env:
