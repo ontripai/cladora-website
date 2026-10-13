@@ -6,7 +6,7 @@
     "node": ">=22.0.0"
   },
   "scripts": {
-    "test:airprop-b2": "node scripts/test-airprop-b2-runtime-contract.mjs && node scripts/test-airprop-b2-api-ap10.mjs && node scripts/test-airprop-b2-ui.mjs && node scripts/test-airprop-b2-safety.mjs",
+    "test:airprop-b2": "node scripts/test-airprop-b2-runtime-contract.mjs && node scripts/test-airprop-b2-api-ap10.mjs && node scripts/test-airprop-b2-ui.mjs && node scripts/test-airprop-b2-safety-guard.mjs && node scripts/test-airprop-b2-safety.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

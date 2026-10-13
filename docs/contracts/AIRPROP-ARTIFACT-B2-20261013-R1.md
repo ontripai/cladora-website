@@ -69,7 +69,7 @@ reads, checks Workspace/property projection binding and keeps HTTP/AAL2 marked
 | Distinct replacement identity, no legacy equivalence | `artifact-b2-contract.ts`, this document | ID asserted by API/AP10/UI tests; independent Git tree and patch receipt |
 | API layer, authenticated no-store metadata/read controls | `artifact-b2-api.ts`, production `artifact-b2/route.ts` | API/AP10: real route module, auth, AAL1, bad origin, media type, byte limit, forged fields, explicit closed reads |
 | Runtime adapter for installed A interfaces | `artifact-b2-runtime.ts`, `artifact-b2-portfolio.ts` | Runtime contract exercises seven mutation families; portfolio test verifies exact eighth RPC and query parameters; existing 35 commercial contract checks |
-| Canonical Core authority and shared transaction infrastructure | Imports of existing Core provider/host; no Core changes | Real host/provider run with deterministic contract pool; canonical revision/permission reread on exact replay; frozen Core digest safety check |
+| Canonical Core authority and shared transaction infrastructure | Imports of existing Core provider/host; no Core changes | Real host/provider run with deterministic contract pool; canonical revision/permission reread on exact replay; protected Core baseline plus exact reviewed-addition checks |
 | `commands=null`, `can_edit=false` | Contract/API, readonly UI wrapper/component, AP10 consumer | Production route metadata, rendered controls, forged-control rejection, AP10 contract |
 | Stale and revoked authority: zero durable writes | Core provider/host, no adapter cache | Runtime stale epoch, revoked membership, revoked exact replay, permission-denial cases check every shared effect |
 | Cross-Workspace: zero writes | Trusted binding versus strict command; canonical A read gateway | Runtime/API mismatched Workspace rejected before connection; AP10 mismatched property projection rejected |
@@ -78,13 +78,37 @@ reads, checks Workspace/property projection binding and keeps HTTP/AAL2 marked
 | Uncertain commit does not retry writes | Existing Core unknown-commit result, API 409 | Runtime commit-ack failure uses one connection; public read-back-required boundary |
 | UI integration and locales | `CustomerAirpropWorkspace.tsx`, `CustomerAirpropB2.tsx` | Rendered EN/RO/FA fixtures, RTL, labels/statuses, no raw IDs/forms, stale request suppression and immediate clear; existing native and underwriting UI suites |
 | AP10 consumer | `scripts/lib/ap10-airprop-b2-consumer.mjs` | Two Workspace/property fixture, three-unit input, explicit unavailable read counts, invalid fixture/controls/cross-property negatives |
-| No migrations, grants, C/D, Documents, new ledger or Remote writes | Exact manifest below; closed composition | Safety scans, all 247 baseline migration bytes/file set and all Core files frozen; Git diff scope review |
+| No AIRPROP migrations, grants, C/D, Documents, new ledger or Remote writes | Exact manifest below; closed composition | Safety scans; all 247 protected migration and 16 Core baseline files immutable; exact optional consumer additions reviewed independently; Git diff scope review |
 | Mandatory Repository checks | Existing Application Foundation plus `test:airprop-b2` | Route exports, unit, app foundation, typecheck, lint, build, built-app locale audit, high-severity dependency audit, diff whitespace |
 
 Runtime-contract evidence is a deterministic transaction pool fixture executing
 the actual host/provider/adapter code. It is **not** PostgreSQL integration,
 remote gateway execution or real authenticated HTTP/AAL2 evidence. No migration,
 grant, product Remote write or activation is run to obtain this evidence.
+
+## Safety guard ownership and additive consumers
+
+AIRPROP owns `scripts/test-airprop-b2-safety.mjs`. Its protected migration
+baseline is the 247 files through version `20261012190924`, with names and bytes
+bound by the frozen digest. A different count reports deletion, rename or an
+attempt to insert into that baseline; a different digest reports changed names
+or bytes. Later files never contribute to that digest, so they cannot forge a
+new baseline. Each later file must instead match an AIRPROP-reviewed filename,
+owner and SHA-256 entry. Unknown or byte-changed additions fail separately.
+
+The same model keeps the 16 existing Core files immutable while permitting the
+exact optional Communications provider reviewed from PR #377. None of these
+optional entries activates AIRPROP: its production route still supplies
+`runtime: null`, and its contract still returns `commands: null` and
+`can_edit: false` in `pre_activation` state.
+
+PRs #375, #377 and #379 consume this guard by refreshing onto the eventual
+guard merge commit without editing the guard. PR #377 must drop its snapshot
+hash change to `scripts/test-airprop-b2-safety.mjs`; #375 and #379 keep that
+file untouched. Their currently reviewed migration bytes then match the exact
+optional entries. Any later byte change requires a new AIRPROP guard review;
+replacing the protected digest or adding a consumer-owned exception is not an
+accepted refresh procedure.
 
 ## Exact candidate file manifest
 
