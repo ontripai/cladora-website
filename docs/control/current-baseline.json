@@ -1,85 +1,98 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "baseline_version": "1.4",
-  "date": "2026-10-12",
-  "plan_status": "contract consolidation complete; runtime integration gated",
-  "repository_status": "All v1.4 workstream contract branches are merged and deleted; two Documentation/PM pull requests remain open.",
+  "date": "2026-10-13",
+  "plan_status": "provider packages merged inactive; SERVICE Request V2 isolated integration is next",
+  "repository_status": "At the pinned observation, all delivery PRs are merged or closed, no PR is open, and only main remains remotely.",
   "repository": "ontripai/cladora-website",
-  "observed_main_commit": "c7da62b13822cdd93706b008b10b45f70765fc3c",
-  "coordination_artifact": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.3.md",
-  "remote_branch_count_including_main": 3,
-  "open_pull_requests": [
-    {
-      "number": 324,
-      "owner": "Documentation/PM with Core/Platform runtime dependency",
-      "classification": "private_pm_runtime",
-      "status": "blocked_private_runtime_and_remote_gate"
-    },
-    {
-      "number": 347,
-      "owner": "Documentation/PM",
-      "classification": "public_control_documentation",
-      "status": "in_review"
-    }
-  ],
+  "observed_main_commit": "2bc394bc4da50cae25382e9f38597ada85ef71ed",
+  "coordination_artifact": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.4.md",
+  "remote_branch_count_including_main": 1,
+  "open_pull_requests": [],
   "workstreams": {
     "CORE": {
-      "status": "contract_stack_merged_runtime_provider_incomplete",
-      "latest_main_delivery": "7764845507be0f5b1b07a1023e6200f7c1ab55df",
-      "latest_private_pm_evidence_version": 30,
+      "owner": "Core/Platform",
+      "status": "canonical_authority_revision_tx_host_and_v2_evidence_merged_inactive",
+      "latest_main_delivery": "08282c4117216f9e48161d59a6187cb0a1c69431",
       "remaining": [
-        "transactional_authority_provider",
-        "authorized_remote_history_convergence",
-        "runtime_provider_evidence"
+        "SERVICE_Request_V2_consumer_conformance",
+        "authorized_remote_history_reconciliation_and_rollout",
+        "execution_role_and_consumer_wiring",
+        "target_environment_runtime_acceptance"
       ]
     },
     "AIRPROP": {
-      "status": "contract_stack_merged_runtime_bundle_local_only",
-      "latest_main_delivery": "f3f70d49e6cec6b1b905a4538a3cfe09bcb0a112",
-      "latest_private_pm_evidence_version": 41,
+      "owner": "AIRPROP",
+      "status": "artifacts_A_B2_and_canonical_additive_guard_merged_pre_activation",
+      "latest_main_delivery": "20e2dbf654f50357f76078c1739e744d7f6ab76c",
+      "latest_product_delivery": "31b30b14c29fc7b1e618b81eee92dab6a42f3213",
       "remaining": [
-        "migration_first_rollout",
-        "runtime_and_api_deployment",
-        "explicit_activation",
-        "real_http_aal2_acceptance"
+        "authorized_remote_schema_rollout",
+        "runtime_composition_and_connection_binding",
+        "real_PostgreSQL_gateway_integration",
+        "real_HTTP_AAL2_acceptance",
+        "explicit_activation"
       ]
     },
     "SERVICE": {
-      "status": "contracts_and_coordinator_merged_runtime_providers_missing",
-      "latest_main_delivery": "26de75b914d5d3f265d5bf3d95afc62286797ba4",
-      "latest_private_pm_evidence_version": 53,
+      "owner": "SERVICE",
+      "status": "Request_subject_context_dependency_merged_not_a_V2_provider",
+      "latest_main_delivery": "709203f658bf8ea34e13fe98f6b5642dd73eb7c5",
       "remaining": [
-        "canonical_runtime_providers",
-        "aggregate_persistence",
-        "atomic_idempotency_audit_outbox",
-        "unknown_commit_recovery"
+        "SV_REQUEST_PROVIDER_V2_01",
+        "canonical_runtime_provider_composition",
+        "aggregate_atomic_persistence",
+        "unknown_commit_recovery_and_runtime_acceptance"
       ]
     },
     "CE": {
-      "status": "contracts_and_disabled_bridge_merged_runtime_inactive",
-      "latest_main_delivery": "c7da62b13822cdd93706b008b10b45f70765fc3c",
-      "latest_successful_private_pm_evidence_version": 40,
-      "pm_write_status": "pending_retry_after_private_dns_failure",
+      "owner": "Community & Experience",
+      "status": "Communications_message_V2_provider_merged_authorization_review_resolved_inactive",
+      "latest_main_delivery": "2bc394bc4da50cae25382e9f38597ada85ef71ed",
       "remaining": [
-        "documents_provider",
-        "guide_and_receipt_persistence",
-        "command_gateway",
-        "activation_and_runtime_acceptance"
+        "Guide_and_receipt_persistence",
+        "experience_command_gateway_and_consumer_wiring",
+        "authorized_remote_rollout",
+        "activation_and_real_browser_runtime_acceptance"
+      ]
+    },
+    "DOCUMENTS_VAULT": {
+      "owner": "Documents & Vault",
+      "status": "canonical_reference_V2_provider_and_nullable_Workspace_binding_merged_inactive",
+      "latest_main_delivery": "136d0ac721d622309414f387de47e6f38da2fa29",
+      "remaining": [
+        "separately_reviewed_binding_writer_or_provenance_backfill",
+        "runtime_consumer_wiring",
+        "authorized_remote_rollout",
+        "activation_and_real_runtime_acceptance"
       ]
     }
   },
   "database_history_gate": {
-    "status": "ready_for_authorized_remote_apply",
-    "repository_product_migrations": 238,
-    "remote_product_history": 237,
-    "private_pm_entries": 4,
-    "pending_product_versions": [
-      "20260913132945"
-    ],
-    "pending_migration_sha256": "fdff99135db6cba70ff480552aff1e8e24516d79c31b50ee9394293c977d0602",
-    "unexpected_pending_count": 0,
-    "historical_mismatch_count": 11,
-    "remote_write_authorized": false
+    "status": "remote_inventory_not_revalidated",
+    "repository_product_migrations": 250,
+    "repository_test_files": 177,
+    "repository_static_assertions": 5704,
+    "protected_migration_baseline": 247,
+    "remote_product_history": null,
+    "private_pm_entries": null,
+    "pending_product_versions": null,
+    "unexpected_pending_count": null,
+    "historical_mismatch_count": null,
+    "remote_write_authorized": false,
+    "last_recorded_remote_snapshot": {
+      "source": "docs/control/WORKSTREAM-COORDINATION-MATRIX-v1.3.md",
+      "date": "2026-10-12",
+      "classification": "historical_recorded_not_revalidated",
+      "remote_product_history": 237,
+      "private_pm_entries": 4,
+      "pending_product_versions": [
+        "20260913132945"
+      ],
+      "pending_migration_sha256": "fdff99135db6cba70ff480552aff1e8e24516d79c31b50ee9394293c977d0602",
+      "unexpected_pending_count": 0,
+      "historical_mismatch_count": 11
+    }
   },
   "runtime_installed_by_this_baseline": false,
   "constraints": [
@@ -88,5 +101,89 @@
     "No private PM binding, evidence, endpoint, or request content in the public Repository",
     "Reuse canonical Core authority, audit, outbox, idempotency, Resource, and Documents ownership",
     "Re-read live heads and PM versions before every write or acceptance decision"
+  ],
+  "coordination_version": "1.4",
+  "observation": {
+    "classification": "observed",
+    "observed_at_utc": "2026-10-13T14:39:28Z",
+    "user_timezone": "Asia/Tehran",
+    "scope": "Pinned main before the documentation successor PR; branch and PR counts are an observation, not a live registry.",
+    "main_check_runs_success": 4,
+    "main_check_runs_failure": 0,
+    "main_check_runs_pending": 0,
+    "vercel_commit_status": "success",
+    "production_runtime_acceptance": "not_established"
+  },
+  "private_pm_oversight": {
+    "classification": "unavailable",
+    "live_versions": null,
+    "status": "Dedicated authorized oversight access was not available in this thread; workstream reports and historical versions are not live ledger observations.",
+    "write_performed": false
+  },
+  "delivery_reconciliation": [
+    {
+      "pr": 324,
+      "state": "closed_not_merged",
+      "merge_commit": null
+    },
+    {
+      "pr": 347,
+      "state": "merged",
+      "merge_commit": "f1cc6327ab99aace87a076938f4096f47eedf5bd"
+    },
+    {
+      "pr": 375,
+      "state": "merged",
+      "merge_commit": "709203f658bf8ea34e13fe98f6b5642dd73eb7c5"
+    },
+    {
+      "pr": 376,
+      "state": "merged",
+      "merge_commit": "08282c4117216f9e48161d59a6187cb0a1c69431"
+    },
+    {
+      "pr": 377,
+      "state": "merged",
+      "merge_commit": "2bc394bc4da50cae25382e9f38597ada85ef71ed"
+    },
+    {
+      "pr": 378,
+      "state": "merged",
+      "merge_commit": "31b30b14c29fc7b1e618b81eee92dab6a42f3213"
+    },
+    {
+      "pr": 379,
+      "state": "merged",
+      "merge_commit": "136d0ac721d622309414f387de47e6f38da2fa29"
+    },
+    {
+      "pr": 380,
+      "state": "merged",
+      "merge_commit": "8c248ea8ede83d26d8e1893f36c1cb90ae8a0479"
+    },
+    {
+      "pr": 381,
+      "state": "merged",
+      "merge_commit": "20e2dbf654f50357f76078c1739e744d7f6ab76c"
+    }
+  ],
+  "next_execution_package": {
+    "id": "SV-REQUEST-PROVIDER-V2-01",
+    "status": "ready_for_isolated_implementation",
+    "implementation_owner": "SERVICE",
+    "contract_review_owner": "Core/Platform",
+    "coordination_owner": "Documents & PM",
+    "artifact": "docs/roadmap/CLADORA-SERVICE-REQUEST-PROVIDER-V2-01-EXECUTION-PACKAGE-v1.0.md",
+    "remote_write_authorized": false,
+    "runtime_activation_authorized": false
+  },
+  "change_log": [
+    {
+      "date": "2026-10-13",
+      "previous_observed_main": "c7da62b13822cdd93706b008b10b45f70765fc3c",
+      "new_observed_main": "2bc394bc4da50cae25382e9f38597ada85ef71ed",
+      "change": "Reconcile inactive provider-package merges and exact repository inventory; mark Remote/PM current values unknown; route the next isolated SERVICE implementation.",
+      "consumer_impact": "Documentation only. Historical matrices stay unchanged. Manifest schema 1.4 adds evidence classification and a separate Documents/Vault workstream; historical private PM version fields are replaced with an explicit unavailable current observation."
+    }
   ]
 }
