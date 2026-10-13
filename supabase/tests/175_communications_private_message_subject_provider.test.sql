@@ -50,8 +50,9 @@ select ('17500000-0000-4000-8000-0000000000'||n)::uuid,
   ('17500000-0000-4000-8000-0000000000'||u)::uuid,r.id,'active',statement_timestamp()-interval '1 day'
 from identity.roles r cross join (values('09','01'),('10','02')) v(n,u)
 where r.code='association_admin' and r.tenant_id is null and r.is_system;
+insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
+  ('17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000009','tenant',statement_timestamp()-interval '1 day');
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,property_id,starts_at) values
-  ('17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000009','property','17500000-0000-4000-8000-000000000004',statement_timestamp()-interval '1 day'),
   ('17500000-0000-4000-8000-000000000012','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000010','property','17500000-0000-4000-8000-000000000004',statement_timestamp()-interval '1 day');
 insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_owner,lifecycle_status) values
   ('17500000-0000-4000-8000-000000000013','17500000-0000-4000-8000-000000000003','ASSOCIATION','Primary','ACTIVE'),
@@ -66,6 +67,45 @@ insert into platform.workspace_entitlements(
 ) values
   ('17500000-0000-4000-8000-000000000013','module.communications','boolean',true,statement_timestamp()-interval '1 day'),
   ('17500000-0000-4000-8000-000000000014','module.communications','boolean',true,statement_timestamp()-interval '1 day');
+insert into platform.workspace_modules(
+  tenant_id,customer_workspace_id,module_definition_id,module_code,status,
+  valid_from,activated_at,activated_by,reason
+)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000013',
+  d.id,d.code,'active',statement_timestamp()-interval '1 day',statement_timestamp(),
+  '17500000-0000-4000-8000-000000000001','Communications provider pgTAP fixture'
+from platform.module_definitions d
+where d.code='communications' and d.is_active and d.lifecycle_status in ('active','published')
+  and d.valid_from<=statement_timestamp() and (d.valid_to is null or d.valid_to>statement_timestamp());
+insert into platform.workspace_roles(
+  id,tenant_id,customer_workspace_id,code,name,base_role_id,scope_ceiling,
+  lifecycle_status,created_by,valid_from
+)
+select '17500000-0000-4000-8000-000000000028','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000013','comm_provider_reader','Communications provider reader',
+  r.id,'workspace','draft','17500000-0000-4000-8000-000000000001',statement_timestamp()-interval '1 day'
+from identity.roles r
+where r.code='association_admin' and r.tenant_id is null and r.is_system;
+insert into platform.workspace_role_modules(tenant_id,workspace_role_id,module_definition_id)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000028',d.id
+from platform.module_definitions d
+where d.code='communications' and d.is_active and d.lifecycle_status in ('active','published')
+  and d.valid_from<=statement_timestamp() and (d.valid_to is null or d.valid_to>statement_timestamp());
+insert into platform.workspace_role_permissions(tenant_id,workspace_role_id,permission_id,effect)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000028',p.id,'allow'
+from identity.permissions p where p.code='communications.feed.read';
+update platform.workspace_roles set lifecycle_status='published',lock_version=lock_version+1
+where id='17500000-0000-4000-8000-000000000028' and lifecycle_status='draft';
+insert into platform.workspace_member_roles(
+  id,tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,
+  assigned_by_user_id,assigned_by_membership_id,reason,valid_from
+) values(
+  '17500000-0000-4000-8000-000000000029','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000013','17500000-0000-4000-8000-000000000009',
+  '17500000-0000-4000-8000-000000000028','workspace','17500000-0000-4000-8000-000000000001',
+  '17500000-0000-4000-8000-000000000009','Communications provider pgTAP fixture',
+  statement_timestamp()-interval '1 day'
+);
 insert into communications.private_conversations(
   id,tenant_id,unit_id,created_by,client_request_id
 ) values

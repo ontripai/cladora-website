@@ -85,9 +85,16 @@ declare
   v_conversation communications.private_conversations%rowtype;
   v_participant communications.private_participants%rowtype;
   v_property_id uuid;
+  v_building_id uuid;
   v_binding_count integer;
   v_bound_workspace uuid;
   v_core_workspace_context boolean := false;
+  v_permission_id uuid;
+  v_permission_count integer;
+  v_module_id uuid;
+  v_module_count integer;
+  v_scoped_allow boolean := false;
+  v_scoped_deny boolean := false;
   v_current boolean;
 begin
   if p_context_id is null or p_workspace_id is null or p_actor_id is null
@@ -130,18 +137,15 @@ begin
     return next; return;
   end if;
 
-  select b.property_id into v_property_id
+  select b.property_id,u.building_id into v_property_id,v_building_id
   from portfolio.units u
   join portfolio.buildings b on b.id=u.building_id and b.tenant_id=u.tenant_id
   where u.id=v_conversation.unit_id and u.tenant_id=v_conversation.tenant_id;
   v_core_workspace_context := app_private.native_workspace_scope_for_membership_v2(
     p_context_id,v_membership,p_workspace_id
   );
-  if v_property_id is null
-      or not (
-        communications.context_covers_unit(p_context_id,v_conversation.unit_id)
-        or v_core_workspace_context
-      ) then
+  if v_property_id is null or v_building_id is null
+      or not v_core_workspace_context then
     decision := 'denied'; denial_reason := 'SUBJECT_DENIED';
     return next; return;
   end if;
@@ -173,31 +177,80 @@ begin
     return next; return;
   end if;
 
+  select count(*),min(p.id::text)::uuid into v_permission_count,v_permission_id
+  from identity.permissions p
+  where p.code='communications.feed.read';
+  select count(*),min(d.id::text)::uuid into v_module_count,v_module_id
+  from platform.module_definitions d
+  where d.code='communications' and d.is_active
+    and d.lifecycle_status in ('active','published')
+    and d.valid_from<=statement_timestamp()
+    and (d.valid_to is null or d.valid_to>statement_timestamp());
+  if v_permission_count<>1 or v_module_count<>1
+      or app_private.check_workspace_native_permission_v2(
+        p_context_id,p_workspace_id,'communications.feed.read','communications'
+      ) is not true then
+    decision := 'denied'; denial_reason := 'SUBJECT_DENIED';
+    return next; return;
+  end if;
+
+  select exists(
+    select 1
+    from platform.workspace_member_roles a
+    join platform.workspace_roles r on r.id=a.workspace_role_id
+      and r.tenant_id=a.tenant_id
+      and r.customer_workspace_id=a.customer_workspace_id
+    join platform.workspace_role_permissions rp on rp.workspace_role_id=r.id
+      and rp.permission_id=v_permission_id and rp.effect='deny'
+    join platform.workspace_role_modules rm on rm.workspace_role_id=r.id
+      and rm.module_definition_id=v_module_id
+    where a.membership_id=v_membership
+      and a.tenant_id=v_conversation.tenant_id
+      and a.customer_workspace_id=p_workspace_id
+      and a.valid_from<=statement_timestamp()
+      and (a.valid_to is null or a.valid_to>statement_timestamp())
+      and r.lifecycle_status='published'
+      and r.valid_from<=statement_timestamp()
+      and (r.valid_to is null or r.valid_to>statement_timestamp())
+      and app_private.workspace_role_scope_contains_v1(
+        a.scope_type,a.property_id,a.building_id,a.unit_id,
+        'unit',v_property_id,v_building_id,v_conversation.unit_id
+      )
+  ) into v_scoped_deny;
+  select exists(
+    select 1
+    from platform.workspace_member_roles a
+    join platform.workspace_roles r on r.id=a.workspace_role_id
+      and r.tenant_id=a.tenant_id
+      and r.customer_workspace_id=a.customer_workspace_id
+    join platform.workspace_role_permissions rp on rp.workspace_role_id=r.id
+      and rp.permission_id=v_permission_id and rp.effect='allow'
+    join platform.workspace_role_modules rm on rm.workspace_role_id=r.id
+      and rm.module_definition_id=v_module_id
+    where a.membership_id=v_membership
+      and a.tenant_id=v_conversation.tenant_id
+      and a.customer_workspace_id=p_workspace_id
+      and a.valid_from<=statement_timestamp()
+      and (a.valid_to is null or a.valid_to>statement_timestamp())
+      and r.lifecycle_status='published'
+      and r.valid_from<=statement_timestamp()
+      and (r.valid_to is null or r.valid_to>statement_timestamp())
+      and app_private.workspace_member_role_authority_active_v1(
+        a.id,v_permission_id,v_module_id,'unit',v_conversation.unit_id
+      )
+  ) into v_scoped_allow;
+  if v_scoped_deny or not v_scoped_allow then
+    decision := 'denied'; denial_reason := 'SUBJECT_DENIED';
+    return next; return;
+  end if;
+
   if v_message.version <> p_expected_version then
     decision := 'denied'; denial_reason := 'STALE_SUBJECT';
     return next; return;
   end if;
 
-  v_current := v_participant.revoked_at is null and (
-    communications.can_read_private(v_conversation.id,v_membership)
-    or (
-      v_core_workspace_context
-      and coalesce(auth.jwt()->>'aal','aal1')='aal2'
-      and exists (
-        select 1
-        from identity.memberships m
-        join identity.roles r on r.id=m.role_id
-        join identity.role_permissions rp on rp.role_id=r.id and rp.effect='allow'
-        join identity.permissions perm on perm.id=rp.permission_id
-        where m.id=v_membership and m.tenant_id=v_conversation.tenant_id
-          and m.user_id=auth.uid() and m.status='active'
-          and m.starts_at<=statement_timestamp()
-          and (m.ends_at is null or m.ends_at>statement_timestamp())
-          and lower(r.code) in ('association_admin','property_manager','president')
-          and perm.code='communications.feed.read'
-      )
-    )
-  );
+  v_current := v_participant.revoked_at is null
+    and coalesce(auth.jwt()->>'aal','aal1')='aal2';
 
   if not v_current or v_participant.revoked_at is not null
       or v_message.lifecycle_state <> 'available' then

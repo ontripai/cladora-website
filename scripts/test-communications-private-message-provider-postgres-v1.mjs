@@ -65,6 +65,9 @@ const driver = createAp10CoreAuthorityDriver(pool);
 const actor = randomUUID();
 const conversationId = randomUUID();
 const messageId = randomUUID();
+const communicationsRoleId = randomUUID();
+const outsideScopeAssignmentId = randomUUID();
+const exactScopeAssignmentId = randomUUID();
 let mutations = 0;
 let providerCalls = 0;
 let authorityCalls = 0;
@@ -170,6 +173,89 @@ try {
       (select to_jsonb(m) from communications.private_messages m where id=$3) message`,
   [ids.tenantId, ids.propertyIds[0], messageId])).rows[0];
 
+  let communicationsModuleId;
+  let communicationsPermissionId;
+  const installCommunicationsRole = async () => {
+    const canonical = await pool.query(`select d.id as module_id,p.id as permission_id
+      from platform.module_definitions d
+      join platform.module_permission_bindings b on b.module_definition_id=d.id
+        and b.lifecycle_status='active' and b.valid_from<=statement_timestamp()
+        and (b.valid_to is null or b.valid_to>statement_timestamp())
+      join identity.permissions p on p.id=b.permission_id
+      where d.code='communications' and d.is_active
+        and d.lifecycle_status in ('active','published')
+        and d.valid_from<=statement_timestamp()
+        and (d.valid_to is null or d.valid_to>statement_timestamp())
+        and p.code='communications.feed.read'`);
+    assert.equal(canonical.rowCount, 1, 'canonical Communications permission/module binding required');
+    communicationsModuleId = canonical.rows[0].module_id;
+    communicationsPermissionId = canonical.rows[0].permission_id;
+    await pool.query(`insert into platform.workspace_modules(
+        tenant_id,customer_workspace_id,module_definition_id,module_code,status,
+        valid_from,activated_at,activated_by,reason
+      ) values($1,$2,$3,'communications','active',statement_timestamp()-interval '1 second',
+        statement_timestamp(),$4,'Communications provider host fixture')`,
+    [ids.tenantId, ids.workspaceIds[0], communicationsModuleId, actor]);
+    await pool.query(`insert into platform.workspace_roles(
+        id,tenant_id,customer_workspace_id,code,name,base_role_id,scope_ceiling,
+        lifecycle_status,created_by,valid_from
+      ) select $1,$2,$3,$4,'Communications provider reader',r.id,'workspace',
+        'draft',$5,statement_timestamp()-interval '1 second'
+      from identity.roles r
+      where r.code='association_admin' and r.tenant_id is null and r.is_system`,
+    [communicationsRoleId, ids.tenantId, ids.workspaceIds[0],
+      `comm_provider_${randomUUID().replaceAll('-', '').slice(0, 16)}`, actor]);
+    await pool.query(`insert into platform.workspace_role_modules(
+        tenant_id,workspace_role_id,module_definition_id
+      ) values($1,$2,$3)`, [ids.tenantId, communicationsRoleId, communicationsModuleId]);
+    await pool.query(`insert into platform.workspace_role_permissions(
+        tenant_id,workspace_role_id,permission_id,effect
+      ) values($1,$2,$3,'allow')`,
+    [ids.tenantId, communicationsRoleId, communicationsPermissionId]);
+    await pool.query(`update platform.workspace_roles
+      set lifecycle_status='published',lock_version=lock_version+1
+      where id=$1 and lifecycle_status='draft'`, [communicationsRoleId]);
+  };
+  const assignCommunicationsUnit = async (assignmentId, unitIndex) => {
+    await pool.query(`insert into platform.workspace_member_roles(
+        id,tenant_id,customer_workspace_id,membership_id,workspace_role_id,
+        scope_type,property_id,building_id,unit_id,assigned_by_user_id,
+        assigned_by_membership_id,reason,valid_from
+      ) values($1,$2,$3,$4,$5,'unit',$6,$7,$8,$9,$4,
+        'Communications provider exact scope fixture',statement_timestamp()-interval '1 second')`, [
+      assignmentId, ids.tenantId, ids.workspaceIds[0], ids.membershipId,
+      communicationsRoleId, ids.propertyIds[0], ids.buildingIds[0], ids.unitIds[unitIndex], actor,
+    ]);
+  };
+
+  await check('base role and native Workspace without Communications module/permission deny with zero durable effects', async () => {
+    const unscoped = await command();
+    const before = await effects();
+    const beforeMutations = mutations;
+    const beforeAuthority = authorityCalls;
+    const result = await host.execute(unscoped, providers());
+    assert.deepEqual(result, { status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+    assert.ok(authorityCalls > beforeAuthority, 'Core must recheck current authority before provider denial');
+    assert.equal(mutations, beforeMutations);
+    assert.deepEqual(await effects(), before);
+  });
+
+  await installCommunicationsRole();
+  await assignCommunicationsUnit(outsideScopeAssignmentId, 1);
+  await check('Communications assignment outside the message unit denies with zero durable effects', async () => {
+    const outsideScope = await command();
+    const before = await effects();
+    const beforeMutations = mutations;
+    const beforeAuthority = authorityCalls;
+    const result = await host.execute(outsideScope, providers());
+    assert.deepEqual(result, { status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+    assert.ok(authorityCalls > beforeAuthority, 'Core must recheck current authority before scope denial');
+    assert.equal(mutations, beforeMutations);
+    assert.deepEqual(await effects(), before);
+  });
+
+  await assignCommunicationsUnit(exactScopeAssignmentId, 0);
+
   await check('stale subject is bounded after current authority with zero durable effects', async () => {
     const stale = await command({ subjectVersion: 2 });
     const before = await effects();
@@ -184,7 +270,7 @@ try {
 
   const current = await command();
   let committed;
-  await check('current message and authority commit typed provider evidence once', async () => {
+  await check('current message with exact Communications authority scope commits typed evidence once', async () => {
     const beforeMutations = mutations;
     committed = await host.execute(current, providers());
     assert.equal(committed.status, 'committed');

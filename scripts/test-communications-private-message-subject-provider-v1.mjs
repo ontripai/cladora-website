@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import {
   communicationsPrivateMessageProviderCodeV1,
@@ -152,6 +153,19 @@ await check('provider object is directly consumable by CoreTransactionProvidersV
     resolveCommunicationsPrivateMessageSubjectV1);
 });
 
+await check('SQL resolver requires canonical Workspace permission and exact scoped assignment without role fallback', async () => {
+  const sql = readFileSync(new URL(
+    '../supabase/migrations/20261013120000_communications_private_message_subject_provider_v1.sql',
+    import.meta.url,
+  ), 'utf8');
+  assert.match(sql, /native_workspace_scope_for_membership_v2/);
+  assert.match(sql, /check_workspace_native_permission_v2\([\s\S]*'communications\.feed\.read','communications'/);
+  assert.match(sql, /workspace_member_role_authority_active_v1\([\s\S]*'unit',v_conversation\.unit_id/);
+  assert.doesNotMatch(sql, /communications\.can_read_private\(/);
+  assert.doesNotMatch(sql, /communications\.context_covers_unit\(/);
+  assert.doesNotMatch(sql, /lower\(r\.code\)\s+in\s*\('association_admin'/);
+});
+
 await check('resolver query is one read-only statement with exact bindings', async () => {
   const { scope, calls } = harness();
   await resolveCommunicationsPrivateMessageSubjectV1(scope, command(), authority());
@@ -269,5 +283,5 @@ await check('missing source row is denied without a reference payload', async ()
   assert.equal(result.source_reference, null);
 });
 
-assert.equal(passed, 27);
-console.log(`Communications private-message Core evidence provider: ${passed}/27 PASS`);
+assert.equal(passed, 28);
+console.log(`Communications private-message Core evidence provider: ${passed}/28 PASS`);
