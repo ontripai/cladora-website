@@ -1,0 +1,304 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+set search_path=public,extensions;
+select plan(41);
+
+select ok(exists(select 1 from information_schema.columns
+  where table_schema='communications' and table_name='private_messages' and column_name='version'),
+  'Canonical message version exists');
+select ok(exists(select 1 from information_schema.columns
+  where table_schema='communications' and table_name='private_messages' and column_name='lifecycle_state'),
+  'Canonical message lifecycle exists');
+select ok((select a.attnotnull from pg_attribute a
+  where a.attrelid='communications.private_messages'::regclass and a.attname='version' and not a.attisdropped),
+  'Message version is required');
+select ok((select a.attnotnull from pg_attribute a
+  where a.attrelid='communications.private_messages'::regclass and a.attname='lifecycle_state' and not a.attisdropped),
+  'Message lifecycle is required');
+select ok(not has_table_privilege('authenticated','communications.private_messages','SELECT'),
+  'Authenticated callers cannot read the canonical message store');
+select ok(not has_function_privilege('anon',
+  'communications.resolve_private_message_subject_v1(uuid,uuid,uuid,uuid,bigint)','EXECUTE'),
+  'Anonymous resolver execution denied');
+select ok(not has_function_privilege('authenticated',
+  'communications.resolve_private_message_subject_v1(uuid,uuid,uuid,uuid,bigint)','EXECUTE'),
+  'Authenticated resolver execution denied');
+select ok(not has_function_privilege('service_role',
+  'communications.resolve_private_message_subject_v1(uuid,uuid,uuid,uuid,bigint)','EXECUTE'),
+  'Resolver is not granted directly to service_role; the Core transaction host owns invocation');
+
+insert into auth.users(id,email) values
+  ('17500000-0000-4000-8000-000000000001','actor175@cladora.test'),
+  ('17500000-0000-4000-8000-000000000002','peer175@cladora.test');
+insert into identity.profiles(user_id,display_name) values
+  ('17500000-0000-4000-8000-000000000001','Actor'),
+  ('17500000-0000-4000-8000-000000000002','Peer');
+insert into platform.tenants(id,legal_name,registration_number,status) values
+  ('17500000-0000-4000-8000-000000000003','Subject Provider Test','SUBJECT175','active');
+insert into portfolio.properties(id,tenant_id,type,name,status) values
+  ('17500000-0000-4000-8000-000000000004','17500000-0000-4000-8000-000000000003','condominium','Primary','active'),
+  ('17500000-0000-4000-8000-000000000005','17500000-0000-4000-8000-000000000003','condominium','Other','active');
+insert into portfolio.buildings(id,tenant_id,property_id,code,name) values
+  ('17500000-0000-4000-8000-000000000006','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000004','A','Primary building'),
+  ('17500000-0000-4000-8000-000000000007','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000005','B','Other building');
+insert into portfolio.units(id,tenant_id,building_id,code) values
+  ('17500000-0000-4000-8000-000000000008','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000006','1'),
+  ('17500000-0000-4000-8000-000000000024','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000007','2');
+insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
+select ('17500000-0000-4000-8000-0000000000'||n)::uuid,
+  '17500000-0000-4000-8000-000000000003',
+  ('17500000-0000-4000-8000-0000000000'||u)::uuid,r.id,'active',statement_timestamp()-interval '1 day'
+from identity.roles r cross join (values('09','01'),('10','02')) v(n,u)
+where r.code='association_admin' and r.tenant_id is null and r.is_system;
+insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at) values
+  ('17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000009','tenant',statement_timestamp()-interval '1 day');
+insert into identity.context_grants(id,tenant_id,membership_id,scope_type,property_id,starts_at) values
+  ('17500000-0000-4000-8000-000000000012','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000010','property','17500000-0000-4000-8000-000000000004',statement_timestamp()-interval '1 day');
+insert into platform.customer_workspaces(id,tenant_id,workspace_type,commercial_owner,lifecycle_status) values
+  ('17500000-0000-4000-8000-000000000013','17500000-0000-4000-8000-000000000003','ASSOCIATION','Primary','ACTIVE'),
+  ('17500000-0000-4000-8000-000000000014','17500000-0000-4000-8000-000000000003','ASSOCIATION','Other','ACTIVE');
+insert into platform.workspace_property_bindings(
+  id,tenant_id,customer_workspace_id,property_id,status,binding_source
+) values
+  ('17500000-0000-4000-8000-000000000017','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000013','17500000-0000-4000-8000-000000000004','active','migration_verified'),
+  ('17500000-0000-4000-8000-000000000018','17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000014','17500000-0000-4000-8000-000000000005','active','migration_verified');
+insert into platform.workspace_taxonomy_assignments(
+  tenant_id,customer_workspace_id,property_profile_id,operating_model_id,
+  status,valid_from,notes,created_by
+)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000013',
+  p.id,o.id,'active',statement_timestamp()-interval '1 day',
+  'Communications provider pgTAP fixture','17500000-0000-4000-8000-000000000001'
+from platform.property_profiles p
+cross join platform.operating_models o
+where p.code='residential_condominium' and p.version=1
+  and o.code='association_managed' and o.version=1;
+insert into platform.workspace_entitlements(
+  customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from
+) values
+  ('17500000-0000-4000-8000-000000000013','module.communications','boolean',true,statement_timestamp()-interval '1 day'),
+  ('17500000-0000-4000-8000-000000000014','module.communications','boolean',true,statement_timestamp()-interval '1 day');
+insert into platform.workspace_modules(
+  tenant_id,customer_workspace_id,module_definition_id,module_code,status,
+  valid_from,activated_at,activated_by,reason
+)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000013',
+  d.id,d.code,'active',statement_timestamp()-interval '1 day',statement_timestamp(),
+  '17500000-0000-4000-8000-000000000001','Communications provider pgTAP fixture'
+from platform.module_definitions d
+where d.code='communications' and d.is_active and d.lifecycle_status in ('active','published')
+  and d.valid_from<=statement_timestamp() and (d.valid_to is null or d.valid_to>statement_timestamp());
+insert into platform.workspace_roles(
+  id,tenant_id,customer_workspace_id,code,name,base_role_id,scope_ceiling,
+  lifecycle_status,created_by,valid_from
+)
+select '17500000-0000-4000-8000-000000000028','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000013','comm_provider_reader','Communications provider reader',
+  r.id,'workspace','draft','17500000-0000-4000-8000-000000000001',statement_timestamp()-interval '1 day'
+from identity.roles r
+where r.code='association_admin' and r.tenant_id is null and r.is_system;
+insert into platform.workspace_role_modules(tenant_id,workspace_role_id,module_definition_id)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000028',d.id
+from platform.module_definitions d
+where d.code='communications' and d.is_active and d.lifecycle_status in ('active','published')
+  and d.valid_from<=statement_timestamp() and (d.valid_to is null or d.valid_to>statement_timestamp());
+insert into platform.workspace_role_permissions(tenant_id,workspace_role_id,permission_id,effect)
+select '17500000-0000-4000-8000-000000000003','17500000-0000-4000-8000-000000000028',p.id,'allow'
+from identity.permissions p where p.code='communications.feed.read';
+update platform.workspace_roles set lifecycle_status='published',lock_version=lock_version+1
+where id='17500000-0000-4000-8000-000000000028' and lifecycle_status='draft';
+insert into platform.workspace_member_roles(
+  id,tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,
+  assigned_by_user_id,assigned_by_membership_id,reason,valid_from
+) values(
+  '17500000-0000-4000-8000-000000000029','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000013','17500000-0000-4000-8000-000000000009',
+  '17500000-0000-4000-8000-000000000028','workspace','17500000-0000-4000-8000-000000000001',
+  '17500000-0000-4000-8000-000000000009','Communications provider pgTAP fixture',
+  statement_timestamp()-interval '1 day'
+);
+insert into communications.private_conversations(
+  id,tenant_id,unit_id,created_by,client_request_id
+) values
+(
+  '17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000008','17500000-0000-4000-8000-000000000009',
+  '17500000-0000-4000-8000-000000000019'
+),(
+  '17500000-0000-4000-8000-000000000025','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000024','17500000-0000-4000-8000-000000000009',
+  '17500000-0000-4000-8000-000000000026'
+);
+insert into communications.private_participants(conversation_id,membership_id) values
+  ('17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000009'),
+  ('17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000010');
+insert into communications.private_messages(
+  id,conversation_id,sender_id,client_request_id,body
+) values(
+  '17500000-0000-4000-8000-000000000016','17500000-0000-4000-8000-000000000015',
+  '17500000-0000-4000-8000-000000000009','17500000-0000-4000-8000-000000000020','Private body'
+);
+
+select is((select version from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),1::bigint,
+  'Existing insert begins at version one');
+select is((select lifecycle_state from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),'available',
+  'Existing insert begins available');
+
+create function pg_temp.provider_counts() returns jsonb language sql stable as $$
+  select jsonb_build_array(
+    (select count(*) from communications.private_messages where conversation_id='17500000-0000-4000-8000-000000000015'),
+    (select count(*) from audit.events where tenant_id='17500000-0000-4000-8000-000000000003'),
+    (select count(*) from platform.outbox_events where tenant_id='17500000-0000-4000-8000-000000000003'),
+    (select count(*) from platform.idempotency_keys where tenant_id='17500000-0000-4000-8000-000000000003')
+  )
+$$;
+create temporary table provider_before as select pg_temp.provider_counts() counts;
+
+select set_config('request.jwt.claims',jsonb_build_object(
+  'sub','17500000-0000-4000-8000-000000000001','role','service_role','aal','aal2'
+)::text,true);
+select is((select count(*) from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
+)),1::bigint,'Exact message resolves once');
+select is((select workspace_id from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
+)),'17500000-0000-4000-8000-000000000013'::uuid,'Resolver returns the exact canonical Workspace');
+select ok((select participant_current and not participant_revoked
+  from communications.resolve_private_message_subject_v1(
+    '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+    '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
+  )),'Current participant state is explicit');
+select is((select count(*) from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
+) r cross join lateral jsonb_object_keys(to_jsonb(r))),8::bigint,'Resolver exposes exactly eight bounded fields');
+select ok(not exists(select 1 from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
+) r cross join lateral jsonb_object_keys(to_jsonb(r)) as keys(key)
+where key in ('body','sender_id','conversation_id','unit_id','membership_id','participants')),
+  'Body, source internals, and participant identities are absent');
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',2
+)),'STALE_SUBJECT','Stale expected version is a bounded row and leaves the transaction usable');
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000014',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',1
+)),'SUBJECT_DENIED','Cross-Workspace resolution shares a bounded denial row');
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000002','17500000-0000-4000-8000-000000000016',1
+)),'SUBJECT_DENIED','Actor binding mismatch returns a bounded denial row');
+select is(pg_temp.provider_counts(),(select counts from provider_before),
+  'Stale and authority/scope denials write no domain, idempotency, audit, or outbox rows');
+
+select throws_ok($$update communications.private_messages set body='Changed without version'
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_version_increment_required','Body cannot change without version increment');
+select throws_ok($$update communications.private_messages set lifecycle_state='quarantined'
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_version_increment_required','Lifecycle cannot change without version increment');
+select throws_ok($$update communications.private_messages set version=2
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_version_change_requires_revision','Version cannot advance without a revision');
+select throws_ok($$update communications.private_messages set sender_id='17500000-0000-4000-8000-000000000010',version=2
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_identity_immutable','Message identity remains immutable');
+select throws_ok($$update communications.private_messages
+  set conversation_id='17500000-0000-4000-8000-000000000025',version=2
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_identity_immutable','Message cannot move to another Workspace');
+update communications.private_messages set body='Versioned body',version=2
+where id='17500000-0000-4000-8000-000000000016';
+select is((select version from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),2::bigint,
+  'Body revision advances version exactly once');
+select throws_ok($$update communications.private_messages set body='Stale writer',version=2
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '23514','private_message_version_increment_required','Stale body writer cannot reuse the current version');
+update communications.private_messages set lifecycle_state='quarantined',version=3
+where id='17500000-0000-4000-8000-000000000016';
+select is((select lifecycle_state from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),'quarantined',
+  'Quarantine transition advances the canonical row');
+
+update provider_before set counts=pg_temp.provider_counts();
+select ok((select decision='denied' and denial_reason='SUBJECT_DENIED'
+    and message_id is null and lifecycle_state is null
+  from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',3
+)),'Quarantined lifecycle returns only a bounded denial');
+select is(pg_temp.provider_counts(),(select counts from provider_before),
+  'Quarantined resolution is read-only');
+
+update communications.private_participants set revoked_at=statement_timestamp()
+where conversation_id='17500000-0000-4000-8000-000000000015'
+  and membership_id='17500000-0000-4000-8000-000000000009';
+update provider_before set counts=pg_temp.provider_counts();
+select ok((select decision='denied' and denial_reason='SUBJECT_DENIED'
+    and participant_revoked is null and participant_current is null
+  from communications.resolve_private_message_subject_v1(
+    '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+    '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',3
+  )),'Revoked participant returns only a bounded denial');
+select is(pg_temp.provider_counts(),(select counts from provider_before),
+  'Revoked resolution is read-only');
+
+update communications.private_messages set lifecycle_state='deleted',version=4
+where id='17500000-0000-4000-8000-000000000016';
+select is((select version from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),4::bigint,
+  'Deleted transition advances version');
+update provider_before set counts=pg_temp.provider_counts();
+select ok((select decision='denied' and denial_reason='SUBJECT_DENIED'
+    and message_id is null and lifecycle_state is null
+  from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',4
+)),'Deleted lifecycle returns only a bounded denial');
+select is((select denial_reason from communications.resolve_private_message_subject_v1(
+  '17500000-0000-4000-8000-000000000011','17500000-0000-4000-8000-000000000013',
+  '17500000-0000-4000-8000-000000000001','17500000-0000-4000-8000-000000000016',0
+)),'SUBJECT_DENIED','Non-positive expected version returns a bounded denial');
+select is(pg_temp.provider_counts(),(select counts from provider_before),
+  'Deleted and invalid resolution attempts are read-only');
+
+select throws_ok($$delete from communications.private_messages
+  where id='17500000-0000-4000-8000-000000000016'$$,
+  '42501','private_message_physical_delete_forbidden','Physical message deletion is forbidden');
+select throws_ok($$insert into communications.private_messages(
+  id,conversation_id,sender_id,client_request_id,body
+) values(
+  '17500000-0000-4000-8000-000000000016','17500000-0000-4000-8000-000000000025',
+  '17500000-0000-4000-8000-000000000009','17500000-0000-4000-8000-000000000027','Reinserted body'
+)$$,'23505',null,'Delete/reinsert cannot reset version or move the message');
+select ok((select conversation_id='17500000-0000-4000-8000-000000000015'::uuid
+    and version=4 and lifecycle_state='deleted'
+  from communications.private_messages where id='17500000-0000-4000-8000-000000000016'),
+  'Failed delete/reinsert preserves canonical identity, version, and lifecycle');
+
+select throws_ok($$insert into communications.private_messages(
+  conversation_id,sender_id,client_request_id,body,version
+) values(
+  '17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000010',
+  '17500000-0000-4000-8000-000000000021','Invalid initial version',2
+)$$,'23514','private_message_initial_version_invalid','Message cannot start above version one');
+select throws_ok($$insert into communications.private_messages(
+  conversation_id,sender_id,client_request_id,body,lifecycle_state
+) values(
+  '17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000010',
+  '17500000-0000-4000-8000-000000000022','Invalid initial lifecycle','deleted'
+)$$,'23514','private_message_initial_version_invalid','Message cannot start deleted');
+
+select throws_ok($$insert into platform.workspace_property_bindings(
+  id,tenant_id,customer_workspace_id,property_id,status,binding_source
+) values(
+  '17500000-0000-4000-8000-000000000023','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000014','17500000-0000-4000-8000-000000000004',
+  'active','migration_verified'
+)$$,'P0001','workspace_property_binding_overlap',
+  'Canonical Workspace binding guard prevents ambiguous resolution inputs');
+
+select * from finish();
+rollback;
