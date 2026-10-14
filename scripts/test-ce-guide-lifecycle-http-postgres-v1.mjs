@@ -243,7 +243,7 @@ async function installDisposableExecutionBoundary() {
     where c.relkind='r' and c.relrowsecurity
       and (n.nspname||'.'||c.relname)=any($1::text[])`, [readTables]);
   for (const { nspname, relname } of protectedTables.rows) {
-    if (!/^[a-z_]+$/.test(nspname) || !/^[a-z_]+$/.test(relname)) {
+    if (!/^[a-z_][a-z0-9_]*$/.test(nspname) || !/^[a-z_][a-z0-9_]*$/.test(relname)) {
       throw new Error('unsafe_fixture_policy_identifier');
     }
     await pool.query(`create policy ${policyName} on ${nspname}.${relname}
@@ -260,7 +260,8 @@ async function removeDisposableExecutionBoundary() {
   const policies = await pool.query(`select schemaname,tablename from pg_policies
     where policyname=$1`, [policyName]);
   for (const { schemaname, tablename } of policies.rows) {
-    if (!/^[a-z_]+$/.test(schemaname) || !/^[a-z_]+$/.test(tablename)) {
+    if (!/^[a-z_][a-z0-9_]*$/.test(schemaname)
+      || !/^[a-z_][a-z0-9_]*$/.test(tablename)) {
       throw new Error('unsafe_fixture_policy_identifier');
     }
     await pool.query(`drop policy ${policyName} on ${schemaname}.${tablename}`);
