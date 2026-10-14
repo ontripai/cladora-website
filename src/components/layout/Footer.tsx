@@ -158,7 +158,7 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
             <ul className="space-y-2 text-xs sm:text-sm text-[#CBD5E1]">
               <li>
                 <Link href={`/${lang}/industries`} className="hover:text-white transition-colors">
-                  {lang === 'ro' ? 'Prezentare Industriale' : lang === 'fa' ? 'مرور صنایع و بخش‌ها' : 'Industries Overview'}
+                  {lang === 'ro' ? 'Arhitectura Industriilor' : lang === 'fa' ? 'معماری صنایع' : 'Industries Architecture'}
                 </Link>
               </li>
               <li>

@@ -28,7 +28,10 @@ import {
   Cpu,
   LogIn,
   Home,
-  Bot
+  Bot,
+  Hotel,
+  Factory,
+  Car
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
@@ -239,28 +242,43 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
   // 3. Industries Menu Content
   const industriesItems = [
     {
-      title: lang === 'ro' ? 'Rezidențial & Asociații' : lang === 'fa' ? 'مسکونی و مجتمع‌ها' : 'Residential & HOAs',
-      href: `/${lang}/industries`,
+      title: lang === 'ro' ? 'Rezidențial' : lang === 'fa' ? 'املاک مسکونی' : 'Residential',
+      href: `/${lang}/industries#residential`,
       icon: Building,
     },
     {
       title: lang === 'ro' ? 'Birouri & Workplace' : lang === 'fa' ? 'اداری و دفاتر کار' : 'Office & Workplace',
-      href: `/${lang}/industries`,
+      href: `/${lang}/industries#office`,
       icon: Building2,
     },
     {
-      title: lang === 'ro' ? 'Retail & Centre Comerciale' : lang === 'fa' ? 'تجاری و مراکز خرید' : 'Retail & Shopping Centers',
-      href: `/${lang}/industries`,
+      title: lang === 'ro' ? 'Retail & Mall-uri' : lang === 'fa' ? 'تجاری و مراکز خرید' : 'Retail & Shopping',
+      href: `/${lang}/industries#retail`,
       icon: Store,
     },
     {
-      title: lang === 'ro' ? 'Industrial & Logistică' : lang === 'fa' ? 'صنعتی و لجستیک' : 'Industrial & Logistics',
-      href: `/${lang}/industries`,
+      title: lang === 'ro' ? 'Ospitalitate' : lang === 'fa' ? 'اقامتی و هتلداری' : 'Hospitality',
+      href: `/${lang}/industries#hospitality`,
+      icon: Hotel,
+    },
+    {
+      title: lang === 'ro' ? 'Industrial' : lang === 'fa' ? 'صنعتی و کارخانجات' : 'Industrial',
+      href: `/${lang}/industries#industrial`,
+      icon: Factory,
+    },
+    {
+      title: lang === 'ro' ? 'Logistică & Depozitare' : lang === 'fa' ? 'لجستیک و انبارداری' : 'Logistics',
+      href: `/${lang}/industries#logistics`,
       icon: Warehouse,
     },
     {
-      title: lang === 'ro' ? 'Mixte (Mixed-Use)' : lang === 'fa' ? 'کاربری چندمنظوره' : 'Mixed-Use Developments',
-      href: `/${lang}/industries`,
+      title: lang === 'ro' ? 'Auto & Showroom' : lang === 'fa' ? 'املاک خودرویی' : 'Automotive Facilities',
+      href: `/${lang}/industries#automotive`,
+      icon: Car,
+    },
+    {
+      title: lang === 'ro' ? 'Ansambluri Mixte' : lang === 'fa' ? 'مجتمع‌های چندمنظوره' : 'Mixed-Use Developments',
+      href: `/${lang}/industries#mixed-use`,
       icon: Layers,
     },
   ];
@@ -515,9 +533,9 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
               {activeDropdown === 'industries' && (
                 <div
                   role="menu"
-                  className="absolute start-0 mt-2 w-[340px] rounded-2xl bg-white border border-[#D3DCE6] shadow-elevated p-3 z-50 animate-in fade-in duration-150"
+                  className="absolute start-0 mt-2 w-[420px] rounded-2xl bg-white border border-[#D3DCE6] shadow-elevated p-3 z-50 animate-in fade-in duration-150"
                 >
-                  <div className="space-y-1">
+                  <div className="grid grid-cols-2 gap-1.5">
                     {industriesItems.map((item) => {
                       const Icon = item.icon;
                       return (
@@ -526,21 +544,21 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                           href={item.href}
                           role="menuitem"
                           onClick={() => setActiveDropdown(null)}
-                          className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-[#F6F9FC] transition-colors group"
+                          className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-[#F6F9FC] transition-colors group"
                         >
-                          <Icon className="w-4 h-4 text-[#0E9F8E]" />
-                          <span className="text-xs font-bold text-[#102A43] group-hover:text-[#0E9F8E]">
+                          <Icon className="w-4 h-4 text-[#0E9F8E] shrink-0" />
+                          <span className="text-xs font-bold text-[#102A43] group-hover:text-[#0E9F8E] truncate">
                             {item.title}
                           </span>
                         </Link>
                       );
                     })}
                   </div>
-                  <div className="mt-2 pt-2 border-t border-[#F0F4F8] px-2">
+                  <div className="mt-2.5 pt-2 border-t border-[#F0F4F8] px-2 flex justify-between items-center text-xs">
                     <Link
                       href={`/${lang}/industries`}
                       onClick={() => setActiveDropdown(null)}
-                      className="text-xs text-[#0E9F8E] font-bold hover:underline inline-flex items-center gap-1"
+                      className="text-[#0E9F8E] font-bold hover:underline inline-flex items-center gap-1"
                     >
                       <span>{labels.industries} Overview</span>
                       <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />

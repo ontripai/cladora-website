@@ -622,19 +622,16 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/industries': {
     ro: {
-      title: 'Industrii & Soluții Verticale Specializate',
-      desc: 'Arhitectura CLADORA adaptată pe industrii: rezidențial, birouri, retail, logistică și mixt.',
-      noIndex: true,
+      title: 'Arhitectura Industriilor — O Singură Arhitectură, Contexte Multiple',
+      desc: 'Descoperă modul în care CLADORA compune aceeași arhitectură de platformă pentru 8 contexte imobiliare: rezidențial, birouri, retail, ospitalitate, industrial, logistică, auto și mixte.',
     },
     en: {
-      title: 'Industry Solutions & Vertical Presets',
-      desc: 'CLADORA unified environment adapted across residential, commercial workplace, retail, logistics, and mixed-use environments.',
-      noIndex: true,
+      title: 'Industries Architecture — One Platform Architecture, Multiple Property Contexts',
+      desc: 'Explore how CLADORA composes the same platform architecture across 8 built-world property contexts: residential, workplace, retail, hospitality, industrial, logistics, automotive, and mixed-use.',
     },
     fa: {
-      title: 'صنایع و راهکارهای تخصصی عمودی',
-      desc: 'محیط یکپارچهٔ کلادورا منطبق بر نیازمندی‌های املاک مسکونی، اداری، تجاری، لجستیک و چندمنظوره.',
-      noIndex: true,
+      title: 'معماری صنایع — یک معماری واحد، بسترهای گوناگون املاک',
+      desc: 'بررسی چگونگی انطباق معماری یکپارچه کلادورا بر ۸ بستر ساختمانی: مسکونی، اداری، تجاری، اقامتی، صنعتی، لجستیک، خودرویی و چندمنظوره.',
     },
   },
   '/capabilities': {
