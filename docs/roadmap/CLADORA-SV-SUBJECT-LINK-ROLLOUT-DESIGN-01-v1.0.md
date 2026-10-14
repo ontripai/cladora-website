@@ -212,10 +212,12 @@ fail closed on mismatch without logging the URL or role credential. Graceful
 shutdown ends idle pool resources; request code never calls `pool.end()`.
 
 **Proposed compatibility requirement.** Use a direct PostgreSQL endpoint or a
-pooler mode that preserves one server session for the complete checked-out
-client lifecycle. Transaction-mode multiplexing is not accepted for the #389
-adapter: checkout scrub, post-transaction scrub and destruction after uncertain
-COMMIT have not been proven to address the same server backend in that mode.
+pooler in proven session mode that preserves one server session for the complete
+checked-out client lifecycle. Transaction-mode multiplexing is not accepted for
+the #389 adapter unless a later focused proof establishes stable backend PID,
+the four JWT-setting and SQL-role cleanup operations on the same backend, and
+destruction of the affected backend after uncertain COMMIT. A pooler product
+label or successful ordinary query is not that proof.
 
 **Unavailable.** The target database endpoint, TLS CA, connection ceiling,
 Vercel instance concurrency, pooler product/mode and its reset behavior are not
@@ -235,7 +237,7 @@ the returned column. RLS requirements are additional to object grants.
 | Database and namespaces | `CONNECT` on the target database; `USAGE` on `auth`, `app_private`, `identity`, `platform`, `communications`, and `audit` | No schema-wide table or function grant | #389 handler; sources below |
 | Session identity | ability to run `RESET ROLE`, `set_config` and `current_setting`; no membership in `authenticated` or `service_role` and no SQL `SET ROLE` | Four JWT settings are local only after `BEGIN`; cleanup is session-level | `service-request-subject-link-http-v1.ts:79-161` |
 | Authority revision pre-read and provider read | `SELECT(singleton, revision)` on `app_private.canonical_authority_revision_v1` | `FOR SHARE`; RLS is enabled and no consumer policy is present | handler `:163-188`; `current-authority-postgres-provider-v1.ts:61-65`; migration `20261012190924_core_canonical_authority_revision_v1.sql` |
-| Workspace host lock | `SELECT(id, tenant_id, archived_at, lifecycle_status)` plus PostgreSQL `UPDATE` privilege sufficient for `FOR UPDATE` on `platform.customer_workspaces` | Exact ID, active lifecycle, row lock; dedicated-role RLS policy is absent | `postgres-transaction-host-v1.ts:185-205` |
+| Workspace host lock | `SELECT(id, tenant_id, archived_at, lifecycle_status)` only after the Core-owned lock query changes from `FOR UPDATE` to `FOR SHARE` | Exact ID, active lifecycle, shared row lock; a dedicated-role SELECT policy is absent | `postgres-transaction-host-v1.ts:185-205` |
 | Canonical authority context | `SELECT` on the referenced columns of `identity.context_grants`, `identity.memberships`, `platform.customer_workspaces` and `platform.module_definitions`; `EXECUTE` on `auth.uid()` and `app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)` | Same serializable snapshot and revision barrier; every enabled RLS table must admit only the required reads | `current-authority-postgres-provider-v1.ts:45-123`; host `:257-273` |
 | Idempotency ledger | `SELECT(actor_id,request_hash,response_ref,expires_at)`, `INSERT(tenant_id,actor_id,key,request_hash,expires_at)`, `UPDATE(response_ref,status_code)` on `platform.idempotency_keys`; lock privilege for `FOR UPDATE` | Key is tenant/Workspace scoped by Core; RLS currently has an all policy only for `service_role` | host `:275-314`, `:341-344`, `:383-384`; migration `20260825000100_platform_tenants_settings_outbox.sql` |
 | Communications subject provider | `EXECUTE` on `communications.resolve_private_message_subject_v1(uuid,uuid,uuid,uuid,bigint)` | SECURITY DEFINER, metadata-only, current actor/AAL/Workspace/version denial; all ordinary client roles are revoked | `communications-private-message-subject-provider-v1.ts:114-175`; migration `20261013120000_communications_private_message_subject_provider_v1.sql` |
@@ -267,11 +269,33 @@ must be pinned to canonical non-login owners and keep `search_path=pg_catalog`.
 The connection role must never be derived from the JWT `role` claim; that claim
 is input to canonical policy evaluation only.
 
-The current direct `FOR UPDATE` on `platform.customer_workspaces` creates a
-least-privilege issue: PostgreSQL requires UPDATE privilege on that table even
-though Core only locks the row. Core must review either the narrowest acceptable
-column grant and RLS policy or a canonical Core-owned lock function. This design
-does not choose or implement that database change.
+ACLs alone do not make the role usable. The separately reviewed database package
+must add policies addressed explicitly to the execution role for the precise
+operations on the authority-revision row, active Workspace row, authority-context
+tables, idempotency rows, audit inserts and outbox inserts. Existing policies for
+`authenticated` or `service_role` do not include this role and must not be reused
+through role membership. Each policy needs catalog and negative tests proving
+that the role cannot read or write unrelated tenant/Workspace rows or perform a
+direct domain/Core-ledger mutation outside the host contract.
+
+The three invoked `SECURITY DEFINER` functions currently inherit the migration
+executor as owner. Their later installation package must assign each function to
+an approved canonical `NOLOGIN` owner, retain its fixed `pg_catalog` search path
+and revoke default/public execution before granting only the exact signatures to
+the execution role. The execution role must not own these functions, belong to
+an owner role, or possess `SET ROLE` to an owner. Function ownership and role
+membership are verified from live catalogs in the disposable acceptance target.
+
+The current direct `FOR UPDATE` on `platform.customer_workspaces` creates an
+unnecessary write privilege: Core only reads the active Workspace and holds it
+stable while executing. The bounded Core-owned change is the same predicate and
+lock order using `FOR SHARE`. `FOR SHARE` requires SELECT rather than UPDATE and
+conflicts with concurrent Workspace UPDATE/DELETE. Focused real PostgreSQL tests
+must prove the concurrent writer blocks or serializes, an inactive/archived
+Workspace denies, and the execution role has no direct INSERT/UPDATE/DELETE on
+the Workspace table. `FOR UPDATE` remains correct for the idempotency row because
+the host actually updates that row. This design specifies the change but does
+not implement SQL or alter the accepted host.
 
 **Unavailable.** No repository evidence identifies an installed target login
 with these exact privileges. Installed function owners, actual RLS policies,
@@ -349,11 +373,12 @@ fresh revision read. For a committed transaction whose acknowledgement is lost,
 the same intent/key returns the persisted receipt only while its complete Core
 bindings still match.
 
-**Proposed recovery procedure.** A client receiving 202 must preserve the exact
-intent and idempotency key, use bounded backoff, and submit the same POST. It
+**Current same-revision procedure.** A client receiving 202 preserves the exact
+intent and idempotency key, uses bounded backoff, and submits the same POST. It
 must not create a new key, increment Request version locally or infer failure.
-`exact_replay` completes recovery. A 409 stops automatic retry and requires
-operator/Core review.
+When every binding, including authority revision, still matches, `exact_replay`
+completes recovery. A 409 stops automatic retry and requires operator/Core
+review.
 
 **Observed limitation.** If the global authority revision changes after COMMIT
 but before readback, the rebuilt command contains the new revision while the
@@ -361,11 +386,24 @@ stored receipt retains the committed revision. Core therefore returns replay
 conflict rather than weakening the old authority binding. Using a new key could
 duplicate intent and is forbidden.
 
-**Proposed future option.** If operations require recovery across an authority
-revision change, Core must separately design a read-only canonical readback by
-Workspace, actor, original key and fingerprint. It must apply fresh authority
-without mutating the old receipt or re-running the domain effect. This rollout
-design neither adds that path nor relaxes existing replay checks.
+**Merged design dependency.** `CORE-RECOVERY-AUTH-01`, merged from #392 as
+`074a40a244bbc6cc641bc914d6ea4b1aa4973403`, specifies the cross-revision path.
+Its proposed read-only `recover` operation requires the complete exact
+`original_command`, a fresh server-observed authority revision, distinct recovery
+transaction/command IDs, current provider disclosure validation and a
+read-only serializable transaction ending in `ROLLBACK`. The intent/key or
+historical receipt alone is insufficient because the receipt does not retain
+all original command fields, including the full provider-source set. A missing
+row is `READBACK_REQUIRED` or unavailable; it never authorizes automatic
+execution. Historical authority is evidence of the prior commit and never
+authority for a new command.
+
+The application therefore needs a separately reviewed trusted source for the
+complete original envelope before it can integrate #392 recovery. A public
+client cannot inject that envelope or choose its authority revision. Current
+provider disclosure must pass in the recovery transaction. This rollout design
+does not implement `recover`, `validateRecovery`, a command store or a reduced
+revision-insensitive hash, and it does not relax existing `execute` replay.
 
 ### Disabled rollout, stopping and acceptance gates
 
