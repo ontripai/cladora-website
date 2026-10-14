@@ -300,7 +300,29 @@ function faultPool(mode) {
   };
 }
 
-let activePool = pool;
+function diagnosticPool(delegate) {
+  return {
+    async connect() {
+      const client = await delegate.connect();
+      const wrapped = Object.create(client);
+      wrapped.query = async (text, values) => {
+        try {
+          return await client.query(text, values);
+        } catch (error) {
+          const operation = typeof text === 'string'
+            ? /^\s*([a-z]+)/i.exec(text)?.[1]?.toUpperCase() ?? 'QUERY' : 'QUERY';
+          console.error(`::error title=CE Guide disposable SQL boundary::${operation}: ${error.code ?? 'NO_SQLSTATE'}`);
+          throw error;
+        }
+      };
+      wrapped.release = error => client.release(error);
+      return wrapped;
+    },
+  };
+}
+
+const observedPool = diagnosticPool(pool);
+let activePool = observedPool;
 const server = createServer(async (incoming, outgoing) => {
   try {
     const chunks = [];
@@ -368,7 +390,7 @@ try {
     assert.equal(before.status, 'published');
     unpublish = value('unpublish', before.version, unpublishKey);
     const result = await post(unpublish);
-    assert.equal(result.status, 200);
+    assert.equal(result.status, 200, JSON.stringify(result.body));
     assert.equal(result.body.outcome, 'committed');
     assert.deepEqual(Object.keys(result.body).sort(), ['guide_version', 'outcome', 'receipt_id']);
     assert.deepEqual(await guideState(), { status: 'draft', version: before.version + 1 });
@@ -444,7 +466,7 @@ try {
     const fault = faultPool('serialization');
     activePool = fault;
     const result = await post(value('unpublish', before.version, `ce-40001-${randomUUID()}`));
-    activePool = pool;
+    activePool = observedPool;
     assert.equal(fault.wasInjected(), true);
     assert.equal(result.status, 200);
     assert.equal(result.body.outcome, 'committed');
@@ -459,7 +481,7 @@ try {
     const fault = faultPool('ack_loss');
     activePool = fault;
     const pending = await post(requestValue);
-    activePool = pool;
+    activePool = observedPool;
     assert.equal(fault.wasInjected(), true);
     assert.deepEqual(pending, {
       status: 202, body: { outcome: 'pending', code: 'READBACK_REQUIRED' },
@@ -493,7 +515,7 @@ try {
     const effectsBefore = await effects(key);
     activePool = isolatedPool;
     const denied = await post(value('unpublish', before.version - 1, key));
-    activePool = pool;
+    activePool = observedPool;
     assert.equal(denied.status, 403);
     assert.deepEqual(await guideState(), before);
     assert.deepEqual(await effects(key), effectsBefore);
