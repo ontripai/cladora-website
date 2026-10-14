@@ -223,6 +223,9 @@ async function installDisposableExecutionBoundary() {
     'auth', 'identity', 'platform', 'portfolio', 'communications', 'documents',
     'experience', 'app_private', 'audit',
   ]) await ensurePrivilege('schema', schema, 'USAGE');
+  // Re-assert the direct disposable grant even when an inherited/default ACL
+  // made an earlier effective-privilege probe look sufficient.
+  await pool.query('grant usage on schema auth to cladora_rpc_owner');
   const readTables = [
     'identity.context_grants', 'identity.memberships', 'identity.roles',
     'platform.customer_workspaces', 'platform.module_definitions',
@@ -320,11 +323,18 @@ function diagnosticPool(delegate) {
     async connect() {
       const client = await delegate.connect();
       const wrapped = Object.create(client);
+      let sourceLockRole = 'UNPROBED';
       wrapped.query = async (text, values) => {
+        const normalized = typeof text === 'string' ? text.toLowerCase() : '';
         try {
+          if (normalized.includes('cross join app_private.canonical_authority_revision_v1')) {
+            const probe = await client.query(`select current_user,
+              has_schema_privilege(current_user,'auth','USAGE') auth_usage`);
+            sourceLockRole = `${probe.rows[0]?.current_user ?? 'UNKNOWN'}:${
+              probe.rows[0]?.auth_usage === true ? 'AUTH_USAGE' : 'AUTH_DENIED'}`;
+          }
           return await client.query(text, values);
         } catch (error) {
-          const normalized = typeof text === 'string' ? text.toLowerCase() : '';
           const operation = /^\s*([a-z]+)/i.exec(normalized)?.[1]?.toUpperCase() ?? 'QUERY';
           const boundary = normalized.includes("set_config('request.jwt.claims'")
             ? 'IDENTITY_BINDING'
@@ -339,7 +349,7 @@ function diagnosticPool(delegate) {
             ? /permission denied for (?:table|schema|function) ([a-z_][a-z0-9_.]*)/i.exec(
               error.message,
             )?.[1] : undefined;
-          console.error(`::error title=CE Guide disposable SQL boundary::${boundary}/${operation}: ${error.code ?? 'NO_SQLSTATE'}:${deniedObject ?? 'OBJECT_UNAVAILABLE'}`);
+          console.error(`::error title=CE Guide disposable SQL boundary::${boundary}/${operation}: ${error.code ?? 'NO_SQLSTATE'}:${deniedObject ?? 'OBJECT_UNAVAILABLE'}:${sourceLockRole}`);
           throw error;
         }
       };
