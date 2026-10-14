@@ -20,6 +20,7 @@ on:
       - 'src/lib/customer/route-classifier.ts'
       - 'supabase/proposals/ce_010_community_operational_v1.sql'
       - 'supabase/proposals/ce_012_experience_guide_operational_v1.sql'
+      - 'supabase/migrations/*_experience_guide_storage_lifecycle_v1.sql'
       - 'supabase/proposals/ce_011_event_interest_operational_v1.sql'
       - 'supabase/tests/173_ce_010_community_proposal.test.sql'
       - 'supabase/tests/174_ce_012_experience_guide_proposal.test.sql'
@@ -73,10 +74,12 @@ jobs:
       - name: Real CE multi-connection races
         run: |
           timeout 90s node scripts/test-ce-010-concurrency.mjs
-          timeout 90s node scripts/test-ce-012-concurrency.mjs
+          timeout 120s npm run test:ce-guide-lifecycle:postgres
         env:
           CLADORA_EPHEMERAL_DB: '1'
           SUPABASE_DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          CE_GUIDE_LIFECYCLE_EPHEMERAL: '1'
+          CE_GUIDE_LIFECYCLE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Stop disposable local Supabase
         if: always()
         run: supabase stop --no-backup
