@@ -298,7 +298,8 @@ async function readSourceLockCandidate(
       actor_bound: boolean;
       aal2: boolean;
     }>(`select g.content_version::text,r.revision::text as authority_version,
-        auth.uid()=$4::uuid as actor_bound,auth.jwt()->>'aal'='aal2' as aal2
+        nullif(current_setting('request.jwt.claim.sub',true),'')::uuid=$4::uuid as actor_bound,
+        nullif(current_setting('request.jwt.claim.aal',true),'')='aal2' as aal2
       from experience.guides g
       join platform.customer_workspaces w
         on w.id=g.workspace_id and w.tenant_id=g.tenant_id
