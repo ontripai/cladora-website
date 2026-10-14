@@ -193,6 +193,7 @@ await pool.query('update identity.memberships set user_id=$2 where id=$1', [
 
 const policyName = 'ce_guide_http_fixture_v1';
 const temporaryPrivileges = [];
+const temporaryAuthPrivileges = [];
 async function ensurePrivilege(kind, object, privilege) {
   let direct;
   if (kind === 'schema') {
@@ -220,12 +221,36 @@ async function ensurePrivilege(kind, object, privilege) {
 }
 async function installDisposableExecutionBoundary() {
   for (const schema of [
-    'auth', 'identity', 'platform', 'portfolio', 'communications', 'documents',
+    'identity', 'platform', 'portfolio', 'communications', 'documents',
     'experience', 'app_private', 'audit',
   ]) await ensurePrivilege('schema', schema, 'USAGE');
-  // Re-assert the direct disposable grant even when an inherited/default ACL
-  // made an earlier effective-privilege probe look sufficient.
-  await pool.query('grant usage on schema auth to cladora_rpc_owner');
+  const authPrivileges = (await pool.query(`select
+    has_schema_privilege('cladora_rpc_owner','auth','USAGE') as schema_usage,
+    has_function_privilege('cladora_rpc_owner','auth.uid()','EXECUTE') as uid_execute,
+    has_function_privilege('cladora_rpc_owner','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
+  const authOwner = await pool.connect();
+  try {
+    await authOwner.query('begin');
+    await authOwner.query('set local role supabase_auth_admin');
+    if (!authPrivileges.schema_usage) {
+      await authOwner.query('grant usage on schema auth to cladora_rpc_owner');
+      temporaryAuthPrivileges.push('schema');
+    }
+    if (!authPrivileges.uid_execute) {
+      await authOwner.query('grant execute on function auth.uid() to cladora_rpc_owner');
+      temporaryAuthPrivileges.push('uid');
+    }
+    if (!authPrivileges.jwt_execute) {
+      await authOwner.query('grant execute on function auth.jwt() to cladora_rpc_owner');
+      temporaryAuthPrivileges.push('jwt');
+    }
+    await authOwner.query('commit');
+  } catch (error) {
+    await authOwner.query('rollback').catch(() => undefined);
+    throw error;
+  } finally {
+    authOwner.release();
+  }
   const readTables = [
     'identity.context_grants', 'identity.memberships', 'identity.roles',
     'platform.customer_workspaces', 'platform.module_definitions',
@@ -250,7 +275,6 @@ async function installDisposableExecutionBoundary() {
   await ensurePrivilege('sequence', 'audit.events_id_seq', 'USAGE');
   await ensurePrivilege('sequence', 'audit.events_id_seq', 'SELECT');
   for (const routine of [
-    'auth.uid()', 'auth.jwt()',
     'app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)',
     'documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid)',
     'communications.member_covers_unit(uuid,uuid,uuid)',
@@ -307,6 +331,28 @@ async function removeDisposableExecutionBoundary() {
     await pool.query(`drop policy ${policyName} on ${schemaname}.${tablename}`);
   }
   await pool.query('drop function if exists app_private.ce_guide_http_raise_40001_v1()');
+  if (temporaryAuthPrivileges.length) {
+    const authOwner = await pool.connect();
+    try {
+      await authOwner.query('begin');
+      await authOwner.query('set local role supabase_auth_admin');
+      if (temporaryAuthPrivileges.includes('uid')) {
+        await authOwner.query('revoke execute on function auth.uid() from cladora_rpc_owner');
+      }
+      if (temporaryAuthPrivileges.includes('jwt')) {
+        await authOwner.query('revoke execute on function auth.jwt() from cladora_rpc_owner');
+      }
+      if (temporaryAuthPrivileges.includes('schema')) {
+        await authOwner.query('revoke usage on schema auth from cladora_rpc_owner');
+      }
+      await authOwner.query('commit');
+    } catch (error) {
+      await authOwner.query('rollback').catch(() => undefined);
+      throw error;
+    } finally {
+      authOwner.release();
+    }
+  }
   for (const entry of temporaryPrivileges.reverse()) {
     await pool.query(`revoke ${entry.privilege} on ${entry.kind} ${entry.object}
       from cladora_rpc_owner`);
