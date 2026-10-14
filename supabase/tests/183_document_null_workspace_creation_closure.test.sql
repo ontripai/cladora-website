@@ -12,7 +12,10 @@ values('18300000-0000-4000-8000-000000000002','18300000-0000-4000-8000-000000000
   'Historical NULL document','legacy');
 alter table documents.documents enable trigger document_workspace_creation_guard_v1;
 
-alter table documents.upload_intents disable trigger all;
+alter table documents.upload_intents
+  disable trigger upload_intent_new_document_binding_required_v1;
+alter table documents.upload_intents
+  disable trigger upload_intent_unbound_consumption_denied_v1;
 insert into documents.upload_intents(
   id,tenant_id,context_id,user_id,document_id,bucket_id,object_path,expected_version,
   declared_mime_type,max_size_bytes,status,server_auth_hash
@@ -21,7 +24,10 @@ insert into documents.upload_intents(
   '18300000-0000-4000-8000-000000000004','18300000-0000-4000-8000-000000000005',
   null,'document-vault','historical/183.pdf',1,'application/pdf',1024,'authorized',repeat('a',64)
 );
-alter table documents.upload_intents enable trigger all;
+alter table documents.upload_intents
+  enable trigger upload_intent_new_document_binding_required_v1;
+alter table documents.upload_intents
+  enable trigger upload_intent_unbound_consumption_denied_v1;
 
 select ok(exists(select 1 from documents.documents
   where id='18300000-0000-4000-8000-000000000002' and workspace_id is null),
