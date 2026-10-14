@@ -39,6 +39,9 @@ on:
       - "src/lib/customer/documents-reference-tx-selector-v1.ts"
       - "scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs"
       - "src/lib/community/experience-guide-lifecycle-provider-v1.ts"
+      - "scripts/test-ce-guide-lifecycle-http-v1.mjs"
+      - "scripts/test-ce-guide-lifecycle-http-postgres-v1.mjs"
+      - "src/lib/community/experience-guide-lifecycle-http-v1.ts"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs"
       - "src/lib/customer/documents-workspace-binding-writer-v1.ts"
@@ -101,6 +104,9 @@ on:
       - "src/lib/customer/documents-reference-tx-selector-v1.ts"
       - "scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs"
       - "src/lib/community/experience-guide-lifecycle-provider-v1.ts"
+      - "scripts/test-ce-guide-lifecycle-http-v1.mjs"
+      - "scripts/test-ce-guide-lifecycle-http-postgres-v1.mjs"
+      - "src/lib/community/experience-guide-lifecycle-http-v1.ts"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs"
       - "src/lib/customer/documents-workspace-binding-writer-v1.ts"
@@ -223,6 +229,27 @@ jobs:
         env:
           CE_GUIDE_LIFECYCLE_EPHEMERAL: "1"
           CE_GUIDE_LIFECYCLE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run inactive CE Guide HTTP handler with real local Auth and AAL2
+        run: |
+          set -euo pipefail
+          STATUS_JSON=$(supabase status -o json)
+          ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // empty')
+          SERVICE_ROLE_KEY=$(echo "$STATUS_JSON" | jq -r '.SERVICE_ROLE_KEY // empty')
+          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_ROLE_KEY" ]; then
+            echo "::error::Local Supabase keys are required for CE Guide HTTP AAL2 evidence"
+            exit 1
+          fi
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          npm run test:ce-guide-lifecycle:http
+          CE_GUIDE_LIFECYCLE_HTTP_ANON_KEY="$ANON_KEY" \
+          CE_GUIDE_LIFECYCLE_HTTP_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          timeout 240s npm run test:ce-guide-lifecycle:http:postgres
+        env:
+          CE_GUIDE_LIFECYCLE_HTTP_EPHEMERAL: "1"
+          CE_GUIDE_LIFECYCLE_HTTP_REAL_AAL2_REQUIRED: "1"
+          CE_GUIDE_LIFECYCLE_HTTP_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          CE_GUIDE_LIFECYCLE_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Run Documents Workspace binding writer PostgreSQL conformance
         run: npm run test:doc-null-workspace-closure && npm run test:doc-workspace-writer && timeout 120s npm run test:doc-workspace-writer:postgres
         env:
