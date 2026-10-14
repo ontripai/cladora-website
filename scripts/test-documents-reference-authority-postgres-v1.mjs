@@ -13,6 +13,7 @@ if(!['localhost','127.0.0.1','[::1]'].includes(target.hostname)||target.pathname
 }
 const pool=new pg.Pool({connectionString,max:12});
 const documents=load(new URL('../src/lib/customer/documents-reference-authority-v1.ts',import.meta.url));
+const selector=load(new URL('../src/lib/customer/documents-reference-tx-selector-v1.ts',import.meta.url));
 const {resolveAuthority}=load(new URL('../src/lib/core/current-authority-postgres-provider-v1.ts',import.meta.url));
 const {createCorePostgresTransactionHostV1}=load(new URL('../src/lib/core/postgres-transaction-host-v1.ts',import.meta.url));
 const evidenceContract=load(new URL('../src/lib/core/transaction-provider-evidence-v1.ts',import.meta.url));
@@ -45,6 +46,22 @@ async function command(extra={}) {
     subject_reference:{kind:'documents.document_version',id:immutableVersionId,version,relation:'read',request_version:1}};
   return {...base,...overrides};
 }
+async function selectorCommand(source={},extra={}) {
+  const target={document_id:source.document_id||doc,
+    document_version_id:source.document_version_id||versionId,
+    document_version:source.document_version||1};
+  const aggregateId=extra.aggregate_id||randomUUID();
+  return {contract_version:'core-transaction-command.v2',transaction_id:randomUUID(),command_id:randomUUID(),
+    context_id:ids.contextId,workspace_id:ids.workspaceIds[0],actor_id:actor,authority_version:await revision(),
+    permission_code:'airprop.asset.manage',module_code:'airprop_commercial',
+    evaluation_purpose:'documents.reference.selector.test',aggregate_type:'selector.consumer',
+    aggregate_id:aggregateId,aggregate_version:1,
+    provider_source_ids:[aggregateId,target.document_id,target.document_version_id],
+    idempotency_key:randomUUID(),
+    input_fingerprint:`docsel1:${createHash('sha256').update(JSON.stringify(target)).digest('hex')}`,
+    subject_reference:{kind:'selector.consumer',id:aggregateId,version:1,relation:'validate',request_version:1},
+    ...extra};
+}
 const providers=(options={})=>({
   provider_code:documents.documentsReferenceAuthorityProviderCodeV1,
   async resolveAuthority(scope,request) {
@@ -55,10 +72,55 @@ const providers=(options={})=>({
   validateProviders:documents.validateDocumentsReferenceAuthorityV1,
   async mutate(_scope,cmd) { return {mutation_id:cmd.aggregate_id}; },
 });
+const selectorProviders=(target,options={})=>({
+  provider_code:documents.documentsReferenceAuthorityProviderCodeV1,
+  async resolveAuthority(scope,request) {
+    await scope.query("select set_config('request.jwt.claims',$1,true)",
+      [JSON.stringify({sub:options.actor||actor,role:'authenticated',aal:options.aal||'aal2'})]);
+    return resolveAuthority(scope,request);
+  },
+  async validateProviders(scope,cmd,authority) {
+    options.attempts?.push(scope.attempt);
+    let selected;
+    try {
+      selected=await selector.selectDocumentsReferenceInCoreTransactionV1(scope,cmd,authority,target);
+    } catch(error) {
+      if(error?.code) options.errorCodes?.push(error.code);
+      throw error;
+    }
+    options.decisions?.push(selected);
+    const denial=selected.decision==='accepted'?null
+      :selected.denial_reason==='STALE_REFERENCE'?'STALE_SUBJECT'
+        :selected.denial_reason==='BINDING_MISMATCH'?'RELATION_MISMATCH'
+          :selected.denial_reason==='PROVIDER_UNAVAILABLE'?'PROVIDER_UNAVAILABLE':'SUBJECT_DENIED';
+    return evidenceContract.coreTransactionProviderEvidenceV1Schema.parse({
+      contract_version:'core-transaction-provider-evidence.v1',evidence_id:randomUUID(),
+      provider_code:documents.documentsReferenceAuthorityProviderCodeV1,
+      transaction_id:cmd.transaction_id,command_id:cmd.command_id,workspace_id:cmd.workspace_id,
+      actor_id:cmd.actor_id,context_id:cmd.context_id,authority_decision_id:authority.decision_id,
+      authority_version:authority.authority_version,attempt:scope.attempt,
+      subject_reference:cmd.subject_reference,evaluated_at:selected.evaluated_at,
+      source_disclosure:'status_only',source_reference:null,
+      decision:selected.decision,denial_reason:denial,
+      ...(selected.decision==='accepted'?{reference_state:'available',current_actor_can_read:true}:{}),
+    });
+  },
+  async mutate(_scope,cmd) { return {mutation_id:cmd.aggregate_id}; },
+});
 async function denied(cmd,options={},code) {
   const before=await digest();const result=await host.execute(cmd,providers(options));
   assert.equal(result.status,'denied');if(code)assert.equal(result.code,code);
   assert.equal('receipt' in result,false);assert.equal(await digest(),before,'denial must be zero-write');
+  return result;
+}
+async function selectorDenied(source,options={}) {
+  const target={document_id:source.document_id||doc,
+    document_version_id:source.document_version_id||versionId,
+    document_version:source.document_version||1};
+  const before=await digest();
+  const result=await host.execute(await selectorCommand(target),selectorProviders(target,options));
+  assert.equal(result.status,'denied');assert.equal(result.code,'PROVIDER_UNAVAILABLE');
+  assert.equal('receipt' in result,false);assert.equal(await digest(),before,'selector denial must be zero-write');
   return result;
 }
 async function addDocument(extra={}) {
@@ -118,6 +180,69 @@ try {
     assert.equal(evidence.authority_decision_id,result.receipt.authority.decision_id);
     for(const field of ['content','title','sha256','mime_type','object_path','bucket_id','tenant_id','permissions','entitlement','role']) {
       assert.ok(!(field in evidence));
+    }
+  });
+  await check('inactive selector rechecks Documents access inside a non-Documents Core transaction',async()=>{
+    const target={document_id:doc,document_version_id:versionId,document_version:1};
+    const decisions=[];const accessBefore=(await pool.query(
+      'select count(*)::int n from documents.access_events where document_id=$1',[doc])).rows[0].n;
+    const result=await host.execute(await selectorCommand(target),selectorProviders(target,{decisions}));
+    assert.equal(result.status,'committed');assert.equal(decisions.length,1);
+    assert.equal(decisions[0].decision,'accepted');assert.deepEqual(decisions[0].target,target);
+    assert.equal(selector.documentsReferenceTxSelectorDecisionV1Schema.safeParse(decisions[0]).success,true);
+    assert.equal((await pool.query(
+      'select count(*)::int n from documents.access_events where document_id=$1',[doc])).rows[0].n,accessBefore);
+    for(const field of ['content','title','body','sha256','mime_type','object_path','bucket_id','tenant_id',
+      'permissions','entitlement','role']) assert.ok(!(field in decisions[0]));
+    assert.equal(result.receipt.provider_evidence.source_disclosure,'status_only');
+    assert.equal(result.receipt.provider_evidence.source_reference,null);
+    assert.notEqual(result.receipt.provider_evidence.subject_reference.id,doc);
+    assert.notEqual(result.receipt.provider_evidence.subject_reference.id,versionId);
+  });
+  await check('selector denies cross-Workspace, NULL and missing mappings with zero writes',async()=>{
+    for(const source of [await addDocument({workspace:ids.workspaceIds[1],property:ids.propertyIds[1]}),
+      await addDocument({workspace:null}),{document_id:randomUUID(),document_version_id:randomUUID()}]) {
+      const decisions=[];await selectorDenied(source,{decisions});
+      assert.equal(decisions.at(-1).decision,'denied');
+      assert.equal(decisions.at(-1).denial_reason,'REFERENCE_DENIED');
+    }
+  });
+  await check('selector denies stale immutable version identities and parent mappings with zero writes',async()=>{
+    for(const source of [{document_id:doc,document_version_id:versionId,document_version:2},
+      {document_id:doc,document_version_id:randomUUID(),document_version:1},
+      {document_id:doc,document_version_id:(await addDocument()).document_version_id,document_version:1}]) {
+      const decisions=[];await selectorDenied(source,{decisions});
+      assert.equal(decisions.at(-1).decision,'denied');
+      assert.ok(['STALE_REFERENCE','REFERENCE_DENIED'].includes(decisions.at(-1).denial_reason));
+    }
+    await pool.query('update documents.documents set current_version=2 where id=$1',[doc]);
+    try {
+      const decisions=[];await selectorDenied({}, {decisions});
+      assert.equal(decisions.at(-1).denial_reason,'STALE_REFERENCE');
+    } finally {await pool.query('update documents.documents set current_version=1 where id=$1',[doc]);}
+  });
+  await check('selector denies unsafe scan and inactive lifecycle with zero writes',async()=>{
+    for(const source of [await addDocument({scan:'scanning_pending'}),
+      await addDocument({scan:'quarantined'}),await addDocument({attested:false}),
+      await addDocument({checksum:'failed'})]) {
+      const decisions=[];await selectorDenied(source,{decisions});
+      assert.equal(decisions.at(-1).denial_reason,'REFERENCE_DENIED');
+    }
+    for(const mutation of ["deleted_at=statement_timestamp()","archived_at=statement_timestamp()",
+      "status='archived'","disposition_status='disposition_approved'"]) {
+      const source=await addDocument();
+      await pool.query(`update documents.documents set ${mutation} where id=$1`,[source.document_id]);
+      const decisions=[];await selectorDenied(source,{decisions});
+      assert.equal(decisions.at(-1).denial_reason,'REFERENCE_DENIED');
+    }
+  });
+  await check('selector denies revoked Documents authority while primary Core authority remains current',async()=>{
+    await pool.query("update platform.workspace_entitlements set boolean_value=false where customer_workspace_id=$1 and entitlement_key='module.documents'",[ids.workspaceIds[0]]);
+    try {
+      const decisions=[];await selectorDenied({}, {decisions});
+      assert.equal(decisions.length,1);assert.equal(decisions[0].denial_reason,'AUTHORITY_DENIED');
+    } finally {
+      await pool.query("update platform.workspace_entitlements set boolean_value=true where customer_workspace_id=$1 and entitlement_key='module.documents'",[ids.workspaceIds[0]]);
     }
   });
   await check('upgrade preserves populated rows, keeps NULL legacy bindings and infers no backfill',async()=>{
@@ -189,19 +314,23 @@ try {
     await denied(await command({subject_reference:{kind:'documents.document_version',id:versionId,version:1,relation:'write',request_version:1}}),{},'PROVIDER_UNAVAILABLE');
     await denied(await command({provider_source_ids:[versionId]}),{},'PROVIDER_UNAVAILABLE');
   });
-  await check('concurrent deletion is re-evaluated after the document lock wait',async()=>{
+  await check('selector propagates real 40001 and rechecks deletion in a fresh Core attempt',async()=>{
     const source=await addDocument(),blocker=await pool.connect();let pending;
+    const target={...source,document_version:1},attempts=[],errorCodes=[],decisions=[];
     try {
       await blocker.query('begin');await blocker.query('select id from documents.documents where id=$1 for update',[source.document_id]);
       const beforeEffects=await pool.query(`select
         (select count(*)::int from platform.idempotency_keys) idempotency,
         (select count(*)::int from audit.events) audit,
         (select count(*)::int from platform.outbox_events) outbox`);
-      pending=host.execute(await command(source),providers());
+      pending=host.execute(await selectorCommand(target),
+        selectorProviders(target,{attempts,errorCodes,decisions}));
       await waitForQueryLock('from documents.documents d where d.id=$1');
       await blocker.query('update documents.documents set deleted_at=statement_timestamp() where id=$1',[source.document_id]);
       await blocker.query('commit');const result=await pending;
       assert.equal(result.status,'denied');assert.equal(result.code,'PROVIDER_UNAVAILABLE');
+      assert.deepEqual(errorCodes,['40001']);assert.deepEqual(attempts,[1,2]);
+      assert.equal(decisions.length,1);assert.equal(decisions[0].denial_reason,'REFERENCE_DENIED');
       const afterEffects=await pool.query(`select
         (select count(*)::int from platform.idempotency_keys) idempotency,
         (select count(*)::int from audit.events) audit,
