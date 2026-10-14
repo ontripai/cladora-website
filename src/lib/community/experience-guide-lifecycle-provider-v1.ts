@@ -12,6 +12,11 @@ import {
   coreTransactionReplayReceiptHashV1,
   type CoreTransactionReplayProviderDecisionV1,
 } from '../core/transaction-replay-provider-hook-v1';
+import type { DocsCe012ImmutableTargetV1 } from '../customer/documents-ce012-reference-contract';
+import {
+  selectDocumentsReferenceInCoreTransactionV1,
+  type DocumentsReferenceTxSelectorDecisionV1,
+} from '../customer/documents-reference-tx-selector-v1';
 
 export const experienceGuideLifecycleProviderCodeV1 = 'ce-guide-lifecycle-provider.v1';
 export const experienceGuideLifecycleReplayPolicyV1 = 'provider_current_state_required' as const;
@@ -110,6 +115,112 @@ function commandMatches(command: CoreTransactionCommandV2): boolean {
     && command.subject_reference.version === expectedVersion
     && command.subject_reference.request_version === 1
     && command.provider_source_ids.includes(command.aggregate_id);
+}
+
+type GuideReferenceTarget = DocsCe012ImmutableTargetV1 & Readonly<{
+  reference_id: string;
+  target_type: string;
+}>;
+type DocumentsSelectorDenialReason = Extract<DocumentsReferenceTxSelectorDecisionV1,
+  { decision: 'denied' }>['denial_reason'];
+
+async function currentGuideReferences(
+  scope: CoreTransactionScopeV1,
+  command: CoreTransactionCommandV2,
+  contentVersion: number,
+): Promise<GuideReferenceTarget[]> {
+  const result = await scope.query<{
+    reference_id: string;
+    target_type: string;
+    document_id: string;
+    document_version_id: string;
+    document_version: number;
+  }>(`select r.id::text as reference_id,r.target_type,
+      r.target_id::text as document_id,r.document_version_id::text,
+      r.document_version
+    from experience.guide_references r
+    join experience.guide_steps s
+      on s.id=r.step_id and s.tenant_id=r.tenant_id
+      and s.workspace_id=r.workspace_id and s.guide_id=r.guide_id
+      and s.guide_version=r.guide_version
+    where r.tenant_id=$1 and r.workspace_id=$2 and r.guide_id=$3
+      and r.guide_version=$4
+    order by s.position,r.position,r.id
+    for share of r,s`, [scope.tenant_id, command.workspace_id, command.aggregate_id, contentVersion]);
+  return result.rows;
+}
+
+function selectorDecisionMatches(
+  decision: DocumentsReferenceTxSelectorDecisionV1,
+  command: CoreTransactionCommandV2,
+  target: DocsCe012ImmutableTargetV1,
+): boolean {
+  return decision.context_id === command.context_id
+    && decision.workspace_id === command.workspace_id
+    && decision.actor_id === command.actor_id
+    && decision.authority_version === command.authority_version
+    && decision.target?.document_id === target.document_id
+    && decision.target.document_version_id === target.document_version_id
+    && decision.target.document_version === target.document_version
+    && decision.source_disclosure === 'status_only'
+    && decision.source_reference === null;
+}
+
+async function validateCurrentGuideReferences(
+  scope: CoreTransactionScopeV1,
+  command: CoreTransactionCommandV2,
+  authority: CurrentAuthorityTransactionDecisionReceiptV1,
+  contentVersion: number,
+): Promise<Readonly<{
+  accepted: true;
+  evaluated_at: string;
+  denial_reason: null;
+} | {
+  accepted: false;
+  evaluated_at: string;
+  denial_reason: DocumentsSelectorDenialReason;
+}>> {
+  const references = await currentGuideReferences(scope, command, contentVersion);
+  let evaluatedAt = authority.evaluated_at;
+  for (const reference of references) {
+    if (reference.target_type !== 'document') {
+      return { accepted: false, evaluated_at: evaluatedAt, denial_reason: 'BINDING_MISMATCH' };
+    }
+    const target: DocsCe012ImmutableTargetV1 = {
+      document_id: reference.document_id,
+      document_version_id: reference.document_version_id,
+      document_version: reference.document_version,
+    };
+    const decision = await selectDocumentsReferenceInCoreTransactionV1(
+      scope, command, authority, target,
+    );
+    evaluatedAt = Date.parse(decision.evaluated_at) > Date.parse(evaluatedAt)
+      ? decision.evaluated_at : evaluatedAt;
+    if (!selectorDecisionMatches(decision, command, target)) {
+      return { accepted: false, evaluated_at: evaluatedAt, denial_reason: 'BINDING_MISMATCH' };
+    }
+    if (decision.decision !== 'accepted') {
+      return { accepted: false, evaluated_at: evaluatedAt,
+        denial_reason: decision.denial_reason };
+    }
+  }
+  return { accepted: true, evaluated_at: evaluatedAt, denial_reason: null };
+}
+
+function providerDenialForReference(reason: DocumentsSelectorDenialReason): DenialReason {
+  if (reason === 'BINDING_MISMATCH') return 'RELATION_MISMATCH';
+  if (reason === 'STALE_REFERENCE') return 'STALE_SUBJECT';
+  if (reason === 'PROVIDER_UNAVAILABLE') return 'PROVIDER_UNAVAILABLE';
+  return 'SUBJECT_DENIED';
+}
+
+function replayDenialForReference(
+  reason: DocumentsSelectorDenialReason,
+): Extract<CoreTransactionReplayProviderDecisionV1,
+  { decision: 'denied' }>['denial_reason'] {
+  if (reason === 'PROVIDER_UNAVAILABLE') return 'PROVIDER_UNAVAILABLE';
+  if (reason === 'STALE_REFERENCE') return 'REPLAY_STATE_CHANGED';
+  return 'REPLAY_DISCLOSURE_DENIED';
 }
 
 function replayDecision(
@@ -222,15 +333,11 @@ export async function validateExperienceGuideLifecycleReplayV1(
       status: string;
       version: string;
       content_version: string;
-      reference_count: string;
       actor_bound: boolean;
       aal2: boolean;
       transaction_id: string;
       now: string;
     }>(`select g.status,g.version::text,g.content_version::text,
-        (select count(*)::text from experience.guide_references r
-          where r.tenant_id=g.tenant_id and r.workspace_id=g.workspace_id
-            and r.guide_id=g.id and r.guide_version=g.content_version) as reference_count,
         auth.uid()=$4::uuid as actor_bound,auth.jwt()->>'aal'='aal2' as aal2,
         txid_current()::text as transaction_id,clock_timestamp()::text as now
       from experience.guides g
@@ -246,14 +353,18 @@ export async function validateExperienceGuideLifecycleReplayV1(
     if (!Number.isSafeInteger(Number(row.content_version)) || Number(row.content_version) < 1) {
       return replayDecision(scope, command, authority, receipt, now, 'PROVIDER_UNAVAILABLE');
     }
-    // No cached target visibility and no fallback allow: a current reference
-    // remains unavailable until Documents supplies the transaction-scoped selector.
-    if (Number(row.reference_count) !== 0) {
-      return replayDecision(scope, command, authority, receipt, now, 'PROVIDER_UNAVAILABLE');
-    }
     const resultingState = actionFor(command) === 'publish' ? 'published' : 'draft';
     if (Number(row.version) !== command.aggregate_version || row.status !== resultingState) {
       return replayDecision(scope, command, authority, receipt, now, 'REPLAY_STATE_CHANGED');
+    }
+    if (actionFor(command) === 'publish') {
+      const references = await validateCurrentGuideReferences(
+        scope, command, authority, Number(row.content_version),
+      );
+      if (!references.accepted) {
+        return replayDecision(scope, command, authority, receipt, references.evaluated_at,
+          replayDenialForReference(references.denial_reason));
+      }
     }
     return replayDecision(scope, command, authority, receipt, now, null);
   } catch (error) {
@@ -302,11 +413,7 @@ export const validateExperienceGuideLifecycleV1: ValidateLifecycle = async (
       version: string;
       content_version: string;
       status: string;
-      reference_count: string;
-    }>(`select g.version::text,g.content_version::text,g.status,
-        (select count(*)::text from experience.guide_references r
-          where r.tenant_id=g.tenant_id and r.workspace_id=g.workspace_id
-            and r.guide_id=g.id and r.guide_version=g.content_version) as reference_count
+    }>(`select g.version::text,g.content_version::text,g.status
       from experience.guides g
       where g.id=$1 and g.workspace_id=$2 and g.tenant_id=$3
       for update`, [command.aggregate_id, command.workspace_id, scope.tenant_id]);
@@ -325,10 +432,14 @@ export const validateExperienceGuideLifecycleV1: ValidateLifecycle = async (
     if (!Number.isSafeInteger(Number(row.content_version)) || Number(row.content_version) < 1) {
       return deny(scope, command, authority, 'PROVIDER_UNAVAILABLE');
     }
-    // No cached/fallback target authorization. The missing owner selector is a
-    // bounded blocker for publication; unpublish remains safe and target-free.
-    if (action === 'publish' && Number(row.reference_count) !== 0) {
-      return deny(scope, command, authority, 'PROVIDER_UNAVAILABLE');
+    if (action === 'publish') {
+      const references = await validateCurrentGuideReferences(
+        scope, command, authority, Number(row.content_version),
+      );
+      if (!references.accepted) {
+        return deny(scope, command, authority,
+          providerDenialForReference(references.denial_reason), references.evaluated_at);
+      }
     }
 
     const instant = await scope.query<{ now: string }>('select clock_timestamp()::text as now');

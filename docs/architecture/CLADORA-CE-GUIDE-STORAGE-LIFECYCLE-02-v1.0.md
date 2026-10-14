@@ -1,7 +1,8 @@
 # CE Guide storage and lifecycle v1
 
 Status: Draft implementation; storage/provider review only. No runtime activation.
-Owner: Community & Experience. Baseline: `main@53e5c74a287d792909fa14c79164abad31e711cd`.
+Owner: Community & Experience. Documents reference integration baseline:
+`main@9c75ea5cb85bc4453cb80fa58483f4cbe65e7c07`.
 
 ## Reused persistence and transaction boundary
 
@@ -41,7 +42,7 @@ The inactive provider consumes `CoreTransactionProvidersV2` directly:
 | `experience.guide.manage / experience_guides` | Core canonical current authority and entitlement recheck |
 | publish/unpublish relation and evaluation purpose | Separate `experience.guide.publish` and `experience.guide.unpublish` effects |
 | provider evidence | Independent `ce-guide-lifecycle-provider.v1` status-only evidence |
-| exact replay | Core `provider_current_state_required` marker plus CE read-only current-state decision |
+| exact replay | Core `provider_current_state_required` marker plus CE and Documents read-only current-state decisions |
 | idempotency/audit/outbox/receipt | Existing Core host ledgers only |
 
 The provider verifies the host transaction ID, serializable isolation, AAL2
@@ -58,7 +59,7 @@ contain Guide title/body/audience, safe labels, document IDs, membership IDs,
 participants, message/service identifiers or storage metadata. Seeing a Guide
 does not grant access to a document, message or SERVICE object.
 
-## Exact replay and remaining dependency blocker
+## Exact replay and Documents reference selection
 
 `CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01` is consumed with
 `replay_policy=provider_current_state_required`. The CE hook runs through the
@@ -73,12 +74,27 @@ The hook uses only `SELECT ... FOR SHARE`; it cannot stage a Guide or shared
 ledger mutation. PostgreSQL `40001` propagates to Core so the host retries the
 complete authority and replay read in a fresh serializable transaction.
 
-A Documents-owned transaction-scoped immutable selector is also required for a
-Guide that contains references. Until it exists, publish of a referenced Guide
-fails closed with `PROVIDER_UNAVAILABLE`. The provider does not wrap the
-existing Documents reader, invent a selector or use cached visibility. Unpublish
-remains target-free and can safely remove Guide visibility. No destination
-access event is produced by lifecycle validation.
+Referenced publish directly consumes the Documents-owned
+`selectDocumentsReferenceInCoreTransactionV1`. CE reads the immutable reference
+rows for the Guide's current content version in step/reference position and ID
+order. It passes each exact document ID, immutable version ID and positive
+version separately to the selector. The Core command must source-lock the Guide
+and every document/version ID before any selection; a missing lock fails closed.
+
+The Documents selector rechecks current authority and current reference state
+inside the same Context, Workspace, actor, authority revision, transaction and
+attempt. One stale, revoked, cross-Workspace, null-Workspace, deleted,
+quarantined or scan-unsafe reference denies the complete publish before any
+domain or shared-ledger write. Exact publish replay repeats the same selection
+for every current reference. CE persists only its existing status-only provider
+evidence: no document or version ID, safe label, path, body, storage metadata or
+permission row is copied to the CE receipt/evidence.
+
+Fresh unpublish and its exact replay do not query references or invoke the
+Documents selector. They can remove Guide visibility after Documents access is
+lost. Selection performs no destination access-event write. The provider does
+not wrap or alter the Documents evaluator, cache a snapshot, or create an
+authority/store/ledger substitute.
 
 ## Disposable PostgreSQL acceptance
 
@@ -96,7 +112,14 @@ disposable PostgreSQL database. It covers:
 - two concurrent writers at the same expected version, with exactly one commit;
 - current entitlement revocation before mutation;
 - rollback after the Guide update and a real Core `40001` retry path;
-- fail-closed referenced publish without a Documents selector and no access event;
+- publish and exact replay with one or multiple valid immutable references;
+- collection-wide zero-write denial for one invalid, stale, revoked,
+  cross/null-Workspace, quarantined or scan-unsafe reference and for a missing
+  provider source lock;
+- exact publish replay denial after Documents state/revocation changes;
+- target-free unpublish and exact replay after Documents access is lost;
+- real `40001` propagation from the Documents selector and fresh Core retry;
+- no Documents access event or private reference identifier in CE evidence;
 - immutable reference, aggregate version, identity and physical-delete guards;
 - status-only evidence privacy and closed table ACLs;
 - unchanged production `commands={null}` and `can_edit=false`.
