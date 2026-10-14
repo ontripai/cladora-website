@@ -43,6 +43,14 @@ const migrationResult = validateProtectedDirectory({
       owner: 'SERVICE / PR #383',
       sha256: 'a4765535e180c39c633afb4a8b4f03c898c25c91ec31a906e73aa780c036ae98',
     },
+    '20261013150000_communications_private_message_request_audience_gate_v1.sql': {
+      owner: 'CE Communications / PR #386',
+      sha256: 'aa90a34c3f2671fe39c20c8b0c131ef85b5d06c433341fa4c6ffba61f59869e7',
+    },
+    '20261013170242_service_request_subject_link_v1.sql': {
+      owner: 'SERVICE / PR #385',
+      sha256: '2741a7128096bcc7aa14c0ea28acf1fc8142a76d6103306e347ad225ad0869e8',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
@@ -51,11 +59,18 @@ const coreResult = validateProtectedDirectory({
   directory: 'src/lib/core',
   expectedProtectedCount: 16,
   expectedProtectedDigest: '9239ad3ef818b3ada7ec0f4cc2171179bd394ca1422fceab090280c95adf9331',
-  isProtected: path => path !== 'communications-private-message-subject-provider-v1.ts',
+  isProtected: path => ![
+    'communications-private-message-subject-provider-v1.ts',
+    'communications-private-message-request-audience-provider-v1.ts',
+  ].includes(path),
   reviewedAdditions: {
     'communications-private-message-subject-provider-v1.ts': {
       owner: 'CE Communications / PR #377',
       sha256: '2633525211cf4b6579290e1820fc099f76f3bc6b2a5f5afda819d7df73096a01',
+    },
+    'communications-private-message-request-audience-provider-v1.ts': {
+      owner: 'CE Communications / PR #386',
+      sha256: '778a88a3fd800b725c2f539e68e9cf726ce801d6063d0075d8af4723f167d39a',
     },
   },
   label: 'AIRPROP B2 Core baseline',
