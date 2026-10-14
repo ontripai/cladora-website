@@ -34,6 +34,8 @@ on:
       - "scripts/test-documents-reference-authority-v1.mjs"
       - "scripts/test-documents-reference-authority-postgres-v1.mjs"
       - "src/lib/customer/documents-reference-authority-v1.ts"
+      - "scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs"
+      - "src/lib/community/experience-guide-lifecycle-provider-v1.ts"
       - "docs/contracts/CORE-AUTHORITY-REVISION-SOURCES-v1.json"
       - "scripts/lib/ap10-auth-e2e-fixture.mjs"
       - "scripts/lib/ap10-target-identity.mjs"
@@ -88,6 +90,8 @@ on:
       - "scripts/test-documents-reference-authority-v1.mjs"
       - "scripts/test-documents-reference-authority-postgres-v1.mjs"
       - "src/lib/customer/documents-reference-authority-v1.ts"
+      - "scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs"
+      - "src/lib/community/experience-guide-lifecycle-provider-v1.ts"
       - "docs/contracts/CORE-AUTHORITY-REVISION-SOURCES-v1.json"
       - "scripts/lib/ap10-auth-e2e-fixture.mjs"
       - "scripts/lib/ap10-target-identity.mjs"
@@ -202,6 +206,11 @@ jobs:
         env:
           DOC_REFERENCE_EPHEMERAL: "1"
           DOC_REFERENCE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run CE Guide lifecycle through the Core transaction host
+        run: timeout 120s npm run test:ce-guide-lifecycle:postgres
+        env:
+          CE_GUIDE_LIFECYCLE_EPHEMERAL: "1"
+          CE_GUIDE_LIFECYCLE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Communications message version concurrency regression
         run: timeout 90s npm run test:communications-message-version:postgres
         env:
