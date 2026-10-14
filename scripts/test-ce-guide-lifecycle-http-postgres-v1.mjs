@@ -202,28 +202,30 @@ await pool.query('update identity.memberships set user_id=$2 where id=$1', [
 const policyName = 'ce_guide_http_fixture_v1';
 const temporaryPrivileges = [];
 const temporaryAuthPrivileges = [];
-async function ensurePrivilege(kind, object, privilege) {
-  let direct;
+let initialAuthPrivileges;
+async function directPrivilegeHeld(kind, object, privilege) {
   if (kind === 'schema') {
-    direct = (await pool.query(`select exists(select 1 from pg_namespace n
+    return (await pool.query(`select exists(select 1 from pg_namespace n
       cross join lateral aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a
       join pg_roles r on r.oid=a.grantee
       where n.nspname=$1 and r.rolname='cladora_rpc_owner' and a.privilege_type=$2) held`,
     [object, privilege])).rows[0].held;
-  } else if (kind === 'function') {
-    direct = (await pool.query(`select exists(select 1 from pg_proc p
+  }
+  if (kind === 'function') {
+    return (await pool.query(`select exists(select 1 from pg_proc p
       cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
       join pg_roles r on r.oid=a.grantee
       where p.oid=$1::regprocedure and r.rolname='cladora_rpc_owner'
         and a.privilege_type=$2) held`, [object, privilege])).rows[0].held;
-  } else {
-    direct = (await pool.query(`select exists(select 1 from pg_class c
-      cross join lateral aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
-      join pg_roles r on r.oid=a.grantee
-      where c.oid=$1::regclass and r.rolname='cladora_rpc_owner'
-        and a.privilege_type=$2) held`, [object, privilege])).rows[0].held;
   }
-  if (direct) return;
+  return (await pool.query(`select exists(select 1 from pg_class c
+    cross join lateral aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
+    join pg_roles r on r.oid=a.grantee
+    where c.oid=$1::regclass and r.rolname='cladora_rpc_owner'
+      and a.privilege_type=$2) held`, [object, privilege])).rows[0].held;
+}
+async function ensurePrivilege(kind, object, privilege) {
+  if (await directPrivilegeHeld(kind, object, privilege)) return;
   await pool.query(`grant ${privilege} on ${kind} ${object} to cladora_rpc_owner`);
   temporaryPrivileges.push({ kind, object, privilege });
 }
@@ -236,6 +238,7 @@ async function installDisposableExecutionBoundary() {
     has_schema_privilege('cladora_rpc_owner','auth','USAGE') as schema_usage,
     has_function_privilege('cladora_rpc_owner','auth.uid()','EXECUTE') as uid_execute,
     has_function_privilege('cladora_rpc_owner','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
+  initialAuthPrivileges = structuredClone(authPrivileges);
   const authOwner = await authOwnerPool.connect();
   try {
     await authOwner.query('begin');
@@ -366,7 +369,13 @@ async function removeDisposableExecutionBoundary() {
   for (const entry of temporaryPrivileges.reverse()) {
     await pool.query(`revoke ${entry.privilege} on ${entry.kind} ${entry.object}
       from cladora_rpc_owner`);
+    assert.equal(await directPrivilegeHeld(entry.kind, entry.object, entry.privilege), false);
   }
+  const restoredAuthPrivileges = (await pool.query(`select
+    has_schema_privilege('cladora_rpc_owner','auth','USAGE') as schema_usage,
+    has_function_privilege('cladora_rpc_owner','auth.uid()','EXECUTE') as uid_execute,
+    has_function_privilege('cladora_rpc_owner','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
+  assert.deepEqual(restoredAuthPrivileges, initialAuthPrivileges);
 }
 
 function faultPool(mode) {
