@@ -48,8 +48,13 @@ const runtime = load(new URL(
   '../src/lib/community/experience-guide-lifecycle-http-v1.ts', import.meta.url,
 ));
 const pool = new pg.Pool({ connectionString, max: 12 });
+const authSchemaOwner = (await pool.query(`select r.rolname as owner
+  from pg_namespace n join pg_roles r on r.oid=n.nspowner where n.nspname='auth'`)).rows[0]?.owner;
+if (!['supabase_admin', 'supabase_auth_admin'].includes(authSchemaOwner)) {
+  throw new Error('canonical_local_auth_schema_owner_required');
+}
 const authOwnerConnection = new URL(connectionString);
-authOwnerConnection.username = 'supabase_auth_admin';
+authOwnerConnection.username = authSchemaOwner;
 const authOwnerPool = new pg.Pool({ connectionString: authOwnerConnection.toString(), max: 1 });
 const authAdmin = createSupabaseClient(authUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
@@ -234,6 +239,10 @@ async function installDisposableExecutionBoundary() {
   const authOwner = await authOwnerPool.connect();
   try {
     await authOwner.query('begin');
+    const ownership = await authOwner.query(`select current_user,
+      (select r.rolname from pg_namespace n join pg_roles r on r.oid=n.nspowner
+        where n.nspname='auth') as schema_owner`);
+    assert.equal(ownership.rows[0].current_user, ownership.rows[0].schema_owner);
     if (!authPrivileges.schema_usage) {
       await authOwner.query('grant usage on schema auth to cladora_rpc_owner');
       temporaryAuthPrivileges.push('schema');
