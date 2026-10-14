@@ -51,16 +51,19 @@ const ids = {
 };
 let checks = 0;
 const calls = { authority: 0, validation: 0, replay: 0, mutation: 0 };
+const annotateFailure = (name, error) => {
+  if (process.env.GITHUB_ACTIONS !== 'true') return;
+  const detail = `${name}: ${error instanceof Error ? error.message : String(error)}`
+    .replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+  console.log(`::error title=CE Guide lifecycle PostgreSQL::${detail}`);
+};
+process.on('uncaughtExceptionMonitor', error => annotateFailure('fixture or teardown', error));
 
 const check = async (name, operation) => {
   try {
     await operation();
   } catch (error) {
-    if (process.env.GITHUB_ACTIONS === 'true') {
-      const detail = `${name}: ${error instanceof Error ? error.message : String(error)}`
-        .replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
-      console.error(`::error title=CE Guide lifecycle PostgreSQL::${detail}`);
-    }
+    annotateFailure(name, error);
     throw error;
   }
   checks += 1;
