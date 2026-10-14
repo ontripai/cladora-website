@@ -50,6 +50,7 @@ const ids = {
   propertyIds: [randomUUID(), randomUUID()],
 };
 let checks = 0;
+const calls = { authority: 0, validation: 0, replay: 0, mutation: 0 };
 
 const check = async (name, operation) => {
   await operation();
@@ -93,14 +94,31 @@ const command = async (guideId, action, expectedVersion, overrides = {}) => {
 };
 const providers = (options = {}) => ({
   provider_code: lifecycle.experienceGuideLifecycleProviderCodeV1,
+  replay_policy: lifecycle.experienceGuideLifecycleReplayPolicyV1,
   async resolveAuthority(scope, request) {
+    calls.authority += 1;
     await scope.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({
       sub: actor, role: 'authenticated', aal: 'aal2',
     })]);
     return resolveAuthority(scope, request);
   },
-  validateProviders: lifecycle.validateExperienceGuideLifecycleV1,
+  async validateProviders(...args) {
+    calls.validation += 1;
+    return lifecycle.validateExperienceGuideLifecycleV1(...args);
+  },
+  async validateReplay(scope, ...args) {
+    calls.replay += 1;
+    options.replayAttempts?.push(scope.attempt);
+    if (options.replayEntered && scope.attempt === 1) options.replayEntered();
+    try {
+      return await lifecycle.validateExperienceGuideLifecycleReplayV1(scope, ...args);
+    } catch (error) {
+      if (error?.code) options.replayErrorCodes?.push(error.code);
+      throw error;
+    }
+  },
   async mutate(scope, value) {
+    calls.mutation += 1;
     const mutation = await lifecycle.mutateExperienceGuideLifecycleV1(scope, value);
     if (options.failAfterMutation) throw new Error('synthetic failure after Guide update');
     if (options.serializationOnce && scope.attempt === 1) {
@@ -124,6 +142,16 @@ const effects = async (value) => (await pool.query(`select
   (select count(*)::int from audit.events where tenant_id=$1 and request_id=$3) audit,
   (select count(*)::int from platform.outbox_events where tenant_id=$1 and trace_id=$3) outbox`,
 [ids.tenantId, `core-tx.v1:${value.workspace_id}:${value.idempotency_key}`, value.command_id])).rows[0];
+const durableDigest = async (value) => (await pool.query(`select
+  (select count(*)::int from platform.idempotency_keys where tenant_id=$1 and key=$2) idempotency,
+  (select xmin::text from platform.idempotency_keys where tenant_id=$1 and key=$2) idempotency_xmin,
+  (select md5(response_ref::text) from platform.idempotency_keys where tenant_id=$1 and key=$2) receipt_hash,
+  (select count(*)::int from audit.events where tenant_id=$1 and request_id=$3) audit,
+  (select count(*)::int from platform.outbox_events where tenant_id=$1 and trace_id=$3) outbox,
+  (select row_to_json(g)::text from (select status,version,content_version
+    from experience.guides where id=$4) g) guide_state`,
+[ids.tenantId, `core-tx.v1:${value.workspace_id}:${value.idempotency_key}`,
+  value.command_id, value.aggregate_id])).rows[0];
 const zeroWrite = async (value, expectedCode) => {
   const before = await state(value.aggregate_id);
   const result = await host.execute(value, providers());
@@ -131,6 +159,17 @@ const zeroWrite = async (value, expectedCode) => {
   if (expectedCode) assert.equal(result.code, expectedCode);
   assert.deepEqual(await effects(value), { idempotency: 0, audit: 0, outbox: 0 });
   assert.deepEqual(await state(value.aggregate_id), before);
+  return result;
+};
+const replayZeroWrite = async (value, expectedCode, provider = providers()) => {
+  const before = await durableDigest(value);
+  const beforeCalls = { validation: calls.validation, mutation: calls.mutation };
+  const result = await host.execute(value, provider);
+  assert.equal(result.status, 'denied');
+  assert.equal(result.code, expectedCode);
+  assert.deepEqual(await durableDigest(value), before);
+  assert.equal(calls.validation, beforeCalls.validation);
+  assert.equal(calls.mutation, beforeCalls.mutation);
   return result;
 };
 
@@ -463,24 +502,41 @@ try {
 
   const guide = await insertGuide();
   let publish;
+  let publishResult;
+  let unpublish;
+  let unpublishResult;
   await check('fresh publish commits exact V to V+1 through the real Core host', async () => {
     publish = await command(guide, 'publish', 1);
-    const result = await host.execute(publish, providers());
-    assert.equal(result.status, 'committed');
+    publishResult = await host.execute(publish, providers());
+    assert.equal(publishResult.status, 'committed');
     assert.deepEqual(await state(guide), {
       status: 'published', version: 2, content_version: 1,
       title: 'Private synthetic Guide', audience: { kind: 'workspace' },
     });
     assert.deepEqual(await effects(publish), { idempotency: 1, audit: 1, outbox: 1 });
-    assert.equal(result.receipt.provider_evidence.provider_code,
+    assert.equal(publishResult.receipt.provider_evidence.provider_code,
       lifecycle.experienceGuideLifecycleProviderCodeV1);
-    assert.equal(result.receipt.subject_reference.version, 1);
-    assert.equal(result.receipt.aggregate_version, 2);
+    assert.equal(publishResult.receipt.subject_reference.version, 1);
+    assert.equal(publishResult.receipt.aggregate_version, 2);
+    assert.equal(publishResult.receipt.replay_validation.provider_code,
+      lifecycle.experienceGuideLifecycleProviderCodeV1);
+  });
+  await check('exact publish replay validates current Guide and returns the stored receipt read-only', async () => {
+    const before = await durableDigest(publish);
+    const beforeCalls = { ...calls };
+    const replay = await host.execute(publish, providers());
+    assert.equal(replay.status, 'exact_replay');
+    assert.deepEqual(replay.receipt, publishResult.receipt);
+    assert.deepEqual(await durableDigest(publish), before);
+    assert.equal(calls.authority, beforeCalls.authority + 1);
+    assert.equal(calls.replay, beforeCalls.replay + 1);
+    assert.equal(calls.validation, beforeCalls.validation);
+    assert.equal(calls.mutation, beforeCalls.mutation);
   });
   await check('fresh unpublish is reversible lifecycle, not cancellation', async () => {
-    const unpublish = await command(guide, 'unpublish', 2);
-    const result = await host.execute(unpublish, providers());
-    assert.equal(result.status, 'committed');
+    unpublish = await command(guide, 'unpublish', 2);
+    unpublishResult = await host.execute(unpublish, providers());
+    assert.equal(unpublishResult.status, 'committed');
     assert.equal((await state(guide)).status, 'draft');
     assert.equal((await state(guide)).version, 3);
     assert.deepEqual(await effects(unpublish), { idempotency: 1, audit: 1, outbox: 1 });
@@ -492,6 +548,103 @@ try {
     });
     await zeroWrite(cancel, 'PROVIDER_UNAVAILABLE');
     assert.equal((await state(guide)).status, 'draft');
+  });
+  await check('exact unpublish replay validates resulting draft version without another mutation', async () => {
+    const before = await durableDigest(unpublish);
+    const beforeCalls = { ...calls };
+    const replay = await host.execute(unpublish, providers());
+    assert.equal(replay.status, 'exact_replay');
+    assert.deepEqual(replay.receipt, unpublishResult.receipt);
+    assert.deepEqual(await durableDigest(unpublish), before);
+    assert.equal(calls.authority, beforeCalls.authority + 1);
+    assert.equal(calls.replay, beforeCalls.replay + 1);
+    assert.equal(calls.validation, beforeCalls.validation);
+    assert.equal(calls.mutation, beforeCalls.mutation);
+  });
+  await check('later Guide state and version reject the old publish replay with zero writes', async () => {
+    await replayZeroWrite(publish, 'REPLAY_CONFLICT');
+  });
+  await check('historical receipt without replay marker is unavailable and is not upgraded', async () => {
+    const key = `core-tx.v1:${unpublish.workspace_id}:${unpublish.idempotency_key}`;
+    const historical = structuredClone(unpublishResult.receipt);
+    delete historical.replay_validation;
+    const beforeReplay = calls.replay;
+    try {
+      await pool.query(`update platform.idempotency_keys set response_ref=$3::jsonb
+        where tenant_id=$1 and key=$2`, [ids.tenantId, key, JSON.stringify(historical)]);
+      await replayZeroWrite(unpublish, 'PROVIDER_UNAVAILABLE');
+      assert.equal(calls.replay, beforeReplay);
+      const stored = (await pool.query(`select response_ref from platform.idempotency_keys
+        where tenant_id=$1 and key=$2`, [ids.tenantId, key])).rows[0].response_ref;
+      assert.equal(Object.hasOwn(stored, 'replay_validation'), false);
+    } finally {
+      await pool.query(`update platform.idempotency_keys set response_ref=$3::jsonb
+        where tenant_id=$1 and key=$2`, [
+        ids.tenantId, key, JSON.stringify(unpublishResult.receipt),
+      ]);
+    }
+  });
+  await check('malformed stored receipt is rejected before the Guide replay hook', async () => {
+    const key = `core-tx.v1:${unpublish.workspace_id}:${unpublish.idempotency_key}`;
+    const malformed = structuredClone(unpublishResult.receipt);
+    malformed.provider_evidence.source_reference = { leaked: true };
+    const beforeReplay = calls.replay;
+    try {
+      await pool.query(`update platform.idempotency_keys set response_ref=$3::jsonb
+        where tenant_id=$1 and key=$2`, [ids.tenantId, key, JSON.stringify(malformed)]);
+      await replayZeroWrite(unpublish, 'REPLAY_CONFLICT');
+      assert.equal(calls.replay, beforeReplay);
+    } finally {
+      await pool.query(`update platform.idempotency_keys set response_ref=$3::jsonb
+        where tenant_id=$1 and key=$2`, [
+        ids.tenantId, key, JSON.stringify(unpublishResult.receipt),
+      ]);
+    }
+  });
+  await check('real PostgreSQL 40001 retries replay in a fresh Core read transaction', async () => {
+    const blocker = await pool.connect();
+    const replayAttempts = [];
+    const replayErrorCodes = [];
+    let replayEntered;
+    const entered = new Promise(resolve => { replayEntered = resolve; });
+    const before = await durableDigest(unpublish);
+    const beforeCalls = { validation: calls.validation, mutation: calls.mutation };
+    try {
+      await blocker.query('begin');
+      // Test-only tuple rewrite: preserve every Guide value while creating a
+      // genuine concurrent PostgreSQL write against the replay predicate.
+      await blocker.query("set local session_replication_role='replica'");
+      await blocker.query('update experience.guides set updated_at=updated_at where id=$1', [guide]);
+      const pending = host.execute(unpublish, providers({
+        replayAttempts, replayErrorCodes, replayEntered,
+      }));
+      await entered;
+      await blocker.query('commit');
+      const replay = await pending;
+      assert.equal(replay.status, 'exact_replay');
+      assert.deepEqual(replayErrorCodes, ['40001']);
+      assert.deepEqual(replayAttempts, [1, 2]);
+      assert.deepEqual(await durableDigest(unpublish), before);
+      assert.equal(calls.validation, beforeCalls.validation);
+      assert.equal(calls.mutation, beforeCalls.mutation);
+    } finally {
+      await blocker.query('rollback').catch(() => {});
+      blocker.release();
+    }
+  });
+  await check('revoked current authority denies replay before the provider and writes nothing', async () => {
+    const beforeReplay = calls.replay;
+    await pool.query(`update platform.workspace_entitlements set boolean_value=false
+      where customer_workspace_id=$1 and entitlement_key='module.experience_guides'`,
+    [ids.workspaceIds[0]]);
+    try {
+      await replayZeroWrite(unpublish, 'AUTHORITY_DENIED');
+      assert.equal(calls.replay, beforeReplay);
+    } finally {
+      await pool.query(`update platform.workspace_entitlements set boolean_value=true
+        where customer_workspace_id=$1 and entitlement_key='module.experience_guides'`,
+      [ids.workspaceIds[0]]);
+    }
   });
   await check('stale exact version and cross-Workspace scope deny with zero writes', async () => {
     await zeroWrite(await command(guide, 'publish', 1), 'PROVIDER_UNAVAILABLE');
@@ -550,6 +703,13 @@ try {
     const accessBefore = (await pool.query(`select count(*)::int value from documents.access_events
       where document_id=$1`, [reference.documentId])).rows[0].value;
     await zeroWrite(await command(referenceGuide, 'publish', 1), 'PROVIDER_UNAVAILABLE');
+    await pool.query(`update experience.guides set status='published',version=2 where id=$1`,
+      [referenceGuide]);
+    const referenceUnpublish = await command(referenceGuide, 'unpublish', 2);
+    const referenceResult = await host.execute(referenceUnpublish, providers());
+    assert.equal(referenceResult.status, 'committed');
+    assert.equal((await state(referenceGuide)).status, 'draft');
+    await replayZeroWrite(referenceUnpublish, 'PROVIDER_UNAVAILABLE');
     const accessAfter = (await pool.query(`select count(*)::int value from documents.access_events
       where document_id=$1`, [reference.documentId])).rows[0].value;
     assert.equal(accessAfter, accessBefore);
@@ -612,4 +772,4 @@ try {
   await pool.end();
 }
 
-console.log(`CE Guide lifecycle through Core TX host: ${checks}/${checks} PASS; replay hook and Documents selector remain blocked`);
+console.log(`CE Guide lifecycle through Core TX host: ${checks}/${checks} PASS; replay hook consumed, Documents selector remains blocked`);
