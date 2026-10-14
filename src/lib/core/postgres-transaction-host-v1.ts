@@ -9,12 +9,20 @@ import {
   type CurrentAuthorityTransactionRequestV1,
   type CurrentAuthorityTransactionDecisionReceiptV1,
 } from './current-authority-transaction-port-v1';
+import { CoreAuthorityProviderUnavailableV1 } from './current-authority-postgres-provider-v1';
 
 import {
   coreTransactionSubjectReferenceV1Schema, coreTransactionProviderEvidenceV1Schema,
   coreTransactionAcceptedProviderEvidenceV1Schema, coreSubjectReferencesMatch,
   type CoreTransactionProviderEvidenceV1, type CoreTransactionAcceptedProviderEvidenceV1,
 } from './transaction-provider-evidence-v1';
+import {
+  coreTransactionReplayCommandHashV1,
+  coreTransactionReplayProviderDecisionV1Schema,
+  coreTransactionReplayReceiptHashV1,
+  coreTransactionReplayRequirementV1Schema,
+  type CoreTransactionReplayProviderDecisionV1,
+} from './transaction-replay-provider-hook-v1';
 
 const uuid = z.string().uuid().transform(value => value.toLowerCase());
 const code = z.string().regex(/^[a-z0-9_.:-]{3,160}$/);
@@ -59,7 +67,7 @@ export interface CoreTransactionScopeV1 {
     text: string, values?: unknown[],
   ): Promise<{ rows: Row[]; rowCount: number | null }>;
 }
-export interface CoreTransactionProvidersV1 {
+interface CoreTransactionProvidersV1Base {
   /** Core-owned resolution of version-bearing authority, in this exact SQL scope. */
   resolveAuthority(scope: CoreTransactionScopeV1, request: CurrentAuthorityTransactionRequestV1):
     Promise<CanonicalCurrentAuthorityObservationV1>;
@@ -69,7 +77,23 @@ export interface CoreTransactionProvidersV1 {
   /** Domain-owner mutation in the supplied SQL scope; no independent transaction. */
   mutate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1): Promise<{ mutation_id: string }>;
 }
-export interface CoreTransactionProvidersV2 {
+type CoreTransactionReplayCapabilityV1 = {
+  readonly replay_policy?: 'authority_only';
+  readonly replay_provider_code?: never;
+  readonly validateReplay?: never;
+} | {
+  readonly replay_policy: 'provider_current_state_required';
+  /** Stable identity for a V1 provider, which otherwise has no provider code. */
+  readonly replay_provider_code: string;
+  /** Read-only current-state validation of an exactly matched persisted receipt. */
+  validateReplay(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1,
+    authority: CurrentAuthorityTransactionDecisionReceiptV1,
+    receipt: CoreTransactionReceiptV1): Promise<CoreTransactionReplayProviderDecisionV1>;
+};
+export type CoreTransactionProvidersV1 = CoreTransactionProvidersV1Base
+  & CoreTransactionReplayCapabilityV1;
+
+interface CoreTransactionProvidersV2Base {
   readonly provider_code: string;
   resolveAuthority(scope: CoreTransactionScopeV1, request: CurrentAuthorityTransactionRequestV1):
     Promise<CanonicalCurrentAuthorityObservationV1>;
@@ -77,6 +101,18 @@ export interface CoreTransactionProvidersV2 {
     authority: CurrentAuthorityTransactionDecisionReceiptV1): Promise<CoreTransactionProviderEvidenceV1>;
   mutate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV2): Promise<{ mutation_id: string }>;
 }
+type CoreTransactionReplayCapabilityV2 = {
+  readonly replay_policy?: 'authority_only';
+  readonly validateReplay?: never;
+} | {
+  readonly replay_policy: 'provider_current_state_required';
+  /** Read-only current-state validation; fresh-command validation is never reused. */
+  validateReplay(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV2,
+    authority: CurrentAuthorityTransactionDecisionReceiptV1,
+    receipt: CoreTransactionReceiptV2): Promise<CoreTransactionReplayProviderDecisionV1>;
+};
+export type CoreTransactionProvidersV2 = CoreTransactionProvidersV2Base
+  & CoreTransactionReplayCapabilityV2;
 const receiptBaseSchema = z.strictObject({
   contract_version: z.literal('core-transaction-receipt.v1'),
   receipt_version: z.literal(1),
@@ -90,6 +126,7 @@ const receiptBaseSchema = z.strictObject({
   aggregate_version: z.number().int().positive().safe(),
   input_fingerprint: coreTransactionCommandV1Schema.shape.input_fingerprint,
   idempotency_key: coreTransactionCommandV1Schema.shape.idempotency_key,
+  replay_validation: coreTransactionReplayRequirementV1Schema.optional(),
   authority: currentAuthorityTransactionDecisionReceiptV1Schema,
   mutation_id: uuid,
   audit_event_id: z.string().regex(/^[1-9][0-9]*$/),
@@ -114,6 +151,8 @@ const receiptV2Schema = receiptBaseSchema.extend({
   subject_reference: coreTransactionSubjectReferenceV1Schema,
   provider_evidence: coreTransactionAcceptedProviderEvidenceV1Schema,
 }).refine(receipt => receiptAuthorityMatchesEffect(receipt) && coreSubjectReferencesMatch(receipt.subject_reference, receipt.provider_evidence.subject_reference)
+  && (receipt.replay_validation === undefined
+    || receipt.replay_validation.provider_code === receipt.provider_evidence.provider_code)
   && receipt.provider_evidence.transaction_id === receipt.transaction_id
   && receipt.provider_evidence.command_id === receipt.command_id
   && receipt.provider_evidence.workspace_id === receipt.workspace_id
@@ -171,8 +210,33 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
       const command = parsed.data;
       const providerCode = command.contract_version === 'core-transaction-command.v2'
         ? (providers as CoreTransactionProvidersV2).provider_code : undefined;
+      const replayPolicy = providers.replay_policy ?? 'authority_only';
+      const validateReplay = providers.validateReplay as ((
+        replayScope: CoreTransactionScopeV1,
+        replayCommand: CoreTransactionCommandV1 | CoreTransactionCommandV2,
+        replayAuthority: CurrentAuthorityTransactionDecisionReceiptV1,
+        receipt: CoreTransactionReceiptV1 | CoreTransactionReceiptV2,
+      ) => Promise<CoreTransactionReplayProviderDecisionV1>) | undefined;
+      const replayProviderCode = command.contract_version === 'core-transaction-command.v2'
+        ? providerCode
+        : (providers as CoreTransactionProvidersV1).replay_provider_code;
       if (command.contract_version === 'core-transaction-command.v2'
         && (typeof providerCode !== 'string' || !/^[a-z][a-z0-9_.:-]{0,79}$/.test(providerCode))) {
+        return { status: 'denied', code: 'PROVIDER_UNAVAILABLE' };
+      }
+      if (replayPolicy !== 'authority_only' && replayPolicy !== 'provider_current_state_required') {
+        return { status: 'denied', code: 'PROVIDER_UNAVAILABLE' };
+      }
+      const replayRequirement = replayPolicy === 'provider_current_state_required'
+        ? coreTransactionReplayRequirementV1Schema.safeParse({
+          contract_version: 'core-transaction-replay-provider-requirement.v1',
+          provider_code: replayProviderCode,
+        })
+        : undefined;
+      if ((replayRequirement && (!replayRequirement.success || typeof validateReplay !== 'function'))
+        || (replayPolicy === 'authority_only' && (typeof validateReplay === 'function'
+          || (command.contract_version === 'core-transaction-command.v1'
+            && typeof replayProviderCode === 'string')))) {
         return { status: 'denied', code: 'PROVIDER_UNAVAILABLE' };
       }
       // Copy per attempt: a provider cannot alter the authoritative command bindings.
@@ -306,6 +370,50 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
                 : prior.data.contract_version !== 'core-transaction-receipt.v1')) {
               throw new AbortTransaction({ status: 'denied', code: 'REPLAY_CONFLICT' });
             }
+            const storedReplayRequirement = prior.data.replay_validation;
+            const currentReplayRequirement = replayRequirement?.success
+              ? replayRequirement.data : undefined;
+            if ((storedReplayRequirement === undefined) !== (currentReplayRequirement === undefined)
+              || storedReplayRequirement?.provider_code !== currentReplayRequirement?.provider_code) {
+              throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+            }
+            if (currentReplayRequirement) {
+              const replayCommandHash = coreTransactionReplayCommandHashV1(command);
+              const replayReceiptHash = coreTransactionReplayReceiptHashV1(prior.data);
+              const replayValue = await invoke(() => validateReplay!(
+                scope,
+                structuredClone(command),
+                structuredClone(authority),
+                structuredClone(prior.data),
+              ));
+              const replay = coreTransactionReplayProviderDecisionV1Schema.safeParse(replayValue);
+              const replayNow = await client.query<{ now: string }>('select clock_timestamp()::text as now');
+              if (!replay.success
+                || replay.data.provider_code !== currentReplayRequirement.provider_code
+                || replay.data.database_transaction_id !== scope.database_transaction_id
+                || replay.data.transaction_id !== command.transaction_id
+                || replay.data.command_id !== command.command_id
+                || replay.data.workspace_id !== command.workspace_id
+                || replay.data.actor_id !== command.actor_id
+                || replay.data.context_id !== command.context_id
+                || replay.data.authority_decision_id !== authority.decision_id
+                || replay.data.authority_version !== authority.authority_version
+                || replay.data.attempt !== attempt
+                || replay.data.receipt_id !== prior.data.receipt_id
+                || replay.data.receipt_contract_version !== prior.data.contract_version
+                || replay.data.command_hash !== replayCommandHash
+                || replay.data.receipt_hash !== replayReceiptHash
+                || Date.parse(replay.data.evaluated_at) < Date.parse(authority.evaluated_at)
+                || Date.parse(replay.data.evaluated_at) > Date.parse(replayNow.rows[0].now)) {
+                throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+              }
+              if (replay.data.decision !== 'accepted') {
+                throw new AbortTransaction({ status: 'denied', code:
+                  replay.data.denial_reason === 'PROVIDER_UNAVAILABLE'
+                    ? 'PROVIDER_UNAVAILABLE'
+                    : 'REPLAY_CONFLICT' });
+              }
+            }
             live = false;
             await client.query('rollback');
             return prior.data.contract_version === 'core-transaction-receipt.v2'
@@ -371,6 +479,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               ? { contract_version: 'core-transaction-receipt.v2', receipt_version: 2,
                 subject_reference: command.subject_reference, provider_evidence: providerEvidence }
               : { contract_version: 'core-transaction-receipt.v1', receipt_version: 1 }),
+            ...(replayRequirement?.success ? { replay_validation: replayRequirement.data } : {}),
             receipt_id: receiptId,
             transaction_id: command.transaction_id, command_id: command.command_id,
             workspace_id: command.workspace_id, actor_id: command.actor_id,
@@ -398,6 +507,10 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             return { status: 'unknown_commit', code: 'READBACK_REQUIRED' };
           }
           if (error instanceof AbortTransaction) return error.result;
+          if (error instanceof CoreAuthorityProviderUnavailableV1
+            && error.code === 'ACTOR_REVOKED') {
+            return { status: 'denied', code: 'AUTHORITY_DENIED' };
+          }
           return { status: 'denied', code: 'TRANSACTION_FAILED' };
         } finally {
           live = false;

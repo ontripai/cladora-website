@@ -13,6 +13,8 @@ on:
       - "scripts/test-core-relationship-concurrency.mjs"
       - "scripts/test-core-transaction-host-postgres-v1.mjs"
       - "src/lib/core/postgres-transaction-host-v1.ts"
+      - "src/lib/core/transaction-replay-provider-hook-v1.ts"
+      - "scripts/test-core-transaction-replay-provider-hook-postgres-v1.mjs"
       - "src/lib/core/transaction-provider-evidence-v1.ts"
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
@@ -72,6 +74,8 @@ on:
       - "scripts/test-core-relationship-concurrency.mjs"
       - "scripts/test-core-transaction-host-postgres-v1.mjs"
       - "src/lib/core/postgres-transaction-host-v1.ts"
+      - "src/lib/core/transaction-replay-provider-hook-v1.ts"
+      - "scripts/test-core-transaction-replay-provider-hook-postgres-v1.mjs"
       - "src/lib/core/transaction-provider-evidence-v1.ts"
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
@@ -272,6 +276,11 @@ jobs:
         env:
           CORE_TX_HOST_EPHEMERAL: "1"
           CORE_TX_HOST_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Core exact-replay provider hook PostgreSQL conformance
+        run: timeout 90s npm run test:core-tx-replay-hook:postgres
+        env:
+          CORE_TX_REPLAY_HOOK_EPHEMERAL: "1"
+          CORE_TX_REPLAY_HOOK_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run independent Core relationship review race
         run: timeout 60s node scripts/test-core-relationship-concurrency.mjs
         env:
