@@ -3,6 +3,18 @@ select plan(20);
 
 insert into platform.tenants(id,legal_name,registration_number,status)
 values('18300000-0000-4000-8000-000000000001','Documents closure fixture','DOC-CLOSURE-183','active');
+insert into auth.users(id,email)
+values('18300000-0000-4000-8000-000000000005','documents-closure-183@cladora.test');
+insert into identity.roles(id,tenant_id,code,name,is_system)
+values('18300000-0000-4000-8000-000000000012','18300000-0000-4000-8000-000000000001',
+  'documents_closure_fixture','Documents closure fixture',false);
+insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
+values('18300000-0000-4000-8000-000000000013','18300000-0000-4000-8000-000000000001',
+  '18300000-0000-4000-8000-000000000005','18300000-0000-4000-8000-000000000012',
+  'active',statement_timestamp()-interval '1 day');
+insert into identity.context_grants(id,tenant_id,membership_id,scope_type,starts_at)
+values('18300000-0000-4000-8000-000000000004','18300000-0000-4000-8000-000000000001',
+  '18300000-0000-4000-8000-000000000013','tenant',statement_timestamp()-interval '1 day');
 
 -- Model rows that existed before the cutover. The DDL and fixtures roll back
 -- with this test and do not expose a production bypass.
