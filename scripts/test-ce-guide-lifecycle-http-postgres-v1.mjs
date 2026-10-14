@@ -48,6 +48,9 @@ const runtime = load(new URL(
   '../src/lib/community/experience-guide-lifecycle-http-v1.ts', import.meta.url,
 ));
 const pool = new pg.Pool({ connectionString, max: 12 });
+const authOwnerConnection = new URL(connectionString);
+authOwnerConnection.username = 'supabase_auth_admin';
+const authOwnerPool = new pg.Pool({ connectionString: authOwnerConnection.toString(), max: 1 });
 const authAdmin = createSupabaseClient(authUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
 });
@@ -228,10 +231,9 @@ async function installDisposableExecutionBoundary() {
     has_schema_privilege('cladora_rpc_owner','auth','USAGE') as schema_usage,
     has_function_privilege('cladora_rpc_owner','auth.uid()','EXECUTE') as uid_execute,
     has_function_privilege('cladora_rpc_owner','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
-  const authOwner = await pool.connect();
+  const authOwner = await authOwnerPool.connect();
   try {
     await authOwner.query('begin');
-    await authOwner.query('set local role supabase_auth_admin');
     if (!authPrivileges.schema_usage) {
       await authOwner.query('grant usage on schema auth to cladora_rpc_owner');
       temporaryAuthPrivileges.push('schema');
@@ -332,10 +334,9 @@ async function removeDisposableExecutionBoundary() {
   }
   await pool.query('drop function if exists app_private.ce_guide_http_raise_40001_v1()');
   if (temporaryAuthPrivileges.length) {
-    const authOwner = await pool.connect();
+    const authOwner = await authOwnerPool.connect();
     try {
       await authOwner.query('begin');
-      await authOwner.query('set local role supabase_auth_admin');
       if (temporaryAuthPrivileges.includes('uid')) {
         await authOwner.query('revoke execute on function auth.uid() from cladora_rpc_owner');
       }
@@ -660,6 +661,7 @@ try {
   for (const userId of createdAuthUsers) {
     await authAdmin.auth.admin.deleteUser(userId).catch(() => undefined);
   }
+  await authOwnerPool.end();
   await pool.end();
 }
 
