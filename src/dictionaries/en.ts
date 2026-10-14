@@ -262,7 +262,7 @@ export const en = {
     ],
     countryPackLabel: "3. Compliance & Regional Pack",
     countryPacks: [
-      { id: "ro", name: "Romania Pack", desc: "Law 196/2018 statutory compliance, ANAF e-Factura readiness, RON accounting ledger." },
+      { id: "ro", name: "Romania Pack", desc: "Designed to support workflows relevant to Romanian association administration, including contexts governed by Law 196/2018, ANAF e-Factura readiness, and RON accounting ledger." },
       { id: "eu", name: "EU / Cross-Border Pack", desc: "GDPR privacy standards, SEPA payment interfaces, EUR currency support, multilingual records." },
       { id: "custom", name: "Custom Enterprise Pack", desc: "Tailored legal entities, sovereign hosting boundaries, or bespoke jurisdictional rules." },
     ],

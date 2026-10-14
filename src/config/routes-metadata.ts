@@ -353,11 +353,11 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/solutions/associations': {
     ro: {
       title: 'Soluții pentru Asociații de Proprietari',
-      desc: 'Administrare transparentă conform Legii 196/2018, împărțirea corectă a cheltuielilor și comunicare facilă cu locatarii.',
+      desc: 'Administrare transparentă adaptată contextului Legii 196/2018, repartizarea cheltuielilor și comunicare facilă cu locatarii.',
     },
     en: {
       title: 'Homeowner Association Solutions',
-      desc: 'Transparent HOA management compliant with Law 196/2018, accurate expense allocation, and resident communications.',
+      desc: 'Transparent HOA management structured for Law 196/2018 contexts, accurate expense allocation, and resident communications.',
     },
     fa: {
       title: 'راهکارهای انجمن‌های مالکان و مجتمع‌ها',

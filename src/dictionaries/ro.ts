@@ -262,7 +262,7 @@ export const ro = {
     ],
     countryPackLabel: "3. Pachet de conformitate & reglementare",
     countryPacks: [
-      { id: "ro", name: "Pachet România", desc: "Conformitate statutară Legea 196/2018, pregătire ANAF e-Factura, contabilitate în RON." },
+      { id: "ro", name: "Pachet România", desc: "Fluxuri structurate pentru administrarea asociațiilor, inclusiv cerințe de evidență din contextul Legii 196/2018, pregătire ANAF e-Factura și contabilitate în RON." },
       { id: "eu", name: "Pachet UE / Transfrontalier", desc: "Standarde GDPR europene, interfețe de plată SEPA, suport monedă EUR, evidență multilingvă." },
       { id: "custom", name: "Pachet Enterprise Personalizat", desc: "Entități juridice dedicate, frontiere suverane de găzduire a datelor sau reguli specifice de jurisdicție." },
     ],

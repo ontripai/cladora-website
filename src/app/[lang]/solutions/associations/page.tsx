@@ -123,10 +123,10 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
 
           <p className="text-base sm:text-lg text-[#52667A] max-w-3xl leading-relaxed">
             {lang === 'ro'
-              ? 'Conceput special pentru asociațiile de proprietari din România, conform Legii 196/2018. Oferă președintelui, administratorului, cenzorului și proprietarilor o singură sursă de adevăr financiar.'
+              ? 'Conceput pentru a sprijini fluxurile de lucru ale asociațiilor de proprietari din România, adaptat cerințelor de evidență din contextul Legii 196/2018. Oferă președintelui, administratorului, cenzorului și proprietarilor o singură sursă de adevăr financiar.'
               : lang === 'fa'
-              ? 'طراحی‌شده ویژه مجتمع‌های مسکونی بر پایه قانون ۱۹۶/۲۰۱۸؛ ایجاد هماهنگی میان مدیر ساختمان، هیئت‌مدیره، بازرسان و مالکان بر پایه اطلاعات شفاف و مستند.'
-              : 'Designed specifically for residential associations under Romanian Law 196/2018. Connects administrators, board presidents, auditors, and residents on one single source of truth.'}
+              ? 'طراحی‌شده برای پشتیبانی از گردش‌کارهای انجمن‌های ساختمانی و هماهنگ با ساختارهای اطلاعاتی متناسب با قانون ۱۹۶/۲۰۱۸؛ ایجاد ارتباط منسجم میان مدیر، هیئت‌مدیره، بازرسان و مالکان بر پایه داده‌های مستند.'
+              : 'Designed to support residential association workflows within the framework of Romanian Law 196/2018. Connects administrators, board presidents, auditors, and residents on one single source of truth.'}
           </p>
 
           <div className="pt-2 flex flex-wrap gap-4">
