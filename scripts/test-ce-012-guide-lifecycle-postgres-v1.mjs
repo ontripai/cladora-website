@@ -53,7 +53,16 @@ let checks = 0;
 const calls = { authority: 0, validation: 0, replay: 0, mutation: 0 };
 
 const check = async (name, operation) => {
-  await operation();
+  try {
+    await operation();
+  } catch (error) {
+    if (process.env.GITHUB_ACTIONS === 'true') {
+      const detail = `${name}: ${error instanceof Error ? error.message : String(error)}`
+        .replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+      console.error(`::error title=CE Guide lifecycle PostgreSQL::${detail}`);
+    }
+    throw error;
+  }
   checks += 1;
   console.log(`ok ${checks} - ${name}`);
 };
