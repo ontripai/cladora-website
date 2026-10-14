@@ -232,6 +232,9 @@ await check('request pool scrubs poisoned claims and SQL role on checkout and tr
   assert.equal(identity.sqlRole, 'cladora_rpc_owner');
   assert.equal(JSON.parse(identity.claims).sub, id(4));
   assert.equal(identity.assurance, 'aal2');
+  const identityIndex = calls.findIndex(call => call.text?.includes("set_config('request.jwt.claims',$1,true)"));
+  const roleIndex = calls.findIndex(call => call.text === 'set local role cladora_rpc_owner');
+  assert.ok(identityIndex > 0 && identityIndex < roleIndex);
   await wrapped.query('rollback');
   wrapped.release();
   assert.deepEqual(identity, { claims: '', subject: '', assurance: '', role: '', sqlRole: 'postgres' });

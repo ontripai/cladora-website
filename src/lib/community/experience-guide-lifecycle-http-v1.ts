@@ -154,10 +154,12 @@ export function createExperienceGuideLifecycleRequestPoolV1(
         const result = await client.query(text, values);
         if (normalized.startsWith('begin')) {
           transactionOpen = true;
-          await client.query('set local role cladora_rpc_owner');
           await client.query(identitySettingsSql, [
             claimsFor(session), session.actor_id, session.assurance_level, 'authenticated',
           ]);
+          // The connection owner binds transaction-local identity, then drops
+          // to the existing non-login execution role before any domain query.
+          await client.query('set local role cladora_rpc_owner');
         } else if (normalized === 'commit' || normalized === 'rollback') {
           transactionOpen = false;
           await scrubConnectionIdentity(client);
