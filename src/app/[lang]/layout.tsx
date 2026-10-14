@@ -40,40 +40,40 @@ export async function generateMetadata(
   const isRo = params.lang === 'ro';
   const isFa = params.lang === 'fa';
 
-  let title = 'CLADORA | Unified Environment for Property Operations, Management & Services';
-  let description = 'CLADORA is the unified environment for collaboration, management, and services across properties, buildings, units, spaces, and assets—preserving record continuity from pre-sales through decades of operation.';
+  let title = 'CLADORA | The Operating Platform for the Built World';
+  let description = 'CLADORA is the unified operating platform for properties, spaces, and physical assets—connecting property identity, authorized workspaces, and operational domains across the asset lifecycle.';
   let keywords = [
-    'property management platform',
-    'universal workspace os',
+    'property operating platform',
+    'built world operating system',
     'real estate lifecycle operations',
+    'property identity registry',
+    'workspace authorization model',
     'airprop sales and leasing',
-    'facility maintenance work orders',
-    'double entry analytical ledger',
+    'facility maintenance operations',
     'cladora',
   ];
 
   if (isRo) {
-    title = 'CLADORA | Mediul Unificat de Colaborare, Gestiune & Servicii Imobiliare';
-    description = 'CLADORA este mediul unificat de colaborare, gestiune și servicii pentru proprietăți, clădiri, unități, spații și active. Însoțește proprietatea de la pre-vânzare până la exploatare și tranzacții ulterioare, păstrând continuitatea evidențelor autorizate.';
+    title = 'CLADORA | Platforma de Operare pentru Proprietăți & Active Imobiliare';
+    description = 'CLADORA este platforma unificată de operare pentru proprietăți, spații și active fizice. Conectează identitatea activelor, spațiile de lucru autorizate și domeniile operaționale pe întregul ciclu de viață.';
     keywords = [
-      'soft administrare imobile',
-      'platforma gestiune proprietati',
-      'workspace imobiliar universal',
-      'airprop vanzari si inchirieri',
-      'mentenanta tehnica si revizii',
-      'evidenta statutara si contabilitate analitica',
+      'platforma operare proprietati',
+      'sistem operare active imobiliare',
+      'ciclul de viata al proprietatii',
+      'identitate imobiliara persistenta',
+      'workspace imobiliar unificat',
+      'mentenanta tehnica si operatiuni',
       'cladora',
     ];
   } else if (isFa) {
-    title = 'CLADORA | محیط یکپارچهٔ همکاری، مدیریت و خدمات ملک، فضا و دارایی';
-    description = 'CLADORA محیط یکپارچهٔ همکاری، مدیریت و خدمات برای ملک، ساختمان، واحد، فضا و دارایی است. از زمان تعریف و پیش‌فروش تا تحویل، بهره‌برداری، نگهداری و معاملات بعدی، پیوستگی سوابق مجاز را حفظ می‌کند.';
+    title = 'CLADORA | پلتفرم جامع عملیات و مدیریت برای املاک، فضا و دارایی‌ها';
+    description = 'CLADORA پلتفرم یکپارچهٔ عملیات و مدیریت برای املاک، فضاها و دارایی‌های فیزیکی است که هویت پایدار ملک، ورک‌اسپیس‌های مجاز و دامنه‌های عملیاتی را در سراسر چرخهٔ عمر به یکدیگر پیوند می‌دهد.';
     keywords = [
-      'سامانه جامع مدیریت املاک',
-      'پلتفرم یکپارچه ملک و ساختمان',
-      'معماری ورک‌اسپیس املاک',
-      'سامانه ایرپراپ خرید و فروش و اجاره',
-      'تعمیرات و نگهداری دوره‌ای ساختمان',
-      'دفاتر مالی و تسهیم شفاف هزینه‌ها',
+      'پلتفرم مدیریت دارایی و املاک',
+      'سیستم عامل یکپارچه ملک',
+      'پیوستگی چرخه عمر املاک',
+      'معماری ورک اسپیس سازمانی',
+      'عملیات و نگهداری فنی ساختمان',
       'کلادورا',
     ];
   }
@@ -160,19 +160,14 @@ export default async function LangLayout(
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
-    name: 'CLADORA Universal Property & Asset OS',
+    name: 'CLADORA Property & Asset Operating Platform',
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web, iOS, Android',
-    offers: {
-      '@type': 'Offer',
-      price: '0.60',
-      priceCurrency: 'EUR',
-    },
     description: isRo
-      ? 'CLADORA este mediul unificat de colaborare, gestiune și servicii pentru proprietăți, clădiri, unități, spații și active. Însoțește proprietatea de la pre-vânzare până la exploatare și tranzacții ulterioare.'
+      ? 'CLADORA este platforma de operare unificată pentru proprietăți, spații și active fizice. Conectează identitatea activelor, spațiile de lucru autorizate și domeniile operaționale pe întregul ciclu de viață.'
       : isFa
-      ? 'CLADORA محیط یکپارچهٔ همکاری، مدیریت و خدمات برای ملک، ساختمان، واحد، فضا و دارایی است؛ از تعریف و پیش‌فروش تا بهره‌برداری، نگهداری و معاملات بعدی.'
-      : 'CLADORA is the unified environment for collaboration, management, and services across properties, buildings, units, spaces, and physical assets.',
+      ? 'CLADORA پلتفرم یکپارچهٔ عملیات و مدیریت برای املاک، فضاها و دارایی‌های فیزیکی است که هویت پایدار ملک، ورک‌اسپیس‌های مجاز و دامنه‌های عملیاتی را در سراسر چرخهٔ عمر به یکدیگر پیوند می‌دهد.'
+      : 'CLADORA is the unified operating platform for properties, spaces, and physical assets—connecting property identity, authorized workspaces, and operational domains across the asset lifecycle.',
     creator: {
       '@type': 'Organization',
       name: 'CLADORA',

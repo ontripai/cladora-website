@@ -11,16 +11,16 @@ interface RouteContent {
 export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteContent>> = {
   '/': {
     ro: {
-      title: 'Mediul Unificat de Colaborare, Gestiune & Servicii Imobiliare',
-      desc: 'CLADORA este mediul unificat de colaborare, gestiune și servicii pentru proprietăți, clădiri, unități, spații și active. Însoțește proprietatea de la pre-vânzare până la exploatare și tranzacții ulterioare.',
+      title: 'Platforma de Operare pentru Proprietăți & Active Imobiliare',
+      desc: 'CLADORA este platforma unificată de operare pentru proprietăți, spații și active fizice. Conectează identitatea unică a activelor, spațiile de lucru autorizate, rolurile și domeniile operaționale pe întregul ciclu de viață.',
     },
     en: {
-      title: 'Unified Environment for Property Operations, Management & Services',
-      desc: 'CLADORA is the unified environment for collaboration, management, and services across properties, units, and physical assets—preserving record continuity from pre-sales through decades of operation.',
+      title: 'The Operating Platform for the Built World',
+      desc: 'CLADORA is the unified operating platform for properties, spaces, and physical assets. One property identity, multiple authorized workspaces, and connected operational domains across the asset lifecycle.',
     },
     fa: {
-      title: 'محیط یکپارچهٔ همکاری، مدیریت و خدمات ملک، فضا و دارایی',
-      desc: 'CLADORA محیط یکپارچهٔ همکاری، مدیریت و خدمات برای ملک، ساختمان، واحد، فضا و دارایی است؛ از زمان تعریف و پیش‌فروش تا تحویل، بهره‌برداری، نگهداری و معاملات بعدی.',
+      title: 'پلتفرم جامع عملیات و مدیریت برای املاک، فضا و دارایی‌ها',
+      desc: 'کلادورا پلتفرم یکپارچهٔ عملیات برای املاک و دارایی‌های فیزیکی است. یک هویت پایدار برای ملک، ورک‌اسپیس‌های مجاز سازمانی و دامنه‌های متصل عملیاتی در تمام چرخهٔ عمر دارایی.',
     },
   },
   '/pricing': {
