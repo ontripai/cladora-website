@@ -42,7 +42,7 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
         },
         {
           name: 'Documente & Seif',
-          desc: 'Arhivă securizată cu hash-uri criptografice pentru cartea tehnică și contracte.',
+          desc: 'Arhivă securizată cu verificarea integrității documentelor tehnice și contractelor.',
           icon: FileText,
         },
         {
@@ -52,7 +52,7 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
         },
         {
           name: 'Rezervări & Programări',
-          desc: 'Motor centralizat de timp și disponibilitate pentru facilități și vizite tehnice.',
+          desc: 'Model centralizat de timp și disponibilitate pentru spații și vizite tehnice.',
           icon: Calendar,
         },
         {
@@ -61,18 +61,18 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
           icon: MessageSquare,
         },
         {
-          name: 'Jurnal de Audit Imuabil',
-          desc: 'Înregistrare ireversibilă a fiecărui eveniment de sistem și tranzacție cu timestamp.',
+          name: 'Jurnal de Audit Aditiv',
+          desc: 'Înregistrare cronologică aditivă a fiecărui eveniment de sistem și a acțiunilor auditate.',
           icon: ShieldCheck,
         },
         {
-          name: 'Metodologie de Migrare',
-          desc: 'Import securizat și reconciliat al asociațiilor și portofoliilor din sisteme vechi.',
+          name: 'Metodologie & Asistență Migrare',
+          desc: 'Proceduri ghidate pentru importul reconciliat al asociațiilor și portofoliilor din sisteme vechi.',
           icon: Compass,
         },
         {
           name: 'Securitate & Izolare',
-          desc: 'Găzduire în Uniunea Europeană, confidențialitate GDPR și izolare per Workspace.',
+          desc: 'Găzduire în Uniunea Europeană, confidențialitate GDPR și delimitare per Workspace.',
           icon: Lock,
         },
       ],
@@ -103,7 +103,7 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
         },
         {
           name: 'Evidence & Documents',
-          desc: 'Cryptographically hashed technical archives, warranties, and official contracts.',
+          desc: 'Secure technical archives with document integrity verification, warranties, and contracts.',
           icon: FileText,
         },
         {
@@ -113,7 +113,7 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
         },
         {
           name: 'Booking & Schedules',
-          desc: 'Centralized availability engine governing spaces, amenities, and site visits.',
+          desc: 'Centralized scheduling framework governing spaces, amenities, and site visits.',
           icon: Calendar,
         },
         {
@@ -122,18 +122,18 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
           icon: MessageSquare,
         },
         {
-          name: 'Immutable Audit Trail',
-          desc: 'Append-only chronological event logs and cryptographic receipts for every action.',
+          name: 'Auditable Event Trail',
+          desc: 'Append-only chronological event logs and traceable action records across subsystems.',
           icon: ShieldCheck,
         },
         {
-          name: 'Migration Engine',
-          desc: 'Safe historical data ingestion runbooks for transitioning legacy HOAs and portfolios.',
+          name: 'Migration Runbooks & Tools',
+          desc: 'Structured data ingestion protocols for transitioning legacy HOAs and portfolios.',
           icon: Compass,
         },
         {
           name: 'Security & Isolation',
-          desc: 'Strict multi-tenant workspace isolation, GDPR purpose minimization, and EU residency.',
+          desc: 'Workspace-scoped boundary isolation, GDPR purpose minimization, and EU residency.',
           icon: Lock,
         },
       ],
@@ -164,7 +164,7 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
         },
         {
           name: 'بایگانی و مدارک',
-          desc: 'آرشیو دیجیتال امن نقشه‌ها، قراردادها و مستندات با هش اصالت.',
+          desc: 'آرشیو دیجیتال امن نقشه‌ها، قراردادها و مستندات با اعتبارسنجی یکپارچگی فایل.',
           icon: FileText,
         },
         {
@@ -174,7 +174,7 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
         },
         {
           name: 'رزرو و زمان‌بندی',
-          desc: 'موتور متمرکز تقویم و تخصیص زمان برای امکانات مشترک و بازدیدهای فنی.',
+          desc: 'چارچوب متمرکز تقویم و تخصیص زمان برای امکانات مشترک و بازدیدهای فنی.',
           icon: Calendar,
         },
         {
@@ -183,18 +183,18 @@ export const SharedFoundationSection: React.FC<SharedFoundationSectionProps> = (
           icon: MessageSquare,
         },
         {
-          name: 'لاگ تغییرناپذیر ممیزی',
-          desc: 'ثبت دائمی و غیرقابل‌دستکاری کلیه رخدادها با برچسب زمانی دقیق.',
+          name: 'ثبت رخدادهای ممیزی',
+          desc: 'ثبت ترتیبی و افزایشی کلیه رخدادها و ردگیری عملیات در زیرسیستم‌ها با برچسب زمانی.',
           icon: ShieldCheck,
         },
         {
-          name: 'سامانه مهاجرت داده‌ها',
-          desc: 'فرایند استاندارد انتقال امن سوابق مالی و مالکان از نرم‌افزارهای سنتی.',
+          name: 'متدولوژی و ابزارهای مهاجرت',
+          desc: 'روش‌های استاندارد برای انتقال ساختاریافته سوابق مالی و مالکان از نرم‌افزارهای قدیمی.',
           icon: Compass,
         },
         {
           name: 'امنیت و جداسازی داده‌ها',
-          desc: 'جداسازی داده‌های ورک‌اسپیس‌ها، انطباق با GDPR و میزبانی امن در اروپا.',
+          desc: 'جداسازی داده‌ها در سطح ورک‌اسپیس، انطباق با GDPR و میزبانی امن در اروپا.',
           icon: Lock,
         },
       ],

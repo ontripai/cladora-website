@@ -28,7 +28,7 @@ export const OperatingModelSection: React.FC<OperatingModelSectionProps> = ({ la
           tag: 'NIVELUL 02',
           name: 'WORKSPACE',
           sub: 'Granița operațională securizată',
-          desc: 'Organizațiile, echipele și comunitățile lucrează în contexte complet izolate logic, având propriile registre, setări de conformitate și jurnale de audit.',
+          desc: 'Organizațiile, echipele și comunitățile lucrează în contexte delimitate la nivel de workspace, având propriile registre, setări de conformitate și jurnale de audit.',
           icon: Layers,
         },
         {
@@ -67,7 +67,7 @@ export const OperatingModelSection: React.FC<OperatingModelSectionProps> = ({ la
           tag: 'TIER 02',
           name: 'WORKSPACE',
           sub: 'Isolated operational boundaries',
-          desc: 'Companies, management firms, and communities operate within strictly segregated operational contexts with dedicated audit journals and compliance parameters.',
+          desc: 'Companies, management firms, and communities operate within workspace-scoped operational contexts with dedicated audit journals and compliance parameters.',
           icon: Layers,
         },
         {
@@ -106,7 +106,7 @@ export const OperatingModelSection: React.FC<OperatingModelSectionProps> = ({ la
           tag: 'لایهٔ ۰۲',
           name: 'ورک‌اسپیس سازمانی',
           sub: 'مرز امن و ایزولهٔ عملیات',
-          desc: 'سازمان‌ها، تیم‌های اجرایی و جوامع مالکان در محیط‌های کاملاً تفکیک‌شده و امن فعالیت می‌کنند و دفاتر مالی و لاگ‌های مستقل دارند.',
+          desc: 'سازمان‌ها، تیم‌های اجرایی و جوامع مالکان در بسترهای تفکیک‌شده به ازای هر ورک‌اسپیس فعالیت می‌کنند و دفاتر مالی و لاگ‌های مستقل دارند.',
           icon: Layers,
         },
         {

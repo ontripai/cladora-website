@@ -102,7 +102,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Associations & Communities',
           problem: 'Statutory cost allocation disputes, mistrust, and opaque manual accounting.',
           solution:
-            'Explainable double-entry formulas, automated banking feeds, and tamper-evident notice boards.',
+            'Explainable double-entry formulas, automated banking feeds, and auditable digital notice records.',
           href: `/${lang}/solutions/associations`,
           icon: Users,
         },
@@ -129,7 +129,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Service Providers & Trades',
           problem: 'Vague work scopes, disputed invoices, and unpredictable sign-off delays.',
           solution:
-            'Structured work orders, verified site check-ins, and cryptographic sign-off receipts.',
+            'Structured work orders, verified site check-ins, and auditable sign-off records.',
           href: `/${lang}/solutions`,
           icon: FileCheck2,
         },
@@ -165,7 +165,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'مجتمع‌ها و انجمن‌های مالکان',
           problem: 'اختلاف‌نظر در محاسبه سهم شارژ و ابهام در ترازهای مالی دوره‌ای.',
           solution:
-            'فرمول‌های قانونی و شفاف تسهیم هزینه‌ها، مغایرت‌گیری بانکی و تابلوی اعلانات غیرقابل‌دستکاری.',
+            'فرمول‌های قانونی و شفاف تسهیم هزینه‌ها، مغایرت‌گیری بانکی و تابلوی اعلانات دیجیتال مستند.',
           href: `/${lang}/solutions/associations`,
           icon: Users,
         },

@@ -19,7 +19,7 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           id: 'airprop',
           name: 'AIRPROP',
           sub: 'Ciclul Comercial al Proprietății',
-          desc: 'Gestiunea portofoliului disponibil, oferte, rezervări, antecontracte, cicluri de leasing și mandate de reprezentare. Conectează vânzarea direct cu protocolul de predare către exploatare.',
+          desc: 'Conectează conceptele ciclului de viață comercial al proprietății din etapele de pre-vânzare și tranzacționare către faza de predare: gestiunea disponibilității, rezervări, antecontracte și mandate.',
           linkText: 'Descoperă AIRPROP',
           href: `/${lang}/airprop`,
           accent: 'text-amber-700 bg-amber-50 border-amber-200 group-hover:border-amber-400',
@@ -29,14 +29,14 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           points: [
             'Rezervări și contracte ancorate în registrul unităților',
             'Administrare leasing și separare debite chiriaș/proprietar',
-            'Tranziție fără cusur către administrare operațională',
+            'Conexiune arhitecturală către administrarea operațională',
           ],
         },
         {
           id: 'service',
           name: 'SERVICE',
-          sub: 'Coordonare & Piață de Servicii',
-          desc: 'Descoperirea furnizorilor de servicii, lansarea cererilor pentru spații specifice, compararea ofertelor concurente, acordul formal pe deviz și recepția lucrărilor.',
+          sub: 'Coordonare & Cereri de Servicii',
+          desc: 'Domeniul responsabil pentru formularea cererilor de servicii, colectarea ofertelor, agrearea termenilor de deviz și coordonarea recepției cu furnizorii de servicii.',
           linkText: 'Descoperă modulul SERVICE',
           href: `/${lang}/service`,
           accent: 'text-teal-700 bg-teal-50 border-teal-200 group-hover:border-teal-400',
@@ -63,7 +63,7 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           points: [
             'Cartea tehnică și istoricul complet pentru fiecare echipament',
             'Planificare automată a reviziilor preventive periodice',
-            'Comenzi de lucru verificate și recepție confirmată',
+            'Comenzi de lucru verificabile și recepție confirmată',
           ],
         },
         {
@@ -95,7 +95,7 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           id: 'airprop',
           name: 'AIRPROP',
           sub: 'Commercial Real Estate Lifecycle',
-          desc: 'Inventory allocation, pre-sales pipeline, unit reservations, leasing administration, and representation mandates. Transitions sales records directly into delivery protocols.',
+          desc: 'Connects commercial property lifecycle concepts from pre-sale and transaction contexts toward handover: inventory allocation, pipeline tracking, unit reservations, leasing administration, and representation mandates.',
           linkText: 'Explore AIRPROP',
           href: `/${lang}/airprop`,
           accent: 'text-amber-700 bg-amber-50 border-amber-200 group-hover:border-amber-400',
@@ -105,14 +105,14 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           points: [
             'Reservations and sales tied to canonical unit registry',
             'Leasing management and automated debtor segregation',
-            'Seamless transition to operational property management',
+            'Architectural connection to operational property management',
           ],
         },
         {
           id: 'service',
           name: 'SERVICE',
           sub: 'Procurement & Service Coordination',
-          desc: 'Service provider discovery, structured scope briefs, competitive quote evaluation, agreed milestone terms, and verified sign-off protocols.',
+          desc: 'The domain responsible for structured service intent, request briefs, quote comparisons, agreed service order scopes, and delivery coordination.',
           linkText: 'Explore SERVICE',
           href: `/${lang}/service`,
           accent: 'text-teal-700 bg-teal-50 border-teal-200 group-hover:border-teal-400',
@@ -139,7 +139,7 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           points: [
             'Digital technical passport per physical plant asset',
             'Preventative recurring maintenance calendarization',
-            'Traceable work orders and cryptographic service sign-offs',
+            'Auditable work orders and verified service sign-offs',
           ],
         },
         {
@@ -171,7 +171,7 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           id: 'airprop',
           name: 'ایرپراپ (AIRPROP)',
           sub: 'چرخهٔ تجاری، واگذاری و اجاره',
-          desc: 'مدیریت واحدهای قابل‌واگذاری، پیگیری فرصت‌ها، رزرو و پیش‌فروش، قراردادهای اجاره و تفکیک مطالبات. اتصال مستقیم معاملات به اسناد تحویل و بهره‌برداری.',
+          desc: 'اتصال مفاهیم چرخهٔ تجاری ملک از پیش‌فروش و معاملات به سوی مرحلهٔ تحویل: مدیریت واحدهای قابل‌واگذاری، پیگیری فرصت‌ها، رزرو، پیش‌فروش، قراردادهای اجاره و تفکیک مطالبات.',
           linkText: 'مشاهدهٔ جزئیات AIRPROP',
           href: `/${lang}/airprop`,
           accent: 'text-amber-700 bg-amber-50 border-amber-200 group-hover:border-amber-400',
@@ -181,14 +181,14 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           points: [
             'ثبت رزروها و قراردادها متصل به هویت یکتای واحد',
             'مدیریت اجاره و تفکیک اتوماتیک هزینه‌های مالک و مستأجر',
-            'انتقال بی‌وقفه به پرونده تحویل و مدیریت بهره‌برداری',
+            'اتصال معماری به پرونده تحویل و مدیریت بهره‌برداری',
           ],
         },
         {
           id: 'service',
           name: 'سرویس (SERVICE)',
-          sub: 'بازار خدمات و هماهنگی اجرا',
-          desc: 'دسترسی به کاتالوگ خدمات تاییدشده، ثبت نیاز فضا، مقایسه چندگانه پیشنهادها، توافق بر زمان و هزینه، و تحویل نهایی همراه با ضمانت.',
+          sub: 'هماهنگی خدمات و ثبت نیازمندی‌ها',
+          desc: 'حوزهٔ مسئول برای ثبت دقیق شرح نیاز فضا، دریافت استعلام‌ها، مقایسه پیشنهادها، توافق بر دامنهٔ سفارش کار و هماهنگی تحویل خدمت.',
           linkText: 'مشاهدهٔ جزئیات SERVICE',
           href: `/${lang}/service`,
           accent: 'text-teal-700 bg-teal-50 border-teal-200 group-hover:border-teal-400',
@@ -215,7 +215,7 @@ export const ConnectedDomainsSection: React.FC<ConnectedDomainsSectionProps> = (
           points: [
             'پرونده فنی و سوابق سرویس برای هر دستگاه ساختمانی',
             'برنامه‌ریزی اتوماتیک بازدیدهای دوره‌ای و پیشگیرانه',
-            'صدور دستورکار شفاف و تایید ممیزی‌شده انجام خدمات',
+            'دستورکارهای قابل ممیزی و تایید مستند انجام خدمات',
           ],
         },
         {

@@ -13,18 +13,18 @@ export const CladoraIntelligencePreviewSection: React.FC<CladoraIntelligencePrev
       badge: 'INTELIGENȚĂ GUVERNATĂ & ASISTENȚĂ OPERAȚIONALĂ',
       title: 'CLADORA Intelligence: Înțelegere contextuală înainte de orice acțiune',
       subtitle:
-        'Sistemele AI nu trebuie să acționeze niciodată autonom sau opac asupra registrelor financiare și juridice. CLADORA structurează asistența inteligentă printr-un ciclu strict în 6 etape, supravegheat obligatoriu de operatori umani autorizați.',
+        'Sistemele AI nu trebuie să acționeze niciodată autonom sau opac asupra registrelor financiare și juridice. CLADORA structurează asistența inteligentă printr-un model în 6 etape, supravegheat de operatori umani autorizați.',
       ctaText: 'Explorează CLADORA Intelligence',
-      safetyNoteTitle: 'Arhitectură fără deviație autonomă:',
+      safetyNoteTitle: 'Arhitectură de limitare a acțiunilor autonome:',
       safetyNoteDesc:
-        'Fiecare operațiune generată de asistență necesită validarea unui mandatar autorizat înainte de a fi executată în registru și emite o chitanță criptografică de audit.',
+        'Modelul operațional este conceput pentru a menține acțiunile cu impact în limitele autorității verificate și ale aprobării umane, generând chitanțe de audit trasabile pentru fiecare operațiune.',
       stages: [
         { num: '01', name: 'Context', desc: 'Identificarea entității imobiliare, a spațiului și a istoricului aplicabil.' },
         { num: '02', name: 'Intent', desc: 'Analiza cererii sau a sarcinii de mentenanță formulate de utilizator.' },
         { num: '03', name: 'Authority', desc: 'Verificarea rolului, limitelor financiare și a mandatului de acțiune.' },
         { num: '04', name: 'Plan', desc: 'Elaborarea propunerii de înregistrare sau deviz pentru aprobare umană.' },
-        { num: '05', name: 'Action', desc: 'Execuția operațiunii NUMAI după confirmarea explicită a responsabilului.' },
-        { num: '06', name: 'Receipt', desc: 'Înregistrarea ireversibilă a chitanței de audit și jurnalului de evenimente.' },
+        { num: '05', name: 'Action', desc: 'Execuția acțiunilor este proiectată în jurul confirmării explicite a responsabilului.' },
+        { num: '06', name: 'Receipt', desc: 'Generarea chitanței de audit și consemnarea acțiunii în jurnalul de evenimente.' },
       ],
     },
     en: {
@@ -33,16 +33,16 @@ export const CladoraIntelligencePreviewSection: React.FC<CladoraIntelligencePrev
       subtitle:
         'Artificial intelligence must never act autonomously or opaquely on statutory ledgers and contracts. CLADORA bounds AI assistance within a strict 6-stage lifecycle, governed by mandatory human validation.',
       ctaText: 'Explore CLADORA Intelligence',
-      safetyNoteTitle: 'Zero Autonomous Drift Principle:',
+      safetyNoteTitle: 'Authority & Human Boundary Design:',
       safetyNoteDesc:
-        'Every assisted operational proposal requires authorized human approval before execution and emits an immutable, cryptographically signed audit receipt.',
+        'The action model is designed to keep consequential actions within verified authority and human approval boundaries, producing traceable audit receipts for recorded operations.',
       stages: [
         { num: '01', name: 'Context', desc: 'Resolving property identity, spatial structure, and verified history.' },
         { num: '02', name: 'Intent', desc: 'Parsing precise operational intent, tenant inquiries, or maintenance needs.' },
         { num: '03', name: 'Authority', desc: 'Validating requester role, fiscal authorization thresholds, and mandate.' },
         { num: '04', name: 'Plan', desc: 'Formulating proposed allocations or work orders for explicit review.' },
-        { num: '05', name: 'Action', desc: 'Executing changes ONLY upon verified, authorized human confirmation.' },
-        { num: '06', name: 'Receipt', desc: 'Emitting immutable ledger receipts, audit timestamps, and journal logs.' },
+        { num: '05', name: 'Action', desc: 'Executing changes according to explicit, authorized human confirmation workflows.' },
+        { num: '06', name: 'Receipt', desc: 'Emitting auditable action receipts, operational timestamps, and journal logs.' },
       ],
     },
     fa: {
@@ -51,16 +51,16 @@ export const CladoraIntelligencePreviewSection: React.FC<CladoraIntelligencePrev
       subtitle:
         'هوش مصنوعی هرگز نباید به صورت خودسرانه یا ناشفاف بر دفاتر مالی و حقوقی عمل کند. کلادورا هوش مصنوعی را در قالب چرخهٔ شش‌مرحله‌ای منضبط و تحت نظارت قطعی انسان قرار می‌دهد.',
       ctaText: 'مشاهدهٔ مدل هوش عملیاتی',
-      safetyNoteTitle: 'اصل عدم اقدام بدون تایید انسان:',
+      safetyNoteTitle: 'مدل معماری مبتنی بر تایید انسان:',
       safetyNoteDesc:
-        'هر پیشنهاد اجرایی نیازمند تایید قطعی مدیر یا کاربر مجاز است و تغییرات در لاگ‌های ممیزی تغییرناپذیر ثبت می‌گردند.',
+        'مدل عملیاتی به نحوی طراحی شده است که کلیه اقدامات اثرگذار را در چارچوب اختیارات معتبر و تایید کاربر انسانی نگاه داشته و رسیدهای قابل ممیزی رویداد تولید کند.',
       stages: [
         { num: '۰۱', name: 'زمینه (Context)', desc: 'شناسایی مشخصات دارایی، فضا و سوابق ثبت‌شدهٔ مرتبط.' },
         { num: '۰۲', name: 'قصد (Intent)', desc: 'تحلیل دقیق درخواست، پیام ساکن یا نیاز فنی اعلام‌شده.' },
         { num: '۰۳', name: 'اختیار (Authority)', desc: 'اعتبارسنجی نقش، سقف اختیارات مالی و حدود تفویض‌شده.' },
         { num: '۰۴', name: 'طرح اقدام (Plan)', desc: 'پیش‌نویس گام‌های پیشنهادی جهت بررسی و تایید انسان.' },
-        { num: '۰۵', name: 'اقدام (Action)', desc: 'اجرای دستور صرفاً پس از تایید و امضای قطعی کاربر مسئول.' },
-        { num: '۰۶', name: 'سند ممیزی (Receipt)', desc: 'ثبت دائمی و غیرقابل‌تغییر رسید رویداد با مهر زمانی.' },
+        { num: '۰۵', name: 'اقدام (Action)', desc: 'اجرای عملیات در چارچوب جریان کاری مبتنی بر تایید صریح کاربر مسئول.' },
+        { num: '۰۶', name: 'سند ممیزی (Receipt)', desc: 'ثبت رسید ممیزی قابل ردیابی با برچسب زمانی در لاگ رویدادهای سیستم.' },
       ],
     },
   }[lang] || {

@@ -23,7 +23,7 @@ export const WhyCladoraSection: React.FC<WhyCladoraSectionProps> = ({ lang }) =>
         {
           name: 'Izolarea Strictă a Workspace-urilor',
           principle:
-            'Organizațiile și comunitățile operează în granițe logice securizate, eliminând riscul scurgerilor de date sau accesului neautorizat.',
+            'Organizațiile și comunitățile operează în granițe logice delimitate pe workspace, menite să prevină expunerea neautorizată a datelor între entități.',
           icon: Layers,
         },
         {
@@ -67,7 +67,7 @@ export const WhyCladoraSection: React.FC<WhyCladoraSectionProps> = ({ lang }) =>
         {
           name: 'Workspace Isolation',
           principle:
-            'Operational entities and communities function within strictly segregated boundaries, eliminating cross-tenant leakage or boundary drift.',
+            'Operational entities and communities function within workspace-scoped boundaries designed to prevent cross-tenant data exposure and boundary drift.',
           icon: Layers,
         },
         {
@@ -111,7 +111,7 @@ export const WhyCladoraSection: React.FC<WhyCladoraSectionProps> = ({ lang }) =>
         {
           name: 'جداسازی دقیق ورک‌اسپیس‌ها',
           principle:
-            'سازمان‌ها و مجتمع‌ها در مرزهای امن و کاملاً ایزوله فعالیت می‌کنند که مانع از تداخل اطلاعاتی یا دسترسی غیرمجاز می‌شود.',
+            'سازمان‌ها و مجتمع‌ها در مرزهای ساختاریافته به تفکیک ورک‌اسپیس فعالیت می‌کنند که جهت پیشگیری از تداخل اطلاعاتی و دسترسی غیرمجاز طراحی شده‌اند.',
           icon: Layers,
         },
         {

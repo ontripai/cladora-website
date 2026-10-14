@@ -18,7 +18,7 @@ export const FinalPartnershipCtaSection: React.FC<FinalPartnershipCtaSectionProp
       ctaSecondary: 'Explorează Platforma',
       trustPillars: [
         'Model de parteneriat adaptat portofoliului',
-        'Fără riscuri de blocare tehnologică sau date captive',
+        'Conceput pentru portabilitatea datelor și export documentat',
         'Găzduire securizată în Uniunea Europeană',
       ],
     },
@@ -31,7 +31,7 @@ export const FinalPartnershipCtaSection: React.FC<FinalPartnershipCtaSectionProp
       ctaSecondary: 'Explore Platform',
       trustPillars: [
         'Partnership scope aligned with your asset portfolio',
-        'Zero vendor lock-in with verified data export formats',
+        'Designed for controlled data portability and documented export paths',
         'Strict European Union cloud residency and GDPR compliance',
       ],
     },
@@ -44,7 +44,7 @@ export const FinalPartnershipCtaSection: React.FC<FinalPartnershipCtaSectionProp
       ctaSecondary: 'آشنایی با پلتفرم',
       trustPillars: [
         'تعریف مقیاس همکاری متناسب با تعداد و نوع املاک',
-        'امکان خروجی کامل سوابق بدون وابستگی انحصاری',
+        'طراحی‌شده بر پایه قابلیت انتقال داده‌ها و مسیرهای مدون استخراج',
         'میزبانی امن داده‌ها با رعایت استانداردهای GDPR اروپا',
       ],
     },
