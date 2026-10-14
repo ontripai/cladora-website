@@ -309,9 +309,18 @@ function diagnosticPool(delegate) {
         try {
           return await client.query(text, values);
         } catch (error) {
-          const operation = typeof text === 'string'
-            ? /^\s*([a-z]+)/i.exec(text)?.[1]?.toUpperCase() ?? 'QUERY' : 'QUERY';
-          console.error(`::error title=CE Guide disposable SQL boundary::${operation}: ${error.code ?? 'NO_SQLSTATE'}`);
+          const normalized = typeof text === 'string' ? text.toLowerCase() : '';
+          const operation = /^\s*([a-z]+)/i.exec(normalized)?.[1]?.toUpperCase() ?? 'QUERY';
+          const boundary = normalized.includes("set_config('request.jwt.claims'")
+            ? 'IDENTITY_BINDING'
+            : normalized.includes('cross join app_private.canonical_authority_revision_v1')
+              ? 'SOURCE_LOCK_PREFLIGHT'
+              : normalized.includes('from platform.customer_workspaces')
+                ? 'CORE_WORKSPACE_LOCK'
+                : normalized.includes('from app_private.canonical_authority_revision_v1')
+                  ? 'CORE_AUTHORITY_REVISION'
+                  : 'CORE_OR_PROVIDER';
+          console.error(`::error title=CE Guide disposable SQL boundary::${boundary}/${operation}: ${error.code ?? 'NO_SQLSTATE'}`);
           throw error;
         }
       };
