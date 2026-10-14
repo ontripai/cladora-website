@@ -281,7 +281,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     },
     {
       title: lang === 'ro' ? 'Identitate Imobiliară & Documente' : lang === 'fa' ? 'شناسنامه دیجیتال و اسناد' : 'Property Identity & Documents',
-      desc: lang === 'ro' ? 'Cartea tehnică a construcției și arhivă securizată' : lang === 'fa' ? 'پرونده فنی ملک و آرشیو امن مدارک' : 'Digital building passport and tamper-evident archive',
+      desc: lang === 'ro' ? 'Cartea tehnică a construcției și arhivă securizată' : lang === 'fa' ? 'پرونده فنی ملک و آرشیو امن مدارک' : 'Digital building passport and safe evidence archive',
       href: `/${lang}/capabilities`,
       icon: FileText,
     },
@@ -299,8 +299,8 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     },
     {
       title: lang === 'ro' ? 'Securitate & Audit' : lang === 'fa' ? 'امنیت و ممیزی' : 'Security & Audit',
-      desc: lang === 'ro' ? 'Jurnal ireversibil de audit și conformitate UE' : lang === 'fa' ? 'لاگ‌های تغییرناپذیر و حفاظت از داده‌ها' : 'Immutable audit trail and European cloud compliance',
-      href: `/${lang}/trust`,
+      desc: lang === 'ro' ? 'Jurnal de audit aditiv, delimitare și politici UE' : lang === 'fa' ? 'ثبت ترتیبی رویدادها، تفکیک داده‌ها و ضوابط حاکمیت داده‌ها' : 'Append-only event stream, isolation, and EU-aligned governance',
+      href: `/${lang}/platform/trust`,
       icon: ShieldCheck,
     },
   ];

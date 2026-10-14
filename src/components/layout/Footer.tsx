@@ -163,7 +163,7 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
               </li>
               <li>
                 <Link href={`/${lang}/capabilities`} className="hover:text-white transition-colors">
-                  {lang === 'ro' ? 'Domenii Funcționale' : lang === 'fa' ? 'حوزه‌های کارکردی' : 'System Capabilities'}
+                  {lang === 'ro' ? 'Arhitectura Capabilităților' : lang === 'fa' ? 'معماری قابلیت‌ها' : 'Capabilities Architecture'}
                 </Link>
               </li>
               <li>

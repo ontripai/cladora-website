@@ -639,19 +639,16 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/capabilities': {
     ro: {
-      title: 'Capabilități & Funcționalități de Sistem',
-      desc: 'Prezentare structurală a capabilităților CLADORA: evidență financiară, identitate imobiliară, documente, AIRPROP și operațiuni.',
-      noIndex: true,
+      title: 'Arhitectura Capabilităților — Domenii Conectate & Adevăr Canonic',
+      desc: 'Descoperă arhitectura de capabilități CLADORA: fundație CORE, identitate persistentă de activ, AIRPROP, SERVICE, Operațiuni, C&E și furnizori canonici (FIN01, DOCUMENTS, BK01).',
     },
     en: {
-      title: 'System Capabilities & Functional Domains',
-      desc: 'Structural overview of CLADORA capabilities: financial truth, property identity, evidence documents, AIRPROP, and field operations.',
-      noIndex: true,
+      title: 'Capabilities Architecture — Connected Domains & Canonical Truth',
+      desc: 'Explore CLADORA\'s enterprise capability architecture: CORE foundation, persistent asset identity, AIRPROP, SERVICE, Operations, Community, and canonical providers (FIN01, DOCUMENTS, BK01).',
     },
     fa: {
-      title: 'قابلیت‌ها و حوزه‌های کارکردی سامانه',
-      desc: 'مرور ساختاریافتهٔ قابلیت‌های کلادورا: ثبت مالی دوبل، هویت دارایی، مدارک و شواهد، ایرپراپ و عملیات میدانی.',
-      noIndex: true,
+      title: 'معماری قابلیت‌ها — دامنه‌های متصل و متولیان اصلی داده‌ها',
+      desc: 'بررسی جامع معماری قابلیت‌های کلادورا: زیرساخت CORE، هویت پایدار ملک، ایرپراپ، سرویس، عملیات فنی، تعاملات اجتماعی و ارائه‌دهندگان مرجع داده‌ها (FIN01، اسناد و BK01).',
     },
   },
   '/resources': {
