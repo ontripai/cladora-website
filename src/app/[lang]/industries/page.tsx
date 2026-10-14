@@ -32,13 +32,13 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       ctaPrimary: 'Solicită Parteneriat',
       ctaSecondary: 'Explorează Soluțiile',
       industries: [
-        { name: 'Rezidențial & Asociații', status: 'LIVE', icon: Building, desc: 'Ansambluri rezidențiale, asociații de proprietari, condominii și comunități private.' },
-        { name: 'Birouri & Workplace', status: 'LIVE', icon: Building2, desc: 'Clădiri de birouri, parcuri de afaceri, chiriași multipli și spații de lucru flexibile.' },
-        { name: 'Retail & Centre Comerciale', status: 'PILOT', icon: Store, desc: 'Galerii comerciale, parcuri de retail și spații comerciale stradale.' },
-        { name: 'Industrial & Logistică', status: 'PILOT', icon: Warehouse, desc: 'Depozite, hale industriale, parcuri logistice și infrastructură tehnică.' },
-        { name: 'Mixte (Mixed-Use)', status: 'LIVE', icon: Layers, desc: 'Dezvoltări complexe cu componente rezidențiale, birouri și galerii la parter.' },
-        { name: 'Ospitalitate', status: 'TARGET', icon: Hotel, desc: 'Hoteluri, aparthoteluri și servicii de cazare (în foaie de parcurs).' },
-        { name: 'Auto & Flote', status: 'TARGET', icon: Car, desc: 'Facilități auto, parcări supraetajate și stații de încărcare (în cercetare).' },
+        { name: 'Rezidențial & Asociații', icon: Building, desc: 'Ansambluri rezidențiale, asociații de proprietari, condominii și comunități private.' },
+        { name: 'Birouri & Workplace', icon: Building2, desc: 'Clădiri de birouri, parcuri de afaceri, chiriași multipli și spații de lucru flexibile.' },
+        { name: 'Retail & Centre Comerciale', icon: Store, desc: 'Galerii comerciale, parcuri de retail și spații comerciale stradale.' },
+        { name: 'Industrial & Logistică', icon: Warehouse, desc: 'Depozite, hale industriale, parcuri logistice și infrastructură tehnică.' },
+        { name: 'Mixte (Mixed-Use)', icon: Layers, desc: 'Dezvoltări complexe cu componente rezidențiale, birouri și galerii la parter.' },
+        { name: 'Ospitalitate', icon: Hotel, desc: 'Hoteluri, aparthoteluri și servicii de cazare (în foaie de parcurs).' },
+        { name: 'Auto & Flote', icon: Car, desc: 'Facilități auto, parcări supraetajate și stații de încărcare (în cercetare).' },
       ],
     },
     en: {
@@ -50,13 +50,13 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       ctaPrimary: 'Start Partnership',
       ctaSecondary: 'Explore Solutions',
       industries: [
-        { name: 'Residential & HOAs', status: 'LIVE', icon: Building, desc: 'Multi-family buildings, homeowners associations, residential towers, and gated communities.' },
-        { name: 'Office & Workplace', status: 'LIVE', icon: Building2, desc: 'Commercial office towers, corporate campuses, multi-tenant properties, and flex offices.' },
-        { name: 'Retail & Shopping Centers', status: 'PILOT', icon: Store, desc: 'Strip malls, shopping centers, urban retail podiums, and multi-brand facilities.' },
-        { name: 'Industrial & Logistics', status: 'PILOT', icon: Warehouse, desc: 'Distribution hubs, light industrial warehouses, storage facilities, and business parks.' },
-        { name: 'Mixed-Use Developments', status: 'LIVE', icon: Layers, desc: 'Complex assets blending residential units, commercial retail podiums, and workspace floors.' },
-        { name: 'Hospitality', status: 'TARGET', icon: Hotel, desc: 'Aparthotels, serviced apartments, and hospitality lodging (roadmap exploration).' },
-        { name: 'Automotive & Fleet', status: 'TARGET', icon: Car, desc: 'Structured parkings, service bays, and fleet support facilities (research phase).' },
+        { name: 'Residential & HOAs', icon: Building, desc: 'Multi-family buildings, homeowners associations, residential towers, and gated communities.' },
+        { name: 'Office & Workplace', icon: Building2, desc: 'Commercial office towers, corporate campuses, multi-tenant properties, and flex offices.' },
+        { name: 'Retail & Shopping Centers', icon: Store, desc: 'Strip malls, shopping centers, urban retail podiums, and multi-brand facilities.' },
+        { name: 'Industrial & Logistics', icon: Warehouse, desc: 'Distribution hubs, light industrial warehouses, storage facilities, and business parks.' },
+        { name: 'Mixed-Use Developments', icon: Layers, desc: 'Complex assets blending residential units, commercial retail podiums, and workspace floors.' },
+        { name: 'Hospitality', icon: Hotel, desc: 'Aparthotels, serviced apartments, and hospitality lodging (roadmap exploration).' },
+        { name: 'Automotive & Fleet', icon: Car, desc: 'Structured parkings, service bays, and fleet support facilities (research phase).' },
       ],
     },
     fa: {
@@ -68,13 +68,13 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       ctaPrimary: 'درخواست شروع همکاری',
       ctaSecondary: 'مشاهدهٔ راهکارها',
       industries: [
-        { name: 'مسکونی و مجتمع‌ها', status: 'LIVE', icon: Building, desc: 'برج‌های مسکونی، مجتمع‌های ساختمانی، شهرک‌ها و تعاونی‌ها.' },
-        { name: 'اداری و دفاتر کار', status: 'LIVE', icon: Building2, desc: 'ساختمان‌های اداری، مراکز تجاری، و فضاهای کاری چندمستأجره.' },
-        { name: 'تجاری و مراکز خرید', status: 'PILOT', icon: Store, desc: 'مراکز خرید، فروشگاه‌های زنجیره‌ای و راسته بازارهای شهری.' },
-        { name: 'صنعتی و لجستیک', status: 'PILOT', icon: Warehouse, desc: 'انبارها، سوله‌های صنعتی، مراکز توزیع و شهرک‌های صنعتی.' },
-        { name: 'چندمنظوره (Mixed-Use)', status: 'LIVE', icon: Layers, desc: 'پروژه‌های ترکیبی شامل طبقات تجاری، اداری و مسکونی.' },
-        { name: 'اقامتی و هتلداری', status: 'TARGET', icon: Hotel, desc: 'هتل‌آپارتمان‌ها و مراکز اقامتی (در دست توسعه).' },
-        { name: 'تاسیسات خودرویی', status: 'TARGET', icon: Car, desc: 'پارکینگ‌های طبقاتی و ایستگاه‌های شارژ (مرحله پژوهش).' },
+        { name: 'مسکونی و مجتمع‌ها', icon: Building, desc: 'برج‌های مسکونی، مجتمع‌های ساختمانی، شهرک‌ها و تعاونی‌ها.' },
+        { name: 'اداری و دفاتر کار', icon: Building2, desc: 'ساختمان‌های اداری، مراکز تجاری، و فضاهای کاری چندمستأجره.' },
+        { name: 'تجاری و مراکز خرید', icon: Store, desc: 'مراکز خرید، فروشگاه‌های زنجیره‌ای و راسته بازارهای شهری.' },
+        { name: 'صنعتی و لجستیک', icon: Warehouse, desc: 'انبارها، سوله‌های صنعتی، مراکز توزیع و شهرک‌های صنعتی.' },
+        { name: 'چندمنظوره (Mixed-Use)', icon: Layers, desc: 'پروژه‌های ترکیبی شامل طبقات تجاری، اداری و مسکونی.' },
+        { name: 'اقامتی و هتلداری', icon: Hotel, desc: 'هتل‌آپارتمان‌ها و مراکز اقامتی (در دست توسعه).' },
+        { name: 'تاسیسات خودرویی', icon: Car, desc: 'پارکینگ‌های طبقاتی و ایستگاه‌های شارژ (مرحله پژوهش).' },
       ],
     },
   }[lang] || {
@@ -86,19 +86,6 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
     ctaPrimary: 'Start Partnership',
     ctaSecondary: 'Explore Solutions',
     industries: [],
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'LIVE':
-        return <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">LIVE</span>;
-      case 'PILOT':
-        return <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200">PILOT</span>;
-      case 'TARGET':
-        return <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 border border-slate-200">TARGET</span>;
-      default:
-        return null;
-    }
   };
 
   return (
@@ -118,15 +105,6 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
           </p>
         </div>
 
-        {/* Governance banner */}
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 mb-12 flex items-start gap-4">
-          <ShieldCheck className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-bold text-amber-900 mb-1">{content.cautionTitle}</h3>
-            <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">{content.cautionDesc}</p>
-          </div>
-        </div>
-
         {/* Industry Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {content.industries.map((item) => {
@@ -137,11 +115,8 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
                 className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-card hover:border-[#B2E5DF] transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-10 h-10 rounded-xl bg-teal-50 text-[#0E9F8E] flex items-center justify-center">
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    {getStatusBadge(item.status)}
+                  <div className="w-10 h-10 rounded-xl bg-teal-50 text-[#0E9F8E] flex items-center justify-center mb-4">
+                    <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="text-lg font-bold text-[#102A43] mb-2">{item.name}</h3>
                   <p className="text-sm text-[#52667A] leading-relaxed mb-4">{item.desc}</p>

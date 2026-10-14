@@ -92,13 +92,26 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     };
   }, [mobileMenuOpen]);
 
-  // Reset dropdown and mobile menu on route change
   const [prevPathname, setPrevPathname] = useState(pathname);
   if (prevPathname !== pathname) {
     setPrevPathname(pathname);
     setMobileMenuOpen(false);
     setActiveDropdown(null);
   }
+
+  // Accessibility: Focus management for Mobile Drawer
+  const triggerButtonRef = useRef<HTMLButtonElement>(null);
+  const drawerContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      // Move focus into the drawer container
+      drawerContainerRef.current?.focus();
+    } else {
+      // Return focus to menu trigger when drawer closes
+      triggerButtonRef.current?.focus();
+    }
+  }, [mobileMenuOpen]);
 
   const toggleDropdown = (key: DropdownKey) => {
     setActiveDropdown((prev) => (prev === key ? null : key));
@@ -227,31 +240,26 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
   const industriesItems = [
     {
       title: lang === 'ro' ? 'Rezidențial & Asociații' : lang === 'fa' ? 'مسکونی و مجتمع‌ها' : 'Residential & HOAs',
-      badge: 'LIVE',
       href: `/${lang}/industries`,
       icon: Building,
     },
     {
       title: lang === 'ro' ? 'Birouri & Workplace' : lang === 'fa' ? 'اداری و دفاتر کار' : 'Office & Workplace',
-      badge: 'LIVE',
       href: `/${lang}/industries`,
       icon: Building2,
     },
     {
       title: lang === 'ro' ? 'Retail & Centre Comerciale' : lang === 'fa' ? 'تجاری و مراکز خرید' : 'Retail & Shopping Centers',
-      badge: 'PILOT',
       href: `/${lang}/industries`,
       icon: Store,
     },
     {
       title: lang === 'ro' ? 'Industrial & Logistică' : lang === 'fa' ? 'صنعتی و لجستیک' : 'Industrial & Logistics',
-      badge: 'PILOT',
       href: `/${lang}/industries`,
       icon: Warehouse,
     },
     {
       title: lang === 'ro' ? 'Mixte (Mixed-Use)' : lang === 'fa' ? 'کاربری چندمنظوره' : 'Mixed-Use Developments',
-      badge: 'LIVE',
       href: `/${lang}/industries`,
       icon: Layers,
     },
@@ -518,22 +526,11 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                           href={item.href}
                           role="menuitem"
                           onClick={() => setActiveDropdown(null)}
-                          className="flex items-center justify-between p-2.5 rounded-xl hover:bg-[#F6F9FC] transition-colors group"
+                          className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-[#F6F9FC] transition-colors group"
                         >
-                          <div className="flex items-center gap-2.5">
-                            <Icon className="w-4 h-4 text-[#0E9F8E]" />
-                            <span className="text-xs font-bold text-[#102A43] group-hover:text-[#0E9F8E]">
-                              {item.title}
-                            </span>
-                          </div>
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              item.badge === 'LIVE'
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                : 'bg-sky-50 text-sky-700 border border-sky-200'
-                            }`}
-                          >
-                            {item.badge}
+                          <Icon className="w-4 h-4 text-[#0E9F8E]" />
+                          <span className="text-xs font-bold text-[#102A43] group-hover:text-[#0E9F8E]">
+                            {item.title}
                           </span>
                         </Link>
                       );
@@ -726,10 +723,12 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
           <div className="flex items-center gap-2 lg:hidden">
             <LanguageSwitcher currentLang={lang} variant="header" />
             <button
+              ref={triggerButtonRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl p-2 text-[#102A43] hover:bg-[#F0F4F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
               aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-navigation-drawer"
               aria-label="Toggle navigation menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -750,7 +749,15 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
           />
 
           {/* Drawer Container */}
-          <div className="relative bg-white h-[calc(100vh-5rem)] overflow-y-auto border-t border-[#E2E8F0] px-6 py-6 flex flex-col justify-between shadow-elevated">
+          <div
+            id="mobile-navigation-drawer"
+            ref={drawerContainerRef}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Mobile Navigation"
+            className="relative bg-white h-[calc(100vh-5rem)] overflow-y-auto border-t border-[#E2E8F0] px-6 py-6 flex flex-col justify-between shadow-elevated focus:outline-none"
+          >
             <div className="space-y-4">
               
               {/* 1. Platform Mobile Group */}
@@ -834,12 +841,10 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                         key={item.title}
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-between py-1.5 text-sm text-[#52667A] hover:text-[#0E9F8E] font-medium"
+                        className="flex items-center gap-2 py-1.5 text-sm text-[#52667A] hover:text-[#0E9F8E] font-medium"
                       >
+                        <item.icon className="w-4 h-4 text-[#0E9F8E]" />
                         <span>{item.title}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">
-                          {item.badge}
-                        </span>
                       </Link>
                     ))}
                   </div>

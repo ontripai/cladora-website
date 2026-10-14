@@ -33,7 +33,6 @@ export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, child
     `/${lang}/meters`,
     `/${lang}/migration`,
     `/${lang}/pricing`,
-    `/${lang}/trust`,
   ];
   const isLegacyDarkRoute = pathname ? legacyDarkRoutes.includes(pathname) : false;
 

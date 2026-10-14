@@ -565,56 +565,68 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
     ro: {
       title: 'Inteligență & Asistență Operațională cu Validare Umană',
       desc: 'Modelul de acțiune în 6 etape și asistența AI ghidată de politici, limite de autoritate și supraveghere umană obligatorie.',
+      noIndex: true,
     },
     en: {
       title: 'Operational Intelligence & Human-in-the-Loop Action Model',
       desc: 'Six-stage governed action model and policy-bounded AI assistance with mandatory human confirmation.',
+      noIndex: true,
     },
     fa: {
       title: 'هوش عملیاتی و مدل اقدام تحت نظارت انسان',
       desc: 'مدل شش‌مرحله‌ای اقدام هوشمند مقید به سیاست‌ها، حدود اختیارات و تأیید قطعی انسانی.',
+      noIndex: true,
     },
   },
   '/industries': {
     ro: {
       title: 'Industrii & Soluții Verticale Specializate',
       desc: 'Arhitectura CLADORA adaptată pe industrii: rezidențial, birouri, retail, logistică și mixt.',
+      noIndex: true,
     },
     en: {
       title: 'Industry Solutions & Vertical Presets',
       desc: 'CLADORA unified environment adapted across residential, commercial workplace, retail, logistics, and mixed-use environments.',
+      noIndex: true,
     },
     fa: {
       title: 'صنایع و راهکارهای تخصصی عمودی',
       desc: 'محیط یکپارچهٔ کلادورا منطبق بر نیازمندی‌های املاک مسکونی، اداری، تجاری، لجستیک و چندمنظوره.',
+      noIndex: true,
     },
   },
   '/capabilities': {
     ro: {
       title: 'Capabilități & Funcționalități de Sistem',
       desc: 'Prezentare structurală a capabilităților CLADORA: evidență financiară, identitate imobiliară, documente, AIRPROP și operațiuni.',
+      noIndex: true,
     },
     en: {
       title: 'System Capabilities & Functional Domains',
       desc: 'Structural overview of CLADORA capabilities: financial truth, property identity, evidence documents, AIRPROP, and field operations.',
+      noIndex: true,
     },
     fa: {
       title: 'قابلیت‌ها و حوزه‌های کارکردی سامانه',
       desc: 'مرور ساختاریافتهٔ قابلیت‌های کلادورا: ثبت مالی دوبل، هویت دارایی، مدارک و شواهد، ایرپراپ و عملیات میدانی.',
+      noIndex: true,
     },
   },
   '/resources': {
     ro: {
       title: 'Resurse, Ghiduri & Documentație',
       desc: 'Documentație, ghiduri de migrare, întrebări frecvente și resurse de securitate și conformitate.',
+      noIndex: true,
     },
     en: {
       title: 'Resources, Guides & Documentation',
       desc: 'Documentation, migration playbooks, answers to common questions, and trust & compliance resources.',
+      noIndex: true,
     },
     fa: {
       title: 'منابع، راهنماها و مستندات',
       desc: 'مستندات، راهنماهای مهاجرت، پرسش‌های متداول و منابع اعتماد، امنیت و انطباق قانونی.',
+      noIndex: true,
     },
   },
 };
