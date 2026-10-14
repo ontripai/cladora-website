@@ -106,7 +106,7 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       commercial: {
         badge: 'FAMILIA 02 — CICLUL COMERCIAL',
         title: 'AIRPROP: Semantica Ciclului de Viață Comercial',
-        desc: 'AIRPROP gestionează fluxurile comerciale și de investiții fără a crea o identitate paralelă de activ: antecontracte de pre-vânzare, inventar comercial, contracte de locațiune, mandate de reprezentare și puntea către predare.',
+        desc: 'AIRPROP este conceput pentru a structura semantica fluxurilor comerciale și de investiții fără a crea o identitate paralelă de activ: modelarea antecontractelor, inventar comercial, contracte de locațiune, mandate de reprezentare și puntea către predare.',
         items: [
           { title: 'Pre-vânzări & Oportunități', desc: 'Evidența cererilor calificate, urmărirea avansurilor și opțiunile de personalizare.' },
           { title: 'Gestiunea Inventarului Disponibil', desc: 'Corelarea unităților libere, rezervate sau închiriate pe baza topologiei din CORE.' },
@@ -117,7 +117,7 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       operations: {
         badge: 'FAMILIA 03 — OPERAȚIUNI & SERVICII',
         title: 'SERVICE & OPERAȚIUNI: De la Intenție la Execuție în Teren',
-        desc: 'Domeniile SERVICE și OPERAȚIUNI funcționează sincronizat: SERVICE guvernează formularea intenției și contractarea furnizorilor, iar OPERAȚIUNI este proprietarul canonic al execuției comenzilor de lucru și registrului de echipamente.',
+        desc: 'Domeniile SERVICE și OPERAȚIUNI sunt concepute să funcționeze sincronizat: SERVICE structurează formularea cererilor și coordonarea furnizorilor, iar OPERAȚIUNI este proprietarul canonic al execuției comenzilor de lucru și registrului de echipamente.',
         serviceSide: {
           title: 'SERVICE (Intenție & Coordonare)',
           desc: 'Formularea cererilor structurate, compararea ofertelor concurențiale de preț/timp, emiterea comenzilor și recepția formală. Evenimentele financiare sunt consemnate exclusiv în FIN01.',
@@ -131,15 +131,15 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       },
       communityGov: {
         badge: 'FAMILIA 04 — OAMENI, COMUNITATE & GUVERNANȚĂ',
-        title: 'Comunitate, Experiență & Comunicații Statutare',
-        desc: 'Comunitate & Experiență (C&E) este un domeniu peer de prim rang, dedicat vieții de zi cu zi a locatarilor. Comunicațiile oficiale și evidențele de guvernanță asigură trasabilitatea deciziilor.',
+        title: 'Comunitate, Experiență & Comunicații Operaționale',
+        desc: 'Comunitate & Experiență (C&E) este un domeniu peer de prim rang, dedicat vieții de zi cu zi a locatarilor. Comunicațiile operaționale și consemnarea deciziilor asigură trasabilitatea organizării.',
         ceSide: {
           title: 'Comunitate & Experiență (C&E)',
           desc: 'Compoziția experienței de locuire, ghiduri de orientare spațială, avizier digital comunitar, solicitări curente și acces la facilități comune.',
         },
         commsSide: {
-          title: 'Comunicații Statutare & Decizii',
-          desc: 'Canale securizate de notificare, convocări statutare, evidența deciziilor adunării generale și procese-verbale cu arhivare trasabilă.',
+          title: 'Comunicații Operaționale & Decizii',
+          desc: 'Canale securizate de notificare, avize operaționale, consemnarea deciziilor adunării și procese-verbale cu arhivare trasabilă.',
         },
       },
       canonicalProviders: {
@@ -294,7 +294,7 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       commercial: {
         badge: 'FAMILY 02 — COMMERCIAL LIFECYCLE',
         title: 'AIRPROP: Commercial & Real Estate Lifecycle Semantics',
-        desc: 'AIRPROP governs commercial deal stages and investment workflows without creating duplicate property records: pre-sale reservations, commercial inventory tracking, tenancy agreements, agency mandates, and the bridge to handover.',
+        desc: 'AIRPROP is designed to structure commercial lifecycle semantics without creating duplicate property records: pre-sale reservation modeling, commercial inventory tracking, tenancy agreements, agency mandates, and the bridge to handover.',
         items: [
           { title: 'Pre-Sales & Lead Pipeline', desc: 'Tracking qualified inquiries, down payments, and structural customization briefs.' },
           { title: 'Commercial Inventory Allocation', desc: 'Connecting available, reserved, or leased spaces directly to canonical unit topologies.' },
@@ -305,7 +305,7 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       operations: {
         badge: 'FAMILY 03 — OPERATIONS & SERVICE',
         title: 'SERVICE & OPERATIONS: From Service Intent to Field Execution',
-        desc: 'SERVICE and OPERATIONS work in lockstep: SERVICE governs request briefs and contractor coordination, while OPERATIONS is the canonical owner of technical equipment registries and work order execution.',
+        desc: 'SERVICE and OPERATIONS are designed to operate in lockstep: SERVICE structures request briefs and contractor coordination, while OPERATIONS is the canonical owner of technical equipment registries and work order execution.',
         serviceSide: {
           title: 'SERVICE (Intent & Coordination)',
           desc: 'Structured request briefs, side-by-side quote comparisons, work order issuance, and milestone delivery sign-offs. Financial transactions reference FIN01.',
@@ -319,15 +319,15 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       },
       communityGov: {
         badge: 'FAMILY 04 — PEOPLE, COMMUNITY & GOVERNANCE',
-        title: 'Community, Living Experience & Formal Governance',
-        desc: 'Community & Experience (C&E) is an architectural peer domain dedicated to occupant daily life. Formal communications and governance records ensure transparent, accountable property stewardship.',
+        title: 'Community, Living Experience & Governance Communications',
+        desc: 'Community & Experience (C&E) is an architectural peer domain dedicated to occupant daily life. Governance communications and decision logging provide operational stewardship.',
         ceSide: {
           title: 'Community & Experience (C&E)',
           desc: 'Occupant living journeys, spatial orientation guides, digital community notice boards, everyday service inquiries, and shared amenity access.',
         },
         commsSide: {
-          title: 'Statutory Communications & Decisions',
-          desc: 'Secure notification channels, formal meeting notices, general assembly agendas, ballots, and auditable decision archives.',
+          title: 'Operational & Governance Communications',
+          desc: 'Secure notification channels, operational notices, meeting agendas, and auditable records of collective decisions.',
         },
       },
       canonicalProviders: {
@@ -482,7 +482,7 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       commercial: {
         badge: 'خانوادهٔ ۰۲ — چرخهٔ تجاری ملک',
         title: 'AIRPROP: مفاهیم چرخهٔ تجاری و سرمایه‌گذاری املاک',
-        desc: 'ایرپراپ مراحل تجاری و جریان‌های سرمایه‌گذاری را بدون ایجاد پرونده‌های موازی برای ملک مدیریت می‌کند: پیش‌فروش، رزرو واحدها، قراردادهای اجاره، واگذاری مدیریت و اتصال مستقیم به تحویل نهایی.',
+        desc: 'ایرپراپ برای ساختاردهی به منطق چرخه تجاری ملک بدون ایجاد پرونده‌های موازی طراحی شده است: مدل‌سازی پیش‌فروش، رزرو واحدها، قراردادهای اجاره، واگذاری مدیریت و انتقال به مرحله بهره‌برداری.',
         items: [
           { title: 'پیش‌فروش و مدیریت متقاضیان', desc: 'پیگیری فرصت‌های واجد شرایط، پیش‌پرداخت‌ها و مشخصات فنی انتخاب‌شده.' },
           { title: 'مدیریت موجودی فضاها', desc: 'تطبیق واحدهای آزاد، رزروشده یا اجاره‌داده‌شده با توپولوژی پایه در CORE.' },
@@ -493,7 +493,7 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
       operations: {
         badge: 'خانوادهٔ ۰۳ — عملیات فنی و خدمات',
         title: 'سرویس و عملیات فنی: از اعلام نیاز تا اجرای میدانی',
-        desc: 'دو دامنهٔ سرویس و عملیات در هماهنگی کامل فعالیت می‌کنند: سرویس فرآیند اعلام نیاز و هماهنگی با پیمانکاران را هدایت می‌کند و عملیات فنی متولی رسمی ثبت تجهیزات و اجرای دستورکارهاست.',
+        desc: 'دامنه‌های SERVICE و OPERATIONS برای عملکرد هماهنگ طراحی شده‌اند: سرویس ساختاردهی به درخواست‌ها و هماهنگی با پیمانکاران را هدایت می‌کند و عملیات فنی متولی رسمی ثبت تجهیزات و اجرای دستورکارهاست.',
         serviceSide: {
           title: 'سرویس (اعلام نیاز و هماهنگی)',
           desc: 'ثبت نیازهای فنی، استعلام و مقایسه پیشنهادها، صدور دستورکار و تایید نهایی کار انجام‌شده. رویدادهای مالی منحصراً در FIN01 ثبت می‌گردند.',
@@ -506,16 +506,16 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
         },
       },
       communityGov: {
-        badge: 'خانوادهٔ ۰۴ — جامعه، ساکنان و حاکمیت رسمی',
-        title: 'جامعه، تجربه زیست و مکاتبات قانونی',
-        desc: 'جامعه و تجربه (C&E) به عنوان یک دامنهٔ هم‌تراز، بر تسهیل زندگی روزمرهٔ ساکنان تمرکز دارد. مکاتبات رسمی و ثبت تصمیمات حاکمیتی شفافیت تصمیمات را تضمین می‌کنند.',
+        badge: 'خانوادهٔ ۰۴ — جامعه، ساکنان و حاکمیت جمعی',
+        title: 'جامعه، تجربه زیست و مکاتبات عملیاتی',
+        desc: 'جامعه و تجربه (C&E) به عنوان یک دامنهٔ هم‌تراز، بر تسهیل زندگی روزمرهٔ ساکنان تمرکز دارد. مکاتبات عملیاتی و ثبت تصمیمات جمعی، شفافیت مدیریتی را تضمین می‌کنند.',
         ceSide: {
           title: 'جامعه و تجربه (C&E)',
           desc: 'مسیرهای تعاملی ساکنان، راهنمای فضاهای مشاع، تابلوی اعلانات دیجیتال، درخواست‌های روزمره و دسترسی به امکانات مشترک.',
         },
         commsSide: {
-          title: 'مکاتبات رسمی و مصوبات',
-          desc: 'کانال‌های پیام‌رسانی امن، دعوت‌نامه‌های رسمی مجامع، صورت‌جلسات، رای‌گیری‌ها و بایگانی مصوبات قانونی.',
+          title: 'مکاتبات عملیاتی و تصمیمات جمعی',
+          desc: 'کانال‌های امن پیام‌رسانی، اطلاعیه‌های عملیاتی، دستور جلسات و ثبت مستند تصمیمات جمعی.',
         },
       },
       canonicalProviders: {
