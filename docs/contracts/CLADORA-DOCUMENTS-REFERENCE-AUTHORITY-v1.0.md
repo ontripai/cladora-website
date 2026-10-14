@@ -90,6 +90,31 @@ Evidence is accepted only inside the same host transaction and is persisted in
 the existing v2 receipt inside the existing idempotency row; it creates no
 Documents authority or evidence store.
 
+## Inactive transaction selector
+
+`selectDocumentsReferenceInCoreTransactionV1` is the Documents-owned selector
+for consumers that already run inside `CoreTransactionScopeV1`. The selector is
+inactive: this candidate adds no route, CE wiring, client grant or runtime
+registration.
+
+The caller supplies its host-parsed command, the host's post-lock canonical
+authority receipt, and the requested immutable Documents target. The target's
+document and version IDs must already be present in the host command's ordered
+provider-source locks. The selector then resolves `documents.vault.read` with
+the canonical Core current-authority provider in the same transaction and read
+phase. It binds the resulting observation with the canonical Core binder before
+running the same Documents current-state row selector used by the accepted
+provider.
+
+The decision contract contains only Context, Workspace, actor, authority
+revision, caller-supplied document/version identity, evaluation time and bounded
+availability status. NULL Workspace, cross-Workspace, stale or mismatched
+version, revoked read authority, unsafe scan, inactive lifecycle, missing or
+ambiguous rows all deny without mutation. CE Guide remains a separate consumer
+change: it must call this selector from its existing Core provider phase and map
+the bounded decision into its own provider evidence without persisting a
+Documents snapshot.
+
 ## Verification and rollout
 
 `test:doc-reference` checks direct Core type consumption, strict binding,
