@@ -269,6 +269,15 @@ must be pinned to canonical non-login owners and keep `search_path=pg_catalog`.
 The connection role must never be derived from the JWT `role` claim; that claim
 is input to canonical policy evaluation only.
 
+The execution role must not own the database, any listed schema, table,
+sequence or function used by this package. It must have no direct or transitive
+membership in, and no ability to `SET ROLE` to, any owner of those objects, any
+superuser or any role with `BYPASSRLS`. This prohibition covers the full
+inventory above, including Core and authority tables, the idempotency, audit
+and outbox ledgers, `audit.events_id_seq`, and all three SECURITY DEFINER
+functions. `NOBYPASSRLS` on the login alone is insufficient because table
+owners normally bypass RLS.
+
 ACLs alone do not make the role usable. The separately reviewed database package
 must add policies addressed explicitly to the execution role for the precise
 operations on the authority-revision row, active Workspace row, authority-context
@@ -282,9 +291,17 @@ The three invoked `SECURITY DEFINER` functions currently inherit the migration
 executor as owner. Their later installation package must assign each function to
 an approved canonical `NOLOGIN` owner, retain its fixed `pg_catalog` search path
 and revoke default/public execution before granting only the exact signatures to
-the execution role. The execution role must not own these functions, belong to
-an owner role, or possess `SET ROLE` to an owner. Function ownership and role
-membership are verified from live catalogs in the disposable acceptance target.
+the execution role. The same isolation rule applies to every database, schema,
+table and sequence in the inventory, not only these functions.
+
+Disposable acceptance must enumerate ownership from `pg_database`,
+`pg_namespace`, `pg_class` and `pg_proc` for every inventory object and prove
+that none is owned by the execution role. It must recursively traverse
+`pg_auth_members` from the execution role, including indirect memberships and
+roles selectable through `SET ROLE`, and reject any path to an inventory-object
+owner, superuser or `BYPASSRLS` role. The catalog proof must fail on an
+unexpected object, owner or membership edge; checking only the execution
+role's flags is not sufficient.
 
 The current direct `FOR UPDATE` on `platform.customer_workspaces` creates an
 unnecessary write privilege: Core only reads the active Workspace and holds it
@@ -414,8 +431,9 @@ separate authorized operation after all unavailable gates below are closed:
 1. the already-merged #389 dependency is pinned at
    `df8124807a702f3b6fdcce3903e74aed7c713c67` or a newer reviewed main;
 2. target schema history proves every required migration installed once;
-3. the dedicated SQL role, exact grants, function owners and RLS policies pass
-   a disposable test under that role rather than an owner role;
+3. the dedicated SQL role, exact grants, RLS policies, complete inventory
+   ownership and recursive `pg_auth_members` isolation pass a disposable test
+   under that role rather than an owner role;
 4. the endpoint/pooler proves same-client transaction semantics, TLS and
    connection cleanup;
 5. target connection budget and secret binding are reviewed;
