@@ -538,11 +538,16 @@ async function installDocumentsAuthority() {
   }
   const permission = (await pool.query(`select id from identity.permissions
     where code='documents.vault.read'`)).rows[0];
-  await pool.query(`insert into platform.module_permission_bindings
-    (module_definition_id,permission_id,permission_mode,is_assignable_to_local_role,
-      is_delegable,requires_aal2,lifecycle_status)
-    values($1,$2,'read',true,false,true,'active') on conflict do nothing`,
+  const existingBinding = await pool.query(`select 1 from platform.module_permission_bindings
+    where module_definition_id=$1 and permission_id=$2 and lifecycle_status='active' limit 1`,
   [moduleDefinition.id, permission.id]);
+  if (existingBinding.rowCount === 0) {
+    await pool.query(`insert into platform.module_permission_bindings
+      (module_definition_id,permission_id,permission_mode,is_assignable_to_local_role,
+        is_delegable,requires_aal2,lifecycle_status)
+      values($1,$2,'read',true,false,true,'active')`,
+    [moduleDefinition.id, permission.id]);
+  }
   await pool.query(`insert into platform.module_property_profile_compatibilities
     (module_definition_id,property_profile_id,compatibility_level,reason)
     select distinct $1::uuid,t.property_profile_id,'compatible','Disposable Documents authority'
