@@ -65,6 +65,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'CE / PR #404',
       sha256: '3ffa7e694eec72d6cf7e1bb5e813e21cb65ce6e4519ac4025931dbfdfe820ab6',
     },
+    '20261014200948_document_null_workspace_creation_closure_v1.sql': {
+      owner: 'Documents / PR #406',
+      sha256: '5d8b2b6d68868001e7fdc6085c87aabe5568917d271a84192734c9643e8496e8',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
