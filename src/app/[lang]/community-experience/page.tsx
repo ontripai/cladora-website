@@ -11,22 +11,14 @@ import {
   Building2,
   Calendar,
   Layers,
-  Sparkles,
   Wrench,
   CheckCircle2,
   MapPin,
-  Clock,
   Briefcase,
   FileText,
   DollarSign,
   MessageSquare,
-  Bot,
-  Sliders,
-  ChevronRight,
   UserCheck,
-  AlertCircle,
-  HelpCircle,
-  Cpu,
   Store,
   Hotel,
   Factory,
@@ -121,77 +113,79 @@ export default async function CommunityExperiencePage(props: {
           {
             num: '06',
             name: 'Execuție Canonică',
-            desc: 'Comenzile merg la SERVICE/OPS, rezervările la BK01, plățile la FIN01.',
+            desc: 'Comenzile merg la SERVICE/OPS, rezervările la BK01, tranzacțiile la FIN01.',
             icon: CheckCircle2,
           },
         ],
+        principle:
+          'Principiu Arhitectural: C&E consumă relațiile verificate și granițele de proprietate din CORE (unde arhitectura impune respingerea oricărei mutații când autoritatea nu poate fi stabilită), adevărul de capacitate din BK01, contextul canonic de documente din DOCUMENTS și adevărul financiar din FIN01. C&E nu acționează niciodată ca o bază de date paralelă.',
       },
       communityLayer: {
         badge: 'STRATUL COMUNITAR',
         title: 'Spații Comunitare Delimitate & Participare Autorizată',
-        desc: 'Interacțiunea socială și organizatorică este ancorată în structura fizică și administrativă a clădirii:',
+        desc: 'Interacțiunea comunitară a ocupanților este ancorată arhitectural în granițe fizice și administrative verificate:',
         items: [
           {
-            title: 'Context de Membru Verificat',
-            desc: 'Accesul la viața comunitară este guvernat strict de calitatea de membru al workspace-ului.',
+            title: 'Context de Membru & Comunitate',
+            desc: 'Cadrul arhitectural pentru interacțiunea în spațiile clădirii este delimitat pe baza calității de membru și a rolurilor din workspace.',
           },
           {
-            title: 'Avizier Digital & Consultări',
-            desc: 'Difuzarea transparentă a anunțurilor oficiale ale consiliului de administrație și inițiativelor comune.',
+            title: 'Informații Comunitare & Context de Participare',
+            desc: 'Modelul arhitectural pentru publicarea informărilor administrative, avizelor de clădire și inițiativelor structurate de consultare.',
           },
           {
-            title: 'Separare Bounded a Confidențialității',
-            desc: 'Vecinii interacționează în limitele spațiilor comune, fără expunerea datelor private sau financiare.',
+            title: 'Delimitare de Confidențialitate & Izolare',
+            desc: 'Interacțiunile în spațiile partajate desemnate sunt proiectate să protejeze granițele unităților private și evidențele financiare.',
           },
           {
-            title: 'Descoperirea Facilităților Partajate',
-            desc: 'Prezentarea contextuală a regulamentelor interioare și orelor de liniște pentru fiecare zonă.',
+            title: 'Reguli de Spațiu Partajat & Facilități',
+            desc: 'Prezentarea contextuală a regulilor de spațiu comun, orarelor stabilite și ghidajului de utilizare pentru facilitățile colective.',
           },
         ],
       },
       guidesSection: {
         badge: 'GHIDURI & CONTEXT DE LOC',
         title: 'Ghiduri de Proprietate, Informații de Sosire & Asistență Spațială',
-        desc: 'C&E structurează documentația operațională pentru a fi utilă în momentul și locul potrivit:',
+        desc: 'C&E structurează documentația operațională pentru a fi utilă în momentul și locul potrivit (categorii ilustrative de ghiduri, neimplicând o bibliotecă live universală):',
         items: [
           {
             title: 'Ghidul Tehnic al Spațiului',
-            desc: 'Instrucțiuni de operare pentru termostate, panouri de siguranțe, interfon și contoare individuale.',
+            desc: 'Exemple ilustrative: instrucțiuni de operare pentru termostate, panouri de siguranțe, interfon și contoare individuale.',
           },
           {
             title: 'Protocol de Sosire & Acces',
-            desc: 'Informații de orientare pentru oaspeți, curieri și echipe de mutare (puncte de parcare, lifturi de marfă).',
+            desc: 'Exemple ilustrative: informații de orientare pentru oaspeți, curieri și echipe de mutare (puncte de parcare, lifturi de marfă).',
           },
           {
             title: 'Regulamente & Conduită',
-            desc: 'Arhivarea și afișarea transparentă a normelor stabilite de comunitate pentru spațiile partajate.',
+            desc: 'Exemple ilustrative: prezentarea normelor de conviețuire stabilite de comunitate pentru spațiile partajate.',
           },
           {
             title: 'Puncte de Interes Local',
-            desc: 'Recomandări contextuale privind serviciile de proximitate, colectarea selectivă și transportul public.',
+            desc: 'Exemple ilustrative: note contextuale privind serviciile de proximitate, colectarea selectivă și transportul public.',
           },
         ],
       },
       eventsSection: {
         badge: 'COORDONARE DE EVENIMENTE',
         title: 'Descoperirea Evenimentelor, Adunări & Intenție de Participare',
-        desc: 'Modelul arhitectural pentru evenimentele de comunitate și deciziile colective:',
+        desc: 'Modelul arhitectural pentru evenimentele de comunitate și adunări (model conceptual de compoziție, fără a implica vot statutar certificat sau ticketing comercial în producție):',
         items: [
           {
             title: 'Adunări Generale & Ședințe',
-            desc: 'Calendarul convocărilor statutare, ordinea de zi și publicarea documentelor pregătitoare.',
+            desc: 'Calendarul orientativ al convocărilor, ordinea de zi propusă și consultarea materialelor de discuție.',
           },
           {
             title: 'Inițiative Comunitare',
-            desc: 'Acțiuni de ecologizare, amenajare peisagistică sau evenimente festive organizate de locatari.',
+            desc: 'Acțiuni de ecologizare, amenajare peisagistică sau evenimente festive propuse de locatari.',
           },
           {
             title: 'Intenție de Prezență (RSVP)',
-            desc: 'Înregistrarea intenției de participare pentru dimensionarea adecvată a capacității spațiului.',
+            desc: 'Înregistrarea intenției de participare pentru dimensionarea adecvată a resurselor spațiului.',
           },
           {
             title: 'Verificarea Capacității prin BK01',
-            desc: 'Evenimentele care ocupă un spațiu fizic consultă disponibilitatea canonică din motorul BK01.',
+            desc: 'Evenimentele care ocupă un spațiu fizic consultă modelul de disponibilitate din motorul desemnat BK01.',
           },
         ],
       },
@@ -199,35 +193,37 @@ export default async function CommunityExperiencePage(props: {
         badge: 'ARHETIPURI DE CĂLĂTORIE',
         title: 'Compoziția Călătoriilor Contextuale în Mediul Construit',
         desc: 'C&E modelează experiența prin 6 arhetipuri fundamentale de călătorie (journey archetypes):',
+        qualification:
+          'Notă de Calificare Arhitecturală: Punctele de contact de mai jos reprezintă compoziții și arhetipuri conceptuale de călătorie utilizate în modelarea arhitecturii, nu fluxuri de lucru lansate universal în producție.',
         journeys: [
           {
             role: 'Călătoria Rezidentului',
-            desc: 'Onboarding în clădire, configurarea utilităților, recepționarea avizierului, tichete de reparații și vot în adunare.',
+            desc: 'Exemple ilustrative de compoziție: onboarding la mutare, referință cote FIN01, solicitări de reparații și puncte de consultare asociativă unde sunt activate.',
             badge: 'Rezidențial',
           },
           {
             role: 'Călătoria Chiriașului Corporate',
-            desc: 'Ghidul spațiului de birouri, programarea sălilor comune, accesul vizitatorilor și solicitări către FM.',
+            desc: 'Exemple ilustrative de compoziție: orientare corporativă, interogare disponibilitate săli prin BK01, ecusoane de vizitator și solicitări de asistență administrativă.',
             badge: 'Workplace',
           },
           {
             role: 'Călătoria Vizitatorului',
-            desc: 'Invitație digitală de acces, orientare în parcare, ghidare către destinație și acces temporar securizat.',
+            desc: 'Exemple ilustrative de compoziție: pre-înregistrare invitație, orientare parcare, ghidaj acces turnichet și navigație interioară delimitată în timp.',
             badge: 'Acces Temporar',
           },
           {
             role: 'Călătoria Oaspetelui',
-            desc: 'Procedură de check-in ghidată, asistență pentru facilitățile hotelului, rezervări de servicii și protocol de plecare.',
+            desc: 'Exemple ilustrative de compoziție: asistență la sosire, ghid digital al camerei, solicitări de facilități partajate orientate către BK01 și ghidaj de plecare.',
             badge: 'Ospitalitate',
           },
           {
             role: 'Călătoria Clientului Comercial',
-            desc: 'Ghidul galeriilor comerciale, orientare către magazine, orar de funcționare și servicii pentru clienți.',
+            desc: 'Exemple ilustrative de compoziție: orientare în centrul comercial, ghidul facilităților pentru clienți, informări de orar și puncte de validare parcare.',
             badge: 'Retail',
           },
           {
             role: 'Călătoria Contractorului',
-            desc: 'Instrucțiuni de securitate în șantier/clădire, recepționarea permisului de lucru și confirmarea intervenției.',
+            desc: 'Exemple ilustrative de compoziție: instructaj de securitate pe șantier/clădire, verificare permis de intervenție și confirmare direcționată a finalizării lucrării.',
             badge: 'Operațional',
           },
         ],
@@ -239,27 +235,45 @@ export default async function CommunityExperiencePage(props: {
         boundaries: [
           {
             domain: 'C&E vs. SERVICE',
-            role: 'Experiență vs. Intenție de Achiziție',
-            rule: 'C&E prezintă contextul sau catalogul de asistență; SERVICE este unicul proprietar al cererilor formale, comparării de oferte și comenzilor.',
+            role: 'Compoziția Experienței vs. Semantica Comenzilor',
+            rule: 'C&E prezintă contextul sau catalogul de asistență; SERVICE este desemnat să dețină semantica cererilor și comenzilor de servicii, inclusiv etapele relevante de ofertare, comandă și acceptanță acolo unde sunt lansate în producție.',
             icon: Wrench,
           },
           {
             domain: 'C&E vs. BK01',
             role: 'Prezentare vs. Adevărul Capacității',
-            rule: 'C&E afișează calendarul și facilitățile; BK01 deține în mod absolut disponibilitatea, cotele de capacitate și rezolvarea conflictelor.',
+            rule: 'C&E prezintă calendarele sau facilitățile; BK01 este desemnat drept autoritatea canonică responsabilă pentru modelul de disponibilitate, pragurile de capacitate și detectarea conflictelor de rezervare. C&E nu deține adevăr de rezervare.',
             icon: Calendar,
           },
           {
             domain: 'C&E vs. FIN01',
             role: 'Interacțiune vs. Adevărul Financiar',
-            rule: 'C&E nu deține solduri, portofele electronice sau registre paralele. Orice plată sau cost este consemnat exclusiv în FIN01.',
+            rule: 'C&E nu deține solduri, portofele electronice sau registre paralele. FIN01 este desemnat drept proprietarul canonic al adevărului financiar, tranzacțiilor și evidențelor contabile aplicabile.',
             icon: DollarSign,
           },
           {
             domain: 'C&E vs. COMUNICAȚII',
-            role: 'Context vs. Livrarea Mesajelor',
-            rule: 'C&E decide oportunitatea notificării în călătorie; COMUNICAȚII guvernează dispecerizarea prin canale securizate și jurnalele de livrare.',
+            role: 'Punct de Contact vs. Livrarea Mesajelor',
+            rule: 'C&E identifică oportunitatea notificării în călătorie; COMUNICAȚII este desemnat să guverneze dispecerizarea mesajelor și jurnalele de livrare, conform capabilităților active de canal.',
             icon: MessageSquare,
+          },
+          {
+            domain: 'C&E vs. DOCUMENTE (VAULT)',
+            role: 'Afișare Ghiduri vs. Proveniență & Evidențe',
+            rule: 'C&E prezintă ghiduri și regulamente în interfață; DOCUMENTE (VAULT) deține versiunile canonice, etichetele sigure, proveniența și contextul auditat al documentelor, fără a presupune proprietăți criptografice necertificate.',
+            icon: FileText,
+          },
+          {
+            domain: 'C&E vs. OPERAȚIUNI',
+            role: 'Interacțiune Ocupant vs. Execuție Mentenanță',
+            rule: 'C&E colectează cererea de asistență; OPERAȚIUNI este proprietarul canonic al execuției ordinelor de lucru, atribuirii tehnice și checklist-urilor de intervenție în funcție de maturitatea operațională.',
+            icon: Briefcase,
+          },
+          {
+            domain: 'C&E vs. CORE',
+            role: 'Experiență Locală vs. Autoritate & Identitate',
+            rule: 'C&E compune experiența în limitele rolului; CORE guvernează identitatea, apartenența la workspace și autoritatea, unde arhitectura impune respingerea mutațiilor când autoritatea nu poate fi stabilită.',
+            icon: ShieldCheck,
           },
         ],
       },
@@ -270,7 +284,7 @@ export default async function CommunityExperiencePage(props: {
         presets: [
           {
             name: 'Experiență Rezidențială',
-            desc: 'Ghidul condominiului, avizier digital, cotele de întreținere din FIN01, tichete de reparații și consultări comunitare.',
+            desc: 'Ghidul condominiului, avizier comunitar, consultare cote din FIN01, propuneri de mentenanță și consultări de asociație unde sunt activate.',
             icon: Building2,
           },
           {
@@ -280,32 +294,32 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             name: 'Experiență Retail & Centre Comerciale',
-            desc: 'Descoperirea brandurilor, ghidul facilităților pentru cumpărători și comunicarea operațională cu comercianții.',
+            desc: 'Ghidul spațiilor comerciale, orientare facilități pentru cumpărători, orare de funcționare și comunicare operațională cu comercianții.',
             icon: Store,
           },
           {
             name: 'Experiență Ospitalitate & Serviced Living',
-            desc: 'Ghid digital de cazare, orientare la sosire și rezervarea resurselor partajate (spa, conferințe) ancorate în BK01.',
+            desc: 'Ghid digital de cazare, orientare la sosire și solicitări de rezervare a resurselor partajate ancorate arhitectural în BK01.',
             icon: Hotel,
           },
           {
             name: 'Context Muncitoresc Industrial',
-            desc: 'Ghid de securitate a muncii, permise de acces, regulamente de perimetru și proceduri în caz de urgență tehnică.',
+            desc: 'Instructaje de securitate a muncii, permise de acces în zone reglementate, reguli de perimetru și protocoale de urgență tehnică.',
             icon: Factory,
           },
           {
             name: 'Context Operator Logistic',
-            desc: 'Instrucțiuni de circulație în parc, protocol de acces la rampe, instruiri pentru șoferi și reguli de depozitare.',
+            desc: 'Ghid de circulație în incintă, instrucțiuni de sosire la rampă, facilități pentru șoferi și protocoale de siguranță.',
             icon: Warehouse,
           },
           {
             name: 'Context Clienți Auto & Showroom',
-            desc: 'Ghidul recepției service, asistență în zona de așteptare clienți și fluxul de informare privind stadiul mașinii.',
+            desc: 'Ghidul recepției service, asistență în zona de așteptare clienți și puncte de informare privind stadiul vehiculului.',
             icon: Car,
           },
           {
             name: 'Experiență Ansambluri Mixte (Mixed-Use)',
-            desc: 'Compoziția supremă: tranziția fluidă între zona rezidențială, de birouri și retail pe baza rolului și autorității din CORE.',
+            desc: 'Compoziția de arhitectură: tranziția fluidă între zona rezidențială, de birouri și retail pe baza unui model partajat de identitate a proprietății și resurselor sub autoritatea CORE.',
             icon: Layers,
           },
         ],
@@ -316,22 +330,22 @@ export default async function CommunityExperiencePage(props: {
         desc: 'Asistența inteligentă în cadrul C&E acționează strict ca un orchestrator subordonat deciziei umane, urmând fluxul canonic în 6 pași:',
         steps: [
           { title: '1. Context', desc: 'Identifică spațiul, proprietatea și identitatea verificată.' },
-          { title: '2. Intenție', desc: 'Clarifică ce anume dorește să realizeze utilizatorul.' },
-          { title: '3. Autoritate', desc: 'Confirmă mandatul legal înainte de a propune orice acțiune.' },
-          { title: '4. Planificare', desc: 'Structurează acțiunea către furnizorul canonic adecvat.' },
-          { title: '5. Execuție Canonică', desc: 'Operațiunea este validată de om și consemnată oficial.' },
-          { title: '6. Notă de Audit', desc: 'Înregistrare cronologică permanentă a tuturor evenimentelor.' },
+          { title: '2. Intenție', desc: 'Clarifică ce anume solicită utilizatorul în contextul spațial.' },
+          { title: '3. Autoritate', desc: 'Confirmă mandatul și permisiunile de workspace în CORE.' },
+          { title: '4. Planificare', desc: 'Structurează propunerea operațională către furnizorul canonic adecvat.' },
+          { title: '5. Revizuire Umană & Politici', desc: 'Acțiunile cu impact consecvent rămân supuse politicilor aplicabile și aprobării umane adecvate.' },
+          { title: '6. Înregistrare de Audit', desc: 'Jurnalizarea contextuală a evenimentelor în traseele de audit ale platformei.' },
         ],
-        note: 'AI nu acordă drepturi, nu efectuează plăți autonome și nu ocolește aprobările umane obligatorii.',
+        note: 'AI operează în cadrul limitelor de autoritate verificate. Acțiunile cu impact consecvent rămân supuse politicilor aplicabile de control și aprobării umane adecvate.',
       },
       availability: {
         badge: 'TRANSPARENȚĂ & GUVERNANȚĂ OPERAȚIONALĂ',
         title: 'Maturitatea Arhitecturală a Domeniului de Experiență',
         desc: 'Prezentarea publică a domeniului Comunitate & Experiență descrie modelul arhitectural complet conceput pentru lumea construită. În practică, disponibilitatea fiecărei funcționalități este guvernată individual de stadiul de lansare al versiunii de produs și de perimetrul agreat în fiecare implementare.',
         points: [
-          'Capabilitățile C&E sunt compuse modular în funcție de abonamentul și licența activă a workspace-ului.',
-          'Funcționalitățile complexe (automatizări de evenimente, călătorii avansate de oaspeți sau integrări complexe de concierge) sunt etape țintă de arhitectură supuse calendarelor de lansare.',
-          'Integritatea arhitecturală este garantată: nicio funcționalitate de experiență nu poate scrie date nesecurizate sau neautorizate în registrele canonice ale platformei.',
+          'Capabilitățile C&E sunt compuse modular în funcție de abonamentul activ al workspace-ului și profilul proprietății.',
+          'Capabilitățile orientate spre viitor (precum directorul de membri, feed-ul social, mesageria directă, marketplace-ul, programele de loialitate, concierge-ul AI sau automatizările avansate pentru oaspeți și retail) constituie obiective de arhitectură supuse calendarelor de lansare, nu fluxuri active de producție.',
+          'Integritatea arhitecturală este garantată: granițele la nivel de workspace sunt proiectate să prevină expunerea între contexte, iar arhitectura impune respingerea mutațiilor când autoritatea nu poate fi stabilită.',
         ],
       },
       cta: {
@@ -412,6 +426,8 @@ export default async function CommunityExperiencePage(props: {
             icon: CheckCircle2,
           },
         ],
+        principle:
+          'Architectural Principle: C&E consumes verified relationships and property boundaries from CORE (where architecture requires mutation denial when authority cannot be established), capacity truth from BK01, canonical document context from DOCUMENTS, and financial truth from FIN01. It never acts as a shadow database.',
       },
       communityLayer: {
         badge: 'COMMUNITY ARCHITECTURE',
@@ -419,50 +435,50 @@ export default async function CommunityExperiencePage(props: {
         desc: 'Occupant community interaction is architecturally anchored in verified physical and administrative boundaries:',
         items: [
           {
-            title: 'Verified Member Context',
-            desc: 'Participation in building spaces is strictly bounded by active workspace membership and verified roles.',
+            title: 'Member & Community Context',
+            desc: 'Participation framing within building spaces is architecturally bounded by workspace membership and contextual roles.',
           },
           {
-            title: 'Digital Notice Board & Consultations',
-            desc: 'Official dissemination of board notices, building announcements, and statutory community polls.',
+            title: 'Community Information & Participation Context',
+            desc: 'Architectural model for publishing administrative announcements, building notices, and structured community consultations.',
           },
           {
             title: 'Privacy-Bounded Isolation',
-            desc: 'Neighbors interact within designated common spaces without exposing individual unit or financial records.',
+            desc: 'Interactions in designated shared spaces are designed to protect private unit boundaries and financial records.',
           },
           {
-            title: 'Shared Amenity Discovery',
-            desc: 'Contextual presentation of house rules, shared hours, and usage guidance for communal facilities.',
+            title: 'Shared-Place Rules & Amenity Discovery',
+            desc: 'Contextual presentation of shared-place rules, hours, and operational guidance for communal facilities.',
           },
         ],
       },
       guidesSection: {
         badge: 'SPATIAL & OPERATIONAL GUIDANCE',
         title: 'Property Guides, Arrival Information & Place Context',
-        desc: 'C&E structures operational guidance so information arrives exactly when and where it is needed:',
+        desc: 'C&E structures operational guidance for contextual presentation (illustrative guidance categories, not an implied universal live library):',
         items: [
           {
             title: 'Space & Equipment Guides',
-            desc: 'Contextual operating guidance for heating thermostats, circuit panels, video intercoms, and submeters.',
+            desc: 'Illustrative examples: contextual operating guidance for heating thermostats, circuit panels, video intercoms, and submeters.',
           },
           {
             title: 'Arrival & Access Instructions',
-            desc: 'Clear orientation protocols for guests, delivery partners, and moving crews (freight elevators, parking rules).',
+            desc: 'Illustrative examples: clear orientation protocols for guests, delivery partners, and moving crews (freight elevators, parking rules).',
           },
           {
             title: 'House Rules & Community Policies',
-            desc: 'Transparent digital publication of community-approved quiet hours, pet policies, and shared terrace rules.',
+            desc: 'Illustrative examples: digital publication of community-approved quiet hours, pet policies, and shared terrace rules.',
           },
           {
             title: 'Localized Neighborhood Context',
-            desc: 'Curated building-specific notes on municipal recycling schedules, local transit points, and utility contacts.',
+            desc: 'Illustrative examples: building-specific notes on municipal recycling schedules, local transit points, and utility contacts.',
           },
         ],
       },
       eventsSection: {
         badge: 'EVENT COORDINATION CONTEXT',
         title: 'Event Discovery, Community Context & Participation Intent',
-        desc: 'The architectural model for collective gatherings and statutory assemblies:',
+        desc: 'The architectural model for collective gatherings and assemblies (conceptual composition model, without implying certified statutory voting or commercial ticketing):',
         items: [
           {
             title: 'General Meetings & Assemblies',
@@ -478,7 +494,7 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             title: 'Capacity Checking via BK01',
-            desc: 'Events occupying physical amenities verify capacity boundaries directly against canonical provider BK01.',
+            desc: 'Events occupying physical amenities verify capacity boundaries directly against designated provider BK01.',
           },
         ],
       },
@@ -486,35 +502,37 @@ export default async function CommunityExperiencePage(props: {
         badge: 'JOURNEY COMPOSITION LAYER',
         title: 'Contextual Experience Archetypes Across the Built Environment',
         desc: 'C&E models interaction through 6 canonical experience archetypes across property typologies:',
+        qualification:
+          'Architectural Qualification Notice: The touchpoints below represent conceptual journey archetypes and architectural composition examples, not universally released production workflows.',
         journeys: [
           {
             role: 'Resident Journey',
-            desc: 'Move-in onboarding, utility meter baseline, quota review in FIN01, repair logging, and HOA voting.',
+            desc: 'Illustrative composition touchpoints: move-in onboarding, utility meter baseline, FIN01 quota reference, repair requests, and association consultation touchpoints where activated.',
             badge: 'Residential',
           },
           {
             role: 'Workplace Tenant Journey',
-            desc: 'Corporate employee orientation, desk/meeting room booking in BK01, visitor badges, and workplace service requests.',
+            desc: 'Illustrative composition touchpoints: employee orientation, room availability checks via BK01, visitor pass touchpoints, and facility support requests.',
             badge: 'Workplace',
           },
           {
             role: 'Visitor Journey',
-            desc: 'Pre-registered digital pass, parking gate orientation, turnstile guidance, and time-bounded indoor navigation.',
+            desc: 'Illustrative composition touchpoints: pre-registered pass context, parking gate guidance, turnstile access directions, and time-bounded indoor orientation.',
             badge: 'Temporary Access',
           },
           {
             role: 'Guest Journey',
-            desc: 'Arrival check-in guidance, digital room handbook, on-premise amenity reservations, and express departure.',
+            desc: 'Illustrative composition touchpoints: arrival guidance, digital room handbook, leisure amenity requests routed to BK01, and departure orientation.',
             badge: 'Hospitality',
           },
           {
             role: 'Retail Customer Journey',
-            desc: 'Shopping center mall directory, customer lounge amenities, merchant promotions, and parking validation.',
+            desc: 'Illustrative composition touchpoints: shopping center directory orientation, customer amenity guidance, merchant hours, and parking validation touchpoints.',
             badge: 'Retail',
           },
           {
             role: 'Contractor Journey',
-            desc: 'On-site technical orientation, digital safety briefing, hot-work permit check, and work-order completion sign-off.',
+            desc: 'Illustrative composition touchpoints: on-site safety briefing, operational permit verification context, and work-order completion sign-off routing.',
             badge: 'Operational',
           },
         ],
@@ -527,26 +545,44 @@ export default async function CommunityExperiencePage(props: {
           {
             domain: 'C&E vs. SERVICE',
             role: 'Experience Composition vs. Procurement Intent',
-            rule: 'C&E surfaces service discovery; SERVICE owns formal requests, vendor quote comparison, and purchase orders.',
+            rule: 'C&E surfaces service discovery; SERVICE is designated to own service request and order semantics, including relevant quote, order, and acceptance stages where released.',
             icon: Wrench,
           },
           {
             domain: 'C&E vs. BK01',
             role: 'Presentation vs. Capacity Truth',
-            rule: 'C&E presents amenity schedules; BK01 is the sole canonical authority for availability, thresholds, and conflict detection.',
+            rule: 'C&E presents amenity schedules; BK01 is designated as the canonical authority responsible for availability models, capacity thresholds, and reservation conflict detection. C&E owns zero booking truth.',
             icon: Calendar,
           },
           {
             domain: 'C&E vs. FIN01',
             role: 'Interaction vs. Financial Truth',
-            rule: 'C&E maintains no shadow wallets or point ledgers. Every monetary transaction is strictly recorded in FIN01.',
+            rule: 'C&E maintains no shadow wallets or point ledgers. FIN01 is designated to own financial truth, transactions, and applicable accounting records.',
             icon: DollarSign,
           },
           {
             domain: 'C&E vs. COMMUNICATIONS',
             role: 'Context vs. Delivery Dispatch',
-            rule: 'C&E identifies the contextual touchpoint; COMMUNICATIONS owns multi-channel delivery logs and statutory proof of notice.',
+            rule: 'C&E identifies contextual touchpoints; COMMUNICATIONS is designated to govern message dispatch and delivery logging, subject to active channel release capabilities.',
             icon: MessageSquare,
+          },
+          {
+            domain: 'C&E vs. DOCUMENTS (VAULT)',
+            role: 'Guide Presentation vs. Document Provenance',
+            rule: 'C&E surfaces operational guides and policies; DOCUMENTS (VAULT) owns canonical document versions, safe labels, provenance, and auditable document context, without unverified cryptographic claims.',
+            icon: FileText,
+          },
+          {
+            domain: 'C&E vs. OPERATIONS',
+            role: 'Occupant Interaction vs. Work-Order Execution',
+            rule: 'C&E captures assistance requests; OPERATIONS is the canonical owner of work-order execution, technician dispatch, and maintenance checklists subject to release maturity.',
+            icon: Briefcase,
+          },
+          {
+            domain: 'C&E vs. CORE',
+            role: 'Local Experience vs. Authority & Identity',
+            rule: 'C&E composes experience within role limits; CORE governs identity, workspace membership, and authority, where architecture requires mutation denial when authority cannot be established.',
+            icon: ShieldCheck,
           },
         ],
       },
@@ -557,7 +593,7 @@ export default async function CommunityExperiencePage(props: {
         presets: [
           {
             name: 'Residential Living Experience',
-            desc: 'Condominium handbook, digital notice board, HOA maintenance dues from FIN01, resident repair tickets, and community votes.',
+            desc: 'Condominium handbook, community notice context, FIN01 dues reference, maintenance proposals, and association consultation touchpoints where activated.',
             icon: Building2,
           },
           {
@@ -567,32 +603,32 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             name: 'Retail & Shopping Center Podiums',
-            desc: 'Shopper directory, customer amenity guidance, merchant community communication, and public facility schedules.',
+            desc: 'Commercial mall orientation, customer amenity guidance, operating schedules, and merchant operational communication context.',
             icon: Store,
           },
           {
             name: 'Hospitality & Serviced Living',
-            desc: 'Digital lodging handbook, arrival guidance, and shared leisure capacity reservation (spa, pool) anchored in BK01.',
+            desc: 'Digital lodging handbook, arrival orientation, and shared amenity reservation requests architecturally routed to BK01.',
             icon: Hotel,
           },
           {
             name: 'Industrial Workforce Orientation',
-            desc: 'Site safety briefings, hazardous zone access instructions, perimeter rules, and technical contractor emergency protocols.',
+            desc: 'Safety orientation context, regulated zone access guidelines, perimeter rules, and technical emergency protocols.',
             icon: Factory,
           },
           {
             name: 'Logistics Facility Orientation',
-            desc: 'Yard circulation guidelines, loading dock check-in instructions, driver amenities, and warehouse safety protocols.',
+            desc: 'Yard circulation guidelines, loading dock arrival instructions, driver amenities, and facility safety protocols.',
             icon: Warehouse,
           },
           {
             name: 'Automotive Customer Journey',
-            desc: 'Service center arrival instructions, customer lounge guidance, and live vehicle service status touchpoints.',
+            desc: 'Service reception orientation, customer lounge guidance, and vehicle service status notification touchpoints.',
             icon: Car,
           },
           {
             name: 'Mixed-Use Integrated Experience',
-            desc: 'The pinnacle of composition: seamless contextual transitions across residential, office, and retail tiers under CORE authority.',
+            desc: 'Architectural composition model: seamless contextual transitions across residential, office, and retail tiers under a shared canonical property/resource identity model and CORE authority.',
             icon: Layers,
           },
         ],
@@ -602,14 +638,14 @@ export default async function CommunityExperiencePage(props: {
         title: 'Governed AI Orchestration Within Experience Journeys',
         desc: 'Assistive intelligence inside C&E operates strictly as an orchestrator subordinate to verified human authority, following a 6-step flow:',
         steps: [
-          { title: '1. Context', desc: 'Identifies the physical space, property asset, and verified user.' },
-          { title: '2. Intent', desc: 'Clarifies what the occupant or manager seeks to accomplish.' },
+          { title: '1. Context', desc: 'Identifies the physical space, property asset, and verified identity.' },
+          { title: '2. Intent', desc: 'Clarifies what the occupant seeks to accomplish in context.' },
           { title: '3. Authority', desc: 'Confirms required mandates and workspace rights in CORE.' },
           { title: '4. Planning', desc: 'Constructs an operational proposal for the appropriate provider.' },
-          { title: '5. Human Approval', desc: 'Action requires explicit confirmation by an authorized human.' },
-          { title: '6. Immutable Receipt', desc: 'Permanent audit logging across system event records.' },
+          { title: '5. Policy & Human Review', desc: 'Consequential actions remain subject to applicable policy controls and appropriate human approval.' },
+          { title: '6. Audit Record', desc: 'Contextual event logging across platform audit trails.' },
         ],
-        note: 'AI never creates legal authority, executes autonomous financial transfers, or overrides mandatory human approvals.',
+        note: 'AI operates within verified authority boundaries. Consequential actions remain subject to applicable policy controls and appropriate human approval.',
       },
       availability: {
         badge: 'TRANSPARENCY & DEPLOYMENT GOVERNANCE',
@@ -617,8 +653,8 @@ export default async function CommunityExperiencePage(props: {
         desc: 'Our public presentation outlines the holistic architectural model of Community & Experience. In real-world enterprise deployments, capability availability is governed individually by product release status and customer implementation agreements.',
         points: [
           'C&E capabilities are modularly assembled based on active workspace subscription tiers and property DNA requirements.',
-          'Advanced capabilities (such as automated guest journey coordination, retail marketplace integrations, or automated concierge workflows) represent target architectural designs subject to roadmap maturity.',
-          'Architectural safety is absolute: no experience touchpoint can create unauthorized mutation states in canonical truth providers.',
+          'Target-heavy capabilities (such as member directories, social feeds, direct messaging, marketplace, loyalty programs, AI concierge, or advanced guest/retail experience automation) represent architectural design targets subject to release roadmaps, not live production workflows.',
+          'Architectural integrity is maintained: workspace-scoped boundaries are designed to prevent cross-context exposure, and architecture requires mutation denial when authority cannot be established.',
         ],
       },
       cta: {
@@ -695,10 +731,12 @@ export default async function CommunityExperiencePage(props: {
           {
             num: '۰۶',
             name: 'ارجاع به متولیان مرجع',
-            desc: 'درخواست‌ها به SERVICE/OPS، رزرواسیون به BK01، اسناد به FIN01.',
+            desc: 'درخواست‌ها به SERVICE/OPS، رزرواسیون به BK01، تراکنش‌ها به FIN01.',
             icon: CheckCircle2,
           },
         ],
+        principle:
+          'اصل بنیادین معماری: C&E روابط تأییدشده و مرزهای دارایی را از CORE (که در آن معماری مستلزم رد هرگونه تغییر در صورت عدم احراز صلاحیت است)، حقیقت ظرفیت را از BK01، زمینه اسناد مرجع را از DOCUMENTS و حقیقت مالی را از FIN01 دریافت می‌نماید. C&E هرگز به عنوان یک پایگاه داده موازی عمل نمی‌کند.',
       },
       communityLayer: {
         badge: 'لایه تعاملات جمعی',
@@ -706,66 +744,66 @@ export default async function CommunityExperiencePage(props: {
         desc: 'تعاملات اجتماعی و سازمانی بر بستر ساختار فیزیکی و اداری ساختمان هدایت می‌شوند:',
         items: [
           {
-            title: 'عضویت اعتبارسنجی‌شده در ورک‌اسپیس',
-            desc: 'حضور و تعامل در فضاهای هر ملک صرفاً به اعضای مجاز و دارای نقش فعال محدود می‌گردد.',
+            title: 'بافت عضویت و تعاملات جمعی',
+            desc: 'چارچوب معماری حضور در فضاهای هر ملک بر اساس عضویت در ورک‌اسپیس و نقش‌های مرتبط تعریف می‌شود.',
           },
           {
-            title: 'تابلوی اعلانات دیجیتال و تصمیم‌گیری',
-            desc: 'اطلاع‌رسانی رسمی هیئت‌مدیره، انتشار قوانین و رأی‌گیری‌های اساسنامه‌ای با شفافیت کامل.',
+            title: 'اطلاعات جمعی و زمینهٔ مشارکت',
+            desc: 'الگوی ساختاری انتشار اعلانات اداری، اطلاعیه‌های ساختمان و زمینه‌های مشورتی ساختاریافتهٔ جمعی.',
           },
           {
-            title: 'حفظ حریم خصوصی و تفکیک مرزها',
-            desc: 'همسایگان در فضاهای مشترک تعامل می‌کنند بدون آنکه سوابق مالی یا جزئیات واحدهایشان افشا گردد.',
+            title: 'تفکیک مرزها و حفظ حریم خصوصی',
+            desc: 'معماری تعاملات در فضاهای مشترک به گونه‌ای است که سوابق محرمانه واحدها و داده‌های مالی محافظت شوند.',
           },
           {
-            title: 'شناخت امکانات مشترک مجتمع',
-            desc: 'ارائه ساعات استفاده، ضوابط بهره‌برداری و هشدارهای نگهداری برای امکانات رفاهی ساختمان.',
+            title: 'ضوابط فضاهای مشترک و شناخت امکانات',
+            desc: 'ارائه ضوابط بهره‌برداری از فضاهای مشترک، ساعات آرامش و راهنمایی‌های عملیاتی استفاده از مشاعات.',
           },
         ],
       },
       guidesSection: {
         badge: 'راهنماها و بستر مکانی',
         title: 'راهنمای دارایی، پروتکل‌های ورود و راهنمایی محیطی',
-        desc: 'دامنه C&E دستورالعمل‌های بهره‌برداری را در زمان و مکان مناسب به ساکنان و بهره‌برداران ارائه می‌دهد:',
+        desc: 'دامنه C&E ساختار راهنماهای بهره‌برداری را بر بستر مکانی تعریف می‌کند (نمونه‌های تصویری از دسته‌بندی راهنماها، بدون ادعای کتابخانهٔ فراگیر فعال):',
         items: [
           {
             title: 'راهنمای فنی تجهیزات و واحد',
-            desc: 'آموزش‌های کاربردی برای تنظیم ترموستات‌ها، جعبه فیوز، آیفون تصویری و کنتورهای تفکیکی.',
+            desc: 'نمونه‌های تصویری: آموزش‌های کاربردی برای تنظیم ترموستات‌ها، جعبه فیوز، آیفون تصویری و کنتورهای تفکیکی.',
           },
           {
             title: 'پروتکل‌های ورود و دسترسی',
-            desc: 'دستورالعمل‌های شفاف برای مراجعان، اسباب‌کشی، بسته‌های پستی و پارکینگ‌های مهمان.',
+            desc: 'نمونه‌های تصویری: پروتکل‌های شفاف برای مراجعان، اسباب‌کشی، بسته‌های پستی و پارکینگ‌های مهمان.',
           },
           {
             title: 'قوانین و استانداردهای مجتمع',
-            desc: 'دسترسی همیشگی به ساعات آرامش، ضوابط نگهداری حیوانات خانگی و استفاده از بام و حیاط.',
+            desc: 'نمونه‌های تصویری: دسترسی به ضوابط مصوب جامعه، ساعات آرامش و استفاده از بام و حیاط مشترک.',
           },
           {
             title: 'اطلاعات محله و خدمات پیرامونی',
-            desc: 'اطلاعات مدیریت پسماند تفکیکی، ایستگاه‌های حمل‌ونقل و شماره‌های اضطراری امدادی.',
+            desc: 'نمونه‌های تصویری: اطلاعات مدیریت پسماند تفکیکی، ایستگاه‌های حمل‌ونقل و شماره‌های اضطراری محلی.',
           },
         ],
       },
       eventsSection: {
         badge: 'هماهنگی رویدادها و جلسات',
         title: 'اطلاع‌رسانی گردهمایی‌ها، مجامع عمومی و ثبت تمایل به حضور',
-        desc: 'الگوی ساختاری برای برنامه‌های همگانی و جلسات رسمی تصمیم‌گیری:',
+        desc: 'الگوی ساختاری برای گردهمایی‌های جمعی و مجامع (الگوی مفهومی ترکیب معماری، بدون ادعای رأی‌گیری رسمی حقوقی یا بلیت‌فروشی تجاری):',
         items: [
           {
             title: 'مجامع عمومی و جلسات رسمی',
-            desc: 'فراخوان رسمی جلسات قانونی، دستور کار مصوب و انتشار اسناد پیش از برگزاری مجمع.',
+            desc: 'تقویم پیشنهادی جلسات، دستور کار مصوب و امکان مطالعه اسناد پیش از برگزاری مجمع.',
           },
           {
             title: 'پویش‌ها و گردهمایی‌های داخلی',
-            desc: 'برنامه‌های درختکاری، بهسازی مشاعات و جشن‌های سالانه که توسط ساکنان هماهنگ می‌شوند.',
+            desc: 'برنامه‌های درختکاری، بهسازی مشاعات و جشن‌های فصلی که توسط ساکنان هماهنگ می‌شوند.',
           },
           {
             title: 'اعلام تمایل به حضور (RSVP)',
-            desc: 'امکان سنجش حدنصاب و تنظیم امکانات سالن اجتماعات بر اساس تعداد حاضران قطعی.',
+            desc: 'ثبت تمایل به حضور جهت تنظیم امکانات سالن و تخمین حدنصاب پیش از برگزاری.',
           },
           {
             title: 'کنترل ظرفیت فضا از طریق BK01',
-            desc: 'هر رویداد برای اشغال سالن یا روف‌گاردن، محدودیت‌های ظرفیت را مستقیماً از ارائه‌دهنده BK01 بررسی می‌کند.',
+            desc: 'رویدادهایی که فضاهای فیزیکی را در بر می‌گیرند، الگوی ظرفیت را از طریق ارائه‌دهندهٔ تعیین‌شده BK01 ارزیابی می‌کنند.',
           },
         ],
       },
@@ -773,35 +811,37 @@ export default async function CommunityExperiencePage(props: {
         badge: 'لایه ترکیب مسیرهای کاربری',
         title: 'الگوهای شش‌گانه مسیرهای تعاملی در دنیای املاک',
         desc: 'دامنه C&E تجربه کاربری را از طریق ۶ الگوی مرجع در کاربری‌های گوناگون طراحی می‌نماید:',
+        qualification:
+          'یادداشت انطباق معماری: نقاط تعاملی زیر الگوهای مفهومی مسیر کاربری و نمونه‌های ترکیب معماری هستند، نه جریان‌های کاری عرضه‌شدهٔ سراسری در محیط عملیاتی.',
         journeys: [
           {
             role: 'مسیر سکونت ساکن (Resident Journey)',
-            desc: 'پذیرش در ساختمان، ثبت کنتور اولیه، بررسی هزینه‌ها در FIN01، ثبت تعمیرات و رأی در مجمع.',
+            desc: 'نمونه‌های تصویری ترکیب: پذیرش در ساختمان، ثبت کنتور مبنا، ارجاع سهم شارژ به FIN01، ثبت درخواست خرابی و زمینه‌های مشورتی در صورت فعال‌سازی.',
             badge: 'مسکونی',
           },
           {
             role: 'مسیر پرسنل اداری (Workplace Tenant)',
-            desc: 'ورود کارمند، رزرو اتاق جلسات در BK01، صدور بلیت مهمان و ارسال درخواست‌های پشتیبانی اداری.',
+            desc: 'نمونه‌های تصویری ترکیب: ورود کارمند، بررسی ظرفیت اتاق جلسات از طریق BK01، مدیریت مراجعان و درخواست‌های پشتیبانی اداری.',
             badge: 'فضاهای کار',
           },
           {
             role: 'مسیر مراجع و مهمان (Visitor Journey)',
-            desc: 'دریافت مجوز دیجیتال تردد، ورود به پارکینگ، عبور از گیت و هدایت طبقاتی در بازه زمانی معین.',
+            desc: 'نمونه‌های تصویری ترکیب: بستر مجوز ثبت‌شده، راهنمای ورودی پارکینگ، هدایت گیت و جهت‌یابی طبقاتی در بازه زمانی معین.',
             badge: 'تردد موقت',
           },
           {
             role: 'مسیر مسافر هتل (Guest Journey)',
-            desc: 'راهنمای پذیرش، کتابچه دیجیتال اتاق، رزرو امکانات استخر و اسپا در BK01 و خروج بدون معطلی.',
+            desc: 'نمونه‌های تصویری ترکیب: راهنمای پذیرش، کتابچه دیجیتال اتاق، ثبت تقاضای امکانات رفاهی متصل به BK01 و پروتکل خروج.',
             badge: 'اقامتی',
           },
           {
             role: 'مسیر مشتری تجاری (Retail Customer)',
-            desc: 'نقشه دیجیتال مرکز خرید، امکانات رفاهی خانواده، ساعات کاری اصناف و تخفیف پارکینگ.',
+            desc: 'نمونه‌های تصویری ترکیب: جهت‌یابی نقشه تجاری، راهنمای امکانات مراجعان، ساعات فعالیت اصناف و اعتبارسنجی پارکینگ.',
             badge: 'تجاری',
           },
           {
             role: 'مسیر تکنسین پیمانکار (Contractor)',
-            desc: 'نکات ایمنی سایت، صدور مجوز کار گرم، دسترسی به موتورخانه و تأیید نهایی چک‌لیست پایان کار.',
+            desc: 'نمونه‌های تصویری ترکیب: نکات ایمنی سایت، بستر بررسی مجوز کار فنی و هدایت تأییدیه پایان کار به سامانه عملیات.',
             badge: 'عملیاتی',
           },
         ],
@@ -814,26 +854,44 @@ export default async function CommunityExperiencePage(props: {
           {
             domain: 'C&E در برابر SERVICE',
             role: 'ترکیب تجربه در برابر قصد خرید خدمت',
-            rule: 'دامنه C&E نیاز یا خدمات را نمایش می‌دهد؛ SERVICE متولی رسمی ثبت درخواست، مقایسه قیمت‌ها و سفارش کار است.',
+            rule: 'دامنه C&E بستر کشف خدمات را ارائه می‌دهد؛ SERVICE به عنوان متولی ساختاری مدیریت درخواست‌ها و سفارش‌های خدماتی تعیین شده و مراحل استعلام، سفارش و پذیرش را در صورت انتشار دربرمی‌گیرد.',
             icon: Wrench,
           },
           {
             domain: 'C&E در برابر BK01',
             role: 'نمایش تقویم در برابر حقیقت ظرفیت',
-            rule: 'دامنه C&E تقویم را به کاربر نشان می‌دهد؛ BK01 مرجع انحصاری کنترل ظرفیت، سانس‌ها و رفع تداخلات زمانی است.',
+            rule: 'دامنه C&E تقویم و امکانات را نمایش می‌دهد؛ BK01 مرجع ساختاری تعیین‌شده برای الگوهای دسترسی، سقف ظرفیت‌ها و تشخیص تداخلات رزرواسیون است. C&E هیچ حقیقتی از رزرواسیون در اختیار ندارد.',
             icon: Calendar,
           },
           {
             domain: 'C&E در برابر FIN01',
             role: 'تعامل در برابر حقیقت مالی',
-            rule: 'دامنه C&E هیچ کیف پول، امتیاز یا حسابی نگه نمی‌دارد. تمام رویدادهای مالی منحصراً در FIN01 ثبت می‌گردند.',
+            rule: 'دامنه C&E هیچ کیف پول، امتیاز یا دفاتر موازی نگهداری نمی‌کند. FIN01 به عنوان متولی مرجع حقیقت مالی، تراکنش‌ها و اسناد حسابداری مرتبط تعیین شده است.',
             icon: DollarSign,
           },
           {
             domain: 'C&E در برابر COMMUNICATIONS',
             role: 'موقعیت تعاملی در برابر ارسال پیام',
-            rule: 'دامنه C&E موقعیت پیام در مسیر را تعیین می‌کند؛ COMMUNICATIONS متولی ارسال چندکاناله و ثبت اصالت تحویل است.',
+            rule: 'دامنه C&E نقطه تعاملی اعلان را مشخص می‌سازد؛ COMMUNICATIONS به عنوان متولی ارسال پیام‌ها و ثبت گزارش‌های تحویل متناسب با کانال‌های فعال تعیین شده است.',
             icon: MessageSquare,
+          },
+          {
+            domain: 'C&E در برابر DOCUMENTS (VAULT)',
+            role: 'نمایش راهنماها در برابر اصالت اسناد',
+            rule: 'دامنه C&E راهنماها و ضوابط را نمایش می‌دهد؛ DOCUMENTS (VAULT) متولی نگهداری نسخه‌های مرجع، برچسب‌های امن، منشأ سند و بستر ممیزی اسناد بدون ادعاهای رمزنگاری‌نشده است.',
+            icon: FileText,
+          },
+          {
+            domain: 'C&E در برابر OPERATIONS',
+            role: 'تعامل بهره‌بردار در برابر اجرای عملیات نگهداری',
+            rule: 'دامنه C&E درخواست نیاز را دریافت می‌کند؛ OPERATIONS متولی اصلی صدور و اجرای دستورکارها، اعزام تکنسین و چک‌لیست‌های فنی متناسب با فاز انتشار است.',
+            icon: Briefcase,
+          },
+          {
+            domain: 'C&E در برابر CORE',
+            role: 'تجربه موضعی در برابر هویت و حدود اختیارات',
+            rule: 'دامنه C&E تجربه کاربری را در چارچوب نقش شکل می‌دهد؛ CORE حاکم بر هویت، عضویت ورک‌اسپیس و اختیارات است، جایی که معماری در صورت عدم احراز صلاحیت، هرگونه تغییر را رد می‌کند.',
+            icon: ShieldCheck,
           },
         ],
       },
@@ -844,7 +902,7 @@ export default async function CommunityExperiencePage(props: {
         presets: [
           {
             name: 'تجربه زیست مسکونی',
-            desc: 'کتابچه مجتمع، تابلوی اعلانات، ارقام شارژ از FIN01، ثبت درخواست خرابی و جلسات هیئت‌مدیره.',
+            desc: 'کتابچه مجتمع، بستر اعلانات جمعی، ارجاع ارقام شارژ به FIN01، ثبت درخواست خرابی و زمینه‌های مشورتی در صورت فعال‌سازی.',
             icon: Building2,
           },
           {
@@ -854,17 +912,17 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             name: 'تجربه مراکز تجاری و خرید',
-            desc: 'راهنمای غرفه‌ها، خدمات رفاهی مراجعان، ارتباطات مالکان با اصناف و ساعات عمومی.',
+            desc: 'جهت‌یابی فضاهای تجاری، راهنمای امکانات مراجعان، ساعات فعالیت و بستر ارتباطات عملیاتی با اصناف.',
             icon: Store,
           },
           {
             name: 'تجربه اقامتی و هتلداری',
-            desc: 'کتابچه دیجیتال هتل، راهنمای پذیرش و تقویم رزرو امکانات رفاهی (اسپا، استخر) متصل به BK01.',
+            desc: 'کتابچه دیجیتال اقامتی، راهنمای پذیرش و هدایت درخواست رزرو امکانات مشترک به متولی BK01.',
             icon: Hotel,
           },
           {
             name: 'بستر نیروی کار صنعتی',
-            desc: 'دستورالعمل‌های ایمنی کارگاه، مجوزهای ورود، قوانین پیرامونی و مسیرهای اضطراری تأسیساتی.',
+            desc: 'دستورالعمل‌های ایمنی کارگاه، راهنمای دسترسی به مناطق ویژه، قوانین پیرامونی و پروتکل‌های اضطراری تأسیساتی.',
             icon: Factory,
           },
           {
@@ -874,12 +932,12 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             name: 'مسیر مشتریان مجتمع‌های خودرویی',
-            desc: 'پروتکل‌های پذیرش خودرو، امکانات سالن انتظار مشتریان و هشدارهای مرحله‌ای فرایند سرویس.',
+            desc: 'پروتکل‌های پذیرش خودرو، امکانات سالن انتظار مشتریان و نقاط اطلاع‌رسانی وضعیت سرویس خودرو.',
             icon: Car,
           },
           {
             name: 'تجربه پروژه‌های چندمنظوره (Mixed-Use)',
-            desc: 'اوج ترکیب‌پذیری: جابجایی پیوسته میان بخش‌های مسکونی، اداری و تجاری بر پایه حدود اختیارات CORE.',
+            desc: 'الگوی ترکیب معماری: جابجایی پیوسته میان بخش‌های مسکونی، اداری و تجاری بر پایه مدل مشترک هویت دارایی و منابع تحت مرزهای اختیارات در CORE.',
             icon: Layers,
           },
         ],
@@ -889,23 +947,23 @@ export default async function CommunityExperiencePage(props: {
         title: 'ارکستراسیون تحت نظارت انسان در مسیرهای تعاملی',
         desc: 'هوش مصنوعی در دامنه C&E صرفاً به عنوان دستیار کمکی و تحت فرمان مأموریت‌های انسانی در یک فرآیند ۶ مرحله‌ای عمل می‌کند:',
         steps: [
-          { title: '۱. بافت ملک (Context)', desc: 'شناسایی فضا، دارایی فیزیکی و هویت کاربر.' },
-          { title: '۲. مقصود (Intent)', desc: 'شفاف‌سازی خواسته و هدف مورد نظر کاربر.' },
-          { title: '۳. بررسی مأموریت (Authority)', desc: 'تأیید حدود اختیارات کاربر در هسته CORE.' },
+          { title: '۱. بافت ملک (Context)', desc: 'شناسایی فضا، دارایی فیزیکی و هویت احراز‌شده.' },
+          { title: '۲. مقصود (Intent)', desc: 'شفاف‌سازی خواسته و هدف کاربر در بافت مکانی.' },
+          { title: '۳. بررسی مأموریت (Authority)', desc: 'تأیید حدود اختیارات و حقوق ورک‌اسپیس در CORE.' },
           { title: '۴. برنامه‌ریزی (Plan)', desc: 'تدوین بسته پیشنهادی برای متولی اصلی داده‌ها.' },
-          { title: '۵. تأیید انسانی (Approval)', desc: 'اجرا منوط به تأیید صریح شخص دارای صلاحیت است.' },
-          { title: '۶. ثبت ردپا (Audit)', desc: 'ثبت دائمی و غیرقابل تغییر رویداد در سوابق ممیزی.' },
+          { title: '۵. انطباق با خط‌مشی و نظارت انسانی', desc: 'اقدامات دارای پیامد، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.' },
+          { title: '۶. ثبت سوابق ممیزی', desc: 'ثبت سیستمی رویدادها در مسیرهای ممیزی پلتفرم.' },
         ],
-        note: 'هوش مصنوعی هرگز حق قانونی ایجاد نمی‌کند، پرداخت خودسرانه انجام نمی‌دهد و تأیید انسانی را دور نمی‌زند.',
+        note: 'هوش مصنوعی در چارچوب مرزهای احراز‌شدهٔ اختیارات عمل می‌کند. اقدامات دارای پیامدهای حقوقی یا مالی، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.',
       },
       availability: {
         badge: 'شفافیت حاکمیت و سطح بلوغ سامانه',
         title: 'بلوغ معماری دامنه تجربه و حاکمیت استقرار',
         desc: 'بخش حاضر معماری کلان دامنه جامعه و تجربه کاربری را ترسیم می‌نماید. در استقرارهای واقعی در سطح سازمان‌ها، میزان فعال‌سازی هر قابلیت به فاز انتشار محصول و قرارداد اجرایی هر پروژه وابسته است.',
         points: [
-          'قابلیت‌های C&E بر اساس اشتراک فعال ورک‌اسپیس و کالبد فیزیکی ملک فعال‌سازی می‌شوند.',
-          'ویژگی‌های پیشرفته (مانند اتوماسیون کامل پذیرش مهمان یا سیستم‌های خودکار کنسیرژ) در زمره برنامه‌های هدف معماری بوده و مشمول مراحل بعدی انتشار هستند.',
-          'امنیت معماری قطعی است: هیچ فرایند تعاملی در C&E نمی‌تواند بدون احراز هویت در متولیان مرجع داده تغییری ایجاد کند.',
+          'قابلیت‌های C&E بر اساس سطح اشتراک فعال ورک‌اسپیس و ویژگی‌های ساختاری دارایی فعال‌سازی می‌شوند.',
+          'قابلیت‌های هدف‌محور (نظیر دایرکتوری اعضا، فید اجتماعی، پیام‌رسانی مستقیم، بازارگاه، برنامه‌های وفاداری، کنسیرژ هوش مصنوعی یا اتوماسیون پیشرفته مهمان و تجاری) اهداف معماری در نقشه راه هستند و جریان‌های فعال در محیط عملیاتی تلقی نمی‌شوند.',
+          'یکپارچگی معماری تضمین شده است: مرزهای تفکیک‌شدهٔ ورک‌اسپیس برای جلوگیری از افشای داده‌ها میان بسترها طراحی شده‌اند و معماری در صورت عدم احراز صلاحیت، هرگونه تغییر را رد می‌کند.',
         ],
       },
       cta: {
@@ -919,11 +977,11 @@ export default async function CommunityExperiencePage(props: {
     breadcrumb: { home: 'Home', current: 'Community & Experience' },
     hero: { badge: '', title: '', subtitle: '', ctaPrimary: '', ctaSecondary: '' },
     peerDomain: { badge: '', title: '', desc: '', points: [] },
-    flowSection: { badge: '', title: '', desc: '', steps: [] },
+    flowSection: { badge: '', title: '', desc: '', steps: [], principle: '' },
     communityLayer: { badge: '', title: '', desc: '', items: [] },
     guidesSection: { badge: '', title: '', desc: '', items: [] },
     eventsSection: { badge: '', title: '', desc: '', items: [] },
-    journeysSection: { badge: '', title: '', desc: '', journeys: [] },
+    journeysSection: { badge: '', title: '', desc: '', qualification: '', journeys: [] },
     boundariesSection: { badge: '', title: '', desc: '', boundaries: [] },
     presetsSection: { badge: '', title: '', desc: '', presets: [] },
     intelligencePreview: { badge: '', title: '', desc: '', steps: [], note: '' },
@@ -1060,7 +1118,7 @@ export default async function CommunityExperiencePage(props: {
           </div>
 
           <div className="p-4 rounded-xl bg-[#F6F9FC] border border-[#D3DCE6] text-xs text-[#52667A] leading-relaxed">
-            <strong className="text-[#102A43]">Architectural Principle:</strong> C&amp;E consumes verified relationships and property boundaries from <span className="font-mono text-[#102A43] font-semibold">CORE</span>, capacity truth from <span className="font-mono text-[#102A43] font-semibold">BK01</span>, document proofs from <span className="font-mono text-[#102A43] font-semibold">DOCUMENTS</span>, and financial balances from <span className="font-mono text-[#102A43] font-semibold">FIN01</span>. It never acts as a shadow database.
+            {content.flowSection.principle}
           </div>
         </section>
 
@@ -1168,6 +1226,12 @@ export default async function CommunityExperiencePage(props: {
             </p>
           </div>
 
+          {/* Prominent Visible Qualification Before Journeys */}
+          <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs text-amber-900 flex items-center gap-2.5">
+            <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
+            <span>{content.journeysSection.qualification}</span>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {content.journeysSection.journeys.map((jn, idx) => (
               <div
@@ -1206,7 +1270,7 @@ export default async function CommunityExperiencePage(props: {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {content.boundariesSection.boundaries.map((bd, idx) => {
               const Icon = bd.icon;
               return (
