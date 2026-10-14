@@ -272,6 +272,25 @@ async function installDisposableExecutionBoundary() {
     begin raise exception using errcode='40001',message='disposable genuine serialization'; end $fn$`);
   await pool.query(`grant execute on function app_private.ce_guide_http_raise_40001_v1()
     to cladora_rpc_owner`);
+  const verification = await pool.connect();
+  try {
+    await verification.query('begin');
+    await verification.query('set local role cladora_rpc_owner');
+    const boundary = await verification.query(`select current_user,
+      has_schema_privilege(current_user,'auth','USAGE') as auth_usage,
+      has_function_privilege(current_user,'auth.uid()','EXECUTE') as uid_execute,
+      has_function_privilege(current_user,'auth.jwt()','EXECUTE') as jwt_execute`);
+    assert.deepEqual(boundary.rows[0], {
+      current_user: 'cladora_rpc_owner', auth_usage: true,
+      uid_execute: true, jwt_execute: true,
+    });
+    await verification.query('rollback');
+  } catch (error) {
+    await verification.query('rollback').catch(() => undefined);
+    throw error;
+  } finally {
+    verification.release();
+  }
 }
 
 async function removeDisposableExecutionBoundary() {
@@ -333,7 +352,11 @@ function diagnosticPool(delegate) {
             sourceLockRole = `${probe.rows[0]?.current_user ?? 'UNKNOWN'}:${
               probe.rows[0]?.auth_usage === true ? 'AUTH_USAGE' : 'AUTH_DENIED'}`;
           }
-          return await client.query(text, values);
+          const result = await client.query(text, values);
+          if (normalized.trim() === 'set local role cladora_rpc_owner') {
+            sourceLockRole = 'cladora_rpc_owner:ROLE_SELECTED';
+          }
+          return result;
         } catch (error) {
           const operation = /^\s*([a-z]+)/i.exec(normalized)?.[1]?.toUpperCase() ?? 'QUERY';
           const boundary = normalized.includes("set_config('request.jwt.claims'")
