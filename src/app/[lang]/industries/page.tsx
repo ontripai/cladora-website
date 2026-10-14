@@ -61,15 +61,15 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       compositionVsForks: {
         badge: 'PRINCIPIU ARHITECTURAL CENTRAL',
         title: 'Compoziție Dinamică, Nu Fork-uri Verticale',
-        desc: 'Spre deosebire de sistemele tradiționale care creează aplicații separate pentru fiecare nișă, CLADORA refuză fragmentarea bazei de cod. O proprietate comercială, un ansamblu rezidențial și un depozit logistic utilizează exact același nucleu de date și aceleași granițe tranzacționale.',
+        desc: 'Arhitectura țintă a platformei CLADORA evită fork-urile de produs specifice fiecărei industrii. O proprietate comercială, un ansamblu rezidențial și un depozit logistic sunt modelate în jurul aceluiași model comun de date și autoritate.',
         points: [
           {
             title: 'Fără Silozuri de Cod',
-            desc: 'Nu există un «CLADORA Rezidențial» separat de «CLADORA Retail». Toate contextele partajează același kernel securizat și aceeași schemă unificată.',
+            desc: 'Arhitectura publică de produs este concepută în jurul compoziției, nu a unor baze de cod separate pe industrii. Contextele partajează același model unificat de date și autoritate.',
           },
           {
             title: 'Preseturi de Industrie, Nu Produse Izolate',
-            desc: 'Presetul configurează terminologia, regulile de alocare a cheltuielilor și fluxurile relevante, fără a schimba deținătorul de adevăr canonic.',
+            desc: 'Presetul poate configura terminologia, regulile de alocare și fluxurile relevante pentru fiecare context, fără a schimba deținătorul de adevăr canonic.',
           },
           {
             title: 'Continuitate în Timp',
@@ -123,7 +123,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       domainComposition: {
         badge: 'CONECTIVITATEA DOMENIILOR',
         title: 'Compoziția Domeniilor pe Contexte Operaționale',
-        desc: 'Fiecare context imobiliar combină domeniile specializate în jurul aceleiași fundații CORE, fără a redefini granițele furnizorilor canonici:',
+        desc: 'Fiecare context imobiliar combină domeniile specializate în jurul aceleiași fundații CORE, fără a redefini granițele furnizorilor canonici. Aceste combinații ilustrează compoziția și relevanța arhitecturală; ele nu reprezintă pachete comerciale pre-instalate sau lansate universal:',
         examples: [
           {
             context: 'Rezidențial',
@@ -138,7 +138,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
           {
             context: 'Retail & Galerii',
             formula: 'CORE + AIRPROP + OPERAȚIUNI + SERVICE + C&E + Furnizori Canonici',
-            desc: 'Contracte comerciale de închiriere, alocarea strictă a cheltuielilor comune (OPEX), mentenanța continuă a galeriilor și coordonarea furnizorilor.',
+            desc: 'Gestiunea contractelor de retail: repartizarea cheltuielilor comune (OPEX), mentenanța continuă a galeriilor și coordonarea comercianților.',
           },
           {
             context: 'Ospitalitate',
@@ -148,7 +148,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
           {
             context: 'Industrial & Producție',
             formula: 'CORE + OPERAȚIUNI + SERVICE + DOCUMENTS + Furnizori',
-            desc: 'Registrul echipamentelor tehnice grele, planuri de revizii preventive stricte, evidența autorizațiilor ISCIR și documentația tehnică de conformitate.',
+            desc: 'Context de facilități industriale: registrul echipamentelor tehnice grele, planuri de revizii preventive, evidența verificărilor ISCIR și documentația tehnică.',
           },
           {
             context: 'Logistică & Distribuție',
@@ -171,7 +171,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
         badge: 'MATRICEA DE RELEVANȚĂ',
         title: 'Matricea Relațională a Capabilităților pe Industrii',
         subtitle:
-          'Această matrice indică gradul de relevanță arhitecturală a capabilităților în fiecare context. Ea nu reprezintă o garanție de disponibilitate în producție, ci modelul de compunere conceptuală.',
+          'Această matrice indică gradul de relevanță arhitecturală a capabilităților în fiecare context. Ea reprezintă compunerea structurală și NU indică: disponibilitatea în producție, stadiul de lansare, licențierea activă sau starea de implementare.',
         legend: {
           core: 'Context de Bază (Esențial)',
           common: 'Context Comun (Frecvent)',
@@ -181,15 +181,15 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       },
       mixedUseSection: {
         badge: 'ARHITECTURA DE REFERINȚĂ',
-        title: 'Ansamblurile Mixte: Dovada Puterii Arhitecturii Compozabile',
+        title: 'Ansamblurile Mixte: Valoarea Arhitecturală a Compoziției',
         desc: 'Un ansamblu mixt modern integrează rezidențial la etajele superioare, birouri la nivelurile intermediare, retail la parter, parcări subterane și facilități comune. Tradițional, acest scenariu ar necesita 3–4 aplicații software separate, ducând la fracturi contabile și dispute operaționale.',
         challenge: 'Problema Tradițională: Patru sisteme diferite care nu știu cine deține adevărul despre clădire, cine plătește reparația hidroizolației terasei sau cum se repartizează consumul de energie electrică al centralei comune.',
-        solution: 'Abordarea CLADORA: O singură identitate fizică a activului în CORE. Workspace-uri distincte pentru asociația rezidențială, chiriașii de birouri și operatorul de retail. Furnizorul canonic FIN01 alocă transparent cotele, BK01 gestionează parcările comune, iar OPERAȚIUNI execută mentenanța pe activele partajate.',
+        solution: 'Abordarea CLADORA: O singură identitate fizică a activului în CORE. Workspace-uri distincte pentru asociația rezidențială, chiriașii de birouri și operatorul de retail. Furnizorul canonic FIN01 este desemnat să guverneze adevărul financiar și regulile de alocare, BK01 este desemnat pentru evidența capacității partajate, iar OPERAȚIUNI deține execuția comenzilor de lucru pe activele tehnice comune.',
       },
       availability: {
         badge: 'GUVERNANȚĂ & TRANSPARENȚĂ A DISPONIBILITĂȚII',
         title: 'Transparență Operațională Asupra Stadiilor de Dezvoltare',
-        desc: 'Prezentarea industriilor reflectă capacitatea arhitecturală a platformei CLADORA de a modela lumea construită. În prezent, nucleul de producție activ este orientat primordial spre sectorul Rezidențial. Contextele de Birouri, Retail, Industrial, Logistică, Ospitalitate, Auto și Mixte sunt contextele arhitecturale suportate sau compoziții țintă, a căror disponibilitate comercială depinde de:',
+        desc: 'Prezentarea industriilor reflectă capacitatea arhitecturală a platformei CLADORA de a modela lumea construită. În prezent, sectorul Rezidențial constituie contextul principal de produs și implementare al CLADORA, disponibilitatea fiecărei capabilități fiind guvernată individual de stadiul de lansare și perimetrul asumat de implementare. Contextele de Birouri, Retail, Industrial, Logistică, Ospitalitate, Auto și Mixte reprezintă contexte arhitecturale suportate (arhitectura este definită conceptual pentru a le reprezenta) sau compoziții țintă, și NU garanții de asistență comercială în producție disponibilă imediat. Disponibilitatea comercială depinde de:',
         factors: [
           'Domeniile operaționale configurate și licențiate pentru workspace-ul respectiv',
           'Tipologia și complexitatea fizică a proprietății',
@@ -219,19 +219,19 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       compositionVsForks: {
         badge: 'CORE ARCHITECTURAL PRINCIPLE',
         title: 'Dynamic Composition, Not Vertical Forks',
-        desc: 'Unlike traditional software vendors that fork codebases into isolated point solutions for each niche, CLADORA rejects codebase fragmentation. Commercial office towers, residential communities, and logistics parks run on the exact same transactional data core.',
+        desc: 'CLADORA’s target platform architecture avoids industry-specific product forks. The platform is designed around a shared data and authority model rather than separate, isolated codebases for each commercial niche.',
         points: [
           {
             title: 'No Code Silos',
-            desc: 'There is no separate «Residential CLADORA» or «Retail CLADORA». All property contexts share the same hardened security kernel and unified schema.',
+            desc: 'The public product architecture is designed around composition rather than separate industry codebases. All property contexts share the same property identity, workspace boundaries, and canonical truth providers.',
           },
           {
             title: 'Industry Presets, Not Forked Products',
-            desc: 'An industry preset tailors terminology, allocation formulas, and relevant workflows without altering the canonical provider of truth.',
+            desc: 'An industry preset can define domain relevance, terminology, and allocation rules without altering canonical truth providers or creating vertical software forks.',
           },
           {
             title: 'Long-Term Property Continuity',
-            desc: 'When a building shifts use, adds retail, or becomes mixed-use, historical tenant records, technical files, and financial audit logs remain intact.',
+            desc: 'When a building evolves its usage, integrates retail, or becomes mixed-use, historical tenant records, technical files, and financial audit logs remain structurally continuous.',
           },
         ],
       },
@@ -281,47 +281,47 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       domainComposition: {
         badge: 'DOMAIN CONNECTIVITY',
         title: 'Domain Composition by Operational Context',
-        desc: 'Each property context orchestrates domain engines around the single CORE foundation without redefining canonical provider boundaries:',
+        desc: 'Each property context orchestrates domain engines around the single CORE foundation without redefining canonical provider boundaries. These combinations illustrate architectural relevance and composition; they do not represent pre-packaged, currently released industry bundles:',
         examples: [
           {
             context: 'Residential',
             formula: 'CORE + SERVICE + OPERATIONS + C&E + Canonical Providers',
-            desc: 'Focus on living experience, digital notice boards, quota ownership ratios, tenant work orders, and statutory utility reconciliations.',
+            desc: 'Living experience focus: digital notice boards, quota ownership ratios, tenant work orders, and statutory utility reconciliations.',
           },
           {
             context: 'Office & Workplace',
             formula: 'CORE + OPERATIONS + SERVICE + C&E + Canonical Providers',
-            desc: 'Corporate tenant relationships, central plant MEP maintenance (chillers, lifts), visitor credentials, and shared meeting facility schedules.',
+            desc: 'Corporate tenant context: central plant MEP maintenance (chillers, lifts), visitor credentials, and shared meeting facility schedules.',
           },
           {
             context: 'Retail & Shopping Centers',
             formula: 'CORE + AIRPROP + OPERATIONS + SERVICE + C&E + Providers',
-            desc: 'Commercial lease management, strict common area maintenance (CAM/OPEX) apportionments, continuous cleaning SLAs, and merchant coordination.',
+            desc: 'Commercial lease management: common area maintenance (CAM/OPEX) apportionments, continuous cleaning SLAs, and merchant coordination.',
           },
           {
             context: 'Hospitality',
             formula: 'CORE + OPERATIONS + SERVICE + C&E + BK01 + Providers',
-            desc: 'Capacity inventory modeling, high-velocity technical repair dispatch, and integration of shared amenity reservations.',
+            desc: 'Lodging context: capacity inventory modeling, high-velocity technical repair dispatch, and integration of shared amenity reservations.',
           },
           {
             context: 'Industrial & Manufacturing',
             formula: 'CORE + OPERATIONS + SERVICE + DOCUMENTS + Providers',
-            desc: 'Heavy mechanical asset registers, strict preventive maintenance schedules, statutory compliance certifications, and technical archives.',
+            desc: 'Production facility context: mechanical asset registers, preventive maintenance schedules, statutory compliance certifications, and technical archives.',
           },
           {
             context: 'Logistics & Warehousing',
             formula: 'CORE + OPERATIONS + SERVICE + BK01 + Providers',
-            desc: 'Loading dock availability windows, truck access scheduling, perimeter infrastructure upkeep, and high-demand power submetering.',
+            desc: 'Distribution context: loading dock availability windows, truck access scheduling, perimeter infrastructure upkeep, and power submetering.',
           },
           {
             context: 'Automotive & Dealerships',
             formula: 'CORE + SERVICE + OPERATIONS + C&E + Providers',
-            desc: 'Showroom and service bay facility management, customer lounge amenities, vendor SLA tracking, and technical site documentation.',
+            desc: 'Automotive facility context: showroom and service bay maintenance, customer lounge amenities, vendor SLA tracking, and technical site documentation.',
           },
           {
             context: 'Mixed-Use Developments',
             formula: 'CORE + All Domains + Multi-Workspace Partitioning',
-            desc: 'The ultimate reference architecture: seamless coexistence of residential, office, and retail tiers under one persistent estate identity.',
+            desc: 'Reference architecture context: coexistence of residential, office, and retail tiers under one persistent estate identity.',
           },
         ],
       },
@@ -329,7 +329,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
         badge: 'RELEVANCE MATRIX',
         title: 'Architectural Relevance Matrix Across Industries',
         subtitle:
-          'This matrix indicates the architectural relevance of capability families across property contexts. It represents structural composition design, not a statement of uniform production availability.',
+          'This matrix indicates architectural relevance only. It represents structural composition design, and does NOT indicate: runtime availability, release maturity, licensing availability, or production deployment.',
         legend: {
           core: 'Core Context (Essential)',
           common: 'Common Context (Frequent)',
@@ -339,15 +339,15 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       },
       mixedUseSection: {
         badge: 'REFERENCE ARCHITECTURE',
-        title: 'Mixed-Use: The Proof of Composable Architecture',
-        desc: 'A modern mixed-use development features residential apartments on upper floors, corporate offices on mid-levels, ground-floor retail, underground parking, and shared technical plant. Historically, this required 3–4 disconnected software systems, resulting in accounting chaos and operational disputes.',
-        challenge: 'The Legacy Dilemma: Four separate databases with no single source of property truth, conflicting opinions on who funds roof repairs, and unresolvable utility disputes for central cooling plant.',
-        solution: 'The CLADORA Approach: One persistent physical asset record in CORE. Autonomous workspaces for the HOA board, office tenant corporations, and retail operators. FIN01 apportions shared CAM expenses transparently, BK01 governs shared parking capacity, and OPERATIONS executes work orders across shared physical infrastructure.',
+        title: 'Mixed-Use: Demonstrates the Architectural Value of Composition',
+        desc: 'A modern mixed-use development features residential apartments on upper floors, corporate offices on mid-levels, ground-floor retail, underground parking, and shared technical plant. Historically, this required 3–4 disconnected software systems, resulting in accounting fragmentation and operational friction.',
+        challenge: 'The Legacy Dilemma: Multiple separate databases with no single source of property truth, conflicting opinions on who funds roof repairs, and unresolvable utility disputes for central cooling plant.',
+        solution: 'The Architectural Value: One persistent physical asset record in CORE. Autonomous workspaces for the HOA board, office tenant corporations, and retail operators. Canonical provider FIN01 is designated to own financial truth and allocation semantics, BK01 is designated to own shared capacity truth, and OPERATIONS is designated to own work-order execution across shared physical infrastructure.',
       },
       availability: {
         badge: 'AVAILABILITY & GOVERNANCE TRANSPARENCY',
         title: 'Operational Maturity & Deployment Governance',
-        desc: 'Our public presentation explains how CLADORA’s architecture is engineered to govern the built environment. In the current release tier, the platform’s live production workflows are primarily oriented toward Residential assets. Office, Retail, Industrial, Logistics, Hospitality, Automotive, and Mixed-Use represent supported architectural contexts or target configurations whose commercial availability depends upon:',
+        desc: 'Our public presentation explains how CLADORA’s architecture is engineered to govern the built environment. Residential is CLADORA’s current primary product and implementation context, with capability availability governed individually by release status and implementation scope. Office, Retail, Industrial, Logistics, Hospitality, Automotive, and Mixed-Use represent supported architectural contexts (meaning the architecture is defined to represent the context, not that production support is commercially available) or target configurations. Commercial availability depends upon:',
         factors: [
           'Configured and licensed operational domain subscriptions for the workspace',
           'Physical asset typology, scale, and mechanical complexity',
@@ -377,19 +377,19 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       compositionVsForks: {
         badge: 'اصل بنیادین معماری',
         title: 'ترکیب‌پذیری پویا، نه تکه‌تکه کردن کدبیس پلتفرم',
-        desc: 'برخلاف شرکت‌های نرم‌افزاری سنتی که برای هر بازار خاص یک نسخهٔ مجزا و ناسازگار ایجاد می‌کنند، کلادورا هرگز کدبیس خود را منشعب نمی‌کند. یک برج اداری، یک شهرک مسکونی و یک هاب لجستیکی دقیقاً بر بستر یک هسته داده و مرزهای تراکنشی واحد اجرا می‌شوند.',
+        desc: 'معماری هدف پلتفرم کلادورا از ایجاد انشعاب‌های نرم‌افزاری اختصاصی برای هر صنعت پرهیز می‌کند. پلتفرم پیرامون یک مدل مشترک داده و مرزهای اختیارات طراحی شده است، نه کدبیس‌های جداگانه و پراکنده برای هر بخش از بازار املاک.',
         points: [
           {
             title: 'پایان دادن به جزیره‌های نرم‌افزاری',
-            desc: 'چیزی به نام «کلادورا مسکونی» جدا از «کلادورا تجاری» وجود ندارد. تمام انواع املاک از یک کرنل امنیتی و یک دیتابیس هماهنگ بهره می‌برند.',
+            desc: 'معماری عمومی محصول بر اساس ترکیب‌پذیری پویا طراحی شده است نه کدبیس‌های جداگانه. تمام بسترهای املاک از هویت مشترک ملک، تفکیک فضاهای کاری و ارائه‌دهندگان مرجع داده‌ها بهره می‌برند.',
           },
           {
             title: 'پیکربندی اختصاصی، نه محصول منشعب‌شده',
-            desc: 'پیکربندی صنعت صرفاً اصطلاحات، فرمول‌های تسهیم هزینه و فرآیندهای مورد نیاز را تنظیم می‌کند؛ بدون آنکه متولیان اصلی داده‌ها تغییر کنند.',
+            desc: 'یک پیکربندی صنعت می‌تواند ارتباط دامنه‌ها، اصطلاحات و فرمول‌های تسهیم هزینه را بدون تغییر متولیان مرجع داده‌ها یا ایجاد انشعاب‌های نرم‌افزاری تعریف نماید.',
           },
           {
             title: 'تداوم سوابق دارایی در گذر زمان',
-            desc: 'اگر کاربری یک ساختمان تغییر کند یا به مجموعه‌ای چندمنظوره تبدیل شود، تمام سوابق تاریخی، اسناد و دفاتر مالی پیوستگی خود را حفظ می‌نمایند.',
+            desc: 'اگر کاربری یک ساختمان تحول یابد، بخش تجاری به آن افزوده شود یا به مجموعه‌ای چندمنظوره تبدیل گردد، تمام سوابق تاریخی، اسناد و دفاتر مالی پیوستگی ساختاری خود را حفظ می‌نمایند.',
           },
         ],
       },
@@ -439,7 +439,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       domainComposition: {
         badge: 'یکپارچگی دامنه‌ها',
         title: 'ترکیب دامنه‌های عملیاتی در بسترهای مختلف',
-        desc: 'هر نوع کاربری املاک، دامنه‌های تخصصی را بدون خدشه به استقلال ارائه‌دهندگان مرجع، بر بستر زیرساخت CORE هماهنگ می‌سازد:',
+        desc: 'هر نوع کاربری املاک، موتورهای دامنه‌ها را بدون خدشه به استقلال ارائه‌دهندگان مرجع، بر بستر زیرساخت CORE هماهنگ می‌سازد. این ترکیب‌ها صرفاً برای نمایش ارتباط و انطباق‌پذیری معماری سیستم ارائه شده‌اند و به منزلهٔ بسته‌های نرم‌افزاری از پیش‌آماده یا منتشرشده در سطح تجاری نیستند:',
         examples: [
           {
             context: 'مسکونی',
@@ -487,7 +487,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
         badge: 'ماتریس تناسب کارکردی',
         title: 'ماتریس تناسب قابلیت‌ها با انواع املاک',
         subtitle:
-          'این جدول میزان ارتباط و کاربرد معماری هر دسته از قابلیت‌ها را در بسترهای مختلف نشان می‌دهد و به معنای پیاده‌سازی همه‌جانبه فعلی در تولید نیست.',
+          'این جدول صرفاً بیانگر ارتباط و تناسب معماری قابلیت‌ها است و به هیچ عنوان نشان‌دهندهٔ در دسترس بودن عملیاتی در محیط زنده (Runtime)، سطح بلوغ انتشار، دسترسی تجاری یا استقرار نهایی در تولید نیست.',
         legend: {
           core: 'بستر بنیادین (ضروری)',
           common: 'بستر متداول (کاربرد بالا)',
@@ -497,15 +497,15 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       },
       mixedUseSection: {
         badge: 'معماری مرجع پلتفرم',
-        title: 'مجتمع‌های چندمنظوره: عالی‌ترین مصداق معماری ترکیب‌پذیر',
-        desc: 'یک پروژهٔ چندمنظوره مدرن شامل واحدهای مسکونی در طبقات بالا، دفاتر اداری در طبقات میانی، مراکز خرید در طبقات همکف، پارکینگ‌های زیرزمینی و تأسیسات مشترک است. در نرم‌افزارهای سنتی این وضعیت مستلزم ۳ یا ۴ نرم‌افزار ناهماهنگ و در نتیجه اختلافات مالی شدید بود.',
+        title: 'مجتمع‌های چندمنظوره: ارزش معماری ترکیب‌پذیر در عمل',
+        desc: 'یک پروژهٔ چندمنظوره مدرن شامل واحدهای مسکونی در طبقات بالا، دفاتر اداری در طبقات میانی، مراکز خرید در طبقات همکف، پارکینگ‌های زیرزمینی و تأسیسات مشترک است. در نرم‌افزارهای سنتی این وضعیت مستلزم ۳ یا ۴ نرم‌افزار ناهماهنگ و در نتیجه اختلافات مالی و عملیاتی شدید بود.',
         challenge: 'بحران سامانه‌های جزیره‌ای: چندین دیتابیس جداگانه که هیچ‌کدام مرجع نهایی حقیقت ملک نیستند، ابهام در پرداخت هزینه‌های بازسازی سقف و اختلافات بر سر تسهیم برق چیلر مرکزی.',
-        solution: 'راهکار کلادورا: یک شناسنامهٔ فیزیکی پایدار در CORE. فضاهای کاری مستقل برای انجمن مالکان، شرکت‌های مستأجر اداری و مدیریت مراکز خرید. ارائه‌دهنده FIN01 هزینه‌ها را به دقت تسهیم می‌کند، BK01 ظرفیت پارکینگ مشترک را کنترل کرده و OPERATIONS دستورکارهای تأسیسات را اجرا می‌نماید.',
+        solution: 'ارزش معماری ترکیب‌پذیر: یک شناسنامهٔ فیزیکی پایدار در CORE. فضاهای کاری مستقل برای انجمن مالکان، شرکت‌های مستأجر اداری و مدیریت مراکز خرید. ارائه‌دهندهٔ کانونی FIN01 برای مالکیت حقیقت مالی و منطق تسهیم هزینه‌ها، BK01 برای کنترل ظرفیت‌های اشتراکی و OPERATIONS برای مدیریت و اجرای دستورکارهای نگهداری بر روی دارایی‌های فنی مشترک تعیین شده‌اند.',
       },
       availability: {
         badge: 'شفافیت حاکمیت و سطح آمادگی سامانه',
         title: 'سطوح آمادگی عملیاتی و حاکمیت استقرار پلتفرم',
-        desc: 'بخش صنایع نحوه انطباق معماری کلادورا را بر جهان املاک تشریح می‌کند. در حال حاضر، جریان‌های زنده تولیدی سیستم عمدتاً بر املاک مسکونی متمرکز هستند. بسترهای اداری، تجاری، صنعتی، لجستیک، هتلداری، خودرویی و چندمنظوره به عنوان بسترهای معمارانه پشتیبانی‌شده یا پیکربندی‌های هدف شناخته می‌شوند که استقرار واقعی آن‌ها به عوامل زیر وابسته است:',
+        desc: 'بخش صنایع نحوه انطباق معماری کلادورا را بر جهان املاک تشریح می‌کند. در حال حاضر، بخش مسکونی بستر اصلی محصول و استقرار پیاده‌سازی‌های کلادورا محسوب می‌شود و در دسترس بودن هر قابلیت، به تفکیک بر اساس مرحلهٔ انتشار و دامنهٔ اجرایی پروژه تعیین می‌گردد. بسترهای اداری، تجاری، صنعتی، لجستیک، هتلداری، خودرویی و چندمنظوره به عنوان بسترهای معمارانه پشتیبانی‌شده (به این معنا که معماری برای بازنمایی این بسترها تعریف شده است، نه اینکه پشتیبانی تجاری در محیط تولید هم‌اکنون به صورت عمومی در دسترس باشد) یا پیکربندی‌های هدف شناخته می‌شوند که استقرار واقعی آن‌ها به عوامل زیر وابسته است:',
         factors: [
           'دامنه‌های عملیاتی خریداری‌شده و دارای مجوز در هر ورک‌اسپیس',
           'نوع و پیچیدگی فیزیکی و تأسیساتی ملک',
@@ -539,7 +539,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
     {
       id: 'residential',
       name: lang === 'ro' ? 'Rezidențial' : lang === 'fa' ? 'مسکونی' : 'Residential',
-      badge: lang === 'ro' ? 'Context Principal Activ' : lang === 'fa' ? 'بستر عملیاتی فعال' : 'Primary Product Context',
+      badge: lang === 'ro' ? 'Context Principal de Produs' : lang === 'fa' ? 'بستر اصلی محصول' : 'Primary Product Context',
       icon: Building,
       propertyContext:
         lang === 'ro'
@@ -656,10 +656,10 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       relevantDomains: ['CORE', 'OPERATIONS', 'SERVICE', 'DOCUMENTS', 'FIN01'],
       concerns:
         lang === 'ro'
-          ? 'Evidența echipamentelor supuse verificărilor ISCIR, planuri preventive fără opriri neplanificate, permise de lucru pentru contractori și arhivă tehnică.'
+          ? 'Preocupări reprezentative: evidența tehnică a echipamentelor, planuri preventive fără opriri neplanificate, permise de lucru pentru contractori și arhiva tehnică.'
           : lang === 'fa'
-          ? 'شناسنامه تجهیزات با بازرسی‌های قانونی ادواری، نگهداری پیشگیرانه بدون توقف، مجوز کار پیمانکاران و اسناد فنی.'
-          : 'Mandatory technical equipment registries, zero-downtime maintenance planning, contractor safety permits, and technical compliance vault.',
+          ? 'دغدغه‌های نماینده: شناسنامه تجهیزات فنی، برنامه‌ریزی نگهداری پیشگیرانه، مجوزهای ایمنی کار پیمانکاران و اسناد فنی تأسیسات.'
+          : 'Representative concerns: technical equipment registries, preventive maintenance planning, contractor safety permits, and technical documentation archives.',
     },
     {
       id: 'logistics',
@@ -681,10 +681,10 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       relevantDomains: ['CORE', 'OPERATIONS', 'SERVICE', 'BK01', 'DOCUMENTS'],
       concerns:
         lang === 'ro'
-          ? 'Gestiunea disponibilității rampelor, contorizarea utilităților de mare putere, mentenanța pardoselilor industriale și instalațiilor de sprinklere.'
+          ? 'Preocupări reprezentative: ferestre de disponibilitate pentru rampe, programarea accesului camioanelor, întreținerea infrastructurii perimetrale și contorizarea utilităților de putere.'
           : lang === 'fa'
-          ? 'زمان‌بندی ظرفیت باراندازها، پایش کنتورهای قدرت بالا، نگهداری کفسازی صنعتی و سامانه‌های اعلام و اطفای حریق.'
-          : 'Dock scheduling capacity, high-voltage utility submetering, industrial flooring and sprinkler maintenance, and perimeter asset tracking.',
+          ? 'دغدغه‌های نماینده: زمان‌بندی ظرفیت باراندازها، هماهنگی تردد کامیون‌ها، نگهداری کفسازی و پایش کنتورهای قدرت بالا.'
+          : 'Representative concerns: loading dock availability windows, truck access scheduling, perimeter infrastructure upkeep, and high-demand power submetering.',
     },
     {
       id: 'automotive',
@@ -731,9 +731,9 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
       relevantDomains: ['CORE', 'AIRPROP', 'SERVICE', 'OPERATIONS', 'C&E', 'FIN01', 'BK01', 'DOCUMENTS'],
       concerns:
         lang === 'ro'
-          ? 'Zonarea strictă a drepturilor de vot, repartizarea pe chei de cost zonale și generale, separarea accesului rezidenți/public și mentenanța activelor comune.'
+          ? 'Zonarea drepturilor de decizie, repartizarea pe chei de cost zonale și generale, separarea accesului rezidenți/public și mentenanța activelor comune.'
           : lang === 'fa'
-          ? 'تفکیک دقیق حقوق تصمیم‌گیری، فرمول‌های چندمرحله‌ای تسهیم هزینه‌های کل و زون‌ها، مرزبندی تردد خصوصی و عمومی و نگهداری مشاعات کلان.'
+          ? 'تفکیک حقوق تصمیم‌گیری، فرمول‌های چندمرحله‌ای تسهیم هزینه‌های کل و زون‌ها، مرزبندی تردد خصوصی و عمومی و نگهداری مشاعات کلان.'
           : 'Multi-workspace tenant partitioning, multi-tier CAM allocation formulas, private vs. public credential boundaries, and shared central plant MEP execution.',
     },
   ];
@@ -1037,7 +1037,7 @@ export default async function IndustriesPage(props: { params: Promise<{ lang: La
 
                     <div className="pt-2 border-t border-[#F0F4F8] space-y-1">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-[#0E9F8E]">
-                        {lang === 'ro' ? 'Preocupări Reprezentative' : lang === 'fa' ? 'نیازهای اصلی عملیاتی' : 'Operational Concerns'}
+                        {lang === 'ro' ? 'Preocupări Reprezentative de Industrie' : lang === 'fa' ? 'دغدغه‌های عملیاتی این حوزه' : 'Representative Operational Concerns'}
                       </span>
                       <p className="text-[11px] text-[#52667A] leading-relaxed">
                         {ind.concerns}
