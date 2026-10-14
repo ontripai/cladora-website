@@ -62,6 +62,8 @@
     "test:doc-reference": "node scripts/test-documents-reference-authority-v1.mjs",
     "test:doc-reference:postgres": "node scripts/test-documents-reference-authority-postgres-v1.mjs",
     "test:ce-guide-lifecycle:postgres": "node scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs",
+    "test:doc-workspace-writer": "node scripts/test-documents-workspace-binding-writer-v1.mjs",
+    "test:doc-workspace-writer:postgres": "node scripts/test-documents-workspace-binding-writer-postgres-v1.mjs",
     "test:service-request-subject-context:postgres": "node scripts/test-service-request-subject-context-postgres-v1.mjs",
     "test:service-request-subject-provider": "node --no-warnings --experimental-strip-types scripts/test-service-request-subject-provider-v2.mjs",
     "test:service-request-subject-provider:postgres": "node scripts/test-service-request-subject-provider-postgres-v2.mjs",

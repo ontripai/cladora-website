@@ -124,7 +124,10 @@ try {
     const c=await pool.connect();const migration=readFileSync(
       new URL('../supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql',import.meta.url),'utf8');
     try {
-      await c.query('begin');await c.query('alter table documents.documents drop column workspace_id');
+      await c.query('begin');
+      await c.query('drop trigger document_workspace_binding_immutable_v1 on documents.documents');
+      await c.query('drop function documents.reject_document_workspace_rebind_v1()');
+      await c.query('alter table documents.documents drop column workspace_id');
       const snapshot=(await c.query('select to_jsonb(d) row from documents.documents d where id=$1',[doc])).rows[0].row;
       const security=async()=>(await c.query(`select relacl::text,relrowsecurity,relforcerowsecurity
         from pg_class where oid='documents.documents'::regclass`)).rows[0];
