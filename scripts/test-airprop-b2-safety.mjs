@@ -12,6 +12,8 @@ const runtime = readFileSync(files[1], 'utf8');
 assert.match(runtime, /import \{ resolveAuthority \} from '\.\.\/core\/current-authority-postgres-provider-v1'/);
 assert.match(runtime, /createCorePostgresTransactionHostV1\(pool\)/);
 assert.doesNotMatch(runtime, /insert into|update\s+platform|new Map|authorityCache/i);
+assert.doesNotMatch(runtime, /validateReplay|replay_policy|replay_provider_code/,
+  'AIRPROP remains on Core authority-only replay and must not invoke the replay hook');
 assert.match(readFileSync(files[4], 'utf8'), /runtime: null/);
 assert.match(readFileSync(files[0], 'utf8'), /commands: null, can_edit: false/);
 
@@ -65,11 +67,13 @@ const migrationResult = validateProtectedDirectory({
 
 const coreResult = validateProtectedDirectory({
   directory: 'src/lib/core',
-  expectedProtectedCount: 16,
-  expectedProtectedDigest: '9239ad3ef818b3ada7ec0f4cc2171179bd394ca1422fceab090280c95adf9331',
+  expectedProtectedCount: 15,
+  expectedProtectedDigest: 'b520d6922086c56e88ab83f02867d1664285a63cb55017017ccea1b114efd5a7',
   isProtected: path => ![
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
+    'postgres-transaction-host-v1.ts',
+    'transaction-replay-provider-hook-v1.ts',
   ].includes(path),
   reviewedAdditions: {
     'communications-private-message-subject-provider-v1.ts': {
@@ -80,11 +84,29 @@ const coreResult = validateProtectedDirectory({
       owner: 'CE Communications / PR #386',
       sha256: '778a88a3fd800b725c2f539e68e9cf726ce801d6063d0075d8af4723f167d39a',
     },
+    'transaction-replay-provider-hook-v1.ts': {
+      owner: 'Core / PR #399',
+      sha256: 'eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4',
+    },
   },
+  reviewedReplacements: {
+    'postgres-transaction-host-v1.ts': {
+      owner: 'Core / PR #399',
+      historicalSha256: '194c5fb3348281bf201229aab511d51ff38d366a61963e7366690887cbfc451b',
+      sha256: 'eb89d03320549a721a54df10fa747f8977d9f42f6dfaa2e85ae89e1265c37d7c',
+    },
+  },
+  historicalProtectedCount: 16,
+  historicalProtectedDigest: '9239ad3ef818b3ada7ec0f4cc2171179bd394ca1422fceab090280c95adf9331',
   label: 'AIRPROP B2 Core baseline',
 });
 
 console.log('PASS B2 safety: canonical provider/host reuse and inactive production remain closed; protected migration/Core baselines are immutable; reviewed additions present:', {
   migrations: migrationResult.reviewedAdditionsPresent,
   core: coreResult.reviewedAdditionsPresent,
+  coreReplacements: coreResult.reviewedReplacementsPresent,
+  historicalCoreBaseline: {
+    count: coreResult.historicalProtectedCount,
+    digest: coreResult.historicalProtectedDigest,
+  },
 });

@@ -54,9 +54,64 @@ await check('AP10 actor/Workspace binding, provider failure and replay conflict 
   const effects = persistedB2Effects(pool);
   assert.equal((await api.POST(request())).status, 200);
   assert.equal((await api.POST(request({ ...command, reason: 'Changed conflicting reason' }))).status, 409);
-  pool.state.revoked = true; assert.equal((await api.POST(request())).status, 503);
   assert.deepEqual(persistedB2Effects(pool), effects);
 });
+await check('pre-receipt revocation is bounded to 403 without receipt, authority or replay-hook disclosure', async () => {
+  const pool = createB2ContractPool(actor);
+  const phases = { hostCalls: 0, receiptReads: 0, replayHookCalls: 0 };
+  let coreResult;
+  const alignedRuntime = createB2Loader({
+    '../core/postgres-transaction-host-v1': {
+      createCorePostgresTransactionHostV1: suppliedPool => ({
+        async execute(_coreCommand, providers) {
+          phases.hostCalls += 1;
+          assert.equal(suppliedPool, pool);
+          assert.equal(Object.hasOwn(providers, 'validateReplay'), false);
+          assert.equal(Object.hasOwn(providers, 'replay_policy'), false);
+          const currentAuthority = { actor_status: 'revoked', internal_reason: 'ACTOR_REVOKED' };
+          if (currentAuthority.actor_status === 'revoked') {
+            coreResult = { status: 'denied', code: 'AUTHORITY_DENIED' };
+            return coreResult;
+          }
+          phases.receiptReads += 1;
+          if (Object.hasOwn(providers, 'validateReplay')) phases.replayHookCalls += 1;
+          throw new Error('revoked_authority_must_stop_before_receipt');
+        },
+      }),
+    },
+    '../core/current-authority-postgres-provider-v1': {
+      resolveAuthority: async () => { throw new Error('must_not_run_outside_core_host'); },
+    },
+  })('src/lib/airprop/artifact-b2-runtime.ts').createAirpropB2Runtime(pool);
+  const before = persistedB2Effects(pool);
+  const response = await createAirpropB2Api(composition({ runtime: alignedRuntime })).POST(request());
+  assert.equal(response.status, 403);
+  assert.deepEqual(coreResult, { status: 'denied', code: 'AUTHORITY_DENIED' });
+  const body = JSON.stringify(await response.json());
+  assert.match(body, /AIRPROP_ACCESS_DENIED/);
+  assert.doesNotMatch(body, /receipt|authority|ACTOR_REVOKED|internal|denial_reason/i);
+  assert.deepEqual(phases, { hostCalls: 1, receiptReads: 0, replayHookCalls: 0 });
+  assert.equal(pool.state.connections, 0);
+  assert.deepEqual(persistedB2Effects(pool), before);
+});
+if (process.env.AIRPROP_CORE_399_EXACT_HEAD_FIXTURE === '1') {
+  await check('exact Core #399 host denies revocation before receipt with zero writes', async () => {
+    const pool = createB2ContractPool(actor);
+    pool.state.revoked = true;
+    const before = persistedB2Effects(pool);
+    const response = await createAirpropB2Api(composition({
+      runtime: createAirpropB2Runtime(pool),
+    })).POST(request({ ...command, idempotency_key: 'ap10-core-399-revoked' }));
+    assert.equal(response.status, 403);
+    const body = JSON.stringify(await response.json());
+    assert.match(body, /AIRPROP_ACCESS_DENIED/);
+    assert.doesNotMatch(body, /receipt|authority|ACTOR_REVOKED|internal|denial_reason/i);
+    assert.equal(pool.state.connections, 1);
+    assert.equal(pool.state.queries.some(sql => sql.startsWith('select actor_id,request_hash')), false,
+      'revocation must stop before receipt lookup');
+    assert.deepEqual(persistedB2Effects(pool), before);
+  });
+}
 await check('read adapter uses only A portfolio RPC and fails closed on malformed/error payloads', async () => {
   const calls = [], gateway = { rpc: async (name, args) => { calls.push({ name, args }); return { data: null, error: { private: 'not disclosed' } }; } };
   const result = await readAirpropB2Portfolio(gateway, { context_id: context, workspace_id: workspace });

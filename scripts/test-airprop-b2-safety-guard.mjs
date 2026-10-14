@@ -12,28 +12,46 @@ const cutoff = '20261012190924';
 const allowedName = '20261013062342_service_request_subject_context_v1.sql';
 const allowedBytes = 'reviewed additive migration\n';
 const allowedHash = createHash('sha256').update(allowedBytes).digest('hex');
+const replacementName = '20261012190924_second.sql';
+const replacementBytes = 'reviewed replacement migration\n';
+const replacementHash = createHash('sha256').update(replacementBytes).digest('hex');
 const isProtected = path => path.slice(0, 14) <= cutoff;
 
-function fixture() {
+function fixture({ replacement = false } = {}) {
   const directory = mkdtempSync(join(tmpdir(), 'airprop-b2-safety-'));
   writeFileSync(join(directory, '20261012190923_first.sql'), 'first protected migration\n');
   writeFileSync(join(directory, '20261012190924_second.sql'), 'second protected migration\n');
-  const snapshot = snapshotProtectedDirectory({ directory, isProtected });
+  const historical = snapshotProtectedDirectory({ directory, isProtected });
+  const historicalReplacementHash = createHash('sha256')
+    .update('second protected migration\n').digest('hex');
+  const unchanged = snapshotProtectedDirectory({
+    directory,
+    isProtected: path => isProtected(path) && (!replacement || path !== replacementName),
+  });
   const options = {
     directory,
-    expectedProtectedCount: snapshot.count,
-    expectedProtectedDigest: snapshot.digest,
-    isProtected,
+    expectedProtectedCount: unchanged.count,
+    expectedProtectedDigest: unchanged.digest,
+    isProtected: path => isProtected(path) && (!replacement || path !== replacementName),
     reviewedAdditions: {
       [allowedName]: { owner: 'SERVICE', sha256: allowedHash },
     },
+    ...(replacement ? {
+      reviewedReplacements: {
+        [replacementName]: {
+          owner: 'Core', historicalSha256: historicalReplacementHash, sha256: replacementHash,
+        },
+      },
+      historicalProtectedCount: historical.count,
+      historicalProtectedDigest: historical.digest,
+    } : {}),
     label: 'fixture migration baseline',
   };
   return { directory, options };
 }
 
-function run(mutator, expectation) {
-  const { directory, options } = fixture();
+function run(mutator, expectation, fixtureOptions) {
+  const { directory, options } = fixture(fixtureOptions);
   try {
     mutator(directory);
     expectation(options);
@@ -68,4 +86,36 @@ run(
     /reviewed addition bytes changed/),
 );
 
-console.log('PASS B2 safety guard: protected mutation/deletion and reviewed, unknown, and tampered additions are classified independently');
+run(
+  directory => writeFileSync(join(directory, replacementName), replacementBytes),
+  options => {
+    const result = validateProtectedDirectory(options);
+    assert.equal(result.protectedCount, 1);
+    assert.equal(result.historicalProtectedCount, 2);
+    assert.equal(result.reviewedReplacementsPresent[0].path, replacementName);
+    assert.equal(result.reviewedReplacementsPresent[0].status, 'replacement_present');
+  },
+  { replacement: true },
+);
+run(
+  () => {},
+  options => assert.equal(
+    validateProtectedDirectory(options).reviewedReplacementsPresent[0].status,
+    'historical_present',
+  ),
+  { replacement: true },
+);
+run(
+  directory => writeFileSync(join(directory, replacementName), 'tampered replacement\n'),
+  options => assert.throws(() => validateProtectedDirectory(options),
+    /reviewed replacement bytes changed/),
+  { replacement: true },
+);
+run(
+  directory => unlinkSync(join(directory, replacementName)),
+  options => assert.throws(() => validateProtectedDirectory(options),
+    /reviewed replacement missing/),
+  { replacement: true },
+);
+
+console.log('PASS B2 safety guard: protected mutation/deletion plus reviewed replacement, addition, unknown, and tampered bytes are classified independently');
