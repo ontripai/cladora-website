@@ -7,6 +7,22 @@
     --font-inter: 'Inter', system-ui, -apple-system, sans-serif;
     --font-manrope: 'Manrope', 'Inter', system-ui, -apple-system, sans-serif;
     --font-vazirmatn: 'Vazirmatn', var(--font-inter), system-ui, -apple-system, sans-serif;
+
+    /* Semantic Design Tokens - WP-03 Normalized */
+    --background: #F6F9FC;
+    --foreground: #102A43;
+    --primary: #102A43;
+    --primary-foreground: #FFFFFF;
+    --accent: #0E9F8E;
+    --accent-foreground: #FFFFFF;
+    --surface: #FFFFFF;
+    --surface-elevated: #FFFFFF;
+    --surface-subtle: #F0F4F8;
+    --border: #D3DCE6;
+    --border-subtle: #E2E8F0;
+    --muted: #F0F4F8;
+    --muted-foreground: #52667A;
+    --focus: #0E9F8E;
   }
 
   body {
@@ -14,9 +30,28 @@
     font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   }
 
+  /* Accessible focus indicators */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
   /* Support tabular numerals for all financial tables and balances */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
+  }
+
+  /* Legacy Pages Compatibility Shell (WP-03 minimum safe contrast fix) */
+  .legacy-dark-shell {
+    background-color: #070B12;
+    color: #F8FAFC;
+    min-height: calc(100vh - 80px);
+  }
+
+  .legacy-dark-shell .glass-panel {
+    background: rgba(16, 42, 67, 0.45);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   /* RTL and Persian Typography Rules */

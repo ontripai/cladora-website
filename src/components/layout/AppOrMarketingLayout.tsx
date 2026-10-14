@@ -14,7 +14,28 @@ interface LayoutWrapperProps {
 
 export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, children }) => {
   const pathname = usePathname();
-  const isAppRoute = pathname?.includes(`/${lang}/app`) || pathname === `/${lang}/account` || pathname === `/${lang}/owner-portfolio`;
+
+  // Control plane and authenticated application routes
+  const isPlatformControlPlane = pathname ? pathname.startsWith(`/${lang}/platform/`) : false;
+  const isAppRoute =
+    isPlatformControlPlane ||
+    pathname?.includes(`/${lang}/app`) ||
+    pathname === `/${lang}/account` ||
+    pathname === `/${lang}/owner-portfolio`;
+
+  // Legacy pages requiring dark compatibility shell for contrast safety (WP-03 fix)
+  const legacyDarkRoutes = [
+    `/${lang}/association`,
+    `/${lang}/portfolio`,
+    `/${lang}/manager`,
+    `/${lang}/building-dna`,
+    `/${lang}/financial-truth`,
+    `/${lang}/meters`,
+    `/${lang}/migration`,
+    `/${lang}/pricing`,
+    `/${lang}/trust`,
+  ];
+  const isLegacyDarkRoute = pathname ? legacyDarkRoutes.includes(pathname) : false;
 
   return (
     <DemoProvider>
@@ -23,7 +44,9 @@ export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, child
       ) : (
         <div className="flex flex-col min-h-screen">
           <Header lang={lang} />
-          <div className="flex-grow">{children}</div>
+          <div className={`flex-grow ${isLegacyDarkRoute ? 'legacy-dark-shell' : ''}`}>
+            {children}
+          </div>
           <Footer lang={lang} />
         </div>
       )}
