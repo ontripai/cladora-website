@@ -25,30 +25,33 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/pricing': {
     ro: {
-      title: 'Tarife transparente & Calculator flexibil',
-      desc: 'Tarife transparente de la 0.60 € / unitate / lună. Calculează investiția pentru asociația sau portofoliul tău.',
+      title: 'Cadru de Parteneriat & Dimensionare Scope | CLADORA',
+      desc: 'Model transparent de parteneriat și dimensionare a anvergurii operaționale (scope). Fără costuri ascunse sau pachete rigide — adaptat contextului fiecărui portofoliu.',
     },
     en: {
-      title: 'Transparent Pricing & Cost Calculator',
-      desc: 'Predictable pricing starting from 0.60 € / unit / month. Calculate investment for your HOA or portfolio.',
+      title: 'Scope & Partnership Pricing Framework | CLADORA',
+      desc: 'Transparent scope-based and partnership engagement model. Tailored to asset typology, enabled capability domains, and regulatory requirements without rigid tiers.',
     },
     fa: {
-      title: 'تعرفه‌ها و محاسبه‌گر شفاف هزینه‌ها',
-      desc: 'تعرفه‌های شفاف از ۰.۶۰ یورو به ازای هر واحد در ماه. محاسبه دقیق هزینه‌ها متناسب با تعداد واحدها.',
+      title: 'چارچوب همکاری و برآورد نیازمندی‌ها (Scope) | کلادورا',
+      desc: 'مدل همکاری اختصاصی و شفاف بر مبنای دامنهٔ عملیاتی و نیازمندی‌های سازمانی، منطبق با نوع دارایی و دامنه‌های عملکردی بدون بسته‌های صلب تجاری.',
     },
   },
   '/pilot': {
     ro: {
       title: 'Program Pilot București-Ilfov',
       desc: 'Solicită evaluarea unui spațiu rezidențial, comercial, industrial, de birouri sau comun pentru programul pilot CLADORA.',
+      noIndex: true,
     },
     en: {
       title: 'Bucharest-Ilfov Pilot Cohort',
       desc: 'Request an assessment of residential, commercial, industrial, office or shared spaces for the CLADORA pilot.',
+      noIndex: true,
     },
     fa: {
       title: 'برنامه پایلوت بخارست-ایلفوف',
       desc: 'درخواست ارزیابی فضاهای مسکونی، تجاری، صنعتی، اداری یا مشترک برای پایلوت کلادورا.',
+      noIndex: true,
     },
   },
   '/platform': {
@@ -181,140 +184,170 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
     ro: {
       title: 'Cele 17 Module Logice ale Platformei',
       desc: 'Prezentarea detaliată a celor 17 nuclee funcționale: de la contabilitate și contoare până la mentenanță și migrare.',
+      noIndex: true,
     },
     en: {
       title: 'The 17 Logical Platform Cores',
       desc: 'Detailed walkthrough of the 17 functional cores: from statutory accounting and supplemental ledger to meter OCR and shadow ledger migration.',
+      noIndex: true,
     },
     fa: {
       title: 'مشاهده ۱۷ هسته نرم‌افزاری تخصصی',
       desc: 'معرفی جامع ۱۷ ماژول کاربردی کلادورا: از دفاتر قانونی و کنترل‌های تکمیلی تا قرائت تصویری کنتورها و مدیریت تعمیرات.',
+      noIndex: true,
     },
   },
   '/building-dna': {
     ro: {
       title: '8 Arhetipuri de Clădiri & Inginerie Rezidențială',
       desc: 'Reguli specifice adaptate tipologiei constructive: blocuri clasice, clădiri reabilitate, complexe noi și vile.',
+      noIndex: true,
     },
     en: {
       title: '8 Residential Building Archetypes & Engineering',
       desc: 'Tailored rule engines for distinct structural typologies: pre-1990 blocks, insulated buildings, and new complexes.',
+      noIndex: true,
     },
     fa: {
       title: '۸ تیپولوژی ساختمانی و استانداردهای مهندسی',
       desc: 'قواعد محاسباتی و نگهداری منطبق با نوع سازه: بلوک‌های قبل از ۱۹۹۰، ساختمان‌های نوساز، ویلاها و مجتمع‌ها.',
+      noIndex: true,
     },
   },
   '/financial-truth': {
     ro: {
       title: 'Claritate Financiară & Evidență Statutară',
       desc: 'Evidență statutară în partidă simplă, control analitic suplimentar în partidă dublă, corecții exclusiv prin stornare documentată și acces direct la documentele sursă.',
+      noIndex: true,
     },
     en: {
       title: 'Financial Truth & Statutory Accounting Controls',
       desc: 'Statutory simple-entry registers, supplemental double-entry ledger controls, documented reversals, and direct source invoice links.',
+      noIndex: true,
     },
     fa: {
       title: 'شفافیت مالی و کنترل‌های دفاتر قانونی',
       desc: 'دفاتر قانونی یک‌طرفه، کنترل تراز تحلیلی تکمیلی دوطرفه، ثبت اصلاحات صرفاً از طریق سند اصلاحی و پیوند مستقیم به فاکتورهای مرجع.',
+      noIndex: true,
     },
   },
   '/meters': {
     ro: {
       title: 'Contorizare, Citire Asistată & Detecție Anomalii',
       desc: 'Colectare flexibilă a indexurilor: foto OCR asistat, QR code și senzori radio cu verificarea consumurilor neobișnuite.',
+      noIndex: true,
     },
     en: {
       title: 'Metering, Assisted Photo OCR & Anomaly Detection',
       desc: 'Multi-channel index collection: assisted photo OCR, QR codes, and radio telemetry with anomaly detection.',
+      noIndex: true,
     },
     fa: {
       title: 'قرائت هوشمند کنتورها و پایش شبکه مصرف',
       desc: 'ثبت ارقام کنتور با عکس، کدهای QR و رادیو M-Bus همراه با هشدار هوشمند مصرف غیرعادی و نشتی.',
+      noIndex: true,
     },
   },
   '/migration': {
     ro: {
       title: 'Migrare controlată din Xisoft, Aviziero, Excel (Shadow Ledger)',
       desc: 'Tranziție asistată fără riscul pierderilor de date din vechiul program. Rulare paralelă timp de 1-2 luni până la reconcilierea completă a soldurilor.',
+      noIndex: true,
     },
     en: {
       title: 'Controlled Legacy Migration with Shadow Ledger Protocol',
       desc: 'Structured data transition from legacy software. Run parallel Shadow Ledger billing for 1-2 months until every balance is mathematically matched.',
+      noIndex: true,
     },
     fa: {
       title: 'مهاجرت کنترل‌شده سوابق مالی با پروتکل Shadow Ledger',
       desc: 'انتقال ساختاریافته داده‌ها از نرم‌افزارهای قبلی و فایل‌های اکسل. اجرای موازی تا تطبیق کامل مانده‌حساب‌ها.',
+      noIndex: true,
     },
   },
   '/security': {
     ro: {
       title: 'Securitate, Permisiuni RBAC & Conformitate GDPR',
       desc: 'Arhitectură de securitate cu separarea drepturilor pe roluri, jurnale de audit și protecția datelor conform GDPR.',
+      noIndex: true,
     },
     en: {
       title: 'Enterprise Security, RBAC & GDPR Compliance',
       desc: 'Role-based access controls, comprehensive audit trail logging, and enterprise GDPR privacy standards.',
+      noIndex: true,
     },
     fa: {
       title: 'امنیت سازمانی، سطوح دسترسی RBAC و انطباق با GDPR',
       desc: 'معماری امنیت چندلایه با تفکیک نقش‌ها، ثبت تاریخچه حسابرسی و حفاظت کامل از اطلاعات هویتی و مالی.',
+      noIndex: true,
     },
   },
   '/trust': {
     ro: {
       title: 'Încredere, Transparență & Standarde de Audit',
       desc: 'Garanția transparenței operaționale și financiare pentru asociații de proprietari, chiriași și administratori.',
+      noIndex: true,
     },
     en: {
       title: 'Trust, Transparency & Audit Standards',
       desc: 'Operational and financial transparency principles for homeowner associations, tenants, and property managers.',
+      noIndex: true,
     },
     fa: {
       title: 'اعتماد، شفافیت و استانداردهای ممیزی',
       desc: 'اصول شفافیت مالی و انضباط ساختاری برای انجمن‌های مالکان، مستأجران و مدیران ساختمان.',
+      noIndex: true,
     },
   },
   '/association': {
     ro: {
       title: 'Cladora Association (Association OS)',
       desc: 'Sistem de operare dedicat asociațiilor de proprietari: liste de întreținere, Legea 196/2018 și contabilitate clară.',
+      noIndex: true,
     },
     en: {
       title: 'Cladora Association (Association OS)',
       desc: 'Dedicated operating system for homeowner associations: statutory allocation, billing, and clear general ledger.',
+      noIndex: true,
     },
     fa: {
       title: 'کلادورا انجمن (Association OS)',
       desc: 'سیستم‌عامل تخصصی انجمن‌های مالکان و مدیران ساختمان: تسهیم سهم شارژ، انطباق قانونی و بستن دوره‌ها.',
+      noIndex: true,
     },
   },
   '/portfolio': {
     ro: {
       title: 'Cladora Portfolio (Landlord & Portfolio OS)',
       desc: 'Sistem de operare pentru investitori și proprietari: monitorizarea chiriilor, randament net și reconciliere garanții.',
+      noIndex: true,
     },
     en: {
       title: 'Cladora Portfolio (Landlord & Portfolio OS)',
       desc: 'Operating system for rental property owners: rent collection tracking, net yields, and security deposits.',
+      noIndex: true,
     },
     fa: {
       title: 'کلادورا پورتفولیو (Portfolio OS)',
       desc: 'سیستم‌عامل اختصاصی مالکان چند واحد و سرمایه‌گذاران املاک: ردیابی اجاره‌ها، بازده خالص و حساب امانی ودیعه.',
+      noIndex: true,
     },
   },
   '/manager': {
     ro: {
       title: 'Cladora Manager (Management Company OS)',
       desc: 'Consolă centralizată pentru firme de administrare: închidere de lună în masă, dispecerat tichete și monitorizare SLA.',
+      noIndex: true,
     },
     en: {
       title: 'Cladora Manager (Management Company OS)',
       desc: 'Multi-association enterprise console: batch month-close, maintenance dispatch, and vendor SLA tracking.',
+      noIndex: true,
     },
     fa: {
       title: 'کلادورا منیجر (Manager OS)',
       desc: 'کنسول متمرکز شرکت‌های مدیریت املاک: بستن دوره‌های چند مجتمع، ارجاع تیکت‌های فنی و کنترل قراردادها.',
+      noIndex: true,
     },
   },
   '/solutions/associations': {
