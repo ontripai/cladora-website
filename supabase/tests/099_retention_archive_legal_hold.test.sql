@@ -11,6 +11,9 @@
 -- ============================================================================
 
 BEGIN;
+-- Fixture-only historical document setup: the production cutover guard remains enabled outside this rolled-back test.
+alter table documents.documents disable trigger document_workspace_creation_guard_v1;
+
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 SET search_path = extensions, app_private, documents, platform, identity, portfolio, finance, payments, maintenance, pg_catalog;
 

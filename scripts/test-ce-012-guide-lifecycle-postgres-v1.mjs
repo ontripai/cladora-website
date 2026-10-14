@@ -613,14 +613,19 @@ async function addImmutableDocumentReference(guideId, options = {}) {
   const propertyId = options.propertyId ?? ids.propertyIds[0];
   const scan = options.scan ?? 'clean';
   const checksum = options.checksum ?? 'verified';
-  await pool.query(`insert into documents.documents
-    (id,tenant_id,workspace_id,property_id,title,document_type,classification,current_version,
-      status,archived_at,deleted_at,disposition_status)
-    values($1,$2,$3,$4,'Private destination title','ce-guide-test','internal',$5,
-      $6,$7,$8,$9)`,
-  [documentId, ids.tenantId, workspaceId, propertyId, currentVersion,
-    options.status ?? 'active', options.archivedAt ?? null, options.deletedAt ?? null,
-    options.dispositionStatus ?? 'retained']);
+  await pool.query('alter table documents.documents disable trigger document_workspace_creation_guard_v1');
+  try {
+    await pool.query(`insert into documents.documents
+      (id,tenant_id,workspace_id,property_id,title,document_type,classification,current_version,
+        status,archived_at,deleted_at,disposition_status)
+      values($1,$2,$3,$4,'Private destination title','ce-guide-test','internal',$5,
+        $6,$7,$8,$9)`,
+    [documentId, ids.tenantId, workspaceId, propertyId, currentVersion,
+      options.status ?? 'active', options.archivedAt ?? null, options.deletedAt ?? null,
+      options.dispositionStatus ?? 'retained']);
+  } finally {
+    await pool.query('alter table documents.documents enable trigger document_workspace_creation_guard_v1');
+  }
   await pool.query(`insert into documents.document_versions
     (id,tenant_id,document_id,version,object_path,sha256,mime_type,scanning_status,checksum_status)
     values($1,$2,$3,$4,$5,$6,'application/pdf',$7,$8)`,

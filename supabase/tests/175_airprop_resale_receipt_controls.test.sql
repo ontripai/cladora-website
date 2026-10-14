@@ -1,4 +1,7 @@
 begin;
+-- Fixture-only historical document setup: the production cutover guard remains enabled outside this rolled-back test.
+alter table documents.documents disable trigger document_workspace_creation_guard_v1;
+
 
 -- Transaction-only fixture for the historical activated gateway contract.
 -- Artifact A leaves these gateways inactive; ROLLBACK removes every test grant.

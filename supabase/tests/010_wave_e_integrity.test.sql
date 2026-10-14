@@ -1,4 +1,7 @@
 begin;
+-- Fixture-only historical document setup: the production cutover guard remains enabled outside this rolled-back test.
+alter table documents.documents disable trigger document_workspace_creation_guard_v1;
+
 set local search_path = public, extensions;
 select plan(9);
 insert into platform.tenants(id,legal_name,registration_number,status) values('c0000000-0000-7000-8000-000000000001','Governance Test Tenant','GOV-TEST','active');

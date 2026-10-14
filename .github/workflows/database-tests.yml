@@ -224,7 +224,7 @@ jobs:
           CE_GUIDE_LIFECYCLE_EPHEMERAL: "1"
           CE_GUIDE_LIFECYCLE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Documents Workspace binding writer PostgreSQL conformance
-        run: npm run test:doc-workspace-writer && timeout 120s npm run test:doc-workspace-writer:postgres
+        run: npm run test:doc-null-workspace-closure && npm run test:doc-workspace-writer && timeout 120s npm run test:doc-workspace-writer:postgres
         env:
           DOC_WORKSPACE_WRITER_EPHEMERAL: "1"
           DOC_WORKSPACE_WRITER_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
