@@ -41,6 +41,7 @@ The inactive provider consumes `CoreTransactionProvidersV2` directly:
 | `experience.guide.manage / experience_guides` | Core canonical current authority and entitlement recheck |
 | publish/unpublish relation and evaluation purpose | Separate `experience.guide.publish` and `experience.guide.unpublish` effects |
 | provider evidence | Independent `ce-guide-lifecycle-provider.v1` status-only evidence |
+| exact replay | Core `provider_current_state_required` marker plus CE read-only current-state decision |
 | idempotency/audit/outbox/receipt | Existing Core host ledgers only |
 
 The provider verifies the host transaction ID, serializable isolation, AAL2
@@ -57,13 +58,20 @@ contain Guide title/body/audience, safe labels, document IDs, membership IDs,
 participants, message/service identifiers or storage metadata. Seeing a Guide
 does not grant access to a document, message or SERVICE object.
 
-## Intentional dependency blockers
+## Exact replay and remaining dependency blocker
 
-`CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01` remains required before exact
-replay is accepted for this lifecycle. The current host rechecks Core authority
-but returns a stored exact receipt before calling the CE provider. Therefore
-this slice does not claim current Guide state/version/reference validation on
-replay and exposes no runtime entry point.
+`CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01` is consumed with
+`replay_policy=provider_current_state_required`. The CE hook runs through the
+same `CoreTransactionScopeV1` read phase after current authority and receipt
+identity matching. It binds the current Guide to the exact Workspace, actor,
+command, stored receipt, resulting aggregate version and resulting lifecycle
+state. The decision also verifies status-only provider evidence and current
+target disclosure. A historical receipt without the persisted replay marker is
+rejected by Core as unavailable and is never upgraded in place.
+
+The hook uses only `SELECT ... FOR SHARE`; it cannot stage a Guide or shared
+ledger mutation. PostgreSQL `40001` propagates to Core so the host retries the
+complete authority and replay read in a fresh serializable transaction.
 
 A Documents-owned transaction-scoped immutable selector is also required for a
 Guide that contains references. Until it exists, publish of a referenced Guide
@@ -80,6 +88,9 @@ canonical permission evaluator, shared ledgers and CE migration against a local
 disposable PostgreSQL database. It covers:
 
 - fresh publish and unpublish with exact V to V+1 transitions;
+- exact publish/unpublish replay with byte-identical stored receipt and no new effects;
+- changed Guide state/version, revoked authority and malformed/historical receipt denial;
+- a real PostgreSQL `40001` during replay and a fresh Core read-phase retry;
 - explicit separation from cancellation;
 - stale version and cross-Workspace zero-write denial;
 - two concurrent writers at the same expected version, with exactly one commit;
