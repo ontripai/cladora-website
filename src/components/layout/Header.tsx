@@ -142,7 +142,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       solutions: 'Solutions',
       industries: 'Industries',
       capabilities: 'Capabilities',
-      ai: 'AI',
+      ai: 'Intelligence',
       resources: 'Resources',
       signIn: 'Sign In',
       startPartnership: 'Start Partnership',

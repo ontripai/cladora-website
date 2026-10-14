@@ -9,6 +9,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const publicRoutes = [
     '',
     '/platform',
+    '/capabilities',
+    '/industries',
+    '/community-experience',
+    '/ai',
     '/solutions',
     '/airprop',
     '/service',

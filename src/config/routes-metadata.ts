@@ -605,19 +605,19 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/ai': {
     ro: {
-      title: 'Inteligență & Asistență Operațională cu Validare Umană',
-      desc: 'Modelul de acțiune în 6 etape și asistența AI ghidată de politici, limite de autoritate și supraveghere umană obligatorie.',
-      noIndex: true,
+      title: 'CLADORA Intelligence — Arhitectura de Inteligență Guvernată',
+      desc: 'Descoperă CLADORA Intelligence: orchestrare asistivă ghidată de context, autoritate din CORE, control de politici și rutare către furnizorii canonici de adevăr.',
+      noIndex: false,
     },
     en: {
-      title: 'Operational Intelligence & Human-in-the-Loop Action Model',
-      desc: 'Six-stage governed action model and policy-bounded AI assistance with mandatory human confirmation.',
-      noIndex: true,
+      title: 'CLADORA Intelligence — Governed AI Architecture for Property Operations',
+      desc: 'Explore CLADORA Intelligence: context-aware assistive orchestration grounded in CORE authority, policy controls, and routing to canonical platform providers.',
+      noIndex: false,
     },
     fa: {
-      title: 'هوش عملیاتی و مدل اقدام تحت نظارت انسان',
-      desc: 'مدل شش‌مرحله‌ای اقدام هوشمند مقید به سیاست‌ها، حدود اختیارات و تأیید قطعی انسانی.',
-      noIndex: true,
+      title: 'هوش عملیاتی کلادورا — معماری هوشمندی مقید به حاکمیت برای املاک',
+      desc: 'بررسی جامع CLADORA Intelligence: ارکستراسیون کمکی با درک بافت، اختیارات مبتنی بر CORE، انطباق با خط‌مشی‌ها و ارجاع به متولیان مرجع پلتفرم.',
+      noIndex: false,
     },
   },
   '/industries': {
