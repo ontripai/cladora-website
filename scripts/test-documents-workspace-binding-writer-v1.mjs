@@ -67,6 +67,9 @@ function scopeHarness({ replayValid = true } = {}) {
         return { rows: [{ valid: true }], rowCount: 1 };
       }
       if (text.includes('from documents.upload_intents ui where ui.id=')) return { rows: [{ valid: true }], rowCount: 1 };
+      if (text.includes("set_config('documents.workspace_binding_writer_v1'")) {
+        return { rows: [{ set_config: values[0] }], rowCount: 1 };
+      }
       if (text.includes('insert into documents.upload_intents')) return { rows: [{ mutation_id: intentId }], rowCount: 1 };
       if (text.includes('update documents.upload_intents')) return { rows: [], rowCount: 1 };
       if (text.includes('insert into documents.documents')) return { rows: [], rowCount: 1 };
@@ -128,6 +131,14 @@ await check('finalization requires pretransaction object proof and fresh unconsu
   assert.match(validation.text, /ui\.status='authorized' and ui\.consumed_at is null/);
   assert.match(validation.text, /for update of ui/);
   assert.deepEqual(await provider.mutate(scope, command), { mutation_id: versionId });
+  const marker = calls.find(call => call.text.includes("set_config('documents.workspace_binding_writer_v1'"));
+  assert.ok(marker);
+  assert.deepEqual(JSON.parse(marker.values[0]), {
+    contract_version: 'documents-workspace-binding-writer.v1', intent_id: intentId,
+    document_id: documentId, version_id: versionId, workspace_id: workspace, actor_id: actor,
+    bucket_id: 'document-vault', object_path: intent.object_path, sha256: 'a'.repeat(64),
+    size_bytes: 1024, detected_mime_type: 'application/pdf', non_overwritable: true,
+  });
   const documentInsert = calls.find(call => call.text.includes('insert into documents.documents'));
   assert.equal(documentInsert.values[2], workspace);
   const versionInsert = calls.find(call => call.text.includes('insert into documents.document_versions'));

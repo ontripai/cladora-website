@@ -64,6 +64,10 @@ select r.id,p.id,'allow' from identity.roles r cross join identity.permissions p
 
 -- A real Documents row used through the existing customer gateway. The Guide
 -- proposal never creates a parallel document/resource registry.
+-- This synthetic row represents historical CE evidence and bypasses only the
+-- post-cutover creation guard while the fixture is installed.
+alter table documents.documents disable trigger document_workspace_creation_guard_v1;
 insert into documents.documents(id,tenant_id,title,document_type,classification,status,created_by)
 values(pg_temp.ce012_id(90),pg_temp.ce012_id(1),'CE012 approved reference','guide_reference','public','active',pg_temp.ce012_id(10));
+alter table documents.documents enable trigger document_workspace_creation_guard_v1;
 

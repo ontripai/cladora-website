@@ -46,6 +46,7 @@ const host = createCorePostgresTransactionHostV1(pool);
 const actor = randomUUID();
 const ids = { tenantId: randomUUID(), contextId: randomUUID(), membershipId: randomUUID(),
   workspaceIds: [randomUUID(), randomUUID()] };
+const legacyDocumentId = randomUUID(), legacyIntentId = randomUUID();
 let checks = 0;
 const check = async (name, run) => { await run(); console.log(`ok ${++checks} - ${name}`); };
 const revision = async () => Number((await pool.query(
@@ -295,6 +296,21 @@ try {
     values($1,$2,$3,'active',clock_timestamp()-interval '1 day')`, [ids.membershipId, ids.tenantId, actor]);
   await pool.query(`insert into identity.context_grants(id,membership_id,tenant_id,starts_at)
     values($1,$2,$3,clock_timestamp()-interval '1 day')`, [ids.contextId, ids.membershipId, ids.tenantId]);
+  await pool.query(`insert into documents.documents(id,tenant_id,title,document_type,created_by)
+    values($1,$2,'Historical document','legacy',$3)`, [legacyDocumentId, ids.tenantId, actor]);
+  await pool.query(`insert into documents.upload_intents
+    (id,tenant_id,context_id,user_id,object_path,declared_mime_type,max_size_bytes,status,server_auth_hash)
+    values($1,$2,$3,$4,$5,'application/pdf',1024,'authorized',$6)`, [
+    legacyIntentId, ids.tenantId, ids.contextId, actor,
+    `${ids.tenantId}/${legacyIntentId}/legacy.pdf`, 'b'.repeat(64),
+  ]);
+  const historicalBefore = (await pool.query(`select
+    (select to_jsonb(d) from documents.documents d where id=$1) document,
+    (select to_jsonb(ui) from documents.upload_intents ui where id=$2) intent`,
+  [legacyDocumentId, legacyIntentId])).rows[0];
+  await pool.query(readFileSync(new URL(
+    '../supabase/migrations/20261014200948_document_null_workspace_creation_closure_v1.sql',
+    import.meta.url), 'utf8'));
   const documentsModule = { id: randomUUID(), entitlement_key: 'module.documents' };
   const permission = { id: randomUUID() };
   await pool.query(`insert into platform.module_definitions
@@ -324,40 +340,32 @@ try {
     [randomUUID(), ids.workspaceIds[i], ids.membershipId, workspaceRole]);
   }
 
-  await check('migration is additive, preserves populated NULL rows and performs no backfill', async () => {
-    const legacyDocument = randomUUID(), legacyIntent = randomUUID();
-    await pool.query(`insert into documents.documents(id,tenant_id,title,document_type,created_by)
-      values($1,$2,'Historical document','legacy',$3)`, [legacyDocument, ids.tenantId, actor]);
-    await pool.query(`insert into documents.upload_intents
+  await check('closure preserves historical NULL rows byte-for-byte and keeps them unresolved', async () => {
+    const historicalAfter = (await pool.query(`select
+      (select to_jsonb(d) from documents.documents d where id=$1) document,
+      (select to_jsonb(ui) from documents.upload_intents ui where id=$2) intent`,
+    [legacyDocumentId, legacyIntentId])).rows[0];
+    assert.deepEqual(historicalAfter, historicalBefore);
+    assert.equal(historicalAfter.document.workspace_id, null);
+    assert.equal(historicalAfter.intent.workspace_id, null);
+    assert.equal(historicalAfter.intent.prospective_document_id, null);
+  });
+
+  await check('new NULL document and legacy unbound new-document intent fail with zero writes', async () => {
+    const before = await digest();
+    await assert.rejects(pool.query(`insert into documents.documents(id,tenant_id,title,document_type,created_by)
+      values($1,$2,'Forbidden NULL document','legacy',$3)`, [randomUUID(), ids.tenantId, actor]),
+    /document_workspace_binding_required_on_insert/);
+    await assert.rejects(pool.query(`insert into documents.upload_intents
       (id,tenant_id,context_id,user_id,object_path,declared_mime_type,max_size_bytes,status,server_auth_hash)
-      values($1,$2,$3,$4,$5,'application/pdf',1024,'authorized',$6)`,
-    [legacyIntent, ids.tenantId, ids.contextId, actor, `${ids.tenantId}/${legacyIntent}/legacy.pdf`, 'b'.repeat(64)]);
-    const client = await pool.connect();
-    try {
-      await client.query('begin');
-      await client.query('drop trigger document_workspace_binding_immutable_v1 on documents.documents');
-      await client.query('drop function documents.reject_document_workspace_rebind_v1()');
-      await client.query('alter table documents.upload_intents drop column workspace_id, drop column prospective_document_id');
-      const rowsBefore = (await client.query(`select
-        (select to_jsonb(d) - 'workspace_id' from documents.documents d where id=$1) document,
-        (select to_jsonb(ui) from documents.upload_intents ui where id=$2) intent`,
-      [legacyDocument, legacyIntent])).rows[0];
-      const aclBefore = (await client.query(`select relacl::text,relrowsecurity,relforcerowsecurity
-        from pg_class where oid='documents.upload_intents'::regclass`)).rows[0];
-      const migration = readFileSync(new URL(
-        '../supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql', import.meta.url), 'utf8')
-        .replace(/^begin;\s*/m, '').replace(/^commit;\s*$/m, '');
-      await client.query(migration);
-      const rowsAfter = (await client.query(`select
-        (select to_jsonb(d) from documents.documents d where id=$1) - 'workspace_id' document,
-        (select to_jsonb(ui) from documents.upload_intents ui where id=$2) - 'workspace_id' - 'prospective_document_id' intent`,
-      [legacyDocument, legacyIntent])).rows[0];
-      assert.deepEqual(rowsAfter, rowsBefore);
-      assert.deepEqual((await client.query(`select relacl::text,relrowsecurity,relforcerowsecurity
-        from pg_class where oid='documents.upload_intents'::regclass`)).rows[0], aclBefore);
-      const nulls = (await client.query('select workspace_id,prospective_document_id from documents.upload_intents where id=$1', [legacyIntent])).rows[0];
-      assert.deepEqual(nulls, { workspace_id: null, prospective_document_id: null });
-    } finally { await client.query('rollback'); client.release(); }
+      values($1,$2,$3,$4,$5,'application\/pdf',1024,'authorized',$6)`, [
+      randomUUID(), ids.tenantId, ids.contextId, actor,
+      `${ids.tenantId}/${randomUUID()}/legacy-new.pdf`, 'c'.repeat(64),
+    ]), /document_workspace_binding_required_for_new_intent/);
+    await assert.rejects(pool.query(`update documents.upload_intents
+      set status='consumed',consumed_at=clock_timestamp(),attempts=attempts+1 where id=$1`,
+    [legacyIntentId]), /document_workspace_binding_required_for_new_intent/);
+    assert.equal(await digest(), before);
   });
 
   await check('RLS and write ACLs remain closed', async () => {
@@ -370,6 +378,19 @@ try {
     for (const row of rows.rows) {
       assert.equal(row.relrowsecurity, true); assert.equal(row.anon_write, false);
       assert.equal(row.authenticated_write, false);
+    }
+    const functions = await pool.query(`select p.proname,pg_get_userbyid(p.proowner) owner,p.prosecdef,p.proacl::text acl
+      from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+      where n.nspname='documents' and p.proname in
+        ('reject_unbound_new_document_intent_v1','require_workspace_bound_document_insert_v1')
+      order by p.proname`);
+    assert.equal(functions.rowCount, 2);
+    for (const fn of functions.rows) {
+      assert.equal(fn.owner, 'postgres'); assert.equal(fn.prosecdef, false);
+      for (const role of ['anon', 'authenticated', 'service_role']) {
+        assert.equal((await pool.query('select has_function_privilege($1,$2::regprocedure,\'EXECUTE\') allowed',
+          [role, `documents.${fn.proname}()`])).rows[0].allowed, false);
+      }
     }
   });
 

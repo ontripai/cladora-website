@@ -1,4 +1,7 @@
 begin;
+-- Fixture-only historical document setup: the production cutover guard remains enabled outside this rolled-back test.
+alter table documents.documents disable trigger document_workspace_creation_guard_v1;
+
 create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
 select plan(15);
@@ -78,7 +81,11 @@ insert into platform.workspace_entitlements(customer_workspace_id,entitlement_ke
 insert into documents.documents(id,tenant_id,property_id,title,document_type,status,created_by) values
  ('12000000-0000-4000-8000-000000000056','12000000-0000-4000-8000-000000000004','12000000-0000-4000-8000-000000000005','Other person document','test','active','12000000-0000-4000-8000-000000000001');
 select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000042','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000044')::text,true);
-select ok((documents.create_upload_intent_internal('12000000-0000-4000-8000-000000000044',null,'evidence.pdf','application/pdf',512,null)->>'intent_id') is not null,'Verified vendor may upload a new document');
+select throws_ok(
+  $$select documents.create_upload_intent_internal('12000000-0000-4000-8000-000000000044',null,'evidence.pdf','application/pdf',512,null)$$,
+  '23502','document_workspace_binding_required_for_new_intent',
+  'Verified vendor legacy new-document path fails closed after Workspace cutover'
+);
 select throws_ok($$select documents.create_upload_intent_internal('12000000-0000-4000-8000-000000000044','12000000-0000-4000-8000-000000000056','overwrite.pdf','application/pdf',512,null)$$,'42501','restricted_roles_cannot_version_existing_documents','Vendor cannot overwrite another document');
 update maintenance.vendor_contracts set status='archived' where id='12000000-0000-4000-8000-000000000048';
 set local role authenticated;

@@ -1,5 +1,8 @@
 -- Actual canonical bootstrap, assignment, AIRPROP retry/read and expiry revocation.
 begin;
+-- Fixture-only historical document setup: the production cutover guard remains enabled outside this rolled-back test.
+alter table documents.documents disable trigger document_workspace_creation_guard_v1;
+
 select plan(27);
 do $$
 declare

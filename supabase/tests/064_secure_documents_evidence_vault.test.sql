@@ -1,4 +1,10 @@
 begin;
+-- This pre-cutover Vault lifecycle fixture exercises the preserved legacy
+-- replacement flow. Closure behavior is covered by test 183 and the Core
+-- writer PostgreSQL suite; these trigger changes roll back with this test.
+alter table documents.documents disable trigger document_workspace_creation_guard_v1;
+alter table documents.upload_intents disable trigger upload_intent_new_document_binding_required_v1;
+alter table documents.upload_intents disable trigger upload_intent_unbound_consumption_denied_v1;
 select plan(60);
 
 -- ----------------------------------------------------------------------------

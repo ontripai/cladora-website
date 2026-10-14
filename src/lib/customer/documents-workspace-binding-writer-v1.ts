@@ -401,6 +401,22 @@ export function createDocumentsInitialVersionProvidersV1(
     },
     async mutate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1) {
       if (!exactCommand(expected, command)) throw new Error('documents_finalize_command_mismatch');
+      await scope.query(`select set_config('documents.workspace_binding_writer_v1',$1,true)`, [
+        JSON.stringify({
+          contract_version: DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1,
+          intent_id: input.intent_id,
+          document_id: input.document_id,
+          version_id: input.version_id,
+          workspace_id: input.workspace_id,
+          actor_id: scope.actor_id,
+          bucket_id: object.bucket_id,
+          object_path: object.object_path,
+          sha256: object.sha256,
+          size_bytes: object.size_bytes,
+          detected_mime_type: object.detected_mime_type,
+          non_overwritable: object.non_overwritable,
+        }),
+      ]);
       const consumed = await scope.query(`update documents.upload_intents
         set status='consumed',consumed_at=clock_timestamp(),attempts=attempts+1
         where id=$1 and tenant_id=$2 and workspace_id=$3 and prospective_document_id=$4

@@ -127,9 +127,14 @@ async function addDocument(extra={}) {
   const documentId=randomUUID(),vid=randomUUID();const sha=createHash('sha256').update(vid).digest('hex');
   const state={workspace:ids.workspaceIds[0],property:ids.propertyIds[0],classification:'internal',
     scan:'clean',attested:true,checksum:'verified',...extra};
-  await pool.query(`insert into documents.documents(id,tenant_id,workspace_id,property_id,title,document_type,classification)
-    values($1,$2,$3,$4,'Confidential title never projected','financial-test',$5)`,
+  await pool.query('alter table documents.documents disable trigger document_workspace_creation_guard_v1');
+  try {
+    await pool.query(`insert into documents.documents(id,tenant_id,workspace_id,property_id,title,document_type,classification)
+      values($1,$2,$3,$4,'Confidential title never projected','financial-test',$5)`,
     [documentId,ids.tenantId,state.workspace,state.property,state.classification]);
+  } finally {
+    await pool.query('alter table documents.documents enable trigger document_workspace_creation_guard_v1');
+  }
   await pool.query(`insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,scanning_status,checksum_status)
     values($1,$2,$3,1,$4,$5,'application/pdf',$6,$7)`,
     [vid,ids.tenantId,documentId,`${ids.tenantId}/secret-${vid}.pdf`,sha,state.scan,state.checksum]);
@@ -250,6 +255,8 @@ try {
       new URL('../supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql',import.meta.url),'utf8');
     try {
       await c.query('begin');
+      await c.query('drop trigger document_workspace_creation_guard_v1 on documents.documents');
+      await c.query('drop function documents.require_workspace_bound_document_insert_v1()');
       await c.query('drop trigger document_workspace_binding_immutable_v1 on documents.documents');
       await c.query('drop function documents.reject_document_workspace_rebind_v1()');
       await c.query('alter table documents.documents drop column workspace_id');
