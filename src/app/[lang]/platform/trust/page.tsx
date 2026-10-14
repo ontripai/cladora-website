@@ -42,13 +42,13 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         badge: 'ARHITECTURĂ DE SECURITATE & GUVERNANȚĂ',
         title: 'Arhitectura de Încredere & Guvernanță CLADORA',
         subtitle:
-          'O abordare inginerească riguroasă a securității: delimitare pe workspace, autoritate contextuală pe mandat, cerințe AAL2, principiul Zero-Write Denial și rezidență europeană a datelor.',
+          'O abordare inginerească riguroasă a securității: delimitare pe workspace, autoritate contextuală pe mandat, cerințe AAL2, principiul Zero-Write Denial și cerințe de guvernanță a datelor cu orientare europeană.',
       },
       pillarsTitle: 'Pilonii Arhitecturali de Securitate și Conformitate',
       pillars: [
         {
           title: 'Granițe Logice de Workspace',
-          desc: 'Fiecare organizație, asociație sau companie de property management operează în propriul spațiu logic de date. Izolarea la nivel de interogare previne expunerea neautorizată între entități.',
+          desc: 'Fiecare organizație, asociație sau companie de property management operează în propriul spațiu logic de date. Arhitectura este concepută pentru a aplica granițe delimitate pe workspace, reducând riscul expunerii neautorizate între entități.',
           icon: Layers,
         },
         {
@@ -58,12 +58,12 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         },
         {
           title: 'Cerințe de Autentificare AAL2',
-          desc: 'Operațiunile sensibile și accesul la panourile de control sunt proiectate în jurul cerințelor avansate de autentificare (AAL2), incluzând verificarea celui de-al doilea factor (MFA/TOTP).',
+          desc: 'Operațiunile sensibile și acțiunile elevate sunt proiectate în jurul cerințelor de asigurare a autentificării, incluzând controale aliniate AAL2 unde este necesar.',
           icon: Lock,
         },
         {
           title: 'Principiul Zero-Write Denial',
-          desc: 'Când autoritatea sau mandatul nu pot fi verificate cert, starea implicită și de siguranță a platformei este refuzul oricărei mutații de date.',
+          desc: 'Când autoritatea sau mandatul nu pot fi stabilite cert, arhitectura impune refuzul oricărei mutații de date ca stare implicită și de siguranță.',
           icon: AlertTriangle,
         },
         {
@@ -78,12 +78,12 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         },
         {
           title: 'Idempotență & Disciplină de Rollback',
-          desc: 'Mutațiile financiare și tehnice sunt proiectate ca operațiuni idempotente, prevenind dublarea debitelor sau plăților în cazul reluării tranzacțiilor.',
+          desc: 'Fluxurile de mutație sunt proiectate în jurul cerințelor de idempotență și procedurilor de rollback pentru a reduce riscul tranzițiilor duplicate sau inconsistente.',
           icon: Database,
         },
         {
-          title: 'Protecția Datelor & Rezidență UE',
-          desc: 'Infrastructura este găzduită în Uniunea Europeană, respectând cerințele GDPR privind minimizarea colectării și limitarea scopului prelucrării datelor.',
+          title: 'Guvernanța Datelor & Principii GDPR',
+          desc: 'Arhitectură de confidențialitate orientată spre cerințele GDPR privind minimizarea colectării, limitarea scopului și cerințele europene de guvernanță a datelor.',
           icon: Globe,
         },
       ],
@@ -104,13 +104,13 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         badge: 'SECURITY & GOVERNANCE ARCHITECTURE',
         title: 'CLADORA Trust & Governance Architecture',
         subtitle:
-          'An engineering-first approach to security: workspace-scoped boundaries, mandate-based authority, AAL2 security controls, the Zero-Write Denial principle, and European data residency.',
+          'An engineering-first approach to security: workspace-scoped boundaries, mandate-based authority, AAL2-aligned controls, the Zero-Write Denial principle, and EU-oriented data governance requirements.',
       },
       pillarsTitle: 'Architectural Security & Governance Pillars',
       pillars: [
         {
           title: 'Workspace-Scoped Boundaries',
-          desc: 'Every organization, HOA, or management company operates within an isolated logical data boundary. Query-level multi-tenant filters prevent cross-tenant data exposure.',
+          desc: 'Every organization, HOA, or management company operates within an isolated logical data boundary. Architecture designed to enforce workspace-scoped data boundaries and reduce cross-tenant exposure risk.',
           icon: Layers,
         },
         {
@@ -120,12 +120,12 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         },
         {
           title: 'AAL2-Aligned Authentication',
-          desc: 'Consequential operations and administrative control plane access are designed around elevated authentication assurance (AAL2), including verified MFA/TOTP factors.',
+          desc: 'Sensitive and elevated actions are designed around stronger authentication assurance, including AAL2-aligned controls where required.',
           icon: Lock,
         },
         {
           title: 'Zero-Write Denial Principle',
-          desc: 'When authorization, temporal validity, or mandate context cannot be conclusively established, the safe default state is immediate mutation denial.',
+          desc: 'When authority cannot be established, the architecture requires mutation to be denied as the safe default state.',
           icon: AlertTriangle,
         },
         {
@@ -140,12 +140,12 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         },
         {
           title: 'Idempotency & Rollback Discipline',
-          desc: 'Transactional operations are engineered for idempotency, ensuring network retries or batch re-runs never result in duplicate financial postings or invoice double-entry.',
+          desc: 'Mutation flows are designed around idempotency and rollback requirements to reduce duplicate or inconsistent state transitions.',
           icon: Database,
         },
         {
-          title: 'GDPR Compliance & EU Residency',
-          desc: 'Data infrastructure is hosted within the European Union, adhering to GDPR data minimization, purpose limitation, and strict user privacy principles.',
+          title: 'Data Governance & GDPR-Aware Architecture',
+          desc: 'Designed around GDPR-relevant privacy and purpose-limitation requirements, adhering to EU-oriented data-governance standards.',
           icon: Globe,
         },
       ],
@@ -166,13 +166,13 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         badge: 'معماری امنیت، اعتماد و حاکمیت داده‌ها',
         title: 'معماری اعتماد و حاکمیت سیستم در کلادورا',
         subtitle:
-          'رویکردی کاملاً مهندسی و ساختاریافته به مقولهٔ امنیت: مرزهای تفکیک‌شدهٔ ورک‌اسپیس، اختیارات بر مبنای مجوز قانونی، استانداردهای AAL2، اصل عدم تغییر بدون مجوز و میزبانی امن در اروپا.',
+          'رویکردی کاملاً مهندسی و ساختاریافته به مقولهٔ امنیت: مرزهای تفکیک‌شدهٔ ورک‌اسپیس، اختیارات بر مبنای مجوز قانونی، استانداردهای AAL2، اصل عدم تغییر بدون مجوز و الزامات حاکمیت داده‌ها با رویکرد اروپایی.',
       },
       pillarsTitle: 'ارکان ساختاری امنیت و انضباط داده‌ها',
       pillars: [
         {
           title: 'مرزهای تفکیک‌شدهٔ ورک‌اسپیس',
-          desc: 'هر سازمان، مجتمع یا شرکت مدیریت در محیط منطقی مستقل فعالیت می‌کند. فیلترهای سطح پایگاه داده مانع از هرگونه افشای ناخواسته اطلاعات میان سازمان‌ها می‌شوند.',
+          desc: 'هر سازمان، مجتمع یا شرکت مدیریت در محیط منطقی مستقل فعالیت می‌کند. معماری سیستم برای اعمال مرزهای داده به تفکیک ورک‌اسپیس و پیشگیری از افشای داده‌ها میان سازمان‌ها طراحی شده است.',
           icon: Layers,
         },
         {
@@ -182,12 +182,12 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         },
         {
           title: 'الزامات امنیتی ورود AAL2',
-          desc: 'عملیات حساس و دسترسی به بخش‌های مدیریتی بر پایه سطوح ارتقایافتهٔ احراز هویت (AAL2) شامل ورود دومرحله‌ای (MFA/TOTP) طراحی گردیده‌اند.',
+          desc: 'عملیات حساس و دسترسی‌های ارتقایافته بر پایه الزامات امنیتی ورود، شامل کنترل‌های هم‌راستا با AAL2 در موارد مورد نیاز طراحی شده‌اند.',
           icon: Lock,
         },
         {
           title: 'اصل عدم تغییر بدون مجوز (Zero-Write Denial)',
-          desc: 'هرگاه حدود اختیار، زمان اعتبار یا اصالت مجوز کاربر اثبات نشود، واکنش پیش‌فرض و ایمن سیستم رد کامل و بلادرنگ درخواست تغییر خواهد بود.',
+          desc: 'هرگاه حدود اختیار اثبات نشود، الزامات معماری سیستم حکم به رد هرگونه تغییر به عنوان حالت پیش‌فرض ایمن می‌دهد.',
           icon: AlertTriangle,
         },
         {
@@ -202,12 +202,12 @@ export default async function PlatformTrustPage(props: { params: Promise<{ lang:
         },
         {
           title: 'قاعدهٔ عدم تکرار تراکنش (Idempotency)',
-          desc: 'تراکنش‌های مالی و فنی به صورت پایدار طراحی شده‌اند؛ به‌گونه‌ای که تکرار یک دستور در اثر قطعی ارتباط هرگز منجر به ثبت بدهی دوبل یا فاکتور تکراری نمی‌شود.',
+          desc: 'جریان‌های تغییر داده بر پایه الزامات پایداری تراکنش (Idempotency) و بازگشت به عقب طراحی شده‌اند تا احتمال ثبت وضعیت تکراری یا ناهماهنگ کاهش یابد.',
           icon: Database,
         },
         {
-          title: 'حریم خصوصی GDPR و میزبانی در اروپا',
-          desc: 'زیرساخت داده‌های کلادورا در مراکز داده اتحادیه اروپا میزبانی می‌شود و از اصول تفکیک داده‌ها و استانداردهای حفاظت اطلاعات هویتی و مالی پیروی می‌کند.',
+          title: 'حاکمیت داده‌ها و معماری منطبق با اصول GDPR',
+          desc: 'معماری مبتنی بر استانداردهای حریم خصوصی و اصول تفکیک هدف GDPR با رعایت الزامات اروپایی حاکمیت داده‌ها.',
           icon: Globe,
         },
       ],

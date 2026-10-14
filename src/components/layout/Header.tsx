@@ -190,7 +190,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     },
     {
       title: lang === 'ro' ? 'Securitate, Încredere & Audit' : lang === 'fa' ? 'امنیت، اعتماد و ممیزی' : 'Trust, Security & Audit',
-      desc: lang === 'ro' ? 'Jurnal de audit aditiv, delimitare pe workspace și rezidență UE' : lang === 'fa' ? 'ثبت رویدادهای ممیزی، تفکیک داده‌های ورک‌اسپیس و استانداردهای حریم خصوصی در اروپا' : 'Auditable event trails, workspace boundaries, and EU data residency',
+      desc: lang === 'ro' ? 'Jurnal de audit aditiv, delimitare pe workspace și guvernanță UE' : lang === 'fa' ? 'ثبت رویدادهای ممیزی، تفکیک داده‌های ورک‌اسپیس و حاکمیت داده‌ها مطابق موازین اروپایی' : 'Auditable event trails, workspace boundaries, and EU data governance',
       href: `/${lang}/platform/trust`,
       icon: ShieldCheck,
     },

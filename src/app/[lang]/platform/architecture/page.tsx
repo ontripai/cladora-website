@@ -55,7 +55,7 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       physicalModel: {
         badge: 'NIVELUL 01 — MODELUL FIZIC',
         title: 'Topologia Ierarhică a Proprietății',
-        desc: 'Subiectul fizic persistent este structurat pe niveluri ierarhice clare. Rotația echipelor sau tranzacțiile imobiliare nu afectează integritatea cărții tehnice a clădirii.',
+        desc: 'Arhitectura separă identitatea persistentă a proprietății de schimbările de proprietate, administrare și relații operaționale. Subiectul fizic persistent este structurat pe niveluri ierarhice clare.',
         items: [
           { name: 'Parcelă Cadastrală / Teren', desc: 'Coordonate spațiale, identificator cadastral și graniță juridică persistentă.' },
           { name: 'Corp de Clădire / Structură', desc: 'Fundație, anvelopă termică, acoperiș și spații tehnice comune.' },
@@ -66,10 +66,10 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       },
       workspaceModel: {
         badge: 'NIVELUL 02 — MODELUL DE WORKSPACE',
-        title: 'Granițe de Context & Izolare Organizațională',
-        desc: 'Un workspace nu este un simplu cont de utilizator, ci o graniță juridică, operațională și de conformitate. O singură proprietate fizică poate participa simultan în multiple contexte autorizate.',
+        title: 'Granițe de Context & Model de Izolare',
+        desc: 'Un workspace nu este un simplu cont de utilizator, ci o graniță juridică, operațională și de conformitate. Arhitectura este proiectată pentru a asigura izolarea datelor la nivel de workspace, permițând unei proprietăți fizice să participe în contexte autorizate fără amestec de date.',
         features: [
-          { title: 'Izolare de Context', desc: 'Datele, configurările și evidențele unui workspace sunt complet izolate logic de cele ale altor organizații.' },
+          { title: 'Model de Izolare la Nivel de Workspace', desc: 'Arhitectură proiectată pentru a delimita datele, configurările și evidențele unui workspace de cele ale altor organizații.' },
           { title: 'Contexte Concomitente', desc: 'O clădire poate fi operată de o asociație pentru cotele comune și de o firmă de management pentru mentenanță fără suprapunere.' },
           { title: 'Separarea Registrelor', desc: 'Nicio tranzacție sau înregistrare contabilă nu este partajată sau amestecată între workspace-uri diferite.' },
         ],
@@ -77,10 +77,10 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       authorityModel: {
         badge: 'NIVELUL 03 — AUTORITATE & MANDAT',
         title: 'Autoritate Contextuală & Principiul Zero-Write Denial',
-        desc: 'Autoritatea este întotdeauna contextuală, derivată din mandat legal, delimitată în spațiu și cu termen de expirare.',
+        desc: 'Autoritatea este întotdeauna contextuală, derivată din mandat legal, delimitată în spațiu și cu termen de expirare. Când autoritatea nu poate fi stabilită, arhitectura impune refuzul mutației de stare.',
         points: [
           'Un rol fără mandat verificabil nu conferă drepturi de mutație.',
-          'Principiul Zero-Write Denial: în absența unei autorități explicit demonstrate, sistemul refuză orice modificare de stare.',
+          'Principiul Zero-Write Denial: atunci când autoritatea nu poate fi stabilită, arhitectura impune refuzul oricărei modificări de stare.',
           'La expirarea mandatului, drepturile se transferă controlat către succesor, consemnând predarea în jurnalul de audit.',
         ],
       },
@@ -128,22 +128,22 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       },
       countryPack: {
         badge: 'ARHITECTURĂ DE LOCALIZARE',
-        title: 'Country Pack: România First',
-        desc: 'Country Pack-ul încapsulează regulile specifice naționale fără a modifica nucleul universal: terminologie locală, structura cotelor statutare, șabloane de procese-verbale și cerințe de arhivare conform reglementărilor din România.',
+        title: 'Country Pack: România ca Bază de Referință',
+        desc: 'România reprezintă primul Country Pack definit pentru platformă, încadrând cerințele normative locale fără a altera nucleul universal: terminologie specifică, structura cotelor statutare, șabloane de procese-verbale și cerințe de arhivare conform legislației aplicabile.',
       },
       aiBoundary: {
         badge: 'GUVERNANȚĂ AI',
         title: 'Delimitarea Asistenței Inteligente',
-        desc: 'Asistența AI este strict subordonată autorității umane și nu deține drepturi de scriere directă în registrele canonice. Orice propunere generată parcurge fluxul în 6 etape (Context → Intent → Authority → Plan → Action → Receipt) și este executată doar pe baza validării umane explicite.',
+        desc: 'CLADORA Intelligence este proiectată să opereze strict în limitele autorității și ale furnizorilor canonici. Asistența AI nu poate crea drepturi în mod independent și nu poate ocoli adevărul canonic. Pentru mutații de stare cu impact, modelul de acțiune guvernată impune autoritate validată și aprobare umană explicită în cadrul ciclului în 6 etape (Context → Intent → Authority → Plan → Action → Receipt).',
       },
       principles: {
         badge: 'PRINCIPII STRUCTURALE',
         title: 'Cinci Reguli Inviolabile de Arhitectură',
         list: [
           '1. Unicitatea sursei de adevăr: O capabilitate are un singur deținător canonic.',
-          '2. Delimitarea strictă a workspace-ului: Nicio scurgere de date între contexte organizaționale.',
+          '2. Izolare la nivel de workspace: Arhitectură proiectată pentru delimitarea strictă a datelor între contexte organizaționale.',
           '3. Autoritate derivată din mandat: Rolul fără mandat legal demonstrabil este nul.',
-          '4. Persistența activului fizic: Datele tehnice rămân legate de proprietate în timp.',
+          '4. Persistența activului fizic: Arhitectura separă identitatea persistentă a proprietății de schimbările de proprietate și administrare.',
           '5. Disciplina jurnalului aditiv: Istoricul operațional este consemnat cronologic și verificabil.',
         ],
       },
@@ -165,7 +165,7 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       physicalModel: {
         badge: 'TIER 01 — PHYSICAL MODEL',
         title: 'Hierarchical Spatial & Asset Topology',
-        desc: 'The physical subject is organized across clear structural tiers. Stakeholder turnover or property sales never compromise the building’s persistent technical logbook.',
+        desc: 'The architecture separates persistent property identity from changes in ownership, management, and operational relationships. The persistent physical subject is organized across clear structural tiers.',
         items: [
           { name: 'Cadastral Plot / Land Parcel', desc: 'Geographic boundary, cadastral identifiers, and persistent legal plot perimeter.' },
           { name: 'Building Shell & Structure', desc: 'Foundations, thermal envelopes, roof structures, and primary physical plant.' },
@@ -176,10 +176,10 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       },
       workspaceModel: {
         badge: 'TIER 02 — WORKSPACE MODEL',
-        title: 'Contextual Boundaries & Tenant Isolation',
-        desc: 'A workspace is an operational, legal, and compliance boundary, not merely a software tenant account. A single physical asset can participate in multiple authorized workspaces without duplicate records.',
+        title: 'Contextual Boundaries & Workspace Isolation Model',
+        desc: 'A workspace is an operational, legal, and compliance boundary, not merely a software tenant account. The architecture is designed to enforce workspace-scoped data boundaries, enabling a single physical asset to participate in multiple authorized contexts without uncontrolled duplication.',
         features: [
-          { title: 'Contextual Isolation', desc: 'Data records, operational rules, and event trails in one workspace are strictly segregated from other organizations.' },
+          { title: 'Workspace-Scoped Isolation Model', desc: 'Architecture designed to enforce data boundaries, operational rules, and event trails between distinct organizations.' },
           { title: 'Concurrent Workspaces', desc: 'A building can be managed by an HOA for statutory costs and by a commercial manager for maintenance without operational overlap.' },
           { title: 'Ledger Segregation', desc: 'No financial transaction or accounting ledger is ever blended across separate corporate workspace entities.' },
         ],
@@ -187,10 +187,10 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       authorityModel: {
         badge: 'TIER 03 — AUTHORITY & MANDATES',
         title: 'Contextual Authority & Zero-Write Denial',
-        desc: 'Authority is contextual, derived from verifiable legal mandates, bounded to specific physical spaces, and time-restricted.',
+        desc: 'Authority is contextual, derived from verifiable legal mandates, bounded to specific physical spaces, and time-restricted. When authority cannot be established, the architecture requires mutation to be denied.',
         points: [
           'A user role without an active, verified mandate conveys zero state mutation rights.',
-          'Zero-Write Denial Principle: in the absence of demonstrable authority, the system rejects state changes by default.',
+          'Zero-Write Denial Principle: when authority cannot be established, the architecture requires mutation to be denied by default.',
           'When a mandate expires, responsibilities transfer cleanly to successors, recorded in the audit journal.',
         ],
       },
@@ -238,22 +238,22 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       },
       countryPack: {
         badge: 'LOCALIZATION ARCHITECTURE',
-        title: 'The Country Pack Architecture (Romania First)',
-        desc: 'Country Packs encapsulate national statutory requirements without touching core platform logic: statutory allocation rules, general meeting ballot templates, and retention mandates tailored to Romanian real estate law.',
+        title: 'Country Pack: Romania Baseline',
+        desc: 'Romania is the first Country Pack defined for the platform, encapsulating national statutory requirements without touching core platform logic: statutory allocation rules, general meeting ballot templates, and retention mandates tailored to Romanian real estate law.',
       },
       aiBoundary: {
         badge: 'GOVERNED AI BOUNDARIES',
-        title: 'Intelligence Subordinated to Human Authority',
-        desc: 'AI assistance possesses zero direct write permissions on canonical ledgers. Operational proposals strictly follow the 6-stage lifecycle (Context → Intent → Authority → Plan → Action → Receipt) and require authorized human sign-off.',
+        title: 'Governed AI Operational Boundaries',
+        desc: 'CLADORA Intelligence is designed to operate within authority and canonical-provider boundaries. AI must not independently create rights or bypass provider truth. For consequential mutations, the governed action model requires validated authority and appropriate human approval across the 6-stage lifecycle (Context → Intent → Authority → Plan → Action → Receipt).',
       },
       principles: {
         badge: 'CORE PRINCIPLES',
         title: 'Five Non-Negotiable System Principles',
         list: [
           '1. Canonical source of truth: exactly one authoritative owner per platform capability.',
-          '2. Workspace-scoped isolation: zero unauthorized cross-tenant data exposure.',
+          '2. Workspace-scoped isolation: architecture designed to enforce data boundaries between distinct organizational contexts.',
           '3. Mandate-bounded authority: no state mutation rights without verifiable temporal mandates.',
-          '4. Persistent physical subject: physical asset identity endures across ownership changes.',
+          '4. Persistent physical subject: the architecture separates persistent property identity from ownership and management changes.',
           '5. Append-only event trail: operational history is recorded chronologically and traceably.',
         ],
       },
@@ -275,7 +275,7 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       physicalModel: {
         badge: 'لایهٔ ۰۱ — مدل فیزیکی دارایی',
         title: 'توپولوژی سلسله‌مراتبی فضاها و تجهیزات',
-        desc: 'موضوع فیزیکی در سطوح مشخص و پایدار ساختاریافته است. تغییر مالکان یا شرکت‌های مدیریت هرگز شناسنامه فنی ساختمان را از بین نمی‌برد.',
+        desc: 'معماری کلادورا هویت پایدار ملک را از تغییرات در مالکیت، مدیریت و روابط عملیاتی تفکیک می‌نماید. موضوع فیزیکی در سطوح مشخص و پایدار ساختاریافته است.',
         items: [
           { name: 'عرصه و پلاک ثبتی ملک', desc: 'محدوده جغرافیایی، پلاک ثبتی و مرز حقوقی پایدار زمین.' },
           { name: 'سازه و اسکلت ساختمان', desc: 'فونداسیون، نما، بام، موتورخانه و تاسیسات مادر ساختمان.' },
@@ -286,10 +286,10 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       },
       workspaceModel: {
         badge: 'لایهٔ ۰۲ — مدل ورک‌اسپیس',
-        title: 'مرزهای زمینه و تفکیک سازمانی داده‌ها',
-        desc: 'ورک‌اسپیس یک مرز حقوقی و امنیتی است؛ نه صرفاً یک حساب کاربری ساده. یک ملک فیزیکی می‌تواند بدون کپی‌شدن داده‌ها در چند ورک‌اسپیس مجاز مشارکت نماید.',
+        title: 'مرزهای زمینه و الگوی تفکیک ورک‌اسپیس',
+        desc: 'ورک‌اسپیس یک مرز حقوقی، عملیاتی و امنیتی است؛ نه صرفاً یک حساب کاربری. این معماری برای اعمال مرزهای داده‌ای در سطح هر ورک‌اسپیس طراحی شده و امکان مشارکت ملک فیزیکی در بسترهای مجاز را بدون تداخل داده‌ها فراهم می‌سازد.',
         features: [
-          { title: 'جداسازی داده‌ها', desc: 'اطلاعات، دفاتر و تنظیمات هر ورک‌اسپیس کاملاً تفکیک‌شده و از سایر سازمان‌ها مجزا است.' },
+          { title: 'الگوی جداسازی در سطح ورک‌اسپیس', desc: 'معماری طراحی‌شده برای اعمال و حفظ مرزهای داده‌ای، قواعد عملیاتی و لاگ‌های رویداد میان سازمان‌های گوناگون.' },
           { title: 'مشارکت هم‌زمان', desc: 'یک مجتمع می‌تواند برای مشاعات در ورک‌اسپیس انجمن و برای نگهداری در ورک‌اسپیس شرکت مدیر حضور یابد.' },
           { title: 'تفکیک دفاتر مالی', desc: 'هیچ تراکنش یا سند حسابی میان اشخاص حقوقی در ورک‌اسپیس‌های گوناگون تداخل پیدا نمی‌کند.' },
         ],
@@ -297,10 +297,10 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       authorityModel: {
         badge: 'لایهٔ ۰۳ — اختیارات و مجوزها',
         title: 'اختیارات بر مبنای مجوز و اصل Zero-Write Denial',
-        desc: 'اختیار اجرایی همواره مبتنی بر مجوز قانونی معتبر، دارای محدوده مشخص مکانی و مقید به بازه زمانی است.',
+        desc: 'اختیار اجرایی همواره مبتنی بر مجوز قانونی معتبر، دارای محدوده مشخص مکانی و مقید به بازه زمانی است. هنگامی که اختیار قابل احراز نباشد، معماری سامانه الزام می‌کند که هرگونه درخواست تغییر رد شود.',
         points: [
           'یک نقش بدون مجوز معتبر و زمان‌دار، هیچ‌گونه حق تغییری بر داده‌های سامانه ایجاد نمی‌کند.',
-          'اصل عدم تغییر بدون مجوز (Zero-Write Denial): بدون اختیار معتبر، درخواست تغییر بلافاصله رد می‌شود.',
+          'اصل عدم تغییر بدون مجوز (Zero-Write Denial): هنگامی که اختیار قانونی احراز نشود، معماری سامانه رد خودکار هرگونه تغییر را الزام می‌نماید.',
           'با پایان دورهٔ مسئولیت، اختیارات به صورت شفاف و مستند به جانشین بعدی منتقل می‌گردد.',
         ],
       },
@@ -348,22 +348,22 @@ export default async function PlatformArchitecturePage(props: { params: Promise<
       },
       countryPack: {
         badge: 'معماری بومی‌سازی',
-        title: 'پک کشوری: مدل رومانی (Country Pack)',
-        desc: 'پک کشوری الزامات قانونی هر کشور را بدون تغییر در هسته نرم‌افزار پیاده‌سازی می‌کند: فرمول‌های تقسیم شارژ قانونی، شابلون‌های صورت‌جلسه مجمع و الزامات بایگانی مطابق قوانین املاک رومانی.',
+        title: 'پک کشوری: مدل پایهٔ رومانی',
+        desc: 'رومانی نخستین پک کشوری (Country Pack) تعریف‌شده برای پلتفرم است که الزامات قانونی را بدون دستکاری هستهٔ نرم‌افزار پیاده‌سازی می‌کند: فرمول‌های تقسیم سهم شارژ قانونی، شابلون‌های صورت‌جلسات مجمع و الزامات بایگانی مطابق قوانین املاک رومانی.',
       },
       aiBoundary: {
-        badge: 'مرزهای هوش مصنوعی',
-        title: 'هوشمندی مقید به نظارت و تایید انسان',
-        desc: 'هوش مصنوعی هیچ حق دسترسی مستقیم یا خودسرانه‌ای به دفاتر مالی ندارد. کلیه پیشنهادها در قالب چرخه شش‌مرحله‌ای (زمینه ← قصد ← اختیار ← طرح ← اقدام ← سند ممیزی) تدوین شده و نیازمند تایید قطعی کاربر مجاز هستند.',
+        badge: 'مرزهای عملکردی هوش مصنوعی',
+        title: 'مرزهای عملکردی هوش مصنوعی',
+        desc: 'هوش مصنوعی کلادورا به‌گونه‌ای طراحی شده است که تنها درون مرزهای اختیارات و متولیان اصلی داده‌ها فعالیت نماید. هوش مصنوعی نمی‌تواند به‌طور مستقل حقی ایجاد کند یا حقیقت داده‌های مرجع را دور بزند. برای هرگونه تغییر بااهمیت، الگوی اقدام تحت‌نظارت مستلزم احراز اختیار و تایید صریح کاربر مجاز در چرخهٔ شش‌مرحله‌ای (زمینه ← قصد ← اختیار ← طرح ← اقدام ← سند ممیزی) است.',
       },
       principles: {
         badge: 'اصول بنیادین',
         title: 'پنج اصل غیرقابل‌تغییر در معماری کلادورا',
         list: [
           '۱. حقیقت واحد داده‌ها: هر بخش اطلاعات تنها یک متولی کانونی در پلتفرم دارد.',
-          '۲. جداسازی کامل ورک‌اسپیس‌ها: اطلاعات هیچ سازمانی در اختیار دیگری قرار نمی‌گیرد.',
+          '۲. جداسازی در سطح ورک‌اسپیس: معماری طراحی‌شده برای اعمال مرزهای داده‌ای میان بسترهای سازمانی.',
           '۳. اختیارات بر مبنای مجوز: نقش فاقد مجوز معتبر هیچ اختیاری ایجاد نمی‌کند.',
-          '۴. پایداری هویت ملک: سوابق فنی با تغییر مالکان مخدوش نمی‌شوند.',
+          '۴. پایداری هویت ملک: تفکیک هویت پایدار دارایی فیزیکی از جابه‌جایی در مالکیت و مدیریت.',
           '۵. ثبت ترتیبی رویدادها: تاریخچه کلیه عملیات با زمان دقیق ثبت و ممیزی می‌گردد.',
         ],
       },

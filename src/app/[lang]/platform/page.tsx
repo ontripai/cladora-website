@@ -93,7 +93,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         badge: 'IDENTITATE PERSISTENTĂ',
         title: 'Proprietatea ca subiect central persistent',
         lead: 'Oamenii, administratorii și firmele de servicii se succed în timp. Proprietatea fizică rămâne.',
-        desc: 'În arhitectura CLADORA, imobilul fizic este subiectul central al evidențelor. Schimbarea administrației, rotația locatarilor sau re-vânzarea nu șterg cartea tehnică, istoricul contoarelor sau jurnalul de mentenanță.',
+        desc: 'În arhitectura CLADORA, imobilul fizic este subiectul central al evidențelor. Arhitectura separă identitatea persistentă a proprietății de schimbările de proprietate, administrare și relații operaționale.',
         points: [
           'Identificatori unici ierarhici: parcelă, corp de clădire, unități, spații tehnice.',
           'Cartea tehnică a construcției și istoricul reviziilor rămân legate de activ.',
@@ -106,7 +106,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         lead: 'O proprietate fizică poate participa în multiple contexte de lucru fără dublarea evidențelor.',
         desc: 'Workspace-ul reprezintă granița operațională și de conformitate: o asociație de proprietari, o companie de property management, un dezvoltator sau un fond de investiții. Fiecare workspace își gestionează propriile setări și jurnale de audit, fără acces neautorizat în alte contexte.',
         points: [
-          'Delimitare logică strictă a datelor și conformitate GDPR per workspace.',
+          'Arhitectură proiectată pentru delimitarea datelor la nivel de workspace și principii de confidențialitate aliniate GDPR.',
           'O proprietate poate fi gestionată de un administrator printr-un workspace dedicat.',
           'Zero amestec de tranzacții financiare între organizații diferite.',
         ],
@@ -118,7 +118,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         desc: 'Spre deosebire de sistemele vechi cu permisiuni globale opace, CLADORA leagă fiecare acțiune de un mandat validat legal, cu sferă de competență și termen definit (dezvoltator, proprietar, chiriaș, manager, tehnician, furnizor).',
         points: [
           'Mandate cu termen de valabilitate și atribuire explicită pe spații.',
-          'Principiul Zero-Write Denial: nicio modificare fără autoritate demonstrabilă.',
+          'Principiul Zero-Write Denial: când autoritatea nu poate fi stabilită, arhitectura impune refuzul oricărei modificări de stare.',
           'Tranziție transparentă a atribuțiilor către noul mandatar la expirarea mandatului.',
         ],
       },
@@ -198,13 +198,13 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
       },
       trustBanner: {
         title: 'Încredere, Securitate & Guvernanță',
-        desc: 'Delimitare strictă la nivel de workspace, cerințe de securitate AAL2, principiul Zero-Write Denial și rezidență europeană a datelor.',
+        desc: 'Model de izolare la nivel de workspace, controale aliniate AAL2 pentru acțiuni sensibile, principiul Zero-Write Denial și cerințe de guvernanță a datelor orientate pe standardele europene.',
         cta: 'Consultă Arhitectura de Încredere',
       },
       aiSection: {
         badge: 'INTELIGENȚĂ GUVERNATĂ',
         title: 'CLADORA Intelligence: Subordonată autorității umane',
-        desc: 'Modelul de asistență inteligentă operează în 6 etape (Context → Intent → Authority → Plan → Action → Receipt). Inteligența artificială nu modifică niciodată registrele canonice în mod autonom.',
+        desc: 'CLADORA Intelligence este proiectată să opereze în granițele de autoritate și ale furnizorilor canonici, în 6 etape (Context → Intent → Authority → Plan → Action → Receipt). AI nu poate crea drepturi independente și nu modifică registrele canonice în mod autonom.',
       },
       finalCta: {
         title: 'Construit pentru standardele lumii fizice.',
@@ -265,7 +265,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         badge: 'PERSISTENT IDENTITY',
         title: 'The property as the central persistent subject',
         lead: 'Stakeholders, managers, and service providers change over time. Physical property endures.',
-        desc: 'In CLADORA, the physical asset is the central anchor of all records. Administrative turnovers, tenant moves, or ownership transfers never erase the asset history, meter logs, or technical maintenance archives.',
+        desc: 'In CLADORA, the physical asset is the central anchor of all records. The architecture separates persistent property identity from changes in ownership, management, and operational relationships.',
         points: [
           'Hierarchical persistent identifiers: parcel, building structure, units, technical zones.',
           'Technical building logbook and equipment warranties remain tied to the asset ID.',
@@ -278,7 +278,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         lead: 'One physical property can participate in multiple authorized workspaces without duplicating physical records.',
         desc: 'A Workspace represents an operational and compliance boundary: a homeowners association, a property management company, a developer project, or a real estate portfolio. Each workspace controls its own parameters and audit journals without cross-tenant exposure.',
         points: [
-          'Strict workspace-scoped data boundaries and GDPR purpose minimization.',
+          'Architecture designed to enforce workspace-scoped data boundaries and GDPR-aligned purpose limitation.',
           'A single physical building can be managed by an authorized operator within a dedicated workspace.',
           'Zero financial ledger blending across separate commercial entities.',
         ],
@@ -290,7 +290,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         desc: 'Unlike legacy property tools with opaque global admin accounts, CLADORA binds every consequential action to an explicitly verified mandate with a defined scope and timeframe (builder, owner, tenant, manager, technician, service contractor).',
         points: [
           'Time-bounded mandates with explicit spatial and operational scope.',
-          'Zero-Write Denial Principle: no state mutation without verifiable authority.',
+          'Zero-Write Denial Principle: when authority cannot be established, the architecture requires mutation to be denied.',
           'Accountable succession protocol transitioning mandates cleanly upon term expiration.',
         ],
       },
@@ -370,13 +370,13 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
       },
       trustBanner: {
         title: 'Trust, Security & Governance Architecture',
-        desc: 'Workspace-scoped isolation, AAL2 authentication requirements, Zero-Write Denial enforcement, and European data residency.',
+        desc: 'Workspace-scoped isolation model, AAL2-aligned controls for sensitive actions, Zero-Write Denial principle, and European-oriented data governance requirements.',
         cta: 'Review Trust Architecture',
       },
       aiSection: {
         badge: 'GOVERNED INTELLIGENCE',
         title: 'CLADORA Intelligence: Governed by human authority',
-        desc: 'AI assistance operates strictly within a 6-stage lifecycle (Context → Intent → Authority → Plan → Action → Receipt). Artificial intelligence never executes autonomous mutations on canonical ledgers.',
+        desc: 'CLADORA Intelligence is designed to operate within authority and canonical-provider boundaries across a 6-stage lifecycle (Context → Intent → Authority → Plan → Action → Receipt). AI cannot independently create rights or autonomously mutate canonical ledgers.',
       },
       finalCta: {
         title: 'Engineered for the physical world.',
@@ -437,7 +437,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         badge: 'هویت پایدار',
         title: 'ملک به عنوان موضوع اصلی و پایدار سیستم',
         lead: 'مالکان، مدیران و پیمانکاران در طول زمان جابه‌جا می‌شوند؛ ملک فیزیکی همواره پایدار است.',
-        desc: 'در معماری کلادورا، ملک فیزیکی موضوع محوری اسناد است. تغییر هیئت‌مدیره، جابه‌جایی ساکنان یا فروش مجدد، شناسنامه فنی ساختمان، سوابق کنتورها و تاریخچه تعمیرات را هرگز مخدوش نمی‌کند.',
+        desc: 'در معماری کلادورا، ملک فیزیکی موضوع محوری اسناد است. این معماری هویت پایدار ملک را از تغییرات در مالکیت، مدیریت و روابط عملیاتی تفکیک می‌نماید.',
         points: [
           'شناسه‌های یکتای سلسله‌مراتبی: عرصه، بلوک ساختمانی، واحدها و فضاهای فنی.',
           'پرونده فنی ساختمان و ضمانت‌نامه‌ها همواره به شناسه دارایی متصل می‌مانند.',
@@ -450,7 +450,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         lead: 'یک ملک فیزیکی می‌تواند بدون کپی‌شدن اطلاعات پایه، در چند ورک‌اسپیس مجاز مشارکت کند.',
         desc: 'ورک‌اسپیس مرز حقوقی، عملیاتی و امنیتی است: انجمن مالکان، شرکت مدیریت املاک، پروژه ساختمانی یا سبد سرمایه‌گذاری. هر ورک‌اسپیس دفاتر مالی و لاگ‌های مستقل خود را دارد و اطلاعات میان آن‌ها افشا نمی‌گردد.',
         points: [
-          'تفکیک منطقی داده‌ها و انطباق کامل با موازین حریم خصوصی GDPR.',
+          'معماری طراحی‌شده برای اعمال مرزهای داده‌ای در سطح ورک‌اسپیس و هم‌راستا با موازین حریم خصوصی GDPR.',
           'مدیریت یک ساختمان توسط شرکت کارگزار در یک ورک‌اسپیس مستقل و امن.',
           'عدم تداخل اسناد مالی میان اشخاص حقوقی و نهادهای گوناگون.',
         ],
@@ -462,7 +462,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         desc: 'بر خلاف سیستم‌های سنتی با حساب‌های مدیریت عمومی و نامشخص، کلادورا هر اقدام اثرگذار را به یک مجوز معتبر قانونی، با دامنه مشخص و تاریخ انقضا پیوند می‌دهد (سازنده، مالک، مستأجر، مدیر، تکنسین، پیمانکار).',
         points: [
           'مجوزهای زمان‌دار با حدود مشخص روی فضاها و واحدها.',
-          'اصل عدم تغییر بدون مجوز (Zero-Write Denial): بدون اختیار معتبر، تغییری ثبت نمی‌شود.',
+          'اصل عدم تغییر بدون مجوز (Zero-Write Denial): هنگامی که اختیار قابل احراز نباشد، معماری سامانه رد خودکار تغییر را الزام می‌نماید.',
           'تحویل مستند و ساختاریافته مسئولیت‌ها به مدیر بعدی در پایان دوره.',
         ],
       },
@@ -541,13 +541,13 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
       },
       trustBanner: {
         title: 'معماری امنیت، اعتماد و حاکمیت داده‌ها',
-        desc: 'تفکیک دقیق ورک‌اسپیس‌ها، استانداردهای AAL2، اصل عدم تغییر بدون مجوز و میزبانی داده‌ها در حوزه قضایی اروپا.',
+        desc: 'الگوی جداسازی در سطح ورک‌اسپیس، تدابیر هم‌راستا با AAL2 برای اقدامات حساس، اصل عدم تغییر بدون مجوز و الزامات اروپایی حاکمیت داده‌ها.',
         cta: 'مشاهدهٔ معماری اعتماد',
       },
       aiSection: {
         badge: 'هوشمندی مقید به سیاست‌ها',
         title: 'هوش عملیاتی کلادورا: مقید به اختیارات و نظارت انسان',
-        desc: 'دستیار هوشمند در قالب یک چرخهٔ شش‌مرحله‌ای منضبط (زمینه ← قصد ← اختیار ← طرح ← اقدام ← سند ممیزی) عمل می‌کند و هرگز تصمیم خودسرانه‌ای بر دفاتر مالی اعمال نمی‌نماید.',
+        desc: 'هوش عملیاتی کلادورا به‌گونه‌ای طراحی شده است که تنها درون مرزهای اختیارات و متولیان اصلی داده‌ها و در قالب چرخهٔ شش‌مرحله‌ای (زمینه ← قصد ← اختیار ← طرح ← اقدام ← سند ممیزی) فعالیت کند. هوش مصنوعی نمی‌تواند به‌طور مستقل حقی ایجاد کند یا دفاتر مالی را خودسرانه تغییر دهد.',
       },
       finalCta: {
         title: 'مهندسی‌شده برای استانداردهای دنیای فیزیکی.',

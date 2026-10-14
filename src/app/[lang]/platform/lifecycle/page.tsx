@@ -53,67 +53,69 @@ export default async function PlatformLifecyclePage(props: { params: Promise<{ l
         title: 'De ce ciclul de viață nu este o linie dreaptă rigidă',
         desc: 'În lumea reală, proprietățile nu urmează o bandă rulantă simplistă: o clădire poate fi concomitent locuită, parțial în renovare, cu spații de vânzare sau închiriere și cu schimbări de mandate de administrare. Arhitectura CLADORA permite intrarea în sistem la oricare dintre etape, păstrând firul roșu al provenienței.',
       },
+      coverageNote:
+        'Ciclul de viață ilustrează modul în care arhitectura CLADORA organizează contextele proprietății în timp. Fluxurile individuale și disponibilitatea depind de domeniile configurate, pachetele de țară și capabilitățile lansate.',
       phasesTitle: 'Cele 10 Etape ale Ciclului de Viață Imobiliar',
       phases: [
         {
           num: '01',
           name: 'DEFINIRE / PROIECT',
-          desc: 'Identitatea inițială a terenului și a corpurilor de clădire, structurarea unităților, stabilirea cotelor-părți și crearea seifului digital tehnic.',
+          desc: 'Contextul arhitectural acoperă identitatea inițială a terenului și a corpurilor de clădire, structurarea unităților, stabilirea cotelor-părți și inițializarea seifului tehnic digital.',
         },
         {
           num: '02',
           name: 'PRE-VÂNZARE & REZERVĂRI',
-          desc: 'Gestionarea oportunităților calificate, evidența antecontractelor, urmărirea avansurilor și rezervarea opțiunilor de finisaje.',
+          desc: 'Poate cuprinde evidența oportunităților calificate, antecontractele, urmărirea avansurilor și opțiunile tehnice de finisaje.',
         },
         {
           num: '03',
           name: 'TRANZACȚIE / ACHIZIȚIE',
-          desc: 'Finalizarea contractelor de vânzare-cumpărare, stabilirea deținătorului canonic de drepturi și activarea primelor mandate de proprietate.',
+          desc: 'Acoperă formalizarea contractelor de vânzare-cumpărare, stabilirea deținătorului canonic de drepturi și activarea primelor mandate de proprietate.',
         },
         {
           num: '04',
           name: 'PREDARE-PRIMIRE (HANDOVER)',
-          desc: 'Protocolul formal de predare (complet sau parțial/etapizat), înregistrarea listelor de remedieri (punch-list) și indexurile inițiale de contor.',
+          desc: 'Fluxurile de predare pot include protocoale de recepție (completă sau etapizată), liste de remedieri (punch-list) și indexurile inițiale de contor.',
         },
         {
           num: '05',
           name: 'EXPLOATARE ZILNICĂ',
-          desc: 'Calculul cotelor statutare de întreținere, reconciliere bancară, avizier digital, convocarea adunărilor generale și vot statutar.',
+          desc: 'Contextul operațional cuprinde repartizarea cotelor statutare de întreținere, reconcilierea bancară, avizierul digital și fluxurile de adunare generală sau vot.',
         },
         {
           num: '06',
           name: 'MENTENANȚĂ & PĂSTRARE ACTIV',
-          desc: 'Registru de echipamente (ascensoare, centrale, pompe), planuri de revizii periodice, dispecerat de tichete și arhivarea devizelor pe fișa activului.',
+          desc: 'Poate include registrul de echipamente tehnice (ascensoare, centrale, pompe), planuri de revizii periodice, dispecerat de tichete și arhivarea devizelor pe fișa activului.',
         },
         {
           num: '07',
           name: 'ÎNCHIRIERE & LEASING',
-          desc: 'Gestiunea contractelor de locațiune, separarea automată a cheltuielilor de consum ale chiriașului de obligațiile proprietarului și mandate de administrare.',
+          desc: 'Acoperă gestiunea contractelor de locațiune, mandatele de administrare și separarea arhitecturală a cheltuielilor de consum ale chiriașului de obligațiile proprietarului.',
         },
         {
           num: '08',
           name: 'SERVICII & ACHIZIȚII',
-          desc: 'Formularea cererilor structurate de intervenție, compararea ofertelor concurențiale, comenzi de lucru și recepția formală a lucrărilor.',
+          desc: 'Poate cuprinde cereri structurate de intervenție, compararea ofertelor concurențiale de la furnizori, comenzi de lucru și recepția formală a lucrărilor.',
         },
         {
           num: '09',
           name: 'EXPERIENȚĂ & COMUNITATE',
-          desc: 'Integrarea experienței de locuire, ghiduri de utilizare a spațiilor, rezervarea facilităților comune și comunicarea dintre vecini.',
+          desc: 'Contextul poate include experiența de locuire, ghiduri de utilizare a spațiilor, programarea facilităților comune și informarea rezidenților.',
         },
         {
           num: '10',
           name: 'TRANSFER & SUCCESIUNE',
-          desc: 'Vânzarea imobilului, schimbarea administratorului sau retragerea unui echipament. Responsabilitățile se predau ordonat conform politicii de retenție.',
+          desc: 'Acoperă transferul de proprietate, succesiunea administrației sau retragerea activului, responsabilitățile fiind predate ordonat conform guvernanței de retenție.',
         },
       ],
       provenance: {
         badge: 'PROVENIENȚĂ & PREZERVARE',
         title: 'Prezervarea Provenienței Istorice între Tranziții',
-        desc: 'Arhitectura CLADORA este proiectată pentru a păstra proveniența trasabilă atunci când evidențele autorizate trec dintr-un context în altul. Schimbarea administrației nu șterge semnăturile istorice, avizele sau datele tehnice inițiale.',
+        desc: 'Arhitectura separă identitatea persistentă a proprietății de schimbările de proprietate, administrare și relații operaționale. Evidențele autorizate sunt proiectate să își mențină proveniența trasabilă la transferul între contexte.',
         points: [
           'Evidențele istorice rămân atribuite definitiv semnatarilor autorizați din perioada respectivă.',
-          'Succesorii preiau registrele verificate fără pierderea dosarelor sau a calculelor anterioare.',
-          'Istoricul contoarelor și al reviziilor este păstrat pe toată durata fizică a clădirii.',
+          'Succesorii pot prelua registrele verificate fără pierderea dosarelor sau a contextelor contabile anterioare.',
+          'Înregistrările de bază ale contoarelor și ale reviziilor sunt legate arhitectural de activul fizic, nu de contracte temporare de management.',
         ],
       },
       stakeholders: {
@@ -148,67 +150,69 @@ export default async function PlatformLifecyclePage(props: { params: Promise<{ l
         title: 'Why the property lifecycle is not a rigid linear conveyor',
         desc: 'In the physical world, assets do not traverse a simplistic one-way track: a building can simultaneously house active residents, undergo partial renovations, conduct pre-sales for new phases, and transition management firms. CLADORA accommodates entry at any lifecycle stage while preserving unbroken historical provenance.',
       },
+      coverageNote:
+        'The lifecycle illustrates how CLADORA\'s architecture organizes property contexts over time. Individual workflows and availability depend on configured domains, country packs, and released capabilities.',
       phasesTitle: 'Ten Non-Linear Lifecycle Phases',
       phases: [
         {
           num: '01',
           name: 'DEFINE / PROJECT',
-          desc: 'Establishing cadastral plot identities, building shells, unit topologies, statutory quota distributions, and digital technical vault setup.',
+          desc: 'Architectural context covers establishing cadastral plot identities, building shells, unit topologies, statutory quota distributions, and digital technical vault setup.',
         },
         {
           num: '02',
           name: 'PRE-SALE & RESERVATIONS',
-          desc: 'Tracking qualified commercial leads, pre-sales contracts, down payments, and unit customization specifications.',
+          desc: 'Lifecycle context can encompass tracking qualified commercial leads, pre-sales contracts, down payments, and unit customization specifications.',
         },
         {
           num: '03',
           name: 'SALE / CONVEYANCING',
-          desc: 'Finalizing ownership deeds, establishing verified titleholder records, and initializing statutory owner mandates.',
+          desc: 'Covers formalization of ownership deeds, establishing verified titleholder records, and initializing statutory owner mandates.',
         },
         {
           num: '04',
           name: 'HANDOVER & DELIVERY',
-          desc: 'Formal full or phased delivery protocols, punch-list defect resolution tracking, and baseline utility meter calibrations.',
+          desc: 'Workflows may include formal delivery protocols (full or phased), punch-list defect resolution tracking, and baseline utility meter calibrations.',
         },
         {
           num: '05',
           name: 'ACTIVE OPERATIONS',
-          desc: 'Statutory quota calculations, double-entry reconciliations, digital notice boards, formal general meetings, and voting ballots.',
+          desc: 'Operational context encompasses statutory quota calculations, double-entry reconciliations, digital notice boards, and general meeting governance workflows.',
         },
         {
           num: '06',
           name: 'MAINTENANCE & ASSET CARE',
-          desc: 'Technical equipment registries (elevators, HVAC, pumps), preventative service schedules, fault ticketing, and service logbooks.',
+          desc: 'Domain context can include technical equipment registries (elevators, HVAC, pumps), preventative service schedules, fault ticketing, and service logbooks.',
         },
         {
           num: '07',
           name: 'LEASING & TENANCIES',
-          desc: 'Tenancy agreement administration, automated isolation of tenant operational utility expenses from owner capital obligations.',
+          desc: 'Covers tenancy agreement administration and the architectural isolation of tenant operational utility expenses from owner capital obligations.',
         },
         {
           num: '08',
           name: 'PROCUREMENT & SERVICES',
-          desc: 'Structured request briefs, side-by-side contractor quote comparisons, work orders, and digital milestone sign-offs.',
+          desc: 'Can encompass structured request briefs, side-by-side contractor quote comparisons, work orders, and digital milestone sign-offs.',
         },
         {
           num: '09',
           name: 'COMMUNITY & EXPERIENCE',
-          desc: 'Occupant living journeys, spatial orientation guides, shared amenity schedules, and daily community requests.',
+          desc: 'Context may include occupant living journeys, spatial orientation guides, shared amenity schedules, and community notices.',
         },
         {
           num: '10',
           name: 'TRANSFER & SUCCESSION',
-          desc: 'Property divestment, management turnover, or asset decommissioning. Prior obligations close cleanly with traceable succession.',
+          desc: 'Covers property divestment, management turnover, or asset decommissioning, with responsibilities handed over according to retention governance.',
         },
       ],
       provenance: {
         badge: 'TRACEABLE PROVENANCE',
         title: 'Preserving Traceable Provenance Across Transitions',
-        desc: 'CLADORA’s architecture is designed to preserve traceable provenance when authorized records move between lifecycle contexts. Administrative turnovers never erase past signatories, statutory approvals, or foundational technical data.',
+        desc: 'The architecture separates persistent property identity from changes in ownership, management, and operational relationships. Authorized records are designed to maintain traceable provenance across lifecycle transitions.',
         points: [
-          'Historical actions remain permanently credited to verified signatories from that operational period.',
-          'Incoming managers receive audited records without lost archives or disputed accounting histories.',
-          'Meter baselines and preventative maintenance histories persist across decades of asset ownership.',
+          'Historical actions remain attributed to authorized signatories from that operational period.',
+          'Incoming managers can receive structured records without loss of prior files or accounting contexts.',
+          'Baseline meter records and maintenance logs are architecturally bound to the physical asset rather than transient management contracts.',
         ],
       },
       stakeholders: {
@@ -243,67 +247,69 @@ export default async function PlatformLifecyclePage(props: { params: Promise<{ l
         title: 'چرا چرخهٔ عمر ملک یک خط مستقیم و ساده نیست',
         desc: 'در دنیای واقعی، املاک در یک مسیر تک‌بعدی حرکت نمی‌کنند: یک ساختمان می‌تواند به‌طور هم‌زمان دارای ساکنان فعال، واحدهای در حال پیش‌فروش، بخش‌های در حال بازسازی و تغییر هیئت‌مدیره باشد. معماری کلادورا امکان ورود در هر مرحله را فراهم ساخته و اصالت سوابق را در تمام مراحل حفظ می‌کند.',
       },
+      coverageNote:
+        'چرخهٔ عمر نشان‌دهندهٔ نحوهٔ سازمان‌دهی بسترهای گوناگون ملک در طول زمان توسط معماری کلادورا است. گردش‌کارهای تفصیلی و در دسترس بودن قابلیت‌ها به دامنه‌های پیکربندی‌شده، پک‌های کشوری و نسخه‌های منتشرشده بستگی دارد.',
       phasesTitle: 'ده مرحلهٔ غیرخطی در چرخهٔ عمر دارایی',
       phases: [
         {
           num: '۰۱',
           name: 'تعریف پروژه و اسناد اولیه',
-          desc: 'ثبت پلاک ثبتی، مشخصات سازه، ساختار واحدها، متراژ مشاع و راه‌اندازی بایگانی دیجیتال فنی.',
+          desc: 'بستر معماری شامل ثبت پلاک ثبتی، مشخصات سازه، ساختار واحدها، تسهیم متراژ مشاع و راه‌اندازی بایگانی دیجیتال فنی است.',
         },
         {
           num: '۰۲',
           name: 'پیش‌فروش و رزرو واحدها',
-          desc: 'مدیریت متقاضیان، پیش‌نویس تعهدات، پیگیری اقساط و ثبت مشخصات فنی انتخاب‌شده.',
+          desc: 'می‌تواند شامل پیگیری متقاضیان، پیش‌نویس تعهدات، اقساط و ثبت مشخصات فنی انتخاب‌شده باشد.',
         },
         {
           num: '۰۳',
           name: 'معاملات و انتقال قطعی',
-          desc: 'نهایی‌سازی اسناد واگذاری، تعیین مالک معتبر در سیستم و فعال‌سازی مجوزهای رسمی.',
+          desc: 'شامل نهایی‌سازی اسناد واگذاری، ثبت مالک معتبر در سیستم و فعال‌سازی مجوزهای رسمی است.',
         },
         {
           num: '۰۴',
           name: 'تحویل رسمی و رفع نقایص',
-          desc: 'صورت‌جلسه دیجیتال تحویل (کامل یا فازبندی‌شده)، پیگیری موارد باز (Punch-List) و ثبت ارقام اولیه کنتورها.',
+          desc: 'گردش‌کارها می‌توانند شامل صورت‌جلسات رسمی تحویل (کامل یا فازبندی‌شده)، پیگیری نقایص (Punch-List) و ثبت ارقام اولیه کنتورها باشند.',
         },
         {
           num: '۰۵',
           name: 'بهره‌برداری و سکونت',
-          desc: 'محاسبه سهم شارژ، تطبیق تراکنش‌های بانکی، تابلوی اعلانات دیجیتال و برگزاری مجامع قانونی.',
+          desc: 'بستر عملیاتی شامل چارچوب محاسبات سهم شارژ، تطبیق تراکنش‌های بانکی، تابلوی اعلانات و فرآیندهای مجامع قانونی است.',
         },
         {
           num: '۰۶',
           name: 'نگهداری فنی و حفظ ارزش',
-          desc: 'شناسنامه آسانسورها، پمپ‌ها و تجهیزات، برنامه‌های نگهداری پیشگیرانه و ثبت سوابق سرویس روی دارایی.',
+          desc: 'می‌تواند شامل شناسنامه تجهیزات (آسانسورها، تأسیسات، پمپ‌ها)، برنامه‌ریزی سرویس‌های پیشگیرانه و سوابق نگهداری باشد.',
         },
         {
           num: '۰۷',
           name: 'اجاره و مدیریت موجر و مستأجر',
-          desc: 'مدیریت قراردادهای اجاره، تفکیک خودکار هزینه‌های مصرفی مستأجر از تعهدات سرمایه‌ای مالک.',
+          desc: 'پوشش‌دهنده مدیریت قراردادهای اجاره و تفکیک هزینه‌های مصرفی مستأجر از تعهدات سرمایه‌ای مالک در معماری است.',
         },
         {
           num: '۰۸',
           name: 'سفارش خدمات و پیمانکاران',
-          desc: 'ثبت نیاز فنی، استعلام قیمت، مقایسه پیشنهادها، صدور دستورکار و تایید نهایی کار انجام‌شده.',
+          desc: 'می‌تواند شامل ثبت نیازهای فنی، استعلام و مقایسه پیشنهادهای پیمانکاران، دستورکارها و تایید مراحل کار باشد.',
         },
         {
           num: '۰۹',
           name: 'تعاملات اجتماعی و تجربه زیست',
-          desc: 'سامانه تعاملی ساکنان، راهنمای استفاده از فضاها، رزرو امکانات مشترک و ارتباطات همسایگی.',
+          desc: 'بستر تعاملی می‌تواند شامل راهنمای استفاده از فضاها، زمان‌بندی امکانات مشترک و ارتباطات همسایگی باشد.',
         },
         {
           num: '۱۰',
           name: 'انتقال مسئولیت و جانشینی',
-          desc: 'تغییر مالکیت، تغییر شرکت مدیریت یا خروج دارایی از خدمت با تحویل مستند کلیه تعهدات به جانشین.',
+          desc: 'شامل انتقال مالکیت، جانشینی مدیریت یا خروج دارایی از خدمت با تحویل ساختاریافته تعهدات بر اساس ضوابط نگهداری اسناد است.',
         },
       ],
       provenance: {
         badge: 'حفظ اصالت و سوابق تاریخی',
         title: 'پایداری سوابق در تمام تغییرات مدیریتی',
-        desc: 'معماری کلادورا به‌گونه‌ای طراحی شده است که با انتقال مسئولیت‌ها، اصالت سوابق حفظ شود. تغییر مدیران گذشته اسناد امضاشده، مصوبات مجمع یا ارقام مصرف کنتورها را مخدوش نمی‌سازد.',
+        desc: 'معماری کلادورا هویت پایدار ملک را از تغییرات در مالکیت، مدیریت و روابط عملیاتی تفکیک می‌نماید. سوابق مجاز به‌گونه‌ای طراحی شده‌اند که اصالت داده‌ها در انتقال میان بسترهای چرخهٔ عمر حفظ گردد.',
         points: [
-          'اقدامات گذشته به نام امضاکنندگان قانونی همان دوره در تاریخچه ثبت می‌ماند.',
-          'مدیران و هیئت‌مدیره جدید پرونده‌های شفاف و مستند را بدون اختلاف تحویل می‌گیرند.',
-          'سوابق تعمیرات و کنتورها در طول عمر مفید ساختمان پایدار باقی می‌مانند.',
+          'اقدامات تاریخی به امضاکنندگان مجاز همان دورهٔ عملیاتی منتسب باقی می‌ماند.',
+          'مدیران جانشین می‌توانند سوابق ساختاریافته را بدون مفقود شدن پرونده‌ها یا زمینه‌های پیشین تحویل بگیرند.',
+          'سوابق پایه‌ای کنتورها و شناسنامه تعمیرات به‌صورت معماری به موجودیت فیزیکی ملک پیوند خورده و با تغییر قراردادهای مدیریت از بین نمی‌روند.',
         ],
       },
       stakeholders: {
@@ -329,6 +335,7 @@ export default async function PlatformLifecyclePage(props: { params: Promise<{ l
     breadcrumb: { home: 'Home', platform: 'Platform', current: 'Lifecycle' },
     hero: { badge: '', title: '', subtitle: '' },
     paradigm: { badge: '', title: '', desc: '' },
+    coverageNote: '',
     phasesTitle: '',
     phases: [],
     provenance: { badge: '', title: '', desc: '', points: [] },
@@ -385,9 +392,17 @@ export default async function PlatformLifecyclePage(props: { params: Promise<{ l
 
         {/* 10 PHASES */}
         <section className="space-y-6">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-[#102A43] tracking-tight">
-            {content.phasesTitle}
-          </h2>
+          <div className="space-y-4">
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-[#102A43] tracking-tight">
+              {content.phasesTitle}
+            </h2>
+            <div className="p-4 sm:p-5 rounded-2xl bg-teal-50/70 border border-teal-100 flex items-start gap-3">
+              <Compass className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm text-[#0F3B37] leading-relaxed">
+                {content.coverageNote}
+              </p>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {content.phases.map((ph) => (

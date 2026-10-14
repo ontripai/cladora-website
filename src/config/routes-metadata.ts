@@ -100,11 +100,11 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
     },
     en: {
       title: 'Trust & Governance Architecture — Boundaries & Integrity',
-      desc: 'Explore CLADORA trust architecture: workspace boundaries, mandate-based authority, AAL2 security controls, zero-write denial, and auditable event journals.',
+      desc: 'Explore CLADORA trust architecture: workspace boundaries, mandate-based authority, AAL2-aligned controls, zero-write denial, and auditable event journals.',
     },
     fa: {
       title: 'معماری اعتماد و امنیت — مرزهای داده و یکپارچگی سیستم',
-      desc: 'معماری امنیت و حاکمیت داده‌ها در کلادورا: تفکیک ورک‌اسپیس‌ها، اختیارات زمان‌دار، استانداردهای AAL2، اصل عدم تغییر بدون مجوز و ثبت رویدادهای ممیزی.',
+      desc: 'معماری امنیت و حاکمیت داده‌ها در کلادورا: تفکیک ورک‌اسپیس‌ها، اختیارات زمان‌دار، تدابیر هم‌راستا با AAL2، اصل عدم تغییر بدون مجوز و ثبت رویدادهای ممیزی.',
     },
   },
   '/airprop': {
