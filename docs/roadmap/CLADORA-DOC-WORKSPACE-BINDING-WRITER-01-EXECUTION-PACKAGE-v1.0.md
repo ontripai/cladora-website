@@ -55,7 +55,9 @@ Schema/ACL verification is catalog-based, not inferred from successful RPC use.
 | Revocation while waiting on host locks | Fresh attempt sees revision and denies; prove using real competing transactions. |
 | Historical NULL intent/document | Cannot finalize through new bound path or attach a replacement; NULL unchanged and accepted resolver still denies with zero writes. |
 | Rebind attempts | Direct UPDATE W1→W2, W1→NULL and NULL→W1 rejected, including when another transaction holds resolver shared row lock. |
-| Finalization race/replay | One version and one consume; exact key replay uses same receipt and fresh authority; changed payload/key cannot consume again. Inject transport loss and preserve unknown-commit/readback-required outcome. |
+| Fresh finalization race | One version and one consume; a changed command/key cannot consume again. Provider validation requires an unconsumed intent only on this fresh-command path. |
+| Exact replay after consumption | Current host behavior is recorded accurately: authority and stored receipt are checked, then the receipt is returned before `validateProviders`. Full acceptance is blocked on `CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01`; after that Core hook, Documents validates the consumed intent and exact committed document/version/provenance without applying the fresh `unconsumed` predicate. |
+| Unknown-commit recovery | Preserve `READBACK_REQUIRED` unless the separately reviewed `CORE-RECOVERY-AUTH-01` (#392) recovery path is implemented and integrated. Recovery does not satisfy or replace the execute replay hook. |
 | Resolver racing finalization/lifecycle/scan | Old or pending/unsafe version never accepted; clean exact current version accepted only under unchanged resolver predicates. Shared/exclusive row locks and genuine serialization retry proved. |
 | Scan states | Deferred, pending, quarantined, failed/mismatched checksum or missing/mismatched attestation deny reference acceptance; writer cannot assert clean. |
 | Storage measurement | Changed bytes at existing path, mismatched hash/size/MIME, missing object and forged supplied path deny finalization. Synthetic object verifier is not live Storage/RLS acceptance. |
@@ -74,9 +76,13 @@ Storage policy, real Auth/MFA, Remote installation or production acceptance.
 
 1. Documents review confirms provenance source, immutable binding, no inference,
    first-create scope and use of existing stores/ledgers.
-2. Core review confirms direct host/provider consumption, command fingerprint,
-   lock order, fresh replay authority and safe server identity binding. Core
-   implementation changes, if required, return to Core ownership.
+2. Core owns and must separately deliver
+   `CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01`: a read-only provider hook after
+   current authority/receipt matching and before `execute` returns exact replay.
+   Until it is merged and consumed directly, the Documents candidate must not
+   claim current writer validation on replay. Core review also confirms command
+   fingerprint, lock order and safe server identity binding. The recovery
+   contract in #392 remains an independent readback path, not this hook.
 3. AIRPROP reviews the exact proposed additive migration bytes; its owner updates
    the permitted-addition manifest. Until available, guard failure is reported as
    a dependency rather than fixed by Documents.

@@ -89,9 +89,13 @@ The durable provenance chain is:
 
 Record initial provenance before the version INSERT; never patch metadata on a
 finalized version. Receipt identifiers are references, not reusable permission.
-Every retry and exact replay receives a fresh Core authority check and fresh
-writer validation of the intent/document state. Do not copy full permissions,
-membership rows or entitlement details into version metadata or public output.
+A retry that reaches the fresh-command path receives a fresh Core authority
+check and fresh writer validation of intent/document state. The current host's
+exact-replay path is different: after its current-authority recheck and complete
+stored-receipt comparison, it returns the prior receipt before calling
+`validateProviders`. This design does not describe current exact replay as
+performing fresh writer validation. Do not copy full permissions, membership
+rows or entitlement details into version metadata or public output.
 
 ## Intent and finalization transactions
 
@@ -129,11 +133,14 @@ Finalization transaction:
 1. Rebuild the exact command from the persisted intent plus trusted measurements;
    verify the request Context and Workspace equal the intent. Core performs a
    new post-lock authority evaluation. Historical NULL intents cannot use this path.
-2. Lock the exact intent `FOR UPDATE` in provider validation. Verify uploader,
-   tenant, Workspace, Context, expiry, unconsumed state, prospective document ID,
-   expected initial version and server-owned object path. No intent mutation
-   occurs on denial, including expiry/attempt failure. Evaluate temporal bounds
-   with the live database clock after waiting, not transaction-start time.
+2. For a fresh finalization command only, lock the exact intent `FOR UPDATE` in
+   provider validation. Verify uploader, tenant, Workspace, Context, expiry,
+   unconsumed state, prospective document ID, expected initial version and
+   server-owned object path. No intent mutation occurs on denial, including
+   expiry/attempt failure. Evaluate temporal bounds with the live database clock
+   after waiting, not transaction-start time. This pre-mutation predicate is not
+   valid for a successful replay because the committed finalization consumed the
+   intent.
 3. Verify stored object existence and actual bytes/size/hash/MIME. Perform
    Storage/network work before entering Core; provider callbacks make SQL-only
    checks in the supplied scope. A trusted preverified measurement is usable
@@ -149,6 +156,38 @@ Finalization transaction:
 5. Initial scan state stays `deferred`/pending, checksum verified only after
    actual stored bytes are verified. Only the existing scanner/attestation path
    may establish clean status. Successful upload does not make a reference readable.
+
+## Exact replay and Core-owned dependency
+
+Current `createCorePostgresTransactionHostV1.execute` resolves and rechecks Core
+authority, locks and reads the existing idempotency row, validates the complete
+request/receipt/entitlement/provider binding, and then returns `exact_replay`.
+It does so before `validateProviders`. Therefore a consumed intent, changed
+canonical document state or provider-side disclosure change is not currently
+revalidated by a Documents callback on exact replay.
+
+The writer has a formal dependency on
+`CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01`, owned by Core/Platform. The Core
+contract must define and implement a read-only hook after current authority and
+stored-receipt matching and before returning `exact_replay`. It supplies the
+current transaction scope, exact command/current authority and parsed persisted
+receipt, preserves host lock/retry/zero-write semantics, and fails closed when
+the provider cannot validate current replay disclosure. Documents must consume
+that merged Core hook directly; it must not add a parallel host or Core interface.
+
+Documents replay validation is distinct from fresh-command validation. It
+requires the exact intent to be **consumed**, the persisted receipt's mutation
+and command identities to match that intent, and the bound document/version/
+Workspace/provenance to match the committed result. It never requires the intent
+to be unconsumed and never invokes the mutation callback. A changed key/payload,
+unconsumed or foreign intent, missing committed document/version, rebind, or
+receipt/provenance mismatch denies without another effect.
+
+`CORE-RECOVERY-AUTH-01` from PR #392 is a separate unknown-commit recovery
+contract. Its proposed `recover` method and optional `validateRecovery` authorize
+readback of an existing outcome, including the specified cross-revision case.
+They do not insert a hook into `execute`, do not change current exact-replay
+ordering, and do not satisfy `CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01`.
 
 Object storage is a separate side effect and cannot be atomically committed
 with PostgreSQL. Bytes may have been uploaded before finalization loses
@@ -168,7 +207,8 @@ production upload/cleanup acceptance or widen Storage policy/grants.
 | Rebind non-NULL to another Workspace or NULL | Prohibited, including direct updates. Future implementation uses a narrowly scoped immutable-binding guard on the canonical document row, without changing resolver. |
 | Bind NULL to non-NULL via UPDATE | Prohibited in this package. Historical binding would require a separate provenance review; no administrative shortcut or inferred backfill. |
 | Replacement version | Future package only: require existing non-NULL binding exactly equal to command; lock document `FOR UPDATE`, require expected current numeric version and immutable version ID, then append `V+1` and CAS current pointer. Cannot rebind through replacement. |
-| Concurrent initial finalizations | Same Core aggregate and intent row serialize. One commit/receipt/version; exact replay returns same identity after fresh authority; changed key/payload must not create a second document from the consumed intent. |
+| Concurrent fresh finalizations | Same Core aggregate and intent row serialize. One fresh command commits one receipt/version and consumes the intent; a changed command cannot create a second document from it. |
+| Exact replay after intent consumption | Current host may return the matched stored receipt after authority recheck without Documents validation. After the Core replay hook is delivered, Documents validates the consumed intent and exact committed document/version/provenance; it does not apply the fresh-command `unconsumed` predicate. |
 | Two future replacements at V | Document row lock + CAS + existing `(document_id,version)` unique constraint admit one V+1. Loser retries against fresh state or denies stale with zero durable writes. |
 | Concurrent resolver | Resolver retains exact Workspace/document/version `FOR SHARE` locks. Writer's document `FOR UPDATE` blocks behind it or forces a serializable retry. Evidence is valid only in its host transaction, not as a later reusable download capability. |
 | Scanner/lifecycle/permission changes | Preserve resolver locks and existing immutable scanner rules. Serialize conflicting row writes, retry SQL `40001` using Core; timeout/deadlock fails closed. No claim that advisory locks cover legacy writers. |
