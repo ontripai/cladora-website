@@ -272,18 +272,21 @@ async function installDisposableExecutionBoundary() {
     begin raise exception using errcode='40001',message='disposable genuine serialization'; end $fn$`);
   await pool.query(`grant execute on function app_private.ce_guide_http_raise_40001_v1()
     to cladora_rpc_owner`);
+  const ownerBoundary = await pool.query(`select
+    has_schema_privilege('cladora_rpc_owner','auth','USAGE') as auth_usage`);
+  assert.deepEqual(ownerBoundary.rows[0], { auth_usage: true });
   const verification = await pool.connect();
   try {
     await verification.query('begin');
     await verification.query('set local role cladora_rpc_owner');
     const boundary = await verification.query(`select current_user,
-      has_schema_privilege(current_user,'auth','USAGE') as auth_usage,
-      has_function_privilege(current_user,'auth.uid()','EXECUTE') as uid_execute,
-      has_function_privilege(current_user,'auth.jwt()','EXECUTE') as jwt_execute`);
+      has_schema_privilege(current_user,'auth','USAGE') as auth_usage`);
     assert.deepEqual(boundary.rows[0], {
       current_user: 'cladora_rpc_owner', auth_usage: true,
-      uid_execute: true, jwt_execute: true,
     });
+    const routines = await verification.query(`select auth.uid() is null as uid_callable,
+      coalesce(jsonb_typeof(auth.jwt())='object',true) as jwt_callable`);
+    assert.deepEqual(routines.rows[0], { uid_callable: true, jwt_callable: true });
     await verification.query('rollback');
   } catch (error) {
     await verification.query('rollback').catch(() => undefined);
