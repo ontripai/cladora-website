@@ -320,7 +320,11 @@ function diagnosticPool(delegate) {
                 : normalized.includes('from app_private.canonical_authority_revision_v1')
                   ? 'CORE_AUTHORITY_REVISION'
                   : 'CORE_OR_PROVIDER';
-          console.error(`::error title=CE Guide disposable SQL boundary::${boundary}/${operation}: ${error.code ?? 'NO_SQLSTATE'}`);
+          const deniedObject = typeof error.message === 'string'
+            ? /permission denied for (?:table|schema|function) ([a-z_][a-z0-9_.]*)/i.exec(
+              error.message,
+            )?.[1] : undefined;
+          console.error(`::error title=CE Guide disposable SQL boundary::${boundary}/${operation}: ${error.code ?? 'NO_SQLSTATE'}:${deniedObject ?? 'OBJECT_UNAVAILABLE'}`);
           throw error;
         }
       };
