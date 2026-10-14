@@ -194,12 +194,27 @@ await pool.query('update identity.memberships set user_id=$2 where id=$1', [
 const policyName = 'ce_guide_http_fixture_v1';
 const temporaryPrivileges = [];
 async function ensurePrivilege(kind, object, privilege) {
-  const checkFunction = kind === 'schema' ? 'has_schema_privilege'
-    : kind === 'sequence' ? 'has_sequence_privilege'
-      : kind === 'function' ? 'has_function_privilege' : 'has_table_privilege';
-  const held = (await pool.query(`select ${checkFunction}('cladora_rpc_owner',$1,$2) held`,
+  let direct;
+  if (kind === 'schema') {
+    direct = (await pool.query(`select exists(select 1 from pg_namespace n
+      cross join lateral aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a
+      join pg_roles r on r.oid=a.grantee
+      where n.nspname=$1 and r.rolname='cladora_rpc_owner' and a.privilege_type=$2) held`,
     [object, privilege])).rows[0].held;
-  if (held) return;
+  } else if (kind === 'function') {
+    direct = (await pool.query(`select exists(select 1 from pg_proc p
+      cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
+      join pg_roles r on r.oid=a.grantee
+      where p.oid=$1::regprocedure and r.rolname='cladora_rpc_owner'
+        and a.privilege_type=$2) held`, [object, privilege])).rows[0].held;
+  } else {
+    direct = (await pool.query(`select exists(select 1 from pg_class c
+      cross join lateral aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
+      join pg_roles r on r.oid=a.grantee
+      where c.oid=$1::regclass and r.rolname='cladora_rpc_owner'
+        and a.privilege_type=$2) held`, [object, privilege])).rows[0].held;
+  }
+  if (direct) return;
   await pool.query(`grant ${privilege} on ${kind} ${object} to cladora_rpc_owner`);
   temporaryPrivileges.push({ kind, object, privilege });
 }
