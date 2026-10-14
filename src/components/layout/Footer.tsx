@@ -206,7 +206,7 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/migration`} className="hover:text-white transition-colors">
+                <Link href={`/${lang}/capabilities`} className="hover:text-white transition-colors">
                   {lang === 'ro' ? 'Ghid de Migrare' : lang === 'fa' ? 'راهنمای مهاجرت' : 'Migration Guide'}
                 </Link>
               </li>

@@ -46,11 +46,11 @@ export const FinalCtaSection: React.FC<FinalCtaProps> = ({ lang }) => {
             </Link>
 
             <Link
-              href={`/${lang}/pilot`}
+              href={`/${lang}/contact`}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-white/10 hover:bg-white/15 text-white border border-white/20 font-display font-bold text-base transition-all"
             >
               <Building2 className="w-5 h-5 text-[#93E6DC]" />
-              <span>{lang === 'ro' ? 'Înscrie clădirea în pilot' : lang === 'fa' ? 'ثبت‌نام مجتمع در برنامه پایلوت' : 'Enroll Building in Pilot'}</span>
+              <span>{lang === 'ro' ? 'Solicită parteneriat' : lang === 'fa' ? 'ثبت‌نام و شروع همکاری' : 'Initiate Partnership Inquiry'}</span>
             </Link>
           </div>
 

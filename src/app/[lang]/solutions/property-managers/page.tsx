@@ -96,10 +96,10 @@ export default async function PropertyManagersSolutionPage(
               <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             </Link>
             <Link
-              href={`/${lang}/pilot`}
+              href={`/${lang}/contact`}
               className="px-6 py-3.5 rounded-xl bg-[#F0F4F8] hover:bg-[#E2E8F0] text-[#102A43] text-xs font-bold transition-all"
             >
-              {lang === 'ro' ? 'Solicită acces în pilot' : lang === 'fa' ? 'درخواست حضور در پایلوت' : 'Apply for pilot access'}
+              {lang === 'ro' ? 'Solicită parteneriat' : lang === 'fa' ? 'درخواست شروع همکاری' : 'Request partnership intake'}
             </Link>
           </div>
         </div>

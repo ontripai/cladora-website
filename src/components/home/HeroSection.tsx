@@ -44,7 +44,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ lang }) => {
           {/* Primary CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-3">
             <Link
-              href={`/${lang}/pilot`}
+              href={`/${lang}/contact`}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-[#087A6E] hover:bg-[#066056] text-white font-display font-bold text-base shadow-card-hover hover:scale-[1.02] transition-all"
             >
               <span>{dict.hero.ctaPrimary}</span>

@@ -125,7 +125,7 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
           </div>
 
           <Link
-            href={`/${lang}/trust`}
+            href={`/${lang}/platform/trust`}
             className="text-xs font-bold text-[#0E9F8E] hover:underline shrink-0 flex items-center gap-1"
           >
             <span>{lang === 'ro' ? 'Detalii securitate & confidențialitate' : lang === 'fa' ? 'سیاست‌های امنیتی و محرمانگی' : 'Security & Trust specs'}</span>
