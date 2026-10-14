@@ -36,16 +36,8 @@ export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, child
     pathname === `/${lang}/owner-portfolio`;
 
   // Legacy pages requiring dark compatibility shell for contrast safety (WP-03 fix)
-  const legacyDarkRoutes = [
-    `/${lang}/association`,
-    `/${lang}/portfolio`,
-    `/${lang}/manager`,
-    `/${lang}/building-dna`,
-    `/${lang}/financial-truth`,
-    `/${lang}/meters`,
-    `/${lang}/migration`,
-    `/${lang}/pricing`,
-  ];
+  // In WP-10, legacy routes are consolidated/redirected and /pricing is modernized to enterprise light theme
+  const legacyDarkRoutes: string[] = [];
   const isLegacyDarkRoute = pathname ? legacyDarkRoutes.includes(pathname) : false;
 
   return (
