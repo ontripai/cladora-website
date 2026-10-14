@@ -15,8 +15,20 @@ interface LayoutWrapperProps {
 export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, children }) => {
   const pathname = usePathname();
 
+  // Public platform marketing routes
+  const publicPlatformRoutes = [
+    `/${lang}/platform`,
+    `/${lang}/platform/architecture`,
+    `/${lang}/platform/lifecycle`,
+    `/${lang}/platform/trust`,
+  ];
+  const isPublicPlatformRoute = pathname
+    ? publicPlatformRoutes.some((route) => pathname === route || pathname.startsWith(`${route}#`))
+    : false;
+
   // Control plane and authenticated application routes
-  const isPlatformControlPlane = pathname ? pathname.startsWith(`/${lang}/platform/`) : false;
+  const isPlatformControlPlane =
+    pathname && !isPublicPlatformRoute ? pathname.startsWith(`/${lang}/platform/`) : false;
   const isAppRoute =
     isPlatformControlPlane ||
     pathname?.includes(`/${lang}/app`) ||

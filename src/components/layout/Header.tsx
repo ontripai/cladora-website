@@ -179,19 +179,19 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     {
       title: lang === 'ro' ? 'Arhitectură & Model Workspace' : lang === 'fa' ? 'معماری و مدل ورک‌اسپیس' : 'Architecture & Workspace Model',
       desc: lang === 'ro' ? 'Separare logică, granițe de mandat și delegare de autoritate' : lang === 'fa' ? 'تفکیک داده‌ها، حدود اختیارات و تفویض مسئولیت‌ها' : 'Logical boundaries, mandate-based authority, and safe delegation',
-      href: `/${lang}/platform#architecture`,
+      href: `/${lang}/platform/architecture`,
       icon: Layers,
     },
     {
       title: lang === 'ro' ? 'Ciclul de Viață al Proprietății' : lang === 'fa' ? 'پیوستگی چرخهٔ عمر ملک' : 'Property Lifecycle',
       desc: lang === 'ro' ? 'De la pre-vânzare și dezvoltare până la operare pe termen lung' : lang === 'fa' ? 'از تعریف و پیش‌فروش تا بهره‌برداری و معاملات بعدی' : 'Preserving authorized record continuity across all property phases',
-      href: `/${lang}/lifecycle`,
+      href: `/${lang}/platform/lifecycle`,
       icon: TrendingUp,
     },
     {
       title: lang === 'ro' ? 'Securitate, Încredere & Audit' : lang === 'fa' ? 'امنیت، اعتماد و ممیزی' : 'Trust, Security & Audit',
-      desc: lang === 'ro' ? 'Jurnal de evenimente ireversibil și conformitate europeană' : lang === 'fa' ? 'لاگ‌های تغییرناپذیر ممیزی و امنیت در سطح استانداردهای اروپا' : 'Cryptographically auditable event trails and EU data compliance',
-      href: `/${lang}/trust`,
+      desc: lang === 'ro' ? 'Jurnal de audit aditiv, delimitare pe workspace și rezidență UE' : lang === 'fa' ? 'ثبت رویدادهای ممیزی، تفکیک داده‌های ورک‌اسپیس و استانداردهای حریم خصوصی در اروپا' : 'Auditable event trails, workspace boundaries, and EU data residency',
+      href: `/${lang}/platform/trust`,
       icon: ShieldCheck,
     },
   ];

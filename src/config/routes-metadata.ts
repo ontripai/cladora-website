@@ -53,16 +53,58 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/platform': {
     ro: {
-      title: 'Arhitectura Platformei & Modelul Universal Workspace',
-      desc: 'Descoperă arhitectura CLADORA: identitatea persistentă a activelor, modelul Universal Workspace, delegarea autorității cu termen și predarea transparentă a responsabilităților.',
+      title: 'Platforma de Operare — Prezentare Generală & Contexte de Lucru',
+      desc: 'Conectează identitatea persistentă a proprietății cu spații de lucru operaționale izolate, relații contextuale și domenii specializate fără fragmentarea sursei unice de adevăr.',
     },
     en: {
-      title: 'Platform Architecture & Universal Workspace Model',
-      desc: 'Explore CLADORA architecture: persistent property identity, universal workspace boundaries, time-bound delegation, and accountable succession handover.',
+      title: 'Platform Overview — One Platform, Many Operational Contexts',
+      desc: 'CLADORA connects persistent property identity with isolated operational workspaces, contextual relationships, and specialized domains without fragmenting the underlying source of truth.',
     },
     fa: {
-      title: 'معماری جامع پلتفرم و مدل Workspace',
-      desc: 'معماری یکپارچه کلادورا: هویت پایدار ملک، مرزهای مستقل Workspace، تفویض اختیار زمان‌دار و تحویل مسئولیت با حفظ کامل سوابق تاریخی.',
+      title: 'نمای کلی پلتفرم — یک پلتفرم جامع، بسترهای عملیاتی گوناگون',
+      desc: 'اتصال هویت پایدار ملک با ورک‌اسپیس‌های عملیاتی مجزا، روابط مبتنی بر مجوز و دامنه‌های تخصصی بر بستر حقیقت واحد داده‌ها.',
+    },
+  },
+  '/platform/architecture': {
+    ro: {
+      title: 'Arhitectura de Sistem — Modelul Decuplat & Furnizorii Canonici',
+      desc: 'Modelul decuplat pe 4 niveluri: Proprietate, Workspace, Autoritate și Domenii Conectate, susținut de furnizori canonici de date (CORE, DOCUMENTS, FIN01, BK01, OPERATIONS, COMMUNICATIONS, AUDIT).',
+    },
+    en: {
+      title: 'System Architecture — Decoupled Model & Canonical Providers',
+      desc: 'Explore the 4-tier decoupled architecture: Physical Property, Workspace Boundaries, Scoped Authority, and Connected Domains backed by single-capability canonical providers.',
+    },
+    fa: {
+      title: 'معماری سیستم — مدل تفکیک‌شده و متولیان اصلی داده‌ها',
+      desc: 'بررسی مدل چهارلایه معماری: دارایی فیزیکی، مرزهای ورک‌اسپیس، اختیارات بر مبنای نقش و دامنه‌های متصل عملیاتی متکی بر ارائه‌دهندگان مرجع داده‌ها.',
+    },
+  },
+  '/platform/lifecycle': {
+    ro: {
+      title: 'Ciclul de Viață al Proprietății — Continuitate & Proveniență',
+      desc: 'Arhitectura CLADORA asigură continuitatea și proveniența trasabilă a evidențelor autorizate pe 10 etape: de la definire și pre-vânzare până la exploatare, mentenanță și succesiune.',
+    },
+    en: {
+      title: 'Property Lifecycle — Continuity & Traceable Provenance',
+      desc: 'CLADORA preserves traceable provenance across 10 non-linear lifecycle phases: from project definition and pre-sale through active living, facility maintenance, and accountable succession.',
+    },
+    fa: {
+      title: 'چرخهٔ عمر ملک — پیوستگی و حفظ سوابق در تمام مراحل',
+      desc: 'حفظ پیوستگی و اصالت سوابق مجاز در ۱۰ مرحله غیرخطی: از تعریف پروژه و پیش‌فروش تا بهره‌برداری، نگهداری فنی و انتقال مسئولیت به جانشین.',
+    },
+  },
+  '/platform/trust': {
+    ro: {
+      title: 'Încredere, Securitate & Guvernanță de Sistem',
+      desc: 'Arhitectura de încredere CLADORA: delimitare pe workspace, autoritate pe bază de mandat, cerințe AAL2, principiul Zero-Write Denial și jurnale de audit aditive.',
+    },
+    en: {
+      title: 'Trust & Governance Architecture — Boundaries & Integrity',
+      desc: 'Explore CLADORA trust architecture: workspace boundaries, mandate-based authority, AAL2 security controls, zero-write denial, and auditable event journals.',
+    },
+    fa: {
+      title: 'معماری اعتماد و امنیت — مرزهای داده و یکپارچگی سیستم',
+      desc: 'معماری امنیت و حاکمیت داده‌ها در کلادورا: تفکیک ورک‌اسپیس‌ها، اختیارات زمان‌دار، استانداردهای AAL2، اصل عدم تغییر بدون مجوز و ثبت رویدادهای ممیزی.',
     },
   },
   '/airprop': {

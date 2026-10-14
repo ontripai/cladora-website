@@ -94,17 +94,17 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/platform#architecture`} className="hover:text-white transition-colors">
+                <Link href={`/${lang}/platform/architecture`} className="hover:text-white transition-colors">
                   {lang === 'ro' ? 'Modelul Workspace' : lang === 'fa' ? 'معماری و مدل ورک‌اسپیس' : 'Workspace Model'}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/lifecycle`} className="hover:text-white transition-colors">
+                <Link href={`/${lang}/platform/lifecycle`} className="hover:text-white transition-colors">
                   {lang === 'ro' ? 'Ciclul de Viață' : lang === 'fa' ? 'چرخهٔ عمر دارایی' : 'Property Lifecycle'}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/trust`} className="hover:text-white transition-colors">
+                <Link href={`/${lang}/platform/trust`} className="hover:text-white transition-colors">
                   {lang === 'ro' ? 'Securitate & Audit' : lang === 'fa' ? 'امنیت و ممیزی' : 'Trust & Security'}
                 </Link>
               </li>
