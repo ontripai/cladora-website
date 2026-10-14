@@ -291,7 +291,10 @@ async function readSourceLockCandidate(
   const client = await createExperienceGuideLifecycleRequestPoolV1(pool, session).connect();
   let ended = false;
   try {
-    await client.query('begin isolation level serializable read only');
+    // Row locking and READ ONLY are mutually exclusive in PostgreSQL. This
+    // preflight remains write-free while the shared Guide lock prevents its
+    // source set from drifting before the Core command is assembled.
+    await client.query('begin isolation level serializable');
     const guide = await client.query<{
       content_version: string;
       authority_version: string;
