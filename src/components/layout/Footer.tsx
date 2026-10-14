@@ -177,6 +177,11 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
                 </Link>
               </li>
               <li>
+                <Link href={`/${lang}/community-experience`} className="hover:text-white transition-colors">
+                  {lang === 'ro' ? 'Comunitate & Experiență (C&E)' : lang === 'fa' ? 'جامعه و تجربه کاربری (C&E)' : 'Community & Experience (C&E)'}
+                </Link>
+              </li>
+              <li>
                 <Link href={`/${lang}/ai`} className="hover:text-white transition-colors">
                   {lang === 'ro' ? 'Inteligență Ghidată (AI)' : lang === 'fa' ? 'هوش عملیاتی (AI)' : 'Governed AI'}
                 </Link>

@@ -648,6 +648,23 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
       desc: 'بررسی جامع معماری قابلیت‌های کلادورا: زیرساخت CORE، هویت پایدار ملک، ایرپراپ، سرویس، عملیات فنی، تعاملات اجتماعی و ارائه‌دهندگان مرجع داده‌ها (FIN01، اسناد و BK01).',
     },
   },
+  '/community-experience': {
+    ro: {
+      title: 'Comunitate & Experiență — Arhitectura Experienței în Context Imobiliar',
+      desc: 'Descoperă arhitectura domeniului Comunitate & Experiență (C&E): compoziția interacțiunilor, ghiduri de spațiu, evenimente și călătorii contextuale conectate la adevărul canonic.',
+      noIndex: false,
+    },
+    en: {
+      title: 'Community & Experience — Experience Connected to the Property Context',
+      desc: 'Explore CLADORA’s Community & Experience (C&E) domain architecture: experience composition, place guides, community context, and journeys anchored in canonical operational truth.',
+      noIndex: false,
+    },
+    fa: {
+      title: 'جامعه و تجربه کاربری — معماری تجربه متصل به بستر ملک',
+      desc: 'بررسی معماری دامنهٔ جامعه و تجربه کاربری (C&E): ترکیب تعاملات، راهنمای اماکن، بستر مشارکتی و جریان‌های تعاملی متکی بر ارائه‌دهندگان مرجع داده‌ها.',
+      noIndex: false,
+    },
+  },
   '/resources': {
     ro: {
       title: 'Resurse, Ghiduri & Documentație',

@@ -866,6 +866,15 @@ export default async function CapabilitiesPage(props: { params: Promise<{ lang: 
               </div>
               <h3 className="text-base font-bold text-[#102A43]">{content.communityGov.ceSide.title}</h3>
               <p className="text-xs text-[#52667A] leading-relaxed">{content.communityGov.ceSide.desc}</p>
+              <div className="pt-2">
+                <Link
+                  href={`/${lang}/community-experience`}
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0E9F8E] hover:underline"
+                >
+                  <span>{lang === 'ro' ? 'Explorează Arhitectura C&E' : lang === 'fa' ? 'بررسی معماری C&E' : 'Explore C&E Architecture'}</span>
+                  <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                </Link>
+              </div>
             </div>
             <div className="p-6 rounded-2xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-2">
               <div className="w-8 h-8 rounded-lg bg-teal-50 text-[#0E9F8E] flex items-center justify-center font-bold text-xs">

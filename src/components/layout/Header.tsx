@@ -316,6 +316,12 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       icon: Wrench,
     },
     {
+      title: lang === 'ro' ? 'Comunitate & Experiență (C&E)' : lang === 'fa' ? 'جامعه و تجربه کاربری (C&E)' : 'Community & Experience (C&E)',
+      desc: lang === 'ro' ? 'Ghiduri de spațiu, interacțiuni autorizate și călătorii de utilizator' : lang === 'fa' ? 'راهنمای فضاها، تعاملات مجاز و مسیرهای کاربری' : 'Place guides, authorized interactions, and contextual journeys',
+      href: `/${lang}/community-experience`,
+      icon: Users,
+    },
+    {
       title: lang === 'ro' ? 'Securitate & Audit' : lang === 'fa' ? 'امنیت و ممیزی' : 'Security & Audit',
       desc: lang === 'ro' ? 'Jurnal de audit aditiv, delimitare și politici UE' : lang === 'fa' ? 'ثبت ترتیبی رویدادها، تفکیک داده‌ها و ضوابط حاکمیت داده‌ها' : 'Append-only event stream, isolation, and EU-aligned governance',
       href: `/${lang}/platform/trust`,
