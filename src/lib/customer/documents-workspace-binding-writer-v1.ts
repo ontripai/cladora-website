@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
 import { resolveAuthority } from '../core/current-authority-postgres-provider-v1';
@@ -6,9 +6,15 @@ import {
   coreTransactionCommandV1Schema,
   type CoreTransactionCommandV1,
   type CoreTransactionProvidersV1,
+  type CoreTransactionReceiptV1,
   type CoreTransactionScopeV1,
 } from '../core/postgres-transaction-host-v1';
 import type { CurrentAuthorityTransactionDecisionReceiptV1 } from '../core/current-authority-transaction-port-v1';
+import {
+  coreTransactionReplayCommandHashV1,
+  coreTransactionReplayReceiptHashV1,
+  type CoreTransactionReplayProviderDecisionV1,
+} from '../core/transaction-replay-provider-hook-v1';
 
 const uuid = z.string().uuid().transform(value => value.toLowerCase());
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
@@ -108,6 +114,9 @@ export const DOCUMENTS_WORKSPACE_WRITER_BINDINGS_V1 = Object.freeze({
   finalize_purpose: 'documents.workspace_upload.finalize',
 } as const);
 
+export const DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1 =
+  'documents-workspace-binding-writer.v1' as const;
+
 type CommandContext = z.infer<typeof commandContextSchema>;
 type ParsedIntent = z.infer<typeof documentsNewDocumentIntentV1Schema>;
 type ParsedVersion = z.infer<typeof documentsInitialVersionV1Schema>;
@@ -191,6 +200,39 @@ function exactCommand(expected: CoreTransactionCommandV1, actual: CoreTransactio
   return JSON.stringify(actual) === JSON.stringify(expected);
 }
 
+function replayDecision(
+  scope: CoreTransactionScopeV1,
+  command: CoreTransactionCommandV1,
+  authority: CurrentAuthorityTransactionDecisionReceiptV1,
+  receipt: CoreTransactionReceiptV1,
+  evaluatedAt: string,
+  accepted: boolean,
+): CoreTransactionReplayProviderDecisionV1 {
+  const binding = {
+    contract_version: 'core-transaction-replay-provider-decision.v1' as const,
+    decision_id: randomUUID(),
+    provider_code: DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1,
+    database_transaction_id: scope.database_transaction_id,
+    transaction_id: command.transaction_id,
+    command_id: command.command_id,
+    workspace_id: command.workspace_id,
+    actor_id: command.actor_id,
+    context_id: command.context_id,
+    authority_decision_id: authority.decision_id,
+    authority_version: authority.authority_version,
+    attempt: scope.attempt,
+    receipt_id: receipt.receipt_id,
+    receipt_contract_version: receipt.contract_version,
+    command_hash: coreTransactionReplayCommandHashV1(command),
+    receipt_hash: coreTransactionReplayReceiptHashV1(receipt),
+    evaluated_at: evaluatedAt,
+    read_only: true as const,
+  };
+  return accepted
+    ? { ...binding, decision: 'accepted', denial_reason: null }
+    : { ...binding, decision: 'denied', denial_reason: 'REPLAY_STATE_CHANGED' };
+}
+
 async function requestIsAal2(scope: CoreTransactionScopeV1) {
   const result = await scope.query<{ valid: boolean }>(
     `select auth.uid()=$1::uuid and coalesce(auth.jwt()->>'aal','')='aal2' as valid`,
@@ -255,6 +297,8 @@ export function createDocumentsInitialVersionProvidersV1(
   const object = requireVerifiedObject(verifiedObjectValue);
   const expected = buildDocumentsInitialVersionCommandV1(input, context, verifiedObjectValue);
   const providers: CoreTransactionProvidersV1 = {
+    replay_policy: 'provider_current_state_required',
+    replay_provider_code: DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1,
     resolveAuthority,
     async validateProviders(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1,
       authority: CurrentAuthorityTransactionDecisionReceiptV1) {
@@ -279,6 +323,81 @@ export function createDocumentsInitialVersionProvidersV1(
         object.size_bytes, input.version_id,
       ]);
       return state.rowCount === 1 && state.rows[0]?.valid === true;
+    },
+    async validateReplay(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1,
+      authority: CurrentAuthorityTransactionDecisionReceiptV1, receipt: CoreTransactionReceiptV1) {
+      const exactReceipt = receipt.contract_version === 'core-transaction-receipt.v1'
+        && receipt.replay_validation?.contract_version
+          === 'core-transaction-replay-provider-requirement.v1'
+        && receipt.replay_validation.provider_code
+          === DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1
+        && receipt.transaction_id === command.transaction_id
+        && receipt.command_id === command.command_id
+        && receipt.workspace_id === input.workspace_id
+        && receipt.actor_id === context.actor_id
+        && receipt.aggregate_type === DOCUMENTS_WORKSPACE_WRITER_BINDINGS_V1.aggregate_type
+        && receipt.aggregate_id === input.document_id
+        && receipt.aggregate_version === 1
+        && receipt.input_fingerprint === command.input_fingerprint
+        && receipt.idempotency_key === input.idempotency_key
+        && receipt.mutation_id === input.version_id
+        && receipt.authority.context_id === input.context_id
+        && receipt.authority.workspace_id === input.workspace_id
+        && receipt.authority.actor_id === context.actor_id
+        && receipt.authority.permission_code
+          === DOCUMENTS_WORKSPACE_WRITER_BINDINGS_V1.permission_code
+        && receipt.authority.module_code === DOCUMENTS_WORKSPACE_WRITER_BINDINGS_V1.module_code
+        && receipt.authority.evaluation_purpose
+          === DOCUMENTS_WORKSPACE_WRITER_BINDINGS_V1.finalize_purpose
+        && receipt.authority.transaction_context.transaction_id === command.transaction_id
+        && receipt.authority.transaction_context.command_id === command.command_id
+        && receipt.authority.transaction_context.lock.workspace_id === input.workspace_id
+        && receipt.authority.transaction_context.lock.aggregate_type
+          === DOCUMENTS_WORKSPACE_WRITER_BINDINGS_V1.aggregate_type
+        && receipt.authority.transaction_context.lock.aggregate_id === input.document_id;
+      const exactBindings = exactCommand(expected, command)
+        && authorityMatches(scope, command, authority)
+        && scope.transaction_id === context.transaction_id
+        && scope.workspace_id === input.workspace_id
+        && scope.actor_id === context.actor_id;
+      const state = await scope.query<{ valid: boolean; now: string }>(`select exists(
+          select 1
+          from documents.upload_intents ui
+          join documents.documents d on d.id=$6 and d.tenant_id=ui.tenant_id
+          join documents.document_versions v on v.id=$11 and v.tenant_id=ui.tenant_id
+            and v.document_id=d.id
+          where ui.id=$1 and ui.tenant_id=$2 and ui.context_id=$3 and ui.workspace_id=$4
+            and ui.user_id=$5 and ui.prospective_document_id=$6 and ui.document_id is null
+            and ui.expected_version=1 and ui.bucket_id=$7 and ui.object_path=$8
+            and ui.declared_mime_type=$9 and ui.max_size_bytes >= $10
+            and ui.status='consumed' and ui.consumed_at is not null and ui.attempts=1
+            and d.workspace_id=$4 and d.title=$12 and d.document_type=$13
+            and d.classification=$14::documents.classification and d.current_version=1
+            and d.status='active'::platform.record_status and d.created_by=$5
+            and d.property_id is null and d.category=$13
+            and d.archived_at is null and d.deleted_at is null
+            and v.version=1 and v.object_path=$8 and v.sha256=$15 and v.mime_type=$16
+            and v.size_bytes=$10 and v.uploaded_by=$5 and v.checksum_status='verified'
+            and v.detected_mime_type=$16
+            and v.metadata_json=jsonb_build_object(
+              'binding_contract','documents-workspace-binding-writer.v1',
+              'workspace_id',$4::text,'upload_intent_id',$1::text,
+              'transaction_id',$17::text,'command_id',$18::text)
+            and auth.uid()=$5 and coalesce(auth.jwt()->>'aal','')='aal2'
+            and exists(select 1 from documents.access_events ae
+              where ae.tenant_id=ui.tenant_id and ae.document_id=d.id and ae.version_id=v.id
+                and ae.actor_id=$5 and ae.action='finalize_upload'
+                and ae.purpose='Initial Workspace-bound document finalized')
+          for share of ui,d,v
+        ) as valid,clock_timestamp()::text as now`, [
+        input.intent_id, scope.tenant_id, input.context_id, input.workspace_id, scope.actor_id,
+        input.document_id, object.bucket_id, object.object_path, object.detected_mime_type,
+        object.size_bytes, input.version_id, input.title, input.document_type, input.classification,
+        object.sha256, object.detected_mime_type, command.transaction_id, command.command_id,
+      ]);
+      const evaluatedAt = new Date(state.rows[0]?.now ?? authority.evaluated_at).toISOString();
+      return replayDecision(scope, command, authority, receipt, evaluatedAt,
+        exactBindings && exactReceipt && state.rowCount === 1 && state.rows[0]?.valid === true);
     },
     async mutate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1) {
       if (!exactCommand(expected, command)) throw new Error('documents_finalize_command_mismatch');

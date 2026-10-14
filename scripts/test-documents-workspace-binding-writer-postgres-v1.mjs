@@ -78,6 +78,10 @@ function withSyntheticAal2(providers, counters) {
       counters.validation += 1;
       return providers.validateProviders(scope, command, authority);
     },
+    ...(providers.validateReplay ? { async validateReplay(scope, command, authority, receipt) {
+      counters.replay += 1;
+      return providers.validateReplay(scope, command, authority, receipt);
+    } } : {}),
     async mutate(scope, command) {
       counters.mutation += 1;
       return providers.mutate(scope, command);
@@ -98,7 +102,7 @@ async function issueFixture(workspace = ids.workspaceIds[0], suffix = randomUUID
   const context = { transaction_id: randomUUID(), command_id: randomUUID(), actor_id: actor,
     authority_version: await revision() };
   const command = api.buildDocumentsNewDocumentIntentCommandV1(input, context);
-  const counters = { authority: 0, validation: 0, mutation: 0 };
+  const counters = { authority: 0, validation: 0, replay: 0, mutation: 0 };
   const result = await host.execute(command,
     withSyntheticAal2(api.createDocumentsNewDocumentIntentProvidersV1(input, context), counters));
   assert.equal(result.status, 'committed');
@@ -123,7 +127,7 @@ async function finalFixture(issue, overrides = {}) {
   const context = { transaction_id: randomUUID(), command_id: randomUUID(), actor_id: actor,
     authority_version: await revision() };
   const command = api.buildDocumentsInitialVersionCommandV1(input, context, verified);
-  const counters = { authority: 0, validation: 0, mutation: 0 };
+  const counters = { authority: 0, validation: 0, replay: 0, mutation: 0 };
   const providers = withSyntheticAal2(
     api.createDocumentsInitialVersionProvidersV1(input, context, verified), counters);
   return { input, verified, context, command, providers, counters };
@@ -369,7 +373,7 @@ try {
     }
   });
 
-  let committed, committedFinal;
+  let committed, committedFinal, replayCandidate;
   await check('Core host commits exact Workspace intent and immutable initial version with deferred scan', async () => {
     committed = await issueFixture();
     const intentRow = (await pool.query(`select workspace_id::text,prospective_document_id::text,document_id,status
@@ -379,6 +383,9 @@ try {
     committedFinal = await finalFixture(committed);
     const result = await host.execute(committedFinal.command, committedFinal.providers);
     assert.equal(result.status, 'committed');
+    committedFinal.result = result;
+    assert.equal(result.receipt.replay_validation.provider_code,
+      api.DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1);
     const row = (await pool.query(`select d.workspace_id::text,d.current_version,v.id::text version_id,
       v.scanning_status,v.checksum_status,v.metadata_json,ui.status,ui.consumed_at is not null consumed,
       q.state scan_job_state
@@ -453,18 +460,137 @@ try {
     assert.deepEqual(counts, { documents: 1, versions: 1, attempts: 1 });
   });
 
-  await check('current exact replay rechecks Core authority but skips Documents validation and mutation', async () => {
+  await check('exact replay rechecks consumed Documents state after Core authority and skips fresh validation/mutation', async () => {
     const replayIssue = await issueFixture();
-    const replayFinal = await finalFixture(replayIssue);
-    assert.equal((await host.execute(replayFinal.command, replayFinal.providers)).status, 'committed');
+    replayCandidate = await finalFixture(replayIssue);
+    replayCandidate.result = await host.execute(replayCandidate.command, replayCandidate.providers);
+    assert.equal(replayCandidate.result.status, 'committed');
     const before = await digest();
-    const counters = { ...replayFinal.counters };
-    const replay = await host.execute(replayFinal.command, replayFinal.providers);
-    assert.equal(replay.status, 'exact_replay');
-    assert.ok(replayFinal.counters.authority > counters.authority);
-    assert.equal(replayFinal.counters.validation, counters.validation);
-    assert.equal(replayFinal.counters.mutation, counters.mutation);
+    const counters = { ...replayCandidate.counters };
+    const replay = await host.execute(replayCandidate.command, replayCandidate.providers);
+    assert.equal(replay.status, 'exact_replay', JSON.stringify(replay));
+    assert.ok(replayCandidate.counters.authority > counters.authority);
+    assert.equal(replayCandidate.counters.replay, counters.replay + 1);
+    assert.equal(replayCandidate.counters.validation, counters.validation);
+    assert.equal(replayCandidate.counters.mutation, counters.mutation);
     assert.equal(await digest(), before);
+  });
+
+  await check('unconsumed intent or changed committed document denies replay with zero writes', async () => {
+    const consumed = (await pool.query(`select status,consumed_at,attempts
+      from documents.upload_intents where id=$1`, [replayCandidate.input.intent_id])).rows[0];
+    const beforeReplay = replayCandidate.counters.replay;
+    try {
+      await pool.query(`update documents.upload_intents
+        set status='authorized',consumed_at=null,attempts=0 where id=$1`,
+      [replayCandidate.input.intent_id]);
+      await deniedZeroWrite(replayCandidate, 'REPLAY_CONFLICT');
+    } finally {
+      await pool.query(`update documents.upload_intents
+        set status=$2,consumed_at=$3,attempts=$4 where id=$1`, [
+        replayCandidate.input.intent_id, consumed.status, consumed.consumed_at, consumed.attempts,
+      ]);
+    }
+    await pool.query('update documents.documents set title=$2 where id=$1',
+      [replayCandidate.input.document_id, 'Changed after commit']);
+    try {
+      await deniedZeroWrite(replayCandidate, 'REPLAY_CONFLICT');
+    } finally {
+      await pool.query('update documents.documents set title=$2 where id=$1',
+        [replayCandidate.input.document_id, replayCandidate.input.title]);
+    }
+    assert.equal(replayCandidate.counters.replay, beforeReplay + 2);
+    assert.equal(replayCandidate.counters.validation, 1);
+    assert.equal(replayCandidate.counters.mutation, 1);
+  });
+
+  await check('historical receipt without replay marker fails unavailable without auto-upgrade', async () => {
+    const key = `core-tx.v1:${replayCandidate.command.workspace_id}:${replayCandidate.command.idempotency_key}`;
+    const historical = structuredClone(replayCandidate.result.receipt);
+    delete historical.replay_validation;
+    const beforeReplay = replayCandidate.counters.replay;
+    try {
+      await pool.query(`update platform.idempotency_keys set response_ref=$3::jsonb
+        where tenant_id=$1 and key=$2`, [ids.tenantId, key, JSON.stringify(historical)]);
+      await deniedZeroWrite(replayCandidate, 'PROVIDER_UNAVAILABLE');
+      assert.equal(replayCandidate.counters.replay, beforeReplay);
+      const stored = (await pool.query(`select response_ref from platform.idempotency_keys
+        where tenant_id=$1 and key=$2`, [ids.tenantId, key])).rows[0].response_ref;
+      assert.equal(Object.hasOwn(stored, 'replay_validation'), false);
+    } finally {
+      await pool.query(`update platform.idempotency_keys set response_ref=$3::jsonb
+        where tenant_id=$1 and key=$2`, [
+        ids.tenantId, key, JSON.stringify(replayCandidate.result.receipt),
+      ]);
+    }
+  });
+
+  await check('malformed replay evidence fails unavailable with zero writes', async () => {
+    const baseHook = replayCandidate.providers.validateReplay.bind(replayCandidate.providers);
+    const malformed = {
+      ...replayCandidate,
+      providers: { ...replayCandidate.providers, async validateReplay(...args) {
+        const decision = await baseHook(...args);
+        return { ...decision, receipt_hash: '0'.repeat(64) };
+      } },
+    };
+    await deniedZeroWrite(malformed, 'PROVIDER_UNAVAILABLE');
+  });
+
+  await check('real PostgreSQL 40001 retries replay in a fresh Core transaction', async () => {
+    const blocker = await pool.connect();
+    const attempts = [], errorCodes = [];
+    let entered;
+    const hookEntered = new Promise(resolve => { entered = resolve; });
+    const baseHook = replayCandidate.providers.validateReplay.bind(replayCandidate.providers);
+    const retryCandidate = {
+      ...replayCandidate,
+      providers: { ...replayCandidate.providers, async validateReplay(scope, ...args) {
+        attempts.push(scope.attempt);
+        if (scope.attempt === 1) entered();
+        try { return await baseHook(scope, ...args); } catch (error) {
+          if (error?.code) errorCodes.push(error.code);
+          throw error;
+        }
+      } },
+    };
+    const before = await digest();
+    const beforeValidation = replayCandidate.counters.validation;
+    const beforeMutation = replayCandidate.counters.mutation;
+    try {
+      await blocker.query('begin');
+      await blocker.query('update documents.documents set title=title where id=$1',
+        [replayCandidate.input.document_id]);
+      const pending = host.execute(retryCandidate.command, retryCandidate.providers);
+      await hookEntered;
+      await blocker.query('commit');
+      assert.equal((await pending).status, 'exact_replay');
+      assert.deepEqual(errorCodes, ['40001']);
+      assert.deepEqual(attempts, [1, 2]);
+      assert.equal(replayCandidate.counters.validation, beforeValidation);
+      assert.equal(replayCandidate.counters.mutation, beforeMutation);
+      assert.equal(await digest(), before);
+    } finally {
+      await blocker.query('rollback').catch(() => {});
+      blocker.release();
+    }
+  });
+
+  await check('revoked authority denies before replay hook with zero writes', async () => {
+    const beforeReplay = replayCandidate.counters.replay;
+    await pool.query(`update platform.workspace_entitlements set boolean_value=false
+      where customer_workspace_id=$1 and entitlement_key=$2`, [
+      ids.workspaceIds[0], documentsModule.entitlement_key,
+    ]);
+    try {
+      await deniedZeroWrite(replayCandidate, 'AUTHORITY_DENIED');
+      assert.equal(replayCandidate.counters.replay, beforeReplay);
+    } finally {
+      await pool.query(`update platform.workspace_entitlements set boolean_value=true
+        where customer_workspace_id=$1 and entitlement_key=$2`, [
+        ids.workspaceIds[0], documentsModule.entitlement_key,
+      ]);
+    }
   });
 } finally {
   await pool.end();
@@ -474,4 +600,4 @@ try {
   }
 }
 
-console.log(`Documents Workspace binding writer PostgreSQL: ${checks}/${checks} PASS; exact replay remains blocked on CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-01`);
+console.log(`Documents Workspace binding writer PostgreSQL: ${checks}/${checks} PASS; Core replay hook consumed`);

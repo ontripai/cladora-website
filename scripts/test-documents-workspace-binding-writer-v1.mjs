@@ -35,7 +35,13 @@ const authority = purpose => ({
   contract_version: 'core-current-authority-decision-receipt.v1', receipt_version: 1,
   decision_id: id(9), context_id: context, workspace_id: workspace, actor_id: actor,
   authority_version: 12, permission_code: 'documents.vault.upload', module_code: 'documents',
-  evaluation_purpose: purpose, decision: 'allowed',
+  evaluation_purpose: purpose, decision: 'allowed', evaluated_at: new Date().toISOString(),
+  transaction_context: {
+    transaction_id: commandContext.transaction_id, command_id: commandContext.command_id, attempt: 1,
+    isolation_level: 'serializable', lock: { kind: 'command_aggregate', workspace_id: workspace,
+      aggregate_type: 'documents.document', aggregate_id: documentId,
+      acquired_at: new Date().toISOString() },
+  },
 });
 
 let verifiedBeforeProvider = false;
@@ -46,13 +52,16 @@ const verified = await api.verifyDocumentsStoredObjectBeforeTransactionV1(
       detected_mime_type: 'application/pdf', non_overwritable: true };
   });
 
-function scopeHarness() {
+function scopeHarness({ replayValid = true } = {}) {
   const calls = [];
   const scope = {
     transaction_id: commandContext.transaction_id, database_transaction_id: '44', workspace_id: workspace,
     tenant_id: tenant, actor_id: actor, attempt: 1,
     async query(text, values) {
       calls.push({ text, values });
+      if (text.includes('select exists(') && text.includes('documents.upload_intents ui')) {
+        return { rows: [{ valid: replayValid, now: new Date().toISOString() }], rowCount: 1 };
+      }
       if (text.includes("auth.jwt()->>'aal'")) return { rows: [{ valid: true }], rowCount: 1 };
       if (text.includes('not exists(select 1 from documents.documents') && !text.includes('from documents.upload_intents ui where')) {
         return { rows: [{ valid: true }], rowCount: 1 };
@@ -69,6 +78,22 @@ function scopeHarness() {
   return { scope, calls };
 }
 
+function replayReceipt(command) {
+  return {
+    contract_version: 'core-transaction-receipt.v1', receipt_version: 1, receipt_id: id(11),
+    transaction_id: command.transaction_id, command_id: command.command_id,
+    workspace_id: command.workspace_id, actor_id: command.actor_id,
+    aggregate_type: command.aggregate_type, aggregate_id: command.aggregate_id,
+    aggregate_version: command.aggregate_version, input_fingerprint: command.input_fingerprint,
+    idempotency_key: command.idempotency_key, replay_validation: {
+      contract_version: 'core-transaction-replay-provider-requirement.v1',
+      provider_code: api.DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1,
+    },
+    authority: authority(command.evaluation_purpose), mutation_id: versionId,
+    audit_event_id: '1', outbox_event_id: id(12), committed_at: new Date().toISOString(),
+  };
+}
+
 let checks = 0;
 const check = async (name, run) => { await run(); console.log(`ok ${++checks} - ${name}`); };
 
@@ -80,6 +105,7 @@ await check('intent command binds explicit Context, Workspace, prospective docum
   assert.equal(command.evaluation_purpose, 'documents.workspace_upload.intent');
   const { scope, calls } = scopeHarness();
   const provider = api.createDocumentsNewDocumentIntentProvidersV1(intent, commandContext);
+  assert.equal(provider.replay_policy, undefined); assert.equal(provider.validateReplay, undefined);
   assert.equal(await provider.validateProviders(scope, command, authority(command.evaluation_purpose)), true);
   assert.deepEqual(await provider.mutate(scope, command), { mutation_id: intentId });
   const insert = calls.find(call => call.text.includes('insert into documents.upload_intents'));
@@ -94,6 +120,8 @@ await check('finalization requires pretransaction object proof and fresh unconsu
   assert.deepEqual(command.provider_source_ids, [intentId, documentId, versionId]);
   const { scope, calls } = scopeHarness();
   const provider = api.createDocumentsInitialVersionProvidersV1(initial, commandContext, verified);
+  assert.equal(provider.replay_policy, 'provider_current_state_required');
+  assert.equal(provider.replay_provider_code, 'documents-workspace-binding-writer.v1');
   assert.equal(await provider.validateProviders(scope, command, authority(command.evaluation_purpose)), true);
   const validation = calls.find(call => call.text.includes('from documents.upload_intents ui where ui.id='));
   assert.match(validation.text, /ui\.workspace_id=\$4/);
@@ -105,6 +133,29 @@ await check('finalization requires pretransaction object proof and fresh unconsu
   const versionInsert = calls.find(call => call.text.includes('insert into documents.document_versions'));
   assert.match(versionInsert.text, /'verified','deferred'/);
   assert.match(versionInsert.text, /binding_contract/);
+});
+
+await check('exact replay uses the Core hook and consumed committed state, never the fresh validator', async () => {
+  const command = api.buildDocumentsInitialVersionCommandV1(initial, commandContext, verified);
+  const provider = api.createDocumentsInitialVersionProvidersV1(initial, commandContext, verified);
+  const { scope, calls } = scopeHarness();
+  const decision = await provider.validateReplay(
+    scope, command, authority(command.evaluation_purpose), replayReceipt(command));
+  assert.equal(decision.decision, 'accepted');
+  assert.equal(decision.read_only, true);
+  assert.equal(decision.database_transaction_id, scope.database_transaction_id);
+  const query = calls.at(-1);
+  assert.match(query.text, /ui\.status='consumed' and ui\.consumed_at is not null/);
+  assert.doesNotMatch(query.text, /ui\.status='authorized' and ui\.consumed_at is null/);
+  assert.match(query.text, /for share of ui,d,v/);
+  assert.equal(calls.some(call => /^\s*(?:insert|update|delete)\b/i.test(call.text)), false);
+
+  const changed = scopeHarness({ replayValid: false });
+  assert.equal((await provider.validateReplay(changed.scope, command,
+    authority(command.evaluation_purpose), replayReceipt(command))).decision, 'denied');
+  const historical = replayReceipt(command); delete historical.replay_validation;
+  assert.equal((await provider.validateReplay(scopeHarness().scope, command,
+    authority(command.evaluation_purpose), historical)).decision, 'denied');
 });
 
 await check('cross-Workspace and changed command bindings deny before mutation', async () => {
