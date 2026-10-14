@@ -24,6 +24,9 @@ on:
       - "scripts/test-service-request-subject-link-v1.mjs"
       - "scripts/test-service-request-subject-link-postgres-v1.mjs"
       - "src/lib/customer/service-request-subject-link-v1.ts"
+      - "scripts/test-service-request-subject-link-http-v1.mjs"
+      - "scripts/test-service-request-subject-link-http-postgres-v1.mjs"
+      - "src/lib/customer/service-request-subject-link-http-v1.ts"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -71,6 +74,9 @@ on:
       - "scripts/test-service-request-subject-link-v1.mjs"
       - "scripts/test-service-request-subject-link-postgres-v1.mjs"
       - "src/lib/customer/service-request-subject-link-v1.ts"
+      - "scripts/test-service-request-subject-link-http-v1.mjs"
+      - "scripts/test-service-request-subject-link-http-postgres-v1.mjs"
+      - "src/lib/customer/service-request-subject-link-http-v1.ts"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -191,6 +197,26 @@ jobs:
         env:
           SERVICE_SUBJECT_LINK_EPHEMERAL: "1"
           SERVICE_SUBJECT_LINK_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run SERVICE subject-link isolated HTTP and real local AAL2 integration
+        run: |
+          set -euo pipefail
+          STATUS_JSON=$(supabase status -o json)
+          ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // empty')
+          SERVICE_ROLE_KEY=$(echo "$STATUS_JSON" | jq -r '.SERVICE_ROLE_KEY // empty')
+          if [ -z "$ANON_KEY" ] || [ -z "$SERVICE_ROLE_KEY" ]; then
+            echo "::error::Local Supabase keys are required for SERVICE HTTP AAL2 evidence"
+            exit 1
+          fi
+          echo "::add-mask::$ANON_KEY"
+          echo "::add-mask::$SERVICE_ROLE_KEY"
+          SERVICE_SUBJECT_LINK_HTTP_ANON_KEY="$ANON_KEY" \
+          SERVICE_SUBJECT_LINK_HTTP_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          timeout 240s npm run test:service-subject-link:http:postgres
+        env:
+          SERVICE_SUBJECT_LINK_HTTP_EPHEMERAL: "1"
+          SERVICE_SUBJECT_LINK_HTTP_REAL_AAL2_REQUIRED: "1"
+          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          SERVICE_SUBJECT_LINK_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
         env:
