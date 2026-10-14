@@ -387,6 +387,7 @@ async function bootstrapDisposablePostgres() {
     '20261003151649_20261003122445_workspace_native_context_authority_v2.sql',
     '20261012190924_core_canonical_authority_revision_v1.sql',
     '20261014082947_experience_guide_storage_lifecycle_v1.sql',
+    '20261014132000_experience_guide_child_publish_lock_v1.sql',
   ]) {
     await pool.query(readFileSync(new URL(`../supabase/migrations/${filename}`, import.meta.url), 'utf8'));
   }
@@ -635,13 +636,16 @@ async function addImmutableDocumentReference(guideId, options = {}) {
     (id,tenant_id,workspace_id,guide_id,guide_version,position,title,body)
     values($1,$2,$3,$4,$5,$6,'Private step','Private body must never enter evidence')`,
   [stepId, ids.tenantId, ids.workspaceIds[0], guideId, guideVersion, position]);
-  await pool.query(`insert into experience.guide_references
-    (id,tenant_id,workspace_id,guide_id,guide_version,step_id,position,target_type,
-      target_id,document_version_id,document_version,safe_label)
-    values($1,$2,$3,$4,$5,$6,1,'document',$7,$8,$9,$10)`,
-  [referenceId, ids.tenantId, ids.workspaceIds[0], guideId, guideVersion, stepId,
-    documentId, versionId, documentVersion, options.safeLabel ?? `Bound document ${position}`]);
-  return { documentId, versionId, referenceId, stepId, sha };
+  if (options.insertReference !== false) {
+    await pool.query(`insert into experience.guide_references
+      (id,tenant_id,workspace_id,guide_id,guide_version,step_id,position,target_type,
+        target_id,document_version_id,document_version,safe_label)
+      values($1,$2,$3,$4,$5,$6,1,'document',$7,$8,$9,$10)`,
+    [referenceId, ids.tenantId, ids.workspaceIds[0], guideId, guideVersion, stepId,
+      documentId, versionId, documentVersion, options.safeLabel ?? `Bound document ${position}`]);
+  }
+  return { documentId, versionId, referenceId, stepId, sha, guideVersion, documentVersion,
+    position };
 }
 
 async function rewriteDocumentWorkspaceForTest(documentId, workspaceId) {
@@ -667,6 +671,17 @@ async function waitForQueryLock(fragment) {
     await new Promise(resolve => setTimeout(resolve, 10));
   }
   throw new Error('expected Documents selector row-lock wait');
+}
+
+async function waitForApplicationLock(applicationName) {
+  for (let index = 0; index < 300; index += 1) {
+    const waiting = await pool.query(`select count(*)::int value from pg_stat_activity
+      where datname=current_database() and application_name=$1 and wait_event_type='Lock'`,
+    [applicationName]);
+    if (waiting.rows[0].value > 0) return;
+    await new Promise(resolve => setTimeout(resolve, 10));
+  }
+  throw new Error(`expected ${applicationName} row-lock wait`);
 }
 
 try {
@@ -917,6 +932,79 @@ try {
     /ce_guide_content_immutable/);
     await assert.rejects(() => pool.query(`delete from experience.guide_references where id=$1`,
       [immutable.referenceId]), /ce_guide_content_immutable/);
+  });
+  await check('late reference insertion waits for publish and then fails closed', async () => {
+    const referenceGuide = await insertGuide();
+    const accepted = await addImmutableDocumentReference(referenceGuide, { position: 1 });
+    const late = await addImmutableDocumentReference(referenceGuide, {
+      position: 2, insertReference: false,
+    });
+    const value = await command(referenceGuide, 'publish', 1, {
+      provider_source_ids: referenceSourceLocks(referenceGuide, [accepted]),
+    });
+    const accessBefore = (await pool.query(
+      'select count(*)::int value from documents.access_events',
+    )).rows[0].value;
+    const blocker = await pool.connect();
+    const inserter = await pool.connect();
+    let blockerOpen = false;
+    let publishPending;
+    let insertPending;
+    try {
+      await blocker.query('begin');
+      blockerOpen = true;
+      await blocker.query('update documents.documents set title=title where id=$1',
+        [accepted.documentId]);
+      publishPending = host.execute(value, providers());
+      await waitForQueryLock('from documents.documents d where d.id=$1');
+
+      const applicationName = `ce-guide-late-reference-${late.referenceId}`;
+      await inserter.query("select set_config('application_name',$1,false)", [applicationName]);
+      insertPending = inserter.query(`insert into experience.guide_references
+        (id,tenant_id,workspace_id,guide_id,guide_version,step_id,position,target_type,
+          target_id,document_version_id,document_version,safe_label)
+        values($1,$2,$3,$4,$5,$6,1,'document',$7,$8,$9,'Late reference')`,
+      [late.referenceId, ids.tenantId, ids.workspaceIds[0], referenceGuide, late.guideVersion,
+        late.stepId, late.documentId, late.versionId, late.documentVersion])
+        .then(result => ({ result }), error => ({ error }));
+      await waitForApplicationLock(applicationName);
+
+      await blocker.query('commit');
+      blockerOpen = false;
+      const published = await publishPending;
+      const inserted = await insertPending;
+      assert.equal(published.status, 'committed');
+      assert.ok(inserted.error);
+      assert.equal(inserted.error.code, '42501');
+      assert.match(inserted.error.message, /ce_guide_content_binding_invalid/);
+      assert.deepEqual(await state(referenceGuide), {
+        status: 'published', version: 2, content_version: 1,
+        title: 'Private synthetic Guide', audience: { kind: 'workspace' },
+      });
+      const references = (await pool.query(`select id::text,target_id::text,document_version_id::text
+        from experience.guide_references where guide_id=$1 order by position,id`,
+      [referenceGuide])).rows;
+      assert.deepEqual(references, [{
+        id: accepted.referenceId,
+        target_id: accepted.documentId,
+        document_version_id: accepted.versionId,
+      }]);
+      assert.ok(value.provider_source_ids.includes(accepted.documentId));
+      assert.ok(value.provider_source_ids.includes(accepted.versionId));
+      assert.ok(!value.provider_source_ids.includes(late.documentId));
+      assert.ok(!value.provider_source_ids.includes(late.versionId));
+      assert.deepEqual(await effects(value), { idempotency: 1, audit: 1, outbox: 1 });
+      const accessAfter = (await pool.query(
+        'select count(*)::int value from documents.access_events',
+      )).rows[0].value;
+      assert.equal(accessAfter, accessBefore);
+    } finally {
+      if (blockerOpen) await blocker.query('rollback').catch(() => {});
+      if (publishPending) await publishPending.catch(() => {});
+      if (insertPending) await insertPending;
+      blocker.release();
+      inserter.release();
+    }
   });
   await check('one invalid reference denies the complete publish with zero writes', async () => {
     const referenceGuide = await insertGuide();
