@@ -114,6 +114,61 @@ const nextConfig = {
         destination: '/:lang/contact',
         permanent: true,
       },
+      {
+        source: '/:lang(ro|en|fa)/modules',
+        destination: '/:lang/capabilities',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/association',
+        destination: '/:lang/solutions/associations',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/manager',
+        destination: '/:lang/solutions/property-managers',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/portfolio',
+        destination: '/:lang/solutions/property-owners',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/lifecycle',
+        destination: '/:lang/platform/lifecycle',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/building-dna',
+        destination: '/:lang/platform/architecture',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/financial-truth',
+        destination: '/:lang/capabilities',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/meters',
+        destination: '/:lang/capabilities',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/migration',
+        destination: '/:lang/capabilities',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/trust',
+        destination: '/:lang/platform/trust',
+        permanent: true,
+      },
+      {
+        source: '/:lang(ro|en|fa)/security',
+        destination: '/:lang/platform/trust',
+        permanent: true,
+      },
     ];
   },
   async headers() {
