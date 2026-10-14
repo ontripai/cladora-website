@@ -963,36 +963,138 @@ try {
       }
     });
 
-    await check('recycled connection does not leak secondary actor into the next request', async () => {
+    await check('poisoned pooled role and JWT claims cannot leak across HTTP requests', async () => {
       const leakRequest = await createRequest();
       const leakMessage = await createMessage();
       const intent = httpIntent(leakRequest, leakMessage);
       const before = await effects(leakRequest);
+      const poisoned = await httpPool.connect();
+      const poisonedPid = (await poisoned.query('select pg_backend_pid()::int as pid')).rows[0].pid;
+      await poisoned.query('set role authenticated');
+      await poisoned.query(`select
+        set_config('request.jwt.claims',$1,false),
+        set_config('request.jwt.claim.sub',$2,false),
+        set_config('request.jwt.claim.aal',$3,false),
+        set_config('request.jwt.claim.role',$4,false)`, [
+        JSON.stringify({ sub: secondaryActor, aal: 'aal1', role: 'poisoned' }),
+        secondaryActor, 'aal1', 'poisoned',
+      ]);
+      poisoned.release();
       const secondary = await send(intent, sessionNonce.secondaryAal2);
       assert.equal(secondary.response.status, 503);
       assert.deepEqual(secondary.body, { outcome: 'denied', code: 'TRANSACTION_FAILED' });
       assert.deepEqual(await effects(leakRequest), before);
+
+      const scrubbed = await httpPool.connect();
+      const state = (await scrubbed.query(`select
+        pg_backend_pid()::int as pid,current_user as sql_role,
+        current_setting('request.jwt.claims',true) as claims,
+        current_setting('request.jwt.claim.sub',true) as subject,
+        current_setting('request.jwt.claim.aal',true) as assurance,
+        current_setting('request.jwt.claim.role',true) as role`)).rows[0];
+      scrubbed.release();
+      assert.equal(state.pid, poisonedPid, 'denial must return the same backend to the pool cleanly');
+      assert.deepEqual({
+        sql_role: state.sql_role, claims: state.claims ?? '', subject: state.subject ?? '',
+        assurance: state.assurance ?? '', role: state.role ?? '',
+      }, { sql_role: 'postgres', claims: '', subject: '', assurance: '', role: '' });
+
       const primary = await send(intent, sessionNonce.primaryAal2);
       assert.equal(primary.response.status, 200);
       assert.equal(primary.body.outcome, 'committed');
       assert.deepEqual(await effects(leakRequest), {
         links: 1, request_version: 2, idempotency: 1, audit: 1, outbox: 1,
       });
+      const persisted = await pool.query(`select response_ref->>'actor_id' as actor_id,
+        response_ref->'authority'->>'actor_id' as authority_actor,
+        response_ref->'provider_evidence'->>'actor_id' as provider_actor
+        from platform.idempotency_keys where response_ref->>'aggregate_id'=$1`, [leakRequest]);
+      assert.deepEqual(persisted.rows[0], {
+        actor_id: actor, authority_actor: actor, provider_actor: actor,
+      });
     });
 
-    await check('genuine 40001 retries on a fresh transaction with the same verified actor', async () => {
+    await check('real PostgreSQL SSI 40001 retries the HTTP command on a fresh transaction', async () => {
       const retryRequest = await createRequest();
       const retryMessage = await createMessage();
-      let injected = false;
+      const lockKey = 73190421;
+      const competitor = await pool.connect();
+      await pool.query(`create table app_private.test_http_serialization_barrier(
+          singleton boolean primary key,revision integer not null
+        );
+        insert into app_private.test_http_serialization_barrier values(true,1);
+        create function app_private.test_http_serialization_conflict_v1()
+        returns trigger language plpgsql set search_path=pg_catalog as $$ begin
+          if new.id='${retryRequest}'::uuid then
+            perform b.revision from app_private.test_http_serialization_barrier b
+              where b.singleton=true;
+            perform pg_advisory_xact_lock(${lockKey});
+          end if;
+          return new;
+        end $$;
+        create trigger test_http_serialization_conflict before update
+          on service_catalog.requests for each row
+          execute function app_private.test_http_serialization_conflict_v1()`);
+      try {
+        await competitor.query('begin isolation level serializable');
+        await competitor.query('select version from service_catalog.requests where id=$1', [retryRequest]);
+        await competitor.query('select pg_advisory_xact_lock($1)', [lockKey]);
+        const pending = send(httpIntent(retryRequest, retryMessage));
+        let observedPostgresWait = false;
+        for (let poll = 0; poll < 200; poll += 1) {
+          const waiting = await pool.query(`select exists(
+            select 1 from pg_stat_activity where datname=current_database()
+              and wait_event_type='Lock' and wait_event='advisory'
+          ) as waiting`);
+          if (waiting.rows[0].waiting) {
+            observedPostgresWait = true;
+            break;
+          }
+          await new Promise(resolve => setTimeout(resolve, 10));
+        }
+        assert.equal(observedPostgresWait, true, 'HTTP transaction must reach the PostgreSQL SSI barrier');
+        await competitor.query(`update app_private.test_http_serialization_barrier
+          set revision=revision+1 where singleton=true`);
+        await competitor.query('commit');
+        const result = await pending;
+        assert.equal(result.response.status, 200, JSON.stringify(result.body));
+        assert.equal(result.body.outcome, 'committed');
+        assert.deepEqual(await effects(retryRequest), {
+          links: 1, request_version: 2, idempotency: 1, audit: 1, outbox: 1,
+        });
+        const retryEvidence = await pool.query(`select
+          (response_ref->'authority'->'transaction_context'->>'attempt')::int as authority_attempt,
+          (response_ref->'provider_evidence'->>'attempt')::int as provider_attempt
+          from platform.idempotency_keys where response_ref->>'aggregate_id'=$1`, [retryRequest]);
+        assert.deepEqual(retryEvidence.rows[0], { authority_attempt: 2, provider_attempt: 2 });
+      } finally {
+        await competitor.query('rollback').catch(() => undefined);
+        competitor.release();
+        await pool.query(`drop trigger if exists test_http_serialization_conflict
+            on service_catalog.requests;
+          drop function if exists app_private.test_http_serialization_conflict_v1();
+          drop table if exists app_private.test_http_serialization_barrier`);
+      }
+    });
+
+    await check('lost COMMIT acknowledgement returns 202 and exact replay recovers once', async () => {
+      const recoveryRequest = await createRequest();
+      const recoveryMessage = await createMessage();
+      const intent = httpIntent(recoveryRequest, recoveryMessage);
+      const before = await effects(recoveryRequest);
+      let acknowledgementLost = false;
+      let lostBackendPid = null;
       activeHttpPool = {
         async connect() {
           const client = await httpPool.connect();
+          lostBackendPid = (await client.query('select pg_backend_pid()::int as pid')).rows[0].pid;
           const wrapped = Object.create(client);
           wrapped.query = async (text, values) => {
-            if (!injected && typeof text === 'string'
-              && text.includes('select auth.uid()=$1::uuid as actor_bound')) {
-              injected = true;
-              throw Object.assign(new Error('synthetic_serialization_failure'), { code: '40001' });
+            if (!acknowledgementLost && typeof text === 'string'
+                && text.trim().toLowerCase() === 'commit') {
+              await client.query(text, values);
+              acknowledgementLost = true;
+              throw Object.assign(new Error('commit_acknowledgement_lost'), { code: 'ECONNRESET' });
             }
             return client.query(text, values);
           };
@@ -1000,14 +1102,39 @@ try {
           return wrapped;
         },
       };
-      const result = await send(httpIntent(retryRequest, retryMessage));
+      const pending = await send(intent);
       activeHttpPool = httpPool;
-      assert.equal(injected, true);
-      assert.equal(result.response.status, 200);
-      assert.equal(result.body.outcome, 'committed');
-      assert.deepEqual(await effects(retryRequest), {
-        links: 1, request_version: 2, idempotency: 1, audit: 1, outbox: 1,
+      assert.equal(acknowledgementLost, true);
+      assert.equal(pending.response.status, 202);
+      assert.deepEqual(pending.body, { outcome: 'pending', code: 'READBACK_REQUIRED' });
+      const afterCommit = await effects(recoveryRequest);
+      assert.deepEqual(afterCommit, {
+        links: before.links + 1, request_version: 2,
+        idempotency: before.idempotency + 1, audit: before.audit + 1, outbox: before.outbox + 1,
       });
+      const stored = await pool.query(`select response_ref->>'receipt_id' as receipt_id,
+        (response_ref->>'aggregate_version')::int as request_version
+        from platform.idempotency_keys where response_ref->>'aggregate_id'=$1`, [recoveryRequest]);
+      const clean = await httpPool.connect();
+      const cleanState = (await clean.query(`select pg_backend_pid()::int as pid,current_user as sql_role,
+        current_setting('request.jwt.claims',true) as claims,
+        current_setting('request.jwt.claim.sub',true) as subject,
+        current_setting('request.jwt.claim.aal',true) as assurance,
+        current_setting('request.jwt.claim.role',true) as role`)).rows[0];
+      clean.release();
+      assert.deepEqual({
+        sql_role: cleanState.sql_role, claims: cleanState.claims ?? '',
+        subject: cleanState.subject ?? '', assurance: cleanState.assurance ?? '',
+        role: cleanState.role ?? '',
+      }, { sql_role: 'postgres', claims: '', subject: '', assurance: '', role: '' });
+      assert.notEqual(cleanState.pid, lostBackendPid,
+        'uncertain COMMIT connection must be destroyed instead of recycled');
+      const recovered = await send(intent);
+      assert.equal(recovered.response.status, 200);
+      assert.equal(recovered.body.outcome, 'exact_replay');
+      assert.equal(recovered.body.receipt_id, stored.rows[0].receipt_id);
+      assert.equal(recovered.body.request_version, stored.rows[0].request_version);
+      assert.deepEqual(await effects(recoveryRequest), afterCommit);
     });
 
     await check('post-mutation HTTP failure rolls back every durable effect', async () => {
@@ -1047,6 +1174,9 @@ try {
       : 'USED_BY_LOCAL_HTTP_CONTRACT_AND_LEGACY_DIRECT_HOST_REGRESSION',
     http_transport: 'REAL_LOOPBACK_HTTP',
     database: 'LOCAL_DISPOSABLE_POSTGRESQL',
+    pooled_identity_regression: 'ACTOR_AAL_ROLE_CLAIM_AND_SQL_ROLE_CLEAN',
+    serialization_regression: 'REAL_POSTGRESQL_SSI_40001_RETRIED_AT_ATTEMPT_2',
+    commit_acknowledgement_regression: '202_READBACK_REQUIRED_THEN_EXACT_REPLAY',
     production_activation: false,
   }));
 } finally {

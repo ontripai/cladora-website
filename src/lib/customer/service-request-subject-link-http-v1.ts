@@ -79,11 +79,13 @@ export async function authenticateServiceSubjectLinkServerSessionV1(
 const identitySettingsSql = `select
   set_config('request.jwt.claims',$1,true) as claims,
   set_config('request.jwt.claim.sub',$2,true) as subject,
-  set_config('request.jwt.claim.aal',$3,true) as assurance`;
+  set_config('request.jwt.claim.aal',$3,true) as assurance,
+  set_config('request.jwt.claim.role',$4,true) as role`;
 const clearIdentitySettingsSql = `select
   set_config('request.jwt.claims','',false),
   set_config('request.jwt.claim.sub','',false),
-  set_config('request.jwt.claim.aal','',false)`;
+  set_config('request.jwt.claim.aal','',false),
+  set_config('request.jwt.claim.role','',false)`;
 
 async function scrubConnectionIdentity(client: PoolClient) {
   await client.query('reset role');
@@ -142,7 +144,7 @@ export function createServiceSubjectLinkRequestPoolV1(
         if (normalized.startsWith('begin')) {
           transactionOpen = true;
           await client.query(identitySettingsSql, [
-            claimsFor(session), session.actor_id, session.assurance_level,
+            claimsFor(session), session.actor_id, session.assurance_level, 'authenticated',
           ]);
         } else if (normalized === 'commit' || normalized === 'rollback') {
           transactionOpen = false;

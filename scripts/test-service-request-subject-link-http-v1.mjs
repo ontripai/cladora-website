@@ -133,36 +133,70 @@ await check('authority failure is bounded and private', async () => {
   assert.equal(poolCalls, 1);
 });
 
-await check('request-scoped pool clears recycled identity and binds transaction-local AAL2', async () => {
+await check('request-scoped pool clears poisoned identity and binds all claims transaction-locally', async () => {
   const calls = [];
-  let claims = '';
+  const identity = {
+    claims: JSON.stringify({ sub: id(99), aal: 'aal1', role: 'poisoned' }),
+    subject: id(99), assurance: 'aal1', role: 'poisoned', sqlRole: 'authenticated',
+  };
   const raw = {
     async query(text, values = []) {
       calls.push({ text, values });
-      if (text.includes("set_config('request.jwt.claims',$1,true)")) claims = values[0];
-      if (text.includes("set_config('request.jwt.claims','',false)")) claims = '';
+      if (text === 'reset role') identity.sqlRole = 'postgres';
+      if (text.includes("set_config('request.jwt.claims',$1,true)")) {
+        [identity.claims, identity.subject, identity.assurance, identity.role] = values;
+      }
+      if (text.includes("set_config('request.jwt.claims','',false)")) {
+        identity.claims = '';
+        identity.subject = '';
+        identity.assurance = '';
+        identity.role = '';
+      }
       return { rows: [], rowCount: 0 };
     },
-    release(error) { calls.push({ release: error ?? null, claims }); },
+    release(error) { calls.push({ release: { error: error ?? null, identity: { ...identity } } }); },
   };
   const pool = { async connect() { return raw; } };
   const first = await createServiceSubjectLinkRequestPoolV1(pool, session()).connect();
+  assert.deepEqual(identity, {
+    claims: '', subject: '', assurance: '', role: '', sqlRole: 'postgres',
+  }, 'checkout must clear combined and individual JWT claims plus the SQL role');
   await first.query('begin isolation level serializable');
-  assert.equal(JSON.parse(claims).sub, id(5));
+  assert.equal(JSON.parse(identity.claims).sub, id(5));
+  assert.deepEqual(identity, {
+    claims: JSON.stringify({ sub: id(5), role: 'authenticated', aal: 'aal2' }),
+    subject: id(5), assurance: 'aal2', role: 'authenticated', sqlRole: 'postgres',
+  });
   await first.query('rollback');
   first.release();
-  assert.equal(claims, '');
+  assert.deepEqual(identity, {
+    claims: '', subject: '', assurance: '', role: '', sqlRole: 'postgres',
+  });
 
+  Object.assign(identity, {
+    claims: JSON.stringify({ sub: id(98), aal: 'aal1', role: 'poisoned' }),
+    subject: id(98), assurance: 'aal1', role: 'poisoned', sqlRole: 'authenticated',
+  });
   const secondSession = session({ actor_id: id(6) });
   const second = await createServiceSubjectLinkRequestPoolV1(pool, secondSession).connect();
-  assert.equal(claims, '', 'checkout must scrub any prior request identity');
+  assert.deepEqual(identity, {
+    claims: '', subject: '', assurance: '', role: '', sqlRole: 'postgres',
+  }, 'second checkout must scrub every poisoned state dimension');
   await second.query('begin isolation level serializable');
-  assert.equal(JSON.parse(claims).sub, id(6));
-  assert.equal(JSON.parse(claims).aal, 'aal2');
+  assert.equal(JSON.parse(identity.claims).sub, id(6));
+  assert.equal(JSON.parse(identity.claims).aal, 'aal2');
+  assert.equal(identity.subject, id(6));
+  assert.equal(identity.assurance, 'aal2');
+  assert.equal(identity.role, 'authenticated');
+  assert.equal(identity.sqlRole, 'postgres');
   await second.query('commit');
   second.release();
-  assert.equal(claims, '');
-  assert.equal(calls.filter(call => call.release).some(call => call.release.claims !== ''), false);
+  assert.deepEqual(identity, {
+    claims: '', subject: '', assurance: '', role: '', sqlRole: 'postgres',
+  });
+  assert.equal(calls.filter(call => call.release).some(call => Object.values(
+    call.release.identity,
+  ).some(value => value !== '' && value !== 'postgres')), false);
   assert.ok(calls.filter(call => call.text === 'reset role').length >= 4,
     'checkout and transaction end must reset any pooled SQL role');
 });
