@@ -523,16 +523,19 @@ async function installDocumentsAuthority() {
   await pool.query(`insert into identity.permissions(code,resource,action,description)
     values('documents.vault.read','documents.vault','read','Disposable Documents reference authority')
     on conflict(code) do nothing`);
-  await pool.query(`insert into platform.module_definitions
-    (code,version,name,labels_json,description,category,is_active,lifecycle_status,
-      sensitivity_level,requires_aal2,entitlement_key,published_at)
-    values('documents',1,'Documents',
-      '{"ro":"Documente","en":"Documents","fa":"اسناد"}'::jsonb,
-      'Disposable Documents reference authority','documents',true,'published','sensitive',true,
-      'module.documents',statement_timestamp())
-    on conflict(code,version) do nothing`);
-  const moduleDefinition = (await pool.query(`select id,entitlement_key
+  let moduleDefinition = (await pool.query(`select id,entitlement_key
     from platform.module_definitions where code='documents' and version=1`)).rows[0];
+  if (!moduleDefinition) {
+    await pool.query(`insert into platform.module_definitions
+      (code,version,name,labels_json,description,category,is_active,lifecycle_status,
+        sensitivity_level,requires_aal2,entitlement_key,published_at)
+      values('documents',1,'Documents',
+        '{"ro":"Documente","en":"Documents","fa":"اسناد"}'::jsonb,
+        'Disposable Documents reference authority','documents',true,'published','sensitive',true,
+        'module.documents',statement_timestamp())`);
+    moduleDefinition = (await pool.query(`select id,entitlement_key
+      from platform.module_definitions where code='documents' and version=1`)).rows[0];
+  }
   const permission = (await pool.query(`select id from identity.permissions
     where code='documents.vault.read'`)).rows[0];
   await pool.query(`insert into platform.module_permission_bindings
