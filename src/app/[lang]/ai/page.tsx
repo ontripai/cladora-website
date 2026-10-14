@@ -4,32 +4,19 @@ import Link from 'next/link';
 import { Language } from '@/types';
 import { getRouteMetadata } from '@/config/routes-metadata';
 import {
-  Bot,
   Compass,
   ArrowRight,
   ShieldCheck,
-  Building2,
-  Calendar,
-  Layers,
-  Wrench,
   CheckCircle2,
   MapPin,
-  Briefcase,
-  FileText,
-  DollarSign,
-  MessageSquare,
-  UserCheck,
-  Sparkles,
   Lock,
   AlertTriangle,
-  HelpCircle,
   Eye,
   Sliders,
   Scale,
   Cpu,
   FileCheck,
-  Users,
-  ChevronRight,
+  Sparkles,
   ShieldAlert
 } from 'lucide-react';
 
@@ -68,17 +55,17 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
         pillars: [
           {
             title: 'Nu Deține Adevăr Canonic',
-            desc: 'AI nu deține identitatea persoanelor, activele, registrele contabile, rezervările, contractele sau documentele legale. Toate acestea aparțin exclusiv furnizorilor canonici specializați.',
+            desc: 'CLADORA Intelligence este proiectată ca un strat subordonat de orchestrare și nu este desemnată drept furnizor canonic de adevăr. Identitatea, activele, registrele, rezervările și documentele aparțin exclusiv furnizorilor canonici.',
             icon: Lock,
           },
           {
-            title: 'Fără Scrieri Directe în Baze de Date',
-            desc: 'Sistemul de inteligență nu poate modifica în mod direct starea registrelor. Orice acțiune propusă este canalizată prin contracte stricte de API către furnizorii responsabili.',
+            title: 'Fără Cale Proprie de Scriere Canonică',
+            desc: 'Arhitectura nu desemnează CLADORA Intelligence drept scriitor independent al adevărului canonic din platformă. Mutațiile cu impact sunt concepute să treacă prin furnizorul responsabil.',
             icon: ShieldCheck,
           },
           {
             title: 'Subordonare Față de Autoritate',
-            desc: 'AI operează exclusiv în limitele mandatului stabilit în CORE. Când autoritatea nu poate fi dovedită cu certitudine, arhitectura impune respingerea oricărei mutații de date.',
+            desc: 'Acțiunile ce modifică starea sunt concepute să fie direcționate prin furnizorul canonic relevant, nu prin baze de date deținute de AI. Când autoritatea necesară nu poate fi stabilită, arhitectura impune respingerea mutației.',
             icon: Scale,
           },
         ],
@@ -86,12 +73,12 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       flowSection: {
         badge: 'FLUXUL CANONIC DE ACȚIUNE',
         title: 'De la Contextul Spațial la Înregistrarea de Audit',
-        desc: 'Fiecare interacțiune asistată de inteligență parcurge un lanț arhitectural determinist, conceput pentru a elimina erorile, acțiunile neautorizate și halucinațiile:',
+        desc: 'Fiecare interacțiune asistată de inteligență parcurge un lanț arhitectural structurat, conceput pentru a reduce acțiunile necontrolate și a păstra granițele furnizorilor și ale autorității:',
         steps: [
           {
             num: '01',
             name: 'Context Resolver',
-            desc: 'Identifică persoana, proprietatea fizică, nivelul de workspace, relația locativă și mandatul activ.',
+            desc: 'Conceput să stabilească persoana, proprietatea fizică, nivelul de workspace, relația locativă și mandatul activ.',
             icon: MapPin,
           },
           {
@@ -103,48 +90,49 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           {
             num: '03',
             name: 'Authority Gate',
-            desc: 'Validează dreptul legal în CORE. Dacă autoritatea lipsește, se aplică principiul Zero-Write Denial.',
+            desc: 'Evaluează drepturile în CORE. Dacă autoritatea nu poate fi stabilită, arhitectura impune respingerea mutației.',
             icon: ShieldCheck,
           },
           {
             num: '04',
             name: 'Planner',
-            desc: 'Construiește un plan operațional structurat, explicabil și verificabil pas cu pas.',
+            desc: 'Modelul de planificare construiește un plan operațional structurat, explicabil și verificabil pas cu pas.',
             icon: Sliders,
           },
           {
             num: '05',
             name: 'Policy & Human Review',
             desc: 'Acțiunile cu impact consecvent rămân supuse politicilor aplicabile de control și aprobării umane adecvate.',
-            icon: UserCheck,
+            icon: ShieldCheck,
           },
           {
             num: '06',
             name: 'Canonical Provider',
-            desc: 'Transmite acțiunea aprobată către contractul furnizorului specializat (FIN01, BK01, OPS, etc.).',
+            desc: 'Direcționează propunerea de mutație autorizată către contractul furnizorului canonic desemnat (FIN01, BK01, OPS, etc.).',
             icon: CheckCircle2,
           },
           {
             num: '07',
             name: 'Audit Receipt',
-            desc: 'Consemnează chitanța de acțiune cu contextul deciziei și amprenta cronologică în jurnalul de audit.',
+            desc: 'Modelul de chitanță consemnează contextul deciziei și amprenta cronologică în istoricul de evenimente auditat al platformei.',
             icon: FileCheck,
           },
         ],
         railTitle: 'Furnizori Canonici Conectați:',
+        matrixLink: 'Explorează Matricea de Capabilități',
       },
       contextResolver: {
         badge: 'REZOLVAREA CONTEXTULUI',
         title: 'Identitatea Globală Nu Este Suficientă: Puterea Contextului Scopat',
-        desc: 'În lumea imobiliară, aceeași persoană fizică poate avea roluri complet diferite: proprietar într-un apartament, chiriaș într-un birou corporativ și simplu vizitator într-un alt imobil. CLADORA Intelligence nu raționează niciodată dintr-o identitate globală abstractă, ci rezolvă cu precizie cele 7 dimensiuni contextuale:',
+        desc: 'În mediul imobiliar, aceeași persoană poate deține roluri distincte în proprietăți diferite. Arhitectura Context Resolver este concepută să stabilească dimensiunile operaționale relevante înainte de orice planificare cu impact:',
         dimensions: [
-          { name: 'Persoană & Acreditare', desc: 'Identitate verificată în CORE cu sesiune activă.' },
-          { name: 'Workspace de Apartenență', desc: 'Granița logică a organizației sau asociației.' },
-          { name: 'Activ Fizic & Demarcație', desc: 'Imobilul, corpul de clădire, etajul și spațiul exact.' },
-          { name: 'Relație Locativă', desc: 'Proprietar, chiriaș, administrator, tehnician sau oaspete.' },
-          { name: 'Mandat Temporal', desc: 'Fereastra temporală și limitele de sumă acordate.' },
-          { name: 'Country Pack', desc: 'Reglementările specifice jurisdicției (ex. România).' },
-          { name: 'Domeniu de Competență', desc: 'AIRPROP, SERVICE, OPERAȚIUNI, C&E, FINANȚE.' },
+          { name: 'Persoană & Acreditare', desc: 'Context de identitate și sesiune în CORE.' },
+          { name: 'Domeniu de Workspace', desc: 'Context la nivel de workspace conceput să mențină separarea între proprietățile sau organizațiile relevante.' },
+          { name: 'Activ Fizic & Demarcație', desc: 'Corpul de clădire, etajul, demarcația și spațiul exact.' },
+          { name: 'Relație Locativă', desc: 'Proprietar, chiriaș rezidențial, ocupant comercial, tehnician sau oaspete.' },
+          { name: 'Mandat Temporal', desc: 'Limite de delegare, plafoane financiare unde sunt configurate și ferestre temporale.' },
+          { name: 'Country Pack', desc: 'Context de jurisdicție, terminologie, cerințe de flux și cadre de referință statutare (ex. linia de bază România).' },
+          { name: 'Domeniu de Competență', desc: 'Domeniul operațional aplicabil: AIRPROP, SERVICE, OPERAȚIUNI, C&E, FINANȚE.' },
         ],
       },
       intentRouter: {
@@ -164,18 +152,18 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       authorityGate: {
         badge: 'BARIERA DE AUTORITATE & POLITICI',
         title: 'Verificarea Mandatului și Principiul Zero-Write Denial',
-        desc: 'Înainte ca orice plan să fie propus sau executat, sistemul interoghează CORE pentru a verifica dacă utilizatorul deține dreptul legal de a efectua acea mutație în contextul spațial respectiv:',
+        desc: 'Înainte ca orice plan să fie propus sau direcționat, arhitectura interoghează CORE pentru a evalua autoritatea legală în contextul spațial respectiv:',
         points: [
           {
-            title: 'Principiul Zero-Write Denial',
-            desc: 'Dacă autoritatea cerută nu poate fi stabilită cu certitudine matematică în CORE, arhitectura impune respingerea oricărei mutații de stare.',
+            title: 'Standardul Zero-Write Denial',
+            desc: 'Dacă autoritatea cerută nu poate fi stabilită în CORE, arhitectura impune respingerea oricărei mutații de stare.',
           },
           {
             title: 'Filtrare pe Bază de Politici',
-            desc: 'Dincolo de rolul utilizatorului, acțiunea este confruntată cu plafoanele financiare, regulile asociației și cerințele specifice din Country Pack.',
+            desc: 'Acolo unde sunt configurate, acțiunile sunt evaluate în raport cu plafoanele financiare, pragurile de semnături multiple și constrângerile de politici aplicabile.',
           },
           {
-            title: 'Revizuire Umană Guvernată',
+            title: 'Aprobare Umană Guvernată',
             desc: 'AI operează în cadrul limitelor de autoritate verificate. Acțiunile cu impact consecvent rămân supuse politicilor aplicabile de control și aprobării umane adecvate.',
           },
         ],
@@ -183,20 +171,20 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       plannerSection: {
         badge: 'PLANIFICATORUL EXPLICABIL',
         title: 'Construcția Pas cu Pas a Planurilor Operaționale',
-        desc: 'Planificatorul sintetizează pașii necesari fără a executa modificări premature. Un exemplu de plan structurat pentru o solicitare de încălzire:',
+        desc: 'Arhitectura definește un model de planificator conceput să structureze pașii operaționali propuși fără execuție prematură. Un exemplu ilustrativ de planificare pentru o defecțiune de încălzire:',
         steps: [
           { step: 'Pasul 1', action: 'Rezolvare Context', detail: 'Identifică apartamentul 4B, bloc A, și confirmă statutul de chiriaș activ.' },
           { step: 'Pasul 2', action: 'Verificare Mandat', detail: 'Confirmă că chiriașul are dreptul de a sesiza avarii la rețeaua termică internă.' },
           { step: 'Pasul 3', action: 'Colectare Date Tehnice', detail: 'Verifică modelul de termostat și istoricul intervențiilor recente din OPERATIONS.' },
           { step: 'Pasul 4', action: 'Structurare Propunere', detail: 'Formulează ordinul de intervenție și propune intervale optime de vizită tehnică.' },
-          { step: 'Pasul 5', action: 'Aprobare Responsabil', detail: 'Prezintă planul chiriașului și administratorului de imobil pentru validare formală.' },
-          { step: 'Pasul 6', action: 'Trimitere Canonică', detail: 'După semnare, comanda de lucru este înregistrată oficial în modulul OPERATIONS.' },
+          { step: 'Pasul 5', action: 'Revizuire Desemnată', detail: 'Prezintă propunerea structurată chiriașului și administratorului pentru validare formală unde este prevăzut.' },
+          { step: 'Pasul 6', action: 'Trimitere Canonică', detail: 'După validare autorizată, transmite comanda de lucru către furnizorul canonic OPERATIONS.' },
         ],
       },
       toolRouting: {
         badge: 'CONTRACTELE CU FURNIZORII CANONICI',
         title: 'Rutarea Instrumentelor Către Furnizorii de Adevăr',
-        desc: 'Inteligența nu își creează propriile instrumente opace. Ea folosește exclusiv interfețele definite ale furnizorilor de adevăr ai platformei:',
+        desc: 'Arhitectura de inteligență nu folosește căi de acces opace. Responsabilitățile pe domenii și operațiunile propuse sunt concepute să fie direcționate exclusiv prin contractele furnizorilor canonici:',
         tools: [
           { provider: 'CORE', role: 'Identitate & Mandate', desc: 'Validarea rolurilor, workspace-urilor, relațiilor și a drepturilor de vot/semnare.' },
           { provider: 'DOCUMENTE (VAULT)', role: 'Gestiune Documentară', desc: 'Interogarea versiunilor canonice, contractelor arhivate și cărților tehnice.' },
@@ -212,7 +200,11 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       recomVsAction: {
         badge: 'DELIMITARE CLARĂ',
         title: 'Recomandare Asistivă vs. Acțiune cu Mutație Canonică',
-        desc: 'Pentru a garanta siguranța platformei, sistemul separă cu strictețe generarea de idei de execuția efectivă:',
+        desc: 'Pentru a asigura integritatea platformei, arhitectura separă cu strictețe generarea de informații de mutațiile tranzacționale:',
+        labels: {
+          examples: 'Exemple:',
+          governance: 'Guvernanță:',
+        },
         table: [
           {
             type: 'Recomandare Asistivă',
@@ -221,35 +213,35 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
             approval: 'Nu necesită semnătură juridică; este o expunere pur informativă.',
           },
           {
-            type: 'Acțiune Canonică',
-            nature: 'Mutație de Stare în Sistem (Write Operation)',
-            examples: 'Crearea comenzii de lucru în OPERATIONS, consemnarea plății în FIN01, emiterea rezervării oficiale în BK01.',
-            approval: 'Supusă politicilor de control și aprobării umane adecvate a responsabilului desemnat.',
+            type: 'Acțiune Canonică Propusă',
+            nature: 'Propunere de Mutație de Stare (Unde Este Suportată și Autorizată)',
+            examples: 'Propunerea unei comenzi de lucru către OPERATIONS, propunerea consemnării unei plăți în FIN01, propunerea unei rezervări în BK01.',
+            approval: 'Supusă politicilor aplicabile de control și aprobării umane adecvate a responsabilului desemnat.',
           },
         ],
       },
       dialogueMod: {
         badge: 'MODIFICARE CONVERSAȚIONALĂ',
         title: 'Ajustarea Conversațională a Planului Nu Ocolește Autoritatea',
-        desc: 'Un utilizator poate rafina planul propus prin dialog simplu („Schimbă cu al doilea instalator”, „Amână pentru marți”, „Trimite doar administratorului”). La fiecare ajustare, sistemul re-evaluează automat contextul, autoritatea și politicile înainte de a propune noul pas.',
-        rule: 'Nicio instrucțiune conversațională nu poate eluda verificarea de securitate din CORE.',
+        desc: 'Un utilizator poate propune ajustarea planului prin dialog („Schimbă instalatorul”, „Amână pentru marți”, „Trimite doar administratorului”). Arhitectura impune ca la fiecare modificare să fie re-evaluate contextul, autoritatea și politicile aplicabile înainte ca o modificare cu impact să poată fi propusă sau transmisă.',
+        rule: 'Nicio instrucțiune conversațională nu poate eluda verificarea de autoritate din CORE.',
       },
       humanHandoff: {
         badge: 'ESCALADARE & SUPRAVEGHERE',
-        title: 'Transferul Către Operatorul Uman în Caz de Incertitudine',
-        desc: 'CLADORA Intelligence este proiectată să refuze ghicirea atunci când datele sunt incomplete sau contradictorii. În următoarele situații, sistemul transferă automat cazul către un operator uman:',
+        title: 'Condiții de Escaladare și Clarificare Umană',
+        desc: 'Arhitectura definește condiții clare de transfer către operatorul uman sau de solicitare a clarificărilor pentru situații precum:',
         triggers: [
           'Autoritate ambiguă sau suprapunere de mandate divergente în workspace.',
           'Lipsa corelării exacte între unitatea locativă și solicitant în cadastrul intern.',
-          'Depășirea plafoanelor valorice stabilite prin politicile financiare ale imobilului.',
-          'Solicitări ce ating sisteme critice de securitate a vieții (instalații de gaz, lifturi, incendiu).',
+          'Depășirea plafoanelor valorice stabilite prin politicile financiare configurate ale imobilului.',
+          'Solicitări ce ating sisteme sensibile de securitate a vieții (instalații de gaz, lifturi, incendiu).',
           'Dovezi documentare contradictorii sau lipsa actelor de proprietate doveditoare.',
         ],
       },
       explainability: {
         badge: 'TRANSPARENȚĂ DECIZIONALĂ',
-        title: 'Explicabilitate Totală: Fără Decizii de Tip „Cutie Neagră”',
-        desc: 'Fiecare propunere formulată de CLADORA Intelligence este capabilă să răspundă la șase întrebări esențiale de transparență:',
+        title: 'Modelul de Explicabilitate și Transparență',
+        desc: 'Pentru recomandări sau acțiuni cu impact, arhitectura definește un model de transparență conceput să răspundă la întrebări esențiale precum:',
         questions: [
           { q: 'Ce a înțeles sistemul?', a: 'Sinteza exactă a solicitării extrase din dialog.' },
           { q: 'Ce proprietate și workspace sunt vizate?', a: 'Demarcația cadastrală și organizațională precisă.' },
@@ -261,13 +253,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       },
       receiptSection: {
         badge: 'TRASABILITATE & AUDIT',
-        title: 'Chitanțe de Acțiune Auditate și Jurnale Permanențe',
-        desc: 'Fiecare acțiune executată prin intermediul asistenței inteligente generează o chitanță de audit consemnată în jurnalul de evenimente al platformei. Înregistrarea include contextul inițial, decizia de autoritate din CORE, aprobarea umană consemnată și răspunsul furnizorului canonic.',
+        title: 'Chitanțe de Acțiune Auditate și Istoric de Evenimente',
+        desc: 'Arhitectura definește un model de chitanță de audit conceput să consemneze contextul solicitării, decizia de autoritate din CORE, aprobările aplicabile și răspunsul furnizorului în istoricul de evenimente auditat al platformei.',
       },
       safetySection: {
         badge: 'SIGURANȚĂ & GUVERNANȚĂ',
         title: 'Bariere Strict Impuse de Securitate și Conformitate',
-        desc: 'Pentru a preveni abuzurile și riscurile operaționale, CLADORA aplică 5 reguli absolute de guvernanță:',
+        desc: 'Pentru a preveni riscurile operaționale și supra-promisiunile, arhitectura CLADORA definește 5 reguli stricte de guvernanță:',
         rules: [
           {
             title: 'AI Nu Creează Drepturi Legale',
@@ -286,12 +278,12 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           },
           {
             title: 'Neutralitate Tehnologică și de Model',
-            desc: 'Arhitectura decuplează orchestrarea de un singur furnizor de LLM, permițând adoptarea modelelor optime fără captivitate tehnologică.',
+            desc: 'Arhitectura țintă de orchestrare este concepută pentru a evita legarea adevărului canonic din platformă de un singur furnizor de modele.',
             icon: Cpu,
           },
           {
             title: 'Minimizarea Datelor și Confidențialitate',
-            desc: 'Datele sunt procesate strict în perimetrul workspace-ului autorizat, respectând principiile de minimizare a expunerii.',
+            desc: 'Inteligența este proiectată în jurul contextului scopat la nivel de workspace, al interogărilor delimitate de autoritate și al principiilor de minimizare a datelor.',
             icon: Eye,
           },
         ],
@@ -299,13 +291,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       journeys: {
         badge: 'EXEMPLE ILUSTRATIVE DE ARHITECTURĂ',
         title: 'Scenarii Ilustrative de Compoziție a Inteligenței',
-        desc: 'Fluxurile de mai jos reprezintă compoziții conceptuale de arhitectură, ilustrând modul în care AI cooperează cu furnizorii canonici (nu sunt garanții de fluxuri universale live):',
+        desc: 'Fluxurile de mai jos reprezintă compoziții conceptuale de arhitectură, ilustrând modul în care AI este conceput să coopereze cu furnizorii canonici (nu sunt garanții de fluxuri universale live):',
         qualification: 'Notă: Aceste exemple reprezintă arhetipuri conceptuale de compoziție arhitecturală, nu fluxuri active universal în producție.',
         items: [
           {
             title: 'Scenariul A: Sesizarea Unei Avarii la Încălzire',
             role: 'Rezidențial / Chiriaș',
-            flow: 'Context: Ap. 4B → Intenție: Avarie calorifer → Autoritate: CORE verifică dreptul chiriașului → Plan: Ghid verificare presiune + draft solicitare OPS → Revizuire: Chiriașul confirmă → Furnizor: Trimis la OPERATIONS → Chitanță: Nr. tichet consemnat în jurnal.',
+            flow: 'Context: Ap. 4B → Intenție: Avarie calorifer → Autoritate: CORE verifică dreptul chiriașului → Plan: Ghid verificare presiune + draft solicitare OPS → Revizuire: Chiriașul confirmă propunerea → Furnizor: Transmis la OPERATIONS → Chitanță: Înregistrare de audit consemnată.',
           },
           {
             title: 'Scenariul B: Explicarea Variației Cotelor de Întreținere',
@@ -315,7 +307,7 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           {
             title: 'Scenariul C: Rezervarea Terasei Comune pentru Eveniment',
             role: 'Comunitate / Proprietar',
-            flow: 'Context: Terasa Bloc B → Intenție: Rezervare sâmbătă seara → Autoritate: CORE confirmă statutul de proprietar fără restanțe → Plan: BK01 verifică orarul și orele de liniște → Revizuire: Proprietarul acceptă regulamentul → Furnizor: Rezervare înregistrată în BK01.',
+            flow: 'Context: Terasa Bloc B → Intenție: Rezervare sâmbătă seara → Autoritate: CORE confirmă statutul de proprietar fără restanțe → Plan: BK01 verifică orarul și orele de liniște → Revizuire: Proprietarul acceptă regulamentul → Furnizor: Propunere transmisă către BK01.',
           },
           {
             title: 'Scenariul D: Clarificarea Clauzei de Subînchiriere',
@@ -332,15 +324,15 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       domainsSection: {
         badge: 'INTEGRARE PE DOMENII',
         title: 'Cum Asistă Inteligența Fiecare Domeniu Canonic',
-        desc: 'Fiecare domeniu al platformei CLADORA beneficiază de asistență contextuală fără a-și ceda autoritatea:',
+        desc: 'Modele ilustrative de asistență privind modul în care inteligența este concepută să coopereze cu fiecare domeniu, fără a prelua rolul de furnizor canonic de adevăr:',
         domains: [
-          { name: 'AIRPROP', desc: 'Sintetizează oportunitățile comerciale, istoricul vizionărilor și pregătește documentația prealabilă de vânzare sau închiriere.' },
-          { name: 'SERVICE', desc: 'Structurează cererile de asistență, traduce nevoile în cerințe tehnice clare și asistă la compararea ofertelor concurențiale.' },
-          { name: 'OPERAȚIUNI', desc: 'Interpretează semnalările tehnice, corelează istoricul echipamentelor și pregătește instrucțiunile pentru echipele de teren.' },
-          { name: 'C&E', desc: 'Structurează ghidurile de orientare, regulamentele de incintă și pregătește anunțurile comunitare pentru avizier.' },
-          { name: 'FIN01', desc: 'Oferă asistență explicativă privind cotele de întreținere și reconcilierile de costuri, fără a efectua plăți sau scrieri autonome.' },
-          { name: 'BK01', desc: 'Interpretează intenția de ocupare a spațiilor și pregătește solicitarea către motorul canonic de disponibilitate și cote.' },
-          { name: 'DOCUMENTE', desc: 'Extrage informații relevante și rezumă clauzele din documentele oficiale din VAULT, fără a substitui actul canonic.' },
+          { name: 'AIRPROP', desc: 'Modele ilustrative de asistență pentru sinteza cererilor comerciale și pregătirea ciornelor de contracte; AIRPROP rămâne deținătorul canonic al ciclului comercial.' },
+          { name: 'SERVICE', desc: 'Modele de asistență pentru structurarea cererilor și facilitarea comparării ofertelor; SERVICE rămâne furnizorul canonic de comenzi de servicii.' },
+          { name: 'OPERAȚIUNI', desc: 'Asistență conceptuală pentru interpretarea semnalărilor tehnice și pregătirea instrucțiunilor de intervenție, fără diagnoză autonomă; OPERATIONS rămâne proprietarul ordinelor de lucru.' },
+          { name: 'C&E', desc: 'Asistență pentru compunerea ghidurilor de primire și a ciornelor de anunțuri; C&E rămâne furnizorul canonic de experiență.' },
+          { name: 'FIN01', desc: 'Interacțiunile asistive pot explica contextul financiar furnizat de FIN01 acolo unde sunt autorizate, fără facturare autonomă sau modificări de registru; FIN01 rămâne adevărul financiar.' },
+          { name: 'BK01', desc: 'Intenția de rezervare este direcționată arhitectural către BK01, care rămâne proprietarul canonic al adevărului privind disponibilitatea și capacitatea.' },
+          { name: 'DOCUMENTE', desc: 'Asistența autorizată poate extrage sau rezuma informații relevante din VAULT; un rezumat generat nu substituie documentul canonic.' },
         ],
       },
       availability: {
@@ -350,7 +342,7 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
         points: [
           'Capabilitățile de inteligență sunt activate modular în funcție de pachetul contractat și de configurarea specifică a proprietății.',
           'Fluxurile complexe de asistență (precum automatizări extinse de concierge, predicții avansate sau integrări de marketplace) reprezintă etape țintă de arhitectură supuse calendarelor de lansare.',
-          'Garanția de integritate rămâne absolută: nicio funcționalitate asistivă nu poate scrie date nesecurizate sau ocoli verificarea de autoritate din CORE.',
+          'Standardul de arhitectură este ferm: nicio funcționalitate asistivă nu este concepută să scrie date nevalidate sau să ocolească verificarea de autoritate din CORE.',
         ],
       },
       cta: {
@@ -377,17 +369,17 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
         pillars: [
           {
             title: 'Not a Truth Provider',
-            desc: 'AI does not own people, asset records, general ledgers, room calendars, leases, or legal files. These belong strictly to designated canonical providers.',
+            desc: 'CLADORA Intelligence is designed as a subordinate orchestration layer and is not designated as a canonical truth provider. Identity, assets, general ledgers, bookings, and legal documents belong strictly to designated canonical providers.',
             icon: Lock,
           },
           {
-            title: 'Zero Direct Database Writes',
-            desc: 'The intelligence system never mutates system state directly. Proposed actions are routed exclusively through strict provider API contracts.',
+            title: 'No AI-Owned Canonical Write Path',
+            desc: 'The architecture does not designate CLADORA Intelligence as an independent writer of canonical platform truth. Consequential mutations are designed to pass through the responsible provider.',
             icon: ShieldCheck,
           },
           {
             title: 'Subordinate to Authority',
-            desc: 'AI operates exclusively within verified mandates established in CORE. When authority cannot be proven, the architecture requires mutation denial.',
+            desc: 'State-changing actions are designed to route through the relevant canonical provider rather than AI-owned truth stores. When authority cannot be proven, the architecture requires mutation denial.',
             icon: Scale,
           },
         ],
@@ -395,12 +387,12 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       flowSection: {
         badge: 'PRIMARY ARCHITECTURAL FLOW',
         title: 'From Spatial Context to Auditable Action Receipt',
-        desc: 'Every assisted interaction follows a deterministic architectural chain designed to eliminate errors, unauthorized mutations, and operational hallucination:',
+        desc: 'Every assisted interaction follows a structured architectural chain designed to reduce uncontrolled actions and preserve provider and authority boundaries:',
         steps: [
           {
             num: '01',
             name: 'Context Resolver',
-            desc: 'Resolves person identity, physical property demarcation, workspace boundary, role, and active mandate.',
+            desc: 'Designed to establish person identity, physical property demarcation, workspace boundary, role, and active mandate.',
             icon: MapPin,
           },
           {
@@ -412,47 +404,48 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           {
             num: '03',
             name: 'Authority Gate',
-            desc: 'Verifies rights in CORE. If authority cannot be proven, the architecture requires mutation denial.',
+            desc: 'Evaluates rights in CORE. If authority cannot be proven, the architecture requires mutation denial.',
             icon: ShieldCheck,
           },
           {
             num: '04',
             name: 'Planner',
-            desc: 'Constructs an explainable, structured action plan verified step by step prior to dispatch.',
+            desc: 'The planner model constructs an explainable, structured action plan verified step by step prior to dispatch.',
             icon: Sliders,
           },
           {
             num: '05',
             name: 'Policy & Human Review',
             desc: 'Consequential actions remain subject to applicable policy controls and appropriate human approval.',
-            icon: UserCheck,
+            icon: ShieldCheck,
           },
           {
             num: '06',
             name: 'Canonical Provider',
-            desc: 'Dispatches approved mutation requests directly to the designated canonical provider contract (FIN01, BK01, OPS, etc.).',
+            desc: 'Routes authorized mutation proposals toward the designated canonical provider contract (FIN01, BK01, OPS, etc.).',
             icon: CheckCircle2,
           },
           {
             num: '07',
             name: 'Audit Receipt',
-            desc: 'Records auditable action receipts with operational timestamps and decision context in the event journal.',
+            desc: 'The receipt model captures operational timestamps and decision context in the platform’s auditable event history.',
             icon: FileCheck,
           },
         ],
         railTitle: 'Connected Canonical Providers:',
+        matrixLink: 'Explore Capability Matrix',
       },
       contextResolver: {
         badge: 'CONTEXT RESOLUTION',
         title: 'Global Identity Is Insufficient: The Power of Scoped Context',
-        desc: 'In the real estate world, the same individual possesses distinct roles: an owner in one residential unit, an employee tenant in a commercial tower, and a temporary visitor in another asset. CLADORA Intelligence never reasons from an unscoped global identity alone; it deterministically resolves 7 contextual dimensions:',
+        desc: 'In real estate operations, the same individual possesses distinct roles across properties. The Context Resolver architecture is designed to establish the relevant operational dimensions before consequential planning:',
         dimensions: [
-          { name: 'Person & Credentials', desc: 'Verified subject identity in CORE with hardened session tokens.' },
-          { name: 'Workspace Scope', desc: 'The organizational or community boundary isolating operational data.' },
+          { name: 'Person & Credentials', desc: 'CORE identity and session context.' },
+          { name: 'Workspace Scope', desc: 'Workspace-scoped context designed to maintain separation between relevant property or organizational contexts.' },
           { name: 'Physical Asset & Demarcation', desc: 'Exact building body, floor, demarcation, and specific spatial unit.' },
           { name: 'Occupancy Relationship', desc: 'Owner, residential tenant, commercial occupant, technician, or guest.' },
-          { name: 'Temporal Mandate', desc: 'Active delegation boundaries, fiscal signing limits, and time windows.' },
-          { name: 'Country Pack', desc: 'Jurisdiction-specific legal rules, currencies, and statutory frameworks (e.g. Romania).' },
+          { name: 'Temporal Mandate', desc: 'Active delegation boundaries, fiscal limits where configured, and time windows.' },
+          { name: 'Country Pack', desc: 'Jurisdictional context, terminology, workflow requirements, and statutory framework references (e.g. Romania baseline).' },
           { name: 'Domain Context', desc: 'Applicable operational domain: AIRPROP, SERVICE, OPERATIONS, C&E, FINANCES.' },
         ],
       },
@@ -473,15 +466,15 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       authorityGate: {
         badge: 'AUTHORITY & POLICY GATEWAY',
         title: 'Mandate Verification and the Zero-Write Denial Standard',
-        desc: 'Before any plan is proposed or dispatched, the system interrogates CORE to verify whether the requester possesses the legal authority to execute the mutation in that specific property context:',
+        desc: 'Before any plan is proposed or dispatched, the architecture interrogates CORE to evaluate legal authority in that specific property context:',
         points: [
           {
             title: 'Zero-Write Denial Standard',
-            desc: 'If required authority cannot be established with certainty in CORE, the architecture requires mutation denial.',
+            desc: 'If required authority cannot be established in CORE, the architecture requires mutation denial.',
           },
           {
             title: 'Policy-Based Control Filtering',
-            desc: 'Beyond base roles, operations are checked against financial spending caps, multi-signature thresholds, and Country Pack rules.',
+            desc: 'Where configured, actions are evaluated against financial spending caps, multi-signature thresholds, and applicable policy constraints.',
           },
           {
             title: 'Governed Human Approval',
@@ -492,20 +485,20 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       plannerSection: {
         badge: 'EXPLAINABLE PLANNER',
         title: 'Step-by-Step Construction of Operational Proposals',
-        desc: 'The planner constructs explainable execution steps without premature execution. An example of structured plan construction for a heating fault:',
+        desc: 'The architecture defines a planner model designed to structure proposed operational steps without premature execution. An illustrative example of plan construction for a heating fault:',
         steps: [
           { step: 'Step 1', action: 'Context Resolution', detail: 'Identifies Unit 4B, Building A, and confirms active residential tenant status.' },
           { step: 'Step 2', action: 'Mandate Check', detail: 'Verifies tenant authority to report internal heating anomalies.' },
           { step: 'Step 3', action: 'Technical Context', detail: 'Inspects thermostat model and recent equipment history from OPERATIONS.' },
           { step: 'Step 4', action: 'Proposal Formulation', detail: 'Drafts technical work order and proposes optimal maintenance time windows.' },
-          { step: 'Step 5', action: 'Designated Review', detail: 'Presents structured proposal to tenant and property manager for formal sign-off.' },
-          { step: 'Step 6', action: 'Canonical Dispatch', detail: 'Upon authorized signature, dispatches work order to the canonical OPERATIONS provider.' },
+          { step: 'Step 5', action: 'Designated Review', detail: 'Presents structured proposal to tenant and designated reviewer for formal review where required.' },
+          { step: 'Step 6', action: 'Canonical Dispatch', detail: 'Upon authorized confirmation, submits proposal to the canonical OPERATIONS provider.' },
         ],
       },
       toolRouting: {
         badge: 'CANONICAL PROVIDER CONTRACTS',
         title: 'Tool Routing Across Canonical Providers of Truth',
-        desc: 'CLADORA Intelligence uses no proprietary database backdoors. It routes actions strictly through public provider contracts:',
+        desc: 'The intelligence architecture defines no opaque backdoors. Domain responsibilities and proposed operations are designed to route strictly through canonical provider contracts:',
         tools: [
           { provider: 'CORE', role: 'Identity & Authority', desc: 'Validates roles, workspace hierarchies, memberships, and voting/signing rights.' },
           { provider: 'DOCUMENTS (VAULT)', role: 'Document Truth', desc: 'Retrieves canonical versions, archived contracts, and building technical logbooks.' },
@@ -521,7 +514,11 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       recomVsAction: {
         badge: 'CLEAR BOUNDARIES',
         title: 'Assistive Recommendation vs. Canonical State Mutation',
-        desc: 'To preserve enterprise safety, the architecture strictly distinguishes between informational output and transactional mutation:',
+        desc: 'To preserve platform integrity, the architecture strictly distinguishes between informational output and transactional mutation:',
+        labels: {
+          examples: 'Examples:',
+          governance: 'Governance:',
+        },
         table: [
           {
             type: 'Assistive Recommendation',
@@ -530,9 +527,9 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
             approval: 'Requires no legal signature; functions as purely advisory informational context.',
           },
           {
-            type: 'Canonical Action',
-            nature: 'System State Mutation (Write Operation)',
-            examples: 'Creating an active work order in OPERATIONS, logging a payment in FIN01, confirming a reservation in BK01.',
+            type: 'Proposed Canonical Action',
+            nature: 'Proposed State Mutation (Where Supported and Authorized)',
+            examples: 'Proposing a work order in OPERATIONS, proposing a payment record in FIN01, proposing a reservation in BK01.',
             approval: 'Subject to applicable policy controls and appropriate human approval by designated authorizers.',
           },
         ],
@@ -540,25 +537,25 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       dialogueMod: {
         badge: 'CONVERSATIONAL REFINEMENT',
         title: 'Conversational Plan Modification Respects Authority Boundaries',
-        desc: 'A user may refine an operational proposal through conversational instructions (“Use the second provider instead”, “Reschedule for Tuesday”, “Notify only the manager”). With every instruction, the system re-evaluates context, authority, and policies before updating the proposed plan.',
+        desc: 'A user may suggest refining an operational proposal through conversational instructions (“Use the second provider instead”, “Reschedule for Tuesday”, “Notify only the manager”). The architecture requires context, authority, and applicable policy to be re-evaluated before a consequential modification can be proposed or dispatched.',
         rule: 'No conversational phrasing can ever bypass security or authority verification in CORE.',
       },
       humanHandoff: {
         badge: 'ESCALATION & OVERSIGHT',
-        title: 'Transparent Escalation to Human Operators Under Ambiguity',
-        desc: 'CLADORA Intelligence rejects guessing when operational data is incomplete or ambiguous. In the following conditions, the system immediately escalates the case to a designated human operator:',
+        title: 'Architectural Conditions for Human Handoff and Clarification',
+        desc: 'The architecture defines human handoff or clarification conditions for situations such as:',
         triggers: [
           'Ambiguous authority or conflicting multi-role mandates in the active workspace.',
           'Missing cadastral or spatial demarcation linking requester to the physical asset.',
-          'Financial transaction values exceeding established policy thresholds.',
-          'Requests touching life-safety systems (natural gas, elevators, fire detection, high-voltage electrical).',
+          'Financial transaction values exceeding established configured policy thresholds.',
+          'Requests touching life-safety or safety-sensitive systems (natural gas, elevators, fire detection).',
           'Conflicting documentary evidence or unverified ownership certificates.',
         ],
       },
       explainability: {
         badge: 'DECISIONAL TRANSPARENCY',
-        title: 'Full Explainability: Zero Black-Box Automated Decisions',
-        desc: 'Every proposal generated by CLADORA Intelligence answers six essential transparency questions:',
+        title: 'Explainability and Decisional Transparency Model',
+        desc: 'For consequential recommendations or actions, the architecture defines a transparency model designed to surface questions such as:',
         questions: [
           { q: 'What did the system understand?', a: 'Exact synthesis of the user inquiry extracted from dialogue.' },
           { q: 'Which property and workspace are involved?', a: 'Precise cadastral demarcation and organizational scope.' },
@@ -570,13 +567,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       },
       receiptSection: {
         badge: 'TRACEABILITY & AUDIT',
-        title: 'Auditable Action Receipts and Immutable Event Trails',
-        desc: 'Every action coordinated through intelligence assistance generates an auditable action receipt recorded in the platform’s event journal. The receipt documents original context, CORE authority results, recorded human approvals, and provider execution outcomes.',
+        title: 'Auditable Action Receipts and Event History Model',
+        desc: 'The architecture defines an auditable receipt model intended to capture request context, CORE authority decisions, applicable approvals, and provider execution outcomes in the platform’s auditable event history.',
       },
       safetySection: {
         badge: 'SAFETY & GOVERNANCE',
         title: 'Strictly Enforced Architectural Safety Boundaries',
-        desc: 'To prevent operational risk and overclaims, CLADORA enforces 5 non-negotiable governance principles:',
+        desc: 'To prevent operational risks and overclaims, the CLADORA architecture defines 5 strict governance principles:',
         rules: [
           {
             title: 'AI Does Not Create Rights',
@@ -594,13 +591,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
             icon: AlertTriangle,
           },
           {
-            title: 'Model & Vendor Neutrality',
-            desc: 'The architecture decouples orchestration from any single LLM vendor, ensuring model agility without vendor lock-in.',
+            title: 'Model and Vendor Neutrality',
+            desc: 'The target orchestration architecture is designed to avoid coupling canonical platform truth to a single model vendor.',
             icon: Cpu,
           },
           {
-            title: 'Data Minimization & Privacy',
-            desc: 'Information is processed strictly within authorized workspace boundaries adhering to privacy-by-design standards.',
+            title: 'Data Minimization and Privacy Design',
+            desc: 'Intelligence is designed around workspace-scoped context, authority-bounded retrieval, and data-minimization principles.',
             icon: Eye,
           },
         ],
@@ -608,13 +605,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       journeys: {
         badge: 'ILLUSTRATIVE ARCHITECTURE EXAMPLES',
         title: 'Representative Intelligence Composition Scenarios',
-        desc: 'The workflows below illustrate conceptual architectural compositions showing how AI coordinates with canonical providers (not universal runtime guarantees):',
+        desc: 'The workflows below illustrate conceptual architectural compositions showing how AI is designed to coordinate with canonical providers (not universal runtime guarantees):',
         qualification: 'Notice: These examples represent illustrative architectural composition models, not universally released production workflows.',
         items: [
           {
             title: 'Scenario A: Resident Heating Malfunction Inquiry',
             role: 'Residential Living / Tenant',
-            flow: 'Context: Unit 4B → Intent: Radiator leak reported → Authority: CORE verifies active tenancy → Plan: Diagnostic guidance + draft work order → Review: Tenant approves draft → Provider: Dispatched to OPERATIONS → Receipt: Work-order reference logged in audit trail.',
+            flow: 'Context: Unit 4B → Intent: Radiator leak reported → Authority: CORE checks tenant role → Plan: Diagnostic guidance + draft work order → Review: Subject to tenant confirmation → Provider: Routed to OPERATIONS → Receipt: Proposed action logged in audit history.',
           },
           {
             title: 'Scenario B: Property Manager Maintenance Cost Inquiries',
@@ -624,7 +621,7 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           {
             title: 'Scenario C: Communal Terrace Booking for Community Event',
             role: 'Community Experience / Owner',
-            flow: 'Context: Rooftop Terrace Building B → Intent: Reserve for Saturday evening → Authority: CORE verifies owner status → Plan: BK01 checks schedule & quiet-hour rules → Review: Owner accepts house rules → Provider: Dispatched to BK01 for official reservation.',
+            flow: 'Context: Rooftop Terrace Building B → Intent: Reserve for Saturday evening → Authority: CORE checks owner role → Plan: BK01 checks schedule & quiet-hour rules → Review: Owner accepts house rules → Provider: Routed to BK01 for official reservation.',
           },
           {
             title: 'Scenario D: Subleasing Clause Clarification',
@@ -641,15 +638,15 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       domainsSection: {
         badge: 'DOMAIN ORCHESTRATION',
         title: 'How Intelligence Assists Each Platform Domain',
-        desc: 'Every platform domain benefits from context-aware assistive orchestration without surrendering canonical ownership:',
+        desc: 'Illustrative assistance patterns showing how intelligence is designed to coordinate with each domain without assuming canonical ownership:',
         domains: [
-          { name: 'AIRPROP', desc: 'Synthesizes inquiry histories, qualifies pre-sales prospects, and drafts commercial leasing proposals.' },
-          { name: 'SERVICE', desc: 'Structures assistance requests, translates layperson descriptions into technical scopes, and compares bids.' },
-          { name: 'OPERATIONS', desc: 'Interprets reported faults, correlates equipment maintenance histories, and prepares technician dispatches.' },
-          { name: 'C&E', desc: 'Assembles contextual arrival handbooks, neighborhood guides, and drafts community announcements.' },
-          { name: 'FIN01', desc: 'Explains maintenance cost allocations and variance trends without autonomous billing or balance mutations.' },
-          { name: 'BK01', desc: 'Interprets amenity booking intents and routes schedule requests directly to BK01’s capacity engine.' },
-          { name: 'DOCUMENTS', desc: 'Extracts relevant clauses and summarizes official documents in VAULT without substituting canonical files.' },
+          { name: 'AIRPROP', desc: 'Illustrative assistance patterns for synthesizing commercial inquiries and drafting leasing documentation; AIRPROP remains the canonical owner of transaction lifecycles.' },
+          { name: 'SERVICE', desc: 'Assistance models for structuring service requests and organizing bid comparisons; SERVICE remains the canonical service-order provider.' },
+          { name: 'OPERATIONS', desc: 'Assistance models for interpreting fault reports and drafting technician dispatches without autonomous equipment diagnosis; OPERATIONS remains the canonical work-order provider.' },
+          { name: 'C&E', desc: 'Assistance models for drafting contextual arrival handbooks and community announcements; C&E remains the canonical experience provider.' },
+          { name: 'FIN01', desc: 'An intelligence interaction may explain provider-derived financial context where authorized, without autonomous billing or ledger writes; FIN01 remains financial truth.' },
+          { name: 'BK01', desc: 'Booking intent is architecturally routed toward BK01, which remains the canonical owner of availability and capacity truth.' },
+          { name: 'DOCUMENTS', desc: 'Authorized document assistance may retrieve or summarize relevant content while DOCUMENTS remains canonical; an AI summary does not substitute for the canonical document.' },
         ],
       },
       availability: {
@@ -659,7 +656,7 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
         points: [
           'Intelligence capabilities are activated modularly based on active workspace tier and property configuration.',
           'Advanced autonomous capabilities (such as automated hospitality concierges, predictive maintenance, or automated marketplace purchasing) represent architectural design targets subject to release maturity.',
-          'Architectural integrity is absolute: no assistive intelligence feature can write unverified state or bypass authority enforcement in CORE.',
+          'The architectural standard is strict: no assistive intelligence feature is designed to write unverified state or bypass authority evaluation in CORE.',
         ],
       },
       cta: {
@@ -686,17 +683,17 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
         pillars: [
           {
             title: 'متولی مرجع حقیقت نیست',
-            desc: 'هوش مصنوعی مالکیتی بر هویت افراد، اسناد ملکی، دفاتر کل مالی، تقویم رزروها، قراردادها یا فایل‌های حقوقی ندارد. این داده‌ها منحصراً متعلق به ارائه‌دهندگان مرجع هستند.',
+            desc: 'سامانهٔ CLADORA Intelligence به عنوان یک لایهٔ ارکستراسیون کمکی طراحی شده و متولی مرجع حقیقت محسوب نمی‌شود. هویت، دارایی‌ها، دفاتر مالی، تقویم‌ها و اسناد منحصراً متعلق به ارائه‌دهندگان مرجع هستند.',
             icon: Lock,
           },
           {
-            title: 'نفی ثبت مستقیم در پایگاه داده',
-            desc: 'سامانه هوشمندی هرگز وضعیت سیستم را مستقیماً تغییر نمی‌دهد. هر اقدام پیشنهادی صرفاً از طریق قراردادهای رسمی API به متولی مربوطه ارجاع می‌شود.',
+            title: 'نبود مسیر مستقل نوشتن برای هوش مصنوعی',
+            desc: 'معماری سیستم، هوش عملیاتی کلادورا را به عنوان نویسنده مستقل حقیقت داده‌های پلتفرم تعیین نکرده است. تغییرات دارای پیامد طوری طراحی شده‌اند که از طریق متولی مرجع مربوطه عبور نمایند.',
             icon: ShieldCheck,
           },
           {
-            title: 'پیروی قطعی از حدود اختیارات',
-            desc: 'هوش مصنوعی منحصراً در چارچوب اختیارات احراز‌شده در CORE عمل می‌کند. در صورت عدم اثبات قطعی اختیارات، معماری هرگونه تغییر داده را رد می‌نماید.',
+            title: 'پیروی از مرزهای اختیار',
+            desc: 'اقدامات تغییردهندهٔ وضعیت به نحوی طراحی شده‌اند که به جای پایگاه‌های دادهٔ متعلق به هوش مصنوعی، از طریق متولی مرجع هدایت شوند. در صورت عدم احراز اختیارات، معماری مستلزم رد هرگونه تغییر است.',
             icon: Scale,
           },
         ],
@@ -704,12 +701,12 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       flowSection: {
         badge: 'جریان بنیادین معماری اقدام',
         title: 'از بافت مکانی تا صدور رسید ممیزی قابل ردیابی',
-        desc: 'هر تعامل مبتنی بر هوش مصنوعی از یک زنجیرهٔ معماری قطعی عبور می‌کند که برای پیشگیری از خطا، تغییرات غیرمجاز و توهمات عملیاتی طراحی شده است:',
+        desc: 'هر تعامل مبتنی بر هوش کمکی از یک زنجیرهٔ معماری ساختاریافته عبور می‌کند که برای کاهش اقدامات کنترل‌نشده و حفظ مرزهای اختیارات و متولیان طراحی شده است:',
         steps: [
           {
             num: '۰۱',
             name: 'تحلیلگر بافت (Context Resolver)',
-            desc: 'شناسایی هویت کاربر، محدودهٔ فیزیکی ملک، مرز ورک‌اسپیس، نقش سکونتی و مأموریت فعال.',
+            desc: 'طراحی‌شده برای احراز هویت کاربر، محدودهٔ فیزیکی ملک، مرز ورک‌اسپیس، نقش سکونتی و مأموریت فعال.',
             icon: MapPin,
           },
           {
@@ -721,47 +718,48 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           {
             num: '۰۳',
             name: 'بستار اختیار (Authority Gate)',
-            desc: 'اعتبارسنجی حقوق در CORE. در صورت عدم احراز اختیار، اصل عدم تغییر بدون مجوز (Zero-Write) اعمال می‌شود.',
+            desc: 'ارزیابی حقوق در CORE؛ در صورت عدم اثبات اختیار، معماری مستلزم اعمال اصل عدم تغییر بدون مجوز است.',
             icon: ShieldCheck,
           },
           {
             num: '۰۴',
             name: 'طراح اقدام (Planner)',
-            desc: 'تدوین یک طرح اقدام شفاف، گام‌به‌گام و قابل ارزیابی پیش از ارسال به مرحله اجرا.',
+            desc: 'مدل طراح اقدام یک برنامه گام‌به‌گام، شفاف و قابل ارزیابی را پیش از هرگونه ارسال تدوین می‌نماید.',
             icon: Sliders,
           },
           {
             num: '۰۵',
             name: 'انطباق با خط‌مشی و نظارت انسانی',
             desc: 'اقدامات دارای پیامد، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.',
-            icon: UserCheck,
+            icon: ShieldCheck,
           },
           {
             num: '۰۶',
             name: 'متولی مرجع (Canonical Provider)',
-            desc: 'ارسال درخواست تأییدشده مستقیماً به قرارداد متولی مرجع ذی‌ربط (FIN01، BK01، OPS و غیره).',
+            desc: 'هدایت پیشنهاد تغییر دارای مجوز به سوی قرارداد متولی مرجع مربوطه (FIN01، BK01، OPS و غیره).',
             icon: CheckCircle2,
           },
           {
             num: '۰۷',
             name: 'رسید ممیزی (Audit Receipt)',
-            desc: 'ثبت رسید ممیزی با برچسب زمانی و بافت تصمیم در دفتر رویدادهای غیرقابل تغییر سیستم.',
+            desc: 'مدل رسید رویداد، برچسب زمانی و بافت تصمیم را در پیشینهٔ رویدادهای قابل ممیزی پلتفرم ثبت می‌کند.',
             icon: FileCheck,
           },
         ],
         railTitle: 'متولیان مرجع متصل به سامانه:',
+        matrixLink: 'مشاهده ماتریس قابلیت‌ها',
       },
       contextResolver: {
         badge: 'تحلیل و احراز بافت',
         title: 'ناکافی بودن هویت عمومی: قدرت تفکیک بافت و نقش‌ها',
-        desc: 'در مدیریت املاک، یک شخص واحد می‌تواند نقش‌های گوناگونی ایفا کند: مالک یک واحد مسکونی، کارمند یک شرکت مستأجر در برج اداری، و یک مراجع موقت در ساختمانی دیگر. هوش عملیاتی کلادورا هرگز بر پایه یک هویت مجرد و سراسری تصمیم‌گیری نمی‌کند، بلکه هفت بُعد بافت را با دقت می‌سنجد:',
+        desc: 'در مدیریت املاک، یک شخص واحد می‌تواند نقش‌های گوناگونی در فضاهای مختلف ایفا کند. معماری تحلیلگر بافت طوری طراحی شده است که ابعاد عملیاتی مربوطه را پیش از هرگونه برنامه‌ریزی اثرگذار تثبیت نماید:',
         dimensions: [
-          { name: 'فرد و اعتبارسنجی', desc: 'هویت تأییدشده در هسته CORE با نشست‌های امنیتی معتبر.' },
-          { name: 'دامنهٔ ورک‌اسپیس', desc: 'مرز منطقی تفکیک داده‌های سازمان یا مجتمع ساختمانی.' },
-          { name: 'دارایی فیزیکی و فضا', desc: 'پلاک ثبتی، کالبد ساختمان، طبقه و واحد مسکونی یا اداری دقیق.' },
+          { name: 'فرد و اعتبارسنجی', desc: 'بافت هویت و نشست کاربری در CORE.' },
+          { name: 'دامنهٔ ورک‌اسپیس', desc: 'بافت وابسته به ورک‌اسپیس با هدف تفکیک میان بافت‌های ملکی یا سازمانی مربوطه.' },
+          { name: 'دارایی فیزیکی و فضا', desc: 'کالبد ساختمان، طبقه، مرز تفکیک‌شده و واحد فیزیکی دقیق.' },
           { name: 'رابطهٔ سکونتی', desc: 'مالک، مستأجر مسکونی، بهره‌بردار تجاری، تکنسین یا مهمان.' },
-          { name: 'مأموریت و حدود زمانی', desc: 'محدوده‌های تفویض اختیارات، سقف مبالغ مالی و بازه‌های مجاز زمانی.' },
-          { name: 'بستهٔ کشوری (Country Pack)', desc: 'قوانین، ارز و چارچوب‌های حقوقی ویژه هر حوزه قضایی (مانند رومانی).' },
+          { name: 'مأموریت و حدود زمانی', desc: 'حدود تفویض، سقف‌های مالی در صورت پیکربندی و بازه‌های زمانی مجاز.' },
+          { name: 'بستهٔ کشوری (Country Pack)', desc: 'بافت حوزه قضایی، اصطلاحات، الزامات گردش‌کار و ارجاعات قانونی مبنا (مانند خط مبنای رومانی).' },
           { name: 'بافت دامنه عملیاتی', desc: 'دامنه عملیاتی مرتبط: AIRPROP، SERVICE، عملیات نگهداری، تعاملات یا مالی.' },
         ],
       },
@@ -782,39 +780,39 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       authorityGate: {
         badge: 'بستار اختیار و خط‌مشی',
         title: 'اعتبارسنجی مأموریت و استاندارد عدم تغییر بدون مجوز (Zero-Write)',
-        desc: 'پیش از آنکه هر طرحی تدوین یا به مرحله اجرا برسد، سیستم از هسته CORE استعلام می‌گیرد تا مطمئن شود متقاضی از لحاظ قانونی مجاز به انجام آن تغییر در آن بافت ملکی است:',
+        desc: 'پیش از آنکه هر طرحی تدوین یا ارسال گردد، معماری پلتفرم هسته CORE را جهت بررسی صلاحیت قانونی در آن بافت ملکی ارزیابی می‌کند:',
         points: [
           {
             title: 'اصل عدم تغییر بدون مجوز (Zero-Write)',
-            desc: 'چنانچه اختیارات مورد نیاز با قطعیت در CORE احراز نشود، معماری مستلزم رد هرگونه تغییر در داده‌ها است.',
+            desc: 'در صورتی که اختیارات لازم در CORE احراز نگردد، معماری مستلزم رد هرگونه تغییر در داده‌ها است.',
           },
           {
             title: 'پالایش مبتنی بر خط‌مشی‌ها',
-            desc: 'فراتر از نقش کاربر، اقدامات با سقف مبالغ مالی، الزام به امضاهای چندگانه و مقررات بسته کشوری انطباق داده می‌شوند.',
+            desc: 'در صورت پیکربندی، اقدامات در برابر سقف‌های مالی، الزامات امضای چندگانه و مقررات انطباق ارزیابی می‌شوند.',
           },
           {
             title: 'نظارت انسانی متناسب',
-            desc: 'هوش مصنوعی در چارچوب مرزهای احراز‌شدهٔ اختیارات عمل می‌کند. اقدامات دارای پیامدهای حقوقی یا مالی، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.',
+            desc: 'هوش مصنوعی در چارچوب مرزهای احراز‌شدهٔ اختیارات عمل می‌کند. اقدامات دارای پیامد، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.',
           },
         ],
       },
       plannerSection: {
         badge: 'طراح اقدام شفاف',
         title: 'تدوین گام‌به‌گام بسته‌های پیشنهادی عملیاتی',
-        desc: 'طراح اقدام گام‌های اجرایی را بدون هیچ‌گونه شتاب‌زدگی و قبل از اجرا به صورت شفاف می‌سازد. نمونه‌ای از تدوین برنامه برای خرابی سیستم گرمایش:',
+        desc: 'معماری سیستم، یک مدل طراح اقدام را برای ساختاردهی به گام‌های عملیاتی پیشنهادی بدون اجرای زودهنگام تعریف می‌کند. نمونه‌ای مفهومی از تدوین برنامه برای رفع خرابی سیستم گرمایش:',
         steps: [
           { step: 'گام ۱', action: 'احراز بافت ملک', detail: 'شناسایی واحد ۴B در بلوک A و تأیید وضعیت مستأجر فعال.' },
           { step: 'گام ۲', action: 'بررسی اختیار', detail: 'اعتبارسنجی صلاحیت مستأجر برای ثبت خرابی رادیاتورهای داخلی واحد.' },
           { step: 'گام ۳', action: 'بررسی سوابق فنی', detail: 'بررسی مدل ترموستات و سوابق تعمیرات قبلی ثبت‌شده در OPERATIONS.' },
           { step: 'گام ۴', action: 'تدوین پیشنهاد', detail: 'تنظیم پیش‌نویس دستورکار فنی و پیشنهاد بازه‌های زمانی بهینه برای بازدید تکنسین.' },
-          { step: 'گام ۵', action: 'بررسی و تأیید مسئول', detail: 'ارائه طرح ساختاریافته به مستأجر و مدیر ساختمان جهت تأیید و امضای نهایی.' },
-          { step: 'گام ۶', action: 'ارسال به مرجع داده', detail: 'پس از تأیید صریح، دستورکار رسماً در سامانه مرجع OPERATIONS ثبت می‌گردد.' },
+          { step: 'گام ۵', action: 'بررسی و تأیید مسئول', detail: 'ارائه طرح ساختاریافته به مستأجر و ناظر مربوطه جهت بازبینی در صورت نیاز.' },
+          { step: 'گام ۶', action: 'ارسال به مرجع داده', detail: 'پس از تأیید مجاز، پیشنهاد به متولی مرجع OPERATIONS ارسال می‌گردد.' },
         ],
       },
       toolRouting: {
         badge: 'قراردادهای متولیان مرجع داده',
         title: 'مسیردهی ابزارها صرفاً از طریق ارائه‌دهندگان مرجع حقیقت',
-        desc: 'هوش عملیاتی کلادورا هیچ پایگاه داده مخفی یا مستقلی ندارد. این سامانه اقدامات را صرفاً از مجرای قراردادهای رسمی متولیان داده هدایت می‌کند:',
+        desc: 'معماری هوش عملیاتی فاقد ابزارهای مبهم یا مسیرهای پنهان است. مسئولیت‌های دامنه‌ای و اقدامات پیشنهادی طوری طراحی شده‌اند که صرفاً از طریق قراردادهای متولیان مرجع هدایت شوند:',
         tools: [
           { provider: 'CORE', role: 'هویت و حدود اختیارات', desc: 'اعتبارسنجی نقش‌ها، سلسله‌مراتب ورک‌اسپیس‌ها، عضویت و حق امضا.' },
           { provider: 'DOCUMENTS (VAULT)', role: 'اصالت اسناد', desc: 'بازیابی نسخه‌های مرجع، قراردادهای ثبت‌شده و شناسنامه فنی ساختمان.' },
@@ -830,7 +828,11 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       recomVsAction: {
         badge: 'تفکیک ماهیتی دقیق',
         title: 'پیشنهاد مشورتی در برابر اقدام با تغییر داده‌ها',
-        desc: 'برای تضمین امنیت در مقیاس سازمانی، سیستم تفاوت آشکاری میان گزارش‌های تحلیلی و ثبت تراکنش‌های قطعی قائل است:',
+        desc: 'برای حفظ سلامت داده‌های پلتفرم، معماری تفاوت بنیادینی میان خروجی اطلاعاتی و تراکنش‌های تغییردهنده قائل است:',
+        labels: {
+          examples: 'نمونه‌ها:',
+          governance: 'حاکمیت و نظارت:',
+        },
         table: [
           {
             type: 'پیشنهاد مشورتی (Recommendation)',
@@ -839,35 +841,35 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
             approval: 'نیاز به امضای رسمی ندارد؛ صرفاً به عنوان یک بافت مشورتی ارائه می‌گردد.',
           },
           {
-            type: 'اقدام قطعی (Action)',
-            nature: 'ایجاد تغییر در وضعیت سیستم (عملیات نوشتن)',
-            examples: 'ثبت نهایی دستورکار در OPERATIONS، اعمال تراکنش در FIN01، ثبت قطعی رزرو در BK01.',
-            approval: 'منوط به سازوکارهای کنترلی و تأیید انسانی متناسب توسط کاربر دارای صلاحیت.',
+            type: 'اقدام پیشنهادی به متولی مرجع',
+            nature: 'پیشنهاد تغییر در وضعیت سیستم (در صورت پشتیبانی و احراز اختیار)',
+            examples: 'پیشنهاد صدور دستورکار به OPERATIONS، پیشنهاد ثبت پرداخت در FIN01، پیشنهاد ثبت رزرو در BK01.',
+            approval: 'مشمول سازوکارهای کنترلی و تأیید انسانی متناسب توسط فرد دارای صلاحیت.',
           },
         ],
       },
       dialogueMod: {
         badge: 'تنظیم از طریق گفتگو',
         title: 'اصلاح مکالمه‌ای طرح اقدام هرگز مرزهای اختیار را دور نمی‌زند',
-        desc: 'کاربر می‌تواند طرح اولیه را از طریق مکالمه تغییر دهد („پیمانکار دوم را انتخاب کن”، „موکول کن به سه‌شنبه”، „فقط به مدیر اطلاع بده”). با دریافت هر پیام، سیستم بافت، اختیارات و خط‌مشی‌ها را مجدداً ارزیابی کرده و سپس پیشنهاد اصلاح‌شده را ارائه می‌دهد.',
+        desc: 'کاربر می‌تواند اصلاح طرح پیشنهادی را از طریق مکالمه مطرح کند („پیمانکار دوم را انتخاب کن”، „موکول کن به سه‌شنبه”، „فقط به مدیر اطلاع بده”). معماری سیستم مستلزم آن است که پیش از هرگونه پیشنهاد یا ارسال تغییر دارای پیامد، بافت، اختیارات و خط‌مشی‌های حاکم مجدداً ارزیابی شوند.',
         rule: 'هیچ جمله‌بندی محاوره‌ای نمی‌تواند الزامات احراز صلاحیت در CORE را نادیده بگیرد.',
       },
       humanHandoff: {
         badge: 'ارجاع به اپراتور انسانی',
-        title: 'انتقال شفاف پرونده به انسان در صورت وجود ابهام',
-        desc: 'هوش عملیاتی کلادورا در شرایط فقدان داده یا تناقض، از حدس زدن پرهیز می‌کند. در موارد زیر، سیستم بلافاصله پرونده را به مسئول انسانی ذی‌صلاح ارجاع می‌دهد:',
+        title: 'شرایط معماری ارجاع به اپراتور انسانی و شفاف‌سازی',
+        desc: 'معماری سیستم شرایط ارجاع به اپراتور انسانی یا درخواست شفاف‌سازی را برای موقعیت‌هایی نظیر موارد زیر تعریف می‌نماید:',
         triggers: [
           'ابهام در اختیارات یا تداخل نقش‌های چندگانه در ورک‌اسپیس فعال.',
           'نبود انطباق دقیق میان مشخصات متقاضی و پلاک ثبتی یا واحد مورد نظر.',
-          'فراتر رفتن ارقام مالی از سقف اختیارات تعیین‌شده در آیین‌نامه‌های مجتمع.',
+          'فراتر رفتن ارقام مالی از سقف اختیارات تعیین‌شده در آیین‌نامه‌های پیکربندی‌شده.',
           'درخواست‌های مرتبط با سیستم‌های حساس ایمنی جانی (شیرهای گاز، آسانسورها، سیستم اعلان حریق).',
           'تناقض در مدارک ارائه‌شده یا عدم احراز مالکیت معتبر.',
         ],
       },
       explainability: {
         badge: 'شفافیت تصمیم‌گیری',
-        title: 'پاسخگویی و رفع ابهام: نفی تصمیم‌گیری در جعبه سیاه',
-        desc: 'هر طرح پیشنهادی توسط سامانه هوشمند کلادورا قابلیت پاسخگویی به شش پرسش شفاف‌ساز را داراست:',
+        title: 'مدل شفافیت و پاسخگویی در تصمیم‌گیری',
+        desc: 'برای توصیه‌ها یا اقدامات دارای پیامد، معماری یک مدل شفافیت را تعریف می‌کند که با هدف پاسخ به پرسش‌های کلیدی زیر طراحی شده است:',
         questions: [
           { q: 'سیستم چه چیزی را فهمید؟', a: 'خلاصه دقیق خواسته استخراج‌شده از مکالمه کاربر.' },
           { q: 'کدام ملک و ورک‌اسپیس مخاطب هستند؟', a: 'محدوده ثبتی دقیق و سازمان مسئول پرونده.' },
@@ -879,13 +881,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       },
       receiptSection: {
         badge: 'ردیابی و ممیزی',
-        title: 'رسیدهای ممیزی و دفاتر وقایع ثبت‌شده',
-        desc: 'هر عملیاتی که با هماهنگی دستیار هوشمند انجام پذیرد، یک رسید ممیزی با ثبت بافت اولیه، اعتبارسنجی CORE، تأیید انسانی و پاسخ متولی مرجع در دفتر رویدادهای سیستم تولید می‌کند.',
+        title: 'رسیدهای ممیزی و مدل پیشینهٔ رویدادها',
+        desc: 'معماری سیستم یک مدل رسید ممیزی را تعریف می‌نماید که برای ثبت بافت درخواست، تصمیمات مربوط به اختیارات در CORE، تأییدیه‌های مربوطه و نتایج اجرای متولی در پیشینهٔ رویدادهای قابل ممیزی پلتفرم طراحی شده است.',
       },
       safetySection: {
         badge: 'امنیت و حاکمیت داده‌ها',
-        title: 'اصول پنج‌گانه غیرقابل مذاکره در مهندسی پلتفرم',
-        desc: 'برای جلوگیری از ریسک‌های عملیاتی و ادعاهای نامعتبر، کلادورا ۵ قانون حاکمیتی قطعی را اعمال می‌نماید:',
+        title: 'اصول پنج‌گانه حاکمیتی در مهندسی پلتفرم',
+        desc: 'برای جلوگیری از ریسک‌های عملیاتی و ادعاهای نامعتبر، معماری کلادورا ۵ قانون حاکمیتی مشخص را اعمال می‌نماید:',
         rules: [
           {
             title: 'هوش مصنوعی حق قانونی ایجاد نمی‌کند',
@@ -904,12 +906,12 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           },
           {
             title: 'استقلال از مدل و ارائه‌دهنده',
-            desc: 'معماری کلادورا وابسته به یک مدل زبانی خاص نیست و امکان به‌کارگیری مدل‌های بهینه را بدون وابستگی حفظ می‌کند.',
+            desc: 'معماری ارکستراسیون هدف طوری طراحی شده است که از گره خوردن حقیقت داده‌های پلتفرم به یک ارائه‌دهندهٔ منفرد مدل جلوگیری نماید.',
             icon: Cpu,
           },
           {
-            title: 'حفظ حریم خصوصی و بهینگی داده‌ها',
-            desc: 'داده‌ها صرفاً درون حریم ورک‌اسپیس مجاز پردازش شده و اصول کاهش حداکثری دسترسی به داده رعایت می‌شود.',
+            title: 'حفظ حریم خصوصی و کمینه‌سازی داده‌ها',
+            desc: 'سامانه هوش بر مبنای بافت وابسته به ورک‌اسپیس، بازیابی مقید به اختیارات و اصول کمینه‌سازی داده‌ها طراحی شده است.',
             icon: Eye,
           },
         ],
@@ -917,13 +919,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       journeys: {
         badge: 'نمونه‌های تصویری ترکیب معماری',
         title: 'سناریوهای نمونه در تعامل هوش مصنوعی با متولیان مرجع',
-        desc: 'سناریوهای زیر الگوهای مفهومی معماری برای نمایش هماهنگی هوش با متولیان داده هستند (بدون ادعای گارانتی سراسری در نسخه فعلی):',
+        desc: 'سناریوهای زیر الگوهای مفهومی معماری برای نمایش نحوهٔ طراحی هماهنگی هوش با متولیان داده هستند (بدون ادعای گارانتی سراسری در نسخه فعلی):',
         qualification: 'یادداشت: این نمونه‌ها الگوهای مفهومی ترکیب معماری هستند و به عنوان جریان‌های کاری عرضه‌شدهٔ سراسری در محیط عملیاتی تلقی نمی‌شوند.',
         items: [
           {
             title: 'سناریوی الف: گزارش خرابی رادیاتور توسط مستأجر',
             role: 'سکونت مسکونی / مستأجر',
-            flow: 'بافت: واحد ۴B → مقصود: نشتی رادیاتور → اختیار: CORE حق ثبت خرابی مستأجر را تأیید می‌کند → طرح: راهنمای شیر فلکه + پیش‌نویس دستورکار → نظارت: تأیید مستأجر → متولی: ارجاع به OPERATIONS → رسید: شماره پیگیری در لاگ ثبت می‌شود.',
+            flow: 'بافت: واحد ۴B → مقصود: نشتی رادیاتور → اختیار: CORE حق ثبت خرابی مستأجر را بررسی می‌کند → طرح: راهنمای اولیه + پیش‌نویس دستورکار → نظارت: منوط به تأیید مستأجر → متولی: هدایت به OPERATIONS → رسید: ثبت پیشنهاد در لاگ ممیزی.',
           },
           {
             title: 'سناریوی ب: تحلیل تغییرات هزینه شارژ توسط مدیر مجتمع',
@@ -933,12 +935,12 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
           {
             title: 'سناریوی ج: رزرو سالن اجتماعات برای گردهمایی',
             role: 'تعامل جمعی / مالک واحد',
-            flow: 'بافت: روف‌گاردن بلوک B → مقصود: رزرو برای شنبه عصر → اختیار: CORE مالکیت بدون بدهی را تأیید می‌کند → طرح: BK01 ساعات و محدودیت صوتی را بررسی می‌کند → نظارت: پذیرش ضوابط توسط مالک → متولی: ثبت رسمی رزرو در تقویم BK01.',
+            flow: 'بافت: روف‌گاردن بلوک B → مقصود: رزرو برای شنبه عصر → اختیار: CORE مالکیت بدون بدهی را بررسی می‌کند → طرح: BK01 ساعات و محدودیت صوتی را بررسی می‌کند → نظارت: پذیرش ضوابط توسط مالک → متولی: ارسال پیشنهاد به BK01 جهت ثبت رسمی.',
           },
           {
             title: 'سناریوی د: شفاف‌سازی حقوقی بند اجاره‌نامه اداری',
             role: 'مستأجر تجاری / مدیر مالی شرکت',
-            flow: 'بافت: برج نوآوری، طبقه ۳ → مقصود: آیا امکان واگذاری بخشی از فضا وجود دارد؟ → اختیار: CORE امضای مجاز مدیر را تأیید می‌کند → طرح: استخراج بند قرارداد از VAULT → نتیجه: ارائه خلاصه متن قرارداد با ذکر ماده قانونی (بدون مشاوره حقوقی).',
+            flow: 'بافت: برج نوآوری، طبقه ۳ → مقصود: آیا امکان واگذاری بخشی از فضا وجود دارد؟ → اختیار: CORE امضای مجاز مدیر را اعتبارسنجی می‌کند → طرح: استخراج بند قرارداد از VAULT → نتیجه: ارائه خلاصه متن قرارداد با ذکر ماده قانونی (بدون مشاوره حقوقی).',
           },
           {
             title: 'سناریوی هـ: تأیید پایان عملیات توسط تکنسین فنی',
@@ -950,15 +952,15 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
       domainsSection: {
         badge: 'ارکستراسیون میان دامنه‌ها',
         title: 'چگونگی همراهی هوش مصنوعی با دامنه‌های هفت‌گانه',
-        desc: 'هر یک از دامنه‌های پلتفرم از ارکستراسیون هوشمند با حفظ کامل اختیارات متولی داده بهره‌مند می‌شود:',
+        desc: 'الگوهای مفهومی از نحوهٔ هماهنگی هوش کمکی با هر یک از دامنه‌ها بدون سلب مالکیت از متولی مرجع داده:',
         domains: [
-          { name: 'AIRPROP', desc: 'سنتز سوابق بازدیدها، طبقه‌بندی متقاضیان و آماده‌سازی بسته‌های مقدماتی پیش‌فروش یا اجاره.' },
-          { name: 'SERVICE', desc: 'ساختاردهی به نیازهای خدماتی، ترجمه زبان محاوره‌ای به اصطلاحات فنی و مقایسه هوشمندانه پیشنهادات پیمانکاران.' },
-          { name: 'OPERATIONS', desc: 'تفسیر گزارش‌های خرابی، ارتباط‌دهی با پیشینه تجهیزات و تنظیم دستورکار اعزام تکنسین‌ها.' },
-          { name: 'C&E', desc: 'تنظیم کتابچه‌های راهنمای فضا، ضوابط محلی و تدوین پیش‌نویس اعلانات برای تابلوی اعلانات مجتمع.' },
-          { name: 'FIN01', desc: 'تحلیل تسهیم هزینه‌های شارژ و دلایل نوسان قبوض بدون امکان پرداخت یا دستکاری در دفاتر مالی.' },
-          { name: 'BK01', desc: 'درک قصد رزرواسیون و هدایت زمان‌بندی به موتور ارزیابی ظرفیت و سقف‌های BK01.' },
-          { name: 'DOCUMENTS', desc: 'استخراج نکات کلیدی و تلخیص بندهای اسناد بایگانی‌شده در VAULT بدون جایگزینی با سند اصلی.' },
+          { name: 'AIRPROP', desc: 'الگوهای کمکی برای سنتز استعلام‌های تجاری و پیش‌نویس اسناد اجاره؛ سامانه AIRPROP مالک مرجع چرخه معاملات باقی می‌ماند.' },
+          { name: 'SERVICE', desc: 'الگوهای کمکی برای ساختاردهی به درخواست‌ها و مقایسه پیشنهادات؛ SERVICE متولی مرجع سفارش‌های خدمات باقی می‌ماند.' },
+          { name: 'OPERATIONS', desc: 'الگوهای کمکی جهت درک گزارش‌های خرابی و پیش‌نویس اعزام تکنسین بدون تشخیص فنی خودکار؛ OPERATIONS متولی مرجع دستورکارها است.' },
+          { name: 'C&E', desc: 'الگوهای کمکی برای تنظیم پیش‌نویس راهنماهای محیطی و اعلانات تابلوی مجتمع؛ C&E متولی مرجع تعاملات جمعی است.' },
+          { name: 'FIN01', desc: 'تعاملات هوشمند می‌توانند در صورت احراز اختیار، بافت مالی برگرفته از FIN01 را تشریح نمایند، بدون ثبت صورت‌حساب یا تغییر در دفاتر؛ FIN01 مرجع حقیقت مالی است.' },
+          { name: 'BK01', desc: 'قصد رزرواسیون از منظر معماری به سمت BK01 هدایت می‌شود که مالک مرجع حقیقت ظرفیت و زمان‌بندی باقی می‌ماند.' },
+          { name: 'DOCUMENTS', desc: 'دستیار اسناد می‌تواند در صورت داشتن مجوز، به بازیابی یا تلخیص بخش‌های اسناد در VAULT بپردازد؛ خلاصهٔ هوش مصنوعی جایگزین سند رسمی نمی‌گردد.' },
         ],
       },
       availability: {
@@ -968,7 +970,7 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
         points: [
           'قابلیت‌های هوشمند بر اساس سطح اشتراک فعال ورک‌اسپیس و کالبد ساختمانی ملک فعال‌سازی می‌شوند.',
           'ویژگی‌های پیشرفته (مانند سیستم‌های خودکار کنسیرژ، نگهداری پیش‌بینانه یا خریدهای خودکار) اهداف نقشه راه معماری هستند و مستلزم بلوغ نسخه‌های آینده می‌باشند.',
-          'امنیت معماری قطعی است: هیچ قابلیت هوشمندی قادر به ثبت داده‌های احرازشده نبوده و نمی‌تواند استعلام اختیارات از CORE را نادیده بگیرد.',
+          'استاندارد معماری روشن است: هیچ ویژگی هوشمندی برای ثبت داده‌های تأییدنشده یا دور زدن ارزیابی اختیارات در CORE طراحی نشده است.',
         ],
       },
       cta: {
@@ -982,13 +984,13 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
     breadcrumb: { home: 'Home', current: 'CLADORA Intelligence' },
     hero: { badge: '', title: '', subtitle: '', ctaPrimary: '', ctaSecondary: '' },
     positioning: { badge: '', title: '', desc: '', pillars: [] },
-    flowSection: { badge: '', title: '', desc: '', steps: [], railTitle: '' },
+    flowSection: { badge: '', title: '', desc: '', steps: [], railTitle: '', matrixLink: '' },
     contextResolver: { badge: '', title: '', desc: '', dimensions: [] },
     intentRouter: { badge: '', title: '', desc: '', categories: [], warning: '' },
     authorityGate: { badge: '', title: '', desc: '', points: [] },
     plannerSection: { badge: '', title: '', desc: '', steps: [] },
     toolRouting: { badge: '', title: '', desc: '', tools: [] },
-    recomVsAction: { badge: '', title: '', desc: '', table: [] },
+    recomVsAction: { badge: '', title: '', desc: '', labels: { examples: '', governance: '' }, table: [] },
     dialogueMod: { badge: '', title: '', desc: '', rule: '' },
     humanHandoff: { badge: '', title: '', desc: '', triggers: [] },
     explainability: { badge: '', title: '', desc: '', questions: [] },
@@ -1134,7 +1136,7 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
               href={`/${lang}/capabilities`}
               className="font-bold text-[#0E9F8E] hover:underline inline-flex items-center gap-1"
             >
-              <span>Explore Capability Matrix</span>
+              <span>{content.flowSection.matrixLink}</span>
               <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
             </Link>
           </div>
@@ -1328,12 +1330,12 @@ export default async function AIPage(props: { params: Promise<{ lang: Language }
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] font-bold text-[#102A43] block mb-1">Exemple:</span>
+                    <span className="text-[11px] font-bold text-[#102A43] block mb-1">{content.recomVsAction.labels.examples}</span>
                     <p className="text-xs text-[#52667A] leading-relaxed">{row.examples}</p>
                   </div>
                 </div>
                 <div className="pt-3 border-t border-[#E2E8F0] text-[11px] text-[#52667A]">
-                  <strong className="text-[#102A43]">Guvernanță:</strong> {row.approval}
+                  <strong className="text-[#102A43]">{content.recomVsAction.labels.governance}</strong> {row.approval}
                 </div>
               </div>
             ))}
