@@ -77,7 +77,7 @@ export default async function PricingPage(
         ? 'Proprietarii și firmele de administrare beneficiază de izolare strictă a spațiilor de date per proprietate, combinată cu vizibilitate consolidată, raportare agregată și condiții comerciale unificate la nivel de portofoliu.'
         : isFa
         ? 'مالکان و شرکت‌های مدیریت از تفکیک کامل مرزهای داده به ازای هر ملک در کنار گزارش‌های تلفیقی یکپارچه، داشبورد نظارتی متمرکز و شرایط قراردادی هماهنگ در سطح کل سبد املاک برخوردار می‌شوند.'
-        : 'Multi-asset owners and management companies benefit from strict cryptographic workspace isolation per asset, combined with consolidated reporting, aggregated oversight dashboards, and unified portfolio-level commercial terms.',
+        : 'Multi-asset owners and management companies benefit from workspace-scoped data boundaries per asset, combined with consolidated reporting, aggregated oversight dashboards, and unified portfolio-level commercial terms.',
     },
   ];
 

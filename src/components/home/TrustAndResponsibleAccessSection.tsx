@@ -38,7 +38,7 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
               ? 'Datele financiare și documentele de proprietate necesită o protecție riguroasă. CLADORA aplică reguli stricte de confidențialitate și acces contextual, fără a complica experiența de zi cu zi.'
               : lang === 'fa'
               ? 'اطلاعات ملکی و دفاتر مالی نیازمند بالاترین سطح محرمانگی هستند. کنترل‌های سخت‌گیرانه امنیتی در هسته سیستم اعمال می‌شوند و کاربر با محیطی شفاف، ساده و بدون پیچیدگی روبه‌رو است.'
-              : 'Financial records and title documentation demand bank-grade safeguards. CLADORA enforces strict context-based isolation while keeping daily workflows clean and intuitive.'}
+              : 'Financial records and title documentation demand rigorous safeguards. CLADORA enforces strict context-based access boundaries while keeping daily workflows clean and intuitive.'}
           </p>
         </div>
 
