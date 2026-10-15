@@ -99,6 +99,14 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           'Cartea tehnică a construcției și istoricul reviziilor rămân legate de activ.',
           'Consumurile și indexurile istorice nu sunt pierdute la schimbarea chiriașului.',
         ],
+        topology: {
+          title: 'Topologie Fizică Persistentă',
+          items: [
+            { title: 'Teren / Parcelă Cadastrală', desc: 'Graniță geografică și coordonate funciare persistente' },
+            { title: 'Structura Clădirii & Instalații', desc: 'Acoperiș, ascensoare, centrale termice, tablouri electrice comune' },
+            { title: 'Unități Individuale & Spații Delimitate', desc: 'Apartamente, birouri, spații comerciale cu indexuri de contorizare persistente' },
+          ],
+        },
       },
       workspaceSection: {
         badge: 'DELIMITARE OPERAȚIONALĂ',
@@ -110,6 +118,14 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           'O proprietate poate fi gestionată de un administrator printr-un workspace dedicat.',
           'Zero amestec de tranzacții financiare între organizații diferite.',
         ],
+        contexts: {
+          title: 'Contexte Operaționale de Workspace',
+          items: [
+            { title: 'Workspace Asociație de Proprietari', desc: 'Guvernează cotele statutare, repartizarea utilităților și adunările generale' },
+            { title: 'Workspace Firmă de Administrare', desc: 'Intervenții tehnice multi-imobil, SLA-uri contractori și facturare' },
+            { title: 'Workspace Portofoliu Proprietar', desc: 'Încasarea chiriilor, contracte de locațiune și monitorizarea randamentului' },
+          ],
+        },
       },
       peopleSection: {
         badge: 'AUTORITATE CONTEXTUALĂ',
@@ -271,6 +287,14 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           'Technical building logbook and equipment warranties remain tied to the asset ID.',
           'Historical utility readings and consumption baselines are preserved across tenancies.',
         ],
+        topology: {
+          title: 'Persistent Physical Topology',
+          items: [
+            { title: 'Site / Cadastral Plot', desc: 'Persistent geographic boundary and land coordinates' },
+            { title: 'Building Structure & Plant', desc: 'Roof, elevators, boiler rooms, common electrical switchboards' },
+            { title: 'Individual Units & Demised Spaces', desc: 'Apartments, offices, retail bays with persistent meter baselines' },
+          ],
+        },
       },
       workspaceSection: {
         badge: 'OPERATIONAL BOUNDARIES',
@@ -282,6 +306,14 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           'A single physical building can be managed by an authorized operator within a dedicated workspace.',
           'Zero financial ledger blending across separate commercial entities.',
         ],
+        contexts: {
+          title: 'Operational Workspace Contexts',
+          items: [
+            { title: 'Association / HOA Workspace', desc: 'Governs statutory quotas, utility allocations, and general meetings' },
+            { title: 'Property Management Firm Workspace', desc: 'Multi-building maintenance dispatch, contractor SLAs, and billing' },
+            { title: 'Owner Portfolio Workspace', desc: 'Rental collections, tenancy agreements, and asset yield tracking' },
+          ],
+        },
       },
       peopleSection: {
         badge: 'CONTEXTUAL AUTHORITY',
@@ -443,6 +475,14 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           'پرونده فنی ساختمان و ضمانت‌نامه‌ها همواره به شناسه دارایی متصل می‌مانند.',
           'سوابق مصرف کنتورها با تغییر مستأجر یا ساکن از بین نمی‌روند.',
         ],
+        topology: {
+          title: 'ساختار فیزیکی پایدار دارایی',
+          items: [
+            { title: 'عرصه / پلاک ثبتی و کاداستر', desc: 'محدوده جغرافیایی و مختصات پایدار زمین و ملک' },
+            { title: 'سازهٔ ساختمان و تأسیسات مرکزی', desc: 'پشت‌بام، آسانسور، موتورخانه و تابلوهای برق مشاعات' },
+            { title: 'واحدهای مستقل و فضاهای اختصاصی', desc: 'آپارتمان‌ها، دفاتر اداری و واحدهای تجاری با خط پایهٔ کنتورها' },
+          ],
+        },
       },
       workspaceSection: {
         badge: 'مرزهای تفکیک‌شده عملیات',
@@ -454,6 +494,14 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           'مدیریت یک ساختمان توسط شرکت کارگزار در یک ورک‌اسپیس مستقل و امن.',
           'عدم تداخل اسناد مالی میان اشخاص حقوقی و نهادهای گوناگون.',
         ],
+        contexts: {
+          title: 'زمینه‌های عملیاتی فضای کاری (Workspace)',
+          items: [
+            { title: 'فضای کاری انجمن مالکان / مدیریت مجتمع', desc: 'مدیریت سهم شارژ قانونی، تسهیم هزینه‌های خدمات و جلسات عمومی' },
+            { title: 'فضای کاری شرکت مدیریت بهره‌برداری', desc: 'هماهنگی عملیات نگهداری چند ساختمان، قراردادهای خدمات و صورت‌حساب‌ها' },
+            { title: 'فضای کاری سبد املاک مالک', desc: 'پیگیری وصول اجاره‌ها، قراردادهای مستأجران و بازدهی دارایی' },
+          ],
+        },
       },
       peopleSection: {
         badge: 'اختیارات بر مبنای مجوز',
@@ -693,20 +741,23 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
 
           <div className="bg-white rounded-3xl p-8 border border-[#D3DCE6] shadow-card space-y-4">
             <div className="text-xs font-bold text-[#7B8A9A] uppercase tracking-wider mb-2">
-              Persistent Physical Topology
+              {content.assetSection.topology.title}
             </div>
-            <div className="p-4 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-1">
-              <span className="text-xs font-bold text-[#102A43]">Site / Cadastral Plot</span>
-              <p className="text-[11px] text-[#52667A]">Persistent geographic boundary and land coordinates</p>
-            </div>
-            <div className="p-4 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-1 ms-4">
-              <span className="text-xs font-bold text-[#102A43]">Building Structure & Plant</span>
-              <p className="text-[11px] text-[#52667A]">Roof, elevators, boiler rooms, common electrical switchboards</p>
-            </div>
-            <div className="p-4 rounded-xl bg-white border-2 border-[#0E9F8E] shadow-sm space-y-1 ms-8">
-              <span className="text-xs font-bold text-[#0E9F8E]">Individual Units & Demised Spaces</span>
-              <p className="text-[11px] text-[#52667A]">Apartments, offices, retail bays with persistent meter baselines</p>
-            </div>
+            {content.assetSection.topology.items.map((item, idx) => (
+              <div 
+                key={idx} 
+                className={`p-4 rounded-xl space-y-1 ${
+                  idx === 0 
+                    ? 'bg-[#F6F9FC] border border-[#E2E8F0]' 
+                    : idx === 1 
+                    ? 'bg-[#F6F9FC] border border-[#E2E8F0] ms-4' 
+                    : 'bg-white border-2 border-[#0E9F8E] shadow-sm ms-8'
+                }`}
+              >
+                <span className={`text-xs font-bold ${idx === 2 ? 'text-[#0E9F8E]' : 'text-[#102A43]'}`}>{item.title}</span>
+                <p className="text-[11px] text-[#52667A]">{item.desc}</p>
+              </div>
+            ))}
           </div>
         </section>
 
@@ -714,20 +765,14 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
         <section className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="order-2 lg:order-1 bg-white rounded-3xl p-8 border border-[#D3DCE6] shadow-card space-y-4">
             <div className="text-xs font-bold text-[#7B8A9A] uppercase tracking-wider mb-2">
-              Operational Workspace Contexts
+              {content.workspaceSection.contexts.title}
             </div>
-            <div className="p-4 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0]">
-              <div className="text-xs font-bold text-[#102A43]">Association / HOA Workspace</div>
-              <p className="text-[11px] text-[#52667A] mt-1">Governs statutory quotas, utility allocations, and general meetings</p>
-            </div>
-            <div className="p-4 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0]">
-              <div className="text-xs font-bold text-[#102A43]">Property Management Firm Workspace</div>
-              <p className="text-[11px] text-[#52667A] mt-1">Multi-building maintenance dispatch, contractor SLAs, and billing</p>
-            </div>
-            <div className="p-4 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0]">
-              <div className="text-xs font-bold text-[#102A43]">Owner Portfolio Workspace</div>
-              <p className="text-[11px] text-[#52667A] mt-1">Rental collections, tenancy agreements, and asset yield tracking</p>
-            </div>
+            {content.workspaceSection.contexts.items.map((item, idx) => (
+              <div key={idx} className="p-4 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0]">
+                <div className="text-xs font-bold text-[#102A43]">{item.title}</div>
+                <p className="text-[11px] text-[#52667A] mt-1">{item.desc}</p>
+              </div>
+            ))}
           </div>
 
           <div className="order-1 lg:order-2 space-y-4">
@@ -847,7 +892,13 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           </div>
 
           <div className="p-4 rounded-2xl bg-teal-50 border border-teal-200 text-xs text-[#0A6E62] leading-relaxed">
-            <strong>Canonical Truth Principle:</strong> FIN01 is the sole owner of accounting and financial ledger truth. BK01 is the sole owner of reservation capacity truth. Neither SERVICE nor Community &amp; Experience maintain parallel ledger truths.
+            {lang === 'ro' ? (
+              <><strong>Principiul Adevărului Canonic:</strong> FIN01 este unicul deținător al adevărului financiar și al registrelor contabile. BK01 este unicul deținător al capacității de rezervare. Nici SERVICE, nici Comunitatea nu mențin registre paralele.</>
+            ) : lang === 'fa' ? (
+              <><strong>اصل حقیقت واحد داده‌ها (Canonical Truth):</strong> سامانهٔ FIN01 تنها مرجع ثبتی دفاتر مالی و حسابداری است. سامانهٔ BK01 تنها مرجع تخصیص زمان و رزروهاست. هیچ‌یک از دامنه‌های سرویس یا تعاملات اجتماعی دفاتر موازی ثبت نمی‌کنند.</>
+            ) : (
+              <><strong>Canonical Truth Principle:</strong> FIN01 is the sole owner of accounting and financial ledger truth. BK01 is the sole owner of reservation capacity truth. Neither SERVICE nor Community &amp; Experience maintain parallel ledger truths.</>
+            )}
           </div>
         </section>
 
@@ -856,7 +907,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           <div className="bg-[#102A43] text-white rounded-3xl p-8 flex flex-col justify-between space-y-6">
             <div className="space-y-3">
               <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
-                Non-Linear Continuity
+                {lang === 'ro' ? 'Continuitate Non-Liniară' : lang === 'fa' ? 'تداوم غیرخطی چرخهٔ عمر' : 'Non-Linear Continuity'}
               </span>
               <h3 className="text-xl font-bold">{content.lifecycleBanner.title}</h3>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
@@ -875,7 +926,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
           <div className="bg-[#102A43] text-white rounded-3xl p-8 flex flex-col justify-between space-y-6">
             <div className="space-y-3">
               <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
-                Governance &amp; Controls
+                {lang === 'ro' ? 'Izolare & Guvernanță' : lang === 'fa' ? 'ایزولاسیون و انطباق' : 'Governance & Controls'}
               </span>
               <h3 className="text-xl font-bold">{content.trustBanner.title}</h3>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">

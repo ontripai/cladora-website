@@ -382,7 +382,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             <Link
               href={`/${lang}`}
               className="flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] rounded-lg"
-              aria-label="CLADORA Home"
+              aria-label={lang === 'ro' ? 'CLADORA Acasă' : lang === 'fa' ? 'صفحه اصلی کلادورا' : 'CLADORA Home'}
             >
               <CladoraBrand className="h-8 w-auto text-[#102A43]" />
             </Link>

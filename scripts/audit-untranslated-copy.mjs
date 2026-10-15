@@ -12,6 +12,7 @@
  */
 
 import http from 'http';
+import { LEGACY_REDIRECT_DEFINITIONS } from '../src/config/legacy-redirects.mjs';
 
 export const LOCALES = ['ro', 'en', 'fa'];
 
@@ -358,10 +359,38 @@ async function runAudit() {
           continue;
         }
 
-        if (route === '/pilot' && (res.statusCode === 307 || res.statusCode === 308)) {
-          passedTests++;
-          console.log(`✅ [${res.statusCode}→/${lang}/contact] ${fullPath}`);
-          continue;
+        // Registered canonical legacy redirects (WP-10)
+        const cleanRoute = route.replace(/^\//, '');
+        const legacyMatch = LEGACY_REDIRECT_DEFINITIONS.find((d) => d.source === cleanRoute) ||
+          (cleanRoute === 'solutions/tenants' ? { source: 'solutions/tenants', destination: 'solutions/residents' } : null);
+
+        if (legacyMatch) {
+          const expectedDestination = `/${lang}/${legacyMatch.destination}`;
+          if (res.statusCode === 308 && res.location === expectedDestination) {
+            // Verify destination resolves with HTTP 200 without chaining or looping
+            const destRes = await fetchPage(expectedDestination);
+            if (destRes.statusCode === 200) {
+              passedTests++;
+              console.log(`✅ [308→${expectedDestination}] ${fullPath}`);
+              continue;
+            } else {
+              failures.push({
+                route: fullPath,
+                category: 'LegacyRedirectChain',
+                error: `Redirect destination ${expectedDestination} returned HTTP ${destRes.statusCode} instead of 200`,
+              });
+              console.log(`❌ [308-DEST-FAIL] ${fullPath} -> ${expectedDestination} (${destRes.statusCode})`);
+              continue;
+            }
+          } else {
+            failures.push({
+              route: fullPath,
+              category: 'LegacyRedirect',
+              error: `Expected HTTP 308 to ${expectedDestination}, got HTTP ${res.statusCode} to ${res.location}`,
+            });
+            console.log(`❌ [REDIRECT-MISMATCH] ${fullPath}: status=${res.statusCode}, location=${res.location}, expected=${expectedDestination}`);
+            continue;
+          }
         }
 
         if (res.statusCode !== 200) {
