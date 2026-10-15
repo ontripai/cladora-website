@@ -52,6 +52,12 @@ assert.deepEqual(exactMembership.rows, [{
   member_role: 'cladora_ce_guide_runtime',
   admin_option: false, inherit_option: false, set_option: true,
 }]);
+assert.equal((await adminPool.query(`select
+  has_schema_privilege('cladora_ce_guide_executor','auth','USAGE')
+    and not has_schema_privilege('cladora_ce_guide_executor','auth','CREATE')
+    and has_function_privilege('cladora_ce_guide_executor','auth.uid()','EXECUTE')
+    and has_function_privilege('cladora_ce_guide_executor','auth.jwt()','EXECUTE') as exact_auth_acl`)
+).rows[0].exact_auth_acl, true);
 
 const runtimePassword = `Core-${randomUUID()}-local`;
 const escapedPassword = runtimePassword.replaceAll("'", "''");

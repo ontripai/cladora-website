@@ -321,7 +321,7 @@ alter function app_private.core_platform_ce_guide_ledger_allowed_v1(uuid,uuid,te
 
 -- Exact schemas, columns and functions used by the inactive CE/Core/Documents
 -- call graph. Runtime receives only membership; all product ACLs are executor-only.
-grant usage on schema auth,app_private,platform,identity,experience,documents,
+grant usage on schema app_private,platform,identity,experience,documents,
   communications,portfolio,audit to cladora_ce_guide_executor;
 revoke create on schema auth,app_private,platform,identity,experience,documents,
   communications,portfolio,audit from cladora_ce_guide_executor,cladora_ce_guide_runtime;
@@ -374,8 +374,6 @@ grant select(id),insert(tenant_id,aggregate_type,aggregate_id,aggregate_version,
   on platform.outbox_events to cladora_ce_guide_executor;
 
 grant execute on function
-  auth.uid(),
-  auth.jwt(),
   app_private.check_workspace_native_permission_v2(uuid,uuid,text,text),
   documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid),
   communications.member_covers_unit(uuid,uuid,uuid),
@@ -600,7 +598,18 @@ select current_user='cladora_ce_guide_executor'
       and c.relowner=any(array[i.runtime_oid,i.executor_oid]))
   and not exists(select 1 from pg_proc p,role_ids i
     where p.proowner=any(array[i.runtime_oid,i.executor_oid]))
+  and (select count(*)=1 from pg_namespace n,role_ids i
+    cross join lateral aclexplode(n.nspacl) privilege
+    where n.nspname='auth' and privilege.grantee=i.executor_oid
+      and privilege.privilege_type='USAGE')
+  and not has_schema_privilege('cladora_ce_guide_executor','auth','CREATE')
   and (select count(*)=6 from function_inventory where oid is not null)
+  and (select count(*)=2 from function_inventory f
+    join pg_proc p on p.oid=f.oid
+    cross join role_ids i
+    cross join lateral aclexplode(p.proacl) privilege
+    where not f.internal and privilege.grantee=i.executor_oid
+      and privilege.privilege_type='EXECUTE')
   and not exists(select 1 from function_inventory
     where internal and (owner_name<>'cladora_rpc_owner' or owner_login or not prosecdef
       or proconfig is distinct from array['search_path=pg_catalog']::text[]))
@@ -610,11 +619,13 @@ select current_user='cladora_ce_guide_executor'
 $$;
 
 -- PostgreSQL 17 gives a non-superuser CREATEROLE migration runner an inbound
--- creator-admin edge for each role it creates. The runtime safety invariant
--- above deliberately rejects those entries. A separately authorized
--- superuser installation step must normalize the graph before any binder can
--- obtain a safety lease. The function is SECURITY INVOKER, takes the canonical
--- exclusive lock, accepts no dynamic input, and has no operational grant.
+-- creator-admin edge for each role it creates, while Supabase Auth may
+-- normalize its owner-managed schema ACL after migrations. The runtime safety
+-- invariant above deliberately rejects both incomplete states. A separately
+-- authorized superuser installation step must normalize the graph and install
+-- only the exact auth.uid/auth.jwt call boundary after all local services are
+-- ready. The function is SECURITY INVOKER, takes the canonical exclusive lock,
+-- accepts no dynamic input, and has no operational grant.
 create function app_private.finalize_ce_guide_role_membership_v1()
 returns boolean language plpgsql volatile security invoker set search_path=pg_catalog as $$
 declare edge record; v_count integer;
@@ -667,6 +678,8 @@ begin
       and not m.admin_option and not m.inherit_option and m.set_option) then
     raise exception 'core_platform_role_graph_finalization_failed' using errcode='55000';
   end if;
+  execute 'grant usage on schema auth to cladora_ce_guide_executor';
+  execute 'grant execute on function auth.uid(),auth.jwt() to cladora_ce_guide_executor';
   return true;
 end;
 $$;

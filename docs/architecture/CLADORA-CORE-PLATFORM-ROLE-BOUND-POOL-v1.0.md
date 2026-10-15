@@ -69,11 +69,13 @@ projects only confirmed user IDs so the existing vendor identity check in
 email or other Auth records. Runtime and executor cannot query that projection.
 
 `auth.uid()` and `auth.jwt()` retain Supabase ownership and remain stable
-security-invoker functions. Executor receives only `USAGE` on `auth` and
-explicit execution of those two signatures so the canonical Core provider can
-read actor and AAL from the transaction-local claim GUCs installed by the HTTP
-adapter. Runtime and the canonical internal owner receive no `auth` schema
-grant. Four pre-existing internal
+security-invoker functions. After Supabase Auth has completed its owner-managed
+ACL normalization, the privileged installation finalizer gives executor only
+`USAGE` on `auth` and explicit execution of those two signatures so the
+canonical Core provider can read actor and AAL from the transaction-local claim
+GUCs installed by the HTTP adapter. The safety lease rejects the pre-finalized
+state. Runtime and the canonical internal owner receive no `auth` schema grant.
+Four pre-existing internal
 scope helpers are owned
 by the canonical `cladora_rpc_owner`, which is `NOLOGIN`, and use the fixed
 `pg_catalog` search path. The executor is neither that owner nor a member of its

@@ -85,8 +85,8 @@ select ok(not has_schema_privilege('cladora_ce_guide_executor','experience','CRE
   'executor has no experience CREATE');
 select ok(not has_schema_privilege('cladora_ce_guide_runtime','experience','USAGE'),
   'runtime has no direct product schema access');
-select ok(has_schema_privilege('cladora_ce_guide_executor','auth','USAGE'),
-  'executor has the narrow auth schema access required by canonical uid/jwt');
+select ok(not has_schema_privilege('cladora_ce_guide_executor','auth','USAGE'),
+  'owner-managed auth ACL remains closed until privileged finalization');
 select ok(not has_schema_privilege('cladora_rpc_owner','auth','USAGE'),
   'canonical RPC owner has no direct auth schema usage');
 select ok(not has_table_privilege('cladora_rpc_owner','auth.users','SELECT'),

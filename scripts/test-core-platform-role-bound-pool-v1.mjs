@@ -33,8 +33,8 @@ assert.match(migration, /core_platform_ce_idempotency_insert_v1/);
 assert.match(migration, /core_platform_ce_audit_insert_v1/);
 assert.match(migration, /core_platform_ce_outbox_insert_v1/);
 assert.match(migration, /create view app_private\.confirmed_auth_user_ids_v1\s+with \(security_barrier=true,security_invoker=false\)/i);
-assert.match(migration, /grant usage on schema auth,[\s\S]*?to cladora_ce_guide_executor/i);
-assert.match(migration, /grant execute on function\s+auth\.uid\(\),\s+auth\.jwt\(\),[\s\S]*?to cladora_ce_guide_executor/i);
+assert.match(migration, /grant usage on schema auth to cladora_ce_guide_executor/i);
+assert.match(migration, /grant execute on function auth\.uid\(\),auth\.jwt\(\) to cladora_ce_guide_executor/i);
 assert.doesNotMatch(migration, /grant select(?:\([^)]*\))? on auth\.users/i);
 
 assert.match(implementation, /core-platform-role-bound-pool\.v1/);
