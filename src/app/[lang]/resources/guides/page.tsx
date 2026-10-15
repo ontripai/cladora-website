@@ -16,7 +16,10 @@ import {
   FileText,
   SlidersHorizontal,
   Info,
+  Calendar,
+  Clock,
 } from 'lucide-react';
+import { getGuideArticlesForLang } from '@/data/guides-articles';
 
 export async function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'ro' }, { lang: 'fa' }];
@@ -596,6 +599,94 @@ export default async function GuidesPage(props: { params: Promise<{ lang: Langua
             <div className="font-bold text-[#102A43]">{content.disclaimer.title}</div>
             <div className="text-[#52667A] leading-relaxed">{content.disclaimer.text}</div>
           </div>
+        </div>
+
+        {/* Published In-Depth Guides Section */}
+        {(() => {
+          const publishedArticles = getGuideArticlesForLang(lang);
+          if (publishedArticles.length === 0) return null;
+          return (
+            <section className="space-y-6">
+              <div className="flex items-center justify-between border-b border-[#CBD5E1] pb-4">
+                <div>
+                  <span className="text-xs font-bold text-[#0A6E62] uppercase tracking-wider bg-[#E6F4F1] px-3 py-1 rounded-full border border-[#B2E5DF]">
+                    {lang === 'ro'
+                      ? 'Ghiduri Operaționale Publicate'
+                      : lang === 'fa'
+                      ? 'راهنماهای تخصصی منتشرشده'
+                      : 'Published In-Depth Guides'}
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] mt-2">
+                    {lang === 'ro'
+                      ? 'Ghiduri de Specialitate & Bune Practici'
+                      : lang === 'fa'
+                      ? 'مقالات و تحلیل‌های جامع معماری و عملیات'
+                      : 'Architectural & Operational In-Depth Guides'}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {publishedArticles.map((art) => (
+                  <article
+                    key={art.id}
+                    className="bg-white rounded-2xl p-7 sm:p-8 border border-[#0E9F8E]/30 shadow-card hover:border-[#0E9F8E] transition-all flex flex-col justify-between relative group"
+                  >
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-xs font-bold text-[#0A6E62] uppercase tracking-wider bg-[#E6F4F1] px-3 py-1 rounded-full border border-[#B2E5DF]">
+                          {art.category}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs text-[#64748B]">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{art.readTime}</span>
+                        </div>
+                      </div>
+
+                      <h3 className="text-xl sm:text-2xl font-bold text-[#102A43] group-hover:text-[#0A6E62] transition-colors leading-snug">
+                        <Link href={`/${lang}/resources/guides/${art.slug}`}>
+                          {art.title}
+                        </Link>
+                      </h3>
+
+                      <p className="text-sm text-[#52667A] leading-relaxed">
+                        {art.description}
+                      </p>
+                    </div>
+
+                    <div className="pt-6 mt-6 border-t border-slate-100 flex items-center justify-between text-xs sm:text-sm font-bold text-[#0A6E62]">
+                      <Link
+                        href={`/${lang}/resources/guides/${art.slug}`}
+                        className="hover:underline inline-flex items-center gap-1.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform"
+                      >
+                        <span>
+                          {lang === 'ro'
+                            ? 'Citește Ghidul Complet'
+                            : lang === 'fa'
+                            ? 'مطالعه راهنمای کامل'
+                            : 'Read Full In-Depth Guide'}
+                        </span>
+                        <ArrowRight className="w-4 h-4 rtl:rotate-180 text-[#0E9F8E]" />
+                      </Link>
+                      <time dateTime={art.publicationDate} className="text-xs font-normal text-[#94A3B8]">
+                        {art.publicationDate}
+                      </time>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          );
+        })()}
+
+        <div className="pt-8 border-t border-[#CBD5E1]">
+          <h2 className="text-xl sm:text-2xl font-bold text-[#102A43] mb-6">
+            {lang === 'ro'
+              ? 'Programa Tematică Arhitecturală'
+              : lang === 'fa'
+              ? 'سرفصل‌های موضوعی معماری کلادورا'
+              : 'Architectural Topic Pillars'}
+          </h2>
         </div>
 
         {/* Guides Grid */}

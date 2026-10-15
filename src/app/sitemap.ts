@@ -61,5 +61,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
+  // WP-14: Batch 1 Primary SEO Articles (Market-Fit, Single-Language Canonical)
+  const batch1Articles: Array<{ lang: 'en' | 'ro' | 'fa'; slug: string }> = [
+    { lang: 'en', slug: 'what-is-property-operating-platform' },
+    { lang: 'en', slug: 'property-management-software-vs-property-operating-platform' },
+    { lang: 'ro', slug: 'asociatii-proprietari-legea-196-2018' },
+    { lang: 'ro', slug: 'repartizare-cheltuieli-asociatie-proprietari' },
+    { lang: 'fa', slug: 'platform-modiriat-amlak' },
+  ];
+
+  batch1Articles.forEach(({ lang, slug }) => {
+    entries.push({
+      url: `${baseUrl}/${lang}/resources/guides/${slug}`,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    });
+  });
+
   return entries;
 }

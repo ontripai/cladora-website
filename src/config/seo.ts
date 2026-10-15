@@ -10,6 +10,7 @@ interface PageMetadataOptions {
   keywords?: string[];
   noIndex?: boolean;
   ogType?: 'website' | 'article';
+  singleLanguageOnly?: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ export function buildPageMetadata({
   keywords,
   noIndex = false,
   ogType = 'website',
+  singleLanguageOnly = false,
 }: PageMetadataOptions): Metadata {
   const baseUrl = getSiteUrl();
   const normalizedPath = path.startsWith('/') ? path : path ? `/${path}` : '';
@@ -51,12 +53,14 @@ export function buildPageMetadata({
     metadataBase: new URL(baseUrl),
     alternates: {
       canonical: `/${lang}${normalizedPath}`,
-      languages: {
-        ro: `/ro${normalizedPath}`,
-        en: `/en${normalizedPath}`,
-        fa: `/fa${normalizedPath}`,
-        'x-default': `/ro${normalizedPath}`,
-      },
+      languages: singleLanguageOnly
+        ? undefined
+        : {
+            ro: `/ro${normalizedPath}`,
+            en: `/en${normalizedPath}`,
+            fa: `/fa${normalizedPath}`,
+            'x-default': `/ro${normalizedPath}`,
+          },
     },
     openGraph: {
       title: formattedTitle,
