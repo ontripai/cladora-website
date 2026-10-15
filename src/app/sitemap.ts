@@ -4,7 +4,6 @@ import { getSiteUrl } from '@/config/site';
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl();
   const languages = ['ro', 'en', 'fa'] as const;
-  const staticLastMod = new Date('2026-10-15T00:00:00.000Z');
 
   const publicRoutes = [
     '',
@@ -48,7 +47,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       const isTopLevel = route === '' || route === '/platform' || route.startsWith('/platform') || route.startsWith('/solutions') || route === '/capabilities' || route === '/industries' || route === '/community-experience' || route === '/ai';
       entries.push({
         url: `${baseUrl}/${lang}${route}`,
-        lastModified: staticLastMod,
         changeFrequency: route === '' ? 'daily' : 'weekly',
         priority: route === '' ? 1.0 : (isTopLevel ? 0.9 : 0.7),
         alternates: {

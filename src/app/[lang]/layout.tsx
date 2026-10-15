@@ -159,20 +159,35 @@ export default async function LangLayout(
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'SoftwareApplication',
-    name: 'CLADORA Property & Asset Operating Platform',
-    applicationCategory: 'BusinessApplication',
-    operatingSystem: 'Web, iOS, Android',
-    description: isRo
-      ? 'CLADORA este platforma de operare unificată pentru proprietăți, spații și active fizice. Conectează identitatea activelor, spațiile de lucru autorizate și domeniile operaționale pe întregul ciclu de viață.'
-      : isFa
-      ? 'CLADORA پلتفرم یکپارچهٔ عملیات و مدیریت برای املاک، فضاها و دارایی‌های فیزیکی است که هویت پایدار ملک، ورک‌اسپیس‌های مجاز و دامنه‌های عملیاتی را در سراسر چرخهٔ عمر به یکدیگر پیوند می‌دهد.'
-      : 'CLADORA is the unified operating platform for properties, spaces, and physical assets—connecting property identity, authorized workspaces, and operational domains across the asset lifecycle.',
-    creator: {
-      '@type': 'Organization',
-      name: 'CLADORA',
-      url: baseUrl,
-    },
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${baseUrl}/#organization`,
+        name: 'CLADORA',
+        url: baseUrl,
+        logo: {
+          '@type': 'ImageObject',
+          url: `${baseUrl}/brand/cladora-og.png`,
+          width: 1200,
+          height: 630,
+        },
+        description: isRo
+          ? 'CLADORA este platforma de operare unificată pentru proprietăți, spații și active fizice. Conectează identitatea activelor, spațiile de lucru autorizate și domeniile operaționale pe întregul ciclu de viață.'
+          : isFa
+          ? 'CLADORA پلتفرم یکپارچهٔ عملیات و مدیریت برای املاک، فضاها و دارایی‌های فیزیکی است که هویت پایدار ملک، ورک‌اسپیس‌های مجاز و دامنه‌های عملیاتی را در سراسر چرخهٔ عمر به یکدیگر پیوند می‌دهد.'
+          : 'CLADORA is the unified operating platform for properties, spaces, and physical assets—connecting property identity, authorized workspaces, and operational domains across the asset lifecycle.',
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${baseUrl}/#website`,
+        url: baseUrl,
+        name: 'CLADORA',
+        publisher: {
+          '@id': `${baseUrl}/#organization`,
+        },
+        inLanguage: ['ro', 'en', 'fa'],
+      },
+    ],
   };
 
   const fontVariables = isFa

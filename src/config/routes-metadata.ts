@@ -488,15 +488,15 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/about': {
     ro: {
       title: 'Despre Noi & Misiunea CLADORA',
-      desc: 'Construim infrastructura digitală modernă pentru claritate financiară și încredere în comunitățile rezidențiale.',
+      desc: 'Construim infrastructura digitală modernă pentru claritate operațională, transparență financiară și încredere în administrarea proprietăților și a activelor fizice.',
     },
     en: {
       title: 'About Us & Platform Mission',
-      desc: 'Building modern digital infrastructure for financial clarity, transparency, and trust in residential communities.',
+      desc: 'Building modern digital infrastructure for operational clarity, financial transparency, and trust across properties and physical assets.',
     },
     fa: {
       title: 'درباره ما و مأموریت کلادورا',
-      desc: 'توسعه زیرساخت دیجیتال مدرن برای شفافیت مالی، انضباط ساختاری و اعتماد در مدیریت املاک مسکونی.',
+      desc: 'توسعه زیرساخت دیجیتال یکپارچه برای شفافیت عملیاتی، وضوح مالی و اعتماد پایدار در مدیریت املاک و دارایی‌های فیزیکی.',
     },
   },
   '/contact': {

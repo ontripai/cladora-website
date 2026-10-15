@@ -62,7 +62,7 @@ export function buildPageMetadata({
       title: formattedTitle,
       description,
       url: canonicalUrl,
-      siteName: 'CLADORA Asset OS',
+      siteName: 'CLADORA',
       locale: intlLocale,
       type: ogType,
       images: [
@@ -72,10 +72,10 @@ export function buildPageMetadata({
           height: 630,
           alt:
             lang === 'ro'
-              ? 'CLADORA — Sistem de operare pentru active rezidențiale'
+              ? 'CLADORA — Platformă de operare pentru proprietăți și active'
               : lang === 'fa'
-              ? 'کلادورا — سیستم عامل مدیریت دارایی‌های مسکونی'
-              : 'CLADORA — Residential Asset Operating System',
+              ? 'کلادورا — پلتفرم جامع عملیات و مدیریت املاک'
+              : 'CLADORA — Property Operating Platform',
           type: 'image/png',
         },
       ],

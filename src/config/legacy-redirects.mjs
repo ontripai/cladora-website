@@ -47,8 +47,8 @@ export const LEGACY_REDIRECT_DEFINITIONS = [
   },
   {
     source: 'migration',
-    destination: 'capabilities',
-    reason: 'Consolidated into CAP01 System Migration in Capabilities',
+    destination: 'resources/migration-hub',
+    reason: 'Consolidated directly into canonical Migration Hub in Resources',
   },
   {
     source: 'trust',

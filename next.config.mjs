@@ -77,7 +77,8 @@ const sensitiveAuthHeaders = [
 
 const sensitiveAuthRoutes = [
   '/:lang(ro|en|fa)/app/:path*',
-  '/:lang(ro|en|fa)/platform/:path*',
+  '/:lang(ro|en|fa)/platform/:section(assignments|audit|contracts|dashboard-lab|internal-messages|module-registry|overview|owner-unit-links|plans|provisioning|retention-operations|start-requests|support|users|workspaces)',
+  '/:lang(ro|en|fa)/platform/:section(assignments|audit|contracts|dashboard-lab|internal-messages|module-registry|overview|owner-unit-links|plans|provisioning|retention-operations|start-requests|support|users|workspaces)/:path*',
   '/:lang(ro|en|fa)/mfa/:path*',
   '/:lang(ro|en|fa)/account',
   '/:lang(ro|en|fa)/owner-portfolio',

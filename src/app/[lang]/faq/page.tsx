@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Language } from '@/types';
 import { getRouteMetadata } from '@/config/routes-metadata';
+import { getSiteUrl } from '@/config/site';
 import { HelpCircle, ArrowRight, Info, ChevronDown } from 'lucide-react';
 
 export async function generateStaticParams() {
@@ -479,12 +480,38 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
     ),
   };
 
+  const baseUrl = getSiteUrl();
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: content.breadcrumbs.home,
+        item: `${baseUrl}/${lang}`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: content.breadcrumbs.current,
+        item: `${baseUrl}/${lang}/faq`,
+      },
+    ],
+  };
+
   return (
     <main className="min-h-screen pt-32 pb-24 bg-[#F6F9FC]">
       {/* Schema.org FAQPage */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
+      {/* Schema.org BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
