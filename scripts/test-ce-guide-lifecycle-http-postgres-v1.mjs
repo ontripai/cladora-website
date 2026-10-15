@@ -239,6 +239,9 @@ async function installDisposableExecutionBoundary() {
   await pool.query(`create role cladora_ce_guide_executor
     nologin nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit`);
   executionRoleCreated = true;
+  // The connection owner may assume the executor; the executor is never made
+  // a member of the owner (or of any other role).
+  await pool.query('grant cladora_ce_guide_executor to postgres');
   for (const schema of [
     'identity', 'platform', 'portfolio', 'communications', 'documents',
     'experience', 'app_private', 'audit',
@@ -390,6 +393,7 @@ async function removeDisposableExecutionBoundary() {
       where rolname='cladora_ce_guide_executor'`);
     assert.equal(executor.rowCount, 1);
     const executorOid = executor.rows[0].oid;
+    await pool.query('revoke cladora_ce_guide_executor from postgres');
     const residue = await pool.query(`select
       (select count(*)::int from pg_database d join pg_roles r on r.oid=d.datdba
         where r.rolname='cladora_ce_guide_executor') database_ownership,
@@ -398,10 +402,12 @@ async function removeDisposableExecutionBoundary() {
       (select count(*)::int from pg_class c join pg_roles r on r.oid=c.relowner
         where r.rolname='cladora_ce_guide_executor') class_ownership,
       (select count(*)::int from pg_proc p join pg_roles r on r.oid=p.proowner
-        where r.rolname='cladora_ce_guide_executor') function_ownership`);
+        where r.rolname='cladora_ce_guide_executor') function_ownership,
+      (select count(*)::int from pg_auth_members
+        where roleid=$1::oid or member=$1::oid) memberships`, [executorOid]);
     assert.deepEqual(residue.rows[0], {
       database_ownership: 0, schema_ownership: 0, class_ownership: 0,
-      function_ownership: 0,
+      function_ownership: 0, memberships: 0,
     });
     await pool.query('drop role cladora_ce_guide_executor');
     executionRoleCreated = false;
@@ -556,11 +562,13 @@ try {
   await check('fixed executor is NOLOGIN and has no powerful attributes, ownership or membership', async () => {
     const role = await pool.query(`select not rolcanlogin as nologin,not rolsuper as nosuperuser,
       not rolbypassrls as nobypassrls,not rolcreatedb as nocreatedb,
-      not rolcreaterole as nocreaterole,not rolreplication as noreplication
-      from pg_roles where rolname='cladora_ce_guide_executor'`);
+      not rolcreaterole as nocreaterole,not rolreplication as noreplication,
+      not exists(select 1 from pg_auth_members membership
+        where membership.member=role.oid) as no_inherited_membership
+      from pg_roles role where rolname='cladora_ce_guide_executor'`);
     assert.deepEqual(role.rows, [{
       nologin: true, nosuperuser: true, nobypassrls: true, nocreatedb: true,
-      nocreaterole: true, noreplication: true,
+      nocreaterole: true, noreplication: true, no_inherited_membership: true,
     }]);
   });
 
