@@ -57,8 +57,8 @@ comment on role cladora_ce_guide_executor is
 -- edges are not part of the product contract and must not survive installation.
 -- Remove them after role metadata is complete, while the runner still has the
 -- creator ADMIN OPTION needed for COMMENT ON ROLE above.
-revoke cladora_ce_guide_executor from current_user;
-revoke cladora_ce_guide_runtime from current_user;
+revoke cladora_ce_guide_executor from current_user cascade;
+revoke cladora_ce_guide_runtime from current_user cascade;
 
 -- Preserve Supabase ownership of auth.uid/auth.jwt. Internal security-definer
 -- functions are moved to the existing canonical NOLOGIN owner.
