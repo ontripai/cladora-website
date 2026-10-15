@@ -52,8 +52,27 @@ export type ExperienceGuideLifecycleAuthenticationV1 = (
 
 type CorePool = Pick<Pool, 'connect'>;
 
+export const experienceGuideLifecycleRoleBoundPoolContractV1 =
+  'core-platform-role-bound-pool.v1' as const;
+export const experienceGuideLifecycleExecutionRoleV1 = 'cladora_ce_guide_executor' as const;
+export const experienceGuideLifecycleSessionRoleV1 = 'cladora_ce_guide_runtime' as const;
+
+/**
+ * Core/Platform-owned capability. The consumer has no default implementation:
+ * a deployment binder must return an already-bound lease and keep its role,
+ * membership and ownership safety invariant valid for the complete checkout.
+ * The binder must reject a missing/LOGIN/powerful executor, every direct or
+ * transitive path to a LOGIN, owner, SUPERUSER or BYPASSRLS role, and must
+ * block concurrent role/catalog mutation or invalidate the lease before any
+ * product or Core-ledger write. current_user and session_user are independently
+ * pinned below; connector, owner and service-role fallback is forbidden.
+ */
+export interface ExperienceGuideLifecycleRoleBoundPoolV1 extends CorePool {
+  readonly contract_version: typeof experienceGuideLifecycleRoleBoundPoolContractV1;
+}
+
 export interface ExperienceGuideLifecycleHttpDependenciesV1 {
-  readonly pool: CorePool;
+  readonly role_bound_pool?: ExperienceGuideLifecycleRoleBoundPoolV1 | null;
   readonly authenticate: ExperienceGuideLifecycleAuthenticationV1;
   readonly now?: () => number;
 }
@@ -113,90 +132,21 @@ const clearIdentitySettingsSql = `select
   set_config('request.jwt.claim.aal','',false),
   set_config('request.jwt.claim.role','',false)`;
 
-export const experienceGuideLifecycleExecutionRoleV1 = 'cladora_ce_guide_executor' as const;
-const setExperienceGuideLifecycleExecutionRoleSql =
-  'set local role cladora_ce_guide_executor';
+const roleBoundIdentitySql =
+  'select current_user::text as current_user,session_user::text as session_user';
 
-// The connection owner performs this catalog-only check before assuming the
-// fixed execution role. Any absent role, dangling catalog owner/membership, or
-// privilege-bearing role reachable through membership fails closed.
-const assertExperienceGuideLifecycleExecutionRoleSql = `with recursive
-target_role as (
-  select oid,rolcanlogin,rolsuper,rolbypassrls,rolcreatedb,rolcreaterole,rolreplication
-  from pg_catalog.pg_roles where rolname=$1
-), role_chain(oid) as (
-  select oid from target_role
-  union
-  select membership.roleid
-  from pg_catalog.pg_auth_members membership
-  join role_chain chain on chain.oid=membership.member
-), relevant_classes as (
-  select oid,relowner from pg_catalog.pg_class
-  where relkind in ('r','p','S','v','m','f')
-), catalog_integrity as (
-  select
-    not exists (
-      select 1 from pg_catalog.pg_database object
-      left join pg_catalog.pg_roles owner on owner.oid=object.datdba
-      where owner.oid is null
-    )
-    and not exists (
-      select 1 from pg_catalog.pg_namespace object
-      left join pg_catalog.pg_roles owner on owner.oid=object.nspowner
-      where owner.oid is null
-    )
-    and not exists (
-      select 1 from relevant_classes object
-      left join pg_catalog.pg_roles owner on owner.oid=object.relowner
-      where owner.oid is null
-    )
-    and not exists (
-      select 1 from pg_catalog.pg_proc object
-      left join pg_catalog.pg_roles owner on owner.oid=object.proowner
-      where owner.oid is null
-    )
-    and not exists (
-      select 1 from pg_catalog.pg_auth_members membership
-      left join pg_catalog.pg_roles granted_role on granted_role.oid=membership.roleid
-      left join pg_catalog.pg_roles member_role on member_role.oid=membership.member
-      left join pg_catalog.pg_roles grantor_role on grantor_role.oid=membership.grantor
-      where granted_role.oid is null or member_role.oid is null or grantor_role.oid is null
-    ) as valid
-)
-select coalesce((
-  select not target.rolcanlogin
-    and not target.rolsuper
-    and not target.rolbypassrls
-    and not target.rolcreatedb
-    and not target.rolcreaterole
-    and not target.rolreplication
-    and integrity.valid
-    and not exists (
-      select 1 from role_chain chain
-      join pg_catalog.pg_roles inherited on inherited.oid=chain.oid
-      where inherited.rolsuper or inherited.rolbypassrls
-    )
-    and not exists (
-      select 1 from pg_catalog.pg_database object
-      join role_chain chain on chain.oid=object.datdba
-    )
-    and not exists (
-      select 1 from pg_catalog.pg_namespace object
-      join role_chain chain on chain.oid=object.nspowner
-    )
-    and not exists (
-      select 1 from relevant_classes object
-      join role_chain chain on chain.oid=object.relowner
-    )
-    and not exists (
-      select 1 from pg_catalog.pg_proc object
-      join role_chain chain on chain.oid=object.proowner
-    )
-  from target_role target cross join catalog_integrity integrity
-),false) as safe`;
+async function assertRoleBoundClient(client: PoolClient) {
+  const identity = await client.query<{ current_user: string; session_user: string }>(
+    roleBoundIdentitySql,
+  );
+  if (identity.rowCount !== 1
+    || identity.rows[0]?.current_user !== experienceGuideLifecycleExecutionRoleV1
+    || identity.rows[0]?.session_user !== experienceGuideLifecycleSessionRoleV1) {
+    throw new Error('ce_guide_role_bound_lease_invalid');
+  }
+}
 
 async function scrubConnectionIdentity(client: PoolClient) {
-  await client.query('reset role');
   await client.query(clearIdentitySettingsSql);
 }
 
@@ -204,9 +154,12 @@ function claimsFor(session: ExperienceGuideLifecycleVerifiedSessionV1) {
   return JSON.stringify({ sub: session.actor_id, role: 'authenticated', aal: session.assurance_level });
 }
 
-/** Request-owned Core pool using one fixed, independently provisioned executor. */
+/**
+ * Request-owned view of a mandatory Core/Platform role-bound lease. This code
+ * never selects a SQL role and never falls back to an owner/connector role.
+ */
 export function createExperienceGuideLifecycleRequestPoolV1(
-  pool: CorePool,
+  pool: ExperienceGuideLifecycleRoleBoundPoolV1,
   sessionValue: ExperienceGuideLifecycleVerifiedSessionV1,
 ): CorePool {
   const session = verifiedSessionSchema.parse(sessionValue);
@@ -216,11 +169,8 @@ export function createExperienceGuideLifecycleRequestPoolV1(
       let released = false;
       let transactionOpen = false;
       try {
-        // A healthy pool never returns an open transaction. ROLLBACK is still
-        // intentionally idempotent here so a contaminated checkout is clean
-        // before any server-owned identity is attached.
-        await client.query('rollback');
         await scrubConnectionIdentity(client);
+        await assertRoleBoundClient(client);
       } catch (error) {
         client.release(true);
         throw error;
@@ -233,20 +183,14 @@ export function createExperienceGuideLifecycleRequestPoolV1(
         const result = await client.query(text, values);
         if (normalized.startsWith('begin')) {
           transactionOpen = true;
-          const roleSafety = await client.query<{ safe: boolean }>(
-            assertExperienceGuideLifecycleExecutionRoleSql,
-            [experienceGuideLifecycleExecutionRoleV1],
-          );
-          if (roleSafety.rowCount !== 1 || roleSafety.rows[0]?.safe !== true) {
-            throw new Error('ce_guide_execution_role_unsafe');
-          }
-          await client.query(setExperienceGuideLifecycleExecutionRoleSql);
+          await assertRoleBoundClient(client);
           await client.query(identitySettingsSql, [
             claimsFor(session), session.actor_id, session.assurance_level, 'authenticated',
           ]);
         } else if (normalized === 'commit' || normalized === 'rollback') {
           transactionOpen = false;
           await scrubConnectionIdentity(client);
+          await assertRoleBoundClient(client);
         }
         return result;
       }) as PoolClient['query'];
@@ -368,7 +312,7 @@ export function experienceGuideLifecycleHttpResponseV1(
 }
 
 async function readSourceLockCandidate(
-  pool: CorePool,
+  pool: ExperienceGuideLifecycleRoleBoundPoolV1,
   session: ExperienceGuideLifecycleVerifiedSessionV1,
   request: ExperienceGuideLifecycleHttpRequestV1,
 ): Promise<SourceLockCandidate | null> {
@@ -470,9 +414,16 @@ export async function handleExperienceGuideLifecycleHttpV1(
   const session = sessionResult.data;
   if (session.assurance_level !== 'aal2') return bounded(403, 'AAL2_REQUIRED');
 
+  const roleBoundPool = dependencies.role_bound_pool;
+  if (!roleBoundPool
+    || roleBoundPool.contract_version !== experienceGuideLifecycleRoleBoundPoolContractV1
+    || typeof roleBoundPool.connect !== 'function') {
+    return bounded(503, 'GUIDE_RUNTIME_UNAVAILABLE');
+  }
+
   let candidate: SourceLockCandidate | null;
   try {
-    candidate = await readSourceLockCandidate(dependencies.pool, session, parsedBody.data);
+    candidate = await readSourceLockCandidate(roleBoundPool, session, parsedBody.data);
   } catch {
     return bounded(503, 'GUIDE_RUNTIME_UNAVAILABLE');
   }
@@ -490,7 +441,7 @@ export async function handleExperienceGuideLifecycleHttpV1(
   }
 
   const host = createCorePostgresTransactionHostV1(
-    createExperienceGuideLifecycleRequestPoolV1(dependencies.pool, session),
+    createExperienceGuideLifecycleRequestPoolV1(roleBoundPool, session),
   );
   const result = await host.execute(command, createExperienceGuideLifecycleCoreProvidersV1());
   return experienceGuideLifecycleHttpResponseV1(result);

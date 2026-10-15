@@ -64,6 +64,8 @@ const catalogAdminPool = new pg.Pool({
 const catalogAdmin = await catalogAdminPool.query(`select current_user,
   rolsuper from pg_roles where rolname=current_user`);
 assert.deepEqual(catalogAdmin.rows, [{ current_user: 'supabase_admin', rolsuper: true }]);
+let runtimePool;
+let runtimeConnection;
 const authAdmin = createSupabaseClient(authUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
 });
@@ -212,6 +214,105 @@ const temporaryPrivileges = [];
 const temporaryAuthPrivileges = [];
 let initialAuthPrivileges;
 let executionRoleCreated = false;
+let sessionRoleCreated = false;
+
+// Disposable implementation of the injected Core/Platform lease contract.
+// Product code has no binder. This guard intentionally runs on an independent
+// catalog connection so a concurrent role mutation cannot hide behind the
+// serializable product transaction's snapshot.
+const disposableExecutorSafetySql = `with recursive
+target_role as (
+  select oid,rolcanlogin,rolsuper,rolbypassrls,rolcreatedb,rolcreaterole,rolreplication
+  from pg_catalog.pg_roles where rolname='cladora_ce_guide_executor'
+), role_chain(oid) as (
+  select oid from target_role
+  union
+  select membership.roleid from pg_catalog.pg_auth_members membership
+  join role_chain chain on chain.oid=membership.member
+), relevant_classes as (
+  select relowner from pg_catalog.pg_class where relkind in ('r','p','S','v','m','f')
+)
+select coalesce((select
+  not target.rolcanlogin and not target.rolsuper and not target.rolbypassrls
+  and not target.rolcreatedb and not target.rolcreaterole and not target.rolreplication
+  and not exists (
+    select 1 from role_chain chain join pg_catalog.pg_roles reachable on reachable.oid=chain.oid
+    where reachable.rolcanlogin or reachable.rolsuper or reachable.rolbypassrls
+  )
+  and not exists (select 1 from pg_catalog.pg_database object join role_chain chain on chain.oid=object.datdba)
+  and not exists (select 1 from pg_catalog.pg_namespace object join role_chain chain on chain.oid=object.nspowner)
+  and not exists (select 1 from relevant_classes object join role_chain chain on chain.oid=object.relowner)
+  and not exists (select 1 from pg_catalog.pg_proc object join role_chain chain on chain.oid=object.proowner)
+  and not exists (
+    select 1 from pg_catalog.pg_auth_members membership
+    left join pg_catalog.pg_roles granted_role on granted_role.oid=membership.roleid
+    left join pg_catalog.pg_roles member_role on member_role.oid=membership.member
+    left join pg_catalog.pg_roles grantor_role on grantor_role.oid=membership.grantor
+    where granted_role.oid is null or member_role.oid is null or grantor_role.oid is null
+  )
+from target_role target),false) as safe`;
+
+async function assertDisposableExecutorSafety() {
+  const safety = await catalogAdminPool.query(disposableExecutorSafetySql);
+  if (safety.rowCount !== 1 || safety.rows[0]?.safe !== true) {
+    throw new Error('disposable_role_bound_lease_invalid');
+  }
+}
+
+function disposableRoleBoundPool(delegate, hooks = {}) {
+  return {
+    contract_version: 'core-platform-role-bound-pool.v1',
+    async connect() {
+      await assertDisposableExecutorSafety();
+      const client = await delegate.connect();
+      let released = false;
+      let transactionOpen = false;
+      try {
+        await client.query('reset role');
+        await client.query('set role cladora_ce_guide_executor');
+        const identity = await client.query(`select current_user::text current_user,
+          session_user::text session_user`);
+        assert.deepEqual(identity.rows, [{
+          current_user: 'cladora_ce_guide_executor', session_user: 'cladora_ce_guide_runtime',
+        }]);
+      } catch (error) {
+        client.release(true);
+        throw error;
+      }
+
+      const wrapped = Object.create(client);
+      wrapped.query = async (text, values) => {
+        const normalized = typeof text === 'string' ? text.trim().toLowerCase() : '';
+        if (normalized.startsWith('begin')) {
+          const result = await client.query(text, values);
+          transactionOpen = true;
+          await hooks.afterBegin?.();
+          await assertDisposableExecutorSafety();
+          return result;
+        }
+        if (normalized === 'rollback') {
+          const result = await client.query(text, values);
+          transactionOpen = false;
+          return result;
+        }
+        if (normalized === 'commit') {
+          await assertDisposableExecutorSafety();
+          const result = await client.query(text, values);
+          transactionOpen = false;
+          return result;
+        }
+        if (transactionOpen) await assertDisposableExecutorSafety();
+        return client.query(text, values);
+      };
+      wrapped.release = error => {
+        if (released) return;
+        released = true;
+        client.release(error || transactionOpen ? true : undefined);
+      };
+      return wrapped;
+    },
+  };
+}
 async function directPrivilegeHeld(kind, object, privilege) {
   if (kind === 'schema') {
     return (await pool.query(`select exists(select 1 from pg_namespace n
@@ -242,14 +343,24 @@ async function installDisposableExecutionBoundary() {
   const administrator = await pool.query('select current_user');
   assert.equal(administrator.rows[0].current_user, 'postgres');
   const existingRole = await pool.query(`select count(*)::int count from pg_roles
-    where rolname='cladora_ce_guide_executor'`);
+    where rolname in ('cladora_ce_guide_executor','cladora_ce_guide_runtime')`);
   assert.equal(existingRole.rows[0].count, 0, 'disposable executor must not pre-exist');
+  const runtimePassword = `Ce-${randomUUID()}-local`;
+  const escapedRuntimePassword = runtimePassword.replaceAll("'", "''");
+  await catalogAdminPool.query(`create role cladora_ce_guide_runtime
+    login nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit
+    password '${escapedRuntimePassword}'`);
+  sessionRoleCreated = true;
   await catalogAdminPool.query(`create role cladora_ce_guide_executor
     nologin nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit`);
   executionRoleCreated = true;
-  // The connection owner may assume the executor; the executor is never made
-  // a member of the owner (or of any other role).
-  await catalogAdminPool.query('grant cladora_ce_guide_executor to postgres');
+  // The disposable login may assume the executor. The executor is never a
+  // member of the login, an owner or another role.
+  await catalogAdminPool.query('grant cladora_ce_guide_executor to cladora_ce_guide_runtime');
+  runtimeConnection = new URL(connectionString);
+  runtimeConnection.username = 'cladora_ce_guide_runtime';
+  runtimeConnection.password = runtimePassword;
+  runtimePool = new pg.Pool({ connectionString: runtimeConnection.toString(), max: 12 });
   for (const schema of [
     'identity', 'platform', 'portfolio', 'communications', 'documents',
     'experience', 'app_private', 'audit',
@@ -333,14 +444,14 @@ async function installDisposableExecutionBoundary() {
   const ownerBoundary = await pool.query(`select
     has_schema_privilege('cladora_ce_guide_executor','auth','USAGE') as auth_usage`);
   assert.deepEqual(ownerBoundary.rows[0], { auth_usage: true });
-  const verification = await pool.connect();
+  const verification = await disposableRoleBoundPool(runtimePool).connect();
   try {
     await verification.query('begin');
-    await verification.query('set local role cladora_ce_guide_executor');
-    const boundary = await verification.query(`select current_user,
+    const boundary = await verification.query(`select current_user,session_user,
       has_schema_privilege(current_user,'auth','USAGE') as auth_usage`);
     assert.deepEqual(boundary.rows[0], {
-      current_user: 'cladora_ce_guide_executor', auth_usage: true,
+      current_user: 'cladora_ce_guide_executor', session_user: 'cladora_ce_guide_runtime',
+      auth_usage: true,
     });
     const routines = await verification.query(`select auth.uid() is null as uid_callable,
       coalesce(jsonb_typeof(auth.jwt())='object',true) as jwt_callable`);
@@ -392,6 +503,10 @@ async function removeDisposableExecutionBoundary() {
     assert.equal(await directPrivilegeHeld(entry.kind, entry.object, entry.privilege), false);
   }
   if (executionRoleCreated) {
+    if (runtimePool) {
+      await runtimePool.end();
+      runtimePool = undefined;
+    }
     const restoredAuthPrivileges = (await pool.query(`select
       has_schema_privilege('cladora_ce_guide_executor','auth','USAGE') as schema_usage,
       has_function_privilege('cladora_ce_guide_executor','auth.uid()','EXECUTE') as uid_execute,
@@ -401,7 +516,13 @@ async function removeDisposableExecutionBoundary() {
       where rolname='cladora_ce_guide_executor'`);
     assert.equal(executor.rowCount, 1);
     const executorOid = executor.rows[0].oid;
-    await catalogAdminPool.query('revoke cladora_ce_guide_executor from postgres');
+    const runtimeRole = await pool.query(`select oid::text from pg_roles
+      where rolname='cladora_ce_guide_runtime'`);
+    assert.equal(runtimeRole.rowCount, 1);
+    const runtimeOid = runtimeRole.rows[0].oid;
+    await catalogAdminPool.query(
+      'revoke cladora_ce_guide_executor from cladora_ce_guide_runtime',
+    );
     const residue = await pool.query(`select
       (select count(*)::int from pg_database d join pg_roles r on r.oid=d.datdba
         where r.rolname='cladora_ce_guide_executor') database_ownership,
@@ -415,20 +536,28 @@ async function removeDisposableExecutionBoundary() {
       database_ownership: 0, schema_ownership: 0, class_ownership: 0,
       function_ownership: 0,
     });
+    await catalogAdminPool.query('drop role cladora_ce_guide_runtime');
+    sessionRoleCreated = false;
     await catalogAdminPool.query('drop role cladora_ce_guide_executor');
     executionRoleCreated = false;
     assert.equal((await pool.query(`select count(*)::int count from pg_roles
-      where rolname='cladora_ce_guide_executor'`)).rows[0].count, 0);
+      where rolname in ('cladora_ce_guide_executor','cladora_ce_guide_runtime')`)).rows[0].count, 0);
     assert.equal((await pool.query(`select count(*)::int count from pg_auth_members
-      where roleid=$1::oid or member=$1::oid or grantor=$1::oid`, [executorOid])).rows[0].count, 0);
+      where roleid=any($1::oid[]) or member=any($1::oid[]) or grantor=any($1::oid[])`,
+    [[executorOid, runtimeOid]])).rows[0].count, 0);
+  }
+  if (sessionRoleCreated) {
+    if (runtimePool) await runtimePool.end();
+    await catalogAdminPool.query('drop role if exists cladora_ce_guide_runtime');
+    sessionRoleCreated = false;
   }
 }
 
-function faultPool(mode) {
+function faultPool(delegate, mode) {
   let injected = false;
   return {
     async connect() {
-      const client = await pool.connect();
+      const client = await delegate.connect();
       const wrapped = Object.create(client);
       wrapped.query = async (text, values) => {
         const normalized = typeof text === 'string' ? text.trim().toLowerCase() : '';
@@ -453,6 +582,7 @@ function faultPool(mode) {
 
 function diagnosticPool(delegate) {
   return {
+    contract_version: 'core-platform-role-bound-pool.v1',
     async connect() {
       const client = await delegate.connect();
       const wrapped = Object.create(client);
@@ -466,11 +596,7 @@ function diagnosticPool(delegate) {
             sourceLockRole = `${probe.rows[0]?.current_user ?? 'UNKNOWN'}:${
               probe.rows[0]?.auth_usage === true ? 'AUTH_USAGE' : 'AUTH_DENIED'}`;
           }
-          const result = await client.query(text, values);
-          if (normalized.trim() === 'set local role cladora_ce_guide_executor') {
-            sourceLockRole = 'cladora_ce_guide_executor:ROLE_SELECTED';
-          }
-          return result;
+          return client.query(text, values);
         } catch (error) {
           const operation = /^\s*([a-z]+)/i.exec(normalized)?.[1]?.toUpperCase() ?? 'QUERY';
           const boundary = normalized.includes("set_config('request.jwt.claims'")
@@ -496,8 +622,8 @@ function diagnosticPool(delegate) {
   };
 }
 
-const observedPool = diagnosticPool(pool);
-let activePool = observedPool;
+let defaultRoleBoundPool;
+let activeRoleBoundPool;
 const server = createServer(async (incoming, outgoing) => {
   try {
     const chunks = [];
@@ -508,7 +634,7 @@ const server = createServer(async (incoming, outgoing) => {
       body: Buffer.concat(chunks).length ? Buffer.concat(chunks) : undefined,
     });
     const response = await runtime.handleExperienceGuideLifecycleHttpV1(request, {
-      pool: activePool, authenticate,
+      role_bound_pool: activeRoleBoundPool, authenticate,
     });
     outgoing.writeHead(response.status, Object.fromEntries(response.headers));
     outgoing.end(await response.text());
@@ -561,10 +687,53 @@ async function assertUnsafeExecutorDenies(label, makeUnsafe, restore) {
   }
 }
 
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+}
+
+async function assertConcurrentRoleMutationFailsBeforeWrite(label, mutate, restore) {
+  const before = await guideState();
+  const key = `ce-role-race-${label}-${randomUUID()}`;
+  const beforeEffects = await effects(key);
+  const begun = deferred();
+  const resume = deferred();
+  activeRoleBoundPool = diagnosticPool(disposableRoleBoundPool(runtimePool, {
+    afterBegin: async () => {
+      begun.resolve();
+      await resume.promise;
+    },
+  }));
+  const request = post(value('unpublish', before.version, key));
+  await begun.promise;
+  try {
+    await mutate();
+    resume.resolve();
+    const denied = await request;
+    assert.deepEqual(denied, {
+      status: 503, body: { outcome: 'denied', code: 'GUIDE_RUNTIME_UNAVAILABLE' },
+    });
+    assert.deepEqual(await guideState(), before);
+    assert.deepEqual(await effects(key), beforeEffects);
+  } finally {
+    resume.resolve();
+    await request.catch(() => undefined);
+    await restore();
+    activeRoleBoundPool = defaultRoleBoundPool;
+  }
+}
+
 let executionBoundaryAttempted = false;
 try {
   executionBoundaryAttempted = true;
   await installDisposableExecutionBoundary();
+  defaultRoleBoundPool = diagnosticPool(disposableRoleBoundPool(runtimePool));
+  activeRoleBoundPool = defaultRoleBoundPool;
   await check('fixed executor is NOLOGIN and has no powerful attributes, ownership or membership', async () => {
     const role = await pool.query(`select not rolcanlogin as nologin,not rolsuper as nosuperuser,
       not rolbypassrls as nobypassrls,not rolcreatedb as nocreatedb,
@@ -578,7 +747,7 @@ try {
     }]);
   });
 
-  await check('LOGIN, SUPERUSER and BYPASSRLS executor attributes deny with zero writes', async () => {
+  await check('all unsafe executor attributes deny with zero writes', async () => {
     await assertUnsafeExecutorDenies('login',
       () => catalogAdminPool.query('alter role cladora_ce_guide_executor login'),
       () => catalogAdminPool.query('alter role cladora_ce_guide_executor nologin'));
@@ -588,6 +757,15 @@ try {
     await assertUnsafeExecutorDenies('bypassrls',
       () => catalogAdminPool.query('alter role cladora_ce_guide_executor bypassrls'),
       () => catalogAdminPool.query('alter role cladora_ce_guide_executor nobypassrls'));
+    await assertUnsafeExecutorDenies('createdb',
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor createdb'),
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor nocreatedb'));
+    await assertUnsafeExecutorDenies('createrole',
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor createrole'),
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor nocreaterole'));
+    await assertUnsafeExecutorDenies('replication',
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor replication'),
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor noreplication'));
   });
 
   await check('database, schema, table, sequence and function ownership deny with zero writes', async () => {
@@ -642,6 +820,43 @@ try {
     }
   });
 
+  await check('direct membership in an otherwise unprivileged LOGIN role denies', async () => {
+    await catalogAdminPool.query(`create role cladora_ce_guide_login_probe
+      login nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit`);
+    try {
+      await assertUnsafeExecutorDenies('direct-login-membership',
+        () => catalogAdminPool.query(
+          'grant cladora_ce_guide_login_probe to cladora_ce_guide_executor',
+        ),
+        () => catalogAdminPool.query(
+          'revoke cladora_ce_guide_login_probe from cladora_ce_guide_executor',
+        ));
+    } finally {
+      await catalogAdminPool.query('drop role cladora_ce_guide_login_probe');
+    }
+  });
+
+  await check('transitive membership in an otherwise unprivileged LOGIN role denies', async () => {
+    await catalogAdminPool.query(`create role cladora_ce_guide_mid_probe
+        nologin nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit;
+      create role cladora_ce_guide_login_probe
+        login nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit`);
+    try {
+      await assertUnsafeExecutorDenies('transitive-login-membership', async () => {
+        await catalogAdminPool.query(`grant cladora_ce_guide_login_probe
+            to cladora_ce_guide_mid_probe;
+          grant cladora_ce_guide_mid_probe to cladora_ce_guide_executor`);
+      }, async () => {
+        await catalogAdminPool.query(`revoke cladora_ce_guide_mid_probe
+            from cladora_ce_guide_executor;
+          revoke cladora_ce_guide_login_probe from cladora_ce_guide_mid_probe`);
+      });
+    } finally {
+      await catalogAdminPool.query(`drop role cladora_ce_guide_mid_probe;
+        drop role cladora_ce_guide_login_probe`);
+    }
+  });
+
   await check('transitive membership in owner, SUPERUSER and BYPASSRLS roles denies', async () => {
     const cases = [
       { label: 'owner', attributes: 'nosuperuser nobypassrls', owns: true },
@@ -671,6 +886,37 @@ try {
         await catalogAdminPool.query(`drop role cladora_ce_guide_mid_probe;
           drop role cladora_ce_guide_danger_probe`);
       }
+    }
+  });
+
+  await check('concurrent membership, LOGIN and ownership mutations fail before every write', async () => {
+    await catalogAdminPool.query(`create role cladora_ce_guide_danger_probe
+        nologin nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit;
+      create table public.ce_guide_race_probe_table(id integer);
+      alter table public.ce_guide_race_probe_table owner to cladora_ce_guide_danger_probe`);
+    try {
+      await assertConcurrentRoleMutationFailsBeforeWrite('grant-owner',
+        () => catalogAdminPool.query(
+          'grant cladora_ce_guide_danger_probe to cladora_ce_guide_executor',
+        ),
+        () => catalogAdminPool.query(
+          'revoke cladora_ce_guide_danger_probe from cladora_ce_guide_executor',
+        ));
+      await assertConcurrentRoleMutationFailsBeforeWrite('alter-login',
+        () => catalogAdminPool.query('alter role cladora_ce_guide_executor login'),
+        () => catalogAdminPool.query('alter role cladora_ce_guide_executor nologin'));
+      await assertConcurrentRoleMutationFailsBeforeWrite('alter-owner',
+        () => catalogAdminPool.query(
+          'alter table public.ce_guide_race_probe_table owner to cladora_ce_guide_executor',
+        ),
+        () => catalogAdminPool.query(
+          'alter table public.ce_guide_race_probe_table owner to cladora_ce_guide_danger_probe',
+        ));
+    } finally {
+      await catalogAdminPool.query(`alter table public.ce_guide_race_probe_table
+          owner to supabase_admin;
+        drop table public.ce_guide_race_probe_table;
+        drop role cladora_ce_guide_danger_probe`);
     }
   });
 
@@ -770,10 +1016,10 @@ try {
 
   await check('genuine PostgreSQL 40001 is retried by Core in a fresh transaction', async () => {
     const before = await guideState();
-    const fault = faultPool('serialization');
-    activePool = fault;
+    const fault = faultPool(runtimePool, 'serialization');
+    activeRoleBoundPool = diagnosticPool(disposableRoleBoundPool(fault));
     const result = await post(value('unpublish', before.version, `ce-40001-${randomUUID()}`));
-    activePool = observedPool;
+    activeRoleBoundPool = defaultRoleBoundPool;
     assert.equal(fault.wasInjected(), true);
     assert.equal(result.status, 200);
     assert.equal(result.body.outcome, 'committed');
@@ -785,10 +1031,10 @@ try {
     const key = `ce-unknown-${randomUUID()}`;
     const effectsBefore = await effects(key);
     const requestValue = value('publish', before.version, key);
-    const fault = faultPool('ack_loss');
-    activePool = fault;
+    const fault = faultPool(runtimePool, 'ack_loss');
+    activeRoleBoundPool = diagnosticPool(disposableRoleBoundPool(fault));
     const pending = await post(requestValue);
-    activePool = observedPool;
+    activeRoleBoundPool = defaultRoleBoundPool;
     assert.equal(fault.wasInjected(), true);
     assert.deepEqual(pending, {
       status: 202, body: { outcome: 'pending', code: 'READBACK_REQUIRED' },
@@ -807,32 +1053,33 @@ try {
   });
 
   await check('poisoned pooled identity is scrubbed on checkout and release', async () => {
-    const isolatedPool = new pg.Pool({ connectionString, max: 1 });
+    const isolatedPool = new pg.Pool({ connectionString: runtimeConnection.toString(), max: 1 });
     const poison = await isolatedPool.connect();
     try {
+      await poison.query('set role cladora_ce_guide_executor');
       await poison.query("select set_config('request.jwt.claims',$1,false)", [JSON.stringify({
         sub: randomUUID(), role: 'authenticated', aal: 'aal1',
       })]);
-      await poison.query('set role authenticated');
     } finally {
       poison.release();
     }
     const before = await guideState();
     const key = `ce-poison-${randomUUID()}`;
     const effectsBefore = await effects(key);
-    activePool = isolatedPool;
+    activeRoleBoundPool = diagnosticPool(disposableRoleBoundPool(isolatedPool));
     const denied = await post(value('unpublish', before.version - 1, key));
-    activePool = observedPool;
+    activeRoleBoundPool = defaultRoleBoundPool;
     assert.equal(denied.status, 403);
     assert.deepEqual(await guideState(), before);
     assert.deepEqual(await effects(key), effectsBefore);
     const client = await isolatedPool.connect();
     try {
-      const state = await client.query(`select current_user,
+      const state = await client.query(`select current_user,session_user,
         current_setting('request.jwt.claims',true) claims,
         current_setting('request.jwt.claim.sub',true) subject,
         current_setting('request.jwt.claim.aal',true) aal`);
-      assert.equal(state.rows[0].current_user, 'postgres');
+      assert.equal(state.rows[0].current_user, 'cladora_ce_guide_executor');
+      assert.equal(state.rows[0].session_user, 'cladora_ce_guide_runtime');
       assert.ok(!state.rows[0].claims);
       assert.ok(!state.rows[0].subject);
       assert.ok(!state.rows[0].aal);
@@ -842,7 +1089,7 @@ try {
     }
   });
 } finally {
-  activePool = pool;
+  activeRoleBoundPool = undefined;
   await new Promise(resolve => server.close(resolve));
   if (executionBoundaryAttempted) await removeDisposableExecutionBoundary();
   await pool.query('update identity.memberships set user_id=$2 where id=$1', [
@@ -851,7 +1098,7 @@ try {
   const teardown = await pool.query(`select
     (select count(*)::int from pg_policies where policyname=$1) fixture_policies,
     (select count(*)::int from pg_roles where rolname like 'cladora_ce_guide_%probe%'
-      or rolname='cladora_ce_guide_executor') fixture_roles,
+      or rolname in ('cladora_ce_guide_executor','cladora_ce_guide_runtime')) fixture_roles,
     (select count(*)::int from pg_database where datname='ce_guide_executor_probe') fixture_databases,
     (select count(*)::int from pg_namespace where nspname='ce_guide_executor_probe') fixture_schemas,
     (select count(*)::int from pg_class where relname like 'ce_guide_%probe%') fixture_classes,
