@@ -46,17 +46,29 @@ const projection = readFileSync(new URL(
 const route = readFileSync(new URL(
   '../src/app/api/customer/v1/experience/guides/route.ts', import.meta.url,
 ), 'utf8');
+const migrationDirectory = new URL('../supabase/migrations/', import.meta.url);
+const migrationNames = readdirSync(migrationDirectory);
+const migrationSource = migrationNames.map(name => readFileSync(
+  new URL(name, migrationDirectory), 'utf8',
+)).join('\n');
 
 assert.match(source, /createCorePostgresTransactionHostV1/);
 assert.match(source, /createExperienceGuideLifecycleCoreProvidersV1/);
-assert.match(source, /set local role cladora_rpc_owner/);
-assert.doesNotMatch(source, /service_role|SUPABASE_DB|customer_api|command_ce_guide_v1|read_ce_guides_v1|resolve_ce_guide_reference_v1/i);
-assert.doesNotMatch(postgresHarness, /create\s+role/i);
+assert.match(source, /set local role cladora_ce_guide_executor/);
+assert.match(source, /with recursive\s+target_role/);
+assert.match(source, /pg_catalog\.pg_database/);
+assert.match(source, /pg_catalog\.pg_namespace/);
+assert.match(source, /pg_catalog\.pg_class/);
+assert.match(source, /pg_catalog\.pg_proc/);
+assert.match(source, /pg_catalog\.pg_auth_members/);
+assert.doesNotMatch(source, /cladora_rpc_owner|service_role|SUPABASE_DB|customer_api|command_ce_guide_v1|read_ce_guides_v1|resolve_ce_guide_reference_v1/i);
+assert.match(postgresHarness, /create role cladora_ce_guide_executor/);
+assert.doesNotMatch(migrationSource, /cladora_ce_guide_executor/i);
 assert.doesNotMatch(route, /experience-guide-lifecycle-http-v1/);
 assert.match(page, /commands=\{null\}/);
 assert.match(projection, /can_edit:\s*false/);
-assert.equal(readdirSync(new URL('../supabase/migrations/', import.meta.url))
-  .some(name => /runtime_wiring|lifecycle_http/i.test(name)), false);
+assert.equal(migrationNames.length, 257);
+assert.equal(migrationNames.some(name => /runtime_wiring|lifecycle_http/i.test(name)), false);
 
 const id = value => `75000000-0000-4000-8000-${String(value).padStart(12, '0')}`;
 const requestValue = {
@@ -211,12 +223,17 @@ await check('request pool scrubs poisoned claims and SQL role on checkout and tr
     async query(text, values = []) {
       calls.push({ text, values });
       if (text === 'reset role') identity.sqlRole = 'postgres';
-      if (text === 'set local role cladora_rpc_owner') identity.sqlRole = 'cladora_rpc_owner';
+      if (text === 'set local role cladora_ce_guide_executor') {
+        identity.sqlRole = 'cladora_ce_guide_executor';
+      }
       if (text.includes("set_config('request.jwt.claims',$1,true)")) {
         [identity.claims, identity.subject, identity.assurance, identity.role] = values;
       }
       if (text.includes("set_config('request.jwt.claims','',false)")) {
         identity.claims = ''; identity.subject = ''; identity.assurance = ''; identity.role = '';
+      }
+      if (text.includes('with recursive\ntarget_role')) {
+        return { rows: [{ safe: true }], rowCount: 1 };
       }
       return { rows: [], rowCount: 0 };
     },
@@ -229,12 +246,14 @@ await check('request pool scrubs poisoned claims and SQL role on checkout and tr
   assert.equal(calls[0].text, 'rollback');
   assert.deepEqual(identity, { claims: '', subject: '', assurance: '', role: '', sqlRole: 'postgres' });
   await wrapped.query('begin isolation level serializable');
-  assert.equal(identity.sqlRole, 'cladora_rpc_owner');
+  assert.equal(identity.sqlRole, 'cladora_ce_guide_executor');
   assert.equal(JSON.parse(identity.claims).sub, id(4));
   assert.equal(identity.assurance, 'aal2');
   const identityIndex = calls.findIndex(call => call.text?.includes("set_config('request.jwt.claims',$1,true)"));
-  const roleIndex = calls.findIndex(call => call.text === 'set local role cladora_rpc_owner');
-  assert.ok(identityIndex > 0 && identityIndex < roleIndex);
+  const safetyIndex = calls.findIndex(call => call.text?.includes('with recursive\ntarget_role'));
+  const roleIndex = calls.findIndex(call => call.text === 'set local role cladora_ce_guide_executor');
+  assert.deepEqual(calls[safetyIndex].values, ['cladora_ce_guide_executor']);
+  assert.ok(safetyIndex > 0 && safetyIndex < roleIndex && roleIndex < identityIndex);
   await wrapped.query('rollback');
   wrapped.release();
   assert.deepEqual(identity, { claims: '', subject: '', assurance: '', role: '', sqlRole: 'postgres' });
@@ -247,6 +266,34 @@ await check('request pool scrubs poisoned claims and SQL role on checkout and tr
   uncertain.release(true);
   const release = calls.filter(call => Object.hasOwn(call, 'release')).at(-1);
   assert.equal(release.release, true, 'unknown/open transaction connection must be destroyed');
+});
+
+await check('unsafe, absent and unreadable execution-role evidence fails before role or identity binding', async () => {
+  for (const mode of ['unsafe', 'absent', 'catalog_error']) {
+    const calls = [];
+    let destroyed = false;
+    const raw = {
+      async query(text) {
+        calls.push(text);
+        if (text.includes('with recursive\ntarget_role')) {
+          if (mode === 'catalog_error') throw new Error('catalog_unavailable');
+          return mode === 'unsafe'
+            ? { rows: [{ safe: false }], rowCount: 1 }
+            : { rows: [], rowCount: 0 };
+        }
+        return { rows: [], rowCount: 0 };
+      },
+      release(error) { destroyed = error === true; },
+    };
+    const wrapped = await runtime.createExperienceGuideLifecycleRequestPoolV1(
+      { async connect() { return raw; } }, session(),
+    ).connect();
+    await assert.rejects(() => wrapped.query('begin isolation level serializable'));
+    assert.equal(calls.includes('set local role cladora_ce_guide_executor'), false);
+    assert.equal(calls.some(text => text.includes("set_config('request.jwt.claims',$1,true)")), false);
+    wrapped.release(true);
+    assert.equal(destroyed, true);
+  }
 });
 
 console.log(`CE Guide lifecycle inactive HTTP contract: ${checks}/${checks} PASS; route/UI/grants remain closed`);

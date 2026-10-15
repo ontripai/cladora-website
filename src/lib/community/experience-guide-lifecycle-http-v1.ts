@@ -113,6 +113,88 @@ const clearIdentitySettingsSql = `select
   set_config('request.jwt.claim.aal','',false),
   set_config('request.jwt.claim.role','',false)`;
 
+export const experienceGuideLifecycleExecutionRoleV1 = 'cladora_ce_guide_executor' as const;
+const setExperienceGuideLifecycleExecutionRoleSql =
+  'set local role cladora_ce_guide_executor';
+
+// The connection owner performs this catalog-only check before assuming the
+// fixed execution role. Any absent role, dangling catalog owner/membership, or
+// privilege-bearing role reachable through membership fails closed.
+const assertExperienceGuideLifecycleExecutionRoleSql = `with recursive
+target_role as (
+  select oid,rolcanlogin,rolsuper,rolbypassrls,rolcreatedb,rolcreaterole,rolreplication
+  from pg_catalog.pg_roles where rolname=$1
+), role_chain(oid) as (
+  select oid from target_role
+  union
+  select membership.roleid
+  from pg_catalog.pg_auth_members membership
+  join role_chain chain on chain.oid=membership.member
+), relevant_classes as (
+  select oid,relowner from pg_catalog.pg_class
+  where relkind in ('r','p','S','v','m','f')
+), catalog_integrity as (
+  select
+    not exists (
+      select 1 from pg_catalog.pg_database object
+      left join pg_catalog.pg_roles owner on owner.oid=object.datdba
+      where owner.oid is null
+    )
+    and not exists (
+      select 1 from pg_catalog.pg_namespace object
+      left join pg_catalog.pg_roles owner on owner.oid=object.nspowner
+      where owner.oid is null
+    )
+    and not exists (
+      select 1 from relevant_classes object
+      left join pg_catalog.pg_roles owner on owner.oid=object.relowner
+      where owner.oid is null
+    )
+    and not exists (
+      select 1 from pg_catalog.pg_proc object
+      left join pg_catalog.pg_roles owner on owner.oid=object.proowner
+      where owner.oid is null
+    )
+    and not exists (
+      select 1 from pg_catalog.pg_auth_members membership
+      left join pg_catalog.pg_roles granted_role on granted_role.oid=membership.roleid
+      left join pg_catalog.pg_roles member_role on member_role.oid=membership.member
+      left join pg_catalog.pg_roles grantor_role on grantor_role.oid=membership.grantor
+      where granted_role.oid is null or member_role.oid is null or grantor_role.oid is null
+    ) as valid
+)
+select coalesce((
+  select not target.rolcanlogin
+    and not target.rolsuper
+    and not target.rolbypassrls
+    and not target.rolcreatedb
+    and not target.rolcreaterole
+    and not target.rolreplication
+    and integrity.valid
+    and not exists (
+      select 1 from role_chain chain
+      join pg_catalog.pg_roles inherited on inherited.oid=chain.oid
+      where inherited.rolsuper or inherited.rolbypassrls
+    )
+    and not exists (
+      select 1 from pg_catalog.pg_database object
+      join role_chain chain on chain.oid=object.datdba
+    )
+    and not exists (
+      select 1 from pg_catalog.pg_namespace object
+      join role_chain chain on chain.oid=object.nspowner
+    )
+    and not exists (
+      select 1 from relevant_classes object
+      join role_chain chain on chain.oid=object.relowner
+    )
+    and not exists (
+      select 1 from pg_catalog.pg_proc object
+      join role_chain chain on chain.oid=object.proowner
+    )
+  from target_role target cross join catalog_integrity integrity
+),false) as safe`;
+
 async function scrubConnectionIdentity(client: PoolClient) {
   await client.query('reset role');
   await client.query(clearIdentitySettingsSql);
@@ -122,10 +204,7 @@ function claimsFor(session: ExperienceGuideLifecycleVerifiedSessionV1) {
   return JSON.stringify({ sub: session.actor_id, role: 'authenticated', aal: session.assurance_level });
 }
 
-/**
- * Request-owned Core pool. The existing non-login cladora_rpc_owner role is
- * selected only inside a transaction; production grants remain a separate gate.
- */
+/** Request-owned Core pool using one fixed, independently provisioned executor. */
 export function createExperienceGuideLifecycleRequestPoolV1(
   pool: CorePool,
   sessionValue: ExperienceGuideLifecycleVerifiedSessionV1,
@@ -154,12 +233,17 @@ export function createExperienceGuideLifecycleRequestPoolV1(
         const result = await client.query(text, values);
         if (normalized.startsWith('begin')) {
           transactionOpen = true;
+          const roleSafety = await client.query<{ safe: boolean }>(
+            assertExperienceGuideLifecycleExecutionRoleSql,
+            [experienceGuideLifecycleExecutionRoleV1],
+          );
+          if (roleSafety.rowCount !== 1 || roleSafety.rows[0]?.safe !== true) {
+            throw new Error('ce_guide_execution_role_unsafe');
+          }
+          await client.query(setExperienceGuideLifecycleExecutionRoleSql);
           await client.query(identitySettingsSql, [
             claimsFor(session), session.actor_id, session.assurance_level, 'authenticated',
           ]);
-          // The connection owner binds transaction-local identity, then drops
-          // to the existing non-login execution role before any domain query.
-          await client.query('set local role cladora_rpc_owner');
         } else if (normalized === 'commit' || normalized === 'rollback') {
           transactionOpen = false;
           await scrubConnectionIdentity(client);

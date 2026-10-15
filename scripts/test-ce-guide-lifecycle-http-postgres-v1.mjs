@@ -203,41 +203,50 @@ const policyName = 'ce_guide_http_fixture_v1';
 const temporaryPrivileges = [];
 const temporaryAuthPrivileges = [];
 let initialAuthPrivileges;
+let executionRoleCreated = false;
 async function directPrivilegeHeld(kind, object, privilege) {
   if (kind === 'schema') {
     return (await pool.query(`select exists(select 1 from pg_namespace n
       cross join lateral aclexplode(coalesce(n.nspacl,acldefault('n',n.nspowner))) a
       join pg_roles r on r.oid=a.grantee
-      where n.nspname=$1 and r.rolname='cladora_rpc_owner' and a.privilege_type=$2) held`,
+      where n.nspname=$1 and r.rolname='cladora_ce_guide_executor' and a.privilege_type=$2) held`,
     [object, privilege])).rows[0].held;
   }
   if (kind === 'function') {
     return (await pool.query(`select exists(select 1 from pg_proc p
       cross join lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
       join pg_roles r on r.oid=a.grantee
-      where p.oid=$1::regprocedure and r.rolname='cladora_rpc_owner'
+      where p.oid=$1::regprocedure and r.rolname='cladora_ce_guide_executor'
         and a.privilege_type=$2) held`, [object, privilege])).rows[0].held;
   }
   return (await pool.query(`select exists(select 1 from pg_class c
     cross join lateral aclexplode(coalesce(c.relacl,acldefault('r',c.relowner))) a
     join pg_roles r on r.oid=a.grantee
-    where c.oid=$1::regclass and r.rolname='cladora_rpc_owner'
+    where c.oid=$1::regclass and r.rolname='cladora_ce_guide_executor'
       and a.privilege_type=$2) held`, [object, privilege])).rows[0].held;
 }
 async function ensurePrivilege(kind, object, privilege) {
   if (await directPrivilegeHeld(kind, object, privilege)) return;
-  await pool.query(`grant ${privilege} on ${kind} ${object} to cladora_rpc_owner`);
+  await pool.query(`grant ${privilege} on ${kind} ${object} to cladora_ce_guide_executor`);
   temporaryPrivileges.push({ kind, object, privilege });
 }
 async function installDisposableExecutionBoundary() {
+  const administrator = await pool.query('select current_user');
+  assert.equal(administrator.rows[0].current_user, 'postgres');
+  const existingRole = await pool.query(`select count(*)::int count from pg_roles
+    where rolname='cladora_ce_guide_executor'`);
+  assert.equal(existingRole.rows[0].count, 0, 'disposable executor must not pre-exist');
+  await pool.query(`create role cladora_ce_guide_executor
+    nologin nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit`);
+  executionRoleCreated = true;
   for (const schema of [
     'identity', 'platform', 'portfolio', 'communications', 'documents',
     'experience', 'app_private', 'audit',
   ]) await ensurePrivilege('schema', schema, 'USAGE');
   const authPrivileges = (await pool.query(`select
-    has_schema_privilege('cladora_rpc_owner','auth','USAGE') as schema_usage,
-    has_function_privilege('cladora_rpc_owner','auth.uid()','EXECUTE') as uid_execute,
-    has_function_privilege('cladora_rpc_owner','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
+    has_schema_privilege('cladora_ce_guide_executor','auth','USAGE') as schema_usage,
+    has_function_privilege('cladora_ce_guide_executor','auth.uid()','EXECUTE') as uid_execute,
+    has_function_privilege('cladora_ce_guide_executor','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
   initialAuthPrivileges = structuredClone(authPrivileges);
   const authOwner = await authOwnerPool.connect();
   try {
@@ -247,15 +256,15 @@ async function installDisposableExecutionBoundary() {
         where n.nspname='auth') as schema_owner`);
     assert.equal(ownership.rows[0].current_user, ownership.rows[0].schema_owner);
     if (!authPrivileges.schema_usage) {
-      await authOwner.query('grant usage on schema auth to cladora_rpc_owner');
+      await authOwner.query('grant usage on schema auth to cladora_ce_guide_executor');
       temporaryAuthPrivileges.push('schema');
     }
     if (!authPrivileges.uid_execute) {
-      await authOwner.query('grant execute on function auth.uid() to cladora_rpc_owner');
+      await authOwner.query('grant execute on function auth.uid() to cladora_ce_guide_executor');
       temporaryAuthPrivileges.push('uid');
     }
     if (!authPrivileges.jwt_execute) {
-      await authOwner.query('grant execute on function auth.jwt() to cladora_rpc_owner');
+      await authOwner.query('grant execute on function auth.jwt() to cladora_ce_guide_executor');
       temporaryAuthPrivileges.push('jwt');
     }
     await authOwner.query('commit');
@@ -303,24 +312,24 @@ async function installDisposableExecutionBoundary() {
       throw new Error('unsafe_fixture_policy_identifier');
     }
     await pool.query(`create policy ${policyName} on ${nspname}.${relname}
-      for all to cladora_rpc_owner using (true) with check (true)`);
+      for all to cladora_ce_guide_executor using (true) with check (true)`);
   }
   await pool.query(`create or replace function app_private.ce_guide_http_raise_40001_v1()
     returns void language plpgsql security invoker set search_path=pg_catalog as $fn$
     begin raise exception using errcode='40001',message='disposable genuine serialization'; end $fn$`);
   await pool.query(`grant execute on function app_private.ce_guide_http_raise_40001_v1()
-    to cladora_rpc_owner`);
+    to cladora_ce_guide_executor`);
   const ownerBoundary = await pool.query(`select
-    has_schema_privilege('cladora_rpc_owner','auth','USAGE') as auth_usage`);
+    has_schema_privilege('cladora_ce_guide_executor','auth','USAGE') as auth_usage`);
   assert.deepEqual(ownerBoundary.rows[0], { auth_usage: true });
   const verification = await pool.connect();
   try {
     await verification.query('begin');
-    await verification.query('set local role cladora_rpc_owner');
+    await verification.query('set local role cladora_ce_guide_executor');
     const boundary = await verification.query(`select current_user,
       has_schema_privilege(current_user,'auth','USAGE') as auth_usage`);
     assert.deepEqual(boundary.rows[0], {
-      current_user: 'cladora_rpc_owner', auth_usage: true,
+      current_user: 'cladora_ce_guide_executor', auth_usage: true,
     });
     const routines = await verification.query(`select auth.uid() is null as uid_callable,
       coalesce(jsonb_typeof(auth.jwt())='object',true) as jwt_callable`);
@@ -350,13 +359,13 @@ async function removeDisposableExecutionBoundary() {
     try {
       await authOwner.query('begin');
       if (temporaryAuthPrivileges.includes('uid')) {
-        await authOwner.query('revoke execute on function auth.uid() from cladora_rpc_owner');
+        await authOwner.query('revoke execute on function auth.uid() from cladora_ce_guide_executor');
       }
       if (temporaryAuthPrivileges.includes('jwt')) {
-        await authOwner.query('revoke execute on function auth.jwt() from cladora_rpc_owner');
+        await authOwner.query('revoke execute on function auth.jwt() from cladora_ce_guide_executor');
       }
       if (temporaryAuthPrivileges.includes('schema')) {
-        await authOwner.query('revoke usage on schema auth from cladora_rpc_owner');
+        await authOwner.query('revoke usage on schema auth from cladora_ce_guide_executor');
       }
       await authOwner.query('commit');
     } catch (error) {
@@ -368,14 +377,36 @@ async function removeDisposableExecutionBoundary() {
   }
   for (const entry of temporaryPrivileges.reverse()) {
     await pool.query(`revoke ${entry.privilege} on ${entry.kind} ${entry.object}
-      from cladora_rpc_owner`);
+      from cladora_ce_guide_executor`);
     assert.equal(await directPrivilegeHeld(entry.kind, entry.object, entry.privilege), false);
   }
-  const restoredAuthPrivileges = (await pool.query(`select
-    has_schema_privilege('cladora_rpc_owner','auth','USAGE') as schema_usage,
-    has_function_privilege('cladora_rpc_owner','auth.uid()','EXECUTE') as uid_execute,
-    has_function_privilege('cladora_rpc_owner','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
-  assert.deepEqual(restoredAuthPrivileges, initialAuthPrivileges);
+  if (executionRoleCreated) {
+    const restoredAuthPrivileges = (await pool.query(`select
+      has_schema_privilege('cladora_ce_guide_executor','auth','USAGE') as schema_usage,
+      has_function_privilege('cladora_ce_guide_executor','auth.uid()','EXECUTE') as uid_execute,
+      has_function_privilege('cladora_ce_guide_executor','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
+    assert.deepEqual(restoredAuthPrivileges, initialAuthPrivileges);
+    const residue = await pool.query(`select
+      (select count(*)::int from pg_database d join pg_roles r on r.oid=d.datdba
+        where r.rolname='cladora_ce_guide_executor') database_ownership,
+      (select count(*)::int from pg_namespace n join pg_roles r on r.oid=n.nspowner
+        where r.rolname='cladora_ce_guide_executor') schema_ownership,
+      (select count(*)::int from pg_class c join pg_roles r on r.oid=c.relowner
+        where r.rolname='cladora_ce_guide_executor') class_ownership,
+      (select count(*)::int from pg_proc p join pg_roles r on r.oid=p.proowner
+        where r.rolname='cladora_ce_guide_executor') function_ownership,
+      (select count(*)::int from pg_auth_members m join pg_roles r
+        on r.oid=m.member or r.oid=m.roleid
+        where r.rolname='cladora_ce_guide_executor') memberships`);
+    assert.deepEqual(residue.rows[0], {
+      database_ownership: 0, schema_ownership: 0, class_ownership: 0,
+      function_ownership: 0, memberships: 0,
+    });
+    await pool.query('drop role cladora_ce_guide_executor');
+    executionRoleCreated = false;
+    assert.equal((await pool.query(`select count(*)::int count from pg_roles
+      where rolname='cladora_ce_guide_executor'`)).rows[0].count, 0);
+  }
 }
 
 function faultPool(mode) {
@@ -421,8 +452,8 @@ function diagnosticPool(delegate) {
               probe.rows[0]?.auth_usage === true ? 'AUTH_USAGE' : 'AUTH_DENIED'}`;
           }
           const result = await client.query(text, values);
-          if (normalized.trim() === 'set local role cladora_rpc_owner') {
-            sourceLockRole = 'cladora_rpc_owner:ROLE_SELECTED';
+          if (normalized.trim() === 'set local role cladora_ce_guide_executor') {
+            sourceLockRole = 'cladora_ce_guide_executor:ROLE_SELECTED';
           }
           return result;
         } catch (error) {
@@ -498,10 +529,140 @@ const effects = async key => (await pool.query(`select
     and aggregate_id=$3) outbox`, [fixture.tenant_id,
   `core-tx.v1:${fixture.workspace_id}:${key}`, fixture.guide_id])).rows[0];
 
+async function assertUnsafeExecutorDenies(label, makeUnsafe, restore) {
+  const before = await guideState();
+  const key = `ce-role-${label}-${randomUUID()}`;
+  const beforeEffects = await effects(key);
+  try {
+    await makeUnsafe();
+    const denied = await post(value('unpublish', before.version, key));
+    assert.deepEqual(denied, {
+      status: 503, body: { outcome: 'denied', code: 'GUIDE_RUNTIME_UNAVAILABLE' },
+    });
+    assert.deepEqual(await guideState(), before);
+    assert.deepEqual(await effects(key), beforeEffects);
+  } finally {
+    await restore();
+  }
+}
+
 let executionBoundaryAttempted = false;
 try {
   executionBoundaryAttempted = true;
   await installDisposableExecutionBoundary();
+  await check('fixed executor is NOLOGIN and has no powerful attributes, ownership or membership', async () => {
+    const role = await pool.query(`select not rolcanlogin as nologin,not rolsuper as nosuperuser,
+      not rolbypassrls as nobypassrls,not rolcreatedb as nocreatedb,
+      not rolcreaterole as nocreaterole,not rolreplication as noreplication
+      from pg_roles where rolname='cladora_ce_guide_executor'`);
+    assert.deepEqual(role.rows, [{
+      nologin: true, nosuperuser: true, nobypassrls: true, nocreatedb: true,
+      nocreaterole: true, noreplication: true,
+    }]);
+  });
+
+  await check('LOGIN, SUPERUSER and BYPASSRLS executor attributes deny with zero writes', async () => {
+    await assertUnsafeExecutorDenies('login',
+      () => pool.query('alter role cladora_ce_guide_executor login'),
+      () => pool.query('alter role cladora_ce_guide_executor nologin'));
+    await assertUnsafeExecutorDenies('superuser',
+      () => pool.query('alter role cladora_ce_guide_executor superuser'),
+      () => pool.query('alter role cladora_ce_guide_executor nosuperuser'));
+    await assertUnsafeExecutorDenies('bypassrls',
+      () => pool.query('alter role cladora_ce_guide_executor bypassrls'),
+      () => pool.query('alter role cladora_ce_guide_executor nobypassrls'));
+  });
+
+  await check('database, schema, table, sequence and function ownership deny with zero writes', async () => {
+    const cases = [
+      {
+        label: 'database',
+        make: () => pool.query('create database ce_guide_executor_probe owner cladora_ce_guide_executor'),
+        restore: () => pool.query('drop database if exists ce_guide_executor_probe'),
+      },
+      {
+        label: 'schema',
+        make: () => pool.query('create schema ce_guide_executor_probe authorization cladora_ce_guide_executor'),
+        restore: () => pool.query('drop schema if exists ce_guide_executor_probe cascade'),
+      },
+      {
+        label: 'table',
+        make: () => pool.query(`create table public.ce_guide_executor_probe_table(id integer);
+          alter table public.ce_guide_executor_probe_table owner to cladora_ce_guide_executor`),
+        restore: () => pool.query('drop table if exists public.ce_guide_executor_probe_table'),
+      },
+      {
+        label: 'sequence',
+        make: () => pool.query(`create sequence public.ce_guide_executor_probe_sequence;
+          alter sequence public.ce_guide_executor_probe_sequence owner to cladora_ce_guide_executor`),
+        restore: () => pool.query('drop sequence if exists public.ce_guide_executor_probe_sequence'),
+      },
+      {
+        label: 'function',
+        make: () => pool.query(`create function public.ce_guide_executor_probe_function()
+          returns integer language sql as 'select 1';
+          alter function public.ce_guide_executor_probe_function() owner to cladora_ce_guide_executor`),
+        restore: () => pool.query('drop function if exists public.ce_guide_executor_probe_function()'),
+      },
+    ];
+    for (const candidate of cases) {
+      await assertUnsafeExecutorDenies(candidate.label, candidate.make, candidate.restore);
+    }
+  });
+
+  await check('direct membership in an object owner denies with zero writes', async () => {
+    await pool.query(`create role cladora_ce_guide_owner_probe nologin nosuperuser nobypassrls;
+      create table public.ce_guide_owner_probe_table(id integer);
+      alter table public.ce_guide_owner_probe_table owner to cladora_ce_guide_owner_probe`);
+    try {
+      await assertUnsafeExecutorDenies('direct-owner-membership',
+        () => pool.query('grant cladora_ce_guide_owner_probe to cladora_ce_guide_executor'),
+        () => pool.query('revoke cladora_ce_guide_owner_probe from cladora_ce_guide_executor'));
+    } finally {
+      await pool.query(`alter table public.ce_guide_owner_probe_table owner to postgres;
+        drop table public.ce_guide_owner_probe_table;
+        drop role cladora_ce_guide_owner_probe`);
+    }
+  });
+
+  await check('transitive membership in owner, SUPERUSER and BYPASSRLS roles denies', async () => {
+    const cases = [
+      { label: 'owner', attributes: 'nosuperuser nobypassrls', owns: true },
+      { label: 'superuser', attributes: 'superuser nobypassrls', owns: false },
+      { label: 'bypassrls', attributes: 'nosuperuser bypassrls', owns: false },
+    ];
+    for (const candidate of cases) {
+      await pool.query(`create role cladora_ce_guide_mid_probe nologin nosuperuser nobypassrls;
+        create role cladora_ce_guide_danger_probe nologin ${candidate.attributes}`);
+      if (candidate.owns) {
+        await pool.query(`create sequence public.ce_guide_chain_probe_sequence;
+          alter sequence public.ce_guide_chain_probe_sequence owner to cladora_ce_guide_danger_probe`);
+      }
+      try {
+        await assertUnsafeExecutorDenies(`chain-${candidate.label}`, async () => {
+          await pool.query(`grant cladora_ce_guide_danger_probe to cladora_ce_guide_mid_probe;
+            grant cladora_ce_guide_mid_probe to cladora_ce_guide_executor`);
+        }, async () => {
+          await pool.query(`revoke cladora_ce_guide_mid_probe from cladora_ce_guide_executor;
+            revoke cladora_ce_guide_danger_probe from cladora_ce_guide_mid_probe`);
+        });
+      } finally {
+        if (candidate.owns) {
+          await pool.query(`alter sequence public.ce_guide_chain_probe_sequence owner to postgres;
+            drop sequence public.ce_guide_chain_probe_sequence`);
+        }
+        await pool.query(`drop role cladora_ce_guide_mid_probe;
+          drop role cladora_ce_guide_danger_probe`);
+      }
+    }
+  });
+
+  await check('missing fixed executor is a bounded zero-write denial', async () => {
+    await assertUnsafeExecutorDenies('missing',
+      () => pool.query('alter role cladora_ce_guide_executor rename to cladora_ce_guide_executor_missing'),
+      () => pool.query('alter role cladora_ce_guide_executor_missing rename to cladora_ce_guide_executor'));
+  });
+
   await check('real local Auth distinguishes AAL1 and verified TOTP AAL2 before checkout', async () => {
     const before = await guideState();
     const key = `ce-aal1-${randomUUID()}`;
@@ -671,10 +832,17 @@ try {
     fixture.membership_id, fixture.fixture_actor_id,
   ]);
   const teardown = await pool.query(`select
-    (select count(*)::int from pg_policies where policyname=$1) fixture_policies`,
+    (select count(*)::int from pg_policies where policyname=$1) fixture_policies,
+    (select count(*)::int from pg_roles where rolname like 'cladora_ce_guide_%probe%'
+      or rolname='cladora_ce_guide_executor') fixture_roles,
+    (select count(*)::int from pg_database where datname='ce_guide_executor_probe') fixture_databases,
+    (select count(*)::int from pg_namespace where nspname='ce_guide_executor_probe') fixture_schemas,
+    (select count(*)::int from pg_class where relname like 'ce_guide_%probe%') fixture_classes,
+    (select count(*)::int from pg_proc where proname like 'ce_guide_%probe%') fixture_functions`,
   [policyName]);
   assert.deepEqual(teardown.rows[0], {
-    fixture_policies: 0,
+    fixture_policies: 0, fixture_roles: 0, fixture_databases: 0,
+    fixture_schemas: 0, fixture_classes: 0, fixture_functions: 0,
   });
   for (const userId of createdAuthUsers) {
     await authAdmin.auth.admin.deleteUser(userId).catch(() => undefined);
