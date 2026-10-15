@@ -75,7 +75,11 @@ async function beginScope({workspaceId=ids.workspaceIds[0],contextId=ids.context
     }
     const request={contract_version:selector.CORE_CURRENT_UNIT_PROPERTY_SELECTOR_REQUEST_V1,
       context_id:contextId,workspace_id:workspaceId,actor_id:actor,
-      authority_version:authorityVersion,property_id:propertyId,unit_id:unitId};
+      authority_version:authorityVersion,permission_code:authorityRequest.permission_code,
+      module_code:authorityRequest.module_code,evaluation_purpose:authorityRequest.evaluation_purpose,
+      transaction_id:transactionId,command_id:commandId,attempt,
+      lock:{kind:'command_aggregate',aggregate_type:'portfolio.unit',aggregate_id:unitId},
+      property_id:propertyId,unit_id:unitId};
     return{client,scope,authority,authorityRequest,request};
   }catch(error){
     await client.query('rollback').catch(()=>{});client.release();throw error;
@@ -233,6 +237,30 @@ try{
       assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'BINDING_MISMATCH');
       assert.equal(await effectDigest(),before);
     }finally{await finish(current);}
+  });
+
+  await check('unrelated permission, module, purpose, command and lock receipts are zero-write binding denials',async()=>{
+    const tx=await beginScope();
+    try{
+      const before=await effectDigest();
+      const mismatches=[
+        {...tx.authority,permission_code:'services.orders.read'},
+        {...tx.authority,module_code:'communications',entitlement:{...tx.authority.entitlement,
+          module_code:'communications'}},
+        {...tx.authority,evaluation_purpose:'airprop.asset.list'},
+        {...tx.authority,transaction_context:{...tx.authority.transaction_context,
+          command_id:randomUUID()}},
+        {...tx.authority,transaction_context:{...tx.authority.transaction_context,lock:{
+          ...tx.authority.transaction_context.lock,aggregate_id:randomUUID()}}},
+      ];
+      for(const receipt of mismatches){
+        const result=await selector.selectCurrentUnitPropertyV1(tx.scope,receipt,tx.request);
+        assert.equal(result.decision,'denied');
+        assert.equal(result.denial_reason,'BINDING_MISMATCH');
+        assert.equal(result.binding,null);
+      }
+      assert.equal(await effectDigest(),before);
+    }finally{await finish(tx);}
   });
 
   await check('real serialization failure is retried in a fresh scope and observes the move',async()=>{

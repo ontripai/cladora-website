@@ -15,6 +15,7 @@ export const CORE_CURRENT_UNIT_PROPERTY_SELECTOR_DECISION_V1 =
 
 const timestamp = z.string().datetime({ offset: true });
 const authorityVersion = z.number().int().positive().safe();
+const commandAttempt = z.number().int().positive().max(100).safe();
 
 export const currentUnitPropertySelectorRequestV1Schema = z.strictObject({
   contract_version: z.literal(CORE_CURRENT_UNIT_PROPERTY_SELECTOR_REQUEST_V1),
@@ -22,6 +23,17 @@ export const currentUnitPropertySelectorRequestV1Schema = z.strictObject({
   workspace_id: uuidSchema,
   actor_id: uuidSchema,
   authority_version: authorityVersion,
+  permission_code: z.literal('airprop.asset.read'),
+  module_code: z.literal('airprop_commercial'),
+  evaluation_purpose: z.literal('airprop.current-unit-property.select'),
+  transaction_id: uuidSchema,
+  command_id: uuidSchema,
+  attempt: commandAttempt,
+  lock: z.strictObject({
+    kind: z.literal('command_aggregate'),
+    aggregate_type: z.literal('portfolio.unit'),
+    aggregate_id: uuidSchema,
+  }),
   property_id: uuidSchema,
   unit_id: uuidSchema,
 });
@@ -102,19 +114,30 @@ function authorityIsBoundToScope(
     && authority.reusable_as_command_authority === false
     && scope.workspace_id === request.workspace_id
     && scope.actor_id === request.actor_id
+    && scope.transaction_id === request.transaction_id
+    && scope.attempt === request.attempt
+    && request.lock.aggregate_id === request.unit_id
     && authority.context_id === request.context_id
     && authority.workspace_id === request.workspace_id
     && authority.actor_id === request.actor_id
     && authority.authority_version === request.authority_version
-    && authority.transaction_context.transaction_id === scope.transaction_id
-    && authority.transaction_context.attempt === scope.attempt
+    && authority.permission_code === request.permission_code
+    && authority.module_code === request.module_code
+    && authority.evaluation_purpose === request.evaluation_purpose
+    && authority.transaction_context.transaction_id === request.transaction_id
+    && authority.transaction_context.command_id === request.command_id
+    && authority.transaction_context.attempt === request.attempt
     && authority.transaction_context.isolation_level === 'serializable'
     && authority.transaction_context.lock.workspace_id === scope.workspace_id
-    && (authority.entitlement === undefined || (
+    && authority.transaction_context.lock.kind === request.lock.kind
+    && authority.transaction_context.lock.aggregate_type === request.lock.aggregate_type
+    && authority.transaction_context.lock.aggregate_id === request.lock.aggregate_id
+    && authority.entitlement !== undefined
+    && (
       authority.entitlement.workspace_id === request.workspace_id
       && authority.entitlement.authority_revision === request.authority_version
-      && authority.entitlement.module_code === authority.module_code
-    ))
+      && authority.entitlement.module_code === request.module_code
+    )
     && Number.isFinite(Date.parse(authority.evaluated_at))
     && Date.parse(authority.evaluated_at)
       >= Date.parse(authority.transaction_context.lock.acquired_at);

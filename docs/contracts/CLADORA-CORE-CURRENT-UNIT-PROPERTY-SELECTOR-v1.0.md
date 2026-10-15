@@ -15,6 +15,10 @@ The selector accepts the existing `CoreTransactionScopeV1`, the canonical
 post-lock authority receipt from that same transaction, and a strict request:
 
 - exact Context, Workspace, actor and canonical authority revision;
+- exact authority tuple `airprop.asset.read` / `airprop_commercial` /
+  `airprop.current-unit-property.select`;
+- exact transaction ID, command ID, attempt, and `portfolio.unit` aggregate lock
+  whose aggregate ID is the requested unit;
 - exact property and unit identifiers;
 - contract version `core-current-unit-property-selector-request.v1`.
 
@@ -26,8 +30,12 @@ contain only the requested identities, active lifecycle markers and
 
 ## Canonical read and lock order
 
-After the Core host locks and current-authority recheck, the selector reads only
-through the supplied transaction scope:
+The receipt must exactly match every request field above. Its entitlement binding
+is mandatory and must match the Workspace, module, and canonical authority
+revision. A receipt for a different permission, module, purpose, command, attempt,
+transaction, or aggregate lock is rejected before SQL. After the Core host locks
+and current-authority recheck, the selector reads only through the supplied
+transaction scope:
 
 1. PostgreSQL transaction identity, serializable isolation and `auth.uid()`;
 2. the canonical authority revision singleton with `FOR SHARE`;

@@ -43,6 +43,10 @@ const authority=authorityPort.bindCanonicalCurrentAuthorityObservationV1(authori
 });
 const request={contract_version:selector.CORE_CURRENT_UNIT_PROPERTY_SELECTOR_REQUEST_V1,
   context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,authority_version:7,
+  permission_code:'airprop.asset.read',module_code:'airprop_commercial',
+  evaluation_purpose:'airprop.current-unit-property.select',transaction_id:ids.transaction,
+  command_id:ids.command,attempt:1,lock:{kind:'command_aggregate',aggregate_type:'portfolio.unit',
+    aggregate_id:ids.unit},
   property_id:ids.property,unit_id:ids.unit};
 const scope={transaction_id:ids.transaction,database_transaction_id:'41',workspace_id:ids.workspace,
   tenant_id:ids.tenant,actor_id:ids.actor,attempt:1};
@@ -90,6 +94,28 @@ await check('NULL, cross-Workspace and historical transaction receipts fail befo
     assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'BINDING_MISMATCH');
     assert.equal(result.binding,null);
   }
+});
+
+await check('unrelated authority tuple, command or aggregate receipt fails binding with zero query',async()=>{
+  const noQuery={...scope,query(){throw new Error('must not query');}};
+  const wrongModule={...authority,module_code:'communications',entitlement:{...authority.entitlement,
+    module_code:'communications'}};
+  const mismatches=[
+    {...authority,permission_code:'services.orders.read'},
+    wrongModule,
+    {...authority,evaluation_purpose:'airprop.asset.list'},
+    {...authority,transaction_context:{...authority.transaction_context,command_id:randomUUID()}},
+    {...authority,transaction_context:{...authority.transaction_context,lock:{
+      ...authority.transaction_context.lock,aggregate_id:randomUUID()}}},
+  ];
+  for(const receipt of mismatches){
+    const result=await selector.selectCurrentUnitPropertyV1(noQuery,receipt,request);
+    assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'BINDING_MISMATCH');
+    assert.equal(result.binding,null);
+  }
+  const withoutEntitlement={...authority};delete withoutEntitlement.entitlement;
+  const result=await selector.selectCurrentUnitPropertyV1(noQuery,withoutEntitlement,request);
+  assert.equal(result.decision,'denied');assert.equal(result.denial_reason,'BINDING_MISMATCH');
 });
 
 await check('revoked or denied same-transaction authority is bounded and zero-query',async()=>{
