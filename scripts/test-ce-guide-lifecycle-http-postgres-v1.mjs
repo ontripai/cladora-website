@@ -386,6 +386,10 @@ async function removeDisposableExecutionBoundary() {
       has_function_privilege('cladora_ce_guide_executor','auth.uid()','EXECUTE') as uid_execute,
       has_function_privilege('cladora_ce_guide_executor','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
     assert.deepEqual(restoredAuthPrivileges, initialAuthPrivileges);
+    const executor = await pool.query(`select oid::text from pg_roles
+      where rolname='cladora_ce_guide_executor'`);
+    assert.equal(executor.rowCount, 1);
+    const executorOid = executor.rows[0].oid;
     const residue = await pool.query(`select
       (select count(*)::int from pg_database d join pg_roles r on r.oid=d.datdba
         where r.rolname='cladora_ce_guide_executor') database_ownership,
@@ -394,18 +398,17 @@ async function removeDisposableExecutionBoundary() {
       (select count(*)::int from pg_class c join pg_roles r on r.oid=c.relowner
         where r.rolname='cladora_ce_guide_executor') class_ownership,
       (select count(*)::int from pg_proc p join pg_roles r on r.oid=p.proowner
-        where r.rolname='cladora_ce_guide_executor') function_ownership,
-      (select count(*)::int from pg_auth_members m join pg_roles r
-        on r.oid=m.member or r.oid=m.roleid
-        where r.rolname='cladora_ce_guide_executor') memberships`);
+        where r.rolname='cladora_ce_guide_executor') function_ownership`);
     assert.deepEqual(residue.rows[0], {
       database_ownership: 0, schema_ownership: 0, class_ownership: 0,
-      function_ownership: 0, memberships: 0,
+      function_ownership: 0,
     });
     await pool.query('drop role cladora_ce_guide_executor');
     executionRoleCreated = false;
     assert.equal((await pool.query(`select count(*)::int count from pg_roles
       where rolname='cladora_ce_guide_executor'`)).rows[0].count, 0);
+    assert.equal((await pool.query(`select count(*)::int count from pg_auth_members
+      where roleid=$1::oid or member=$1::oid`, [executorOid])).rows[0].count, 0);
   }
 }
 
