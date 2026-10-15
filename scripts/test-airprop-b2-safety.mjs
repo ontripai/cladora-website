@@ -84,6 +84,7 @@ const coreResult = validateProtectedDirectory({
   isProtected: path => ![
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
+    'current-unit-property-selector-v1.ts',
     'platform-role-bound-pool-v1.ts',
     'postgres-transaction-host-v1.ts',
     'transaction-replay-provider-hook-v1.ts',
@@ -96,6 +97,10 @@ const coreResult = validateProtectedDirectory({
     'communications-private-message-request-audience-provider-v1.ts': {
       owner: 'CE Communications / PR #386',
       sha256: '778a88a3fd800b725c2f539e68e9cf726ce801d6063d0075d8af4723f167d39a',
+    },
+    'current-unit-property-selector-v1.ts': {
+      owner: 'Core / PR #417',
+      sha256: 'cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd',
     },
     'platform-role-bound-pool-v1.ts': {
       owner: 'Core / PR #409',
