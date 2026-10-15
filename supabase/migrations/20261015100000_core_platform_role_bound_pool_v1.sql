@@ -46,16 +46,19 @@ create role cladora_ce_guide_executor
   noreplication password null;
 grant cladora_ce_guide_executor to cladora_ce_guide_runtime
   with admin false, inherit false, set true;
--- PostgreSQL 17 gives a non-superuser CREATEROLE migration runner an
--- administrative, non-SET membership in each role it creates. Those install
--- edges are not part of the product contract and must not survive installation.
-revoke cladora_ce_guide_executor from current_user;
-revoke cladora_ce_guide_runtime from current_user;
 
 comment on role cladora_ce_guide_runtime is
   'External-secret runtime login for core-platform-role-bound-pool.v1; owns no product object and receives no product ACL.';
 comment on role cladora_ce_guide_executor is
   'Fixed NOLOGIN least-privilege executor for inactive CE Guide lifecycle only.';
+
+-- PostgreSQL 17 gives a non-superuser CREATEROLE migration runner an
+-- administrative, non-SET membership in each role it creates. Those install
+-- edges are not part of the product contract and must not survive installation.
+-- Remove them after role metadata is complete, while the runner still has the
+-- creator ADMIN OPTION needed for COMMENT ON ROLE above.
+revoke cladora_ce_guide_executor from current_user;
+revoke cladora_ce_guide_runtime from current_user;
 
 -- Preserve Supabase ownership of auth.uid/auth.jwt. Internal security-definer
 -- functions are moved to the existing canonical NOLOGIN owner.
