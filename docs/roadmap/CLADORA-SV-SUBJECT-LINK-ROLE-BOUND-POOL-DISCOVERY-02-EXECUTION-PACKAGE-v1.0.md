@@ -83,7 +83,8 @@ connection-disposal implementation. Those belong to the Core capability.
 
 ## Required Core dependency
 
-Owner: **Core/Platform**  
+Owner: **Core/Platform**
+
 Dependency ID: **CORE-PLATFORM-ROLE-BOUND-POOL-SERVICE-PROFILE-02**
 
 Core must extend the existing capability with a sealed SERVICE profile. A
