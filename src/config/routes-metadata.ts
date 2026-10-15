@@ -140,8 +140,8 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/operations': {
     ro: {
-      title: 'Operațiuni & Mentenanță — Echipamente, Revizii & Comenzi de Lucru',
-      desc: 'Registru digital de echipamente tehnice, planuri preventive periodice, tichete de avarie, comenzi de lucru dispecerizate și rapoarte de disponibilitate.',
+      title: 'Software Mentenanță Clădiri & Gestiune Tehnică | CLADORA',
+      desc: 'Software de mentenanță clădiri și gestiune operațională: registru digital de echipamente, revizii preventive, tichete și comenzi de lucru structurate.',
     },
     en: {
       title: 'Operations & Maintenance — Asset Registers, Preventative Plans & Work Orders',
@@ -380,8 +380,8 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/solutions/associations': {
     ro: {
-      title: 'Asociații de Proprietari — Platforma de Guvernanță Rezidențială | CLADORA',
-      desc: 'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: evidența cotelor, canale oficiale de comunicare și evidențe decizionale.',
+      title: 'Software Administrare Asociații de Proprietari | CLADORA',
+      desc: 'Software dedicat pentru administrare asociații de proprietari: calcul cote de întreținere, liste de plată, fonduri și evidență conformă cu Legea 196/2018.',
     },
     en: {
       title: 'Residential Association & HOA Platform Architecture | CLADORA',
@@ -394,8 +394,8 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/solutions/property-managers': {
     ro: {
-      title: 'Companii de Administrare — Platforma Operațională Multi-Imobil | CLADORA',
-      desc: 'Consolă de operare pentru portofolii multi-proprietate: coordonarea echipelor, evidența solicitărilor de mentenanță, vizibilitate financiară și relația cu ocupanții.',
+      title: 'Property Management Software Romania — Administrare Portofolii | CLADORA',
+      desc: 'Property management software pentru România: administrare portofoliu imobiliar, control documente operaționale, coordonare mentenanță și guvernanță multi-imobil.',
     },
     en: {
       title: 'Property Management Operating Platform | CLADORA',

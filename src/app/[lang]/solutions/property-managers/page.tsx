@@ -1,25 +1,25 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { getRouteMetadata } from '@/config/routes-metadata';
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  Layers, 
-  Building2, 
-  Users, 
-  Wrench, 
-  ShieldCheck, 
-  ArrowRight, 
-  FileSpreadsheet, 
-  DollarSign, 
-  CheckCircle2, 
-  Clock, 
-  Boxes, 
-  GitBranch, 
-  Receipt, 
-  KeyRound, 
-  FileCheck2, 
-  Megaphone 
+import {
+  Layers,
+  Building2,
+  Users,
+  Wrench,
+  ShieldCheck,
+  ArrowRight,
+  FileSpreadsheet,
+  DollarSign,
+  CheckCircle2,
+  Clock,
+  Boxes,
+  GitBranch,
+  Receipt,
+  KeyRound,
+  FileCheck2,
+  Megaphone
 } from 'lucide-react';
 import { AvailabilityGovernanceSection } from '@/components/solutions/AvailabilityGovernanceSection';
 
@@ -48,10 +48,10 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         current: 'Companii de Administrare',
       },
       hero: {
-        badge: 'CONSOLĂ OPERAȚIONALĂ MULTI-IMOBIL',
-        title: 'Platformă de Operare pentru Companii de Administrare',
+        badge: 'PROPERTY MANAGEMENT SOFTWARE ROMANIA',
+        title: 'Property Management Software Romania — Platformă de Operare Multi-Imobil',
         subtitle:
-          'Consolă de lucru pentru portofolii: coordonarea echipelor pe workspace-uri delimitate, proiectate să mențină separarea, context de triere tichete, vizibilitate financiară și relația ordonată cu ocupanții, fără dispecerizare automată garantată.',
+          'Consolă de operare pentru companii de property management și administrare de proprietăți în România: coordonarea echipelor pe workspace-uri delimitate, managementul documentelor de proprietate, vizibilitate financiară și gestiunea tehnică a portofoliilor.',
         ctaPrimary: 'Discută Înrolarea Portofoliului',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -367,7 +367,7 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
   return (
     <main className="min-h-screen pt-28 pb-20 bg-[#F6F9FC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-        
+
         {/* BREADCRUMBS & HERO */}
         <div className="space-y-6">
           <div className="flex items-center gap-2 text-xs text-[#52667A] font-medium">
@@ -500,6 +500,76 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
             ))}
           </div>
         </section>
+
+        {/* Cluster C Practical Guide */}
+        {lang === 'ro' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#0A6E62]">
+                  Resurse Tehnice & Bune Practici
+                </span>
+                <h2 className="text-2xl font-bold text-[#102A43]">
+                  Ghiduri Practice pentru Property Management & Documente
+                </h2>
+                <p className="text-sm text-[#52667A]">
+                  Articole de referință privind delimitarea stocării de fișiere de evidențele operaționale de audit și controlul accesului pe portofoliu.
+                </p>
+              </div>
+              <Link
+                href="/ro/resources/guides"
+                className="text-xs font-bold text-[#0E9F8E] hover:text-[#0A6E62] flex items-center gap-1 shrink-0"
+              >
+                Toate ghidurile CLADORA
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Link
+                href="/ro/resources/guides/management-documente-proprietati"
+                className="group p-6 rounded-2xl bg-white border border-[#E2E8F0] hover:border-[#0E9F8E] hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wide">
+                    Documente & Proveniență
+                  </div>
+                  <h3 className="font-bold text-base text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                    Managementul Documentelor în Administrarea Proprietăților: De la Stocare la Evidențe Operaționale Auditate
+                  </h3>
+                  <p className="text-xs text-[#52667A] leading-relaxed">
+                    Diferența critică dintre simpla stocare în cloud (Drive/Dropbox) și evidențele operaționale cu versiuni imutabile, proveniență trasabilă și control de acces pe bază de rol.
+                  </p>
+                </div>
+                <div className="text-xs font-bold text-[#0E9F8E] flex items-center gap-1 group-hover:gap-2 transition-all pt-2">
+                  Citește ghidul complet
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+
+              <Link
+                href="/ro/resources/guides/property-management-software-vs-property-operating-platform"
+                className="group p-6 rounded-2xl bg-white border border-[#E2E8F0] hover:border-[#0E9F8E] hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wide">
+                    Arhitectură de Sistem
+                  </div>
+                  <h3 className="font-bold text-base text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                    Property Management Software vs. Property Operating Platform
+                  </h3>
+                  <p className="text-xs text-[#52667A] leading-relaxed">
+                    Comparație arhitecturală între software-ul tradițional de property management și o platformă de operare unificată pentru active imobiliare.
+                  </p>
+                </div>
+                <div className="text-xs font-bold text-[#0E9F8E] flex items-center gap-1 group-hover:gap-2 transition-all pt-2">
+                  Citește ghidul complet
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* AVAILABILITY GOVERNANCE */}
         <AvailabilityGovernanceSection

@@ -3,15 +3,15 @@ import { getRouteMetadata } from '@/config/routes-metadata';
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  Wrench, 
-  ArrowRight, 
-  CheckCircle2, 
-  Calendar, 
-  AlertTriangle, 
-  FileSpreadsheet, 
-  ShieldCheck, 
-  Clock, 
+import {
+  Wrench,
+  ArrowRight,
+  CheckCircle2,
+  Calendar,
+  AlertTriangle,
+  FileSpreadsheet,
+  ShieldCheck,
+  Clock,
   FileText,
   Building2,
   Cpu
@@ -94,7 +94,7 @@ export default async function OperationsPage(props: { params: Promise<{ lang: La
   return (
     <main className="min-h-screen pt-32 pb-24 bg-[#F6F9FC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
-        
+
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-xs text-[#52667A] font-medium">
           <Link href={`/${lang}`} className="hover:text-[#102A43]">
@@ -111,10 +111,10 @@ export default async function OperationsPage(props: { params: Promise<{ lang: La
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-bold text-blue-800">
             <Wrench className="w-3.5 h-3.5 text-blue-600" />
             <span>
-              {lang === 'ro' 
-                ? 'Gestiunea Tehnică a Clădirilor & Echipamentelor' 
-                : lang === 'fa' 
-                ? 'سامانه جامع مدیریت فنی، تجهیزات و عملیات نگهداری ملک' 
+              {lang === 'ro'
+                ? 'Software Mentenanță Clădiri & Gestiune Tehnică'
+                : lang === 'fa'
+                ? 'سامانه جامع مدیریت فنی، تجهیزات و عملیات نگهداری ملک'
                 : 'Facility Management & Operations OS'}
             </span>
           </div>
@@ -122,7 +122,7 @@ export default async function OperationsPage(props: { params: Promise<{ lang: La
           <h1 className="text-3xl sm:text-5xl font-display font-extrabold text-[#102A43] tracking-tight">
             {lang === 'ro' ? (
               <>
-                Operațiuni & Mentenanță — Active tehnice, revizii periodice și comenzi de lucru <span className="text-blue-600">într-un flux integrat</span>.
+                Software Mentenanță Clădiri — Active tehnice, revizii periodice și comenzi de lucru <span className="text-blue-600">într-un flux integrat</span>.
               </>
             ) : lang === 'fa' ? (
               <>
@@ -137,7 +137,7 @@ export default async function OperationsPage(props: { params: Promise<{ lang: La
 
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'Menținerea valorii patrimoniale a unei proprietăți depinde de rigoarea tehnică. CLADORA transformă intervențiile reactive în mentenanță preventivă documentată, cu alocare clară a sarcinilor și istoric digital permanent.'
+              ? 'Platformă și software de mentenanță clădiri pentru management tehnic riguros. CLADORA transformă intervențiile reactive în mentenanță preventivă documentată: registru digital de echipamente, comenzi de lucru transparente și trasabilitate completă a costurilor.'
               : lang === 'fa'
               ? 'حفظ ارزش سرمایه‌ای ملک وابسته به نگهداری اصولی تأسیسات است. کلادورا مراجعات پراکنده را به سیستمی مدون از پیشگیری، ثبت خرابی، دستورکار با مسئول مشخص و بایگانی شفاف هزینه‌ها تبدیل می‌کند.'
               : 'Preserving real estate asset value demands rigorous preventative care. CLADORA replaces reactive fire-fighting with scheduled maintenance plans, work orders, and equipment audit history.'}
@@ -149,7 +149,7 @@ export default async function OperationsPage(props: { params: Promise<{ lang: La
           {features.map((feat, idx) => {
             const Icon = feat.icon;
             return (
-              <div 
+              <div
                 key={idx}
                 className="card-proptech p-7 bg-white border-[#E2E8F0] space-y-4 hover:border-blue-400 hover:shadow-md transition-all"
               >
@@ -166,6 +166,171 @@ export default async function OperationsPage(props: { params: Promise<{ lang: La
             );
           })}
         </div>
+
+        {/* Target Audience ("Pentru cine este") */}
+        <div className="bg-white rounded-3xl p-8 sm:p-10 border border-[#E2E8F0] space-y-6">
+          <div className="space-y-2">
+            <h2 className="text-xl sm:text-2xl font-bold text-[#102A43]">
+              {lang === 'ro'
+                ? 'Pentru cine este modulul de mentenanță și operațiuni?'
+                : lang === 'fa'
+                ? 'این سامانه برای چه گروه‌هایی طراحی شده است؟'
+                : 'Who is CLADORA Operations for?'}
+            </h2>
+            <p className="text-sm text-[#52667A]">
+              {lang === 'ro'
+                ? 'Conceput pentru echipele care răspund direct de siguranța, continuitatea și integritatea patrimonială a clădirilor.'
+                : lang === 'fa'
+                ? 'طراحی‌شده برای تیم‌هایی که مسئولیت مستقیم ایمنی، تداوم کارکرد و حفظ ارزش فنی ساختمان را بر عهده دارند.'
+                : 'Engineered for operational stakeholders responsible for safety, asset continuity, and lifecycle costs.'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+              <h3 className="font-bold text-sm text-[#102A43]">
+                {lang === 'ro' ? 'Administratori de Imobile & Asociații' : lang === 'fa' ? 'مدیران مجتمع و انجمن‌ها' : 'HOAs & Property Administrators'}
+              </h3>
+              <p className="text-xs text-[#52667A] leading-relaxed">
+                {lang === 'ro'
+                  ? 'Planificarea reviziilor obligatorii (ISCIR, stingătoare, hidrofoare), monitorizarea contractelor de service și arhivarea rapoartelor pentru cenzori.'
+                  : lang === 'fa'
+                  ? 'برنامه‌ریزی بازرسی‌های قانونی، نظارت بر قراردادهای سرویس و بایگانی گزارش‌ها برای بازرسان مالی.'
+                  : 'Automating statutory inspection schedules, service contract tracking, and proof for board audits.'}
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+              <h3 className="font-bold text-sm text-[#102A43]">
+                {lang === 'ro' ? 'Companii de Facility Management' : lang === 'fa' ? 'شرکت‌های مدیریت بهره‌برداری (FM)' : 'Facility Management Firms'}
+              </h3>
+              <p className="text-xs text-[#52667A] leading-relaxed">
+                {lang === 'ro'
+                  ? 'Dispecerat de intervenții pe portofoliu multi-imobil, alocare tehnicieni, monitorizare timpi de răspuns (SLA) și recepție lucrări.'
+                  : lang === 'fa'
+                  ? 'مدیریت درخواست‌ها در چندین مجتمع، تخصیص تکنسین، سنجش زمان پاسخگویی (SLA) و صورت‌جلسه پذیرش.'
+                  : 'Dispatching across multi-site portfolios, technician routing, SLA adherence monitoring, and verified work sign-offs.'}
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+              <h3 className="font-bold text-sm text-[#102A43]">
+                {lang === 'ro' ? 'Manageri Tehnici de Clădiri' : lang === 'fa' ? 'مدیران فنی ساختمان‌های بزرگ' : 'Chief Engineers & Building Ops'}
+              </h3>
+              <p className="text-xs text-[#52667A] leading-relaxed">
+                {lang === 'ro'
+                  ? 'Registru complet al echipamentelor critice, jurnal tehnic de evenimente, planificare reparații capitale și estimări de cost pe ciclu de viață.'
+                  : lang === 'fa'
+                  ? 'شناسنامه دیجیتال تأسیسات حساس، دفتر ثبت وقایع فنی، برنامه‌ریزی تعمیرات اساسی و برآورد هزینه دوره عمر.'
+                  : 'Critical equipment registries, technical incident logs, capital replacement roadmaps, and lifecycle tracking.'}
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+              <h3 className="font-bold text-sm text-[#102A43]">
+                {lang === 'ro' ? 'Prestatori de Servicii & Tehnicieni' : lang === 'fa' ? 'پیمانکاران و تکنسین‌های فنی' : 'Service Vendors & Field Techs'}
+              </h3>
+              <p className="text-xs text-[#52667A] leading-relaxed">
+                {lang === 'ro'
+                  ? 'Primirea comenzilor de lucru cu detalii de acces și echipament, încărcare fișe de service și validare semnată a pieselor înlocuite.'
+                  : lang === 'fa'
+                  ? 'دریافت دستورکار با مشخصات محل و دستگاه، بارگذاری صورت‌جلسه سرویس و تأیید قطعات تعویض‌شده.'
+                  : 'Digital work order intake with access notes, field sign-off uploads, and spare parts audit verification.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Cluster B Practical Guides */}
+        {lang === 'ro' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
+                  Resurse Tehnice & Bune Practici
+                </span>
+                <h2 className="text-2xl font-bold text-[#102A43]">
+                  Ghiduri Practice pentru Mentenanță & Operațiuni Tehnice
+                </h2>
+                <p className="text-sm text-[#52667A]">
+                  Articole fundamentate operațional despre organizarea registrului tehnic, prevenirea avariilor și dispecerizarea intervențiilor.
+                </p>
+              </div>
+              <Link
+                href="/ro/resources/guides"
+                className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 shrink-0"
+              >
+                Toate ghidurile CLADORA
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Link
+                href="/ro/resources/guides/mentenanta-preventiva-cladiri"
+                className="group p-6 rounded-2xl bg-white border border-[#E2E8F0] hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-blue-600 uppercase tracking-wide">
+                    Mentenanță Preventivă
+                  </div>
+                  <h3 className="font-bold text-base text-[#102A43] group-hover:text-blue-600 transition-colors">
+                    Ghid de Mentenanță Preventivă a Clădirilor: Planificare, Frecvențe și Bugete
+                  </h3>
+                  <p className="text-xs text-[#52667A] leading-relaxed">
+                    Trecerea de la reparații reactive de urgență la planuri preventive programate. Frecvențe recomandate, reducerea costurilor operaționale și cadrul legal ISCIR/HG 273.
+                  </p>
+                </div>
+                <div className="text-xs font-bold text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all pt-2">
+                  Citește ghidul complet
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+
+              <Link
+                href="/ro/resources/guides/gestionare-interventii-tehnice-cladiri"
+                className="group p-6 rounded-2xl bg-white border border-[#E2E8F0] hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-blue-600 uppercase tracking-wide">
+                    Intervenții & Ticketing
+                  </div>
+                  <h3 className="font-bold text-base text-[#102A43] group-hover:text-blue-600 transition-colors">
+                    Gestionarea Intervențiilor Tehnice și Avariilor în Clădiri: De la Sesizare la Închidere
+                  </h3>
+                  <p className="text-xs text-[#52667A] leading-relaxed">
+                    Fluxul complet al gestionării incidentelor tehnice: triaj urgențe, comenzi de lucru, monitorizare SLA, rapoarte de intervenție și comunicarea cu locatarii.
+                  </p>
+                </div>
+                <div className="text-xs font-bold text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all pt-2">
+                  Citește ghidul complet
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+
+              <Link
+                href="/ro/resources/guides/registru-echipamente-revizii"
+                className="group p-6 rounded-2xl bg-white border border-[#E2E8F0] hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="text-xs font-bold text-blue-600 uppercase tracking-wide">
+                    Registru Tehnic
+                  </div>
+                  <h3 className="font-bold text-base text-[#102A43] group-hover:text-blue-600 transition-colors">
+                    Registrul Digital al Echipamentelor Tehnice și Evidența Reviziilor Periodice
+                  </h3>
+                  <p className="text-xs text-[#52667A] leading-relaxed">
+                    Identificator unic pe echipament, atribute tehnice, cărți tehnice, garanții și evidența reviziilor obligatorii conform normativelor tehnice în vigoare.
+                  </p>
+                </div>
+                <div className="text-xs font-bold text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all pt-2">
+                  Citește ghidul complet
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Bottom CTA Block */}
         <div className="bg-[#102A43] text-white rounded-3xl p-8 sm:p-12 space-y-6">

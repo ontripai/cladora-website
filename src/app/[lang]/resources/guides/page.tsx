@@ -601,25 +601,142 @@ export default async function GuidesPage(props: { params: Promise<{ lang: Langua
           </div>
         </div>
 
-        {/* Published In-Depth Guides Section */}
+        {/* Published In-Depth Guides Section - Clustered Architecture */}
         {(() => {
           const publishedArticles = getGuideArticlesForLang(lang);
           if (publishedArticles.length === 0) return null;
+
+          if (lang === 'ro') {
+            const clusterA = publishedArticles.filter((a) => a.clusterId === 'cluster-a-associations');
+            const clusterB = publishedArticles.filter((a) => a.clusterId === 'cluster-b-operations');
+            const clusterC = publishedArticles.filter((a) => a.clusterId === 'cluster-c-property-managers');
+
+            const clusters = [
+              {
+                id: 'cluster-a',
+                title: 'Administrarea Asociațiilor de Proprietari',
+                description: 'Ghiduri metodologice, calcule matematice și reglementări conform Legii nr. 196/2018.',
+                pillarTitle: 'Soluția pentru Asociații de Proprietari',
+                pillarHref: '/ro/solutions/associations',
+                badge: 'Cluster A — Guvernanță Rezidențială',
+                articles: clusterA,
+              },
+              {
+                id: 'cluster-b',
+                title: 'Mentenanță & Operațiuni Tehnice',
+                description: 'Strategii de mentenanță preventivă, fluxuri de ticketing și registrul tehnic de echipamente.',
+                pillarTitle: 'Modulul Operațiuni & Mentenanță',
+                pillarHref: '/ro/operations',
+                badge: 'Cluster B — Operațiuni Tehnice',
+                articles: clusterB,
+              },
+              {
+                id: 'cluster-c',
+                title: 'Property Management & Documente',
+                description: 'Gestiunea cărții tehnice, proveniența probatorie a actelor și controlul accesului pe roluri.',
+                pillarTitle: 'Soluția pentru Companii de Administrare',
+                pillarHref: '/ro/solutions/property-managers',
+                badge: 'Cluster C — Gestiune Portofolii',
+                articles: clusterC,
+              },
+            ];
+
+            return (
+              <section className="space-y-16">
+                <div className="border-b border-[#CBD5E1] pb-6 space-y-2">
+                  <span className="text-xs font-bold text-[#0A6E62] uppercase tracking-wider bg-[#E6F4F1] px-3.5 py-1.5 rounded-full border border-[#B2E5DF]">
+                    Clustere de Conținut & Bune Practici
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43]">
+                    Biblioteca Operațională pe Domenii de Specialitate
+                  </h2>
+                  <p className="text-sm sm:text-base text-[#52667A] max-w-3xl leading-relaxed">
+                    Explorează analizele noastre pe clustere tematice: de la calculele cotelor de întreținere și cadrul Legii 196/2018, până la reviziile echipamentelor tehnice și guvernanța documentelor.
+                  </p>
+                </div>
+
+                {clusters.map((cl) => (
+                  <div key={cl.id} className="space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
+                      <div>
+                        <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider">
+                          {cl.badge}
+                        </span>
+                        <h3 className="text-xl sm:text-2xl font-bold text-[#102A43] mt-1">
+                          {cl.title}
+                        </h3>
+                        <p className="text-xs sm:text-sm text-[#64748B]">
+                          {cl.description}
+                        </p>
+                      </div>
+                      <Link
+                        href={cl.pillarHref}
+                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#0E9F8E] hover:text-[#0A6E62] hover:underline shrink-0"
+                      >
+                        <span>{cl.pillarTitle}</span>
+                        <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+                      </Link>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {cl.articles.map((art) => (
+                        <article
+                          key={art.id}
+                          className="bg-white rounded-2xl p-6 sm:p-7 border border-[#CBD5E1] shadow-card hover:border-[#0E9F8E] transition-all flex flex-col justify-between group"
+                        >
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between gap-4">
+                              <span className="text-[11px] font-bold text-[#0A6E62] uppercase tracking-wider bg-[#E6F4F1] px-2.5 py-0.5 rounded-full border border-[#B2E5DF]">
+                                {art.category}
+                              </span>
+                              <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
+                                <Clock className="w-3 h-3" />
+                                <span>{art.readTime}</span>
+                              </div>
+                            </div>
+
+                            <h4 className="text-lg sm:text-xl font-bold text-[#102A43] group-hover:text-[#0A6E62] transition-colors leading-snug">
+                              <Link href={`/${lang}/resources/guides/${art.slug}`}>
+                                {art.title}
+                              </Link>
+                            </h4>
+
+                            <p className="text-xs sm:text-sm text-[#52667A] line-clamp-3 leading-relaxed">
+                              {art.description}
+                            </p>
+                          </div>
+
+                          <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-[#0A6E62]">
+                            <Link
+                              href={`/${lang}/resources/guides/${art.slug}`}
+                              className="hover:underline inline-flex items-center gap-1 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform"
+                            >
+                              <span>Citește Ghidul Complet</span>
+                              <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180 text-[#0E9F8E]" />
+                            </Link>
+                            <time dateTime={art.publicationDate} className="text-xs font-normal text-[#94A3B8]">
+                              {art.publicationDate}
+                            </time>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </section>
+            );
+          }
+
+          // English and Persian Layout
           return (
             <section className="space-y-6">
               <div className="flex items-center justify-between border-b border-[#CBD5E1] pb-4">
                 <div>
                   <span className="text-xs font-bold text-[#0A6E62] uppercase tracking-wider bg-[#E6F4F1] px-3 py-1 rounded-full border border-[#B2E5DF]">
-                    {lang === 'ro'
-                      ? 'Ghiduri Operaționale Publicate'
-                      : lang === 'fa'
-                      ? 'راهنماهای تخصصی منتشرشده'
-                      : 'Published In-Depth Guides'}
+                    {lang === 'fa' ? 'راهنماهای تخصصی منتشرشده' : 'Published In-Depth Guides'}
                   </span>
                   <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] mt-2">
-                    {lang === 'ro'
-                      ? 'Ghiduri de Specialitate & Bune Practici'
-                      : lang === 'fa'
+                    {lang === 'fa'
                       ? 'مقالات و تحلیل‌های جامع معماری و عملیات'
                       : 'Architectural & Operational In-Depth Guides'}
                   </h2>
@@ -660,11 +777,7 @@ export default async function GuidesPage(props: { params: Promise<{ lang: Langua
                         className="hover:underline inline-flex items-center gap-1.5 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition-transform"
                       >
                         <span>
-                          {lang === 'ro'
-                            ? 'Citește Ghidul Complet'
-                            : lang === 'fa'
-                            ? 'مطالعه راهنمای کامل'
-                            : 'Read Full In-Depth Guide'}
+                          {lang === 'fa' ? 'مطالعه راهنمای کامل' : 'Read Full In-Depth Guide'}
                         </span>
                         <ArrowRight className="w-4 h-4 rtl:rotate-180 text-[#0E9F8E]" />
                       </Link>
