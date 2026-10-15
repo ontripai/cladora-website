@@ -45,6 +45,9 @@ on:
       - "scripts/test-core-platform-role-bound-pool-v1.mjs"
       - "scripts/test-core-platform-role-bound-pool-postgres-v1.mjs"
       - "src/lib/core/platform-role-bound-pool-v1.ts"
+      - "src/lib/core/current-unit-property-selector-v1.ts"
+      - "scripts/test-core-current-unit-property-selector-v1.mjs"
+      - "scripts/test-core-current-unit-property-selector-postgres-v1.mjs"
       - "supabase/migrations/*_core_platform_role_bound_pool_v1.sql"
       - "supabase/tests/184_core_platform_role_bound_pool.test.sql"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
@@ -112,6 +115,9 @@ on:
       - "scripts/test-ce-guide-lifecycle-http-v1.mjs"
       - "scripts/test-ce-guide-lifecycle-http-postgres-v1.mjs"
       - "src/lib/community/experience-guide-lifecycle-http-v1.ts"
+      - "src/lib/core/current-unit-property-selector-v1.ts"
+      - "scripts/test-core-current-unit-property-selector-v1.mjs"
+      - "scripts/test-core-current-unit-property-selector-postgres-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs"
       - "src/lib/customer/documents-workspace-binding-writer-v1.ts"
@@ -219,6 +225,11 @@ jobs:
         env:
           CORE_AUTH_PROVIDER_EPHEMERAL: "1"
           CORE_AUTH_PROVIDER_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run current unit-to-property selector PostgreSQL conformance
+        run: npm run test:core-current-unit-property-selector && timeout 180s npm run test:core-current-unit-property-selector:postgres
+        env:
+          CORE_UNIT_PROPERTY_SELECTOR_EPHEMERAL: "1"
+          CORE_UNIT_PROPERTY_SELECTOR_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run typed Core TX provider evidence PostgreSQL conformance
         run: timeout 180s npm run test:core-tx-provider-evidence:postgres
         env:
