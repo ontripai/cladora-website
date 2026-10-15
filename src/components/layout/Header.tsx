@@ -31,7 +31,9 @@ import {
   Bot,
   Hotel,
   Factory,
-  Car
+  Car,
+  BookOpen,
+  BookA
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
@@ -332,28 +334,34 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
   // 5. Resources Menu Content
   const resourcesItems = [
     {
-      title: lang === 'ro' ? 'Centru de Resurse' : lang === 'fa' ? 'مرکز منابع و راهنماها' : 'Resources Overview',
-      desc: lang === 'ro' ? 'Privire generală asupra documentației și ghidurilor' : lang === 'fa' ? 'نمای کلی مستندات و راهنماهای پلتفرم' : 'Knowledge center overview and operational playbooks',
-      href: `/${lang}/resources`,
-      icon: HelpCircle,
+      title: lang === 'ro' ? 'Ghiduri & Bune Practici' : lang === 'fa' ? 'راهنماها و بستر معماری' : 'Guides & Best Practices',
+      desc: lang === 'ro' ? 'Analize aprofundate privind arhitectura și adevărul canonic' : lang === 'fa' ? 'مقالات عمیق پیرامون معماری و مراجع داده‌ها' : 'Deep architectural essays and operational playbooks',
+      href: `/${lang}/resources/guides`,
+      icon: BookOpen,
     },
     {
-      title: lang === 'ro' ? 'Întrebări Frecvente (FAQ)' : lang === 'fa' ? 'پرسش‌های متداول (FAQ)' : 'Frequently Asked Questions',
-      desc: lang === 'ro' ? 'Răspunsuri la întrebări despre onboarding, securitate și costuri' : lang === 'fa' ? 'پاسخ به سوالات راه‌اندازی، امنیت و هزینه‌ها' : 'Answers regarding onboarding, accounting, and security',
-      href: `/${lang}/resources/faq`,
-      icon: HelpCircle,
-    },
-    {
-      title: lang === 'ro' ? 'Ghid de Migrare' : lang === 'fa' ? 'راهنمای مهاجرت سیستم' : 'Migration Guide',
-      desc: lang === 'ro' ? 'Metodologie verificată de tranziție de la sisteme vechi' : lang === 'fa' ? 'روش استاندارد انتقال سوابق از نرم‌افزارهای سنتی' : 'Safe onboarding and ledger transition runbooks',
-      href: `/${lang}/migration`,
+      title: lang === 'ro' ? 'Hub de Migrare' : lang === 'fa' ? 'پایگاه مهاجرت اطلاعات' : 'Migration Hub',
+      desc: lang === 'ro' ? 'Metodologie controlată de tranziție de la sisteme legacy' : lang === 'fa' ? 'روش استاندارد و کنترل‌شده انتقال اطلاعات املاک' : 'Controlled portfolio transition methodology & Zero-Write rules',
+      href: `/${lang}/resources/migration-hub`,
       icon: Compass,
     },
     {
-      title: lang === 'ro' ? 'Centru de Securitate & Încredere' : lang === 'fa' ? 'مرکز امنیت و حفظ داده‌ها' : 'Security & Trust Center',
-      desc: lang === 'ro' ? 'Conformitate GDPR, criptare și garanții de disponibilitate' : lang === 'fa' ? 'تعهدات امنیت داده، رمزنگاری و پایداری سامانه' : 'GDPR compliance, data residency, and audit guarantees',
-      href: `/${lang}/trust`,
+      title: lang === 'ro' ? 'Securitate & Încredere' : lang === 'fa' ? 'امنیت و اعتماد' : 'Security & Trust',
+      desc: lang === 'ro' ? 'Granițe de workspace, guvernanță GDPR și supraveghere AI' : lang === 'fa' ? 'مرزهای تفکیک‌شده، حاکمیت داده و نظارت بر AI' : 'Workspace boundaries, GDPR-aware governance, and AI controls',
+      href: `/${lang}/resources/security`,
       icon: ShieldCheck,
+    },
+    {
+      title: lang === 'ro' ? 'Întrebări Frecvente (FAQ)' : lang === 'fa' ? 'پرسش‌های متداول (FAQ)' : 'Frequently Asked Questions',
+      desc: lang === 'ro' ? 'Răspunsuri tehnice structurate pe 10 domenii de operare' : lang === 'fa' ? 'پاسخ‌های مستند به پرسش‌های کلیدی پلتفرم' : 'Authoritative answers across 10 operational domains',
+      href: `/${lang}/faq`,
+      icon: HelpCircle,
+    },
+    {
+      title: lang === 'ro' ? 'Glosar Canonic' : lang === 'fa' ? 'واژه‌نامه مرجع اصطلاحات' : 'Canonical Glossary',
+      desc: lang === 'ro' ? 'Definițiile oficiale ale celor 30 de concepte cheie' : lang === 'fa' ? 'تعاریف رسمی از مفاهیم و متولیان داده کلادورا' : 'Authoritative definitions for 30 foundational concepts',
+      href: `/${lang}/resources/glossary`,
+      icon: BookA,
     },
   ];
 

@@ -3,7 +3,6 @@ import { getRouteMetadata } from '@/config/routes-metadata';
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { UniversalFaqSection } from '@/components/home/UniversalFaqSection';
 import { HelpCircle, ArrowRight } from 'lucide-react';
 
 export async function generateStaticParams() {
@@ -19,62 +18,64 @@ export async function generateMetadata(
   return getRouteMetadata('/resources/faq', params.lang);
 }
 
-export default async function FaqPage(props: { params: Promise<{ lang: Language }> }) {
+export default async function ResourcesFaqRedirectPage(props: { params: Promise<{ lang: Language }> }) {
   const params = await props.params;
   const { lang } = params;
 
   return (
     <main className="min-h-screen pt-32 pb-24 bg-[#F6F9FC]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-        
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 text-center">
         {/* Breadcrumbs */}
-        <div className="flex items-center gap-2 text-xs text-[#52667A] font-medium">
+        <div className="flex items-center justify-center gap-2 text-xs text-[#52667A] font-medium">
           <Link href={`/${lang}`} className="hover:text-[#102A43]">
             {lang === 'ro' ? 'Acasă' : lang === 'fa' ? 'صفحه اصلی' : 'Home'}
           </Link>
           <span>/</span>
-          <span className="text-[#52667A]">
+          <Link href={`/${lang}/resources`} className="hover:text-[#102A43]">
             {lang === 'ro' ? 'Resurse' : lang === 'fa' ? 'منابع' : 'Resources'}
-          </span>
+          </Link>
           <span>/</span>
-          <span className="text-[#102A43] font-bold">
-            {lang === 'ro' ? 'Întrebări Frecvente' : lang === 'fa' ? 'پرسش‌های متداول' : 'FAQ'}
-          </span>
+          <span className="text-[#102A43] font-bold">FAQ</span>
         </div>
 
-        {/* Universal FAQ Component */}
-        <UniversalFaqSection lang={lang} />
-
-        {/* Help Banner */}
-        <div className="card-proptech p-8 bg-white border-[#D3DCE6] text-center max-w-2xl mx-auto space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center mx-auto">
-            <HelpCircle className="w-6 h-6" />
+        {/* Content Box */}
+        <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#E2E8F0] shadow-card space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center mx-auto">
+            <HelpCircle className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold text-[#102A43]">
-            {lang === 'ro' 
-              ? 'Ai o întrebare specifică despre proiectul tău?' 
-              : lang === 'fa' 
-              ? 'سؤال خاصی درباره مشخصات ملک یا سازمان خود دارید؟' 
-              : 'Have a specific question about your property portfolio?'}
-          </h3>
-          <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#102A43]">
             {lang === 'ro'
-              ? 'Consultanții noștri de integrare te pot ajuta să configurezi structura de Workspace potrivită.'
+              ? 'Centrul Canonic de Întrebări Frecvente'
               : lang === 'fa'
-              ? 'کارشناسان ما آماده بررسی دقیق شرایط ملک و راهنمایی شما در تنظیم ساختار Workspace هستند.'
-              : 'Our integration specialists are ready to guide you in structuring your workspace profile.'}
+              ? 'مرکز رسمی پرسش‌های متداول'
+              : 'Canonical Frequently Asked Questions Center'}
+          </h1>
+
+          <p className="text-sm sm:text-base text-[#52667A] leading-relaxed max-w-xl mx-auto">
+            {lang === 'ro'
+              ? 'Secțiunea completă de întrebări și răspunsuri arhitecturale este acum găzduită canonic la adresa dedicată /faq.'
+              : lang === 'fa'
+              ? 'مجموعه کامل پرسش‌ها و پاسخ‌های معماری اکنون در آدرس مرجع /faq در دسترس است.'
+              : 'Our complete architectural questions and answers library is canonically maintained at our dedicated /faq center.'}
           </p>
-          <div className="pt-2">
+
+          <div className="pt-4">
             <Link
-              href={`/${lang}/contact`}
-              className="inline-flex items-center gap-1.5 px-6 py-2.5 text-xs font-bold text-white bg-[#0E9F8E] hover:bg-[#0A7E71] rounded-xl transition-colors shadow-sm"
+              href={`/${lang}/faq`}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#0E9F8E] text-white text-sm font-bold hover:bg-[#0C8778] transition shadow-card"
             >
-              <span>{lang === 'ro' ? 'Contactează echipa' : lang === 'fa' ? 'ارسال پیام به تیم پشتیبانی' : 'Contact Support'}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>
+                {lang === 'ro'
+                  ? 'Accesează FAQ Canonic'
+                  : lang === 'fa'
+                  ? 'مشاهده پرسش‌های متداول در /faq'
+                  : 'Go to Canonical FAQ'}
+              </span>
+              <ArrowRight className="w-4 h-4 rtl:rotate-180" />
             </Link>
           </div>
         </div>
-
       </div>
     </main>
   );

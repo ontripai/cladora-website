@@ -201,13 +201,28 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/resources/faq`} className="hover:text-white transition-colors">
-                  {lang === 'ro' ? 'Întrebări Frecvente' : lang === 'fa' ? 'پرسش‌های متداول' : 'FAQ'}
+                <Link href={`/${lang}/resources/guides`} className="hover:text-white transition-colors">
+                  {lang === 'ro' ? 'Ghiduri & Bune Practici' : lang === 'fa' ? 'راهنماها و بستر معماری' : 'Guides & Best Practices'}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/capabilities`} className="hover:text-white transition-colors">
-                  {lang === 'ro' ? 'Ghid de Migrare' : lang === 'fa' ? 'راهنمای مهاجرت' : 'Migration Guide'}
+                <Link href={`/${lang}/resources/migration-hub`} className="hover:text-white transition-colors">
+                  {lang === 'ro' ? 'Hub de Migrare' : lang === 'fa' ? 'پایگاه مهاجرت اطلاعات' : 'Migration Hub'}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/resources/security`} className="hover:text-white transition-colors">
+                  {lang === 'ro' ? 'Securitate & Încredere' : lang === 'fa' ? 'امنیت و اعتماد' : 'Security & Trust'}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/faq`} className="hover:text-white transition-colors">
+                  {lang === 'ro' ? 'Întrebări Frecvente (FAQ)' : lang === 'fa' ? 'پرسش‌های متداول' : 'FAQ'}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${lang}/resources/glossary`} className="hover:text-white transition-colors">
+                  {lang === 'ro' ? 'Glosar Canonic' : lang === 'fa' ? 'واژه‌نامه مرجع اصطلاحات' : 'Canonical Glossary'}
                 </Link>
               </li>
               <li>

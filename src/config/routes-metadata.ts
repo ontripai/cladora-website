@@ -453,16 +453,36 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/resources/faq': {
     ro: {
-      title: 'Întrebări Frecvente & Răspunsuri Tehnice',
-      desc: 'Răspunsuri la cele mai comune întrebări despre registre statutare, Legea 196/2018, migrare și securitate.',
+      title: 'Centrul Canonic de Întrebări Frecvente (Consolidat în /faq) | CLADORA',
+      desc: 'Biblioteca completă de întrebări frecvente și clarificări tehnice este găzduită canonic la adresa /faq.',
+      noIndex: true,
     },
     en: {
-      title: 'Frequently Asked Questions & Technical Details',
-      desc: 'Answers to key questions regarding statutory accounting, supplemental ledger controls, compliance, migration, and security.',
+      title: 'Canonical FAQ Center (Consolidated into /faq) | CLADORA',
+      desc: 'Our complete library of frequently asked questions and technical clarifications is canonically hosted at /faq.',
+      noIndex: true,
     },
     fa: {
-      title: 'پرسش‌های متداول و راهنمای فنی',
-      desc: 'پاسخ به سوالات متداول درباره نحوه تسهیم هزینه‌ها، دفاتر قانونی، کنترل‌های حسابداری تکمیلی، انتقال اطلاعات و امنیت سیستم.',
+      title: 'مرکز رسمی پرسش‌های متداول (تجمیع در /faq) | کلادورا',
+      desc: 'مجموعه کامل پرسش‌های متداول و راهنمای فنی به نشانی مرجع /faq منتقل شده است.',
+      noIndex: true,
+    },
+  },
+  '/faq': {
+    ro: {
+      title: 'Întrebări Frecvente & Răspunsuri Arhitecturale | CLADORA',
+      desc: 'Răspunsuri detaliate privind funcționarea platformei, spațiile de lucru, autoritatea utilizatorilor, migrarea patrimoniului și securitatea datelor.',
+      noIndex: false,
+    },
+    en: {
+      title: 'Frequently Asked Questions: Architecture, Workspaces & Operations | CLADORA',
+      desc: 'Authoritative answers covering platform architecture, workspace boundaries, user authority, property migration, and data security.',
+      noIndex: false,
+    },
+    fa: {
+      title: 'پرسش‌های متداول: معماری پلتفرم، فضاهای کاری و عملیات املاک | کلادورا',
+      desc: 'پاسخ‌های دقیق و مستند درباره عملکرد پلتفرم، مرزبندی فضاهای کاری، حدود اختیارات کاربران، انتقال سوابق و امنیت اطلاعات.',
+      noIndex: false,
     },
   },
   '/about': {
@@ -731,19 +751,87 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/resources': {
     ro: {
-      title: 'Resurse, Ghiduri & Documentație',
-      desc: 'Documentație, ghiduri de migrare, întrebări frecvente și resurse de securitate și conformitate.',
-      noIndex: true,
+      title: 'Centru de Resurse, Bune Practici & Documentație | CLADORA',
+      desc: 'Centrul oficial de cunoaștere CLADORA: ghiduri arhitecturale, metodologia controlată de migrare a patrimoniului, securitate și glosar canonic.',
+      noIndex: false,
     },
     en: {
-      title: 'Resources, Guides & Documentation',
-      desc: 'Documentation, migration playbooks, answers to common questions, and trust & compliance resources.',
-      noIndex: true,
+      title: 'Knowledge Center, Best Practices & Documentation | CLADORA',
+      desc: 'Official CLADORA knowledge hub: architectural guides, controlled property data migration methodology, security principles, and canonical glossary.',
+      noIndex: false,
     },
     fa: {
-      title: 'منابع، راهنماها و مستندات',
-      desc: 'مستندات، راهنماهای مهاجرت، پرسش‌های متداول و منابع اعتماد، امنیت و انطباق قانونی.',
-      noIndex: true,
+      title: 'مرکز دانش، متدولوژی‌های عملیاتی و مستندات رسمی | کلادورا',
+      desc: 'پایگاه دانش رسمی کلادورا: راهنماهای معماری، متدولوژی کنترل‌شده مهاجرت اطلاعات املاک، امنیت داده‌ها و واژه‌نامه مرجع اصطلاحات.',
+      noIndex: false,
+    },
+  },
+  '/resources/guides': {
+    ro: {
+      title: 'Biblioteca Canonică de Ghiduri & Bune Practici | CLADORA',
+      desc: 'Ghiduri aprofundate privind operarea imobiliară: decuplarea identității, continuitatea ciclului de viață, adevărul canonic și guvernanța disponibilității.',
+      noIndex: false,
+    },
+    en: {
+      title: 'Canonical Architectural Guides & Operational Best Practices | CLADORA',
+      desc: 'In-depth architectural guides on property operations: identity decoupling, asset lifecycle continuity, canonical truth, and availability governance.',
+      noIndex: false,
+    },
+    fa: {
+      title: 'کتابخانه مرجع راهنماهای معماری و روش‌های عملیاتی | کلادورا',
+      desc: 'راهنماهای تخصصی عملیات املاک: تفکیک هویت، پیوستگی چرخه عمر دارایی، مراجع حقیقت داده‌ها و حاکمیت بر دسترسی‌پذیری قابلیت‌ها.',
+      noIndex: false,
+    },
+  },
+  '/resources/migration-hub': {
+    ro: {
+      title: 'Hub-ul de Migrare Tehnologică & Tranziție Portofolii | CLADORA',
+      desc: 'Metodologia controlată de migrare a activelor imobiliare: principiul Zero-Write, inventarierea surselor, proveniența înregistrărilor și validarea paralelă.',
+      noIndex: false,
+    },
+    en: {
+      title: 'Property Technology Migration & Portfolio Transition Hub | CLADORA',
+      desc: 'Controlled property portfolio migration methodology: the Zero-Write principle, source inventories, data provenance tracking, and shadow validation runs.',
+      noIndex: false,
+    },
+    fa: {
+      title: 'پایگاه مهاجرت فناورانه و انتقال اطلاعات املاک | کلادورا',
+      desc: 'متدولوژی کنترل‌شده انتقال اطلاعات سبد املاک: اصل امتناع از ثبت بدون قطعیت (Zero-Write)، فهرست‌برداری منابع، حفظ اصالت داده‌ها و اجرای موازی.',
+      noIndex: false,
+    },
+  },
+  '/resources/security': {
+    ro: {
+      title: 'Securitate, Guvernanța Datelor & Integritatea Sistemului | CLADORA',
+      desc: 'Arhitectura de securitate și încredere CLADORA: granițe delimitate la nivel de workspace, guvernanță aliniată GDPR, jurnale aditive de audit și control AI.',
+      noIndex: false,
+    },
+    en: {
+      title: 'Security, Data Governance & Platform Integrity Architecture | CLADORA',
+      desc: 'CLADORA security and trust architecture: workspace-scoped boundaries, GDPR-aware data governance, append-oriented audit streams, and governed AI oversight.',
+      noIndex: false,
+    },
+    fa: {
+      title: 'معماری امنیت، حاکمیت اطلاعات و حفظ یکپارچگی سامانه | کلادورا',
+      desc: 'معماری امنیت و اعتماد در کلادورا: مرزهای تفکیک‌شده فضاهای کاری، حاکمیت داده منطبق بر GDPR، لاگ‌های ممیزی ترتیبی و نظارت بر هوش مصنوعی.',
+      noIndex: false,
+    },
+  },
+  '/resources/glossary': {
+    ro: {
+      title: 'Glosar Canonic de Termeni & Concepte Arhitecturale | CLADORA',
+      desc: 'Definițiile oficiale ale celor 30 de concepte fundamentale din ecosistemul CLADORA: CORE, FIN01, DOCUMENTS, BK01, ADN-ul Clădirii și drepturile de autoritate.',
+      noIndex: false,
+    },
+    en: {
+      title: 'Canonical Glossary: Platform Entities & Operating Architecture | CLADORA',
+      desc: 'Authoritative definitions for the 30 foundational concepts in CLADORA: CORE, FIN01, DOCUMENTS, BK01, Building DNA, and contextual authority.',
+      noIndex: false,
+    },
+    fa: {
+      title: 'واژه‌نامه مرجع اصطلاحات، مفاهیم و معماری پلتفرم | کلادورا',
+      desc: 'تعاریف رسمی از ۳۰ مفهوم بنیادین در اکوسیستم کلادورا: مراجع داده CORE, FIN01, DOCUMENTS, BK01، ساختار ساختمانی و حدود اختیارات.',
+      noIndex: false,
     },
   },
 };

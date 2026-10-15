@@ -33,7 +33,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/privacy',
     '/terms',
     '/cookies',
-    '/resources/faq',
+    '/resources',
+    '/resources/guides',
+    '/resources/migration-hub',
+    '/resources/security',
+    '/resources/glossary',
+    '/faq',
   ];
 
   const entries: MetadataRoute.Sitemap = [];
