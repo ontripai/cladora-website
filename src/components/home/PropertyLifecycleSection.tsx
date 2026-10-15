@@ -242,11 +242,11 @@ export const PropertyLifecycleSection: React.FC<PropertyLifecycleSectionProps> =
                 </div>
 
                 <Link
-                  href={`/${lang}/lifecycle`}
+                  href={`/${lang}/platform/lifecycle`}
                   className="text-xs font-bold text-[#0E9F8E] hover:text-[#0A7E71] flex items-center gap-1 self-start sm:self-auto"
                 >
                   <span>{lang === 'ro' ? 'Vezi ghidul ciclului de viață' : lang === 'fa' ? 'مشاهده توضیحات کامل چرخهٔ عمر' : 'Explore lifecycle details'}</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
+                  <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                 </Link>
               </div>
 

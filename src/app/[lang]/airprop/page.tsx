@@ -200,7 +200,7 @@ export default async function AirpropPage(props: { params: Promise<{ lang: Langu
               {lang === 'ro' ? 'Solicită Integrarea AIRPROP' : lang === 'fa' ? 'درخواست فعال‌سازی AIRPROP' : 'Inquire About AIRPROP'}
             </Link>
             <Link
-              href={`/${lang}/lifecycle`}
+              href={`/${lang}/platform/lifecycle`}
               className="w-full sm:w-auto px-7 py-3 text-xs font-bold text-white bg-[#173F5F] hover:bg-[#204E75] border border-[#244A6F] rounded-xl transition-colors text-center"
             >
               {lang === 'ro' ? 'Vezi Ciclul de Viață Complet' : lang === 'fa' ? 'مشاهده تمام چرخهٔ عمر ملک' : 'View Full Lifecycle'}

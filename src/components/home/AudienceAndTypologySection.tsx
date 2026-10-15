@@ -30,7 +30,7 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
       title: lang === 'ro' ? 'Dezvoltatori & Constructori' : lang === 'fa' ? 'سازندگان و توسعه‌دهندگان' : 'Builders & Developers',
       problem: lang === 'ro' ? 'Fragmentarea datelor între vânzări, contracte și procesul greoi de predare către asociație.' : lang === 'fa' ? 'پراکندگی اطلاعات خریداران، عدم انسجام مدارک فنی و اصطکاک در تحویل رسمی واحدها.' : 'Disjointed pre-sales records, lost technical manuals, and chaotic handover friction.',
       solution: lang === 'ro' ? 'Identitate digitală din stadiul de proiect, antecontracte în AIRPROP și predare formală fără pierdere de date.' : lang === 'fa' ? 'تعریف هویت ملک پیش از تکمیل، اتصال پیش‌فروش به قراردادها و تحویل سیستماتیک با بایگانی مستندات.' : 'Digital property identity from project phase, pre-sales tracking, and clean verified handover.',
-      link: `/${lang}/solutions#developers`,
+      link: `/${lang}/solutions/developers`,
       icon: Building
     },
     {
@@ -55,17 +55,17 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
       icon: Layers
     },
     {
-      title: lang === 'ro' ? 'Chiriași & Rezidenți' : lang === 'fa' ? 'مستأجران و بهره‌برداران' : 'Tenants & Occupants',
+      title: lang === 'ro' ? 'Rezidenți & Ocupanți' : lang === 'fa' ? 'ساکنان و بهره‌برداران' : 'Residents & Occupants',
       problem: lang === 'ro' ? 'Lipsa de claritate asupra consumurilor proprii și proceduri greoaie pentru raportarea unei avarii.' : lang === 'fa' ? 'ابهام در تفکیک مصارف شخصی و نبود راه ارتباطی سریع برای اعلام خرابی‌ها.' : 'Lack of insight into personal consumption costs and tedious channels for reporting faults.',
       solution: lang === 'ro' ? 'Acces strict la consumurile de utilități proprii, plăți simple și semnalare rapidă a solicitărilor tehnice.' : lang === 'fa' ? 'شفافیت در فیش مصرف انشعابات، پرداخت آسان و ثبت سریع درخواست رفع نقص با پیگیری وضعیت.' : 'Direct meter consumption history, simple payments, and fast ticket dispatch.',
-      link: `/${lang}/solutions/tenants`,
+      link: `/${lang}/solutions/residents`,
       icon: KeyRound
     },
     {
       title: lang === 'ro' ? 'Furnizori de Servicii' : lang === 'fa' ? 'ارائه‌دهندگان خدمات و تیم‌های فنی' : 'Service Providers & Vendors',
       problem: lang === 'ro' ? 'Comenzi primite informal pe WhatsApp, termene neclare și întârzieri la aprobarea devizelor.' : lang === 'fa' ? 'ارجاع غیررسمی کارها، نبود مستندات شفاف از مشخصات فضا و تأخیر در تأیید و تسویه‌حساب.' : 'Informal chat orders, missing asset specs, and disputes over invoice approvals.',
       solution: lang === 'ro' ? 'Comenzi de lucru structurate cu fișa tehnică a activului, ofertare clară și recepție semnată digital.' : lang === 'fa' ? 'دریافت دستورکار با مشخصات کامل محل و دستگاه، ثبت پیشنهاد، ثبت انجام کار و پذیرش رسمی.' : 'Structured work orders, clear quote acceptance, and digital sign-off attached to assets.',
-      link: `/${lang}/solutions#providers`,
+      link: `/${lang}/solutions/service-providers`,
       icon: Wrench
     }
   ];

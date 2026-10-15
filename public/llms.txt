@@ -1,23 +1,24 @@
-# CLADORA — Residential Asset Operating System
+# CLADORA — Operating Platform for the Built World
 
-> CLADORA is the unified operating system for residential real estate, homeowner associations (HOAs), and multi-property landlord portfolios. Built on immutable double-entry financial accounting, Law 196/2018 statutory compliance, multi-method meter OCR, and verified cost intelligence.
+> CLADORA is the unified operating platform for properties, spaces, and physical assets. Built on persistent property identity, decoupled workspace boundaries, scoped authority, and connected operational domains.
 
-## Core Capabilities & Documentation
+## Core Architecture & Documentation
 
-- [CLADORA Homepage (Română)](https://cladora.ro/ro): Platform overview, 3 operating modes, 17 logical cores, and live simulators.
-- [CLADORA Homepage (English)](https://cladora.ro/en): Global platform overview and architecture.
-- [Association OS](https://cladora.ro/ro/association): Complete Romanian Law 196/2018 compliance, maintenance quota calculations, Cenzor portal, and digital AGMs.
-- [Owner Portfolio OS](https://cladora.ro/ro/portfolio): Multi-property landlord cockpit, 4-way owner-tenant cost split, lease tracking, and net yield analytics.
-- [Management Company OS](https://cladora.ro/ro/manager): Scalable multi-association administration, mass month-end billing (10,000 units in under 30 minutes), and work order dispatching.
-- [Financial Truth Core](https://cladora.ro/ro/financial-truth): True double-entry general ledger (GL), cryptographic month-end locking, and 4-way cost allocation model.
-- [Building DNA & Engineering](https://cladora.ro/ro/building-dna): 8 Building archetypes (A1-A8), envelope condition scoring, and capital reserve planning.
-- [Smart Metering & AI OCR](https://cladora.ro/ro/meters): Multi-method ingestion (Photo AI OCR, QR/NFC physical tags, LoRaWAN/M-Bus radio sensors, and riser leakage detection).
-- [Shadow Ledger Migration](https://cladora.ro/ro/migration): Automated risk-free migration from legacy systems (Xisoft/BlocManager, Aviziero, Platformis, Excel).
-- [Pricing & Interactive Calculator](https://cladora.ro/ro/pricing): Transparent pricing tiers with 20% annual discount and live unit cost estimator.
-- [Pilot Program (Bucharest & Ilfov)](https://cladora.ro/ro/pilot): Cohort onboarding application for 5 associations, 20 landlords, and 2 management companies.
-- [Trust, Security & GDPR](https://cladora.ro/ro/trust): End-to-end encryption, tenant isolation, immutable tamper-evident audit trails, and 99.9% uptime SLO.
+- [CLADORA Platform Overview (English)](https://cladora.ro/en/platform): Decoupled 4-tier architecture, workspace boundaries, and connected operational domains.
+- [CLADORA Platform Overview (Română)](https://cladora.ro/ro/platform): Prezentare generală a platformei și contexte de lucru.
+- [System Architecture](https://cladora.ro/en/platform/architecture): 4-tier decoupled model (Asset, Workspace, Authority, Domain) and canonical provider boundaries (CORE, DOCUMENTS, FIN01, BK01, OPERATIONS, COMMUNICATIONS, AUDIT).
+- [Property Lifecycle](https://cladora.ro/en/platform/lifecycle): Provenance continuity across 10 non-linear asset lifecycle phases from definition to succession.
+- [Trust & Governance](https://cladora.ro/en/platform/trust): Workspace isolation, mandate-based authority, AAL2 authentication, and additive audit logs.
+- [Capabilities Architecture](https://cladora.ro/en/capabilities): Governed enterprise capability framework across 14 capability families.
+- [Industries Architecture](https://cladora.ro/en/industries): Composition of platform capabilities across residential, commercial, logistics, mixed-use, and institutional assets.
+- [Community & Experience](https://cladora.ro/en/community-experience): Experience composition layer for people, places, services, events, guides, and authorized interactions.
+- [CLADORA Intelligence](https://cladora.ro/en/ai): Governed, subordinate operational intelligence operating strictly within workspace authority and policy review.
+- [Solutions Architecture](https://cladora.ro/en/solutions): Tailored solutions for builders, owners, homeowner associations, property managers, tenants, and service providers.
+- [Scope & Partnership Pricing](https://cladora.ro/en/pricing): Scope-based and partnership engagement framework aligned with organizational governance and asset scale.
+- [Partnership & Contact](https://cladora.ro/en/contact): Direct architectural consultation and onboarding assessment.
 
 ## Architecture Specifications
-- **Master Plan Code**: `CLD-PMP-001`
-- **Accounting Framework**: True double-entry bookkeeping with strict zero-variance debit/credit integrity.
-- **Rights Model**: 5D dynamic relation `Person–Property–Role–Time–Purpose`.
+- **Master Architecture Standard**: Decoupled 4-tier model (Asset, Workspace, Authority, Connected Domains).
+- **Canonical Providers**: Single-responsibility authority for identity, documents, financial ledgers, booking capacity, operations dispatch, and communications.
+- **Authority Model**: 5D dynamic tuple `Person–Property–Role–Time–Purpose` enforced by zero-write denial and additive audit logging.
+- **Language Support**: First-class parity across Romanian (RO), English (EN), and Persian (FA).

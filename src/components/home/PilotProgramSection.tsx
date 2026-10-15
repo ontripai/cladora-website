@@ -101,10 +101,10 @@ export const PilotProgramSection: React.FC<PilotSectionProps> = ({ lang }) => {
                 </button>
 
                 <Link
-                  href={`/${lang}/pilot`}
+                  href={`/${lang}/contact`}
                   className="text-xs text-[#CBD5E1] hover:text-white font-semibold underline underline-offset-4"
                 >
-                  {lang === 'ro' ? 'Află mai multe despre criteriile de selecție →' : lang === 'fa' ? 'مشاهده شرایط و معیارهای پذیرش در پایلوت →' : 'Learn about selection criteria →'}
+                  {lang === 'ro' ? 'Discută cu echipa de parteneriat →' : lang === 'fa' ? 'گفتگو با تیم ارزیابی و استقرار →' : 'Discuss partnership scope with our team →'}
                 </Link>
               </div>
 

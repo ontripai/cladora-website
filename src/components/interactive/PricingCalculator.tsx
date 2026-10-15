@@ -4,9 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
 import { getDictionary } from '@/dictionaries';
-import { Check, ArrowRight } from 'lucide-react';
-import { Money } from '@/components/ui/Money';
-import { formatMoney, formatNumber } from '@/config/currencies';
+import { Check, ShieldCheck, ArrowRight, Layers, Globe, Cpu, SlidersHorizontal, CheckCircle2 } from 'lucide-react';
 
 interface PricingCalculatorProps {
   lang: Language;
@@ -14,179 +12,289 @@ interface PricingCalculatorProps {
 
 export const PricingCalculator: React.FC<PricingCalculatorProps> = ({ lang }) => {
   const dict = getDictionary(lang);
-  const [isYearly, setIsYearly] = useState<boolean>(true);
-  const [units, setUnits] = useState<number>(60);
-  const [includeIntelligence, setIncludeIntelligence] = useState<boolean>(true);
+  const p = dict.pricing;
 
-  const discountMultiplier = isYearly ? 0.8 : 1.0;
-  const currency = 'RON';
+  const [selectedContext, setSelectedContext] = useState<string>('community');
+  const [selectedDomains, setSelectedDomains] = useState<string[]>(['fin01', 'ce', 'ops']);
+  const [selectedCountryPack, setSelectedCountryPack] = useState<string>('ro');
+  const [selectedImplementation, setSelectedImplementation] = useState<string>('shadow');
+
+  const toggleDomain = (id: string) => {
+    if (id === 'fin01') return; // Core ledger is statutory locked
+    setSelectedDomains((prev) =>
+      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
+    );
+  };
+
+  const currentContextObj = p.contexts.find((c) => c.id === selectedContext) || p.contexts[0];
+  const currentCountryPackObj = p.countryPacks.find((cp) => cp.id === selectedCountryPack) || p.countryPacks[0];
+  const currentImplementationObj = p.implementationModels.find((im) => im.id === selectedImplementation) || p.implementationModels[0];
 
   return (
     <div className="space-y-12">
-      {/* Top Toggle Row & Units Slider */}
-      <div className="p-6 rounded-3xl bg-white border border-[#D3DCE6] shadow-card max-w-3xl mx-auto space-y-6">
-        
-        {/* Monthly vs Yearly Toggle */}
-        <div className="flex items-center justify-center gap-4">
-          <span className={`text-sm font-bold ${!isYearly ? 'text-[#102A43]' : 'text-[#52667A]'}`}>
-            {dict.pricing.monthly}
-          </span>
-          <button
-            type="button"
-            onClick={() => setIsYearly(!isYearly)}
-            className="relative w-14 h-7 rounded-full bg-[#E2E8F0] border border-[#D3DCE6] p-1 transition-colors focus:outline-none focus:ring-2 focus:ring-[#0E9F8E]"
-            aria-label={lang === 'ro' ? 'Comută între facturare lunară și anuală' : lang === 'fa' ? 'تغییر وضعیت پرداخت ماهانه یا سالانه' : 'Toggle between monthly and annual billing'}
-          >
-            <div
-              className={`w-5 h-5 rounded-full bg-[#087A6E] shadow-md transform transition-transform ${
-                isYearly ? 'translate-x-7 rtl:-translate-x-7' : 'translate-x-0'
-              }`}
-            />
-          </button>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-bold ${isYearly ? 'text-[#102A43]' : 'text-[#52667A]'}`}>
-              {dict.pricing.yearly}
-            </span>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#ECFDF5] text-[#047857] border border-[#A7F3D0]">
-              -20%
-            </span>
-          </div>
-        </div>
-
-        {/* Units Slider */}
-        <div className="space-y-2 pt-2 border-t border-[#F0F4F8]">
-          <div className="flex justify-between items-center">
-            <label htmlFor="pricingUnitsRangeInput" className="text-xs font-bold text-[#102A43]">
-              {dict.pricing.unitsLabel}
-            </label>
-            <span className="text-base font-mono font-bold text-[#0A6E62]">
-              {formatNumber(units, lang)} {lang === 'ro' ? 'apartamente / proprietăți' : lang === 'fa' ? 'واحد مسکونی / ملک' : 'units / properties'}
-            </span>
-          </div>
-          <input
-            id="pricingUnitsRangeInput"
-            name="pricingUnitsRangeInput"
-            aria-label={lang === 'ro' ? 'Număr apartamente pentru calcul tarif' : lang === 'fa' ? 'تعداد واحدها برای محاسبه تعرفه' : 'Number of units for pricing calculation'}
-            type="range"
-            min="10"
-            max="250"
-            step="5"
-            value={units}
-            onChange={(e) => setUnits(Number(e.target.value))}
-            className="w-full accent-[#0E9F8E] cursor-pointer"
-          />
-        </div>
-
-        {/* Addon checkbox */}
-        <div className="flex items-center gap-3 pt-2">
-          <input
-            type="checkbox"
-            id="intelAddon"
-            name="intelAddon"
-            aria-label={lang === 'ro' ? 'Include modulul Cladora Intelligence' : lang === 'fa' ? 'افزودن ماژول هوش مصنوعی کلادورا' : 'Include Cladora Intelligence module'}
-            checked={includeIntelligence}
-            onChange={(e) => setIncludeIntelligence(e.target.checked)}
-            className="w-4 h-4 rounded bg-white border-[#D3DCE6] text-[#0E9F8E] focus:ring-0 cursor-pointer"
-          />
-          <label htmlFor="intelAddon" className="text-xs text-[#52667A] font-medium cursor-pointer">
-            ✨ {lang === 'ro' 
-              ? 'Include modulul Cladora Intelligence & Economii Verificate (+0.50 RON/unitate)' 
-              : lang === 'fa'
-              ? 'افزودن هوش مصنوعی کلادورا و پایش خودکار صرفه‌جویی (+۰٫۵۰ RON به ازای هر واحد)'
-              : 'Include Cladora Intelligence & Verified Savings (+0.50 RON/unit)'}
-          </label>
-        </div>
-
+      {/* Top Header Card */}
+      <div className="text-center max-w-3xl mx-auto space-y-2">
+        <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43]">
+          {p.estimatorTitle}
+        </h2>
+        <p className="text-sm text-[#52667A]">
+          {p.estimatorSubtitle}
+        </p>
       </div>
 
-      {/* 3 Pricing Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-stretch">
-        {dict.pricing.plans.map((plan) => {
-          const isFeatured = plan.id === 'association';
-          const basePrice = plan.basePriceMonthly * discountMultiplier;
-          const unitRate = plan.perUnitMonthly * discountMultiplier;
-          const addonRate = includeIntelligence ? 0.5 * discountMultiplier : 0;
-          const totalMonthly = basePrice + (units * (unitRate + addonRate));
-          const perUnitRate = totalMonthly / units;
-
-          return (
-            <div
-              key={plan.id}
-              className={`rounded-3xl p-8 flex flex-col justify-between relative transition-all duration-300 ${
-                isFeatured
-                  ? 'bg-white border-2 border-[#087A6E] shadow-elevated lg:-translate-y-2'
-                  : 'bg-white border border-[#E2E8F0] shadow-card hover:border-[#B2E5DF]'
-              }`}
-            >
-              {isFeatured && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-[#087A6E] text-white text-[11px] font-bold tracking-wider uppercase shadow-md">
-                  {plan.badge}
-                </div>
-              )}
-
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-2xl font-display font-extrabold text-[#102A43]">
-                    {plan.name}
-                  </h3>
-                  <p className="text-xs text-[#52667A] mt-1">
-                    {plan.tagline}
-                  </p>
-                </div>
-
-                {/* Price Display */}
-                <div className="p-4 rounded-2xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-1">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43]">
-                      <Money amount={Math.round(totalMonthly)} currency={currency} locale={lang} minimumFractionDigits={0} maximumFractionDigits={0} />
-                    </span>
-                    <span className="text-xs font-mono text-[#52667A] font-bold">
-                      / {lang === 'ro' ? 'lună' : lang === 'fa' ? 'ماه' : 'month'}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-[#047857] font-bold font-mono">
-                    {lang === 'ro' 
-                      ? `Echivalent ~${formatMoney(perUnitRate, currency, lang)} / apartament`
-                      : lang === 'fa'
-                      ? `معادل ~${formatMoney(perUnitRate, currency, lang)} به ازای هر واحد`
-                      : `~${formatMoney(perUnitRate, currency, lang)} / unit`}
-                  </div>
-                </div>
-
-                {/* Features List */}
-                <div className="space-y-2.5">
-                  <span className="text-xs font-bold text-[#52667A] uppercase tracking-wider block">
-                    {lang === 'ro' ? 'Ce include pachetul:' : lang === 'fa' ? 'امکانات این بسته:' : 'Included capabilities:'}
-                  </span>
-                  {plan.features.map((feat, fIdx) => (
-                    <div key={fIdx} className="flex items-start gap-2.5 text-xs text-[#52667A]">
-                      <Check className="w-4 h-4 text-[#047857] shrink-0 mt-0.5" />
-                      <span>{feat}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* CTA Button */}
-              <div className="pt-8 mt-4 border-t border-[#F0F4F8]">
-                <Link
-                  href={`/${lang}/pilot`}
-                  className={`w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-xs font-bold transition-all ${
-                    isFeatured
-                      ? 'bg-[#087A6E] hover:bg-[#066056] text-white shadow-sm'
-                      : 'bg-[#102A43] hover:bg-[#173F5F] text-white shadow-sm'
-                  }`}
-                >
-                  <span>{plan.ctaLabel}</span>
-                  <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
-                </Link>
-              </div>
-
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Scope Configurator Controls (7 cols) */}
+        <div className="lg:col-span-7 space-y-8">
+          
+          {/* 1. Operational Context */}
+          <div className="p-6 rounded-2xl bg-white border border-[#D3DCE6] shadow-sm space-y-4">
+            <div className="flex items-center gap-2">
+              <Layers className="w-5 h-5 text-[#0E9F8E]" />
+              <h3 className="text-base font-bold text-[#102A43]">
+                {p.contextLabel}
+              </h3>
             </div>
-          );
-        })}
-      </div>
+            <p className="text-xs text-[#52667A]">{p.contextHelp}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {p.contexts.map((ctx) => {
+                const isSelected = selectedContext === ctx.id;
+                return (
+                  <button
+                    key={ctx.id}
+                    type="button"
+                    onClick={() => setSelectedContext(ctx.id)}
+                    className={`text-start p-4 rounded-xl border transition-all text-xs space-y-1 ${
+                      isSelected
+                        ? 'border-[#087A6E] bg-[#F0FDF4] shadow-sm ring-1 ring-[#087A6E]'
+                        : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1]'
+                    }`}
+                  >
+                    <div className="font-bold text-[#102A43] flex items-center justify-between">
+                      <span>{ctx.name}</span>
+                      {isSelected && <Check className="w-4 h-4 text-[#087A6E] shrink-0" />}
+                    </div>
+                    <p className="text-[11px] text-[#52667A] leading-relaxed">
+                      {ctx.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
+          {/* 2. Capability Domains */}
+          <div className="p-6 rounded-2xl bg-white border border-[#D3DCE6] shadow-sm space-y-4">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-5 h-5 text-[#0E9F8E]" />
+              <h3 className="text-base font-bold text-[#102A43]">
+                {p.domainsLabel}
+              </h3>
+            </div>
+            <p className="text-xs text-[#52667A]">{p.domainsHelp}</p>
+            <div className="space-y-2.5">
+              {p.domains.map((dom) => {
+                const isChecked = selectedDomains.includes(dom.id);
+                const isLocked = dom.id === 'fin01';
+                return (
+                  <div
+                    key={dom.id}
+                    onClick={() => toggleDomain(dom.id)}
+                    className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all text-xs ${
+                      isChecked
+                        ? 'border-[#B2E5DF] bg-[#F6FDFD]'
+                        : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1]'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      id={`dom-${dom.id}`}
+                      checked={isChecked}
+                      disabled={isLocked}
+                      onChange={() => {}}
+                      className="mt-0.5 w-4 h-4 rounded text-[#087A6E] focus:ring-0 cursor-pointer accent-[#087A6E]"
+                    />
+                    <div className="flex-1 space-y-0.5">
+                      <div className="flex items-center justify-between">
+                        <label htmlFor={`dom-${dom.id}`} className="font-bold text-[#102A43] cursor-pointer">
+                          {dom.name}
+                        </label>
+                        {isLocked && (
+                          <span className="text-[10px] font-bold text-[#087A6E] bg-[#E6F6F4] px-2 py-0.5 rounded">
+                            {lang === 'ro' ? 'Nucleu Statutar Obligatoriu' : lang === 'fa' ? 'الزامی / پایه قانونی' : 'Statutory Core'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[#52667A]">
+                        {dom.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Country Pack & 4. Implementation Model */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Country Pack */}
+            <div className="p-6 rounded-2xl bg-white border border-[#D3DCE6] shadow-sm space-y-4">
+              <div className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-[#0E9F8E]" />
+                <h3 className="text-sm font-bold text-[#102A43]">
+                  {p.countryPackLabel}
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {p.countryPacks.map((cp) => {
+                  const isSelected = selectedCountryPack === cp.id;
+                  return (
+                    <button
+                      key={cp.id}
+                      type="button"
+                      onClick={() => setSelectedCountryPack(cp.id)}
+                      className={`w-full text-start p-3 rounded-xl border transition-all text-xs space-y-1 ${
+                        isSelected
+                          ? 'border-[#087A6E] bg-[#F0FDF4] ring-1 ring-[#087A6E]'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1]'
+                      }`}
+                    >
+                      <div className="font-bold text-[#102A43] flex items-center justify-between">
+                        <span>{cp.name}</span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#087A6E]" />}
+                      </div>
+                      <p className="text-[11px] text-[#52667A]">{cp.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Implementation Model */}
+            <div className="p-6 rounded-2xl bg-white border border-[#D3DCE6] shadow-sm space-y-4">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-5 h-5 text-[#0E9F8E]" />
+                <h3 className="text-sm font-bold text-[#102A43]">
+                  {p.implementationLabel}
+                </h3>
+              </div>
+              <div className="space-y-2">
+                {p.implementationModels.map((im) => {
+                  const isSelected = selectedImplementation === im.id;
+                  return (
+                    <button
+                      key={im.id}
+                      type="button"
+                      onClick={() => setSelectedImplementation(im.id)}
+                      className={`w-full text-start p-3 rounded-xl border transition-all text-xs space-y-1 ${
+                        isSelected
+                          ? 'border-[#087A6E] bg-[#F0FDF4] ring-1 ring-[#087A6E]'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1]'
+                      }`}
+                    >
+                      <div className="font-bold text-[#102A43] flex items-center justify-between">
+                        <span>{im.name}</span>
+                        {isSelected && <Check className="w-3.5 h-3.5 text-[#087A6E]" />}
+                      </div>
+                      <p className="text-[11px] text-[#52667A]">{im.desc}</p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Column: Dynamic Scope Summary Profile (5 cols sticky) */}
+        <div className="lg:col-span-5 lg:sticky lg:top-28 space-y-6">
+          <div className="p-8 rounded-3xl bg-white border-2 border-[#087A6E] shadow-xl space-y-6">
+            
+            <div className="space-y-2 border-b border-[#F0F4F8] pb-5">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E6F6F4] text-[11px] font-bold text-[#087A6E] uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{p.commercialModelBadge}</span>
+              </div>
+              <h3 className="text-xl font-display font-extrabold text-[#102A43]">
+                {p.summaryTitle}
+              </h3>
+            </div>
+
+            {/* Scope Summary Details */}
+            <div className="space-y-4 text-xs">
+              <div className="p-3.5 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-1">
+                <span className="text-[10px] font-bold text-[#52667A] uppercase tracking-wider block">
+                  {lang === 'ro' ? 'Tipologie Operațională:' : lang === 'fa' ? 'نوع دارایی انتخاب‌شده:' : 'Operational Context:'}
+                </span>
+                <span className="font-bold text-[#102A43] text-sm block">
+                  {currentContextObj.name}
+                </span>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-2">
+                <span className="text-[10px] font-bold text-[#52667A] uppercase tracking-wider block">
+                  {lang === 'ro' ? 'Domenii Active:' : lang === 'fa' ? 'دامنه‌های فعال:' : 'Active Domains:'} ({selectedDomains.length})
+                </span>
+                <div className="space-y-1">
+                  {selectedDomains.map((dId) => {
+                    const dom = p.domains.find((d) => d.id === dId);
+                    if (!dom) return null;
+                    return (
+                      <div key={dId} className="flex items-center gap-1.5 text-xs text-[#102A43] font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#087A6E] shrink-0" />
+                        <span>{dom.name}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-1">
+                  <span className="text-[10px] font-bold text-[#52667A] uppercase tracking-wider block">
+                    {lang === 'ro' ? 'Reglementare:' : lang === 'fa' ? 'انطباق قانونی:' : 'Compliance:'}
+                  </span>
+                  <span className="font-bold text-[#102A43] text-xs block">
+                    {currentCountryPackObj.name}
+                  </span>
+                </div>
+
+                <div className="p-3 rounded-xl bg-[#F6F9FC] border border-[#E2E8F0] space-y-1">
+                  <span className="text-[10px] font-bold text-[#52667A] uppercase tracking-wider block">
+                    {lang === 'ro' ? 'Tranziție:' : lang === 'fa' ? 'مدل استقرار:' : 'Rollout:'}
+                  </span>
+                  <span className="font-bold text-[#102A43] text-xs block truncate">
+                    {currentImplementationObj.name}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Commercial Framing Note */}
+            <p className="text-xs text-[#52667A] leading-relaxed border-t border-[#F0F4F8] pt-4">
+              {p.commercialModelText}
+            </p>
+
+            {/* Action Buttons */}
+            <div className="space-y-3 pt-2">
+              <Link
+                href={`/${lang}/contact`}
+                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-xs font-bold text-white bg-[#087A6E] hover:bg-[#066056] shadow-sm transition-all"
+              >
+                <span>{p.ctaProposal}</span>
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+              </Link>
+
+              <Link
+                href={`/${lang}/contact`}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-[#102A43] bg-[#F0F4F8] hover:bg-[#E2E8F0] transition-colors"
+              >
+                <span>{p.ctaContact}</span>
+              </Link>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

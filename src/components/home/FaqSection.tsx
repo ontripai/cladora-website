@@ -58,7 +58,7 @@ export const FaqSection: React.FC<FaqSectionProps> = ({ lang }) => {
         ? 'Nu. Chiriașii au acces strict limitat la consumul lunar operațional (apă, salubrizare, cote de întreținere curente) și la tichetele de mentenanță. Ei nu au acces la veniturile din chirie, fondul de reparații de capital, datele altor apartamente sau documentele rezervate proprietarului.'
         : lang === 'fa'
         ? 'خیر. دسترسی مستأجران منحصراً به مصارف جاری انشعابات و ثبت تیکت‌های تعمیرات محدود است. اطلاعات صندوق تعمیرات اساسی، مبالغ اجاره، بازده ملک یا سوابق سایر واحدها کاملاً محرمانه باقی می‌ماند.'
-        : 'No. Tenants only see day-to-day operational consumption costs and maintenance tickets. Capital reserve funds, rental yields, and proprietary owner ledgers remain strictly confidential.'
+        : 'No. Tenants only see day-to-day operational consumption costs and maintenance tickets. Capital reserve funds, rental yields, and private owner ledgers remain strictly confidential.'
     },
     {
       q: lang === 'ro' 

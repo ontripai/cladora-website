@@ -10,6 +10,7 @@ interface PageMetadataOptions {
   keywords?: string[];
   noIndex?: boolean;
   ogType?: 'website' | 'article';
+  singleLanguageOnly?: boolean;
 }
 
 /**
@@ -27,6 +28,7 @@ export function buildPageMetadata({
   keywords,
   noIndex = false,
   ogType = 'website',
+  singleLanguageOnly = false,
 }: PageMetadataOptions): Metadata {
   const baseUrl = getSiteUrl();
   const normalizedPath = path.startsWith('/') ? path : path ? `/${path}` : '';
@@ -51,18 +53,20 @@ export function buildPageMetadata({
     metadataBase: new URL(baseUrl),
     alternates: {
       canonical: `/${lang}${normalizedPath}`,
-      languages: {
-        ro: `/ro${normalizedPath}`,
-        en: `/en${normalizedPath}`,
-        fa: `/fa${normalizedPath}`,
-        'x-default': `/ro${normalizedPath}`,
-      },
+      languages: singleLanguageOnly
+        ? undefined
+        : {
+            ro: `/ro${normalizedPath}`,
+            en: `/en${normalizedPath}`,
+            fa: `/fa${normalizedPath}`,
+            'x-default': `/ro${normalizedPath}`,
+          },
     },
     openGraph: {
       title: formattedTitle,
       description,
       url: canonicalUrl,
-      siteName: 'CLADORA Asset OS',
+      siteName: 'CLADORA',
       locale: intlLocale,
       type: ogType,
       images: [
@@ -72,10 +76,10 @@ export function buildPageMetadata({
           height: 630,
           alt:
             lang === 'ro'
-              ? 'CLADORA — Sistem de operare pentru active rezidențiale'
+              ? 'CLADORA — Platformă de operare pentru proprietăți și active'
               : lang === 'fa'
-              ? 'کلادورا — سیستم عامل مدیریت دارایی‌های مسکونی'
-              : 'CLADORA — Residential Asset Operating System',
+              ? 'کلادورا — پلتفرم عملیات و مدیریت املاک'
+              : 'CLADORA — Property Operating Platform',
           type: 'image/png',
         },
       ],

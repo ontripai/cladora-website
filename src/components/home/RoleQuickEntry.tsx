@@ -49,15 +49,15 @@ export const RoleQuickEntry: React.FC<RoleQuickEntryProps> = ({ lang }) => {
       title: lang === 'ro' ? 'Un apartament în care locuiesc cu chirie' : lang === 'fa' ? 'واحدی که در آن مستأجر هستم' : 'A rented home where I live',
       desc: lang === 'ro' ? 'Sunt chiriaș și am nevoie de calculul corect al consumului și plăți directe' : lang === 'fa' ? 'مستأجر هستم و محاسبه دقیق مصارف انشعابات و پرداخت آسان شارژ می‌خواهم' : 'I am a tenant needing accurate consumption bills and direct maintenance',
       icon: KeyRound,
-      href: `/${lang}/solutions/tenants`,
-      tag: lang === 'ro' ? 'Portalul Chiriașilor' : lang === 'fa' ? 'پرتال مستأجران' : 'Tenant Portal'
+      href: `/${lang}/solutions/residents`,
+      tag: lang === 'ro' ? 'Portalul Ocupanților' : lang === 'fa' ? 'پرتال ساکنان و بهره‌برداران' : 'Resident Portal'
     },
     {
       title: lang === 'ro' ? 'Operațiuni tehnice și mentenanță' : lang === 'fa' ? 'عملیات فنی و نگهداری تأسیسات' : 'Building operations and maintenance',
       desc: lang === 'ro' ? 'Sunt prestator tehnic, instalator sau responsabil revizii ISCIR' : lang === 'fa' ? 'تکنسین فنی، مجری نگهداری آسانسور یا تأسیسات ساختمان هستم' : 'I handle technical repairs, HVAC, elevator maintenance, and work orders',
       icon: Wrench,
-      href: `/${lang}/demo`,
-      tag: lang === 'ro' ? 'Operațiuni Tehnice' : lang === 'fa' ? 'عملیات فنی و نگهداری' : 'Operations'
+      href: `/${lang}/solutions/service-providers`,
+      tag: lang === 'ro' ? 'Furnizori de Servicii' : lang === 'fa' ? 'ارائه‌دهندگان خدمات' : 'Service Providers'
     }
   ];
 
