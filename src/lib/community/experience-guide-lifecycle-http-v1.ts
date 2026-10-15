@@ -11,6 +11,12 @@ import {
   type CoreTransactionProvidersV2,
   type CoreTransactionResultV2,
 } from '../core/postgres-transaction-host-v1';
+import {
+  corePlatformCeGuideExecutorRoleV1,
+  corePlatformCeGuideRuntimeRoleV1,
+  corePlatformRoleBoundPoolContractV1,
+  type CorePlatformRoleBoundPoolV1,
+} from '../core/platform-role-bound-pool-v1';
 import { hasTrustedMutationOrigin } from '../security/same-origin';
 import { createClient } from '../supabase/server';
 import {
@@ -53,9 +59,9 @@ export type ExperienceGuideLifecycleAuthenticationV1 = (
 type CorePool = Pick<Pool, 'connect'>;
 
 export const experienceGuideLifecycleRoleBoundPoolContractV1 =
-  'core-platform-role-bound-pool.v1' as const;
-export const experienceGuideLifecycleExecutionRoleV1 = 'cladora_ce_guide_executor' as const;
-export const experienceGuideLifecycleSessionRoleV1 = 'cladora_ce_guide_runtime' as const;
+  corePlatformRoleBoundPoolContractV1;
+export const experienceGuideLifecycleExecutionRoleV1 = corePlatformCeGuideExecutorRoleV1;
+export const experienceGuideLifecycleSessionRoleV1 = corePlatformCeGuideRuntimeRoleV1;
 
 /**
  * Core/Platform-owned capability. The consumer has no default implementation:
@@ -67,9 +73,7 @@ export const experienceGuideLifecycleSessionRoleV1 = 'cladora_ce_guide_runtime' 
  * product or Core-ledger write. current_user and session_user are independently
  * pinned below; connector, owner and service-role fallback is forbidden.
  */
-export interface ExperienceGuideLifecycleRoleBoundPoolV1 extends CorePool {
-  readonly contract_version: typeof experienceGuideLifecycleRoleBoundPoolContractV1;
-}
+export type ExperienceGuideLifecycleRoleBoundPoolV1 = CorePlatformRoleBoundPoolV1;
 
 export interface ExperienceGuideLifecycleHttpDependenciesV1 {
   readonly role_bound_pool?: ExperienceGuideLifecycleRoleBoundPoolV1 | null;
@@ -125,12 +129,16 @@ const identitySettingsSql = `select
   set_config('request.jwt.claims',$1,true) as claims,
   set_config('request.jwt.claim.sub',$2,true) as subject,
   set_config('request.jwt.claim.aal',$3,true) as assurance,
-  set_config('request.jwt.claim.role',$4,true) as role`;
+  set_config('request.jwt.claim.role',$4,true) as role,
+  set_config('request.cladora.workspace_id',$5,true) as workspace,
+  set_config('request.cladora.context_id',$6,true) as context`;
 const clearIdentitySettingsSql = `select
   set_config('request.jwt.claims','',false),
   set_config('request.jwt.claim.sub','',false),
   set_config('request.jwt.claim.aal','',false),
-  set_config('request.jwt.claim.role','',false)`;
+  set_config('request.jwt.claim.role','',false),
+  set_config('request.cladora.workspace_id','',false),
+  set_config('request.cladora.context_id','',false)`;
 
 const roleBoundIdentitySql =
   'select current_user::text as current_user,session_user::text as session_user';
@@ -161,6 +169,7 @@ function claimsFor(session: ExperienceGuideLifecycleVerifiedSessionV1) {
 export function createExperienceGuideLifecycleRequestPoolV1(
   pool: ExperienceGuideLifecycleRoleBoundPoolV1,
   sessionValue: ExperienceGuideLifecycleVerifiedSessionV1,
+  binding?: Readonly<{ workspace_id: string; context_id: string }>,
 ): CorePool {
   const session = verifiedSessionSchema.parse(sessionValue);
   return {
@@ -186,6 +195,7 @@ export function createExperienceGuideLifecycleRequestPoolV1(
           await assertRoleBoundClient(client);
           await client.query(identitySettingsSql, [
             claimsFor(session), session.actor_id, session.assurance_level, 'authenticated',
+            binding?.workspace_id ?? '', binding?.context_id ?? '',
           ]);
         } else if (normalized === 'commit' || normalized === 'rollback') {
           transactionOpen = false;
@@ -316,7 +326,10 @@ async function readSourceLockCandidate(
   session: ExperienceGuideLifecycleVerifiedSessionV1,
   request: ExperienceGuideLifecycleHttpRequestV1,
 ): Promise<SourceLockCandidate | null> {
-  const client = await createExperienceGuideLifecycleRequestPoolV1(pool, session).connect();
+  const client = await createExperienceGuideLifecycleRequestPoolV1(pool, session, {
+    workspace_id: request.workspace_id,
+    context_id: request.context_id,
+  }).connect();
   let ended = false;
   try {
     // Row locking and READ ONLY are mutually exclusive in PostgreSQL. This
@@ -441,7 +454,10 @@ export async function handleExperienceGuideLifecycleHttpV1(
   }
 
   const host = createCorePostgresTransactionHostV1(
-    createExperienceGuideLifecycleRequestPoolV1(roleBoundPool, session),
+    createExperienceGuideLifecycleRequestPoolV1(roleBoundPool, session, {
+      workspace_id: parsedBody.data.workspace_id,
+      context_id: parsedBody.data.context_id,
+    }),
   );
   const result = await host.execute(command, createExperienceGuideLifecycleCoreProvidersV1());
   return experienceGuideLifecycleHttpResponseV1(result);
