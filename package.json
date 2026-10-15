@@ -63,6 +63,8 @@
     "test:doc-reference": "node scripts/test-documents-reference-authority-v1.mjs",
     "test:doc-reference:postgres": "node scripts/test-documents-reference-authority-postgres-v1.mjs",
     "test:ce-guide-lifecycle:postgres": "node scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs",
+    "test:ce-guide-lifecycle:http": "node scripts/test-ce-guide-lifecycle-http-v1.mjs",
+    "test:ce-guide-lifecycle:http:postgres": "node scripts/test-ce-guide-lifecycle-http-postgres-v1.mjs",
     "test:doc-workspace-writer": "node scripts/test-documents-workspace-binding-writer-v1.mjs",
     "test:doc-workspace-writer:postgres": "node scripts/test-documents-workspace-binding-writer-postgres-v1.mjs",
     "test:doc-null-workspace-closure": "node scripts/test-documents-null-workspace-creation-closure-v1.mjs",
