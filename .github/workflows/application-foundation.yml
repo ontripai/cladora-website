@@ -54,6 +54,7 @@ jobs:
       - run: npm run test:unit
       - run: npm run test:core-jurisdiction-profile
       - run: npm run test:core-jurisdiction-domain-artifact
+      - run: npm run test:core-jurisdiction-domain-artifact-resolver
       - run: npm run test:airprop-b2
       - run: npm run test:app-foundation
       - run: npx tsc --noEmit

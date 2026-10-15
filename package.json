@@ -72,6 +72,8 @@
     "test:core-current-unit-property-selector:postgres": "node scripts/test-core-current-unit-property-selector-postgres-v1.mjs",
     "test:core-jurisdiction-profile": "node --no-warnings --experimental-strip-types scripts/test-core-jurisdiction-profile-v1.mjs",
     "test:core-jurisdiction-domain-artifact": "node --no-warnings --experimental-strip-types scripts/test-core-jurisdiction-domain-artifact-v1.mjs",
+    "test:core-jurisdiction-domain-artifact-resolver": "node scripts/test-core-jurisdiction-domain-artifact-resolver-v1.mjs",
+    "test:core-jurisdiction-domain-artifact-resolver:postgres": "node scripts/test-core-jurisdiction-domain-artifact-resolver-postgres-v1.mjs",
     "test:core-jurisdiction-profile:static": "node scripts/test-core-jurisdiction-profile-static-v1.mjs",
     "test:core-jurisdiction-profile-selector": "node scripts/test-core-jurisdiction-profile-selector-v1.mjs",
     "test:core-jurisdiction-profile-selector:postgres": "node scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs",
