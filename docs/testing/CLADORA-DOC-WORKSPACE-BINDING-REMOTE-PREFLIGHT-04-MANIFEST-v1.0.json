@@ -1,0 +1,251 @@
+{
+  "manifest_version": "1.0",
+  "package": "DOC-WORKSPACE-BINDING-REMOTE-PREFLIGHT-04",
+  "owner": "Documents & Vault",
+  "repository_snapshot": {
+    "branch": "main",
+    "commit": "8a240999083d150861b6b45c9c8671768f4783d0",
+    "tree": "7f029cdcd8359479bfd90d1cfeb7974bea13ac72",
+    "migration_inventory": 258,
+    "merged_deliveries": [
+      {"pr": 396, "merge_commit": "41e83741617fdd52ab8ce65073714a470cd699da"},
+      {"pr": 401, "merge_commit": "1633b5d185edd51a137e713349606ac0ee3dd309"},
+      {"pr": 403, "merge_commit": "9c75ea5cb85bc4453cb80fa58483f4cbe65e7c07"},
+      {"pr": 406, "merge_commit": "13b2bc755364e5e5f8b98c38eaf7dd61b4ac7df3"}
+    ],
+    "airprop_review_registry": {
+      "path": "scripts/test-airprop-b2-safety.mjs",
+      "sha256_file_bytes": "90486831f5d55c82aa5cc782a48428dac5a043ff135c19c4734b6482cc1ab0ce"
+    }
+  },
+  "remote_status": "NOT_RUN_NOT_PASS",
+  "migration_install_order": [
+    "supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql",
+    "supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql",
+    "supabase/migrations/20261014200948_document_null_workspace_creation_closure_v1.sql"
+  ],
+  "schema_migrations_digest_rule": "A digest derived from supabase_migrations.schema_migrations statements is catalog evidence only. It is not, and must never be substituted for, the SHA-256 of the reviewed repository file bytes.",
+  "artifacts": [
+    {
+      "dependency_order": 10,
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "kind": "core_contract_dependency",
+      "owner_workstream": "Core",
+      "sha256_file_bytes": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "depends_on": [],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "TypeScript evidence contract only; creates no database object."
+      },
+      "expected_owner_acl_rls": "No database owner, ACL or RLS effect; Core source ownership applies.",
+      "historical_null_behavior": "Does not inspect or mutate Documents rows."
+    },
+    {
+      "dependency_order": 20,
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "kind": "core_replay_contract_dependency",
+      "owner_workstream": "Core",
+      "sha256_file_bytes": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "depends_on": [
+        "src/lib/core/transaction-provider-evidence-v1.ts"
+      ],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "TypeScript replay marker/hash contract only; creates no database object."
+      },
+      "expected_owner_acl_rls": "No database owner, ACL or RLS effect; Core source ownership applies.",
+      "historical_null_behavior": "Does not repair or reinterpret historical Workspace bindings."
+    },
+    {
+      "dependency_order": 30,
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "kind": "core_authority_dependency",
+      "owner_workstream": "Core",
+      "sha256_file_bytes": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "depends_on": [],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "Canonical current-authority provider implementation; creates no database object."
+      },
+      "expected_owner_acl_rls": "Consumes the installed Core authority schema under its separately reviewed execution role; this manifest adds no grant.",
+      "historical_null_behavior": "Provides current authority only and never supplies an inferred Documents Workspace."
+    },
+    {
+      "dependency_order": 40,
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "kind": "core_transaction_host_dependency",
+      "owner_workstream": "Core",
+      "sha256_file_bytes": "eb89d03320549a721a54df10fa747f8977d9f42f6dfaa2e85ae89e1265c37d7c",
+      "depends_on": [
+        "src/lib/core/transaction-provider-evidence-v1.ts",
+        "src/lib/core/transaction-replay-provider-hook-v1.ts",
+        "src/lib/core/current-authority-postgres-provider-v1.ts"
+      ],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "Defines CoreTransactionScopeV1 and provider interfaces; creates no database object."
+      },
+      "expected_owner_acl_rls": "Uses the canonical installed Core ledger/authority ACL boundary; this manifest adds no host, role or grant.",
+      "historical_null_behavior": "Runs providers in the same transaction but does not backfill or infer Documents Workspace bindings."
+    },
+    {
+      "dependency_order": 50,
+      "path": "supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql",
+      "kind": "documents_migration",
+      "owner_workstream": "Documents & Vault",
+      "sha256_file_bytes": "988a8ddea361421cf6d75700ac3b0332c59ef0e10862201d2c2da0db48f91c51",
+      "depends_on": [],
+      "expected_schema_function_trigger": {
+        "schemas": ["documents", "platform"],
+        "columns": ["documents.documents.workspace_id uuid NULL DEFAULT NULL"],
+        "constraints": ["documents.document_reference_workspace_tenant_v1 FOREIGN KEY (workspace_id,tenant_id) -> platform.customer_workspaces(id,tenant_id) ON DELETE RESTRICT"],
+        "indexes": ["documents.document_reference_workspace_tenant_v1_idx (workspace_id,tenant_id)"],
+        "functions": [],
+        "triggers": []
+      },
+      "expected_owner_acl_rls": "documents.documents remains owned by postgres with RLS enabled. This migration adds no policy or grant and preserves the live-main ACL/policy set.",
+      "historical_null_behavior": "Existing rows remain NULL with no default or backfill. Exact resolver/selector predicates fail closed for NULL."
+    },
+    {
+      "dependency_order": 60,
+      "path": "src/lib/customer/documents-reference-authority-v1.ts",
+      "kind": "documents_resolver_implementation",
+      "owner_workstream": "Documents & Vault",
+      "sha256_file_bytes": "207508432524698b701f5808d4b74ee4c007950d262c238dc7164f734f47b5b5",
+      "depends_on": [
+        "supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql",
+        "src/lib/core/transaction-provider-evidence-v1.ts",
+        "src/lib/core/postgres-transaction-host-v1.ts"
+      ],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "Inactive TypeScript provider/selector logic; creates no database object."
+      },
+      "expected_owner_acl_rls": "Reads canonical Documents tables through the installed execution-role ACL and their enabled RLS policies; returns metadata-only evidence.",
+      "historical_null_behavior": "The exact workspace_id predicate makes every historical NULL document an indistinguishable fail-closed denial with zero write."
+    },
+    {
+      "dependency_order": 70,
+      "path": "supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql",
+      "kind": "documents_migration",
+      "owner_workstream": "Documents & Vault",
+      "sha256_file_bytes": "1e7b64b5e623b9ca9f3eee43e1b41ac61f9fe9be008d1c59fa90e68d9ed3804d",
+      "depends_on": [
+        "supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql"
+      ],
+      "expected_schema_function_trigger": {
+        "schemas": ["documents", "platform"],
+        "columns": [
+          "documents.upload_intents.workspace_id uuid NULL DEFAULT NULL",
+          "documents.upload_intents.prospective_document_id uuid NULL DEFAULT NULL"
+        ],
+        "constraints": [
+          "documents.upload_intents_workspace_tenant_v1 FOREIGN KEY (workspace_id,tenant_id) -> platform.customer_workspaces(id,tenant_id) ON DELETE RESTRICT",
+          "documents.upload_intents_workspace_prospective_pair_v1 CHECK paired NULL/non-NULL",
+          "documents.upload_intents_bound_new_document_v1 CHECK workspace_id IS NULL OR document_id IS NULL"
+        ],
+        "indexes": [
+          "documents.upload_intents_workspace_tenant_v1_idx (workspace_id,tenant_id)",
+          "documents.upload_intents_prospective_document_v1_idx UNIQUE (prospective_document_id) WHERE prospective_document_id IS NOT NULL"
+        ],
+        "functions": ["documents.reject_document_workspace_rebind_v1() SECURITY INVOKER SET search_path=pg_catalog"],
+        "triggers": ["documents.document_workspace_binding_immutable_v1 BEFORE UPDATE OF workspace_id ON documents.documents"]
+      },
+      "expected_owner_acl_rls": "Function and affected tables are expected owner postgres. Function EXECUTE is revoked from PUBLIC, anon, authenticated and service_role. Existing table RLS stays enabled; no policy or positive grant is added.",
+      "historical_null_behavior": "Historical NULL intents remain unbound. Every workspace_id UPDATE, including NULL to value, value to NULL and value to another value, is rejected."
+    },
+    {
+      "dependency_order": 80,
+      "path": "src/lib/customer/documents-workspace-binding-writer-v1.ts",
+      "kind": "documents_writer_implementation",
+      "owner_workstream": "Documents & Vault",
+      "sha256_file_bytes": "33946d944b49eea1495bddca1979aa19f227694e533106c91d4ceed234f83c94",
+      "depends_on": [
+        "supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql",
+        "src/lib/core/current-authority-postgres-provider-v1.ts",
+        "src/lib/core/postgres-transaction-host-v1.ts",
+        "src/lib/core/transaction-replay-provider-hook-v1.ts"
+      ],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "Inactive TypeScript writer; uses the existing tables and Core host and creates no database object."
+      },
+      "expected_owner_acl_rls": "Requires the canonical execution-role ACL/RLS boundary and trusted object verifier. Adds no route, role, policy or grant.",
+      "historical_null_behavior": "Fresh commands require explicit Workspace and a fresh bound intent. Exact replay validates consumed intent and committed result; historical receipts without the replay marker fail PROVIDER_UNAVAILABLE."
+    },
+    {
+      "dependency_order": 90,
+      "path": "src/lib/customer/documents-ce012-reference-contract.ts",
+      "kind": "documents_reference_contract_dependency",
+      "owner_workstream": "Documents & Vault",
+      "sha256_file_bytes": "1c6cae9052fb8bb1910f88af4ef264dbd973c52fe81e5394e1527db4aa2d4b93",
+      "depends_on": [],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "Immutable reference target schema only; creates no database object."
+      },
+      "expected_owner_acl_rls": "No database effect.",
+      "historical_null_behavior": "Carries exact document/version identity and offers no Workspace inference."
+    },
+    {
+      "dependency_order": 100,
+      "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+      "kind": "documents_selector_implementation",
+      "owner_workstream": "Documents & Vault",
+      "sha256_file_bytes": "51d80abfd0fda5d005d7c54b734b2bc8e2a168a6d3d87b0e05050146fa7089c7",
+      "depends_on": [
+        "src/lib/customer/documents-reference-authority-v1.ts",
+        "src/lib/customer/documents-ce012-reference-contract.ts",
+        "src/lib/core/current-authority-postgres-provider-v1.ts",
+        "src/lib/core/postgres-transaction-host-v1.ts"
+      ],
+      "expected_schema_function_trigger": {
+        "schemas": [],
+        "functions": [],
+        "triggers": [],
+        "note": "Inactive transaction-scoped TypeScript selector; creates no database object."
+      },
+      "expected_owner_acl_rls": "Uses current Core authority and SELECT/FOR SHARE through canonical role-bound ACL/RLS. Returns metadata/status only.",
+      "historical_null_behavior": "Requires exact non-NULL Workspace equality; NULL, cross-Workspace, stale, revoked, unsafe scan and deleted states fail closed with zero write."
+    },
+    {
+      "dependency_order": 110,
+      "path": "supabase/migrations/20261014200948_document_null_workspace_creation_closure_v1.sql",
+      "kind": "documents_migration",
+      "owner_workstream": "Documents & Vault",
+      "sha256_file_bytes": "5d8b2b6d68868001e7fdc6085c87aabe5568917d271a84192734c9643e8496e8",
+      "depends_on": [
+        "supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql",
+        "src/lib/customer/documents-workspace-binding-writer-v1.ts"
+      ],
+      "expected_schema_function_trigger": {
+        "schemas": ["documents"],
+        "functions": [
+          "documents.reject_unbound_new_document_intent_v1() SECURITY INVOKER SET search_path=pg_catalog",
+          "documents.require_workspace_bound_document_insert_v1() SECURITY INVOKER SET search_path=pg_catalog"
+        ],
+        "triggers": [
+          "documents.upload_intent_new_document_binding_required_v1 BEFORE INSERT ON documents.upload_intents",
+          "documents.upload_intent_unbound_consumption_denied_v1 BEFORE UPDATE OF status,consumed_at ON documents.upload_intents",
+          "documents.document_workspace_creation_guard_v1 BEFORE INSERT ON documents.documents"
+        ]
+      },
+      "expected_owner_acl_rls": "Both functions owner postgres; EXECUTE revoked from PUBLIC, anon, authenticated and service_role. documents.documents and documents.upload_intents remain owner postgres with RLS enabled. No policy or positive grant is added.",
+      "historical_null_behavior": "Existing NULL documents/intents are untouched. Historical NULL documents stay unreadable; an unbound historical new-document intent cannot be consumed; no backfill, default, inference, rebind or auto-upgrade occurs."
+    }
+  ]
+}
