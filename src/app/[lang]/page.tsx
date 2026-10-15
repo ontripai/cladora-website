@@ -1,15 +1,14 @@
 import React from 'react';
 import { Language } from '@/types';
 import { UniversalHeroSection } from '@/components/home/UniversalHeroSection';
-import { OperatingModelSection } from '@/components/home/OperatingModelSection';
+import { WorkspaceModelSection } from '@/components/home/WorkspaceModelSection';
 import { PropertyLifecycleSection } from '@/components/home/PropertyLifecycleSection';
-import { ConnectedDomainsSection } from '@/components/home/ConnectedDomainsSection';
-import { SharedFoundationSection } from '@/components/home/SharedFoundationSection';
-import { SolutionsWhoSection } from '@/components/home/SolutionsWhoSection';
-import { IndustryPreviewSection } from '@/components/home/IndustryPreviewSection';
-import { WhyCladoraSection } from '@/components/home/WhyCladoraSection';
-import { CladoraIntelligencePreviewSection } from '@/components/home/CladoraIntelligencePreviewSection';
-import { FinalPartnershipCtaSection } from '@/components/home/FinalPartnershipCtaSection';
+import { ThreeDomainsSection } from '@/components/home/ThreeDomainsSection';
+import { AudienceAndTypologySection } from '@/components/home/AudienceAndTypologySection';
+import { DelegationAndSuccessionSection } from '@/components/home/DelegationAndSuccessionSection';
+import { TrustAndResponsibleAccessSection } from '@/components/home/TrustAndResponsibleAccessSection';
+import { UniversalFaqSection } from '@/components/home/UniversalFaqSection';
+import { UniversalFinalCtaSection } from '@/components/home/UniversalFinalCtaSection';
 
 export async function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'ro' }, { lang: 'fa' }];
@@ -27,35 +26,32 @@ export default async function HomePage(props: PageProps) {
 
   return (
     <main className="min-h-screen">
-      {/* SECTION 01 — HERO & ARCHITECTURAL VISUAL */}
+      {/* 1. Hero: Canonical CLADORA definition & clear action routes */}
       <UniversalHeroSection lang={lang} />
 
-      {/* SECTION 02 — THE OPERATING MODEL: PROPERTY → WORKSPACE → PEOPLE → DOMAINS */}
-      <OperatingModelSection lang={lang} />
+      {/* 2. Workspace Conceptual Model: Property vs Workspace vs Persons */}
+      <WorkspaceModelSection lang={lang} />
 
-      {/* SECTION 03 — LIFECYCLE CONTINUITY ACROSS DECADES */}
+      {/* 3. The 6-Stage Property Lifecycle: From Pre-sale to Operations & Succession */}
       <PropertyLifecycleSection lang={lang} />
 
-      {/* SECTION 04 — CONNECTED DOMAINS: AIRPROP, SERVICE, OPERATIONS, COMMUNITY */}
-      <ConnectedDomainsSection lang={lang} />
+      {/* 4. Three Interconnected Operational Domains & Shared Core Truth */}
+      <ThreeDomainsSection lang={lang} />
 
-      {/* SECTION 05 — SHARED FOUNDATION & CANONICAL TRUTH ACROSS 10 CAPABILITIES */}
-      <SharedFoundationSection lang={lang} />
+      {/* 5. Stakeholder Audiences & Property Typologies (Residential, Commercial, Industrial, Mixed) */}
+      <AudienceAndTypologySection lang={lang} />
 
-      {/* SECTION 06 — SOLUTIONS / WHO USES CLADORA (6 KEY ROLES) */}
-      <SolutionsWhoSection lang={lang} />
+      {/* 6. Roles, Mandate Duration & Accountable Succession */}
+      <DelegationAndSuccessionSection lang={lang} />
 
-      {/* SECTION 07 — INDUSTRY PREVIEW & COMPOSABLE PRESETS */}
-      <IndustryPreviewSection lang={lang} />
+      {/* 7. Security in Foundation, Responsible Contextual Access & Privacy */}
+      <TrustAndResponsibleAccessSection lang={lang} />
 
-      {/* SECTION 08 — WHY CLADORA: 6 STRUCTURAL DIFFERENTIATORS */}
-      <WhyCladoraSection lang={lang} />
+      {/* 8. Practical Architecture FAQ */}
+      <UniversalFaqSection lang={lang} />
 
-      {/* SECTION 09 — CLADORA INTELLIGENCE PREVIEW (6-STAGE GOVERNED AI MODEL) */}
-      <CladoraIntelligencePreviewSection lang={lang} />
-
-      {/* SECTION 10 — FINAL ENTERPRISE PARTNERSHIP CTA */}
-      <FinalPartnershipCtaSection lang={lang} />
+      {/* 9. Final Call to Action */}
+      <UniversalFinalCtaSection lang={lang} />
     </main>
   );
 }

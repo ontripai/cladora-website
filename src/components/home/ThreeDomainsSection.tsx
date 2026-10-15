@@ -1,18 +1,18 @@
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  Database, 
-  Sparkles, 
-  Briefcase, 
-  Wrench, 
-  ArrowRight, 
-  CheckCircle2, 
-  ShieldCheck, 
-  FileText, 
-  Layers, 
-  TrendingUp, 
-  Calendar, 
+import {
+  Database,
+  Sparkles,
+  Briefcase,
+  Wrench,
+  ArrowRight,
+  CheckCircle2,
+  ShieldCheck,
+  FileText,
+  Layers,
+  TrendingUp,
+  Calendar,
   FileSpreadsheet,
   Coins
 } from 'lucide-react';
@@ -25,17 +25,17 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
   return (
     <section className="py-20 bg-white border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
           <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider bg-[#EAF8F5] px-3.5 py-1 rounded-full border border-[#B2E5DF]">
             {lang === 'ro' ? 'Ecosistemul Complet CLADORA' : lang === 'fa' ? 'ارکان پلتفرم و حوزههای خدمات' : 'The Connected Ecosystem'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
-            {lang === 'ro' 
-              ? 'Un nucleu comun solid și trei domenii operaționale conectate' 
-              : lang === 'fa' 
-              ? 'هستهٔ مشترک و سه حوزهٔ خدمات پیوسته' 
+            {lang === 'ro'
+              ? 'Un nucleu comun solid și trei domenii operaționale conectate'
+              : lang === 'fa'
+              ? 'هستهٔ مشترک و سه حوزهٔ خدمات پیوسته'
               : 'One Shared Core & Three Interconnected Domains'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
@@ -54,7 +54,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
               <div className="flex items-center gap-2">
                 <Database className="w-5 h-5 text-[#0E9F8E]" />
                 <span className="text-xs font-bold uppercase tracking-wider text-[#0E9F8E]">
-                  {lang === 'ro' ? 'Fundația Comună • Nucleul CLADORA' : lang === 'fa' ? 'زیرساخت تغییرناپذیر • هستهٔ مشترک CLADORA' : 'Shared Foundation • CLADORA Core'}
+                  {lang === 'ro' ? 'Fundația Comună • Nucleul CLADORA' : lang === 'fa' ? 'زیرساخت بنیادین • هستهٔ مشترک CLADORA' : 'Shared Foundation • CLADORA Core'}
                 </span>
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-[#102A43]">
@@ -62,9 +62,9 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
               </h3>
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Identitatea imobilului și a spațiilor, granițele Workspace, dosarele persoanelor, seiful de documente, jurnalul contabil cu dublă înregistrare, mesageria oficială și pistele de audit imutabile.'
+                  ? 'Identitatea imobilului și a spațiilor, granițele Workspace, dosarele persoanelor, seiful de documente, jurnalul contabil cu dublă înregistrare, mesageria oficială și pistele de audit securizate.'
                   : lang === 'fa'
-                  ? 'هویت ملک، واحدها و تجهیزات؛ مرزهای Workspace و حدود اختیار اعضا؛ اسناد و نسخه‌ها؛ دفاتر مالی و تسهیم هزینه‌ها؛ مکاتبات رسمی و ثبت تغییرناپذیر سوابق.'
+                  ? 'هویت ملک، واحدها و تجهیزات؛ مرزهای Workspace و حدود اختیار اعضا؛ اسناد و نسخه‌ها؛ دفاتر مالی و تسهیم هزینه‌ها؛ مکاتبات رسمی و ثبت امن و ساختاریافته سوابق.'
                   : 'Property and unit registry, workspace boundaries, document vault, double-entry analytical ledger, official notices, and tamper-evident audit history.'}
               </p>
             </div>
@@ -80,7 +80,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 {lang === 'ro' ? 'Contabilitate & Alocări' : lang === 'fa' ? 'دفاتر مالی و تسهیم' : 'Double-entry Ledger'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
-                {lang === 'ro' ? 'Jurnal Audit Imutabil' : lang === 'fa' ? 'سابقه حسابرسی' : 'Audit Trail'}
+                {lang === 'ro' ? 'Jurnal Audit Securizat' : lang === 'fa' ? 'سابقه حسابرسی' : 'Audit Trail'}
               </span>
             </div>
           </div>
@@ -88,7 +88,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
 
         {/* 3 Operational Domains Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
+
           {/* Domain 1: AIRPROP */}
           <div className="card-proptech p-8 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-amber-400 hover:shadow-lg transition-all group">
             <div className="space-y-5">
@@ -140,7 +140,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center justify-between w-full"
               >
                 <span>{lang === 'ro' ? 'Descoperă AIRPROP' : lang === 'fa' ? 'جزئیات سامانه AIRPROP' : 'Explore AIRPROP'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>
           </div>
@@ -196,7 +196,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center justify-between w-full"
               >
                 <span>{lang === 'ro' ? 'Descoperă modulul SERVICE' : lang === 'fa' ? 'جزئیات سامانه SERVICE' : 'Explore SERVICE'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>
           </div>
@@ -252,7 +252,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 className="text-xs font-bold text-blue-700 hover:text-blue-800 flex items-center justify-between w-full"
               >
                 <span>{lang === 'ro' ? 'Descoperă modulul Operațiuni' : lang === 'fa' ? 'جزئیات عملیات و نگهداری' : 'Explore Operations'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>
           </div>
