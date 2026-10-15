@@ -1,12 +1,21 @@
 # AIRPROP Artifact B2 unit-scope activation gate 03
 
-Status: acceptance package prepared; activation blocked on an unpublished Core candidate.
+Status: exact Core candidate published; activation remains blocked pending Core acceptance, AIRPROP consumer integration, and separate activation approval.
 
 Baseline: `8a240999083d150861b6b45c9c8671768f4783d0`.
 
 Core dependency: `CORE-CURRENT-UNIT-PROPERTY-SELECTOR-01`.
 
-Required Core head, tree, manifest, and hashes: `NOT_PUBLISHED`. AIRPROP will pin and review the exact candidate after Core publishes it. This document is a consumer acceptance contract, not a Core interface, selector implementation, or permission to activate the gateway.
+Published candidate: Core PR #417, head `1a3d7811f53a667491dfeede5c80f84a0a98f47b`, tree `1a168608e2f408820c5fb6f2a230d0ea820bed9c`.
+
+| Candidate artifact | SHA-256 |
+| --- | --- |
+| `src/lib/core/current-unit-property-selector-v1.ts` | `cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd` |
+| `scripts/test-core-current-unit-property-selector-v1.mjs` | `7ccf4a54f571cd82e090696b68962bae27e84fc29a426bb2dcb94d3b3cae7ce4` |
+| `scripts/test-core-current-unit-property-selector-postgres-v1.mjs` | `4c972b2def85cfffd52fa037e5d7caf5757497eade46a130f407a9b2c7440aa7` |
+| `docs/contracts/CLADORA-CORE-CURRENT-UNIT-PROPERTY-SELECTOR-v1.0.md` | `98f03a53c37ed0c8fb03bf064bfe47cd74a37305f748604445f4c5ef49e570fb` |
+
+The hashes above were read from the exact published candidate. They identify the review target but do not approve its semantics. This document is a consumer acceptance contract, not a Core interface, selector implementation, AIRPROP guard update, or permission to activate the gateway.
 
 ## Current merged behavior
 
@@ -64,7 +73,7 @@ The selector and its integration must be read-only. They must not create audit, 
 
 Authentication failures remain bounded before portfolio access: missing or invalid authentication is `401`, and verified AAL1 is `403`. Those outcomes do not establish unit-scope behavior. Cross-Workspace and scope denials that reach the current adapter remain public unavailable responses unless a separately reviewed error contract changes that behavior.
 
-## Acceptance execution after Core publication
+## Acceptance execution for the published Core candidate
 
 1. Freeze the exact Core head, tree, file manifest, and hashes. Record Core review for that same head. Do not update the AIRPROP guard before the final artifact exists.
 2. Verify the Core-owned selector implements all required bindings and is consumed inside the same Artifact A read transaction. Reject any second-call or cached precheck design.
@@ -75,6 +84,6 @@ Authentication failures remain bounded before portfolio access: missing or inval
 
 ## Gate decision
 
-`BLOCKED_PENDING_EXACT_CORE_CANDIDATE`.
+`BLOCKED_PENDING_CORE_ACCEPTANCE_AND_AIRPROP_INTEGRATION`.
 
-This package is ready for Core handoff and later AIRPROP acceptance work. It does not approve selector semantics before an exact candidate exists, and it does not authorize a migration, grant, Remote installation, runtime composition, production HTTP route, or activation.
+This package now pins the exact Core review target and is ready for Core acceptance and later AIRPROP consumer integration. It does not itself approve selector semantics and does not authorize a migration, grant, Remote installation, runtime composition, production HTTP route, or activation.
