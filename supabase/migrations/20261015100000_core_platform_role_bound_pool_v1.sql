@@ -138,7 +138,8 @@ grant execute on function
   to cladora_rpc_owner;
 grant select(id,tenant_id,archived_at,lifecycle_status)
   on platform.customer_workspaces to cladora_rpc_owner;
-grant select(id,tenant_id,membership_id,starts_at,ends_at)
+grant select(id,tenant_id,membership_id,scope_type,property_id,building_id,
+  unit_id,starts_at,ends_at)
   on identity.context_grants to cladora_rpc_owner;
 grant select(id,tenant_id,user_id,role_id,status,starts_at,ends_at)
   on identity.memberships to cladora_rpc_owner;
