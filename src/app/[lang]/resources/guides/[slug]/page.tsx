@@ -371,6 +371,26 @@ export default async function GuideArticlePage(props: {
             </section>
           )}
 
+          {/* Legal Sources and Context */}
+          {article.legalSources && article.legalSources.length > 0 && (
+            <section className="space-y-3 pt-6 border-t border-[#E2E8F0]">
+              <h2 className="text-xl font-bold text-[#0F172A]">
+                {lang === 'ro' ? 'Surse și Context Juridic' : 'Legal Sources & Context'}
+              </h2>
+              <ul className="space-y-2 text-xs sm:text-sm text-[#475569]">
+                {article.legalSources.map((src, sIdx) => (
+                  <li key={sIdx} className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-1">
+                    <div className="font-semibold text-[#0F172A]">{src.title}</div>
+                    <div className="text-xs text-[#64748B]">{src.reference}</div>
+                    <div className="text-xs text-[#94A3B8]">
+                      {lang === 'ro' ? 'Verificat / text consolidat:' : 'Verified:'} {src.accessDate}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           {/* Contextual Commercial Bridge */}
           <aside className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white shadow-lg space-y-4 mt-12">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1E293B] border border-[#334155] text-xs font-semibold text-[#2DD4BF]">

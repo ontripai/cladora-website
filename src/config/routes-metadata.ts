@@ -19,7 +19,7 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
       desc: 'CLADORA is the unified operating platform for properties, spaces, and physical assets. One property identity, multiple authorized workspaces, and connected operational domains across the asset lifecycle.',
     },
     fa: {
-      title: 'پلتفرم جامع عملیات و مدیریت برای املاک، فضا و دارایی‌ها',
+      title: 'پلتفرم عملیات و مدیریت برای املاک، فضا و دارایی‌ها',
       desc: 'کلادورا پلتفرم یکپارچهٔ عملیات برای املاک و دارایی‌های فیزیکی است. یک هویت پایدار برای ملک، ورک‌اسپیس‌های مجاز سازمانی و دامنه‌های متصل عملیاتی در تمام چرخهٔ عمر دارایی.',
     },
   },

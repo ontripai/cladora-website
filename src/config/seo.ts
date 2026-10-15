@@ -78,7 +78,7 @@ export function buildPageMetadata({
             lang === 'ro'
               ? 'CLADORA — Platformă de operare pentru proprietăți și active'
               : lang === 'fa'
-              ? 'کلادورا — پلتفرم جامع عملیات و مدیریت املاک'
+              ? 'کلادورا — پلتفرم عملیات و مدیریت املاک'
               : 'CLADORA — Property Operating Platform',
           type: 'image/png',
         },
