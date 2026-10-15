@@ -1,7 +1,8 @@
 # CLADORA Core Jurisdiction Profile v1.0
 
-**Package:** `CORE-JURISDICTION-PROFILE-01`  
-**State:** inactive foundation  
+**Package:** `CORE-JURISDICTION-PROFILE-01`
+
+**State:** inactive foundation
 **Activation:** prohibited by this package
 
 ## Decision
