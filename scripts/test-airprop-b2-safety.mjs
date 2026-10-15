@@ -69,6 +69,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Documents / PR #406',
       sha256: '5d8b2b6d68868001e7fdc6085c87aabe5568917d271a84192734c9643e8496e8',
     },
+    '20261015100000_core_platform_role_bound_pool_v1.sql': {
+      owner: 'Core / PR #409',
+      sha256: 'ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
@@ -80,6 +84,7 @@ const coreResult = validateProtectedDirectory({
   isProtected: path => ![
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
+    'platform-role-bound-pool-v1.ts',
     'postgres-transaction-host-v1.ts',
     'transaction-replay-provider-hook-v1.ts',
   ].includes(path),
@@ -91,6 +96,10 @@ const coreResult = validateProtectedDirectory({
     'communications-private-message-request-audience-provider-v1.ts': {
       owner: 'CE Communications / PR #386',
       sha256: '778a88a3fd800b725c2f539e68e9cf726ce801d6063d0075d8af4723f167d39a',
+    },
+    'platform-role-bound-pool-v1.ts': {
+      owner: 'Core / PR #409',
+      sha256: '6a3bf83e82424d0e26dc13e101d0f2e15cf241c17682809e7531cffd3e19511e',
     },
     'transaction-replay-provider-hook-v1.ts': {
       owner: 'Core / PR #399',
