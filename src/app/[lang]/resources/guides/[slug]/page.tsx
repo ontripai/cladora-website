@@ -73,6 +73,7 @@ export default async function GuideArticlePage(props: {
       relatedTitle: 'Ghiduri Conexe Recomandate',
       tableOfContents: 'Cuprinsul Articolului',
       authorLabel: 'Autor:',
+      reviewerLabel: 'Revizuit de:',
       publishedOn: 'Publicat:',
       updatedOn: 'Actualizat:',
       editorialNote: 'Metodologie editorială: Documentat pe baza cadrului normativ oficial și a standardelor tehnice de operare imobiliară.',
@@ -87,6 +88,7 @@ export default async function GuideArticlePage(props: {
       relatedTitle: 'Related Technical Guides',
       tableOfContents: 'Article Table of Contents',
       authorLabel: 'Author:',
+      reviewerLabel: 'Reviewed by:',
       publishedOn: 'Published:',
       updatedOn: 'Updated:',
       editorialNote: 'Editorial methodology: Documented against statutory regulations and technical property operations frameworks.',
@@ -101,6 +103,7 @@ export default async function GuideArticlePage(props: {
       relatedTitle: 'راهنماهای مرتبط',
       tableOfContents: 'سرفصل‌های مقاله',
       authorLabel: 'نویسنده:',
+      reviewerLabel: 'بازبینی:',
       publishedOn: 'تاریخ انتشار:',
       updatedOn: 'تاریخ بازبینی:',
       editorialNote: 'متدولوژی تدوین: نگارش بر مبنای استانداردهای معماری عملیاتی و مراجع معتبر فنی.',
@@ -233,8 +236,8 @@ export default async function GuideArticlePage(props: {
             {article.description}
           </p>
 
-          {/* Author Byline */}
-          <div className="pt-2 flex items-center gap-2 text-xs text-[#64748B]">
+          {/* Editorial provenance */}
+          <div className="pt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#64748B]">
             <UserCheck className="w-4 h-4 text-[#0E9F8E]" />
             <span>{labels.authorLabel}</span>
             <Link
@@ -243,6 +246,9 @@ export default async function GuideArticlePage(props: {
             >
               {article.authorName}
             </Link>
+            <span aria-hidden="true">·</span>
+            <span>{labels.reviewerLabel}</span>
+            <span className="font-semibold text-[#0F172A]">{article.reviewedBy}</span>
           </div>
         </header>
 

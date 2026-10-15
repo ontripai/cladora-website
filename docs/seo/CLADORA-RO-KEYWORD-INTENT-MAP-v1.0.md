@@ -53,7 +53,7 @@ graph TD
         G5["fond-rulment-vs-fond-reparatii"]
         G6["cota-parte-indiviza-calcul"]
         G7["migrare-program-administrare-bloc"]
-        
+
         PillarA <--> G1
         PillarA <--> G2
         PillarA <--> G3
@@ -68,7 +68,7 @@ graph TD
         G8["mentenanta-preventiva-cladiri"]
         G9["gestionare-interventii-tehnice-cladiri"]
         G10["registru-echipamente-revizii"]
-        
+
         PillarB <--> G8
         PillarB <--> G9
         PillarB <--> G10
@@ -77,7 +77,7 @@ graph TD
     subgraph ClusterC ["Cluster C — Property Management & Documente"]
         PillarC["/ro/solutions/property-managers<br/><b>Pillar Comercial</b><br/>property management software Romania"]
         G11["management-documente-proprietati"]
-        
+
         PillarC <--> G11
     end
 
