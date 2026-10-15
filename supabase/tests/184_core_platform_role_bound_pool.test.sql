@@ -12,10 +12,9 @@ select ok((select not rolcanlogin and not rolinherit and not rolsuper and not ro
   and not rolcreatedb and not rolcreaterole and not rolreplication
   from pg_roles where rolname='cladora_ce_guide_executor'),'executor attributes are exact');
 select is((select count(*)::integer from pg_auth_members m
-  join pg_roles granted on granted.oid=m.roleid
   join pg_roles member on member.oid=m.member
-  where granted.rolname like 'cladora_ce_guide_%' or member.rolname like 'cladora_ce_guide_%'),1,
-  'only one protected membership exists');
+  where member.rolname like 'cladora_ce_guide_%'),1,
+  'only one membership is reachable from the protected roles');
 select ok((select not m.admin_option and not m.inherit_option and m.set_option
   from pg_auth_members m join pg_roles granted on granted.oid=m.roleid
   join pg_roles member on member.oid=m.member

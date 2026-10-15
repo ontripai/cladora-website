@@ -32,9 +32,12 @@ contract version is exactly `core-platform-role-bound-pool.v1`.
 | `cladora_ce_guide_runtime` | `LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION`; owns no database object and has no direct product ACL. Its password remains unset by the migration and must be provisioned outside the repository. |
 | `cladora_ce_guide_executor` | `NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION`; owns no database, schema, relation, sequence, view, materialized view, foreign table, function, or procedure. |
 
-The only membership touching either protected role is runtime as a member of
-executor with PostgreSQL 17 options `ADMIN FALSE`, `INHERIT FALSE`, and
-`SET TRUE`. The adapter uses the constant executor identifier; request data and
+The only membership reachable from either protected role is runtime as a
+member of executor with PostgreSQL 17 options `ADMIN FALSE`, `INHERIT FALSE`,
+and `SET TRUE`. PostgreSQL 17 can retain an inbound creator-admin edge from an
+installation role when a non-superuser `CREATEROLE` runner creates a role; the
+protected roles cannot traverse that edge, so it is outside the runtime lease
+graph. The adapter uses the constant executor identifier; request data and
 environment variables cannot select a role.
 
 ## Minimal database access
@@ -66,7 +69,7 @@ role.
 ## Role-safety lease and mutation protocol
 
 The transaction lease uses the shared side of one canonical transaction-level
-advisory lock and revalidates role attributes, the single membership edge,
+advisory lock and revalidates role attributes, the single outbound membership edge,
 ownership across database/schema/relation/routine catalogs, protected function
 owner/security/search-path state, and catalog visibility. Missing or uncertain
 catalog state denies execution.

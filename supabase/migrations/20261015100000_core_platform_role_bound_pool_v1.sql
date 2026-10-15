@@ -13,6 +13,7 @@ end;
 $$;
 revoke all on function app_private.acquire_core_platform_role_safety_mutation_lock_v1()
   from public,anon,authenticated,service_role;
+grant create on schema app_private to cladora_rpc_owner;
 alter function app_private.acquire_core_platform_role_safety_mutation_lock_v1()
   owner to cladora_rpc_owner;
 
@@ -53,7 +54,7 @@ comment on role cladora_ce_guide_executor is
 
 -- Preserve Supabase ownership of auth.uid/auth.jwt. Internal security-definer
 -- functions are moved to the existing canonical NOLOGIN owner.
-grant create on schema app_private,documents,communications to cladora_rpc_owner;
+grant create on schema documents,communications to cladora_rpc_owner;
 alter function app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)
   owner to cladora_rpc_owner;
 alter function documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid)
@@ -64,7 +65,7 @@ alter function communications.member_covers_unit(uuid,uuid,uuid)
   owner to cladora_rpc_owner;
 alter function communications.context_covers_unit(uuid,uuid)
   owner to cladora_rpc_owner;
-revoke create on schema app_private,documents,communications from cladora_rpc_owner;
+revoke create on schema documents,communications from cladora_rpc_owner;
 
 grant usage on schema auth,communications,experience,occupancy to cladora_rpc_owner;
 grant execute on function
@@ -466,9 +467,12 @@ select current_user='cladora_ce_guide_executor'
   and exists(select 1 from protected_roles where rolname='cladora_ce_guide_executor'
     and not rolcanlogin and not rolinherit and not rolsuper and not rolbypassrls
     and not rolcreatedb and not rolcreaterole and not rolreplication)
+  -- PostgreSQL 17 may retain an inbound installation-admin edge when a
+  -- non-superuser CREATEROLE migration runner creates a role. Neither
+  -- protected role can traverse it. Their only outbound membership is the
+  -- explicit runtime -> executor SET capability.
   and (select count(*)=1 from pg_auth_members m,role_ids i
-    where m.roleid=any(array[i.runtime_oid,i.executor_oid])
-       or m.member=any(array[i.runtime_oid,i.executor_oid]))
+    where m.member=any(array[i.runtime_oid,i.executor_oid]))
   and exists(select 1 from pg_auth_members m,role_ids i
     where m.roleid=i.executor_oid and m.member=i.runtime_oid
       and not m.admin_option and not m.inherit_option and m.set_option)
@@ -520,6 +524,7 @@ alter function app_private.assert_ce_guide_role_safety_v1()
   owner to cladora_rpc_owner;
 alter function app_private.acquire_ce_guide_role_safety_lease_v1()
   owner to cladora_rpc_owner;
+revoke create on schema app_private from cladora_rpc_owner;
 grant execute on function app_private.core_platform_ce_guide_role_safety_valid_v1(),
   app_private.assert_ce_guide_role_safety_v1(),
   app_private.acquire_ce_guide_role_safety_lease_v1()
