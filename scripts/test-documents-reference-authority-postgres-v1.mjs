@@ -65,8 +65,10 @@ async function selectorCommand(source={},extra={}) {
 const providers=(options={})=>({
   provider_code:documents.documentsReferenceAuthorityProviderCodeV1,
   async resolveAuthority(scope,request) {
-    await scope.query("select set_config('request.jwt.claims',$1,true)",
-      [JSON.stringify({sub:options.actor||actor,role:'authenticated',aal:options.aal||'aal2'})]);
+    const boundActor=options.actor||actor,boundAal=options.aal||'aal2';
+    await scope.query(`select set_config('request.jwt.claims',$1,true),
+      set_config('request.jwt.claim.sub',$2,true),set_config('request.jwt.claim.aal',$3,true)`,
+    [JSON.stringify({sub:boundActor,role:'authenticated',aal:boundAal}),boundActor,boundAal]);
     return resolveAuthority(scope,request);
   },
   validateProviders:documents.validateDocumentsReferenceAuthorityV1,
@@ -75,8 +77,10 @@ const providers=(options={})=>({
 const selectorProviders=(target,options={})=>({
   provider_code:documents.documentsReferenceAuthorityProviderCodeV1,
   async resolveAuthority(scope,request) {
-    await scope.query("select set_config('request.jwt.claims',$1,true)",
-      [JSON.stringify({sub:options.actor||actor,role:'authenticated',aal:options.aal||'aal2'})]);
+    const boundActor=options.actor||actor,boundAal=options.aal||'aal2';
+    await scope.query(`select set_config('request.jwt.claims',$1,true),
+      set_config('request.jwt.claim.sub',$2,true),set_config('request.jwt.claim.aal',$3,true)`,
+    [JSON.stringify({sub:boundActor,role:'authenticated',aal:boundAal}),boundActor,boundAal]);
     return resolveAuthority(scope,request);
   },
   async validateProviders(scope,cmd,authority) {
@@ -177,7 +181,8 @@ try {
   ({document_id:doc,document_version_id:versionId}=await addDocument());
 
   await check('Core v2 consumes exact Workspace, document and immutable version evidence after authority',async()=>{
-    const result=await host.execute(await command(),providers());assert.equal(result.status,'committed');
+    const result=await host.execute(await command(),providers());
+    assert.equal(result.status,'committed',JSON.stringify(result));
     const evidence=result.receipt.provider_evidence;
     assert.equal(evidenceContract.coreTransactionProviderEvidenceV1Schema.safeParse(evidence).success,true);
     assert.equal(evidence.workspace_id,ids.workspaceIds[0]);assert.equal(result.receipt.aggregate_id,doc);
@@ -259,6 +264,11 @@ try {
       await c.query('drop function documents.require_workspace_bound_document_insert_v1()');
       await c.query('drop trigger document_workspace_binding_immutable_v1 on documents.documents');
       await c.query('drop function documents.reject_document_workspace_rebind_v1()');
+      // Downstream inactive executor policies legitimately bind the final
+      // Workspace column. Remove only those policies inside this rolled-back
+      // historical-upgrade simulation before recreating the earlier state.
+      await c.query('drop policy core_platform_ce_documents_read_v1 on documents.documents');
+      await c.query('drop policy core_platform_ce_documents_lock_v1 on documents.documents');
       await c.query('alter table documents.documents drop column workspace_id');
       const snapshot=(await c.query('select to_jsonb(d) row from documents.documents d where id=$1',[doc])).rows[0].row;
       const security=async()=>(await c.query(`select relacl::text,relrowsecurity,relforcerowsecurity

@@ -321,7 +321,7 @@ alter function app_private.core_platform_ce_guide_ledger_allowed_v1(uuid,uuid,te
 
 -- Exact schemas, columns and functions used by the inactive CE/Core/Documents
 -- call graph. Runtime receives only membership; all product ACLs are executor-only.
-grant usage on schema app_private,platform,identity,experience,documents,
+grant usage on schema auth,app_private,platform,identity,experience,documents,
   communications,portfolio,audit to cladora_ce_guide_executor;
 revoke create on schema auth,app_private,platform,identity,experience,documents,
   communications,portfolio,audit from cladora_ce_guide_executor,cladora_ce_guide_runtime;
@@ -374,6 +374,8 @@ grant select(id),insert(tenant_id,aggregate_type,aggregate_id,aggregate_version,
   on platform.outbox_events to cladora_ce_guide_executor;
 
 grant execute on function
+  auth.uid(),
+  auth.jwt(),
   app_private.check_workspace_native_permission_v2(uuid,uuid,text,text),
   documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid),
   communications.member_covers_unit(uuid,uuid,uuid),

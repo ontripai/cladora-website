@@ -111,9 +111,9 @@ const providers = (options = {}) => ({
   replay_policy: lifecycle.experienceGuideLifecycleReplayPolicyV1,
   async resolveAuthority(scope, request) {
     calls.authority += 1;
-    await scope.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify({
-      sub: actor, role: 'authenticated', aal: 'aal2',
-    })]);
+    await scope.query(`select set_config('request.jwt.claims',$1,true),
+      set_config('request.jwt.claim.sub',$2,true),set_config('request.jwt.claim.aal',$3,true)`,
+    [JSON.stringify({ sub: actor, role: 'authenticated', aal: 'aal2' }), actor, 'aal2']);
     return resolveAuthority(scope, request);
   },
   async validateProviders(scope, ...args) {
