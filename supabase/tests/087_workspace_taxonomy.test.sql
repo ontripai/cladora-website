@@ -137,11 +137,11 @@ begin
     (v_mem_a, v_tenant_a, v_user_a, v_role_a, 'active'),
     (v_mem_b, v_tenant_b, v_user_b, v_role_b, 'active');
 
-  insert into portfolio.addresses(id, tenant_id, city, street, building_no) values
-    (v_addr_a1, v_tenant_a, 'Bucharest', 'Strada A1', '1'),
-    (v_addr_a2, v_tenant_a, 'Bucharest', 'Strada A2', '2'),
-    (v_addr_a3, v_tenant_a, 'Bucharest', 'Strada A3', '3'),
-    (v_addr_b1, v_tenant_b, 'Bucharest', 'Strada B1', '4');
+  insert into portfolio.addresses(id, tenant_id, country_code, city, street, building_no) values
+    (v_addr_a1, v_tenant_a, 'RO', 'Bucharest', 'Strada A1', '1'),
+    (v_addr_a2, v_tenant_a, 'RO', 'Bucharest', 'Strada A2', '2'),
+    (v_addr_a3, v_tenant_a, 'RO', 'Bucharest', 'Strada A3', '3'),
+    (v_addr_b1, v_tenant_b, 'RO', 'Bucharest', 'Strada B1', '4');
 
   insert into portfolio.properties(id, tenant_id, type, name, address_id, status) values
     (v_prop_a1, v_tenant_a, 'condominium', 'Condo Property Alpha 1', v_addr_a1, 'active'),

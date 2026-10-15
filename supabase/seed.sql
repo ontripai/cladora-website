@@ -12,9 +12,9 @@ insert into identity.roles(id,tenant_id,code,name,is_system) values
 ('10000000-0000-7000-8000-000000000005',null,'support','Support',true)
 on conflict do nothing;
 
-insert into portfolio.addresses(id,tenant_id,city,street,building_no) values
-('20000000-0000-7000-8000-000000000001','00000000-0000-7000-8000-000000000001','București','Strada Sintetică','1'),
-('20000000-0000-7000-8000-000000000002','00000000-0000-7000-8000-000000000002','Cluj-Napoca','Strada Sintetică','2') on conflict do nothing;
+insert into portfolio.addresses(id,tenant_id,country_code,city,street,building_no) values
+('20000000-0000-7000-8000-000000000001','00000000-0000-7000-8000-000000000001','RO','București','Strada Sintetică','1'),
+('20000000-0000-7000-8000-000000000002','00000000-0000-7000-8000-000000000002','RO','Cluj-Napoca','Strada Sintetică','2') on conflict do nothing;
 insert into portfolio.properties(id,tenant_id,type,name,address_id,status) values
 ('30000000-0000-7000-8000-000000000001','00000000-0000-7000-8000-000000000001','condominium','Synthetic Property A','20000000-0000-7000-8000-000000000001','active'),
 ('30000000-0000-7000-8000-000000000002','00000000-0000-7000-8000-000000000002','condominium','Synthetic Property B','20000000-0000-7000-8000-000000000002','active') on conflict do nothing;
