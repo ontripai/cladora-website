@@ -103,7 +103,7 @@ export default async function GuideArticlePage(props: {
       relatedTitle: 'راهنماهای مرتبط',
       tableOfContents: 'سرفصل‌های مقاله',
       authorLabel: 'نویسنده:',
-      reviewerLabel: 'بازبینی:',
+      reviewerLabel: 'بازبینی‌شده توسط:',
       publishedOn: 'تاریخ انتشار:',
       updatedOn: 'تاریخ بازبینی:',
       editorialNote: 'متدولوژی تدوین: نگارش بر مبنای استانداردهای معماری عملیاتی و مراجع معتبر فنی.',
@@ -236,19 +236,25 @@ export default async function GuideArticlePage(props: {
             {article.description}
           </p>
 
-          {/* Editorial provenance */}
-          <div className="pt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[#64748B]">
-            <UserCheck className="w-4 h-4 text-[#0E9F8E]" />
-            <span>{labels.authorLabel}</span>
-            <Link
-              href={article.authorUrl}
-              className="font-semibold text-[#0F172A] hover:text-[#0E9F8E] transition-colors underline underline-offset-2"
-            >
-              {article.authorName}
-            </Link>
-            <span aria-hidden="true">·</span>
-            <span>{labels.reviewerLabel}</span>
-            <span className="font-semibold text-[#0F172A]">{article.reviewedBy}</span>
+          {/* Author & Reviewer Byline */}
+          <div className="pt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[#64748B]">
+            <div className="flex items-center gap-1.5">
+              <UserCheck className="w-4 h-4 text-[#0E9F8E]" />
+              <span>{labels.authorLabel}</span>
+              <Link
+                href={article.authorUrl}
+                className="font-semibold text-[#0F172A] hover:text-[#0E9F8E] transition-colors underline underline-offset-2"
+              >
+                {article.authorName}
+              </Link>
+            </div>
+            {article.reviewedBy && (
+              <div className="flex items-center gap-1.5 text-[#64748B]">
+                <span className="text-[#CBD5E1] hidden sm:inline">•</span>
+                <span>{labels.reviewerLabel}</span>
+                <span className="font-semibold text-[#334155]">{article.reviewedBy}</span>
+              </div>
+            )}
           </div>
         </header>
 
