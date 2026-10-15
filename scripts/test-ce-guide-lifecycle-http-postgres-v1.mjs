@@ -56,6 +56,14 @@ if (!['supabase_admin', 'supabase_auth_admin'].includes(authSchemaOwner)) {
 const authOwnerConnection = new URL(connectionString);
 authOwnerConnection.username = authSchemaOwner;
 const authOwnerPool = new pg.Pool({ connectionString: authOwnerConnection.toString(), max: 1 });
+const catalogAdminConnection = new URL(connectionString);
+catalogAdminConnection.username = 'supabase_admin';
+const catalogAdminPool = new pg.Pool({
+  connectionString: catalogAdminConnection.toString(), max: 1,
+});
+const catalogAdmin = await catalogAdminPool.query(`select current_user,
+  rolsuper from pg_roles where rolname=current_user`);
+assert.deepEqual(catalogAdmin.rows, [{ current_user: 'supabase_admin', rolsuper: true }]);
 const authAdmin = createSupabaseClient(authUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
 });
@@ -236,12 +244,12 @@ async function installDisposableExecutionBoundary() {
   const existingRole = await pool.query(`select count(*)::int count from pg_roles
     where rolname='cladora_ce_guide_executor'`);
   assert.equal(existingRole.rows[0].count, 0, 'disposable executor must not pre-exist');
-  await pool.query(`create role cladora_ce_guide_executor
+  await catalogAdminPool.query(`create role cladora_ce_guide_executor
     nologin nosuperuser nobypassrls nocreatedb nocreaterole noreplication noinherit`);
   executionRoleCreated = true;
   // The connection owner may assume the executor; the executor is never made
   // a member of the owner (or of any other role).
-  await pool.query('grant cladora_ce_guide_executor to postgres');
+  await catalogAdminPool.query('grant cladora_ce_guide_executor to postgres');
   for (const schema of [
     'identity', 'platform', 'portfolio', 'communications', 'documents',
     'experience', 'app_private', 'audit',
@@ -393,7 +401,7 @@ async function removeDisposableExecutionBoundary() {
       where rolname='cladora_ce_guide_executor'`);
     assert.equal(executor.rowCount, 1);
     const executorOid = executor.rows[0].oid;
-    await pool.query('revoke cladora_ce_guide_executor from postgres');
+    await catalogAdminPool.query('revoke cladora_ce_guide_executor from postgres');
     const residue = await pool.query(`select
       (select count(*)::int from pg_database d join pg_roles r on r.oid=d.datdba
         where r.rolname='cladora_ce_guide_executor') database_ownership,
@@ -407,7 +415,7 @@ async function removeDisposableExecutionBoundary() {
       database_ownership: 0, schema_ownership: 0, class_ownership: 0,
       function_ownership: 0,
     });
-    await pool.query('drop role cladora_ce_guide_executor');
+    await catalogAdminPool.query('drop role cladora_ce_guide_executor');
     executionRoleCreated = false;
     assert.equal((await pool.query(`select count(*)::int count from pg_roles
       where rolname='cladora_ce_guide_executor'`)).rows[0].count, 0);
@@ -572,46 +580,46 @@ try {
 
   await check('LOGIN, SUPERUSER and BYPASSRLS executor attributes deny with zero writes', async () => {
     await assertUnsafeExecutorDenies('login',
-      () => pool.query('alter role cladora_ce_guide_executor login'),
-      () => pool.query('alter role cladora_ce_guide_executor nologin'));
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor login'),
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor nologin'));
     await assertUnsafeExecutorDenies('superuser',
-      () => pool.query('alter role cladora_ce_guide_executor superuser'),
-      () => pool.query('alter role cladora_ce_guide_executor nosuperuser'));
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor superuser'),
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor nosuperuser'));
     await assertUnsafeExecutorDenies('bypassrls',
-      () => pool.query('alter role cladora_ce_guide_executor bypassrls'),
-      () => pool.query('alter role cladora_ce_guide_executor nobypassrls'));
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor bypassrls'),
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor nobypassrls'));
   });
 
   await check('database, schema, table, sequence and function ownership deny with zero writes', async () => {
     const cases = [
       {
         label: 'database',
-        make: () => pool.query('create database ce_guide_executor_probe owner cladora_ce_guide_executor'),
-        restore: () => pool.query('drop database if exists ce_guide_executor_probe'),
+        make: () => catalogAdminPool.query('create database ce_guide_executor_probe owner cladora_ce_guide_executor'),
+        restore: () => catalogAdminPool.query('drop database if exists ce_guide_executor_probe'),
       },
       {
         label: 'schema',
-        make: () => pool.query('create schema ce_guide_executor_probe authorization cladora_ce_guide_executor'),
-        restore: () => pool.query('drop schema if exists ce_guide_executor_probe cascade'),
+        make: () => catalogAdminPool.query('create schema ce_guide_executor_probe authorization cladora_ce_guide_executor'),
+        restore: () => catalogAdminPool.query('drop schema if exists ce_guide_executor_probe cascade'),
       },
       {
         label: 'table',
-        make: () => pool.query(`create table public.ce_guide_executor_probe_table(id integer);
+        make: () => catalogAdminPool.query(`create table public.ce_guide_executor_probe_table(id integer);
           alter table public.ce_guide_executor_probe_table owner to cladora_ce_guide_executor`),
-        restore: () => pool.query('drop table if exists public.ce_guide_executor_probe_table'),
+        restore: () => catalogAdminPool.query('drop table if exists public.ce_guide_executor_probe_table'),
       },
       {
         label: 'sequence',
-        make: () => pool.query(`create sequence public.ce_guide_executor_probe_sequence;
+        make: () => catalogAdminPool.query(`create sequence public.ce_guide_executor_probe_sequence;
           alter sequence public.ce_guide_executor_probe_sequence owner to cladora_ce_guide_executor`),
-        restore: () => pool.query('drop sequence if exists public.ce_guide_executor_probe_sequence'),
+        restore: () => catalogAdminPool.query('drop sequence if exists public.ce_guide_executor_probe_sequence'),
       },
       {
         label: 'function',
-        make: () => pool.query(`create function public.ce_guide_executor_probe_function()
+        make: () => catalogAdminPool.query(`create function public.ce_guide_executor_probe_function()
           returns integer language sql as 'select 1';
           alter function public.ce_guide_executor_probe_function() owner to cladora_ce_guide_executor`),
-        restore: () => pool.query('drop function if exists public.ce_guide_executor_probe_function()'),
+        restore: () => catalogAdminPool.query('drop function if exists public.ce_guide_executor_probe_function()'),
       },
     ];
     for (const candidate of cases) {
@@ -620,15 +628,15 @@ try {
   });
 
   await check('direct membership in an object owner denies with zero writes', async () => {
-    await pool.query(`create role cladora_ce_guide_owner_probe nologin nosuperuser nobypassrls;
+    await catalogAdminPool.query(`create role cladora_ce_guide_owner_probe nologin nosuperuser nobypassrls;
       create table public.ce_guide_owner_probe_table(id integer);
       alter table public.ce_guide_owner_probe_table owner to cladora_ce_guide_owner_probe`);
     try {
       await assertUnsafeExecutorDenies('direct-owner-membership',
-        () => pool.query('grant cladora_ce_guide_owner_probe to cladora_ce_guide_executor'),
-        () => pool.query('revoke cladora_ce_guide_owner_probe from cladora_ce_guide_executor'));
+        () => catalogAdminPool.query('grant cladora_ce_guide_owner_probe to cladora_ce_guide_executor'),
+        () => catalogAdminPool.query('revoke cladora_ce_guide_owner_probe from cladora_ce_guide_executor'));
     } finally {
-      await pool.query(`alter table public.ce_guide_owner_probe_table owner to postgres;
+      await catalogAdminPool.query(`alter table public.ce_guide_owner_probe_table owner to supabase_admin;
         drop table public.ce_guide_owner_probe_table;
         drop role cladora_ce_guide_owner_probe`);
     }
@@ -641,26 +649,26 @@ try {
       { label: 'bypassrls', attributes: 'nosuperuser bypassrls', owns: false },
     ];
     for (const candidate of cases) {
-      await pool.query(`create role cladora_ce_guide_mid_probe nologin nosuperuser nobypassrls;
+      await catalogAdminPool.query(`create role cladora_ce_guide_mid_probe nologin nosuperuser nobypassrls;
         create role cladora_ce_guide_danger_probe nologin ${candidate.attributes}`);
       if (candidate.owns) {
-        await pool.query(`create sequence public.ce_guide_chain_probe_sequence;
+        await catalogAdminPool.query(`create sequence public.ce_guide_chain_probe_sequence;
           alter sequence public.ce_guide_chain_probe_sequence owner to cladora_ce_guide_danger_probe`);
       }
       try {
         await assertUnsafeExecutorDenies(`chain-${candidate.label}`, async () => {
-          await pool.query(`grant cladora_ce_guide_danger_probe to cladora_ce_guide_mid_probe;
+          await catalogAdminPool.query(`grant cladora_ce_guide_danger_probe to cladora_ce_guide_mid_probe;
             grant cladora_ce_guide_mid_probe to cladora_ce_guide_executor`);
         }, async () => {
-          await pool.query(`revoke cladora_ce_guide_mid_probe from cladora_ce_guide_executor;
+          await catalogAdminPool.query(`revoke cladora_ce_guide_mid_probe from cladora_ce_guide_executor;
             revoke cladora_ce_guide_danger_probe from cladora_ce_guide_mid_probe`);
         });
       } finally {
         if (candidate.owns) {
-          await pool.query(`alter sequence public.ce_guide_chain_probe_sequence owner to postgres;
+          await catalogAdminPool.query(`alter sequence public.ce_guide_chain_probe_sequence owner to supabase_admin;
             drop sequence public.ce_guide_chain_probe_sequence`);
         }
-        await pool.query(`drop role cladora_ce_guide_mid_probe;
+        await catalogAdminPool.query(`drop role cladora_ce_guide_mid_probe;
           drop role cladora_ce_guide_danger_probe`);
       }
     }
@@ -668,8 +676,8 @@ try {
 
   await check('missing fixed executor is a bounded zero-write denial', async () => {
     await assertUnsafeExecutorDenies('missing',
-      () => pool.query('alter role cladora_ce_guide_executor rename to cladora_ce_guide_executor_missing'),
-      () => pool.query('alter role cladora_ce_guide_executor_missing rename to cladora_ce_guide_executor'));
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor rename to cladora_ce_guide_executor_missing'),
+      () => catalogAdminPool.query('alter role cladora_ce_guide_executor_missing rename to cladora_ce_guide_executor'));
   });
 
   await check('real local Auth distinguishes AAL1 and verified TOTP AAL2 before checkout', async () => {
@@ -857,6 +865,7 @@ try {
     await authAdmin.auth.admin.deleteUser(userId).catch(() => undefined);
   }
   await authOwnerPool.end();
+  await catalogAdminPool.end();
   await pool.end();
 }
 
