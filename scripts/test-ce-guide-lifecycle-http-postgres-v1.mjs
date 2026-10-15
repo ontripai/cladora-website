@@ -234,6 +234,9 @@ async function installDisposableExecutionBoundary() {
   const administrator = await pool.query('select current_user');
   assert.ok(['postgres', 'supabase_admin'].includes(administrator.rows[0].current_user),
     'fixed local fixture administrator required');
+  assert.equal((await catalogAdminPool.query(
+    'select app_private.finalize_ce_guide_role_membership_v1() finalized',
+  )).rows[0].finalized, true);
   const existingRole = await pool.query(`select count(*)::int count from pg_roles
     where rolname in ('cladora_ce_guide_executor','cladora_ce_guide_runtime')`);
   assert.equal(existingRole.rows[0].count, 2, 'installed role-bound boundary required');

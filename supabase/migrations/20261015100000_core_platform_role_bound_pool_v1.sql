@@ -52,14 +52,6 @@ comment on role cladora_ce_guide_runtime is
 comment on role cladora_ce_guide_executor is
   'Fixed NOLOGIN least-privilege executor for inactive CE Guide lifecycle only.';
 
--- PostgreSQL 17 gives a non-superuser CREATEROLE migration runner an
--- administrative, non-SET membership in each role it creates. Those install
--- edges are not part of the product contract and must not survive installation.
--- Remove them after role metadata is complete, while the runner still has the
--- creator ADMIN OPTION needed for COMMENT ON ROLE above.
-revoke cladora_ce_guide_executor from current_user cascade;
-revoke cladora_ce_guide_runtime from current_user cascade;
-
 -- Preserve Supabase ownership of auth.uid/auth.jwt. Internal security-definer
 -- functions are moved to the existing canonical NOLOGIN owner.
 grant create on schema documents,communications to cladora_rpc_owner;
@@ -613,6 +605,75 @@ select current_user='cladora_ce_guide_executor'
     where not internal and (owner_name<>'supabase_auth_admin' or prosecdef
       or provolatile<>'s'));
 $$;
+
+-- PostgreSQL 17 gives a non-superuser CREATEROLE migration runner an inbound
+-- creator-admin edge for each role it creates. The runtime safety invariant
+-- above deliberately rejects those entries. A separately authorized
+-- superuser installation step must normalize the graph before any binder can
+-- obtain a safety lease. The function is SECURITY INVOKER, takes the canonical
+-- exclusive lock, accepts no dynamic input, and has no operational grant.
+create function app_private.finalize_ce_guide_role_membership_v1()
+returns boolean language plpgsql volatile security invoker set search_path=pg_catalog as $$
+declare edge record; v_count integer;
+begin
+  if not exists(select 1 from pg_roles where rolname=current_user and rolsuper) then
+    raise exception 'core_platform_superuser_finalizer_required' using errcode='42501';
+  end if;
+  perform app_private.acquire_core_platform_role_safety_mutation_lock_v1();
+
+  for edge in
+    select granted.rolname granted_role,member.rolname member_role
+    from pg_auth_members m
+    join pg_roles granted on granted.oid=m.roleid
+    join pg_roles member on member.oid=m.member
+    where (granted.rolname in ('cladora_ce_guide_runtime','cladora_ce_guide_executor')
+      or member.rolname in ('cladora_ce_guide_runtime','cladora_ce_guide_executor'))
+      and not (granted.rolname='cladora_ce_guide_executor'
+        and member.rolname='cladora_ce_guide_runtime')
+  loop
+    execute format('revoke %I from %I cascade',edge.granted_role,edge.member_role);
+  end loop;
+
+  if exists(select 1 from pg_auth_members m
+    join pg_roles granted on granted.oid=m.roleid
+    join pg_roles member on member.oid=m.member
+    where granted.rolname='cladora_ce_guide_executor'
+      and member.rolname='cladora_ce_guide_runtime'
+      and (m.admin_option or m.inherit_option or not m.set_option)) then
+    revoke cladora_ce_guide_executor from cladora_ce_guide_runtime cascade;
+  end if;
+  if not exists(select 1 from pg_auth_members m
+    join pg_roles granted on granted.oid=m.roleid
+    join pg_roles member on member.oid=m.member
+    where granted.rolname='cladora_ce_guide_executor'
+      and member.rolname='cladora_ce_guide_runtime') then
+    grant cladora_ce_guide_executor to cladora_ce_guide_runtime
+      with admin false, inherit false, set true;
+  end if;
+
+  select count(*) into v_count from pg_auth_members m
+    join pg_roles granted on granted.oid=m.roleid
+    join pg_roles member on member.oid=m.member
+    where granted.rolname in ('cladora_ce_guide_runtime','cladora_ce_guide_executor')
+      or member.rolname in ('cladora_ce_guide_runtime','cladora_ce_guide_executor');
+  if v_count<>1 or not exists(select 1 from pg_auth_members m
+    join pg_roles granted on granted.oid=m.roleid
+    join pg_roles member on member.oid=m.member
+    where granted.rolname='cladora_ce_guide_executor'
+      and member.rolname='cladora_ce_guide_runtime'
+      and not m.admin_option and not m.inherit_option and m.set_option) then
+    raise exception 'core_platform_role_graph_finalization_failed' using errcode='55000';
+  end if;
+  return true;
+end;
+$$;
+revoke all on function app_private.finalize_ce_guide_role_membership_v1()
+  from public,postgres,anon,authenticated,service_role,
+    cladora_ce_guide_runtime,cladora_ce_guide_executor;
+alter function app_private.finalize_ce_guide_role_membership_v1()
+  owner to cladora_rpc_owner;
+grant execute on function app_private.finalize_ce_guide_role_membership_v1()
+  to supabase_admin;
 
 create function app_private.assert_ce_guide_role_safety_v1()
 returns boolean language plpgsql stable security invoker set search_path=pg_catalog as $$

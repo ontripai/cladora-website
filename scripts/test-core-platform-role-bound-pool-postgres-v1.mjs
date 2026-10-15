@@ -38,6 +38,20 @@ adminConnection.username = 'supabase_admin';
 const adminPool = new pg.Pool({ connectionString: adminConnection.toString(), max: 6 });
 const admin = await adminPool.query('select current_user,rolsuper from pg_roles where rolname=current_user');
 assert.deepEqual(admin.rows, [{ current_user: 'supabase_admin', rolsuper: true }]);
+assert.equal((await adminPool.query(
+  'select app_private.finalize_ce_guide_role_membership_v1() finalized',
+)).rows[0].finalized, true);
+const exactMembership = await adminPool.query(`select granted.rolname granted_role,
+  member.rolname member_role,m.admin_option,m.inherit_option,m.set_option
+  from pg_auth_members m join pg_roles granted on granted.oid=m.roleid
+  join pg_roles member on member.oid=m.member
+  where granted.rolname in ('cladora_ce_guide_runtime','cladora_ce_guide_executor')
+    or member.rolname in ('cladora_ce_guide_runtime','cladora_ce_guide_executor')`);
+assert.deepEqual(exactMembership.rows, [{
+  granted_role: 'cladora_ce_guide_executor',
+  member_role: 'cladora_ce_guide_runtime',
+  admin_option: false, inherit_option: false, set_option: true,
+}]);
 
 const runtimePassword = `Core-${randomUUID()}-local`;
 const escapedPassword = runtimePassword.replaceAll("'", "''");

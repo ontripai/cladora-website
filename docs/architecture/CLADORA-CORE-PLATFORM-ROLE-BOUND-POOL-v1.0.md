@@ -32,10 +32,14 @@ contract version is exactly `core-platform-role-bound-pool.v1`.
 | `cladora_ce_guide_runtime` | `LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION`; owns no database object and has no direct product ACL. Its password remains unset by the migration and must be provisioned outside the repository. |
 | `cladora_ce_guide_executor` | `NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION`; owns no database, schema, relation, sequence, view, materialized view, foreign table, function, or procedure. |
 
-The only membership involving either protected role is runtime as a member of
+The final role graph contains exactly one membership: runtime as a member of
 executor with PostgreSQL 17 options `ADMIN FALSE`, `INHERIT FALSE`, and
-`SET TRUE`. The migration removes PostgreSQL 17 creator-admin installation
-edges before commit. The adapter uses the constant executor identifier;
+`SET TRUE`. A non-superuser PostgreSQL 17 `CREATEROLE` migration runner receives
+non-traversable creator-admin entries (`SET FALSE`, `INHERIT FALSE`) during
+bootstrap. The migration leaves the runtime safety invariant closed until a
+separately authorized superuser calls the private, input-free finalizer under
+the same exclusive mutation lock. The finalizer removes every extra edge and
+then proves the exact graph. The adapter uses the constant executor identifier;
 request data and environment variables cannot select a role.
 
 ## Minimal database access
@@ -76,7 +80,7 @@ role.
 ## Role-safety lease and mutation protocol
 
 The transaction lease uses the shared side of one canonical transaction-level
-advisory lock and revalidates role attributes, the single membership edge,
+advisory lock and revalidates role attributes, the single finalized membership edge,
 ownership across database/schema/relation/routine catalogs, protected function
 owner/security/search-path state, and catalog visibility. Missing or uncertain
 catalog state denies execution.
@@ -92,9 +96,11 @@ before the next query and before commit and causes connection destruction.
 ## Installation and activation order
 
 1. Review and merge the inactive role/ACL/RLS migration and server-only adapter.
-2. Run connected disposable PostgreSQL validation, including real two-connection
-   mutation races, RLS denial, cleanup, and unknown-commit disposal.
-3. Obtain separate authorization for Remote migration preflight and install.
+2. In a disposable environment, use the local superuser to finalize the exact
+   role graph, then run real two-connection mutation races, RLS denial, cleanup,
+   and unknown-commit disposal. No binder can pass before finalization.
+3. Obtain separate authorization for Remote migration preflight, installation,
+   and privileged role-graph finalization.
 4. Provision the runtime credential through the approved private runtime
    environment; do not store it in the repository.
 5. Build and validate the production server-only direct/session pool adapter.

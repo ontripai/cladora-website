@@ -1,5 +1,5 @@
 begin;
-select plan(36);
+select plan(39);
 
 select ok(exists(select 1 from pg_roles where rolname='cladora_ce_guide_runtime'),
   'runtime role exists');
@@ -12,11 +12,16 @@ select ok((select not rolcanlogin and not rolinherit and not rolsuper and not ro
   and not rolcreatedb and not rolcreaterole and not rolreplication
   from pg_roles where rolname='cladora_ce_guide_executor'),'executor attributes are exact');
 select is((select count(*)::integer from pg_auth_members m
+  join pg_roles member on member.oid=m.member
+  where member.rolname like 'cladora_ce_guide_%'),1,
+  'only runtime has an outbound protected-role membership before finalization');
+select is((select count(*)::integer from pg_auth_members m
   join pg_roles granted on granted.oid=m.roleid
   join pg_roles member on member.oid=m.member
-  where granted.rolname like 'cladora_ce_guide_%'
-    or member.rolname like 'cladora_ce_guide_%'),1,
-  'the protected roles participate in exactly one membership');
+  where granted.rolname in ('cladora_ce_guide_runtime','cladora_ce_guide_executor')
+    and member.rolname='postgres' and m.admin_option
+    and not m.inherit_option and not m.set_option),2,
+  'only non-traversable PostgreSQL 17 creator edges await privileged finalization');
 select ok((select not m.admin_option and not m.inherit_option and m.set_option
   from pg_auth_members m join pg_roles granted on granted.oid=m.roleid
   join pg_roles member on member.oid=m.member
@@ -56,6 +61,24 @@ select ok(not has_function_privilege('cladora_ce_guide_executor',
 select ok(not has_function_privilege('cladora_ce_guide_runtime',
   'app_private.acquire_core_platform_role_safety_mutation_lock_v1()','EXECUTE'),
   'runtime cannot take the catalog mutation lock');
+select is((select count(*)::integer from pg_proc p
+  join pg_namespace n on n.oid=p.pronamespace
+  cross join lateral aclexplode(p.proacl) privilege
+  join pg_roles grantee on grantee.oid=privilege.grantee
+  where n.nspname='app_private'
+    and p.proname='finalize_ce_guide_role_membership_v1'
+    and grantee.rolname='supabase_admin' and privilege.privilege_type='EXECUTE'),1,
+  'only the canonical local superuser receives direct finalizer execution');
+select is((select count(*)::integer from pg_proc p
+  join pg_namespace n on n.oid=p.pronamespace
+  cross join lateral aclexplode(p.proacl) privilege
+  left join pg_roles grantee on grantee.oid=privilege.grantee
+  where n.nspname='app_private'
+    and p.proname='finalize_ce_guide_role_membership_v1'
+    and coalesce(grantee.rolname,'PUBLIC') in
+      ('PUBLIC','postgres','anon','authenticated','service_role',
+        'cladora_ce_guide_runtime','cladora_ce_guide_executor')),0,
+  'migration and operational roles receive no direct finalizer execution');
 select ok(has_schema_privilege('cladora_ce_guide_executor','experience','USAGE'),
   'executor has experience USAGE');
 select ok(not has_schema_privilege('cladora_ce_guide_executor','experience','CREATE'),
