@@ -74,12 +74,12 @@ export default async function SecurityPage(props: { params: Promise<{ lang: Lang
         },
         {
           title: 'Integritatea Probatorie a Documentelor (DOCUMENTS)',
-          desc: 'Domeniul DOCUMENTS deține versiunile canonice, metadatele de proveniență și dovezile foto ale recepțiilor tehnice. Nu constituie semnătură electronică calificată sau arhivare notarială legală fără integrare cu servicii acreditate.',
+          desc: 'Arhitectura furnizorului canonic DOCUMENTS este concepută să guverneze versiunile canonice ale documentelor, evidențele probatorii și proveniența în contextele autorizate de spațiu de lucru. Nu constituie semnătură electronică calificată sau arhivare legală fără integrări acreditate externe.',
           icon: FileCheck2,
         },
         {
           title: 'Guvernanța Inteligenței Artificiale (WP-09A)',
-          desc: 'CLADORA Intelligence operează strict ca un nivel asistent subordonat. Modelele AI nu dețin adevărul canonic, nu modifică direct soldurile financiare și supun acțiunile cu impact autorizării umane corespunzătoare.',
+          desc: 'CLADORA Intelligence operează strict ca un nivel asistent subordonat și nu este desemnat ca scriitor canonic independent. Mutațiile financiare de consecință sunt concepute să treacă prin furnizorul canonic responsabil, autoritatea verificată și controalele de politică sau revizuire umană aplicabile.',
           icon: Bot,
         },
       ],
@@ -150,12 +150,12 @@ export default async function SecurityPage(props: { params: Promise<{ lang: Lang
         },
         {
           title: 'Document & Evidence Integrity (DOCUMENTS)',
-          desc: 'The DOCUMENTS provider maintains canonical document versions, provenance logs, and photographic work order receipts. Does not constitute a qualified electronic signature or statutory legal archive without external trust providers.',
+          desc: 'The canonical DOCUMENTS provider architecture is designed to govern canonical document versions, evidentiary records, and provenance within authorized workspace contexts. It does not constitute a qualified electronic signature or statutory legal archive without external accredited integrations.',
           icon: FileCheck2,
         },
         {
           title: 'AI Governance Model (WP-09A)',
-          desc: 'CLADORA Intelligence operates strictly as a subordinate assistive layer. AI models never own canonical truth, cannot unilaterally alter financial balances, and remain subject to policy gates and human sign-off.',
+          desc: 'CLADORA Intelligence operates strictly as a subordinate assistive layer and is not designated as an independent canonical writer. Consequential financial mutations are designed to pass through the responsible canonical provider, verified authority, and applicable policy or human approval controls.',
           icon: Bot,
         },
       ],
@@ -176,7 +176,7 @@ export default async function SecurityPage(props: { params: Promise<{ lang: Lang
           items: [
             'Timely provisioning and revocation of workspace member roles',
             'Establishing lawful bases for occupant personal data intake',
-            'Mandatory human review for financial disbursements and close cycles',
+            'Human review and approval controls for financial disbursements and close cycles',
             'Protecting user endpoint devices and login credentials',
           ],
         },
@@ -226,12 +226,12 @@ export default async function SecurityPage(props: { params: Promise<{ lang: Lang
         },
         {
           title: 'حفظ اصالت اسناد و مدارک در دامنه DOCUMENTS',
-          desc: 'متولی مرجع نسخه‌های اصلی مدارک، سوابق تحویل کار و تصاویر صورت‌جلسات؛ بدون ادعای ارائه امضای الکترونیک رسمی قضایی یا جایگزینی دفاتر اسناد رسمی بدون اتصال به سامانه‌های مجاز.',
+          desc: 'معماری متولی کانونی DOCUMENTS به گونه‌ای طراحی شده که مدیریت نسخه‌های رسمی اسناد، شواهد و سوابق اصالت مدارک را در بافت فضاهای کاری مجاز بر عهده داشته باشد؛ بدون ادعای ارائه امضای الکترونیک رسمی قضایی یا جایگزینی بایگانی قانونی بدون یکپارچگی با مراجع معتبر بیرونی.',
           icon: FileCheck2,
         },
         {
           title: 'حاکمیت بر هوش مصنوعی بر اساس WP-09A',
-          desc: 'هوش عملیاتی کلادورا منحصراً به عنوان دستیار تسهیل‌کننده و در جایگاه زیردست عمل می‌کند. مدل‌های هوش مصنوعی مرجع حقایق سامانه نبوده و اقدامات دارای اثر حقوقی نیازمند تایید مستقیم انسان هستند.',
+          desc: 'هوش عملیاتی کلادورا (CLADORA Intelligence) منحصراً به عنوان لایه کمکی زیردست عمل می‌کند و به عنوان نویسنده مستقل حقیقت کانونی تعیین نشده است. اعمال تغییرات مالی بنیادین به گونه‌ای طراحی شده که از طریق ارائه‌دهنده کانونی مربوطه، اعتبارسنجی اختیارات و نظارت‌های خط‌مشی یا تایید انسانی صورت پذیرد.',
           icon: Bot,
         },
       ],
@@ -242,7 +242,7 @@ export default async function SecurityPage(props: { params: Promise<{ lang: Lang
           title: 'تعهدات و مسئولیت‌های پلتفرم کلادورا',
           items: [
             'اعمال سخت‌گیرانه مرزهای دسترسی در سطح فضاهای کاری و رابط‌های نرم‌افزاری (API)',
-            'ثبت متوالی و تغییرناپذیر زنجیره رویدادهای سیستمی و مدیریتی',
+            'ثبت ترتیبی و افزایشی زنجیره رویدادهای اداری و سیستمی',
             'رمزنگاری اطلاعات در مسیر تبادل و در وضعیت ذخیره‌سازی طبق استانداردهای رایج',
             'تفکیک دسترسی‌های فنی مهندسی از پایگاه داده‌های اطلاعات مشتریان',
           ],
@@ -252,7 +252,7 @@ export default async function SecurityPage(props: { params: Promise<{ lang: Lang
           items: [
             'تعریف دقیق و ابطال به‌موقع نقش‌ها و دسترسی‌های کاربران در فضاهای کاری',
             'احراز مبنای قانونی برای بارگذاری و پردازش اطلاعات شخصی ساکنان',
-            'نظارت مستقیم و بررسی انسانی پیش از تایید هزینه‌های مالی و بستن دوره‌ها',
+            'اعمال نظارت و بررسی‌های انسانی برای تایید هزینه‌های مالی و بستن دوره‌ها',
             'حفاظت از کلمات عبور، دستگاه‌های ورود و دسترسی‌های فیزیکی کارکنان',
           ],
         },

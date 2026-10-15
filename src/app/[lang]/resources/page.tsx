@@ -105,7 +105,7 @@ export default async function ResourcesHubPage(props: { params: Promise<{ lang: 
           },
           {
             title: 'Centrul de Încredere & Guvernanță',
-            desc: 'Cum asigură furnizorii canonici adevărul de necontestat în registre.',
+            desc: 'Cum guvernează furnizorii canonici integritatea registrelor și a documentelor.',
             href: `/${lang}/platform/trust`,
           },
         ],
@@ -229,7 +229,7 @@ export default async function ResourcesHubPage(props: { params: Promise<{ lang: 
           },
           {
             title: 'Trust & Governance Foundation',
-            desc: 'How canonical truth providers preserve uncompromised ledger and document records.',
+            desc: 'How canonical truth providers govern ledger and document records to reduce ambiguity.',
             href: `/${lang}/platform/trust`,
           },
         ],
@@ -353,7 +353,7 @@ export default async function ResourcesHubPage(props: { params: Promise<{ lang: 
           },
           {
             title: 'مرکز اعتماد و حاکمیت داده‌ها',
-            desc: 'چگونگی تضمین اصالت و یکپارچگی دفاتر مالی و اسناد توسط متولیان مرجع.',
+            desc: 'چگونگی مدیریت اصالت دفاتر مالی و اسناد توسط متولیان مرجع جهت کاهش ابهام داده‌ها.',
             href: `/${lang}/platform/trust`,
           },
         ],

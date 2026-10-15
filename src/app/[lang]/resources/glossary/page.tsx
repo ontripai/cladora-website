@@ -117,7 +117,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'Adevăr Canonic (Canonical Truth)',
           category: 'providers',
           definition:
-            'Starea verificată și neechivocă a datelor dintr-un domeniu critic, garantată de furnizorul canonic desemnat, prevenind discrepanțele cauzate de baze de date paralele sau reconcilieri conflictuale.',
+            'Starea verificată și delimitată a datelor dintr-un domeniu critic, menținută de furnizorul canonic desemnat, concepută pentru a reduce ambiguitatea de reconciliere și riscul de erori, păstrând claritatea proprietății asupra adevărului operațional.',
         },
         {
           term: 'CORE',
@@ -129,13 +129,13 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'DOCUMENTS',
           category: 'providers',
           definition:
-            'Furnizorul canonic de adevăr pentru documentele oficiale, versiunile auditate, proveniența fișierelor și dovezile foto ale intervențiilor tehnice.',
+            'Arhitectura furnizorului canonic de adevăr pentru versiunile documentelor oficiale, evidențele probatorii și proveniența fișierelor în contextele autorizate de spațiu de lucru.',
         },
         {
           term: 'FIN01',
           category: 'providers',
           definition:
-            'Furnizorul canonic de adevăr financiar: jurnale de tranzacții, reguli de repartizare a costurilor, cote statutare, balanțe de verificare și reconciliere bancară.',
+            'Furnizorul canonic de adevăr financiar: jurnale de tranzacții, reguli de repartizare a costurilor, cote de întreținere, balanțe de verificare și reconciliere bancară.',
         },
         {
           term: 'BK01',
@@ -183,7 +183,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'Pachet de Țară (Country Pack)',
           category: 'composition',
           definition:
-            'Stratul de adaptare la specificul jurisdicțional care cuprinde terminologia locală, cerințele de repartizare legală (ex: Legea 196/2018 în România) și formularele statutare fără a fragmenta modelul global.',
+            'Stratul de adaptare la specificul jurisdicțional care cuprinde terminologia locală, contextele de documente și repartizare a cheltuielilor (ex: cadrul de referință Legea 196/2018 în România) și așteptările de operare locale fără a fragmenta modelul global.',
         },
         {
           term: 'ADN-ul Clădirii (Building DNA)',
@@ -311,7 +311,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'Capability',
           category: 'composition',
           definition:
-            'A discrete, composable functional block of the platform (e.g., utility meter tracking, bank transaction reconciliation, statutory cost allocation) enabled dynamically according to property requirements.',
+            'A discrete, composable functional block of the platform (e.g., utility meter tracking, bank transaction reconciliation, cost allocation rules) enabled dynamically according to property requirements.',
         },
         {
           term: 'Canonical Provider',
@@ -323,7 +323,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'Canonical Truth',
           category: 'providers',
           definition:
-            'The single, authoritative state of critical data maintained by its designated provider, eliminating synchronization errors caused by parallel ledgers or ad-hoc duplicate stores.',
+            'The single, authoritative state of critical data maintained by its designated provider, designed to reduce reconciliation ambiguity and error risk while preserving clear ownership of operational truth.',
         },
         {
           term: 'CORE',
@@ -335,7 +335,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'DOCUMENTS',
           category: 'providers',
           definition:
-            'The canonical truth provider for official records, audited versions, file provenance, and photographic acceptance evidence.',
+            'The canonical provider architecture for official document versions, evidentiary records, and file provenance across authorized workspace contexts.',
         },
         {
           term: 'FIN01',
@@ -389,7 +389,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'Country Pack',
           category: 'composition',
           definition:
-            'The localized operational overlay encompassing jurisdictional terminology, statutory cost allocation schemes (e.g., Romanian Law 196/2018), and compliance reporting without branching core architecture.',
+            'The localized operational overlay encompassing jurisdictional terminology, document and allocation contexts (e.g., Romanian Law 196/2018 reference framework), and local operating expectations without branching core platform architecture.',
         },
         {
           term: 'Building DNA',
@@ -529,7 +529,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'حقیقت مرجع (Canonical Truth)',
           category: 'providers',
           definition:
-            'وضعیت قطعی و بدون ابهام اطلاعات در یک حوزه حیاتی که مانع از ایجاد تضاد ناشی از پایگاه داده‌های موازی یا ثبت چندگانه می‌شود.',
+            'وضعیت معتبر و مشخص اطلاعات در یک حوزه حیاتی که توسط متولی مرجع نگهداری می‌شود و با هدف کاهش ابهامات در مغایرت‌گیری و تقلیل ریسک خطا، هم‌زمان با شفافیت مالکیت داده‌های عملیاتی طراحی شده است.',
         },
         {
           term: 'CORE',
@@ -541,7 +541,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'DOCUMENTS',
           category: 'providers',
           definition:
-            'متولی مرجع داده‌ها برای نسخه‌های رسمی اسناد، تاریخچه تغییرات، شواهد تصویری و اصالت فایل‌های بارگذاری‌شده.',
+            'معماری متولی مرجع داده‌ها برای نسخه‌های رسمی اسناد، شواهد و سوابق اصالت فایل‌ها در بافت فضاهای کاری مجاز.',
         },
         {
           term: 'FIN01',
@@ -595,7 +595,7 @@ export default async function GlossaryPage(props: { params: Promise<{ lang: Lang
           term: 'بسته کشوری (Country Pack)',
           category: 'composition',
           definition:
-            'لایه انطباق با قوانین محلی که شامل واژگان بومی، شیوه‌های محاسبه شارژ و گزارش‌های رسمی منطقه‌ای است.',
+            'لایه انطباق با ویژگی‌های حوزه قضایی که شامل اصطلاحات بومی، بافت اسناد و الگوهای تسهیم هزینه (مانند چارچوب مرجع قانون 196/2018 در رومانی) و انتظارات عملیاتی محلی، بدون انشعاب در معماری پایه است.',
         },
         {
           term: 'ساختار ساختمانی (Building DNA)',

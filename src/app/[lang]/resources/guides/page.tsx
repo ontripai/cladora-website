@@ -341,7 +341,7 @@ export default async function GuidesPage(props: { params: Promise<{ lang: Langua
             'How the platform respects local regulatory workflows (such as Romanian Law 196/2018) without compromising global foundational architecture.',
           topics: [
             'The Country Pack as a localized rule and terminology layer',
-            'Workflow alignment for statutory cost allocations',
+            'Workflow alignment for cost allocation contexts',
             'Operational compliance support vs. formal legal advice',
           ],
           bridge: {

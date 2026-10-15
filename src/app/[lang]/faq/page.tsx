@@ -48,7 +48,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
             },
             {
               q: 'Ce înseamnă principiul „sursă unică de adevăr canonic” în cadrul platformei?',
-              a: 'Înseamnă că un singur domeniu desemnat are autoritate exclusivă de scriere și validare pentru o categorie critică de date: FIN01 pentru tranzacții și solduri financiare, DOCUMENTS pentru versiuni probatorii de fișiere, BK01 pentru rezervări și CORE pentru identitate și autoritate. Acest lucru elimină conflictele de reconciliere dintre subsisteme.',
+              a: 'Înseamnă că un singur domeniu desemnat are autoritate de scriere și custodie pentru o categorie critică de date: FIN01 pentru tranzacții și solduri financiare, DOCUMENTS pentru versiuni probatorii de fișiere, BK01 pentru rezervări și CORE pentru identitate și autoritate. Această abordare este concepută pentru a reduce ambiguitatea de reconciliere și riscul de erori, păstrând claritatea proprietății asupra adevărului operațional.',
             },
           ],
         },
@@ -113,7 +113,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
             },
             {
               q: 'Ce înseamnă principiul „Zero-Write” în procesul de migrare?',
-              a: 'Înseamnă că arhitectura de migrare refuză în mod implicit scrierea sau modificarea stării operaționale dacă autoritatea de import, consistența schemei de date sau legăturile probatorii nu pot fi validate cu certitudine.',
+              a: 'Arhitectura de migrare este concepută pentru a refuza mutațiile de stare atunci când autoritatea necesară, validarea, maparea schemei sau starea de migrare nu pot fi stabilite cu certitudine.',
             },
           ],
         },
@@ -148,7 +148,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
           items: [
             {
               q: 'Poate inteligența artificială din CLADORA să execute plăți sau să modifice solduri autonom?',
-              a: 'Nu. Conform standardului de guvernanță WP-09A, CLADORA Intelligence este strict subordonată. Modelele AI oferă asistență contextuală, dar nu dețin adevărul canonic și nu pot executa acțiuni cu impact financiar sau legal fără aprobarea explicită a unei persoane autorizate.',
+              a: 'Nu. Conform standardului de guvernanță WP-09A, CLADORA Intelligence operează strict ca un nivel asistent subordonat și nu este desemnat ca scriitor canonic independent. Mutațiile financiare de consecință și acțiunile administrative sunt concepute să treacă prin furnizorul canonic responsabil, autoritatea verificată și controalele de politică sau aprobare umană aplicabile.',
             },
           ],
         },
@@ -194,7 +194,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
             },
             {
               q: 'What does the “single source of canonical truth” principle mean?',
-              a: 'It establishes that exactly one designated domain holds sole write authority and custodial custody over critical operational records: FIN01 for financial ledgers, DOCUMENTS for evidentiary files, BK01 for reservations, and CORE for identity and authority boundaries. This eliminates cross-system reconciliation breakdowns.',
+              a: 'It establishes that exactly one designated domain holds sole write authority and custodial custody over critical operational records: FIN01 for financial ledgers, DOCUMENTS for evidentiary files, BK01 for reservations, and CORE for identity and authority boundaries. This is designed to reduce reconciliation ambiguity and error risk while preserving clear ownership of operational truth.',
             },
           ],
         },
@@ -220,7 +220,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
             },
             {
               q: 'How does the platform handle submetering and utility allocations?',
-              a: 'The architecture associates physical meters with spatial units, records verified meter readings, and routes consumption data to FIN01 to execute statutory allocation formulas configured for the specific property archetype.',
+              a: 'The architecture associates physical meters with spatial units, records verified meter readings, and routes consumption data to FIN01 to execute allocation formulas configured for the specific property archetype and local operating context.',
             },
           ],
         },
@@ -259,7 +259,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
             },
             {
               q: 'What is the “Zero-Write” migration principle?',
-              a: 'It is an architectural integrity guarantee: the migration pipeline denies state mutations whenever authority, schema compliance, or source provenance cannot be established with certainty.',
+              a: 'The migration architecture is designed to deny mutations when required authority, validation, mapping, or migration state cannot be established, preserving integrity throughout data intake.',
             },
           ],
         },
@@ -294,7 +294,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
           items: [
             {
               q: 'Can CLADORA Intelligence disburse funds or mutate balances autonomously?',
-              a: 'No. Pursuant to the WP-09A AI governance standard, CLADORA Intelligence operates strictly as a subordinate assistive layer. AI models do not hold canonical truth and cannot execute consequential financial or legal actions without explicit human approval.',
+              a: 'No. Pursuant to the WP-09A AI governance standard, CLADORA Intelligence operates strictly as a subordinate assistive layer and is not designated as an independent canonical writer. Consequential financial mutations and administrative actions are designed to pass through the responsible canonical provider, verified authority, and applicable policy or human approval controls.',
             },
           ],
         },
@@ -340,7 +340,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
             },
             {
               q: 'اصل «مرجعیت واحد داده‌ها (Canonical Truth)» در کلادورا به چه معناست؟',
-              a: 'این اصل بیانگر آن است که برای هر دسته از اطلاعات حیاتی، تنها یک دامنه اختصاصی حق ثبت و تایید نهایی را داراست: FIN01 برای دفاتر و تراکنش‌های مالی، DOCUMENTS برای نسخه‌های رسمی اسناد، BK01 برای ظرفیت و تقویم‌ها، و CORE برای هویت و حدود اختیارات. این رویکرد از بروز مغایرت میان پایگاه‌های داده موازی جلوگیری می‌کند.',
+              a: 'این اصل بیانگر آن است که برای هر دسته از اطلاعات حیاتی، تنها یک دامنه اختصاصی حق ثبت و تایید نهایی را داراست: FIN01 برای دفاتر و تراکنش‌های مالی، DOCUMENTS برای نسخه‌های رسمی اسناد، BK01 برای ظرفیت و تقویم‌ها، و CORE برای هویت و حدود اختیارات. این رویکرد به گونه‌ای طراحی شده تا ابهام در مغایرت‌گیری و ریسک بروز خطای محاسباتی را کاهش دهد و شفافیت مالکیت داده‌های عملیاتی را حفظ کند.',
             },
           ],
         },
@@ -405,7 +405,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
             },
             {
               q: 'اصل «Zero-Write» در فرآیند مهاجرت داده‌ها به چه معناست؟',
-              a: 'این اصل متضمن آن است که در صورت وجود هرگونه ابهام در اختیارات مجاز، نقص در ساختار داده‌ها یا نبود شواهد کافی منشأ، از اعمال تغییرات در پایگاه داده عملیاتی ممانعت به عمل می‌آید.',
+              a: 'معماری مهاجرت داده‌ها به گونه‌ای طراحی شده است که در صورت عدم احراز اختیارات لازم، عدم امکان اعتبارسنجی، نقص در نگاشت ساختارها یا مشخص نبودن وضعیت مهاجرت، از اعمال جهش و تغییر وضعیت عملیاتی جلوگیری به عمل آورد.',
             },
           ],
         },
@@ -440,7 +440,7 @@ export default async function FaqCanonicalPage(props: { params: Promise<{ lang: 
           items: [
             {
               q: 'آیا هوش مصنوعی کلادورا می‌تواند به صورت خودمختار پرداخت‌ها را تایید کند؟',
-              a: 'خیر. طبق ضوابط حاکمیت بر هوش مصنوعی (WP-09A)، هوش عملیاتی در نقش دستیار زیردست فعالیت می‌کند و مجاز به تصمیم‌گیری‌های مالی یا حقوقی بدون تأیید مستقیم انسان نیست.',
+              a: 'خیر. طبق استاندارد حاکمیت بر هوش مصنوعی (WP-09A)، هوش عملیاتی کلادورا منحصراً به عنوان لایه کمکی زیردست عمل می‌کند و به عنوان نویسنده مستقل حقیقت کانونی تعیین نشده است. اعمال تغییرات مالی بنیادین و تصمیمات اداری مهم به گونه‌ای طراحی شده‌اند که از طریق ارائه‌دهنده کانونی مسئول، اعتبارسنجی اختیارات و نظارت‌های خط‌مشی یا تایید انسانی صورت پذیرند.',
             },
           ],
         },

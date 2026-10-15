@@ -58,22 +58,22 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
         items: [
           {
             title: 'Principiul Refuzului la Scriere (Zero-Write)',
-            desc: 'Arhitectura de migrare este concepută pentru a bloca orice mutație în starea operațională atâta timp cât autoritatea de import, consistența schemei sau dovezile sursă nu pot fi stabilite neechivoc.',
+            desc: 'Arhitectura de migrare este concepută pentru a refuza mutațiile atunci când autoritatea necesară, validarea, maparea sau starea de migrare nu pot fi stabilite neechivoc.',
             icon: ShieldAlert,
           },
           {
-            title: 'Proveniența Documentară Completă',
-            desc: 'Fiecare înregistrare importată poartă metadate de proveniență: sistemul sursă, identificatorul original, decizia de transformare, lotul de import și starea de validare.',
+            title: 'Proveniența Documentară a Înregistrărilor',
+            desc: 'Modelul de migrare este conceput pentru a păstra elementele de proveniență, precum sistemul sursă, înregistrarea originală, decizia de mapare, lotul de import și starea de validare.',
             icon: FileCheck,
           },
           {
             title: 'Etape Reversibile & Plan de Rollback',
-            desc: 'Puncte de control clare înainte de fiecare angajament. Dacă datele din faza de probă nu corespund criteriilor stabilite, tranziția poate fi întreruptă fără compromiterea înregistrărilor existente.',
+            desc: 'Cadrul metodologic stabilește puncte de control și proceduri de revenire concepute pentru loturile nefinalizate, permițând întreruperea tranziției fără compromiterea spațiilor de lucru active.',
             icon: RotateCcw,
           },
           {
             title: 'Validare Asistată & Control Uman',
-            desc: 'Deciziile critice privind alocarea soldurilor, deschiderea registrelor statutare și închiderea conturilor sursă rămân sub revizuirea și aprobarea exclusivă a administratorilor autorizați.',
+            desc: 'Stările financiare de migrare cu impact sunt concepute pentru a rămâne supuse unor controale adecvate de validare și acceptanță, inclusiv revizuirii umane acolo unde este necesar.',
             icon: Sliders,
           },
         ],
@@ -100,7 +100,7 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
           {
             num: '04',
             title: 'Rularea de Validare Paralelă (Shadow Run)',
-            desc: 'Metodologie comparativă: prelucrarea ciclurilor lunare în paralel cu sistemul vechi pentru a identifica divergențele de calcul, rotunjire sau repartizare a utilităților înainte de comutarea finală.',
+            desc: 'Metodologie comparativă: o abordare de validare paralelă poate compara rezultate selectate dintr-o sursă legacy și o stare țintă pregătită pentru a identifica diferențele înainte de comutare.',
           },
           {
             num: '05',
@@ -110,7 +110,7 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
           {
             num: '06',
             title: 'Comutarea Operațională (Cutover) & Verificare',
-            desc: 'Desemnarea CLADORA ca mediu activ de înregistrare, notificarea utilizatorilor autorizați și aplicarea procedurilor de audit post-lansare pentru verificarea primelor fluxuri lunare.',
+            desc: 'Tranziția operațională etapizată către CLADORA ca mediu de înregistrare, însoțită de proceduri metodologice de verificare și audit în primele cicluri operaționale.',
           },
         ],
       },
@@ -157,22 +157,22 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
         items: [
           {
             title: 'Zero-Write Mutation Denial Principle',
-            desc: 'The migration architecture is designed to deny state mutations whenever import authority, schema validation, or source evidence cannot be established unambiguously.',
+            desc: 'The migration architecture is designed to deny mutations when required authority, validation, mapping, or migration state cannot be established.',
             icon: ShieldAlert,
           },
           {
             title: 'Complete Record Provenance',
-            desc: 'Every imported record carries immutable provenance metadata: source system, original identifier, transformation decision, import batch, and validation state.',
+            desc: 'The migration model is designed to preserve provenance such as source system, source record, mapping decision, import batch, and validation state.',
             icon: FileCheck,
           },
           {
             title: 'Reversible Milestones & Rollback Planning',
-            desc: 'Clear go/no-go gates precede every commitment. If staging records fail verification thresholds, migration can be rolled back without compromising active workspaces.',
+            desc: 'The methodological framework establishes checkpoint gates and rollback procedures designed for uncommitted staging batches, allowing transition pauses without compromising active workspaces.',
             icon: RotateCcw,
           },
           {
             title: 'Assisted Validation & Human Oversight',
-            desc: 'Critical decisions regarding balance carryover, statutory register openings, and source account closure remain strictly under authorized administrative review.',
+            desc: 'Consequential financial migration states are designed to remain subject to appropriate validation and acceptance controls, including human review where required.',
             icon: Sliders,
           },
         ],
@@ -199,7 +199,7 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
           {
             num: '04',
             title: 'Shadow / Parallel Validation Run',
-            desc: 'A comparative methodology: executing monthly billing and allocation cycles in parallel with legacy tools to surface rounding variances or allocation discrepancies prior to cutover.',
+            desc: 'A comparative reference pattern: a parallel-validation approach can compare selected outputs from a legacy source and a staged target state to identify differences before cutover.',
           },
           {
             num: '05',
@@ -209,7 +209,7 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
           {
             num: '06',
             title: 'Operational Cutover & Post-Verification',
-            desc: 'Designating CLADORA as the active record provider, notifying authorized participants, and executing post-cutover audit checklists during initial billing cycles.',
+            desc: 'Staged operational transition toward CLADORA as the active record provider, supported by methodological verification and audit checklists during initial cycles.',
           },
         ],
       },
@@ -256,22 +256,22 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
         items: [
           {
             title: 'اصل امتناع از ثبت بدون قطعیت (Zero-Write)',
-            desc: 'معماری مهاجرت به گونه‌ای پیاده‌سازی شده است که در صورت عدم احراز اختیارات مجاز، نقص در اعتبارسنجی ساختار یا نبود شواهد کافی، از اعمال هرگونه تغییر در پایگاه داده جلوگیری می‌کند.',
+            desc: 'معماری مهاجرت به گونه‌ای طراحی شده است که در صورت عدم احراز اختیارات لازم، عدم انطباق اعتبارسنجی یا نقص در تطبیق وضعیت، از اعمال تغییرات در داده‌ها ممانعت به عمل آورد.',
             icon: ShieldAlert,
           },
           {
-            title: 'حفظ کامل اصالت و منشأ داده‌ها (Provenance)',
-            desc: 'هر سابقهٔ منتقل‌شده حاوی متادیتاهای دقیق منشأ است: سیستم مبدا، شناسه اصلی رکورد، قاعده تبدیل، شناسه دسته واردسازی و وضعیت اعتبارسنجی.',
+            title: 'حفظ اصالت و منشأ داده‌ها (Provenance)',
+            desc: 'مدل معماری مهاجرت به گونه‌ای طراحی شده است که ارکان اصالت داده‌ها نظیر سیستم مبدا، شناسه رکورد اولیه، قاعده تبدیل، شناسه دسته واردسازی و وضعیت اعتبارسنجی را حفظ نماید.',
             icon: FileCheck,
           },
           {
             title: 'مراحل بازگشت‌پذیر و برنامه‌ریزی Rollback',
-            desc: 'نقاط کنترل شفاف پیش از هر تصمیم قطعی تعبیه شده‌اند. چنانچه داده‌های مرحله آزمایش با ضوابط انطباق نداشتند، فرآیند بدون آسیب به فضاهای کاری فعال متوقف می‌شود.',
+            desc: 'چارچوب متدولوژی مشتمل بر نقاط کنترلی و فرآیندهای بازگشت (Rollback) برای بسته‌های نهایی‌نشده است تا امکان توقف فرآیند بدون آسیب به فضاهای کاری فعال میسر باشد.',
             icon: RotateCcw,
           },
           {
             title: 'اعتبارسنجی کمکی توأم با نظارت انسانی',
-            desc: 'تصمیمات کلیدی پیرامون مانده‌های اول دوره، گشایش دفاتر قانونی و بستن حساب‌های نرم‌افزار پیشین منحصراً تحت نظارت و تایید مدیران ذی‌صلاح اتخاذ می‌گردند.',
+            desc: 'وضعیت‌های مالی حساس در مهاجرت اطلاعات به گونه‌ای طراحی شده‌اند که مقید به کنترل‌های اعتبارسنجی و پذیرش مناسب، از جمله بازبینی انسانی در موارد لازم، باقی بمانند.',
             icon: Sliders,
           },
         ],
@@ -298,7 +298,7 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
           {
             num: '04',
             title: 'اجرای موازی و اعتبارسنجی تطبیقی (Shadow Run)',
-            desc: 'اجرای موازی محاسبات شارژ ماهانه در کنار سیستم قدیمی برای شناسایی مغایرت‌های محاسباتی، گردکردن ارقام یا فرمول‌های تسهیم پیش از قطع دسترسی سامانه قبلی.',
+            desc: 'یک الگوی مرجع مقایسه‌ای: رویکرد اعتبارسنجی موازی می‌تواند خروجی‌های منتخب از منبع قدیمی و وضعیت آماده‌شده در سامانه مقصد را جهت شناسایی مغایرت‌ها پیش از انتقال نهایی مقایسه نماید.',
           },
           {
             num: '05',
@@ -308,7 +308,7 @@ export default async function MigrationHubPage(props: { params: Promise<{ lang: 
           {
             num: '06',
             title: 'شروع عملیات قطعی (Cutover) و بازبینی',
-            desc: 'معرفی کلادورا به عنوان مرجع اصلی عملیات، اطلاع‌رسانی به کاربران مجاز و اجرای چک‌لیست‌های بازبینی در نخستین دوره‌های محاسبه شارژ و صدور قبوض.',
+            desc: 'گذار عملیاتی مرحله‌ای به کلادورا به عنوان سامانه ثبت رخدادها، توأم با چک‌لیست‌های روش‌مند بازبینی و ممیزی در دوره‌های آغازین.',
           },
         ],
       },
