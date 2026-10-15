@@ -57,15 +57,15 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
       positioning: {
         badge: 'POZIȚIONARE ARHITECTURALĂ',
         title: 'Portofoliul ca Perspectivă, Nu ca Siloz Separat',
-        p: 'În CLADORA, administrarea unui portofoliu de imobile nu implică un software dedicat sau o bază de date duplicată. Portofoliul reprezintă o grupare autorizată a relațiilor de proprietate deținute de o persoană sau companie în diferite workspace-uri rezidențiale sau comerciale.',
+        p: 'În CLADORA, administrarea unui portofoliu de imobile nu implică un software dedicat sau o bază de date duplicată. Portofoliul reprezintă o grupare autorizată a relațiilor de proprietate deținute de o persoană sau companie în workspace-uri cu limite proiectate să mențină separarea contextelor.',
         points: [
           {
             title: 'Ancorare Directă în FIN01',
-            desc: 'Fiecare încasare și cheltuială se raportează la registrul financiar oficial, fără tabele paralele de estimare.',
+            desc: 'Fiecare înregistrare de încasare și cheltuială se raportează la registrul financiar oficial, fără tabele paralele de estimare.',
           },
           {
             title: 'Delimitare Riguroasă a Fondurilor',
-            desc: 'Separare strictă între cotele de consum ale chiriașilor și fondurile de reparații ale proprietarului.',
+            desc: 'Separare structurată între cotele de consum ale chiriașilor și fondurile de reparații ale proprietarului.',
           },
           {
             title: 'Continuitatea Contractelor în AIRPROP',
@@ -79,7 +79,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
         items: [
           {
             domain: 'FIN01',
-            title: 'Transparență Financiară & Decontare',
+            title: 'Vizibilitate Financiară & Decontare',
             desc: 'Evidența clară a cotelor statutare, chiriilor decontate și cheltuielilor operaționale, fără promisiuni nerealiste de randament garantat.',
             icon: DollarSign,
           },
@@ -91,8 +91,8 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             domain: 'DOCUMENTS',
-            title: 'Arhivă Contractuală & Facturi Sursă',
-            desc: 'Acces direct la documentele justificative, polițele de asigurare și contractele semnate, atașate fiecărui activ.',
+            title: 'Evidență Contractuală & Facturi Sursă',
+            desc: 'Acces autorizat la documentele justificative, polițele de asigurare și contractele semnate, asociate fiecărui activ.',
             icon: FileText,
           },
           {
@@ -104,8 +104,10 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
         ],
       },
       lifecycle: {
-        badge: 'CICLUL DE VIAȚĂ AL ACTIVULUI',
+        badge: 'PARCURS ARHITECTURAL ILUSTRATIV',
         title: 'Etapele Relației Proprietarului cu Bunul Imobiliar',
+        subtitle:
+          'Notă de arhitectură: Etapele de mai jos reflectă participarea ilustrativă a proprietarului de-a lungul vieții activului, fără a implica optimizare automată de portofoliu, contractare automată sau succesiune garantată în producție.',
         steps: [
           {
             num: '01',
@@ -114,13 +116,13 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             num: '02',
-            title: 'Comercializare & Închiriere',
+            title: 'Administrare Contractuală',
             desc: 'Administrarea contractelor și mandatelor operaționale prin AIRPROP.',
           },
           {
             num: '03',
             title: 'Exploatare & Decontare',
-            desc: 'Încasarea chiriilor și separarea fondurilor de reparații prin FIN01.',
+            desc: 'Urmărirea chiriilor și separarea fondurilor de reparații prin FIN01.',
           },
           {
             num: '04',
@@ -129,8 +131,8 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             num: '05',
-            title: 'Tranziție sau Înstrăinare',
-            desc: 'Păstrarea dosarului istoric complet în vederea reînchirierii sau vânzării.',
+            title: 'Tranziție Documentară',
+            desc: 'Păstrarea dosarului istoric complet în vederea reînchirierii sau înstrăinării.',
           },
         ],
       },
@@ -162,7 +164,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
       positioning: {
         badge: 'ARCHITECTURAL POSITIONING',
         title: 'Portfolio as a Perspective, Not a Data Silo',
-        p: 'In CLADORA, managing a multi-unit property portfolio does not require disconnected software or a duplicate database. A portfolio is an authorized aggregation of ownership relationships held by a person or company across distinct residential or commercial workspaces.',
+        p: 'In CLADORA, managing a multi-unit property portfolio does not require disconnected software or a duplicate database. A portfolio is an authorized aggregation of ownership relationships held by a person or company across workspace-scoped boundaries designed to maintain separation across properties.',
         points: [
           {
             title: 'Direct Anchoring in FIN01',
@@ -184,7 +186,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
         items: [
           {
             domain: 'FIN01',
-            title: 'Financial Clarity & Cost Recovery',
+            title: 'Financial Visibility & Cost Recovery',
             desc: 'Accurate oversight of statutory charges, settled rent receipts, and deductible expenses, without unsubstantiated guaranteed yield claims.',
             icon: DollarSign,
           },
@@ -196,7 +198,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             domain: 'DOCUMENTS',
-            title: 'Contract Vault & Source Invoices',
+            title: 'Contract Records & Source Invoices',
             desc: 'Direct access to verified source invoices, insurance policies, and signed addenda attached to each specific unit.',
             icon: FileText,
           },
@@ -209,8 +211,10 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
         ],
       },
       lifecycle: {
-        badge: 'ASSET LIFECYCLE',
+        badge: 'ILLUSTRATIVE ARCHITECTURAL JOURNEY',
         title: 'Stages of Owner Engagement Across the Asset Lifecycle',
+        subtitle:
+          'Architectural Notice: The stages below reflect an illustrative lifecycle participation journey for property owners, without implying automated lease structuring, automated portfolio optimization, or succession workflows.',
         steps: [
           {
             num: '01',
@@ -219,7 +223,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             num: '02',
-            title: 'Lease Structuring',
+            title: 'Lease Administration',
             desc: 'Administer lease agreements and management mandates within AIRPROP.',
           },
           {
@@ -234,7 +238,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             num: '05',
-            title: 'Succession & Exit',
+            title: 'Succession & Transition',
             desc: 'Preserve unbroken provenance records for lease renewal or property sale.',
           },
         ],
@@ -267,7 +271,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
       positioning: {
         badge: 'موضع‌گیری اصولی معماری',
         title: 'پورتفولیو به عنوان یک نما، نه یک جزیرهٔ داده‌ای',
-        p: 'در پلتفرم کلادورا، مدیریت سبد املاک نیازمند نرم‌افزار مجزا یا پایگاه داده موازی نیست. پورتفولیو نمای ترکیبی و مجاز از روابط مالکیتی یک شخص یا سازمان در ورک‌اسپیس‌های مستقل مجتمع‌های مختلف است.',
+        p: 'در پلتفرم کلادورا، مدیریت سبد املاک نیازمند نرم‌افزار مجزا یا پایگاه داده موازی نیست. پورتفولیو نمای ترکیبی و مجاز از روابط مالکیتی یک شخص یا سازمان در ورک‌اسپیس‌های دارای مرزبندی‌های معین برای حفظ تفکیک داده‌ها است.',
         points: [
           {
             title: 'اتصال مستقیم به مرجع FIN01',
@@ -289,7 +293,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
         items: [
           {
             domain: 'FIN01',
-            title: 'شفافیت مالی و تسهیم واقعی هزینه‌ها',
+            title: 'دید مالی و تسهیم واقعی هزینه‌ها',
             desc: 'ثبت مستند سهم شارژ قانونی، اجاره‌های دریافتی و هزینه‌های استهلاک، بدون ادعاهای غیرواقعی درباره بازده تضمینی.',
             icon: DollarSign,
           },
@@ -301,7 +305,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             domain: 'DOCUMENTS',
-            title: 'بایگانی اسناد مالکیت و فاکتورها',
+            title: 'سوابق اسناد مالکیت و فاکتورها',
             desc: 'دسترسی سریع به فاکتورهای مرجع، بیمه‌نامه‌ها و الحاقیه‌های قرارداد متصل به هر واحد.',
             icon: FileText,
           },
@@ -314,8 +318,10 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
         ],
       },
       lifecycle: {
-        badge: 'چرخهٔ عمر دارایی ملکی',
+        badge: 'سیر معماری فرضی و مشارکتی',
         title: 'مراحل تعامل مالک با ملک در طول زمان',
+        subtitle:
+          'یادداشت معماری: مراحل زیر بیانگر مشارکت فرضی و معماری مالک در طول حیات دارایی است و متضمن اتوماسیون قراردادهای اجاره، بهینه‌سازی خودکار پورتفولیو یا فرآیندهای انتقال خودکار نیست.',
         steps: [
           {
             num: '۰۱',
@@ -324,7 +330,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             num: '۰۲',
-            title: 'قرارداد اجاره و بهره‌برداری',
+            title: 'ثبت قراردادهای اجاره',
             desc: 'تنظیم قراردادهای اجاره و شرایط مالی در AIRPROP.',
           },
           {
@@ -339,7 +345,7 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
           },
           {
             num: '۰۵',
-            title: 'تمدید، واگذاری یا فروش',
+            title: 'سوابق انتقال و تمدید',
             desc: 'حفظ شناسنامه کامل سوابق برای تمدید اجاره یا عرضه مجدد ملک.',
           },
         ],
@@ -481,6 +487,9 @@ export default async function PropertyOwnersSolutionPage(props: { params: Promis
             <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
               {content.lifecycle.title}
             </h2>
+            <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+              {content.lifecycle.subtitle}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

@@ -353,15 +353,15 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/solutions/developers': {
     ro: {
       title: 'Dezvoltatori & Predare Imobile — Arhitectura de Platformă | CLADORA',
-      desc: 'Structurarea identității imobilului din faza de proiect, pregătire comercială în AIRPROP, cartea tehnică în DOCUMENTS și tranziție ordonată către operare post-predare.',
+      desc: 'Structurarea identității imobilului din faza de proiect, pregătire comercială în AIRPROP, organizarea documentației în DOCUMENTS și sprijin pentru tranziția operațională post-predare.',
     },
     en: {
       title: 'Property Development & Handover Platform Architecture | CLADORA',
-      desc: 'Establish digital asset identity early, track commercial preparation in AIRPROP, organize the technical vault, and support orderly post-handover operational transition.',
+      desc: 'Establish digital asset identity early, support commercial preparation in AIRPROP, organize document records in DOCUMENTS, and support post-handover operational transition.',
     },
     fa: {
       title: 'معماری پلتفرم برای سازندگان و تحویل املاک | کلادورا',
-      desc: 'ثبت هویت دیجیتال ملک از فاز اولیه، تمهیدات تجاری در AIRPROP، بایگانی اسناد در DOCUMENTS و انتقال منظم به مرحله بهره‌برداری پس از تحویل.',
+      desc: 'ثبت هویت دیجیتال ملک از فاز اولیه، تمهیدات تجاری در AIRPROP، سازماندهی اسناد در DOCUMENTS و تسهیل انتقال به مرحله بهره‌برداری پس از تحویل.',
     },
   },
   '/solutions/property-owners': {
@@ -381,57 +381,57 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   '/solutions/associations': {
     ro: {
       title: 'Asociații de Proprietari — Platforma de Guvernanță Rezidențială | CLADORA',
-      desc: 'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: repartizarea cheltuielilor, avizier digital și transparență decizională.',
+      desc: 'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: evidența cotelor, canale oficiale de comunicare și evidențe decizionale.',
     },
     en: {
       title: 'Residential Association & HOA Platform Architecture | CLADORA',
-      desc: 'Designed to support residential association workflows within the framework of Romanian Law 196/2018: expense allocation, digital notice board, and governance records.',
+      desc: 'Designed to support residential association workflows within the framework of Romanian Law 196/2018: expense records, official communication channels, and governance records.',
     },
     fa: {
       title: 'معماری پلتفرم برای انجمن‌های مالکان و مجتمع‌های مسکونی | کلادورا',
-      desc: 'طراحی‌شده برای تسهیل فرآیندهای مجتمع‌های مسکونی منطبق با چارچوب‌های قانونی: تسهیم مستند هزینه‌ها، تابلو اعلانات دیجیتال و ثبت تصمیمات مجامع.',
+      desc: 'طراحی‌شده برای تسهیل فرآیندهای مجتمع‌های مسکونی منطبق با چارچوب‌های قانونی: شفافیت هزینه‌ها، کانال‌های رسمی اطلاع‌رسانی و ثبت تصمیمات مجامع.',
     },
   },
   '/solutions/property-managers': {
     ro: {
       title: 'Companii de Administrare — Platforma Operațională Multi-Imobil | CLADORA',
-      desc: 'Consolă de operare pentru portofolii multi-proprietate: coordonarea echipelor, dispecerat tichete, vizibilitate financiară și relația cu ocupanții.',
+      desc: 'Consolă de operare pentru portofolii multi-proprietate: coordonarea echipelor, evidența solicitărilor de mentenanță, vizibilitate financiară și relația cu ocupanții.',
     },
     en: {
       title: 'Property Management Operating Platform | CLADORA',
-      desc: 'Operating console for multi-property portfolios: team delegation, maintenance ticket dispatch, financial visibility, and occupant relationship coordination.',
+      desc: 'Operating console for multi-property portfolios: team delegation, maintenance request oversight, financial visibility, and occupant relationship coordination.',
     },
     fa: {
       title: 'پلتفرم عملیاتی شرکت‌های مدیریت و نگهداری املاک | کلادورا',
-      desc: 'کنسول عملیاتی برای مدیریت چندین مجتمع: تفویض اختیارات به تیم، ارجاع تیکت‌های فنی، شفافیت مالی و مدیریت تعاملات با بهره‌برداران.',
+      desc: 'کنسول عملیاتی برای مدیریت چندین مجتمع: تفویض اختیارات به تیم، پیگیری درخواست‌های تعمیرات، شفافیت مالی و مدیریت تعاملات با بهره‌برداران.',
     },
   },
   '/solutions/residents': {
     ro: {
       title: 'Rezidenți & Ocupanți — Experiența Imobiliară Conectată | CLADORA',
-      desc: 'Transparență autorizată asupra cotelor de întreținere, transmiterea indexurilor, semnalarea incidentelor tehnice și comunicare oficială cu administrația.',
+      desc: 'Vizibilitate autorizată asupra cotelor de întreținere, transmiterea indexurilor, semnalarea cererilor de mentenanță și comunicare oficială cu administrația.',
     },
     en: {
       title: 'Resident & Occupant Property Experience Architecture | CLADORA',
-      desc: 'Authorized transparency into maintenance charges, photo-assisted meter submission, maintenance issue ticketing, and official community communications.',
+      desc: 'Authorized visibility into maintenance charges, meter index submissions, maintenance requests, and official community communications.',
     },
     fa: {
       title: 'معماری تجربه سکونت برای ساکنان و بهره‌برداران املاک | کلادورا',
-      desc: 'مشاهده شفاف فیش شارژ ماهانه، ثبت تصویری ارقام کنتورها، اعلام سریع درخواست‌های تعمیرات و دریافت اطلاعیه‌های رسمی ساختمان.',
+      desc: 'مشاهده مجاز فیش شارژ ماهانه، ثبت ارقام کنتورها، اعلام درخواست‌های تعمیرات و دریافت اطلاعیه‌های رسمی ساختمان.',
     },
   },
   '/solutions/service-providers': {
     ro: {
       title: 'Furnizori de Servicii & Echipe Tehnice — Coordonare Lucrări | CLADORA',
-      desc: 'Coordonarea intervențiilor tehnice: comenzi de lucru autorizate prin OPERATIONS, devize clare în SERVICE, probe foto la recepție și decontare ordonată.',
+      desc: 'Coordonarea intervențiilor tehnice: comenzi de lucru autorizate prin OPERATIONS, estimări structurate în SERVICE, dovezi de recepție și evidență ordonată.',
     },
     en: {
       title: 'Property Service Provider Coordination Platform | CLADORA',
-      desc: 'Coordinate maintenance delivery: verified work orders via OPERATIONS, structured quote scope in SERVICE, photographic sign-off evidence, and auditable records.',
+      desc: 'Coordinate maintenance delivery: verified work orders via OPERATIONS, structured scope in SERVICE, acceptance evidence in DOCUMENTS, and auditable records.',
     },
     fa: {
       title: 'پلتفرم هماهنگی ارائه‌دهندگان خدمات و تیم‌های فنی | کلادورا',
-      desc: 'هماهنگی دستورکارهای فنی از طریق OPERATIONS، برآورد شفاف هزینه در SERVICE، مستندسازی تصویری تحویل کار و ثبت منظم سوابق.',
+      desc: 'هماهنگی دستورکارهای فنی از طریق OPERATIONS، برآورد ساختاریافته در SERVICE، مستندات تحویل کار و ثبت منظم سوابق.',
     },
   },
   '/solutions/tenants': {

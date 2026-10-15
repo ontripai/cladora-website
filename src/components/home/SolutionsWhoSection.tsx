@@ -21,7 +21,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Dezvoltatori & Constructori',
           problem: 'Evidențe fragmentate de pre-vânzare și predări anevoioase către asociații.',
           solution:
-            'Identitate digitală unică din faza de proiect, antecontracte și protocol formal de predare cu seif tehnic inclus.',
+            'Identitate digitală din faza de proiect, antecontracte și protocol formal de predare cu evidența documentației tehnice.',
           href: `/${lang}/solutions/developers`,
           icon: Building,
         },
@@ -48,7 +48,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Companii de Administrare',
           problem: 'Gestiune manuală pe multiple blocuri și dificultăți în coordonarea meșterilor.',
           solution:
-            'Operare multi-clădire într-un singur cont, dispecerat de tichete de mentenanță și evidență structurată.',
+            'Operare multi-clădire într-un singur cont, triere a tichetelor de mentenanță și evidență structurată.',
           href: `/${lang}/solutions/property-managers`,
           icon: Wrench,
         },
@@ -66,7 +66,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Furnizori de Servicii',
           problem: 'Comenzi neclare, devize contestate și termene de plată imprevizibile.',
           solution:
-            'Comenzi de lucru cu specificații exacte, recepție digitală la fața locului și decontare ordonată.',
+            'Comenzi de lucru cu specificații exacte, probe foto la recepție și decontare ordonată.',
           href: `/${lang}/solutions/service-providers`,
           icon: FileCheck2,
         },
@@ -111,7 +111,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Property Management Companies',
           problem: 'Juggling disparate tools across buildings and managing vendor dispatches manually.',
           solution:
-            'Multi-asset operational scale, integrated ticket dispatches, and compliant statutory reporting.',
+            'Multi-asset operational scale, maintenance ticket coordination, and structured statutory reporting.',
           href: `/${lang}/solutions/property-managers`,
           icon: Wrench,
         },
@@ -129,7 +129,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Service Providers & Trades',
           problem: 'Vague work scopes, disputed invoices, and unpredictable sign-off delays.',
           solution:
-            'Structured work orders, verified site check-ins, and auditable sign-off records.',
+            'Structured work orders, verified site check-ins, and auditable work acceptance records.',
           href: `/${lang}/solutions/service-providers`,
           icon: FileCheck2,
         },
@@ -147,7 +147,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'سازندگان و توسعه‌دهندگان',
           problem: 'فایل‌های پراکندهٔ پیش‌فروش و تحویل پردردسر ساختمان به هیئت‌مدیره جدید.',
           solution:
-            'ثبت هویت واحدها از فاز پروژه، پیگیری تعهدات پیش‌فروش و صورت‌جلسه دیجیتال تحویل با شناسنامه فنی.',
+            'ثبت هویت واحدها از فاز پروژه، پیگیری تعهدات پیش‌فروش و چارچوب صورت‌جلسه تحویل با اسناد فنی.',
           href: `/${lang}/solutions/developers`,
           icon: Building,
         },
@@ -174,7 +174,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'شرکت‌های مدیریت بهره‌برداری',
           problem: 'مدیریت سنتی همزمان چند ساختمان و دشواری در هماهنگی پیمانکاران.',
           solution:
-            'مدیریت یکپارچه چند پروژه در یک حساب، سامانه ارجاع تیکت‌های فنی و گزارش‌های قانونی حسابداری.',
+            'مدیریت چند پروژه در یک حساب کاربری، هماهنگی تیکت‌های فنی و گزارش‌های ساختاریافته مالی.',
           href: `/${lang}/solutions/property-managers`,
           icon: Wrench,
         },
@@ -192,7 +192,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'پیمانکاران و تیم‌های فنی',
           problem: 'شرح کار مبهم، تاخیر در تایید نهایی کار و ابهام در تسویه‌حساب‌ها.',
           solution:
-            'سفارش‌های کار مدون با محدوده مشخص، تایید دیجیتال انجام کار در محل و تسویه بدون اختلاف.',
+            'سفارش‌های کار مدون با محدوده مشخص، ثبت شواهد انجام کار در محل و تسویه بر پایه مستندات.',
           href: `/${lang}/solutions/service-providers`,
           icon: FileCheck2,
         },

@@ -32,7 +32,7 @@ export const SharedActorModelSection: React.FC<SharedActorModelSectionProps> = (
         {
           step: '02',
           title: 'WORKSPACE OPERAȚIONAL',
-          desc: 'Granița logică de izolare a datelor (ex: Asociație, Companie de Management, Portofoliu, Furnizor).',
+          desc: 'Granița logică de delimitare concepută pentru a menține separarea datelor și a reduce expunerea între contexte (ex: Asociație, Management, Portofoliu, Prestator).',
           icon: Layers,
           color: 'bg-[#0E9F8E] text-white',
         },
@@ -68,8 +68,8 @@ export const SharedActorModelSection: React.FC<SharedActorModelSectionProps> = (
       principlesTitle: 'Principii Arhitecturale Fundamentale',
       principles: [
         {
-          title: 'Persona Nu Înseamnă Autoritate',
-          desc: 'Faptul că un utilizator navighează ca «Proprietar», «Administrator» sau «Prestator» nu îi conferă de la sine permisiuni pe sistem. Autoritatea depinde strict de workspace, resursă, mandat activ și verificarea din CORE.',
+          title: 'Persona Nu Înseamnă Autoritate (Fără Drepturi Prezumate)',
+          desc: 'Faptul că un utilizator navighează ca «Proprietar», «Administrator» sau «Prestator» nu îi conferă de la sine permisiuni sau drepturi de acces în producție. Autoritatea depinde strict de workspace, resursă, mandat activ și verificarea din CORE.',
         },
         {
           title: 'Persona Nu Înseamnă Cont de Utilizator Separat',
@@ -96,7 +96,7 @@ export const SharedActorModelSection: React.FC<SharedActorModelSectionProps> = (
         {
           step: '02',
           title: 'OPERATIONAL WORKSPACE',
-          desc: 'The logical boundary of data isolation (e.g., Association, Management Firm, Portfolio, Vendor).',
+          desc: 'The logical boundary designed to maintain separation and reduce cross-context data exposure (e.g., Association, Management Firm, Portfolio, Vendor).',
           icon: Layers,
           color: 'bg-[#0E9F8E] text-white',
         },
@@ -132,8 +132,8 @@ export const SharedActorModelSection: React.FC<SharedActorModelSectionProps> = (
       principlesTitle: 'Core Architectural Axioms',
       principles: [
         {
-          title: 'Persona Is Not Authority',
-          desc: 'Labeling an actor as an "Owner", "Manager", or "Vendor" does not grant intrinsic platform permissions. Authority strictly requires an active workspace relationship, resource scope, time window, and mandate verified by CORE.',
+          title: 'Persona Does Not Grant Authority (No Assumed Entitlement)',
+          desc: 'Labeling an actor as an "Owner", "Manager", or "Vendor" does not grant intrinsic platform permissions or runtime entitlements. Authority strictly requires an active workspace relationship, resource scope, time window, and mandate verified by CORE.',
         },
         {
           title: 'Persona Is Not a Separate User Account',
@@ -160,7 +160,7 @@ export const SharedActorModelSection: React.FC<SharedActorModelSectionProps> = (
         {
           step: '۰۲',
           title: 'ورک‌اسپیس عملیاتی',
-          desc: 'مرز منطقی تفکیک داده‌ها (مانند انجمن مالکان، شرکت مدیریت، سبد املاک یا شرکت پیمانکار).',
+          desc: 'مرز منطقی تفکیک که برای حفظ استقلال داده‌ها و کاهش دسترسی متقاطع میان زمینه‌ها طراحی شده است (مانند مجتمع، شرکت مدیریت، سبد املاک یا پیمانکار).',
           icon: Layers,
           color: 'bg-[#0E9F8E] text-white',
         },
@@ -196,8 +196,8 @@ export const SharedActorModelSection: React.FC<SharedActorModelSectionProps> = (
       principlesTitle: 'اصول بنیادین معماری ذی‌نفعان',
       principles: [
         {
-          title: 'عنوان نقش به‌تنهایی مجوزی ایجاد نمی‌کند',
-          desc: 'نام‌گذاری یک کاربر به عنوان «مالک»، «مدیر» یا «پیمانکار» به خودی خود اختیاری در سیستم تولید نمی‌کند. اختیارات مستلزم رابطه فعال در ورک‌اسپیس، دامنه مشخص، بازه زمانی و تأییدیه هسته CORE است.',
+          title: 'عنوان نقش به‌تنهایی اختیاری ایجاد نمی‌کند (عدم فرض دسترسی عملیاتی)',
+          desc: 'نام‌گذاری یک کاربر به عنوان «مالک»، «مدیر» یا «پیمانکار» به خودی خود اختیاری در سیستم تولید نمی‌کند و هیچ دسترسی عملیاتی پیش‌فرضی ایجاد نمی‌شود. اختیارات مستلزم احراز رابطه فعال در ورک‌اسپیس، دامنه مشخص، بازه زمانی و تأییدیه هسته CORE است.',
         },
         {
           title: 'نقش، معادل حساب کاربری مجزا نیست',

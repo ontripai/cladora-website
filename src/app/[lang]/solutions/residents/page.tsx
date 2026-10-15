@@ -51,7 +51,7 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         badge: 'EXPERIENȚA DE LOCUIRE & OCUPARE',
         title: 'Transparență și Control în Spațiul Tău de Locuit',
         subtitle:
-          'Transparență autorizată asupra cotelor de întreținere, transmiterea indexurilor foto, semnalarea incidentelor tehnice și comunicare oficială cu administrația — pentru proprietari-locatari, chiriași și ocupanți autorizați.',
+          'Contextele rezidențiale pot include acces la informații financiare autorizate, transmiterea indexurilor de contor, solicitări de mentenanță și comunicări verificate, în funcție de capabilitățile active și domeniul de implementare.',
         ctaPrimary: 'Descoperă Portalul Ocupantului',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -80,8 +80,8 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         items: [
           {
             domain: 'FIN01',
-            title: 'Claritatea Notei de Plată Lunare',
-            desc: 'Descompunerea transparentă a fiecărui leu din lista de întreținere, cu acces la formulele explicabile de calcul aplicate.',
+            title: 'Informații Financiare Autorizate',
+            desc: 'Descompunerea structurată a articolelor din lista de întreținere, cu acces la formulele explicabile de calcul aplicate.',
             icon: Receipt,
           },
           {
@@ -105,8 +105,10 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         ],
       },
       journey: {
-        badge: 'PARCURSUL OCUPANTULUI',
+        badge: 'PARCURS ARHITECTURAL ILUSTRATIV',
         title: 'Etapele Experienței Rezidențiale în CLADORA',
+        subtitle:
+          'Notă de arhitectură: Un parcurs rezidențial ilustrativ poate conecta contexte precum cele de mai jos, în funcție de capabilitățile active și de configurarea specifică a asociației sau clădirii.',
         steps: [
           {
             num: '01',
@@ -115,7 +117,7 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
           },
           {
             num: '02',
-            title: 'Transmitere Lunară Index',
+            title: 'Context Preluare Index Contor',
             desc: 'Înregistrarea foto a consumului de apă caldă și rece înainte de închiderea perioadei.',
           },
           {
@@ -125,12 +127,12 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
           },
           {
             num: '04',
-            title: 'Semnalare Incidente Tehnice',
+            title: 'Semnalare Cerere Mentenanță',
             desc: 'Deschiderea unui tichet cu fotografie când apare o defecțiune la instalații sau spații comune.',
           },
           {
             num: '05',
-            title: 'Plecare sau Predare Contract',
+            title: 'Tranziție & Încheiere Contract',
             desc: 'Reconcilierea indexurilor finale de contor la încheierea contractului de închiriere.',
           },
         ],
@@ -156,7 +158,7 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         badge: 'LIVING & OCCUPANT EXPERIENCE',
         title: 'Transparency and Control in Your Living Space',
         subtitle:
-          'Authorized transparency into maintenance charges, photo-assisted meter submission, maintenance issue ticketing, and official community communications for owner-occupiers, tenants, and authorized building occupants.',
+          'Resident contexts may include authorized meter-reading submission, provider-derived financial information, maintenance request contexts, and verified communications, depending on released capabilities and implementation scope.',
         ctaPrimary: 'Explore Occupant Portal',
         ctaSecondary: 'Platform Architecture',
       },
@@ -166,7 +168,7 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         p: 'Whether you are a resident property owner, a residential tenant, or an authorized occupant in a mixed-use estate, CLADORA presents the exact information and permissions relevant to your legal standing.',
         points: [
           {
-            title: 'Transparent Charge Segregation',
+            title: 'Structured Charge Segregation',
             desc: 'Tenants view only operational consumption costs (water, heating, sanitation), while capital improvement funds are isolated to the owner ledger.',
           },
           {
@@ -174,8 +176,8 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
             desc: 'Submitting water and energy indices with photo capture eliminates disputes over typographical errors or unrecorded door-to-door slips.',
           },
           {
-            title: 'Direct Issue Dispatch',
-            desc: 'Maintenance tickets submit directly to building management with real-time status updates, eliminating sticky notes and missed verbal requests.',
+            title: 'Direct Maintenance Requests',
+            desc: 'Maintenance tickets submit directly to building management with status updates, eliminating sticky notes and missed verbal requests.',
           },
         ],
       },
@@ -185,19 +187,19 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         items: [
           {
             domain: 'FIN01',
-            title: 'Monthly Statement Transparency',
-            desc: 'Detailed breakdown of every currency unit on the monthly maintenance sheet, backed by explainable statutory distribution formulas.',
+            title: 'Authorized Financial Visibility',
+            desc: 'Detailed breakdown of items on the monthly maintenance sheet, backed by explainable mathematical distribution formulas.',
             icon: Receipt,
           },
           {
             domain: 'OPERATIONS',
-            title: 'Maintenance Ticketing & Updates',
+            title: 'Maintenance Request Context',
             desc: 'Report in-unit or common area maintenance issues, receive dispatcher notes, and track resolution through completion.',
             icon: Wrench,
           },
           {
             domain: 'COMMUNICATIONS',
-            title: 'Digital Notice Board & Alerts',
+            title: 'Digital Notice Distribution',
             desc: 'Receive official association bulletins, scheduled utility maintenance notices, and urgent building announcements.',
             icon: Megaphone,
           },
@@ -210,32 +212,34 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         ],
       },
       journey: {
-        badge: 'OCCUPANT JOURNEY',
+        badge: 'ILLUSTRATIVE ARCHITECTURAL JOURNEY',
         title: 'Stages of the Residential Experience in CLADORA',
+        subtitle:
+          'Architectural Notice: An illustrative resident/occupant journey may connect contexts such as those below, depending on released capabilities and implementation scope.',
         steps: [
           {
             num: '01',
-            title: 'Unit Onboarding',
+            title: 'Unit Onboarding Context',
             desc: 'Secure authenticated login based on an invite issued by the property owner or board.',
           },
           {
             num: '02',
-            title: 'Monthly Meter Ingestion',
+            title: 'Meter Reading Ingestion Context',
             desc: 'Photo capture of water and heating meters prior to monthly cut-off dates.',
           },
           {
             num: '03',
-            title: 'Statement Verification',
+            title: 'Statement Review Context',
             desc: 'Review clearly isolated operational utility charges and statutory dues.',
           },
           {
             num: '04',
-            title: 'Issue Reporting',
+            title: 'Maintenance Request Context',
             desc: 'Dispatch a photo-documented ticket when plumbing, lighting, or elevators require service.',
           },
           {
             num: '05',
-            title: 'Lease Handover & Exit',
+            title: 'Lease Transition Context',
             desc: 'Reconcile final meter readings smoothly when ending a lease or transferring occupancy.',
           },
         ],
@@ -261,7 +265,7 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         badge: 'تجربه سکونت و بهره‌برداری از ملک',
         title: 'شفافیت مالی و آرامش خاطر در محیط زندگی',
         subtitle:
-          'مشاهده شفاف فیش شارژ ماهانه، ثبت تصویری ارقام کنتورها، اعلام سریع درخواست‌های تعمیرات و دریافت اطلاعیه‌های رسمی ساختمان — برای مالکان مقیم، مستأجران و بهره‌برداران مجاز.',
+          'زمینه‌های سکونت می‌توانند شامل دسترسی به اطلاعات مالی مجاز، ثبت خوانش کنتور، درخواست‌های نگهداری و ارتباطات تاییدشده باشند، بسته به دامنه قابلیت‌های فعال و سطح پیاده‌سازی.',
         ctaPrimary: 'آشنایی با پرتال ساکنان',
         ctaSecondary: 'معماری پلتفرم',
       },
@@ -271,7 +275,7 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         p: 'چه مالک مقیم در ساختمان باشید، چه مستأجر یک واحد مسکونی، و چه بهره‌بردار یک واحد خصوصی در مجتمعی چندمنظوره، کلادورا اطلاعات و دسترسی‌های مالی را دقیقاً متناسب با رابطه حقوقی شما نمایش می‌دهد.',
         points: [
           {
-            title: 'تفکیک شفاف هزینه‌های جاری و سرمایه‌ای',
+            title: 'تفکیک ساخت‌یافته هزینه‌های جاری و سرمایه‌ای',
             desc: 'مستأجران صرفاً هزینه‌های مصرفی جاری (آب، گاز، نظافت) را مشاهده می‌کنند و مبالغ مرتبط با صندوق‌های تعمیرات و اندوخته روی حساب مالک ثبت می‌گردد.',
           },
           {
@@ -279,8 +283,8 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
             desc: 'امکان ارسال عکس کنتورهای آب و انرژی، هرگونه ابهام یا خطای انسانی در ثبت اعداد را برطرف می‌سازد.',
           },
           {
-            title: 'اعلام مستقیم درخواست‌های تعمیرات',
-            desc: 'تیکت‌های خرابی با امکان الصاق عکس مستقیماً برای مدیریت ساختمان ارسال شده و وضعیت پیگیری آن به صورت زنده نمایش داده می‌شود.',
+            title: 'ثبت مستقیم درخواست‌های تعمیرات',
+            desc: 'تیکت‌های خرابی با امکان الصاق عکس برای مدیریت ساختمان ارسال شده و وضعیت پیگیری آن نمایش داده می‌شود.',
           },
         ],
       },
@@ -290,20 +294,20 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         items: [
           {
             domain: 'FIN01',
-            title: 'شفافیت کامل فیش شارژ ماهانه',
-            desc: 'تفکیک دقیق تمام ردیف‌های صورت‌حساب شارژ همراه با فرمول شفاف محاسبه سهم هر واحد از مصارف مشترک.',
+            title: 'دید مالی مجاز بر هزینه‌ها',
+            desc: 'تفکیک ساختاریافته اقلام صورت‌حساب شارژ همراه با فرمول‌های قابل‌توضیح تسهیم هزینه‌های مشترک.',
             icon: Receipt,
           },
           {
             domain: 'OPERATIONS',
-            title: 'تیکت‌های فنی و پیگیری تعمیرات',
+            title: 'بافت درخواست‌های نگهداری و تعمیرات',
             desc: 'اعلام عیوب تأسیساتی داخل واحد یا مشاعات ساختمان و اطلاع از روند رسیدگی تکنسین تا رفع کامل عیب.',
             icon: Wrench,
           },
           {
             domain: 'COMMUNICATIONS',
-            title: 'تابلو اعلانات دیجیتال و ابلاغیه‌ها',
-            desc: 'دریافت فوری پیام‌های اضطراری، زمان‌بندی قطع احتمالی آب یا برق و اطلاعیه‌های رسمی مدیریت ساختمان.',
+            title: 'انتشار اطلاعیه‌ها و پیام‌های رسمی',
+            desc: 'دریافت پیام‌های اضطراری، زمان‌بندی قطع احتمالی آب یا برق و اطلاعیه‌های رسمی مدیریت ساختمان.',
             icon: Megaphone,
           },
           {
@@ -315,33 +319,35 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
         ],
       },
       journey: {
-        badge: 'مسیر تجربه ساکن در سامانه',
+        badge: 'سیر معماری فرضی و مشارکتی',
         title: 'مراحل تعامل ساکنان با پلتفرم کلادورا',
+        subtitle:
+          'یادداشت معماری: یک سیر فرضی سکونت و بهره‌برداری می‌تواند زمینه‌هایی نظیر موارد زیر را بسته به دامنه قابلیت‌های فعال و تنظیمات هر مجتمع به یکدیگر متصل سازد.',
         steps: [
           {
             num: '۰۱',
-            title: 'ورود و فعال‌سازی واحد',
+            title: 'فعال‌سازی در سامانه واحد',
             desc: 'اتصال به سامانه با دعوت‌نامه رسمی ارسالی از سوی مالک یا مدیریت ساختمان.',
           },
           {
             num: '۰۲',
-            title: 'ثبت ماهانه ارقام کنتور',
+            title: 'ثبت ارقام و عکس کنتور',
             desc: 'ثبت عکس و ارقام کنتورهای اختصاصی آب و انرژی پیش از پایان دوره محاسباتی.',
           },
           {
             num: '۰۳',
-            title: 'بررسی و پرداخت فیش شارژ',
-            desc: 'مشاهده اقلام تفکیک‌شده شارژ ماهانه و پرداخت مستند آن.',
+            title: 'مشاهده اطلاعات فیش شارژ',
+            desc: 'مشاهده اقلام تفکیک‌شده شارژ ماهانه و ثبت سوابق پرداخت.',
           },
           {
             num: '۰۴',
-            title: 'اعلام خرابی تأسیسات',
+            title: 'ثبت درخواست نگهداری',
             desc: 'ارسال گزارش نقص فنی در آسانسور، موتورخانه یا تأسیسات واحد با عکس.',
           },
           {
             num: '۰۵',
-            title: 'تسویه‌حساب هنگام تخلیه',
-            desc: 'ثبت ارقام نهایی کنتورها و تسویه شفاف و بدون اختلاف در زمان جابه‌جایی.',
+            title: 'سوابق تسویه و تحویل واحد',
+            desc: 'ثبت ارقام نهایی کنتورها و ثبت شفاف سوابق در زمان جابه‌جایی.',
           },
         ],
       },
@@ -482,6 +488,9 @@ export default async function ResidentsSolutionPage(props: { params: Promise<{ l
             <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
               {content.journey.title}
             </h2>
+            <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+              {content.journey.subtitle}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

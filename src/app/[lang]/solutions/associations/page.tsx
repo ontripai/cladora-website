@@ -51,7 +51,7 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         badge: 'GUVERNANȚĂ REZIDENȚIALĂ & ASOCIAȚII',
         title: 'Platformă de Guvernanță Rezidențială în Cadrul Legii 196/2018',
         subtitle:
-          'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: repartizarea explicabilă a cotelor, avizier digital transparent, evidență financiară statutară și gestiunea adunărilor generale.',
+          'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: repartizarea explicabilă a cotelor, avizier digital, evidență financiară și gestiunea adunărilor generale, fără automatizare legală garantată.',
         ctaPrimary: 'Discută Înrolarea Asociației',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -70,7 +70,7 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
           },
           {
             title: 'Pregătirea Adunărilor Generale',
-            desc: 'Gestiunea convocatoarelor, înregistrarea prezenței și a voturilor membrilor în conformitate cu procedurile statutare interne.',
+            desc: 'Gestiunea convocatoarelor, înregistrarea prezenței și a voturilor membrilor în conformitate cu procedurile interne ale asociației.',
           },
         ],
       },
@@ -80,8 +80,8 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         items: [
           {
             domain: 'FIN01',
-            title: 'Evidență Statutară & Control Analitic',
-            desc: 'Registre statutare în partidă simplă, susținute de control analitic suplimentar în partidă dublă și corecții exclusiv prin stornare documentată.',
+            title: 'Evidență Financiară & Control Analitic',
+            desc: 'Evidență financiară în partidă simplă și control analitic în partidă dublă prin FIN01, cu corecții exclusiv prin stornare documentată.',
             icon: DollarSign,
           },
           {
@@ -105,32 +105,34 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         ],
       },
       lifecycle: {
-        badge: 'CICLUL DE VIAȚĂ AL ASOCIAȚIEI',
+        badge: 'PARCURS ARHITECTURAL ILUSTRATIV',
         title: 'Etapele Operaționale Periodice',
+        subtitle:
+          'Notă de arhitectură: Etapele de mai jos reprezintă contexte arhitecturale ilustrative de operare a asociației, fără a implica o suită integrată completă de producție sau execuție legală automatizată.',
         steps: [
           {
             num: '01',
-            title: 'Constituire & Înrolare',
+            title: 'Configurare & Înrolare',
             desc: 'Înregistrarea asociației, configurarea scărilor și a tabelului de proprietari în CORE.',
           },
           {
             num: '02',
-            title: 'Colectare Indexuri',
+            title: 'Preluare Indexuri Contoare',
             desc: 'Preluarea citirilor de apă rece și caldă cu asistență foto pentru prevenirea erorilor.',
           },
           {
             num: '03',
-            title: 'Generare Listă de Plată',
+            title: 'Repartizare Cheltuieli Comune',
             desc: 'Repartizarea facturilor de utilități și a fondurilor de rulment/reparații în FIN01.',
           },
           {
             num: '04',
-            title: 'Încasare & Reconciliere',
+            title: 'Încasări & Evidență Decontare',
             desc: 'Înregistrarea plăților efectuate la casierie sau prin transfer bancar cu reconciliere.',
           },
           {
             num: '05',
-            title: 'Adunare Generală Anuală',
+            title: 'Documentare Adunare Generală',
             desc: 'Pregătirea raportului de gestiune, descărcarea de gestiune și arhivarea hotărârilor.',
           },
         ],
@@ -156,7 +158,7 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         badge: 'RESIDENTIAL GOVERNANCE & HOA ARCHITECTURE',
         title: 'Residential Association Platform Framework',
         subtitle:
-          'Designed to support residential association workflows within the framework of Romanian Law 196/2018: explainable expense allocation, transparent digital notice boards, statutory accounting, and assembly records.',
+          'Designed to support residential association workflows within the framework of Romanian Law 196/2018: explainable expense allocation context, digital notice distribution, financial ledger discipline, and assembly documentation, without statutory automation claims.',
         ctaPrimary: 'Discuss Association Onboarding',
         ctaSecondary: 'Platform Architecture',
       },
@@ -170,12 +172,12 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
             desc: 'Quotas calculated by person count, undivided surface share, or metered consumption, providing full formula auditability for every owner.',
           },
           {
-            title: 'Digital Notice Board & Official Notices',
+            title: 'Digital Notice Distribution',
             desc: 'Publication of monthly maintenance lists and executive board decisions with auditable communication timestamps.',
           },
           {
-            title: 'General Meeting Preparation',
-            desc: 'Assembly convocation notices, attendance verification, and owner vote recording adhering to internal statutory procedures.',
+            title: 'General Meeting Documentation',
+            desc: 'Assembly convocation notices, attendance records, and owner voting documentation adhering to internal association rules.',
           },
         ],
       },
@@ -185,19 +187,19 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         items: [
           {
             domain: 'FIN01',
-            title: 'Statutory Registers & Supplemental Controls',
-            desc: 'Statutory simple-entry registers backed by supplemental analytical double-entry ledger controls and documented correction reversals.',
+            title: 'Financial Ledger Discipline & Analytics',
+            desc: 'Simple-entry reporting models aligned with analytical double-entry ledger controls in FIN01, strictly prohibiting silent deletions.',
             icon: DollarSign,
           },
           {
             domain: 'COMMUNICATIONS',
-            title: 'Digital Notice Board & Transparency',
-            desc: 'Authoritative broadcast channel providing verified publication timestamps for monthly payment lists and board resolutions.',
+            title: 'Digital Notices & Delivery Truth',
+            desc: 'Authoritative broadcast channel providing verified publication timestamps for monthly payment lists and board announcements.',
             icon: Megaphone,
           },
           {
             domain: 'DOCUMENTS',
-            title: 'Meeting Minutes & Contract Vault',
+            title: 'Meeting Minutes & Contract Records',
             desc: 'Secure storage of board assembly minutes, utility provider contracts, and building technical records.',
             icon: FileText,
           },
@@ -210,32 +212,34 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         ],
       },
       lifecycle: {
-        badge: 'ASSOCIATION LIFECYCLE',
+        badge: 'ILLUSTRATIVE ARCHITECTURAL JOURNEY',
         title: 'Key Operational Recurring Phases',
+        subtitle:
+          'Architectural Notice: The phases below represent illustrative architectural contexts of association operations, without implying an active end-to-end production workflow or automated statutory execution.',
         steps: [
           {
             num: '01',
-            title: 'Setup & Inception',
+            title: 'Setup & Inception Context',
             desc: 'Register association workspace, building staircases, and unit ownership roster in CORE.',
           },
           {
             num: '02',
-            title: 'Meter Index Ingestion',
+            title: 'Meter Index Ingestion Context',
             desc: 'Collect individual water and heating readings with photo verification to prevent typos.',
           },
           {
             num: '03',
-            title: 'Monthly Allocation Run',
+            title: 'Expense Allocation Context',
             desc: 'Distribute utility invoices and capital/reserve contributions through FIN01 rules.',
           },
           {
             num: '04',
-            title: 'Collections & Reconciliation',
+            title: 'Collections & Settlement Context',
             desc: 'Record cash desk receipts and bank transfers with assisted reconciliation.',
           },
           {
             num: '05',
-            title: 'Annual General Meeting',
+            title: 'General Assembly Documentation',
             desc: 'Compile annual financial reporting, table management discharges, and archive resolutions.',
           },
         ],
@@ -261,7 +265,7 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         badge: 'حاکمیت مجتمع‌های مسکونی و اداری',
         title: 'معماری پلتفرم برای انجمن‌های مالکان و مدیریت ساختمان',
         subtitle:
-          'طراحی‌شده برای تسهیل فرآیندهای مجتمع‌های مسکونی منطبق با چارچوب‌های قانونی: تسهیم مستند هزینه‌ها، تابلو اعلانات دیجیتال، دفاتر مالی قانونی و ثبت سوابق مجامع عمومی.',
+          'طراحی‌شده برای تسهیل فرآیندهای مجتمع‌های مسکونی در چارچوب قانون ۱۹۶/۲۰۱۸ رومانی: تسهیم مستند هزینه‌ها، تابلو اعلانات دیجیتال، انضباط مالی و ثبت اسناد مجامع عمومی بدون ادعای اتوماسیون قانونی.',
         ctaPrimary: 'درخواست راه‌اندازی برای مجتمع',
         ctaSecondary: 'معماری پلتفرم',
       },
@@ -275,11 +279,11 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
             desc: 'محاسبه سهم هر واحد بر پایه متراژ اختصاصی، تعداد نفرات یا کنتورهای مجزا، با نمایش دقیق فرمول محاسباتی برای کلیه ساکنان.',
           },
           {
-            title: 'تابلو اعلانات دیجیتال و ابلاغیه‌ها',
-            desc: 'انتشار رسمی فیش‌های شارژ دوره، مصوبات هیئت‌مدیره و اعلان‌های اضطراری همراه با ثبت تاریخچه.',
+            title: 'انتشار رسمی اطلاعیه‌ها',
+            desc: 'انتشار فیش‌های شارژ دوره، مصوبات هیئت‌مدیره و اعلان‌های اضطراری همراه با ثبت تاریخچه.',
           },
           {
-            title: 'مدیریت و ثبت جلسات مجامع',
+            title: 'مستندسازی مجامع عمومی',
             desc: 'صدور دعوت‌نامه‌ها، ثبت حضور اعضا، مستندسازی آرای مالکان و آرشیو مصوبات در چارچوب اساسنامه مجتمع.',
           },
         ],
@@ -290,19 +294,19 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         items: [
           {
             domain: 'FIN01',
-            title: 'دفاتر قانونی و کنترل‌های تحلیلی تکمیلی',
-            desc: 'ثبت دفاتر قانونی مورد نیاز همراه با کنترل تراز تحلیلی تکمیلی دوطرفه و ثبت اصلاحات صرفاً از طریق سند اصلاحی و برگشت.',
+            title: 'انضباط مالی و کنترل‌های تحلیلی تکمیلی',
+            desc: 'ثبت دفاتر مالی مورد نیاز همراه با کنترل تراز تحلیلی تکمیلی دوطرفه و ثبت اصلاحات صرفاً از طریق سند اصلاحی و برگشت.',
             icon: DollarSign,
           },
           {
             domain: 'COMMUNICATIONS',
-            title: 'تابلو اعلانات رسمی و شفافیت اداری',
+            title: 'اطلاعیه‌ها و صحت تحویل پیام‌ها',
             desc: 'کانال رسمی اطلاع‌رسانی با تاریخچهٔ ممیزی‌شده جهت ابلاغ فیش‌های هزینه‌ها و تصمیمات هیئت‌مدیره.',
             icon: Megaphone,
           },
           {
             domain: 'DOCUMENTS',
-            title: 'بایگانی صورت‌جلسات و قراردادها',
+            title: 'بایگانی صورت‌جلسات و اسناد قراردادها',
             desc: 'ذخیره امن صورت‌جلسات هیئت‌مدیره، قراردادهای سرویس آسانسور، نظافت و نگهداری تأسیسات مشترک.',
             icon: FileText,
           },
@@ -315,32 +319,34 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         ],
       },
       lifecycle: {
-        badge: 'چرخهٔ فعالیت‌های دوره‌ای انجمن',
+        badge: 'سیر معماری فرضی و مشارکتی',
         title: 'مراحل عملیاتی تکرارشونده در مجتمع',
+        subtitle:
+          'یادداشت معماری: مراحل زیر بیانگر بافت‌های معماری فرضی برای فعالیت‌های دوره‌ای مجتمع است و دلالتی بر جریان کاری یکپارچهٔ فعال یا اجرای خودکار ضوابط قانونی ندارد.',
         steps: [
           {
             num: '۰۱',
-            title: 'ثبت اولیه و تشکیل پرونده',
+            title: 'تنظیمات اولیه و ثبت در سامانه',
             desc: 'تعریف مشخصات مجتمع، بلوک‌ها، مشخصات واحدها و فهرست مالکان در CORE.',
           },
           {
             num: '۰۲',
-            title: 'ثبت ارقام کنتورها',
+            title: 'دریافت ارقام کنتورها',
             desc: 'دریافت ارقام کنتورهای فرعی آب و گاز با امکان ثبت عکس برای رفع شبهات.',
           },
           {
             num: '۰۳',
-            title: 'صدور صورت‌حساب شارژ ماهانه',
+            title: 'تسهیم هزینه‌های دوره',
             desc: 'تسهیم هزینه‌های جاری و قبوض عمومی و شارژ اندوخته تعمیرات در FIN01.',
           },
           {
             num: '۰۴',
-            title: 'وصول مطالبات و تطبیق بانکی',
+            title: 'ثبت دریافت‌ها و تسویه‌حساب',
             desc: 'ثبت مبالغ واریزی مالکان و تطبیق حسابداری با صورت‌حساب بانکی ساختمان.',
           },
           {
             num: '۰۵',
-            title: 'مجمع عمومی سالانه',
+            title: 'مستندسازی مجامع عمومی',
             desc: 'تنظیم بیلان مالی سالانه، گزارش عملکرد، انتخابات هیئت‌مدیره و آرشیو تصمیمات.',
           },
         ],
@@ -482,6 +488,9 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
             <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
               {content.lifecycle.title}
             </h2>
+            <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+              {content.lifecycle.subtitle}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

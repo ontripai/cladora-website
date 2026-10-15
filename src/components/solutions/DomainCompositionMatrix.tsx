@@ -98,7 +98,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'core',
       code: 'CORE',
       name: { ro: 'Identitate & Autoritate', en: 'Identity & Authority', fa: 'هویت پایدار و اختیارات' },
-      canonicalDuty: { ro: 'Harta spațială, structura unităților, workspace-uri, relații și permisiuni', en: 'Spatial units, workspaces, relationships, and scoped permissions', fa: 'واحدهای فیزیکی، ورک‌اسپیس‌ها، روابط و اختیارات' },
+      canonicalDuty: { 
+        ro: 'Identitate imobil, delimitare workspace, relații contractuale și autoritate scopată', 
+        en: 'Asset identity, workspace boundaries, contractual relationships, and scoped authority', 
+        fa: 'هویت پایدار دارایی، مرزهای ورک‌اسپیس، روابط قراردادی و اختیارات تفویض‌شده' 
+      },
       values: {
         developers: 'PRIMARY',
         owners: 'PRIMARY',
@@ -112,7 +116,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'documents',
       code: 'DOCUMENTS',
       name: { ro: 'Documente & Proveniență', en: 'Documents & Provenance', fa: 'اسناد و سوابق اثبات‌پذیر' },
-      canonicalDuty: { ro: 'Cartea tehnică, procese-verbale, contracte, evidență cu amprentă temporală', en: 'Technical vault, sign-offs, contracts, and immutable evidence trails', fa: 'پرونده فنی، صورت‌جلسات، قراردادها و مستندات تاریخی' },
+      canonicalDuty: { 
+        ro: 'Versiuni canonice de documente, probe de conformitate și trasabilitatea provenienței', 
+        en: 'Canonical document versions, evidentiary records, and traceable provenance', 
+        fa: 'نسخه‌های مرجع اسناد، مدارک اثبات‌پذیر و ردپای اصالت تاریخی' 
+      },
       values: {
         developers: 'PRIMARY',
         owners: 'PRIMARY',
@@ -126,7 +134,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'fin01',
       code: 'FIN01',
       name: { ro: 'Adevăr Financiar', en: 'Financial Truth', fa: 'صحت مالی و حسابداری' },
-      canonicalDuty: { ro: 'Registre statutare, cote de întreținere, alocări OPEX, reconciliere și solduri', en: 'Statutory simple-entry registers, quota calculations, balances, OPEX allocations', fa: 'دفاتر قانونی، تسهیم شارژ، مغایرت‌گیری و مانده حساب‌ها' },
+      canonicalDuty: { 
+        ro: 'Adevăr financiar, semantica jurnalelor, postărilor contabile și a soldurilor', 
+        en: 'Financial truth, ledger semantics, postings, and balance calculations', 
+        fa: 'صحت داده‌های مالی، ساختار دفاتر کل، ثبت‌های حسابداری و مانده‌حساب‌ها' 
+      },
       values: {
         developers: 'SECONDARY',
         owners: 'PRIMARY',
@@ -140,7 +152,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'airprop',
       code: 'AIRPROP',
       name: { ro: 'Ciclul Comercial & Pre-Vânzare', en: 'Commercial Lifecycle & Pre-Sale', fa: 'چرخه تجاری و پیش‌فروش' },
-      canonicalDuty: { ro: 'Evidența antecontractelor, rezervări comerciale, tranziție dezvoltator-proprietar', en: 'Pre-sale tracking, commercial preparation, and buyer handover transition', fa: 'قراردادهای پیش‌فروش، رزروهای تجاری و تحویل واحدها' },
+      canonicalDuty: { 
+        ro: 'Semantica ciclului comercial, oportunități de tranzacționare și administrare contracte', 
+        en: 'Commercial lifecycle semantics, transaction opportunities, and lease governance', 
+        fa: 'مفاهیم چرخه تجاری، فرصت‌های معامله و مدیریت اسناد اجاره' 
+      },
       values: {
         developers: 'PRIMARY',
         owners: 'SECONDARY',
@@ -154,7 +170,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'service',
       code: 'SERVICE',
       name: { ro: 'Cereri & Comenzi de Servicii', en: 'Service Orders & Quotations', fa: 'درخواست‌ها و سفارش‌های خدمت' },
-      canonicalDuty: { ro: 'Semantica solicitărilor, cereri de ofertă, devize, aprobare comenzi de lucru', en: 'Service request semantics, quote handling, and work order commissioning', fa: 'ثبت نیاز، استعلام قیمت، برآورد هزینه و تأیید خدمات' },
+      canonicalDuty: { 
+        ro: 'Semantica cererilor de servicii, intenție operațională și coordonarea comenzilor', 
+        en: 'Service intent, request semantics, and service order coordination', 
+        fa: 'ثبت نیاز، مفاهیم درخواست خدمت و هماهنگی سفارش‌های کاری' 
+      },
       values: {
         developers: 'SECONDARY',
         owners: 'SECONDARY',
@@ -168,7 +188,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'operations',
       code: 'OPERATIONS',
       name: { ro: 'Execuție Operațiuni Tehnice', en: 'Work-Order Execution', fa: 'عملیات اجرایی و نگهداری فنی' },
-      canonicalDuty: { ro: 'Dispecerat tehnic, mentenanță preventivă, jurnal echipamente și SLA intervenții', en: 'Technician dispatch, asset logs, preventive plans, and SLA logs', fa: 'ارجاع به تکنسین، لاگ تجهیزات، نگهداری پیشگیرانه و زمان‌بندی' },
+      canonicalDuty: { 
+        ro: 'Execuția comenzilor de lucru și contextul intervențiilor tehnice operaționale', 
+        en: 'Work-order execution and operational maintenance context', 
+        fa: 'اجرای دستورکارهای فنی و بستر عملیات نگهداری دارایی' 
+      },
       values: {
         developers: 'SECONDARY',
         owners: 'SECONDARY',
@@ -182,7 +206,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'communications',
       code: 'COMMUNICATIONS',
       name: { ro: 'Comunicări & Transmitere', en: 'Communications & Delivery', fa: 'اطلاع‌رسانی و ارسال پیام' },
-      canonicalDuty: { ro: 'Avizier digital, convocatoare adunări, notificări oficiale cu probă de trimitere', en: 'Digital notice board, AGM convening notices, verified delivery logs', fa: 'تابلو اعلانات دیجیتال، ابلاغیه‌های مجمع و پیام‌های رسمی' },
+      canonicalDuty: { 
+        ro: 'Adevărul livrării mesajelor și evidența trasabilă a comunicărilor', 
+        en: 'Communication and delivery truth with auditable dispatch records', 
+        fa: 'صحت ارسال پیام‌ها و ثبت مستند ابلاغیه‌های ارتباطی' 
+      },
       values: {
         developers: 'CONTEXTUAL',
         owners: 'SECONDARY',
@@ -196,7 +224,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'bk01',
       code: 'BK01',
       name: { ro: 'Rezervări & Capacitate', en: 'Bookings & Capacity', fa: 'رزرواسیون و ظرفیت فضاها' },
-      canonicalDuty: { ro: 'Gestiunea rezervărilor de facilități, spații comune, săli și resurse partajate', en: 'Facility reservations, amenity schedules, and capacity governance', fa: 'رزرو مشاعات، امکانات رفاهی و مدیریت ظرفیت فضاها' },
+      canonicalDuty: { 
+        ro: 'Adevărul privind rezervările, capacitatea și disponibilitatea resurselor', 
+        en: 'Booking, capacity, and availability truth', 
+        fa: 'صحت داده‌های رزرواسیون، ظرفیت و دسترسی‌پذیری منابع' 
+      },
       values: {
         developers: 'NOT_CENTRAL',
         owners: 'CONTEXTUAL',
@@ -210,7 +242,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'ce',
       code: 'C&E',
       name: { ro: 'Comunitate & Experiență', en: 'Community & Experience', fa: 'جامعه و تجربه کاربری' },
-      canonicalDuty: { ro: 'Ghiduri de spațiu, evenimente, onboarding locatari, călătorii de interacțiune', en: 'Space guides, community events, occupant journeys, and place context', fa: 'راهنمای فضاها، رویدادها، آشنایی با ساختمان و تعاملات جمعی' },
+      canonicalDuty: { 
+        ro: 'Compoziția experienței locative și contextul spațial de proximitate', 
+        en: 'Experience composition and localized place context', 
+        fa: 'ترکیب تجربه کاربری و بستر فضایی پیرامونی' 
+      },
       values: {
         developers: 'SECONDARY',
         owners: 'CONTEXTUAL',
@@ -224,7 +260,11 @@ export const DomainCompositionMatrix: React.FC<DomainCompositionMatrixProps> = (
       key: 'intelligence',
       code: 'AI',
       name: { ro: 'Inteligență Subordonată', en: 'Governed Intelligence', fa: 'هوش حاکمیت‌پذیر و کمکی' },
-      canonicalDuty: { ro: 'Orchestrare asistată, clarificare context, verificare mandate, propunere planuri', en: 'Governed orchestration, context verification, and policy-checked drafts', fa: 'هماهنگی کمکی، راستی‌آزمایی زمینه و پیشنهاد پیش‌نویس با نظارت کاربر' },
+      canonicalDuty: { 
+        ro: 'Orchestrare asistivă subordonată, ghidată de politici și supusă aprobării umane', 
+        en: 'Subordinate context-aware orchestration subject to policy controls and human approval', 
+        fa: 'ارکستراسیون کمکی و مقید به خط‌مشی‌ها تحت نظارت و تایید نهایی انسان' 
+      },
       values: {
         developers: 'SECONDARY',
         owners: 'SECONDARY',

@@ -48,7 +48,7 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
         badge: 'ARHITECTURA DE DEZVOLTARE & PREDARE',
         title: 'Identitatea Digitală a Clădirii Încă din Faza de Proiect',
         subtitle:
-          'Pregătire comercială în AIRPROP, cartea tehnică în seiful DOCUMENTS și un protocol formal de predare către asociație sau compania de administrare, fără fragmentarea istoricului.',
+          'Pregătire comercială în AIRPROP, evidența documentară a clădirii în DOCUMENTS și un cadru de protocol formal de predare către asociație sau compania de administrare.',
         ctaPrimary: 'Discută Parteneriatul de Proiect',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -89,8 +89,8 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
           },
           {
             domain: 'DOCUMENTS',
-            title: 'Seif Tehnic & Carte Digitală a Clădirii',
-            desc: 'Arhivarea securizată a cărții construcției, schemelor de instalații, certificatelor energetice și certificatelor de garanție.',
+            title: 'Evidență Documentară & Carte Tehnică',
+            desc: 'Gestiunea structurată a documentației tehnice de execuție, schemelor de instalații și certificatelor de garanție conform politicilor stabilite.',
             icon: FolderLock,
           },
           {
@@ -102,8 +102,10 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
         ],
       },
       lifecycle: {
-        badge: 'CICLUL DE VIAȚĂ AL DEZVOLTĂRII',
+        badge: 'PARCURS ARHITECTURAL ILUSTRATIV',
         title: 'Etapele de Implicare a Dezvoltatorului',
+        subtitle:
+          'Notă de arhitectură: Etapele de mai jos reprezintă un parcurs arhitectural ilustrativ de participare în ciclul de viață al proiectului, fără a implica un flux operațional complet activat sau automatizat în producție.',
         steps: [
           {
             num: '01',
@@ -117,18 +119,18 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
           },
           {
             num: '03',
-            title: 'Arhivare Documentară',
-            desc: 'Încărcarea documentației tehnice de execuție în seiful verificabil din DOCUMENTS.',
+            title: 'Structurare Documentară',
+            desc: 'Structurarea documentației tehnice și a cărții construcției în furnizorul canonic DOCUMENTS.',
           },
           {
             num: '04',
             title: 'Protocol de Predare',
-            desc: 'Generarea proceselor-verbale de predare-primire a unităților către cumpărători.',
+            desc: 'Cadrul de consemnare pentru procesele-verbale de predare-primire a unităților.',
           },
           {
             num: '05',
             title: 'Tranziție Operațională',
-            desc: 'Handover formal către asociația de proprietari sau operatorul desemnat.',
+            desc: 'Tranziție formală și transmiterea evidențelor către asociația de proprietari sau operator.',
           },
         ],
       },
@@ -153,7 +155,7 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
         badge: 'DEVELOPMENT & HANDOVER ARCHITECTURE',
         title: 'Establish Digital Property Identity Early in the Project',
         subtitle:
-          'Commercial preparation in AIRPROP, technical blueprints in DOCUMENTS vault, and a structured handover protocol bridging directly to association or operator workspaces.',
+          'Commercial preparation in AIRPROP, technical documentation evidence in DOCUMENTS, and a structured handover protocol framework bridging to association or operator workspaces.',
         ctaPrimary: 'Discuss Project Partnership',
         ctaSecondary: 'Platform Architecture',
       },
@@ -194,8 +196,8 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
           },
           {
             domain: 'DOCUMENTS',
-            title: 'Technical Document Vault & Blueprint Store',
-            desc: 'Auditable storage of as-built architectural plans, technical permits, utility agreements, and manufacturer warranties.',
+            title: 'Technical Documentation & Blueprint Records',
+            desc: 'Structured storage of as-built architectural plans, technical permits, utility agreements, and equipment warranties.',
             icon: FolderLock,
           },
           {
@@ -207,8 +209,10 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
         ],
       },
       lifecycle: {
-        badge: 'DEVELOPER LIFECYCLE',
+        badge: 'ILLUSTRATIVE ARCHITECTURAL JOURNEY',
         title: 'Stages of Developer Platform Participation',
+        subtitle:
+          'Architectural Notice: The stages below represent an illustrative architectural participation journey across project lifecycle phases, without implying an active end-to-end automated production workflow.',
         steps: [
           {
             num: '01',
@@ -222,17 +226,17 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
           },
           {
             num: '03',
-            title: 'Technical Vaulting',
+            title: 'Technical Documentation',
             desc: 'Deposit permits, warranties, and as-built architectural plans into DOCUMENTS.',
           },
           {
             num: '04',
-            title: 'Unit Handover Protocol',
-            desc: 'Generate auditable unit delivery sign-offs and punch-list records.',
+            title: 'Unit Handover Protocol Framework',
+            desc: 'Structured records for unit delivery sign-offs and punch-list evidence.',
           },
           {
             num: '05',
-            title: 'Operational Handshake',
+            title: 'Operational Handshake Context',
             desc: 'Structured transition of common areas to the homeowner board or management company.',
           },
         ],
@@ -258,7 +262,7 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
         badge: 'معماری توسعه و تحویل املاک',
         title: 'ثبت هویت دیجیتال ملک از فاز اولیهٔ پروژه',
         subtitle:
-          'تمهیدات تجاری و پیش‌فروش در AIRPROP، بایگانی شناسنامه فنی در DOCUMENTS و انتقال منظم اسناد به هیئت‌مدیره یا شرکت مدیریت بدون انقطاع سوابق.',
+          'تمهیدات تجاری و پیش‌فروش در AIRPROP، مدیریت اسناد فنی در DOCUMENTS و انتقال منظم مدارک به هیئت‌مدیره یا شرکت مدیریت بدون انقطاع سوابق.',
         ctaPrimary: 'گفتگوی همکاری برای پروژه',
         ctaSecondary: 'معماری پلتفرم',
       },
@@ -299,8 +303,8 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
           },
           {
             domain: 'DOCUMENTS',
-            title: 'بایگانی امن شناسنامه فنی و نقشه‌ها',
-            desc: 'نگهداری دیجیتال پایان‌کار، نقشه‌های تأسیساتی، تاییدیه‌های ایمنی و ضمانت‌نامه‌های تجهیزات با ثبت اصالت.',
+            title: 'مدیریت اسناد فنی و شناسنامه ساختمان',
+            desc: 'نگهداری اسناد چون‌ساخت، نقشه‌های تأسیساتی، تاییدیه‌های ایمنی و ضمانت‌نامه‌ها با ثبت اصالت.',
             icon: FolderLock,
           },
           {
@@ -312,8 +316,10 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
         ],
       },
       lifecycle: {
-        badge: 'چرخهٔ عمر مشارکت سازنده',
+        badge: 'سیر معماری فرضی و مشارکتی',
         title: 'فازهای حضور سازنده در پلتفرم کلادورا',
+        subtitle:
+          'یادداشت معماری: مراحل زیر بیانگر یک سیر معماری فرضی و مشارکتی در مراحل گوناگون پروژه است و دلالتی بر جریان کاری خودکار یا فعال کامل در محیط عملیاتی ندارد.',
         steps: [
           {
             num: '۰۱',
@@ -327,18 +333,18 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
           },
           {
             num: '۰۳',
-            title: 'بایگانی اسناد فنی',
-            desc: 'ذخیره نقشه‌های اجرایی، پروانه‌ها و گارانتی تأسیسات در DOCUMENTS.',
+            title: 'اسناد فنی و مدارک',
+            desc: 'ثبت و دسته‌بندی نقشه‌های اجرایی، پروانه‌ها و گارانتی تأسیسات در DOCUMENTS.',
           },
           {
             num: '۰۴',
-            title: 'صورت‌جلسه تحویل واحدها',
-            desc: 'ثبت دیجیتال پروتکل تحویل واحد به خریدار همراه با مستندات.',
+            title: 'چارچوب صورت‌جلسه تحویل',
+            desc: 'ثبت دیجیتال مستندات تحویل واحد به خریدار همراه با شواهد.',
           },
           {
             num: '۰۵',
             title: 'واگذاری به بهره‌برداری',
-            desc: 'تحویل رسمی فضاهای عمومی به انجمن مالکان یا شرکت مدیر ساختمان.',
+            desc: 'تحویل ساختاریافته فضاهای عمومی به انجمن مالکان یا شرکت مدیر ساختمان.',
           },
         ],
       },
@@ -476,6 +482,9 @@ export default async function DevelopersSolutionPage(props: { params: Promise<{ 
             <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
               {content.lifecycle.title}
             </h2>
+            <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+              {content.lifecycle.subtitle}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

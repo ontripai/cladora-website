@@ -51,7 +51,7 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         badge: 'CONSOLĂ OPERAȚIONALĂ MULTI-IMOBIL',
         title: 'Platformă de Operare pentru Companii de Administrare',
         subtitle:
-          'Consolă operațională pentru portofolii multi-proprietate: coordonarea echipelor autorizate pe workspace-uri izolate, dispecerizarea tichetelor de mentenanță, vizibilitate financiară și comunicare ordonată cu ocupanții.',
+          'Consolă de lucru pentru portofolii: coordonarea echipelor pe workspace-uri delimitate, proiectate să mențină separarea, context de triere tichete, vizibilitate financiară și relația ordonată cu ocupanții, fără dispecerizare automată garantată.',
         ctaPrimary: 'Discută Înrolarea Portofoliului',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -65,11 +65,11 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
             desc: 'Fiecare asociație are personalitate juridică distinctă. Amestecarea tranzacțiilor sau pierderea istoricului per bloc creează riscuri majore.',
           },
           {
-            title: 'Dispecerat Neordonat de Tichete',
-            desc: 'Avariile transmise prin telefon, WhatsApp sau bilețele la avizier generează întârzieri și meșteri necoordonați.',
+            title: 'Triere & Dispecerat Neordonat',
+            desc: 'Avariile transmise prin telefon, mesaje sau bilețele la avizier generează întârzieri și meșteri necoordonați.',
           },
           {
-            title: 'Închidere de Lună Sub Presiune',
+            title: 'Repartizare de Lună Sub Presiune',
             desc: 'Repartizarea manuală a sutelor de facturi de utilități la sfârșit de lună consumă timp și expune la erori de calcul.',
           },
         ],
@@ -80,14 +80,14 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         items: [
           {
             domain: 'CORE',
-            title: 'Workspace-uri Izolate & Roluri Delegate',
-            desc: 'Delimitare strictă între asociațiile administrate, cu drepturi acordate echipei (contabili, casieri, dispeceri) pe bază de mandat clar.',
+            title: 'Workspace-uri Delimitate & Roluri Delegate',
+            desc: 'Delimitare la nivel de workspace proiectată să prevină expunerea datelor între asociații, cu drepturi acordate pe bază de mandat clar.',
             icon: Building2,
           },
           {
             domain: 'OPERATIONS',
-            title: 'Dispecerat Tichete & Comenzi de Lucru',
-            desc: 'Centralizarea incidentelor tehnice, prioritizarea intervențiilor și alocarea comenzilor către tehnicieni cu confirmare foto.',
+            title: 'Triere Tichete & Comenzi de Lucru',
+            desc: 'Centralizarea incidentelor tehnice, prioritizarea intervențiilor și atribuirea comenzilor de lucru cu confirmare foto a execuției.',
             icon: Wrench,
           },
           {
@@ -99,14 +99,16 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
           {
             domain: 'SERVICE',
             title: 'Coordonare Prestatori & Devize',
-            desc: 'Organizarea relației cu firmele de curățenie, ascensoare și mentenanță prin comenzi clare și procese-verbale semnate.',
+            desc: 'Organizarea relației cu firmele de curățenie, ascensoare și mentenanță prin comenzi clare și procese-verbale de recepție.',
             icon: FileCheck2,
           },
         ],
       },
       lifecycle: {
-        badge: 'CICLUL OPERAȚIONAL AL ADMINISTRATORULUI',
+        badge: 'PARCURS ARHITECTURAL ILUSTRATIV',
         title: 'Fluxurile de Lucru ale Companiei de Management',
+        subtitle:
+          'Notă de arhitectură: Etapele de mai jos reflectă fluxurile de lucru ilustrative ale companiei de management, fără a implica dispecerizare automată, închidere contabilă autonomă sau raportare financiară de producție nesupusă mandatului uman.',
         steps: [
           {
             num: '01',
@@ -120,17 +122,17 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
           },
           {
             num: '03',
-            title: 'Operare Lunară',
+            title: 'Context Repartizare Lunară',
             desc: 'Procesarea facturilor de utilități, repartizarea cotelor și afișarea listelor.',
           },
           {
             num: '04',
-            title: 'Dispecerat Mentenanță',
+            title: 'Coordonare Mentenanță',
             desc: 'Preluarea sesizărilor, coordonarea intervențiilor și recepția lucrărilor.',
           },
           {
             num: '05',
-            title: 'Raportare către Comitet',
+            title: 'Documentare Raportare Comitet',
             desc: 'Prezentarea situației financiare și a registrului de cheltuieli către președinte.',
           },
         ],
@@ -156,7 +158,7 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         badge: 'MULTI-PROPERTY OPERATING CONSOLE',
         title: 'Property Management Operating Platform Architecture',
         subtitle:
-          'Enterprise console for multi-property portfolios: team delegation across isolated workspaces, maintenance ticket dispatch, financial visibility, and orderly occupant relationship coordination.',
+          'Work console for property portfolios: team delegation across workspace-scoped boundaries designed to maintain separation, ticket triage context, financial visibility, and orderly occupant relationship coordination, without automated dispatch claims.',
         ctaPrimary: 'Discuss Portfolio Onboarding',
         ctaSecondary: 'Platform Architecture',
       },
@@ -166,11 +168,11 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         p: 'A professional property management firm operates across dozens or hundreds of distinct residential buildings, each holding its own bank accounts, homeowner boards, and unique physical assets.',
         cards: [
           {
-            title: 'Isolated Legal & Banking Boundaries',
+            title: 'Workspace Boundaries & Banking Isolation',
             desc: 'Each managed property is an independent legal entity. Commingling funds or losing per-building audit provenance creates severe liability.',
           },
           {
-            title: 'Uncoordinated Ticket Dispatch',
+            title: 'Uncoordinated Ticket Ingestion',
             desc: 'Emergency faults received via phone calls, chat apps, and paper notes cause service delays and unverified technician sign-offs.',
           },
           {
@@ -185,14 +187,14 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         items: [
           {
             domain: 'CORE',
-            title: 'Isolated Workspaces & Delegated Mandates',
-            desc: 'Rigorous logical isolation between managed client workspaces, with scoped permissions for accountants, site managers, and desk agents.',
+            title: 'Workspace Boundaries & Delegated Mandates',
+            desc: 'Workspace-scoped boundaries designed to prevent cross-context data exposure, with scoped permissions for accountants, site managers, and desk agents.',
             icon: Building2,
           },
           {
             domain: 'OPERATIONS',
-            title: 'Ticket Triage & Work Order Dispatch',
-            desc: 'Centralize inbound maintenance tickets, prioritize technical faults, and dispatch work orders with photographic proof of completion.',
+            title: 'Ticket Triage & Work Order Coordination',
+            desc: 'Centralize inbound maintenance tickets, prioritize technical faults, and coordinate work orders with photographic proof of completion.',
             icon: Wrench,
           },
           {
@@ -210,32 +212,34 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         ],
       },
       lifecycle: {
-        badge: 'MANAGER OPERATIONAL LIFECYCLE',
+        badge: 'ILLUSTRATIVE ARCHITECTURAL JOURNEY',
         title: 'Key Operational Workflows for Managing Companies',
+        subtitle:
+          'Architectural Notice: The phases below reflect illustrative workflows for property management firms, without implying automated ticket dispatch, autonomous financial close, or unverified board reporting automation.',
         steps: [
           {
             num: '01',
-            title: 'Property Onboarding',
+            title: 'Property Onboarding Context',
             desc: 'Configure dedicated building workspace, staircases, and import reconciled initial balances.',
           },
           {
             num: '02',
-            title: 'Team Delegation',
+            title: 'Team Delegation Context',
             desc: 'Assign scoped role permissions to site managers, accounting staff, and maintenance coordinators.',
           },
           {
             num: '03',
-            title: 'Monthly Allocation Run',
+            title: 'Monthly Allocation Context',
             desc: 'Process utility bills, compute statutory charges, and publish verified digital payment sheets.',
           },
           {
             num: '04',
-            title: 'Operational Maintenance',
+            title: 'Operational Maintenance Coordination',
             desc: 'Triage occupant tickets, coordinate contractor visits, and record photographic sign-offs.',
           },
           {
             num: '05',
-            title: 'Board Reporting',
+            title: 'Board Reporting Documentation',
             desc: 'Submit transparent monthly ledgers and cash journals to the client association committee.',
           },
         ],
@@ -261,7 +265,7 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         badge: 'کنسول عملیاتی مدیریت چندین مجتمع',
         title: 'معماری پلتفرم عملیاتی شرکت‌های مدیریت و نگهداری املاک',
         subtitle:
-          'کنسول عملیاتی برای مدیریت چندین مجتمع: تفویض اختیارات به تیم در ورک‌اسپیس‌های ایزوله، ارجاع تیکت‌های فنی، شفافیت مالی و مدیریت تعاملات با بهره‌برداران.',
+          'کنسول هماهنگی پورتفولیو: تفویض به تیم‌ها در ورک‌اسپیس‌های دارای مرزبندی تفکیک‌شده، بافت تریاژ تیکت‌ها، دید مالی و ارتباط با ساکنان بدون تضمین پاسخ یا ارجاع خودکار.',
         ctaPrimary: 'گفتگوی راه‌اندازی برای شرکت‌های مدیریت',
         ctaSecondary: 'معماری پلتفرم',
       },
@@ -271,7 +275,7 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         p: 'یک شرکت حرفه‌ای مدیریت املاک، ده‌ها ساختمان مستقل با حساب‌های بانکی مجزا، هیئت‌مدیره‌های متفاوت و شرایط تأسیساتی گوناگون را اداره می‌کند و پراکندگی ارتباطات می‌تواند توان تیم را فرسایش دهد.',
         cards: [
           {
-            title: 'مرزهای تفکیک‌شده بانکی و قانونی',
+            title: 'مرزهای تفکیک‌شده بانکی و ورک‌اسپیس',
             desc: 'هر ساختمان شخصیت حقوقی و حساب بانکی مستقل دارد. ترکیب اسناد یا فقدان ردپای ممیزی ریسک‌های جدی به بار می‌آورد.',
           },
           {
@@ -291,13 +295,13 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
           {
             domain: 'CORE',
             title: 'ورک‌اسپیس‌های مجزا و تفویض نقش‌ها',
-            desc: 'ایزولاسیون کامل داده‌های مجتمع‌های تحت مدیریت، با تعیین دقیق حدود اختیارات مدیران پروژه، حسابداران و تیم پذیرش.',
+            desc: 'مرزبندی‌های مشخص ورک‌اسپیس برای جلوگیری از تداخل داده‌ها، با تعیین دقیق حدود اختیارات مدیران، حسابداران و تیم پذیرش.',
             icon: Building2,
           },
           {
             domain: 'OPERATIONS',
-            title: 'بررسی تیکت‌ها و ارجاع دستورکار',
-            desc: 'تجمیع تیکت‌های فنی ارسالی، دسته‌بندی بر اساس اولویت و صدور دستورکار به تکنسین‌ها با دریافت عکس تحویل کار.',
+            title: 'بررسی تیکت‌ها و هماهنگی دستورکار',
+            desc: 'تجمیع تیکت‌های فنی، اولویت‌بندی بر اساس شرایط و هماهنگی دستورکار با دریافت عکس تحویل کار.',
             icon: Wrench,
           },
           {
@@ -315,8 +319,10 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
         ],
       },
       lifecycle: {
-        badge: 'چرخهٔ عملیاتی شرکت مدیریت',
+        badge: 'سیر معماری فرضی و مشارکتی',
         title: 'مراحل گردش کار شرکت‌های مدیریت در پلتفرم',
+        subtitle:
+          'یادداشت معماری: مراحل زیر بیانگر گردش‌کارهای فرضی برای شرکت‌های مدیریت است و متضمن ارجاع خودکار تیکت‌ها، بستن خودکار حساب‌ها یا گزارش‌دهی مالی بدون نظارت انسان نیست.',
         steps: [
           {
             num: '۰۱',
@@ -330,17 +336,17 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
           },
           {
             num: '۰۳',
-            title: 'عملیات بستن دوره ماهانه',
+            title: 'مراحل تسهیم هزینه‌های ماهانه',
             desc: 'ثبت قبوض مصرفی، تسهیم هزینه‌ها و انتشار صورت‌حساب شارژ ماهانه در سامانه.',
           },
           {
             num: '۰۴',
-            title: 'مدیریت و نظارت بر تعمیرات',
+            title: 'هماهنگی عملیات نگهداری',
             desc: 'پیگیری تیکت‌های خرابی، هماهنگی با تکنسین‌های فنی و تایید مستند کیفیت کار.',
           },
           {
             num: '۰۵',
-            title: 'ارائه گزارش به هیئت‌مدیره',
+            title: 'مستندسازی گزارش‌های هیئت‌مدیره',
             desc: 'ارائه ترازهای شفاف مالی و گزارش اقدامات فنی به اعضای هیئت‌مدیره هر مجتمع.',
           },
         ],
@@ -479,6 +485,9 @@ export default async function PropertyManagersSolutionPage(props: { params: Prom
             <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
               {content.lifecycle.title}
             </h2>
+            <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+              {content.lifecycle.subtitle}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">

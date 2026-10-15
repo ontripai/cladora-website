@@ -90,51 +90,51 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
         pillars: [
           {
             domain: 'CORE',
-            role: 'Identitate imobil, delimitare workspace, relații contractuale și autoritate scopată.',
+            role: 'Identitate imobil, delimitare workspace pe bază de granițe de separare, relații și autoritate scopată.',
           },
           {
             domain: 'DOCUMENTS',
-            role: 'Seif tehnic, cartea clădirii, dovezi fotografice și proveniență imuabilă a fișierelor.',
+            role: 'Versiuni canonice de documente, probe de conformitate și trasabilitatea provenienței fișierelor.',
           },
           {
             domain: 'FIN01',
-            role: 'Evidență financiară statutară și control analitic suplimentar, cote și reconciliere.',
+            role: 'Adevăr financiar, semantica jurnalelor, postărilor contabile și a soldurilor.',
           },
           {
             domain: 'AIRPROP',
-            role: 'Marketing imobiliar, oportunități, antecontracte, gestiune chirii și mandate.',
+            role: 'Semantica ciclului comercial, oportunități de tranzacționare și administrare contracte.',
           },
           {
             domain: 'SERVICE',
-            role: 'Catalog de servicii, cereri structurate, devize comparative și comenzi.',
+            role: 'Semantica cererilor de servicii, intenție operațională și coordonarea comenzilor.',
           },
           {
             domain: 'OPERATIONS',
-            role: 'Registru echipamente, dispecerat tichete, comenzi de lucru și planuri preventive.',
+            role: 'Execuția comenzilor de lucru și contextul intervențiilor tehnice operaționale.',
           },
           {
             domain: 'COMMUNICATIONS',
-            role: 'Avizier digital oficial, notificări auditate și evidența comunicărilor statutare.',
+            role: 'Adevărul livrării mesajelor și evidența trasabilă a comunicărilor oficiale.',
           },
           {
             domain: 'BK01',
-            role: 'Disponibilitate, calendare de resurse și rezervări de spații comune.',
+            role: 'Adevărul privind rezervările, capacitatea și disponibilitatea resurselor.',
           },
           {
             domain: 'C&E',
-            role: 'Compoziția experienței locative, ghiduri de clădire și interacțiune de proximitate.',
+            role: 'Compoziția experienței locative și contextul spațial de proximitate.',
           },
           {
             domain: 'INTELLIGENCE',
-            role: 'Orchestrare asistivă subordonată, ghidată de context și validată de autoritatea umană.',
+            role: 'Orchestrare asistivă subordonată, ghidată de politici și supusă aprobării umane.',
           },
         ],
       },
       lifecycleSection: {
-        badge: 'PARTICIPARE ÎN CICLUL DE VIAȚĂ',
+        badge: 'PARCURS ARHITECTURAL ILUSTRATIV',
         title: 'Implicarea Actorilor de-a Lungul Vieții Imobilului',
         subtitle:
-          'Fiecare participant intervine în etape specifice ale existenței activului, păstrând continuitatea istorică și legală.',
+          'Notă de arhitectură: Etapele de mai jos reprezintă un model ilustrativ de participare arhitecturală în ciclul de viață al activului, nu o garanție de flux operațional de producție activ cap-la-cap.',
         stages: [
           {
             step: '01',
@@ -146,19 +146,19 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
             step: '02',
             name: 'Predare & Recepție',
             actors: 'Dezvoltatori, Asociații, Proprietari',
-            desc: 'Protocol formal de predare-primire, transferul cărții tehnice în DOCUMENTS.',
+            desc: 'Protocol formal de predare-primire și depunerea documentației în DOCUMENTS.',
           },
           {
             step: '03',
             name: 'Exploatare Activă',
             actors: 'Asociații, Administratori, Rezidenți',
-            desc: 'Administrare curentă, repartizarea cotelor în FIN01, comunicări și avizier digital.',
+            desc: 'Administrare curentă, evidența cotelor în FIN01 și canale oficiale de comunicare.',
           },
           {
             step: '04',
             name: 'Mentenanță & Lucrări',
             actors: 'Furnizori de Servicii, Administratori',
-            desc: 'Tichete tehnice în OPERATIONS, comenzi de lucru, intervenții și recepție confirmată.',
+            desc: 'Context tehnic în OPERATIONS, comenzi de lucru, intervenții și probe de recepție.',
           },
           {
             step: '05',
@@ -248,81 +248,81 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
         pillars: [
           {
             domain: 'CORE',
-            role: 'Asset identity, workspace boundaries, contractual relationships, and scoped authority.',
+            role: 'Asset identity, workspace-scoped boundaries, contractual relationships, and scoped authority.',
           },
           {
             domain: 'DOCUMENTS',
-            role: 'Technical vaults, building logbooks, photographic evidence, and immutable provenance.',
+            role: 'Canonical document versions, work evidence, and immutable provenance.',
           },
           {
             domain: 'FIN01',
-            role: 'Statutory accounting records, supplemental double-entry ledger controls, and reconciliation.',
+            role: 'Financial truth, ledger records, posting rules, and balance semantics.',
           },
           {
             domain: 'AIRPROP',
-            role: 'Real estate showcase, pre-sales tracking, lease administration, and mandate handshakes.',
+            role: 'Commercial lifecycle semantics, property identity showcases, and lease administration.',
           },
           {
             domain: 'SERVICE',
-            role: 'Service catalog, structured requests, side-by-side quote scopes, and order semantics.',
+            role: 'Service request and order coordination semantics.',
           },
           {
             domain: 'OPERATIONS',
-            role: 'Equipment registries, ticket triage, work order dispatch, and preventative maintenance.',
+            role: 'Work-order execution and operational maintenance context.',
           },
           {
             domain: 'COMMUNICATIONS',
-            role: 'Official digital bulletin boards, auditable notices, and statutory communication journals.',
+            role: 'Communication and message delivery truth.',
           },
           {
             domain: 'BK01',
-            role: 'Resource schedules, availability rules, and shared facility reservation intents.',
+            role: 'Booking, capacity, and resource availability truth.',
           },
           {
             domain: 'C&E',
-            role: 'Community experience composition, localized place guides, and residential journeys.',
+            role: 'Experience composition and localized place context.',
           },
           {
             domain: 'INTELLIGENCE',
-            role: 'Subordinate, context-aware assistive orchestration strictly governed by human policies.',
+            role: 'Subordinate, context-aware assistive orchestration subject to human policy controls.',
           },
         ],
       },
       lifecycleSection: {
-        badge: 'LIFECYCLE PARTICIPATION',
+        badge: 'ILLUSTRATIVE ARCHITECTURAL JOURNEY',
         title: 'Participant Engagement Across the Asset Lifecycle',
         subtitle:
-          'Every participant steps in during specific lifecycle phases, preserving operational and legal continuity throughout.',
+          'Architectural Notice: The sequence below represents an illustrative architectural journey across the asset lifecycle, not an active end-to-end production workflow guarantee.',
         stages: [
           {
             step: '01',
             name: 'Plan & Pre-Sale',
             actors: 'Developers, Pre-Buyers',
-            desc: 'Early digital identity definition, unit hierarchy, and commercial pre-sale agreements in AIRPROP.',
+            desc: 'Early digital identity definition, unit hierarchy, and commercial lifecycle semantics in AIRPROP.',
           },
           {
             step: '02',
             name: 'Handover & Onboarding',
             actors: 'Developers, Associations, Owners',
-            desc: 'Formal digital handover protocol, transferring the technical blueprint vault into DOCUMENTS.',
+            desc: 'Digital handover protocol framework and document evidence anchoring into DOCUMENTS.',
           },
           {
             step: '03',
             name: 'Active Operations',
             actors: 'Associations, Managers, Residents',
-            desc: 'Day-to-day administration, monthly charge allocation in FIN01, official notice board posts.',
+            desc: 'Day-to-day administration context, financial ledger allocations in FIN01, and communication delivery records.',
           },
           {
             step: '04',
             name: 'Maintenance & Service',
             actors: 'Service Providers, Managers',
-            desc: 'Issue ticketing in OPERATIONS, verified work orders, photographic completion sign-offs.',
+            desc: 'Maintenance execution context in OPERATIONS, service orders, and photographic evidence logging.',
           },
           {
             step: '05',
             name: 'Leasing & Occupancy',
             actors: 'Owners, Tenants, Managers',
-            desc: 'Clear segregation between tenant utility consumption and owner capital reserve funds.',
+            desc: 'Segregation between tenant utility consumption and owner funds, preserving contract continuity.',
           },
           {
             step: '06',
@@ -348,7 +348,7 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
         intelligence: {
           badge: 'INTELLIGENCE CONNECTION',
           title: 'Governed Subordinate Assistance',
-          desc: 'CLADORA Intelligence delivers role-specific assistive features: invoice data extraction for managers, photo meter OCR for residents, and structured work-order drafting for contractors — always preserving human final authority.',
+          desc: 'CLADORA Intelligence operates within defined authority boundaries: consequential actions remain subject to applicable policy controls and appropriate human approval.',
           link: 'Explore CLADORA Intelligence',
         },
       },
@@ -406,75 +406,75 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
         pillars: [
           {
             domain: 'CORE',
-            role: 'هویت پایدار ملک، مرزهای ایزوله ورک‌اسپیس، روابط قراردادی و اختیارات زمانی.',
+            role: 'هویت پایدار دارایی، مرزهای تفکیک‌شده ورک‌اسپیس، روابط قراردادی و اختیارات زمانی.',
           },
           {
             domain: 'DOCUMENTS',
-            role: 'شناسنامه فنی، بایگانی نقشه‌ها، مدارک تصویری و اصالت غیرقابل‌تغییر فایل‌ها.',
+            role: 'نسخه‌های مرجع اسناد، شواهد اجرایی و اصالت غیرقابل‌تغییر مدارک.',
           },
           {
             domain: 'FIN01',
-            role: 'دفاتر مالی قانونی، ترازهای تحلیلی تکمیلی دوطرفه و تطبیق صورت‌حساب‌ها.',
+            role: 'حقیقت مالی، دفاتر کل و قواعد ثبت و ترازهای مالی.',
           },
           {
             domain: 'AIRPROP',
-            role: 'عرضه املاک، پیگیری پیش‌فروش، مدیریت قراردادهای اجاره و واگذاری مدیریت.',
+            role: 'معناشناسی چرخه تجاری، ویترین املاک و مدیریت اداری قراردادهای اجاره.',
           },
           {
             domain: 'SERVICE',
-            role: 'کاتالوگ خدمات، ثبت ساختاریافته درخواست، مقایسه پیشنهادها و سفارش کار.',
+            role: 'معناشناسی درخواست خدمات و هماهنگی سفارش‌های کار.',
           },
           {
             domain: 'OPERATIONS',
-            role: 'شناسنامه تجهیزات، بررسی تیکت‌ها، صدور دستورکار فنی و برنامه‌های نگهداری.',
+            role: 'اجرای دستورکارهای فنی و بافت عملیاتی نگهداری و تعمیرات.',
           },
           {
             domain: 'COMMUNICATIONS',
-            role: 'تابلو اعلانات دیجیتال رسمی، اطلاعیه‌های ممیزی‌شده و ثبت سوابق ابلاغ قانونی.',
+            role: 'حقیقت تحویل پیام‌ها و ثبت سوابق ارتباطات رسمی.',
           },
           {
             domain: 'BK01',
-            role: 'تقویم منابع، قواعد ظرفیت و ثبت درخواست رزرو فضاهای مشاع ساختمان.',
+            role: 'حقیقت رزروها، ظرفیت و دسترسی‌پذیری منابع مشترک.',
           },
           {
             domain: 'C&E',
-            role: 'تجربه تعاملی سکونت، راهنمای محلی اماکن و جریان‌های مشارکتی بهره‌برداران.',
+            role: 'ترکیب تجربه تعاملی سکونت و بستر مکانی پیرامونی.',
           },
           {
             domain: 'INTELLIGENCE',
-            role: 'ارکستراسیون کمکی و مقید به حاکمیت تحت نظارت و تایید نهایی انسان.',
+            role: 'ارکستراسیون کمکی متناسب با بافت، تحت کنترل‌های حاکمیتی و نظارت نهایی انسان.',
           },
         ],
       },
       lifecycleSection: {
-        badge: 'مشارکت در چرخهٔ عمر ملک',
-        title: 'حضور نقش‌ها در مراحل گوناگون حیات دارایی',
+        badge: 'سیر معماری فرضی و مشارکتی',
+        title: 'مشارکت نقش‌ها در مراحل گوناگون حیات دارایی',
         subtitle:
-          'هر مشارکت‌کننده در فازهای مشخصی از چرخه دارایی وارد عمل می‌شود و پیوستگی اسناد و سوابق حفظ می‌گردد.',
+          'یادداشت معماری: مراحل زیر بیانگر یک سیر معماری فرضی و مشارکتی در چرخه حیات دارایی است و دلالتی بر جریان کاری تولیدی فعال سرتاسری ندارد.',
         stages: [
           {
             step: '۰۱',
             name: 'تعریف و پیش‌فروش',
             actors: 'سازندگان، پیش‌خریداران',
-            desc: 'ثبت هویت دیجیتال پروژه، ساختار طبقات و واحدها و قراردادهای پیش‌فروش در AIRPROP.',
+            desc: 'تعریف هویت دیجیتال پروژه، ساختار طبقات و واحدها و تمهیدات تجاری در AIRPROP.',
           },
           {
             step: '۰۲',
             name: 'تحویل و راه‌اندازی',
-            actors: 'سازندگان، انجمن‌ها، مالکان',
-            desc: 'صورت‌جلسه دیجیتال تحویل واحدها و انتقال شناسنامه فنی و نقشه‌ها به DOCUMENTS.',
+            actors: 'سازندگان، مجتمع‌ها، مالکان',
+            desc: 'فرآیند دیجیتال پروتکل تحویل واحدها و ثبت اسناد و شواهد در DOCUMENTS.',
           },
           {
             step: '۰۳',
             name: 'بهره‌برداری فعال',
             actors: 'انجمن‌های مالکان، مدیران، ساکنان',
-            desc: 'مدیریت جاری ساختمان، تسهیم مستند هزینه‌ها در FIN01 و تابلوی اعلانات رسمی.',
+            desc: 'مدیریت جاری ساختمان، تسهیم مستند مبالغ در FIN01 و ثبت ارتباطات رسمی.',
           },
           {
             step: '۰۴',
             name: 'تعمیرات و خدمات',
             actors: 'پیمانکاران، مدیران مجتمع',
-            desc: 'ارجاع تیکت‌ها در OPERATIONS، صدور دستورکارهای فنی و تایید تصویری انجام کار.',
+            desc: 'بافت اجرای عملیات در OPERATIONS، سفارش‌های کار و ثبت تصویری شواهد انجام کار.',
           },
           {
             step: '۰۵',
@@ -486,7 +486,7 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
             step: '۰۶',
             name: 'انتقال و واگذاری',
             actors: 'مالکان جدید، جانشینان، مدیران',
-            desc: 'انتقال منظم مسئولیت‌ها و دسترسی به تاریخچه حساب‌ها بدون گم‌شدن داده‌ها.',
+            desc: 'انتقال منظم مسئولیت‌ها و دسترسی به تاریخچه حساب‌ها بدون تکه‌تکه شدن داده‌ها.',
           },
         ],
       },
@@ -506,7 +506,7 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
         intelligence: {
           badge: 'پیوند با هوشمندی سیستم',
           title: 'دستیار کمکی و مقید به ضوابط حاکمیتی',
-          desc: 'هوشمندی کلادورا کارکردهای کمکی را متناسب با جایگاه ارائه می‌دهد: استخراج داده‌های قبوض برای مدیران، قرائت کنتورها برای ساکنان و برآورد فنی برای پیمانکاران — با حفظ اختیار نهایی انسان.',
+          desc: 'هوشمندی کلادورا در چارچوب مرزهای اختیارات عمل می‌کند: اقدامات دارای پیامد، مشمول کنترل‌های خط‌مشی قابل‌اعمال و تایید متناسب انسانی باقی می‌مانند.',
           link: 'بررسی معماری هوشمندی کلادورا',
         },
       },
@@ -525,10 +525,10 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
       id: 'developers',
       title: lang === 'ro' ? 'Dezvoltatori & Constructori' : lang === 'fa' ? 'سازندگان و توسعه‌دهندگان' : 'Developers & Builders',
       desc: lang === 'ro'
-        ? 'Identitate digitală din faza de proiect, antecontracte în AIRPROP, cartea tehnică în DOCUMENTS și tranziție ordonată către operare post-predare.'
+        ? 'Identitate digitală timpurie, pregătire comercială în AIRPROP, gestiunea documentelor în DOCUMENTS și cadru ordonat de predare operațională.'
         : lang === 'fa'
-        ? 'ثبت هویت دیجیتال ملک از فاز اولیه، تمهیدات تجاری در AIRPROP، بایگانی اسناد در DOCUMENTS و انتقال منظم به مرحله بهره‌برداری پس از تحویل.'
-        : 'Establish digital asset identity early, track commercial pre-sales in AIRPROP, secure the technical blueprint vault, and conduct orderly operational handover.',
+        ? 'تعریف هویت دیجیتال ملک، تمهیدات تجاری در AIRPROP، مدیریت اسناد در DOCUMENTS و ساختار منظم تحویل به بهره‌برداری.'
+        : 'Early digital asset identity, commercial preparation in AIRPROP, document evidence management in DOCUMENTS, and orderly operational handover framework.',
       href: `/${lang}/solutions/developers`,
       icon: Building,
       accent: 'border-l-4 border-l-[#102A43] rtl:border-l-0 rtl:border-r-4 rtl:border-r-[#102A43]',
@@ -537,10 +537,10 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
       id: 'property-owners',
       title: lang === 'ro' ? 'Proprietari & Portofolii' : lang === 'fa' ? 'مالکان و سبد دارایی‌ها' : 'Property Owners & Portfolios',
       desc: lang === 'ro'
-        ? 'Vizibilitate consolidată asupra activelor deținute, contractelor de închiriere și cheltuielilor, fără crearea de baze de date paralele față de FIN01.'
+        ? 'Vizibilitate consolidată asupra activelor deținute, contractelor de închiriere și cheltuielilor, delimitată pe workspace-uri proiectate să mențină separarea și ancorate în FIN01.'
         : lang === 'fa'
-        ? 'پایش متمرکز بر املاک ملکی، قراردادهای اجاره و هزینه‌های عملیاتی با اتکا به مرجع حقیقت مالی FIN01 بدون ایجاد پایگاه‌های داده موازی.'
-        : 'Consolidated visibility across owned properties, tenant leases, and operational costs, anchored directly to single-capability financial truth in FIN01.',
+        ? 'دید یکپارچه بر املاک، قراردادهای اجاره و هزینه‌ها در ورک‌اسپیس‌های تفکیک‌شده متصل به حقیقت مالی FIN01 بدون ادعای جداسازی مطلق.'
+        : 'Consolidated visibility across owned properties, tenant leases, and operational costs within workspace boundaries designed to maintain separation, anchored to FIN01.',
       href: `/${lang}/solutions/property-owners`,
       icon: TrendingUp,
       accent: 'border-l-4 border-l-[#0E9F8E] rtl:border-l-0 rtl:border-r-4 rtl:border-r-[#0E9F8E]',
@@ -549,10 +549,10 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
       id: 'associations',
       title: lang === 'ro' ? 'Asociații de Proprietari' : lang === 'fa' ? 'انجمن‌های مالکان و مجتمع‌ها' : 'Residential Associations & HOAs',
       desc: lang === 'ro'
-        ? 'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: repartizarea cotelor, avizier digital și transparență decizională.'
+        ? 'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: repartizarea cotelor, comunicări oficiale și evidența deciziilor, fără automatizare legală garantată.'
         : lang === 'fa'
-        ? 'طراحی‌شده برای تسهیل فرآیندهای مجتمع‌های مسکونی منطبق با چارچوب‌های قانونی: تسهیم مستند هزینه‌ها، تابلو اعلانات دیجیتال و ثبت تصمیمات مجامع.'
-        : 'Designed to support residential association workflows within the framework of Romanian Law 196/2018: expense allocation, digital notice board, and governance records.',
+        ? 'طراحی‌شده برای پشتیبانی از فرآیندهای مجتمع‌های مسکونی در چارچوب قانون ۱۹۶/۲۰۱۸ رومانی: تسهیم هزینه‌ها، تابلوی اطلاع‌رسانی و سوابق مجامع بدون ادعای اتوماسیون قانونی.'
+        : 'Designed to support residential association workflows within the framework of Romanian Law 196/2018: expense allocation context, notice distribution, and governance records without statutory automation claims.',
       href: `/${lang}/solutions/associations`,
       icon: Building2,
       accent: 'border-l-4 border-l-[#2F80ED] rtl:border-l-0 rtl:border-r-4 rtl:border-r-[#2F80ED]',
@@ -561,10 +561,10 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
       id: 'property-managers',
       title: lang === 'ro' ? 'Companii de Administrare' : lang === 'fa' ? 'شرکت‌های مدیریت املاک' : 'Property Management Firms',
       desc: lang === 'ro'
-        ? 'Consolă de operare pentru portofolii multi-proprietate: coordonarea echipelor delegate, dispecerat tichete, vizibilitate financiară și relația cu ocupanții.'
+        ? 'Consolă de lucru pentru portofolii: delegarea echipelor pe workspace-uri delimitate, context de triere tichete, vizibilitate financiară și relația cu ocupanții.'
         : lang === 'fa'
-        ? 'کنسول عملیاتی برای مدیریت چندین مجتمع: تفویض اختیارات به تیم، ارجاع تیکت‌های فنی، شفافیت مالی و مدیریت تعاملات با بهره‌برداران.'
-        : 'Operating console for multi-property portfolios: team delegation across isolated workspaces, maintenance triage, financial visibility, and occupant communications.',
+        ? 'کنسول هماهنگی پورتفولیو: تفویض به تیم‌ها در ورک‌اسپیس‌های تفکیک‌شده، بافت تریاژ تیکت‌ها، دید مالی و ارتباط با ساکنان بدون تضمین پاسخ خودکار.'
+        : 'Work console for property portfolios: team delegation across workspace-scoped boundaries, ticket triage context, financial visibility, and occupant communications without automated dispatch claims.',
       href: `/${lang}/solutions/property-managers`,
       icon: Layers,
       accent: 'border-l-4 border-l-[#D99B26] rtl:border-l-0 rtl:border-r-4 rtl:border-r-[#D99B26]',
@@ -573,10 +573,10 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
       id: 'residents',
       title: lang === 'ro' ? 'Rezidenți & Ocupanți' : lang === 'fa' ? 'ساکنان و بهره‌برداران' : 'Residents & Occupants',
       desc: lang === 'ro'
-        ? 'Transparență autorizată asupra cotelor de întreținere, transmiterea indexurilor foto, semnalarea incidentelor tehnice și comunicare oficială.'
+        ? 'Acces la informații financiare autorizate, transmiterea indexurilor foto, semnalarea cererilor de mentenanță și comunicări verificate, în funcție de capabilitățile active.'
         : lang === 'fa'
-        ? 'مشاهده شفاف فیش شارژ ماهانه، ثبت تصویری ارقام کنتورها، اعلام سریع درخواست‌های تعمیرات و دریافت اطلاعیه‌های رسمی ساختمان.'
-        : 'Authorized transparency into maintenance charges, photo-assisted meter submission, issue ticketing, and verified community announcements.',
+        ? 'دسترسی به اطلاعات مالی مجاز، ثبت خوانش کنتور، ثبت درخواست‌های نگهداری و دریافت اطلاعیه‌ها بر اساس دامنه قابلیت‌های فعال.'
+        : 'Authorized financial information, meter reading submissions, maintenance request contexts, and verified communications, depending on released capabilities.',
       href: `/${lang}/solutions/residents`,
       icon: Home,
       accent: 'border-l-4 border-l-[#0A6E62] rtl:border-l-0 rtl:border-r-4 rtl:border-r-[#0A6E62]',
@@ -585,10 +585,10 @@ export default async function SolutionsHubPage(props: { params: Promise<{ lang: 
       id: 'service-providers',
       title: lang === 'ro' ? 'Furnizori de Servicii' : lang === 'fa' ? 'ارائه‌دهندگان خدمات و پیمانکاران' : 'Service Providers & Vendors',
       desc: lang === 'ro'
-        ? 'Coordonarea intervențiilor tehnice: comenzi de lucru autorizate prin OPERATIONS, devize clare în SERVICE, probe foto la recepție și decontare ordonată.'
+        ? 'Coordonarea participării la lucrări: comenzi de lucru prin OPERATIONS, clarificarea devizelor în SERVICE, probe foto de recepție și evidențe trasabile de decontare.'
         : lang === 'fa'
-        ? 'هماهنگی دستورکارهای فنی از طریق OPERATIONS، برآورد شفاف هزینه در SERVICE، مستندسازی تصویری تحویل کار و ثبت منظم سوابق.'
-        : 'Coordinate maintenance delivery: verified work orders via OPERATIONS, structured quote scope in SERVICE, photographic sign-off evidence, and auditable records.',
+        ? 'هماهنگی خدمات فنی: سفارش‌های کار از طریق OPERATIONS، تعیین حدود برآورد در SERVICE، ثبت شواهد انجام کار و سوابق تسویه‌حساب.'
+        : 'Coordinated maintenance participation: work orders via OPERATIONS, quote scopes in SERVICE, photographic completion evidence, and auditable settlement context.',
       href: `/${lang}/solutions/service-providers`,
       icon: FileCheck2,
       accent: 'border-l-4 border-l-[#627D98] rtl:border-l-0 rtl:border-r-4 rtl:border-r-[#627D98]',

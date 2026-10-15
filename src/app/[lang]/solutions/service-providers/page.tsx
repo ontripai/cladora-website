@@ -48,7 +48,7 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
         badge: 'COORDONAREA FURNIZORILOR & LUCRĂRILOR',
         title: 'Platformă de Coordonare pentru Furnizori de Servicii',
         subtitle:
-          'Coordonarea intervențiilor tehnice: comenzi de lucru autorizate prin OPERATIONS, devize clare în SERVICE, probe foto la recepție în DOCUMENTS și decontare ordonată în FIN01 fără registre paralele.',
+          'Coordonarea participării la lucrări: comenzi de lucru prin OPERATIONS, clarificarea devizelor în SERVICE, probe foto la recepție în DOCUMENTS și evidențe ordonate de decontare în FIN01.',
         ctaPrimary: 'Discută Înrolarea ca Furnizor',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -63,7 +63,7 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
           },
           {
             title: 'Dispute la Recepție',
-            desc: 'Lipsa dovezilor fotografice și a proceselor-verbale digitale semnate la fața locului generează contestații la plată.',
+            desc: 'Lipsa dovezilor fotografice și a consemnării clare a stării lucrării generează contestații la plată.',
           },
           {
             title: 'Fragmentarea Comenzilor',
@@ -90,7 +90,7 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
           {
             domain: 'DOCUMENTS',
             title: 'Probe Fotografice & Proces-Verbal',
-            desc: 'Încărcarea fotografiilor de la fața locului înainte și după intervenție, cu semnarea digitală a recepției.',
+            desc: 'Încărcarea fotografiilor de la fața locului înainte și după intervenție, cu probe de acceptare a lucrării.',
             icon: Camera,
           },
           {
@@ -102,17 +102,19 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
         ],
       },
       journey: {
-        badge: 'PARCURSUL FURNIZORULUI',
+        badge: 'PARCURS ARHITECTURAL ILUSTRATIV',
         title: 'Etapele de Coordonare a Lucrării',
+        subtitle:
+          'Notă de arhitectură: Etapele de mai jos reprezintă un model ilustrativ de participare arhitecturală a furnizorului, fără a implica un flux de producție cap-la-cap activ sau semnătură electronică calificată automată.',
         steps: [
           {
             num: '01',
-            title: 'Înrolare & Acreditare',
+            title: 'Înrolare & Mandat',
             desc: 'Înregistrarea companiei și a tehnicienilor autorizați în workspace-ul imobilului.',
           },
           {
             num: '02',
-            title: 'Preluare Cerere de Lucru',
+            title: 'Delimitare Cerere Serviciu',
             desc: 'Analiza specificațiilor tehnice și transmiterea devizului estimativ în SERVICE.',
           },
           {
@@ -122,12 +124,12 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
           },
           {
             num: '04',
-            title: 'Semnare Proces-Verbal',
-            desc: 'Recepția formală semnată de administrator sau comitet în DOCUMENTS.',
+            title: 'Recepție & Consemnare Probe',
+            desc: 'Consemnarea recepției și a probelor de finalizare în DOCUMENTS.',
           },
           {
             num: '05',
-            title: 'Închidere & Decontare',
+            title: 'Decontare & Închidere',
             desc: 'Emiterea facturii ancorate în comanda executată pentru plata din FIN01.',
           },
         ],
@@ -153,7 +155,7 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
         badge: 'VENDOR & WORK ORDER COORDINATION',
         title: 'Property Service Provider Coordination Platform',
         subtitle:
-          'Coordinate maintenance delivery: verified work orders via OPERATIONS, structured quote scope in SERVICE, photographic sign-off evidence in DOCUMENTS, and auditable records without parallel order ledgers.',
+          'Coordinated maintenance participation: work orders via OPERATIONS, quote scopes in SERVICE, photographic completion evidence in DOCUMENTS, and auditable settlement context in FIN01.',
         ctaPrimary: 'Discuss Vendor Onboarding',
         ctaSecondary: 'Platform Architecture',
       },
@@ -167,8 +169,8 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
             desc: 'Inbound requests communicated verbally without equipment models, past logbooks, or clear defect symptoms cause wasted truck rolls.',
           },
           {
-            title: 'Disputed Work Sign-Offs',
-            desc: 'Without on-site photographic evidence and verified digital sign-offs, completed work often gets questioned during invoice auditing.',
+            title: 'Disputed Work Acceptance',
+            desc: 'Without on-site photographic evidence and clear work acceptance records, completed work often gets questioned during invoice auditing.',
           },
           {
             title: 'Disconnected Order Tracking',
@@ -194,8 +196,8 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
           },
           {
             domain: 'DOCUMENTS',
-            title: 'Photographic Evidence & Site Sign-Off',
-            desc: 'Capture before-and-after photographs on-site and secure tamper-evident digital sign-offs deposited into the property vault.',
+            title: 'Photographic Evidence & Work Acceptance',
+            desc: 'Capture before-and-after photographs on-site and record completion evidence deposited into DOCUMENTS.',
             icon: Camera,
           },
           {
@@ -207,32 +209,34 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
         ],
       },
       journey: {
-        badge: 'CONTRACTOR JOURNEY',
+        badge: 'ILLUSTRATIVE ARCHITECTURAL JOURNEY',
         title: 'Stages of Service Delivery in CLADORA',
+        subtitle:
+          'Architectural Notice: The sequence below represents an illustrative architectural participation journey for service providers, without implying an active end-to-end released vendor workflow or qualified digital signature automation.',
         steps: [
           {
             num: '01',
-            title: 'Onboarding & Standing',
+            title: 'Onboarding & Standing Context',
             desc: 'Establish verified company credentials and accredited technician roles within CORE.',
           },
           {
             num: '02',
-            title: 'Scope & Quote Intake',
+            title: 'Service Scope Intake Context',
             desc: 'Review structured incident tickets and submit formal cost estimates in SERVICE.',
           },
           {
             num: '03',
-            title: 'On-Site Execution',
+            title: 'On-Site Execution Context',
             desc: 'Perform technical maintenance, register part replacements, and record photos.',
           },
           {
             num: '04',
-            title: 'Digital Sign-Off',
-            desc: 'Obtain authorized on-site customer or manager completion sign-off in DOCUMENTS.',
+            title: 'Work Acceptance Evidence Context',
+            desc: 'Obtain authorized on-site customer or manager completion acceptance in DOCUMENTS.',
           },
           {
             num: '05',
-            title: 'Settlement Close',
+            title: 'Settlement & Accounting Context',
             desc: 'Submit invoice matching the authorized work order for settlement via FIN01.',
           },
         ],
@@ -258,7 +262,7 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
         badge: 'هماهنگی پیمانکاران و دستورکارهای فنی',
         title: 'پلتفرم هماهنگی ارائه‌دهندگان خدمات و تیم‌های فنی',
         subtitle:
-          'هماهنگی دستورکارهای فنی از طریق OPERATIONS، برآورد شفاف هزینه در SERVICE، مستندسازی تصویری تحویل کار در DOCUMENTS و ثبت منظم سوابق در FIN01 بدون ایجاد دفاتر موازی.',
+          'هماهنگی خدمات فنی: سفارش‌های کار از طریق OPERATIONS، تعیین حدود برآورد در SERVICE، ثبت شواهد انجام کار در DOCUMENTS و سوابق تسویه‌حساب در FIN01.',
         ctaPrimary: 'گفتگوی عضویت پیمانکاران',
         ctaSecondary: 'معماری پلتفرم',
       },
@@ -273,7 +277,7 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
           },
           {
             title: 'اختلاف در تحویل و تایید کار',
-            desc: 'عدم ثبت عکس‌های قبل و بعد از تعمیر و فقدان امضای صورت‌جلسه دیجیتال، موجب تردید در پرداخت فاکتور می‌گردد.',
+            desc: 'عدم ثبت عکس‌های قبل و بعد از تعمیر و فقدان شواهد مستند تحویل کار، موجب تردید در پرداخت فاکتور می‌گردد.',
           },
           {
             title: 'ردگیری پراکنده سفارش‌ها',
@@ -299,8 +303,8 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
           },
           {
             domain: 'DOCUMENTS',
-            title: 'مستندات تصویری و صورت‌جلسه دیجیتال',
-            desc: 'ثبت تصاویر قطعات تعویض‌شده، عکس وضعیت نهایی و ثبت تایید دیجیتال اتمام کار در محل.',
+            title: 'مستندات تصویری و شواهد تحویل کار',
+            desc: 'ثبت تصاویر قطعات تعویض‌شده، عکس وضعیت نهایی و ثبت شواهد اتمام کار در سامانه.',
             icon: Camera,
           },
           {
@@ -312,33 +316,35 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
         ],
       },
       journey: {
-        badge: 'مسیر همکاری پیمانکار با پلتفرم',
+        badge: 'سیر معماری فرضی و مشارکتی',
         title: 'مراحل اجرای خدمات فنی در کلادورا',
+        subtitle:
+          'یادداشت معماری: مراحل زیر بیانگر یک مدل فرضی و مشارکتی برای پیمانکاران است و متضمن گردش کار یکپارچهٔ فعال یا امضای دیجیتال دارای اعتبار قضایی خودکار نیست.',
         steps: [
           {
             num: '۰۱',
-            title: 'عضویت و احراز صلاحیت',
+            title: 'ثبت اطلاعات و صلاحیت فنی',
             desc: 'ثبت شرکت یا تکنسین در CORE و تعیین محدوده جغرافیایی و تخصصی فعالیت.',
           },
           {
             num: '۰۲',
-            title: 'دریافت درخواست و ارائه قیمت',
+            title: 'بررسی محدوده و برآورد در SERVICE',
             desc: 'بررسی مشخصات فنی تیکت و ثبت پیش‌فاکتور هزینه در ماژول SERVICE.',
           },
           {
             num: '۰۳',
-            title: 'حضور و اجرای عملیات',
+            title: 'اجرای عملیات در محل',
             desc: 'انجام تعمیرات یا سرویس و ثبت تصاویر مراحل کار در سامانه.',
           },
           {
             num: '۰۴',
-            title: 'تحویل دیجیتال به مدیر',
-            desc: 'اخذ تاییدیه و امضای تحویل کار از مدیر ساختمان یا ناظر مقیم در DOCUMENTS.',
+            title: 'ثبت شواهد اتمام کار',
+            desc: 'اخذ تاییدیه و ثبت مستندات تحویل کار از ناظر در DOCUMENTS.',
           },
           {
             num: '۰۵',
             title: 'ثبت نهایی و تسویه‌حساب',
-            desc: 'ارجاع فاکتور تأییدشده به حسابداری FIN01 جهت واریز بدون اصطکاک وجه.',
+            desc: 'ارجاع فاکتور تأییدشده به حسابداری FIN01 جهت واریز وجه.',
           },
         ],
       },
@@ -476,6 +482,9 @@ export default async function ServiceProvidersSolutionPage(props: { params: Prom
             <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
               {content.journey.title}
             </h2>
+            <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+              {content.journey.subtitle}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
