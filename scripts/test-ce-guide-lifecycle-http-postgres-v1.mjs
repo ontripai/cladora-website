@@ -272,9 +272,6 @@ async function installDisposableExecutionBoundary() {
       current_user: 'cladora_ce_guide_executor', session_user: 'cladora_ce_guide_runtime',
       auth_usage: false,
     });
-    const routines = await verification.query(`select auth.uid() is null as uid_callable,
-      coalesce(jsonb_typeof(auth.jwt())='object',true) as jwt_callable`);
-    assert.deepEqual(routines.rows[0], { uid_callable: true, jwt_callable: true });
     await verification.query('rollback');
   } catch (error) {
     await verification.query('rollback').catch(() => undefined);

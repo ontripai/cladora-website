@@ -1,5 +1,5 @@
 begin;
-select plan(32);
+select plan(36);
 
 select ok(exists(select 1 from pg_roles where rolname='cladora_ce_guide_runtime'),
   'runtime role exists');
@@ -12,9 +12,11 @@ select ok((select not rolcanlogin and not rolinherit and not rolsuper and not ro
   and not rolcreatedb and not rolcreaterole and not rolreplication
   from pg_roles where rolname='cladora_ce_guide_executor'),'executor attributes are exact');
 select is((select count(*)::integer from pg_auth_members m
+  join pg_roles granted on granted.oid=m.roleid
   join pg_roles member on member.oid=m.member
-  where member.rolname like 'cladora_ce_guide_%'),1,
-  'only one membership is reachable from the protected roles');
+  where granted.rolname like 'cladora_ce_guide_%'
+    or member.rolname like 'cladora_ce_guide_%'),1,
+  'the protected roles participate in exactly one membership');
 select ok((select not m.admin_option and not m.inherit_option and m.set_option
   from pg_auth_members m join pg_roles granted on granted.oid=m.roleid
   join pg_roles member on member.oid=m.member
@@ -62,6 +64,16 @@ select ok(not has_schema_privilege('cladora_ce_guide_runtime','experience','USAG
   'runtime has no direct product schema access');
 select ok(not has_schema_privilege('cladora_ce_guide_executor','auth','USAGE'),
   'executor does not depend on Supabase-owned auth schema ACL');
+select ok(not has_schema_privilege('cladora_rpc_owner','auth','USAGE'),
+  'canonical RPC owner has no direct auth schema usage');
+select ok(not has_table_privilege('cladora_rpc_owner','auth.users','SELECT'),
+  'canonical RPC owner has no direct auth users SELECT');
+select ok(has_table_privilege('cladora_rpc_owner',
+  'app_private.confirmed_auth_user_ids_v1','SELECT'),
+  'canonical RPC owner may read the narrow confirmed-user projection');
+select ok(not has_table_privilege('cladora_ce_guide_executor',
+  'app_private.confirmed_auth_user_ids_v1','SELECT'),
+  'executor cannot read the confirmed-user projection');
 select ok(has_column_privilege('cladora_ce_guide_executor','experience.guides','status','UPDATE'),
   'executor may update Guide status');
 select ok(not has_table_privilege('cladora_ce_guide_executor','experience.guides','DELETE'),

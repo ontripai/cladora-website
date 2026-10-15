@@ -13,6 +13,8 @@ assert.equal(migrations.at(-1), migrationName);
 assert.match(migration, /create role cladora_ce_guide_runtime\s+login noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /create role cladora_ce_guide_executor\s+nologin noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /grant cladora_ce_guide_executor to cladora_ce_guide_runtime\s+with admin false, inherit false, set true/i);
+assert.match(migration, /revoke cladora_ce_guide_executor from current_user/i);
+assert.match(migration, /revoke cladora_ce_guide_runtime from current_user/i);
 assert.doesNotMatch(migration, /password\s+'[^']+'/i);
 assert.doesNotMatch(migration, /grant\s+.*\b(delete|truncate|create)\b.*cladora_ce_guide_executor/i);
 assert.doesNotMatch(migration, /grant\s+(all|execute on all functions)/i);
@@ -30,6 +32,9 @@ assert.match(migration, /core_platform_ce_guides_read_v1/);
 assert.match(migration, /core_platform_ce_idempotency_insert_v1/);
 assert.match(migration, /core_platform_ce_audit_insert_v1/);
 assert.match(migration, /core_platform_ce_outbox_insert_v1/);
+assert.match(migration, /create view app_private\.confirmed_auth_user_ids_v1\s+with \(security_barrier=true,security_invoker=false\)/i);
+assert.doesNotMatch(migration, /grant usage on schema auth/i);
+assert.doesNotMatch(migration, /grant select(?:\([^)]*\))? on auth\.users/i);
 
 assert.match(implementation, /core-platform-role-bound-pool\.v1/);
 assert.match(implementation, /'direct' \| 'session_pooler'/);

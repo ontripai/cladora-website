@@ -32,13 +32,11 @@ contract version is exactly `core-platform-role-bound-pool.v1`.
 | `cladora_ce_guide_runtime` | `LOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION`; owns no database object and has no direct product ACL. Its password remains unset by the migration and must be provisioned outside the repository. |
 | `cladora_ce_guide_executor` | `NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS NOCREATEDB NOCREATEROLE NOREPLICATION`; owns no database, schema, relation, sequence, view, materialized view, foreign table, function, or procedure. |
 
-The only membership reachable from either protected role is runtime as a
-member of executor with PostgreSQL 17 options `ADMIN FALSE`, `INHERIT FALSE`,
-and `SET TRUE`. PostgreSQL 17 can retain an inbound creator-admin edge from an
-installation role when a non-superuser `CREATEROLE` runner creates a role; the
-protected roles cannot traverse that edge, so it is outside the runtime lease
-graph. The adapter uses the constant executor identifier; request data and
-environment variables cannot select a role.
+The only membership involving either protected role is runtime as a member of
+executor with PostgreSQL 17 options `ADMIN FALSE`, `INHERIT FALSE`, and
+`SET TRUE`. The migration removes PostgreSQL 17 creator-admin installation
+edges before commit. The adapter uses the constant executor identifier;
+request data and environment variables cannot select a role.
 
 ## Minimal database access
 
@@ -60,6 +58,12 @@ No `DELETE`, `TRUNCATE`, schema `CREATE`, wildcard function execution, or
 product ACL is granted to runtime. No product grant is made to `PUBLIC`, `anon`,
 `authenticated`, or `service_role`.
 
+The canonical RPC owner receives no `auth` schema usage and no direct
+`auth.users` privilege. A security-barrier view owned by the migration owner
+projects only confirmed user IDs so the existing vendor identity check in
+`communications.member_covers_unit` keeps its live semantics without exposing
+email or other Auth records. Runtime and executor cannot query that projection.
+
 `auth.uid()` and `auth.jwt()` retain Supabase ownership and remain stable
 security-invoker functions. Executor and the canonical internal owner receive
 no `auth` schema grant; actor and AAL are read from the transaction-local
@@ -72,7 +76,7 @@ role.
 ## Role-safety lease and mutation protocol
 
 The transaction lease uses the shared side of one canonical transaction-level
-advisory lock and revalidates role attributes, the single outbound membership edge,
+advisory lock and revalidates role attributes, the single membership edge,
 ownership across database/schema/relation/routine catalogs, protected function
 owner/security/search-path state, and catalog visibility. Missing or uncertain
 catalog state denies execution.

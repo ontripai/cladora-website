@@ -46,6 +46,11 @@ create role cladora_ce_guide_executor
   noreplication password null;
 grant cladora_ce_guide_executor to cladora_ce_guide_runtime
   with admin false, inherit false, set true;
+-- PostgreSQL 17 gives a non-superuser CREATEROLE migration runner an
+-- administrative, non-SET membership in each role it creates. Those install
+-- edges are not part of the product contract and must not survive installation.
+revoke cladora_ce_guide_executor from current_user;
+revoke cladora_ce_guide_runtime from current_user;
 
 comment on role cladora_ce_guide_runtime is
   'External-secret runtime login for core-platform-role-bound-pool.v1; owns no product object and receives no product ACL.';
@@ -55,6 +60,69 @@ comment on role cladora_ce_guide_executor is
 -- Preserve Supabase ownership of auth.uid/auth.jwt. Internal security-definer
 -- functions are moved to the existing canonical NOLOGIN owner.
 grant create on schema documents,communications to cladora_rpc_owner;
+
+-- member_covers_unit historically checks that vendor identities are confirmed.
+-- Keep that live semantic without granting the canonical RPC owner any direct
+-- auth schema or auth.users privilege. This security-barrier projection exposes
+-- only confirmed user identifiers and remains owned by the migration owner.
+create view app_private.confirmed_auth_user_ids_v1
+  with (security_barrier=true,security_invoker=false) as
+  select id from auth.users where email_confirmed_at is not null;
+revoke all on app_private.confirmed_auth_user_ids_v1
+  from public,anon,authenticated,service_role;
+grant select on app_private.confirmed_auth_user_ids_v1 to cladora_rpc_owner;
+
+create or replace function communications.member_covers_unit(
+  p_membership uuid,p_tenant uuid,p_unit uuid
+) returns boolean language sql stable security definer set search_path=pg_catalog
+as $$
+  select exists (
+    select 1 from identity.memberships m
+    join identity.context_grants g on g.membership_id=m.id and g.tenant_id=m.tenant_id
+    join identity.roles r on r.id=m.role_id
+    join portfolio.units u on u.id=p_unit and u.tenant_id=m.tenant_id and u.status='active'
+    join portfolio.buildings b on b.id=u.building_id and b.tenant_id=m.tenant_id
+    where m.id=p_membership and m.tenant_id=p_tenant and m.status='active'
+      and m.starts_at<=statement_timestamp() and (m.ends_at is null or m.ends_at>statement_timestamp())
+      and g.starts_at<=statement_timestamp() and (g.ends_at is null or g.ends_at>statement_timestamp())
+      and lower(r.code) in ('association_admin','property_manager','president','owner','tenant_resident','company_staff','vendor_contact')
+      and exists (select 1 from identity.role_permissions rp join identity.permissions perm on perm.id=rp.permission_id
+        where rp.role_id=m.role_id and rp.effect='allow' and perm.code='communications.feed.read')
+      and (lower(r.code) not in ('owner','tenant_resident') or
+        (g.scope_type='unit' and g.unit_id=p_unit and exists (
+          select 1 from identity.membership_parties mp where mp.membership_id=m.id and mp.tenant_id=m.tenant_id
+            and ((lower(r.code)='owner' and exists (
+              select 1 from portfolio.ownerships o where o.tenant_id=m.tenant_id and o.unit_id=p_unit
+                and o.party_id=mp.party_id and o.valid_from<=current_date and (o.valid_to is null or o.valid_to>current_date)))
+              or (lower(r.code)='tenant_resident' and exists (
+                select 1 from occupancy.leases l where l.tenant_id=m.tenant_id and l.unit_id=p_unit
+                  and l.tenant_party_id=mp.party_id and l.status='active' and l.starts_on<=current_date
+                  and (l.ends_on is null or l.ends_on>current_date)))))))
+      and (lower(r.code)<>'company_staff' or exists (
+        select 1 from platform.platform_users pu
+        join platform.platform_role_assignments pra on pra.platform_user_id=pu.id
+          and pra.status='active' and pra.revoked_at is null and pra.role in ('PLATFORM_OPERATIONS','PLATFORM_SUPPORT')
+          and pra.valid_from<=statement_timestamp() and (pra.valid_until is null or pra.valid_until>statement_timestamp())
+        join platform.platform_customer_assignments ca on ca.platform_user_id=pu.id
+          and ca.status='active' and ca.revoked_at is null
+          and ca.valid_from<=statement_timestamp() and (ca.valid_until is null or ca.valid_until>statement_timestamp())
+        join platform.customer_workspaces w on w.id=ca.customer_workspace_id and w.tenant_id=m.tenant_id and w.lifecycle_status='ACTIVE'
+        where pu.auth_user_id=m.user_id and pu.status='active' and pu.deactivated_at is null))
+      and (lower(r.code)<>'vendor_contact' or exists (
+        select 1 from maintenance.vendor_portal_memberships vp
+        join maintenance.vendors v on v.id=vp.vendor_id and v.tenant_id=m.tenant_id and v.status='approved'
+        join maintenance.vendor_contracts vc on vc.vendor_id=v.id and vc.tenant_id=m.tenant_id
+          and vc.property_id=b.property_id and vc.status='active'
+          and vc.starts_on<=current_date and (vc.ends_on is null or vc.ends_on>current_date)
+        join app_private.confirmed_auth_user_ids_v1 au on au.id=m.user_id
+        where vp.membership_id=m.id and vp.tenant_id=m.tenant_id and vp.status='active'
+          and vp.accepted_at is not null and vp.revoked_at is null))
+      and ((g.scope_type='property' and g.property_id=b.property_id)
+        or (g.scope_type='building' and g.building_id=b.id)
+        or (g.scope_type='unit' and g.unit_id=u.id))
+  );
+$$;
+
 alter function app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)
   owner to cladora_rpc_owner;
 alter function documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid)
@@ -67,7 +135,8 @@ alter function communications.context_covers_unit(uuid,uuid)
   owner to cladora_rpc_owner;
 revoke create on schema documents,communications from cladora_rpc_owner;
 
-grant usage on schema communications,experience,occupancy to cladora_rpc_owner;
+grant usage on schema app_private,communications,experience,identity,
+  maintenance,occupancy,platform,portfolio to cladora_rpc_owner;
 grant execute on function
   app_private.check_effective_permission_v2(uuid,text,text,text,uuid,uuid),
   communications.context_membership(uuid)
@@ -78,10 +147,26 @@ grant select(id,tenant_id,membership_id,starts_at,ends_at)
   on identity.context_grants to cladora_rpc_owner;
 grant select(id,tenant_id,user_id,role_id,status,starts_at,ends_at)
   on identity.memberships to cladora_rpc_owner;
+grant select(id,code) on identity.roles to cladora_rpc_owner;
+grant select(role_id,permission_id,effect) on identity.role_permissions
+  to cladora_rpc_owner;
+grant select(id,code) on identity.permissions to cladora_rpc_owner;
 grant select(id,tenant_id,workspace_id) on documents.documents to cladora_rpc_owner;
 grant select(id,tenant_id,workspace_id) on experience.guides to cladora_rpc_owner;
 grant select on identity.membership_parties,portfolio.buildings,portfolio.units,
   portfolio.ownerships,occupancy.leases to cladora_rpc_owner;
+grant select(id,auth_user_id,status,deactivated_at) on platform.platform_users
+  to cladora_rpc_owner;
+grant select(platform_user_id,status,revoked_at,role,valid_from,valid_until)
+  on platform.platform_role_assignments to cladora_rpc_owner;
+grant select(platform_user_id,status,revoked_at,valid_from,valid_until,
+  customer_workspace_id) on platform.platform_customer_assignments
+  to cladora_rpc_owner;
+grant select(tenant_id,vendor_id,membership_id,status,accepted_at,revoked_at)
+  on maintenance.vendor_portal_memberships to cladora_rpc_owner;
+grant select(id,tenant_id,status) on maintenance.vendors to cladora_rpc_owner;
+grant select(vendor_id,tenant_id,property_id,status,starts_on,ends_on)
+  on maintenance.vendor_contracts to cladora_rpc_owner;
 
 -- These policies are the narrow source-read boundary for the canonical
 -- NOLOGIN owner of the security-definer scope helpers below. Without explicit
@@ -107,6 +192,24 @@ create policy core_platform_owner_ownerships_read_v1
   on portfolio.ownerships for select to cladora_rpc_owner using(true);
 create policy core_platform_owner_leases_read_v1
   on occupancy.leases for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_roles_read_v1
+  on identity.roles for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_role_permissions_read_v1
+  on identity.role_permissions for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_permissions_read_v1
+  on identity.permissions for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_platform_users_read_v1
+  on platform.platform_users for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_platform_roles_read_v1
+  on platform.platform_role_assignments for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_platform_customers_read_v1
+  on platform.platform_customer_assignments for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_vendor_portal_read_v1
+  on maintenance.vendor_portal_memberships for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_vendors_read_v1
+  on maintenance.vendors for select to cladora_rpc_owner using(true);
+create policy core_platform_owner_vendor_contracts_read_v1
+  on maintenance.vendor_contracts for select to cladora_rpc_owner using(true);
 
 create function app_private.core_platform_ce_guide_scope_allowed_v1(
   p_tenant_id uuid,p_workspace_id uuid,p_permission_code text,p_module_code text
@@ -484,12 +587,9 @@ select current_user='cladora_ce_guide_executor'
   and exists(select 1 from protected_roles where rolname='cladora_ce_guide_executor'
     and not rolcanlogin and not rolinherit and not rolsuper and not rolbypassrls
     and not rolcreatedb and not rolcreaterole and not rolreplication)
-  -- PostgreSQL 17 may retain an inbound installation-admin edge when a
-  -- non-superuser CREATEROLE migration runner creates a role. Neither
-  -- protected role can traverse it. Their only outbound membership is the
-  -- explicit runtime -> executor SET capability.
   and (select count(*)=1 from pg_auth_members m,role_ids i
-    where m.member=any(array[i.runtime_oid,i.executor_oid]))
+    where m.member=any(array[i.runtime_oid,i.executor_oid])
+      or m.roleid=any(array[i.runtime_oid,i.executor_oid]))
   and exists(select 1 from pg_auth_members m,role_ids i
     where m.roleid=i.executor_oid and m.member=i.runtime_oid
       and not m.admin_option and not m.inherit_option and m.set_option)
