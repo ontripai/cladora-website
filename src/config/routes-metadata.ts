@@ -166,20 +166,6 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
       desc: 'پیوستگی سوابق و خدمات در تمام مراحل زندگی ملک: تعریف و پیش‌فروش، تحویل و راه‌اندازی، بهره‌برداری، نگهداری، اجاره و معاملات بعدی با حفظ امضاهای گذشته.',
     },
   },
-  '/solutions': {
-    ro: {
-      title: 'Soluții pe Roluri & Tipuri de Proprietate (Rezidențial, Comercial, Industrial)',
-      desc: 'Matricea completă de soluții CLADORA pentru dezvoltatori, proprietari, asociații, administratori, chiriași și echipe tehnice în medii rezidențiale, de birouri sau industriale.',
-    },
-    en: {
-      title: 'Solutions Matrix by Stakeholder & Property Typology',
-      desc: 'Comprehensive solutions for developers, portfolio owners, residential boards, managers, tenants, and contractors across residential, commercial, and industrial estates.',
-    },
-    fa: {
-      title: 'راهکارهای تخصصی بر اساس نقش مخاطب و نوع ملک',
-      desc: 'ماتریس جامع راهکارهای کلادورا برای سازندگان، مالکان، انجمن‌ها، مدیران، مستأجران و پیمانکاران در املاک مسکونی، تجاری، اداری، صنعتی و مختلط.',
-    },
-  },
   '/modules': {
     ro: {
       title: 'Cele 17 Module Logice ale Platformei',
@@ -350,74 +336,119 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
       noIndex: true,
     },
   },
-  '/solutions/associations': {
+  '/solutions': {
     ro: {
-      title: 'Soluții pentru Asociații de Proprietari',
-      desc: 'Administrare transparentă adaptată contextului Legii 196/2018, repartizarea cheltuielilor și comunicare facilă cu locatarii.',
+      title: 'Soluții pe Contexte de Actori & Relații Imobiliare | CLADORA',
+      desc: 'O singură arhitectură de platformă pentru dezvoltatori, proprietari, asociații, administratori, rezidenți și prestatori de servicii, compusă pe baza relației și autorității.',
     },
     en: {
-      title: 'Homeowner Association Solutions',
-      desc: 'Transparent HOA management structured for Law 196/2018 contexts, accurate expense allocation, and resident communications.',
+      title: 'Solutions by Participant Context & Property Relationship | CLADORA',
+      desc: 'One platform architecture serving developers, property owners, associations, managers, residents, and service providers based on role, relationship, and scoped authority.',
     },
     fa: {
-      title: 'راهکارهای انجمن‌های مالکان و مجتمع‌ها',
-      desc: 'مدیریت شفاف مجتمع‌های مسکونی، تسهیم عادلانه هزینه‌های مشترک و ارتباط سازمان‌یافته با ساکنان.',
+      title: 'راهکارهای پلتفرم بر اساس جایگاه مخاطب و رابطه با ملک | کلادورا',
+      desc: 'یک معماری واحد برای سازندگان، مالکان، انجمن‌ها، مدیران، ساکنان و ارائه‌دهندگان خدمات بر بستر روابط حقوقی و اختیارات تفویض‌شده.',
     },
   },
-  '/solutions/property-managers': {
+  '/solutions/developers': {
     ro: {
-      title: 'Soluții pentru companii de administrare imobiliară (Manager OS)',
-      desc: 'Scalează compania de administrare: închidere de lună în masă (batch), dispecerat tichete mentenanță și SLA furnizori.',
+      title: 'Dezvoltatori & Predare Imobile — Arhitectura de Platformă | CLADORA',
+      desc: 'Structurarea identității imobilului din faza de proiect, pregătire comercială în AIRPROP, cartea tehnică în DOCUMENTS și tranziție ordonată către operare post-predare.',
     },
     en: {
-      title: 'Property Management Firm Solutions (Manager OS)',
-      desc: 'Enterprise multi-association management: batch month-close, ticket SLAs, and workforce delegation.',
+      title: 'Property Development & Handover Platform Architecture | CLADORA',
+      desc: 'Establish digital asset identity early, track commercial preparation in AIRPROP, organize the technical vault, and support orderly post-handover operational transition.',
     },
     fa: {
-      title: 'راهکارهای شرکت‌های مدیریت املاک و مجتمع‌ها (Manager OS)',
-      desc: 'مقیاس‌پذیری شرکت‌های مدیریت املاک: بستن دسته‌ای دوره‌های ماهانه، مرکز تخصیص تیکت‌های فنی و کنترل SLA پیمانکاران.',
+      title: 'معماری پلتفرم برای سازندگان و تحویل املاک | کلادورا',
+      desc: 'ثبت هویت دیجیتال ملک از فاز اولیه، تمهیدات تجاری در AIRPROP، بایگانی اسناد در DOCUMENTS و انتقال منظم به مرحله بهره‌برداری پس از تحویل.',
     },
   },
   '/solutions/property-owners': {
     ro: {
-      title: 'Soluții pentru Proprietari de Imobile',
-      desc: 'Evidența clară a chiriilor, contractelor și cheltuielilor deductibile pentru proprietari cu unul sau mai multe apartamente.',
+      title: 'Proprietari & Portofolii — Platforma de Operare a Activelor | CLADORA',
+      desc: 'Vizibilitate consolidată asupra activelor, contractelor de închiriere și cheltuielilor operaționale, fără fragmentarea sursei unice de adevăr financiar din FIN01.',
     },
     en: {
-      title: 'Residential Property Owner Solutions',
-      desc: 'Clear visibility into rents, tenant leases, and owner-retained maintenance for single and multi-unit landlords.',
+      title: 'Property Owner & Portfolio Operating Platform | CLADORA',
+      desc: 'Consolidated visibility across owned assets, leases, and operational expenses, anchored directly to single-capability financial truth in FIN01.',
     },
     fa: {
-      title: 'راهکارهای مالکان املاک استیجاری',
-      desc: 'نظارت دقیق بر قراردادهای اجاره، تفکیک هزینه‌های مالک و مستأجر و مدیریت وصول مطالبات.',
+      title: 'پلتفرم عملیات برای مالکان و سبد دارایی‌های ملکی | کلادورا',
+      desc: 'پایش متمرکز بر املاک ملکی، قراردادهای اجاره و هزینه‌های عملیاتی با اتکا به مرجع حقیقت مالی FIN01 بدون ایجاد پایگاه‌های داده موازی.',
+    },
+  },
+  '/solutions/associations': {
+    ro: {
+      title: 'Asociații de Proprietari — Platforma de Guvernanță Rezidențială | CLADORA',
+      desc: 'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: repartizarea cheltuielilor, avizier digital și transparență decizională.',
+    },
+    en: {
+      title: 'Residential Association & HOA Platform Architecture | CLADORA',
+      desc: 'Designed to support residential association workflows within the framework of Romanian Law 196/2018: expense allocation, digital notice board, and governance records.',
+    },
+    fa: {
+      title: 'معماری پلتفرم برای انجمن‌های مالکان و مجتمع‌های مسکونی | کلادورا',
+      desc: 'طراحی‌شده برای تسهیل فرآیندهای مجتمع‌های مسکونی منطبق با چارچوب‌های قانونی: تسهیم مستند هزینه‌ها، تابلو اعلانات دیجیتال و ثبت تصمیمات مجامع.',
+    },
+  },
+  '/solutions/property-managers': {
+    ro: {
+      title: 'Companii de Administrare — Platforma Operațională Multi-Imobil | CLADORA',
+      desc: 'Consolă de operare pentru portofolii multi-proprietate: coordonarea echipelor, dispecerat tichete, vizibilitate financiară și relația cu ocupanții.',
+    },
+    en: {
+      title: 'Property Management Operating Platform | CLADORA',
+      desc: 'Operating console for multi-property portfolios: team delegation, maintenance ticket dispatch, financial visibility, and occupant relationship coordination.',
+    },
+    fa: {
+      title: 'پلتفرم عملیاتی شرکت‌های مدیریت و نگهداری املاک | کلادورا',
+      desc: 'کنسول عملیاتی برای مدیریت چندین مجتمع: تفویض اختیارات به تیم، ارجاع تیکت‌های فنی، شفافیت مالی و مدیریت تعاملات با بهره‌برداران.',
     },
   },
   '/solutions/residents': {
     ro: {
-      title: 'Soluții pentru Proprietari Locatari',
-      desc: 'Vizibilitate completă asupra cotelor de întreținere, transmitere facilă a indexurilor și participare asistată la adunări.',
+      title: 'Rezidenți & Ocupanți — Experiența Imobiliară Conectată | CLADORA',
+      desc: 'Transparență autorizată asupra cotelor de întreținere, transmiterea indexurilor, semnalarea incidentelor tehnice și comunicare oficială cu administrația.',
     },
     en: {
-      title: 'Resident Owner Solutions',
-      desc: 'Complete breakdown of monthly maintenance bills, effortless meter index submission, and assembly participation.',
+      title: 'Resident & Occupant Property Experience Architecture | CLADORA',
+      desc: 'Authorized transparency into maintenance charges, photo-assisted meter submission, maintenance issue ticketing, and official community communications.',
     },
     fa: {
-      title: 'راهکارهای ساکنان و مالکان مقیم',
-      desc: 'مشاهده جزییات فاکتور شارژ ماهانه، ثبت سریع ارقام کنتور با عکس و شرکت در نظرسنجی‌ها و مجامع.',
+      title: 'معماری تجربه سکونت برای ساکنان و بهره‌برداران املاک | کلادورا',
+      desc: 'مشاهده شفاف فیش شارژ ماهانه، ثبت تصویری ارقام کنتورها، اعلام سریع درخواست‌های تعمیرات و دریافت اطلاعیه‌های رسمی ساختمان.',
+    },
+  },
+  '/solutions/service-providers': {
+    ro: {
+      title: 'Furnizori de Servicii & Echipe Tehnice — Coordonare Lucrări | CLADORA',
+      desc: 'Coordonarea intervențiilor tehnice: comenzi de lucru autorizate prin OPERATIONS, devize clare în SERVICE, probe foto la recepție și decontare ordonată.',
+    },
+    en: {
+      title: 'Property Service Provider Coordination Platform | CLADORA',
+      desc: 'Coordinate maintenance delivery: verified work orders via OPERATIONS, structured quote scope in SERVICE, photographic sign-off evidence, and auditable records.',
+    },
+    fa: {
+      title: 'پلتفرم هماهنگی ارائه‌دهندگان خدمات و تیم‌های فنی | کلادورا',
+      desc: 'هماهنگی دستورکارهای فنی از طریق OPERATIONS، برآورد شفاف هزینه در SERVICE، مستندسازی تصویری تحویل کار و ثبت منظم سوابق.',
     },
   },
   '/solutions/tenants': {
     ro: {
-      title: 'Soluții pentru Chiriași Rezidențiali',
-      desc: 'Separarea exactă între cheltuielile de consum și fondurile proprietarului, fără discuții la final de contract.',
+      title: 'Soluții pentru Chiriași Rezidențiali (Consolidat în Rezidenți)',
+      desc: 'Fluxurile pentru chiriași sunt integrate canonic în Soluția pentru Rezidenți & Ocupanți.',
+      noIndex: true,
     },
     en: {
-      title: 'Residential Tenant Solutions',
-      desc: 'Strict separation between monthly utility consumption and capital funds, ensuring smooth lease handovers.',
+      title: 'Residential Tenant Solutions (Consolidated into Residents)',
+      desc: 'Tenant workflows are canonically consolidated into the Resident & Occupant Solution.',
+      noIndex: true,
     },
     fa: {
-      title: 'راهکارهای مستأجران واحدهای مسکونی',
-      desc: 'تفکیک شفاف شارژ مصرفی جاری از صندوق‌های سرمایه‌ای و عمرانی با فاکتورهای رسمی و تفکیک‌شده.',
+      title: 'راهکارهای مستأجران واحدهای مسکونی (تجمیع در ساکنان)',
+      desc: 'جریان‌های کاری مستأجران به صورت یکپارچه در راهکار ساکنان و بهره‌برداران تجمیع شده است.',
+      noIndex: true,
     },
   },
   '/resources/faq': {

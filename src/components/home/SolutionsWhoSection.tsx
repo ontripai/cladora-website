@@ -22,7 +22,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           problem: 'Evidențe fragmentate de pre-vânzare și predări anevoioase către asociații.',
           solution:
             'Identitate digitală unică din faza de proiect, antecontracte și protocol formal de predare cu seif tehnic inclus.',
-          href: `/${lang}/solutions`,
+          href: `/${lang}/solutions/developers`,
           icon: Building,
         },
         {
@@ -39,7 +39,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Asociații & Comunități',
           problem: 'Dispute legate de cotele de întreținere și lipsa de transparență în cheltuieli.',
           solution:
-            'Calcul explicabil al cotelor statutare, reconciliere bancară clară și avizier digital securizat.',
+            'Calcul explicabil al cotelor statutare, reconciliere bancară asistată și avizier digital securizat.',
           href: `/${lang}/solutions/associations`,
           icon: Users,
         },
@@ -48,17 +48,17 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Companii de Administrare',
           problem: 'Gestiune manuală pe multiple blocuri și dificultăți în coordonarea meșterilor.',
           solution:
-            'Operare multi-clădire într-un singur cont, dispecerat de tichete de mentenanță și plăți automatizate.',
+            'Operare multi-clădire într-un singur cont, dispecerat de tichete de mentenanță și evidență structurată.',
           href: `/${lang}/solutions/property-managers`,
           icon: Wrench,
         },
         {
           id: 'residents',
-          name: 'Rezidenți & Chiriași',
+          name: 'Rezidenți & Ocupanți',
           problem: 'Plăți complicate la ghișeu și incertitudine privind istoricul propriilor consumuri.',
           solution:
             'Portal intuitiv pentru transmiterea indexurilor, plata cotelor și solicitarea rapidă a reparațiilor.',
-          href: `/${lang}/solutions/tenants`,
+          href: `/${lang}/solutions/residents`,
           icon: Home,
         },
         {
@@ -67,7 +67,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           problem: 'Comenzi neclare, devize contestate și termene de plată imprevizibile.',
           solution:
             'Comenzi de lucru cu specificații exacte, recepție digitală la fața locului și decontare ordonată.',
-          href: `/${lang}/solutions`,
+          href: `/${lang}/solutions/service-providers`,
           icon: FileCheck2,
         },
       ],
@@ -85,7 +85,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           problem: 'Fragmented pre-sales spreadsheets and contentious handovers to new associations.',
           solution:
             'Single property identity established early, traceable pre-sales records, and formal digital handover.',
-          href: `/${lang}/solutions`,
+          href: `/${lang}/solutions/developers`,
           icon: Building,
         },
         {
@@ -102,7 +102,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'Associations & Communities',
           problem: 'Statutory cost allocation disputes, mistrust, and opaque manual accounting.',
           solution:
-            'Explainable double-entry formulas, automated banking feeds, and auditable digital notice records.',
+            'Explainable allocation formulas, assisted banking reconciliation, and auditable digital notice records.',
           href: `/${lang}/solutions/associations`,
           icon: Users,
         },
@@ -117,11 +117,11 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
         },
         {
           id: 'residents',
-          name: 'Residents & Tenants',
+          name: 'Residents & Occupants',
           problem: 'Inconvenient bill payment processes and lack of clear meter consumption records.',
           solution:
             'Self-service mobile portal, direct meter submissions, clear invoices, and service requests.',
-          href: `/${lang}/solutions/tenants`,
+          href: `/${lang}/solutions/residents`,
           icon: Home,
         },
         {
@@ -130,7 +130,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           problem: 'Vague work scopes, disputed invoices, and unpredictable sign-off delays.',
           solution:
             'Structured work orders, verified site check-ins, and auditable sign-off records.',
-          href: `/${lang}/solutions`,
+          href: `/${lang}/solutions/service-providers`,
           icon: FileCheck2,
         },
       ],
@@ -148,7 +148,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           problem: 'فایل‌های پراکندهٔ پیش‌فروش و تحویل پردردسر ساختمان به هیئت‌مدیره جدید.',
           solution:
             'ثبت هویت واحدها از فاز پروژه، پیگیری تعهدات پیش‌فروش و صورت‌جلسه دیجیتال تحویل با شناسنامه فنی.',
-          href: `/${lang}/solutions`,
+          href: `/${lang}/solutions/developers`,
           icon: Building,
         },
         {
@@ -165,7 +165,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           name: 'مجتمع‌ها و انجمن‌های مالکان',
           problem: 'اختلاف‌نظر در محاسبه سهم شارژ و ابهام در ترازهای مالی دوره‌ای.',
           solution:
-            'فرمول‌های قانونی و شفاف تسهیم هزینه‌ها، مغایرت‌گیری بانکی و تابلوی اعلانات دیجیتال مستند.',
+            'فرمول‌های قانونی و شفاف تسهیم هزینه‌ها، تطبیق حسابداری بانکی و تابلوی اعلانات دیجیتال مستند.',
           href: `/${lang}/solutions/associations`,
           icon: Users,
         },
@@ -180,11 +180,11 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
         },
         {
           id: 'residents',
-          name: 'ساکنان و مستأجران',
+          name: 'ساکنان و بهره‌برداران',
           problem: 'فرایندهای زمان‌بر پرداخت هزینه‌ها و عدم دسترسی به سوابق مصارف گذشته.',
           solution:
             'پنل آسان کاربری برای اعلام ارقام کنتور، پرداخت مستقیم شارژ و ثبت درخواست تعمیرات.',
-          href: `/${lang}/solutions/tenants`,
+          href: `/${lang}/solutions/residents`,
           icon: Home,
         },
         {
@@ -193,7 +193,7 @@ export const SolutionsWhoSection: React.FC<SolutionsWhoSectionProps> = ({ lang }
           problem: 'شرح کار مبهم، تاخیر در تایید نهایی کار و ابهام در تسویه‌حساب‌ها.',
           solution:
             'سفارش‌های کار مدون با محدوده مشخص، تایید دیجیتال انجام کار در محل و تسویه بدون اختلاف.',
-          href: `/${lang}/solutions`,
+          href: `/${lang}/solutions/service-providers`,
           icon: FileCheck2,
         },
       ],

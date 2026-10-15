@@ -204,7 +204,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     {
       title: lang === 'ro' ? 'Dezvoltatori & Constructori' : lang === 'fa' ? 'سازندگان و عرضه‌کنندگان' : 'Developers & Builders',
       desc: lang === 'ro' ? 'Identitate inițială, pre-vânzare, cartea tehnică și predare' : lang === 'fa' ? 'تعریف هویت ملک، فروش اولیه، پرونده فنی و تحویل واحدها' : 'Property identity, pre-sales tracking, document vault, and handover',
-      href: `/${lang}/solutions`,
+      href: `/${lang}/solutions/developers`,
       icon: Building,
     },
     {
@@ -226,15 +226,15 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       icon: Wrench,
     },
     {
-      title: lang === 'ro' ? 'Chiriași & Rezidenți' : lang === 'fa' ? 'مستأجران و ساکنان' : 'Residents & Tenants',
-      desc: lang === 'ro' ? 'Autentificare simplă, index contoare, plăți și cereri' : lang === 'fa' ? 'ثبت کارکرد کنتور، پرداخت آسان هزینه‌ها و ثبت خرابی' : 'Self-service portal, meter reporting, bill pay, and service tickets',
-      href: `/${lang}/solutions/tenants`,
+      title: lang === 'ro' ? 'Rezidenți & Ocupanți' : lang === 'fa' ? 'ساکنان و بهره‌برداران' : 'Residents & Occupants',
+      desc: lang === 'ro' ? 'Transparență cote, transmitere index, tichete și avizier digital' : lang === 'fa' ? 'شفافیت فیش شارژ، ثبت ارقام کنتور، تیکت‌های فنی و اطلاعیه‌ها' : 'Clear statements, meter reporting, maintenance tickets, and notices',
+      href: `/${lang}/solutions/residents`,
       icon: Home,
     },
     {
       title: lang === 'ro' ? 'Furnizori de Servicii' : lang === 'fa' ? 'پیمانکاران و ارائه‌دهندگان خدمات' : 'Service Providers',
       desc: lang === 'ro' ? 'Comenzi de lucru verificate, procese-verbale și decontare' : lang === 'fa' ? 'سفارش‌های کار تاییدشده، گزارش انجام کار و تسویه' : 'Verified work orders, SLA accountability, and digitized signoffs',
-      href: `/${lang}/solutions`,
+      href: `/${lang}/solutions/service-providers`,
       icon: FileCheck2,
     },
   ];

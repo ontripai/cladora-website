@@ -118,7 +118,7 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
             </div>
             <ul className="space-y-2 text-xs sm:text-sm text-[#CBD5E1]">
               <li>
-                <Link href={`/${lang}/solutions`} className="hover:text-white transition-colors">
+                <Link href={`/${lang}/solutions/developers`} className="hover:text-white transition-colors">
                   {lang === 'ro' ? 'Dezvoltatori & Constructori' : lang === 'fa' ? 'سازندگان و توسعه‌دهندگان' : 'Builders & Developers'}
                 </Link>
               </li>
@@ -138,12 +138,12 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/solutions/tenants`} className="hover:text-white transition-colors">
-                  {lang === 'ro' ? 'Chiriași & Rezidenți' : lang === 'fa' ? 'مستأجران و بهره‌برداران' : 'Tenants & Occupants'}
+                <Link href={`/${lang}/solutions/residents`} className="hover:text-white transition-colors">
+                  {lang === 'ro' ? 'Rezidenți & Ocupanți' : lang === 'fa' ? 'ساکنان و بهره‌برداران' : 'Residents & Occupants'}
                 </Link>
               </li>
               <li>
-                <Link href={`/${lang}/solutions`} className="hover:text-white transition-colors">
+                <Link href={`/${lang}/solutions/service-providers`} className="hover:text-white transition-colors">
                   {lang === 'ro' ? 'Furnizori de Servicii' : lang === 'fa' ? 'ارائه‌دهندگان خدمات' : 'Service Providers'}
                 </Link>
               </li>
