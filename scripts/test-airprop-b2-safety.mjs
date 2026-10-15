@@ -73,6 +73,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Core / PR #409',
       sha256: 'ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641',
     },
+    '20261015183000_core_jurisdiction_profile_v1.sql': {
+      owner: 'Core / PR #419',
+      sha256: '924b577b18e6e70d149272e3f193c23d4c5d83db81b2f1f3b51950e0d1ce74c7',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
@@ -85,6 +89,7 @@ const coreResult = validateProtectedDirectory({
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
     'current-unit-property-selector-v1.ts',
+    'jurisdiction-profile-v1.ts',
     'platform-role-bound-pool-v1.ts',
     'postgres-transaction-host-v1.ts',
     'transaction-replay-provider-hook-v1.ts',
@@ -101,6 +106,10 @@ const coreResult = validateProtectedDirectory({
     'current-unit-property-selector-v1.ts': {
       owner: 'Core / PR #417',
       sha256: 'cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd',
+    },
+    'jurisdiction-profile-v1.ts': {
+      owner: 'Core / PR #419',
+      sha256: '70781991127452ce50f7b6974f6c68edd06508ab2ac13366001c162873438487',
     },
     'platform-role-bound-pool-v1.ts': {
       owner: 'Core / PR #409',
