@@ -89,6 +89,7 @@ const coreResult = validateProtectedDirectory({
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
     'current-unit-property-selector-v1.ts',
+    'jurisdiction-profile-selector-v1.ts',
     'jurisdiction-profile-v1.ts',
     'platform-role-bound-pool-v1.ts',
     'postgres-transaction-host-v1.ts',
@@ -106,6 +107,10 @@ const coreResult = validateProtectedDirectory({
     'current-unit-property-selector-v1.ts': {
       owner: 'Core / PR #417',
       sha256: 'cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd',
+    },
+    'jurisdiction-profile-selector-v1.ts': {
+      owner: 'Core / PR #423',
+      sha256: '279c75fc6b0401836fbad5268fcc6ca5b51a16878b2d712f1502adda25b268ad',
     },
     'jurisdiction-profile-v1.ts': {
       owner: 'Core / PR #419',
