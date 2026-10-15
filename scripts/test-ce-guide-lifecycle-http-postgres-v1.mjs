@@ -402,19 +402,17 @@ async function removeDisposableExecutionBoundary() {
       (select count(*)::int from pg_class c join pg_roles r on r.oid=c.relowner
         where r.rolname='cladora_ce_guide_executor') class_ownership,
       (select count(*)::int from pg_proc p join pg_roles r on r.oid=p.proowner
-        where r.rolname='cladora_ce_guide_executor') function_ownership,
-      (select count(*)::int from pg_auth_members
-        where roleid=$1::oid or member=$1::oid) memberships`, [executorOid]);
+        where r.rolname='cladora_ce_guide_executor') function_ownership`);
     assert.deepEqual(residue.rows[0], {
       database_ownership: 0, schema_ownership: 0, class_ownership: 0,
-      function_ownership: 0, memberships: 0,
+      function_ownership: 0,
     });
     await pool.query('drop role cladora_ce_guide_executor');
     executionRoleCreated = false;
     assert.equal((await pool.query(`select count(*)::int count from pg_roles
       where rolname='cladora_ce_guide_executor'`)).rows[0].count, 0);
     assert.equal((await pool.query(`select count(*)::int count from pg_auth_members
-      where roleid=$1::oid or member=$1::oid`, [executorOid])).rows[0].count, 0);
+      where roleid=$1::oid or member=$1::oid or grantor=$1::oid`, [executorOid])).rows[0].count, 0);
   }
 }
 
