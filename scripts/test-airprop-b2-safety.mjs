@@ -89,6 +89,7 @@ const coreResult = validateProtectedDirectory({
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
     'current-unit-property-selector-v1.ts',
+    'jurisdiction-domain-artifact-v1.ts',
     'jurisdiction-profile-selector-v1.ts',
     'jurisdiction-profile-v1.ts',
     'platform-role-bound-pool-v1.ts',
@@ -107,6 +108,10 @@ const coreResult = validateProtectedDirectory({
     'current-unit-property-selector-v1.ts': {
       owner: 'Core / PR #417',
       sha256: 'cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd',
+    },
+    'jurisdiction-domain-artifact-v1.ts': {
+      owner: 'Core / PR #428',
+      sha256: '8ec7d8b4a0d0ef80ffdbb06f48b9c5cb65c0fc8fa5c8b0fd0f42cc0e746fd168',
     },
     'jurisdiction-profile-selector-v1.ts': {
       owner: 'Core / PR #423',
