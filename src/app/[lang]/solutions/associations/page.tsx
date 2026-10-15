@@ -1,25 +1,26 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { getRouteMetadata } from '@/config/routes-metadata';
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  Building2, 
-  Scale, 
-  FileSpreadsheet, 
-  Users, 
-  ShieldCheck, 
-  ArrowRight, 
-  Receipt, 
-  FileCheck2, 
-  DollarSign, 
-  CheckCircle2, 
-  Clock, 
-  Boxes, 
-  GitBranch, 
-  Megaphone, 
-  Vote, 
-  FileText 
+import {
+  Building2,
+  Scale,
+  FileSpreadsheet,
+  Users,
+  ShieldCheck,
+  ArrowRight,
+  Receipt,
+  FileCheck2,
+  DollarSign,
+  CheckCircle2,
+  Clock,
+  Boxes,
+  GitBranch,
+  Megaphone,
+  Vote,
+  FileText,
+  BookOpen
 } from 'lucide-react';
 import { AvailabilityGovernanceSection } from '@/components/solutions/AvailabilityGovernanceSection';
 
@@ -48,10 +49,10 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
         current: 'Asociații de Proprietari',
       },
       hero: {
-        badge: 'GUVERNANȚĂ REZIDENȚIALĂ & ASOCIAȚII',
-        title: 'Platformă de Guvernanță Rezidențială în Cadrul Legii 196/2018',
+        badge: 'SOFTWARE ADMINISTRARE ASOCIAȚII & GUVERNANȚĂ',
+        title: 'Software Administrare Asociații de Proprietari în Cadrul Legii 196/2018',
         subtitle:
-          'Concepută pentru a susține fluxurile asociațiilor de proprietari în cadrul Legii 196/2018: repartizarea explicabilă a cotelor, avizier digital, evidență financiară și gestiunea adunărilor generale, fără automatizare legală garantată.',
+          'Platformă de operare concepută pentru a susține fluxurile asociațiilor de proprietari din România: repartizarea matematică explicabilă a cotelor pe persoane, cotă-parte indiviză și contoare, avizier digital, evidență financiară și gestiunea adunărilor generale, fără automatizare legală garantată.',
         ctaPrimary: 'Discută Înrolarea Asociației',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -134,6 +135,71 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
             num: '05',
             title: 'Documentare Adunare Generală',
             desc: 'Pregătirea raportului de gestiune, descărcarea de gestiune și arhivarea hotărârilor.',
+          },
+        ],
+      },
+      audience: {
+        badge: 'PENTRU CINE ESTE',
+        title: 'Roluri și Contexte de Lucru în Cadrul Asociației',
+        subtitle: 'CLADORA structurează spații de lucru adaptate fiecărui actor reglementat de Legea 196/2018:',
+        items: [
+          {
+            title: 'Președinți & Comitete Executive',
+            desc: 'Vizibilitate completă asupra contractelor, mandatelor, aprobărilor de cheltuieli și comunicării oficiale cu proprietarii.',
+          },
+          {
+            title: 'Administratori de Condominiu Atestați',
+            desc: 'Calculul matematic al cotelor pe persoane, CPI și contoare, preluarea indexurilor de utilități și generarea listelor lunare.',
+          },
+          {
+            title: 'Cenzori & Comisii de Cenzori',
+            desc: 'Piste de audit și balanțe analitice pentru verificarea legalității operațiunilor și a reconcilierii bancare înainte de afișare.',
+          },
+          {
+            title: 'Proprietari & Locatari',
+            desc: 'Transparență totală asupra modului de calcul al cotelor de întreținere, avizier digital și transmitere facilă a indexurilor de consum.',
+          },
+        ],
+      },
+      guides: {
+        badge: 'RESURSE CANONICE & GHIDURI OPERAȚIONALE',
+        title: 'Ghiduri Practice pentru Asociații de Proprietari',
+        subtitle: 'Documentație detaliată și metodologie explicată pentru aplicarea corectă a Legii 196/2018:',
+        items: [
+          {
+            title: 'Ghid Practic Legea 196/2018',
+            desc: 'Cadrul operațional, atribuțiile organelor de conducere și cerințele legale de funcționare.',
+            href: '/ro/resources/guides/asociatii-proprietari-legea-196-2018',
+          },
+          {
+            title: 'Metodologia Repartizării Cheltuielilor',
+            desc: 'Criteriile legale pe persoane, cotă-parte indiviză și contoare, plus circuitul facturilor.',
+            href: '/ro/resources/guides/repartizare-cheltuieli-asociatie-proprietari',
+          },
+          {
+            title: 'Program de Calcul Întreținere Bloc',
+            desc: 'Algoritmi de calcul, cele 6 categorii legale de cheltuieli și verificarea cenzorilor.',
+            href: '/ro/resources/guides/program-calcul-intretinere-bloc',
+          },
+          {
+            title: 'Lista de Plată: Structură & Afișare',
+            desc: 'Elemente obligatorii conform legii, termene de scadență și procedura de contestare.',
+            href: '/ro/resources/guides/lista-de-plata-asociatie-proprietari',
+          },
+          {
+            title: 'Fond de Rulment vs. Fond de Reparații',
+            desc: 'Diferențe esențiale, calcul, destinații legale și restituirea la vânzarea apartamentului.',
+            href: '/ro/resources/guides/fond-rulment-vs-fond-reparatii',
+          },
+          {
+            title: 'Calculul Cotei-Părți Indivize (CPI)',
+            desc: 'Formula matematică pe suprafață utilă, date din cartea funciară și cheltuieli comune.',
+            href: '/ro/resources/guides/cota-parte-indiviza-calcul',
+          },
+          {
+            title: 'Ghid de Migrare între Softuri de Bloc',
+            desc: 'Preluarea corectă a soldurilor, reconcilierea bancară și auditul cenzorilor.',
+            href: '/ro/resources/guides/migrare-program-administrare-bloc',
           },
         ],
       },
@@ -367,7 +433,7 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
   return (
     <main className="min-h-screen pt-28 pb-20 bg-[#F6F9FC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-        
+
         {/* BREADCRUMBS & HERO */}
         <div className="space-y-6">
           <div className="flex items-center gap-2 text-xs text-[#52667A] font-medium">
@@ -503,6 +569,69 @@ export default async function AssociationsSolutionPage(props: { params: Promise<
             ))}
           </div>
         </section>
+
+        {/* AUDIENCE (PENTRU CINE ESTE) */}
+        {content.audience && (
+          <section className="card-proptech p-8 sm:p-10 bg-white border-[#E2E8F0] space-y-8">
+            <div className="max-w-3xl space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF8F5] text-xs font-bold text-[#0A6E62]">
+                <Users className="w-3.5 h-3.5 text-[#0E9F8E]" />
+                <span>{content.audience.badge}</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
+                {content.audience.title}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+                {content.audience.subtitle}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {content.audience.items.map((aud: { title: string; desc: string }, i: number) => (
+                <div key={i} className="p-5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] space-y-2">
+                  <h3 className="text-sm font-bold text-[#102A43]">{aud.title}</h3>
+                  <p className="text-xs text-[#52667A] leading-relaxed">{aud.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* CLUSTER A GUIDES */}
+        {content.guides && (
+          <section className="card-proptech p-8 sm:p-10 bg-white border-[#E2E8F0] space-y-8">
+            <div className="max-w-3xl space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAF8F5] text-xs font-bold text-[#0A6E62]">
+                <BookOpen className="w-3.5 h-3.5 text-[#0E9F8E]" />
+                <span>{content.guides.badge}</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#102A43] tracking-tight">
+                {content.guides.title}
+              </h2>
+              <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+                {content.guides.subtitle}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {content.guides.items.map((g: { title: string; desc: string; href: string }, i: number) => (
+                <Link
+                  key={i}
+                  href={g.href}
+                  className="p-5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] hover:border-[#0E9F8E] transition-all group space-y-2 block"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-[#102A43] group-hover:text-[#0A6E62] transition-colors">
+                      {g.title}
+                    </h3>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-[#0E9F8E] rtl:rotate-180 shrink-0" />
+                  </div>
+                  <p className="text-xs text-[#52667A] leading-relaxed">{g.desc}</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* AVAILABILITY GOVERNANCE */}
         <AvailabilityGovernanceSection

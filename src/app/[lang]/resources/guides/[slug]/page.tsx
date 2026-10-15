@@ -16,16 +16,16 @@ import {
   Layers,
   ChevronRight,
   CheckCircle2,
+  ExternalLink,
+  UserCheck,
 } from 'lucide-react';
 
 export async function generateStaticParams() {
-  return [
-    { lang: 'en', slug: 'what-is-property-operating-platform' },
-    { lang: 'en', slug: 'property-management-software-vs-property-operating-platform' },
-    { lang: 'ro', slug: 'asociatii-proprietari-legea-196-2018' },
-    { lang: 'ro', slug: 'repartizare-cheltuieli-asociatie-proprietari' },
-    { lang: 'fa', slug: 'platform-modiriat-amlak' },
-  ];
+  const articles = getAllGuideArticles();
+  return articles.map((article) => ({
+    lang: article.lang,
+    slug: article.slug,
+  }));
 }
 
 export async function generateMetadata(props: {
@@ -60,6 +60,7 @@ export default async function GuideArticlePage(props: {
 
   const baseUrl = getSiteUrl();
   const canonicalUrl = `${baseUrl}/${lang}/resources/guides/${article.slug}`;
+  const authorUrl = `${baseUrl}${article.authorUrl.startsWith('/') ? article.authorUrl : `/${article.authorUrl}`}`;
 
   const labels = {
     ro: {
@@ -67,10 +68,14 @@ export default async function GuideArticlePage(props: {
       resources: 'Resurse',
       guides: 'Ghiduri & Bune Practici',
       directAnswerTitle: 'Răspuns Direct',
-      legalDisclaimerTitle: 'Notă privind Caracterul Informativ & Legal',
+      legalDisclaimerTitle: 'Notă privind Caracterul Informativ & Cadrul Legal',
       faqTitle: 'Întrebări Frecvente Aferente',
       relatedTitle: 'Ghiduri Conexe Recomandate',
       tableOfContents: 'Cuprinsul Articolului',
+      authorLabel: 'Autor:',
+      publishedOn: 'Publicat:',
+      updatedOn: 'Actualizat:',
+      editorialNote: 'Metodologie editorială: Documentat pe baza cadrului normativ oficial și a standardelor tehnice de operare imobiliară.',
     },
     en: {
       home: 'Home',
@@ -81,6 +86,10 @@ export default async function GuideArticlePage(props: {
       faqTitle: 'Frequently Asked Questions',
       relatedTitle: 'Related Technical Guides',
       tableOfContents: 'Article Table of Contents',
+      authorLabel: 'Author:',
+      publishedOn: 'Published:',
+      updatedOn: 'Updated:',
+      editorialNote: 'Editorial methodology: Documented against statutory regulations and technical property operations frameworks.',
     },
     fa: {
       home: 'صفحه اصلی',
@@ -91,6 +100,10 @@ export default async function GuideArticlePage(props: {
       faqTitle: 'پرسش‌های متداول مرتبط',
       relatedTitle: 'راهنماهای مرتبط',
       tableOfContents: 'سرفصل‌های مقاله',
+      authorLabel: 'نویسنده:',
+      publishedOn: 'تاریخ انتشار:',
+      updatedOn: 'تاریخ بازبینی:',
+      editorialNote: 'متدولوژی تدوین: نگارش بر مبنای استانداردهای معماری عملیاتی و مراجع معتبر فنی.',
     },
   }[lang];
 
@@ -135,10 +148,11 @@ export default async function GuideArticlePage(props: {
     mainEntityOfPage: canonicalUrl,
     url: canonicalUrl,
     inLanguage: lang,
+    image: `${baseUrl}/brand/cladora-og.png`,
     author: {
       '@type': 'Organization',
-      name: 'CLADORA',
-      url: baseUrl,
+      name: article.authorName,
+      url: authorUrl,
     },
     publisher: {
       '@type': 'Organization',
@@ -149,8 +163,8 @@ export default async function GuideArticlePage(props: {
         url: `${baseUrl}/brand/cladora-logo.svg`,
       },
     },
-    datePublished: article.publicationDate,
-    dateModified: article.publicationDate,
+    datePublished: article.datePublished || article.publicationDate,
+    dateModified: article.dateModified || article.publicationDate,
   };
 
   return (
@@ -196,8 +210,15 @@ export default async function GuideArticlePage(props: {
             </span>
             <div className="flex items-center gap-1.5 text-[#64748B]">
               <Calendar className="w-3.5 h-3.5" />
+              <span>{labels.publishedOn}</span>
               <time dateTime={article.publicationDate}>{article.publicationDate}</time>
             </div>
+            {article.dateModified && article.dateModified !== article.publicationDate && (
+              <div className="flex items-center gap-1.5 text-[#64748B]">
+                <span>{labels.updatedOn}</span>
+                <time dateTime={article.dateModified}>{article.dateModified}</time>
+              </div>
+            )}
             <div className="flex items-center gap-1.5 text-[#64748B]">
               <Clock className="w-3.5 h-3.5" />
               <span>{article.readTime}</span>
@@ -211,6 +232,18 @@ export default async function GuideArticlePage(props: {
           <p className="text-lg sm:text-xl text-[#475569] leading-relaxed">
             {article.description}
           </p>
+
+          {/* Author Byline */}
+          <div className="pt-2 flex items-center gap-2 text-xs text-[#64748B]">
+            <UserCheck className="w-4 h-4 text-[#0E9F8E]" />
+            <span>{labels.authorLabel}</span>
+            <Link
+              href={article.authorUrl}
+              className="font-semibold text-[#0F172A] hover:text-[#0E9F8E] transition-colors underline underline-offset-2"
+            >
+              {article.authorName}
+            </Link>
+          </div>
         </header>
 
         {/* Legal / Operational Disclaimer if present */}
@@ -229,47 +262,94 @@ export default async function GuideArticlePage(props: {
           </aside>
         )}
 
-        {/* Direct Answer Callout Box */}
+        {/* Direct Answer Box (Core Snippet / Intent Response) */}
         <section
-          aria-labelledby="direct-answer-heading"
-          className="mb-12 p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-sm space-y-3 relative overflow-hidden"
+          aria-label="Direct Answer"
+          className="mb-10 p-6 sm:p-7 rounded-2xl bg-[#E6F4F1] border-2 border-[#0A6E62]/30 shadow-card space-y-3"
         >
-          <div className="absolute top-0 start-0 w-1.5 h-full bg-[#0E9F8E]" />
-          <h2
-            id="direct-answer-heading"
-            className="text-xs font-bold uppercase tracking-wider text-[#0A6E62] flex items-center gap-2"
-          >
-            <CheckCircle2 className="w-4 h-4 text-[#0E9F8E]" />
-            {labels.directAnswerTitle}
-          </h2>
-          <p className="text-base sm:text-lg font-medium text-[#1E293B] leading-relaxed">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0A6E62]">
+            <CheckCircle2 className="w-4 h-4 text-[#0A6E62]" />
+            <span>{labels.directAnswerTitle}</span>
+          </div>
+          <p className="text-base sm:text-lg text-[#102A43] font-medium leading-relaxed">
             {article.directAnswer}
           </p>
         </section>
 
-        {/* Article Body Content */}
-        <main className="space-y-12">
-          {article.sections.map((section) => (
-            <section key={section.id} id={section.id} className="space-y-4">
-              <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#0F172A] pt-4 border-t border-[#E2E8F0]">
-                {section.title}
-              </h2>
-              {section.content.map((p, idx) => (
-                <p key={idx} className="text-base text-[#334155] leading-relaxed">
-                  {p}
-                </p>
-              ))}
+        {/* Table of Contents */}
+        <nav
+          aria-label="Table of Contents"
+          className="mb-12 p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-sm space-y-3"
+        >
+          <div className="text-xs font-bold uppercase tracking-wider text-[#64748B]">
+            {labels.tableOfContents}
+          </div>
+          <ul className="space-y-2 text-sm">
+            {article.sections.map((sec, idx) => (
+              <li key={sec.id} className="flex items-center gap-2">
+                <span className="text-[#0E9F8E] font-bold text-xs">{idx + 1}.</span>
+                <a
+                  href={`#${sec.id}`}
+                  className="text-[#1E293B] hover:text-[#0A6E62] transition-colors hover:underline font-medium"
+                >
+                  {sec.title}
+                </a>
+              </li>
+            ))}
+            {article.table && (
+              <li className="flex items-center gap-2">
+                <span className="text-[#0E9F8E] font-bold text-xs">📊</span>
+                <a
+                  href="#tabel-comparativ"
+                  className="text-[#1E293B] hover:text-[#0A6E62] transition-colors hover:underline font-medium"
+                >
+                  {article.table.caption}
+                </a>
+              </li>
+            )}
+            {article.faqs && article.faqs.length > 0 && (
+              <li className="flex items-center gap-2">
+                <span className="text-[#0E9F8E] font-bold text-xs">❓</span>
+                <a
+                  href="#intrebari-frecvente"
+                  className="text-[#1E293B] hover:text-[#0A6E62] transition-colors hover:underline font-medium"
+                >
+                  {labels.faqTitle}
+                </a>
+              </li>
+            )}
+          </ul>
+        </nav>
 
-              {section.subsections && section.subsections.length > 0 && (
-                <div className="space-y-6 pt-2 ps-2 sm:ps-4 border-s-2 border-[#E2E8F0]">
-                  {section.subsections.map((sub, sIdx) => (
-                    <div key={sIdx} className="space-y-2">
-                      <h3 className="text-lg sm:text-xl font-bold text-[#1E293B]">
+        {/* Article Body Content */}
+        <main className="space-y-12 leading-relaxed text-[#334155] text-base sm:text-lg">
+          {article.sections.map((sec) => (
+            <section key={sec.id} id={sec.id} className="space-y-4 scroll-mt-24">
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#0F172A] tracking-tight">
+                {sec.title}
+              </h2>
+
+              <div className="space-y-4 text-[#334155]">
+                {sec.content.map((p, pIdx) => (
+                  <p key={pIdx} className="leading-relaxed">
+                    {p}
+                  </p>
+                ))}
+              </div>
+
+              {sec.subsections && sec.subsections.length > 0 && (
+                <div className="space-y-6 pt-4">
+                  {sec.subsections.map((sub, subIdx) => (
+                    <div
+                      key={subIdx}
+                      className="p-5 rounded-xl bg-white border border-[#E2E8F0] space-y-2 shadow-sm"
+                    >
+                      <h3 className="text-lg sm:text-xl font-bold text-[#0F172A]">
                         {sub.title}
                       </h3>
-                      {sub.content.map((subP, subPIdx) => (
-                        <p key={subPIdx} className="text-sm sm:text-base text-[#475569] leading-relaxed">
-                          {subP}
+                      {sub.content.map((sp, spIdx) => (
+                        <p key={spIdx} className="text-sm sm:text-base text-[#475569] leading-relaxed">
+                          {sp}
                         </p>
                       ))}
                     </div>
@@ -279,17 +359,17 @@ export default async function GuideArticlePage(props: {
             </section>
           ))}
 
-          {/* Comparison / Classification Table */}
+          {/* Structured Practical Comparison / Reference Table */}
           {article.table && (
-            <section className="space-y-3 pt-6 border-t border-[#E2E8F0]">
-              <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A]">
+            <section id="tabel-comparativ" className="space-y-4 pt-6 scroll-mt-24">
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#0F172A] tracking-tight">
                 {article.table.caption}
               </h2>
-              <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] shadow-sm bg-white">
-                <table className="w-full text-left rtl:text-right border-collapse text-xs sm:text-sm">
+              <div className="overflow-x-auto rounded-xl border border-[#CBD5E1] bg-white shadow-sm">
+                <table className="w-full text-left text-xs sm:text-sm border-collapse">
                   <caption className="sr-only">{article.table.caption}</caption>
-                  <thead className="bg-[#F1F5F9] text-[#0F172A] border-b border-[#CBD5E1]">
-                    <tr>
+                  <thead>
+                    <tr className="bg-[#F1F5F9] border-b border-[#CBD5E1] text-[#0F172A]">
                       {article.table.headers.map((h, hIdx) => (
                         <th key={hIdx} className="p-3 sm:p-4 font-bold">
                           {h}
@@ -299,12 +379,12 @@ export default async function GuideArticlePage(props: {
                   </thead>
                   <tbody className="divide-y divide-[#E2E8F0]">
                     {article.table.rows.map((row, rIdx) => (
-                      <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]'}>
+                      <tr key={rIdx} className="hover:bg-[#F8FAFC] transition-colors">
                         {row.map((cell, cIdx) => (
                           <td
                             key={cIdx}
-                            className={`p-3 sm:p-4 leading-relaxed ${
-                              cIdx === 0 ? 'font-semibold text-[#0F172A]' : 'text-[#475569]'
+                            className={`p-3 sm:p-4 text-[#334155] ${
+                              cIdx === 0 ? 'font-bold text-[#0F172A]' : ''
                             }`}
                           >
                             {cell}
@@ -318,25 +398,26 @@ export default async function GuideArticlePage(props: {
             </section>
           )}
 
-          {/* FAQ Section */}
+          {/* Visible FAQ Section */}
           {article.faqs && article.faqs.length > 0 && (
-            <section className="space-y-4 pt-8 border-t border-[#E2E8F0]">
-              <div className="flex items-center gap-2 text-[#0A6E62]">
-                <HelpCircle className="w-5 h-5 text-[#0E9F8E]" />
-                <h2 className="text-2xl font-display font-bold text-[#0F172A]">
-                  {labels.faqTitle}
-                </h2>
+            <section id="intrebari-frecvente" className="space-y-6 pt-6 scroll-mt-24">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0A6E62]">
+                <HelpCircle className="w-4 h-4 text-[#0A6E62]" />
+                <span>{labels.faqTitle}</span>
               </div>
-              <div className="space-y-3">
+              <h2 className="text-2xl sm:text-3xl font-display font-extrabold text-[#0F172A] tracking-tight">
+                {labels.faqTitle}
+              </h2>
+              <div className="space-y-4">
                 {article.faqs.map((faq, fIdx) => (
                   <div
                     key={fIdx}
-                    className="p-5 rounded-xl bg-white border border-[#CBD5E1] space-y-2 shadow-sm"
+                    className="p-5 sm:p-6 rounded-2xl bg-white border border-[#CBD5E1] space-y-2 shadow-sm"
                   >
-                    <h3 className="text-base font-bold text-[#0F172A]">
+                    <h3 className="text-lg sm:text-xl font-bold text-[#0F172A]">
                       {faq.q}
                     </h3>
-                    <p className="text-sm text-[#475569] leading-relaxed">
+                    <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
                       {faq.a}
                     </p>
                   </div>
@@ -345,7 +426,7 @@ export default async function GuideArticlePage(props: {
             </section>
           )}
 
-          {/* Related Guides */}
+          {/* Related Guides Context Links */}
           {article.relatedGuides && article.relatedGuides.length > 0 && (
             <section className="space-y-4 pt-8 border-t border-[#E2E8F0]">
               <h2 className="text-xl font-bold text-[#0F172A]">
@@ -375,12 +456,25 @@ export default async function GuideArticlePage(props: {
           {article.legalSources && article.legalSources.length > 0 && (
             <section className="space-y-3 pt-6 border-t border-[#E2E8F0]">
               <h2 className="text-xl font-bold text-[#0F172A]">
-                {lang === 'ro' ? 'Surse și Context Juridic' : 'Legal Sources & Context'}
+                {lang === 'ro' ? 'Surse Legislative & Cadrul Oficial' : 'Legal Sources & Official Context'}
               </h2>
               <ul className="space-y-2 text-xs sm:text-sm text-[#475569]">
                 {article.legalSources.map((src, sIdx) => (
                   <li key={sIdx} className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-1">
-                    <div className="font-semibold text-[#0F172A]">{src.title}</div>
+                    <div className="font-semibold text-[#0F172A] flex items-center justify-between gap-2">
+                      <span>{src.title}</span>
+                      {src.url && (
+                        <a
+                          href={src.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[#0E9F8E] hover:underline text-xs"
+                        >
+                          <span>Portal Legislativ</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                     <div className="text-xs text-[#64748B]">{src.reference}</div>
                     <div className="text-xs text-[#94A3B8]">
                       {lang === 'ro' ? 'Verificat / text consolidat:' : 'Verified:'} {src.accessDate}

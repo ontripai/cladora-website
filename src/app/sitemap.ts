@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { getSiteUrl } from '@/config/site';
+import { getAllGuideArticles } from '@/data/guides-articles';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = getSiteUrl();
@@ -42,13 +43,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   const entries: MetadataRoute.Sitemap = [];
 
+  // Core public routes (32 routes across 3 languages = 96 URLs)
   languages.forEach((lang) => {
     publicRoutes.forEach((route) => {
-      const isTopLevel = route === '' || route === '/platform' || route.startsWith('/platform') || route.startsWith('/solutions') || route === '/capabilities' || route === '/industries' || route === '/community-experience' || route === '/ai';
+      const isTopLevel =
+        route === '' ||
+        route === '/platform' ||
+        route.startsWith('/platform') ||
+        route.startsWith('/solutions') ||
+        route === '/capabilities' ||
+        route === '/industries' ||
+        route === '/community-experience' ||
+        route === '/ai';
+
       entries.push({
         url: `${baseUrl}/${lang}${route}`,
         changeFrequency: route === '' ? 'daily' : 'weekly',
-        priority: route === '' ? 1.0 : (isTopLevel ? 0.9 : 0.7),
+        priority: route === '' ? 1.0 : isTopLevel ? 0.9 : 0.7,
         alternates: {
           languages: {
             ro: `${baseUrl}/ro${route}`,
@@ -61,20 +72,30 @@ export default function sitemap(): MetadataRoute.Sitemap {
     });
   });
 
-  // WP-14: Batch 1 Primary SEO Articles (Market-Fit, Single-Language Canonical)
-  const batch1Articles: Array<{ lang: 'en' | 'ro' | 'fa'; slug: string }> = [
-    { lang: 'en', slug: 'what-is-property-operating-platform' },
-    { lang: 'en', slug: 'property-management-software-vs-property-operating-platform' },
-    { lang: 'ro', slug: 'asociatii-proprietari-legea-196-2018' },
-    { lang: 'ro', slug: 'repartizare-cheltuieli-asociatie-proprietari' },
-    { lang: 'fa', slug: 'platform-modiriat-amlak' },
-  ];
-
-  batch1Articles.forEach(({ lang, slug }) => {
+  // Author transparency page across ro, en, fa (3 URLs)
+  languages.forEach((lang) => {
     entries.push({
-      url: `${baseUrl}/${lang}/resources/guides/${slug}`,
+      url: `${baseUrl}/${lang}/resources/autori/cladora-research`,
       changeFrequency: 'monthly',
-      priority: 0.8,
+      priority: 0.6,
+      alternates: {
+        languages: {
+          ro: `${baseUrl}/ro/resources/autori/cladora-research`,
+          en: `${baseUrl}/en/resources/autori/cladora-research`,
+          fa: `${baseUrl}/fa/resources/autori/cladora-research`,
+          'x-default': `${baseUrl}/ro/resources/autori/cladora-research`,
+        },
+      },
+    });
+  });
+
+  // Dynamic Canonical Articles from Registry (Single-Language Market-Fit Canonical, NO fake hreflangs)
+  const articles = getAllGuideArticles();
+  articles.forEach((article) => {
+    entries.push({
+      url: `${baseUrl}/${article.lang}/resources/guides/${article.slug}`,
+      changeFrequency: 'monthly',
+      priority: 0.7,
     });
   });
 
