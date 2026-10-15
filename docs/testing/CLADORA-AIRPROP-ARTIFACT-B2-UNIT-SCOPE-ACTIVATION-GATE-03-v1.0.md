@@ -6,7 +6,7 @@ Baseline: `8a240999083d150861b6b45c9c8671768f4783d0`.
 
 Core dependency: `CORE-CURRENT-UNIT-PROPERTY-SELECTOR-01`.
 
-Published candidate: Core PR #417, head `1a3d7811f53a667491dfeede5c80f84a0a98f47b`, tree `1a168608e2f408820c5fb6f2a230d0ea820bed9c`.
+Published candidate: Core PR #417, head `1a40a0694815dab7428e98bcd09a5a78aed5720b`, tree `78e46245897768c3b6f527a182c5b26c03b7055a`.
 
 | Candidate artifact | SHA-256 |
 | --- | --- |
