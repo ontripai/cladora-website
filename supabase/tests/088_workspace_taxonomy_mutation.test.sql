@@ -109,10 +109,10 @@ begin
     (v_mem_inactive, v_tenant_a, v_user_inactive, v_role_admin, 'suspended'),
     (v_mem_b, v_tenant_b, v_user_b, v_role_admin, 'active');
 
-  insert into portfolio.addresses(id, tenant_id, city, street, building_no) values
-    (v_addr_a1, v_tenant_a, 'Bucharest', 'Strada 88-A1', '10'),
-    (v_addr_a2, v_tenant_a, 'Bucharest', 'Strada 88-A2', '20'),
-    (v_addr_b1, v_tenant_b, 'Bucharest', 'Strada 88-B1', '30');
+  insert into portfolio.addresses(id, tenant_id, country_code, city, street, building_no) values
+    (v_addr_a1, v_tenant_a, 'RO', 'Bucharest', 'Strada 88-A1', '10'),
+    (v_addr_a2, v_tenant_a, 'RO', 'Bucharest', 'Strada 88-A2', '20'),
+    (v_addr_b1, v_tenant_b, 'RO', 'Bucharest', 'Strada 88-B1', '30');
 
   insert into portfolio.properties(id, tenant_id, type, name, address_id, status) values
     (v_prop_a1, v_tenant_a, 'condominium', 'Property Alpha 88-1', v_addr_a1, 'active'),

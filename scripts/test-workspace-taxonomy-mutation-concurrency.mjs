@@ -149,8 +149,8 @@ async function run() {
         ('${fixtureMem2}', '${fixtureTenant}', '${fixtureUser2}', '${fixtureRole}', 'active')
       ON CONFLICT (id) DO NOTHING;
 
-      INSERT INTO portfolio.addresses(id, tenant_id, city, street, building_no) VALUES
-        ('${fixtureAddr}', '${fixtureTenant}', 'Bucharest', 'Strada Conc Mut', '1')
+      INSERT INTO portfolio.addresses(id, tenant_id, country_code, city, street, building_no) VALUES
+        ('${fixtureAddr}', '${fixtureTenant}', 'RO', 'Bucharest', 'Strada Conc Mut', '1')
       ON CONFLICT (id) DO NOTHING;
 
       INSERT INTO portfolio.properties(id, tenant_id, type, name, address_id, status) VALUES

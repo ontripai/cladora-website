@@ -241,8 +241,8 @@ async function setupScenarioBFixtures(client) {
   );
 
   await client.query(
-    `INSERT INTO portfolio.addresses (id, tenant_id, city, street, building_no)
-     VALUES ($1, $2, 'Bucharest', 'Strada Concurrency', '10')
+    `INSERT INTO portfolio.addresses (id, tenant_id, country_code, city, street, building_no)
+     VALUES ($1, $2, 'RO', 'Bucharest', 'Strada Concurrency', '10')
      ON CONFLICT (id) DO NOTHING`,
     [F_ADDR_P, F_TENANT]
   );

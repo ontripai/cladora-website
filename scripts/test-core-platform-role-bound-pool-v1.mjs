@@ -8,8 +8,8 @@ const implementation = readFileSync('src/lib/core/platform-role-bound-pool-v1.ts
 const consumer = readFileSync('src/lib/community/experience-guide-lifecycle-http-v1.ts', 'utf8');
 const migrations = readdirSync('supabase/migrations').filter(name => name.endsWith('.sql')).sort();
 
-assert.equal(migrations.length, 258);
-assert.equal(migrations.at(-1), migrationName);
+assert.equal(migrations.length, 259);
+assert.ok(migrations.includes(migrationName));
 assert.match(migration, /create role cladora_ce_guide_runtime\s+login noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /create role cladora_ce_guide_executor\s+nologin noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /grant cladora_ce_guide_executor to cladora_ce_guide_runtime\s+with admin false, inherit false, set true/i);

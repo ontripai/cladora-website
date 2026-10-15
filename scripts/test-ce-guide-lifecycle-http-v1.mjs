@@ -70,7 +70,7 @@ assert.match(migrationSource, /create role cladora_ce_guide_runtime/i);
 assert.doesNotMatch(route, /experience-guide-lifecycle-http-v1/);
 assert.match(page, /commands=\{null\}/);
 assert.match(projection, /can_edit:\s*false/);
-assert.equal(migrationNames.length, 258);
+assert.equal(migrationNames.length, 259);
 assert.equal(migrationNames.some(name => /runtime_wiring|lifecycle_http/i.test(name)), false);
 
 const id = value => `75000000-0000-4000-8000-${String(value).padStart(12, '0')}`;
