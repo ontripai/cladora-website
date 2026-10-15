@@ -34,6 +34,9 @@ const lifecycleUrl = new URL(
 const runtime = load(runtimeUrl);
 const lifecycle = load(lifecycleUrl);
 const source = readFileSync(runtimeUrl, 'utf8');
+const roleBoundPoolSource = readFileSync(new URL(
+  '../src/lib/core/platform-role-bound-pool-v1.ts', import.meta.url,
+), 'utf8');
 const postgresHarness = readFileSync(new URL(
   './test-ce-guide-lifecycle-http-postgres-v1.mjs', import.meta.url,
 ), 'utf8');
@@ -54,20 +57,20 @@ const migrationSource = migrationNames.map(name => readFileSync(
 
 assert.match(source, /createCorePostgresTransactionHostV1/);
 assert.match(source, /createExperienceGuideLifecycleCoreProvidersV1/);
-assert.match(source, /core-platform-role-bound-pool\.v1/);
-assert.match(source, /cladora_ce_guide_executor/);
-assert.match(source, /cladora_ce_guide_runtime/);
+assert.match(source, /corePlatformRoleBoundPoolContractV1/);
+assert.match(roleBoundPoolSource, /core-platform-role-bound-pool\.v1/);
+assert.match(roleBoundPoolSource, /cladora_ce_guide_executor/);
+assert.match(roleBoundPoolSource, /cladora_ce_guide_runtime/);
 assert.match(source, /current_user::text as current_user,session_user::text as session_user/);
 assert.doesNotMatch(source, /set\s+(?:local\s+)?role|with recursive\s+target_role|pg_catalog\.pg_auth_members/i);
 assert.doesNotMatch(source, /cladora_rpc_owner|service_role|SUPABASE_DB|customer_api|command_ce_guide_v1|read_ce_guides_v1|resolve_ce_guide_reference_v1/i);
-assert.match(postgresHarness, /create role cladora_ce_guide_executor/);
-assert.match(postgresHarness, /create role cladora_ce_guide_runtime/);
-assert.doesNotMatch(migrationSource, /cladora_ce_guide_executor/i);
-assert.doesNotMatch(migrationSource, /cladora_ce_guide_runtime/i);
+assert.match(postgresHarness, /createCorePlatformRoleBoundPoolV1/);
+assert.match(migrationSource, /create role cladora_ce_guide_executor/i);
+assert.match(migrationSource, /create role cladora_ce_guide_runtime/i);
 assert.doesNotMatch(route, /experience-guide-lifecycle-http-v1/);
 assert.match(page, /commands=\{null\}/);
 assert.match(projection, /can_edit:\s*false/);
-assert.equal(migrationNames.length, 257);
+assert.equal(migrationNames.length, 258);
 assert.equal(migrationNames.some(name => /runtime_wiring|lifecycle_http/i.test(name)), false);
 
 const id = value => `75000000-0000-4000-8000-${String(value).padStart(12, '0')}`;
