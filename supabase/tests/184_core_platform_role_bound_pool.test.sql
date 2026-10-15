@@ -1,5 +1,5 @@
 begin;
-select plan(31);
+select plan(32);
 
 select ok(exists(select 1 from pg_roles where rolname='cladora_ce_guide_runtime'),
   'runtime role exists');
@@ -60,6 +60,8 @@ select ok(not has_schema_privilege('cladora_ce_guide_executor','experience','CRE
   'executor has no experience CREATE');
 select ok(not has_schema_privilege('cladora_ce_guide_runtime','experience','USAGE'),
   'runtime has no direct product schema access');
+select ok(not has_schema_privilege('cladora_ce_guide_executor','auth','USAGE'),
+  'executor does not depend on Supabase-owned auth schema ACL');
 select ok(has_column_privilege('cladora_ce_guide_executor','experience.guides','status','UPDATE'),
   'executor may update Guide status');
 select ok(not has_table_privilege('cladora_ce_guide_executor','experience.guides','DELETE'),

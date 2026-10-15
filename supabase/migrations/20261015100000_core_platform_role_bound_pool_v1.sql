@@ -67,9 +67,8 @@ alter function communications.context_covers_unit(uuid,uuid)
   owner to cladora_rpc_owner;
 revoke create on schema documents,communications from cladora_rpc_owner;
 
-grant usage on schema auth,communications,experience,occupancy to cladora_rpc_owner;
+grant usage on schema communications,experience,occupancy to cladora_rpc_owner;
 grant execute on function
-  auth.uid(),auth.jwt(),
   app_private.check_effective_permission_v2(uuid,text,text,text,uuid,uuid),
   communications.context_membership(uuid)
   to cladora_rpc_owner;
@@ -117,9 +116,11 @@ begin
   if session_user<>'cladora_ce_guide_runtime' then return false; end if;
   v_context_id:=nullif(current_setting('request.cladora.context_id',true),'')::uuid;
   v_workspace_id:=nullif(current_setting('request.cladora.workspace_id',true),'')::uuid;
-  v_actor_id:=auth.uid();
+  v_actor_id:=nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
   if v_context_id is null or v_workspace_id is null or v_actor_id is null
-    or v_workspace_id<>p_workspace_id or auth.jwt()->>'aal'<>'aal2' then return false; end if;
+    or v_workspace_id<>p_workspace_id
+    or nullif(current_setting('request.jwt.claim.aal',true),'')<>'aal2'
+    then return false; end if;
   return exists(select 1 from platform.customer_workspaces w
     join identity.context_grants g on g.id=v_context_id and g.tenant_id=w.tenant_id
     join identity.memberships m on m.id=g.membership_id and m.tenant_id=g.tenant_id
@@ -142,7 +143,7 @@ declare v_context_id uuid; v_workspace_id uuid; v_actor_id uuid; v_allowed boole
 begin
   v_context_id:=nullif(current_setting('request.cladora.context_id',true),'')::uuid;
   v_workspace_id:=nullif(current_setting('request.cladora.workspace_id',true),'')::uuid;
-  v_actor_id:=auth.uid();
+  v_actor_id:=nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
   v_allowed:=app_private.core_platform_ce_guide_scope_allowed_v1(
       p_tenant_id,v_workspace_id,'experience.guide.manage','experience_guides')
     or app_private.core_platform_ce_guide_scope_allowed_v1(
@@ -185,10 +186,11 @@ $$;
 create function app_private.core_platform_ce_guide_ledger_allowed_v1(
   p_tenant_id uuid,p_actor_id uuid,p_key text default null,p_aggregate_id uuid default null
 ) returns boolean language plpgsql stable security definer set search_path=pg_catalog as $$
-declare v_workspace_id uuid;
+declare v_workspace_id uuid; v_actor_id uuid;
 begin
   v_workspace_id:=nullif(current_setting('request.cladora.workspace_id',true),'')::uuid;
-  if p_actor_id is distinct from auth.uid() then return false; end if;
+  v_actor_id:=nullif(current_setting('request.jwt.claim.sub',true),'')::uuid;
+  if p_actor_id is distinct from v_actor_id then return false; end if;
   if not app_private.core_platform_ce_guide_scope_allowed_v1(
     p_tenant_id,v_workspace_id,'experience.guide.manage','experience_guides') then return false; end if;
   if p_key is not null and p_key not like 'core-tx.v1:'||v_workspace_id::text||':%' then
@@ -220,7 +222,7 @@ alter function app_private.core_platform_ce_guide_ledger_allowed_v1(uuid,uuid,te
 
 -- Exact schemas, columns and functions used by the inactive CE/Core/Documents
 -- call graph. Runtime receives only membership; all product ACLs are executor-only.
-grant usage on schema auth,app_private,platform,identity,experience,documents,
+grant usage on schema app_private,platform,identity,experience,documents,
   communications,portfolio,audit to cladora_ce_guide_executor;
 revoke create on schema auth,app_private,platform,identity,experience,documents,
   communications,portfolio,audit from cladora_ce_guide_executor,cladora_ce_guide_runtime;
@@ -272,7 +274,7 @@ grant usage,select on sequence audit.events_id_seq to cladora_ce_guide_executor;
 grant select(id),insert(tenant_id,aggregate_type,aggregate_id,aggregate_version,event_type,payload,trace_id)
   on platform.outbox_events to cladora_ce_guide_executor;
 
-grant execute on function auth.uid(),auth.jwt(),
+grant execute on function
   app_private.check_workspace_native_permission_v2(uuid,uuid,text,text),
   documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid),
   communications.member_covers_unit(uuid,uuid,uuid),
@@ -428,13 +430,15 @@ create policy core_platform_ce_outbox_insert_v1 on platform.outbox_events
     aggregate_type='experience_guide'
     and event_type in ('core.experience.guide.publish.v1','core.experience.guide.unpublish.v1')
     and app_private.core_platform_ce_guide_ledger_allowed_v1(
-      tenant_id,auth.uid(),null,aggregate_id));
+      tenant_id,nullif(current_setting('request.jwt.claim.sub',true),'')::uuid,
+      null,aggregate_id));
 create policy core_platform_ce_outbox_receipt_read_v1 on platform.outbox_events
   for select to cladora_ce_guide_executor using(
     aggregate_type='experience_guide'
     and event_type in ('core.experience.guide.publish.v1','core.experience.guide.unpublish.v1')
     and app_private.core_platform_ce_guide_ledger_allowed_v1(
-      tenant_id,auth.uid(),null,aggregate_id));
+      tenant_id,nullif(current_setting('request.jwt.claim.sub',true),'')::uuid,
+      null,aggregate_id));
 
 create function app_private.core_platform_ce_guide_role_safety_valid_v1()
 returns boolean language sql stable security invoker set search_path=pg_catalog as $$
@@ -446,16 +450,29 @@ with recursive protected_roles as (
   select max(oid) filter(where rolname='cladora_ce_guide_runtime') runtime_oid,
     max(oid) filter(where rolname='cladora_ce_guide_executor') executor_oid
   from protected_roles
-), protected_functions(signature,internal) as (values
-  ('auth.uid()'::text,false),('auth.jwt()'::text,false),
-  ('app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)'::text,true),
-  ('documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid)'::text,true),
-  ('communications.member_covers_unit(uuid,uuid,uuid)'::text,true),
-  ('communications.context_covers_unit(uuid,uuid)'::text,true)
+), protected_functions(schema_name,function_name,arg_types,signature,internal) as (values
+  ('auth'::text,'uid'::text,array[]::oid[],'auth.uid()'::text,false),
+  ('auth'::text,'jwt'::text,array[]::oid[],'auth.jwt()'::text,false),
+  ('app_private'::text,'check_workspace_native_permission_v2'::text,
+    array['uuid'::regtype,'uuid'::regtype,'text'::regtype,'text'::regtype]::oid[],
+    'app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)'::text,true),
+  ('documents'::text,'customer_document_scope_matches'::text,
+    array['text'::regtype,'uuid'::regtype,'uuid'::regtype,'uuid'::regtype,
+      'uuid'::regtype]::oid[],
+    'documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid)'::text,true),
+  ('communications'::text,'member_covers_unit'::text,
+    array['uuid'::regtype,'uuid'::regtype,'uuid'::regtype]::oid[],
+    'communications.member_covers_unit(uuid,uuid,uuid)'::text,true),
+  ('communications'::text,'context_covers_unit'::text,
+    array['uuid'::regtype,'uuid'::regtype]::oid[],
+    'communications.context_covers_unit(uuid,uuid)'::text,true)
 ), function_inventory as (
   select f.signature,f.internal,p.oid,r.rolname owner_name,r.rolcanlogin owner_login,
     p.prosecdef,p.provolatile,p.proconfig
-  from protected_functions f left join pg_proc p on p.oid=to_regprocedure(f.signature)
+  from protected_functions f
+  left join pg_namespace n on n.nspname=f.schema_name
+  left join pg_proc p on p.pronamespace=n.oid and p.proname=f.function_name
+    and p.proargtypes::text=array_to_string(f.arg_types,' ')
   left join pg_roles r on r.oid=p.proowner
 )
 select current_user='cladora_ce_guide_executor'

@@ -253,7 +253,7 @@ async function installDisposableExecutionBoundary() {
     has_function_privilege('cladora_ce_guide_executor','auth.jwt()','EXECUTE') as jwt_execute`)).rows[0];
   initialAuthPrivileges = structuredClone(authPrivileges);
   assert.deepEqual(authPrivileges, {
-    schema_usage: true, uid_execute: true, jwt_execute: true,
+    schema_usage: false, uid_execute: true, jwt_execute: true,
   });
   await pool.query(`create or replace function app_private.ce_guide_http_raise_40001_v1()
     returns void language plpgsql security invoker set search_path=pg_catalog as $fn$
@@ -262,7 +262,7 @@ async function installDisposableExecutionBoundary() {
     to cladora_ce_guide_executor`);
   const ownerBoundary = await pool.query(`select
     has_schema_privilege('cladora_ce_guide_executor','auth','USAGE') as auth_usage`);
-  assert.deepEqual(ownerBoundary.rows[0], { auth_usage: true });
+  assert.deepEqual(ownerBoundary.rows[0], { auth_usage: false });
   const verification = await disposableRoleBoundPool(runtimePool).connect();
   try {
     await verification.query('begin');
@@ -270,7 +270,7 @@ async function installDisposableExecutionBoundary() {
       has_schema_privilege(current_user,'auth','USAGE') as auth_usage`);
     assert.deepEqual(boundary.rows[0], {
       current_user: 'cladora_ce_guide_executor', session_user: 'cladora_ce_guide_runtime',
-      auth_usage: true,
+      auth_usage: false,
     });
     const routines = await verification.query(`select auth.uid() is null as uid_callable,
       coalesce(jsonb_typeof(auth.jwt())='object',true) as jwt_callable`);

@@ -61,7 +61,10 @@ product ACL is granted to runtime. No product grant is made to `PUBLIC`, `anon`,
 `authenticated`, or `service_role`.
 
 `auth.uid()` and `auth.jwt()` retain Supabase ownership and remain stable
-security-invoker functions. Four pre-existing internal scope helpers are owned
+security-invoker functions. Executor and the canonical internal owner receive
+no `auth` schema grant; actor and AAL are read from the transaction-local
+canonical claim GUCs installed by the HTTP adapter. Four pre-existing internal
+scope helpers are owned
 by the canonical `cladora_rpc_owner`, which is `NOLOGIN`, and use the fixed
 `pg_catalog` search path. The executor is neither that owner nor a member of its
 role.
