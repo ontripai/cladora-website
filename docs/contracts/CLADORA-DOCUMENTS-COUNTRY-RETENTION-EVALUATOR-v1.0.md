@@ -76,15 +76,20 @@ It never contains a document ID, title, filename, content, content hash, MIME,
 object path, bucket, Storage provider, credential, permission row, hold reason
 or private evidence payload. Denials have bounded reasons and no rule payload.
 
-## History and dependency
+## History and canonical composition
 
 Evaluation never changes the artifact or any previous decision. Supplying a
 new artifact produces a new independent fingerprint and cannot rewrite a
 historical document, version, retention assignment, snapshot or receipt.
 
-Historical artifact resolution and receipt replay are intentionally absent.
-Draft PR #431 is the formal Core dependency for canonical artifact resolution;
-this package neither imports its code nor copies its resolver, migration,
-transaction evidence or host changes. Runtime composition must remain inactive
-until that Core dependency is merged and separately accepted for the intended
-current or historical selection semantics.
+Historical artifact resolution and receipt replay remain intentionally absent
+from this pure evaluator. The canonical Core resolver from #431 is now merged.
+`documents-country-retention-resolution.v1` is the inactive integration that
+calls that resolver in the existing Core transaction and passes its returned
+artifact to this evaluator. Its strict request does not accept artifact bytes
+or a caller-selected effective timestamp.
+
+Production consumers must use that composition boundary rather than accepting
+a direct caller artifact. This evaluator's direct-artifact request remains a
+pure internal and test contract; it does not copy Core resolution, transaction
+evidence, receipt replay or host behavior.
