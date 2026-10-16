@@ -39,6 +39,7 @@
     "test:retention:operations": "node scripts/test-retention-operations-dry-run.mjs",
     "test:retention": "npm run test:retention:manifest && npm run test:retention:storage && npm run test:retention:concurrency && npm run test:retention:operations && npm run test:db:static",
     "test:app-foundation": "node scripts/test-supabase-foundation.mjs",
+    "test:ce:benefit-presentation-handoff": "node scripts/test-ce-benefit-presentation-service-handoff-v1.mjs",
     "test:ce:member-benefit-terminology": "node scripts/test-ce-member-benefit-terminology-audit-v1.mjs",
     "test:ce:benefit-ownership-reconciliation": "node scripts/test-ce-benefit-ownership-reconciliation-v1.mjs",
     "test:ce:service-experience-provider": "node --experimental-strip-types scripts/test-ce-service-experience-coordination-receipt.mjs",
