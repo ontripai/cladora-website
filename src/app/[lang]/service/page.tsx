@@ -39,30 +39,30 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
       number: '01',
       title: lang === 'ro' ? '1. Catalog de Servicii & Descriere Nevoie' : lang === 'fa' ? '۱. کاتالوگ خدمات و ثبت شرح نیاز' : '1. Service Catalog & Briefing',
       desc: lang === 'ro'
-        ? 'Fiecare Workspace activează propriul catalog: curățenia unității, reparații în interiorul unității, spălătorie auto, curățătorie chimică, catering și masa zilei, cumpărături curente și livrarea pâinii dimineața, rezervarea spațiilor ori echipamentelor și, în mediul industrial, descărcare și încărcare. Niciun serviciu nu este obligatoriu în toate Workspace-urile.'
+        ? 'Un Workspace își poate configura propriul catalog: curățenia unității, reparații în interiorul unității, spălătorie auto, curățătorie chimică, catering și masa zilei, cumpărături curente și livrarea pâinii dimineața, rezervarea spațiilor ori echipamentelor și, în mediul industrial, descărcare și încărcare. Niciun serviciu nu este obligatoriu în toate Workspace-urile.'
         : lang === 'fa'
-        ? 'هر Workspace کاتالوگ خودش را فعال می‌کند؛ مانند نظافت واحد، تعمیرات داخل واحد، کارواش، خشکشویی، catering و غذای روزانه، خرید روزانه و تحویل نان صبحانه، رزرو فضا یا تجهیزات و در محیط صنعتی، تخلیه و بارگیری. هیچ خدمت مشخصی برای همهٔ Workspaceها اجباری نیست.'
-        : 'Each Workspace activates its own catalog, such as unit cleaning, in-unit repairs, car wash, dry cleaning, catering and daily meals, everyday shopping and morning bread delivery, space or equipment reservations, and loading or unloading for industrial sites. No individual service is mandatory across all Workspaces.',
+        ? 'هر Workspace می‌تواند کاتالوگ خدمات خودش را پیکربندی یا انتخاب کند؛ مانند نظافت واحد، تعمیرات داخل واحد، کارواش، خشکشویی، catering و غذای روزانه، خرید روزانه و تحویل نان صبحانه، رزرو فضا یا تجهیزات و در محیط صنعتی، تخلیه و بارگیری. هیچ خدمت مشخصی برای همهٔ Workspaceها اجباری نیست.'
+        : 'A Workspace can configure or choose its own service catalog, such as unit cleaning, in-unit repairs, car wash, dry cleaning, catering and daily meals, everyday shopping and morning bread delivery, space or equipment reservations, and loading or unloading for industrial sites. No individual service is mandatory across all Workspaces.',
       icon: Briefcase
     },
     {
       number: '02',
       title: lang === 'ro' ? '2. Modelul Potrivit pentru Fiecare Serviciu' : lang === 'fa' ? '۲. مدل مناسب برای هر خدمت' : '2. The Right Model for Each Service',
       desc: lang === 'ro'
-        ? 'Un serviciu poate avea preț fix, poate fi inclus într-un beneficiu activ, poate funcționa prin abonament, rezervare sau consum măsurat ori poate necesita o ofertă. Compararea mai multor devize este doar unul dintre aceste trasee.'
+        ? 'O Ofertă SERVICE poate folosi preț fix, tarifare în funcție de consum, abonament, rezervare, ofertare sau preț și domeniu stabilite după evaluare. Fiecare traseu este o comandă, rezervare sau achiziție independentă a membrului; compararea mai multor propuneri nu este implicită pentru orice serviciu.'
         : lang === 'fa'
-        ? 'هر خدمت می‌تواند قیمت ثابت داشته باشد، در مزایای فعال Workspace گنجانده شود، اشتراکی باشد، با رزرو یا میزان مصرف ارائه شود، یا به استعلام قیمت نیاز داشته باشد. مقایسه چند پیشنهاد فقط یکی از این مسیرهاست.'
-        : 'A service may use fixed pricing, be included in an active benefit, run as a subscription, use booking or usage-based terms, or require a quotation. Comparing multiple proposals is one possible path, not the default for every service.',
+        ? 'هر Offering در SERVICE می‌تواند قیمت ثابت، قیمت‌گذاری مبتنی بر مصرف، اشتراک، رزرو، استعلام قیمت یا قیمت و دامنه پس از ارزیابی داشته باشد. هر مسیر یک سفارش، رزرو یا خرید مستقل عضو است و مقایسه چند پیشنهاد برای همه خدمات پیش‌فرض نیست.'
+        : 'A SERVICE Offering can use fixed price, usage-based, subscription, booking, quotation, or post-assessment terms. Each path is an independent member order, booking, or purchase; comparing multiple proposals is not the default for every service.',
       icon: Scale
     },
     {
       number: '03',
       title: lang === 'ro' ? '3. Alegere cu Termeni Expliciți' : lang === 'fa' ? '۳. انتخاب با شرایط روشن' : '3. Choice with Explicit Terms',
       desc: lang === 'ro'
-        ? 'Membrul autorizat confirmă domeniul, disponibilitatea, programarea, beneficiul sau prețul aplicabil înainte de comandă. Dacă este necesară ofertarea, propunerile disponibile pot fi comparate fără a presupune existența unei rețele universale de furnizori.'
+        ? 'O experiență inclusă prin CE rămâne un flux separat, cu sursă de finanțare, drept de utilizare, consum și document propriu. După epuizarea alocării, membrul poate alege o Ofertă SERVICE independentă numai cu o identitate nouă, un preț nou, termeni noi, consimțământ explicit și un document separat.'
         : lang === 'fa'
-        ? 'عضو مجاز پیش از سفارش، دامنه، ظرفیت، زمان‌بندی، مزیت یا قیمت قابل اعمال را تأیید می‌کند. اگر خدمت نیازمند استعلام باشد، پیشنهادهای موجود قابل مقایسه‌اند؛ بدون آنکه وجود شبکه سراسری ارائه‌دهندگان فرض شود.'
-        : 'Before ordering, an authorized member confirms the scope, availability, schedule, benefit, or applicable price. When quotation is required, available proposals can be compared without implying a universal provider network.',
+        ? 'تجربه‌ای که در CE برای عضو لحاظ شده، مسیر جداگانه‌ای با منبع تأمین، استحقاق، استفاده و رسید مستقل دارد. پس از پایان سهمیه، عضو تنها با شناسه، قیمت، شرایط، رضایت صریح و رسیدی جدید و جداگانه می‌تواند یک Offering مستقل SERVICE را انتخاب کند.'
+        : 'An included CE experience remains a separate flow with its own funding, entitlement, redemption, and receipt. After its allowance ends, a member may choose an independent SERVICE Offering only with a new identity, price, terms, explicit consent, and separate receipt.',
       icon: CheckCheck
     },
     {
@@ -71,28 +71,28 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
       desc: lang === 'ro'
         ? 'SERVICE acoperă ceea ce membrii pot solicita, rezerva sau cumpăra. Rezervarea liftului de marfă pentru o mutare poate fi un serviciu; revizia obligatorie a liftului și întreținerea infrastructurii comune aparțin Operațiuni & Mentenanță. Numai lucrările cu impact tehnic pot fi corelate cu o comandă de lucru operațională.'
         : lang === 'fa'
-        ? 'SERVICE برای خدمات و مزایایی است که اعضا می‌توانند درخواست، رزرو یا خریداری کنند. رزرو آسانسور باربری برای جابه‌جایی می‌تواند یک خدمت باشد؛ اما نگهداری الزامی آسانسور و زیرساخت مشترک به «عملیات و نگهداری» تعلق دارد. فقط کاری که اثر فنی دارد می‌تواند به دستورکار عملیاتی مرتبط شود.'
-        : 'SERVICE covers services and benefits that members can request, book, or purchase. A freight elevator reservation for a move can be a service; mandatory elevator servicing and shared-infrastructure upkeep belong to Operations & Maintenance. Only technically relevant work may link to an operations work order.',
+        ? 'SERVICE برای خدماتی است که اعضا می‌توانند درخواست، رزرو یا خریداری کنند. رزرو آسانسور باربری برای جابه‌جایی می‌تواند یک خدمت باشد؛ اما نگهداری الزامی آسانسور و زیرساخت مشترک به «عملیات و نگهداری» تعلق دارد. فقط کاری که اثر فنی دارد می‌تواند به دستورکار عملیاتی مرتبط شود.'
+        : 'SERVICE covers services that members can request, book, or purchase. A freight elevator reservation for a move can be a service; mandatory elevator servicing and shared-infrastructure upkeep belong to Operations & Maintenance. Only technically relevant work may link to an operations work order.',
       icon: Clock
     },
     {
       number: '05',
       title: lang === 'ro' ? '5. Livrare, Dovadă & Recepție' : lang === 'fa' ? '۵. تحویل، رسید و پذیرش' : '5. Delivery, Receipt & Acceptance',
       desc: lang === 'ro'
-        ? 'Comanda își păstrează domeniul și termenii conveniți, iar livrarea, dovada și acceptarea sunt înregistrate în istoricul serviciului, în limitele funcțiilor activate pentru acel Workspace.'
+        ? 'Modelul de evidență SERVICE poate păstra domeniul și termenii conveniți, împreună cu livrarea, documentul și acceptarea în istoricul serviciului, atunci când Workspace-ul configurează această funcție.'
         : lang === 'fa'
-        ? 'دامنه و شرایط توافق‌شده همراه سفارش حفظ می‌شود و تحویل، رسید و پذیرش در سابقه همان خدمت ثبت می‌گردد؛ در محدوده قابلیت‌هایی که برای آن Workspace فعال شده‌اند.'
-        : 'The order retains its agreed scope and terms. Delivery, receipt, and acceptance belong to the service history, within the capabilities activated for that Workspace.',
+        ? 'مدل ثبت SERVICE می‌تواند دامنه و شرایط توافق‌شده را همراه تحویل، receipt و پذیرش در سابقه همان خدمت نگه دارد؛ مشروط به اینکه Workspace این قابلیت را پیکربندی کند.'
+        : 'The SERVICE record model can keep the agreed scope and terms with delivery, receipt, and acceptance in service history when a Workspace configures that capability.',
       icon: CheckCircle2
     },
     {
       number: '06',
       title: lang === 'ro' ? '6. Istoricul Corect pentru Fiecare Rezultat' : lang === 'fa' ? '۶. سابقه درست برای هر نتیجه' : '6. The Right History for Each Outcome',
       desc: lang === 'ro'
-        ? 'Numai serviciile care modifică starea tehnică a unui activ intră în istoricul acelui activ. Curățenia, mesele, cumpărăturile, rezervările și celelalte servicii păstrează propria comandă, propriul document de livrare și propriul istoric de serviciu.'
+        ? 'Modelul de evidență poate include în istoricul unui activ numai serviciile care îi modifică starea tehnică. Curățenia, mesele, cumpărăturile, rezervările și celelalte servicii pot păstra propria comandă, propriul document de livrare și propriul istoric de serviciu.'
         : lang === 'fa'
-        ? 'فقط خدمتی که وضعیت فنی یک asset را تغییر می‌دهد وارد asset history همان دارایی می‌شود. نظافت، غذا، خرید، رزرو و سایر خدمات، order، receipt و service history مخصوص خود را نگه می‌دارند.'
-        : 'Only a service that changes an asset’s technical condition enters that asset’s history. Cleaning, meals, shopping, reservations, and other services retain their own order, receipt, and service history.',
+        ? 'مدل ثبت فقط می‌تواند خدمتی را وارد asset history کند که وضعیت فنی همان دارایی را تغییر می‌دهد. نظافت، غذا، خرید، رزرو و سایر خدمات می‌توانند order، receipt و service history مخصوص خود را نگه دارند.'
+        : 'The record model can place a service in asset history only when it changes that asset’s technical condition. Cleaning, meals, shopping, reservations, and other services can keep their own order, receipt, and service history.',
       icon: History
     }
   ];
@@ -118,35 +118,35 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
             <Briefcase className="w-3.5 h-3.5 text-teal-600" />
             <span>
               {lang === 'ro' 
-                ? 'Servicii, Rezervări & Beneficii pentru Membrii Workspace-ului'
+                ? 'Servicii & Rezervări pentru Membrii Workspace-ului'
                 : lang === 'fa'
-                ? 'خدمات، رزروها و مزایای اعضای Workspace'
-                : 'Workspace Member Services, Bookings & Benefits'}
+                ? 'خدمات و رزروهای اعضای Workspace'
+                : 'Workspace Member Services & Bookings'}
             </span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-display font-extrabold text-[#102A43] tracking-tight">
             {lang === 'ro' ? (
               <>
-                SERVICE — Servicii și beneficii pe care membrii le pot <span className="text-teal-600">solicita, rezerva sau cumpăra</span>.
+                SERVICE — Servicii pe care membrii le pot <span className="text-teal-600">solicita, rezerva sau cumpăra</span>.
               </>
             ) : lang === 'fa' ? (
               <>
-                SERVICE — خدمات و مزایایی که اعضای Workspace می‌توانند <span className="text-teal-600">درخواست، رزرو یا خریداری کنند</span>
+                SERVICE — خدماتی که اعضای Workspace می‌توانند <span className="text-teal-600">درخواست، رزرو یا خریداری کنند</span>
               </>
             ) : (
               <>
-                SERVICE — Services and benefits Workspace members can <span className="text-teal-600">request, book, or purchase</span>.
+                SERVICE — Services Workspace members can <span className="text-teal-600">request, book, or purchase</span>.
               </>
             )}
           </h1>
 
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'Fiecare Workspace decide ce catalog activează pentru membrii săi. SERVICE rămâne separat de mentenanța obligatorie a activelor și infrastructurii comune, administrată prin Operațiuni & Mentenanță.'
+              ? 'Un Workspace poate configura sau alege catalogul potrivit membrilor și mediului său. SERVICE rămâne separat de mentenanța obligatorie a activelor și infrastructurii comune, administrată prin Operațiuni & Mentenanță.'
               : lang === 'fa'
-              ? 'هر Workspace متناسب با اعضا و محیط خود تصمیم می‌گیرد کدام کاتالوگ را فعال کند. SERVICE از نگهداری الزامی دارایی‌ها و زیرساخت‌های مشترک که در «عملیات و نگهداری» مدیریت می‌شود جداست.'
-              : 'Each Workspace decides which catalog to activate for its members. SERVICE stays distinct from mandatory upkeep of assets and shared infrastructure, which belongs to Operations & Maintenance.'}
+              ? 'هر Workspace می‌تواند کاتالوگ خدمات مناسب اعضا و محیط خود را پیکربندی یا انتخاب کند. SERVICE از نگهداری الزامی دارایی‌ها و زیرساخت‌های مشترک که در «عملیات و نگهداری» مدیریت می‌شود جداست.'
+              : 'A Workspace can configure or choose the service catalog that fits its members and setting. SERVICE stays distinct from mandatory upkeep of assets and shared infrastructure, which belongs to Operations & Maintenance.'}
           </p>
         </div>
 
@@ -189,7 +189,7 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
                 {lang === 'ro' ? 'Catalog Opțional, Evidență Clară' : lang === 'fa' ? 'کاتالوگ اختیاری، سابقه روشن' : 'Optional Catalog, Clear Records'}
               </h3>
               <p className="text-xs text-[#CBD5E1]">
-                {lang === 'ro' ? 'Fiecare Workspace alege serviciile și modelele potrivite membrilor săi' : lang === 'fa' ? 'هر Workspace خدمات و مدل‌های مناسب اعضای خود را انتخاب می‌کند' : 'Each Workspace chooses the services and models that fit its members'}
+                {lang === 'ro' ? 'Un Workspace poate alege serviciile și modelele potrivite membrilor săi' : lang === 'fa' ? 'هر Workspace می‌تواند خدمات و مدل‌های مناسب اعضای خود را انتخاب کند' : 'A Workspace can choose the services and models that fit its members'}
               </p>
             </div>
           </div>
@@ -207,7 +207,7 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
               href={`/${lang}/contact`}
               className="w-full sm:w-auto px-7 py-3 text-xs font-bold text-[#102A43] bg-teal-400 hover:bg-teal-300 rounded-xl transition-colors shadow-sm text-center"
             >
-              {lang === 'ro' ? 'Solicită Integrarea Modulului SERVICE' : lang === 'fa' ? 'درخواست فعال‌سازی SERVICE' : 'Inquire About SERVICE'}
+              {lang === 'ro' ? 'Află Mai Multe despre SERVICE' : lang === 'fa' ? 'درباره SERVICE بیشتر بدانید' : 'Inquire About SERVICE'}
             </Link>
             <Link
               href={`/${lang}/operations`}

@@ -126,16 +126,16 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/service': {
     ro: {
-      title: 'SERVICE — Servicii, Rezervări și Beneficii pentru Membri',
-      desc: 'Fiecare Workspace își activează propriul catalog de servicii și beneficii, cu preț fix, includere, abonament, rezervare, consum sau ofertare și cu evidențe separate de mentenanța obligatorie.',
+      title: 'SERVICE — Servicii și Rezervări pentru Membri',
+      desc: 'Un Workspace își poate configura propriul catalog de servicii pentru membri, cu preț fix, tarifare după consum, abonament, rezervare, ofertare sau evaluare ulterioară, separat de mentenanța obligatorie.',
     },
     en: {
-      title: 'SERVICE — Member Services, Bookings & Benefits',
-      desc: 'Each Workspace activates its own service and benefit catalog, using fixed, included, subscription, booking, usage-based, or quotation models with records kept distinct from mandatory maintenance.',
+      title: 'SERVICE — Member Services & Bookings',
+      desc: 'A Workspace can configure its own member service catalog with fixed-price, usage-based, subscription, booking, quotation, or post-assessment models, kept distinct from mandatory maintenance.',
     },
     fa: {
-      title: 'SERVICE — خدمات، رزروها و مزایای اعضای Workspace',
-      desc: 'هر Workspace کاتالوگ خدمات و مزایای خودش را با مدل‌های قیمت ثابت، گنجانده‌شده، اشتراک، رزرو، مصرف یا استعلام فعال می‌کند و سابقه آن از نگهداری الزامی جدا می‌ماند.',
+      title: 'SERVICE — خدمات و رزروهای اعضای Workspace',
+      desc: 'هر Workspace می‌تواند کاتالوگ خدمات اعضای خود را با مدل‌های قیمت ثابت، مبتنی بر مصرف، اشتراک، رزرو، استعلام قیمت یا ارزیابی پس از کار پیکربندی کند؛ جدا از نگهداری الزامی.',
     },
   },
   '/operations': {

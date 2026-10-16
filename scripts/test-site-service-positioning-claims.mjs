@@ -16,9 +16,9 @@ function check(name, run) {
 }
 
 check('canonical SERVICE definition is present in RO EN and FA', () => {
-  assert.match(page, /Servicii și beneficii pe care membrii le pot/);
-  assert.match(page, /Services and benefits Workspace members can/);
-  assert.match(page, /خدمات و مزایایی که اعضای Workspace می‌توانند/);
+  assert.match(page, /Servicii pe care membrii le pot/);
+  assert.match(page, /Services Workspace members can/);
+  assert.match(page, /خدماتی که اعضای Workspace می‌توانند/);
 });
 
 check('SERVICE and mandatory Operations maintenance are separated in every language', () => {
@@ -48,9 +48,9 @@ check('representative SERVICE examples exist in all three languages', () => {
 });
 
 check('each Workspace owns its optional catalog in RO EN and FA', () => {
-  assert.match(page, /Fiecare Workspace activează propriul catalog/);
-  assert.match(page, /Each Workspace activates its own catalog/);
-  assert.match(page, /هر Workspace کاتالوگ خودش را فعال می‌کند/);
+  assert.match(page, /Un Workspace își poate configura propriul catalog/);
+  assert.match(page, /A Workspace can configure or choose its own service catalog/);
+  assert.match(page, /هر Workspace می‌تواند کاتالوگ خدمات خودش را پیکربندی یا انتخاب کند/);
   assert.match(page, /No individual service is mandatory across all Workspaces/);
   assert.match(page, /Niciun serviciu nu este obligatoriu în toate Workspace-urile/);
   assert.match(page, /هیچ خدمت مشخصی برای همهٔ Workspaceها اجباری نیست/);
@@ -58,17 +58,68 @@ check('each Workspace owns its optional catalog in RO EN and FA', () => {
 
 check('all six commercial paths are described without quote-only positioning', () => {
   for (const phrase of [
-    'fixed pricing', 'included in an active benefit', 'subscription', 'booking',
-    'usage-based', 'quotation',
+    'fixed price', 'usage-based', 'subscription', 'booking', 'quotation',
+    'post-assessment',
   ]) assert.ok(page.includes(phrase), `missing commercial path: ${phrase}`);
+  assert.match(page, /independent member order, booking, or purchase/);
   assert.match(page, /not the default for every service/);
 });
 
+check('included CE experience is a separate handoff rather than a SERVICE model', () => {
+  for (const forbidden of [
+    'included in an active benefit',
+    'poate fi inclus într-un beneficiu activ',
+    'در مزایای فعال Workspace گنجانده شود',
+  ]) assert.ok(!page.includes(forbidden), `included benefit presented as SERVICE model: ${forbidden}`);
+  assert.match(page, /included CE experience remains a separate flow with its own funding, entitlement, redemption, and receipt/);
+  assert.match(page, /independent SERVICE Offering only with a new identity, price, terms, explicit consent, and separate receipt/);
+  assert.match(page, /experiență inclusă prin CE rămâne un flux separat/);
+  assert.match(page, /تجربه‌ای که در CE برای عضو لحاظ شده، مسیر جداگانه‌ای/);
+});
+
+check('CE and SERVICE do not share identity or receipt', () => {
+  for (const forbidden of [
+    /shared (?:CE\/SERVICE )?(?:identity|receipt)/i,
+    /reuse (?:the )?CE receipt/i,
+    /identitate comună/i,
+    /document comun/i,
+    /هویت مشترک/,
+    /receipt مشترک/,
+  ]) assert.doesNotMatch(publicCopy, forbidden);
+  assert.match(page, /new identity.*separate receipt/s);
+});
+
 check('asset history is limited to technical-condition changes', () => {
-  assert.match(page, /Only a service that changes an asset’s technical condition/);
-  assert.match(page, /Numai serviciile care modifică starea tehnică a unui activ/);
-  assert.match(page, /فقط خدمتی که وضعیت فنی یک asset را تغییر می‌دهد/);
+  assert.match(page, /place a service in asset history only when it changes that asset’s technical condition/);
+  assert.match(page, /include în istoricul unui activ numai serviciile care îi modifică starea tehnică/);
+  assert.match(page, /فقط می‌تواند خدمتی را وارد asset history کند که وضعیت فنی همان دارایی را تغییر می‌دهد/);
   assert.match(page, /own order, receipt, and service history/);
+});
+
+check('titles and metadata position Member Services and Bookings without Benefits', () => {
+  for (const forbidden of [
+    'Workspace Member Services, Bookings & Benefits',
+    'SERVICE — Member Services, Bookings & Benefits',
+    'Servicii, Rezervări & Beneficii',
+    'Servicii, Rezervări și Beneficii',
+    'خدمات، رزروها و مزایای',
+  ]) assert.ok(!publicCopy.includes(forbidden), `forbidden title or metadata phrase: ${forbidden}`);
+  assert.match(page, /Workspace Member Services & Bookings/);
+  assert.match(metadata, /SERVICE — Member Services & Bookings/);
+});
+
+check('copy uses capability wording and rejects active-runtime positioning', () => {
+  for (const forbidden of [
+    /Each Workspace activates/i,
+    /Fiecare Workspace activează/i,
+    /هر Workspace .*فعال می‌کند/,
+    /capabilities activated for that Workspace/i,
+    /funcțiilor activate pentru acel Workspace/i,
+    /قابلیت‌هایی که برای آن Workspace فعال شده‌اند/,
+  ]) assert.doesNotMatch(publicCopy, forbidden);
+  assert.match(page, /A Workspace can configure or choose/);
+  assert.match(page, /Un Workspace poate configura sau alege/);
+  assert.match(page, /هر Workspace می‌تواند.*پیکربندی یا انتخاب کند/s);
 });
 
 check('unsupported runtime, payment and provider claims are absent', () => {
@@ -87,9 +138,9 @@ check('unsupported runtime, payment and provider claims are absent', () => {
 });
 
 check('route metadata carries the same optional catalog and maintenance boundary', () => {
-  assert.match(metadata, /SERVICE — Member Services, Bookings & Benefits/);
-  assert.match(metadata, /Each Workspace activates its own service and benefit catalog/);
-  assert.match(metadata, /records kept distinct from mandatory maintenance/);
+  assert.match(metadata, /SERVICE — Member Services & Bookings/);
+  assert.match(metadata, /A Workspace can configure its own member service catalog/);
+  assert.match(metadata, /kept distinct from mandatory maintenance/);
 });
 
 check('sitemap canonical and reciprocal hreflang infrastructure still covers SERVICE', () => {
