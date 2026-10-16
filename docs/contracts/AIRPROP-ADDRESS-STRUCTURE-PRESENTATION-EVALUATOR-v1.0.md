@@ -30,7 +30,9 @@ defaults cannot enter the evaluator and cannot produce or replace country.
 
 The evaluator applies only rules present in the accepted artifact:
 
-1. `policy.ordered_fields` determines output order and the only allowed fields.
+1. `policy.ordered_fields` determines output order within the evaluator's closed,
+   presentation-safe address-field taxonomy. An artifact that introduces an
+   identity, authority, receipt, evidence or other unknown field fails closed.
 2. Each field's `required` flag and `max_length` determine presence and length.
 3. `policy.postal_code.normalization` determines postal normalization.
 4. `policy.postal_code.validation` supplies either no grammar or the exact
@@ -43,7 +45,9 @@ countries. An optional postal field is omitted rather than synthesized.
 The official artifact v1 schema defines no locale label, separator, line-break,
 direction or full-address template. This evaluator therefore does not invent
 one. It returns ordered `{ field_code, value }` display parts. RTL and LTR text
-is preserved byte-for-byte as explicit field data; a UI may present those parts
+is preserved byte-for-byte as explicit field data. C0/C1 controls, line/paragraph
+separators, lone surrogates and bidi control/override characters fail closed;
+ordinary Persian and mixed LTR/RTL content remain valid. A UI may present those parts
 without changing their order, values or country identity.
 
 ## Decision

@@ -221,6 +221,51 @@ check('LTR and RTL values are preserved without country or direction inference',
     'خیابان نمونه');
   assert.equal(rtl.display_parts.find(part => part.field_code === 'unit').value, 'واحد ۴');
   assert.equal(rtl.display_parts[0].value, 'XD');
+  const mixedRequest = request(artifacts[0], fixtures[0]);
+  mixedRequest.address_fields = mixedRequest.address_fields.map(field =>
+    field.field_code === 'street_name' ? { ...field, value: 'Oak خیابان 12' } : field);
+  assert.equal(evaluateAirpropAddressStructurePresentationV1(mixedRequest)
+    .display_parts.find(part => part.field_code === 'street_name').value,
+  'Oak خیابان 12');
+});
+
+check('artifact fields are restricted to a closed presentation-safe taxonomy', () => {
+  for (const privateField of [
+    'actor_id', 'context_id', 'workspace_id', 'property_id', 'unit_id',
+    'permission', 'receipt', 'artifact_sha256', 'evidence_sha256',
+  ]) {
+    const malicious = structuredClone(artifacts[0]);
+    malicious.domain.policy.ordered_fields.push({
+      field_code: privateField, required: false, max_length: 128,
+    });
+    const rehashed = rehash(malicious, { domain: malicious.domain });
+    const result = evaluateAirpropAddressStructurePresentationV1(request(
+      rehashed, fixtures[0], {
+        address_fields: [
+          ...request(rehashed, fixtures[0]).address_fields,
+          { field_code: privateField, value: 'private-value' },
+        ],
+      }));
+    assert.equal(result.denial_reason, 'MALFORMED_ARTIFACT', privateField);
+    assert.equal(result.display_parts, null, privateField);
+  }
+});
+
+check('unsafe controls, lone surrogates and bidi controls fail closed', () => {
+  for (const unsafeValue of [
+    'Line one\nLine two',
+    `hidden${String.fromCharCode(0x7f)}value`,
+    `override${String.fromCharCode(0x202e)}value`,
+    `isolate${String.fromCharCode(0x2066)}value`,
+    `surrogate${String.fromCharCode(0xd800)}value`,
+  ]) {
+    const unsafeRequest = request(artifacts[0], fixtures[0]);
+    unsafeRequest.address_fields = unsafeRequest.address_fields.map(field =>
+      field.field_code === 'street_name' ? { ...field, value: unsafeValue } : field);
+    const result = evaluateAirpropAddressStructurePresentationV1(unsafeRequest);
+    assert.equal(result.denial_reason, 'FIELD_VALUE_INVALID');
+    assert.equal(result.display_parts, null);
+  }
 });
 
 check('inference metadata and absent explicit country are malformed input', () => {

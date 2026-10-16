@@ -15,6 +15,21 @@ const code = z.string().regex(/^[a-z][a-z0-9_.:-]{2,159}$/);
 const countryCode = z.string().regex(/^[A-Z]{2}$/);
 const timestamp = z.string().datetime({ offset: true });
 
+const PRESENTATION_SAFE_ADDRESS_FIELD_CODES = new Set([
+  'administrative_area',
+  'building',
+  'country_code',
+  'district',
+  'locality',
+  'postal_code',
+  'street_name',
+  'street_number',
+  'unit',
+]);
+
+const unsafeDisplayValue =
+  /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ud800-\udfff]/;
+
 const explicitAddressFieldSchema = z.strictObject({
   field_code: code,
   value: z.string().max(4096),
@@ -210,6 +225,10 @@ export function evaluateAirpropAddressStructurePresentationV1(
   }
 
   const policy = addressArtifact.domain.policy;
+  if (policy.ordered_fields.some(field =>
+    !PRESENTATION_SAFE_ADDRESS_FIELD_CODES.has(field.field_code))) {
+    return deny('MALFORMED_ARTIFACT');
+  }
   const artifactFields = new Map(policy.ordered_fields.map(field =>
     [field.field_code, field] as const));
   if (fields.some(field => !artifactFields.has(field.field_code))) {
@@ -232,6 +251,7 @@ export function evaluateAirpropAddressStructurePresentationV1(
     if (rawValue.length > field.max_length || rawValue.trim().length === 0) {
       return deny('FIELD_VALUE_INVALID');
     }
+    if (unsafeDisplayValue.test(rawValue)) return deny('FIELD_VALUE_INVALID');
     const value = field.field_code === 'postal_code'
       ? normalizePostal(policy.postal_code, rawValue) : rawValue;
     if (value.length > field.max_length || value.trim().length === 0) {
