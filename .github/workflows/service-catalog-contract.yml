@@ -42,6 +42,8 @@ on:
       - 'scripts/test-service-provider-adapters-v1-contract.mjs'
       - 'scripts/test-service-runtime-commit-coordinator-v1.mjs'
       - 'scripts/test-service-runtime-provider-composition-v1.mjs'
+      - 'docs/architecture/CLADORA-SERVICE-MEMBER-VALUE-CATALOG-AND-TEMPLATES-03-v1.0.md'
+      - 'scripts/test-service-member-value-catalog-templates-v1.mjs'
       - 'scripts/service-receipt-test-fixtures.mjs'
       - '.github/workflows/service-catalog-contract.yml'
       - 'package.json'
@@ -63,6 +65,7 @@ jobs:
       - run: node scripts/test-service-quote-contract-013.mjs
       - run: npm run test:service-v14
       - run: npm run test:service-v14:independent
+      - run: node scripts/test-service-member-value-catalog-templates-v1.mjs
       - run: npm run test:ce:service-experience-provider
       - run: npx eslint src/lib/customer/service-quote-schema.ts scripts/test-service-quote-contract-013.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-request-schema.ts scripts/test-service-request-contract-009.mjs --max-warnings=0
@@ -79,6 +82,7 @@ jobs:
       - run: npx eslint src/lib/customer/service-provider-adapter-contracts-v1.ts scripts/test-service-provider-adapters-v1-contract.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-runtime-commit-coordinator-v1.ts scripts/test-service-runtime-commit-coordinator-v1.mjs --max-warnings=0
       - run: npx eslint src/lib/customer/service-runtime-provider-composition-v1.ts scripts/test-service-runtime-provider-composition-v1.mjs --max-warnings=0
+      - run: npx eslint scripts/test-service-member-value-catalog-templates-v1.mjs --max-warnings=0
       - run: npx eslint src/components/customer/ServiceResourcePicker.tsx scripts/test-service-resource-picker-v14.mjs scripts/test-service-v14-integration.mjs scripts/test-service-independent-review.mjs --max-warnings=0
 
       - run: npm run typecheck
