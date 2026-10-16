@@ -58,6 +58,10 @@ on:
       - "scripts/test-documents-country-retention-resolution-v1.mjs"
       - "scripts/test-documents-country-retention-resolution-postgres-v1.mjs"
       - "docs/contracts/CLADORA-DOCUMENTS-COUNTRY-RETENTION-RESOLUTION-v1.0.md"
+      - "src/lib/customer/documents-country-retention-operation-integration-v1.ts"
+      - "scripts/test-documents-country-retention-operation-integration-v1.mjs"
+      - "scripts/test-documents-country-retention-operation-integration-postgres-v1.mjs"
+      - "docs/contracts/CLADORA-DOCUMENTS-COUNTRY-RETENTION-OPERATION-INTEGRATION-v1.0.md"
       - "supabase/migrations/*_core_platform_role_bound_pool_v1.sql"
       - "supabase/tests/184_core_platform_role_bound_pool.test.sql"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
@@ -138,6 +142,10 @@ on:
       - "scripts/test-documents-country-retention-resolution-v1.mjs"
       - "scripts/test-documents-country-retention-resolution-postgres-v1.mjs"
       - "docs/contracts/CLADORA-DOCUMENTS-COUNTRY-RETENTION-RESOLUTION-v1.0.md"
+      - "src/lib/customer/documents-country-retention-operation-integration-v1.ts"
+      - "scripts/test-documents-country-retention-operation-integration-v1.mjs"
+      - "scripts/test-documents-country-retention-operation-integration-postgres-v1.mjs"
+      - "docs/contracts/CLADORA-DOCUMENTS-COUNTRY-RETENTION-OPERATION-INTEGRATION-v1.0.md"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs"
       - "src/lib/customer/documents-workspace-binding-writer-v1.ts"
@@ -182,6 +190,7 @@ jobs:
       - run: npm ci
       - run: npm run test:retention
       - run: npm run test:documents-country-retention-resolution
+      - run: npm run test:documents-country-retention-operation
 
   postgres-runtime:
     runs-on: ubuntu-latest
@@ -267,6 +276,11 @@ jobs:
         env:
           DOCUMENTS_COUNTRY_RETENTION_RESOLUTION_EPHEMERAL: "1"
           DOCUMENTS_COUNTRY_RETENTION_RESOLUTION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Documents country retention operation integration PostgreSQL conformance
+        run: timeout 240s npm run test:documents-country-retention-operation:postgres
+        env:
+          DOCUMENTS_COUNTRY_RETENTION_OPERATION_EPHEMERAL: "1"
+          DOCUMENTS_COUNTRY_RETENTION_OPERATION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run typed Core TX provider evidence PostgreSQL conformance
         run: timeout 180s npm run test:core-tx-provider-evidence:postgres
         env:

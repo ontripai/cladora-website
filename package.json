@@ -77,6 +77,8 @@
     "test:core-jurisdiction-domain-artifact-resolver:postgres": "node scripts/test-core-jurisdiction-domain-artifact-resolver-postgres-v1.mjs",
     "test:documents-country-retention-resolution": "node scripts/test-documents-country-retention-resolution-v1.mjs",
     "test:documents-country-retention-resolution:postgres": "node scripts/test-documents-country-retention-resolution-postgres-v1.mjs",
+    "test:documents-country-retention-operation": "node scripts/test-documents-country-retention-operation-integration-v1.mjs",
+    "test:documents-country-retention-operation:postgres": "node scripts/test-documents-country-retention-operation-integration-postgres-v1.mjs",
     "test:core-jurisdiction-profile:static": "node scripts/test-core-jurisdiction-profile-static-v1.mjs",
     "test:core-jurisdiction-profile-selector": "node scripts/test-core-jurisdiction-profile-selector-v1.mjs",
     "test:core-jurisdiction-profile-selector:postgres": "node scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs",
