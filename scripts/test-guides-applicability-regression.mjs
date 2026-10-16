@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-8 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-9 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -203,6 +203,7 @@ function auditSourceFile(filePath, code) {
   const taintedVariables = new Set();
   const countryValuedVariables = new Set();
   const taintedMemberPaths = new Set();
+  const taintedFunctions = new Set();
 
   function memberPath(expr) {
     if (ts.isIdentifier(expr)) return expr.text;
@@ -227,9 +228,7 @@ function auditSourceFile(filePath, code) {
       discovered.push({ name: pattern.text, source: inheritedSource || isSourceIdentifier(pattern.text) });
     } else if (ts.isObjectBindingPattern(pattern)) {
       for (const element of pattern.elements) {
-        const propertyName = element.propertyName && ts.isIdentifier(element.propertyName)
-          ? element.propertyName.text
-          : ts.isIdentifier(element.name) ? element.name.text : '';
+        const propertyName = getLeafPropertyName(element.propertyName ?? element.name);
         const propertyPath = basePath && propertyName ? `${basePath}.${propertyName}` : '';
         const source = inheritedSource || isSourceIdentifier(propertyName)
           || Boolean(propertyPath && taintedMemberPaths.has(propertyPath));
@@ -309,8 +308,12 @@ function auditSourceFile(filePath, code) {
 
     // Call expression with tainted argument (e.g. check(lang))
     if (ts.isCallExpression(expr)) {
-      return expr.arguments.some(isTainted);
+      const callee = getLeafPropertyName(expr.expression);
+      return taintedFunctions.has(callee) || expr.arguments.some(isTainted);
     }
+
+    if (ts.isArrayLiteralExpression(expr)) return expr.elements.some(isTainted);
+    if (ts.isSpreadElement(expr)) return isTainted(expr.expression);
 
     if (ts.isConditionalExpression(expr)) {
       return isTainted(expr.condition) || isTainted(expr.whenTrue) || isTainted(expr.whenFalse);
@@ -342,6 +345,20 @@ function auditSourceFile(filePath, code) {
         if (ts.isObjectLiteralExpression(node.initializer)) {
           const collectObjectMembers = (objectNode, basePath) => {
             for (const property of objectNode.properties) {
+              if (ts.isSpreadAssignment(property)) {
+                const sourceRoot = memberPath(property.expression);
+                if (sourceRoot) {
+                  for (const path of [...taintedMemberPaths]) {
+                    if (!path.startsWith(`${sourceRoot}.`)) continue;
+                    const spreadPath = `${basePath}${path.slice(sourceRoot.length)}`;
+                    if (!taintedMemberPaths.has(spreadPath)) {
+                      taintedMemberPaths.add(spreadPath);
+                      changed = true;
+                    }
+                  }
+                }
+                continue;
+              }
               if (!ts.isPropertyAssignment(property)) continue;
               const key = getLeafPropertyName(property.name);
               if (!key) continue;
@@ -380,12 +397,41 @@ function auditSourceFile(filePath, code) {
       }
     }
 
-    if (ts.isParameter(node) && ts.isBindingPattern(node.name)) {
-      for (const binding of bindingNames(node.name)) {
-        if (binding.source && !taintedVariables.has(binding.name)) {
-          taintedVariables.add(binding.name);
-          changed = true;
+    if (ts.isParameter(node)) {
+      if (ts.isIdentifier(node.name) && node.initializer && isTainted(node.initializer)
+        && !taintedVariables.has(node.name.text)) {
+        taintedVariables.add(node.name.text);
+        changed = true;
+      }
+      if (ts.isBindingPattern(node.name)) {
+        for (const binding of bindingNames(node.name, Boolean(node.initializer && isTainted(node.initializer)))) {
+          if (binding.source && !taintedVariables.has(binding.name)) {
+            taintedVariables.add(binding.name);
+            changed = true;
+          }
         }
+      }
+    }
+
+    if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
+      const name = functionLikeName(node);
+      let returnsTaint = ts.isArrowFunction(node) && !ts.isBlock(node.body) && isTainted(node.body);
+      if (!returnsTaint && node.body && ts.isBlock(node.body)) {
+        const inspectReturn = (child) => {
+          if (returnsTaint) return;
+          if (ts.isReturnStatement(child) && child.expression && isTainted(child.expression)) {
+            returnsTaint = true;
+            return;
+          }
+          if (child !== node.body && (ts.isFunctionDeclaration(child)
+            || ts.isFunctionExpression(child) || ts.isArrowFunction(child))) return;
+          ts.forEachChild(child, inspectReturn);
+        };
+        inspectReturn(node.body);
+      }
+      if (name && returnsTaint && !taintedFunctions.has(name)) {
+        taintedFunctions.add(name);
+        changed = true;
       }
     }
 
@@ -438,9 +484,13 @@ function auditSourceFile(filePath, code) {
   function getLeafPropertyName(expr) {
     if (!expr) return '';
     if (ts.isIdentifier(expr)) return expr.text;
+    if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) return expr.text;
     if (ts.isPropertyAccessExpression(expr)) return expr.name.text;
     if (ts.isElementAccessExpression(expr) && expr.argumentExpression) {
-      if (ts.isStringLiteral(expr.argumentExpression)) return expr.argumentExpression.text;
+      if (ts.isStringLiteral(expr.argumentExpression)
+        || ts.isNoSubstitutionTemplateLiteral(expr.argumentExpression)) {
+        return expr.argumentExpression.text;
+      }
     }
     if (ts.isComputedPropertyName(expr)) {
       if (ts.isStringLiteral(expr.expression) || ts.isNoSubstitutionTemplateLiteral(expr.expression)) {
@@ -989,6 +1039,74 @@ runAssertion('Taint Regression: tainted member survives object aliasing', () => 
   const violations = auditSourceFile('test-member-object-alias.ts', code);
   assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.jurisdiction"')),
     `Must track tainted members through object aliases, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: quoted and computed locale parameter bindings are tainted', () => {
+  for (const [label, parameter] of [
+    ['quoted', "{ 'locale': selected }"],
+    ['computed', "{ ['locale']: selected }"],
+  ]) {
+    const code = `function resolveCountry(${parameter}) { return lookup[selected]; }`;
+    const violations = auditSourceFile(`test-${label}-parameter-binding.ts`, code);
+    assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+      `Must flag ${label} locale parameter binding, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Taint Regression: quoted locale destructuring assignment is tainted', () => {
+  const code = `
+    ({ 'locale': selected } = params);
+    result.countryCode = selected;
+  `;
+  const violations = auditSourceFile('test-quoted-destructuring-assignment.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must flag quoted locale destructuring assignment, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: default parameter alias from locale is tainted', () => {
+  const code = `function resolveCountry(selected = locale) { return lookup[selected]; }`;
+  const violations = auditSourceFile('test-default-parameter-alias.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+    `Must flag default parameter locale alias, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: template-literal element-access sink is normalized', () => {
+  const code = 'result[`countryCode`] = locale;';
+  const violations = auditSourceFile('test-template-element-sink.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result[`countryCode`]"')),
+    `Must flag template-literal element sink, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: tainted object members propagate through object spread', () => {
+  const code = `
+    const state = { selection: locale };
+    const clone = { ...state };
+    function resolveCountry() { return lookup[clone.selection]; }
+  `;
+  const violations = auditSourceFile('test-object-spread-member-alias.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+    `Must propagate tainted members through object spread, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: zero-argument helper return taint propagates into country sink', () => {
+  const code = `
+    const choose = () => lookup[locale];
+    result.countryCode = choose();
+  `;
+  const violations = auditSourceFile('test-helper-return-summary.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must propagate tainted helper return into sink, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: array aliases preserve locale taint', () => {
+  const code = `
+    const values = [locale];
+    const [selected] = values;
+    result.jurisdiction = selected;
+  `;
+  const violations = auditSourceFile('test-array-alias.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.jurisdiction"')),
+    `Must propagate locale taint through arrays, got: ${JSON.stringify(violations)}`);
 });
 
 // -----------------------------------------------------------------------------
