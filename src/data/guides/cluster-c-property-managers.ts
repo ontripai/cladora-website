@@ -6,6 +6,7 @@ export const CLUSTER_C_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-C-01',
     lang: 'ro',
     slug: 'management-documente-proprietati',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Managementul Documentelor în Administrarea Proprietăților: Carte Tehnică, Proveniență și Controlul Accesului',
     seoTitle: 'Management Documente Proprietăți: Ghid Arhivă și Acces',
     description:

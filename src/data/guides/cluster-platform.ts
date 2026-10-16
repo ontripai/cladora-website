@@ -6,6 +6,8 @@ export const CLUSTER_PLATFORM_ARTICLES: Record<string, GuideArticleData> = {
     id: 'TOPIC-01',
     lang: 'en',
     slug: 'what-is-property-operating-platform',
+    contentApplicability: { kind: 'global' },
+    targetAudience: 'International property portfolio owners, enterprise facility directors, and proptech architects',
     title: 'What Is a Property Operating Platform?',
     seoTitle: 'What Is a Property Operating Platform? Architecture',
     description:
@@ -30,6 +32,8 @@ export const CLUSTER_PLATFORM_ARTICLES: Record<string, GuideArticleData> = {
     schemaType: 'TechArticle',
     readTime: '9 min read',
     pillarHref: '/en/platform',
+    disclaimer:
+      'This architectural guide analyzes the property operating platform category across multi-stakeholder real estate portfolios. It is jurisdiction-agnostic and does not substitute for local legal, statutory, or tax advisory. Requirements of the asset\'s location country must be verified independently with current sources and qualified professional review; this article does not announce an active Country Pack or production legal compliance.',
     directAnswer:
       'A Property Operating Platform can be understood as an operational system of record and action for physical buildings. Unlike legacy single-purpose property management tools that function primarily as rent-roll databases, an operating platform establishes a persistent digital identity for the physical property, decodes multi-party actor relationships into governed workspaces, and coordinates specialized canonical domain providers across the complete building lifecycle.',
     sections: [
@@ -152,6 +156,8 @@ export const CLUSTER_PLATFORM_ARTICLES: Record<string, GuideArticleData> = {
     id: 'TOPIC-03',
     lang: 'en',
     slug: 'property-management-software-vs-property-operating-platform',
+    contentApplicability: { kind: 'global' },
+    targetAudience: 'Real estate software evaluators, asset managers, and IT systems integrators',
     title: 'Property Management Software vs Property Operating Platform: Architecture & Data Governance',
     seoTitle: 'PMS vs Property Operating Platform: Architectural Guide',
     description:
@@ -175,6 +181,8 @@ export const CLUSTER_PLATFORM_ARTICLES: Record<string, GuideArticleData> = {
     schemaType: 'TechArticle',
     readTime: '10 min read',
     pillarHref: '/en/platform',
+    disclaimer:
+      'This comparative guide analyzes system architecture, data models, and authority governance between legacy PMS and operating platforms. It does not replace independent technical diligence or legal contract review. Requirements of the asset\'s location country must be verified independently with current sources and qualified professional review; this article does not announce an active Country Pack or production legal compliance.',
     directAnswer:
       'Many traditional Property Management Software (PMS) products have historically centered on leases, property accounting, tenant administration, and related commercial records, functioning as a system of record for landlord-tenant ledgers. In contrast, a Property Operating Platform is an event-driven system of action that decouples physical property identity, organizational workspaces, contextual relationships, and temporal authority, coordinating specialized canonical domain providers across the complete building lifecycle.',
     sections: [
@@ -286,6 +294,8 @@ export const CLUSTER_PLATFORM_ARTICLES: Record<string, GuideArticleData> = {
     id: 'TOPIC-05',
     lang: 'fa',
     slug: 'platform-modiriat-amlak',
+    contentApplicability: { kind: 'global' },
+    targetAudience: 'سرمایه‌گذاران، مدیران مجتمع‌ها و بهره‌برداران بین‌المللی املاک و دارایی‌های فیزیکی',
     title: 'پلتفرم عملیات و مدیریت املاک چیست؟ مبانی معماری، تفکیک سطوح و حاکمیت داده‌ها',
     seoTitle: 'پلتفرم عملیات و مدیریت املاک چیست؟ مبانی و معماری داده',
     description:
@@ -309,6 +319,8 @@ export const CLUSTER_PLATFORM_ARTICLES: Record<string, GuideArticleData> = {
     schemaType: 'TechArticle',
     readTime: '۱۱ دقیقه مطالعه',
     pillarHref: '/fa/platform',
+    disclaimer:
+      'این راهنما به تحلیل مبانی معماری، ساختار داده‌ها و حاکمیت اطلاعات در پلتفرم‌های عملیات املاک می‌پردازد و مستقل از موقعیت جغرافیایی ملک یا حوزه قضایی خاص تنظیم شده است. الزامات کشور محل ملک باید جداگانه با منابع جاری و بازبینی واجد صلاحیت تأیید شوند؛ این مقاله فعال‌بودن Country Pack یا انطباق حقوقی تولیدی را اعلام نمی‌کند.',
     directAnswer:
       'پلتفرم عملیات و مدیریت املاک (Property Operating Platform) یک سامانه یکپارچه مبتنی بر رویداد برای ثبت، پایش و اقدام در چرخه عمر ساختمان‌های فیزیکی است. برخلاف نرم‌افزارهای تک‌منظوره و سنتی که صرفاً به عنوان دفترچه ثبت مبالغ شارژ یا قراردادهای اجاره عمل می‌کنند، پلتفرم عملیاتی یک هویت دیجیتال پایدار برای ملک ایجاد کرده، تعاملات میان مالکان، مدیران و ساکنان را در فضاهای کاری (Workspaces) مجزا ساختاردهی نموده و ارائه‌دهندگان مرجع داده‌ها را در یک بستر هماهنگ می‌سازد.',
     sections: [

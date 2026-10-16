@@ -6,6 +6,7 @@ export const CLUSTER_A_ARTICLES: Record<string, GuideArticleData> = {
     id: 'TOPIC-02',
     lang: 'ro',
     slug: 'asociatii-proprietari-legea-196-2018',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Ghid Practic pentru Asociațiile de Proprietari: Context Operațional Legea 196/2018',
     seoTitle: 'Ghid Legea 196/2018: Asociații de Proprietari în Bloc',
     description:
@@ -205,6 +206,7 @@ export const CLUSTER_A_ARTICLES: Record<string, GuideArticleData> = {
     id: 'TOPIC-04',
     lang: 'ro',
     slug: 'repartizare-cheltuieli-asociatie-proprietari',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Metodologia Repartizării Cheltuielilor și Administrării Fondurilor în Asociațiile de Proprietari',
     seoTitle: 'Repartizare Cheltuieli în Asociații de Proprietari',
     description:
@@ -377,6 +379,7 @@ export const CLUSTER_A_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-A-01',
     lang: 'ro',
     slug: 'program-calcul-intretinere-bloc',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Program de Calcul Întreținere Bloc: Reguli Legale, Algoritmi de Repartizare și Evitarea Erorilor de Calcul',
     seoTitle: 'Program Calcul Întreținere Bloc: Reguli și Algoritmi',
     description:
@@ -548,6 +551,7 @@ export const CLUSTER_A_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-A-02',
     lang: 'ro',
     slug: 'lista-de-plata-asociatie-proprietari',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Lista de Plată a Asociației de Proprietari: Structură Obligatorie, Termene Legale de Afișare și Procedura de Contestare',
     seoTitle: 'Lista de Plată a Asociației de Proprietari: Reguli',
     description:
@@ -726,6 +730,7 @@ export const CLUSTER_A_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-A-03',
     lang: 'ro',
     slug: 'fond-rulment-vs-fond-reparatii',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Fond de Rulment vs. Fond de Reparații: Diferențe Legale, Mod de Calcul, Utilizare și Procedura de Restituire',
     seoTitle: 'Fond de Rulment vs Fond de Reparații: Diferențe Cheie',
     description:
@@ -903,6 +908,7 @@ export const CLUSTER_A_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-A-04',
     lang: 'ro',
     slug: 'cota-parte-indiviza-calcul',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Calculul Cotei-Părți Indivize în Condominiu: Suprafață Utilă, Formule Matematice și Impactul asupra Cheltuielilor Comune',
     seoTitle: 'Calcul Cotă-Parte Indiviză: Formule și Suprafață Utilă',
     description:
@@ -1084,6 +1090,7 @@ export const CLUSTER_A_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-A-05',
     lang: 'ro',
     slug: 'migrare-program-administrare-bloc',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Ghid de Migrare între Programe de Administrare Bloc: Preluarea Soldurilor, Istoricului și Verificarea de Către Cenzori',
     seoTitle: 'Migrare Program Administrare Bloc: Preluare Solduri',
     description:
