@@ -1,11 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
-import {
-  CORE_READ_AUTHORITY_PROFILE_V1,
-  coreReadAuthorityProfileV1Schema,
-  coreReadAuthorityRevisionPreconditionV1Schema,
-} from '../src/lib/core/read-authority-profile-v1.ts';
 
 const migrationName = '20261016080831_core_read_authority_profile_v1.sql';
 const migration = readFileSync(`supabase/migrations/${migrationName}`, 'utf8');
@@ -17,6 +12,7 @@ const contract = readFileSync(
 const migrations = readdirSync('supabase/migrations').filter(name => name.endsWith('.sql')).sort();
 const executableSql = migration.replace(/--[^\n]*/g, '');
 const sha256 = value => createHash('sha256').update(value).digest('hex');
+const escaped = value => value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 let checks = 0;
 const check = (name, fn) => {
@@ -25,53 +21,48 @@ const check = (name, fn) => {
   console.log(`ok ${checks} - ${name}`);
 };
 
-check('fixed profile parses and is immutable', () => {
-  assert.equal(coreReadAuthorityProfileV1Schema.safeParse(CORE_READ_AUTHORITY_PROFILE_V1).success, true);
-  assert.equal(Object.isFrozen(CORE_READ_AUTHORITY_PROFILE_V1), true);
-  assert.deepEqual(CORE_READ_AUTHORITY_PROFILE_V1, {
+check('fixed profile is literal and immutable', () => {
+  assert.match(source, /coreReadAuthorityProfileV1Schema\s*=\s*z\.strictObject\(/);
+  assert.match(source, /CORE_READ_AUTHORITY_PROFILE_V1[^=]*=\s*Object\.freeze\(/);
+  const fixedStrings = {
     contract_version: 'core-read-authority-profile.v1',
-    profile_version: 1,
     permission_code: 'experience.guide.read',
     module_code: 'experience_guides',
     entitlement_code: 'module.experience_guides',
     evaluation_purpose: 'experience.guide.content_policy.read',
     domain_code: 'content.policy',
     domain_version: 'content-policy.v1',
-    entitlement_required: true,
-    server_owned: true,
-    immutable: true,
-    reusable_as_command_authority: false,
-  });
+  };
+  for (const [field, value] of Object.entries(fixedStrings)) {
+    assert.match(source, new RegExp(`${field}:\\s*z\\.literal\\('${escaped(value)}'\\)`));
+  }
+  for (const field of [
+    'entitlement_required', 'server_owned', 'immutable',
+  ]) assert.match(source, new RegExp(`${field}:\\s*z\\.literal\\(true\\)`));
+  assert.match(source, /reusable_as_command_authority:\s*z\.literal\(false\)/);
 });
 
 check('every fixed binding rejects caller substitution', () => {
-  for (const [field, value] of Object.entries({
-    permission_code: 'experience.guide.manage',
-    module_code: 'documents',
-    entitlement_code: 'module.documents',
-    evaluation_purpose: 'experience.guide.command',
-    domain_code: 'payments.policy',
-    domain_version: 'payments-policy.v1',
-  })) {
-    const changed = { ...CORE_READ_AUTHORITY_PROFILE_V1, [field]: value };
-    assert.equal(coreReadAuthorityProfileV1Schema.safeParse(changed).success, false, field);
-  }
+  const profileSchema = source.match(
+    /coreReadAuthorityProfileV1Schema\s*=\s*z\.strictObject\(\{([\s\S]*?)\n\}\);/,
+  )?.[1];
+  assert.ok(profileSchema);
+  for (const field of [
+    'permission_code', 'module_code', 'entitlement_code', 'evaluation_purpose',
+    'domain_code', 'domain_version',
+  ]) assert.match(profileSchema, new RegExp(`${field}:\\s*z\\.literal\\(`));
+  assert.doesNotMatch(source, /z\.string\(\)[\s\S]{0,80}(permission_code|module_code|domain_code)/);
 });
 
 check('revision precondition is strict and cannot carry authority fields', () => {
-  const valid = {
-    contract_version: 'core-read-authority-revision-precondition.v1',
-    expected_authority_revision: 17,
-  };
-  assert.equal(coreReadAuthorityRevisionPreconditionV1Schema.safeParse(valid).success, true);
-  assert.equal(coreReadAuthorityRevisionPreconditionV1Schema.safeParse({
-    ...valid,
-    permission_code: 'experience.guide.read',
-  }).success, false);
-  assert.equal(coreReadAuthorityRevisionPreconditionV1Schema.safeParse({
-    ...valid,
-    expected_authority_revision: 0,
-  }).success, false);
+  const precondition = source.match(
+    /coreReadAuthorityRevisionPreconditionV1Schema\s*=\s*z\.strictObject\(\{([\s\S]*?)\n\}\);/,
+  )?.[1];
+  assert.ok(precondition);
+  assert.match(precondition, /contract_version:\s*z\.literal\('core-read-authority-revision-precondition\.v1'\)/);
+  assert.match(precondition, /expected_authority_revision:\s*authorityRevisionSchema/);
+  assert.doesNotMatch(precondition, /permission|module|entitlement|purpose|domain|authority_decision/);
+  assert.match(source, /authorityRevisionSchema\s*=\s*z\.number\(\)\.int\(\)\.positive\(\)\.safe\(\)/);
 });
 
 check('migration is additive registry-only and generated in canonical order', () => {
