@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-14 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-15 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -223,7 +223,7 @@ function auditSourceFile(filePath, code) {
   (function collectStaticValueBindings(node) {
     if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer
       && ts.isVariableDeclarationList(node.parent)
-      && (node.parent.flags & (ts.NodeFlags.Const | ts.NodeFlags.Let)) !== 0) {
+      && (node.parent.flags & ts.NodeFlags.Const) !== 0) {
       staticValueBindings.push({
         name: node.name.text,
         initializer: node.initializer,
@@ -235,15 +235,6 @@ function auditSourceFile(filePath, code) {
       staticValueBindings.push({
         name: node.name.text,
         initializer: node.initializer,
-        declaration: node,
-        scope: nearestLexicalScope(node),
-      });
-    }
-    if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken
-      && ts.isIdentifier(node.left)) {
-      staticValueBindings.push({
-        name: node.left.text,
-        initializer: node.right,
         declaration: node,
         scope: nearestLexicalScope(node),
       });
@@ -835,6 +826,14 @@ function auditSourceFile(filePath, code) {
     return '';
   }
 
+  function forbiddenDynamicPropertyApi(expression) {
+    return isStaticMemberCall(expression, 'Object', 'fromEntries')
+      || isStaticMemberCall(expression, 'Object', 'defineProperty')
+      || isStaticMemberCall(expression, 'Object', 'defineProperties')
+      || isStaticMemberCall(expression, 'Reflect', 'set')
+      || isStaticMemberCall(expression, 'Reflect', 'defineProperty');
+  }
+
   // Recursive check for tainted values assigned to sink properties in object literals at ANY depth
   function checkObjectForTaintedSinks(objNode, currentPath = '') {
     if (!ts.isObjectLiteralExpression(objNode)) return;
@@ -921,38 +920,37 @@ function auditSourceFile(filePath, code) {
         && !isPresentationCountryLabel(node, key)) {
         violations.push(`Structural country/jurisdiction property creation "${key}" is forbidden in ${filePath}`);
       }
-      if (!canonicalGuideDataModule && isCountryOperationName(key)
+      if (isCountryOperationName(key)
         && !isSinkPropertyName(key)) {
         violations.push(`Structural country/jurisdiction resolver property "${key}" is forbidden in ${filePath}`);
       }
-      if (!canonicalGuideDataModule && ts.isComputedPropertyName(node.name)
-        && !key && isTainted(node.initializer)) {
+      if (ts.isComputedPropertyName(node.name) && constantString(node.name.expression) === null
+        && (isTainted(node.initializer) || producesCountryValue(node.initializer))) {
         violations.push(`Tainted computed property construction is forbidden in executable Guide code in ${filePath}`);
       }
     }
-    if (!canonicalGuideDataModule && ts.isShorthandPropertyAssignment(node)
+    if (ts.isShorthandPropertyAssignment(node)
       && isCountryOperationName(node.name.text)) {
       violations.push(`Structural country/jurisdiction resolver property "${node.name.text}" is forbidden in ${filePath}`);
     }
-    if (!canonicalGuideDataModule && ts.isBinaryExpression(node)
+    if (ts.isBinaryExpression(node)
       && isAssignmentOperator(node.operatorToken.kind)) {
       for (const target of collectStructuralSinkTargets(node.left)) {
         violations.push(`Structural country/jurisdiction assignment "${target}" is forbidden in ${filePath}`);
       }
     }
-    if (!canonicalGuideDataModule && ts.isVariableDeclaration(node)) {
+    if (ts.isVariableDeclaration(node)) {
       for (const sink of collectStructuralBindingSinks(node.name)) {
         violations.push(`Structural country/jurisdiction variable "${sink}" is forbidden in ${filePath}`);
       }
     }
-    if (!canonicalGuideDataModule && ts.isParameter(node)) {
+    if (ts.isParameter(node)) {
       for (const sink of collectStructuralBindingSinks(node.name)) {
         violations.push(`Structural country/jurisdiction parameter "${sink}" is forbidden in ${filePath}`);
       }
     }
-    if (!canonicalGuideDataModule
-      && (ts.isPropertyDeclaration(node) || ts.isGetAccessorDeclaration(node)
-        || ts.isSetAccessorDeclaration(node))) {
+    if (ts.isPropertyDeclaration(node) || ts.isGetAccessorDeclaration(node)
+        || ts.isSetAccessorDeclaration(node)) {
       const key = getLeafPropertyName(node.name);
       if (isSinkPropertyName(key) || isCountryOperationName(key)) {
         violations.push(`Structural country/jurisdiction class member "${key}" is forbidden in ${filePath}`);
@@ -1035,14 +1033,14 @@ function auditSourceFile(filePath, code) {
     // is itself a sink even if an intermediate local has a neutral name.
     if (ts.isReturnStatement(node) && node.expression && isTainted(node.expression)) {
       const owner = enclosingFunctionName(node);
-      if (/(country|jurisdiction|marketCountry)/i.test(owner)) {
+      if (isCountryOperationName(owner)) {
         violations.push(`Tainted return from country/jurisdiction function "${owner}" in ${filePath}`);
       }
     }
 
     if (ts.isArrowFunction(node) && !ts.isBlock(node.body) && isTainted(node.body)) {
       const owner = functionLikeName(node);
-      if (/(country|jurisdiction|marketCountry)/i.test(owner)) {
+      if (isCountryOperationName(owner)) {
         violations.push(`Tainted return from country/jurisdiction function "${owner}" in ${filePath}`);
       }
     }
@@ -1060,12 +1058,12 @@ function auditSourceFile(filePath, code) {
       if (hasCountry && hasLocale) {
         violations.push(`Forbidden helper function "${fnName}" in ${filePath}`);
       }
-      if (!canonicalGuideDataModule && isCountryOperationName(fnName)) {
+      if (isCountryOperationName(fnName)) {
         violations.push(`Structural country/jurisdiction resolver "${fnName}" is forbidden in ${filePath}`);
       }
     }
 
-    if (!canonicalGuideDataModule && ts.isMethodDeclaration(node)) {
+    if (ts.isMethodDeclaration(node)) {
       const methodName = getLeafPropertyName(node.name);
       if (isCountryOperationName(methodName)) {
         violations.push(`Structural country/jurisdiction resolver "${methodName}" is forbidden in ${filePath}`);
@@ -1082,18 +1080,26 @@ function auditSourceFile(filePath, code) {
         violations.push(`Dynamic module specifier is forbidden in executable Guide code in ${filePath}`);
       }
       const callee = getLeafPropertyName(node.expression);
-      if (isCountryOperationName(callee)
-        && (!canonicalGuideDataModule || node.arguments.some(isTainted))) {
+      if (isCountryOperationName(callee)) {
         violations.push(`Country/jurisdiction call sink "${node.expression.getText(sf)}" is forbidden in ${filePath}`);
       }
       const mutationSink = structuralMutationApiSink(node);
-      if (!canonicalGuideDataModule && mutationSink) {
+      if (mutationSink) {
         violations.push(`Structural mutation API cannot create country/jurisdiction sink "${mutationSink}" in ${filePath}`);
       }
+      if (node.arguments.length >= 2
+        && isSinkPropertyName(constantString(node.arguments[0]) ?? '')
+        && node.arguments.slice(1).some(isTainted)) {
+        violations.push(`Aliased mutation call cannot create a country/jurisdiction sink in ${filePath}`);
+      }
     }
-    if (!canonicalGuideDataModule && ts.isJsxAttribute(node)
+    if (ts.isJsxAttribute(node)
       && isSinkPropertyName(node.name.text)) {
       violations.push(`Structural JSX country/jurisdiction sink "${node.name.text}" is forbidden in ${filePath}`);
+    }
+
+    if (forbiddenDynamicPropertyApi(node)) {
+      violations.push(`Dynamic property construction API "${node.getText(sf)}" is forbidden in Guide code in ${filePath}`);
     }
 
     ts.forEachChild(node, checkNode);
@@ -1640,9 +1646,15 @@ runAssertion('Structural Regression: reflective mutation APIs cannot create coun
     `result.set('countryCode', locale);`,
     `Object.fromEntries([['countryCode', locale]]);`,
     `const entries = [['countryCode', locale]]; Object.fromEntries(entries);`,
+    `const entries = [['countryCode', locale]]; Object.fromEntries([...entries]);`,
+    `const entries = [['countryCode', locale]]; const wrapped = [...entries]; Object.fromEntries(wrapped);`,
+    `const field = request.field; Object.fromEntries([[field, locale]]);`,
+    `const make = Object.fromEntries; make([['countryCode', locale]]);`,
+    `const define = Object.defineProperty; define(api, 'resolveCountry', { value: () => locale });`,
   ]) {
     const violations = auditSourceFile('test-reflective-country-mutation.ts', statement);
-    assert.ok(violations.some((v) => v.includes('Structural mutation API cannot create country/jurisdiction sink')),
+    assert.ok(violations.some((v) => v.includes('Structural mutation API cannot create country/jurisdiction sink')
+      || v.includes('Dynamic property construction API')),
       `Must reject reflective mutation ${statement}, got: ${JSON.stringify(violations)}`);
   }
 });
@@ -1731,6 +1743,14 @@ runAssertion('Structural Regression: constant lookup is lexical-scope aware', ()
   `);
   assert.deepEqual(reassigned, [],
     `Latest stable assignment must control a computed presentation key, got: ${JSON.stringify(reassigned)}`);
+
+  const conditional = auditSourceFile('test-conditional-let.ts', `
+    let key = 'countryCode';
+    if (condition) key = 'label';
+    const result = { [key]: locale };
+  `);
+  assert.ok(conditional.some((v) => v.includes('Tainted computed property construction')),
+    `Conditional assignment must not erase a possible country sink, got: ${JSON.stringify(conditional)}`);
 });
 
 runAssertion('Structural Regression: country resolvers are forbidden regardless of header access syntax', () => {
@@ -1772,6 +1792,22 @@ runAssertion('Structural Regression: canonical guide data permits only the exact
     assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction property creation "countryCode"')),
       `Must reject noncanonical applicability ${invalid}, got: ${JSON.stringify(violations)}`);
   }
+
+  for (const forbidden of [
+    `const countryCode = 'RO';`,
+    `const api = { resolveCountry() { return 'RO'; } };`,
+  ]) {
+    const violations = auditSourceFile('src/data/guides/test.ts', forbidden);
+    assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction')),
+      `Canonical modules must not receive a file-wide exemption: ${forbidden}; got: ${JSON.stringify(violations)}`);
+  }
+
+  const unresolved = auditSourceFile('src/app/[lang]/resources/guides/test.ts', `
+    const field = request.field;
+    const result = { [field]: 'RO' };
+  `);
+  assert.ok(unresolved.some((v) => v.includes('Tainted computed property construction')),
+    `Unknown computed key with country value must fail closed, got: ${JSON.stringify(unresolved)}`);
 });
 
 // -----------------------------------------------------------------------------
