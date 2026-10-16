@@ -22,7 +22,8 @@ reviewed baseline locations.
 | Surface | Evidence | Finding |
 | --- | --- | --- |
 | Canonical address storage | `supabase/migrations/20260825000300_portfolio_properties_buildings_units.sql:6-13` | `portfolio.addresses` has fixed `county`, `city`, `street`, `building_no` and optional `postal_code`; `properties.address_id` is nullable. The historical migration contained `country_code default 'RO'`. |
-| Effective country rule | `supabase/migrations/20261015183000_core_jurisdiction_profile_v1.sql:7-21` | The later migration drops the default and requires explicit uppercase alpha-2. It states that postal text has no global format or uniqueness. No effective default remains. |
+| Effective country syntax | `supabase/migrations/20261015183000_core_jurisdiction_profile_v1.sql:7-21` | The later migration drops the default and requires explicit uppercase two-letter syntax. It states that postal text has no global format or uniqueness. This is syntactic validation only; it does not prove that a token names a canonical country. |
+| Canonical-country recognition | repository-wide Core/schema search | No canonical country registry exists. A syntactically valid token such as `ZZ` cannot be accepted as canonical. **Dependency CR-01:** `CORE-CANONICAL-COUNTRY-REGISTRY-01`; until it exists, canonical recognition returns `DEPENDENCY_UNAVAILABLE`. |
 | Versioned jurisdiction binding | `supabase/migrations/20261015183000_core_jurisdiction_profile_v1.sql:73-98,217-289` | Assignment identity and version are immutable; address, Property, Workspace and profile country must agree. |
 | In-place country/move guard | `supabase/migrations/20261015183000_core_jurisdiction_profile_v1.sql:296-349` | A bound address country cannot change in place, and an assigned Property cannot be switched to a different-country address. |
 | Property/address create and edit UI | repository-wide `src` search; `src/components/customer/CustomerBuildingSetupWizard.tsx:18-42` | No product form creates or edits canonical `portfolio.addresses`. The setup wizard captures structure and balances only. This is an implementation gap, not permission to infer country. |
@@ -34,6 +35,7 @@ reviewed baseline locations.
 | Older import definition | `supabase/migrations/20260912215541_controlled_residential_import_onboarding.sql:31-99,250-401` | The historical pipeline also stages rows and commits atomically. Later definitions supersede its functions; it remains immutable history. |
 | Onboarding shell | `src/app/[lang]/app/onboarding/page.tsx:16-26` | Completes onboarding/security state; it has no address capture. |
 | AIRPROP opportunity UI/API contract | `src/components/customer/CustomerAirpropWorkspace.tsx:39-64`; `src/lib/airprop/opportunity-contract-v2.ts:16-24`; `supabase/migrations/20261003151604_20261003083859_workspace_scoped_effective_permission.sql:240-255` | Commercial opportunity country is hard-coded to `RO`. It is not a canonical Property address. **Blocker AE-03:** it is unsuitable for multi-country entry and must never seed address country. |
+| Legacy AIRPROP Property configuration | `supabase/migrations/20260914144417_airprop_core_foundation.sql:286-325`; effective internal replacement in `supabase/migrations/20261003151604_20261003083859_workspace_scoped_effective_permission.sql:292-315` | `customer_api.configure_airprop_property_v1` delegates to `app_private.configure_airprop_property_internal_v1`. Both expose an `AIRPROP-RO`/`1.0` default; the effective internal function rejects every other pack/version and records Romania configuration evidence. This is legacy AIRPROP operating-model/Country-Pack configuration. It is neither canonical address authority nor a multi-country Country Pack resolver. |
 | Workspace taxonomy | `src/components/workspace/WorkspaceTaxonomyCard.tsx:201-225,247-283,454-468`; `supabase/migrations/20260916120000_workspace_taxonomy_mutation.sql:528-586,779-827` | Taxonomy country is explicit and versioned, but is Workspace configuration, not address authority or an address default. |
 | Address formatter | `src/config/formatters.ts:180-199` | `formatAddress` rewrites Romanian-style tokens in an opaque string for display. **Blocker AE-04:** it is not a canonical multi-country formatter and must not parse, normalize or choose country. |
 | Owner-private address text | `supabase/migrations/20260925131751_multi_unit_owner_private_portfolio_v1.sql:36-46`; `supabase/migrations/20260929065846_owner_portfolio_manager_invite.sql:132-140` | `address_text` is an opaque private label synthesized from Building/Unit names. It is not a canonical address and cannot be mined for country or postal data. |
@@ -44,49 +46,81 @@ reviewed baseline locations.
 
 No API, RPC, server action or UI currently offers a compliant create/edit/change-
 country operation for canonical addresses. Finding an addressless Property, a
-legacy `RO` opportunity, Workspace taxonomy country, locale, currency, timezone,
-phone, IP/header data or opaque address text does not authorize a default.
+legacy `RO` opportunity, the `AIRPROP-RO` Property-configuration default,
+Workspace taxonomy country, locale, currency, timezone, phone, IP/header data or
+opaque address text does not authorize an address default. The AIRPROP
+configuration RPCs configure legacy operating-model evidence; they do not prove
+the Property address country or select a multi-country Country Pack.
 
 ## Canonical address-entry contract
 
-1. A new canonical address carries a user-visible, explicit, validated
-   `country_code`. It is uppercase alpha-2 at the storage boundary. The value may
-   come only from the user's explicit selection or an authorized command whose
-   input records that explicit selection.
-2. Locale, language, currency, timezone, phone prefix, IP, browser headers,
+1. A new canonical address carries a user-visible, explicit `country_code`. The
+   current storage boundary validates only uppercase two-letter syntax. This is
+   not ISO membership or canonical-country validation. The value may come only
+   from the user's explicit selection or an authorized command whose input
+   records that explicit selection.
+2. Canonical recognition requires the Core-owned
+   `CORE-CANONICAL-COUNTRY-REGISTRY-01`. Until that registry exists and recognizes
+   the exact token, a syntactically valid value including `ZZ` yields
+   `DEPENDENCY_UNAVAILABLE` and no write. AIRPROP must not create a local registry
+   or treat the syntax check, `AIRPROP-RO`, Workspace taxonomy or a Country Pack
+   code as recognition evidence.
+3. Locale, language, currency, timezone, phone prefix, IP, browser headers,
    Workspace defaults and tenant defaults never generate, repair or override
    `country_code`. A missing or ambiguous value fails before any canonical write.
-3. `postal_code` is text contextual to country and the other address parts. It is
+4. `postal_code` is text contextual to country and the other address parts. It is
    not globally unique; the same value may occur in different countries or
    Properties. There is no universal numeric, length, case or regex rule. Before
    an accepted canonical artifact is resolved, country-specific validation and
    compliance claims remain unavailable.
-4. Address structures are not globally uniform. Administrative areas may be
+5. Address structures are not globally uniform. Administrative areas may be
    absent, repeated or multi-level. Region/state/province/district labels and
    display order are presentation metadata. Translated labels do not grant
    authority and locale never mutates stored address data or country.
-5. A country change is never an update of the connected address row. It requires
+6. A country change is never an update of the connected address row. It requires
    a new canonical address, a new effective-dated Property address assignment and
    a new jurisdiction assignment/version in one separately reviewed workflow.
    Old addresses, assignments, receipts and documents remain immutable.
-6. New reads and writes reject missing, malformed, ambiguous or cross-Workspace
+7. New reads and writes reject missing, malformed, unrecognized, ambiguous or cross-Workspace
    address identity. They do not backfill or infer historical rows. Remediation
    is an evidence-based, separately authorized package.
-7. Address country is physical metadata. It is not a permission, command
+8. Address country is physical metadata. It is not a permission, command
    authority, Country Pack activation, compliance result or runtime grant.
-8. Public responses and errors expose no full address, unit, actor, membership,
+9. Public responses and errors expose no full address, unit, actor, membership,
    hidden Property existence, provider detail or raw database message.
-9. This contract does not activate unit-linked AIRPROP output. It remains fail-
+10. This contract does not activate unit-linked AIRPROP output. It remains fail-
    closed pending the accepted canonical selectors and movement semantics.
+
+## Exact current country-move blockers
+
+Two independent Core guards deny a cross-country move today; this package does
+not weaken either one:
+
+- `guard_property_jurisdiction_assignment_v1` at
+  `supabase/migrations/20261015183000_core_jurisdiction_profile_v1.sql:247-289`
+  raises `property_jurisdiction_country_rebind_forbidden` when any active,
+  superseded or archived assignment for the Property has a different country
+  from the proposed profile. Creating another assignment/version therefore does
+  not currently permit a cross-country rebind once history exists.
+- `guard_jurisdiction_bound_property_address_v1` at the same migration
+  `:315-332` raises `property_jurisdiction_property_country_immutable` when a
+  historically assigned Property is pointed at an address whose country differs
+  from the latest bound country. The address-country guard at `:300-313` also
+  denies changing the connected address country in place.
+
+The future delivery sequence is intentionally Core canonical-country registry,
+then Core country-move/rebinding contract, then Core guard implementation, and
+only then `AIRPROP-PROPERTY-COUNTRY-MOVE-09`. AIRPROP cannot route around the
+present guards or predefine their replacement.
 
 ## Operation matrix
 
 | Operation | Required input and checks | Atomic result | Current state |
 | --- | --- | --- | --- |
-| Create address/Property | Explicit canonical country; authorized actor, Context, Workspace and Property scope; country-neutral address fields; no defaults | Address, Property linkage and required version evidence either commit together or nothing writes | `BLOCKED_AE_01`: no compliant product path |
+| Create address/Property | Explicit uppercase two-letter input, canonical recognition by the future Core registry, authorized actor, Context, Workspace and Property scope; country-neutral address fields; no defaults | Address, Property linkage and required version evidence either commit together or nothing writes | `BLOCKED_AE_01` and `DEPENDENCY_UNAVAILABLE_CR_01` |
 | Edit within same country | Existing current address/version plus allowed field delta; country remains identical | Forward correction/version where history requires it; no receipt rewrite | `NOT_IMPLEMENTED` |
 | Change country / move Property | New address plus explicit country, new effective assignment/version, current authority and conflict guard | New chain commits together; previous chain closes and remains immutable | `BLOCKED`: separate move package required |
-| CSV/bulk import | Every address row has an explicit `country_code`; invalid/missing country is a blocking row issue; duplicate postal values allowed | Staging may report row issues; canonical commit is all-or-none under the current importer | `BLOCKED_AE_02`: current Property template has no address contract |
+| CSV/bulk import | Every address row has explicit two-letter `country_code` input and future Core-registry recognition; missing, malformed, unrecognized or dependency-unavailable country is a blocking row issue; duplicate postal values are allowed | Staging may report row issues; canonical commit is all-or-none under the current importer | `BLOCKED_AE_02` and `DEPENDENCY_UNAVAILABLE_CR_01` |
 | Display form | Render stored values; locale may select labels, direction and order only | No write and no normalization of country/data | `BLOCKED_AE_04`: current formatter is Romania-shaped |
 | Historical NULL/addressless | Evidence review only; no inferred patch | No automatic write or backfill | `SEPARATE_REMEDIATION_REQUIRED` |
 
@@ -98,11 +132,13 @@ reviewed contract explicitly versions a different model.
 
 ## UI field model
 
-The future UI starts with a required country selector whose canonical value is
-stored independently from translated labels. Until a reviewed country artifact
-is available, the neutral model contains:
+The future UI starts with a required country input whose submitted token is
+stored independently from translated labels. Selectable canonical values remain
+blocked until the Core registry is available. The neutral model contains:
 
-- `country_code`: explicit uppercase alpha-2, always required;
+- `country_code`: explicit uppercase two-letter input, always required; selectable
+  values must eventually come from the accepted Core canonical-country registry,
+  which is currently unavailable;
 - one or more bounded address lines and locality text without invented national
   meaning;
 - ordered administrative levels represented as optional level/value pairs,
@@ -119,7 +155,7 @@ status that the canonical resolver did not return.
 
 ## Historical NULL and legacy policy
 
-- Do not backfill canonical country from old `RO` defaults, names, address text,
+- Do not backfill stored address country from old `RO` defaults, names, address text,
   postal text, currency, timezone, phone, locale, Workspace or tenant metadata.
 - A canonical address cannot currently hold NULL country, but an addressless
   Property is possible. New entry/read workflows treat both missing address and
@@ -137,7 +173,9 @@ status that the canonical resolver did not return.
 | Public code | Meaning | Forbidden disclosure |
 | --- | --- | --- |
 | `ADDRESS_COUNTRY_REQUIRED` | Explicit country absent | inferred candidate or defaults |
-| `ADDRESS_COUNTRY_INVALID` | Country value is malformed or unsupported by the accepted entry contract | Country Pack/provider internals |
+| `ADDRESS_COUNTRY_INVALID_SYNTAX` | Country value is not exactly two uppercase letters | inferred correction or Country Pack/provider internals |
+| `DEPENDENCY_UNAVAILABLE` | Core canonical-country registry is absent/unavailable, so even a syntactically valid token cannot be recognized | guessed canonical status, registry/provider internals |
+| `ADDRESS_COUNTRY_UNRECOGNIZED` | Future available Core registry does not recognize the supplied token | fallback country or inferred replacement |
 | `ADDRESS_STRUCTURE_UNAVAILABLE` | No accepted structure artifact for requested behavior | fabricated field rules or compliance status |
 | `ADDRESS_SCOPE_DENIED` | Actor/Context/Workspace/Property scope not accepted | existence, address, membership or denial detail |
 | `ADDRESS_VERSION_CONFLICT` | Current address/assignment version changed | current private values |
@@ -169,26 +207,33 @@ public shape as an inaccessible/missing resource.
 
 ## Follow-up execution packages
 
-1. **Core: `CORE-CURRENT-PROPERTY-ADDRESS-COUNTRY-READ-SELECTOR-01`.** Supply the
+1. **Core: `CORE-CANONICAL-COUNTRY-REGISTRY-01`.** Publish the authoritative
+   canonical-country recognition interface. Uppercase two-letter syntax alone is
+   never sufficient, and unknown tokens remain unavailable.
+2. **Core: `CORE-COUNTRY-MOVE-REBINDING-CONTRACT-01`.** Define the forward-only
+   country-move/rebinding semantics and immutable history model.
+3. **Core: `CORE-COUNTRY-MOVE-GUARD-IMPLEMENTATION-01`.** Implement the reviewed
+   contract in the assignment/address guards without weakening existing denial.
+4. **AIRPROP: `AIRPROP-PROPERTY-COUNTRY-MOVE-09`.** Consume the accepted Core
+   registry, rebinding contract and guards; coordinate a new address, Workspace/
+   Property binding and jurisdiction assignment/version without rewriting history.
+5. **Core: `CORE-CURRENT-PROPERTY-ADDRESS-COUNTRY-READ-SELECTOR-01`.** Supply the
    same-transaction read dependency already required by #440. AIRPROP does not
    own or pre-implement it.
-2. **Core/Platform: `CORE-CANONICAL-ADDRESS-STRUCTURE-V2-01`.** Define a country-
+6. **Core/Platform: `CORE-CANONICAL-ADDRESS-STRUCTURE-V2-01`.** Define a country-
    neutral, versioned address structure and atomic Property address assignment;
    resolve the fixed Romania-shaped column blocker without inferred migration.
-3. **AIRPROP: `AIRPROP-CANONICAL-ADDRESS-ENTRY-UI-API-07`.** Implement create and
+7. **AIRPROP: `AIRPROP-CANONICAL-ADDRESS-ENTRY-UI-API-07`.** Implement create and
    same-country edit after the Core contracts are accepted, with explicit country
    and bounded errors.
-4. **AIRPROP: `AIRPROP-CANONICAL-ADDRESS-IMPORT-08`.** Version the Property CSV
+8. **AIRPROP: `AIRPROP-CANONICAL-ADDRESS-IMPORT-08`.** Version the Property CSV
    template to require explicit country and preserve all-or-none commit semantics.
-5. **AIRPROP: `AIRPROP-PROPERTY-COUNTRY-MOVE-09`.** Coordinate a new address,
-   Workspace/Property binding and jurisdiction assignment/version without
-   rewriting history.
-6. **AIRPROP: `AIRPROP-HISTORICAL-ADDRESS-REMEDIATION-10`.** Inventory and review
+9. **AIRPROP: `AIRPROP-HISTORICAL-ADDRESS-REMEDIATION-10`.** Inventory and review
    addressless/unknown legacy records using evidence; never infer or bulk backfill.
-7. **AIRPROP: `AIRPROP-OPPORTUNITY-EXPLICIT-COUNTRY-11`.** Replace the legacy
+10. **AIRPROP: `AIRPROP-OPPORTUNITY-EXPLICIT-COUNTRY-11`.** Replace the legacy
    Romania-only opportunity input independently; it still must not become address
    authority.
-8. **AIRPROP: `AIRPROP-ADDRESS-PRESENTATION-12`.** Add artifact-backed,
+11. **AIRPROP: `AIRPROP-ADDRESS-PRESENTATION-12`.** Add artifact-backed,
    presentation-only formatting after the structure contract is accepted.
 
 ## Preserved state and validation classification
