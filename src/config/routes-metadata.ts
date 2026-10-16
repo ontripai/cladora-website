@@ -126,16 +126,16 @@ export const ROUTE_METADATA_DEFINITIONS: Record<string, Record<Language, RouteCo
   },
   '/service': {
     ro: {
-      title: 'SERVICE — Catalog de Servicii, Ofertare Concurențială & Recepție',
-      desc: 'Lansarea cererilor de servicii, compararea devizelor de cost și timp, comenzi de lucru, recepție semnată și înregistrarea permanentă a istoricului pe activ.',
+      title: 'SERVICE — Servicii și Rezervări pentru Membri',
+      desc: 'Un Workspace își poate configura propriul catalog de servicii pentru membri, cu preț fix, tarifare după consum, abonament, rezervare, ofertare sau evaluare ulterioară, separat de mentenanța obligatorie.',
     },
     en: {
-      title: 'SERVICE — Service Marketplace, Quote Comparison & Execution',
-      desc: 'Structured service requests, side-by-side quote comparison, milestone work orders, verified digital sign-offs, and permanent asset service logs.',
+      title: 'SERVICE — Member Services & Bookings',
+      desc: 'A Workspace can configure its own member service catalog with fixed-price, usage-based, subscription, booking, quotation, or post-assessment models, kept distinct from mandatory maintenance.',
     },
     fa: {
-      title: 'SERVICE — کاتالوگ خدمات، استعلام قیمت، سفارش و نظارت',
-      desc: 'انتخاب خدمات، ثبت نیاز، دریافت و مقایسه پیشنهادها، توافق بر دامنه و هزینه، پیگیری اجرا، پذیرش نتیجه و ثبت ماندگار در شناسنامه دارایی.',
+      title: 'SERVICE — خدمات و رزروهای اعضای Workspace',
+      desc: 'هر Workspace می‌تواند کاتالوگ خدمات اعضای خود را با مدل‌های قیمت ثابت، مبتنی بر مصرف، اشتراک، رزرو، استعلام قیمت یا ارزیابی پس از کار پیکربندی کند؛ جدا از نگهداری الزامی.',
     },
   },
   '/operations': {
