@@ -43,7 +43,7 @@ const canonical=value=>Array.isArray(value)?`[${value.map(canonical).join(',')}]
       .map(([key,child])=>`${JSON.stringify(key)}:${canonical(child)}`).join(',')}}`
     :JSON.stringify(value);
 const sleep=milliseconds=>new Promise(resolve=>setTimeout(resolve,milliseconds));
-let ids,checks=0,profileV1,profileV2,assignmentId,countryCode;
+let ids,checks=0,profileV1,profileV2,assignmentId,countryCode,v1Evidence;
 const check=async(name,fn)=>{await fn();console.log(`ok ${++checks} - ${name}`);};
 const revision=async client=>Number((await client.query(
   'select revision::text from app_private.canonical_authority_revision_v1 where singleton'
@@ -53,7 +53,8 @@ const effectDigest=async()=>{
     (select count(*)::text from platform.idempotency_keys) as idempotency,
     (select count(*)::text from audit.events) as audit,
     (select count(*)::text from platform.outbox_events) as outbox,
-    (select count(*)::text from platform.jurisdiction_domain_artifacts) as artifacts`);
+    (select count(*)::text from platform.jurisdiction_domain_artifacts) as artifacts,
+    (select count(*)::text from platform.jurisdiction_domain_artifact_receipt_evidence) as evidence`);
   return hash(JSON.stringify(result.rows[0]));
 };
 const review=seed=>({status:'approved',review_version:1,
@@ -153,33 +154,54 @@ async function beginScope({attempt=1,client:provided=null,resolve=true}={}){
 async function finish(tx,operation='rollback'){
   if(tx.owned){await tx.client.query(operation);tx.client.release();}
 }
-async function currentRequest(tx,selection){
+async function currentRequest(tx){
   return{contract_version:resolver.CORE_JURISDICTION_DOMAIN_ARTIFACT_RESOLVER_REQUEST_V1,
     mode:'current',transaction_id:tx.command.transaction_id,command_id:tx.command.command_id,
     attempt:tx.scope.attempt,context_id:tx.command.context_id,workspace_id:tx.command.workspace_id,
     actor_id:tx.command.actor_id,authority_version:tx.command.authority_version,
     provider_source_ids:tx.command.provider_source_ids,lock:{kind:'command_aggregate',
       aggregate_type:tx.command.aggregate_type,aggregate_id:tx.command.aggregate_id},
-    domain_code:'address.structure',domain_version:'address-structure.v1',
-    effective_at:selection.evaluated_at};
+    property_id:ids.propertyIds[0],expected_country_code:countryCode,
+    domain_code:'address.structure',domain_version:'address-structure.v1'};
 }
 async function selectAndResolve(tx){
-  const selection=await selector.selectCurrentPropertyJurisdictionProfileV1(tx.scope,tx.command,
-    tx.authority,{contract_version:selector.CORE_JURISDICTION_PROFILE_SELECTOR_REQUEST_V1,
-      property_id:ids.propertyIds[0],expected_country_code:countryCode,
-      required_domain_codes:['address.structure']});
-  if(selection.decision!=='accepted')return{selection};
   const decision=await resolver.resolveCurrentJurisdictionDomainArtifactV1(tx.scope,tx.command,
-    tx.authority,selection,await currentRequest(tx,selection));
-  return{selection,decision};
+    tx.authority,await currentRequest(tx));
+  return{decision};
 }
-function historicalRequest(profile,value,effectiveAt){
+function historicalRequest(tx,profile,value,effectiveAt,evidence=v1Evidence){
   return{contract_version:resolver.CORE_JURISDICTION_DOMAIN_ARTIFACT_RESOLVER_REQUEST_V1,
-    mode:'historical',reference:{profile_id:profile.id,profile_code:profile.code,
-      profile_version:profile.version,country_code:countryCode,
-      profile_manifest_sha256:profile.manifest,domain_code:'address.structure',
-      domain_version:'address-structure.v1',artifact_sha256:value.artifactSha,
-      effective_at:effectiveAt}};
+    mode:'historical',transaction_id:tx.command.transaction_id,
+    command_id:tx.command.command_id,attempt:tx.scope.attempt,context_id:tx.command.context_id,
+    workspace_id:tx.command.workspace_id,actor_id:tx.command.actor_id,
+    authority_version:tx.command.authority_version,provider_source_ids:tx.command.provider_source_ids,
+    lock:{kind:'command_aggregate',aggregate_type:tx.command.aggregate_type,
+      aggregate_id:tx.command.aggregate_id},committed_evidence:{
+      contract_version:resolver.CORE_JURISDICTION_DOMAIN_ARTIFACT_COMMITTED_EVIDENCE_V1,
+      receipt_id:evidence.receiptId,source_workspace_id:ids.workspaceIds[0],
+      source_property_id:ids.propertyIds[0],source_actor_id:actor,
+      source_transaction_id:evidence.sourceTransactionId,
+      source_command_id:evidence.sourceCommandId,source_attempt:1,reference:{
+        profile_id:profile.id,profile_code:profile.code,profile_version:profile.version,
+        country_code:countryCode,profile_manifest_sha256:profile.manifest,
+        domain_code:'address.structure',domain_version:'address-structure.v1',
+        artifact_sha256:value.artifactSha,effective_at:effectiveAt}}};
+}
+async function recordCommittedEvidence(profile,value,effectiveAt){
+  const artifact=(await pool.query(`select id::text from platform.jurisdiction_domain_artifacts
+    where jurisdiction_profile_id=$1 and artifact_sha256=$2`,[profile.id,value.artifactSha])).rows[0];
+  const receiptId=randomUUID(),sourceTransactionId=randomUUID(),sourceCommandId=randomUUID();
+  await pool.query(`insert into platform.jurisdiction_domain_artifact_receipt_evidence(
+    receipt_id,tenant_id,workspace_id,source_property_id,source_actor_id,
+    source_transaction_id,source_command_id,source_attempt,artifact_id,
+    jurisdiction_profile_id,profile_code,profile_version,country_code,
+    profile_manifest_sha256,domain_code,domain_version,artifact_sha256,effective_at)
+    values($1,$2,$3,$4,$5,$6,$7,1,$8,$9,$10,$11,$12,$13,
+      'address.structure','address-structure.v1',$14,$15)`,[
+    receiptId,ids.tenantId,ids.workspaceIds[0],ids.propertyIds[0],actor,
+    sourceTransactionId,sourceCommandId,artifact.id,profile.id,profile.code,profile.version,
+    countryCode,profile.manifest,value.artifactSha,effectiveAt]);
+  return{receiptId,sourceTransactionId,sourceCommandId};
 }
 async function waitForBlocked(fragment){
   for(let index=0;index<300;index+=1){
@@ -211,7 +233,10 @@ try{
   profileV2={id:randomUUID(),code,version:2,manifest:hash(`${code}:v2`),
     validFrom:'2026-01-01',validTo:null};
   const v1=await installProfile(profileV1,artifactInput(profileV1,{
-    effectiveFrom:'2025-01-01T00:00:00.000Z',effectiveTo:'2026-01-01T00:00:00.000Z'}),'retired');
+    effectiveFrom:'2025-01-01T00:00:00.000Z',effectiveTo:'2026-01-01T00:00:00.000Z'}),'active');
+  v1Evidence=await recordCommittedEvidence(profileV1,v1,'2025-06-01T00:00:00.000Z');
+  await pool.query("update platform.jurisdiction_profiles set status='retired' where id=$1",
+    [profileV1.id]);
   const v2=await installProfile(profileV2,artifactInput(profileV2,{
     effectiveFrom:'2026-01-01T00:00:00.000Z'}),'active');
   assignmentId=randomUUID();
@@ -226,8 +251,7 @@ try{
   await check('current selector and resolver share one transaction, authority and locked v2 bytes',async()=>{
     const before=await effectDigest(),tx=await beginScope();
     try{
-      const {selection,decision}=await selectAndResolve(tx);
-      assert.equal(selection.decision,'accepted',JSON.stringify(selection));
+      const {decision}=await selectAndResolve(tx);
       assert.equal(decision.decision,'accepted',JSON.stringify(decision));
       assert.equal(decision.artifact.artifact_sha256,v2.artifactSha);
       assert.equal(decision.reusable_as_command_authority,false);
@@ -236,16 +260,48 @@ try{
   });
 
   await check('historical v1 remains exact after v2 activation and gap never substitutes v2',async()=>{
-    const tx=await beginScope({resolve:false});
+    const tx=await beginScope();
     try{
       const exact=await resolver.resolveHistoricalJurisdictionDomainArtifactV1(tx.scope,
-        historicalRequest(profileV1,v1,'2025-06-01T00:00:00.000Z'));
+        tx.command,tx.authority,historicalRequest(tx,profileV1,v1,'2025-06-01T00:00:00.000Z'));
       assert.equal(exact.decision,'accepted',JSON.stringify(exact));
       assert.equal(exact.artifact.artifact_sha256,v1.artifactSha);
       const gap=await resolver.resolveHistoricalJurisdictionDomainArtifactV1(tx.scope,
-        historicalRequest(profileV1,v1,'2026-06-01T00:00:00.000Z'));
-      assert.equal(gap.decision,'denied');assert.equal(gap.denial_reason,'ARTIFACT_UNAVAILABLE');
+        tx.command,tx.authority,
+        historicalRequest(tx,profileV1,v1,'2026-06-01T00:00:00.000Z'));
+      assert.equal(gap.decision,'denied');
+      assert.equal(gap.denial_reason,'HISTORICAL_RECEIPT_UNAVAILABLE');
     }finally{await finish(tx);}
+  });
+
+  await check('cross-transaction selector decision cannot survive profile revocation',async()=>{
+    const first=await beginScope();let oldSelection;
+    try{
+      oldSelection=await selector.selectCurrentPropertyJurisdictionProfileV1(first.scope,
+        first.command,first.authority,{
+          contract_version:selector.CORE_JURISDICTION_PROFILE_SELECTOR_REQUEST_V1,
+          property_id:ids.propertyIds[0],expected_country_code:countryCode,
+          required_domain_codes:['address.structure']});
+      assert.equal(oldSelection.decision,'accepted');
+    }finally{await finish(first,'commit');}
+    await pool.query("update platform.jurisdiction_profiles set status='suspended' where id=$1",
+      [profileV2.id]);
+    const before=await effectDigest(),second=await beginScope();
+    try{
+      const injected=await resolver.resolveCurrentJurisdictionDomainArtifactV1(second.scope,
+        second.command,second.authority,{...await currentRequest(second),selection:oldSelection});
+      assert.equal(injected.decision,'denied');
+      assert.equal(injected.denial_reason,'BINDING_MISMATCH');
+      const current=await resolver.resolveCurrentJurisdictionDomainArtifactV1(second.scope,
+        second.command,second.authority,await currentRequest(second));
+      assert.equal(current.decision,'denied');
+      assert.equal(current.denial_reason,'PROFILE_SELECTION_UNAVAILABLE');
+    }finally{
+      await finish(second);
+      await pool.query("update platform.jurisdiction_profiles set status='active' where id=$1",
+        [profileV2.id]);
+    }
+    assert.equal(await effectDigest(),before);
   });
 
   await check('canonical bytes are immutable and missing, tampered or overlapping rows are rejected',async()=>{
@@ -283,7 +339,7 @@ try{
     error=>['23505','23P01'].includes(error?.code));
   });
 
-  await check('malformed official schema is stored only as immutable bytes and denied by resolver',async()=>{
+  await check('never-activated artifact cannot create committed evidence and fake receipt is denied',async()=>{
     const profile={id:randomUUID(),code:`de.malformed.${randomUUID().slice(0,8)}`,version:1,
       manifest:hash('malformed-manifest'),validFrom:'2026-01-01',validTo:null};
     const malformed={contract_version:'core-jurisdiction-domain-artifact.v1',artifact_version:1,
@@ -308,27 +364,38 @@ try{
       values($1,$2,1,$3,$4,'core-jurisdiction-domain-artifact.v1',1,
         'address.structure','address-structure.v1',$5,$6,'2026-01-01','active')`,
     [profile.id,profile.code,countryCode,profile.manifest,artifactSha,bytes]);
-    const tx=await beginScope({resolve:false});
+    const artifact=(await pool.query(`select id::text from platform.jurisdiction_domain_artifacts
+      where jurisdiction_profile_id=$1`,[profile.id])).rows[0];
+    const fakeReceipt=randomUUID();
+    await assert.rejects(pool.query(`insert into
+      platform.jurisdiction_domain_artifact_receipt_evidence(
+        receipt_id,tenant_id,workspace_id,source_property_id,source_actor_id,
+        source_transaction_id,source_command_id,source_attempt,artifact_id,
+        jurisdiction_profile_id,profile_code,profile_version,country_code,
+        profile_manifest_sha256,domain_code,domain_version,artifact_sha256,effective_at)
+      values($1,$2,$3,$4,$5,$6,$7,1,$8,$9,$10,1,$11,$12,
+        'address.structure','address-structure.v1',$13,'2026-06-01')`,[
+      fakeReceipt,ids.tenantId,ids.workspaceIds[0],ids.propertyIds[0],actor,
+      randomUUID(),randomUUID(),artifact.id,profile.id,profile.code,countryCode,
+      profile.manifest,artifactSha]),error=>error?.code==='55000');
+    await pool.query("update platform.jurisdiction_profiles set status='retired' where id=$1",
+      [profile.id]);
+    const tx=await beginScope();
     try{
-      const decision=await resolver.resolveHistoricalJurisdictionDomainArtifactV1(tx.scope,{
-        contract_version:resolver.CORE_JURISDICTION_DOMAIN_ARTIFACT_RESOLVER_REQUEST_V1,
-        mode:'historical',reference:{profile_id:profile.id,profile_code:profile.code,
-          profile_version:1,country_code:countryCode,profile_manifest_sha256:profile.manifest,
-          domain_code:'address.structure',domain_version:'address-structure.v1',artifact_sha256:artifactSha,
-          effective_at:'2026-06-01T00:00:00.000Z'}});
+      const value={artifactSha};
+      const decision=await resolver.resolveHistoricalJurisdictionDomainArtifactV1(tx.scope,
+        tx.command,tx.authority,
+        historicalRequest(tx,profile,value,'2026-06-01T00:00:00.000Z',{
+          receiptId:fakeReceipt,sourceTransactionId:randomUUID(),sourceCommandId:randomUUID()}));
       assert.equal(decision.decision,'denied');
-      assert.equal(decision.denial_reason,'ARTIFACT_SCHEMA_UNSUPPORTED');
+      assert.equal(decision.denial_reason,'HISTORICAL_RECEIPT_UNAVAILABLE');
     }finally{await finish(tx);}
   });
 
   await check('revoked authority, cross-Workspace and source-lock mismatches are zero-query denials',async()=>{
     const before=await effectDigest(),tx=await beginScope();
     try{
-      const selection=await selector.selectCurrentPropertyJurisdictionProfileV1(tx.scope,tx.command,
-        tx.authority,{contract_version:selector.CORE_JURISDICTION_PROFILE_SELECTOR_REQUEST_V1,
-          property_id:ids.propertyIds[0],expected_country_code:countryCode,
-          required_domain_codes:['address.structure']});
-      const request=await currentRequest(tx,selection);
+      const request=await currentRequest(tx);
       for(const [changedAuthority,changedRequest] of [
         [{...tx.authority,decision:'denied',denial_reason:'ACTOR_REVOKED'},request],
         [tx.authority,{...request,workspace_id:randomUUID()}],
@@ -336,26 +403,26 @@ try{
       ]){
         const noQuery={...tx.scope,query(){throw new Error('must not query');}};
         const decision=await resolver.resolveCurrentJurisdictionDomainArtifactV1(noQuery,
-          tx.command,changedAuthority,selection,changedRequest);
+          tx.command,changedAuthority,changedRequest);
         assert.equal(decision.decision,'denied');
       }
     }finally{await finish(tx);}
     assert.equal(await effectDigest(),before);
   });
 
-  await check('FOR SHARE serializes concurrent profile retirement until resolution completes',async()=>{
+  await check('FOR SHARE serializes concurrent assignment move until resolution completes',async()=>{
     const tx=await beginScope();let pending,closed=false;
     try{
       const {decision}=await selectAndResolve(tx);assert.equal(decision.decision,'accepted');
       const second=await pool.connect();
       pending=(async()=>{try{await second.query('begin');await second.query(
-        `update platform.jurisdiction_profiles set status='retired'
-          where id=$1 /* artifact-resolver-concurrent-retire */`,[profileV2.id]);
+        `update platform.property_jurisdiction_assignments set status='superseded',valid_to=now()
+          where id=$1 /* artifact-resolver-concurrent-assignment-move */`,[assignmentId]);
         await second.query('rollback');}finally{second.release();}})();
-      await waitForBlocked('artifact-resolver-concurrent-retire');
+      await waitForBlocked('artifact-resolver-concurrent-assignment-move');
       await finish(tx,'commit');closed=true;await pending;
-      const state=await pool.query('select status::text from platform.jurisdiction_profiles where id=$1',
-        [profileV2.id]);
+      const state=await pool.query(`select status::text
+        from platform.property_jurisdiction_assignments where id=$1`,[assignmentId]);
       assert.equal(state.rows[0].status,'active');
     }catch(error){if(!closed)await finish(tx).catch(()=>{});throw error;}
     finally{if(pending)await pending.catch(()=>{});}
@@ -375,9 +442,9 @@ try{
     try{
       const tx=await beginScope({attempt:2});
       try{
-        const {selection}=await selectAndResolve(tx);
-        assert.equal(selection.decision,'denied');
-        assert.equal(selection.denial_reason,'JURISDICTION_UNAVAILABLE');
+        const {decision}=await selectAndResolve(tx);
+        assert.equal(decision.decision,'denied');
+        assert.equal(decision.denial_reason,'PROFILE_SELECTION_UNAVAILABLE');
       }finally{await finish(tx);}
     }finally{
       await pool.query("update platform.jurisdiction_profiles set status='active' where id=$1",
@@ -386,15 +453,21 @@ try{
   });
 
   await check('RLS, ACL, canonical owner and recursive membership remain fail-closed',async()=>{
-    const table=(await pool.query(`select c.relrowsecurity,c.relowner::regrole::text owner,
+    const tables=await pool.query(`select c.relname,c.relrowsecurity,c.relowner::regrole::text owner,
       has_table_privilege('anon',c.oid,'SELECT') anon_select,
       has_table_privilege('authenticated',c.oid,'SELECT') authenticated_select,
       has_table_privilege('service_role',c.oid,'SELECT') service_select
       from pg_class c join pg_namespace n on n.oid=c.relnamespace
-      where n.nspname='platform' and c.relname='jurisdiction_domain_artifacts'`)).rows[0];
-    assert.equal(table.relrowsecurity,true);assert.notEqual(table.owner,'cladora_ce_guide_executor');
-    assert.equal(table.anon_select,false);
-    assert.equal(table.authenticated_select,false);assert.equal(table.service_select,false);
+      where n.nspname='platform' and c.relname in
+        ('jurisdiction_domain_artifacts','jurisdiction_domain_artifact_receipt_evidence')
+      order by c.relname`);
+    assert.equal(tables.rowCount,2);
+    for(const table of tables.rows){
+      assert.equal(table.relrowsecurity,true);
+      assert.notEqual(table.owner,'cladora_ce_guide_executor');
+      assert.equal(table.anon_select,false);assert.equal(table.authenticated_select,false);
+      assert.equal(table.service_select,false);
+    }
     const functions=await pool.query(`select p.proname,p.prosecdef,p.proowner::regrole::text owner,
       coalesce((select bool_or(a.privilege_type='EXECUTE')
         from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a
@@ -404,8 +477,9 @@ try{
       has_function_privilege('service_role',p.oid,'EXECUTE') service_execute
       from pg_proc p join pg_namespace n on n.oid=p.pronamespace
       where n.nspname='app_private' and p.proname in
-        ('canonical_jsonb_text_v1','guard_jurisdiction_domain_artifact_v1')`);
-    assert.equal(functions.rowCount,2);
+        ('canonical_jsonb_text_v1','guard_jurisdiction_domain_artifact_v1',
+          'guard_jurisdiction_domain_artifact_receipt_evidence_v1')`);
+    assert.equal(functions.rowCount,3);
     for(const fn of functions.rows){
       assert.equal(fn.owner,'cladora_rpc_owner');assert.equal(fn.public_execute,false);
       assert.equal(fn.anon_execute,false);assert.equal(fn.authenticated_execute,false);

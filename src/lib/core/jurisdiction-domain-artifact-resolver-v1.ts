@@ -12,7 +12,10 @@ import {
   coreJurisdictionDomainArtifactV1Schema,
   type CoreJurisdictionDomainArtifactV1,
 } from './jurisdiction-domain-artifact-v1.ts';
-import { jurisdictionProfileSelectorDecisionV1Schema } from './jurisdiction-profile-selector-v1.ts';
+import {
+  CORE_JURISDICTION_PROFILE_SELECTOR_REQUEST_V1,
+  selectCurrentPropertyJurisdictionProfileV1,
+} from './jurisdiction-profile-selector-v1.ts';
 import {
   coreTransactionCommandV1Schema,
   coreTransactionCommandV2Schema,
@@ -25,6 +28,8 @@ export const CORE_JURISDICTION_DOMAIN_ARTIFACT_RESOLVER_REQUEST_V1 =
   'core-jurisdiction-domain-artifact-resolver-request.v1' as const;
 export const CORE_JURISDICTION_DOMAIN_ARTIFACT_RESOLVER_DECISION_V1 =
   'core-jurisdiction-domain-artifact-resolver-decision.v1' as const;
+export const CORE_JURISDICTION_DOMAIN_ARTIFACT_COMMITTED_EVIDENCE_V1 =
+  'core-jurisdiction-domain-artifact-committed-evidence.v1' as const;
 
 const timestamp = z.string().datetime({ offset: true });
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
@@ -67,15 +72,42 @@ export const currentJurisdictionDomainArtifactResolverRequestV1Schema = z.strict
     aggregate_type: code,
     aggregate_id: uuidSchema,
   }),
+  property_id: uuidSchema,
+  expected_country_code: countryCode.optional(),
   domain_code: code,
   domain_version: code,
-  effective_at: timestamp,
+});
+
+export const committedJurisdictionDomainArtifactEvidenceReferenceV1Schema = z.strictObject({
+  contract_version: z.literal(CORE_JURISDICTION_DOMAIN_ARTIFACT_COMMITTED_EVIDENCE_V1),
+  receipt_id: uuidSchema,
+  source_workspace_id: uuidSchema,
+  source_property_id: uuidSchema,
+  source_actor_id: uuidSchema,
+  source_transaction_id: uuidSchema,
+  source_command_id: uuidSchema,
+  source_attempt: commandAttempt,
+  reference: immutableJurisdictionDomainArtifactReferenceV1Schema,
 });
 
 export const historicalJurisdictionDomainArtifactResolverRequestV1Schema = z.strictObject({
   contract_version: z.literal(CORE_JURISDICTION_DOMAIN_ARTIFACT_RESOLVER_REQUEST_V1),
   mode: z.literal('historical'),
-  reference: immutableJurisdictionDomainArtifactReferenceV1Schema,
+  transaction_id: uuidSchema,
+  command_id: uuidSchema,
+  attempt: commandAttempt,
+  context_id: uuidSchema,
+  workspace_id: uuidSchema,
+  actor_id: uuidSchema,
+  authority_version: authorityVersion,
+  provider_source_ids: z.array(uuidSchema).max(32)
+    .refine(values => new Set(values).size === values.length, 'Source locks must be unique'),
+  lock: z.strictObject({
+    kind: z.literal('command_aggregate'),
+    aggregate_type: code,
+    aggregate_id: uuidSchema,
+  }),
+  committed_evidence: committedJurisdictionDomainArtifactEvidenceReferenceV1Schema,
 });
 
 export const jurisdictionDomainArtifactResolverRequestV1Schema = z.discriminatedUnion('mode', [
@@ -129,6 +161,7 @@ export const jurisdictionDomainArtifactResolverDecisionV1Schema = z.discriminate
         'ARTIFACT_INACTIVE',
         'ARTIFACT_NOT_EFFECTIVE',
         'REVIEW_UNAVAILABLE',
+        'HISTORICAL_RECEIPT_UNAVAILABLE',
         'PROVIDER_UNAVAILABLE',
       ]),
       artifact: z.null(),
@@ -177,6 +210,15 @@ type ArtifactRow = {
   domain_valid_to: string | null;
 };
 
+type CommittedEvidenceRow = ArtifactRow & {
+  receipt_id: string;
+  receipt_workspace_id: string;
+  source_property_id: string;
+  source_transaction_id: string;
+  source_command_id: string;
+  source_attempt: number;
+};
+
 function denied(mode: ResolverMode, evaluatedAt: string,
   reason: DenialReason): JurisdictionDomainArtifactResolverDecisionV1 {
   return jurisdictionDomainArtifactResolverDecisionV1Schema.parse({
@@ -203,7 +245,8 @@ function currentAuthorityBindingMatches(
   scope: CoreTransactionScopeV1,
   command: CoreCommand,
   authority: CurrentAuthorityTransactionDecisionReceiptV1,
-  request: z.infer<typeof currentJurisdictionDomainArtifactResolverRequestV1Schema>,
+  request: z.infer<typeof currentJurisdictionDomainArtifactResolverRequestV1Schema>
+    | z.infer<typeof historicalJurisdictionDomainArtifactResolverRequestV1Schema>,
 ) {
   return authority.rechecked_after_lock === true
     && authority.transaction_bound === true
@@ -283,6 +326,65 @@ async function selectArtifactRows(
       and a.effective_from<=$9::timestamptz
       and (a.effective_to is null or a.effective_to>$9::timestamptz)
     for share of a,p,d`, [
+    identity.profile_id,
+    identity.profile_code,
+    identity.profile_version,
+    identity.country_code,
+    identity.profile_manifest_sha256,
+    identity.domain_code,
+    identity.domain_version,
+    identity.artifact_sha256,
+    identity.effective_at,
+  ]);
+}
+
+async function selectCommittedEvidenceRows(
+  scope: CoreTransactionScopeV1,
+  request: HistoricalJurisdictionDomainArtifactResolverRequestV1,
+) {
+  const evidence = request.committed_evidence;
+  const identity = evidence.reference;
+  return scope.query<CommittedEvidenceRow>(`select
+    e.receipt_id::text,e.workspace_id::text as receipt_workspace_id,
+    e.source_property_id::text,e.source_transaction_id::text,e.source_command_id::text,
+    e.source_attempt,
+    a.jurisdiction_profile_id::text as profile_id,a.profile_code,
+    a.profile_version,btrim(a.country_code::text) as country_code,
+    a.profile_manifest_sha256,a.artifact_contract_version,a.artifact_version,
+    a.domain_code,a.domain_version,a.artifact_sha256,a.canonical_bytes,
+    a.canonical_bytes_sha256,a.effective_from::text,a.effective_to::text,
+    a.lifecycle_status,p.status::text as profile_status,p.valid_from::text as profile_valid_from,
+    p.valid_to::text as profile_valid_to,d.status::text as domain_status,
+    d.valid_from::text as domain_valid_from,d.valid_to::text as domain_valid_to
+    from platform.jurisdiction_domain_artifact_receipt_evidence e
+    join platform.jurisdiction_domain_artifacts a on a.id=e.artifact_id
+    join platform.jurisdiction_profiles p on p.id=a.jurisdiction_profile_id
+    join platform.jurisdiction_profile_domains d
+      on d.jurisdiction_profile_id=a.jurisdiction_profile_id and d.domain_code=a.domain_code
+    where e.receipt_id=$1 and e.tenant_id=$2 and e.workspace_id=$3
+      and e.source_property_id=$4 and e.source_actor_id=$5
+      and e.source_transaction_id=$6 and e.source_command_id=$7 and e.source_attempt=$8
+      and e.jurisdiction_profile_id=$9 and e.profile_code=$10 and e.profile_version=$11
+      and e.country_code=$12 and e.profile_manifest_sha256=$13
+      and e.domain_code=$14 and e.domain_version=$15 and e.artifact_sha256=$16
+      and e.effective_at=$17::timestamptz
+      and a.id=e.artifact_id and a.jurisdiction_profile_id=e.jurisdiction_profile_id
+      and a.profile_code=e.profile_code and a.profile_version=e.profile_version
+      and a.country_code=e.country_code
+      and a.profile_manifest_sha256=e.profile_manifest_sha256
+      and a.domain_code=e.domain_code and a.domain_version=e.domain_version
+      and a.artifact_sha256=e.artifact_sha256
+      and a.effective_from<=e.effective_at
+      and (a.effective_to is null or a.effective_to>e.effective_at)
+    for share of e,a,p,d`, [
+    evidence.receipt_id,
+    scope.tenant_id,
+    evidence.source_workspace_id,
+    evidence.source_property_id,
+    evidence.source_actor_id,
+    evidence.source_transaction_id,
+    evidence.source_command_id,
+    evidence.source_attempt,
     identity.profile_id,
     identity.profile_code,
     identity.profile_version,
@@ -392,56 +494,28 @@ function accepted(
 
 /**
  * Resolves the one immutable artifact selected by the current Country Pack.
- * The caller supplies the host command, post-lock authority receipt and complete
- * accepted profile-selector decision from this same serializable transaction.
+ * The caller supplies only the host command, post-lock authority receipt and
+ * requested property/domain identity. The canonical profile selector is called
+ * here so its locks and the artifact read share this transaction and attempt.
  */
 export async function resolveCurrentJurisdictionDomainArtifactV1(
   scope: CoreTransactionScopeV1,
   commandValue: CoreCommand,
   authorityValue: CurrentAuthorityTransactionDecisionReceiptV1,
-  selectionValue: unknown,
   requestValue: unknown,
 ): Promise<JurisdictionDomainArtifactResolverDecisionV1> {
   const command = commandSchema.safeParse(commandValue);
   const authority = currentAuthorityTransactionDecisionReceiptV1Schema.safeParse(authorityValue);
-  const selection = jurisdictionProfileSelectorDecisionV1Schema.safeParse(selectionValue);
   const request = currentJurisdictionDomainArtifactResolverRequestV1Schema.safeParse(requestValue);
   const fallbackTime = authority.success && Number.isFinite(Date.parse(authority.data.evaluated_at))
     ? authority.data.evaluated_at : new Date().toISOString();
-  if (!command.success || !authority.success || !selection.success || !request.success
+  if (!command.success || !authority.success || !request.success
     || !currentAuthorityBindingMatches(scope, command.data, authority.data, request.data)) {
     return denied('current', fallbackTime, 'BINDING_MISMATCH');
   }
   if (authority.data.decision !== 'allowed') {
     return denied('current', fallbackTime, 'AUTHORITY_DENIED');
   }
-  if (selection.data.decision !== 'accepted') {
-    return denied('current', fallbackTime, 'PROFILE_SELECTION_UNAVAILABLE');
-  }
-  const binding = selection.data.binding;
-  const domains = binding.domains.filter(value => value.domain_code === request.data.domain_code);
-  if (binding.context_id !== request.data.context_id
-    || binding.workspace_id !== request.data.workspace_id
-    || binding.actor_id !== request.data.actor_id
-    || binding.authority_version !== request.data.authority_version
-    || !request.data.provider_source_ids.includes(binding.property_id)
-    || Date.parse(selection.data.evaluated_at) !== Date.parse(request.data.effective_at)
-    || domains.length !== 1
-    || domains[0].contract_version !== request.data.domain_version) {
-    return denied('current', fallbackTime, 'BINDING_MISMATCH');
-  }
-  const identity = immutableJurisdictionDomainArtifactReferenceV1Schema.parse({
-    profile_id: binding.profile_id,
-    profile_code: binding.profile_code,
-    profile_version: binding.profile_version,
-    country_code: binding.country_code,
-    profile_manifest_sha256: binding.profile_manifest_sha256,
-    domain_code: request.data.domain_code,
-    domain_version: request.data.domain_version,
-    artifact_sha256: domains[0].artifact_sha256,
-    effective_at: request.data.effective_at,
-  });
-
   try {
     const evaluatedAt = await currentTransactionTime(scope);
     if (evaluatedAt === null) return denied('current', fallbackTime, 'BINDING_MISMATCH');
@@ -451,6 +525,44 @@ export async function resolveCurrentJurisdictionDomainArtifactV1(
       !== request.data.authority_version) {
       return denied('current', evaluatedAt, 'STALE_AUTHORITY');
     }
+    const selection = await selectCurrentPropertyJurisdictionProfileV1(
+      scope,
+      command.data,
+      authority.data,
+      {
+        contract_version: CORE_JURISDICTION_PROFILE_SELECTOR_REQUEST_V1,
+        property_id: request.data.property_id,
+        ...(request.data.expected_country_code === undefined
+          ? {} : { expected_country_code: request.data.expected_country_code }),
+        required_domain_codes: [request.data.domain_code],
+      },
+    );
+    if (selection.decision !== 'accepted') {
+      return denied('current', evaluatedAt, 'PROFILE_SELECTION_UNAVAILABLE');
+    }
+    const binding = selection.binding;
+    const domains = binding.domains.filter(value => value.domain_code === request.data.domain_code);
+    if (binding.context_id !== request.data.context_id
+      || binding.workspace_id !== request.data.workspace_id
+      || binding.actor_id !== request.data.actor_id
+      || binding.authority_version !== request.data.authority_version
+      || binding.property_id !== request.data.property_id
+      || !request.data.provider_source_ids.includes(binding.property_id)
+      || domains.length !== 1
+      || domains[0].contract_version !== request.data.domain_version) {
+      return denied('current', evaluatedAt, 'BINDING_MISMATCH');
+    }
+    const identity = immutableJurisdictionDomainArtifactReferenceV1Schema.parse({
+      profile_id: binding.profile_id,
+      profile_code: binding.profile_code,
+      profile_version: binding.profile_version,
+      country_code: binding.country_code,
+      profile_manifest_sha256: binding.profile_manifest_sha256,
+      domain_code: request.data.domain_code,
+      domain_version: request.data.domain_version,
+      artifact_sha256: domains[0].artifact_sha256,
+      effective_at: selection.evaluated_at,
+    });
     const rows = await selectArtifactRows(scope, identity);
     if (rows.rowCount === 0) return denied('current', evaluatedAt, 'ARTIFACT_UNAVAILABLE');
     if (rows.rowCount !== 1) return denied('current', evaluatedAt, 'ARTIFACT_AMBIGUOUS');
@@ -464,21 +576,21 @@ export async function resolveCurrentJurisdictionDomainArtifactV1(
       || row.lifecycle_status !== 'active') {
       return denied('current', evaluatedAt, 'ARTIFACT_INACTIVE');
     }
-    if (!instantWithin(request.data.effective_at, row.effective_from, row.effective_to)
-      || !dateWithin(request.data.effective_at, row.profile_valid_from, row.profile_valid_to)
-      || !dateWithin(request.data.effective_at, row.domain_valid_from, row.domain_valid_to)) {
+    if (!instantWithin(identity.effective_at, row.effective_from, row.effective_to)
+      || !dateWithin(identity.effective_at, row.profile_valid_from, row.profile_valid_to)
+      || !dateWithin(identity.effective_at, row.domain_valid_from, row.domain_valid_to)) {
       return denied('current', evaluatedAt, 'ARTIFACT_NOT_EFFECTIVE');
     }
     const artifact = parsed.artifact;
     if (artifact.legal_review.status !== 'approved'
       || artifact.legal_review.reviewed_at === null
       || artifact.legal_review.evidence_sha256 === null
-      || Date.parse(artifact.legal_review.reviewed_at) > Date.parse(request.data.effective_at)
+      || Date.parse(artifact.legal_review.reviewed_at) > Date.parse(identity.effective_at)
       || artifact.accounting_review.status !== 'approved'
       || artifact.accounting_review.reviewed_at === null
       || artifact.accounting_review.evidence_sha256 === null
       || Date.parse(artifact.accounting_review.reviewed_at)
-        > Date.parse(request.data.effective_at)) {
+        > Date.parse(identity.effective_at)) {
       return denied('current', evaluatedAt, 'REVIEW_UNAVAILABLE');
     }
     return accepted('current', evaluatedAt, artifact, row, parsed.byteLength);
@@ -495,20 +607,39 @@ export async function resolveCurrentJurisdictionDomainArtifactV1(
  */
 export async function resolveHistoricalJurisdictionDomainArtifactV1(
   scope: CoreTransactionScopeV1,
+  commandValue: CoreCommand,
+  authorityValue: CurrentAuthorityTransactionDecisionReceiptV1,
   requestValue: unknown,
 ): Promise<JurisdictionDomainArtifactResolverDecisionV1> {
+  const command = commandSchema.safeParse(commandValue);
+  const authority = currentAuthorityTransactionDecisionReceiptV1Schema.safeParse(authorityValue);
   const request = historicalJurisdictionDomainArtifactResolverRequestV1Schema.safeParse(
     requestValue,
   );
-  const fallbackTime = request.success
-    ? request.data.reference.effective_at : new Date().toISOString();
-  if (!request.success) return denied('historical', fallbackTime, 'BINDING_MISMATCH');
+  const fallbackTime = authority.success && Number.isFinite(Date.parse(authority.data.evaluated_at))
+    ? authority.data.evaluated_at : new Date().toISOString();
+  if (!command.success || !authority.success || !request.success
+    || !currentAuthorityBindingMatches(scope, command.data, authority.data, request.data)
+    || request.data.committed_evidence.source_workspace_id !== request.data.workspace_id
+    || !request.data.provider_source_ids.includes(
+      request.data.committed_evidence.source_property_id)) {
+    return denied('historical', fallbackTime, 'BINDING_MISMATCH');
+  }
+  if (authority.data.decision !== 'allowed') {
+    return denied('historical', fallbackTime, 'AUTHORITY_DENIED');
+  }
   try {
     const evaluatedAt = await currentTransactionTime(scope);
     if (evaluatedAt === null) return denied('historical', fallbackTime, 'BINDING_MISMATCH');
-    const rows = await selectArtifactRows(scope, request.data.reference);
+    const revision = await scope.query<{ revision: string }>(`select revision::text
+      from app_private.canonical_authority_revision_v1 where singleton for share`);
+    if (revision.rowCount !== 1 || Number(revision.rows[0]?.revision)
+      !== request.data.authority_version) {
+      return denied('historical', evaluatedAt, 'STALE_AUTHORITY');
+    }
+    const rows = await selectCommittedEvidenceRows(scope, request.data);
     if (rows.rowCount === 0) {
-      return denied('historical', evaluatedAt, 'ARTIFACT_UNAVAILABLE');
+      return denied('historical', evaluatedAt, 'HISTORICAL_RECEIPT_UNAVAILABLE');
     }
     if (rows.rowCount !== 1) {
       return denied('historical', evaluatedAt, 'ARTIFACT_AMBIGUOUS');
@@ -520,7 +651,7 @@ export async function resolveHistoricalJurisdictionDomainArtifactV1(
       return denied('historical', evaluatedAt,
         parsed.reason ?? 'ARTIFACT_SCHEMA_UNSUPPORTED');
     }
-    if (!instantWithin(request.data.reference.effective_at,
+    if (!instantWithin(request.data.committed_evidence.reference.effective_at,
       row.effective_from, row.effective_to)) {
       return denied('historical', evaluatedAt, 'ARTIFACT_NOT_EFFECTIVE');
     }
