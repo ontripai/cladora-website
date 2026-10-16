@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-17 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-18 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -209,6 +209,8 @@ function auditSourceFile(filePath, code) {
   const taintedFunctions = new Set();
   const dynamicApiOwnerAliases = new Map();
   const dynamicApiFunctionAliases = new Set();
+  const globalRootAliases = new Set(['globalThis', 'window', 'self', 'global']);
+  const reflectGetAliases = new Set();
   const staticValueBindings = [];
 
   function isLexicalScope(node) {
@@ -887,18 +889,37 @@ function auditSourceFile(filePath, code) {
       return dynamicApiOwnerAliases.get(expression.text) ?? '';
     }
     if (ts.isPropertyAccessExpression(expression)
-      && ts.isIdentifier(expression.expression)
-      && expression.expression.text === 'globalThis'
+      && isGlobalRootExpression(expression.expression)
       && (expression.name.text === 'Object' || expression.name.text === 'Reflect')) {
       return expression.name.text;
     }
     if (ts.isElementAccessExpression(expression)
-      && ts.isIdentifier(expression.expression)
-      && expression.expression.text === 'globalThis') {
+      && isGlobalRootExpression(expression.expression)) {
       const name = constantString(expression.argumentExpression);
       return name === 'Object' || name === 'Reflect' ? name : '';
     }
+    if (ts.isCallExpression(expression) && expression.arguments.length >= 2
+      && isReflectGetCall(expression.expression)
+      && isGlobalRootExpression(expression.arguments[0])) {
+      const name = constantString(expression.arguments[1]);
+      return name === 'Object' || name === 'Reflect' ? name : '';
+    }
     return '';
+  }
+
+  function isGlobalRootExpression(expression) {
+    if (!expression) return false;
+    if (ts.isParenthesizedExpression(expression)) return isGlobalRootExpression(expression.expression);
+    return ts.isIdentifier(expression) && globalRootAliases.has(expression.text);
+  }
+
+  function isReflectGetCall(expression) {
+    if (ts.isIdentifier(expression)) return reflectGetAliases.has(expression.text);
+    if (!ts.isPropertyAccessExpression(expression) && !ts.isElementAccessExpression(expression)) return false;
+    const owner = dynamicApiOwnerKind(expression.expression);
+    const method = ts.isPropertyAccessExpression(expression)
+      ? expression.name.text : constantString(expression.argumentExpression);
+    return owner === 'Reflect' && method === 'get';
   }
 
   function dynamicApiMethodReference(expression) {
@@ -932,6 +953,10 @@ function auditSourceFile(filePath, code) {
     if (ts.isParenthesizedExpression(target)) return recordDynamicApiAliases(target.expression, source);
     let changed = false;
     if (ts.isIdentifier(target)) {
+      if (isGlobalRootExpression(source) && !globalRootAliases.has(target.text)) {
+        globalRootAliases.add(target.text);
+        changed = true;
+      }
       const owner = dynamicApiOwnerKind(source);
       if (owner && dynamicApiOwnerAliases.get(target.text) !== owner) {
         dynamicApiOwnerAliases.set(target.text, owner);
@@ -941,11 +966,15 @@ function auditSourceFile(filePath, code) {
         dynamicApiFunctionAliases.add(target.text);
         changed = true;
       }
+      if (isReflectGetCall(source) && !reflectGetAliases.has(target.text)) {
+        reflectGetAliases.add(target.text);
+        changed = true;
+      }
       return changed;
     }
 
     const sourceOwner = dynamicApiOwnerKind(source);
-    const sourceIsGlobal = ts.isIdentifier(source) && source.text === 'globalThis';
+    const sourceIsGlobal = isGlobalRootExpression(source);
     const elements = ts.isObjectBindingPattern(target)
       ? target.elements.map(element => ({ key: getLeafPropertyName(element.propertyName ?? element.name), target: element.name }))
       : ts.isObjectLiteralExpression(target)
@@ -1921,6 +1950,12 @@ runAssertion('Structural Regression: reflective mutation APIs cannot create coun
     `let make; ({ fromEntries: make } = Object); make([['countryCode', locale]]);`,
     `function use({ fromEntries: make } = Object) { return make([['countryCode', locale]]); }`,
     `function use(O) { return O.fromEntries([['countryCode', locale]]); } use(Object);`,
+    `const root = globalThis; root.Object.fromEntries([['countryCode', locale]]);`,
+    `const root = globalThis; const { Object: O } = root; O.fromEntries([['countryCode', locale]]);`,
+    `window.Object.fromEntries([['countryCode', locale]]);`,
+    `self.Reflect.set(api, 'countryCode', locale);`,
+    `const O = Reflect.get(globalThis, 'Object'); O.fromEntries([['countryCode', locale]]);`,
+    `const get = Reflect.get; const O = get(globalThis, 'Object'); O.fromEntries([['countryCode', locale]]);`,
   ]) {
     const violations = auditSourceFile('test-reflective-country-mutation.ts', statement);
     assert.ok(violations.some((v) => v.includes('Structural mutation API cannot create country/jurisdiction sink')
