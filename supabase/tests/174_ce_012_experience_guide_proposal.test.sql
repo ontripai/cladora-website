@@ -1,10 +1,10 @@
 begin;
 select plan(25);
 
-select is((select count(*) from identity.permissions where code like 'experience.guide.%'),0::bigint,
-  'Storage migration does not seed Core permissions');
-select is((select count(*) from platform.module_definitions where code='experience_guides'),0::bigint,
-  'Storage migration does not activate a Guide module');
+select is((select count(*) from identity.permissions where code like 'experience.guide.%'),1::bigint,
+  'Canonical registry contains only the independent Guide read permission');
+select is((select count(*) from platform.module_definitions where code='experience_guides'),1::bigint,
+  'Canonical Guide module definition is installed without Workspace activation');
 select has_schema('experience','Existing CE Guide proposal schema is reused');
 select has_table('experience','guides','Canonical Guide aggregate table is installed');
 select has_table('experience','guide_steps','Canonical Guide step table is installed');

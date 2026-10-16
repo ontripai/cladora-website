@@ -33,7 +33,7 @@ server registry binds:
 - permission `experience.guide.read`;
 - module `experience_guides`;
 - mandatory entitlement `module.experience_guides` for the exact Workspace and authority revision;
-- purpose `experience.guide.content-policy.read`;
+- purpose `experience.guide.content_policy.read`;
 - domain `content.policy` / `content-policy.v1`;
 - a dedicated read execution profile.
 

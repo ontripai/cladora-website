@@ -120,7 +120,7 @@ The future Core registry must define one closed, server-fixed read profile:
 | permission | `experience.guide.read` |
 | module | `experience_guides` |
 | entitlement | `module.experience_guides`, present, enabled, effective and bound to the exact Workspace and current authority revision |
-| evaluation purpose | `experience.guide.content-policy.read` |
+| evaluation purpose | `experience.guide.content_policy.read` |
 | domain | `content.policy` / `content-policy.v1` |
 | execution profile | A dedicated Core read execution role/profile reviewed through its own ACL/RLS package |
 
