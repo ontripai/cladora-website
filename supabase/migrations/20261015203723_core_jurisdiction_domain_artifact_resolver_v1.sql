@@ -277,6 +277,7 @@ create policy jurisdiction_artifact_owner_artifacts_lock_v1
   on platform.jurisdiction_domain_artifacts for update to cladora_rpc_owner
   using(true) with check(false);
 grant create on schema app_private to cladora_rpc_owner;
+grant create on schema platform to cladora_rpc_owner;
 grant usage on schema extensions to cladora_rpc_owner;
 grant execute on function extensions.digest(bytea,text) to cladora_rpc_owner;
 alter function app_private.canonical_jsonb_text_v1(jsonb) owner to cladora_rpc_owner;
@@ -287,6 +288,7 @@ alter function app_private.guard_jurisdiction_domain_artifact_receipt_evidence_v
 alter table platform.jurisdiction_domain_artifact_receipt_evidence
   owner to cladora_rpc_owner;
 revoke create on schema app_private from cladora_rpc_owner;
+revoke create on schema platform from cladora_rpc_owner;
 
 comment on table platform.jurisdiction_domain_artifacts is
   'Empty immutable canonical-byte Country Pack artifact inventory; no seed or runtime grant.';
