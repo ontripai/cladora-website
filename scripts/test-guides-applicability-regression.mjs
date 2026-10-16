@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-6 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-7 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -223,6 +223,26 @@ function auditSourceFile(filePath, code) {
     return discovered;
   }
 
+  function assignmentPatternNames(pattern, inheritedSource = false) {
+    if (ts.isParenthesizedExpression(pattern)) {
+      return assignmentPatternNames(pattern.expression, inheritedSource);
+    }
+    if (ts.isIdentifier(pattern)) {
+      return [{ name: pattern.text, source: inheritedSource || isSourceIdentifier(pattern.text) }];
+    }
+    if (!ts.isObjectLiteralExpression(pattern)) return [];
+    const discovered = [];
+    for (const property of pattern.properties) {
+      if (!ts.isPropertyAssignment(property)) continue;
+      const key = getLeafPropertyName(property.name);
+      discovered.push(...assignmentPatternNames(
+        property.initializer,
+        inheritedSource || isSourceIdentifier(key),
+      ));
+    }
+    return discovered;
+  }
+
   function isTainted(expr) {
     if (!expr) return false;
 
@@ -305,6 +325,15 @@ function auditSourceFile(filePath, code) {
       }
     }
 
+    if (ts.isParameter(node) && ts.isBindingPattern(node.name)) {
+      for (const binding of bindingNames(node.name)) {
+        if (binding.source && !taintedVariables.has(binding.name)) {
+          taintedVariables.add(binding.name);
+          changed = true;
+        }
+      }
+    }
+
     if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
       if (ts.isIdentifier(node.left)) {
         if (isTainted(node.right) && !taintedVariables.has(node.left.text)) {
@@ -314,6 +343,12 @@ function auditSourceFile(filePath, code) {
         if (shouldTrackCountryVariable(node.left.text, node.right)
           && !countryValuedVariables.has(node.left.text)) {
           countryValuedVariables.add(node.left.text);
+          changed = true;
+        }
+      }
+      for (const binding of assignmentPatternNames(node.left)) {
+        if (binding.source && !taintedVariables.has(binding.name)) {
+          taintedVariables.add(binding.name);
           changed = true;
         }
       }
@@ -333,7 +368,12 @@ function auditSourceFile(filePath, code) {
     if (ts.isElementAccessExpression(expr) && expr.argumentExpression) {
       if (ts.isStringLiteral(expr.argumentExpression)) return expr.argumentExpression.text;
     }
-    if (ts.isComputedPropertyName(expr)) return expr.expression.getText(sf);
+    if (ts.isComputedPropertyName(expr)) {
+      if (ts.isStringLiteral(expr.expression) || ts.isNoSubstitutionTemplateLiteral(expr.expression)) {
+        return expr.expression.text;
+      }
+      return expr.expression.getText(sf);
+    }
     return '';
   }
 
@@ -783,6 +823,46 @@ runAssertion('Taint Regression: locale-selected two-letter UI label constants re
   const violations = auditSourceFile('test-two-letter-ui-labels.ts', code);
   assert.equal(violations.length, 0,
     `Two-letter UI labels must not become country authority, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: destructured locale function parameter is tainted', () => {
+  const code = `
+    function resolveCountry({ locale: selected }) {
+      return lookup[selected];
+    }
+  `;
+  const violations = auditSourceFile('test-destructured-parameter.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+    `Must flag destructured function parameter, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: concise resolver with destructured locale parameter is tainted', () => {
+  const code = `const resolveCountry = ({ locale: selected }) => lookup[selected];`;
+  const violations = auditSourceFile('test-destructured-arrow-parameter.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+    `Must flag concise destructured parameter resolver, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: destructuring assignment alias flowing into country sink is rejected', () => {
+  const code = `
+    ({ locale: selected } = params);
+    result.countryCode = selected;
+  `;
+  const violations = auditSourceFile('test-destructuring-assignment.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must flag destructuring assignment alias, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: computed static locale keys with country objects are rejected', () => {
+  const code = `
+    const mapping = {
+      ['en']: { countryCode: 'US' },
+      [\`fa\`]: { countryCode: 'IR' },
+    };
+  `;
+  const violations = auditSourceFile('test-computed-static-locale-map.ts', code);
+  assert.ok(violations.filter((v) => v.includes('Locale-keyed nested country mapping')).length >= 2,
+    `Must flag computed static locale keys, got: ${JSON.stringify(violations)}`);
 });
 
 // -----------------------------------------------------------------------------
