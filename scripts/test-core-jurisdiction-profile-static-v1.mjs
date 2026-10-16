@@ -4,6 +4,8 @@ import { readFileSync, readdirSync } from 'node:fs';
 
 const hash = value => createHash('sha256').update(value).digest('hex');
 const migrationName = '20261015183000_core_jurisdiction_profile_v1.sql';
+const resolverMigrationName =
+  '20261015203723_core_jurisdiction_domain_artifact_resolver_v1.sql';
 const migration = readFileSync(`supabase/migrations/${migrationName}`, 'utf8');
 const source = readFileSync('src/lib/core/jurisdiction-profile-v1.ts', 'utf8');
 const contract = readFileSync('docs/contracts/CLADORA-CORE-JURISDICTION-PROFILE-v1.0.md', 'utf8');
@@ -11,7 +13,8 @@ const seed = readFileSync('supabase/seed.sql', 'utf8');
 const migrations = readdirSync('supabase/migrations').filter(name => name.endsWith('.sql')).sort();
 
 let cases = 0;
-assert.equal(migrations.at(-1), migrationName);
+assert.ok(migrations.includes(migrationName));
+assert.equal(migrations[migrations.indexOf(migrationName)+1],resolverMigrationName);
 assert.match(migration, /No country profile, assignment, grant,\s*-- backfill, Remote installation or runtime activation/is);
 assert.match(migration, /property_jurisdiction_country_rebind_forbidden/);
 assert.match(migration, /property_jurisdiction_address_country_mismatch/);

@@ -23,6 +23,10 @@ import {
   coreTransactionReplayRequirementV1Schema,
   type CoreTransactionReplayProviderDecisionV1,
 } from './transaction-replay-provider-hook-v1';
+import {
+  coreJurisdictionDomainArtifactCommitCandidateV1Schema,
+  type CoreJurisdictionDomainArtifactCommitCandidateV1,
+} from './jurisdiction-domain-artifact-transaction-evidence-v1';
 
 const uuid = z.string().uuid().transform(value => value.toLowerCase());
 const code = z.string().regex(/^[a-z0-9_.:-]{3,160}$/);
@@ -90,8 +94,22 @@ type CoreTransactionReplayCapabilityV1 = {
     authority: CurrentAuthorityTransactionDecisionReceiptV1,
     receipt: CoreTransactionReceiptV1): Promise<CoreTransactionReplayProviderDecisionV1>;
 };
+type CoreTransactionJurisdictionArtifactCapabilityV1<Command> = {
+  readonly jurisdiction_artifact_projection?: 'none';
+  readonly resolveJurisdictionArtifacts?: never;
+} | {
+  /** Core-owned, inactive projection of accepted current resolver decisions. */
+  readonly jurisdiction_artifact_projection:
+    'core-jurisdiction-domain-artifact-host-projection.v1';
+  resolveJurisdictionArtifacts(
+    scope: CoreTransactionScopeV1,
+    command: Command,
+    authority: CurrentAuthorityTransactionDecisionReceiptV1,
+  ): Promise<readonly CoreJurisdictionDomainArtifactCommitCandidateV1[]>;
+};
 export type CoreTransactionProvidersV1 = CoreTransactionProvidersV1Base
-  & CoreTransactionReplayCapabilityV1;
+  & CoreTransactionReplayCapabilityV1
+  & CoreTransactionJurisdictionArtifactCapabilityV1<CoreTransactionCommandV1>;
 
 interface CoreTransactionProvidersV2Base {
   readonly provider_code: string;
@@ -112,7 +130,20 @@ type CoreTransactionReplayCapabilityV2 = {
     receipt: CoreTransactionReceiptV2): Promise<CoreTransactionReplayProviderDecisionV1>;
 };
 export type CoreTransactionProvidersV2 = CoreTransactionProvidersV2Base
-  & CoreTransactionReplayCapabilityV2;
+  & CoreTransactionReplayCapabilityV2
+  & CoreTransactionJurisdictionArtifactCapabilityV1<CoreTransactionCommandV2>;
+const committedJurisdictionArtifactsSchema = z.array(
+  coreJurisdictionDomainArtifactCommitCandidateV1Schema,
+).min(1).max(32).superRefine((values, context) => {
+  const identities = values.map(value => `${value.fingerprint.domain_code}\u0000${
+    value.fingerprint.domain_version}\u0000${value.fingerprint.artifact_sha256}`);
+  if (new Set(identities).size !== identities.length) {
+    context.addIssue({ code: 'custom', message: 'Artifact commitments must be unique' });
+  }
+  if (values.some((value, index) => index > 0 && identities[index - 1] >= identities[index])) {
+    context.addIssue({ code: 'custom', message: 'Artifact commitments must be sorted' });
+  }
+});
 const receiptBaseSchema = z.strictObject({
   contract_version: z.literal('core-transaction-receipt.v1'),
   receipt_version: z.literal(1),
@@ -131,6 +162,7 @@ const receiptBaseSchema = z.strictObject({
   mutation_id: uuid,
   audit_event_id: z.string().regex(/^[1-9][0-9]*$/),
   outbox_event_id: uuid,
+  jurisdiction_artifacts: committedJurisdictionArtifactsSchema.optional(),
   committed_at: z.string().datetime({ offset: true }),
 });
 const receiptAuthorityMatchesEffect = (receipt: Pick<z.infer<typeof receiptBaseSchema>,
@@ -220,6 +252,12 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
       const replayProviderCode = command.contract_version === 'core-transaction-command.v2'
         ? providerCode
         : (providers as CoreTransactionProvidersV1).replay_provider_code;
+      const artifactProjection = providers.jurisdiction_artifact_projection ?? 'none';
+      const resolveJurisdictionArtifacts = providers.resolveJurisdictionArtifacts as ((
+        artifactScope: CoreTransactionScopeV1,
+        artifactCommand: CoreTransactionCommandV1 | CoreTransactionCommandV2,
+        artifactAuthority: CurrentAuthorityTransactionDecisionReceiptV1,
+      ) => Promise<readonly CoreJurisdictionDomainArtifactCommitCandidateV1[]>) | undefined;
       if (command.contract_version === 'core-transaction-command.v2'
         && (typeof providerCode !== 'string' || !/^[a-z][a-z0-9_.:-]{0,79}$/.test(providerCode))) {
         return { status: 'denied', code: 'PROVIDER_UNAVAILABLE' };
@@ -237,6 +275,13 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
         || (replayPolicy === 'authority_only' && (typeof validateReplay === 'function'
           || (command.contract_version === 'core-transaction-command.v1'
             && typeof replayProviderCode === 'string')))) {
+        return { status: 'denied', code: 'PROVIDER_UNAVAILABLE' };
+      }
+      if ((artifactProjection === 'core-jurisdiction-domain-artifact-host-projection.v1'
+          && typeof resolveJurisdictionArtifacts !== 'function')
+        || (artifactProjection === 'none' && typeof resolveJurisdictionArtifacts === 'function')
+        || !['none', 'core-jurisdiction-domain-artifact-host-projection.v1']
+          .includes(artifactProjection)) {
         return { status: 'denied', code: 'PROVIDER_UNAVAILABLE' };
       }
       // Copy per attempt: a provider cannot alter the authoritative command bindings.
@@ -446,6 +491,47 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             scope, structuredClone(command), structuredClone(authority))) !== true) {
             throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
           }
+          let jurisdictionArtifacts: CoreJurisdictionDomainArtifactCommitCandidateV1[] | undefined;
+          if (artifactProjection === 'core-jurisdiction-domain-artifact-host-projection.v1') {
+            if (command.aggregate_type !== 'portfolio.property') {
+              throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+            }
+            const values = await invoke(() => resolveJurisdictionArtifacts!(
+              scope,
+              structuredClone(command),
+              structuredClone(authority),
+            ));
+            if (!Array.isArray(values) || values.length === 0 || values.length > 32) {
+              throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+            }
+            const parsedValues = values.map(value =>
+              coreJurisdictionDomainArtifactCommitCandidateV1Schema.safeParse(value));
+            const artifactNow = await client.query<{ now: string }>(
+              'select clock_timestamp()::text as now',
+            );
+            if (parsedValues.some(value => !value.success)
+              || parsedValues.some(value => value.success
+                && (value.data.property_id !== command.aggregate_id
+                  || Date.parse(value.data.evaluated_at) < Date.parse(authority.evaluated_at)
+                  || Date.parse(value.data.evaluated_at) > Date.parse(artifactNow.rows[0].now)))) {
+              throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+            }
+            const normalized = parsedValues.map(value => {
+              if (!value.success) throw new Error('unreachable_invalid_artifact_commitment');
+              return value.data;
+            }).sort((left, right) => {
+              const leftKey = `${left.fingerprint.domain_code}\u0000${left.fingerprint.domain_version}\u0000${left.fingerprint.artifact_sha256}`;
+              const rightKey = `${right.fingerprint.domain_code}\u0000${right.fingerprint.domain_version}\u0000${right.fingerprint.artifact_sha256}`;
+              return leftKey < rightKey ? -1 : leftKey > rightKey ? 1 : 0;
+            });
+            const commitments = committedJurisdictionArtifactsSchema.safeParse(normalized);
+            if (!commitments.success
+              || new Set(commitments.data.map(value => value.fingerprint.domain_code)).size
+                !== commitments.data.length) {
+              throw new AbortTransaction({ status: 'denied', code: 'PROVIDER_UNAVAILABLE' });
+            }
+            jurisdictionArtifacts = commitments.data;
+          }
           // Only now may any persistent effect be staged.
           await client.query(`insert into platform.idempotency_keys
             (tenant_id,actor_id,key,request_hash,expires_at) values($1,$2,$3,$4,statement_timestamp()+interval '1 day')`,
@@ -456,6 +542,43 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             : (providers as CoreTransactionProvidersV1).mutate(scope, structuredClone(command)));
           const mutationId = uuid.parse(mutation.mutation_id);
           const receiptId = randomUUID();
+          const receiptContractVersion = command.contract_version === 'core-transaction-command.v2'
+            ? 'core-transaction-receipt.v2' : 'core-transaction-receipt.v1';
+          if (jurisdictionArtifacts !== undefined) {
+            for (let index = 0; index < jurisdictionArtifacts.length; index += 1) {
+              const commitment = jurisdictionArtifacts[index];
+              const fingerprint = commitment.fingerprint;
+              const inserted = await client.query(`insert into
+                platform.jurisdiction_domain_artifact_receipt_evidence(
+                  receipt_id,artifact_ordinal,evidence_contract_version,tenant_id,workspace_id,
+                  source_property_id,source_actor_id,source_transaction_id,source_command_id,
+                  source_attempt,source_idempotency_key,source_receipt_contract_version,
+                  authority_decision_id,resolver_decision_id,artifact_id,
+                  jurisdiction_profile_id,profile_code,profile_version,country_code,
+                  profile_manifest_sha256,domain_code,domain_version,artifact_sha256,effective_at)
+                select $1,$2,'core-jurisdiction-domain-artifact-committed-evidence.v1',
+                  $3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,a.id,
+                  a.jurisdiction_profile_id,a.profile_code,a.profile_version,a.country_code,
+                  a.profile_manifest_sha256,a.domain_code,a.domain_version,a.artifact_sha256,$14
+                from platform.jurisdiction_domain_artifacts a
+                where a.jurisdiction_profile_id=$15 and a.profile_code=$16
+                  and a.profile_version=$17 and a.country_code=$18
+                  and a.profile_manifest_sha256=$19 and a.domain_code=$20
+                  and a.domain_version=$21 and a.artifact_sha256=$22
+                  and a.canonical_bytes_sha256=$22 and a.lifecycle_status='active'
+                  and a.effective_from<=$14::timestamptz
+                  and (a.effective_to is null or a.effective_to>$14::timestamptz)`, [
+                receiptId, index + 1, tenantId, command.workspace_id, command.aggregate_id,
+                command.actor_id, command.transaction_id, command.command_id, attempt,
+                command.idempotency_key, receiptContractVersion, authority.decision_id,
+                commitment.resolver_decision_id, commitment.evaluated_at,
+                fingerprint.profile_id, fingerprint.profile_code, fingerprint.profile_version,
+                fingerprint.country_code, fingerprint.profile_manifest_sha256,
+                fingerprint.domain_code, fingerprint.domain_version, fingerprint.artifact_sha256,
+              ]);
+              if (inserted.rowCount !== 1) throw new Error('artifact_projection_unavailable');
+            }
+          }
           const audit = await client.query<{ id: string }>(`insert into audit.events
             (tenant_id,actor_id,action,entity_type,entity_id,request_id,after_snapshot)
             values($1,$2,$3,$4,$5,$6,$7::jsonb) returning id::text`,
@@ -487,6 +610,8 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             aggregate_version: command.aggregate_version, input_fingerprint: command.input_fingerprint,
             idempotency_key: command.idempotency_key, authority, mutation_id: mutationId,
             audit_event_id: audit.rows[0].id, outbox_event_id: outbox.rows[0].id,
+            ...(jurisdictionArtifacts === undefined
+              ? {} : { jurisdiction_artifacts: jurisdictionArtifacts }),
             committed_at: new Date(now.rows[0].now).toISOString(),
           });
           await client.query(`update platform.idempotency_keys set response_ref=$3::jsonb,status_code=200
