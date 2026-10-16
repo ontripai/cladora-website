@@ -10,6 +10,7 @@ const matches = (source, pattern) => pattern.test(source);
 const read = (file) => readFileSync(file, 'utf8');
 
 const guideExecutableFiles = [
+  'src/app/[lang]/app/experience/guides/page.tsx',
   'src/app/api/customer/v1/experience/guides/route.ts',
   'src/components/customer/CustomerExperienceGuide.tsx',
   'src/components/customer/CustomerExperienceGuidePage.tsx',
