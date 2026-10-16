@@ -30,6 +30,7 @@ on:
       - 'supabase/tests/fixtures/ce_011_*.inc'
       - 'scripts/test-ce-010-*.mjs'
       - 'scripts/test-ce-012-*.mjs'
+      - 'scripts/test-ce-guide-translation-provenance-v1.mjs'
       - 'scripts/test-ce-guide-lifecycle-http-*.mjs'
       - 'scripts/test-core-platform-role-bound-pool-*.mjs'
       - 'src/lib/core/platform-role-bound-pool-v1.ts'
@@ -38,6 +39,7 @@ on:
       - 'scripts/test-ce-011-*.mjs'
       - 'scripts/test-ce-service-experience-coordination-receipt.mjs'
       - 'docs/architecture/CLADORA-CE-SV01N-PROVIDER-CONTRACT-v1.0.md'
+      - 'docs/architecture/CLADORA-CE-GUIDE-TRANSLATION-PROVENANCE-03-v1.0.md'
       - '.github/workflows/ce-community.yml'
 permissions:
   contents: read
@@ -64,6 +66,7 @@ jobs:
           node scripts/test-ce-012-route.mjs
           node --experimental-strip-types scripts/test-ce-012-guide-page.mjs
           node scripts/test-ce-012-form-recovery.mjs
+          npm run test:ce:guide-translation-provenance
           node scripts/test-ce-011-form-recovery.mjs
           node --experimental-strip-types scripts/test-ce-011-event-interest.mjs
           node scripts/test-ce-011-route.mjs
