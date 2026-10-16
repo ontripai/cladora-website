@@ -452,16 +452,19 @@ async function installGuideAuthority() {
   await pool.query(`insert into identity.permissions(code,resource,action,description)
     values('experience.guide.manage','experience.guide','manage','Disposable Guide lifecycle authority')
     on conflict(code) do nothing`);
-  await pool.query(`insert into platform.module_definitions
-    (code,version,name,labels_json,description,category,is_active,lifecycle_status,
-      sensitivity_level,requires_aal2,entitlement_key,published_at)
-    values('experience_guides',1,'Experience Guides',
-      '{"ro":"Ghiduri","en":"Guides","fa":"راهنماها"}'::jsonb,
-      'Disposable CE Guide lifecycle authority','services',true,'published','sensitive',true,
-      'module.experience_guides',statement_timestamp())
-    on conflict(code,version) do nothing`);
-  const moduleDefinition = (await pool.query(`select id,entitlement_key from platform.module_definitions
-    where code='experience_guides' and version=1`)).rows[0];
+  let moduleDefinition = (await pool.query(`select id,entitlement_key
+    from platform.module_definitions where code='experience_guides' and version=1`)).rows[0];
+  if (!moduleDefinition) {
+    await pool.query(`insert into platform.module_definitions
+      (code,version,name,labels_json,description,category,is_active,lifecycle_status,
+        sensitivity_level,requires_aal2,entitlement_key,published_at)
+      values('experience_guides',1,'Experience Guides',
+        '{"ro":"Ghiduri","en":"Guides","fa":"راهنماها"}'::jsonb,
+        'Disposable CE Guide lifecycle authority','services',true,'published','sensitive',true,
+        'module.experience_guides',statement_timestamp())`);
+    moduleDefinition = (await pool.query(`select id,entitlement_key
+      from platform.module_definitions where code='experience_guides' and version=1`)).rows[0];
+  }
   const permission = (await pool.query(`select id from identity.permissions
     where code='experience.guide.manage'`)).rows[0];
   await pool.query(`insert into platform.module_permission_bindings
