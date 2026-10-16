@@ -289,7 +289,7 @@ await check('resolver stays SELECT-only and prior migrations remain byte-identic
   assert.match(migrationSource,/primary key\(receipt_id,artifact_ordinal\)/);
   const directory=new URL('../supabase/migrations/',import.meta.url);
   const previous=readdirSync(directory).filter(name=>name.endsWith('.sql')
-    && name!=='20261015203723_core_jurisdiction_domain_artifact_resolver_v1.sql').sort();
+    && name<'20261015203723_core_jurisdiction_domain_artifact_resolver_v1.sql').sort();
   const tree=createHash('sha256');
   for(const name of previous){tree.update(name);tree.update(Buffer.from([0]));
     tree.update(createHash('sha256').update(readFileSync(new URL(name,directory))).digest());}
