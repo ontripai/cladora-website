@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-4 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-5 FIXPOINT LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -169,7 +169,7 @@ function isSourceIdentifier(name) {
 function isSinkPropertyName(name) {
   if (typeof name !== 'string') return false;
   const n = name.trim();
-  return /^(country|countryCode|jurisdiction)$/i.test(n);
+  return /^(country|countryCode|jurisdiction|marketCountry)$/i.test(n);
 }
 
 function isCountryToken(str) {
@@ -201,6 +201,7 @@ function auditSourceFile(filePath, code) {
 
   // Track tainted identifiers (sources + alias propagation)
   const taintedVariables = new Set();
+  const countryValuedVariables = new Set();
 
   function isTainted(expr) {
     if (!expr) return false;
@@ -228,6 +229,7 @@ function auditSourceFile(filePath, code) {
       if (isTainted(expr.argumentExpression)) {
         return true;
       }
+      if (isTainted(expr.expression)) return true;
     }
 
     // Binary expression with tainted operand (e.g. lang === 'en', locale !== 'ro')
@@ -245,6 +247,10 @@ function auditSourceFile(filePath, code) {
       return expr.arguments.some(isTainted);
     }
 
+    if (ts.isConditionalExpression(expr)) {
+      return isTainted(expr.condition) || isTainted(expr.whenTrue) || isTainted(expr.whenFalse);
+    }
+
     // Parenthesized expression
     if (ts.isParenthesizedExpression(expr)) {
       return isTainted(expr.expression);
@@ -253,24 +259,39 @@ function auditSourceFile(filePath, code) {
     return false;
   }
 
-  // First pass: Discover variable declarations and alias propagations
+  // Discover aliases to a fixpoint so forward and multi-hop chains are
+  // independent of source order.
   function collectAliases(node) {
+    let changed = false;
     if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
-      if (isTainted(node.initializer)) {
+      if (isTainted(node.initializer) && !taintedVariables.has(node.name.text)) {
         taintedVariables.add(node.name.text);
+        changed = true;
+      }
+      if (producesCountryValue(node.initializer) && !countryValuedVariables.has(node.name.text)) {
+        countryValuedVariables.add(node.name.text);
+        changed = true;
       }
     }
 
     if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-      if (ts.isIdentifier(node.left) && isTainted(node.right)) {
-        taintedVariables.add(node.left.text);
+      if (ts.isIdentifier(node.left)) {
+        if (isTainted(node.right) && !taintedVariables.has(node.left.text)) {
+          taintedVariables.add(node.left.text);
+          changed = true;
+        }
+        if (producesCountryValue(node.right) && !countryValuedVariables.has(node.left.text)) {
+          countryValuedVariables.add(node.left.text);
+          changed = true;
+        }
       }
     }
 
-    ts.forEachChild(node, collectAliases);
+    ts.forEachChild(node, child => {
+      if (collectAliases(child)) changed = true;
+    });
+    return changed;
   }
-
-  collectAliases(sf);
 
   // Helper to extract leaf property name from member expressions (e.g. settings.geo.countryCode -> countryCode)
   function getLeafPropertyName(expr) {
@@ -290,7 +311,9 @@ function auditSourceFile(filePath, code) {
       if (isCountryToken(expr.text.trim())) return true;
     }
     if (ts.isIdentifier(expr)) {
-      if (isCountryConstantIdentifier(expr.text)) return true;
+      if (isCountryConstantIdentifier(expr.text) || countryValuedVariables.has(expr.text)) {
+        return true;
+      }
     }
     if (ts.isObjectLiteralExpression(expr)) {
       return hasSinkProperty(expr);
@@ -347,6 +370,9 @@ function auditSourceFile(filePath, code) {
             if (isRegionOrCountryMapName(parentName) && isCountryToken(prop.initializer.text)) {
               violations.push(`Locale-keyed country map "${fullPath}: '${prop.initializer.text}'" in ${filePath}`);
             }
+          } else if (ts.isObjectLiteralExpression(prop.initializer)
+            && hasSinkProperty(prop.initializer)) {
+            violations.push(`Locale-keyed nested country mapping "${fullPath}" in ${filePath}`);
           }
         }
 
@@ -356,6 +382,25 @@ function auditSourceFile(filePath, code) {
         }
       }
     }
+  }
+
+  do {
+    // The sets grow monotonically and are bounded by identifiers in the file.
+  } while (collectAliases(sf));
+
+  function enclosingFunctionName(node) {
+    let current = node.parent;
+    while (current) {
+      if (ts.isFunctionDeclaration(current) || ts.isMethodDeclaration(current)
+        || ts.isFunctionExpression(current)) {
+        return current.name?.getText(sf) ?? '';
+      }
+      if (ts.isArrowFunction(current) && ts.isVariableDeclaration(current.parent)) {
+        return current.parent.name.getText(sf);
+      }
+      current = current.parent;
+    }
+    return '';
   }
 
   // Second pass: Detect taint violations across AST
@@ -432,7 +477,16 @@ function auditSourceFile(filePath, code) {
       }
     }
 
-    // 7. Forbidden helper function names combining (country|jurisdiction) and (locale|lang|language)
+    // 7. A locale-tainted lookup returned from a country/jurisdiction resolver
+    // is itself a sink even if an intermediate local has a neutral name.
+    if (ts.isReturnStatement(node) && node.expression && isTainted(node.expression)) {
+      const owner = enclosingFunctionName(node);
+      if (/(country|jurisdiction|marketCountry)/i.test(owner)) {
+        violations.push(`Tainted return from country/jurisdiction function "${owner}" in ${filePath}`);
+      }
+    }
+
+    // 8. Forbidden helper function names combining (country|jurisdiction) and (locale|lang|language)
     let fnName = '';
     if (ts.isFunctionDeclaration(node) || ts.isMethodDeclaration(node)) {
       fnName = node.name ? node.name.getText(sf) : '';
@@ -455,7 +509,7 @@ function auditSourceFile(filePath, code) {
 }
 
 // -----------------------------------------------------------------------------
-// Assertions 3.1 to 3.9: Independent Taint-Aware Bypass Regressions
+// Independent Taint-Aware Bypass Regressions
 // -----------------------------------------------------------------------------
 runAssertion('Taint Regression: deep nested countryCode is rejected by AST data-flow analysis', () => {
   const code = `
@@ -538,6 +592,53 @@ runAssertion('Taint Regression: translation dictionary flowing into country/juri
   const violations = auditSourceFile('test-dict-to-sink.ts', code);
   assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "countryCode"')),
     `Dictionary flowing into sink must be flagged, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: locale-keyed deeply nested static country mapping is rejected', () => {
+  const code = `
+    const lookup = {
+      en: { config: { geo: { countryCode: 'US' } } },
+      fa: { config: { geo: { countryCode: 'IR' } } },
+    };
+  `;
+  const violations = auditSourceFile('test-static-nested-country-map.ts', code);
+  assert.ok(violations.some((v) => v.includes('Locale-keyed nested country mapping')),
+    `Must flag static nested locale-to-country mapping, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: arbitrary computed lookup returned by a country resolver is rejected', () => {
+  const code = `
+    function resolveCountry(locale) {
+      const code = lookup[locale];
+      return code;
+    }
+  `;
+  const violations = auditSourceFile('test-country-resolver-return.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+    `Must flag tainted computed lookup returned as country, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: forward alias chains are rejected independent of declaration order', () => {
+  const code = `
+    const market = source;
+    const source = locale;
+    result.countryCode = market;
+  `;
+  const violations = auditSourceFile('test-forward-alias.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must flag forward alias chain into country sink, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: ternary using locally declared country constants is rejected', () => {
+  const code = `
+    const DE_CODE = 'DE';
+    const FR_CODE = 'FR';
+    countryCode = locale === 'de' ? DE_CODE : FR_CODE;
+  `;
+  const violations = auditSourceFile('test-local-country-constants.ts', code);
+  assert.ok(violations.some((v) => v.includes('assignment to sink "countryCode"')
+      || v.includes('Ternary on tainted condition yielding country token/object')),
+    `Must flag local constants selected by locale, got: ${JSON.stringify(violations)}`);
 });
 
 // -----------------------------------------------------------------------------
