@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-11 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-12 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -206,6 +206,16 @@ function auditSourceFile(filePath, code) {
   const countryValuedVariables = new Set();
   const taintedMemberPaths = new Set();
   const taintedFunctions = new Set();
+  const constantStringInitializers = new Map();
+
+  (function collectConstantStringInitializers(node) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer
+      && ts.isVariableDeclarationList(node.parent)
+      && (node.parent.flags & ts.NodeFlags.Const) !== 0) {
+      constantStringInitializers.set(node.name.text, node.initializer);
+    }
+    ts.forEachChild(node, collectConstantStringInitializers);
+  }(sf));
 
   function memberPath(expr) {
     if (ts.isIdentifier(expr)) return expr.text;
@@ -531,13 +541,28 @@ function auditSourceFile(filePath, code) {
     return '';
   }
 
-  function constantString(expr) {
+  function constantString(expr, resolving = new Set()) {
     if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) return expr.text;
-    if (ts.isParenthesizedExpression(expr)) return constantString(expr.expression);
+    if (ts.isIdentifier(expr) && constantStringInitializers.has(expr.text)
+      && !resolving.has(expr.text)) {
+      const next = new Set(resolving);
+      next.add(expr.text);
+      return constantString(constantStringInitializers.get(expr.text), next);
+    }
+    if (ts.isParenthesizedExpression(expr)) return constantString(expr.expression, resolving);
     if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-      const left = constantString(expr.left);
-      const right = constantString(expr.right);
+      const left = constantString(expr.left, resolving);
+      const right = constantString(expr.right, resolving);
       return left === null || right === null ? null : left + right;
+    }
+    if (ts.isTemplateExpression(expr)) {
+      let value = expr.head.text;
+      for (const span of expr.templateSpans) {
+        const expressionValue = constantString(span.expression, resolving);
+        if (expressionValue === null) return null;
+        value += expressionValue + span.literal.text;
+      }
+      return value;
     }
     return null;
   }
@@ -633,6 +658,91 @@ function auditSourceFile(filePath, code) {
     return ts.isPropertyAssignment(owner) && getLeafPropertyName(owner.name) === 'labels';
   }
 
+  function collectStructuralSinkTargets(target, discovered = []) {
+    if (!target) return discovered;
+    if (ts.isParenthesizedExpression(target)) {
+      return collectStructuralSinkTargets(target.expression, discovered);
+    }
+    if (ts.isIdentifier(target) || ts.isPropertyAccessExpression(target)
+      || ts.isElementAccessExpression(target)) {
+      const key = getLeafPropertyName(target);
+      if (isSinkPropertyName(key)) discovered.push(target.getText(sf));
+      return discovered;
+    }
+    if (ts.isObjectLiteralExpression(target)) {
+      for (const property of target.properties) {
+        if (ts.isPropertyAssignment(property)) {
+          collectStructuralSinkTargets(property.initializer, discovered);
+        } else if (ts.isShorthandPropertyAssignment(property)) {
+          collectStructuralSinkTargets(property.name, discovered);
+        } else if (ts.isSpreadAssignment(property)) {
+          collectStructuralSinkTargets(property.expression, discovered);
+        }
+      }
+      return discovered;
+    }
+    if (ts.isArrayLiteralExpression(target)) {
+      for (const element of target.elements) {
+        if (!ts.isOmittedExpression(element)) collectStructuralSinkTargets(element, discovered);
+      }
+    }
+    return discovered;
+  }
+
+  function collectStructuralBindingSinks(binding, discovered = []) {
+    if (ts.isIdentifier(binding)) {
+      if (isSinkPropertyName(binding.text)) discovered.push(binding.text);
+      return discovered;
+    }
+    if (ts.isObjectBindingPattern(binding)) {
+      for (const element of binding.elements) {
+        const sourceKey = getLeafPropertyName(element.propertyName ?? element.name);
+        if (/(country|jurisdiction|marketCountry)/i.test(sourceKey)) {
+          discovered.push(sourceKey);
+        }
+        collectStructuralBindingSinks(element.name, discovered);
+      }
+      return discovered;
+    }
+    if (ts.isArrayBindingPattern(binding)) {
+      for (const element of binding.elements) {
+        if (ts.isBindingElement(element)) collectStructuralBindingSinks(element.name, discovered);
+      }
+    }
+    return discovered;
+  }
+
+  function isStaticMemberCall(expression, owner, method) {
+    if (ts.isPropertyAccessExpression(expression)) {
+      return ts.isIdentifier(expression.expression) && expression.expression.text === owner
+        && expression.name.text === method;
+    }
+    return ts.isElementAccessExpression(expression)
+      && ts.isIdentifier(expression.expression) && expression.expression.text === owner
+      && constantString(expression.argumentExpression) === method;
+  }
+
+  function structuralMutationApiSink(call) {
+    if (isStaticMemberCall(call.expression, 'Reflect', 'set') && call.arguments.length >= 2) {
+      return isSinkPropertyName(constantString(call.arguments[1]) ?? '')
+        ? constantString(call.arguments[1]) : '';
+    }
+    if (isStaticMemberCall(call.expression, 'Object', 'defineProperty') && call.arguments.length >= 2) {
+      return isSinkPropertyName(constantString(call.arguments[1]) ?? '')
+        ? constantString(call.arguments[1]) : '';
+    }
+    if (isStaticMemberCall(call.expression, 'Object', 'defineProperties') && call.arguments.length >= 2
+      && ts.isObjectLiteralExpression(call.arguments[1])) {
+      for (const property of call.arguments[1].properties) {
+        if (ts.isPropertyAssignment(property)) {
+          const key = getLeafPropertyName(property.name);
+          if (isSinkPropertyName(key)) return key;
+        }
+      }
+    }
+    return '';
+  }
+
   // Recursive check for tainted values assigned to sink properties in object literals at ANY depth
   function checkObjectForTaintedSinks(objNode, currentPath = '') {
     if (!ts.isObjectLiteralExpression(objNode)) return;
@@ -719,21 +829,34 @@ function auditSourceFile(filePath, code) {
         && !isPresentationCountryLabel(node, key)) {
         violations.push(`Structural country/jurisdiction property creation "${key}" is forbidden in ${filePath}`);
       }
+      if (!canonicalGuideDataModule && /(country|jurisdiction|marketCountry)/i.test(key)
+        && !isSinkPropertyName(key)) {
+        violations.push(`Structural country/jurisdiction resolver property "${key}" is forbidden in ${filePath}`);
+      }
     }
     if (!canonicalGuideDataModule && ts.isBinaryExpression(node)
       && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-      const key = getLeafPropertyName(node.left);
-      if (isSinkPropertyName(key)) {
-        violations.push(`Structural country/jurisdiction assignment "${node.left.getText(sf)}" is forbidden in ${filePath}`);
-      }
-      if (ts.isElementAccessExpression(node.left)
-        && constantString(node.left.argumentExpression) === null) {
-        violations.push(`Dynamic computed assignment is forbidden in executable Guide code in ${filePath}`);
+      for (const target of collectStructuralSinkTargets(node.left)) {
+        violations.push(`Structural country/jurisdiction assignment "${target}" is forbidden in ${filePath}`);
       }
     }
-    if (!canonicalGuideDataModule && ts.isVariableDeclaration(node)
-      && ts.isIdentifier(node.name) && isSinkPropertyName(node.name.text)) {
-      violations.push(`Structural country/jurisdiction variable "${node.name.text}" is forbidden in ${filePath}`);
+    if (!canonicalGuideDataModule && ts.isVariableDeclaration(node)) {
+      for (const sink of collectStructuralBindingSinks(node.name)) {
+        violations.push(`Structural country/jurisdiction variable "${sink}" is forbidden in ${filePath}`);
+      }
+    }
+    if (!canonicalGuideDataModule && ts.isParameter(node)) {
+      for (const sink of collectStructuralBindingSinks(node.name)) {
+        violations.push(`Structural country/jurisdiction parameter "${sink}" is forbidden in ${filePath}`);
+      }
+    }
+    if (!canonicalGuideDataModule
+      && (ts.isPropertyDeclaration(node) || ts.isGetAccessorDeclaration(node)
+        || ts.isSetAccessorDeclaration(node))) {
+      const key = getLeafPropertyName(node.name);
+      if (isSinkPropertyName(key) || /(country|jurisdiction|marketCountry)/i.test(key)) {
+        violations.push(`Structural country/jurisdiction class member "${key}" is forbidden in ${filePath}`);
+      }
     }
 
     // 1. Check all object literals for tainted sinks at ANY depth
@@ -844,10 +967,20 @@ function auditSourceFile(filePath, code) {
 
     // 9. Function calls and JSX attributes named as country/jurisdiction sinks.
     if (ts.isCallExpression(node)) {
+      if (node.expression.kind === ts.SyntaxKind.ImportKeyword
+        && (node.arguments.length !== 1
+          || (!ts.isStringLiteral(node.arguments[0])
+            && !ts.isNoSubstitutionTemplateLiteral(node.arguments[0])))) {
+        violations.push(`Dynamic import specifier is forbidden in executable Guide code in ${filePath}`);
+      }
       const callee = getLeafPropertyName(node.expression);
       if (/(country|jurisdiction|marketCountry)/i.test(callee)
         && (!canonicalGuideDataModule || node.arguments.some(isTainted))) {
         violations.push(`Country/jurisdiction call sink "${node.expression.getText(sf)}" is forbidden in ${filePath}`);
+      }
+      const mutationSink = structuralMutationApiSink(node);
+      if (!canonicalGuideDataModule && mutationSink) {
+        violations.push(`Structural mutation API cannot create country/jurisdiction sink "${mutationSink}" in ${filePath}`);
       }
     }
     if (!canonicalGuideDataModule && ts.isJsxAttribute(node)
@@ -1344,9 +1477,90 @@ runAssertion('Structural Regression: computed country sink keys are forbidden', 
     'const key = `country${"Code"}`; result[key] = locale;',
   ]) {
     const violations = auditSourceFile('test-dynamic-country-sink.ts', assignment);
-    assert.ok(violations.some((v) => v.includes('Dynamic computed assignment is forbidden')),
+    assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction assignment')),
       `Must reject dynamic computed sink ${assignment}, got: ${JSON.stringify(violations)}`);
   }
+});
+
+runAssertion('Structural Regression: computed object country properties are forbidden', () => {
+  const code = `const key = 'countryCode'; const request = { [key]: locale };`;
+  const violations = auditSourceFile('test-computed-object-country.ts', code);
+  assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction property creation "countryCode"')),
+    `Must reject computed object construction, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Structural Regression: destructuring assignments cannot target country state', () => {
+  for (const assignment of [
+    `({ locale: result.countryCode } = params);`,
+    `[result.countryCode] = [locale];`,
+  ]) {
+    const violations = auditSourceFile('test-destructuring-country-target.ts', assignment);
+    assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction assignment "result.countryCode"')),
+      `Must reject destructuring target ${assignment}, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Structural Regression: destructured declarations and parameters cannot create country state', () => {
+  for (const source of [
+    `const { locale: countryCode } = params;`,
+    `function render({ jurisdiction: scope }) { return scope; }`,
+    `const [country] = values;`,
+  ]) {
+    const violations = auditSourceFile('test-destructured-country-binding.ts', source);
+    assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction')),
+      `Must reject country binding ${source}, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Structural Regression: reflective mutation APIs cannot create country state', () => {
+  for (const statement of [
+    `Reflect.set(result, 'countryCode', locale);`,
+    `Reflect['set'](result, 'countryCode', locale);`,
+    `Object.defineProperty(result, 'countryCode', { value: locale });`,
+    `Object['defineProperty'](result, 'countryCode', { value: locale });`,
+    `Object.defineProperties(result, { countryCode: { value: locale } });`,
+  ]) {
+    const violations = auditSourceFile('test-reflective-country-mutation.ts', statement);
+    assert.ok(violations.some((v) => v.includes('Structural mutation API cannot create country/jurisdiction sink "countryCode"')),
+      `Must reject reflective mutation ${statement}, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Structural Regression: class country members are forbidden', () => {
+  const code = `
+    class Context {
+      countryCode = 'RO';
+      get jurisdiction() { return 'RO'; }
+      set marketCountry(value) { void value; }
+    }
+  `;
+  const violations = auditSourceFile('test-class-country-members.ts', code);
+  assert.ok(violations.filter((v) => v.includes('Structural country/jurisdiction class member')).length >= 3,
+    `Must reject class country state, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Structural Regression: resolver properties and computed resolver calls are forbidden', () => {
+  const propertyCode = `
+    const action = () => locale;
+    const api = { resolveCountry: action };
+    const { resolveCountry: pick } = api;
+    pick();
+  `;
+  const propertyViolations = auditSourceFile('test-resolver-property.ts', propertyCode);
+  assert.ok(propertyViolations.some((v) => v.includes('Structural country/jurisdiction resolver property "resolveCountry"')),
+    `Must reject resolver properties, got: ${JSON.stringify(propertyViolations)}`);
+
+  const callCode = `const method = 'resolveCountry'; api[method]();`;
+  const callViolations = auditSourceFile('test-computed-resolver-call.ts', callCode);
+  assert.ok(callViolations.some((v) => v.includes('Country/jurisdiction call sink "api[method]"')),
+    `Must reject computed resolver calls, got: ${JSON.stringify(callViolations)}`);
+});
+
+runAssertion('Structural Regression: presentation-only computed assignments remain benign', () => {
+  const code = `translations[locale] = label;`;
+  const violations = auditSourceFile('test-presentation-computed-assignment.ts', code);
+  assert.deepEqual(violations, [],
+    `Presentation-only assignment must not be treated as country state, got: ${JSON.stringify(violations)}`);
 });
 
 runAssertion('Structural Regression: country resolvers are forbidden regardless of header access syntax', () => {
@@ -1393,6 +1607,26 @@ runAssertion('Structural Regression: canonical guide data permits only the exact
 // -----------------------------------------------------------------------------
 // Assertion 3.10: Recursive Local TS/TSX Module Graph Discovery & Audit
 // -----------------------------------------------------------------------------
+function collectStaticLocalModuleSpecifiers(sourceFile) {
+  const specifiers = [];
+  function visit(node) {
+    if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node))
+      && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
+      specifiers.push(node.moduleSpecifier.text);
+    } else if (ts.isCallExpression(node) && node.arguments.length === 1
+      && (ts.isStringLiteral(node.arguments[0])
+        || ts.isNoSubstitutionTemplateLiteral(node.arguments[0]))) {
+      if ((ts.isIdentifier(node.expression) && node.expression.text === 'require')
+        || node.expression.kind === ts.SyntaxKind.ImportKeyword) {
+        specifiers.push(node.arguments[0].text);
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(sourceFile);
+  return specifiers;
+}
+
 function buildReachableFileGraph() {
   const visited = new Set();
   const queue = [];
@@ -1451,26 +1685,42 @@ function buildReachableFileGraph() {
     const source = fs.readFileSync(normalized, 'utf8');
     const sf = ts.createSourceFile(normalized, source, ts.ScriptTarget.Latest, true);
 
-    function visitImports(node) {
-      let specifier = null;
-      if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
-        specifier = node.moduleSpecifier.text;
-      } else if (ts.isCallExpression(node) && node.expression.getText(sf) === 'require' && node.arguments.length === 1 && ts.isStringLiteral(node.arguments[0])) {
-        specifier = node.arguments[0].text;
+    for (const specifier of collectStaticLocalModuleSpecifiers(sf)) {
+      const resolved = resolveModulePath(normalized, specifier);
+      if (resolved && !visited.has(path.normalize(resolved))) {
+        queue.push(path.normalize(resolved));
       }
-      if (specifier) {
-        const resolved = resolveModulePath(normalized, specifier);
-        if (resolved && !visited.has(path.normalize(resolved))) {
-          queue.push(path.normalize(resolved));
-        }
-      }
-      ts.forEachChild(node, visitImports);
     }
-    visitImports(sf);
   }
 
   return Array.from(visited).map(f => path.relative(projectRoot, f).replace(/\\/g, '/'));
 }
+
+runAssertion('Recursive import discovery includes literal dynamic imports', () => {
+  const sf = ts.createSourceFile('dynamic-import.ts', `
+    import './static-helper';
+    export { value } from './export-helper';
+    const lazy = import('./dynamic-helper');
+    const lazyTemplate = import(\`./dynamic-template-helper\`);
+    const legacy = require('./legacy-helper');
+  `, ts.ScriptTarget.Latest, true);
+  assert.deepEqual(collectStaticLocalModuleSpecifiers(sf), [
+    './static-helper',
+    './export-helper',
+    './dynamic-helper',
+    './dynamic-template-helper',
+    './legacy-helper',
+  ]);
+});
+
+runAssertion('Recursive import discovery rejects nonliteral dynamic imports', () => {
+  const violations = auditSourceFile('src/app/[lang]/resources/guides/dynamic.ts', `
+    const modulePath = './hidden-country-helper';
+    const helper = import(modulePath);
+  `);
+  assert.ok(violations.some((v) => v.includes('Dynamic import specifier is forbidden')),
+    `Must reject imports the graph cannot resolve, got: ${JSON.stringify(violations)}`);
+});
 
 runAssertion('Recursive local TS/TSX module import graph discovers all reachable guide and route dependencies', () => {
   const discoveredFiles = buildReachableFileGraph();
