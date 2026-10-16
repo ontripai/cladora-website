@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-10 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-11 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -198,6 +198,8 @@ function isLocaleKey(name) {
 function auditSourceFile(filePath, code) {
   const sf = ts.createSourceFile(filePath, code, ts.ScriptTarget.Latest, true);
   const violations = [];
+  const canonicalGuideDataModule = /^src\/data\/guides(?:\/|\.ts$)/.test(filePath)
+    || filePath === 'src/data/guides-articles.ts';
 
   // Track tainted identifiers (sources + alias propagation)
   const taintedVariables = new Set();
@@ -341,11 +343,15 @@ function auditSourceFile(filePath, code) {
       if (isLocaleHeaderSource(expr)) return true;
       if ((ts.isArrowFunction(callable) || ts.isFunctionExpression(callable))
         && functionReturnsTaint(callable)) return true;
-      return taintedFunctions.has(callee) || expr.arguments.some(isTainted);
+      return taintedFunctions.has(callee) || isTainted(expr.expression) || expr.arguments.some(isTainted);
     }
 
     if (ts.isArrayLiteralExpression(expr)) return expr.elements.some(isTainted);
     if (ts.isSpreadElement(expr)) return isTainted(expr.expression);
+    if (ts.isTemplateExpression(expr)) return expr.templateSpans.some(span => isTainted(span.expression));
+    if (ts.isAsExpression(expr) || ts.isTypeAssertionExpression(expr)
+      || ts.isNonNullExpression(expr) || ts.isSatisfiesExpression(expr)
+      || ts.isAwaitExpression(expr)) return isTainted(expr.expression);
 
     if (ts.isConditionalExpression(expr)) {
       return isTainted(expr.condition) || isTainted(expr.whenTrue) || isTainted(expr.whenFalse);
@@ -604,6 +610,29 @@ function auditSourceFile(filePath, code) {
     return false;
   }
 
+  function isAllowedCanonicalApplicabilityProperty(prop, key) {
+    if (!canonicalGuideDataModule || !/^countryCode$/i.test(key)
+      || !ts.isStringLiteral(prop.initializer) || prop.initializer.text !== 'RO') return false;
+    const objectNode = prop.parent;
+    if (!ts.isObjectLiteralExpression(objectNode)) return false;
+    const owner = objectNode.parent;
+    if (!ts.isPropertyAssignment(owner) || getLeafPropertyName(owner.name) !== 'contentApplicability') {
+      return false;
+    }
+    return objectNode.properties.some(candidate => ts.isPropertyAssignment(candidate)
+      && getLeafPropertyName(candidate.name) === 'kind'
+      && ts.isStringLiteral(candidate.initializer)
+      && candidate.initializer.text === 'country');
+  }
+
+  function isPresentationCountryLabel(prop, key) {
+    if (!/^country$/i.test(key) || !ts.isStringLiteral(prop.initializer)
+      || isCountryToken(prop.initializer.text)) return false;
+    const objectNode = prop.parent;
+    const owner = objectNode?.parent;
+    return ts.isPropertyAssignment(owner) && getLeafPropertyName(owner.name) === 'labels';
+  }
+
   // Recursive check for tainted values assigned to sink properties in object literals at ANY depth
   function checkObjectForTaintedSinks(objNode, currentPath = '') {
     if (!ts.isObjectLiteralExpression(objNode)) return;
@@ -679,6 +708,34 @@ function auditSourceFile(filePath, code) {
 
   // Second pass: Detect taint violations across AST
   function checkNode(node) {
+    // Structural invariant: executable Guide/route modules may read canonical
+    // applicability metadata for presentation, but may not construct, assign,
+    // resolve or dispatch country/jurisdiction state. Canonical article data is
+    // allowlisted only for the exact closed `country/RO` applicability shape.
+    if (ts.isPropertyAssignment(node)) {
+      const key = getLeafPropertyName(node.name);
+      if (isSinkPropertyName(key)
+        && !isAllowedCanonicalApplicabilityProperty(node, key)
+        && !isPresentationCountryLabel(node, key)) {
+        violations.push(`Structural country/jurisdiction property creation "${key}" is forbidden in ${filePath}`);
+      }
+    }
+    if (!canonicalGuideDataModule && ts.isBinaryExpression(node)
+      && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+      const key = getLeafPropertyName(node.left);
+      if (isSinkPropertyName(key)) {
+        violations.push(`Structural country/jurisdiction assignment "${node.left.getText(sf)}" is forbidden in ${filePath}`);
+      }
+      if (ts.isElementAccessExpression(node.left)
+        && constantString(node.left.argumentExpression) === null) {
+        violations.push(`Dynamic computed assignment is forbidden in executable Guide code in ${filePath}`);
+      }
+    }
+    if (!canonicalGuideDataModule && ts.isVariableDeclaration(node)
+      && ts.isIdentifier(node.name) && isSinkPropertyName(node.name.text)) {
+      violations.push(`Structural country/jurisdiction variable "${node.name.text}" is forbidden in ${filePath}`);
+    }
+
     // 1. Check all object literals for tainted sinks at ANY depth
     if (ts.isObjectLiteralExpression(node)) {
       checkObjectForTaintedSinks(node);
@@ -780,6 +837,22 @@ function auditSourceFile(filePath, code) {
       if (hasCountry && hasLocale) {
         violations.push(`Forbidden helper function "${fnName}" in ${filePath}`);
       }
+      if (!canonicalGuideDataModule && /(country|jurisdiction|marketCountry)/i.test(fnName)) {
+        violations.push(`Structural country/jurisdiction resolver "${fnName}" is forbidden in ${filePath}`);
+      }
+    }
+
+    // 9. Function calls and JSX attributes named as country/jurisdiction sinks.
+    if (ts.isCallExpression(node)) {
+      const callee = getLeafPropertyName(node.expression);
+      if (/(country|jurisdiction|marketCountry)/i.test(callee)
+        && (!canonicalGuideDataModule || node.arguments.some(isTainted))) {
+        violations.push(`Country/jurisdiction call sink "${node.expression.getText(sf)}" is forbidden in ${filePath}`);
+      }
+    }
+    if (!canonicalGuideDataModule && ts.isJsxAttribute(node)
+      && isSinkPropertyName(node.name.text)) {
+      violations.push(`Structural JSX country/jurisdiction sink "${node.name.text}" is forbidden in ${filePath}`);
     }
 
     ts.forEachChild(node, checkNode);
@@ -1193,6 +1266,128 @@ runAssertion('Taint Regression: unrelated browser headers remain benign', () => 
   const violations = auditSourceFile('test-benign-browser-header.ts', code);
   assert.equal(violations.length, 0,
     `Unrelated browser header must remain benign, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: TypeScript wrappers and templates preserve taint', () => {
+  for (const [label, expression] of [
+    ['as-expression', 'locale as string'],
+    ['non-null', 'locale!'],
+    ['satisfies', 'locale satisfies string'],
+    ['template', '`${locale}`'],
+  ]) {
+    const violations = auditSourceFile(`test-${label}-taint.ts`, `result.countryCode = ${expression};`);
+    assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+      `Must preserve taint through ${label}, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Taint Regression: method chains preserve locale taint', () => {
+  const code = `result.countryCode = locale.trim().toUpperCase();`;
+  const violations = auditSourceFile('test-method-chain-taint.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must preserve locale taint through method chains, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: country setter calls reject locale-tainted arguments', () => {
+  const code = `settings.setCountryCode(currentLocale);`;
+  const violations = auditSourceFile('test-country-setter-sink.ts', code);
+  assert.ok(violations.some((v) => v.includes('Country/jurisdiction call sink "settings.setCountryCode"')),
+    `Must flag country setter call, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: JSX country sinks reject locale-tainted values', () => {
+  const code = `const view = <Guide countryCode={language} />;`;
+  const violations = auditSourceFile('test-jsx-country-sink.tsx', code);
+  assert.ok(violations.some((v) => v.includes('Structural JSX country/jurisdiction sink "countryCode"')),
+    `Must flag JSX country sink, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Structural Regression: helper functions hidden in objects cannot create country state', () => {
+  const code = `
+    const getLocale = () => locale;
+    const helpers = { get: getLocale };
+    result.countryCode = helpers.get();
+  `;
+  const violations = auditSourceFile('test-object-helper-country-state.ts', code);
+  assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction assignment "result.countryCode"')),
+    `Must reject object-hidden helpers at the country boundary, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Structural Regression: bound helper aliases cannot create country state', () => {
+  const code = `
+    const getLocale = () => locale;
+    const alias = getLocale.bind(null);
+    result.countryCode = alias();
+  `;
+  const violations = auditSourceFile('test-bound-helper-country-state.ts', code);
+  assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction assignment "result.countryCode"')),
+    `Must reject bound helper aliases at the country boundary, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Structural Regression: async helper results cannot create country state', () => {
+  for (const expression of ['await getLocale()', 'await Promise.resolve(locale)']) {
+    const code = `
+      async function run() {
+        const getLocale = async () => locale;
+        result.countryCode = ${expression};
+      }
+    `;
+    const violations = auditSourceFile('test-async-helper-country-state.ts', code);
+    assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction assignment "result.countryCode"')),
+      `Must reject async expression ${expression} at the country boundary, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Structural Regression: computed country sink keys are forbidden', () => {
+  for (const assignment of [
+    `const key = 'countryCode'; result[key] = locale;`,
+    'const key = `country${"Code"}`; result[key] = locale;',
+  ]) {
+    const violations = auditSourceFile('test-dynamic-country-sink.ts', assignment);
+    assert.ok(violations.some((v) => v.includes('Dynamic computed assignment is forbidden')),
+      `Must reject dynamic computed sink ${assignment}, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Structural Regression: country resolvers are forbidden regardless of header access syntax', () => {
+  for (const accessor of [
+    `request.headers['get']('accept-language')`,
+    `request.headers.get(headerName)`,
+    `request.headers.get('accept-' + 'language')`,
+  ]) {
+    const code = `function resolveCountry() { return ${accessor}; }`;
+    const violations = auditSourceFile('test-header-country-resolver.ts', code);
+    assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction resolver "resolveCountry"')),
+      `Must reject resolver using ${accessor}, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Structural Regression: executable modules cannot construct static country state', () => {
+  const violations = auditSourceFile('src/app/[lang]/resources/guides/test.ts', `
+    const request = { countryCode: 'RO' };
+    const country = 'RO';
+  `);
+  assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction property creation "countryCode"')),
+    `Must reject static country property construction, got: ${JSON.stringify(violations)}`);
+  assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction variable "country"')),
+    `Must reject static country variables, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Structural Regression: canonical guide data permits only the exact country/RO applicability shape', () => {
+  const valid = auditSourceFile('src/data/guides/test.ts', `
+    const article = { contentApplicability: { kind: 'country', countryCode: 'RO' } };
+  `);
+  assert.deepEqual(valid, [], `Exact canonical applicability must remain valid, got: ${JSON.stringify(valid)}`);
+
+  for (const invalid of [
+    `const article = { contentApplicability: { kind: 'country', countryCode: 'IR' } };`,
+    `const article = { contentApplicability: { kind: 'country', countryCode: locale } };`,
+    `const article = { contentApplicability: { kind: 'global', countryCode: 'RO' } };`,
+  ]) {
+    const violations = auditSourceFile('src/data/guides/test.ts', invalid);
+    assert.ok(violations.some((v) => v.includes('Structural country/jurisdiction property creation "countryCode"')),
+      `Must reject noncanonical applicability ${invalid}, got: ${JSON.stringify(violations)}`);
+  }
 });
 
 // -----------------------------------------------------------------------------
