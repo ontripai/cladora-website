@@ -59,7 +59,7 @@ export const serviceMoneyNormalizationDecisionV1Schema = z.discriminatedUnion('d
     rounding_mode: roundingMode,
     increment_minor_units: z.number().int().positive().max(1_000_000).safe(),
     decimal_amount: z.string(),
-    minor_units: z.string().regex(/^-?(?:0|[1-9][0-9]*)$/),
+    minor_units: z.string().regex(/^(?:0|[1-9][0-9]*)$/),
     artifact_sha256: z.string().regex(/^[a-f0-9]{64}$/),
   }),
   z.strictObject({
@@ -85,8 +85,8 @@ export type ServiceMoneyNormalizationDecisionV1 = z.infer<
 type DenialReason = z.infer<typeof denialReason>;
 type ParsedRequest = z.infer<typeof serviceMoneyNormalizationRequestV1Schema>;
 
-const DECIMAL_AMOUNT = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
-const MINOR_AMOUNT = /^-?(?:0|[1-9][0-9]*)$/;
+const DECIMAL_AMOUNT = /^(?:0|[1-9][0-9]*)(?:\.[0-9]+)?$/;
+const MINOR_AMOUNT = /^(?:0|[1-9][0-9]*)$/;
 const BIGINT_ZERO = BigInt(0);
 const BIGINT_ONE = BigInt(1);
 const BIGINT_TWO = BigInt(2);
@@ -113,10 +113,6 @@ ServiceMoneyNormalizationDecisionV1 {
     provider_selected: false,
     payment_intent_created: false,
   });
-}
-
-function absolute(value: bigint): bigint {
-  return value < BIGINT_ZERO ? -value : value;
 }
 
 function powerOfTen(exponent: number): bigint {
@@ -147,14 +143,11 @@ function roundedQuotient(
 }
 
 function canonicalDecimal(minorUnits: bigint, exponent: number): string {
-  const negative = minorUnits < BIGINT_ZERO;
-  const digits = absolute(minorUnits).toString();
-  if (exponent === 0) {
-    return `${negative && minorUnits !== BIGINT_ZERO ? '-' : ''}${digits}`;
-  }
+  const digits = minorUnits.toString();
+  if (exponent === 0) return digits;
   const padded = digits.padStart(exponent + 1, '0');
   const split = padded.length - exponent;
-  return `${negative && minorUnits !== BIGINT_ZERO ? '-' : ''}${padded.slice(0, split)}.${padded.slice(split)}`;
+  return `${padded.slice(0, split)}.${padded.slice(split)}`;
 }
 
 function decimalToMinor(input: {
@@ -164,16 +157,13 @@ function decimalToMinor(input: {
   rounding: z.infer<typeof roundingMode>;
 }): { decimal: string; minor: bigint } | DenialReason {
   if (!DECIMAL_AMOUNT.test(input.amount)) return 'INVALID_DECIMAL_AMOUNT';
-  const negative = input.amount.startsWith('-');
-  const unsigned = negative ? input.amount.slice(1) : input.amount;
-  const [whole, fraction = ''] = unsigned.split('.');
+  const [whole, fraction = ''] = input.amount.split('.');
   const magnitude = BigInt(`${whole}${fraction}`);
   const dividend = magnitude * powerOfTen(input.exponent);
   const divisor = powerOfTen(fraction.length) * input.increment;
   const rounded = roundedQuotient(dividend, divisor, input.rounding) * input.increment;
   if (rounded > MAX_MINOR_MAGNITUDE) return 'AMOUNT_OVERFLOW';
-  const minor = negative && rounded !== BIGINT_ZERO ? -rounded : rounded;
-  return { decimal: canonicalDecimal(minor, input.exponent), minor };
+  return { decimal: canonicalDecimal(rounded, input.exponent), minor: rounded };
 }
 
 function minorToDecimal(input: {
@@ -183,7 +173,7 @@ function minorToDecimal(input: {
 }): { decimal: string; minor: bigint } | DenialReason {
   if (!MINOR_AMOUNT.test(input.amount)) return 'INVALID_MINOR_AMOUNT';
   const minor = BigInt(input.amount);
-  if (absolute(minor) > MAX_MINOR_MAGNITUDE) return 'AMOUNT_OVERFLOW';
+  if (minor > MAX_MINOR_MAGNITUDE) return 'AMOUNT_OVERFLOW';
   if (minor % input.increment !== BIGINT_ZERO) return 'MINOR_INCREMENT_MISMATCH';
   return { decimal: canonicalDecimal(minor, input.exponent), minor };
 }

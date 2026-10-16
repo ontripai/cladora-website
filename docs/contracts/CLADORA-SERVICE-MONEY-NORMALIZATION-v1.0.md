@@ -48,18 +48,20 @@ a rail. Artifact acceptance here is normalization evidence and is not command au
 All amount conversion uses integer `BigInt` arithmetic. JavaScript `Number` floating-point parsing,
 rounding, multiplication, and formatting are excluded.
 
-For `decimal_to_minor`, the exact decimal rational is scaled by `10^exponent`, divided by the policy
-increment, rounded once, and multiplied back by the increment. Modes have these meanings for both
-signs:
+For `decimal_to_minor`, the exact nonnegative decimal rational is scaled by `10^exponent`, divided by
+the policy increment, rounded once, and multiplied back by the increment. Modes have these meanings:
 
 - `half_even`: nearest increment; an exact tie chooses the even increment quotient.
-- `half_up`: nearest increment; an exact tie goes away from zero.
-- `down`: toward zero.
-- `up`: away from zero when a remainder exists.
+- `half_up`: nearest increment; an exact tie chooses the greater increment quotient.
+- `down`: chooses the lower increment quotient.
+- `up`: chooses the greater increment quotient when a remainder exists.
 
 For `minor_to_decimal`, input is a strict integer string. It must already be a multiple of
 `increment_minor_units`; the evaluator never silently changes stored minor units. Decimal output has
-exactly `exponent` fractional digits, except exponent zero, and negative zero is canonicalized to zero.
+exactly `exponent` fractional digits, except exponent zero.
+
+All decimal and minor-unit inputs must be nonnegative. Negative values, including `-0` and `-0.00`,
+are denied. Accepted `minor_units` is always a canonical nonnegative integer string.
 
 The absolute accepted minor-unit magnitude is at most 38 decimal digits. A greater result is
 `AMOUNT_OVERFLOW`. Decimal syntax rejects whitespace, separators, exponent notation, `NaN`,
@@ -74,17 +76,17 @@ artifact/policy, hash/status/effective/review failure, invalid amount syntax, in
 overflow.
 
 No decision chooses a rail/provider or authorizes settlement, refund, invoice, receipt, or any other
-payment operation. Negative inputs exercise refund-shaped arithmetic only; they do not authorize a
-refund.
+payment operation. A future refund amount contract must be operation-specific and must bind a valid
+canonical rail and current authority before it can define negative or reversal semantics.
 
 ## Conformance matrix
 
 The independent harness covers:
 
 - exponents 0, 2, 3, and 6;
-- `half_even`, `half_up`, `down`, and `up` for positive and negative values;
+- `half_even`, `half_up`, `down`, and `up` for nonnegative values;
 - increments other than one and exact tie behavior;
-- negative/refund-shaped values and canonical zero;
+- denial of every negative decimal and minor-unit form, including negative zero, under every mode;
 - both decimal-to-minor and minor-to-decimal directions;
 - overflow and malformed decimal/integer inputs;
 - missing, inconsistent, inactive, stale, unreviewed, and hash-tampered policy evidence;
