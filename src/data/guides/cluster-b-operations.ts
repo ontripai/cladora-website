@@ -6,6 +6,7 @@ export const CLUSTER_B_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-B-01',
     lang: 'ro',
     slug: 'mentenanta-preventiva-cladiri',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Planul de Mentenanță Preventivă a Clădirilor: Etape, Grafice Obligatorii și Reducerea Costurilor de Avarie',
     seoTitle: 'Mentenanță Preventivă Clădiri: Ghid Tehnic și Grafice',
     description:
@@ -188,6 +189,7 @@ export const CLUSTER_B_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-B-02',
     lang: 'ro',
     slug: 'gestionare-interventii-tehnice-cladiri',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Gestionarea Intervențiilor Tehnice în Clădiri: De la Tichetul de Avarie la Ordinul de Lucru Verificat',
     seoTitle: 'Gestionare Intervenții Tehnice Clădiri: Tichete & SLA',
     description:
@@ -367,6 +369,7 @@ export const CLUSTER_B_ARTICLES: Record<string, GuideArticleData> = {
     id: 'CLUSTER-B-03',
     lang: 'ro',
     slug: 'registru-echipamente-revizii',
+    contentApplicability: { kind: 'country', countryCode: 'RO' },
     title: 'Registrul Tehnic de Echipamente și Revizii în Clădiri: Fișa Activului, Garanții și Conformitate ISCIR',
     seoTitle: 'Registru Echipamente și Revizii Clădiri: Ghid Tehnic',
     description:

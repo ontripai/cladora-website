@@ -34,10 +34,19 @@ export type GuideClusterId =
   | 'cluster-c-property-managers'
   | 'cluster-platform';
 
+export type GuideCountryCode = 'RO';
+
+export type GuideContentApplicability =
+  | { kind: 'global' }
+  | { kind: 'cross_border' }
+  | { kind: 'country'; countryCode: GuideCountryCode };
+
 export interface GuideArticleData {
   id: string;
   lang: Language;
   slug: string;
+  contentApplicability: GuideContentApplicability;
+  targetAudience?: string;
   title: string;
   seoTitle: string;
   description: string;
