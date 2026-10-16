@@ -9,6 +9,9 @@ on:
       - 'scripts/test-braces-depth-security.mjs'
       - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
       - 'scripts/test-ce-benefit-ownership-reconciliation-v1.mjs'
+      - 'scripts/test-core-canonical-country-registry-v1.mjs'
+      - 'docs/contracts/CLADORA-CORE-CANONICAL-COUNTRY-REGISTRY-v1.0.md'
+      - 'docs/roadmap/CLADORA-CORE-CANONICAL-COUNTRY-REGISTRY-01-EXECUTION-PACKAGE-v1.0.md'
       - 'scripts/test-ce-benefit-presentation-service-handoff-v1.mjs'
       - 'docs/architecture/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-v1.0.md'
       - 'docs/architecture/references/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-INVENTORY.json'
@@ -35,6 +38,9 @@ on:
       - 'scripts/test-braces-depth-security.mjs'
       - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
       - 'scripts/test-ce-benefit-ownership-reconciliation-v1.mjs'
+      - 'scripts/test-core-canonical-country-registry-v1.mjs'
+      - 'docs/contracts/CLADORA-CORE-CANONICAL-COUNTRY-REGISTRY-v1.0.md'
+      - 'docs/roadmap/CLADORA-CORE-CANONICAL-COUNTRY-REGISTRY-01-EXECUTION-PACKAGE-v1.0.md'
       - 'scripts/test-ce-benefit-presentation-service-handoff-v1.mjs'
       - 'docs/architecture/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-v1.0.md'
       - 'docs/architecture/references/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-INVENTORY.json'
@@ -76,6 +82,7 @@ jobs:
       - run: npm run test:ce:benefit-presentation-handoff
       - run: npm run test:unit
       - run: npm run test:core-jurisdiction-profile
+      - run: npm run test:core-canonical-country-registry
       - run: npm run test:core-jurisdiction-domain-artifact
       - run: npm run test:core-jurisdiction-domain-artifact-resolver
       - run: npm run test:airprop-b2
