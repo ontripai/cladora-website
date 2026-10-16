@@ -8,6 +8,8 @@
 
 **Revision note:** v1.1 incorporates architecture review decisions for non-limiting taxonomy, legacy entitlement continuity, shared capacity/time contracts, typed entitlement aggregation, and an independently deliverable Community first slice. The executable DW-01A contract and PR boundary are specified in `docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.0.md`.
 
+**Benefit ownership precedence:** For benefit definition, the current benefit eligibility decision, member allowance persistence, the redemption aggregate and receipt, and Benefits/Commerce/Loyalty ownership, `CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md` is the later specialized contract and takes precedence over earlier generic CE ownership wording in this document. That contract was merged by PR #439 at `360df4b2a154bf188c2ad3ea5c673be64738c3e9`; all five ownership questions remain `OPEN_PRODUCT_DECISION`. This reconciliation narrows CE ownership and does not alter the accepted SERVICE handoff, Finance funding boundary, privacy boundary or Benefit Network boundary.
+
 ## 1. Decision summary
 
 The current platform already contains the correct security and composition spine: a tenant-bound Workspace, independent property profile and operating model, temporal Workspace-to-property bindings, a versioned module catalogue, contract entitlements, local roles, scoped assignments, delegation, canonical parties/ownership/occupancy, and purpose-bound Workspace/property authority. These components must be reused.
@@ -181,7 +183,7 @@ Missing or ambiguous evidence denies access.
 - `WorkspaceResourceParticipationV1`: Workspace, resource, purpose and effective interval; not itself authority.
 - `ResourceAuthorityDecisionV1`: exact mandate/relationship, permission, module, entitlement, scope and assurance result.
 
-AIRPROP writes commercial rights and mandate proposals through shared commands. Operations writes technical assets/work orders. SERVICE references the resource and owns user service/request/booking state. Community & Experience references eligibility relationships and owns events/memberships/redemptions, never title, lease, credentials or journals.
+AIRPROP writes commercial rights and mandate proposals through shared commands. Operations writes technical assets/work orders. SERVICE references the resource and owns user service/request/booking state. Community & Experience owns community, event, experience and attendance state, plus local placement, presentation and experience orchestration. CE may keep only purpose-limited references to benefit decisions issued by the future canonical owner; it does not own benefit definition, current benefit eligibility decisions, member allowance persistence, redemption aggregates or redemption receipts. CE never owns title, lease, credentials or journals.
 
 ### 5.5 Acceptance and order
 
@@ -279,10 +281,14 @@ Core owns resource identity, authority evaluation, availability-policy identity 
 | --- | --- | --- | --- |
 | AIRPROP | Workspace/resource refs, parties, relationship/mandate refs, product-right decision, evidence, finance source refs, outbox | opportunity, underwriting, listing, commercial reservation, presale/acquisition/disposal and management-mandate workflow | parallel property/party/role/payment/document identity |
 | SERVICE | Workspace/resource refs, provider party, product-right decision, availability policy, shared finance/work-order refs | service definition/offering, request, quote, user-facing booking coordination and acceptance | parallel user, resource, work order, invoice or payment registry |
-| Community & Experience | Workspace/resource refs, eligibility relationship snapshot, product-right decision, event/offer/capacity contract, shared finance/access refs | community, event, experience, membership/benefit eligibility, attendance/redemption state | title/lease, general building credential, payment journal, SERVICE order or AIRPROP reservation |
+| Community & Experience | Workspace/resource refs, current relationship and authority inputs, product-right decision, event/capacity contract, owner-issued purpose-limited benefit decision reference, shared finance/access refs | community, event, experience and attendance; local placement, presentation and experience orchestration | benefit definition, current benefit eligibility decision, member allowance persistence, redemption aggregate/receipt, title/lease, general building credential, payment journal, SERVICE order or AIRPROP reservation |
 | Operations | same shared refs and decision; authoritative technical asset/work-order and finance APIs | daily management, maintenance, utilities, governance and operational evidence | product-specific duplicate identities |
 
 All cross-domain events use a versioned envelope with event ID/type, occurred time, tenant/Workspace, canonical subject/version, actor, correlation and causation IDs. Events notify; they do not grant authority. Consumers deduplicate and preserve recovery visibility.
+
+The future canonical owner for Benefits/Commerce/Loyalty, benefit definition, current benefit eligibility decisions, member allowance persistence and redemption aggregates/receipts remains `OPEN_PRODUCT_DECISION`. Until that decision is made, these are candidate contracts rather than CE state. A Workspace product/module entitlement remains a Core platform-composition fact. `platform.entitlement_usage_ledger` is limited to product/module entitlement and Workspace-level quota use; it must not persist or calculate a member allowance, benefit redemption or redemption receipt.
+
+The specialized #439 contract remains authoritative for SERVICE fallback Offering handoff, Finance funding and accounting, privacy-safe presentation, and the multi-Workspace Benefit Network. CE can consume bounded owner-issued outcomes and safe public labels for presentation, but cannot create cross-tenant authority or infer benefit eligibility from product entitlement, locale, role, funding or network participation.
 
 ### 6.6 Community first-stage minimum contracts
 
