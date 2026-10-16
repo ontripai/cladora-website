@@ -26,10 +26,10 @@ export const PricingPreviewSection: React.FC<PricingPreviewProps> = ({ lang }) =
           </h2>
           <p className="text-base sm:text-lg text-[#52667A]">
             {lang === 'ro'
-              ? 'Toate pachetele includ migrarea gratuită asistată și rularea în paralel prin protocolul Shadow Ledger în perioada pilot.'
+              ? 'Pachetele pilot sprijină migrarea asistată și reconcilierea paralelă prin Shadow Ledger.'
               : lang === 'fa'
-              ? 'تمامی پلن‌ها شامل مهاجرت رایگان سوابق و اجرای آزمایشی موازی با پروتکل Shadow Ledger در طول دوره پایلوت هستند.'
-              : 'All plans include assisted parallel onboarding and full Shadow Ledger reconciliation during the pilot cohort.'}
+              ? 'پلن‌های پایلوت از مهاجرت هدایت‌شده و تطبیق موازی با Shadow Ledger پشتیبانی می‌کنند.'
+              : 'Pilot plans support assisted migration and parallel Shadow Ledger reconciliation.'}
           </p>
         </div>
 

@@ -1,0 +1,4299 @@
+{
+  "schema": "ce-member-benefit-terminology-inventory.v1",
+  "baseline_commit": "83a18a583fb30b8177246a60e3505e3aac634215",
+  "canonical_merge_commit": "360df4b2a154bf188c2ad3ea5c673be64738c3e9",
+  "search_roots": [
+    "src",
+    "docs",
+    "scripts"
+  ],
+  "classifications": [
+    "accepted",
+    "ambiguous",
+    "incorrect",
+    "internal_only"
+  ],
+  "entry_count": 532,
+  "classification_counts": {
+    "accepted": 211,
+    "ambiguous": 157,
+    "incorrect": 17,
+    "internal_only": 147
+  },
+  "entries": [
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 62,
+      "column": 24,
+      "term": "Benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 62,
+      "column": 110,
+      "term": "discounts",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 124,
+      "column": 203,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 128,
+      "column": 207,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 174,
+      "column": 44,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 193,
+      "column": 29,
+      "term": "Benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 195,
+      "column": 102,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 199,
+      "column": 12,
+      "term": "Benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 203,
+      "column": 57,
+      "term": "included",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 203,
+      "column": 76,
+      "term": "discounts",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 203,
+      "column": 208,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 205,
+      "column": 17,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 285,
+      "column": 91,
+      "term": "sponsored",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 285,
+      "column": 101,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 304,
+      "column": 32,
+      "term": "BENEFITS",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "line": 313,
+      "column": 188,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/airprop/AP-VAL-01A-SOURCE-READINESS-v1.0.md",
+      "line": 48,
+      "column": 222,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/airprop/UX-015-adoption-and-gaps.md",
+      "line": 20,
+      "column": 295,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/airprop/UX-016-evaluation-feedback.md",
+      "line": 5,
+      "column": 283,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/airprop/UX-016-evaluation-feedback.md",
+      "line": 11,
+      "column": 221,
+      "term": "zero price",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/airprop/UX-DEC-001-source-v1.0.md",
+      "line": 25,
+      "column": 16,
+      "term": "شامل",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/airprop/UX-DEC-001-source-v1.0.md",
+      "line": 129,
+      "column": 403,
+      "term": "شامل",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/airprop/UX-DEC-001-source-v1.0.md",
+      "line": 137,
+      "column": 10,
+      "term": "شامل",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-050-role-aware-dashboard-access-matrix.md",
+      "line": 83,
+      "column": 120,
+      "term": "allowance",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "line": 88,
+      "column": 26,
+      "term": "Benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "line": 90,
+      "column": 112,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "line": 90,
+      "column": 392,
+      "term": "discount",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "line": 90,
+      "column": 402,
+      "term": "included",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "line": 96,
+      "column": 12,
+      "term": "Benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "line": 98,
+      "column": 193,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "line": 159,
+      "column": 18,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-055-scalable-platform-ownership-and-workspace-enablement.md",
+      "line": 67,
+      "column": 260,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-055-scalable-platform-ownership-and-workspace-enablement.md",
+      "line": 73,
+      "column": 316,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-ACQUISITION-DECISION-013-v1.0.md",
+      "line": 19,
+      "column": 505,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-ACQUISITION-DECISION-013-v1.0.md",
+      "line": 23,
+      "column": 85,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-DILIGENCE-REVIEW-012-v1.0.md",
+      "line": 9,
+      "column": 178,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-DILIGENCE-REVIEW-012-v1.0.md",
+      "line": 23,
+      "column": 121,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-LEGACY-WORKSPACE-RESOLUTION-REVIEW-v1.0.md",
+      "line": 24,
+      "column": 49,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-UNDERWRITING-CONTRACT-006-v1.0.md",
+      "line": 83,
+      "column": 61,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-010-FORM-FEEDBACK-v0.1.md",
+      "line": 24,
+      "column": 23,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-011-EVENT-INTEREST-v0.1.md",
+      "line": 1,
+      "column": 12,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-011-EVENT-INTEREST-v0.1.md",
+      "line": 5,
+      "column": 19,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-011-EVENT-INTEREST-v0.1.md",
+      "line": 12,
+      "column": 263,
+      "term": "included",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-011-FORM-RECOVERY-v0.1.md",
+      "line": 46,
+      "column": 23,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-012-FORM-RECOVERY-v0.1.md",
+      "line": 12,
+      "column": 156,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-GUIDE-PRODUCTION-ACTIVATION-READINESS-06-v1.0.md",
+      "line": 88,
+      "column": 68,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-GUIDE-PRODUCTION-ACTIVATION-READINESS-06-v1.0.md",
+      "line": 114,
+      "column": 66,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-GUIDE-STORAGE-LIFECYCLE-02-v1.0.md",
+      "line": 120,
+      "column": 10,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 1,
+      "column": 6,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 1,
+      "column": 15,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 5,
+      "column": 1,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 13,
+      "column": 53,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 13,
+      "column": 62,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 16,
+      "column": 48,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 18,
+      "column": 1,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 18,
+      "column": 21,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 19,
+      "column": 6,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 28,
+      "column": 39,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 29,
+      "column": 8,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 32,
+      "column": 4,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 32,
+      "column": 13,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 42,
+      "column": 56,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 42,
+      "column": 65,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 43,
+      "column": 1,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 46,
+      "column": 9,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 60,
+      "column": 45,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 70,
+      "column": 3,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 70,
+      "column": 23,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 70,
+      "column": 96,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 79,
+      "column": 27,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 96,
+      "column": 48,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 108,
+      "column": 66,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 108,
+      "column": 141,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 108,
+      "column": 196,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 109,
+      "column": 95,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 109,
+      "column": 198,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 109,
+      "column": 225,
+      "term": "benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 110,
+      "column": 86,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 110,
+      "column": 192,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 110,
+      "column": 221,
+      "term": "benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 111,
+      "column": 89,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 112,
+      "column": 119,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 113,
+      "column": 185,
+      "term": "Sponsored",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 114,
+      "column": 34,
+      "term": "promotion",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 114,
+      "column": 129,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 114,
+      "column": 156,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 114,
+      "column": 227,
+      "term": "Promotion",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 118,
+      "column": 11,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 121,
+      "column": 4,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 123,
+      "column": 3,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 124,
+      "column": 69,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 130,
+      "column": 9,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 132,
+      "column": 1,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 138,
+      "column": 63,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 146,
+      "column": 22,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 152,
+      "column": 13,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 154,
+      "column": 52,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 161,
+      "column": 59,
+      "term": "benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 163,
+      "column": 53,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 178,
+      "column": 5,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 180,
+      "column": 5,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 180,
+      "column": 32,
+      "term": "benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 182,
+      "column": 5,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 182,
+      "column": 34,
+      "term": "benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 184,
+      "column": 5,
+      "term": "Sponsored",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 185,
+      "column": 47,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 186,
+      "column": 18,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 186,
+      "column": 27,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 186,
+      "column": 38,
+      "term": "promotional",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 188,
+      "column": 5,
+      "term": "Allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 188,
+      "column": 27,
+      "term": "Allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 188,
+      "column": 64,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 193,
+      "column": 19,
+      "term": "free",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 193,
+      "column": 29,
+      "term": "complimentary",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 193,
+      "column": 50,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 194,
+      "column": 38,
+      "term": "discount",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 200,
+      "column": 38,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 209,
+      "column": 34,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 212,
+      "column": 16,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 212,
+      "column": 25,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 221,
+      "column": 1,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 230,
+      "column": 1,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 233,
+      "column": 16,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 236,
+      "column": 54,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 237,
+      "column": 1,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 238,
+      "column": 1,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 239,
+      "column": 59,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 248,
+      "column": 23,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 250,
+      "column": 62,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 251,
+      "column": 36,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 252,
+      "column": 12,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 258,
+      "column": 69,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 261,
+      "column": 16,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 264,
+      "column": 21,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 264,
+      "column": 46,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 265,
+      "column": 42,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 270,
+      "column": 67,
+      "term": "zero price",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 283,
+      "column": 48,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 289,
+      "column": 35,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 290,
+      "column": 72,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 305,
+      "column": 65,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 307,
+      "column": 50,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 311,
+      "column": 19,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 318,
+      "column": 21,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 324,
+      "column": 25,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 326,
+      "column": 10,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 334,
+      "column": 16,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 334,
+      "column": 25,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 336,
+      "column": 65,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 336,
+      "column": 124,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 337,
+      "column": 138,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 339,
+      "column": 26,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 339,
+      "column": 47,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 339,
+      "column": 172,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 342,
+      "column": 1,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 342,
+      "column": 70,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 360,
+      "column": 47,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 364,
+      "column": 19,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 374,
+      "column": 171,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 375,
+      "column": 194,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 375,
+      "column": 205,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 375,
+      "column": 324,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 377,
+      "column": 221,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 378,
+      "column": 137,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 378,
+      "column": 146,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 384,
+      "column": 3,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 385,
+      "column": 155,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 389,
+      "column": 6,
+      "term": "Benefits",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 390,
+      "column": 50,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 394,
+      "column": 4,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 395,
+      "column": 4,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 396,
+      "column": 18,
+      "term": "inclus",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 404,
+      "column": 28,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 406,
+      "column": 60,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 410,
+      "column": 6,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 416,
+      "column": 27,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 427,
+      "column": 3,
+      "term": "Inclus",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 427,
+      "column": 110,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 427,
+      "column": 180,
+      "term": "free",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 429,
+      "column": 26,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 430,
+      "column": 154,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 432,
+      "column": 19,
+      "term": "Allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 433,
+      "column": 3,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 435,
+      "column": 28,
+      "term": "Included",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 438,
+      "column": 54,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 443,
+      "column": 35,
+      "term": "Benefit",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "line": 444,
+      "column": 1,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Canonical owner/funding/terminology contract or its explicit prohibition/example."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-MULTI-COUNTRY-CONTENT-POLICY-01-v1.0.md",
+      "line": 139,
+      "column": 52,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-PHASE-0-EXECUTION-MATRIX-v1.2.md",
+      "line": 10,
+      "column": 55,
+      "term": "رایگان",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-PHASE-0-EXECUTION-MATRIX-v1.2.md",
+      "line": 15,
+      "column": 87,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-PHASE-0-EXECUTION-MATRIX-v1.2.md",
+      "line": 15,
+      "column": 323,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-PHASE-0-EXECUTION-MATRIX-v1.2.md",
+      "line": 17,
+      "column": 99,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-PHASE-0-EXECUTION-MATRIX-v1.2.md",
+      "line": 17,
+      "column": 270,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE012-PROVIDER-BRIDGE-LOCAL-v0.1.md",
+      "line": 20,
+      "column": 280,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CORE-MANDATE-CONSUMER-GATE-017-v0.1.md",
+      "line": 31,
+      "column": 38,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-CORE-PLATFORM-ROLE-BOUND-POOL-v1.0.md",
+      "line": 40,
+      "column": 58,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-v1.0.md",
+      "line": 20,
+      "column": 48,
+      "term": "allowance",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-v1.0.md",
+      "line": 74,
+      "column": 23,
+      "term": "allowance",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-v1.0.md",
+      "line": 121,
+      "column": 52,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md",
+      "line": 274,
+      "column": 51,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md",
+      "line": 282,
+      "column": 213,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md",
+      "line": 293,
+      "column": 416,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md",
+      "line": 294,
+      "column": 198,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md",
+      "line": 295,
+      "column": 309,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-PURCHASE-ORDER-CONTEXT-AUTHORITY-001.md",
+      "line": 11,
+      "column": 148,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-CATALOG-DEFINITION-UI-003-v1.0.md",
+      "line": 27,
+      "column": 236,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-CATALOG-MANAGEMENT-004-v1.0.md",
+      "line": 25,
+      "column": 170,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-CATALOG-PERSISTENCE-002-v1.0.md",
+      "line": 29,
+      "column": 521,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-REQUEST-CONTRACT-009-v1.0.md",
+      "line": 11,
+      "column": 453,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-V14-08-EXPERIENCE-EXECUTION.md",
+      "line": 17,
+      "column": 127,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-SHARED-DEPENDENCY-RECONCILIATION-002-v1.0.md",
+      "line": 13,
+      "column": 303,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 14,
+      "column": 61,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 44,
+      "column": 19,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 98,
+      "column": 4,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 100,
+      "column": 79,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 102,
+      "column": 1,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 102,
+      "column": 15,
+      "term": "تخفیف",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 102,
+      "column": 40,
+      "term": "مشمول",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 102,
+      "column": 47,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 102,
+      "column": 67,
+      "term": "حمایت مالی",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 102,
+      "column": 154,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 104,
+      "column": 7,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 104,
+      "column": 67,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 104,
+      "column": 122,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 106,
+      "column": 175,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 110,
+      "column": 109,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 120,
+      "column": 3,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 120,
+      "column": 20,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 120,
+      "column": 45,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 120,
+      "column": 71,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 137,
+      "column": 31,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 137,
+      "column": 54,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 137,
+      "column": 78,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 145,
+      "column": 90,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 147,
+      "column": 13,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 147,
+      "column": 97,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 147,
+      "column": 133,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 153,
+      "column": 153,
+      "term": "تبلیغ",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 167,
+      "column": 21,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 167,
+      "column": 45,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "line": 170,
+      "column": 157,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 22,
+      "column": 3,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 22,
+      "column": 27,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 22,
+      "column": 43,
+      "term": "حمایت مالی",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 71,
+      "column": 3,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 71,
+      "column": 70,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 103,
+      "column": 33,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 145,
+      "column": 12,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 151,
+      "column": 97,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 208,
+      "column": 85,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 221,
+      "column": 40,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 221,
+      "column": 79,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 248,
+      "column": 33,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 248,
+      "column": 41,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 250,
+      "column": 14,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 250,
+      "column": 19,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 250,
+      "column": 109,
+      "term": "حمایت مالی",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 250,
+      "column": 131,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 254,
+      "column": 10,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 254,
+      "column": 95,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 255,
+      "column": 11,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 257,
+      "column": 64,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 261,
+      "column": 109,
+      "term": "تخفیف",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 261,
+      "column": 219,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 263,
+      "column": 23,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 263,
+      "column": 37,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 263,
+      "column": 124,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 263,
+      "column": 164,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 263,
+      "column": 203,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 265,
+      "column": 28,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 265,
+      "column": 154,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 275,
+      "column": 3,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 275,
+      "column": 43,
+      "term": "سهمیه",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "line": 332,
+      "column": 154,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/architecture/history/scalable-platform-ownership-v1.0-proposal.md",
+      "line": 63,
+      "column": 260,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/architecture/history/scalable-platform-ownership-v1.0-proposal.md",
+      "line": 68,
+      "column": 31,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/AIRPROP-ARTIFACT-B2-20261013-R1.md",
+      "line": 55,
+      "column": 44,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CE-011-CORE-CONTRACTS-C01-C03-v1.0.md",
+      "line": 11,
+      "column": 35,
+      "term": "Free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-AIRPROP-RELEASE-HANDOFF-v1.0.md",
+      "line": 44,
+      "column": 36,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-BK-01-SHARED-CAPACITY-TIME-RFC-v1.0.md",
+      "line": 15,
+      "column": 63,
+      "term": "Free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-CONSUMER-DEPENDENCY-CONFORMANCE-v1.0.md",
+      "line": 116,
+      "column": 14,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-CURRENT-UNIT-PROPERTY-SELECTOR-v1.0.md",
+      "line": 4,
+      "column": 24,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-DW-02-RESOURCE-CONTRACTS-v1.0.md",
+      "line": 35,
+      "column": 230,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-JURISDICTION-PROFILE-SELECTOR-v1.0.md",
+      "line": 16,
+      "column": 18,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-JURISDICTION-PROFILE-v1.0.md",
+      "line": 69,
+      "column": 22,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-RECOVERY-AUTH-01-v1.0.md",
+      "line": 89,
+      "column": 82,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-RESOURCE-AUTHORITY-CONTRACT-v1.0.md",
+      "line": 137,
+      "column": 15,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-v1.0.md",
+      "line": 3,
+      "column": 125,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DOC-WORKSPACE-BINDING-DESIGN-v1.0.md",
+      "line": 35,
+      "column": 279,
+      "term": "promotion",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DOCUMENTS-COUNTRY-REQUIREMENTS-v1.0.md",
+      "line": 61,
+      "column": 38,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DOCUMENTS-COUNTRY-REQUIREMENTS-v1.0.md",
+      "line": 71,
+      "column": 14,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DOCUMENTS-REFERENCE-AUTHORITY-v1.0.md",
+      "line": 5,
+      "column": 44,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-DATABASE-READER-CHANGE-PACKAGE-v1.0.md",
+      "line": 6,
+      "column": 41,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-DATABASE-READER-CHANGE-PACKAGE-v1.1.md",
+      "line": 6,
+      "column": 41,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.0.md",
+      "line": 107,
+      "column": 5,
+      "term": "Included",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.0.md",
+      "line": 140,
+      "column": 53,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.0.md",
+      "line": 188,
+      "column": 161,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.0.md",
+      "line": 200,
+      "column": 46,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.1.md",
+      "line": 107,
+      "column": 5,
+      "term": "Included",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.1.md",
+      "line": 140,
+      "column": 53,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.1.md",
+      "line": 188,
+      "column": 161,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.1.md",
+      "line": 200,
+      "column": 46,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "line": 17,
+      "column": 60,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "line": 56,
+      "column": 76,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "line": 101,
+      "column": 33,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "line": 102,
+      "column": 21,
+      "term": "Free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "line": 208,
+      "column": 64,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "line": 224,
+      "column": 29,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "line": 405,
+      "column": 32,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/database/DB-HIST-01-FORWARD-CONVERGENCE-EXCEPTION-LEDGER.json",
+      "line": 118,
+      "column": 8,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/database/INTEGRATION_REPORT_FA.md",
+      "line": 11,
+      "column": 21,
+      "term": "شامل",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/discovery/CLADORA-WORKSPACE-TAXONOMY-MUTATION-001-DISCOVERY.md",
+      "line": 29,
+      "column": 62,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 17,
+      "column": 163,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 17,
+      "column": 173,
+      "term": "discounts",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 34,
+      "column": 35,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 36,
+      "column": 25,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 92,
+      "column": 36,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 96,
+      "column": 27,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 102,
+      "column": 14,
+      "term": "sponsored",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 102,
+      "column": 36,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 104,
+      "column": 146,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 116,
+      "column": 77,
+      "term": "Benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 116,
+      "column": 152,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 120,
+      "column": 25,
+      "term": "Benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 123,
+      "column": 5,
+      "term": "Benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 127,
+      "column": 22,
+      "term": "discount",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 127,
+      "column": 32,
+      "term": "included",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 142,
+      "column": 71,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 148,
+      "column": 3,
+      "term": "Included",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 148,
+      "column": 12,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 148,
+      "column": 22,
+      "term": "free",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 149,
+      "column": 14,
+      "term": "discount",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 149,
+      "column": 72,
+      "term": "discount",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 154,
+      "column": 12,
+      "term": "sponsored",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 161,
+      "column": 52,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 167,
+      "column": 3,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 184,
+      "column": 31,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 197,
+      "column": 33,
+      "term": "benefits",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 224,
+      "column": 13,
+      "term": "sponsored",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 224,
+      "column": 23,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "line": 232,
+      "column": 32,
+      "term": "BENEFITS",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/product/CLADORA-ROLES-MENUS-USER-GUIDE-FA-v1.1.md",
+      "line": 60,
+      "column": 30,
+      "term": "شامل",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/product/CLADORA-ROLES-MENUS-USER-GUIDE-FA-v1.1.md",
+      "line": 238,
+      "column": 32,
+      "term": "شامل",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-CE-V14-EXECUTION-STATUS.md",
+      "line": 10,
+      "column": 25,
+      "term": "رایگان",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-CE-V14-EXECUTION-STATUS.md",
+      "line": 18,
+      "column": 33,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-DOC-WORKSPACE-BINDING-WRITER-01-EXECUTION-PACKAGE-v1.0.md",
+      "line": 13,
+      "column": 23,
+      "term": "promotion",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-DOCUMENT-VAULT-CLAMAV-PILOT.md",
+      "line": 3,
+      "column": 27,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-DOCUMENTS-MULTI-COUNTRY-REQUIREMENTS-01-v1.0.md",
+      "line": 167,
+      "column": 24,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 93,
+      "column": 15,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 117,
+      "column": 9,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 149,
+      "column": 42,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 226,
+      "column": 25,
+      "term": "رایگان",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 249,
+      "column": 51,
+      "term": "مزیت",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 255,
+      "column": 9,
+      "term": "مزایا",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 257,
+      "column": 120,
+      "term": "allowance",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 278,
+      "column": 22,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 321,
+      "column": 150,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 401,
+      "column": 113,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 423,
+      "column": 132,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 489,
+      "column": 39,
+      "term": "تخفیف",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 489,
+      "column": 88,
+      "term": "تبلیغ",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 624,
+      "column": 71,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 832,
+      "column": 18,
+      "term": "benefit",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 916,
+      "column": 203,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "line": 920,
+      "column": 175,
+      "term": "شامل",
+      "classification": "ambiguous",
+      "rationale": "Pre-owner-decision domain terminology; internal dependency requiring later owner-led reconciliation, not runtime authority."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-MONTHLY-002-AUTHENTICATED-ACCEPTANCE-v1.0.md",
+      "line": 22,
+      "column": 4,
+      "term": "Promotion",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-MONTHLY-ACCOUNTANT-001A-EVIDENCE-MATRIX-v1.0.md",
+      "line": 9,
+      "column": 116,
+      "term": "incluse",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-MONTHLY-ACCOUNTANT-001A-REVIEW-PACK-v1.0.md",
+      "line": 16,
+      "column": 122,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-PILOT-001-SYNTHETIC-ACCEPTANCE-v1.0.md",
+      "line": 20,
+      "column": 4,
+      "term": "Promotion",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-PILOT-001-SYNTHETIC-ACCEPTANCE-v1.0.md",
+      "line": 22,
+      "column": 19,
+      "term": "promotion",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-UNIVERSAL-WORKSPACE-RECON-001-v1.0.md",
+      "line": 50,
+      "column": 86,
+      "term": "sponsored",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-UNIVERSAL-WORKSPACE-RECON-001-v1.0.md",
+      "line": 50,
+      "column": 118,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "docs/roadmap/CLADORA-UNIVERSAL-WORKSPACE-RECON-001-v1.0.md",
+      "line": 81,
+      "column": 36,
+      "term": "BENEFITS",
+      "classification": "internal_only",
+      "rationale": "Internal architecture, roadmap, evidence or operational wording outside public member presentation."
+    },
+    {
+      "path": "scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs",
+      "line": 1054,
+      "column": 95,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-ce-guide-lifecycle-http-postgres-v1.mjs",
+      "line": 616,
+      "column": 45,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-ce-guide-lifecycle-http-v1.mjs",
+      "line": 109,
+      "column": 34,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-communications-private-message-request-audience-postgres-v1.mjs",
+      "line": 139,
+      "column": 78,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-core-bk-01-shared-capacity.mjs",
+      "line": 18,
+      "column": 25,
+      "term": "Free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-core-consumer-dependency-conformance.mjs",
+      "line": 80,
+      "column": 63,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-core-minimum-consumer-contracts-v14.mjs",
+      "line": 56,
+      "column": 42,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-core-minimum-consumer-contracts-v14.mjs",
+      "line": 56,
+      "column": 57,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-core-resource-authority-review-r1.mjs",
+      "line": 91,
+      "column": 11,
+      "term": "inclusiv",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-db-hist-01-forward-convergence.mjs",
+      "line": 47,
+      "column": 65,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-dw-01a-capability-read-contract.mjs",
+      "line": 73,
+      "column": 42,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-dw-01a-capability-read-contract.mjs",
+      "line": 73,
+      "column": 57,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-dw-01a-capability-read-contract.mjs",
+      "line": 76,
+      "column": 53,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-p1-role-aware-dashboard.mjs",
+      "line": 647,
+      "column": 49,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-catalog-contract-001.mjs",
+      "line": 26,
+      "column": 76,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-catalog-contract-001.mjs",
+      "line": 115,
+      "column": 98,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-catalog-persistence-002.mjs",
+      "line": 26,
+      "column": 150,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-catalog-route-002.mjs",
+      "line": 27,
+      "column": 145,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-catalog-ui-003.mjs",
+      "line": 51,
+      "column": 217,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-quote-db-014.mjs",
+      "line": 26,
+      "column": 150,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-quote-publication-db-015.mjs",
+      "line": 26,
+      "column": 150,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-request-persistence-010.mjs",
+      "line": 26,
+      "column": 150,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-service-request-subject-provider-postgres-v2.mjs",
+      "line": 127,
+      "column": 80,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 68,
+      "column": 8,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 70,
+      "column": 6,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 70,
+      "column": 28,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 71,
+      "column": 15,
+      "term": "inclus",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 71,
+      "column": 30,
+      "term": "beneficiu",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 72,
+      "column": 9,
+      "term": "مزایا",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 73,
+      "column": 44,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 73,
+      "column": 53,
+      "term": "benefit",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 74,
+      "column": 23,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 76,
+      "column": 34,
+      "term": "inclusă",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 99,
+      "column": 74,
+      "term": "Benefits",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 101,
+      "column": 44,
+      "term": "Benefits",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 102,
+      "column": 44,
+      "term": "Benefits",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 103,
+      "column": 28,
+      "term": "Beneficii",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 104,
+      "column": 29,
+      "term": "Beneficii",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "line": 105,
+      "column": 22,
+      "term": "مزایا",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "scripts/test-wp10a-redirects.mjs",
+      "line": 7,
+      "column": 13,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/app/[lang]/ai/page.tsx",
+      "line": 733,
+      "column": 41,
+      "term": "مشمول",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/ai/page.tsx",
+      "line": 795,
+      "column": 101,
+      "term": "مشمول",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/ai/page.tsx",
+      "line": 847,
+      "column": 24,
+      "term": "مشمول",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/auth-result/page.tsx",
+      "line": 49,
+      "column": 68,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/community-experience/page.tsx",
+      "line": 239,
+      "column": 150,
+      "term": "inclusiv",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/community-experience/page.tsx",
+      "line": 954,
+      "column": 86,
+      "term": "مشمول",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/community-experience/page.tsx",
+      "line": 957,
+      "column": 114,
+      "term": "مشمول",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/faq/page.tsx",
+      "line": 418,
+      "column": 131,
+      "term": "تبلیغ",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/industries/page.tsx",
+      "line": 501,
+      "column": 41,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/industries/page.tsx",
+      "line": 621,
+      "column": 61,
+      "term": "incluse",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/industries/page.tsx",
+      "line": 723,
+      "column": 36,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/operations/page.tsx",
+      "line": 281,
+      "column": 123,
+      "term": "reducere",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/(control-plane)/contracts/page.tsx",
+      "line": 23,
+      "column": 41,
+      "term": "سهمیه",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/(control-plane)/contracts/page.tsx",
+      "line": 31,
+      "column": 65,
+      "term": "سهمیه",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/(control-plane)/retention-operations/page.tsx",
+      "line": 23,
+      "column": 125,
+      "term": "free",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 257,
+      "column": 30,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 262,
+      "column": 27,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 267,
+      "column": 18,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 272,
+      "column": 39,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 277,
+      "column": 31,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 282,
+      "column": 27,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 292,
+      "column": 27,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 297,
+      "column": 39,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "line": 302,
+      "column": 18,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/platform/trust/page.tsx",
+      "line": 185,
+      "column": 83,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/pricing/page.tsx",
+      "line": 80,
+      "column": 56,
+      "term": "benefit",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/resources/autori/[authorSlug]/page.tsx",
+      "line": 190,
+      "column": 38,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/resources/glossary/page.tsx",
+      "line": 599,
+      "column": 53,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/resources/guides/page.tsx",
+      "line": 494,
+      "column": 31,
+      "term": "تبلیغ",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/resources/migration-hub/page.tsx",
+      "line": 77,
+      "column": 149,
+      "term": "inclusiv",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/service/page.tsx",
+      "line": 62,
+      "column": 25,
+      "term": "inclusă",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/service/page.tsx",
+      "line": 64,
+      "column": 128,
+      "term": "سهمیه",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/service/page.tsx",
+      "line": 65,
+      "column": 15,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/service/page.tsx",
+      "line": 65,
+      "column": 132,
+      "term": "allowance",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/solutions/page.tsx",
+      "line": 509,
+      "column": 93,
+      "term": "مشمول",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/app/[lang]/solutions/residents/page.tsx",
+      "line": 268,
+      "column": 38,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/auth/AcceptInvitationForm.tsx",
+      "line": 34,
+      "column": 81,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/auth/LoginForm.tsx",
+      "line": 287,
+      "column": 43,
+      "term": "Gratuit",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/auth/LoginForm.tsx",
+      "line": 289,
+      "column": 41,
+      "term": "رایگان",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/auth/LoginForm.tsx",
+      "line": 290,
+      "column": 27,
+      "term": "Free",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/auth/ResetPasswordForm.tsx",
+      "line": 57,
+      "column": 36,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/auth/ResetPasswordForm.tsx",
+      "line": 63,
+      "column": 42,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/auth/ResetPasswordForm.tsx",
+      "line": 65,
+      "column": 61,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "line": 17,
+      "column": 619,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "line": 18,
+      "column": 664,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "line": 18,
+      "column": 679,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "line": 19,
+      "column": 745,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "line": 19,
+      "column": 761,
+      "term": "incluse",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/customer/CustomerServiceManagement.tsx",
+      "line": 140,
+      "column": 561,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/customer/CustomerServiceManagement.tsx",
+      "line": 140,
+      "column": 594,
+      "term": "included",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/demo/DemoDashboardPage.tsx",
+      "line": 396,
+      "column": 59,
+      "term": "inclusă",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/DelegationAndSuccessionSection.tsx",
+      "line": 106,
+      "column": 130,
+      "term": "inclusiv",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/DelegationAndSuccessionSection.tsx",
+      "line": 143,
+      "column": 40,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/FinalCtaSection.tsx",
+      "line": 32,
+      "column": 31,
+      "term": "gratuit",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/FinalCtaSection.tsx",
+      "line": 36,
+      "column": 20,
+      "term": "zero-login",
+      "classification": "ambiguous",
+      "rationale": "Access-mode wording could be read as a zero-price claim in this terminology surface.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/IndustryPreviewSection.tsx",
+      "line": 129,
+      "column": 35,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/InteractiveProductPreview.tsx",
+      "line": 254,
+      "column": 43,
+      "term": "Gratuită",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/InteractiveProductPreview.tsx",
+      "line": 254,
+      "column": 88,
+      "term": "رایگان",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/InteractiveProductPreview.tsx",
+      "line": 254,
+      "column": 99,
+      "term": "Free",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 18,
+      "column": 18,
+      "term": "gratuită",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 20,
+      "column": 17,
+      "term": "رایگان",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 21,
+      "column": 10,
+      "term": "Free",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 23,
+      "column": 9,
+      "term": "fără costuri suplimentare",
+      "classification": "incorrect",
+      "rationale": "Unproven no-additional-cost pilot claim.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 25,
+      "column": 9,
+      "term": "بدون هیچ هزینه اضافی",
+      "classification": "incorrect",
+      "rationale": "Unproven no-additional-cost pilot claim.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 26,
+      "column": 9,
+      "term": "zero financial risk",
+      "classification": "incorrect",
+      "rationale": "Unproven zero-risk commercial claim.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 143,
+      "column": 41,
+      "term": "Inclusiv",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "line": 143,
+      "column": 114,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/PricingPreviewSection.tsx",
+      "line": 29,
+      "column": 50,
+      "term": "gratuită",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PricingPreviewSection.tsx",
+      "line": 31,
+      "column": 31,
+      "term": "شامل",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/PricingPreviewSection.tsx",
+      "line": 31,
+      "column": 43,
+      "term": "رایگان",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/components/home/SecurityAndPermissionsSection.tsx",
+      "line": 86,
+      "column": 43,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/WhyCladoraSection.tsx",
+      "line": 103,
+      "column": 25,
+      "term": "تبلیغ",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/home/WorkspaceModelSection.tsx",
+      "line": 66,
+      "column": 42,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/interactive/SavingsCalculator.tsx",
+      "line": 199,
+      "column": 169,
+      "term": "reducere",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/interactive/ShadowLedgerDemo.tsx",
+      "line": 49,
+      "column": 51,
+      "term": "inclus",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/manager/utility-bills/UtilityBillsWorkspace.tsx",
+      "line": 553,
+      "column": 78,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/owner/OwnerOverviewPanel.tsx",
+      "line": 10,
+      "column": 430,
+      "term": "شامل",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/platform/OperationalContractsPanel.tsx",
+      "line": 38,
+      "column": 82,
+      "term": "سهمیه",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/platform/OperationalContractsPanel.tsx",
+      "line": 41,
+      "column": 80,
+      "term": "سهمیه",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/components/platform/OperationalContractsPanel.tsx",
+      "line": 42,
+      "column": 41,
+      "term": "سهمیه",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/data/guides/cluster-a-associations.ts",
+      "line": 426,
+      "column": 94,
+      "term": "beneficii",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/data/guides/cluster-a-associations.ts",
+      "line": 951,
+      "column": 130,
+      "term": "inclusiv",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/data/guides/cluster-b-operations.ts",
+      "line": 9,
+      "column": 89,
+      "term": "Reducere",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/data/guides/cluster-b-operations.ts",
+      "line": 12,
+      "column": 139,
+      "term": "reducere",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/data/guides/cluster-b-operations.ts",
+      "line": 397,
+      "column": 298,
+      "term": "inclusiv",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/data/guides/cluster-b-operations.ts",
+      "line": 455,
+      "column": 149,
+      "term": "gratuite",
+      "classification": "incorrect",
+      "rationale": "Unsupported public no-cost or free wording; replaced in this PR with factual non-price wording.",
+      "resolution": "reworded_in_pr"
+    },
+    {
+      "path": "src/data/guides/cluster-platform.ts",
+      "line": 367,
+      "column": 19,
+      "term": "مزایا",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "line": 137,
+      "column": 128,
+      "term": "benefits",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "line": 257,
+      "column": 153,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "line": 258,
+      "column": 147,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "line": 259,
+      "column": 157,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "line": 260,
+      "column": 150,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "line": 261,
+      "column": 148,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "line": 285,
+      "column": 5,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "line": 257,
+      "column": 146,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "line": 258,
+      "column": 139,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "line": 259,
+      "column": 153,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "line": 260,
+      "column": 135,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "line": 261,
+      "column": 140,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "line": 285,
+      "column": 5,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 164,
+      "column": 66,
+      "term": "reducere",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 257,
+      "column": 178,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 258,
+      "column": 157,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 259,
+      "column": 176,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 260,
+      "column": 150,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 261,
+      "column": 151,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 265,
+      "column": 105,
+      "term": "inclusiv",
+      "classification": "accepted",
+      "rationale": "Public presentation usage is canonical handoff copy, non-benefit grammar, tax qualifier, general descriptive language or verified replacement context."
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "line": 285,
+      "column": 5,
+      "term": "benefits",
+      "classification": "internal_only",
+      "rationale": "Internal product-domain flag or object key; not rendered as included-benefit wording."
+    },
+    {
+      "path": "src/lib/auth/recovery-errors.ts",
+      "line": 90,
+      "column": 85,
+      "term": "شامل",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+      "line": 336,
+      "column": 32,
+      "term": "free",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "line": 56,
+      "column": 20,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/customer/service-catalog-management-copy.ts",
+      "line": 2,
+      "column": 1598,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/customer/service-catalog-management-copy.ts",
+      "line": 2,
+      "column": 1613,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/customer/service-catalog-management-copy.ts",
+      "line": 3,
+      "column": 1737,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/customer/service-catalog-management-copy.ts",
+      "line": 3,
+      "column": 1753,
+      "term": "incluse",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/customer/service-catalog-management-copy.ts",
+      "line": 4,
+      "column": 1517,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "line": 20,
+      "column": 27,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "line": 25,
+      "column": 27,
+      "term": "included",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    },
+    {
+      "path": "src/lib/module-registry/taxonomy.ts",
+      "line": 95,
+      "column": 36,
+      "term": "incluse",
+      "classification": "internal_only",
+      "rationale": "Test, schema, technical identifier or non-member-facing implementation language."
+    }
+  ]
+}

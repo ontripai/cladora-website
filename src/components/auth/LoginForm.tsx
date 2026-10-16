@@ -284,10 +284,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
           <PlayCircle className="h-4 w-4" />
           <span>
             {lang === 'ro'
-              ? 'Deschide Demo Interactiv Gratuit'
+              ? 'Deschide Demo Interactiv'
               : lang === 'fa'
-                ? 'ورود به دموی آزمایشی رایگان'
-                : 'Launch Free Interactive Demo'}
+                ? 'ورود به دموی تعاملی'
+                : 'Launch Interactive Demo'}
           </span>
         </Link>
       </div>
