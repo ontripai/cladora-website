@@ -1,163 +1,157 @@
-# CLADORA Core Canonical Country Registry v1.0
+# CLADORA Core Canonical Country/Territory Region Registry v1.0
 
-Status: **`canonical_source_required`**
+Status: **`approved_source_pinned_static_contract`**
 Package: `CORE-CANONICAL-COUNTRY-REGISTRY-01`
 Baseline: `main@ffdad59c5771916d66ce0311c6f61322d123fa6b`
 
-## Decision
+## Purpose and terminology
 
-CLADORA requires one Core-owned, versioned registry before any component can
-claim that an explicit two-letter token is a canonical country. The live
-Repository contains no pinned and verifiable authoritative country dataset.
-It therefore cannot safely create the registry inventory in this package.
+This contract defines a canonical, versioned CLADORA registry for explicit
+country/territory region codes. It is a technical interoperability registry.
+An accepted code is not a statement about sovereignty, political recognition,
+national status or legal jurisdiction, and it is not command authority.
 
-This contract defines the admission, storage and lookup boundary. It does not
-invent a country list, copy an unpinned web list or treat `[A-Z]{2}` as registry
-membership. Until an authoritative source release is approved and pinned, every
-canonical lookup returns `CANONICAL_SOURCE_REQUIRED` with zero durable writes.
+New assignment input remains an explicit uppercase two-letter token. The syntax
+check `^[A-Z]{2}$` is necessary but never establishes membership. A token must
+also be present in the exact pinned source release and admitted by the fixed
+filter policy below. `ZZ` is always rejected.
 
-## Live inventory
+The source gate identified in the first review is now satisfied for static
+design by the approved Unicode CLDR validity artifact. This PR still creates no
+database registry or runtime lookup.
 
-The reviewed baseline has these separate concepts:
+## Approved source pin
 
-- `portfolio.addresses.country_code` requires explicit uppercase two-letter
-  syntax. That constraint accepts syntactically valid unknown values such as
-  `ZZ`; it is not canonical membership.
-- `platform.jurisdiction_profiles` and
-  `platform.property_jurisdiction_assignments` bind an explicit country to a
-  versioned Property jurisdiction profile. They do not define which country
-  codes are authoritative.
-- `platform.workspace_taxonomy_assignments.country_code` is Workspace
-  configuration and cannot become a Property-country default.
-- AIRPROP contains fixed legacy labels and fixtures. They are not a source for
-  a global registry.
-- `package.json` and `package-lock.json` contain no pinned ISO 3166 dataset or
-  library whose source bytes, edition and provenance satisfy this contract.
+| Field | Exact value |
+| --- | --- |
+| Publisher | Unicode Consortium |
+| Release | `CLDR release-48-2` |
+| Published | `2026-03-17` |
+| Tag object | `fc1fd058cc6f50544a450a3b15a4bba0e0c1e653` |
+| Commit | `11299982335beb974c1c63c45265184e759c0f41` |
+| Source artifact | `common/validity/region.xml` |
+| Source SHA-256 | `e751e0eedd46b52c38f3cdb72b0fab61ac8b48e052e8b28ba74b6ac26c4c8cb1` |
+| License | Unicode License v3 (`Unicode-3.0`) |
+| LICENSE SHA-256 | `b49d0e9f8ead51ca8b7df6fec89cc3ae6809198b4b9d43c74216da0118f23f5b` |
+| Parser | `core-cldr-region-validity-parser.v1` |
+| Filter policy | `core-country-territory-region-filter.v1` |
+| Normalized format | `core-country-territory-region-validity.normalized.v1` |
+| Normalized SHA-256 | `4ee7bbf11b19a8f6b5dd467d06f5ecf7fdbe0d89af1d14bc928ce8e684ccf814` |
 
-Locale, language, currency, timezone, phone number or prefix, IP/geolocation,
-browser headers, Tenant data and Workspace defaults are absent from the country
-authority boundary. They cannot create, repair or rank a country candidate.
+The exact source bytes, license bytes and machine-readable manifest are retained
+under
+`docs/contracts/references/CORE-CANONICAL-COUNTRY-REGISTRY-01/`.
+Runtime and CI parse those local pinned bytes. They never request a network
+resource, follow a mutable URL or select a `latest` release.
 
-## Authoritative source admission
+CLDR locale data, localized display names and likely-subtag information remain
+forbidden country inference sources. Their presence in the broader CLDR project
+does not authorize their use here. Only the pinned
+`common/validity/region.xml` bytes are admitted as registry source input.
 
-A future registry release is admissible only when one named source artifact is
-approved with all of the following immutable evidence:
+## Deterministic parsing and normalization
 
-1. authoritative publisher and dataset family;
-2. exact source edition or publication version;
-3. immutable retrieval reference and retrieval timestamp;
-4. SHA-256 of the exact acquired source bytes;
-5. source signature or an explicitly reviewed integrity mechanism when the
-   publisher offers one;
-6. redistribution and retention decision for the source bytes and generated
-   public inventory;
-7. documented parser/generator version and deterministic normalization rules;
-8. SHA-256 of the normalized registry manifest;
-9. review receipt binding the preceding fields without embedding reviewer
-   identity or a private signoff reference in public lookup output.
+The parser recognizes only `id` elements with `type='region'` and these exact
+`idStatus` values: `regular`, `special`, `macroregion`, `deprecated`,
+`reserved`, `private_use` and `unknown`. Unknown status, malformed token,
+duplicate expanded code or empty input fails closed.
 
-A package name, dependency version, mutable URL, copied table, country picker,
-CLDR locale data or a list reconstructed from current application values does
-not meet this admission contract. If any evidence is unavailable, the result
-remains `canonical_source_required`.
+A compact CLDR range has the form `START~END_SUFFIX`. The parser prefixes the
+suffix with the unchanged leading characters from `START`, then enumerates the
+inclusive fixed-width range in one character family:
 
-## Versioned registry model
+- `AC~G` expands to `AC AD AE AF AG`;
+- `001~3` expands to `001 002 003`.
 
-The future persistence package must separate releases from entries.
+Mixed numeric/alphabetic ranges, a decreasing range, width mismatch or an
+unbounded expansion is rejected. Normalization sorts expanded records by code
+and source status and emits fixed tab-separated fields with a versioned header,
+parser version and filter-policy version. The exact UTF-8 bytes, including one
+final newline, produce the pinned normalized SHA-256 above.
 
-### Release identity
+The approved source expands to 343 records: 257 `regular`, 12 `deprecated`,
+35 `macroregion`, 2 `special`, 13 `reserved`, 23 `private_use` and 1
+`unknown`.
 
-Each immutable release carries:
+## Fixed filter policy
 
-- `registry_contract_version`;
-- monotonic `registry_version`;
-- source publisher, dataset family and source edition;
-- exact source-byte SHA-256 and normalized-manifest SHA-256;
-- `effective_from` and optional exclusive `effective_to` instants;
-- lifecycle status `draft`, `active`, `retired` or `revoked`;
-- bounded public provenance classification.
+| CLDR source status | New assignment | Registry treatment |
+| --- | --- | --- |
+| `regular` uppercase two-letter | allowed, subject to release lifecycle | `active` |
+| `deprecated` | rejected | `historical`; exact historical lookup only |
+| `macroregion` | rejected | excluded |
+| `special` | rejected | excluded |
+| `reserved` | rejected | excluded |
+| `private_use` | rejected | excluded |
+| `unknown` | rejected | excluded; `ZZ` is explicitly denied |
 
-Only one active release may match a current instant. Gaps and overlaps fail
-closed. A release cannot be edited into another source, version or time range.
+The platform states `active`, `withdrawn` and `historical` remain distinct.
+This CLDR artifact supplies `regular` and `deprecated`, but does not provide
+legal assignment/withdrawal dates. Policy v1 maps `regular` to platform
+`active` and `deprecated` to platform `historical`. It creates no `withdrawn`
+entry. A future `withdrawn` classification requires separately approved,
+versioned evidence and cannot be inferred from `deprecated`.
 
-### Entry identity
+### Exceptional regular code governance
 
-Every entry belongs to one exact release and carries:
+`XK` is classified `regular` by the pinned artifact. Policy v1 explicitly
+accepts it for technical region interoperability and marks it
+`exceptional_regular=true`. This decision conveys no political, sovereignty or
+legal-jurisdiction meaning. No other exceptional code is accepted by analogy;
+a filter-policy version change and independent review are required.
 
-- an explicit uppercase ISO alpha-2 `country_code`;
-- entry classification `active`, `withdrawn` or `historical`;
-- `effective_from` and optional exclusive `effective_to`;
-- exact provenance link to the release;
-- immutable source-record fingerprint.
+## Registry release lifecycle
 
-The syntax constraint `^[A-Z]{2}$` is necessary but never sufficient. An entry
-must exist exactly once in the selected release and effective interval. `ZZ`, an
-unknown token, a duplicate, a gap or overlapping matches are bounded denial.
-Active, withdrawn and historical classifications are never collapsed into a
-single boolean.
+Each future immutable registry release carries exact source, license, parser,
+filter policy and normalized-output fingerprints plus release-scoped platform
+`effective_from` and optional exclusive `effective_to` instants.
 
-The registry describes country-code recognition only. It cannot change a
-Property or address country and cannot create a Country Pack, tax rule,
-currency rule, postal grammar, payment rail or legal approval.
+These instants describe when CLADORA permits that registry release. They are not
+CLDR publication history, legal assignment dates or legal withdrawal dates.
+
+- `draft`: current and historical lookup denied;
+- `active`: current lookup allowed; exact historical lookup allowed;
+- `retired`: current lookup denied; only exact historical evidence carrying the
+  same registry version may resolve;
+- `revoked`: current and historical lookup denied.
+
+A current lookup never falls back to a retired release. A historical lookup
+never remaps a deprecated code, substitutes a newer version or upgrades to the
+current release.
 
 ## Lookup contracts
 
-### Current lookup
+Current lookup accepts only an explicit uppercase two-letter code and a
+server-evaluated current instant. It requires one effective `active` release
+and one admitted `active` entry. Missing, duplicate, unknown, `ZZ`, deprecated,
+excluded, draft, retired, revoked, gap or overlap returns bounded denial.
 
-Current lookup accepts only:
+Historical lookup requires committed evidence with the exact registry version,
+code and `effective_at` instant. It may resolve an `active` or `historical`
+entry from the exact `active` or `retired` release. It cannot use draft or
+revoked releases and cannot become authority for a new assignment or command.
 
-- an explicit uppercase two-letter token; and
-- a server-evaluated current instant.
+Both modes are read-only. They cannot change a Property or address country and
+cannot create a Country Pack, tax/accounting rule, currency rule, postal regex,
+payment rail or legal approval.
 
-It resolves exactly one active registry release and exactly one effective entry
-classified `active`. There is no fallback to a previous release, withdrawn
-entry, historical entry, syntax-only acceptance or inferred token.
+## Bounded output and inference ban
 
-### Historical lookup
+Accepted output is limited to contract/registry version, exact code, entry
+status, release-scoped effective interval, exceptional-regular marker, source
+provenance classification and pinned fingerprints. Every result includes
+`reusable_as_command_authority=false`.
 
-Historical lookup requires the exact `registry_version`, explicit country code
-and `effective_at` instant from previously committed evidence. It returns only
-the entry from that release and interval. It cannot substitute the current
-release, upgrade a withdrawn code, or turn historical evidence into authority
-for a new command.
-
-Both modes are read-only. Neither mode updates a Property, address, profile,
-assignment, receipt or registry row.
-
-## Bounded output
-
-An accepted result may expose only:
-
-- contract and registry version;
-- exact country code and entry classification;
-- effective interval;
-- source provenance classification;
-- source and normalized manifest SHA-256 fingerprints;
-- `reusable_as_command_authority=false`.
-
-It exposes no address, Property, actor, Workspace membership, locale, private
-source bytes, reviewer identity, private signoff reference, Country Pack payload
-or compliance decision.
-
-## Fail-closed decisions
-
-| Condition | Result | Durable effects |
-| --- | --- | --- |
-| No admitted source release | `CANONICAL_SOURCE_REQUIRED` | zero |
-| Missing or lowercase token | `COUNTRY_CODE_INVALID` | zero |
-| `ZZ` or any unregistered token | `COUNTRY_CODE_UNKNOWN` | zero |
-| Duplicate/overlapping release or entry | `COUNTRY_REGISTRY_AMBIGUOUS` | zero |
-| No release/entry at the evaluated instant | `COUNTRY_REGISTRY_NOT_EFFECTIVE` | zero |
-| Current lookup finds withdrawn/historical entry | `COUNTRY_CODE_NOT_CURRENT` | zero |
-| Historical version or entry missing | `COUNTRY_HISTORY_UNAVAILABLE` | zero |
-| Source/manifest/provenance mismatch | `COUNTRY_REGISTRY_INTEGRITY_FAILURE` | zero |
-
-Errors do not return candidate lists or infer replacements.
+Locale, language, currency, timezone, phone number/prefix, IP/geolocation,
+browser headers, Tenant values and Workspace defaults are never inputs to code
+selection. An absent explicit code fails closed. Output exposes no address,
+Property, actor, membership, localized name, reviewer identity, private signoff,
+Country Pack payload or compliance decision.
 
 ## Inactive boundary
 
-This package creates no TypeScript registry, migration, table, seed, country
-entry, PostgreSQL function, RLS policy, grant, route, UI, credential, Remote DB
-change or activation. PostgreSQL validation is therefore
-**`NOT_RUN_NOT_PASS`**. The next package may start only after the canonical
-source decision in the execution package is satisfied.
+This package contains approved source evidence, deterministic static parsing
+and contract tests only. It adds no `src/lib/core` implementation, migration,
+table, seed, PostgreSQL function, RLS policy, grant, route, UI, credential,
+Remote DB operation or activation. PostgreSQL registry behavior remains
+**`NOT_RUN_NOT_PASS`** until a separately reviewed implementation package.
