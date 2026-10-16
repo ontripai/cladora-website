@@ -147,6 +147,7 @@ const proposalReferenceSchema = z.strictObject({
   proposal_id: uuidSchema,
   proposal_version: safeVersionSchema,
   proposal_fingerprint: serviceReceiptFingerprintSchema,
+  proposer_workspace_reference: uuidSchema,
 });
 
 const taxonomyCandidateSchema = z.strictObject({
@@ -356,6 +357,13 @@ export type ServiceTaxonomyGovernanceEvaluation =
   | { outcome: 'exact_replay'; decision: GovernanceDecision }
   | { outcome: 'replay_conflict'; code: 'REPLAY_CONFLICT' };
 
+export type ServiceTaxonomyTemplateUseEvaluation =
+  | { outcome: 'accepted'; decision: TemplateUseDecision }
+  | {
+    outcome: 'denied';
+    code: 'DEPENDENCY_UNAVAILABLE' | 'TEMPLATE_PROVENANCE_MISMATCH';
+  };
+
 export function fingerprintServiceTaxonomyExtensionProposalV1(
   proposal: ServiceTaxonomyExtensionProposalV1,
 ) {
@@ -390,6 +398,7 @@ function proposalReference(proposal: ServiceTaxonomyExtensionProposalV1) {
     proposal_id: proposal.proposal_id,
     proposal_version: proposal.proposal_version,
     proposal_fingerprint: fingerprintServiceTaxonomyExtensionProposalV1(proposal),
+    proposer_workspace_reference: proposal.proposer_workspace_reference,
   };
 }
 
@@ -433,15 +442,6 @@ export function evaluateServiceTaxonomyExtensionGovernanceV1(input: {
   const registry = serviceTaxonomyRegistrySnapshotV1Schema.parse(input.registry);
   const inputFingerprint = evaluationFingerprint(command, registry);
 
-  if (input.priorDecision !== undefined) {
-    const prior = serviceTaxonomyExtensionGovernanceDecisionV1Schema.parse(input.priorDecision);
-    if (prior.idempotency_key === command.idempotency_key) {
-      return prior.input_fingerprint === inputFingerprint
-        ? { outcome: 'exact_replay', decision: prior }
-        : { outcome: 'replay_conflict', code: 'REPLAY_CONFLICT' };
-    }
-  }
-
   const commandProposalFingerprint = fingerprintServiceTaxonomyExtensionProposalV1(command.proposal);
   const currentProposalFingerprint = fingerprintServiceTaxonomyExtensionProposalV1(currentProposal);
   if (
@@ -460,6 +460,19 @@ export function evaluateServiceTaxonomyExtensionGovernanceV1(input: {
     return { outcome: 'new_decision', decision: rejectedDecision(
       command, currentProposal, inputFingerprint, 'PROPOSAL_IMMUTABILITY_CONFLICT',
     ) };
+  }
+
+  if (input.priorDecision !== undefined) {
+    const prior = serviceTaxonomyExtensionGovernanceDecisionV1Schema.parse(input.priorDecision);
+    if (prior.idempotency_key === command.idempotency_key) {
+      const currentReference = proposalReference(currentProposal);
+      const exactPriorBinding = prior.decision_id === command.decision_id
+        && prior.evaluated_at === command.evaluated_at
+        && JSON.stringify(prior.proposal) === JSON.stringify(currentReference);
+      return prior.input_fingerprint === inputFingerprint && exactPriorBinding
+        ? { outcome: 'exact_replay', decision: prior }
+        : { outcome: 'replay_conflict', code: 'REPLAY_CONFLICT' };
+    }
   }
 
   if (command.action === 'submit') {
@@ -614,9 +627,44 @@ export function evaluateServiceTaxonomyExtensionGovernanceV1(input: {
   };
 }
 
-export function evaluateServiceTaxonomyTemplateUseV1(input: unknown): TemplateUseDecision {
-  const command = serviceTaxonomyTemplateUseCommandV1Schema.parse(input);
-  return serviceTaxonomyTemplateUseDecisionV1Schema.parse({
+function templateMatchesAcceptedDecision(
+  template: z.infer<typeof serviceReusableTaxonomyTemplateV1Schema>,
+  accepted: z.infer<typeof acceptedDecisionSchema>,
+) {
+  const candidate = accepted.taxonomy_candidate;
+  const expectedArchetypeReference = {
+    archetype_id: candidate.archetype.archetype_id,
+    archetype_code: candidate.archetype.archetype_code,
+    archetype_version: candidate.archetype.archetype_version,
+    content_hash: candidate.archetype.content_hash,
+    semantic_fingerprint: candidate.archetype.semantic_fingerprint,
+    primitive_semantic_fingerprint: candidate.primitive.semantic_fingerprint,
+  };
+  return template.source_workspace_reference === accepted.proposal.proposer_workspace_reference
+    && template.taxonomy_revision === candidate.taxonomy_revision
+    && JSON.stringify(template.exact_archetype_reference) === JSON.stringify(expectedArchetypeReference)
+    && JSON.stringify(template.provenance.source_proposal) === JSON.stringify(accepted.proposal)
+    && template.provenance.governance_decision_id === accepted.decision_id
+    && template.provenance.governance_decision_version === 1
+    && JSON.stringify(template.public_definition.labels) === JSON.stringify(candidate.archetype.labels)
+    && template.public_definition.semantic_definition === candidate.archetype.semantic_definition
+    && JSON.stringify(template.compatibility_hints) === JSON.stringify(candidate.compatibility_hints)
+    && template.country_scope === candidate.country_scope;
+}
+
+export function evaluateServiceTaxonomyTemplateUseV1(input: {
+  command: unknown;
+  acceptedGovernanceDecision?: unknown;
+}): ServiceTaxonomyTemplateUseEvaluation {
+  const command = serviceTaxonomyTemplateUseCommandV1Schema.parse(input.command);
+  const accepted = acceptedDecisionSchema.safeParse(input.acceptedGovernanceDecision);
+  if (!accepted.success) {
+    return { outcome: 'denied', code: 'DEPENDENCY_UNAVAILABLE' };
+  }
+  if (!templateMatchesAcceptedDecision(command.template, accepted.data)) {
+    return { outcome: 'denied', code: 'TEMPLATE_PROVENANCE_MISMATCH' };
+  }
+  return { outcome: 'accepted', decision: serviceTaxonomyTemplateUseDecisionV1Schema.parse({
     contract: SERVICE_TAXONOMY_TEMPLATE_USE_CONTRACT,
     contract_version: 1,
     action: command.action,
@@ -639,7 +687,7 @@ export function evaluateServiceTaxonomyTemplateUseV1(input: unknown): TemplateUs
     idempotency_key: command.idempotency_key,
     input_fingerprint: fingerprintServiceProviderInput(command),
     evaluated_at: command.evaluated_at,
-  });
+  }) };
 }
 
 export type ServiceTaxonomyExtensionGovernanceCommandV1 = z.infer<

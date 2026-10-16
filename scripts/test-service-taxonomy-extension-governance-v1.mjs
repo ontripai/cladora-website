@@ -211,6 +211,13 @@ function reusableTemplate(value, decision, overrides = {}) {
   };
 }
 
+function evaluateTemplateUse(command, acceptedGovernanceDecision) {
+  return governance.evaluateServiceTaxonomyTemplateUseV1({
+    command,
+    acceptedGovernanceDecision,
+  });
+}
+
 let passed = 0;
 function check(name, run) {
   run();
@@ -484,6 +491,30 @@ check('changed replay under the same idempotency key conflicts', () => {
   assert.deepEqual(replay, { outcome: 'replay_conflict', code: 'REPLAY_CONFLICT' });
 });
 
+check('replay rechecks a newer current proposal before returning prior acceptance', () => {
+  const value = proposal();
+  const command = acceptCommand(value);
+  const first = evaluate(command);
+  const current = proposal({ proposal_version: 2, submitted_at: '2026-10-17T14:00:00+03:30' });
+  const replay = evaluate(command, current, registry(), first.decision);
+  assert.equal(replay.outcome, 'new_decision');
+  assert.equal(replay.decision.result_code, 'STALE_PROPOSAL');
+  assert.equal(replay.decision.zero_side_effects, true);
+});
+
+check('replay rechecks changed bytes at the current proposal version', () => {
+  const value = proposal();
+  const command = acceptCommand(value);
+  const first = evaluate(command);
+  const current = proposal({
+    proposed_archetype: { definition: 'Changed same-version definition that invalidates prior acceptance.' },
+  });
+  const replay = evaluate(command, current, registry(), first.decision);
+  assert.equal(replay.outcome, 'new_decision');
+  assert.equal(replay.decision.result_code, 'PROPOSAL_IMMUTABILITY_CONFLICT');
+  assert.equal(replay.decision.zero_side_effects, true);
+});
+
 check('accepted reusable template has exact identity version hash and provenance', () => {
   const value = proposal();
   const decision = acceptedDecision(value);
@@ -520,7 +551,8 @@ check('template lifecycle must be accepted before adopt or fork', () => {
 
 check('adoption pins the exact accepted template and creates no local facts', () => {
   const value = proposal();
-  const template = reusableTemplate(value, acceptedDecision(value));
+  const accepted = acceptedDecision(value);
+  const template = reusableTemplate(value, accepted);
   const command = {
     contract: governance.SERVICE_TAXONOMY_TEMPLATE_USE_CONTRACT,
     contract_version: 1,
@@ -532,7 +564,9 @@ check('adoption pins the exact accepted template and creates no local facts', ()
     idempotency_key: 'taxonomy-adopt-0001',
     evaluated_at: now,
   };
-  const decision = governance.evaluateServiceTaxonomyTemplateUseV1(command);
+  const result = evaluateTemplateUse(command, accepted);
+  assert.equal(result.outcome, 'accepted');
+  const decision = result.decision;
   assert.deepEqual(decision.exact_template_reference, {
     template_id: template.template_id,
     template_version: template.template_version,
@@ -547,8 +581,9 @@ check('adoption pins the exact accepted template and creates no local facts', ()
 
 check('fork keeps provenance and uses a distinct result identity', () => {
   const value = proposal();
-  const template = reusableTemplate(value, acceptedDecision(value));
-  const decision = governance.evaluateServiceTaxonomyTemplateUseV1({
+  const accepted = acceptedDecision(value);
+  const template = reusableTemplate(value, accepted);
+  const result = evaluateTemplateUse({
     contract: governance.SERVICE_TAXONOMY_TEMPLATE_USE_CONTRACT,
     contract_version: 1,
     action: 'fork',
@@ -558,10 +593,96 @@ check('fork keeps provenance and uses a distinct result identity', () => {
     result_identity: id(62),
     idempotency_key: 'taxonomy-fork-0001',
     evaluated_at: now,
-  });
+  }, accepted);
+  assert.equal(result.outcome, 'accepted');
+  const decision = result.decision;
   assert.equal(decision.action, 'fork');
   assert.equal(decision.provenance_preserved, true);
   assert.notEqual(decision.result_identity, template.template_id);
+});
+
+check('template use fails closed without a canonical accepted governance decision', () => {
+  const value = proposal();
+  const accepted = acceptedDecision(value);
+  const template = reusableTemplate(value, accepted);
+  const command = {
+    contract: governance.SERVICE_TAXONOMY_TEMPLATE_USE_CONTRACT,
+    contract_version: 1,
+    action: 'adopt',
+    operation_id: id(70),
+    destination_workspace_reference: id(71),
+    template,
+    result_identity: id(72),
+    idempotency_key: 'taxonomy-adopt-missing-dependency',
+    evaluated_at: now,
+  };
+  assert.deepEqual(evaluateTemplateUse(command, undefined), {
+    outcome: 'denied', code: 'DEPENDENCY_UNAVAILABLE',
+  });
+  assert.deepEqual(evaluateTemplateUse(command, { ...accepted, lifecycle_status: 'pending' }), {
+    outcome: 'denied', code: 'DEPENDENCY_UNAVAILABLE',
+  });
+});
+
+check('template provenance and candidate references exact-match the canonical acceptance', () => {
+  const value = proposal();
+  const accepted = acceptedDecision(value);
+  const template = reusableTemplate(value, accepted);
+  const command = {
+    contract: governance.SERVICE_TAXONOMY_TEMPLATE_USE_CONTRACT,
+    contract_version: 1,
+    action: 'adopt',
+    operation_id: id(73),
+    destination_workspace_reference: id(74),
+    template,
+    result_identity: id(75),
+    idempotency_key: 'taxonomy-adopt-provenance-regression',
+    evaluated_at: now,
+  };
+  const tamperedTemplates = [
+    { ...template, source_workspace_reference: id(76) },
+    { ...template, taxonomy_revision: template.taxonomy_revision + 1 },
+    { ...template, provenance: { ...template.provenance, source_proposal: {
+      ...template.provenance.source_proposal, proposal_id: id(77),
+    } } },
+    { ...template, provenance: { ...template.provenance, governance_decision_id: id(78) } },
+    { ...template, exact_archetype_reference: {
+      ...template.exact_archetype_reference, archetype_id: id(79),
+    } },
+    { ...template, exact_archetype_reference: {
+      ...template.exact_archetype_reference, content_hash: hash(79),
+    } },
+    { ...template, public_definition: {
+      ...template.public_definition, labels: { ...template.public_definition.labels, en: 'Tampered label' },
+    } },
+    { ...template, compatibility_hints: ['office_workplace'] },
+  ];
+  for (const tampered of tamperedTemplates) {
+    assert.deepEqual(evaluateTemplateUse({ ...command, template: tampered }, accepted), {
+      outcome: 'denied', code: 'TEMPLATE_PROVENANCE_MISMATCH',
+    });
+  }
+});
+
+check('template semantic fingerprint tampering is rejected before provenance evaluation', () => {
+  const value = proposal();
+  const accepted = acceptedDecision(value);
+  const template = reusableTemplate(value, accepted);
+  const command = {
+    contract: governance.SERVICE_TAXONOMY_TEMPLATE_USE_CONTRACT,
+    contract_version: 1,
+    action: 'adopt',
+    operation_id: id(80),
+    destination_workspace_reference: id(81),
+    template: { ...template, exact_archetype_reference: {
+      ...template.exact_archetype_reference,
+      semantic_fingerprint: 'svc1:5555555555555555',
+    } },
+    result_identity: id(82),
+    idempotency_key: 'taxonomy-adopt-semantic-tamper',
+    evaluated_at: now,
+  };
+  assert.throws(() => evaluateTemplateUse(command, accepted));
 });
 
 check('adoption or fork requires another Workspace and a new result identity', () => {

@@ -161,8 +161,17 @@ price or activation. A destination Workspace re-evaluates its own facts.
 
 ## 8. Reusable template contract
 
-Only a template with `lifecycle=accepted` can enter the pure adoption/fork
-evaluator. Its minimum immutable identity is:
+Only a template with `lifecycle=accepted` and a separately supplied canonical
+accepted governance decision can enter the pure adoption/fork evaluator. A
+caller-provided template is never sufficient authority. A missing, malformed or
+non-accepted canonical decision returns `DEPENDENCY_UNAVAILABLE`.
+
+The template must exact-match that canonical decision's proposal reference,
+source Workspace, governance decision identity/version, taxonomy revision,
+archetype identity/code/version/hash, primitive and archetype semantic
+fingerprints, public definition, labels and compatibility hints. Any mismatch
+returns `TEMPLATE_PROVENANCE_MISMATCH` with zero side effects. Its minimum
+immutable identity is:
 
 ```text
 template_id
@@ -173,6 +182,7 @@ taxonomy_revision
 exact archetype identity / code / version / hash
 accepted archetype and primitive semantic fingerprints
 source proposal identity / version / fingerprint
+source Workspace reference from the accepted proposal
 governance decision identity / version
 parent template identity / version / hash | null
 country_scope=country_neutral
@@ -214,10 +224,14 @@ and explicit activation.
 
 ## 10. Replay and failure behavior
 
-The evaluator computes a stable input fingerprint over the exact command and
+The evaluator first exact-matches the command proposal against the current
+proposal. Only then does it compute replay behavior from the exact command and
 registry snapshot.
 
-- Same idempotency key and same fingerprint returns the exact prior decision.
+- Same idempotency key, same fingerprint, same decision identity and same
+  current proposal reference returns the exact prior decision.
+- A newer proposal version or changed bytes at the same version is rejected
+  before replay; prior acceptance cannot authorize stale current state.
 - Same key with changed proposal, review, candidate bytes or registry evidence
   returns bounded `REPLAY_CONFLICT`.
 - Stale proposal, changed proposal bytes, denied authority, code collision,
@@ -242,6 +256,10 @@ There is no unknown-commit recovery because this package performs no commit.
 | Older proposal version | `STALE_PROPOSAL` |
 | Same exact retry | Exact prior decision |
 | Changed retry with same key | `REPLAY_CONFLICT` |
+| Exact retry after current proposal advances | `STALE_PROPOSAL` |
+| Exact retry after same-version proposal mutation | `PROPOSAL_IMMUTABILITY_CONFLICT` |
+| Template use without canonical accepted decision | `DEPENDENCY_UNAVAILABLE` |
+| Template/canonical decision provenance mismatch | `TEMPLATE_PROVENANCE_MISMATCH` |
 
 ## 12. Ownership and dependencies
 
