@@ -7,6 +7,10 @@ on:
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
+      - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
+      - 'docs/architecture/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-v1.0.md'
+      - 'docs/architecture/references/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-INVENTORY.json'
+      - 'docs/architecture/references/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-EVIDENCE.json'
       - 'vendor/**'
       - 'patches/**'
       - 'package.json'
@@ -23,6 +27,10 @@ on:
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
+      - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
+      - 'docs/architecture/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-v1.0.md'
+      - 'docs/architecture/references/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-INVENTORY.json'
+      - 'docs/architecture/references/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-EVIDENCE.json'
       - 'vendor/**'
       - 'patches/**'
       - 'package.json'
@@ -51,6 +59,7 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run lint
+      - run: npm run test:ce:member-benefit-terminology
       - run: npm run test:unit
       - run: npm run test:core-jurisdiction-profile
       - run: npm run test:core-jurisdiction-domain-artifact

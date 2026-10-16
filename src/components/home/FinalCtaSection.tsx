@@ -29,10 +29,10 @@ export const FinalCtaSection: React.FC<FinalCtaProps> = ({ lang }) => {
 
             <p className="text-base sm:text-lg text-[#CBD5E1] max-w-2xl mx-auto leading-relaxed">
               {lang === 'ro'
-                ? 'Explorează gratuit demo-ul interactiv cu date de test sau programează o discuție tehnică pentru asociația sau portofoliul tău.'
+                ? 'Explorează demo-ul interactiv cu date de test sau programează o discuție tehnică pentru asociația sau portofoliul tău.'
                 : lang === 'fa'
                 ? 'هم‌اکنون محیط دموی تعاملی را بدون نیاز به ورود آزمایش کنید یا درخواست استقرار پایلوت را برای مجتمع خود ثبت نمایید.'
-                : 'Explore our zero-login interactive demo sandbox or discuss dedicated onboarding for your condominium.'}
+                : 'Explore our interactive demo with test data or discuss dedicated onboarding for your condominium.'}
             </p>
           </div>
 

@@ -452,7 +452,7 @@ export const CLUSTER_B_ARTICLES: Record<string, GuideArticleData> = {
         title: 'Erori Frecvente în Gestiunea Activelor Tehnice',
         content: [
           'Printre deficiențele majore întâlnite în practică:',
-          '• Pierderea certificatelor de garanție ale pompelor sau motoarelor noi, suportându-se din fondurile asociației reparații care ar fi fost gratuite.',
+          '• Pierderea certificatelor de garanție ale pompelor sau motoarelor noi, suportându-se din fondurile asociației reparații care ar fi fost acoperite de garanție.',
           '• Neconsemnarea orelor de funcționare ale generatoarelor sau compresoarelor, ducând la griparea utilajelor din lipsă de ulei.',
           '• Absența unui istoric al pieselor schimbate: plata repetată a aceleiași piese către prestatori fără a verifica dacă piesa anterioară se afla în garanția legală de conformitate.',
           '• Lipsa fotografiilor de pe plăcuțele de identificare ale utilajelor vechi, îngreunând comandarea pieselor de schimb compatibile.',

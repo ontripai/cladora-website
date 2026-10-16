@@ -251,7 +251,7 @@ export const InteractiveProductPreview: React.FC<ProductPreviewProps> = ({ lang 
 
             <div className="card-proptech p-5 bg-white space-y-3">
               <span className="text-xs font-bold text-[#52667A] uppercase tracking-wider">
-                {lang === 'ro' ? 'Testare Gratuită' : lang === 'fa' ? 'آزمودن آنلاین و رایگان' : 'Free Sandbox'}
+                {lang === 'ro' ? 'Sandbox Interactiv' : lang === 'fa' ? 'محیط سندباکس تعاملی' : 'Interactive Sandbox'}
               </span>
               <p className="text-xs text-[#52667A] leading-relaxed">
                 {lang === 'ro'
