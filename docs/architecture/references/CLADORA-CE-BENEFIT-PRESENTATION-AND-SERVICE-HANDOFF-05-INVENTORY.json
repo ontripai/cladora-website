@@ -1,0 +1,198 @@
+{
+  "schema": "ce-benefit-presentation-service-handoff-inventory.v1",
+  "baseline_commit": "536a9526222a36a1fd5d28e4267ca4b2d783786c",
+  "baseline_tree": "83947ebd1278b5c3af65fb1e43a07a1f8e30a21d",
+  "hash_algorithm": "sha256",
+  "entry_count": 23,
+  "classification_counts": {
+    "accepted": 10,
+    "inactive": 9,
+    "internal_only": 4
+  },
+  "entries": [
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "kind": "canonical_contract",
+      "owner": "OPEN_PRODUCT_DECISION",
+      "finding": "Canonical funding, ownership and independent SERVICE boundary.",
+      "classification": "accepted",
+      "sha256": "623da80b00a53d880d6c711debb26d9bd5d5b8114299ed5ce7dc3a7ea55ed247"
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-v1.0.md",
+      "kind": "canonical_contract",
+      "owner": "Community & Experience",
+      "finding": "Canonical public terminology and privacy policy.",
+      "classification": "accepted",
+      "sha256": "003c414ebfe6a49c80af7d8c61002012852822c0d176b06749b67373593ad133"
+    },
+    {
+      "path": "src/app/[lang]/community-experience/page.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Public CE architecture explains SERVICE discovery without a benefit projection.",
+      "classification": "accepted",
+      "sha256": "63abbc7afa4fd1584b76f612d7c3f8f65b632d1af9511378f9024fc363cd4f83"
+    },
+    {
+      "path": "src/app/[lang]/app/community/page.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Authenticated community route delegates to the CE component and defines no benefit claim.",
+      "classification": "inactive",
+      "sha256": "9de712f1596776769a66f1dda501b93f973f9543d307bf634ea0b1adc059b949"
+    },
+    {
+      "path": "src/app/[lang]/app/community/events/page.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Authenticated event route defines no benefit or SERVICE mutation handoff.",
+      "classification": "inactive",
+      "sha256": "7932ce961ecc66c38879224a61d9b5d238e20e80e1adcbcbc4310e9860e1cd03"
+    },
+    {
+      "path": "src/app/[lang]/app/experience/guides/page.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Authenticated Guide route remains a read entry point.",
+      "classification": "inactive",
+      "sha256": "43fc37f47bed97f7b771b3f40d2841805078184852156e3dee0107c697f8ff19"
+    },
+    {
+      "path": "src/components/customer/CustomerCommunityBase.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Community workflows are independent of benefit presentation.",
+      "classification": "inactive",
+      "sha256": "dbb13ba183dac875cc409c30062f70fa9d9b9e670952ad524e591d295f12cb94"
+    },
+    {
+      "path": "src/components/customer/CustomerCommunityBasePage.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Community adapter exposes no benefit outcome or SERVICE transaction.",
+      "classification": "inactive",
+      "sha256": "ce74a3e608d1b43b1f2ec68acbe865197e1b69f6139002a5dca53cc0baaa39cf"
+    },
+    {
+      "path": "src/components/customer/CustomerEventInterestPage.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Event interest is not an allowance or redemption path.",
+      "classification": "inactive",
+      "sha256": "0bd1499c315df3280c8be02103c8ecd6f699719d94c438132364a640dd554e60"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuide.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Guide renders localized content; editor requires both can_edit and commands.",
+      "classification": "inactive",
+      "sha256": "1e828b9ef4cc7070b45f13e1d44cf7cf10aded9c56b1815eb8c65abd59c22744"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Guide page passes commands=null and renders no benefit projection.",
+      "classification": "inactive",
+      "sha256": "362eb704d41d6f165c53c35584e9dba7495d892c3ce5ecf7e3dc4aee96dffeed"
+    },
+    {
+      "path": "src/lib/community/experience-guide-client.ts",
+      "kind": "ce_presentation_surface",
+      "owner": "Community & Experience",
+      "finding": "Public Guide projection forces can_edit=false.",
+      "classification": "inactive",
+      "sha256": "a4c1a1c36c1676b9a68dbc68df4351ecfd5f29780c15e0369c55d4d60dbabfcc"
+    },
+    {
+      "path": "src/app/[lang]/service/page.tsx",
+      "kind": "service_handoff_surface",
+      "owner": "SERVICE",
+      "finding": "Accepted RO/EN/FA copy requires a separate Offering identity, price, terms, consent and receipt.",
+      "classification": "accepted",
+      "sha256": "9c4db4cd91419d8ece5268528534efdd6e187df9591f17632394f690ad957cda"
+    },
+    {
+      "path": "src/app/[lang]/app/services/page.tsx",
+      "kind": "service_handoff_surface",
+      "owner": "SERVICE",
+      "finding": "Authenticated SERVICE entry point is independent of CE.",
+      "classification": "accepted",
+      "sha256": "11191feba2947b4b52b68e286f855254d92d1f80037f87d864963750ee264507"
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "kind": "service_handoff_surface",
+      "owner": "SERVICE",
+      "finding": "Published Offerings and explicit Request UI remain SERVICE-owned; tax included is not a benefit claim.",
+      "classification": "accepted",
+      "sha256": "4c49be39ead51d554d4fbde6fc39f713fac2bbc87b95748f863ce6fcf7910efc"
+    },
+    {
+      "path": "src/components/customer/CustomerServiceRequests.tsx",
+      "kind": "service_handoff_surface",
+      "owner": "SERVICE",
+      "finding": "A Request is created only by an explicit SERVICE form action.",
+      "classification": "accepted",
+      "sha256": "128eb7a436b434b9a5aebdbd259b3e4f0213a04b5a7345c4b6c1a68cc9a8e191"
+    },
+    {
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "kind": "service_handoff_surface",
+      "owner": "SERVICE",
+      "finding": "Offering identity, revision and commercial terms are SERVICE contracts.",
+      "classification": "accepted",
+      "sha256": "c5f26e512b43c8584937da461a3ee2927caf966cd966fad079666fd39a531bc5"
+    },
+    {
+      "path": "src/lib/customer/service-request-schema.ts",
+      "kind": "service_handoff_surface",
+      "owner": "SERVICE",
+      "finding": "Request identity, version and idempotency remain SERVICE contracts.",
+      "classification": "accepted",
+      "sha256": "b3072890dd6baca35b114b6468b25758bb4f225037b3780bc2d3a29bcba9162b"
+    },
+    {
+      "path": "src/config/locales.ts",
+      "kind": "localization_infrastructure",
+      "owner": "Core presentation infrastructure",
+      "finding": "Locale supplies presentation defaults but is forbidden as benefit, funding or country evidence.",
+      "classification": "internal_only",
+      "sha256": "0e4726a3e2f2b1cfa7a57e9b31f5db00a748bfc924b39be6ad7f9c44e9db6708"
+    },
+    {
+      "path": "src/app/[lang]/layout.tsx",
+      "kind": "localization_infrastructure",
+      "owner": "Core presentation infrastructure",
+      "finding": "Localized layout applies direction, including Persian RTL.",
+      "classification": "accepted",
+      "sha256": "78e2c32d55134d6f878a9157e9c6d9aa7d160caa6cdd8be2786643f06609208a"
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "kind": "localization_infrastructure",
+      "owner": "Public content",
+      "finding": "Romanian dictionary included fields are product-plan flags, not member-benefit outcomes.",
+      "classification": "internal_only",
+      "sha256": "664568804d21cd1ffd60be965f83c96e500ad16f6445f621819c107ce346f805"
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "kind": "localization_infrastructure",
+      "owner": "Public content",
+      "finding": "English dictionary included fields are product-plan flags, not member-benefit outcomes.",
+      "classification": "internal_only",
+      "sha256": "a4d462732627be51ff270166105c51c1f06f61c51b0ffe27aa7e443824efd43b"
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "kind": "localization_infrastructure",
+      "owner": "Public content",
+      "finding": "Persian dictionary included fields are product-plan flags, not member-benefit outcomes.",
+      "classification": "internal_only",
+      "sha256": "d81bbca8e32c089c7525639949b017037cd229380e31aec577093311de6e687b"
+    }
+  ]
+}
