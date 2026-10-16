@@ -5,7 +5,7 @@ Status: **`audit_complete_no_active_inference_fix_required`**.
 Baseline: live `main@8cffa7d95e0088c30fd5b2e6f6b5ee57ee8a79aa`, tree
 `09c68456c8fc33d35e771dd5186fe64294692a67`.
 
-Static inventory refresh: `main@ffdad59c5771916d66ce0311c6f61322d123fa6b`.
+Static inventory refresh: `main@5bc0a2349454d8112f1043ebfb50585e1da77a47`.
 Later documentation/fixture additions do not change the audit result or its
 original runtime baseline.
 
@@ -26,7 +26,7 @@ tenant defaults.
 
 The static inventory also freezes every repository source, SQL and test file
 whose path or contents identify AIRPROP and whose contents carry a country
-signal. The refreshed boundary is 56 files; additions cannot silently escape
+signal. The refreshed boundary is 57 files; additions cannot silently escape
 classification.
 
 Each finding below has exactly one classification from the required set. “Live”
@@ -45,7 +45,7 @@ order, not merely text that still exists in an older immutable migration.
 | P01 | `src/config/formatters.ts:180-199`; callers are only `src/components/home/PortfolioIntelligenceSection.tsx:103` and `src/components/demo/DemoDashboardPage.tsx:425` | presentation-only | `formatAddress` rewrites Romanian-shaped string tokens for display. AIRPROP source and routes do not call it. It cannot parse, normalize or authorize stored address country. |
 | P02 | AIRPROP-adjacent country or Romania copy in `src/app/[lang]/{ai,industries,platform/architecture,resources/glossary,resources/guides,solutions}/page.tsx`, `src/components/contact/ContactForm.tsx`, and `src/config/routes-metadata.ts` | presentation-only | Marketing, explanatory text, translated labels and location placeholders only. No listed file supplies an AIRPROP address, resolver input, pack installation or compliance decision. Text that describes a Romania baseline is not runtime evidence. |
 | P03 | `src/lib/airprop/address-structure-presentation-evaluator-v1.ts` and `docs/contracts/AIRPROP-ADDRESS-STRUCTURE-PRESENTATION-EVALUATOR-v1.0.md` | presentation-only | Inactive pure evaluator of an already supplied, hash-valid `address.structure` artifact and explicit address country. It has no resolver, route, database, default-country source, command authority, compliance output or activation wiring. |
-| T01 | Node fixtures containing both AIRPROP and country signals: fifteen `scripts/test-airprop-*.mjs` files frozen by the harness, four `scripts/test-core-jurisdiction-{profile-selector,domain-artifact-resolver}{,-postgres}-v1.mjs` fixtures, three `scripts/test-documents-country-retention-*.mjs` fixtures, `scripts/test-workspace-role-assignment-runtime.mjs`, and `scripts/test-workspace-taxonomy-slice.mjs` | synthetic/test fixture | Test inputs and negative assertions only. Core/Documents fixtures use AIRPROP permission/purpose labels while exercising their canonical boundaries; Workspace fixtures exercise isolation. None supplies Production defaults or runtime authority. |
+| T01 | Node fixtures containing both AIRPROP and country signals: fifteen `scripts/test-airprop-*.mjs` files frozen by the harness, four `scripts/test-core-jurisdiction-{profile-selector,domain-artifact-resolver}{,-postgres}-v1.mjs` fixtures, the source-only `scripts/test-core-canonical-country-registry-v1.mjs`, three `scripts/test-documents-country-retention-*.mjs` fixtures, `scripts/test-workspace-role-assignment-runtime.mjs`, and `scripts/test-workspace-taxonomy-slice.mjs` | synthetic/test fixture | Test inputs and negative assertions only. Core/Documents fixtures use AIRPROP permission/purpose labels while exercising their canonical boundaries; the country-registry harness validates pinned source provenance but installs no runtime registry. Workspace fixtures exercise isolation. None supplies Production defaults or runtime authority. |
 | T02 | AIRPROP pgTAP fixtures containing country/pack/location signals: `supabase/tests/{086,133,134,135,146,149,151,170,172,173,174,175,176,177,178,179}_*.test.sql` | synthetic/test fixture | Transaction-wrapped/synthetic evidence only. `086` explicitly proves `AIRPROP-AE-DU` fails closed while `AIRPROP-RO/1.0` is the legacy configuration accepted by that gateway. |
 | D01 | Original `app_private.create_airprop_opportunity_internal_v1` and `app_private.configure_airprop_property_internal_v1` in `20260914144417_airprop_core_foundation.sql:232-315` | dormant or superseded definition | **Superseded.** Both exact signatures are replaced later by `20261003151604_...`; the original bodies are not the effective runtime definitions. The public v1 wrappers remain live and dispatch to the replacement functions. |
 | D02 | Historical `country_code char(2) not null default 'RO'` in `20260825000300_portfolio_properties_buildings_units.sql:8` | dormant or superseded definition | **Superseded.** `20261015183000_core_jurisdiction_profile_v1.sql:11` drops the default. It must remain immutable migration history and must not be treated as the current schema default. |

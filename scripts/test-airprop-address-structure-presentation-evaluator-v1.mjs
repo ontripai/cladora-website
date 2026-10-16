@@ -229,6 +229,16 @@ check('LTR and RTL values are preserved without country or direction inference',
   'Oak خیابان 12');
 });
 
+check('well-formed supplementary-plane Unicode is preserved', () => {
+  const unicodeRequest = request(artifacts[0], fixtures[0]);
+  unicodeRequest.address_fields = unicodeRequest.address_fields.map(field =>
+    field.field_code === 'street_name' ? { ...field, value: '𠮷野家' } : field);
+  const result = evaluateAirpropAddressStructurePresentationV1(unicodeRequest);
+  assert.equal(result.decision, 'accepted');
+  assert.equal(result.display_parts.find(part => part.field_code === 'street_name').value,
+    '𠮷野家');
+});
+
 check('artifact fields are restricted to a closed presentation-safe taxonomy', () => {
   for (const privateField of [
     'actor_id', 'context_id', 'workspace_id', 'property_id', 'unit_id',
@@ -251,13 +261,15 @@ check('artifact fields are restricted to a closed presentation-safe taxonomy', (
   }
 });
 
-check('unsafe controls, lone surrogates and bidi controls fail closed', () => {
+check('unsafe controls, both lone surrogate forms and bidi controls fail closed', () => {
   for (const unsafeValue of [
     'Line one\nLine two',
     `hidden${String.fromCharCode(0x7f)}value`,
     `override${String.fromCharCode(0x202e)}value`,
     `isolate${String.fromCharCode(0x2066)}value`,
-    `surrogate${String.fromCharCode(0xd800)}value`,
+    `high${String.fromCharCode(0xd800)}surrogate`,
+    `terminal-high${String.fromCharCode(0xd800)}`,
+    `low${String.fromCharCode(0xdc00)}surrogate`,
   ]) {
     const unsafeRequest = request(artifacts[0], fixtures[0]);
     unsafeRequest.address_fields = unsafeRequest.address_fields.map(field =>

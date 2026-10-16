@@ -28,7 +28,22 @@ const PRESENTATION_SAFE_ADDRESS_FIELD_CODES = new Set([
 ]);
 
 const unsafeDisplayValue =
-  /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069\ud800-\udfff]/;
+  /[\u0000-\u001f\u007f-\u009f\u061c\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069]/;
+
+function hasUnpairedSurrogate(value: string): boolean {
+  for (let index = 0; index < value.length; index += 1) {
+    const unit = value.charCodeAt(index);
+    if (unit >= 0xd800 && unit <= 0xdbff) {
+      if (index + 1 >= value.length) return true;
+      const next = value.charCodeAt(index + 1);
+      if (next < 0xdc00 || next > 0xdfff) return true;
+      index += 1;
+    } else if (unit >= 0xdc00 && unit <= 0xdfff) {
+      return true;
+    }
+  }
+  return false;
+}
 
 const explicitAddressFieldSchema = z.strictObject({
   field_code: code,
@@ -251,7 +266,9 @@ export function evaluateAirpropAddressStructurePresentationV1(
     if (rawValue.length > field.max_length || rawValue.trim().length === 0) {
       return deny('FIELD_VALUE_INVALID');
     }
-    if (unsafeDisplayValue.test(rawValue)) return deny('FIELD_VALUE_INVALID');
+    if (unsafeDisplayValue.test(rawValue) || hasUnpairedSurrogate(rawValue)) {
+      return deny('FIELD_VALUE_INVALID');
+    }
     const value = field.field_code === 'postal_code'
       ? normalizePostal(policy.postal_code, rawValue) : rawValue;
     if (value.length > field.max_length || value.trim().length === 0) {

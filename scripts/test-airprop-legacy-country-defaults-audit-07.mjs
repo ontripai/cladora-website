@@ -219,6 +219,7 @@ const expectedSignalCandidates = [
   'scripts/test-airprop-underwriting-runtime-007.mjs',
   'scripts/test-airprop-underwriting-ui-008.mjs',
   'scripts/test-airprop-valuation-contract-01a.mjs',
+  'scripts/test-core-canonical-country-registry-v1.mjs',
   'scripts/test-core-jurisdiction-domain-artifact-resolver-postgres-v1.mjs',
   'scripts/test-core-jurisdiction-domain-artifact-resolver-v1.mjs',
   'scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs',
