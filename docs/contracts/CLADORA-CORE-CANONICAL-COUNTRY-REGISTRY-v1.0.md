@@ -41,7 +41,9 @@ database registry or runtime lookup.
 The exact source bytes, license bytes and machine-readable manifest are retained
 under
 `docs/contracts/references/CORE-CANONICAL-COUNTRY-REGISTRY-01/`.
-Runtime and CI parse those local pinned bytes. They never request a network
+Static review/build tooling and CI parse those local pinned bytes. A future
+runtime implementation must consume the same pinned local artifact. Neither
+the current tooling nor a future runtime may request a network
 resource, follow a mutable URL or select a `latest` release.
 
 CLDR locale data, localized display names and likely-subtag information remain
