@@ -39,60 +39,60 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
       number: '01',
       title: lang === 'ro' ? '1. Catalog de Servicii & Descriere Nevoie' : lang === 'fa' ? '۱. کاتالوگ خدمات و ثبت شرح نیاز' : '1. Service Catalog & Briefing',
       desc: lang === 'ro'
-        ? 'Alegerea categoriei de intervenție (curățenie, reparații instalații, revizii lifturi, deratizare, amenajări) și definirea clară a cerințelor pentru spațiul sau unitatea vizată.'
+        ? 'Fiecare Workspace activează propriul catalog: curățenia unității, reparații în interiorul unității, spălătorie auto, curățătorie chimică, catering și masa zilei, cumpărături curente și livrarea pâinii dimineața, rezervarea spațiilor ori echipamentelor și, în mediul industrial, descărcare și încărcare. Niciun serviciu nu este obligatoriu în toate Workspace-urile.'
         : lang === 'fa'
-        ? 'انتخاب نوع خدمت از کاتالوگ استاندارد (تأسیسات، نظافت، سرویس آسانسور، ضدعفونی، باغبانی) و تکمیل شرح نیاز دقیق متصل به واحد یا بخش مربوطه در ملک.'
-        : 'Select service categories and specify requirements attached to the exact property space or physical asset.',
+        ? 'هر Workspace کاتالوگ خودش را فعال می‌کند؛ مانند نظافت واحد، تعمیرات داخل واحد، کارواش، خشکشویی، catering و غذای روزانه، خرید روزانه و تحویل نان صبحانه، رزرو فضا یا تجهیزات و در محیط صنعتی، تخلیه و بارگیری. هیچ خدمت مشخصی برای همهٔ Workspaceها اجباری نیست.'
+        : 'Each Workspace activates its own catalog, such as unit cleaning, in-unit repairs, car wash, dry cleaning, catering and daily meals, everyday shopping and morning bread delivery, space or equipment reservations, and loading or unloading for industrial sites. No individual service is mandatory across all Workspaces.',
       icon: Briefcase
     },
     {
       number: '02',
-      title: lang === 'ro' ? '2. Ofertare & Comparare Devize' : lang === 'fa' ? '۲. دریافت و مقایسه پیشنهادها' : '2. Competitive Quote Comparison',
+      title: lang === 'ro' ? '2. Modelul Potrivit pentru Fiecare Serviciu' : lang === 'fa' ? '۲. مدل مناسب برای هر خدمت' : '2. The Right Model for Each Service',
       desc: lang === 'ro'
-        ? 'Primirea propunerilor de la furnizori acreditați, compararea costurilor defalcate, termenelor de finalizare și a condițiilor de garanție într-o matrice transparentă.'
+        ? 'Un serviciu poate avea preț fix, poate fi inclus într-un beneficiu activ, poate funcționa prin abonament, rezervare sau consum măsurat ori poate necesita o ofertă. Compararea mai multor devize este doar unul dintre aceste trasee.'
         : lang === 'fa'
-        ? 'دریافت چند پیشنهاد قیمت و زمان از ارائه‌دهندگان معتبر، مقایسه اقلام هزینه و شرایط گارانتی در یک جدول مقایسه‌ای شفاف بدون ابهام.'
-        : 'Receive structured quotes, compare itemized costs, timelines, and warranty terms side by side.',
+        ? 'هر خدمت می‌تواند قیمت ثابت داشته باشد، در مزایای فعال Workspace گنجانده شود، اشتراکی باشد، با رزرو یا میزان مصرف ارائه شود، یا به استعلام قیمت نیاز داشته باشد. مقایسه چند پیشنهاد فقط یکی از این مسیرهاست.'
+        : 'A service may use fixed pricing, be included in an active benefit, run as a subscription, use booking or usage-based terms, or require a quotation. Comparing multiple proposals is one possible path, not the default for every service.',
       icon: Scale
     },
     {
       number: '03',
-      title: lang === 'ro' ? '3. Acord pe Domeniu, Timp & Cost' : lang === 'fa' ? '۳. توافق شفاف بر دامنه، زمان و هزینه' : '3. Scope, Schedule & Price Agreement',
+      title: lang === 'ro' ? '3. Alegere cu Termeni Expliciți' : lang === 'fa' ? '۳. انتخاب با شرایط روشن' : '3. Choice with Explicit Terms',
       desc: lang === 'ro'
-        ? 'Aprobarea formală a ofertei selectate de către persoana sau comitetul autorizat, stabilirea reperelor de plată și confirmarea programării execuției.'
+        ? 'Membrul autorizat confirmă domeniul, disponibilitatea, programarea, beneficiul sau prețul aplicabil înainte de comandă. Dacă este necesară ofertarea, propunerile disponibile pot fi comparate fără a presupune existența unei rețele universale de furnizori.'
         : lang === 'fa'
-        ? 'تأیید رسمی پیشنهاد منتخب توسط شخص یا مدیر مجاز، تثبیت تعهدات زمانی و مالی و صدور تاییدیه برای آغاز کار.'
-        : 'Formal human approval by authorized parties, setting milestones, payment covenants, and execution schedules.',
+        ? 'عضو مجاز پیش از سفارش، دامنه، ظرفیت، زمان‌بندی، مزیت یا قیمت قابل اعمال را تأیید می‌کند. اگر خدمت نیازمند استعلام باشد، پیشنهادهای موجود قابل مقایسه‌اند؛ بدون آنکه وجود شبکه سراسری ارائه‌دهندگان فرض شود.'
+        : 'Before ordering, an authorized member confirms the scope, availability, schedule, benefit, or applicable price. When quotation is required, available proposals can be compared without implying a universal provider network.',
       icon: CheckCheck
     },
     {
       number: '04',
-      title: lang === 'ro' ? '4. Comandă & Conectare la Comenzi de Lucru Operaționale' : lang === 'fa' ? '۴. سفارش خدمت و اتصال به دستورکار عملیات (در صورت نیاز)' : '4. Service Order & Optional Operations Work Order Link',
+      title: lang === 'ro' ? '4. Comandă & Limita față de Mentenanță' : lang === 'fa' ? '۴. سفارش و مرز آن با عملیات و نگهداری' : '4. Order & Maintenance Boundary',
       desc: lang === 'ro'
-        ? 'Lansarea comenzii de serviciu. În cazul în care serviciul implică intervenții fizice sau reparații tehnice, comanda se leagă direct de motorul unic de comenzi de lucru din modulul Operațiuni & Mentenanță. Unele servicii simple nu necesită comandă de lucru, în timp ce un proiect amplu poate genera mai multe comenzi de lucru corelate, fără a crea sisteme paralele de dispecerizare.'
+        ? 'SERVICE acoperă ceea ce membrii pot solicita, rezerva sau cumpăra. Rezervarea liftului de marfă pentru o mutare poate fi un serviciu; revizia obligatorie a liftului și întreținerea infrastructurii comune aparțin Operațiuni & Mentenanță. Numai lucrările cu impact tehnic pot fi corelate cu o comandă de lucru operațională.'
         : lang === 'fa'
-        ? 'ثبت و قطعی‌سازی سفارش خدمت. در صورتی که خدمت نیازمند کار اجرایی یا فنی در محل باشد، این سفارش مستقیماً به دستورکارهای اجرایی در سامانه «عملیات و نگهداری» متصل می‌شود. هر خدمت الزاماً به دستورکار نیاز ندارد و سفارش‌های چندمرحله‌ای ممکن است چندین دستورکار مرتبط داشته باشند؛ کلادورا از ایجاد دو سامانه مستقل صدور دستورکار جلوگیری می‌کند.'
-        : 'Finalizing the service order. When physical execution or technical repairs are required, the order directly links to the unified Operations & Maintenance work order system. Simpler advisory or routine tasks do not require work orders, while multi-phase orders may connect multiple related work orders without duplicate dispatch systems.',
+        ? 'SERVICE برای خدمات و مزایایی است که اعضا می‌توانند درخواست، رزرو یا خریداری کنند. رزرو آسانسور باربری برای جابه‌جایی می‌تواند یک خدمت باشد؛ اما نگهداری الزامی آسانسور و زیرساخت مشترک به «عملیات و نگهداری» تعلق دارد. فقط کاری که اثر فنی دارد می‌تواند به دستورکار عملیاتی مرتبط شود.'
+        : 'SERVICE covers services and benefits that members can request, book, or purchase. A freight elevator reservation for a move can be a service; mandatory elevator servicing and shared-infrastructure upkeep belong to Operations & Maintenance. Only technically relevant work may link to an operations work order.',
       icon: Clock
     },
     {
       number: '05',
-      title: lang === 'ro' ? '5. Recepție Rezultat & Semnare' : lang === 'fa' ? '۵. تحویل نتیجه، نظارت کیفی و پذیرش' : '5. Verification & Verified Sign-Off',
+      title: lang === 'ro' ? '5. Livrare, Dovadă & Recepție' : lang === 'fa' ? '۵. تحویل، رسید و پذیرش' : '5. Delivery, Receipt & Acceptance',
       desc: lang === 'ro'
-        ? 'Verificarea conformității lucrării, atașarea fotografiilor doveditoare și semnarea digitală a procesului-verbal de recepție calitativă.'
+        ? 'Comanda își păstrează domeniul și termenii conveniți, iar livrarea, dovada și acceptarea sunt înregistrate în istoricul serviciului, în limitele funcțiilor activate pentru acel Workspace.'
         : lang === 'fa'
-        ? 'بررسی کیفیت کار انجام‌شده، ضمیمه کردن تصاویر و مستندات پایان کار و امضای صورت‌جلسه رسمی پذیرش توسط سفارش‌دهنده.'
-        : 'Inspection of delivered work, photographic proof upload, and verified digital acceptance protocol.',
+        ? 'دامنه و شرایط توافق‌شده همراه سفارش حفظ می‌شود و تحویل، رسید و پذیرش در سابقه همان خدمت ثبت می‌گردد؛ در محدوده قابلیت‌هایی که برای آن Workspace فعال شده‌اند.'
+        : 'The order retains its agreed scope and terms. Delivery, receipt, and acceptance belong to the service history, within the capabilities activated for that Workspace.',
       icon: CheckCircle2
     },
     {
       number: '06',
-      title: lang === 'ro' ? '6. Atașare la Istoricul Activului' : lang === 'fa' ? '۶. ثبت ماندگار در شناسنامه دارایی' : '6. Permanent Asset History Logging',
+      title: lang === 'ro' ? '6. Istoricul Corect pentru Fiecare Rezultat' : lang === 'fa' ? '۶. سابقه درست برای هر نتیجه' : '6. The Right History for Each Outcome',
       desc: lang === 'ro'
-        ? 'Factura aprobată, garanția și detaliile intervenției rămân permanent legate de unitatea sau echipamentul respectiv în cartea tehnică digitală.'
+        ? 'Numai serviciile care modifică starea tehnică a unui activ intră în istoricul acelui activ. Curățenia, mesele, cumpărăturile, rezervările și celelalte servicii păstrează propria comandă, propriul document de livrare și propriul istoric de serviciu.'
         : lang === 'fa'
-        ? 'فاکتور تسویه‌شده، ضمانت‌نامه قطعات و سوابق سرویس به طور دائمی بر روی پرونده همان واحد یا تجهیزات ثبت و بایگانی می‌شوند.'
-        : 'Settled invoice, warranty vouchers, and technician logs attach permanently to the unit/asset ledger.',
+        ? 'فقط خدمتی که وضعیت فنی یک asset را تغییر می‌دهد وارد asset history همان دارایی می‌شود. نظافت، غذا، خرید، رزرو و سایر خدمات، order، receipt و service history مخصوص خود را نگه می‌دارند.'
+        : 'Only a service that changes an asset’s technical condition enters that asset’s history. Cleaning, meals, shopping, reservations, and other services retain their own order, receipt, and service history.',
       icon: History
     }
   ];
@@ -118,35 +118,35 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
             <Briefcase className="w-3.5 h-3.5 text-teal-600" />
             <span>
               {lang === 'ro' 
-                ? 'Modulul de Servicii & Comenzi CLADORA' 
-                : lang === 'fa' 
-                ? 'سامانه جامع کاتالوگ، سفارش، نظارت و پذیرش خدمات' 
-                : 'Service Procurement, Orders & Verification OS'}
+                ? 'Servicii, Rezervări & Beneficii pentru Membrii Workspace-ului'
+                : lang === 'fa'
+                ? 'خدمات، رزروها و مزایای اعضای Workspace'
+                : 'Workspace Member Services, Bookings & Benefits'}
             </span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-display font-extrabold text-[#102A43] tracking-tight">
             {lang === 'ro' ? (
               <>
-                SERVICE — De la solicitare la execuție și recepție, <span className="text-teal-600">cu istoric păstrat pe activ</span>.
+                SERVICE — Servicii și beneficii pe care membrii le pot <span className="text-teal-600">solicita, rezerva sau cumpăra</span>.
               </>
             ) : lang === 'fa' ? (
               <>
-                SERVICE — از ثبت نیاز تا استعلام، اجرا و پذیرش با <span className="text-teal-600">ثبت دائمی در شناسنامه دارایی</span>
+                SERVICE — خدمات و مزایایی که اعضای Workspace می‌توانند <span className="text-teal-600">درخواست، رزرو یا خریداری کنند</span>
               </>
             ) : (
               <>
-                SERVICE — From request brief to quote comparison, verified sign-off, and <span className="text-teal-600">permanent asset history</span>.
+                SERVICE — Services and benefits Workspace members can <span className="text-teal-600">request, book, or purchase</span>.
               </>
             )}
           </h1>
 
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'SERVICE elimină comenzile verbale și devizele opace. Toate intervențiile pentru proprietate parcurg un ciclu structurat: descriere nevoie, ofertare concurențială, aprobare de cost, execuție monitorizată și atașarea dovezilor în cartea tehnică.'
+              ? 'Fiecare Workspace decide ce catalog activează pentru membrii săi. SERVICE rămâne separat de mentenanța obligatorie a activelor și infrastructurii comune, administrată prin Operațiuni & Mentenanță.'
               : lang === 'fa'
-              ? 'SERVICE روش‌های سنتی، پیام‌های غیررسمی و فاکتورهای مبهم را کنار می‌گذارد. تمام نیازهای خدماتی در یک گردش‌کار شفاف طی می‌شوند: ثبت نیاز، مقایسه پیشنهادها، توافق بر زمان و هزینه، پیگیری اجرا و ثبت ضمانت‌نامه در سابقه ملک.'
-              : 'SERVICE replaces opaque quotes with verified procurement. Every service intervention connects to the asset registry, preserving scope agreements, invoices, and sign-offs.'}
+              ? 'هر Workspace متناسب با اعضا و محیط خود تصمیم می‌گیرد کدام کاتالوگ را فعال کند. SERVICE از نگهداری الزامی دارایی‌ها و زیرساخت‌های مشترک که در «عملیات و نگهداری» مدیریت می‌شود جداست.'
+              : 'Each Workspace decides which catalog to activate for its members. SERVICE stays distinct from mandatory upkeep of assets and shared infrastructure, which belongs to Operations & Maintenance.'}
           </p>
         </div>
 
@@ -186,20 +186,20 @@ export default async function ServicePage(props: { params: Promise<{ lang: Langu
             </div>
             <div>
               <h3 className="text-xl font-bold">
-                {lang === 'ro' ? 'Garanție și Responsabilitate Financiară' : lang === 'fa' ? 'تعهد مالی شفاف و تضمین کیفیت خدمات' : 'Financial Accountability & Quality Assured'}
+                {lang === 'ro' ? 'Catalog Opțional, Evidență Clară' : lang === 'fa' ? 'کاتالوگ اختیاری، سابقه روشن' : 'Optional Catalog, Clear Records'}
               </h3>
               <p className="text-xs text-[#CBD5E1]">
-                {lang === 'ro' ? 'Nicio plată eliberată fără recepție calitativă aprobată' : lang === 'fa' ? 'تسویه‌حساب مشروط به تأیید رسمی کیفیت کار است' : 'No payout without human verified acceptance'}
+                {lang === 'ro' ? 'Fiecare Workspace alege serviciile și modelele potrivite membrilor săi' : lang === 'fa' ? 'هر Workspace خدمات و مدل‌های مناسب اعضای خود را انتخاب می‌کند' : 'Each Workspace chooses the services and models that fit its members'}
               </p>
             </div>
           </div>
 
           <p className="text-xs sm:text-sm text-[#CBD5E1] leading-relaxed max-w-3xl">
             {lang === 'ro'
-              ? 'Sistemul asigură că devizele acceptate nu pot fi modificate unilateral pe parcursul execuției. Fiecare recepție include atestarea stării tehnice, iar cheltuielile sunt reflectate automat în jurnalul contabil al asociației sau proprietarului.'
+              ? 'Comenzile, documentele de livrare și istoricul serviciilor rămân distincte de cartea tehnică a activului. O legătură cu istoricul activului apare numai când rezultatul schimbă în mod real starea tehnică a acelui activ.'
               : lang === 'fa'
-              ? 'سامانه اجازه تغییر یک‌جانبه مبالغ توافق‌شده در حین کار را نمی‌دهد. پس از انجام کار، تأیید کیفیت صورت گرفته و اسناد مالی مستقیماً در دفاتر حسابداری ثبت می‌شوند.'
-              : 'Agreed scopes and pricing remain locked against unilateral inflation. Verified sign-offs post directly to the accounting ledger.'}
+              ? 'سفارش، رسید و سابقه خدمات از شناسنامه فنی دارایی جدا می‌مانند. فقط وقتی نتیجه خدمت واقعاً وضعیت فنی asset را تغییر دهد، ارتباط آن با asset history ثبت می‌شود.'
+              : 'Orders, receipts, and service history remain separate from technical asset records. A service links to asset history only when its outcome actually changes that asset’s technical condition.'}
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
