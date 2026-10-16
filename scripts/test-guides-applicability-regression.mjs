@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-9 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-10 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -265,6 +265,33 @@ function auditSourceFile(filePath, code) {
     return discovered;
   }
 
+  function isLocaleHeaderSource(expr) {
+    if (!ts.isCallExpression(expr) || expr.arguments.length < 1) return false;
+    if (!ts.isPropertyAccessExpression(expr.expression) || expr.expression.name.text !== 'get') return false;
+    if (!/\bheaders\b/i.test(expr.expression.expression.getText(sf))) return false;
+    const header = expr.arguments[0];
+    if (!ts.isStringLiteral(header) && !ts.isNoSubstitutionTemplateLiteral(header)) return false;
+    return /^(accept-language|content-language|x-(locale|language|country|jurisdiction))$/i.test(header.text);
+  }
+
+  function functionReturnsTaint(fn) {
+    if (ts.isArrowFunction(fn) && !ts.isBlock(fn.body)) return isTainted(fn.body);
+    if (!fn.body || !ts.isBlock(fn.body)) return false;
+    let returnsTaint = false;
+    const inspectReturn = (child) => {
+      if (returnsTaint) return;
+      if (ts.isReturnStatement(child) && child.expression && isTainted(child.expression)) {
+        returnsTaint = true;
+        return;
+      }
+      if (child !== fn.body && (ts.isFunctionDeclaration(child)
+        || ts.isFunctionExpression(child) || ts.isArrowFunction(child))) return;
+      ts.forEachChild(child, inspectReturn);
+    };
+    inspectReturn(fn.body);
+    return returnsTaint;
+  }
+
   function isTainted(expr) {
     if (!expr) return false;
 
@@ -309,6 +336,11 @@ function auditSourceFile(filePath, code) {
     // Call expression with tainted argument (e.g. check(lang))
     if (ts.isCallExpression(expr)) {
       const callee = getLeafPropertyName(expr.expression);
+      let callable = expr.expression;
+      while (ts.isParenthesizedExpression(callable)) callable = callable.expression;
+      if (isLocaleHeaderSource(expr)) return true;
+      if ((ts.isArrowFunction(callable) || ts.isFunctionExpression(callable))
+        && functionReturnsTaint(callable)) return true;
       return taintedFunctions.has(callee) || expr.arguments.some(isTainted);
     }
 
@@ -385,6 +417,11 @@ function auditSourceFile(filePath, code) {
             }
           }
         }
+        if (ts.isIdentifier(node.initializer) && taintedFunctions.has(node.initializer.text)
+          && !taintedFunctions.has(node.name.text)) {
+          taintedFunctions.add(node.name.text);
+          changed = true;
+        }
       } else if (ts.isBindingPattern(node.name)) {
         const inheritedSource = Boolean(node.initializer && isTainted(node.initializer));
         const basePath = node.initializer ? memberPath(node.initializer) : '';
@@ -415,20 +452,7 @@ function auditSourceFile(filePath, code) {
 
     if (ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isArrowFunction(node)) {
       const name = functionLikeName(node);
-      let returnsTaint = ts.isArrowFunction(node) && !ts.isBlock(node.body) && isTainted(node.body);
-      if (!returnsTaint && node.body && ts.isBlock(node.body)) {
-        const inspectReturn = (child) => {
-          if (returnsTaint) return;
-          if (ts.isReturnStatement(child) && child.expression && isTainted(child.expression)) {
-            returnsTaint = true;
-            return;
-          }
-          if (child !== node.body && (ts.isFunctionDeclaration(child)
-            || ts.isFunctionExpression(child) || ts.isArrowFunction(child))) return;
-          ts.forEachChild(child, inspectReturn);
-        };
-        inspectReturn(node.body);
-      }
+      const returnsTaint = functionReturnsTaint(node);
       if (name && returnsTaint && !taintedFunctions.has(name)) {
         taintedFunctions.add(name);
         changed = true;
@@ -456,6 +480,11 @@ function auditSourceFile(filePath, code) {
               changed = true;
             }
           }
+        }
+        if (ts.isIdentifier(node.right) && taintedFunctions.has(node.right.text)
+          && !taintedFunctions.has(node.left.text)) {
+          taintedFunctions.add(node.left.text);
+          changed = true;
         }
       }
       if ((ts.isPropertyAccessExpression(node.left) || ts.isElementAccessExpression(node.left))
@@ -487,18 +516,24 @@ function auditSourceFile(filePath, code) {
     if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) return expr.text;
     if (ts.isPropertyAccessExpression(expr)) return expr.name.text;
     if (ts.isElementAccessExpression(expr) && expr.argumentExpression) {
-      if (ts.isStringLiteral(expr.argumentExpression)
-        || ts.isNoSubstitutionTemplateLiteral(expr.argumentExpression)) {
-        return expr.argumentExpression.text;
-      }
+      const constant = constantString(expr.argumentExpression);
+      if (constant !== null) return constant;
     }
     if (ts.isComputedPropertyName(expr)) {
-      if (ts.isStringLiteral(expr.expression) || ts.isNoSubstitutionTemplateLiteral(expr.expression)) {
-        return expr.expression.text;
-      }
-      return expr.expression.getText(sf);
+      return constantString(expr.expression) ?? expr.expression.getText(sf);
     }
     return '';
+  }
+
+  function constantString(expr) {
+    if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) return expr.text;
+    if (ts.isParenthesizedExpression(expr)) return constantString(expr.expression);
+    if (ts.isBinaryExpression(expr) && expr.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+      const left = constantString(expr.left);
+      const right = constantString(expr.right);
+      return left === null || right === null ? null : left + right;
+    }
+    return null;
   }
 
   function isExplicitCountryVariableName(name) {
@@ -1107,6 +1142,57 @@ runAssertion('Taint Regression: array aliases preserve locale taint', () => {
   const violations = auditSourceFile('test-array-alias.ts', code);
   assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.jurisdiction"')),
     `Must propagate locale taint through arrays, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: tainted helper function aliases remain tainted', () => {
+  const code = `
+    const getLocale = () => locale;
+    const alias = getLocale;
+    result.countryCode = alias();
+  `;
+  const violations = auditSourceFile('test-helper-function-alias.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must propagate taint through function aliases, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: tainted IIFE result flowing into country sink is rejected', () => {
+  const code = `result.countryCode = (() => locale)();`;
+  const violations = auditSourceFile('test-iife-taint.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must flag tainted IIFE result, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: constant-folded computed country sink is normalized', () => {
+  const code = `result['country' + 'Code'] = locale;`;
+  const violations = auditSourceFile('test-constant-computed-sink.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result[\'country\' + \'Code\']"')),
+    `Must flag constant-folded computed sink, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: locale-bearing browser headers are explicit taint sources', () => {
+  for (const accessor of [
+    "request.headers.get('accept-language')",
+    "headers().get('Accept-Language')",
+    "request.headers.get('x-locale')",
+  ]) {
+    const code = `
+      const selected = ${accessor};
+      function resolveCountry() { return lookup[selected]; }
+    `;
+    const violations = auditSourceFile('test-browser-locale-header.ts', code);
+    assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+      `Must flag locale header ${accessor}, got: ${JSON.stringify(violations)}`);
+  }
+});
+
+runAssertion('Taint Regression: unrelated browser headers remain benign', () => {
+  const code = `
+    const contentType = request.headers.get('content-type');
+    console.log(contentType);
+  `;
+  const violations = auditSourceFile('test-benign-browser-header.ts', code);
+  assert.equal(violations.length, 0,
+    `Unrelated browser header must remain benign, got: ${JSON.stringify(violations)}`);
 });
 
 // -----------------------------------------------------------------------------
