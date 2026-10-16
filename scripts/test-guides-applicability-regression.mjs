@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-16 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-17 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -205,7 +205,10 @@ function auditSourceFile(filePath, code) {
   const taintedVariables = new Set();
   const countryValuedVariables = new Set();
   const taintedMemberPaths = new Set();
+  const countryValuedMemberPaths = new Set();
   const taintedFunctions = new Set();
+  const dynamicApiOwnerAliases = new Map();
+  const dynamicApiFunctionAliases = new Set();
   const staticValueBindings = [];
 
   function isLexicalScope(node) {
@@ -298,6 +301,40 @@ function auditSourceFile(filePath, code) {
           || Boolean(propertyPath && taintedMemberPaths.has(propertyPath)),
         propertyPath,
       ));
+    }
+    return discovered;
+  }
+
+  function countryBindingNames(pattern, sourceExpression, basePath = '') {
+    const discovered = [];
+    const resolvedSource = sourceExpression ? resolveStaticExpression(sourceExpression) : null;
+    if (ts.isIdentifier(pattern)) {
+      if ((sourceExpression && producesCountryValue(sourceExpression))
+        || (basePath && countryValuedMemberPaths.has(basePath))) discovered.push(pattern.text);
+      return discovered;
+    }
+    if (ts.isObjectBindingPattern(pattern)) {
+      for (const element of pattern.elements) {
+        const key = getLeafPropertyName(element.propertyName ?? element.name);
+        const propertyPath = basePath && key ? `${basePath}.${key}` : '';
+        let propertySource = null;
+        if (resolvedSource && ts.isObjectLiteralExpression(resolvedSource)) {
+          const property = resolvedSource.properties.find(candidate =>
+            ts.isPropertyAssignment(candidate) && getLeafPropertyName(candidate.name) === key);
+          if (property && ts.isPropertyAssignment(property)) propertySource = property.initializer;
+        }
+        discovered.push(...countryBindingNames(element.name, propertySource, propertyPath));
+      }
+      return discovered;
+    }
+    if (ts.isArrayBindingPattern(pattern)) {
+      pattern.elements.forEach((element, index) => {
+        if (!ts.isBindingElement(element)) return;
+        const propertyPath = basePath ? `${basePath}.${index}` : '';
+        const propertySource = resolvedSource && ts.isArrayLiteralExpression(resolvedSource)
+          ? resolvedSource.elements[index] : null;
+        discovered.push(...countryBindingNames(element.name, propertySource, propertyPath));
+      });
     }
     return discovered;
   }
@@ -406,6 +443,7 @@ function auditSourceFile(filePath, code) {
     let changed = false;
     if (ts.isVariableDeclaration(node)) {
       if (ts.isIdentifier(node.name) && node.initializer) {
+        if (recordDynamicApiAliases(node.name, node.initializer)) changed = true;
         if (isTainted(node.initializer) && !taintedVariables.has(node.name.text)) {
           taintedVariables.add(node.name.text);
           changed = true;
@@ -429,6 +467,14 @@ function auditSourceFile(filePath, code) {
                       changed = true;
                     }
                   }
+                  for (const path of [...countryValuedMemberPaths]) {
+                    if (!path.startsWith(`${sourceRoot}.`)) continue;
+                    const spreadPath = `${basePath}${path.slice(sourceRoot.length)}`;
+                    if (!countryValuedMemberPaths.has(spreadPath)) {
+                      countryValuedMemberPaths.add(spreadPath);
+                      changed = true;
+                    }
+                  }
                 }
                 continue;
               }
@@ -438,6 +484,11 @@ function auditSourceFile(filePath, code) {
               const path = `${basePath}.${key}`;
               if (isTainted(property.initializer) && !taintedMemberPaths.has(path)) {
                 taintedMemberPaths.add(path);
+                changed = true;
+              }
+              if (producesCountryValue(property.initializer)
+                && !countryValuedMemberPaths.has(path)) {
+                countryValuedMemberPaths.add(path);
                 changed = true;
               }
               if (ts.isObjectLiteralExpression(property.initializer)) {
@@ -457,6 +508,14 @@ function auditSourceFile(filePath, code) {
               changed = true;
             }
           }
+          for (const path of [...countryValuedMemberPaths]) {
+            if (!path.startsWith(`${sourceRoot}.`)) continue;
+            const aliasPath = `${node.name.text}${path.slice(sourceRoot.length)}`;
+            if (!countryValuedMemberPaths.has(aliasPath)) {
+              countryValuedMemberPaths.add(aliasPath);
+              changed = true;
+            }
+          }
         }
         if (ts.isIdentifier(node.initializer) && taintedFunctions.has(node.initializer.text)
           && !taintedFunctions.has(node.name.text)) {
@@ -464,6 +523,7 @@ function auditSourceFile(filePath, code) {
           changed = true;
         }
       } else if (ts.isBindingPattern(node.name)) {
+        if (recordDynamicApiAliases(node.name, node.initializer)) changed = true;
         const inheritedSource = Boolean(node.initializer && isTainted(node.initializer));
         const basePath = node.initializer ? memberPath(node.initializer) : '';
         for (const binding of bindingNames(node.name, inheritedSource, basePath)) {
@@ -472,19 +532,42 @@ function auditSourceFile(filePath, code) {
             changed = true;
           }
         }
+        for (const name of countryBindingNames(node.name, node.initializer, basePath)) {
+          if (!countryValuedVariables.has(name)) {
+            countryValuedVariables.add(name);
+            changed = true;
+          }
+        }
       }
     }
 
     if (ts.isParameter(node)) {
+      if (recordDynamicApiAliases(node.name, node.initializer)) changed = true;
       if (ts.isIdentifier(node.name) && node.initializer && isTainted(node.initializer)
         && !taintedVariables.has(node.name.text)) {
         taintedVariables.add(node.name.text);
+        changed = true;
+      }
+      if (ts.isIdentifier(node.name) && node.initializer
+        && shouldTrackCountryVariable(node.name.text, node.initializer)
+        && !countryValuedVariables.has(node.name.text)) {
+        countryValuedVariables.add(node.name.text);
         changed = true;
       }
       if (ts.isBindingPattern(node.name)) {
         for (const binding of bindingNames(node.name, Boolean(node.initializer && isTainted(node.initializer)))) {
           if (binding.source && !taintedVariables.has(binding.name)) {
             taintedVariables.add(binding.name);
+            changed = true;
+          }
+        }
+        for (const name of countryBindingNames(
+          node.name,
+          node.initializer,
+          node.initializer ? memberPath(node.initializer) : '',
+        )) {
+          if (!countryValuedVariables.has(name)) {
+            countryValuedVariables.add(name);
             changed = true;
           }
         }
@@ -501,6 +584,7 @@ function auditSourceFile(filePath, code) {
     }
 
     if (ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+      if (recordDynamicApiAliases(node.left, node.right)) changed = true;
       if (ts.isIdentifier(node.left)) {
         if (isTainted(node.right) && !taintedVariables.has(node.left.text)) {
           taintedVariables.add(node.left.text);
@@ -521,6 +605,14 @@ function auditSourceFile(filePath, code) {
               changed = true;
             }
           }
+          for (const path of [...countryValuedMemberPaths]) {
+            if (!path.startsWith(`${sourceRoot}.`)) continue;
+            const aliasPath = `${node.left.text}${path.slice(sourceRoot.length)}`;
+            if (!countryValuedMemberPaths.has(aliasPath)) {
+              countryValuedMemberPaths.add(aliasPath);
+              changed = true;
+            }
+          }
         }
         if (ts.isIdentifier(node.right) && taintedFunctions.has(node.right.text)
           && !taintedFunctions.has(node.left.text)) {
@@ -533,6 +625,14 @@ function auditSourceFile(filePath, code) {
         const path = memberPath(node.left);
         if (path && !taintedMemberPaths.has(path)) {
           taintedMemberPaths.add(path);
+          changed = true;
+        }
+      }
+      if ((ts.isPropertyAccessExpression(node.left) || ts.isElementAccessExpression(node.left))
+        && producesCountryValue(node.right)) {
+        const path = memberPath(node.left);
+        if (path && !countryValuedMemberPaths.has(path)) {
+          countryValuedMemberPaths.add(path);
           changed = true;
         }
       }
@@ -640,6 +740,8 @@ function auditSourceFile(filePath, code) {
         return true;
       }
     }
+    if ((ts.isPropertyAccessExpression(expr) || ts.isElementAccessExpression(expr))
+      && countryValuedMemberPaths.has(memberPath(expr))) return true;
     if (ts.isObjectLiteralExpression(expr)) {
       return hasSinkProperty(expr);
     }
@@ -777,6 +879,100 @@ function auditSourceFile(filePath, code) {
     return discovered;
   }
 
+  function dynamicApiOwnerKind(expression) {
+    if (!expression) return '';
+    if (ts.isParenthesizedExpression(expression)) return dynamicApiOwnerKind(expression.expression);
+    if (ts.isIdentifier(expression)) {
+      if (expression.text === 'Object' || expression.text === 'Reflect') return expression.text;
+      return dynamicApiOwnerAliases.get(expression.text) ?? '';
+    }
+    if (ts.isPropertyAccessExpression(expression)
+      && ts.isIdentifier(expression.expression)
+      && expression.expression.text === 'globalThis'
+      && (expression.name.text === 'Object' || expression.name.text === 'Reflect')) {
+      return expression.name.text;
+    }
+    if (ts.isElementAccessExpression(expression)
+      && ts.isIdentifier(expression.expression)
+      && expression.expression.text === 'globalThis') {
+      const name = constantString(expression.argumentExpression);
+      return name === 'Object' || name === 'Reflect' ? name : '';
+    }
+    return '';
+  }
+
+  function dynamicApiMethodReference(expression) {
+    if (!expression) return '';
+    if (ts.isParenthesizedExpression(expression)) return dynamicApiMethodReference(expression.expression);
+    if (ts.isIdentifier(expression) && dynamicApiFunctionAliases.has(expression.text)) {
+      return expression.text;
+    }
+    if (!ts.isPropertyAccessExpression(expression) && !ts.isElementAccessExpression(expression)) return '';
+    const owner = dynamicApiOwnerKind(expression.expression);
+    const method = ts.isPropertyAccessExpression(expression)
+      ? expression.name.text : constantString(expression.argumentExpression);
+    const forbidden = owner === 'Object'
+      ? new Set(['fromEntries', 'defineProperty', 'defineProperties'])
+      : owner === 'Reflect' ? new Set(['set', 'defineProperty']) : new Set();
+    return forbidden.has(method) ? `${owner}.${method}` : '';
+  }
+
+  function aliasTargetName(target) {
+    if (!target) return '';
+    if (ts.isIdentifier(target)) return target.text;
+    if (ts.isBindingElement(target)) return aliasTargetName(target.name);
+    if (ts.isBinaryExpression(target) && target.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+      return aliasTargetName(target.left);
+    }
+    return '';
+  }
+
+  function recordDynamicApiAliases(target, source) {
+    if (!target || !source) return false;
+    if (ts.isParenthesizedExpression(target)) return recordDynamicApiAliases(target.expression, source);
+    let changed = false;
+    if (ts.isIdentifier(target)) {
+      const owner = dynamicApiOwnerKind(source);
+      if (owner && dynamicApiOwnerAliases.get(target.text) !== owner) {
+        dynamicApiOwnerAliases.set(target.text, owner);
+        changed = true;
+      }
+      if (dynamicApiMethodReference(source) && !dynamicApiFunctionAliases.has(target.text)) {
+        dynamicApiFunctionAliases.add(target.text);
+        changed = true;
+      }
+      return changed;
+    }
+
+    const sourceOwner = dynamicApiOwnerKind(source);
+    const sourceIsGlobal = ts.isIdentifier(source) && source.text === 'globalThis';
+    const elements = ts.isObjectBindingPattern(target)
+      ? target.elements.map(element => ({ key: getLeafPropertyName(element.propertyName ?? element.name), target: element.name }))
+      : ts.isObjectLiteralExpression(target)
+        ? target.properties.filter(ts.isPropertyAssignment)
+          .map(property => ({ key: getLeafPropertyName(property.name), target: property.initializer }))
+        : [];
+    for (const element of elements) {
+      const name = aliasTargetName(element.target);
+      if (!name) continue;
+      if (sourceIsGlobal && (element.key === 'Object' || element.key === 'Reflect')) {
+        if (dynamicApiOwnerAliases.get(name) !== element.key) {
+          dynamicApiOwnerAliases.set(name, element.key);
+          changed = true;
+        }
+        continue;
+      }
+      const forbidden = sourceOwner === 'Object'
+        ? new Set(['fromEntries', 'defineProperty', 'defineProperties'])
+        : sourceOwner === 'Reflect' ? new Set(['set', 'defineProperty']) : new Set();
+      if (forbidden.has(element.key) && !dynamicApiFunctionAliases.has(name)) {
+        dynamicApiFunctionAliases.add(name);
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
   function isStaticMemberCall(expression, owner, method) {
     let methodOwner = null;
     let methodName = null;
@@ -787,17 +983,8 @@ function auditSourceFile(filePath, code) {
       methodOwner = expression.expression;
       methodName = constantString(expression.argumentExpression);
     }
-    if (!methodOwner || methodName !== method) return false;
-    if (ts.isIdentifier(methodOwner)) return methodOwner.text === owner;
-    if (ts.isPropertyAccessExpression(methodOwner)) {
-      return ts.isIdentifier(methodOwner.expression)
-        && methodOwner.expression.text === 'globalThis'
-        && methodOwner.name.text === owner;
-    }
-    return ts.isElementAccessExpression(methodOwner)
-      && ts.isIdentifier(methodOwner.expression)
-      && methodOwner.expression.text === 'globalThis'
-      && constantString(methodOwner.argumentExpression) === owner;
+    return Boolean(methodOwner && methodName === method
+      && dynamicApiOwnerKind(methodOwner) === owner);
   }
 
   function forbiddenDynamicPropertyApiAliases(binding, initializer) {
@@ -830,14 +1017,13 @@ function auditSourceFile(filePath, code) {
   }
 
   function isPresentationComputedProperty(property) {
-    if (!ts.isPropertyAssignment(property) || !ts.isComputedPropertyName(property.name)
-      || !isTainted(property.name.expression)) return false;
+    if (!ts.isPropertyAssignment(property) || !ts.isComputedPropertyName(property.name)) return false;
     const objectNode = property.parent;
     const owner = objectNode?.parent;
     let ownerName = '';
     if (ts.isVariableDeclaration(owner) && ts.isIdentifier(owner.name)) ownerName = owner.name.text;
     if (ts.isPropertyAssignment(owner)) ownerName = getLeafPropertyName(owner.name);
-    return /^(translations?|labels?|messages?|copy)$/i.test(ownerName);
+    return /^(translations?|labels?|messages?|copy|view)$/i.test(ownerName);
   }
 
   function structuralMutationApiSink(call) {
@@ -880,11 +1066,25 @@ function auditSourceFile(filePath, code) {
   }
 
   function forbiddenDynamicPropertyApi(expression) {
-    return isStaticMemberCall(expression, 'Object', 'fromEntries')
+    return (ts.isIdentifier(expression) && dynamicApiFunctionAliases.has(expression.text))
+      || isStaticMemberCall(expression, 'Object', 'fromEntries')
       || isStaticMemberCall(expression, 'Object', 'defineProperty')
       || isStaticMemberCall(expression, 'Object', 'defineProperties')
       || isStaticMemberCall(expression, 'Reflect', 'set')
       || isStaticMemberCall(expression, 'Reflect', 'defineProperty');
+  }
+
+  function isDynamicApiOwnerEscape(node) {
+    if (!dynamicApiOwnerKind(node)) return false;
+    const parent = node.parent;
+    if (!parent) return false;
+    if ((ts.isPropertyAccessExpression(parent) || ts.isElementAccessExpression(parent))
+      && parent.expression === node) return false;
+    if (ts.isPropertyAccessExpression(parent) && parent.name === node) return false;
+    if (ts.isPropertyAssignment(parent) && parent.name === node) return false;
+    if (ts.isBindingElement(parent) && (parent.name === node || parent.propertyName === node)) return false;
+    if (ts.isVariableDeclaration(parent) && parent.name === node) return false;
+    return true;
   }
 
   // Recursive check for tainted values assigned to sink properties in object literals at ANY depth
@@ -978,8 +1178,7 @@ function auditSourceFile(filePath, code) {
         violations.push(`Structural country/jurisdiction resolver property "${key}" is forbidden in ${filePath}`);
       }
       if (ts.isComputedPropertyName(node.name) && constantString(node.name.expression) === null
-        && !isPresentationComputedProperty(node)
-        && (isTainted(node.initializer) || producesCountryValue(node.initializer))) {
+        && !isPresentationComputedProperty(node)) {
         violations.push(`Tainted computed property construction is forbidden in executable Guide code in ${filePath}`);
       }
     }
@@ -1157,6 +1356,9 @@ function auditSourceFile(filePath, code) {
 
     if (forbiddenDynamicPropertyApi(node)) {
       violations.push(`Dynamic property construction API "${node.getText(sf)}" is forbidden in Guide code in ${filePath}`);
+    }
+    if (isDynamicApiOwnerEscape(node)) {
+      violations.push(`Dynamic property API owner "${node.getText(sf)}" cannot escape as a value in Guide code in ${filePath}`);
     }
 
     ts.forEachChild(node, checkNode);
@@ -1713,10 +1915,17 @@ runAssertion('Structural Regression: reflective mutation APIs cannot create coun
     `const { set } = globalThis.Reflect; set(api, 'countryCode', locale);`,
     `globalThis.Object.fromEntries([['countryCode', locale]]);`,
     `globalThis['Object']['defineProperty'](api, 'resolveCountry', { value: () => locale });`,
+    `const O = Object; O.fromEntries([['countryCode', locale]]);`,
+    `const O = Object; const X = O; X.fromEntries([['countryCode', locale]]);`,
+    `const { Object: O } = globalThis; O.fromEntries([['countryCode', locale]]);`,
+    `let make; ({ fromEntries: make } = Object); make([['countryCode', locale]]);`,
+    `function use({ fromEntries: make } = Object) { return make([['countryCode', locale]]); }`,
+    `function use(O) { return O.fromEntries([['countryCode', locale]]); } use(Object);`,
   ]) {
     const violations = auditSourceFile('test-reflective-country-mutation.ts', statement);
     assert.ok(violations.some((v) => v.includes('Structural mutation API cannot create country/jurisdiction sink')
-      || v.includes('Dynamic property construction API')),
+      || v.includes('Dynamic property construction API')
+      || v.includes('Dynamic property API owner')),
       `Must reject reflective mutation ${statement}, got: ${JSON.stringify(violations)}`);
   }
 });
@@ -1877,6 +2086,11 @@ runAssertion('Structural Regression: canonical guide data permits only the exact
   for (const source of [
     `const field = request.field; const value = 'RO'; const result = { [field]: value };`,
     `const field = request.field; const value = condition ? 'RO' : 'DE'; const result = { [field]: value };`,
+    `function make(field, value = 'RO') { return { [field]: value }; }`,
+    `const { value } = { value: 'RO' }; const result = { [field]: value };`,
+    `const [value] = ['RO']; const result = { [field]: value };`,
+    `const cfg = { value: 'RO' }; const result = { [field]: cfg.value };`,
+    `const cfg = { value: 'RO' }; const copy = cfg; const result = { [field]: copy.value };`,
   ]) {
     const violations = auditSourceFile('src/app/[lang]/resources/guides/test.ts', source);
     assert.ok(violations.some((v) => v.includes('Tainted computed property construction')),
