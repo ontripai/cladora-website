@@ -87,16 +87,35 @@ version foreign key.
 
 ### Legal holds
 
-Current Documents truth is the union of:
+The #452 preflight currently reads the union of:
 
 1. the legacy boolean `documents.documents.legal_hold`; and
 2. active rows in canonical `documents.legal_holds`.
 
-The #452 integration reads both only after the document/version lock. The older
-`app_private.legal_holds` plus `app_private.legal_hold_targets` model is a third,
-separate control plane. Its `is_document_held` function does not read either
-current Documents source. It therefore cannot provide the final legal-hold
-gate for future disposal.
+The #452 integration reads those two sources only after the document/version
+lock. The older `app_private.legal_holds` plus
+`app_private.legal_hold_targets` model is a third, separate control plane. Its
+`is_document_held` function does not read either current Documents source, but
+its create, target, activate and release RPCs remain granted to
+`authenticated` behind a feature flag and advance
+`app_private.legal_hold_scope_epochs`.
+
+Consequently, destructive execution must treat all three legal-hold control
+planes as safety inputs until Core formally reconciles or decommissions the
+Phase 3A plane. A final gate that observes only the two #452 sources is
+insufficient. Direct document targets and indirect property, vendor and
+class/date targets must all fail closed when active, ambiguous or unavailable.
+The exact Phase 3A scope epoch must be bound and rechecked so a concurrent
+target, activation or release cannot pass between validation and Storage
+gateway acceptance. That epoch alone is insufficient for indirect targets:
+vendor applicability also depends on `documents.document_links` and the linked
+quote or purchase-order vendor, while class/date applicability depends on
+`app_private.document_retention_requirements` and
+`app_private.retention_policy_rules`. For example,
+`customer_api.link_document_entity_v1` can make an already active vendor hold
+applicable without changing `legal_hold_scope_epochs`. The future Core fence
+must therefore cover every hold-applicability input and its writers, rather
+than treating the existing epoch as a complete revision.
 
 ### Retention and historical evidence
 
@@ -168,8 +187,12 @@ whose fingerprint covers all of the following:
   provider object-version/generation token;
 - current/historical resolution mode, requested operation `dispose`, exact
   country/profile/domain/artifact fingerprint, effective instant and rule code;
-- canonical plus legacy legal-hold observation and a canonical hold revision or
-  fence token;
+- all three legal-hold observations: `documents.documents.legal_hold`, active
+  `documents.legal_holds`, and every applicable active
+  `app_private.legal_holds` target; the exact
+  `app_private.legal_hold_scope_epochs` value; a Phase 3A applicability
+  fingerprint/revision covering document links, linked vendor identity and
+  retention class/date inputs; and a canonical hold revision or fence token;
 - approval plan ID/version/hash, expiry, two distinct approver decisions and
   each approver's current authority revision and AAL2 session evidence; and
 - one Core idempotency key and one external-effect operation ID.
@@ -200,8 +223,10 @@ provider must run in one serializable `CoreTransactionScopeV1` read phase and:
 1. lock and recheck the exact active Workspace, Property, document and immutable
    version in canonical lock order;
 2. recheck current execution permission, entitlement, actor and AAL2;
-3. lock and recheck both current Documents legal-hold sources after the document
-   lock;
+3. lock and recheck all three legal-hold control planes after the document
+   lock, including direct and indirect Phase 3A targets, and bind the exact
+   `app_private.legal_hold_scope_epochs` value plus every row that determines
+   indirect vendor or class/date applicability;
 4. re-resolve the exact current artifact or validate the exact committed
    historical artifact evidence, without substituting current for historical;
 5. lock and recheck both distinct approvals, their expiry, authority revisions
@@ -210,10 +235,21 @@ provider must run in one serializable `CoreTransactionScopeV1` read phase and:
    fence token bound to the exact provider object version.
 
 The Core/Storage extension must make hold/version changes and Storage gateway
-acceptance serialize on that fence. A hold, version, approval or authority
-change observed before gateway acceptance cancels the capability and yields
-zero destructive effect. Database validation followed by an unfenced network
-delete is insufficient.
+acceptance serialize on that fence. This includes every Phase 3A RPC that can
+create a hold, add a target, activate a hold or release a hold, plus every
+mutation that can change indirect applicability: document-link insert/delete,
+linked quote or purchase-order vendor reassignment, Property binding, and
+retention requirement/rule class or classification-date changes. The accepted
+extension must make every such writer advance one shared applicability revision
+or acquire the same exclusive fence used by gateway acceptance. Merely reading
+those rows under a database transaction is insufficient unless all writers and
+gateway acceptance participate in the same serialization protocol. Core must
+own a single reconciliation/decommission decision for the Phase 3A plane;
+Documents must not silently ignore it or copy its authority. A hold, target,
+scope epoch, applicability input, version, approval or authority change observed
+before gateway acceptance cancels the capability and yields zero destructive
+effect. Database validation followed by an unfenced network delete is
+insufficient.
 
 The Core provider read phase performs no writes. Denial or `40001` rolls back
 the entire attempt. The mutation phase may stage only the canonical Core/domain
@@ -262,7 +298,16 @@ It must provide a canonical, Workspace-scoped two-person approval receipt and a
 destructive external-effect state machine integrated with Core command
 idempotency, audit, outbox, exact replay and unknown-commit readback. It must
 define the final fence ordering shared with hold/version mutations and ensure an
-exact replay cannot emit a second effect. Documents must consume the interface;
+exact replay cannot emit a second effect. The same extension must either
+reconcile the Phase 3A legal-hold plane into the canonical decision or formally
+decommission it. Until then, it must observe all three planes, bind
+`app_private.legal_hold_scope_epochs`, bind a complete indirect-applicability
+fingerprint/revision, and serialize gateway acceptance with
+`create_legal_hold_v1`, `add_legal_hold_target_v1`,
+`activate_legal_hold_v1`, `release_legal_hold_v1`,
+`customer_api.link_document_entity_v1` and every other writer of a Phase 3A
+scope input. If Core cannot enroll all of those writers under one fence, the
+dispatch capability remains unavailable. Documents must consume the interface;
 it must not define a parallel approval, audit, outbox or idempotency store.
 
 ### Storage-owned extension
@@ -298,7 +343,9 @@ Execution must stop before any destructive call when any of these is true:
 
 - either required extension is unavailable, inactive or version/hash-mismatched;
 - Workspace, Property, document, immutable version or object version differs;
-- canonical or legacy legal hold is active, ambiguous or changed;
+- any of the three legal-hold planes is active, ambiguous, unavailable or
+  changed, including an applicable direct or indirect Phase 3A target, or the
+  Phase 3A scope epoch/applicability revision does not match;
 - document lifecycle, scan/checksum state or current version changed;
 - approval actor, AAL2, authority revision, expiry, plan version or plan hash is
   stale, revoked, duplicated, missing or cross-Workspace;
@@ -322,7 +369,12 @@ durably cancelled according to the future Core contract.
 | Valid execution preparation | Exact bindings and two distinct AAL2 approvals; one staged effect, no Storage call in Core transaction. |
 | Cross-Workspace or Property mismatch | Denied before dispatch; zero destructive effect and no private metadata disclosure. |
 | Stale document/version/object generation | Denied before dispatch; no path-only delete. |
-| Active or newly changed hold | Serialized before gateway acceptance; capability cancelled and zero destructive effect. |
+| Active direct Phase 3A document target | Denied before dispatch; zero destructive effect. |
+| Active indirect Phase 3A property, vendor or class/date target | Denied before dispatch; zero destructive effect. |
+| Concurrent Phase 3A hold/target mutation | Scope epoch or fence changes; capability cancelled before gateway acceptance and zero destructive effect. |
+| Concurrent document-link or linked-vendor mutation | Applicability revision/fence changes; active vendor hold is re-evaluated and no stale capability reaches Storage. |
+| Concurrent retention requirement/rule scope mutation | Applicability revision/fence changes; class/date hold is re-evaluated and no stale capability reaches Storage. |
+| Active or newly changed hold in any plane | Serialized before gateway acceptance; capability cancelled and zero destructive effect. |
 | Expired/revoked/duplicate approval | Denied; prior approval cannot authorize a changed plan. |
 | Missing/stale/malformed rule evidence | Denied; historical evidence never replaced with current evidence. |
 | `40001` | Entire database attempt retries with fresh authority, holds, approvals and retention evidence; no external call from the failed attempt. |

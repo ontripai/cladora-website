@@ -79,7 +79,9 @@ test('current document, lifecycle and hold sources are inventoried separately', 
   assert.match(source.canonicalVault, /create table documents\.lifecycle_events/);
   assert.match(source.operation, /d\.legal_hold as legacy_legal_hold/);
   assert.match(source.operation, /from documents\.legal_holds h/);
-  assert.match(source.document, /`app_private\.legal_holds` plus `app_private\.legal_hold_targets`[\s\S]*third,[\s\S]*separate control plane/);
+  assert.match(source.document, /`app_private\.legal_holds` plus\s+`app_private\.legal_hold_targets`[\s\S]*third,[\s\S]*separate control plane/);
+  assert.match(source.legacyRetention, /create table app_private\.legal_hold_scope_epochs/);
+  assert.match(source.legacyRetention, /target_type text not null check \(target_type in \('document','property','vendor','class_date_range'\)\)/);
 });
 
 test('legacy disposal paths are recorded but cannot authorize canonical execution', () => {
@@ -92,7 +94,28 @@ test('legacy disposal paths are recorded but cannot authorize canonical executio
   )?.[0] ?? '';
   assert.match(legacyHoldFunction, /app_private\.legal_holds/);
   assert.doesNotMatch(legacyHoldFunction, /documents\.legal_holds|d\.legal_hold/);
-  assert.match(source.document, /cannot provide the final legal-hold[\s\n]+gate/);
+  assert.match(source.document, /all three legal-hold control[\s\n]+planes as safety inputs/);
+  assert.match(source.document, /direct document targets and indirect property, vendor and[\s\n]+class\/date targets/i);
+  assert.match(source.legacyRetention, /from documents\.document_links l/);
+  assert.match(source.legacyRetention, /maintenance\.vendor_quotes q/);
+  assert.match(source.legacyRetention, /maintenance\.purchase_orders o/);
+  assert.match(source.legacyRetention, /app_private\.document_retention_requirements rr/);
+  assert.match(source.legacyRetention, /app_private\.retention_policy_rules pr/);
+  assert.match(source.secureVault, /create or replace function customer_api\.link_document_entity_v1/);
+  assert.match(source.secureVault, /insert into documents\.document_links/);
+  assert.match(source.secureVault, /grant execute on function customer_api\.link_document_entity_v1[\s\S]*to authenticated/);
+  assert.match(source.document, /`customer_api\.link_document_entity_v1` can make an already active vendor hold[\s\n]+applicable without changing `legal_hold_scope_epochs`/);
+  for (const functionName of [
+    'create_legal_hold_v1',
+    'add_legal_hold_target_v1',
+    'activate_legal_hold_v1',
+    'release_legal_hold_v1',
+  ]) {
+    assert.match(source.legacyRetention, new RegExp(`create or replace function app_private\\.${functionName}`));
+  }
+  assert.match(source.legacyRetention, /app_private\.create_legal_hold_v1[\s\S]*app_private\.add_legal_hold_target_v1[\s\S]*app_private\.activate_legal_hold_v1[\s\S]*app_private\.release_legal_hold_v1[\s\S]*to authenticated;/);
+  const epochMutations = source.legacyRetention.match(/legal_hold_scope_epochs/g) ?? [];
+  assert.ok(epochMutations.length >= 5, 'Phase 3A hold mutations must expose the shared scope epoch');
 });
 
 test('Core database atomicity is not represented as external delete recovery', () => {
@@ -125,7 +148,14 @@ test('approval and final fence contract binds every destructive prerequisite', (
     'current AAL2 session',
     'Property, document ID, document immutable version ID and numeric version',
     'provider object-version/generation token',
-    'canonical plus legacy legal-hold observation',
+    'all three legal-hold observations',
+    'app_private.legal_hold_scope_epochs',
+    'all three legal-hold control planes',
+    'Phase 3A scope epoch',
+    'Phase 3A applicability',
+    'document-link insert/delete',
+    'retention requirement/rule class or classification-date changes',
+    'every other writer of a Phase 3A',
     'exact committed receipt evidence',
     'make hold/version changes and Storage gateway',
     'zero destructive effect',
@@ -150,7 +180,7 @@ test('rollback and restore boundaries do not promise reversible deletion', () =>
 test('required owner dependencies are explicit and no legacy ledger is adopted', () => {
   assert.match(source.document, /`CORE-DESTRUCTIVE-EFFECT-APPROVAL-DISPATCH-01`/);
   assert.match(source.document, /`STORAGE-CONDITIONAL-OBJECT-VERSION-DELETE-RECEIPT-01`/);
-  assert.match(source.document, /must not define a parallel approval, audit, outbox or idempotency store/);
+  assert.match(source.document, /must not\s+define a parallel approval, audit, outbox or idempotency\s+store/);
   assert.match(source.document, /Either missing extension keeps the package at[\s\n]+`core_or_storage_extension_required`/);
 });
 
