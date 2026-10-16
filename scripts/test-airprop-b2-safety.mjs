@@ -77,6 +77,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Core / PR #419',
       sha256: '924b577b18e6e70d149272e3f193c23d4c5d83db81b2f1f3b51950e0d1ce74c7',
     },
+    '20261015203723_core_jurisdiction_domain_artifact_resolver_v1.sql': {
+      owner: 'Core / PR #431',
+      sha256: '483c88f52f884e7b3a1af5dd2671f5a2ac72f539c55a361a7801a545f0c0c7b8',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
@@ -90,6 +94,8 @@ const coreResult = validateProtectedDirectory({
     'communications-private-message-request-audience-provider-v1.ts',
     'current-unit-property-selector-v1.ts',
     'jurisdiction-domain-artifact-v1.ts',
+    'jurisdiction-domain-artifact-resolver-v1.ts',
+    'jurisdiction-domain-artifact-transaction-evidence-v1.ts',
     'jurisdiction-profile-selector-v1.ts',
     'jurisdiction-profile-v1.ts',
     'platform-role-bound-pool-v1.ts',
@@ -113,6 +119,14 @@ const coreResult = validateProtectedDirectory({
       owner: 'Core / PR #428',
       sha256: '8ec7d8b4a0d0ef80ffdbb06f48b9c5cb65c0fc8fa5c8b0fd0f42cc0e746fd168',
     },
+    'jurisdiction-domain-artifact-resolver-v1.ts': {
+      owner: 'Core / PR #431',
+      sha256: '285770357c485b8cd05121f30f9220d765d4d14ba017066c179b62745c348e69',
+    },
+    'jurisdiction-domain-artifact-transaction-evidence-v1.ts': {
+      owner: 'Core / PR #431',
+      sha256: 'e30ced9821eb8f8cc99dac45b1ae1461d46d53e34f1a7cdae774c55d54281981',
+    },
     'jurisdiction-profile-selector-v1.ts': {
       owner: 'Core / PR #423',
       sha256: '279c75fc6b0401836fbad5268fcc6ca5b51a16878b2d712f1502adda25b268ad',
@@ -132,9 +146,9 @@ const coreResult = validateProtectedDirectory({
   },
   reviewedReplacements: {
     'postgres-transaction-host-v1.ts': {
-      owner: 'Core / PR #399',
-      historicalSha256: '194c5fb3348281bf201229aab511d51ff38d366a61963e7366690887cbfc451b',
-      sha256: 'eb89d03320549a721a54df10fa747f8977d9f42f6dfaa2e85ae89e1265c37d7c',
+      owner: 'Core / PR #431',
+      historicalSha256: 'eb89d03320549a721a54df10fa747f8977d9f42f6dfaa2e85ae89e1265c37d7c',
+      sha256: 'ce0360f30f1c49ff06e8ec944ba7263e0012c56fb2c27e5094d6604a1cf09a6e',
     },
   },
   historicalProtectedCount: 16,
