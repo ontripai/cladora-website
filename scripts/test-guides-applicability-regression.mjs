@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-15 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-16 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -626,11 +626,7 @@ function auditSourceFile(filePath, code) {
   }
 
   function shouldTrackCountryVariable(name, initializer) {
-    if (!producesCountryValue(initializer)) return false;
-    if (isExplicitCountryVariableName(name)) return true;
-    if (ts.isIdentifier(initializer)) return countryValuedVariables.has(initializer.text);
-    if (ts.isConditionalExpression(initializer)) return isExplicitCountryExpression(initializer);
-    return false;
+    return producesCountryValue(initializer);
   }
 
   // Helper to check if an expression produces country semantics
@@ -658,8 +654,12 @@ function auditSourceFile(filePath, code) {
 
   function isExplicitCountryExpression(expr) {
     if (!expr) return false;
+    if (ts.isStringLiteral(expr) || ts.isNoSubstitutionTemplateLiteral(expr)) {
+      return isCountryToken(expr.text.trim());
+    }
     if (ts.isIdentifier(expr)) {
-      return isExplicitCountryVariableName(expr.text) || countryValuedVariables.has(expr.text);
+      return isExplicitCountryVariableName(expr.text)
+        || (countryValuedVariables.has(expr.text) && !isPresentationCountryName(expr.text));
     }
     if (ts.isObjectLiteralExpression(expr)) return hasSinkProperty(expr);
     if (ts.isConditionalExpression(expr)) {
@@ -778,13 +778,66 @@ function auditSourceFile(filePath, code) {
   }
 
   function isStaticMemberCall(expression, owner, method) {
+    let methodOwner = null;
+    let methodName = null;
     if (ts.isPropertyAccessExpression(expression)) {
-      return ts.isIdentifier(expression.expression) && expression.expression.text === owner
-        && expression.name.text === method;
+      methodOwner = expression.expression;
+      methodName = expression.name.text;
+    } else if (ts.isElementAccessExpression(expression)) {
+      methodOwner = expression.expression;
+      methodName = constantString(expression.argumentExpression);
     }
-    return ts.isElementAccessExpression(expression)
-      && ts.isIdentifier(expression.expression) && expression.expression.text === owner
-      && constantString(expression.argumentExpression) === method;
+    if (!methodOwner || methodName !== method) return false;
+    if (ts.isIdentifier(methodOwner)) return methodOwner.text === owner;
+    if (ts.isPropertyAccessExpression(methodOwner)) {
+      return ts.isIdentifier(methodOwner.expression)
+        && methodOwner.expression.text === 'globalThis'
+        && methodOwner.name.text === owner;
+    }
+    return ts.isElementAccessExpression(methodOwner)
+      && ts.isIdentifier(methodOwner.expression)
+      && methodOwner.expression.text === 'globalThis'
+      && constantString(methodOwner.argumentExpression) === owner;
+  }
+
+  function forbiddenDynamicPropertyApiAliases(binding, initializer) {
+    if (!ts.isObjectBindingPattern(binding) || !initializer) return [];
+    const objectOwner = (ts.isIdentifier(initializer) && initializer.text === 'Object')
+      || (ts.isPropertyAccessExpression(initializer)
+        && ts.isIdentifier(initializer.expression)
+        && initializer.expression.text === 'globalThis'
+        && initializer.name.text === 'Object')
+      || (ts.isElementAccessExpression(initializer)
+        && ts.isIdentifier(initializer.expression)
+        && initializer.expression.text === 'globalThis'
+        && constantString(initializer.argumentExpression) === 'Object');
+    const reflectOwner = (ts.isIdentifier(initializer) && initializer.text === 'Reflect')
+      || (ts.isPropertyAccessExpression(initializer)
+        && ts.isIdentifier(initializer.expression)
+        && initializer.expression.text === 'globalThis'
+        && initializer.name.text === 'Reflect')
+      || (ts.isElementAccessExpression(initializer)
+        && ts.isIdentifier(initializer.expression)
+        && initializer.expression.text === 'globalThis'
+        && constantString(initializer.argumentExpression) === 'Reflect');
+    if (!objectOwner && !reflectOwner) return [];
+    const forbidden = objectOwner
+      ? new Set(['fromEntries', 'defineProperty', 'defineProperties'])
+      : new Set(['set', 'defineProperty']);
+    return binding.elements
+      .map(element => getLeafPropertyName(element.propertyName ?? element.name))
+      .filter(name => forbidden.has(name));
+  }
+
+  function isPresentationComputedProperty(property) {
+    if (!ts.isPropertyAssignment(property) || !ts.isComputedPropertyName(property.name)
+      || !isTainted(property.name.expression)) return false;
+    const objectNode = property.parent;
+    const owner = objectNode?.parent;
+    let ownerName = '';
+    if (ts.isVariableDeclaration(owner) && ts.isIdentifier(owner.name)) ownerName = owner.name.text;
+    if (ts.isPropertyAssignment(owner)) ownerName = getLeafPropertyName(owner.name);
+    return /^(translations?|labels?|messages?|copy)$/i.test(ownerName);
   }
 
   function structuralMutationApiSink(call) {
@@ -925,6 +978,7 @@ function auditSourceFile(filePath, code) {
         violations.push(`Structural country/jurisdiction resolver property "${key}" is forbidden in ${filePath}`);
       }
       if (ts.isComputedPropertyName(node.name) && constantString(node.name.expression) === null
+        && !isPresentationComputedProperty(node)
         && (isTainted(node.initializer) || producesCountryValue(node.initializer))) {
         violations.push(`Tainted computed property construction is forbidden in executable Guide code in ${filePath}`);
       }
@@ -942,6 +996,9 @@ function auditSourceFile(filePath, code) {
     if (ts.isVariableDeclaration(node)) {
       for (const sink of collectStructuralBindingSinks(node.name)) {
         violations.push(`Structural country/jurisdiction variable "${sink}" is forbidden in ${filePath}`);
+      }
+      for (const api of forbiddenDynamicPropertyApiAliases(node.name, node.initializer)) {
+        violations.push(`Dynamic property construction API alias "${api}" is forbidden in Guide code in ${filePath}`);
       }
     }
     if (ts.isParameter(node)) {
@@ -1651,6 +1708,11 @@ runAssertion('Structural Regression: reflective mutation APIs cannot create coun
     `const field = request.field; Object.fromEntries([[field, locale]]);`,
     `const make = Object.fromEntries; make([['countryCode', locale]]);`,
     `const define = Object.defineProperty; define(api, 'resolveCountry', { value: () => locale });`,
+    `const { fromEntries: make } = Object; make([['countryCode', locale]]);`,
+    `const { defineProperty: define } = Object; define(api, 'resolveCountry', { value: () => locale });`,
+    `const { set } = globalThis.Reflect; set(api, 'countryCode', locale);`,
+    `globalThis.Object.fromEntries([['countryCode', locale]]);`,
+    `globalThis['Object']['defineProperty'](api, 'resolveCountry', { value: () => locale });`,
   ]) {
     const violations = auditSourceFile('test-reflective-country-mutation.ts', statement);
     assert.ok(violations.some((v) => v.includes('Structural mutation API cannot create country/jurisdiction sink')
@@ -1709,12 +1771,15 @@ runAssertion('Structural Regression: resolver properties and computed resolver c
 runAssertion('Structural Regression: presentation-only computed assignments remain benign', () => {
   const code = `
     translations[locale] = label;
+    const value = 'RO';
+    const messages = { [locale]: value };
     const view = { countryLabel: 'Country' };
     const flags = { countryFlag: '🇷🇴', countryIcon: 'flag' };
     const { countryLabel } = translations;
     const { countryFlag } = translations;
     renderCountryLabel(countryLabel);
     renderCountryFlag(countryFlag);
+    console.log(messages);
   `;
   const violations = auditSourceFile('test-presentation-computed-assignment.ts', code);
   assert.deepEqual(violations, [],
@@ -1808,6 +1873,15 @@ runAssertion('Structural Regression: canonical guide data permits only the exact
   `);
   assert.ok(unresolved.some((v) => v.includes('Tainted computed property construction')),
     `Unknown computed key with country value must fail closed, got: ${JSON.stringify(unresolved)}`);
+
+  for (const source of [
+    `const field = request.field; const value = 'RO'; const result = { [field]: value };`,
+    `const field = request.field; const value = condition ? 'RO' : 'DE'; const result = { [field]: value };`,
+  ]) {
+    const violations = auditSourceFile('src/app/[lang]/resources/guides/test.ts', source);
+    assert.ok(violations.some((v) => v.includes('Tainted computed property construction')),
+      `Country-valued neutral aliases must fail closed: ${source}; got: ${JSON.stringify(violations)}`);
+  }
 });
 
 // -----------------------------------------------------------------------------
