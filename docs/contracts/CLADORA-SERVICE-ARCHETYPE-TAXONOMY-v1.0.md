@@ -9,8 +9,8 @@ Contract: `service-archetype-taxonomy.v1`
 Owner: **Platform SERVICE taxonomy governance**
 (`platform_service_taxonomy_governance`)
 
-Baseline: `main@75b7a2e3ba4c548f9a86bf52d9651de1e5e5d9d1`
-(`tree e258b99e2ed5d63c2ede86d086e05eec45edc746`)
+Baseline: `main@5be5efca698ead1819e7cef1be083387805cdb57`
+(`tree 3cd901662d5f511021097b3a4de64f36f8cf653d`)
 
 Benefits/Commerce/Loyalty owner: **`OPEN_PRODUCT_DECISION`**
 
@@ -75,7 +75,7 @@ content_hash
 classification
 country_scope
 technical_effect
-contexts
+compatibility_hints (optional and nonauthoritative)
 labels (ro/en/fa)
 published_at
 ```
@@ -92,7 +92,7 @@ content_hash
 classification
 country_scope
 technical_effect_policy
-contexts
+compatibility_hints (optional and nonauthoritative)
 exact primitive references
 labels (ro/en/fa)
 published_at
@@ -133,6 +133,13 @@ Deprecation:
 - may prevent new authoring/adoption under a later policy package; and
 - reveals no Workspace, member, provider or country data.
 
+Each exact target may have at most one deprecation decision and one successor.
+Successor edges form one deterministic chain: a successor may have only one
+predecessor, its immutable revision must have been published after the target,
+and a later decision in the chain must have a strictly later `effective_at`.
+Conflicting successors, converging chains, decisions before target publication
+and non-advancing chronology fail conformance.
+
 This package defines the decision shape but no lifecycle store, writer, policy
 resolver or effective-state projection.
 
@@ -166,10 +173,6 @@ goods_unloading
 goods_loading
 goods_packing
 goods_movement
-custom_office_service
-custom_commercial_service
-custom_industrial_service
-custom_hospitality_service
 ```
 
 Each primitive is classified only as `member_orderable_service`. Its
@@ -187,23 +190,26 @@ primitives:
 - CE benefit, entitlement, allowance, funding or redemption; and
 - price, tax, invoice, payment or provider execution.
 
+Generic `custom_*` primitives and the formerly proposed
+`custom_workspace_service` archetype are intentionally absent. A custom label
+cannot make Maintenance, CE or an unknown operation orderable as SERVICE.
+
 ## 6. Archetype contract and exact primitive sets
 
 An archetype groups one exact approved primitive set. The v1 mapping is closed:
 
-| Archetype | Exact primitive codes | Typical contexts |
+| Archetype | Exact primitive codes | Nonauthoritative compatibility hints |
 | --- | --- | --- |
-| `unit_care_and_cleaning` | `unit_cleaning` | Residential, hospitality |
-| `in_unit_repair_and_installation` | `in_unit_repair`, `in_unit_equipment_installation` | Residential, office, retail, hospitality |
-| `vehicle_care` | `car_wash`, `vehicle_care` | Residential, office, industrial, retail, hospitality |
-| `garment_and_laundry` | `dry_cleaning` | Residential, office, hospitality |
-| `food_catering_and_breakfast` | `prepared_food`, `catering`, `breakfast_order` | Residential, office, industrial, retail, hospitality |
-| `daily_essentials_and_bread_delivery` | `daily_shopping`, `bread_delivery` | Residential, office, industrial, retail, hospitality |
-| `concierge_and_parcel_handling` | `concierge_assistance`, `parcel_handling` | Residential, office, industrial, retail, hospitality |
-| `space_and_equipment_booking` | `space_reservation`, `desk_reservation`, `room_reservation`, `equipment_reservation` | Residential, office, industrial, retail, hospitality |
-| `move_and_freight_elevator_booking` | `freight_elevator_move_reservation`, `move_assistance` | Residential, office, industrial, retail, hospitality |
-| `goods_handling_and_logistics` | `goods_unloading`, `goods_loading`, `goods_packing`, `goods_movement` | Office, industrial, retail, hospitality |
-| `custom_workspace_service` | `custom_office_service`, `custom_commercial_service`, `custom_industrial_service`, `custom_hospitality_service` | Office, industrial, retail, hospitality |
+| `unit_care_and_cleaning` | `unit_cleaning` | Residential, hospitality, mixed-use |
+| `in_unit_repair_and_installation` | `in_unit_repair`, `in_unit_equipment_installation` | Residential, office/workplace, retail, hospitality, mixed-use |
+| `vehicle_care` | `car_wash`, `vehicle_care` | Residential, office/workplace, retail, hospitality, industrial, automotive, mixed-use |
+| `garment_and_laundry` | `dry_cleaning` | Residential, office/workplace, hospitality, mixed-use |
+| `food_catering_and_breakfast` | `prepared_food`, `catering`, `breakfast_order` | Residential, office/workplace, retail, hospitality, industrial, logistics, mixed-use |
+| `daily_essentials_and_bread_delivery` | `daily_shopping`, `bread_delivery` | Residential, office/workplace, retail, hospitality, industrial, logistics, mixed-use |
+| `concierge_and_parcel_handling` | `concierge_assistance`, `parcel_handling` | Residential, office/workplace, retail, hospitality, industrial, logistics, mixed-use |
+| `space_and_equipment_booking` | `space_reservation`, `desk_reservation`, `room_reservation`, `equipment_reservation` | Residential, office/workplace, retail, hospitality, industrial, logistics, automotive, mixed-use |
+| `move_and_freight_elevator_booking` | `freight_elevator_move_reservation`, `move_assistance` | Residential, office/workplace, retail, hospitality, industrial, logistics, mixed-use |
+| `goods_handling_and_logistics` | `goods_unloading`, `goods_loading`, `goods_packing`, `goods_movement` | Office/workplace, retail, hospitality, industrial, logistics, automotive, mixed-use |
 
 The schema rejects a missing, additional, duplicate or mismatched primitive
 reference. Each reference includes exact ID, code, version and content hash and
@@ -223,13 +229,45 @@ must resolve to the catalog supplied to the pure catalog validator.
 | Space, desk, room or equipment reservation | `space_and_equipment_booking` | SERVICE; actual capacity comes from the canonical booking provider |
 | Freight elevator reservation for a move | `move_and_freight_elevator_booking` | SERVICE reservation; elevator repair/servicing remains Maintenance |
 | Loading, unloading, packing and movement of goods | `goods_handling_and_logistics` | SERVICE for office, industrial, retail and hospitality contexts |
-| Custom office/commercial/industrial/hospitality service | `custom_workspace_service` | Requires a later Workspace definition built from approved primitives |
+| New residential plant-care idea | No orderable archetype until governance acceptance | Must remain `service-taxonomy-extension-proposal.v1` during review |
 
-The five context values are `residential`, `office`, `industrial`, `retail`
-and `hospitality`. Context is descriptive compatibility, not Workspace
-authority, availability, activation or country.
+The eight canonical hint values are `residential`, `office_workplace`,
+`retail`, `hospitality`, `industrial`, `logistics`, `automotive` and
+`mixed_use`. A hint may be omitted or supplied as any unique subset. It is
+descriptive compatibility only and never gates taxonomy validity, Workspace
+authority, eligibility, availability, activation or country.
 
-## 7. Forbidden authority and commercial content
+## 7. Workspace extension proposal boundary
+
+Workspace innovation enters governance only through
+`service-taxonomy-extension-proposal.v1`. The proposal carries a proposal ID
+and version, proposer Workspace reference, suggested primitive and archetype
+codes, RO/EN/FA labels, definitions, optional compatibility hints and an
+explicit `proposal_only=true` marker.
+
+A proposal:
+
+- is not a primitive, archetype, template, Offering, Order or permission;
+- cannot be ordered, booked, purchased, published, priced or activated;
+- carries no eligibility, availability, authority, provider, credential,
+  payment, Country Pack or member data;
+- rejects generic `custom_*` suggestions and existing canonical codes; and
+- has no effect on any existing taxonomy revision or Workspace.
+
+Only Platform SERVICE taxonomy governance may, after its own review, accept the
+idea by issuing new immutable and versioned canonical primitive and archetype
+revisions. This package names that owner but implements no reviewer identity,
+authority check, acceptance writer or store. A proposal is never promoted by
+changing its label or status in place.
+
+After canonical governance acceptance, a reusable template may pin the new
+exact archetype revision and another Workspace may explicitly adopt or fork
+that template. Adoption and forking preserve provenance and exact versions;
+they do not inherit source Workspace authority, eligibility or availability.
+Each destination Workspace evaluates those facts independently under its local
+Offering contracts.
+
+## 8. Forbidden authority and commercial content
 
 Primitive and archetype schemas are strict objects. They reject unknown fields,
 including:
@@ -249,11 +287,12 @@ Those facts belong to a later Workspace Definition, template adoption,
 Workspace Offering or canonical provider decision as specified by their owners.
 No absent field receives a default.
 
-## 8. Ownership model
+## 9. Ownership model
 
 | Fact | Canonical owner | Taxonomy behavior |
 | --- | --- | --- |
 | Primitive/archetype identity, revision and allowed mapping | Platform SERVICE taxonomy governance | Defines immutable country-neutral contract |
+| Workspace extension proposal | Proposer supplies review input; Platform SERVICE taxonomy governance alone owns canonical acceptance | Proposal remains nonorderable and nonauthoritative |
 | Workspace Service Definition | Source Workspace under SERVICE authority | References exact archetype revision; outside this package |
 | Reusable Service Template | SERVICE template aggregate | References exact archetype revision; no floating lookup |
 | Provider, price, fulfilment and local terms | Destination Workspace plus canonical domain owners | Forbidden in taxonomy |
@@ -264,31 +303,33 @@ No absent field receives a default.
 | Current identity/authority | Core | Required by future writers; not carried by a taxonomy revision |
 | Idempotency/audit/outbox/unknown commit | Core transaction host/shared infrastructure | Reused by future persistence; not implemented here |
 
-## 9. Threat model
+## 10. Threat model
 
 | Threat | Static control | Future transactional requirement |
 | --- | --- | --- |
 | Maintenance concept enters SERVICE | Closed primitive/archetype enums and conformance cases | Governance review and exact version writer |
 | Included benefit becomes SERVICE primitive | No benefit/funding/entitlement codes or fields | Independent CE/owner decision remains mandatory |
+| Generic label bypasses boundary | No `custom_*` primitive/archetype; proposal is a separate strict nonorderable contract | Governance issues a new exact revision only after review |
 | Same revision is changed | Exact content hash plus immutable comparator conflict | Unique identity/version and immutable bytes |
 | Template follows “latest” | Exact archetype reference schema | Persist exact ID/code/version/hash |
 | Deprecation mutates history | Separate exact-target decision | Append-only decision and historical readback |
 | Source country policy enters taxonomy | `country_scope=country_neutral`; strict unknown-field rejection | Country Pack compatibility evaluated separately |
 | Provider/price/credential leaks | Strict schemas reject operational/private fields | Purpose-limited projections and secret scanning |
-| Context becomes authority | Context is a closed descriptive enum only | Current Workspace authority rechecked by future writer |
+| Compatibility hint becomes a gate or authority | Optional closed hints are not used by schema validity | Destination authority, eligibility and availability are rechecked independently |
 | Primitive reference is tampered | Exact reference resolved within catalog validator | Canonical registry resolver and lock in one transaction |
 | Version is stale/unsafe/skipped | Positive safe integer and comparator | CAS/locking, idempotency and zero-write denial |
 | Unknown commit causes duplicate revision | Not executable in this package | Core `READBACK_REQUIRED` with original command/key |
 
-## 10. Pure TypeScript surface
+## 11. Pure TypeScript surface
 
 `src/lib/customer/service-archetype-taxonomy-v1.ts` exports:
 
-- closed context, primitive and archetype vocabularies;
-- the exact archetype-to-primitive and archetype-to-context maps;
+- closed compatibility-hint, primitive and archetype vocabularies;
+- the exact archetype-to-primitive map and advisory archetype-to-hint map;
 - strict primitive and archetype revision schemas;
 - strict exact primitive and archetype reference schemas;
 - strict template-to-archetype reference schema;
+- strict proposal-only Workspace extension schema;
 - separate deprecation-decision schema;
 - strict in-memory catalog conformance schema; and
 - a pure immutable-revision comparator.
@@ -298,22 +339,22 @@ network, environment, filesystem, route, handler, clock or runtime-composition
 import. `published_at` and hashes are explicit inputs; the contract does not
 fabricate them.
 
-## 11. Static conformance matrix
+## 12. Static conformance matrix
 
 | ID | Case | Required result |
 | --- | --- | --- |
 | TAX-01 | Valid country-neutral primitive revision | Accepted |
 | TAX-02 | Unknown primitive code | Rejected |
 | TAX-03 | Missing/zero/negative/decimal/unsafe primitive version | Rejected |
-| TAX-04 | Duplicate primitive contexts | Rejected |
+| TAX-04 | Duplicate compatibility hints | Rejected |
 | TAX-05 | Price/tax/currency injected into primitive | Rejected |
 | TAX-06 | Provider/credential/payment rail injected | Rejected |
 | TAX-07 | Entitlement/member/Workspace authority injected | Rejected |
 | TAX-08 | Country/Country Pack field injected | Rejected |
-| TAX-09 | Valid archetype with exact primitive/context sets | Accepted |
+| TAX-09 | Valid archetype with exact primitive set and optional hints | Accepted |
 | TAX-10 | Missing/additional/wrong primitive | Rejected |
 | TAX-11 | Duplicate primitive reference | Rejected |
-| TAX-12 | Wrong context set | Rejected |
+| TAX-12 | Hints omitted or reduced to a canonical subset | Accepted without changing taxonomy validity |
 | TAX-13 | Archetype carries commercial/private/authority field | Rejected |
 | TAX-14 | Catalog resolves every exact primitive reference | Accepted |
 | TAX-15 | Referenced hash/version/code/ID mismatch | Rejected |
@@ -326,14 +367,19 @@ fabricate them.
 | TAX-22 | Stale or skipped version | `STALE_VERSION` / `VERSION_GAP` |
 | TAX-23 | ID/code changes during revision | `IDENTITY_MISMATCH` |
 | TAX-24 | Valid exact deprecation decision | Accepted without changing target |
-| TAX-25 | Successor has another ID/code or non-greater version | Rejected |
+| TAX-25 | Successor has another ID/code, non-greater version or invalid publication chronology | Rejected |
 | TAX-26 | Technical lift servicing appears as primitive/archetype | Absent and rejected |
 | TAX-27 | Freight-elevator move reservation mapping | SERVICE archetype accepted |
-| TAX-28 | Residential/office/industrial/retail/hospitality coverage | All present in exact maps |
+| TAX-28 | All eight compatibility hints, including logistics/automotive/mixed-use | Covered without authority semantics |
 | TAX-29 | SERVICE/Maintenance/CE documentation drifts | Static harness fails |
 | TAX-30 | Persistence/route/runtime import appears | Static safety scan fails |
+| TAX-31 | Generic `custom_*` primitive/archetype | Absent and rejected |
+| TAX-32 | Residential innovation proposal | Accepted only as `proposal_only=true` review input |
+| TAX-33 | Proposal contains orderability, price, availability, authority or activation | Rejected |
+| TAX-34 | Same exact deprecation target has conflicting successors | Rejected |
+| TAX-35 | Deprecation chain chronology does not strictly advance | Rejected |
 
-## 12. Dependencies and next package
+## 13. Dependencies and next package
 
 This package satisfies only `SV-SERVICE-ARCHETYPE-TAXONOMY-04` from the merged
 topological plan. It does not satisfy:
@@ -352,7 +398,7 @@ The next SERVICE-owned independent package is
 archetype references from this contract and must remain persistence-free unless
 separately authorized.
 
-## 13. Explicit non-acceptance
+## 14. Explicit non-acceptance
 
 This package creates no migration, taxonomy persistence, template persistence,
 handler, route, marketplace, provider network, payment wiring, grant,

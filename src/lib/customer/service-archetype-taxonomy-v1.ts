@@ -4,14 +4,18 @@ import { uuidSchema } from './workspace-composition-schema';
 export const SERVICE_ARCHETYPE_TAXONOMY_CONTRACT = 'service-archetype-taxonomy.v1' as const;
 export const SERVICE_TEMPLATE_ARCHETYPE_REFERENCE_CONTRACT = 'service-template-archetype-reference.v1' as const;
 export const SERVICE_TAXONOMY_DEPRECATION_CONTRACT = 'service-taxonomy-deprecation-decision.v1' as const;
+export const SERVICE_TAXONOMY_EXTENSION_PROPOSAL_CONTRACT = 'service-taxonomy-extension-proposal.v1' as const;
 export const SERVICE_TAXONOMY_OWNER = 'platform_service_taxonomy_governance' as const;
 
-export const SERVICE_CONTEXT_CODES = [
+export const SERVICE_COMPATIBILITY_HINT_CODES = [
   'residential',
-  'office',
-  'industrial',
+  'office_workplace',
   'retail',
   'hospitality',
+  'industrial',
+  'logistics',
+  'automotive',
+  'mixed_use',
 ] as const;
 
 export const SERVICE_PRIMITIVE_CODES = [
@@ -38,10 +42,6 @@ export const SERVICE_PRIMITIVE_CODES = [
   'goods_loading',
   'goods_packing',
   'goods_movement',
-  'custom_office_service',
-  'custom_commercial_service',
-  'custom_industrial_service',
-  'custom_hospitality_service',
 ] as const;
 
 export const SERVICE_ARCHETYPE_CODES = [
@@ -55,10 +55,9 @@ export const SERVICE_ARCHETYPE_CODES = [
   'space_and_equipment_booking',
   'move_and_freight_elevator_booking',
   'goods_handling_and_logistics',
-  'custom_workspace_service',
 ] as const;
 
-export type ServiceContextCode = typeof SERVICE_CONTEXT_CODES[number];
+export type ServiceCompatibilityHintCode = typeof SERVICE_COMPATIBILITY_HINT_CODES[number];
 export type ServicePrimitiveCode = typeof SERVICE_PRIMITIVE_CODES[number];
 export type ServiceArchetypeCode = typeof SERVICE_ARCHETYPE_CODES[number];
 
@@ -78,27 +77,20 @@ export const SERVICE_ARCHETYPE_PRIMITIVE_MAP = {
   ],
   move_and_freight_elevator_booking: ['freight_elevator_move_reservation', 'move_assistance'],
   goods_handling_and_logistics: ['goods_unloading', 'goods_loading', 'goods_packing', 'goods_movement'],
-  custom_workspace_service: [
-    'custom_office_service',
-    'custom_commercial_service',
-    'custom_industrial_service',
-    'custom_hospitality_service',
-  ],
 } as const satisfies Record<ServiceArchetypeCode, readonly ServicePrimitiveCode[]>;
 
-export const SERVICE_ARCHETYPE_CONTEXT_MAP = {
-  unit_care_and_cleaning: ['residential', 'hospitality'],
-  in_unit_repair_and_installation: ['residential', 'office', 'retail', 'hospitality'],
-  vehicle_care: ['residential', 'office', 'industrial', 'retail', 'hospitality'],
-  garment_and_laundry: ['residential', 'office', 'hospitality'],
-  food_catering_and_breakfast: ['residential', 'office', 'industrial', 'retail', 'hospitality'],
-  daily_essentials_and_bread_delivery: ['residential', 'office', 'industrial', 'retail', 'hospitality'],
-  concierge_and_parcel_handling: ['residential', 'office', 'industrial', 'retail', 'hospitality'],
-  space_and_equipment_booking: ['residential', 'office', 'industrial', 'retail', 'hospitality'],
-  move_and_freight_elevator_booking: ['residential', 'office', 'industrial', 'retail', 'hospitality'],
-  goods_handling_and_logistics: ['office', 'industrial', 'retail', 'hospitality'],
-  custom_workspace_service: ['office', 'industrial', 'retail', 'hospitality'],
-} as const satisfies Record<ServiceArchetypeCode, readonly ServiceContextCode[]>;
+export const SERVICE_ARCHETYPE_COMPATIBILITY_HINT_MAP = {
+  unit_care_and_cleaning: ['residential', 'hospitality', 'mixed_use'],
+  in_unit_repair_and_installation: ['residential', 'office_workplace', 'retail', 'hospitality', 'mixed_use'],
+  vehicle_care: ['residential', 'office_workplace', 'retail', 'hospitality', 'industrial', 'automotive', 'mixed_use'],
+  garment_and_laundry: ['residential', 'office_workplace', 'hospitality', 'mixed_use'],
+  food_catering_and_breakfast: ['residential', 'office_workplace', 'retail', 'hospitality', 'industrial', 'logistics', 'mixed_use'],
+  daily_essentials_and_bread_delivery: ['residential', 'office_workplace', 'retail', 'hospitality', 'industrial', 'logistics', 'mixed_use'],
+  concierge_and_parcel_handling: ['residential', 'office_workplace', 'retail', 'hospitality', 'industrial', 'logistics', 'mixed_use'],
+  space_and_equipment_booking: ['residential', 'office_workplace', 'retail', 'hospitality', 'industrial', 'logistics', 'automotive', 'mixed_use'],
+  move_and_freight_elevator_booking: ['residential', 'office_workplace', 'retail', 'hospitality', 'industrial', 'logistics', 'mixed_use'],
+  goods_handling_and_logistics: ['office_workplace', 'retail', 'hospitality', 'industrial', 'logistics', 'automotive', 'mixed_use'],
+} as const satisfies Record<ServiceArchetypeCode, readonly ServiceCompatibilityHintCode[]>;
 
 const versionSchema = z.number().int().min(1).max(Number.MAX_SAFE_INTEGER);
 const contentHashSchema = z.string().regex(/^[a-f0-9]{64}$/);
@@ -109,7 +101,7 @@ const labelsSchema = z.strictObject({
   en: z.string().trim().min(1).max(200),
   fa: z.string().trim().min(1).max(200),
 });
-const contextSchema = z.enum(SERVICE_CONTEXT_CODES);
+const compatibilityHintSchema = z.enum(SERVICE_COMPATIBILITY_HINT_CODES);
 const primitiveCodeSchema = z.enum(SERVICE_PRIMITIVE_CODES);
 const archetypeCodeSchema = z.enum(SERVICE_ARCHETYPE_CODES);
 
@@ -134,11 +126,13 @@ export const servicePrimitiveRevisionV1Schema = z.strictObject({
   classification: z.literal('member_orderable_service'),
   country_scope: z.literal('country_neutral'),
   technical_effect: z.enum(['none', 'possible_incidental_asset_effect']),
-  contexts: z.array(contextSchema).min(1).max(SERVICE_CONTEXT_CODES.length),
+  compatibility_hints: z.array(compatibilityHintSchema).max(SERVICE_COMPATIBILITY_HINT_CODES.length).optional(),
   labels: labelsSchema,
   published_at: timestampSchema,
 }).superRefine((value, context) => {
-  addUniqueArrayIssue(value.contexts, context, ['contexts']);
+  if (value.compatibility_hints !== undefined) {
+    addUniqueArrayIssue(value.compatibility_hints, context, ['compatibility_hints']);
+  }
 });
 
 export const exactServicePrimitiveReferenceV1Schema = z.strictObject({
@@ -159,12 +153,14 @@ export const serviceArchetypeRevisionV1Schema = z.strictObject({
   classification: z.literal('member_orderable_service'),
   country_scope: z.literal('country_neutral'),
   technical_effect_policy: z.literal('asset_history_only_when_actual_technical_effect_is_verified'),
-  contexts: z.array(contextSchema).min(1).max(SERVICE_CONTEXT_CODES.length),
+  compatibility_hints: z.array(compatibilityHintSchema).max(SERVICE_COMPATIBILITY_HINT_CODES.length).optional(),
   primitive_references: z.array(exactServicePrimitiveReferenceV1Schema).min(1).max(SERVICE_PRIMITIVE_CODES.length),
   labels: labelsSchema,
   published_at: timestampSchema,
 }).superRefine((value, context) => {
-  addUniqueArrayIssue(value.contexts, context, ['contexts']);
+  if (value.compatibility_hints !== undefined) {
+    addUniqueArrayIssue(value.compatibility_hints, context, ['compatibility_hints']);
+  }
   addUniqueArrayIssue(
     value.primitive_references.map(reference => `${reference.primitive_id}:${reference.primitive_version}`),
     context,
@@ -181,14 +177,6 @@ export const serviceArchetypeRevisionV1Schema = z.strictObject({
     });
   }
 
-  const expectedContexts = SERVICE_ARCHETYPE_CONTEXT_MAP[value.archetype_code];
-  if (!sameSet(value.contexts, expectedContexts)) {
-    context.addIssue({
-      code: 'custom',
-      path: ['contexts'],
-      message: 'Archetype must declare its exact approved context set',
-    });
-  }
 });
 
 export const exactServiceArchetypeReferenceV1Schema = z.strictObject({
@@ -202,6 +190,49 @@ export const serviceTemplateArchetypeReferenceV1Schema = z.strictObject({
   contract: z.literal(SERVICE_TEMPLATE_ARCHETYPE_REFERENCE_CONTRACT),
   contract_version: z.literal(1),
   archetype: exactServiceArchetypeReferenceV1Schema,
+});
+
+const proposedTaxonomyCodeSchema = codeSchema.refine(
+  value => (
+    !value.startsWith('custom_')
+    && !(SERVICE_PRIMITIVE_CODES as readonly string[]).includes(value)
+    && !(SERVICE_ARCHETYPE_CODES as readonly string[]).includes(value)
+  ),
+  { message: 'Proposal must describe a new non-generic taxonomy concept' },
+);
+
+export const serviceTaxonomyExtensionProposalV1Schema = z.strictObject({
+  contract: z.literal(SERVICE_TAXONOMY_EXTENSION_PROPOSAL_CONTRACT),
+  contract_version: z.literal(1),
+  proposal_id: uuidSchema,
+  proposal_version: versionSchema,
+  proposal_only: z.literal(true),
+  governance_owner: z.literal(SERVICE_TAXONOMY_OWNER),
+  proposer_workspace_reference: uuidSchema,
+  proposed_primitive: z.strictObject({
+    suggested_code: proposedTaxonomyCodeSchema,
+    labels: labelsSchema,
+    definition: z.string().trim().min(20).max(2_000),
+    technical_effect: z.enum(['none', 'possible_incidental_asset_effect']),
+  }),
+  proposed_archetype: z.strictObject({
+    suggested_code: proposedTaxonomyCodeSchema,
+    labels: labelsSchema,
+    definition: z.string().trim().min(20).max(2_000),
+  }),
+  compatibility_hints: z.array(compatibilityHintSchema).max(SERVICE_COMPATIBILITY_HINT_CODES.length).optional(),
+  submitted_at: timestampSchema,
+}).superRefine((value, context) => {
+  if (value.compatibility_hints !== undefined) {
+    addUniqueArrayIssue(value.compatibility_hints, context, ['compatibility_hints']);
+  }
+  if (value.proposed_primitive.suggested_code === value.proposed_archetype.suggested_code) {
+    context.addIssue({
+      code: 'custom',
+      path: ['proposed_archetype', 'suggested_code'],
+      message: 'Primitive and archetype suggestions must have distinct codes',
+    });
+  }
 });
 
 const primitiveDeprecationDecisionSchema = z.strictObject({
@@ -316,6 +347,12 @@ export const serviceArchetypeTaxonomyCatalogV1Schema = z.strictObject({
     primitive.primitive_version,
     primitive.content_hash,
   ].join(':')));
+  const primitivePublishedAt = new Map(value.primitives.map(primitive => [[
+    primitive.primitive_id,
+    primitive.primitive_code,
+    primitive.primitive_version,
+    primitive.content_hash,
+  ].join(':'), Date.parse(primitive.published_at)]));
 
   value.archetypes.forEach((archetype, archetypeIndex) => {
     archetype.primitive_references.forEach((reference, referenceIndex) => {
@@ -341,16 +378,46 @@ export const serviceArchetypeTaxonomyCatalogV1Schema = z.strictObject({
     archetype.archetype_version,
     archetype.content_hash,
   ].join(':')));
+  const archetypePublishedAt = new Map(value.archetypes.map(archetype => [[
+    archetype.archetype_id,
+    archetype.archetype_code,
+    archetype.archetype_version,
+    archetype.content_hash,
+  ].join(':'), Date.parse(archetype.published_at)]));
+
+  const deprecationByTarget = new Map<string, { index: number; successorKey: string | null; effectiveAt: number }>();
+  const predecessorBySuccessor = new Map<string, number>();
 
   value.deprecations.forEach((decision, index) => {
     const targetKey = decision.target_kind === 'primitive'
       ? [decision.target.primitive_id, decision.target.primitive_code, decision.target.primitive_version, decision.target.content_hash].join(':')
       : [decision.target.archetype_id, decision.target.archetype_code, decision.target.archetype_version, decision.target.content_hash].join(':');
     const referenceSet = decision.target_kind === 'primitive' ? primitiveReferences : archetypeReferences;
+    const publishedAt = decision.target_kind === 'primitive' ? primitivePublishedAt : archetypePublishedAt;
+    const typedTargetKey = `${decision.target_kind}:${targetKey}`;
     if (!referenceSet.has(targetKey)) {
       context.addIssue({ code: 'custom', path: ['deprecations', index, 'target'], message: 'Deprecation target must resolve exactly inside the catalog' });
     }
 
+    if (deprecationByTarget.has(typedTargetKey)) {
+      context.addIssue({
+        code: 'custom',
+        path: ['deprecations', index, 'target'],
+        message: 'An exact deprecation target may have only one deterministic successor chain',
+      });
+    }
+
+    const targetPublishedAt = publishedAt.get(targetKey);
+    const effectiveAt = Date.parse(decision.effective_at);
+    if (targetPublishedAt !== undefined && effectiveAt < targetPublishedAt) {
+      context.addIssue({
+        code: 'custom',
+        path: ['deprecations', index, 'effective_at'],
+        message: 'Deprecation cannot precede publication of its exact target',
+      });
+    }
+
+    let typedSuccessorKey: string | null = null;
     if (decision.successor !== null) {
       const successorKey = decision.target_kind === 'primitive'
         ? [decision.successor.primitive_id, decision.successor.primitive_code, decision.successor.primitive_version, decision.successor.content_hash].join(':')
@@ -358,6 +425,45 @@ export const serviceArchetypeTaxonomyCatalogV1Schema = z.strictObject({
       if (!referenceSet.has(successorKey)) {
         context.addIssue({ code: 'custom', path: ['deprecations', index, 'successor'], message: 'Deprecation successor must resolve exactly inside the catalog' });
       }
+      const successorPublishedAt = publishedAt.get(successorKey);
+      if (
+        targetPublishedAt !== undefined
+        && successorPublishedAt !== undefined
+        && successorPublishedAt <= targetPublishedAt
+      ) {
+        context.addIssue({
+          code: 'custom',
+          path: ['deprecations', index, 'successor'],
+          message: 'Deprecation successor must be published after its exact target',
+        });
+      }
+
+      typedSuccessorKey = `${decision.target_kind}:${successorKey}`;
+      if (predecessorBySuccessor.has(typedSuccessorKey)) {
+        context.addIssue({
+          code: 'custom',
+          path: ['deprecations', index, 'successor'],
+          message: 'A deprecation successor may have only one predecessor',
+        });
+      } else {
+        predecessorBySuccessor.set(typedSuccessorKey, index);
+      }
+    }
+
+    if (!deprecationByTarget.has(typedTargetKey)) {
+      deprecationByTarget.set(typedTargetKey, { index, successorKey: typedSuccessorKey, effectiveAt });
+    }
+  });
+
+  deprecationByTarget.forEach(decision => {
+    if (decision.successorKey === null) return;
+    const successorDecision = deprecationByTarget.get(decision.successorKey);
+    if (successorDecision !== undefined && successorDecision.effectiveAt <= decision.effectiveAt) {
+      context.addIssue({
+        code: 'custom',
+        path: ['deprecations', successorDecision.index, 'effective_at'],
+        message: 'Deprecation chain chronology must advance strictly',
+      });
     }
   });
 });
@@ -420,5 +526,6 @@ export function compareImmutableServiceTaxonomyRevision(
 export type ServicePrimitiveRevisionV1 = z.infer<typeof servicePrimitiveRevisionV1Schema>;
 export type ServiceArchetypeRevisionV1 = z.infer<typeof serviceArchetypeRevisionV1Schema>;
 export type ServiceTemplateArchetypeReferenceV1 = z.infer<typeof serviceTemplateArchetypeReferenceV1Schema>;
+export type ServiceTaxonomyExtensionProposalV1 = z.infer<typeof serviceTaxonomyExtensionProposalV1Schema>;
 export type ServiceTaxonomyDeprecationDecisionV1 = z.infer<typeof serviceTaxonomyDeprecationDecisionV1Schema>;
 export type ServiceArchetypeTaxonomyCatalogV1 = z.infer<typeof serviceArchetypeTaxonomyCatalogV1Schema>;

@@ -48,7 +48,7 @@ const primitives = taxonomy.SERVICE_PRIMITIVE_CODES.map((primitiveCode, index) =
     technical_effect: ['in_unit_repair', 'in_unit_equipment_installation'].includes(primitiveCode)
       ? 'possible_incidental_asset_effect'
       : 'none',
-    contexts: [...taxonomy.SERVICE_ARCHETYPE_CONTEXT_MAP[archetypeCode]],
+    compatibility_hints: [...taxonomy.SERVICE_ARCHETYPE_COMPATIBILITY_HINT_MAP[archetypeCode]],
     labels: labels(primitiveCode),
     published_at: publishedAt,
   };
@@ -66,7 +66,7 @@ const archetypes = taxonomy.SERVICE_ARCHETYPE_CODES.map((archetypeCode, index) =
   classification: 'member_orderable_service',
   country_scope: 'country_neutral',
   technical_effect_policy: 'asset_history_only_when_actual_technical_effect_is_verified',
-  contexts: [...taxonomy.SERVICE_ARCHETYPE_CONTEXT_MAP[archetypeCode]],
+  compatibility_hints: [...taxonomy.SERVICE_ARCHETYPE_COMPATIBILITY_HINT_MAP[archetypeCode]],
   primitive_references: taxonomy.SERVICE_ARCHETYPE_PRIMITIVE_MAP[archetypeCode].map(primitiveCode => {
     const primitive = primitiveByCode.get(primitiveCode);
     assert.ok(primitive, `missing primitive fixture: ${primitiveCode}`);
@@ -105,19 +105,26 @@ check('contract and owner identities are exact', () => {
   assert.equal(taxonomy.SERVICE_ARCHETYPE_TAXONOMY_CONTRACT, 'service-archetype-taxonomy.v1');
   assert.equal(taxonomy.SERVICE_TEMPLATE_ARCHETYPE_REFERENCE_CONTRACT, 'service-template-archetype-reference.v1');
   assert.equal(taxonomy.SERVICE_TAXONOMY_DEPRECATION_CONTRACT, 'service-taxonomy-deprecation-decision.v1');
+  assert.equal(taxonomy.SERVICE_TAXONOMY_EXTENSION_PROPOSAL_CONTRACT, 'service-taxonomy-extension-proposal.v1');
   assert.equal(taxonomy.SERVICE_TAXONOMY_OWNER, 'platform_service_taxonomy_governance');
 });
 
-check('all five Workspace contexts are present and closed', () => {
-  assert.deepEqual(taxonomy.SERVICE_CONTEXT_CODES, ['residential', 'office', 'industrial', 'retail', 'hospitality']);
+check('all eight compatibility hints are present and closed', () => {
+  assert.deepEqual(taxonomy.SERVICE_COMPATIBILITY_HINT_CODES, [
+    'residential', 'office_workplace', 'retail', 'hospitality', 'industrial',
+    'logistics', 'automotive', 'mixed_use',
+  ]);
 });
 
 check('primitive vocabulary is closed and excludes Maintenance and CE authority', () => {
-  assert.equal(taxonomy.SERVICE_PRIMITIVE_CODES.length, 27);
+  assert.equal(taxonomy.SERVICE_PRIMITIVE_CODES.length, 23);
+  assert.equal(taxonomy.SERVICE_ARCHETYPE_CODES.length, 10);
   for (const forbidden of [
     'elevator_servicing', 'lift_inspection', 'fire_safety_maintenance', 'boiler_repair',
     'preventive_maintenance', 'benefit_entitlement', 'allowance_redemption',
+    'custom_office_service', 'custom_industrial_service', 'custom_hospitality_service',
   ]) assert.equal(taxonomy.SERVICE_PRIMITIVE_CODES.includes(forbidden), false);
+  assert.equal(taxonomy.SERVICE_ARCHETYPE_CODES.includes('custom_workspace_service'), false);
 });
 
 check('required member examples map to their official archetypes', () => {
@@ -170,11 +177,11 @@ check('primitive identity and content hash are strict', () => {
   expectRejected(taxonomy.servicePrimitiveRevisionV1Schema, { ...primitives[0], primitive_code: 'lift_servicing' });
 });
 
-check('duplicate primitive contexts are rejected', () => {
+check('duplicate primitive compatibility hints are rejected', () => {
   const primitive = primitives[0];
   expectRejected(taxonomy.servicePrimitiveRevisionV1Schema, {
     ...primitive,
-    contexts: [primitive.contexts[0], primitive.contexts[0]],
+    compatibility_hints: [primitive.compatibility_hints[0], primitive.compatibility_hints[0]],
   });
 });
 
@@ -194,7 +201,7 @@ check('primitive classification and country scope are fixed', () => {
   expectRejected(taxonomy.servicePrimitiveRevisionV1Schema, { ...primitives[0], country_scope: 'RO' });
 });
 
-check('valid archetype revisions use exact primitive and context sets', () => {
+check('valid archetype revisions use exact primitive sets and nonauthoritative hints', () => {
   for (const archetype of archetypes) {
     assert.deepEqual(taxonomy.serviceArchetypeRevisionV1Schema.parse(archetype), archetype);
   }
@@ -225,9 +232,23 @@ check('duplicate archetype primitive references are rejected', () => {
   });
 });
 
-check('archetype context coverage is exact and cannot become authority', () => {
+check('compatibility hints are optional subsets and cannot become authority', () => {
   const archetype = archetypes[0];
-  expectRejected(taxonomy.serviceArchetypeRevisionV1Schema, { ...archetype, contexts: ['industrial'] });
+  const withoutHints = { ...archetype };
+  delete withoutHints.compatibility_hints;
+  assert.equal(taxonomy.serviceArchetypeRevisionV1Schema.safeParse(withoutHints).success, true);
+  assert.equal(taxonomy.serviceArchetypeRevisionV1Schema.safeParse({
+    ...archetype,
+    compatibility_hints: ['logistics'],
+  }).success, true);
+  expectRejected(taxonomy.serviceArchetypeRevisionV1Schema, {
+    ...archetype,
+    compatibility_hints: ['logistics', 'logistics'],
+  });
+  expectRejected(taxonomy.serviceArchetypeRevisionV1Schema, {
+    ...archetype,
+    compatibility_hints: ['unknown_context'],
+  });
   expectRejected(taxonomy.serviceArchetypeRevisionV1Schema, { ...archetype, workspace_id: id(900) });
 });
 
@@ -307,6 +328,89 @@ check('template reference pins exact archetype identity version and hash', () =>
   });
 });
 
+check('residential innovation remains a proposal-only governance input', () => {
+  const proposal = {
+    contract: taxonomy.SERVICE_TAXONOMY_EXTENSION_PROPOSAL_CONTRACT,
+    contract_version: 1,
+    proposal_id: id(750),
+    proposal_version: 1,
+    proposal_only: true,
+    governance_owner: taxonomy.SERVICE_TAXONOMY_OWNER,
+    proposer_workspace_reference: id(751),
+    proposed_primitive: {
+      suggested_code: 'balcony_plant_care',
+      labels: labels('balcony_plant_care'),
+      definition: 'Member-requested care for plants located on a private residential balcony.',
+      technical_effect: 'none',
+    },
+    proposed_archetype: {
+      suggested_code: 'residential_plant_care',
+      labels: labels('residential_plant_care'),
+      definition: 'A proposed country-neutral grouping for member-requested residential plant care.',
+    },
+    compatibility_hints: ['residential', 'mixed_use'],
+    submitted_at: publishedAt,
+  };
+  assert.deepEqual(taxonomy.serviceTaxonomyExtensionProposalV1Schema.parse(proposal), proposal);
+  expectRejected(taxonomy.servicePrimitiveRevisionV1Schema, proposal);
+  expectRejected(taxonomy.serviceArchetypeRevisionV1Schema, proposal);
+  expectRejected(taxonomy.serviceTemplateArchetypeReferenceV1Schema, proposal);
+});
+
+check('extension proposal cannot become generic custom service or carry operations', () => {
+  const proposal = {
+    contract: taxonomy.SERVICE_TAXONOMY_EXTENSION_PROPOSAL_CONTRACT,
+    contract_version: 1,
+    proposal_id: id(752),
+    proposal_version: 1,
+    proposal_only: true,
+    governance_owner: taxonomy.SERVICE_TAXONOMY_OWNER,
+    proposer_workspace_reference: id(753),
+    proposed_primitive: {
+      suggested_code: 'balcony_plant_care',
+      labels: labels('balcony_plant_care'),
+      definition: 'Member-requested care for plants located on a private residential balcony.',
+      technical_effect: 'none',
+    },
+    proposed_archetype: {
+      suggested_code: 'residential_plant_care',
+      labels: labels('residential_plant_care'),
+      definition: 'A proposed country-neutral grouping for member-requested residential plant care.',
+    },
+    submitted_at: publishedAt,
+  };
+  expectRejected(taxonomy.serviceTaxonomyExtensionProposalV1Schema, {
+    ...proposal,
+    proposal_only: false,
+  });
+  expectRejected(taxonomy.serviceTaxonomyExtensionProposalV1Schema, {
+    ...proposal,
+    proposed_primitive: { ...proposal.proposed_primitive, suggested_code: 'custom_residential_service' },
+  });
+  expectRejected(taxonomy.serviceTaxonomyExtensionProposalV1Schema, {
+    ...proposal,
+    governance_owner: 'workspace_taxonomy_owner',
+  });
+  for (const field of ['price', 'published', 'orderable', 'availability', 'authority', 'activation']) {
+    expectRejected(taxonomy.serviceTaxonomyExtensionProposalV1Schema, {
+      ...proposal,
+      [field]: field === 'price' ? '10.00' : true,
+    }, field);
+  }
+});
+
+check('logistics automotive and mixed-use are hints rather than taxonomy gates', () => {
+  const covered = new Set(Object.values(taxonomy.SERVICE_ARCHETYPE_COMPATIBILITY_HINT_MAP).flat());
+  for (const hint of ['logistics', 'automotive', 'mixed_use']) assert.equal(covered.has(hint), true);
+  const archetype = archetypes[0];
+  for (const hint of ['logistics', 'automotive', 'mixed_use']) {
+    assert.equal(taxonomy.serviceArchetypeRevisionV1Schema.safeParse({
+      ...archetype,
+      compatibility_hints: [hint],
+    }).success, true);
+  }
+});
+
 check('same immutable revision and bytes is exact replay', () => {
   assert.equal(taxonomy.compareImmutableServiceTaxonomyRevision(primitives[0], structuredClone(primitives[0])), 'EXACT_REPLAY');
   assert.equal(taxonomy.compareImmutableServiceTaxonomyRevision(archetypes[0], structuredClone(archetypes[0])), 'EXACT_REPLAY');
@@ -371,7 +475,12 @@ check('deprecation is a separate exact-target decision', () => {
 
 check('deprecation successor must retain identity and advance', () => {
   const primitive = primitives[0];
-  const primitiveV2 = { ...primitive, primitive_version: 2, content_hash: hash(851) };
+  const primitiveV2 = {
+    ...primitive,
+    primitive_version: 2,
+    content_hash: hash(851),
+    published_at: '2026-10-17T10:00:00+03:30',
+  };
   const decision = {
     contract: taxonomy.SERVICE_TAXONOMY_DEPRECATION_CONTRACT,
     contract_version: 1,
@@ -408,6 +517,75 @@ check('deprecation successor must retain identity and advance', () => {
   });
 });
 
+check('deprecation chains reject conflicting successors and invalid chronology', () => {
+  const primitiveV1 = primitives[0];
+  const primitiveV2 = {
+    ...primitiveV1,
+    primitive_version: 2,
+    content_hash: hash(870),
+    published_at: '2026-10-17T10:00:00+03:30',
+  };
+  const primitiveV3 = {
+    ...primitiveV1,
+    primitive_version: 3,
+    content_hash: hash(871),
+    published_at: '2026-10-18T10:00:00+03:30',
+  };
+  const reference = primitive => ({
+    primitive_id: primitive.primitive_id,
+    primitive_code: primitive.primitive_code,
+    primitive_version: primitive.primitive_version,
+    content_hash: primitive.content_hash,
+  });
+  const firstDecision = {
+    contract: taxonomy.SERVICE_TAXONOMY_DEPRECATION_CONTRACT,
+    contract_version: 1,
+    owner: taxonomy.SERVICE_TAXONOMY_OWNER,
+    decision_id: id(870),
+    decision_version: 1,
+    target_kind: 'primitive',
+    target: reference(primitiveV1),
+    successor: reference(primitiveV2),
+    reason_code: 'superseded_by_v2',
+    effective_at: '2026-10-17T12:00:00+03:30',
+  };
+  const secondDecision = {
+    ...firstDecision,
+    decision_id: id(871),
+    target: reference(primitiveV2),
+    successor: reference(primitiveV3),
+    reason_code: 'superseded_by_v3',
+    effective_at: '2026-10-18T12:00:00+03:30',
+  };
+  const versionedCatalog = {
+    ...catalog,
+    primitives: [...primitives, primitiveV2, primitiveV3],
+  };
+  assert.equal(taxonomy.serviceArchetypeTaxonomyCatalogV1Schema.safeParse({
+    ...versionedCatalog,
+    deprecations: [firstDecision, secondDecision],
+  }).success, true);
+
+  const conflictingDecision = {
+    ...firstDecision,
+    decision_id: id(872),
+    successor: reference(primitiveV3),
+    reason_code: 'conflicting_successor',
+  };
+  expectRejected(taxonomy.serviceArchetypeTaxonomyCatalogV1Schema, {
+    ...versionedCatalog,
+    deprecations: [firstDecision, conflictingDecision],
+  });
+  expectRejected(taxonomy.serviceArchetypeTaxonomyCatalogV1Schema, {
+    ...versionedCatalog,
+    deprecations: [firstDecision, { ...secondDecision, effective_at: '2026-10-17T11:00:00+03:30' }],
+  });
+  expectRejected(taxonomy.serviceArchetypeTaxonomyCatalogV1Schema, {
+    ...versionedCatalog,
+    deprecations: [{ ...firstDecision, effective_at: '2026-10-15T12:00:00+03:30' }],
+  });
+});
+
 check('catalog rejects unresolved deprecation target or successor', () => {
   const primitive = primitives[0];
   const decision = {
@@ -438,8 +616,10 @@ check('freight elevator reservation is SERVICE while technical lift work is abse
   assert.match(document, /Freight elevator reservation for a move.*SERVICE reservation.*elevator repair\/servicing remains Maintenance/);
 });
 
-check('documentation maps residential office industrial retail and hospitality examples', () => {
-  for (const context of taxonomy.SERVICE_CONTEXT_CODES) assert.match(document, new RegExp(context, 'i'));
+check('documentation maps all canonical compatibility hints and member examples', () => {
+  for (const hint of taxonomy.SERVICE_COMPATIBILITY_HINT_CODES) {
+    assert.match(document, new RegExp(hint.replace('_', '[-_/ ]'), 'i'));
+  }
   assert.match(document, /Cleaning inside a unit/);
   assert.match(document, /Food, catering and paid breakfast order/);
   assert.match(document, /Loading, unloading, packing and movement of goods/);
@@ -450,6 +630,13 @@ check('documentation preserves the merged SERVICE Maintenance and CE boundary', 
   assert.match(document, /No CE entitlement, funding or redemption primitive exists/);
   assert.match(boundaryDocument, /Platform SERVICE taxonomy governance/);
   assert.match(boundaryDocument, /Benefits\/Commerce\/Loyalty owner: \*\*`OPEN_PRODUCT_DECISION`\*\*/);
+});
+
+check('governance acceptance precedes independent template adoption and fork', () => {
+  assert.match(document, /Only Platform SERVICE taxonomy governance may, after its own review/);
+  assert.match(document, /reusable template may pin the new\nexact archetype revision/);
+  assert.match(document, /explicitly adopt or fork/);
+  assert.match(document, /do not inherit source Workspace authority, eligibility or availability/);
 });
 
 check('schema remains pure no-I/O and persistence-free', () => {
