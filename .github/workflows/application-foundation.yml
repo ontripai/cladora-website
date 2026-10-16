@@ -7,6 +7,9 @@ on:
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
+      - 'scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs'
+      - 'scripts/test-airprop-legacy-country-defaults-audit-07.mjs'
+      - 'docs/contracts/AIRPROP-ADDRESS-STRUCTURE-PRESENTATION-EVALUATOR-v1.0.md'
       - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
       - 'scripts/test-ce-benefit-ownership-reconciliation-v1.mjs'
       - 'scripts/test-core-canonical-country-registry-v1.mjs'
@@ -38,6 +41,9 @@ on:
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
+      - 'scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs'
+      - 'scripts/test-airprop-legacy-country-defaults-audit-07.mjs'
+      - 'docs/contracts/AIRPROP-ADDRESS-STRUCTURE-PRESENTATION-EVALUATOR-v1.0.md'
       - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
       - 'scripts/test-ce-benefit-ownership-reconciliation-v1.mjs'
       - 'scripts/test-core-canonical-country-registry-v1.mjs'
@@ -90,6 +96,7 @@ jobs:
       - run: npm run test:core-jurisdiction-domain-artifact
       - run: npm run test:core-jurisdiction-domain-artifact-resolver
       - run: npm run test:airprop-b2
+      - run: npm run test:airprop-address-presentation
       - run: npm run test:app-foundation
       - run: npx tsc --noEmit
       - run: npm run build

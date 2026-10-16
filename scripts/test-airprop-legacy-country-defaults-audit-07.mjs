@@ -205,6 +205,7 @@ const signalCandidates = [
   }).sort();
 const expectedSignalCandidates = [
   'scripts/test-airprop-acquisition-runtime-013.mjs',
+  'scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs',
   'scripts/test-airprop-diligence-runtime-011.mjs',
   'scripts/test-airprop-diligence-runtime-012.mjs',
   'scripts/test-airprop-explicit-address-country-projection-05.mjs',
@@ -218,10 +219,12 @@ const expectedSignalCandidates = [
   'scripts/test-airprop-underwriting-runtime-007.mjs',
   'scripts/test-airprop-underwriting-ui-008.mjs',
   'scripts/test-airprop-valuation-contract-01a.mjs',
+  'scripts/test-core-canonical-country-registry-v1.mjs',
   'scripts/test-core-jurisdiction-domain-artifact-resolver-postgres-v1.mjs',
   'scripts/test-core-jurisdiction-domain-artifact-resolver-v1.mjs',
   'scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs',
   'scripts/test-core-jurisdiction-profile-selector-v1.mjs',
+  'scripts/test-documents-country-retention-operation-integration-v1.mjs',
   'scripts/test-documents-country-retention-resolution-postgres-v1.mjs',
   'scripts/test-documents-country-retention-resolution-v1.mjs',
   'scripts/test-workspace-role-assignment-runtime.mjs',
@@ -235,6 +238,7 @@ const expectedSignalCandidates = [
   'src/components/contact/ContactForm.tsx',
   'src/components/customer/CustomerAirpropWorkspace.tsx',
   'src/config/routes-metadata.ts',
+  'src/lib/airprop/address-structure-presentation-evaluator-v1.ts',
   'src/lib/airprop/opportunity-contract-v2.ts',
   'src/lib/airprop/opportunity-idempotency-v2.ts',
   'src/lib/airprop/valuation-contract-v1.ts',
@@ -269,7 +273,7 @@ const classifications = [
 ];
 const findingRows = [...audit.matchAll(/^\| ([A-Z][0-9]{2}) \| [^|]* \| ([^|]+) \|/gm)]
   .map(match => ({ id: match[1], classification: match[2].trim() }));
-check(findingRows.length === 14, 'classified finding count changed');
+check(findingRows.length === 15, 'classified finding count changed');
 check(new Set(findingRows.map(row => row.id)).size === findingRows.length,
   'each finding ID must occur exactly once');
 for (const classification of classifications) {

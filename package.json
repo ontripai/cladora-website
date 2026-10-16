@@ -7,6 +7,7 @@
   },
   "scripts": {
     "test:airprop-b2": "node scripts/test-airprop-b2-runtime-contract.mjs && node scripts/test-airprop-b2-api-ap10.mjs && node scripts/test-airprop-b2-ui.mjs && node scripts/test-airprop-b2-safety-guard.mjs && node scripts/test-airprop-b2-safety.mjs",
+    "test:airprop-address-presentation": "node scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs && node scripts/test-airprop-legacy-country-defaults-audit-07.mjs",
     "test:airprop-gateway-read:http": "node scripts/test-airprop-gateway-read-http-v1.mjs",
     "test:airprop-gateway-read:http:postgres": "node scripts/test-airprop-gateway-read-http-postgres-v1.mjs",
     "dev": "next dev",
