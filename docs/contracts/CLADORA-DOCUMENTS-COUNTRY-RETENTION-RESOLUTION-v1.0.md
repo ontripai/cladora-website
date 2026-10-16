@@ -29,6 +29,21 @@ The returned Core artifact is passed directly to
 `evaluateDocumentsCountryRetentionV1` inside the composition. It is never
 included in the composition output.
 
+The authority and domain profile is server-owned and exact:
+
+- permission `documents.vault.read`;
+- module `documents`;
+- entitlement key `module.documents`;
+- evaluation purpose `documents.country-retention.resolve`;
+- domain `documents.retention` at `documents-retention.v1`.
+
+None of those fields exists in the caller request. Before invoking either Core
+resolver, the composition requires the command, current authority receipt and
+entitlement binding to match this profile. An Airprop authority, a different
+module, manage-only permission, different purpose, missing entitlement, stale
+entitlement revision, revoked authority or cross-Workspace entitlement is a
+zero-query `AUTHORITY_PROFILE_MISMATCH` denial.
+
 ## Requests
 
 Both modes require a bounded document type code, positive immutable version
@@ -63,7 +78,10 @@ malformed evidence fails closed.
 The composition derives transaction, command, Context, Workspace, actor,
 authority revision, provider source locks and aggregate lock identity from the
 existing Core scope and command. Core rechecks current authority after the
-lock. The composition then independently requires exact equality between the
+lock. Before Core resolution, the composition requires exact Workspace,
+module and authority-revision equality across the command, receipt and
+`module.documents` entitlement binding. The composition then independently
+requires exact equality between the
 resolved artifact and fingerprint for profile ID/code/version, country,
 profile manifest hash, domain/version, artifact hash, lifecycle and effective
 period. Historical mode additionally requires the committed reference to

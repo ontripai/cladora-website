@@ -33,6 +33,14 @@ const version = z.number().int().positive().safe();
 const operation = z.enum(['retain', 'dispose', 'read-policy']);
 const legalHoldState = z.enum(['none', 'active']);
 const countryCode = z.string().regex(/^[A-Z]{2}$/);
+const serverOwnedProfile = Object.freeze({
+  permission_code: 'documents.vault.read',
+  module_code: 'documents',
+  entitlement_code: 'module.documents',
+  evaluation_purpose: 'documents.country-retention.resolve',
+  domain_code: 'documents.retention',
+  domain_version: 'documents-retention.v1',
+} as const);
 
 const evaluationFields = {
   document_type_code: code,
@@ -115,6 +123,7 @@ export const documentsCountryRetentionResolutionDecisionV1Schema = z.discriminat
       decision: z.literal('denied'),
       denial_reason: z.enum([
         'MALFORMED_INPUT',
+        'AUTHORITY_PROFILE_MISMATCH',
         'RESOLVER_DENIED',
         'RESOLVER_EVIDENCE_MISMATCH',
         'EVALUATOR_DENIED',
@@ -176,6 +185,45 @@ function resolverBinding(command: CoreCommand, scope: CoreTransactionScopeV1) {
   };
 }
 
+function hasExactServerOwnedProfile(
+  scope: CoreTransactionScopeV1,
+  command: CoreCommand,
+  authority: CurrentAuthorityTransactionDecisionReceiptV1,
+) {
+  const entitlement = authority.entitlement;
+  return command.permission_code === serverOwnedProfile.permission_code
+    && command.module_code === serverOwnedProfile.module_code
+    && command.evaluation_purpose === serverOwnedProfile.evaluation_purpose
+    && authority.permission_code === serverOwnedProfile.permission_code
+    && authority.module_code === serverOwnedProfile.module_code
+    && authority.evaluation_purpose === serverOwnedProfile.evaluation_purpose
+    && authority.decision === 'allowed'
+    && authority.rechecked_after_lock === true
+    && authority.transaction_bound === true
+    && authority.reusable_as_command_authority === false
+    && entitlement !== undefined
+    && entitlement.entitlement_key === serverOwnedProfile.entitlement_code
+    && entitlement.module_code === serverOwnedProfile.module_code
+    && entitlement.workspace_id === scope.workspace_id
+    && entitlement.workspace_id === command.workspace_id
+    && entitlement.workspace_id === authority.workspace_id
+    && entitlement.authority_revision === command.authority_version
+    && entitlement.authority_revision === authority.authority_version
+    && scope.workspace_id === command.workspace_id
+    && scope.workspace_id === authority.workspace_id
+    && scope.actor_id === command.actor_id
+    && scope.actor_id === authority.actor_id
+    && command.context_id === authority.context_id
+    && command.authority_version === authority.authority_version
+    && command.transaction_id === scope.transaction_id
+    && command.transaction_id === authority.transaction_context.transaction_id
+    && command.command_id === authority.transaction_context.command_id
+    && scope.attempt === authority.transaction_context.attempt
+    && authority.transaction_context.lock.workspace_id === scope.workspace_id
+    && authority.transaction_context.lock.aggregate_type === command.aggregate_type
+    && authority.transaction_context.lock.aggregate_id === command.aggregate_id;
+}
+
 function exactAcceptedEvidence(
   request: ParsedRequest,
   resolver: AcceptedResolverDecision,
@@ -224,6 +272,9 @@ export async function resolveDocumentsCountryRetentionV1(
 ): Promise<DocumentsCountryRetentionResolutionDecisionV1> {
   const request = documentsCountryRetentionResolutionRequestV1Schema.safeParse(inputValue);
   if (!request.success) return denied(null, 'MALFORMED_INPUT');
+  if (!hasExactServerOwnedProfile(scope, command, authority)) {
+    return denied(request.data.mode, 'AUTHORITY_PROFILE_MISMATCH');
+  }
 
   const binding = resolverBinding(command, scope);
   const resolver = request.data.mode === 'current'
@@ -233,8 +284,8 @@ export async function resolveDocumentsCountryRetentionV1(
       ...binding,
       property_id: request.data.property_id,
       expected_country_code: request.data.expected_country_code,
-      domain_code: 'documents.retention',
-      domain_version: 'documents-retention.v1',
+      domain_code: serverOwnedProfile.domain_code,
+      domain_version: serverOwnedProfile.domain_version,
     })
     : await resolveHistoricalJurisdictionDomainArtifactV1(scope, command, authority, {
       contract_version: CORE_JURISDICTION_DOMAIN_ARTIFACT_RESOLVER_REQUEST_V1,

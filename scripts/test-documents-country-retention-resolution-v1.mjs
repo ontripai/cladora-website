@@ -34,7 +34,7 @@ const ids={transaction:id(),command:id(),context:id(),workspace:id(),otherWorksp
   binding:id(),receipt:id()};
 const command={contract_version:'core-transaction-command.v1',transaction_id:ids.transaction,
   command_id:ids.command,context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,
-  authority_version:7,permission_code:'documents.retention.read',module_code:'documents_vault',
+  authority_version:7,permission_code:'documents.vault.read',module_code:'documents',
   evaluation_purpose:'documents.country-retention.resolve',aggregate_type:'portfolio.property',
   aggregate_id:ids.property,aggregate_version:2,provider_source_ids:[ids.property],
   idempotency_key:'documents-retention-resolution-contract-01',
@@ -56,7 +56,7 @@ const authority=authorityPort.bindCanonicalCurrentAuthorityObservationV1(authori
   source_reference:null,actor_status:'current',decision:'allowed',evaluated_at:now,
   entitlement:{contract_version:'core-authority-entitlement-binding.v1',workspace_id:ids.workspace,
     module_definition_id:ids.module,module_code:command.module_code,
-    entitlement_key:'module.documents_vault',authority_revision:7},
+    entitlement_key:'module.documents',authority_revision:7},
 });
 const review=seed=>({status:'approved',review_version:1,reviewed_at:'2026-09-01T00:00:00.000Z',
   evidence_sha256:hash(seed)});
@@ -177,10 +177,16 @@ await check('historical composition stays pinned to committed receipt evidence',
   assert.ok(scoped.calls.every(sql=>!sql.includes('property_jurisdiction_assignments')));
 });
 
-await check('callers cannot inject an artifact or effective timestamp',async()=>{
+await check('callers cannot inject artifact, timestamp or server-owned profile fields',async()=>{
   for(const injected of [
     {...currentRequest,artifact:currentArtifact.input},
     {...currentRequest,effective_at:now},
+    {...currentRequest,permission_code:'documents.vault.manage'},
+    {...currentRequest,module_code:'airprop_commercial'},
+    {...currentRequest,entitlement_code:'module.airprop_commercial'},
+    {...currentRequest,evaluation_purpose:'airprop.country-pack.resolve'},
+    {...currentRequest,domain_code:'address.structure'},
+    {...currentRequest,domain_version:'address-structure.v1'},
     {...historicalRequest,artifact:historicalArtifact.input},
   ]){
     const noQuery={...baseScope,query(){throw new Error('must not query');}};
@@ -188,6 +194,39 @@ await check('callers cannot inject an artifact or effective timestamp',async()=>
       noQuery,command,authority,injected);
     assert.equal(result.denial_reason,'MALFORMED_INPUT');
     assert.equal(result.mode,null);
+  }
+});
+
+await check('unrelated, manage-only and invalid entitlement authority never reach Core resolver',async()=>{
+  const noQuery={...baseScope,query(){throw new Error('resolver must not run');}};
+  const withAuthorityProfile=(commandOverrides,authorityOverrides={})=>{
+    const changedCommand={...command,...commandOverrides};
+    const changedAuthority={...authority,permission_code:changedCommand.permission_code,
+      module_code:changedCommand.module_code,evaluation_purpose:changedCommand.evaluation_purpose,
+      entitlement:{...authority.entitlement,module_code:changedCommand.module_code},
+      ...authorityOverrides};
+    return[changedCommand,changedAuthority];
+  };
+  const cases=[
+    withAuthorityProfile({permission_code:'airprop.asset.read',module_code:'airprop_commercial',
+      evaluation_purpose:'airprop.country-pack.resolve'},{entitlement:{...authority.entitlement,
+        module_code:'airprop_commercial',entitlement_key:'module.airprop_commercial'}}),
+    withAuthorityProfile({permission_code:'documents.vault.manage'}),
+    [command,{...authority,entitlement:undefined}],
+    [command,{...authority,entitlement:{...authority.entitlement,authority_revision:6}}],
+    [command,{...authority,entitlement:{...authority.entitlement,
+      entitlement_key:'module.airprop_commercial'}}],
+    [command,{...authority,entitlement:{...authority.entitlement,
+      workspace_id:ids.otherWorkspace}}],
+    [command,{...authority,decision:'denied',denial_reason:'AUTHORITY_DENIED'}],
+  ];
+  for(const [changedCommand,changedAuthority] of cases){
+    const result=await composition.resolveDocumentsCountryRetentionV1(
+      noQuery,changedCommand,changedAuthority,currentRequest);
+    assert.equal(result.decision,'denied');
+    assert.equal(result.denial_reason,'AUTHORITY_PROFILE_MISMATCH');
+    assert.equal(result.resolver_contract_version,null);
+    assert.equal(result.evaluation,null);
   }
 });
 
@@ -224,7 +263,8 @@ await check('cross-Workspace evidence and revoked access fail before evaluation'
   const revoked={...authority,decision:'denied',denial_reason:'ACTOR_REVOKED'};
   const revokedResult=await composition.resolveDocumentsCountryRetentionV1(
     scopeFor([]),command,revoked,historicalRequest);
-  assert.equal(revokedResult.resolver_denial_reason,'AUTHORITY_DENIED');
+  assert.equal(revokedResult.denial_reason,'AUTHORITY_PROFILE_MISMATCH');
+  assert.equal(revokedResult.resolver_denial_reason,null);
 });
 
 await check('malformed, mismatched and absent receipt evidence is denied with zero write',async()=>{
@@ -270,6 +310,10 @@ await check('composition imports canonical Core resolution and remains mutation-
   assert.match(source,/resolveCurrentJurisdictionDomainArtifactV1/);
   assert.match(source,/resolveHistoricalJurisdictionDomainArtifactV1/);
   assert.match(source,/committedJurisdictionDomainArtifactEvidenceReferenceV1Schema/);
+  assert.match(source,/permission_code: 'documents\.vault\.read'/);
+  assert.match(source,/module_code: 'documents'/);
+  assert.match(source,/entitlement_code: 'module\.documents'/);
+  assert.match(source,/evaluation_purpose: 'documents\.country-retention\.resolve'/);
   assert.doesNotMatch(source,/\b(?:insert\s+into|update\s+[a-z]|delete\s+from|grant\s+|create\s+table)\b/i);
   assert.doesNotMatch(source,/jurisdiction_domain_artifacts|jurisdiction_domain_artifact_receipt_evidence/);
 });

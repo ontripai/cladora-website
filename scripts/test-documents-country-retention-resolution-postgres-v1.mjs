@@ -119,6 +119,56 @@ async function assign(profile,version){
     countryCode,profile.manifest,actor]);
   return assignment;
 }
+async function installDocumentsAuthorityFixture(){
+  const moduleDefinition=(await pool.query(`select id::text,code,entitlement_key
+    from platform.module_definitions where code='documents' and is_active
+      and lifecycle_status in ('active','published') and valid_from<=statement_timestamp()
+      and (valid_to is null or valid_to>statement_timestamp())`)).rows;
+  assert.equal(moduleDefinition.length,1,'canonical Documents module required');
+  assert.equal(moduleDefinition[0].entitlement_key,'module.documents');
+  const permission=(await pool.query(`select id::text from identity.permissions
+    where code='documents.vault.read'`)).rows;
+  assert.equal(permission.length,1,'canonical Documents read permission required');
+  for(let index=0;index<ids.workspaceIds.length;index+=1){
+    const workspaceRoleId=randomUUID(),assignmentId=randomUUID();
+    const baseRole=(await pool.query(`select base_role_id::text from platform.workspace_roles
+      where id=$1`,[ids.workspaceRoleIds[index]])).rows[0];
+    assert.ok(baseRole?.base_role_id);
+    await pool.query(`insert into platform.workspace_modules(
+      tenant_id,customer_workspace_id,module_definition_id,module_code,status,valid_from,
+      activated_at,activated_by,reason)
+      values($1,$2,$3,'documents','active',statement_timestamp()-interval '1 second',
+        statement_timestamp(),$4,'Documents retention resolution fixture')`,[
+      ids.tenantId,ids.workspaceIds[index],moduleDefinition[0].id,actor]);
+    await pool.query(`insert into platform.workspace_entitlements(
+      customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from)
+      values($1,'module.documents','boolean',true,statement_timestamp()-interval '1 second')`,[
+      ids.workspaceIds[index]]);
+    await pool.query(`insert into platform.workspace_roles(
+      id,tenant_id,customer_workspace_id,code,name,base_role_id,scope_ceiling,
+      lifecycle_status,created_by,valid_from)
+      values($1,$2,$3,$4,$5,$6,'workspace','draft',$7,
+        statement_timestamp()-interval '1 second')`,[
+      workspaceRoleId,ids.tenantId,ids.workspaceIds[index],
+      `documents_retention_${index+1}`,`Documents retention ${index+1}`,
+      baseRole.base_role_id,actor]);
+    await pool.query(`insert into platform.workspace_role_modules(
+      tenant_id,workspace_role_id,module_definition_id) values($1,$2,$3)`,[
+      ids.tenantId,workspaceRoleId,moduleDefinition[0].id]);
+    await pool.query(`insert into platform.workspace_role_permissions(
+      tenant_id,workspace_role_id,permission_id,effect) values($1,$2,$3,'allow')`,[
+      ids.tenantId,workspaceRoleId,permission[0].id]);
+    await pool.query(`update platform.workspace_roles
+      set lifecycle_status='published',lock_version=lock_version+1
+      where id=$1 and lifecycle_status='draft'`,[workspaceRoleId]);
+    await pool.query(`insert into platform.workspace_member_roles(
+      id,tenant_id,customer_workspace_id,membership_id,workspace_role_id,scope_type,
+      assigned_by_user_id,assigned_by_membership_id,reason,valid_from)
+      values($1,$2,$3,$4,$5,'workspace',$6,$4,
+        'Documents retention resolution fixture',statement_timestamp()-interval '1 second')`,[
+      assignmentId,ids.tenantId,ids.workspaceIds[index],ids.membershipId,workspaceRoleId,actor]);
+  }
+}
 async function beginScope({attempt=1,client:provided=null}={}){
   const client=provided??await pool.connect();
   try{
@@ -134,8 +184,8 @@ async function beginScope({attempt=1,client:provided=null}={}){
       async query(text,values=[]){return client.query(text,values);}});
     const authorityRequest={contract_version:'core-current-authority-transaction-port-request.v1',
       decision_id:randomUUID(),context_id:ids.contextId,workspace_id:ids.workspaceIds[0],
-      actor_id:actor,authority_version:authorityVersion,permission_code:'airprop.asset.read',
-      module_code:'airprop_commercial',evaluation_purpose:'airprop.country-pack.resolve',
+      actor_id:actor,authority_version:authorityVersion,permission_code:'documents.vault.read',
+      module_code:'documents',evaluation_purpose:'documents.country-retention.resolve',
       transaction_context:{transaction_id:transactionId,command_id:commandId,attempt,
         isolation_level:'serializable',lock:{kind:'command_aggregate',
           workspace_id:ids.workspaceIds[0],aggregate_type:'portfolio.property',
@@ -186,8 +236,8 @@ function historicalRequest(){
 function hostCommand(key=randomUUID()){
   return{contract_version:'core-transaction-command.v1',transaction_id:randomUUID(),
     command_id:randomUUID(),context_id:ids.contextId,workspace_id:ids.workspaceIds[0],actor_id:actor,
-    authority_version:0,permission_code:'airprop.asset.read',module_code:'airprop_commercial',
-    evaluation_purpose:'airprop.country-pack.resolve',aggregate_type:'portfolio.property',
+    authority_version:0,permission_code:'documents.vault.read',module_code:'documents',
+    evaluation_purpose:'documents.country-retention.resolve',aggregate_type:'portfolio.property',
     aggregate_id:ids.propertyIds[0],aggregate_version:++hostAggregateVersion,
     provider_source_ids:[ids.propertyIds[0]],idempotency_key:`documents-retention-host-${key}`,
     input_fingerprint:`sha256:${hash(`documents-retention-host-${key}`)}`};
@@ -237,6 +287,7 @@ try{
     values($1,'00000000-0000-0000-0000-000000000000','authenticated','authenticated',$2,now(),now())`,
   [actor,`documents-retention-resolution-${randomUUID()}@example.invalid`]);
   ids=await driver.setup({userId:actor,runId:randomUUID(),target:'local'});
+  await installDocumentsAuthorityFixture();
   const addressId=randomUUID();
   await pool.query(`insert into portfolio.addresses(
     id,tenant_id,country_code,county,city,street,building_no,postal_code)
@@ -309,7 +360,36 @@ try{
     assert.equal(await effectDigest(),before);
   });
 
-  await check('cross-Workspace and revoked authority denial remains SELECT-only',async()=>{
+  await check('unrelated and invalid Documents authority profiles deny before resolver',async()=>{
+    const before=await effectDigest(),tx=await beginScope();
+    try{
+      const noQuery={...tx.scope,query(){throw new Error('resolver must not run');}};
+      const cases=[
+        [{...tx.command,permission_code:'airprop.asset.read',module_code:'airprop_commercial',
+          evaluation_purpose:'airprop.country-pack.resolve'},
+        {...tx.authority,permission_code:'airprop.asset.read',module_code:'airprop_commercial',
+          evaluation_purpose:'airprop.country-pack.resolve',entitlement:{...tx.authority.entitlement,
+            module_code:'airprop_commercial',entitlement_key:'module.airprop_commercial'}}],
+        [{...tx.command,permission_code:'documents.vault.manage'},
+          {...tx.authority,permission_code:'documents.vault.manage'}],
+        [tx.command,{...tx.authority,entitlement:undefined}],
+        [tx.command,{...tx.authority,entitlement:{...tx.authority.entitlement,
+          authority_revision:tx.authority.authority_version-1}}],
+        [tx.command,{...tx.authority,entitlement:{...tx.authority.entitlement,
+          workspace_id:ids.workspaceIds[1]}}],
+        [tx.command,{...tx.authority,decision:'denied',denial_reason:'AUTHORITY_DENIED'}],
+      ];
+      for(const [changedCommand,changedAuthority] of cases){
+        const denied=await composition.resolveDocumentsCountryRetentionV1(
+          noQuery,changedCommand,changedAuthority,currentRequest());
+        assert.equal(denied.denial_reason,'AUTHORITY_PROFILE_MISMATCH');
+        assert.equal(denied.resolver_contract_version,null);
+      }
+    }finally{await finish(tx);}
+    assert.equal(await effectDigest(),before);
+  });
+
+  await check('cross-Workspace evidence and revoked authority denial remains SELECT-only',async()=>{
     const before=await effectDigest(),tx=await beginScope();
     try{
       const request=historicalRequest();
@@ -320,7 +400,8 @@ try{
       const revoked=await composition.resolveDocumentsCountryRetentionV1(
         tx.scope,tx.command,{...tx.authority,decision:'denied',denial_reason:'ACTOR_REVOKED'},
         currentRequest());
-      assert.equal(revoked.resolver_denial_reason,'AUTHORITY_DENIED');
+      assert.equal(revoked.denial_reason,'AUTHORITY_PROFILE_MISMATCH');
+      assert.equal(revoked.resolver_denial_reason,null);
     }finally{await finish(tx);}
     assert.equal(await effectDigest(),before);
   });
