@@ -47,6 +47,24 @@ or runtime activation.
 | CE Guide provider | `experience-guide-lifecycle-provider-v1.ts` | Validates publish/unpublish and exact replay in Core command scope. | No current content-policy read projection. |
 | Replay hook | `transaction-replay-provider-hook-v1.ts` | Revalidates current provider state before exact command replay. | Replay validation is not a general read host. |
 
+### Canonical authority profile is not installed
+
+The baseline canonical database inventory does **not** install
+`experience.guide.read`, module `experience_guides`, or entitlement
+`module.experience_guides`. Those identifiers currently occur only in proposals,
+application declarations and disposable fixtures. In particular:
+
+- `src/lib/community/experience-guide-schema.ts` labels the permissions as proposed;
+- route-classifier and page tests declare the intended read gate;
+- disposable PostgreSQL harnesses create temporary module/entitlement rows;
+- installed migrations reference the inactive Guide command profile
+  `experience.guide.manage / experience_guides`, but do not seed or activate the read permission,
+  module or Workspace entitlement.
+
+Repository strings and passing fixtures are not canonical registry installation. A future read port
+must fail closed until `READ-AUTHORITY-PROFILE-01` installs and validates the exact read profile
+under separate migration, Remote and activation authorization.
+
 Reviewed artifact hashes:
 
 | Artifact | SHA-256 |
@@ -87,12 +105,30 @@ schema is created here.
 | `attempt` | Positive bounded attempt number. A PostgreSQL `40001` creates a new transaction and attempt. |
 | `context_id`, `workspace_id`, `actor_id` | Explicit and exact. Derived from the verified server session/context, not artifact or locale data. |
 | `property_id` | Explicit property source. It must be locked and revalidated in the same transaction. |
-| `expected_authority_revision` | Caller-observed revision used only for stale detection. Core reads and returns the current canonical revision. |
-| authority profile | Exact `experience.guide.read` / `experience_guides` / `experience.guide.content-policy.read`. No manage-permission fallback. |
-| domain profile | Exact `content.policy` / `content-policy.v1`. Arbitrary client domain codes are rejected. |
+| `expected_authority_revision` | Optional caller-observed stale precondition only. Core reads the current canonical revision; equality cannot create authority or turn a denial into allow. |
 
 The request contains no locale, language, currency, timezone, IP address, historical receipt,
-command ID, aggregate version, mutation intent or reusable grant.
+command ID, aggregate version, mutation intent, permission, module, entitlement, purpose, domain or
+reusable grant.
+
+## `READ-AUTHORITY-PROFILE-01`
+
+The future Core registry must define one closed, server-fixed read profile:
+
+| Binding | Exact value/invariant |
+| --- | --- |
+| permission | `experience.guide.read` |
+| module | `experience_guides` |
+| entitlement | `module.experience_guides`, present, enabled, effective and bound to the exact Workspace and current authority revision |
+| evaluation purpose | `experience.guide.content-policy.read` |
+| domain | `content.policy` / `content-policy.v1` |
+| execution profile | A dedicated Core read execution role/profile reviewed through its own ACL/RLS package |
+
+The caller cannot submit or override any of these values. The sealed read host chooses the profile
+before checkout and verifies the exact registered version. An actor with only
+`experience.guide.manage` is denied. Missing entitlement is denied even if the permission exists.
+Fallback to manage permission, `service_role`, an object owner, a command execution role or any
+unprofiled connector is prohibited.
 
 ## Required Core read host and authority binder
 
@@ -104,12 +140,14 @@ host invariants. The future read host must:
 2. acquire canonical Workspace and property/source locks in a fixed order;
 3. create the read scope internally with database transaction ID, read request ID and attempt;
 4. read and lock the canonical authority revision, Context, membership and Workspace state;
-5. evaluate `experience.guide.read` in `experience_guides` for the exact Context and Workspace;
-6. bind an ephemeral current-authority observation to the read request and property locks;
-7. select the current property jurisdiction and `content.policy` artifact in that same scope;
-8. commit only after the result has been schema-validated and all provider queries have settled;
-9. retry only a genuine PostgreSQL `40001` in a fresh transaction with a new attempt;
-10. execute no durable `INSERT`, `UPDATE`, `DELETE`, ledger, audit or outbox operation.
+5. resolve `READ-AUTHORITY-PROFILE-01` server-side and require its exact current entitlement;
+6. evaluate `experience.guide.read` in `experience_guides` for the exact Context and Workspace;
+7. bind an ephemeral current-authority observation to the read request and property locks;
+8. select the current property jurisdiction and `content.policy` artifact in that same scope;
+9. schema-validate and copy the bounded decision before transaction cleanup;
+10. end every accepted, denied and unavailable read attempt with `ROLLBACK`;
+11. retry only a genuine PostgreSQL `40001` in a fresh transaction with a new attempt;
+12. execute no durable `INSERT`, `UPDATE`, `DELETE`, receipt, ledger, audit or outbox operation.
 
 “Read-only” here means zero durable write. The implementation may use shared row locks to close
 assignment/profile races; it must not claim PostgreSQL `READ ONLY` mode while issuing lock clauses
@@ -118,6 +156,11 @@ that PostgreSQL disallows in such a transaction.
 The authority result is ephemeral status evidence. It must include the current revision,
 transaction/read-request binding and `reusable_as_command_authority=false`. It is not persisted as a
 command receipt and cannot be passed to the command resolver.
+
+`COMMIT`, commit acknowledgement, command receipt, audit, outbox and `unknown_commit` semantics do
+not belong to this read port. Cleanup must attempt `ROLLBACK` before releasing a healthy connection;
+an uncertain or failed cleanup destroys the connection. The returned bounded value is copied out of
+the completed query results and does not depend on a committed database effect.
 
 ## Current selection and artifact resolution
 
@@ -140,9 +183,11 @@ Missing, multiple, inactive, suspended, expired, superseded, hash-mismatched, re
 cross-Workspace or stale-revision state is a bounded denial. A concurrent assignment/profile change
 must remain blocked by the held locks or cause a real serialization abort and fresh-attempt retry.
 
-## Bounded result
+## `CONTENT-POLICY-DECISION-01`
 
-The future accepted result may disclose only:
+An artifact fingerprint alone is insufficient for a CE read. The future Core resolver must parse
+the exact canonical `content.policy` bytes and emit a bounded, evaluated decision. The accepted
+result may disclose only:
 
 - decision, decision/read-request version and `evaluated_at`;
 - Context, Workspace, actor and current authority revision;
@@ -150,12 +195,22 @@ The future accepted result may disclose only:
 - profile ID/code/version, country and manifest SHA-256;
 - domain code/version and artifact SHA-256;
 - artifact effective interval and bounded lifecycle status;
+- `applicability`: an evaluated applicable/not-applicable result plus bounded public reason codes;
+- `disclaimer_requirement`: whether a disclaimer is required and its exact public policy code and
+  positive version, without disclaimer body or legal-review notes;
+- `review_window`: bounded effective/review timestamps or duration required by the policy, without
+  reviewer identity or private approval evidence;
+- `source_provenance_requirements`: versioned required source classes/counts and public provenance
+  evidence codes, without raw sources, source bodies or private references;
 - `reusable_as_command_authority=false`.
 
 It must not disclose an address, postal code, Guide body, document/payment payload, permission row,
 membership row, entitlement source row, reviewer identity, private signoff reference, credential or
-raw artifact governance evidence. A historical command receipt or artifact reference may be shown
-separately as history, but it cannot satisfy this current decision.
+raw source/artifact governance evidence. A historical command receipt or artifact reference may be
+shown separately as history, but it cannot satisfy this current decision.
+
+The decision evaluates policy applicability only. It does not grant Guide read authority, approve
+Guide content, substitute for CE audience checks, or authorize a later command.
 
 ## Bounded denial model
 
