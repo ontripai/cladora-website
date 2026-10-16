@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const BASELINE_COMMIT = '83a18a583fb30b8177246a60e3505e3aac634215';
+const INVENTORY_EVIDENCE_PATH = 'docs/architecture/references/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-EVIDENCE.json';
+const INVENTORY_EVIDENCE_SHA256 = '43f4e5f89ce55da665c21046c2e9b3fa5c26b1c51f24174e4801fc40798a85cd';
 let assertions = 0;
 
 function check(value, message) {
@@ -13,6 +17,18 @@ function check(value, message) {
 
 function read(relativePath) {
   return readFileSync(path.join(root, relativePath), 'utf8');
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`;
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function sha256(value) {
+  return createHash('sha256').update(value).digest('hex');
 }
 
 function sourceFiles(directory) {
@@ -213,24 +229,79 @@ for (const statement of [
 }
 
 const inventory = JSON.parse(read('docs/architecture/references/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-INVENTORY.json'));
+const inventoryEvidence = JSON.parse(read(INVENTORY_EVIDENCE_PATH));
 check(inventory.schema === 'ce-member-benefit-terminology-inventory.v1', 'inventory schema must be exact');
-check(inventory.baseline_commit === '83a18a583fb30b8177246a60e3505e3aac634215', 'inventory baseline must pin live main');
+check(inventory.baseline_commit === BASELINE_COMMIT, 'inventory baseline must pin the reviewed main commit');
 check(inventory.canonical_merge_commit === '360df4b2a154bf188c2ad3ea5c673be64738c3e9',
   'inventory must separately pin the canonical funding merge');
+check(inventory.evidence_snapshot === INVENTORY_EVIDENCE_PATH,
+  'inventory must pin the local evidence snapshot path');
+check(inventory.evidence_sha256 === INVENTORY_EVIDENCE_SHA256,
+  'inventory must pin the reviewed evidence payload hash');
 check(inventory.entry_count === inventory.entries.length, 'inventory entry count must match entries');
 check(inventory.entry_count === 532, 'baseline inventory must retain all 532 matched occurrences');
+check(inventoryEvidence.schema === 'ce-member-benefit-terminology-evidence.v1',
+  'evidence snapshot schema must be exact');
+check(inventoryEvidence.baseline_commit === BASELINE_COMMIT,
+  'evidence snapshot must pin the same reviewed baseline commit');
+check(inventoryEvidence.hash_algorithm === 'sha256', 'evidence snapshot must use sha256');
+check(inventoryEvidence.payload_sha256 === INVENTORY_EVIDENCE_SHA256,
+  'evidence snapshot must declare the reviewed payload hash');
+const evidencePayload = { ...inventoryEvidence };
+delete evidencePayload.payload_sha256;
+check(sha256(canonicalJson(evidencePayload)) === INVENTORY_EVIDENCE_SHA256,
+  'evidence snapshot payload bytes must match the reviewed hash');
+
+const requiredClassificationCounts = {
+  accepted: 211,
+  ambiguous: 157,
+  incorrect: 17,
+  internal_only: 147,
+};
+const computedClassificationCounts = Object.fromEntries(
+  Object.keys(requiredClassificationCounts).map(classification => [classification, 0]),
+);
 for (const classification of ['accepted', 'ambiguous', 'incorrect', 'internal_only']) {
   check(inventory.classifications.includes(classification), `inventory must declare ${classification}`);
   check(inventory.entries.some(entry => entry.classification === classification), `inventory must contain ${classification}`);
 }
+const evidenceFiles = new Map(inventoryEvidence.files.map(file => [file.path, file]));
+check(evidenceFiles.size === inventoryEvidence.files.length,
+  'evidence snapshot must not contain duplicate file paths');
+const inventoryPaths = [...new Set(inventory.entries.map(entry => entry.path))].sort();
+check(JSON.stringify([...evidenceFiles.keys()].sort()) === JSON.stringify(inventoryPaths),
+  'evidence snapshot paths must exactly match inventory paths');
 for (const entry of inventory.entries) {
   check(typeof entry.path === 'string' && Number.isInteger(entry.line) && Number.isInteger(entry.column),
     'every inventory occurrence must have path, line and column');
   check(inventory.classifications.includes(entry.classification),
     `inventory occurrence must use a canonical classification: ${entry.path}:${entry.line}`);
+  computedClassificationCounts[entry.classification] += 1;
+  const fileEvidence = evidenceFiles.get(entry.path);
+  check(Boolean(fileEvidence), `inventory path must have baseline evidence: ${entry.path}`);
+  check(inventory.baseline_file_sha256[entry.path] === fileEvidence.sha256,
+    `inventory file hash must match baseline evidence: ${entry.path}`);
+  const lineEvidence = fileEvidence.lines[String(entry.line)];
+  check(typeof lineEvidence === 'string',
+    `inventory coordinate must have versioned line evidence: ${entry.path}:${entry.line}`);
+  check(lineEvidence.slice(entry.column - 1, entry.column - 1 + entry.term.length) === entry.term,
+    `inventory term must begin at the exact baseline coordinate: ${entry.path}:${entry.line}:${entry.column} (${entry.term})`);
   if (entry.classification === 'incorrect') {
     check(entry.resolution === 'reworded_in_pr', `incorrect occurrence must have a bounded correction: ${entry.path}:${entry.line}`);
   }
+}
+check(JSON.stringify(computedClassificationCounts) === JSON.stringify(requiredClassificationCounts),
+  'computed classification counts must retain accepted=211, ambiguous=157, incorrect=17 and internal_only=147');
+check(JSON.stringify(inventory.classification_counts) === JSON.stringify(computedClassificationCounts),
+  'declared classification counts must exactly match entries');
+check(Object.keys(inventory.baseline_file_sha256).length === evidenceFiles.size,
+  'inventory file-hash paths must exactly match evidence paths');
+for (const fileEvidence of inventoryEvidence.files) {
+  check(/^[a-f0-9]{64}$/.test(fileEvidence.sha256), `baseline file hash must be sha256: ${fileEvidence.path}`);
+  check(Number.isInteger(fileEvidence.byte_length) && fileEvidence.byte_length > 0,
+    `baseline file byte length must be positive: ${fileEvidence.path}`);
+  check(Number.isInteger(fileEvidence.line_count) && fileEvidence.line_count > 0,
+    `baseline file line count must be positive: ${fileEvidence.path}`);
 }
 
 const locales = read('src/config/locales.ts');

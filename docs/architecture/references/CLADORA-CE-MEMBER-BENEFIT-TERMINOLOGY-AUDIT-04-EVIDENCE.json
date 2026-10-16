@@ -1,0 +1,1578 @@
+{
+  "schema": "ce-member-benefit-terminology-evidence.v1",
+  "baseline_commit": "83a18a583fb30b8177246a60e3505e3aac634215",
+  "canonical_merge_commit": "360df4b2a154bf188c2ad3ea5c673be64738c3e9",
+  "hash_algorithm": "sha256",
+  "coordinate_model": "one-based Unicode code-point column in the captured baseline line",
+  "files": [
+    {
+      "path": "docs/CLADORA-MASTER-SYSTEM-DEFINITION-v1.0.md",
+      "sha256": "ed01273b83d178e094990a29640aae26fa6429795a55f54cd6bcaaa29dfebab1",
+      "byte_length": 18972,
+      "line_count": 319,
+      "lines": {
+        "62": "| Workspace Services & Benefits | sponsor/portfolio service ecosystem | providers, locations, cards, offers, discounts, events and rewards |",
+        "124": "Modules include accounting, billing, payments, bank reconciliation, maintenance, utilities, assets, occupancy, governance, communications, documents, procurement, security access, amenities, concierge, benefits and AIRPROP experiences.",
+        "128": "Entitlements are effective-dated rights and limits derived from platform policy and workspace contract. They may enable a module, feature or capacity such as maximum properties, users, storage, bookings or benefit networks. A property profile alone never activates a module.",
+        "174": "Ownership, occupancy, operating authority, benefit membership, physical access and payment responsibility remain separate relationships.",
+        "193": "## 10. Workspace Services & Benefits",
+        "195": "A developer, parent company, portfolio owner, association group or operator may sponsor services and benefits across one or many participating workspaces.",
+        "199": "`Sponsor → Benefit Network → Participating Workspace → Provider/Location → Offer/Service → Eligible Member → Redemption`",
+        "203": "The system may provide digital cards, membership tiers, included services, discounts, reservation priority, events and non-cash rewards. Membership does not prove ownership, occupancy or access authority. A benefit scan cannot directly post a journal or move money. Sponsor/provider settlement requires separately authorized financial evidence.",
+        "205": "Cross-workspace benefits never create cross-tenant access to operational records.",
+        "285": "| `product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md` | resident services and developer-sponsored benefit model |",
+        "304": "9. `CLADORA-WORKSPACE-SERVICES-BENEFITS-001`",
+        "313": "| 1.0 | 2026-09-15 | Established the authoritative universal CLADORA/AIRPROP system definition; reconciled dynamic workspace composition, property profiles, resident services and sponsor benefit networks with the existing residential core. |"
+      }
+    },
+    {
+      "path": "docs/airprop/AP-VAL-01A-SOURCE-READINESS-v1.0.md",
+      "sha256": "f9d7ffd63fa7f65ebd701c51f36c5c19d666ec27d4b70107a98b8445c4a15b04",
+      "byte_length": 7687,
+      "line_count": 48,
+      "lines": {
+        "48": "The executable tests use only synthetic source-rights metadata. The original 20 checks plus five review regressions cover wrong/invalid Workspace, missing current authority, revoked usage, expired evidence and identifier-free denied responses, including strict runtime/type boundaries. They also retain temporal limits, separate training/result/comparable rights, raw/derived retention and no connector/publication authority. No migration, persistence, Auth identity, source connection, real data, Core/SERVICE code, Listing command, audit/outbox/ledger, Merge or Production deployment is added."
+      }
+    },
+    {
+      "path": "docs/airprop/UX-015-adoption-and-gaps.md",
+      "sha256": "7fc65e72cae2e04cc88cfe18597c12a86b13b28bbb2f134a689beb93282a871c",
+      "byte_length": 3566,
+      "line_count": 22,
+      "lines": {
+        "20": "Run `node scripts/test-airprop-native-ui-004.mjs`, focused ESLint and TypeScript checking. Existing exact retry, pending recovery, explicit workspace selection and RO/FA scenarios remain in the rendered suite. No migration, grant, document upload, financial decision or security gate change is included."
+      }
+    },
+    {
+      "path": "docs/airprop/UX-016-evaluation-feedback.md",
+      "sha256": "9aa4c35e6e1d02ffa58f146593b4d04e288a35f0e7074c53609ba6a66e31b2d1",
+      "byte_length": 1919,
+      "line_count": 13,
+      "lines": {
+        "5": "Evaluation forms now identify invalid acquisition cost, rent and operating expenses next to the relevant field. Contract validation drives the errors; a cross-field expense/rent failure focuses operating expenses. Input values remain available for correction. EN, RO and FA copy is included, with accessible error associations and first-error focus.",
+        "11": "Previous live opportunity-form acceptance: Mahmoud, Association Administrator, CLADORA Pilot Association 001, production `/fa/app/airprop`, 2026-10-05. Empty fields produced three localized errors and first-field focus; zero price retained name/city and focused price. No opportunity was created. Existing evaluation and diligence sections loaded. This observation is limited to the desktop Persian flow."
+      }
+    },
+    {
+      "path": "docs/airprop/UX-DEC-001-source-v1.0.md",
+      "sha256": "fe144feb60ef543e360527013c88345fcb8757efc5f28f1a3de1c4278e0ca3bc",
+      "byte_length": 16517,
+      "line_count": 139,
+      "lines": {
+        "25": "این دستورالعمل شامل تمام منوها، صفحات، فرم‌ها، گزارش‌ها، پیام‌ها، اعلان‌ها و فرایندهای جاری و جدید در هسته و عملیات CLADORA، AIRPROP و SERVICE است. برای کاربران داخلی پلتفرم و کاربران مشتری کاربرد دارد؛ جزئیات هر نقش متناسب با وظیفه او نمایش داده می‌شود.",
+        "129": "این سند به‌عنوان دستور مشترک تجربه کاربری CLADORA به مرجع کار اضافه شود. تمام منوها، فرم‌ها، گزارش‌ها و فرایندهای جدید و موجود در دامنه این ورک با آن تطبیق داده شوند. کنترل‌های امنیتی و قواعد معتبر در پشت سیستم اجرا شوند؛ کاربر فقط توضیح روشن و اقدام لازم را ببیند. ابتدا شکاف‌های واقعی را با شواهد ثبت کن، اصلاح اختصاصی را در همین مسیر انجام بده و تغییر مشترک را به مسیر هسته ارجاع بده. تکمیل هر Task شامل بررسی UX و امنیت باشد. سند، شکاف‌های باز و نتایج آزمون به ورک شماره بعد منتقل شوند.",
+        "137": "نسخه ۱٫۰ شامل اصل حاکم، ۱۵ قاعده تجربه کاربری، ۴ قاعده امنیتی، قاعده اجرای مقررات و ۶ معیار پذیرش است. فایل برای ابلاغ مشترک آماده شده؛ ارسال خودکار به گفتگوهای مستقل یا اعمال تغییر در کد در این مرحله انجام نشده است."
+      }
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-050-role-aware-dashboard-access-matrix.md",
+      "sha256": "9a4230d0cde77c0b79d912a0ae0b7bcf5a58f314781153dc3a89b67d119f48b2",
+      "byte_length": 10037,
+      "line_count": 113,
+      "lines": {
+        "83": "     - `canRenderDashboardSection(section, reqCap, reqMod, reqPerm)` which requires both the TypeScript persona matrix allowance AND the server `dashboard.sections` array."
+      }
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-052-universal-managed-property-workspaces.md",
+      "sha256": "529f3c671798950aa28e81953d97e42eb154f9c41544e1e2234cb59ab0b5674e",
+      "byte_length": 13663,
+      "line_count": 174,
+      "lines": {
+        "88": "### Workspace Services & Benefits",
+        "90": "A developer, parent company, portfolio owner or operator may sponsor a cross-workspace network of services and benefits. Participating locations can include on-site cafés, shops, gyms, wellness facilities and service desks as well as approved external partners. Verified owners, residents, tenants, employees, clients or delegated family members may receive a digital membership card, tier, discount, included service, reservation priority, event access or non-cash reward.",
+        "96": "`Sponsor → Benefit Network → Participating Workspace → Provider/Location → Offer/Service → Eligible Member → Redemption`",
+        "98": "Cross-workspace membership never permits cross-tenant operational data access. Financial settlement between sponsor and provider requires explicit accounting evidence and approval; scanning a benefit card cannot directly post a journal or move money.",
+        "159": "7. **Service and benefit networks:** add sponsor, provider, membership, card, offer and redemption contracts behind separate entitlements."
+      }
+    },
+    {
+      "path": "docs/architecture/ADR-CLD-055-scalable-platform-ownership-and-workspace-enablement.md",
+      "sha256": "56efdc0711e345fd88a686b0e10fecd7cbcfcbd3e1e27a529f6852d070f1cb9d",
+      "byte_length": 14314,
+      "line_count": 83,
+      "lines": {
+        "67": "Before applying a migration, review existing production migration history and rehearse the new version in CI. Roll out with audit evidence, a restricted pilot, and a rollback/disable path for newly introduced privileges. Avoid backfilling staff identity from free-text names automatically.",
+        "73": "| Typed workspace staff responsibilities and commercial-owner transfer | `supabase/migrations/20260925063350_platform_customer_responsibility_v1.sql`; `src/app/api/platform/v1/staff-responsibilities/route.ts` | Implemented slice: unique active commercial owner, collaborators, audited transfer/revocation. Existing free-text owner data must not be treated as authorization or automatically backfilled. Full lead-to-workspace task continuity is not certified here. |"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-ACQUISITION-DECISION-013-v1.0.md",
+      "sha256": "ca8673aaec20e09f21e4f1145242083349f71cad9321f629011d168316f6b4e1",
+      "byte_length": 7057,
+      "line_count": 39,
+      "lines": {
+        "19": "Each vote has an optimistic decision revision and unique actor/proposal identity. Competing votes serialize; a stale vote has zero partial effects. Audit, outbox and actor/content/resource-bound idempotency are atomic. Exact retries reauthorize current native and document access; completed votes return immutable original responses. Audit/outbox contain transition metadata, not rationale or document bodies. Rationale is shown only in the authorized private projection; identities/contact data are not included in vote history.",
+        "23": "`/api/customer/v2/airprop/acquisition` GET/POST enforce strict envelopes, duplicate-free queries, authenticated claims, trusted mutation origin, JSON, a 16 KiB body ceiling, exact response scope/version and private/no-store responses. Clients cannot send actors, price, approval count, readiness, execution or ownership effects."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-DILIGENCE-REVIEW-012-v1.0.md",
+      "sha256": "99a8af32b19f9e634fce240c1425a8e95e54c0da4d0fde88a2bd31835ad911cb",
+      "byte_length": 6506,
+      "line_count": 33,
+      "lines": {
+        "9": "EN, RO and FA/RTL copy, explicit selections, server permission flags, stale baseline warnings, accessible labels/status messages, pending-request recovery and exact retries are included. Unsaved edits cannot be submitted. Network uncertainty retains the original key and payload; confirmed version conflicts clear that request and reload server state. Scope changes remount the editor and ignore late responses. Corrupt/unavailable session storage fails closed.",
+        "23": "`/api/customer/v2/airprop/diligence/review` GET/POST and `/evidence` GET require authenticated claims, strict/duplicate-free inputs and private/no-store headers. Mutations require trusted origin, JSON and a bounded 512 KiB body. Direct RPC inputs are independently validated, including fixed checklist, unique canonical IDs, strict finding structure, bounded text and exact optimistic revision. Retries remain actor-bound, content-bound and resource-bound."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-LEGACY-WORKSPACE-RESOLUTION-REVIEW-v1.0.md",
+      "sha256": "9d7ae64f1049e1adf2378a6144debe1521c0c7cbef670d0a88e6b667ca0dbb7a",
+      "byte_length": 5131,
+      "line_count": 57,
+      "lines": {
+        "24": "Use complete authorized binding history for the included subjects. A partial export cannot establish absence of conflicting history. The tool cannot verify completeness, source authenticity, document access or actor permissions; live application must verify them."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-AIRPROP-UNDERWRITING-CONTRACT-006-v1.0.md",
+      "sha256": "8a0afae19d3772899765c1661907d26286951d60c0ba5fdab888a1682cd1723a",
+      "byte_length": 5886,
+      "line_count": 88,
+      "lines": {
+        "83": "module, role, customer data or remote migration mutation is included."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-010-FORM-FEEDBACK-v0.1.md",
+      "sha256": "43c3542ae1941939c9091c72f0a0f5c0e5eed46ff16bf82cff833fcd84a69493",
+      "byte_length": 3843,
+      "line_count": 34,
+      "lines": {
+        "24": "The new regression is included in the CE-owned CI workflow. These mounted tests use delayed in-memory commands and JSDOM; they do not claim real-user, live database, physical screen-reader or browser acceptance. CI and Preview must be checked on the delivery commit before recording their results."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-011-EVENT-INTEREST-v0.1.md",
+      "sha256": "607076c66ff70eb64c30b60778cc8fb88f4b9edd4c840cc0eace59c08c93e2bc",
+      "byte_length": 6640,
+      "line_count": 44,
+      "lines": {
+        "1": "# CE-011 — free event interest and manual attendance",
+        "5": "CE-011 models one free event with exactly one occurrence, an explicit audience, optional `community_ref`, publication/cancellation, self interest/withdrawal, and host-recorded attendance with versioned correction. The occurrence carries schedule information only. It contains no seat, slot, quota, waitlist, resource allocation, payment, order, message, credential, or Booking command.",
+        "12": "| C02 independent activation | capability `ce.event.basic`, future module `community_events` and entitlement `module.community_events` | The schema pins the official capability/module identifiers. No permission seed, module activation or entitlement mutation is included. |"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-011-FORM-RECOVERY-v0.1.md",
+      "sha256": "7c74067585f07ba283a759293a0bc623b3a1e8fd095b31f2e81eec0b8b4b09f0",
+      "byte_length": 5876,
+      "line_count": 50,
+      "lines": {
+        "46": "The new regression is included in the CE-owned CI workflow. The mounted tests use JSDOM and synthetic delayed commands or mocked HTTP transport. They are not a physical screen-reader or real-user/live-database acceptance claim. Exact-head CI and Preview results will be recorded in the Draft PR and PM after inspection. No remote migration inventory is needed for this UI-only slice."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-012-FORM-RECOVERY-v0.1.md",
+      "sha256": "35a5f15fc087470788fc096906484e1f98a416933c4bae6f6f9afd2f0fa6b836",
+      "byte_length": 5388,
+      "line_count": 43,
+      "lines": {
+        "12": "CE011-UX-02 merged through PR #358, completing the CE010/CE011 stack before this Branch was rebased onto the resulting `main`. No CE010 or CE011 change is included in this package."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-GUIDE-PRODUCTION-ACTIVATION-READINESS-06-v1.0.md",
+      "sha256": "778ede4cdacbae4e794a6c069f349687eae4e52b754a9b37eb595c36ad41e94c",
+      "byte_length": 13828,
+      "line_count": 178,
+      "lines": {
+        "88": "| Privileged role-graph finalization | The migration defines input-free `app_private.finalize_ce_guide_role_membership_v1()`, restricted to `supabase_admin`, requiring a superuser and the canonical exclusive lock. | Contract: `OBSERVED`; Remote finalization: `NOT_RUN_NOT_PASS` | Prove the exact single runtime-to-executor edge, role attributes, ownership absence, protected function state, Auth ACL, and successful safety assertion after services finish owner-managed ACL normalization. |",
+        "114": "   normalization, an authorized superuser invokes only the input-free canonical"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-GUIDE-STORAGE-LIFECYCLE-02-v1.0.md",
+      "sha256": "d81892abd5c70cbb0f0142f03350abb99cd94e0ac3d1c7d61f11201f0f59b350",
+      "byte_length": 7774,
+      "line_count": 130,
+      "lines": {
+        "120": "- target-free unpublish and exact replay after Documents access is lost;"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-INCLUDED-BENEFIT-AND-EXPERIENCE-FUNDING-03-v1.0.md",
+      "sha256": "623da80b00a53d880d6c711debb26d9bd5d5b8114299ed5ce7dc3a7ea55ed247",
+      "byte_length": 31158,
+      "line_count": 449,
+      "lines": {
+        "1": "# CE included benefit and experience funding 03",
+        "5": "Benefits/Commerce/Loyalty owner: **`OPEN_PRODUCT_DECISION`**",
+        "13": "This document defines the candidate boundary for an included benefit surfaced",
+        "16": "incurs no per-use charge when using that exact benefit. Internal cost, provider",
+        "18": "benefit definition, allowance persistence and redemption receipt remains an",
+        "19": "open Benefits/Commerce/Loyalty product decision. This package defines no",
+        "28": "owners. CE does not currently own the benefit identity/definition, programme,",
+        "29": "member allowance, redemption aggregate or redemption receipt. Those artifacts",
+        "32": "An included-benefit action is permitted only after the server proves current",
+        "42": "numeric price does not turn a SERVICE Offering into an included benefit. A",
+        "43": "benefit surfaced by CE does not become a SERVICE Offering merely because an",
+        "46": "When an allowance is exhausted, CE may present a separately published SERVICE",
+        "60": "maintenance is not reclassified as a member benefit merely because the member",
+        "70": "| Benefit definition, allowance persistence and redemption receipt | `OPEN_PRODUCT_DECISION` — Benefits/Commerce/Loyalty | Candidate contracts only. CE may retain purpose-limited references after an owner is selected. |",
+        "79": "Every published candidate benefit must receive exactly one current",
+        "96": "source versions, validity interval, Workspace, benefit/version, local placement",
+        "108": "| `membership_bundled` | Current membership programme and funded benefit revision | Current membership plus exact tier/program decision | **Included with membership** | Programme owner funds the benefit; Finance owns expense, settlement and tax. |",
+        "109": "| `service_charge_bundled` | Current service-charge coverage decision for the exact Workspace/benefit period | Current member relationship covered by the programme; no charge detail disclosure | **Included in your workspace benefits** or an owner-approved equivalent | Billing/Finance owns charge composition and accounting. CE cannot claim the member has paid a specific amount. |",
+        "110": "| `rent_bundled` | Current agreement/occupancy coverage decision, purpose-limited to benefit eligibility | Current eligible membership derived through the canonical relationship provider | **Included with your occupancy benefits** | AIRPROP/Occupancy owns agreement facts; Finance owns accounting. Rent amount and terms remain private. |",
+        "111": "| `owner_budget` | Current approved owner-funded allocation for the exact Workspace and benefit revision | Current programme eligibility | **Provided by your property team** | Finance owns the budget source and posting; CE exposes no owner account or mandate details. |",
+        "112": "| `workspace_budget` | Current approved Workspace allocation and effective period | Current programme eligibility | **Included for members of this workspace** | Governance/Finance owns approval and posting. CE does not treat budget approval as member authority. |",
+        "113": "| `sponsor_funded` | Current sponsor agreement and funded allocation; public sponsor label separately approved | Current programme eligibility and any disclosed sponsor conditions | **Sponsored by _public sponsor label_** | Agreement/Finance owners retain terms and settlement. Internal sponsor identity is withheld unless approved for display. |",
+        "114": "| `promotional_budget` | Current promotion/programme revision and funded allocation | Current programme audience and expiry | **Included as a limited-time benefit** | Programme/Finance owners retain campaign cost and posting. Promotion does not bypass quota or capacity. |",
+        "118": "suspended benefit. Provider fulfilment is also independent: a provider agreement",
+        "121": "## Benefit Network boundary",
+        "123": "A Benefit Network is a candidate multi-Workspace distribution contract, not a",
+        "124": "Workspace, tenant, authority source, membership programme or shared allowance.",
+        "130": "network benefit, the canonical owner must issue a current local eligibility",
+        "132": "benefit/version and local placement. Each participating Workspace retains its",
+        "138": "references; no membership, role, tier, programme eligibility, allowance,",
+        "146": "reference. The final Benefits/Commerce/Loyalty owner must own or nominate the",
+        "152": "CE-F04 keep Benefits/Commerce/Loyalty ownership open and limit CE to placement,",
+        "154": "remain independently activatable and do not become benefit, commerce or loyalty",
+        "161": "composition statement that CE can present multi-Workspace benefits permits",
+        "163": "cross-tenant authority and does not settle the open Benefits/Commerce/Loyalty",
+        "178": "- **Included with membership**: the current membership/tier/program decision",
+        "180": "- **Included in your workspace benefits**: a current Workspace programme funds",
+        "182": "- **Included with your occupancy benefits**: a canonical relationship decision",
+        "184": "- **Sponsored by _label_**: the sponsor has an approved public label and the",
+        "185": "  current sponsor funding decision covers the benefit revision.",
+        "186": "- **Limited-time included benefit**: promotional funding and entitlement are",
+        "188": "- **Allowance used** or **Allowance unavailable**: the current included path is",
+        "193": "- Do not derive **free**, **complimentary** or **included** from `amount = 0`, a",
+        "194": "  missing price, a waived invoice, a discount, a test value or absence of a",
+        "200": "- Do not label a SERVICE Offering as included unless it participates through a",
+        "209": "runtime APIs. They do not assign Benefits, Commerce or Loyalty ownership to CE.",
+        "212": "### `candidate-included-benefit-definition.v1`",
+        "221": "allowance quantity/unit/window, expiry policy,",
+        "230": "allowance, expiry, capability or fallback creates a new positive revision.",
+        "233": "### `candidate-benefit-entitlement-decision.v1`",
+        "236": "opaque membership subject, local placement, optional Benefit Network/version,",
+        "237": "benefit/revision, current membership/tier/program versions, authority revision,",
+        "238": "allowance window and evaluation time. Its public projection is only `eligible`,",
+        "239": "`unavailable` or `withheld`, plus a safe expiry/remaining allowance when",
+        "248": "### `candidate-member-allowance-persistence.v1`",
+        "250": "The selected product owner needs versioned, auditable member allowance state",
+        "251": "bound to the exact member subject, benefit/revision, programme/version,",
+        "252": "Workspace, allowance window, quantity/unit and expiry. Reservation,",
+        "258": "purpose-limited current decision or receipt and does not persist an allowance",
+        "261": "### `candidate-benefit-redemption-receipt.v1`",
+        "264": "placement, optional Benefit Network/version, benefit/revision, redemption",
+        "265": "identity/version, action, quantity/unit, allowance window, funding-coverage",
+        "270": "`member_charge=none` as a categorical value; it does not record a zero price.",
+        "283": "be persisted as aggregate states or treated as allowance consumption.",
+        "289": "unknown-commit handling. A future benefit provider supplies only read-phase",
+        "290": "validation and owner-approved mutation callbacks. CE must not create a benefit",
+        "305": "7. In the read phase, invoke owner-approved providers for local benefit and",
+        "307": "   the exact `funding_coverage_decision`, member allowance/version and any",
+        "311": "   redemption and allowance state; CE does not perform this mutation.",
+        "318": "receipt without new allowance, capacity, audit or outbox effects. Changed",
+        "324": "history or manufactures allowance.",
+        "326": "When the allowance is exhausted, the selected product owner returns a bounded",
+        "334": "| Capability | Included-benefit path surfaced by CE | SERVICE per-use path | Required separation |",
+        "336": "| Breakfast | Breakfast covered by current membership/programme allowance | Individually ordered paid breakfast | Separate benefit and Offering revisions, funding, entitlement decisions, redemption/Order IDs and receipts. |",
+        "337": "| Car wash | One Premium programme wash per quarter | On-demand paid car wash Offering | Private tier result is not displayed; quarterly allowance expiry does not create an Order. |",
+        "339": "| Industrial unloading | Included operational allowance for an eligible industrial programme | Paid unloading service for a specific request | Exact resource/capacity and allowance receipts remain distinct from SERVICE provider, Order and financial receipts. |",
+        "342": "Benefits/Commerce/Loyalty owner and SERVICE retain distinct Offering/benefit",
+        "360": "the Finance correction policy; CE never edits benefit or posted financial",
+        "364": "Audit needs exact benefit/funding/programme versions, actor and Workspace,",
+        "374": "| `platform.workspace_entitlements` and current module/permission evaluation | Reuse for Workspace product activation. | Workspace entitlement is not member/tier/program benefit eligibility. |",
+        "375": "| `platform.entitlement_usage_ledger` and `enforce_entitlement_quota` | Keep limited to platform product/module entitlements and Workspace-level limits. | It must not store or calculate member allowance, benefit redemption, network participation or a redemption receipt. The selected product owner needs separate candidate allowance persistence after ownership review. |",
+        "377": "| CE Event audience, interest and attendance | Reuse current audience/membership concepts where applicable. | Interest is not entitlement, capacity, admission or redemption. Attendance alone cannot consume or restore an allowance. |",
+        "378": "| CE `service-experience-coordination-receipt.v1` | Keep for SERVICE experience coordination. | It is Order/component coordination, not included-benefit funding or redemption. Do not overload it. |",
+        "384": "| Benefit Network | No canonical network/participation/eligibility contract was found. | Owner decision, positive network/participation versions, local placement and current local eligibility are required; cross-tenant authority is forbidden. |",
+        "385": "| CE public UI | Keep inactive until contracts and runtime are accepted. | CE owns placement/presentation/orchestration only; terminology, safe remaining allowance and explicit SERVICE handoff require mounted RO/EN/FA acceptance. |",
+        "389": "1. **Benefits/Commerce/Loyalty ownership decision**: select the canonical owner",
+        "390": "   for definition, network participation, member allowance, redemption state and",
+        "394": "   benefit/network definition, funding-coverage decision, entitlement decision,",
+        "395": "   allowance persistence, redemption receipt and terminology. Reject",
+        "396": "   price-derived inclusion, private fields and locale/accounting inference.",
+        "404": "5. **Owner-selected member allowance persistence**: add a versioned candidate",
+        "406": "   `platform.entitlement_usage_ledger`; do not create a CE allowance ledger.",
+        "410": "7. **Benefit Network provider**: versioned network and local participation with",
+        "416": "   explicit handoff after allowance denial. SERVICE owns all subsequent writes.",
+        "427": "| Inclusion wording | Non-zero internal cost, zero/missing SERVICE price, sponsor label, translated labels | Included status comes only from an owner-issued current decision; no `free` inference. |",
+        "429": "| Capacity | No-capacity benefit; held capacity; unavailable/revoked/expired hold; release | Shared receipt required when applicable; no CE capacity ledger. |",
+        "430": "| Redemption recovery | Failure before commit, genuine `40001`, acknowledgement loss and unknown commit | Fresh transaction retry/readback; no duplicate allowance, receipt, audit or outbox. |",
+        "432": "| Paid fallback | Allowance exhausted with/without safe current SERVICE Offering | No automatic Order; explicit handoff starts a separate SERVICE flow. |",
+        "433": "| Benefit Network | Same-tenant and multi-tenant participants; stale network/participation; local revoke; actor eligible elsewhere | Exact local placement and eligibility required; no cross-Workspace or cross-tenant authority, balance or disclosure. |",
+        "435": "| Maintenance fulfilment | Included experience needs a Work Order; Work Order completes/fails/reopens | Operations state remains canonical; CE presentation/orchestration changes only through accepted adapter evidence. |",
+        "438": "| Locale | RO/EN/FA and locale changes with the same benefit/funding evidence | Wording changes only; country, currency and accounting treatment remain canonical and unchanged. |",
+        "443": "membership/tier/program provider, Benefit Network, funding coverage, member",
+        "444": "allowance store, redemption issuer, capacity implementation, accounting"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-MULTI-COUNTRY-CONTENT-POLICY-01-v1.0.md",
+      "sha256": "0adabb1284b703486b1bd9105dda0b5d6eb665e09c8ccfdd996bb99c1d8fe4ef",
+      "byte_length": 16879,
+      "line_count": 192,
+      "lines": {
+        "139": "unpublish and exact unpublish replay remain target-free."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE-PHASE-0-EXECUTION-MATRIX-v1.2.md",
+      "sha256": "bd9ef241ec356189da3bdc9002ea99bfeedb5d993d8964b11c3e8b2b755f90fb",
+      "byte_length": 18465,
+      "line_count": 18,
+      "lines": {
+        "10": "| **CE‑011A — Event domain/UI مستقل** | میزبان رویداد رایگان تک‌نوبتی با زمان و مخاطب مشخص می‌سازد/منتشر/لغو می‌کند؛ عضو علاقه را ثبت/لغو می‌کند؛ میزبان حضور را ثبت یا نسخه‌دار اصلاح می‌کند. | **موجود — آزموده‌شده** | حفظ schema/domain/UI فعلی؛ `context_id` و permissionهای رسمی C01–C03؛ کنترل نسخهٔ Event، interest و attendance؛ timezone معتبر؛ اصلاح حضور پس از لغو فقط با دلیل و ممیزی؛ متن صریح عدم رزرو/تضمین ورود در RO/EN/FA. | **مالک:** CE. **وابستگی واقعی:** C01/C02/C03 موجود. برای این برش به Booking، ظرفیت، منبع، پرداخت، SERVICE، Commerce یا Loyalty وابسته نیست. | استقلال فعال‌سازی؛ Workspace/audience؛ جلوگیری از ثبت تکراری؛ لغو و ثبت مجدد با نسخهٔ رکورد؛ replay پس از بازبینی اختیار/مخاطب؛ منع حضور جدید در draft/cancelled؛ اصلاح مجاز نسخه‌دار؛ حفظ ورودی و reset زمینه در موبایل و RO/EN/FA. | commit `af075d67d0d986ff43956fe5f412f546b13f79e6` و آزمون `scripts/test-ce-011-event-interest.mjs`؛ اجرای واقعی domain/UI، typecheck و lint موفق گزارش شده است. | بدون بازنویسی؛ فقط در صورت تغییر قرارداد رسمی Core اصلاح محدود انجام شود. |",
+        "15": "| **CE‑CL‑01 — پیشنهاد مالکیت Commerce/Loyalty** | Workspace می‌تواند پیشنهاد شریک یا مزیت را کنار Community/Guide نمایش دهد، اما صلاحیت، خرید، امتیاز و تسویه در مرجع رسمی انجام می‌شود. | **جدید — طراحی و تصمیم باز** | پیشنهاد: **Commerce** مالک partner/offer/order/redemption مالی؛ **Loyalty** مالک eligibility، points و benefit ledger؛ CE فقط placement، audience context و deep link/command reference را نگه دارد. | **مالک نهایی:** نیازمند تصمیم محصول و قرارداد Core. **مصرف‌کننده:** CE. وابستگی به Finance/Commerce/Loyalty فقط هنگام اجرای موج ۴. | CE نتواند موجودی پول/امتیاز یا وضعیت سفارش را بنویسد؛ حذف CE سابقهٔ مالی/امتیاز را تغییر ندهد؛ permission و receipt هر اقدام از مالک تخصصی صادر شود. | در وضعیت فعلی مالک رسمی این دو حوزه برای اتصال CE تعیین نشده و هیچ پیاده‌سازی در این شاخه وجود ندارد. | تصویب مالک محصول و API/command owner؛ تا آن زمان هیچ جدول یا API مربوط در CE ساخته نشود. |",
+        "17": "| **CE‑F04 — شرکا، پیشنهادها، Commerce، Loyalty و تجربه‌های ترکیبی؛ موج ۴** | کاربر پیشنهاد شریک، مزیت یا تجربهٔ چندجزئی را می‌بیند و هر اقدام در دامنهٔ مالک خودش انجام می‌شود. | **موجود در ماتریس جامع — نگاشت آینده** | خانواده‌های شریک/offer، eligibility، redemption، مزایا، امتیاز، خرید و تجربهٔ چندخدمتی حفظ و به موج ۴ نگاشت می‌شوند؛ CE مالک placement، محتوای تجربه و orchestration است، نه سفارش، پول یا امتیاز. | **مالک دامنه:** پس از تصمیم محصول؛ Commerce/Loyalty/Finance/SERVICE. **مصرف‌کننده:** CE. **بسته‌بندی تجاری:** PC‑01. | هر جزء permission، version، receipt و وضعیت مستقل داشته باشد؛ شکست جزئی قابل مشاهده و قابل retry باشد؛ CE دفتر موازی سفارش، پرداخت، تسویه یا امتیاز نسازد. | CE‑012B و CE‑CL‑01 مرز معماری را ثبت کرده‌اند؛ پیاده‌سازی عملیاتی و مالک نهایی هنوز باز است. | مالک هر خانواده و قرارداد فرمان تعیین شود؛ سپس ردیف‌های متناظر ماتریس جامع بدون تغییر شناسه به برنامهٔ اجرایی منتقل شوند. |"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CE012-PROVIDER-BRIDGE-LOCAL-v0.1.md",
+      "sha256": "94fda8b7d47911406caff350ae5481e27a7b188ad3ef277a7a8f420ac1429ae4",
+      "byte_length": 3252,
+      "line_count": 42,
+      "lines": {
+        "20": "Documents receives the exact Context, Workspace, Guide, document ID, immutable `document_version_id`, positive document version and evaluation mode. Only an authorized selector decision may release `safe_label`. The Guide version remains bound by `ce012-guide-command.v1` and is included in the Bridge binding with the Core authority version and immutable document version."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CORE-MANDATE-CONSUMER-GATE-017-v0.1.md",
+      "sha256": "94e3a04fdaffdc30aa0e936d6439ad94a3c431b28968a87d0a0e145e916c09c8",
+      "byte_length": 4700,
+      "line_count": 33,
+      "lines": {
+        "31": "| Unbound AIRPROP draft and property-free SERVICE request | Continue only through their explicitly authorized existing paths; no fabricated property authority. |"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-CORE-PLATFORM-ROLE-BOUND-POOL-v1.0.md",
+      "sha256": "a8b16c90a3c7757f69e764350ffc4bf3b006649f071b1d1146fb194d033e3cf5",
+      "byte_length": 7255,
+      "line_count": 116,
+      "lines": {
+        "40": "separately authorized superuser calls the private, input-free finalizer under"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-COMPOSITION-v1.0.md",
+      "sha256": "a10be1413dab4301ce0a72277cec4249bedc4821eda41ca5f90440e515f1bb99",
+      "byte_length": 7213,
+      "line_count": 140,
+      "lines": {
+        "20": "| `WorkspaceEntitlement` | effective workspace allowance or limit | amenities enabled until contract end |",
+        "74": "| Entitlement | valid allowance and unused/acceptable limit |",
+        "121": "- a developer portfolio may enable cross-workspace benefit administration without cross-tenant record access."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md",
+      "sha256": "c8f8ca9be1daf6de08838a590cf7633e746fa06a0d8f5669b12d058575b56b11",
+      "byte_length": 34127,
+      "line_count": 344,
+      "lines": {
+        "274": "- Phase-one CE does not require this ledger for a free Event that allocates no capacity, time or resource. Interest is not a reservation, confirmed place or admission guarantee. Capacity-backed registration is a later consumer after the shared contract is approved and implemented.",
+        "282": "| Community & Experience | Workspace/resource refs, eligibility relationship snapshot, product-right decision, event/offer/capacity contract, shared finance/access refs | community, event, experience, membership/benefit eligibility, attendance/redemption state | title/lease, general building credential, payment journal, SERVICE order or AIRPROP reservation |",
+        "293": "| Community base | Existing context-to-Workspace resolution; `WorkspaceIdentityRefV1`; current member/account identity; current scoped permission check; existing document/message references; audit/outbox envelope | Current module entitlement row, including `legacy_unprovenanced`, exposed read-only with provenance state | Generic relationship ledger, product catalogue/bundles, cross-Workspace network membership, benefits/loyalty, physical credentials |",
+        "294": "| Event base | Workspace/context identity; event identity/version; organizer authority; visibility/audience snapshot; immutable publication receipt; interest/withdrawal and manual attendance for a free Event with no capacity/time/resource allocation | Eligibility from current Workspace membership/roles with source/version captured at decision time | Community activation, SERVICE, shared capacity ledger, paid ticketing, waitlist, seating and AIRPROP reservation reuse |",
+        "295": "| Experience Guide | Community-base contracts; guide entry identity/version; canonical or external place/resource reference; visibility/locale; editorial authority; publication receipt | External/unresolved place reference clearly labelled and non-authoritative | Commerce, booking, payment, provider order, benefit redemption and inventory |"
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-PURCHASE-ORDER-CONTEXT-AUTHORITY-001.md",
+      "sha256": "39026d20bc27d09155b56a2a66e219aea5af7081c40111aa6729d3a9d55a255c",
+      "byte_length": 1972,
+      "line_count": 13,
+      "lines": {
+        "11": "The isolated PostgreSQL test covers all five commands across other-property, other-building, other-unit, unknown and foreign-tenant targets; audit-free denial; authorized lifecycle; independent approval; MFA; expired context; owner denial; deactivated module despite legacy entitlement; and the private helper. Existing 057/059 assertions remain unchanged. Payable creation and replay authority are a separate remaining review."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-CATALOG-DEFINITION-UI-003-v1.0.md",
+      "sha256": "bcb7b62cb901d8a232fc792b8bc40748d6375b21fa9169033b264054e5b0c37b",
+      "byte_length": 4424,
+      "line_count": 31,
+      "lines": {
+        "27": "Management forms for creating/revising/submitting/publishing offerings and definition editing/deactivation are not supplied here. Authorized secure document linking is still blocked by #222. Orders, reservations, reception/custody and benefits remain later SERVICE runtime packages. These limitations are explicit; this slice is not full product completion."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-CATALOG-MANAGEMENT-004-v1.0.md",
+      "sha256": "ac0c2c0ca082b0ba153d0e770c0de7762fac4a15bb260c012005e22a945d2cb8",
+      "byte_length": 3352,
+      "line_count": 25,
+      "lines": {
+        "25": "Production provisioning, activation and module entitlements still need confirmation despite the merged role-assignment flow. Orders, reservations, service reception and benefits are subsequent work, outside this catalogue package. Publication as a Draft PR is not production deployment."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-CATALOG-PERSISTENCE-002-v1.0.md",
+      "sha256": "3ab048eea5a6f6346117bb178742140f641c5b03bb04e7f8bbdc8a7c91bf7ddc",
+      "byte_length": 5505,
+      "line_count": 35,
+      "lines": {
+        "29": "This is a persistence/API delivery slice, not completion of SERVICE. No remote write or production certification is performed here. Production still reported 184 migrations at the start of this work; the three Oct 3 shared authority migrations must be coordinated before this migration is applied. Definitions and native role/module provisioning need audited UI/commands before an end user can create an offering. This slice supplies no definition issuer, provider onboarding, management UI, order/reservation/reception/benefit runtime or email."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-REQUEST-CONTRACT-009-v1.0.md",
+      "sha256": "70bc63096165f117e2954795dbf7f701714a1ced16d8884df622def4e27317ab",
+      "byte_length": 2068,
+      "line_count": 13,
+      "lines": {
+        "11": "No migration, access grant, payment, work order, route or customer UI is introduced here. Current deployed acceptance evidence: pilot offer b88ab924-7c5c-48df-9230-9a3342fa5f6c was published by a separate approver and visible to Mahmoud on 2026-10-04, revision lock 3, audit/outbox count 3. Catalogue and review entry are deployed (#222, #225, #228, #235, #238, #245); login error classification is deployed (#248). Orders, reservations, reception and benefits remain separate implementation work."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-V14-08-EXPERIENCE-EXECUTION.md",
+      "sha256": "d32de0b739784a466f26b8a5a81633a0a625efad9566b221204c6866691bd22b",
+      "byte_length": 2870,
+      "line_count": 21,
+      "lines": {
+        "17": "SERVICE retains canonical Order ownership and does not implement another experience, participant, cancellation, compensation, benefit, notification or financial state machine. Monetary effects remain behind FIN01."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-SHARED-DEPENDENCY-RECONCILIATION-002-v1.0.md",
+      "sha256": "e00b0235e6cc3dd9d301242c1265ec3026becccdd9382e71139a2c6f3de2d09c",
+      "byte_length": 3850,
+      "line_count": 30,
+      "lines": {
+        "13": "The user's 2026-10-03 16:17:19 Tehran continuation approved the previously presented seven-day bounded exception. During reconciliation, main was found to have adopted a vendored derivative. That exception is **not activated**: no approved exception policy, suppression script, or postinstall patch is included in this resulting tree. The original `npm audit --audit-level=high` gate stays in place."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-ARCHITECTURE-v1.0-FA.md",
+      "sha256": "d22e2528a174266b17aba8e06e771b054056ea818f8b4ac53d2c36ce5a9adcbe",
+      "byte_length": 27776,
+      "line_count": 194,
+      "lines": {
+        "14": "| SERVICE | عرضه، درخواست، سفارش، رزرو، پذیرش، تحویل‌داری و مزایا |",
+        "44": "ResourceReference شامل id، tenant_id، resource_type ثبت‌شده، source_entity_id، status، lock_version و عامل و زمان ایجاد است. ترکیب tenant/type/source یکتا و اتصال به موجودیت اصلی معتبر است. نام جدول دلخواه از کلاینت پذیرفته نمی‌شود. برای تجهیز موجود، مشخصات، ضمانت و وضعیت عملیاتی در assets.assets باقی می‌مانند. برای فضای جدید، موجودیت تخصصی هسته مرجع اصلی است.",
+        "98": "## مزایا SERVICE-005",
+        "100": "موجودیت‌ها: شبکه و حامی، مشارکت Workspace و ارائه‌دهنده، عضویت، نسخه پیشنهاد، سهمیه، نگهداشت، مصرف و اتصال تسویه.",
+        "102": "مزیت می‌تواند تخفیف، قیمت توافقی، خدمت مشمول، سهمیه، اولویت رزرو، حمایت مالی یا امتیاز غیرنقدی باشد. اولویت ظرفیت را افزایش نمی‌دهد. امتیاز غیرنقدی دفتر مزایا دارد؛ اثر پولی از مالی مشترک عبور می‌کند.",
+        "104": "مبنای سهمیه شخص، سازمان، رابطه یا گروه صریح است. چند رابطه خودکار سهمیه را چند برابر نمی‌کند. دوره، انتقال مانده و ترکیب مزایا تعیین می‌شوند؛ پیش‌فرض ترکیب خودکار نیست.",
+        "106": "مصرف: اعتبارسنجی، محاسبه، نگهداشت، تأیید و مصرف در نقطه تعیین‌شده شرایط. لغو نگهداشت را آزاد یا برگشت مصرف ثبت می‌کند. سابقه حذف نمی‌شود. مبدأ صلاحیت، مقصد اجرا و رزرو، شبکه سهمیه و مالی تسویه را مدیریت می‌کنند. کارت عضویت نقش مدیریتی یا ورود ایجاد نمی‌کند.",
+        "110": "قابلیت‌های پیشنهادی services.catalog، services.orders، services.reservations، services.reception و services.benefits با registry، dependencies، compatibility و entitlement مرکزی تطبیق می‌شوند. این‌ها نام مفهومی قابلیت‌اند؛ کد runtime پیشنهادی به‌ترتیب services_catalog، services_orders، services_reservations، services_reception و services_benefits است، زیرا قاعده module_definitions بررسی‌شده نقطه نمی‌پذیرد. نگاشت entitlement و وابستگی در برنامه اجرای SERVICE ثبت شده و هنوز seed نشده است. مالی، اجرا و امنیت فقط در خدمات نیازمند آن‌ها وابستگی دارند.",
+        "120": "| مزایا | services.benefit.manage، services.benefit.publish، services.benefit.redeem |",
+        "137": "| /api/customer/v1/services | benefits، memberships، benefit-offers/publish، benefit-quotes، holds، redemptions/reverse، membership suspend |",
+        "145": "Mutation، ممیزی و ثبت رویداد خروجی اتمیک‌اند. ارسال اعلان پس از ثبت انجام می‌شود. رویداد شامل id، tenant/Workspace، مرجع و نسخه موجودیت، زمان و correlation id است. مصرف‌کننده تکرار و ترتیب نسخه را کنترل می‌کند. پیام رویداد فقط اطلاعات لازم دارد.",
+        "147": "برای ظرفیت، سهمیه و پرداخت وضعیت میانی قابل بازیابی، مهلت و اقدام جبرانی لازم است. ظرفیت موفق و سهمیه ناموفق نباید رزرو تأییدشده با مزیت بسازد. نتیجه نامشخص ابتدا بازیابی می‌شود، سپس تصمیم تکرار گرفته می‌شود. پرداخت موفق دیرهنگام در نبود ظرفیت مسیر مالی روشن دارد.",
+        "153": "هر انتظار موعد دارد: پیشنهاد، نگهداشت، پاسخ، تأخیر، پذیرش تحویل، دریافت مرسوله و اختلاف. پذیرش خودکار تحویل فقط با شرط صریح پذیرفته‌شده مجاز است. اعلان تبلیغاتی رضایت مستقل دارد.",
+        "167": "| ۷ | SERVICE-005 | مزیت بین Workspaceها با سهمیه و تسویه |",
+        "170": "آزمون‌های ضروری: شناسه منبع Workspace دیگر؛ اختیار A و اقدام B؛ deny در چند نقش؛ پایان رابطه و اختیار grantor؛ چرخه و تغییر والد؛ دو درخواست آخرین ظرفیت یا سهمیه؛ نگهداشت منقضی با worker تأخیردار؛ شکست تغییر زمان؛ رزرو چندمنبعی؛ پرداخت دیرهنگام و callback تکراری؛ تحویل دوباره و QR مصرف‌شده؛ تحویل جزئی؛ سند و گفتگو غیرمجاز؛ شرایط تاریخی؛ تعلیق ماژول با پرونده باز؛ حفظ APIهای فعلی."
+      }
+    },
+    {
+      "path": "docs/architecture/CLADORA-WORKSPACE-SERVICE-IMPLEMENTATION-v1.0-FA.md",
+      "sha256": "34d5df15387c73e3869eae4931b2fd376fea51841359a39c150fd3a5fa171295",
+      "byte_length": 49509,
+      "line_count": 334,
+      "lines": {
+        "22": "| مزایا | کاتالوگ، روابط، سهمیه و مالی در حمایت مالی | SERVICE و هسته مشترک | مصرف معتبر و تعامل بین Workspaceها |",
+        "71": "| مزیت بین Workspaceها | رابطه مبدأ، ظرفیت مقصد، حامی | صلاحیت جاری، سهمیه یکتا و عدم افشای مبدأ |",
+        "103": "| کاتالوگ، سفارش، رزرو، پذیرش و مزایا | SERVICE | توسعه اختصاصی پس از وابستگی مرکزی |",
+        "145": "| services.benefits | services_benefits | module.services_benefits | services_catalog؛ مصرف در سفارش/رزرو به همان مسیر مربوط وابسته است |",
+        "151": "config_json فعال‌سازی در schema مشتری و جدول بررسی‌شده به {} محدود است. قیمت، شرایط لغو، ظرفیت، سهمیه و صلاحیت در نسخه عرضه SERVICE ثبت می‌شوند؛ تغییر activation config برای نگهداری این اطلاعات لازم نیست. وجود category=services، ردیف C13 یا lifecycle=published به‌تنهایی اختیار کاربر یا آمادگی محصول نیست.",
+        "208": "در مرز چند حوزه، موفقیت محلی به معنی موفقیت همه حوزه‌ها نیست. وضعیت اتصال اجرا/مالی شامل pending، confirmed، failed و needs_review است؛ پاسخ نامشخص با correlation و source reference بازیابی می‌شود. retry همان مرجع اثر تازه نمی‌سازد. لغو پس از ثبت مالی از reversal/adjustment مالی استفاده می‌کند.",
+        "221": "| لغو | وضعیت جاری، سیاست هزینه و مصرف مزیت | آزادسازی ظرفیت و ثبت تصمیم مالی/مزایا مستقل |",
+        "248": "## قرارداد اجرایی SERVICE-005 — مزایا و سهمیه",
+        "250": "نسخه پیشنهاد مزیت شامل حامی، مخاطب، خدمات/مقاصد مجاز، دوره، سقف، ترکیب، نقطه مصرف، سیاست لغو و پرداخت‌کننده حمایت مالی است. عضویت مزایا نقش نرم‌افزاری یا مجوز ورود نیست. صلاحیت مبدأ با API مجاز اثبات می‌شود؛ مقصد فقط نتیجه لازم و مرجع قابل ممیزی را دریافت می‌کند.",
+        "254": "| محاسبه مزیت | عضویت و پیشنهاد جاری؛ service/Workspace مقصد مجاز | quote زمان‌دار بدون تضمین سهمیه |",
+        "255": "| نگهداشت سهمیه | کلید شمارش مشترک شخص/سازمان/رابطه و دوره طبق policy | hold اتمیک؛ منع چندبرابرشدن ناشی از چند نقش |",
+        "257": "| آزادسازی | لغو پیش از مصرف یا انقضای hold | بازگرداندن ظرفیت سهمیه |",
+        "261": "کوپن عمومی bearer دسترسی داده شخصی ایجاد نمی‌کند. تبدیل امتیاز غیرنقدی به وجه در این نسخه مجاز فرض نمی‌شود. تخفیف، حمایت و مالیات در محاسبه منبع‌دار مالی تفکیک می‌شوند؛ جمع آنها از مبلغ قابل اعمال بیشتر نمی‌شود. ترکیب مزایا و ترتیب اعمال فقط طبق policy نسخه‌دار است.",
+        "263": "برای سفارش/رزرو همراه مزیت، ظرفیت و سهمیه یا در یک تراکنش معتبر هماهنگ می‌شوند یا با وضعیت pending و اقدام جبرانی. failure سهمیه پس از تخصیص ظرفیت، نتیجه «رزرو با مزیت تأییدشده» نمی‌دهد؛ failure ظرفیت، سهمیه نگه‌داشته‌شده را آزاد می‌کند. عملیات مبهم پیش از retry با همان correlation بازیابی می‌شود. هیچ hold بدون deadline و مسئول بازیابی نمی‌ماند.",
+        "265": "معیار آزمون: دو مصرف آخرین سهمیه؛ چند نقش یک شخص؛ مصرف در مقصد نامجاز؛ انقضای عضویت؛ callback تکراری؛ لغو قبل/بعد مصرف؛ برگشت در دوره بعد؛ شکست ظرفیت یا سهمیه؛ تسویه حامی تکراری؛ عدم افشای روابط خصوصی مبدأ.",
+        "275": "| مزیت بین Workspaceها | روابط مبدأ/مقصد، سهمیه و مالی حمایت در صورت نیاز | مصرف معتبر، برگشت و تسویه منبع‌دار |",
+        "332": "۶۰ سناریوی PostgreSQL، مقایسه ۹۱ ارزیابی قدیمی، ۱۱ آزمون gateway، زنجیره کامل migration/pgTAP/هم‌زمانی دیتابیس، تست‌های AIRPROP و Application Foundation شامل build و بررسی سه‌زبانه گذشتند. شکست audit ثبت‌شده در بندهای قدیمی تاریخی است؛ اجرای تازه پس از اصلاح مشترک main در #215، در audit صفر آسیب‌پذیری گزارش کرد. اصلاح وابستگی دیگری در SERVICE ایجاد نشد."
+      }
+    },
+    {
+      "path": "docs/architecture/history/scalable-platform-ownership-v1.0-proposal.md",
+      "sha256": "0aebd41b0af0658c67d59b364d15c75ba0eb22cb69a24ba4296891e7e88537a1",
+      "byte_length": 10887,
+      "line_count": 69,
+      "lines": {
+        "63": "Before applying a migration, review existing production migration history and rehearse the new version in CI. Roll out with audit evidence, a restricted pilot, and a rollback/disable path for newly introduced privileges. Avoid backfilling staff identity from free-text names automatically.",
+        "68": "- Gaps: `commercial_owner` is free text; sales, commercial approval, training and accountable-owner transfer are not structured platform responsibilities. Current operator creation accepts only operations, finance, support and auditor. There is no single reviewable cross-team onboarding queue and decision history connecting all handoffs."
+      }
+    },
+    {
+      "path": "docs/contracts/AIRPROP-ARTIFACT-B2-20261013-R1.md",
+      "sha256": "1605e03a78df6b206c4e4462ab1e734009e68d047c966d226336c0567f829c98",
+      "byte_length": 10656,
+      "line_count": 151,
+      "lines": {
+        "55": "contract. No C/D provider or activation is included."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CE-011-CORE-CONTRACTS-C01-C03-v1.0.md",
+      "sha256": "653eae6341e0135d2b79746ef4759c5ed2c6f8e0c58c5dfca06e86113a532abb",
+      "byte_length": 7083,
+      "line_count": 105,
+      "lines": {
+        "11": "| Capability | `ce.event.basic` | Free single-occurrence Event with explicit audience, interest/withdrawal and manually observed/corrected attendance; no capacity/time/resource allocation |"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-AIRPROP-RELEASE-HANDOFF-v1.0.md",
+      "sha256": "6d35695cc34bd7ed4fd755b08c80f30e2ccfeffdd11ad937656a5d14aae1e31a",
+      "byte_length": 4937,
+      "line_count": 68,
+      "lines": {
+        "44": "equivalent valid offsets. Start is inclusive; end is exclusive; a zero-length or"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-BK-01-SHARED-CAPACITY-TIME-RFC-v1.0.md",
+      "sha256": "67c05e87aa6fc043c4f76043c39140f4d3fe8b5951a4769ae965bee81dd09d45",
+      "byte_length": 5899,
+      "line_count": 65,
+      "lines": {
+        "15": "Capacity-backed Community/Event may adopt the contract later. Free Event base, interest/withdrawal and manual attendance do not wait for BK-01. AIRPROP commercial reservation remains a separate exclusive commercial state machine; `airprop.exclusive_reservations` and pgTAP 171 are explicitly not BK-01 persistence or test evidence."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-CONSUMER-DEPENDENCY-CONFORMANCE-v1.0.md",
+      "sha256": "4f18f88eb5fca8e1345cf87ebcebb825855c7657b4369d993fb7c6e48f807d53",
+      "byte_length": 9393,
+      "line_count": 143,
+      "lines": {
+        "116": "exact allow, inclusive start/exclusive end, Workspace switch with old evidence,"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-CURRENT-UNIT-PROPERTY-SELECTOR-v1.0.md",
+      "sha256": "98f03a53c37ed0c8fb03bf064bfe47cd74a37305f748604445f4c5ef49e570fb",
+      "byte_length": 4178,
+      "line_count": 80,
+      "lines": {
+        "4": "AIRPROP composition is included."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-DW-02-RESOURCE-CONTRACTS-v1.0.md",
+      "sha256": "a361804a3bc9f22f224847bdfcbe06089c4fa364192945dbdc88336d6789c184",
+      "byte_length": 5688,
+      "line_count": 55,
+      "lines": {
+        "35": "No provider-agreement table or verifier RPC is created by this contract slice because the Repository has no accepted canonical provider-agreement persistence source. Provider-backed publication remains narrowly blocked; provider-free definition drafting and Workspace-wide flows remain independent."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-JURISDICTION-PROFILE-SELECTOR-v1.0.md",
+      "sha256": "e64d0e5165dcd3464065937a81ee34f9ce80cbe1126b9d1371350636e25eb262",
+      "byte_length": 4074,
+      "line_count": 90,
+      "lines": {
+        "16": "country-specific free-form text and is neither globally unique nor normalized"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-JURISDICTION-PROFILE-v1.0.md",
+      "sha256": "0ab9ad406d93c7bf794b9e8cadaa441358dcef974c4e826ed81a044692357471",
+      "byte_length": 4886,
+      "line_count": 97,
+      "lines": {
+        "69": "optional, non-unique free-form text so numeric, alphanumeric, spaced and"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-RECOVERY-AUTH-01-v1.0.md",
+      "sha256": "0542bfbb2e9d21811a02ca4f9af5443295f9d9f6699ed06d4441c94381060523",
+      "byte_length": 14605,
+      "line_count": 89,
+      "lines": {
+        "89": "No historical SQL, Remote statements, credentials or private PM configuration is included. This proposal creates no migration, grant, runtime activation, parallel authority/ledger or PM lifecycle transition."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-RESOURCE-AUTHORITY-CONTRACT-v1.0.md",
+      "sha256": "90c25b5f2e9e3844f16e06122b62909f1affbd0f55cf9b5fd08b184b97809ce7",
+      "byte_length": 7263,
+      "line_count": 150,
+      "lines": {
+        "137": "start remains inclusive and end exclusive in the evaluator. New regression cases are"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-TRANSACTION-REPLAY-PROVIDER-HOOK-v1.0.md",
+      "sha256": "e5cc5d801619b034de64a5197ecd42202ece26e555fdce8f7589d128003861b7",
+      "byte_length": 4115,
+      "line_count": 27,
+      "lines": {
+        "3": "Status: inactive Core contract and host implementation. No route, grant, migration, consumer wiring or Remote activation is included."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-DOC-WORKSPACE-BINDING-DESIGN-v1.0.md",
+      "sha256": "ce5fc6e4cd0f5bd65105318334797ae1d4d593f909479976523d747432466ae9",
+      "byte_length": 19611,
+      "line_count": 262,
+      "lines": {
+        "35": "| Case document | `/api/cases/documents` calls `begin_customer_case_document_v1`; existing `platform.customer_case_documents` / `customer_case_document_versions`, bucket `case-vault`. | Case identity is not canonical Documents Workspace provenance. No migration, alias, copy or promotion is proposed. |"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-DOCUMENTS-COUNTRY-REQUIREMENTS-v1.0.md",
+      "sha256": "66aeee11ed64d3e30ac03adb8aba94857fe8df52f2a02248e9836e95362c097b",
+      "byte_length": 11805,
+      "line_count": 214,
+      "lines": {
+        "61": "artifact_effective_from      = date, inclusive",
+        "71": "category, an inclusive `effective_from`, an exclusive or NULL `effective_to`,"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-DOCUMENTS-REFERENCE-AUTHORITY-v1.0.md",
+      "sha256": "84c2daacacb796892b0e305a33c382cce394cbce62e1b6f3ac001aa29a0eaf2d",
+      "byte_length": 7595,
+      "line_count": 131,
+      "lines": {
+        "5": "backfill, scanner or runtime activation is included."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-DATABASE-READER-CHANGE-PACKAGE-v1.0.md",
+      "sha256": "8080685cf2edfa3c44e80da342f6a7d1d25cadd51159a5865d64af0050b6ee1e",
+      "byte_length": 6235,
+      "line_count": 71,
+      "lines": {
+        "6": "**Authorization:** No migration file is included; no local or Production database execution is authorized"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-DATABASE-READER-CHANGE-PACKAGE-v1.1.md",
+      "sha256": "832e911df95545fc4b58c04eb99c5dd995705170476df3190d446261407b93b7",
+      "byte_length": 6245,
+      "line_count": 71,
+      "lines": {
+        "6": "**Authorization:** No migration file is included; no local or Production database execution is authorized"
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.0.md",
+      "sha256": "228ead5cb22b3d6bf844658e0072972ead3b6a562808487a107a07ab43fcf6d1",
+      "byte_length": 15944,
+      "line_count": 211,
+      "lines": {
+        "107": "### Included",
+        "140": "| Event base | Read Event module availability for a free Event that allocates no capacity, time or resource | Event publication, interest/withdrawal and manual attendance lifecycle |",
+        "188": "These contracts do not grant physical access, create SERVICE orders, post finance, or reuse AIRPROP commercial reservation. Limited capacity/time, paid events, benefits and commerce are deferred to their shared owning contracts.",
+        "200": "CE-011 may therefore proceed as a standalone free Event with one occurrence, explicit audience, interest/withdrawal and manual attendance after its own domain persistence/command package is approved. It must not allocate capacity, time or resources and does not require Community, SERVICE, Booking, payment or complete PC-01/DW-02."
+      }
+    },
+    {
+      "path": "docs/contracts/CLADORA-DW-01A-WORKSPACE-CAPABILITY-READ-CONTRACT-v1.1.md",
+      "sha256": "67438b165055149e783f16cae6adc1d72e7db38618cbd87b790481b9324a4898",
+      "byte_length": 15944,
+      "line_count": 211,
+      "lines": {
+        "107": "### Included",
+        "140": "| Event base | Read Event module availability for a free Event that allocates no capacity, time or resource | Event publication, interest/withdrawal and manual attendance lifecycle |",
+        "188": "These contracts do not grant physical access, create SERVICE orders, post finance, or reuse AIRPROP commercial reservation. Limited capacity/time, paid events, benefits and commerce are deferred to their shared owning contracts.",
+        "200": "CE-011 may therefore proceed as a standalone free Event with one occurrence, explicit audience, interest/withdrawal and manual attendance after its own domain persistence/command package is approved. It must not allocate capacity, time or resources and does not require Community, SERVICE, Booking, payment or complete PC-01/DW-02."
+      }
+    },
+    {
+      "path": "docs/copy/CLADORA-HUMANIZATION-REVIEW.md",
+      "sha256": "5b3e38670e70a5a2f952b8274235bb25beebe7797b861a525455a65040c969b8",
+      "byte_length": 17896,
+      "line_count": 493,
+      "lines": {
+        "17": "   - *Layer 2 (Plain-Language Explanation):* Clear, jargon-free operational clarity.",
+        "56": "- **Why:** Transformed a feature-dump specification into tangible everyday benefits that homeowners and administrators immediately understand.",
+        "101": "- **Why:** Direct and practical benefit for resident meter submissions.",
+        "102": "- **Claim Safety:** Free of absolute zero-error claims.",
+        "208": "- **Why:** Replaces technical requirements phrasing with human benefits.",
+        "224": "- **Claim Safety:** Layer 1 benefit supported by Layer 3 double-entry detail.",
+        "405": "- **Why:** Focuses on the user benefit (effortless, fast recording) rather than technical error mitigation."
+      }
+    },
+    {
+      "path": "docs/database/DB-HIST-01-FORWARD-CONVERGENCE-EXCEPTION-LEDGER.json",
+      "sha256": "6cbb86fbc1d49ea4c44b871d02e14d12962ee1203a8aeb93abda6ef0a3abee71",
+      "byte_length": 7025,
+      "line_count": 125,
+      "lines": {
+        "118": "      \"included\": false"
+      }
+    },
+    {
+      "path": "docs/database/INTEGRATION_REPORT_FA.md",
+      "sha256": "d1073c0ad26dc7d83f8561e5af7856e046394881d2c921a0453d6a07f81b6031",
+      "byte_length": 2201,
+      "line_count": 44,
+      "lines": {
+        "11": "- ۱۰ فایل تست pgTAP شامل ۲۳۰ assertion"
+      }
+    },
+    {
+      "path": "docs/discovery/CLADORA-WORKSPACE-TAXONOMY-MUTATION-001-DISCOVERY.md",
+      "sha256": "8a1c9a5f58ad0f3c49300ccc907f2423e96d62371dacb53a5557c336b9b3d0db",
+      "byte_length": 3869,
+      "line_count": 45,
+      "lines": {
+        "29": "| **CONFLICT** | None | Migration 101 and Test 088 slots are free and uncontested. |"
+      }
+    },
+    {
+      "path": "docs/product/CLADORA-RESIDENTIAL-LIVING-SERVICES-v1.0.md",
+      "sha256": "23efd72196020ee5078152994d70c07d9761fd44e1b0a21812c4660c4ffebf13",
+      "byte_length": 13580,
+      "line_count": 235,
+      "lines": {
+        "17": "2. **One Community pattern — lifestyle and community:** a digital membership experience for residents, tenants, employees and eligible clients, including partner benefits, discounts, events, updates, digital cards, membership tiers, rewards and O Points.",
+        "34": "| Community & Lifestyle | events, benefits, partner offers, optional membership and rewards | communications plus future bounded service catalog |",
+        "36": "Community or commercial benefits must never alter accounting balances, governance rights or building access unless a separately authorized operational command succeeds.",
+        "92": "### Optional lifestyle and partner benefits",
+        "96": "- events, experiences and benefit redemption;",
+        "102": "## Developer-sponsored service and benefit network",
+        "104": "The ONE example represents more than a list of building amenities. A developer, parent company, portfolio owner or operating brand may sponsor a benefit network across several properties and participating service providers. Eligibility originates from a verified relationship with that ecosystem—for example ownership, current residence, tenancy, employment or an approved client relationship.",
+        "116": "This becomes a distinct CLADORA product system named **Workspace Services & Benefits**. It supports both services physically located in a property and benefits shared across a developer or operator's wider portfolio.",
+        "120": "`Sponsor Organization → Benefit Network → Participating Workspaces → Service Providers → Locations → Offers/Services → Eligible Members`",
+        "123": "- **Benefit Network:** the branded program and its rules.",
+        "127": "- **Offer/Service:** discount, included service, paid service, reservation, reward or event.",
+        "142": "When the source relationship expires, the system recalculates or ends benefit eligibility without deleting historical redemption evidence.",
+        "148": "| Included benefit | free gym access for eligible residents | entitlement evidence; no resident charge unless contract says otherwise |",
+        "149": "| Percentage discount | 15% at an on-site café | provider transaction; discount evidence only |",
+        "154": "| Building-sponsored subsidy | developer covers part of a service | explicit sponsor liability and approved settlement evidence |",
+        "161": "4. Record an idempotent redemption and the applied benefit.",
+        "167": "A benefit network can span many workspaces, while each property continues to have independent tenant, accounting, access and governance boundaries. Cross-portfolio eligibility is an explicit sponsor entitlement; it does not create cross-tenant data visibility.",
+        "184": "| Community member | optional benefits and events; no automatic property authority |",
+        "197": "| `LIFESTYLE` | partner offers, benefits, membership and optional rewards |",
+        "224": "| Developer-sponsored benefit networks, cards, tiers and rewards | Comparative target capability; separate bounded system not yet implemented |",
+        "232": "4. `CLADORA-WORKSPACE-SERVICES-BENEFITS-001` — sponsor networks, participating workspaces, providers, eligibility, digital cards, offers and redemption evidence."
+      }
+    },
+    {
+      "path": "docs/product/CLADORA-ROLES-MENUS-USER-GUIDE-FA-v1.1.md",
+      "sha256": "974f32211f1d27a41aca4f0de97b5ba843d13c321fea2a6917d80b9ebe11f276",
+      "byte_length": 25284,
+      "line_count": 322,
+      "lines": {
+        "60": "| Context | زمینه فعال کاربر شامل Tenant، نقش و Scope. یک کاربر ممکن است چند Context داشته باشد. |",
+        "238": "6. کاربر رمزی حداقل 8 نویسه‌ای شامل حداقل یک حرف لاتین و یک عدد تعیین می‌کند."
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-CE-V14-EXECUTION-STATUS.md",
+      "sha256": "6cb36efc4ea62f13c7259560cbd61552def37cf50a9d992a29a99246643c6bc8",
+      "byte_length": 7162,
+      "line_count": 25,
+      "lines": {
+        "10": "| `CE011-DOM-01` رویداد رایگان | **tested؛ cycle 1**؛ accepted/closed نشده | `af075d67d0d986ff43956fe5f412f546b13f79e6` | actor/context/membership، audience، interest/attendance، timezone، replay/revoke و UI چندزبانه PASS. | مانع دامنه ندارد؛ Remote persistence مستقل است. |",
+        "18": "قراردادهای مصرفی این Workstream شامل C01/C02 برای اختیار و فعال‌سازی CE010/012، C01–C03 برای CE011، audit/idempotency/outbox مشترک، reference امن Documents و قرارداد اختیاری Communications است. CE موتور موازی authority، registry، messaging، ledger، Booking یا SERVICE ایجاد نمی‌کند."
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-DOC-WORKSPACE-BINDING-WRITER-01-EXECUTION-PACKAGE-v1.0.md",
+      "sha256": "fd470e634135420a1b176c677ca6a1485ad2654ea6f942c9f2853e100899893d",
+      "byte_length": 9883,
+      "line_count": 105,
+      "lines": {
+        "13": "Case/private-platform promotion and conversation attachment wiring are excluded."
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-DOCUMENT-VAULT-CLAMAV-PILOT.md",
+      "sha256": "1e1887967caabdcb7fc959f1b28e8977010fa37e892dce130f3e704f27c20319",
+      "byte_length": 6595,
+      "line_count": 38,
+      "lines": {
+        "3": "This is a **queue-backed, free software scanner** for private Supabase Storage documents. It is not running in production until a trusted host is provisioned and its scheduler is enabled. Until then, new uploads remain `deferred`, unavailable for ordinary signed download and private-message attachment. Keep PR #167 as Draft until a pilot verifies real clean and malicious files and account access."
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-DOCUMENTS-MULTI-COUNTRY-REQUIREMENTS-01-v1.0.md",
+      "sha256": "6411564b8210bed91e6f7f57ae65123f759e9fb9688313148890067fc9b5fb24",
+      "byte_length": 15414,
+      "line_count": 168,
+      "lines": {
+        "167": "activation or merge is included. Repository presence does not prove Remote"
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+      "sha256": "805ed4f31e9d6a7ba2d05c8ca52ca0763557aac92e05c5f92cfd0b32af238db7",
+      "byte_length": 102184,
+      "line_count": 920,
+      "lines": {
+        "93": "| Community و مزایا و تجربه | CE و مالکان تخصصی؛ عضویت و صلاحیت هر Workspace جدا ارزیابی شود |",
+        "117": "قرارداد شامل نسخه، مالک، ورودی/خروجی، خطاها، اختیار، idempotency و سیاست سازگاری است. تولیدکننده فقط بخش مورد نیاز مصرف‌کننده را تحویل می‌دهد؛ تکمیل کل محصول پیش‌شرط مصرف یک قرارداد حداقلی نیست.",
+        "149": "| ۵ هوشمندی و گسترش | AI، Personal Home، مزایای چند Workspace، پیکربندی پیشرفته و تحلیل | اختیار هر اقدام در زمینه واقعی؛ تأیید اقدام حساس و آزمون شکست چندجزئی |",
+        "226": "| CE011 رویداد | رویداد رایگان تک‌نوبتی، علاقه/لغو علاقه، حضور دستی و اصلاح نسخه‌دار | C01–C03؛ بدون تخصیص ظرفیت، زمان یا منبع |",
+        "249": "| ۴ وفاداری و عضویت | کارت، Tier، Points، Reward، مزیت شریک و QR redemption | مالک Loyalty تعیین شود؛ ledger امتیاز از پول جدا |",
+        "255": "امتیاز، مزایا، پرداخت، دسترسی فیزیکی و عضویت اجتماعی منابع حقیقت جدا دارند. یک پیشنهاد تجاری مجتمع به ساکنان فقط با قرارداد شریک و صلاحیت اعضا نمایش/مصرف می‌شود. برنامه وفاداری یک Workspace مجوز استفاده در Workspace دیگر نیست.",
+        "257": "پیوست این سند همه ۱۲۲ ردیف ماتریس اولیه را حفظ می‌کند. شرح تکمیلی متن اولیه مانند داوطلبی، تصویر رویداد با رضایت، gift allowance، اشتراک، گروه خانوادگی، بودجه و اسپانسر نیز در خانواده متناظر باقی است؛ ردیف‌های اصلی به دلیل تغییر مالک یا موج حذف نشده‌اند.",
+        "278": "معیار خروج هر قابلیت شامل آزمون کاربر غیرمجاز، انقضای نقش، تغییر Workspace، صفحه کوچک و خطای شبکه است. صرف پنهان‌کردن اسکرول افقی یا دریافت HTTP 200 شاهد کامل پذیرش UX نیست.",
+        "321": "deny/revoke و legacy، عدم نشت reference/count/status، عدم تغییر entitlement، schema/typecheck، آزمون قرارداد مصرف‌کننده و در صورت اجرا log DB. تحویل شامل نسخه قرارداد، commit، فهرست تغییر، نتیجه واقعی و مانع محدود باشد.",
+        "401": "فعال‌سازی مستقل سه قابلیت؛ مخاطب مجاز؛ خطا و حفظ ورودی؛ پاک‌سازی state هنگام تغییر زمینه؛ RO/EN/FA و RTL. تحویل شامل شواهد جزء، DB و E2E جداگانه و قرارداد مصرفی باشد. موج‌های ۳ تا ۵ پیوست حذف یا در این برش پیاده‌سازی نشوند.",
+        "423": "وقتی ظرفیت یک ورک کامل شد، ادامه کار به همان نام با شماره بعدی منتقل می‌شود. شماره ورک با Workspace محصول اشتباه نشود. بسته انتقال شامل سند v1.4 و اصلاحات، شاخه/commit و working tree، فایل‌های واقعی و hash، آزمون‌ها، قراردادها، مجوزها و موانع باز است. ورک جدید ابتدا وضعیت واقعی را تطبیق می‌دهد و commit یا migration قبلی را تکرار نمی‌کند.",
+        "489": "| شرکت و سازنده و مشاور | قیمت فهرست، تخفیف/بسته، مالیات، وضعیت موجودی و تاریخ اعتبار؛ تبلیغ با فروش قطعی اشتباه نشود. |",
+        "624": "| مرجع جاری | docs/control/README.md و current-baseline.json؛ هر مدخل شامل path، version، owner، approval و content hash یا commit pin است. |",
+        "832": "| F092 | Partner benefit | Loyalty تصمیم باز | ۴ | Core و Finance |",
+        "916": "شاخه DW01A گزارش‌شده: feat/core-dw-01a-capability-reader. مبنای تاریخی بازطراحی وب‌سایت: main@436e7a6؛ مبنای فعلی توسعه باید هنگام شروع هر ورک از مخزن تطبیق داده شود. برنامه حاضر انتشار تازه وب‌سایت را شامل نمی‌شود.",
+        "920": "وضعیت فعلی: برنامه مورد تأیید کارفرما؛ درخواست تکمیل و ابلاغ چهار ورک در ۸ اکتبر ۲۰۲۶ دریافت شد. دامنه جدید ارزش‌گذاری در بخش‌های ۲۰ تا ۲۶ وارد برنامه شده است. هر تغییر بعدی شامل شماره نسخه، بسته‌های متأثر، علت، مالک و اثر بر معیار پذیرش باشد. حذف قابلیت یا تغییر مالکیت بدون ثبت تصمیم انجام نشود."
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-MONTHLY-002-AUTHENTICATED-ACCEPTANCE-v1.0.md",
+      "sha256": "cf61050f9ab4d16fe30881deaab31cfe96fb0e82acdaeaa0664ab55f81c52641",
+      "byte_length": 1285,
+      "line_count": 24,
+      "lines": {
+        "22": "## Promotion gate"
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-MONTHLY-ACCOUNTANT-001A-EVIDENCE-MATRIX-v1.0.md",
+      "sha256": "27cc39d6f5d6dca6baa4dbc12bf6199d3b44efb97a2bcc8e070b5a442760f0d1",
+      "byte_length": 4631,
+      "line_count": 44,
+      "lines": {
+        "9": "| `ACC-03` | Furnizori | numai costurile aprobate intră în calcul | facturi și stări de aprobare | comparare surse incluse/excluse | `NEEVALUAT` | |"
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-MONTHLY-ACCOUNTANT-001A-REVIEW-PACK-v1.0.md",
+      "sha256": "ff61626600d39e9bc557b46c4dfc0904566f429441a2b53be2ba0c5abbf47c1e",
+      "byte_length": 5902,
+      "line_count": 72,
+      "lines": {
+        "16": "- [Legea nr. 196/2018 — forma consolidată, Portal Legislativ](https://legislatie.just.ro/Public/DetaliiDocument/305357), inclusiv regulile aplicabile asociațiilor de proprietari, listelor de plată, fondurilor, organelor de conducere și controlului financiar."
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-P2-PILOT-001-SYNTHETIC-ACCEPTANCE-v1.0.md",
+      "sha256": "40dcbae3ddabfd2b3821664e04bddc48f8bfa357888d05c90a8aecb374fb0043",
+      "byte_length": 1661,
+      "line_count": 22,
+      "lines": {
+        "20": "## Promotion gate",
+        "22": "Residential pilot promotion is allowed only when Test 071 passes in the PostgreSQL runtime CI job together with the complete database package, application foundation, typecheck, lint, and production build."
+      }
+    },
+    {
+      "path": "docs/roadmap/CLADORA-UNIVERSAL-WORKSPACE-RECON-001-v1.0.md",
+      "sha256": "055a099bc86f5af9aaa232456d48037b5845b90ddca0f1e182c8a6d227a8a806",
+      "byte_length": 10351,
+      "line_count": 104,
+      "lines": {
+        "50": "| ONE residential benchmark | `RECONCILED` | Smart Home operations and the developer-sponsored One Community service/benefit ecosystem were reviewed as distinct public examples | Model on-site cafés, shops, gyms and wider partners through a separate sponsor network; no copying, affiliation or integration claim. |",
+        "81": "| P2 | `CLADORA-WORKSPACE-SERVICES-BENEFITS-001` | sponsor networks, participating workspaces, providers, eligible members, digital cards, offers and redemptions | Separate non-financial ledger, settlement boundary and synthetic acceptance |"
+      }
+    },
+    {
+      "path": "scripts/test-ce-012-guide-lifecycle-postgres-v1.mjs",
+      "sha256": "1ccc91bf661858258e238eb832e66406a0be8a62403ceedab1676f12c816a759",
+      "byte_length": 65021,
+      "line_count": 1199,
+      "lines": {
+        "1054": "  await check('publish replay rechecks Documents state while unpublish and replay stay target-free', async () => {"
+      }
+    },
+    {
+      "path": "scripts/test-ce-guide-lifecycle-http-postgres-v1.mjs",
+      "sha256": "1ccc6a09c28bbe00f0954c8fc0b9b109fab4130598d0ed354f03aed767b7c74e",
+      "byte_length": 38342,
+      "line_count": 791,
+      "lines": {
+        "616": "  await check('loopback HTTP commits target-free unpublish through the real Core host', async () => {"
+      }
+    },
+    {
+      "path": "scripts/test-ce-guide-lifecycle-http-v1.mjs",
+      "sha256": "4d86b9fb03c182a46b2a24eec22af1f05eee68cc7fae3da6518fdf15a898e657",
+      "byte_length": 15842,
+      "line_count": 331,
+      "lines": {
+        "109": "await check('unpublish is target-free and has an independent stable profile', async () => {"
+      }
+    },
+    {
+      "path": "scripts/test-communications-private-message-request-audience-postgres-v1.mjs",
+      "sha256": "c2fe602c1b534e0c70960513ad6636133179a13c7f7d90139a7cdee9c3b7a8b7",
+      "byte_length": 27708,
+      "line_count": 546,
+      "lines": {
+        "139": "      price: { kind: 'fixed', amount: '1.00', currency: 'RON', tax_display: 'included' },"
+      }
+    },
+    {
+      "path": "scripts/test-core-bk-01-shared-capacity.mjs",
+      "sha256": "aeda9ea3d6007f5e8ddc356ba7f3ffad3133dde944564a8b271d282f5ff1b8c7",
+      "byte_length": 2566,
+      "line_count": 32,
+      "lines": {
+        "18": "assert.match(contract, /Free Event base, interest\\/withdrawal and manual attendance do not wait for BK-01/, 'Community/Event base remains independent');"
+      }
+    },
+    {
+      "path": "scripts/test-core-consumer-dependency-conformance.mjs",
+      "sha256": "2bc9bfcd2f4e1d1a0bb0cb622f8e695831dffe082fac82464743843294911706",
+      "byte_length": 6681,
+      "line_count": 131,
+      "lines": {
+        "80": "  assert.equal(allowed.decision, 'allowed'); // valid_from is inclusive"
+      }
+    },
+    {
+      "path": "scripts/test-core-minimum-consumer-contracts-v14.mjs",
+      "sha256": "7981a5e1f73d36430fe5879e0de143c5d74ffcaf88f219a676e988f562e46929",
+      "byte_length": 3304,
+      "line_count": 61,
+      "lines": {
+        "56": "assert.doesNotMatch(contract, /unlimited free|unlimited-free|رویداد نامحدود/i, 'forbidden unlimited-event wording is absent');"
+      }
+    },
+    {
+      "path": "scripts/test-core-resource-authority-review-r1.mjs",
+      "sha256": "4caed5ab248ee529819cdf8d4ca8642842c98e629349bc3e66524a99bc86263a",
+      "byte_length": 13035,
+      "line_count": 211,
+      "lines": {
+        "91": "check('R1 inclusive start and exclusive end use instants', () => {"
+      }
+    },
+    {
+      "path": "scripts/test-db-hist-01-forward-convergence.mjs",
+      "sha256": "7fe417f73e7a7a46f15d162aab54a26d6c69450db247d4e598fa1abffc4edf9a",
+      "byte_length": 5894,
+      "line_count": 80,
+      "lines": {
+        "47": "assert.equal(ledger.exclusions.private_pm_control_plane_entries.included, false);"
+      }
+    },
+    {
+      "path": "scripts/test-dw-01a-capability-read-contract.mjs",
+      "sha256": "3be664d5ab7702485164e4145d3d3982899bd2a3a6242c710be95356a066f971",
+      "byte_length": 7658,
+      "line_count": 98,
+      "lines": {
+        "73": "assert.doesNotMatch(contract, /unlimited free|unlimited-free|رویداد نامحدود/i, 'Forbidden unlimited-event wording is absent');",
+        "76": "assert.match(databasePackage, /No migration file is included/, 'Database package is design-only');"
+      }
+    },
+    {
+      "path": "scripts/test-p1-role-aware-dashboard.mjs",
+      "sha256": "7d79ef4dac9be0a3d266305dc8059e55d0957e2fedd0c4367384001a5265ad39",
+      "byte_length": 38653,
+      "line_count": 987,
+      "lines": {
+        "647": "  console.log('  ✓ JSX thoroughly inspected and free of unlocalized strings');"
+      }
+    },
+    {
+      "path": "scripts/test-service-catalog-contract-001.mjs",
+      "sha256": "b6d8c36820e833625b1bb30b556343020cceb0b8c3775cdf3ca1fa6c18035b77",
+      "byte_length": 15948,
+      "line_count": 158,
+      "lines": {
+        "26": "  price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' },",
+        "115": "  const reordered = { ...input, revision: { ...revision, price: { currency: 'RON', tax_display: 'included', amount: '120.50', kind: 'fixed' } } };"
+      }
+    },
+    {
+      "path": "scripts/test-service-catalog-persistence-002.mjs",
+      "sha256": "61f573ff0855207d784f00a9fcc762437d8236ce65db28f9b45584e7d5e4ded8",
+      "byte_length": 28333,
+      "line_count": 243,
+      "lines": {
+        "26": "const revision = { labels, description: labels, acquisition_mode: 'direct', price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' },"
+      }
+    },
+    {
+      "path": "scripts/test-service-catalog-route-002.mjs",
+      "sha256": "b985f1f22186e5ebd4c56c4ae453587e7dbc92f58ccd85f4479b15d3db981242",
+      "byte_length": 11419,
+      "line_count": 93,
+      "lines": {
+        "27": "  revision: { labels, description: labels, acquisition_mode: 'direct', price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' }, valid_from: '2026-01-01T00:00:00Z', valid_until: null, cancellation_terms: labels, acceptance_criteria: labels, document_version_ids: [] }, idempotency_key: 'service-001' } };"
+      }
+    },
+    {
+      "path": "scripts/test-service-catalog-ui-003.mjs",
+      "sha256": "a65b47d4e9d04c170d504b41037bbece82a20bb805258ffc6c19f90dd2231044",
+      "byte_length": 14817,
+      "line_count": 145,
+      "lines": {
+        "51": "const item = { offering_id: firstWorkspace, revision_id: secondWorkspace, labels, description: labels, acquisition_mode: 'direct', price: { kind: 'fixed', amount: '999999999999999.99', currency: 'RON', tax_display: 'included' }, valid_from: '2026-01-01T00:00:00Z', valid_until: null, cancellation_terms: labels, acceptance_criteria: labels };"
+      }
+    },
+    {
+      "path": "scripts/test-service-quote-db-014.mjs",
+      "sha256": "c40b0dc180adccb47c886c52da92835b78951d113ae1b3f82529d7f3f0a5bf87",
+      "byte_length": 16950,
+      "line_count": 130,
+      "lines": {
+        "26": "const revision = { labels, description: labels, acquisition_mode: 'direct', price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' },"
+      }
+    },
+    {
+      "path": "scripts/test-service-quote-publication-db-015.mjs",
+      "sha256": "aa0d5d6d2a7098924cf70419650413b1a362b2fab1433ad10b389c2789407431",
+      "byte_length": 19215,
+      "line_count": 139,
+      "lines": {
+        "26": "const revision = { labels, description: labels, acquisition_mode: 'direct', price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' },"
+      }
+    },
+    {
+      "path": "scripts/test-service-request-persistence-010.mjs",
+      "sha256": "988e31e0ae3cec12d5d3174e4cd293d743f4b7750596ca51f08f1ca749c38365",
+      "byte_length": 15177,
+      "line_count": 116,
+      "lines": {
+        "26": "const revision = { labels, description: labels, acquisition_mode: 'direct', price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' },"
+      }
+    },
+    {
+      "path": "scripts/test-service-request-subject-provider-postgres-v2.mjs",
+      "sha256": "11fe7b1e1ae6e9445bbccb53750363c95fca9efa80cb09de8591ae9091578799",
+      "byte_length": 20077,
+      "line_count": 420,
+      "lines": {
+        "127": "      price: { kind: 'fixed', amount: '120.50', currency: 'RON', tax_display: 'included' },"
+      }
+    },
+    {
+      "path": "scripts/test-site-service-positioning-claims.mjs",
+      "sha256": "2b8cebf9b01773694ce78b63629b2c2f65b6f406f4c9998e20536474b48c7a36",
+      "byte_length": 8144,
+      "line_count": 160,
+      "lines": {
+        "68": "check('included CE experience is a separate handoff rather than a SERVICE model', () => {",
+        "70": "    'included in an active benefit',",
+        "71": "    'poate fi inclus într-un beneficiu activ',",
+        "72": "    'در مزایای فعال Workspace گنجانده شود',",
+        "73": "  ]) assert.ok(!page.includes(forbidden), `included benefit presented as SERVICE model: ${forbidden}`);",
+        "74": "  assert.match(page, /included CE experience remains a separate flow with its own funding, entitlement, redemption, and receipt/);",
+        "76": "  assert.match(page, /experiență inclusă prin CE rămâne un flux separat/);",
+        "99": "check('titles and metadata position Member Services and Bookings without Benefits', () => {",
+        "101": "    'Workspace Member Services, Bookings & Benefits',",
+        "102": "    'SERVICE — Member Services, Bookings & Benefits',",
+        "103": "    'Servicii, Rezervări & Beneficii',",
+        "104": "    'Servicii, Rezervări și Beneficii',",
+        "105": "    'خدمات، رزروها و مزایای',"
+      }
+    },
+    {
+      "path": "scripts/test-wp10a-redirects.mjs",
+      "sha256": "b362605bdbb48b7fc0c8f17d5931f3f2ceaeee968c2d816f3ce87876afa8cf05",
+      "byte_length": 4583,
+      "line_count": 98,
+      "lines": {
+        "7": " * 4. Chain-free one-hop resolution"
+      }
+    },
+    {
+      "path": "src/app/[lang]/ai/page.tsx",
+      "sha256": "4aaa3406261a141c03ce3d33efcec196f6fb787a8ab30a957ddf7756e83acee6",
+      "byte_length": 106477,
+      "line_count": 1592,
+      "lines": {
+        "733": "            desc: 'اقدامات دارای پیامد، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.',",
+        "795": "            desc: 'هوش مصنوعی در چارچوب مرزهای احراز‌شدهٔ اختیارات عمل می‌کند. اقدامات دارای پیامد، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.',",
+        "847": "            approval: 'مشمول سازوکارهای کنترلی و تأیید انسانی متناسب توسط فرد دارای صلاحیت.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/auth-result/page.tsx",
+      "sha256": "a01db3108b845d624993fe9e605021280824e6faf3f8ea70c2519bf7858dc775",
+      "byte_length": 7388,
+      "line_count": 115,
+      "lines": {
+        "49": "    unsafe: { title: 'پیوند به‌صورت امن مسدود شد', message: 'پیوند شامل اطلاعات ورود با قالب غیرمجاز بود و هیچ نشستی ایجاد نشد.', action: 'بازگشت به صفحه ورود' },"
+      }
+    },
+    {
+      "path": "src/app/[lang]/community-experience/page.tsx",
+      "sha256": "63abbc7afa4fd1584b76f612d7c3f8f65b632d1af9511378f9024fc363cd4f83",
+      "byte_length": 82190,
+      "line_count": 1431,
+      "lines": {
+        "239": "            rule: 'C&E prezintă contextul sau catalogul de asistență; SERVICE este desemnat să dețină semantica cererilor și comenzilor de servicii, inclusiv etapele relevante de ofertare, comandă și acceptanță acolo unde sunt lansate în producție.',",
+        "954": "          { title: '۵. انطباق با خط‌مشی و نظارت انسانی', desc: 'اقدامات دارای پیامد، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.' },",
+        "957": "        note: 'هوش مصنوعی در چارچوب مرزهای احراز‌شدهٔ اختیارات عمل می‌کند. اقدامات دارای پیامدهای حقوقی یا مالی، مشمول سازوکارهای کنترلی و تأیید انسانی متناسب باقی می‌مانند.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/faq/page.tsx",
+      "sha256": "6fec5b455014e8e3bd2d6bdb49be24d72926663b1b4baf1fcf9b3eff671fc115",
+      "byte_length": 39585,
+      "line_count": 600,
+      "lines": {
+        "418": "              a: 'معماری کلادورا منطبق بر اصول حفاظت از حریم خصوصی GDPR و استانداردهای اروپایی بنا نهاده شده است. ما به جای ادعای تبلیغاتی نشان‌های تجاری اثبات‌نشده، شفافیت فنی کنترل‌های خود را ارائه می‌دهیم.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/industries/page.tsx",
+      "sha256": "5a9f747340a8bb6573a857517127013f8fa7154eb798fe745b6ce91ae0a23fd3",
+      "byte_length": 76434,
+      "line_count": 1275,
+      "lines": {
+        "501": "        desc: 'یک پروژهٔ چندمنظوره مدرن شامل واحدهای مسکونی در طبقات بالا، دفاتر اداری در طبقات میانی، مراکز خرید در طبقات همکف، پارکینگ‌های زیرزمینی و تأسیسات مشترک است. در نرم‌افزارهای سنتی این وضعیت مستلزم ۳ یا ۴ نرم‌افزار ناهماهنگ و در نتیجه اختلافات مالی و عملیاتی شدید بود.',",
+        "621": "          ? 'Hoteluri, aparthoteluri, reședințe cu servicii incluse (serviced apartments) și resorturi de vacanță.'",
+        "723": "          ? 'پروژه‌های کلان ترکیبی شامل برج‌های مسکونی، اداری، فروشگاه‌ها، هتل و پارکینگ‌های یکپارچه شهری.'"
+      }
+    },
+    {
+      "path": "src/app/[lang]/operations/page.tsx",
+      "sha256": "6597987a5d88abd3c4fff5e91072d571e09d7e9f20e81a26f2e20beb3aa0bca9",
+      "byte_length": 23878,
+      "line_count": 378,
+      "lines": {
+        "281": "                    Trecerea de la reparații reactive de urgență la planuri preventive programate. Frecvențe recomandate, reducerea costurilor operaționale și cadrul legal ISCIR/HG 273."
+      }
+    },
+    {
+      "path": "src/app/[lang]/platform/(control-plane)/contracts/page.tsx",
+      "sha256": "280837f994646beca96e6e2fa590055251a3419a76f2a063da513d4b60113254",
+      "byte_length": 1974,
+      "line_count": 42,
+      "lines": {
+        "23": "                  ? \"قراردادهای تجاری و سهمیه‌های مجاز\"",
+        "31": "                ? \"نمای عملیاتی فقط‌خواندنی قراردادها، طرح‌ها و سهمیه‌های مجاز هر محیط کاری.\""
+      }
+    },
+    {
+      "path": "src/app/[lang]/platform/(control-plane)/retention-operations/page.tsx",
+      "sha256": "55229b38e8551fc4b358c0ff4e6218287b176cc57b284b44f488765ce8db6bf9",
+      "byte_length": 1566,
+      "line_count": 29,
+      "lines": {
+        "23": "              : 'AAL2-protected, strictly read-only operational control with assignment-scoped visibility and a side-effect-free worker preview.'}"
+      }
+    },
+    {
+      "path": "src/app/[lang]/platform/lifecycle/page.tsx",
+      "sha256": "55a95a547d6784389f565d4e31ea782d45fd5175e5091045a67061f029dddbc7",
+      "byte_length": 28118,
+      "line_count": 497,
+      "lines": {
+        "257": "          desc: 'بستر معماری شامل ثبت پلاک ثبتی، مشخصات سازه، ساختار واحدها، تسهیم متراژ مشاع و راه‌اندازی بایگانی دیجیتال فنی است.',",
+        "262": "          desc: 'می‌تواند شامل پیگیری متقاضیان، پیش‌نویس تعهدات، اقساط و ثبت مشخصات فنی انتخاب‌شده باشد.',",
+        "267": "          desc: 'شامل نهایی‌سازی اسناد واگذاری، ثبت مالک معتبر در سیستم و فعال‌سازی مجوزهای رسمی است.',",
+        "272": "          desc: 'گردش‌کارها می‌توانند شامل صورت‌جلسات رسمی تحویل (کامل یا فازبندی‌شده)، پیگیری نقایص (Punch-List) و ثبت ارقام اولیه کنتورها باشند.',",
+        "277": "          desc: 'بستر عملیاتی شامل چارچوب محاسبات سهم شارژ، تطبیق تراکنش‌های بانکی، تابلوی اعلانات و فرآیندهای مجامع قانونی است.',",
+        "282": "          desc: 'می‌تواند شامل شناسنامه تجهیزات (آسانسورها، تأسیسات، پمپ‌ها)، برنامه‌ریزی سرویس‌های پیشگیرانه و سوابق نگهداری باشد.',",
+        "292": "          desc: 'می‌تواند شامل ثبت نیازهای فنی، استعلام و مقایسه پیشنهادهای پیمانکاران، دستورکارها و تایید مراحل کار باشد.',",
+        "297": "          desc: 'بستر تعاملی می‌تواند شامل راهنمای استفاده از فضاها، زمان‌بندی امکانات مشترک و ارتباطات همسایگی باشد.',",
+        "302": "          desc: 'شامل انتقال مالکیت، جانشینی مدیریت یا خروج دارایی از خدمت با تحویل ساختاریافته تعهدات بر اساس ضوابط نگهداری اسناد است.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/platform/trust/page.tsx",
+      "sha256": "a233664dde2b729867dc43ff69440e4ff69413d7294afbfe92f65247a44e36bb",
+      "byte_length": 17585,
+      "line_count": 335,
+      "lines": {
+        "185": "          desc: 'عملیات حساس و دسترسی‌های ارتقایافته بر پایه الزامات امنیتی ورود، شامل کنترل‌های هم‌راستا با AAL2 در موارد مورد نیاز طراحی شده‌اند.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/pricing/page.tsx",
+      "sha256": "8867e6b0414c7bfa87b25862e22cd8435373d7f38c26d840805165e82aa2b723",
+      "byte_length": 8609,
+      "line_count": 136,
+      "lines": {
+        "80": "        : 'Multi-asset owners and management companies benefit from workspace-scoped data boundaries per asset, combined with consolidated reporting, aggregated oversight dashboards, and unified portfolio-level commercial terms.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/resources/autori/[authorSlug]/page.tsx",
+      "sha256": "a5734223212179de7578a6aa865035540d6f71db4de50c614040743ab50dfc9e",
+      "byte_length": 17516,
+      "line_count": 353,
+      "lines": {
+        "190": "          text: 'فرآیند تدوین مقالات شامل شناسایی چالش‌های واقعی مدیران، اعتبارسنجی الگوهای محاسباتی و ارائه پاسخ‌های روشن و مستند است.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/resources/glossary/page.tsx",
+      "sha256": "972572f9225f6eea166585854b564ba1dc552e6fa054460c57dc00141f619fda",
+      "byte_length": 42344,
+      "line_count": 815,
+      "lines": {
+        "599": "            'لایه انطباق با ویژگی‌های حوزه قضایی که شامل اصطلاحات بومی، بافت اسناد و الگوهای تسهیم هزینه (مانند چارچوب مرجع قانون 196/2018 در رومانی) و انتظارات عملیاتی محلی، بدون انشعاب در معماری پایه است.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/resources/guides/page.tsx",
+      "sha256": "04b604b0b91c7cf1ca3276aebf22b2106d170df5be0a6cb3d8eeff1b2b08894b",
+      "byte_length": 43358,
+      "line_count": 885,
+      "lines": {
+        "494": "            'پرهیز از ادعاهای تبلیغاتی و وعده‌های فنی اثبات‌نشده',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/resources/migration-hub/page.tsx",
+      "sha256": "2e69f916a78338da0b3afa4dcbfe92dbd0a68f1be73af076816bfdd635d6497f",
+      "byte_length": 29288,
+      "line_count": 531,
+      "lines": {
+        "77": "            desc: 'Stările financiare de migrare cu impact sunt concepute pentru a rămâne supuse unor controale adecvate de validare și acceptanță, inclusiv revizuirii umane acolo unde este necesar.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/service/page.tsx",
+      "sha256": "9c4db4cd91419d8ece5268528534efdd6e187df9591f17632394f690ad957cda",
+      "byte_length": 15692,
+      "line_count": 224,
+      "lines": {
+        "62": "        ? 'O experiență inclusă prin CE rămâne un flux separat, cu sursă de finanțare, drept de utilizare, consum și document propriu. După epuizarea alocării, membrul poate alege o Ofertă SERVICE independentă numai cu o identitate nouă, un preț nou, termeni noi, consimțământ explicit și un document separat.'",
+        "64": "        ? 'تجربه‌ای که در CE برای عضو لحاظ شده، مسیر جداگانه‌ای با منبع تأمین، استحقاق، استفاده و رسید مستقل دارد. پس از پایان سهمیه، عضو تنها با شناسه، قیمت، شرایط، رضایت صریح و رسیدی جدید و جداگانه می‌تواند یک Offering مستقل SERVICE را انتخاب کند.'",
+        "65": "        : 'An included CE experience remains a separate flow with its own funding, entitlement, redemption, and receipt. After its allowance ends, a member may choose an independent SERVICE Offering only with a new identity, price, terms, explicit consent, and separate receipt.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/solutions/page.tsx",
+      "sha256": "91e79de95183623396b0b2673bd805bbb5512b531b9295fa617c18d44fe782ee",
+      "byte_length": 47554,
+      "line_count": 901,
+      "lines": {
+        "509": "          desc: 'هوشمندی کلادورا در چارچوب مرزهای اختیارات عمل می‌کند: اقدامات دارای پیامد، مشمول کنترل‌های خط‌مشی قابل‌اعمال و تایید متناسب انسانی باقی می‌مانند.',"
+      }
+    },
+    {
+      "path": "src/app/[lang]/solutions/residents/page.tsx",
+      "sha256": "a35c2ca201fddb59f934ff2a399a59ec5b508588684e64737e2a67d24fa93e94",
+      "byte_length": 25406,
+      "line_count": 541,
+      "lines": {
+        "268": "          'زمینه‌های سکونت می‌توانند شامل دسترسی به اطلاعات مالی مجاز، ثبت خوانش کنتور، درخواست‌های نگهداری و ارتباطات تاییدشده باشند، بسته به دامنه قابلیت‌های فعال و سطح پیاده‌سازی.',"
+      }
+    },
+    {
+      "path": "src/components/auth/AcceptInvitationForm.tsx",
+      "sha256": "19e2367fbbafebbcade520df664d1070f49f5f0121b22c4085c7cd6601c588c1",
+      "byte_length": 5939,
+      "line_count": 114,
+      "lines": {
+        "34": "    mismatch: 'رمزهای عبور یکسان نیستند.', weak: 'رمز عبور باید حداقل ۸ نویسه و شامل یک حرف و یک عدد باشد.',"
+      }
+    },
+    {
+      "path": "src/components/auth/LoginForm.tsx",
+      "sha256": "bfb2331b617074e93816ac93d9b4fe42bc3f79f7d1bd48c6aacea6cad1579fa0",
+      "byte_length": 12522,
+      "line_count": 296,
+      "lines": {
+        "287": "              ? 'Deschide Demo Interactiv Gratuit'",
+        "289": "                ? 'ورود به دموی آزمایشی رایگان'",
+        "290": "                : 'Launch Free Interactive Demo'}"
+      }
+    },
+    {
+      "path": "src/components/auth/ResetPasswordForm.tsx",
+      "sha256": "32342310dec061f82316fb33b5424f666c77d9407a75d4917312099f8e910147",
+      "byte_length": 12027,
+      "line_count": 286,
+      "lines": {
+        "57": "    intro: 'رمزی با حداقل ۸ نویسه، شامل دست‌کم یک حرف و یک عدد تعیین کنید.',",
+        "63": "    weak: 'رمز عبور باید حداقل ۸ نویسه و شامل یک حرف و یک عدد باشد.',",
+        "65": "    invitationIntro: 'فعال‌سازی را با رمزی حداقل ۸ نویسه‌ای شامل یک حرف و یک عدد تکمیل کنید.',"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "sha256": "4c49be39ead51d554d4fbde6fc39f713fac2bbc87b95748f863ce6fcf7910efc",
+      "byte_length": 14277,
+      "line_count": 114,
+      "lines": {
+        "17": "  fa: { title: 'خدمات فضای کاری', subtitle: 'خدمات قابل استفاده و شرایط هر خدمت را در فضای کاری خود ببینید.', choose: 'فضای کاری را انتخاب کنید', workspace: 'فضای کاری', loading: 'در حال دریافت خدمات…', noContext: 'ابتدا زمینهٔ کاری خود را انتخاب کنید.', noTargets: 'فضای کاری قابل انتخابی در این زمینه وجود ندارد.', empty: 'در این فضای کاری هنوز خدمت منتشرشده‌ای وجود ندارد.', denied: 'دسترسی به خدمات این فضای کاری برای حساب شما فعال نیست.', error: 'دریافت خدمات ناموفق بود.', retry: 'تلاش دوباره', terms: 'شرایط لغو و پذیرش', cancellation: 'شرایط لغو', acceptance: 'معیار پذیرش', quote: 'قیمت پس از بررسی درخواست', included: 'مالیات در قیمت لحاظ شده', excluded: 'مالیات جدا محاسبه می‌شود', not_applicable: 'مالیات اعمال نمی‌شود', direct: 'قیمت مشخص', pre_quote: 'استعلام قیمت', on_site: 'بازدید در محل', project: 'پروژه', reservation: 'رزرو' },",
+        "18": "  en: { title: 'Workspace services', subtitle: 'Explore available services and their terms in your workspace.', choose: 'Choose a workspace', workspace: 'Workspace', loading: 'Loading services…', noContext: 'Choose your working context first.', noTargets: 'No workspace can be selected in this context.', empty: 'No published services are available in this workspace yet.', denied: 'Service access is unavailable for your account in this workspace.', error: 'Services could not be loaded.', retry: 'Try again', terms: 'Cancellation and acceptance terms', cancellation: 'Cancellation terms', acceptance: 'Acceptance criteria', quote: 'Price after request review', included: 'Tax included', excluded: 'Tax calculated separately', not_applicable: 'Tax does not apply', direct: 'Stated price', pre_quote: 'Request a quote', on_site: 'On-site assessment', project: 'Project', reservation: 'Reservation' },",
+        "19": "  ro: { title: 'Serviciile spațiului de lucru', subtitle: 'Descoperă serviciile disponibile și condițiile lor în spațiul tău de lucru.', choose: 'Alege un spațiu de lucru', workspace: 'Spațiu de lucru', loading: 'Se încarcă serviciile…', noContext: 'Alege mai întâi contextul de lucru.', noTargets: 'Nu există un spațiu de lucru selectabil în acest context.', empty: 'Nu există încă servicii publicate în acest spațiu de lucru.', denied: 'Accesul la servicii nu este disponibil pentru contul tău în acest spațiu.', error: 'Serviciile nu au putut fi încărcate.', retry: 'Încearcă din nou', terms: 'Condiții de anulare și acceptare', cancellation: 'Condiții de anulare', acceptance: 'Criterii de acceptare', quote: 'Preț după evaluarea cererii', included: 'Taxe incluse', excluded: 'Taxe calculate separat', not_applicable: 'Taxele nu se aplică', direct: 'Preț stabilit', pre_quote: 'Cerere de ofertă', on_site: 'Evaluare la fața locului', project: 'Proiect', reservation: 'Rezervare' },"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerServiceManagement.tsx",
+      "sha256": "847284d08d56ae1d8f9f4eb06f7458661cd8d05e939334b2f34a9f21c557da27",
+      "byte_length": 19561,
+      "line_count": 164,
+      "lines": {
+        "140": "      {priceKind !== 'quote_required' ? <><label>{t.amount}<input name=\"amount\" inputMode=\"decimal\" required defaultValue={price && price.kind !== 'quote_required' ? price.amount : ''} className={input} /></label><label>{t.currency}<select name=\"currency\" defaultValue={price && price.kind !== 'quote_required' ? price.currency : 'RON'} className={input}>{Object.keys(currencyConfig).map(code => <option key={code}>{code}</option>)}</select></label><label>{t.tax}<select name=\"tax\" defaultValue={price && price.kind !== 'quote_required' ? price.tax_display : 'included'} className={input}>{(['included', 'excluded', 'not_applicable'] as const).map(tax => <option key={tax} value={tax}>{t[tax]}</option>)}</select></label>{priceKind === 'unit' ? <label>{t.unit}<input name=\"unit\" required maxLength={64} defaultValue={price?.kind === 'unit' ? price.unit_code : ''} className={input} /></label> : null}</> : null}"
+      }
+    },
+    {
+      "path": "src/components/demo/DemoDashboardPage.tsx",
+      "sha256": "1ae762acfa59a3c42c7102fbbfb096e457f43e3a59262851be0b026d480c9fc7",
+      "byte_length": 29760,
+      "line_count": 512,
+      "lines": {
+        "396": "                {lang === 'ro' ? 'Deducere fonduri & taxe inclusă' : lang === 'fa' ? 'پس از کسر کلیه مخارج و مالیات' : 'Net of reserve funds & taxes'}"
+      }
+    },
+    {
+      "path": "src/components/home/DelegationAndSuccessionSection.tsx",
+      "sha256": "b1aeeaa788d7ebe2e3d94861236ac3a1b298a84882a411595c7acca999b527e4",
+      "byte_length": 14349,
+      "line_count": 204,
+      "lines": {
+        "106": "                      ? 'Accesul fără dată de expirare fixă este permis doar pe durata validității tuturor temeiurilor necesare (inclusiv autoritatea părinte și mandatul din Workspace) și rămâne revocabil sau caduc la încetarea acestora.'",
+        "143": "                      ? 'تحویل مسئولیت شامل پایان یافتن اختیار قبلی و شروع اختیار جانشین با درج زمان مؤثر و ثبت سابقهٔ قابل پیگیری در سامانه است.'"
+      }
+    },
+    {
+      "path": "src/components/home/FinalCtaSection.tsx",
+      "sha256": "0a093d49940734acaaa1fb97116333847d0731e797131127fe7a762aa990078d",
+      "byte_length": 3450,
+      "line_count": 62,
+      "lines": {
+        "32": "                ? 'Explorează gratuit demo-ul interactiv cu date de test sau programează o discuție tehnică pentru asociația sau portofoliul tău.'",
+        "35": "                : 'Explore our zero-login interactive demo sandbox or discuss dedicated onboarding for your condominium.'}"
+      }
+    },
+    {
+      "path": "src/components/home/IndustryPreviewSection.tsx",
+      "sha256": "18a26ff73c06b40265550601448c5744ad5e95e27c5da8728fd2a53ba8ee6a8e",
+      "byte_length": 8402,
+      "line_count": 205,
+      "lines": {
+        "129": "          desc: 'پروژه‌های ترکیبی شامل طبقات تجاری، دفاتر اداری و واحدهای مسکونی.',"
+      }
+    },
+    {
+      "path": "src/components/home/InteractiveProductPreview.tsx",
+      "sha256": "e5f107dde56329845a323e9585804db3174c51afbcd669bb470c293828e6873e",
+      "byte_length": 16720,
+      "line_count": 279,
+      "lines": {
+        "254": "                {lang === 'ro' ? 'Testare Gratuită' : lang === 'fa' ? 'آزمودن آنلاین و رایگان' : 'Free Sandbox'}"
+      }
+    },
+    {
+      "path": "src/components/home/PilotProgramSection.tsx",
+      "sha256": "657c6057b08f3ccaf6b6baf3ae08918cf1d82c1505b24d0d7ca48b6abce92d6f",
+      "byte_length": 9169,
+      "line_count": 163,
+      "lines": {
+        "18": "      ? 'Migrare gratuită a bazei de date din softul vechi (BlocManager, Xisoft, Excel)' ",
+        "20": "      ? 'مهاجرت رایگان پایگاه داده از سامانه‌های قدیمی یا فایل‌های اکسل'",
+        "21": "      : 'Free historical database migration from legacy software or spreadsheets',",
+        "23": "      ? '1-3 luni rulare în paralel fără costuri suplimentare (Shadow Ledger)' ",
+        "25": "      ? '۱ تا ۳ ماه اجرای آزمایشی موازی با پروتکل Shadow Ledger بدون هیچ هزینه اضافی'",
+        "26": "      : '1-3 months parallel reconciliation with zero financial risk',",
+        "143": "                      {lang === 'ro' ? 'Inclusiv solicitări pentru mai multe spații de lucru' : lang === 'fa' ? 'شامل درخواست برای چند ورک‌اسپیس' : 'Including requests for multiple workspaces'}"
+      }
+    },
+    {
+      "path": "src/components/home/PricingPreviewSection.tsx",
+      "sha256": "74f2e713a27cb1ba0cd3e99486fe4e73f8290fd70deb103264f5b70e989e0d60",
+      "byte_length": 3608,
+      "line_count": 56,
+      "lines": {
+        "29": "              ? 'Toate pachetele includ migrarea gratuită asistată și rularea în paralel prin protocolul Shadow Ledger în perioada pilot.'",
+        "31": "              ? 'تمامی پلن‌ها شامل مهاجرت رایگان سوابق و اجرای آزمایشی موازی با پروتکل Shadow Ledger در طول دوره پایلوت هستند.'"
+      }
+    },
+    {
+      "path": "src/components/home/SecurityAndPermissionsSection.tsx",
+      "sha256": "a35e5c37b851585dad7d2ab4a3c9c0c1ae155d924548906b911b1188611aff22",
+      "byte_length": 7248,
+      "line_count": 113,
+      "lines": {
+        "86": "              ? 'مدیریت دارایی‌های مسکونی شامل داده‌های حساس، قراردادهای مالی و مبالغ تراکنشی بالاست. امنیت داده‌ها در تار و پود معماری کلادورا نهادینه شده است.'"
+      }
+    },
+    {
+      "path": "src/components/home/WhyCladoraSection.tsx",
+      "sha256": "8cf70280cc6abf1d0727488a9a2d22166b41cabdfb7fff6adfe185e6bc5d6c5b",
+      "byte_length": 8855,
+      "line_count": 192,
+      "lines": {
+        "103": "        'به جای ادعاهای تبلیغاتی اغراق‌آمیز، کلادورا بر پایهٔ شش اصل استاندارد در مهندسی نرم‌افزار و معماری داده‌ها بنا شده است.',"
+      }
+    },
+    {
+      "path": "src/components/home/WorkspaceModelSection.tsx",
+      "sha256": "dcb86d1565f91a92825e0a9b71b37fb8caf716efa44585248becedb9ce7269f6",
+      "byte_length": 14283,
+      "line_count": 201,
+      "lines": {
+        "66": "                  ? 'موضوع و بستر خدمات؛ شامل کل مجموعه، ساختمان، واحد (مسکونی، اداری، تجاری یا صنعتی)، فضاهای مشترک، تأسیسات و تجهیزات فنی (آسانسور، موتورخانه، پمپ‌ها) و کنتورها.'"
+      }
+    },
+    {
+      "path": "src/components/interactive/SavingsCalculator.tsx",
+      "sha256": "0495a0413ec00484c4f03c9f6addc4d2ec2faaaf366007e94f2fc5b7636d60e4",
+      "byte_length": 12611,
+      "line_count": 209,
+      "lines": {
+        "199": "                ? 'Prin eliminarea pierderilor ascunse de apă/căldură (OCR contoare), renegocierea contractelor de mentenanță peste prețul pieței (Contract Leakage) și reducerea cu 80% a timpului de emitere a listelor de plată.'"
+      }
+    },
+    {
+      "path": "src/components/interactive/ShadowLedgerDemo.tsx",
+      "sha256": "6f9f0a7127fbd93934ae7591a159e723821d53fcbcf0c3b1ec2d2be4f2a5bf47",
+      "byte_length": 9379,
+      "line_count": 188,
+      "lines": {
+        "49": "      legacyNote: lang === 'ro' ? 'Fond reparații inclus la chiriaș' : lang === 'fa' ? 'درج هزینه صندوق تعمیرات اساسی در فیش مستأجر' : 'Reserve fund billed to tenant',"
+      }
+    },
+    {
+      "path": "src/components/manager/utility-bills/UtilityBillsWorkspace.tsx",
+      "sha256": "525b013384721354726374247d51cbf50c8487eec1a701728b964394dabef6a8",
+      "byte_length": 83397,
+      "line_count": 1520,
+      "lines": {
+        "553": "            {isRo ? 'Toate cele 7 stări de procesare reprezentate' : isFa ? 'شامل تمامی ۷ وضعیت گردش‌کار' : 'All 7 workflow states covered deterministically'}"
+      }
+    },
+    {
+      "path": "src/components/owner/OwnerOverviewPanel.tsx",
+      "sha256": "942e7d6065c729e6e93b79343baefefaa60967ca548e6cd8ce927962c4a0881a",
+      "byte_length": 7416,
+      "line_count": 36,
+      "lines": {
+        "10": "  fa:{title:'نمای کلی املاک من',units:'واحدهای فعال',leased:'واحدهای دارای قرارداد جاری',monthly:'اجاره ماهانه طبق قراردادهای جاری',income:'دریافتی این ماه',expense:'پرداختی این ماه',owed:'مطالبات معوق ثبت‌شده',payable:'پرداخت‌های معوق ثبت‌شده',expiring:'قراردادهای رو به پایان تا ۶۰ روز یا نیازمند بستن',overdue:'سررسیدهای معوق ثبت‌شده',none:'موردی برای نمایش وجود ندارد.',note:'اطلاعات خوداظهاری و به تفکیک ارز است. معوقات فقط شامل موارد ثبت‌شده و پرداخت‌نشده است، نه برنامه خودکار اجاره. مانده رسمی ساختمان در بخش هر واحد تأییدشده نمایش داده می‌شود.',failed:'نمای کامل دریافت نشد؛ صفحه را دوباره بارگذاری کنید.',loading:'در حال دریافت نمای املاک…',settle:'ثبت پرداخت کامل',date:'تاریخ واقعی پرداخت',direction:'جهت',incomeLabel:'دریافتنی',expenseLabel:'پرداختنی'},"
+      }
+    },
+    {
+      "path": "src/components/platform/OperationalContractsPanel.tsx",
+      "sha256": "8fa5aadd8ab347f717b64b585e5e4c1dd27887aa44fb6e19d330cb47411ca6fa",
+      "byte_length": 13149,
+      "line_count": 138,
+      "lines": {
+        "38": "    list: \"قراردادهای مجاز\", total: \"مجموع\", loading: \"در حال دریافت قراردادها و سهمیه‌های مجاز…\",",
+        "41": "    period: \"دوره\", status: \"وضعیت\", details: \"جزئیات قرارداد\", entitlements: \"سهمیه‌ها و دسترسی‌های فعال\",",
+        "42": "    noEntitlements: \"برای این محیط کاری سهمیه‌ای ثبت نشده است.\", terms: \"شرایط تجاری\", noTerms: \"شرایط تجاری دیگری ثبت نشده است.\","
+      }
+    },
+    {
+      "path": "src/data/guides/cluster-a-associations.ts",
+      "sha256": "302045d0bbd0e56915086478be55620870952dee67a5099b50629b5f85b24e20",
+      "byte_length": 93389,
+      "line_count": 1261,
+      "lines": {
+        "426": "          '4. Cheltuieli pe consumatori tehnici: Costuri aferente unor echipamente care aduc beneficii specifice sau modificări de putere instalată solicitate de anumiți proprietari.',",
+        "951": "          'Condiție imperativă de integritate: Suma tuturor cotelor-părți indivize atribuite tuturor proprietăților individuale (inclusiv spații comerciale de la parter, birouri, boxe sau parcări intabulate) trebuie să fie exact egală cu 100% (sau fracția 1/1).',"
+      }
+    },
+    {
+      "path": "src/data/guides/cluster-b-operations.ts",
+      "sha256": "687f3ab8bb4eb7a77aba862c7a751561a2a421e468b608e7d14efeaefd1b7f63",
+      "byte_length": 39231,
+      "line_count": 545,
+      "lines": {
+        "9": "    title: 'Planul de Mentenanță Preventivă a Clădirilor: Etape, Grafice Obligatorii și Reducerea Costurilor de Avarie',",
+        "12": "      'Ghid de mentenanță preventivă pentru clădiri: planificarea reviziilor tehnice obligatorii, frecvențe recomandate pe echipamente și reducerea costurilor de avarie.',",
+        "397": "      'Registrul de echipamente și revizii este inventarul tehnic centralizat care consemnează identitatea, caracteristicile constructive, amplasamentul, garanțiile și istoricul complet de intervenții pentru toate activele fizice dintr-o clădire. În conformitate cu normativele tehnice românești (inclusiv prescripțiile ISCIR și normele de securitate la incendiu), registrul atestă starea de funcționare a instalațiilor și previne pierderea garanțiilor sau operarea nesigură a utilajelor comune.',",
+        "455": "          '• Pierderea certificatelor de garanție ale pompelor sau motoarelor noi, suportându-se din fondurile asociației reparații care ar fi fost gratuite.',"
+      }
+    },
+    {
+      "path": "src/data/guides/cluster-platform.ts",
+      "sha256": "61f96e21b0993327da92fa50bb8b5ea30d28402f6b3cfe47f2a8c014dbf5d0b8",
+      "byte_length": 33726,
+      "line_count": 409,
+      "lines": {
+        "367": "          'یکی از مزایای معماری پلتفرم، حفظ اطلاعات در مراحل گوناگون ساختمان است. اطلاعات فنی، دفترچه‌های ضمانت تجهیزات و نقشه‌های تاسیساتی که در زمان پیش‌فروش و تحویل واحدها ثبت شده‌اند، مستقیماً به بستر نگهداری روزمره و تعمیرات پیشگیرانه منتقل می‌شوند و نیاز به ورود مجدد اطلاعات را از بین می‌برند.',"
+      }
+    },
+    {
+      "path": "src/dictionaries/en.ts",
+      "sha256": "a4d462732627be51ff270166105c51c1f06f61c51b0ffe27aa7e443824efd43b",
+      "byte_length": 28533,
+      "line_count": 471,
+      "lines": {
+        "137": "      { code: \"A2\", name: \"Thermally Rehabilitated Block\", period: \"Rehabilitated\", desc: \"Insulated exterior, double glazing; benefits from moisture and air quality monitoring.\", savings: \"12-18% efficiency gain\" },",
+        "257": "      { id: \"fin01\", name: \"Financial Truth & Core Ledger (FIN01)\", desc: \"Statutory accounts, multi-fund balances, fee allocation, and audit trails.\", included: true },",
+        "258": "      { id: \"ce\", name: \"Community & Experience Portal (C&E)\", desc: \"Occupant notices, directory access, digital communications, and requests.\", included: false },",
+        "259": "      { id: \"ops\", name: \"Operations & Work Orders (OPERATIONS/SERVICE)\", desc: \"Vendor dispatch, maintenance tickets, task execution, and work receipts.\", included: false },",
+        "260": "      { id: \"bk01\", name: \"Booking & Amenity Management (BK01)\", desc: \"Shared resource schedules, capacity caps, and reservation access controls.\", included: false },",
+        "261": "      { id: \"ai\", name: \"Governed Intelligence (CLADORA AI)\", desc: \"Subordinate audit assistance, discrepancy detection, and draft preparation.\", included: false },",
+        "285": "    benefits: ["
+      }
+    },
+    {
+      "path": "src/dictionaries/fa.ts",
+      "sha256": "d81bbca8e32c089c7525639949b017037cd229380e31aec577093311de6e687b",
+      "byte_length": 41235,
+      "line_count": 471,
+      "lines": {
+        "257": "      { id: \"fin01\", name: \"حقیقت مالی و دفاتر قانونی (FIN01)\", desc: \"دفاتر معتبر، تراز صندوق‌ها، تفکیک سهم شارژ و لاگ‌های ممیزی تغییرناپذیر.\", included: true },",
+        "258": "      { id: \"ce\", name: \"پورتال جامعه و تجربه کاربری (C&E)\", desc: \"اطلاعیه‌ها، دفترچه ارتباطات، ثبت درخواست‌ها و دسترسی موبایل ساکنان.\", included: false },",
+        "259": "      { id: \"ops\", name: \"عملیات و سفارش‌های کاری (OPERATIONS/SERVICE)\", desc: \"ارجاع کار به پیمانکار، تیکت‌های تعمیر و نگهداری و ثبت رسید اتمام کار.\", included: false },",
+        "260": "      { id: \"bk01\", name: \"رزرو و مدیریت فضاهای اشتراکی (BK01)\", desc: \"زمان‌بندی امکانات عمومی، سقف ظرفیت و قوانین دسترسی منصفانه.\", included: false },",
+        "261": "      { id: \"ai\", name: \"هوش عملیاتی تحت کنترل (CLADORA AI)\", desc: \"دستیار ممیزی زیرمجموعه، شناسایی مغایرت‌ها و آماده‌سازی پیش‌نویس‌ها.\", included: false },",
+        "285": "    benefits: ["
+      }
+    },
+    {
+      "path": "src/dictionaries/ro.ts",
+      "sha256": "664568804d21cd1ffd60be965f83c96e500ad16f6445f621819c107ce346f805",
+      "byte_length": 31043,
+      "line_count": 471,
+      "lines": {
+        "164": "      { title: \"Evidența Măsurilor de Eficiență\", desc: \"Fiecare reducere de cheltuială este documentată clar pentru a putea fi prezentată transparent în adunarea generală.\" },",
+        "257": "      { id: \"fin01\", name: \"Adevăr Financiar & Registre Statutare (FIN01)\", desc: \"Evidență contabilă statutară, solduri pe fonduri, repartizare cheltuieli și piste de audit.\", included: true },",
+        "258": "      { id: \"ce\", name: \"Portal Comunitate & Experiență (C&E)\", desc: \"Avizier digital, comunicări verificate, cereri rezidenți și acces mobil securizat.\", included: false },",
+        "259": "      { id: \"ops\", name: \"Operațiuni & Comenzi de Lucru (OPERATIONS/SERVICE)\", desc: \"Dispecerat furnizori, tichete de mentenanță, execuție lucrări și chitanțe de recepție.\", included: false },",
+        "260": "      { id: \"bk01\", name: \"Rezervări & Management Facilități (BK01)\", desc: \"Programare resurse comune, plafoane de capacitate și reguli de acces.\", included: false },",
+        "261": "      { id: \"ai\", name: \"Inteligență Guvernată (CLADORA AI)\", desc: \"Asistență subordonată pentru audit, detectare discrepanțe și redactare ciorne.\", included: false },",
+        "265": "      { id: \"ro\", name: \"Pachet România\", desc: \"Fluxuri structurate pentru administrarea asociațiilor, inclusiv cerințe de evidență din contextul Legii 196/2018, pregătire ANAF e-Factura și contabilitate în RON.\" },",
+        "285": "    benefits: ["
+      }
+    },
+    {
+      "path": "src/lib/auth/recovery-errors.ts",
+      "sha256": "3da975a8e54d68baab90a3d5752f58257d8c6ef783851eb228eb32d08468685a",
+      "byte_length": 4931,
+      "line_count": 96,
+      "lines": {
+        "90": "    password_policy_failed: 'رمز عبور با خط‌مشی امنیتی مطابقت ندارد (حداقل ۸ نویسه، شامل حرف و عدد).',"
+      }
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+      "sha256": "22c9816a557445bc19e133015f416598e702c90fb9b26a89cc8110bc69142481",
+      "byte_length": 19207,
+      "line_count": 464,
+      "lines": {
+        "336": "    // preflight remains write-free while the shared Guide lock prevents its"
+      }
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "sha256": "ce0360f30f1c49ff06e8ec944ba7263e0012c56fb2c27e5094d6604a1cf09a6e",
+      "byte_length": 39523,
+      "line_count": 648,
+      "lines": {
+        "56": "  'Subject must be included in the existing provider-source lock set');"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-catalog-management-copy.ts",
+      "sha256": "2c5c597ba757c299b282be096bf1482ca669dcfbed8868b3f4e77170d6f96633",
+      "byte_length": 7725,
+      "line_count": 10,
+      "lines": {
+        "2": "  en: { title: 'Manage service catalogue', loading: 'Loading catalogue…', denied: 'Catalogue management is not available for your account in this workspace.', error: 'The request could not be completed. Retry the same action to check its result.', conflict: 'The service changed or this request conflicts with an earlier one. Refresh before continuing.', invalid: 'Check the required fields, price and validity dates.', retry: 'Retry', refresh: 'Refresh', next: 'Next page', first: 'First page', empty: 'No offerings yet.', newDefinition: 'Create service definition', code: 'Service code', label: 'Name', description: 'Description', cancellation: 'Cancellation terms', acceptance: 'Acceptance criteria', definition: 'Service definition', provider: 'Service provider', choose: 'Choose', create: 'Save new draft', revise: 'Save new revision', edit: 'Create revision', cancel: 'Cancel editing', mode: 'Acquisition mode', price: 'Price type', amount: 'Amount', currency: 'Currency', unit: 'Unit', tax: 'Tax display', start: 'Valid from', end: 'Valid until (optional)', reason: 'Reason for action', submit: 'Submit for approval', publish: 'Publish', suspend: 'Suspend', archive: 'Archive', current: 'Editing version', publishedVersion: 'Published version', history: 'Other versions', separate: 'Publication requires a separate authorized approver.', success: 'Saved. Catalogue refreshed.', direct: 'Stated price', pre_quote: 'Quote request', on_site: 'On-site assessment', project: 'Project', reservation: 'Reservation', fixed: 'Fixed total', quote_required: 'Quote required', unitPrice: 'Unit price', included: 'Tax included', excluded: 'Tax separate', not_applicable: 'Tax does not apply', draft: 'Draft', submitted: 'Awaiting approval', published: 'Published', suspended: 'Suspended', archived: 'Archived', noProviders: 'No active provider is available. Register a provider through the existing party registry first.' },",
+        "3": "  ro: { title: 'Administrare catalog servicii', loading: 'Se încarcă catalogul…', denied: 'Contul tău nu are acces la administrarea catalogului în acest spațiu.', error: 'Cererea nu a putut fi finalizată. Reîncearcă aceeași acțiune pentru a verifica rezultatul.', conflict: 'Serviciul s-a schimbat sau cererea intră în conflict cu una anterioară. Actualizează înainte de a continua.', invalid: 'Verifică câmpurile obligatorii, prețul și perioada de valabilitate.', retry: 'Reîncearcă', refresh: 'Actualizează', next: 'Pagina următoare', first: 'Prima pagină', empty: 'Nu există încă oferte.', newDefinition: 'Creează definiția serviciului', code: 'Cod serviciu', label: 'Denumire', description: 'Descriere', cancellation: 'Condiții de anulare', acceptance: 'Criterii de acceptare', definition: 'Definiția serviciului', provider: 'Furnizorul serviciului', choose: 'Alege', create: 'Salvează oferta preliminară', revise: 'Salvează versiunea nouă', edit: 'Creează versiune', cancel: 'Anulează editarea', mode: 'Mod de achiziție', price: 'Tip preț', amount: 'Sumă', currency: 'Monedă', unit: 'Unitate', tax: 'Afișare taxe', start: 'Valabil de la', end: 'Valabil până la (opțional)', reason: 'Motivul acțiunii', submit: 'Trimite spre aprobare', publish: 'Publică', suspend: 'Suspendă', archive: 'Arhivează', current: 'Versiune în editare', publishedVersion: 'Versiune publicată', history: 'Alte versiuni', separate: 'Publicarea necesită un aprobator autorizat distinct.', success: 'Salvat. Catalogul a fost actualizat.', direct: 'Preț stabilit', pre_quote: 'Cerere de ofertă', on_site: 'Evaluare la fața locului', project: 'Proiect', reservation: 'Rezervare', fixed: 'Total fix', quote_required: 'Ofertă necesară', unitPrice: 'Preț unitar', included: 'Taxe incluse', excluded: 'Taxe separate', not_applicable: 'Taxele nu se aplică', draft: 'Preliminar', submitted: 'În așteptarea aprobării', published: 'Publicat', suspended: 'Suspendat', archived: 'Arhivat', noProviders: 'Nu există un furnizor activ. Înregistrează mai întâi furnizorul în registrul existent.' },",
+        "4": "  fa: { title: 'مدیریت کاتالوگ خدمات', loading: 'در حال دریافت کاتالوگ…', denied: 'حساب شما در این فضای کاری به مدیریت کاتالوگ دسترسی ندارد.', error: 'نتیجهٔ درخواست دریافت نشد. همان عملیات را دوباره اجرا کنید تا نتیجه بررسی شود.', conflict: 'خدمت تغییر کرده یا این درخواست با درخواست قبلی تعارض دارد. ابتدا اطلاعات را تازه کنید.', invalid: 'فیلدهای ضروری، قیمت و تاریخ اعتبار را بررسی کنید.', retry: 'تلاش دوباره', refresh: 'به‌روزرسانی', next: 'صفحهٔ بعد', first: 'صفحهٔ اول', empty: 'هنوز پیشنهادی ثبت نشده است.', newDefinition: 'ایجاد تعریف خدمت', code: 'کد خدمت', label: 'نام', description: 'توضیحات', cancellation: 'شرایط لغو', acceptance: 'معیارهای پذیرش', definition: 'تعریف خدمت', provider: 'ارائه‌دهندهٔ خدمت', choose: 'انتخاب کنید', create: 'ذخیرهٔ پیش‌نویس جدید', revise: 'ذخیرهٔ نسخهٔ جدید', edit: 'ایجاد نسخهٔ جدید', cancel: 'لغو ویرایش', mode: 'روش دریافت خدمت', price: 'نوع قیمت', amount: 'مبلغ', currency: 'ارز', unit: 'واحد', tax: 'نمایش مالیات', start: 'شروع اعتبار', end: 'پایان اعتبار (اختیاری)', reason: 'دلیل عملیات', submit: 'ارسال برای تأیید', publish: 'انتشار', suspend: 'تعلیق', archive: 'بایگانی', current: 'نسخهٔ در حال ویرایش', publishedVersion: 'نسخهٔ منتشرشده', history: 'نسخه‌های دیگر', separate: 'انتشار نیازمند تأییدکنندهٔ مجاز و متفاوت است.', success: 'ذخیره شد؛ کاتالوگ به‌روز شد.', direct: 'قیمت مشخص', pre_quote: 'درخواست قیمت', on_site: 'ارزیابی در محل', project: 'پروژه', reservation: 'رزرو', fixed: 'مبلغ ثابت', quote_required: 'نیازمند اعلام قیمت', unitPrice: 'قیمت واحد', included: 'مالیات منظور شده', excluded: 'مالیات جداگانه', not_applicable: 'بدون مالیات', draft: 'پیش‌نویس', submitted: 'در انتظار تأیید', published: 'منتشرشده', suspended: 'معلق', archived: 'بایگانی‌شده', noProviders: 'ارائه‌دهندهٔ فعالی وجود ندارد. ابتدا ارائه‌دهنده را در دفتر اشخاص موجود ثبت کنید.' },"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "sha256": "c5f26e512b43c8584937da461a3ee2927caf966cd966fad079666fd39a531bc5",
+      "byte_length": 4333,
+      "line_count": 85,
+      "lines": {
+        "20": "    tax_display: z.enum(['included', 'excluded', 'not_applicable']),",
+        "25": "    tax_display: z.enum(['included', 'excluded', 'not_applicable']),"
+      }
+    },
+    {
+      "path": "src/lib/module-registry/taxonomy.ts",
+      "sha256": "1df2e8c1a421e1615997405602f6eb9e4d5d6252ce243dac46e5fbff20d26d06",
+      "byte_length": 8986,
+      "line_count": 264,
+      "lines": {
+        "95": "      \"ro\": \"Reședință cu servicii incluse\","
+      }
+    }
+  ],
+  "payload_sha256": "43f4e5f89ce55da665c21046c2e9b3fa5c26b1c51f24174e4801fc40798a85cd"
+}

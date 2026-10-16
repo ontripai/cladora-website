@@ -38,8 +38,18 @@ rationale and correction status for all **532** matches are stored in:
 | `internal_only` | 147 | Test, schema, field name, technical adjective or non-member-facing architecture/operations text. |
 
 The inventory is a snapshot of the live main baseline, with the canonical merge
-recorded separately. The regression harness checks the corrected tree, so the
-removed incorrect terms are retained in the inventory as review evidence
+recorded separately. Its evidence file is:
+
+`docs/architecture/references/CLADORA-CE-MEMBER-BENEFIT-TERMINOLOGY-AUDIT-04-EVIDENCE.json`
+
+That versioned snapshot contains the exact baseline line context for every
+entry and the SHA-256, byte length and line count of every baseline file. The
+inventory pins both those file hashes and the canonical SHA-256 of the evidence
+payload. `npm run test:ce:member-benefit-terminology` verifies all 532 terms at
+their one-based line and column, recomputes classification counts from entries,
+and fails on a path, coordinate, term, count or file-hash mismatch. It needs no
+network access or Git history in CI. The regression also checks the corrected
+tree, so removed incorrect terms remain in the inventory as review evidence
 rather than silently disappearing.
 
 ### Public findings and corrections
@@ -142,8 +152,15 @@ SERVICE Order, charge, receipt or redemption.
 - no private funding, tier, membership or sponsor fields in CE public
   presentation;
 - canonical open ownership, CE scope, SERVICE handoff and sponsor privacy;
-- inventory completeness and all four required classifications;
+- inventory completeness, exact baseline coordinates and all four computed
+  classification counts;
+- hash-bound local evidence for every inventory path and matched baseline line;
 - Persian `rtl` direction through the shared localized layout.
+
+Application Foundation runs the official package script. Its path filters cover
+the harness, policy, inventory, evidence snapshot and `package.json`; all public
+copy files inspected by the harness are covered by the existing `src/**`
+filter.
 
 ## Future acceptance matrix
 
