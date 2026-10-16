@@ -1,0 +1,55 @@
+{
+  "schema": "core-canonical-country-territory-source-manifest.v1",
+  "publisher": "Unicode Consortium",
+  "dataset": "Unicode Common Locale Data Repository validity data",
+  "release": "CLDR release-48-2",
+  "published_on": "2026-03-17",
+  "tag": "release-48-2",
+  "tag_object": "fc1fd058cc6f50544a450a3b15a4bba0e0c1e653",
+  "commit": "11299982335beb974c1c63c45265184e759c0f41",
+  "artifact": {
+    "upstream_path": "common/validity/region.xml",
+    "repository_path": "docs/contracts/references/CORE-CANONICAL-COUNTRY-REGISTRY-01/cldr-release-48-2-region.xml",
+    "sha256": "e751e0eedd46b52c38f3cdb72b0fab61ac8b48e052e8b28ba74b6ac26c4c8cb1"
+  },
+  "license": {
+    "name": "Unicode License v3",
+    "spdx": "Unicode-3.0",
+    "repository_path": "docs/contracts/references/CORE-CANONICAL-COUNTRY-REGISTRY-01/cldr-release-48-2-LICENSE.txt",
+    "sha256": "b49d0e9f8ead51ca8b7df6fec89cc3ae6809198b4b9d43c74216da0118f23f5b"
+  },
+  "parser": {
+    "version": "core-cldr-region-validity-parser.v1",
+    "repository_path": "scripts/lib/parse-cldr-region-validity-v1.mjs"
+  },
+  "filter_policy": {
+    "version": "core-country-territory-region-filter.v1",
+    "new_assignment_allowed_source_statuses": [
+      "regular"
+    ],
+    "new_assignment_rejected_source_statuses": [
+      "macroregion",
+      "special",
+      "reserved",
+      "private_use",
+      "unknown",
+      "deprecated"
+    ],
+    "unknown_code": "ZZ",
+    "exceptional_regular": {
+      "XK": {
+        "decision": "accepted_for_technical_region_interoperability",
+        "meaning": "no_political_sovereignty_or_legal_jurisdiction_recognition"
+      }
+    }
+  },
+  "normalized_output": {
+    "format": "core-country-territory-region-validity.normalized.v1",
+    "record_count": 343,
+    "active_record_count": 257,
+    "historical_record_count": 12,
+    "excluded_record_count": 74,
+    "sha256": "4ee7bbf11b19a8f6b5dd467d06f5ecf7fdbe0d89af1d14bc928ce8e684ccf814"
+  },
+  "network_runtime_dependency": false
+}
