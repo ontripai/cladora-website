@@ -68,7 +68,9 @@ The three methods remain distinct:
 | `human_reviewed` | Current approved review with private reviewer evidence | `human_reviewed` |
 | `machine_assisted` | Current approved human review with private reviewer evidence | `machine_assisted_human_reviewed` |
 
-Pending, rejected or incomplete review fails closed. The contract accepts no
+Pending, rejected or incomplete review fails closed. An approved review must
+occur at or after the recorded production time; an earlier review timestamp
+fails closed. The contract accepts no
 free-form reviewer label, professional title, qualification or expertise claim.
 The public projector returns only target locale, translation version, method
 and the closed attribution policy. Reviewer/producer identities, authority
@@ -102,6 +104,7 @@ missing or invalid destination decision.
 | Region-tagged, unsupported or source-equal target locale | `LOCALE_AMBIGUOUS` | None |
 | Pending/missing review evidence | `REVIEW_REQUIRED` | None |
 | Rejected review | `REVIEW_REJECTED` | None |
+| Approved review timestamp predates production | `REVIEW_TIME_INVALID` | None |
 | Method and attribution policy disagree | `ATTRIBUTION_POLICY_MISMATCH` | None |
 | Existing head belongs to another scope/source/series/locale | `IMMUTABLE_BINDING_CONFLICT` | None |
 | Previous version/fingerprint or next version is wrong | `TRANSLATION_VERSION_CONFLICT` | None |
@@ -127,7 +130,7 @@ The static harness covers:
 - first append, exact next append and input immutability;
 - Context, Workspace, Guide, source version and hash mismatch;
 - stale, draft and unpublished sources;
-- missing, pending and rejected review;
+- missing, pending, rejected and pre-production review;
 - ambiguous locale and forbidden country/jurisdiction fields;
 - immutable head/version/fingerprint conflicts;
 - private provenance redaction and absence of invented professional claims;

@@ -111,6 +111,7 @@ export const guideTranslationProvenanceResultCodeV1Schema = z.enum([
   'LOCALE_AMBIGUOUS',
   'REVIEW_REQUIRED',
   'REVIEW_REJECTED',
+  'REVIEW_TIME_INVALID',
   'ATTRIBUTION_POLICY_MISMATCH',
   'IMMUTABLE_BINDING_CONFLICT',
   'TRANSLATION_VERSION_CONFLICT',
@@ -243,6 +244,10 @@ export function evaluateGuideTranslationProvenanceV1(
     || review.reviewer_authority_revision === null
     || review.reviewed_at === null) {
     return stop('REVIEW_REQUIRED');
+  }
+  if (Date.parse(review.reviewed_at)
+    < Date.parse(input.candidate.provenance.produced_at)) {
+    return stop('REVIEW_TIME_INVALID');
   }
 
   if (input.candidate.provenance.attribution_policy

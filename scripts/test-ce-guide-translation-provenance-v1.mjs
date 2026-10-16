@@ -177,6 +177,9 @@ for (const [mutate, code] of [
   [input => { input.candidate.provenance.review.reviewer_authority_revision = null; }, 'REVIEW_REQUIRED'],
   [input => { input.candidate.provenance.review.reviewed_at = null; }, 'REVIEW_REQUIRED'],
   [input => { input.candidate.provenance.review.status = 'rejected'; }, 'REVIEW_REJECTED'],
+  [input => {
+    input.candidate.provenance.review.reviewed_at = '2026-10-16T09:59:59.999Z';
+  }, 'REVIEW_TIME_INVALID'],
   [input => { input.candidate.provenance.attribution_policy = 'human_reviewed'; }, 'ATTRIBUTION_POLICY_MISMATCH'],
   [input => { input.country_code = 'IR'; }, 'MALFORMED_INPUT'],
   [input => { input.candidate.provenance.professional_title = 'Certified legal translator'; }, 'MALFORMED_INPUT'],
