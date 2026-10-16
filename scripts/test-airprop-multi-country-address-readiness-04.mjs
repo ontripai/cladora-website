@@ -109,8 +109,8 @@ console.log(JSON.stringify({
   legacy_opportunity: 'ROMANIA_ONLY_NOT_CANONICAL_ADDRESS',
   dependency: {
     pr: 431,
-    head: 'b7dece9358b8e1a0c761a9cbf7b018c342398f78',
-    tree: '1e72a58270dd1fad5bee29b5cc61e7ecaf0bc98f',
+    head: '9927f1ee674ed7aa7f949150e00c95df52d2f881',
+    tree: 'e66df31dde3fc533afad76c707547e51210c7e85',
     hashes_registered: false,
   },
   result: 'NOT_READY_FOR_RUNTIME_RESOLUTION',

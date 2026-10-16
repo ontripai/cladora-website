@@ -11,8 +11,8 @@ This is a documentation and static-evidence package. It changes no guard, migrat
 Runtime resolution depends on Core PR #431:
 
 - Base: `f31574555cf122487c5f184cb91d5f7a4666c293`;
-- Head: `b7dece9358b8e1a0c761a9cbf7b018c342398f78`;
-- Tree: `1e72a58270dd1fad5bee29b5cc61e7ecaf0bc98f`;
+- Head: `9927f1ee674ed7aa7f949150e00c95df52d2f881`;
+- Tree: `e66df31dde3fc533afad76c707547e51210c7e85`;
 - Status at audit: Draft, not merged;
 - Consumer dependency: current `address.structure` artifact resolution bound to an accepted property jurisdiction selection and the same Core transaction context.
 
