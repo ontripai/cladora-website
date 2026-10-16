@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '..');
 
-console.log('=== RUNNING WP-15B-FIX-5 FIXPOINT LOCALE/JURISDICTION REGRESSION TESTS ===\n');
+console.log('=== RUNNING WP-15B-FIX-6 TAINT-AWARE LOCALE/JURISDICTION REGRESSION TESTS ===\n');
 
 let passedAssertions = 0;
 let totalAssertions = 0;
@@ -203,6 +203,26 @@ function auditSourceFile(filePath, code) {
   const taintedVariables = new Set();
   const countryValuedVariables = new Set();
 
+  function bindingNames(pattern, inheritedSource = false) {
+    const discovered = [];
+    if (ts.isIdentifier(pattern)) {
+      discovered.push({ name: pattern.text, source: inheritedSource || isSourceIdentifier(pattern.text) });
+    } else if (ts.isObjectBindingPattern(pattern)) {
+      for (const element of pattern.elements) {
+        const propertyName = element.propertyName && ts.isIdentifier(element.propertyName)
+          ? element.propertyName.text
+          : '';
+        const source = inheritedSource || isSourceIdentifier(propertyName);
+        discovered.push(...bindingNames(element.name, source));
+      }
+    } else if (ts.isArrayBindingPattern(pattern)) {
+      for (const element of pattern.elements) {
+        if (ts.isBindingElement(element)) discovered.push(...bindingNames(element.name, inheritedSource));
+      }
+    }
+    return discovered;
+  }
+
   function isTainted(expr) {
     if (!expr) return false;
 
@@ -263,14 +283,25 @@ function auditSourceFile(filePath, code) {
   // independent of source order.
   function collectAliases(node) {
     let changed = false;
-    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer) {
-      if (isTainted(node.initializer) && !taintedVariables.has(node.name.text)) {
-        taintedVariables.add(node.name.text);
-        changed = true;
-      }
-      if (producesCountryValue(node.initializer) && !countryValuedVariables.has(node.name.text)) {
-        countryValuedVariables.add(node.name.text);
-        changed = true;
+    if (ts.isVariableDeclaration(node)) {
+      if (ts.isIdentifier(node.name) && node.initializer) {
+        if (isTainted(node.initializer) && !taintedVariables.has(node.name.text)) {
+          taintedVariables.add(node.name.text);
+          changed = true;
+        }
+        if (shouldTrackCountryVariable(node.name.text, node.initializer)
+          && !countryValuedVariables.has(node.name.text)) {
+          countryValuedVariables.add(node.name.text);
+          changed = true;
+        }
+      } else if (ts.isBindingPattern(node.name)) {
+        const inheritedSource = Boolean(node.initializer && isTainted(node.initializer));
+        for (const binding of bindingNames(node.name, inheritedSource)) {
+          if (binding.source && !taintedVariables.has(binding.name)) {
+            taintedVariables.add(binding.name);
+            changed = true;
+          }
+        }
       }
     }
 
@@ -280,7 +311,8 @@ function auditSourceFile(filePath, code) {
           taintedVariables.add(node.left.text);
           changed = true;
         }
-        if (producesCountryValue(node.right) && !countryValuedVariables.has(node.left.text)) {
+        if (shouldTrackCountryVariable(node.left.text, node.right)
+          && !countryValuedVariables.has(node.left.text)) {
           countryValuedVariables.add(node.left.text);
           changed = true;
         }
@@ -301,7 +333,22 @@ function auditSourceFile(filePath, code) {
     if (ts.isElementAccessExpression(expr) && expr.argumentExpression) {
       if (ts.isStringLiteral(expr.argumentExpression)) return expr.argumentExpression.text;
     }
+    if (ts.isComputedPropertyName(expr)) return expr.expression.getText(sf);
     return '';
+  }
+
+  function isExplicitCountryVariableName(name) {
+    return isCountryConstantIdentifier(name)
+      || /(country|jurisdiction|marketCountry|region)/i.test(name)
+      || /^[A-Z]{2}_CODE$/.test(name);
+  }
+
+  function shouldTrackCountryVariable(name, initializer) {
+    if (!producesCountryValue(initializer)) return false;
+    if (isExplicitCountryVariableName(name)) return true;
+    if (ts.isIdentifier(initializer)) return countryValuedVariables.has(initializer.text);
+    if (ts.isConditionalExpression(initializer)) return isExplicitCountryExpression(initializer);
+    return false;
   }
 
   // Helper to check if an expression produces country semantics
@@ -327,13 +374,29 @@ function auditSourceFile(filePath, code) {
     return false;
   }
 
+  function isExplicitCountryExpression(expr) {
+    if (!expr) return false;
+    if (ts.isIdentifier(expr)) {
+      return isExplicitCountryVariableName(expr.text) || countryValuedVariables.has(expr.text);
+    }
+    if (ts.isObjectLiteralExpression(expr)) return hasSinkProperty(expr);
+    if (ts.isConditionalExpression(expr)) {
+      return isExplicitCountryExpression(expr.whenTrue) || isExplicitCountryExpression(expr.whenFalse);
+    }
+    if (ts.isParenthesizedExpression(expr)) return isExplicitCountryExpression(expr.expression);
+    return false;
+  }
+
   // Recursive check for sink properties in object literals at ANY depth
   function hasSinkProperty(objNode) {
     if (!ts.isObjectLiteralExpression(objNode)) return false;
     for (const prop of objNode.properties) {
       if (ts.isPropertyAssignment(prop)) {
         const key = getLeafPropertyName(prop.name);
-        if (isSinkPropertyName(key)) return true;
+        if (isSinkPropertyName(key)) {
+          if (!/^country$/i.test(key) || producesCountryValue(prop.initializer)
+            || ts.isObjectLiteralExpression(prop.initializer)) return true;
+        }
         if (ts.isObjectLiteralExpression(prop.initializer)) {
           if (hasSinkProperty(prop.initializer)) return true;
         }
@@ -376,6 +439,11 @@ function auditSourceFile(filePath, code) {
           }
         }
 
+        if (ts.isComputedPropertyName(prop.name) && isTainted(prop.name.expression)
+          && ts.isObjectLiteralExpression(prop.initializer) && hasSinkProperty(prop.initializer)) {
+          violations.push(`Locale-tainted computed key creates nested country mapping "${fullPath}" in ${filePath}`);
+        }
+
         // Recurse into nested objects at unbounded depth
         if (ts.isObjectLiteralExpression(prop.initializer)) {
           checkObjectForTaintedSinks(prop.initializer, fullPath);
@@ -388,16 +456,23 @@ function auditSourceFile(filePath, code) {
     // The sets grow monotonically and are bounded by identifiers in the file.
   } while (collectAliases(sf));
 
+  function functionLikeName(fn) {
+    if (fn.name) return fn.name.getText(sf);
+    if (ts.isVariableDeclaration(fn.parent) && ts.isIdentifier(fn.parent.name)) {
+      return fn.parent.name.text;
+    }
+    if (ts.isPropertyAssignment(fn.parent)) return getLeafPropertyName(fn.parent.name);
+    return '';
+  }
+
   function enclosingFunctionName(node) {
     let current = node.parent;
     while (current) {
       if (ts.isFunctionDeclaration(current) || ts.isMethodDeclaration(current)
         || ts.isFunctionExpression(current)) {
-        return current.name?.getText(sf) ?? '';
+        return functionLikeName(current);
       }
-      if (ts.isArrowFunction(current) && ts.isVariableDeclaration(current.parent)) {
-        return current.parent.name.getText(sf);
-      }
+      if (ts.isArrowFunction(current)) return functionLikeName(current);
       current = current.parent;
     }
     return '';
@@ -452,8 +527,8 @@ function auditSourceFile(filePath, code) {
     // 5. Conditional / Ternary Expressions conditioned on tainted variable
     if (ts.isConditionalExpression(node)) {
       if (isTainted(node.condition)) {
-        const trueYieldsCountry = producesCountryValue(node.whenTrue);
-        const falseYieldsCountry = producesCountryValue(node.whenFalse);
+        const trueYieldsCountry = isExplicitCountryExpression(node.whenTrue);
+        const falseYieldsCountry = isExplicitCountryExpression(node.whenFalse);
         if (trueYieldsCountry || falseYieldsCountry) {
           violations.push(`Ternary on tainted condition yielding country token/object in ${filePath}`);
         }
@@ -465,7 +540,7 @@ function auditSourceFile(filePath, code) {
       if (isTainted(node.expression)) {
         for (const clause of node.caseBlock.clauses) {
           function checkClause(child) {
-            if (producesCountryValue(child)) {
+            if (isExplicitCountryExpression(child)) {
               violations.push(`Switch on tainted expression producing country token/object in ${filePath}`);
             }
             ts.forEachChild(child, checkClause);
@@ -481,6 +556,13 @@ function auditSourceFile(filePath, code) {
     // is itself a sink even if an intermediate local has a neutral name.
     if (ts.isReturnStatement(node) && node.expression && isTainted(node.expression)) {
       const owner = enclosingFunctionName(node);
+      if (/(country|jurisdiction|marketCountry)/i.test(owner)) {
+        violations.push(`Tainted return from country/jurisdiction function "${owner}" in ${filePath}`);
+      }
+    }
+
+    if (ts.isArrowFunction(node) && !ts.isBlock(node.body) && isTainted(node.body)) {
+      const owner = functionLikeName(node);
       if (/(country|jurisdiction|marketCountry)/i.test(owner)) {
         violations.push(`Tainted return from country/jurisdiction function "${owner}" in ${filePath}`);
       }
@@ -639,6 +721,68 @@ runAssertion('Taint Regression: ternary using locally declared country constants
   assert.ok(violations.some((v) => v.includes('assignment to sink "countryCode"')
       || v.includes('Ternary on tainted condition yielding country token/object')),
     `Must flag local constants selected by locale, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: concise country resolver arrow returning locale lookup is rejected', () => {
+  const code = `const resolveCountry = locale => lookup[locale];`;
+  const violations = auditSourceFile('test-country-resolver-arrow.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+    `Must flag concise arrow country resolver, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: anonymous function expression country resolver is rejected', () => {
+  const code = `
+    const resolveCountry = function(locale) {
+      const code = lookup[locale];
+      return code;
+    };
+  `;
+  const violations = auditSourceFile('test-country-resolver-function-expression.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted return from country/jurisdiction function "resolveCountry"')),
+    `Must flag function-expression country resolver, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: computed locale property creating nested country mapping is rejected', () => {
+  const code = `const lookup = { [locale]: { countryCode: 'DE' } };`;
+  const violations = auditSourceFile('test-computed-locale-country-map.ts', code);
+  assert.ok(violations.some((v) => v.includes('Locale-tainted computed key creates nested country mapping')),
+    `Must flag computed locale property country mapping, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: destructured locale alias flowing into country sink is rejected', () => {
+  const code = `
+    const { locale: selected } = params;
+    result.countryCode = selected;
+  `;
+  const violations = auditSourceFile('test-destructured-locale-alias.ts', code);
+  assert.ok(violations.some((v) => v.includes('Tainted assignment to sink "result.countryCode"')),
+    `Must flag destructured locale alias, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: nested translation country labels remain presentation-only', () => {
+  const code = `
+    const labels = {
+      en: { labels: { country: 'Country' } },
+      ro: { labels: { country: 'Țară' } },
+    };
+    const selected = labels[locale];
+    console.log(selected.labels.country);
+  `;
+  const violations = auditSourceFile('test-country-translation-label.ts', code);
+  assert.equal(violations.length, 0,
+    `Translation labels must not become country authority, got: ${JSON.stringify(violations)}`);
+});
+
+runAssertion('Taint Regression: locale-selected two-letter UI label constants remain presentation-only', () => {
+  const code = `
+    const OK_LABEL = 'OK';
+    const RO_LABEL = 'RO';
+    const buttonLabel = locale === 'en' ? OK_LABEL : RO_LABEL;
+    console.log(buttonLabel);
+  `;
+  const violations = auditSourceFile('test-two-letter-ui-labels.ts', code);
+  assert.equal(violations.length, 0,
+    `Two-letter UI labels must not become country authority, got: ${JSON.stringify(violations)}`);
 });
 
 // -----------------------------------------------------------------------------
