@@ -195,6 +195,13 @@ await check('current resolver invokes canonical selector internally in the same 
   const injected=await resolver.resolveCurrentJurisdictionDomainArtifactV1(scoped,command,authority,
     {...currentRequestFor(value),selection:{decision:'accepted'}});
   assert.equal(injected.denial_reason,'BINDING_MISMATCH');
+  const candidate=resolver.toCoreJurisdictionDomainArtifactCommitCandidateV1(result,ids.property);
+  assert.equal(candidate.contract_version,
+    'core-jurisdiction-domain-artifact-commit-candidate.v1');
+  assert.equal(candidate.resolver_decision_id,result.decision_id);
+  assert.equal(candidate.property_id,ids.property);
+  assert.equal(candidate.fingerprint.artifact_sha256,value.artifactSha);
+  assert.equal(candidate.reusable_as_command_authority,false);
 });
 
 await check('binding mismatch and revoked current authority fail before evidence reads',async()=>{
@@ -266,9 +273,20 @@ await check('real serialization errors propagate and other failures are bounded'
 await check('resolver stays SELECT-only and prior migrations remain byte-identical',async()=>{
   const source=readFileSync(new URL(
     '../src/lib/core/jurisdiction-domain-artifact-resolver-v1.ts',import.meta.url),'utf8');
+  const hostSource=readFileSync(new URL(
+    '../src/lib/core/postgres-transaction-host-v1.ts',import.meta.url),'utf8');
+  const migrationSource=readFileSync(new URL(
+    '../supabase/migrations/20261015203723_core_jurisdiction_domain_artifact_resolver_v1.sql',
+    import.meta.url),'utf8');
   assert.doesNotMatch(source,/\b(?:insert\s+into|update\s+[a-z]|delete\s+from|grant\s+|create\s+table)\b/i);
   assert.match(source,/selectCurrentPropertyJurisdictionProfileV1/);
   assert.match(source,/jurisdiction_domain_artifact_receipt_evidence/);
+  assert.match(hostSource,/core-jurisdiction-domain-artifact-host-projection\.v1/);
+  assert.match(hostSource,/jurisdiction_artifacts: jurisdictionArtifacts/);
+  assert.match(hostSource,/source_idempotency_key,source_receipt_contract_version/);
+  assert.match(migrationSource,/deferrable initially deferred/);
+  assert.match(migrationSource,/jurisdiction_domain_artifact_receipt_projection_incomplete/);
+  assert.match(migrationSource,/primary key\(receipt_id,artifact_ordinal\)/);
   const directory=new URL('../supabase/migrations/',import.meta.url);
   const previous=readdirSync(directory).filter(name=>name.endsWith('.sql')
     && name!=='20261015203723_core_jurisdiction_domain_artifact_resolver_v1.sql').sort();

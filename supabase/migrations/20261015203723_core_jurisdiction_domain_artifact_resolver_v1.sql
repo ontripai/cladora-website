@@ -54,7 +54,10 @@ create index jurisdiction_domain_artifact_current_lookup_idx
 -- committed by a future Core-hosted command. It is deliberately ungranted and
 -- unseeded; installing this table does not enable any writer or consumer.
 create table platform.jurisdiction_domain_artifact_receipt_evidence(
-  receipt_id uuid primary key,
+  receipt_id uuid not null,
+  artifact_ordinal smallint not null check(artifact_ordinal between 1 and 32),
+  evidence_contract_version text not null check(evidence_contract_version=
+    'core-jurisdiction-domain-artifact-committed-evidence.v1'),
   tenant_id uuid not null,
   workspace_id uuid not null,
   source_property_id uuid not null,
@@ -62,6 +65,12 @@ create table platform.jurisdiction_domain_artifact_receipt_evidence(
   source_transaction_id uuid not null,
   source_command_id uuid not null,
   source_attempt integer not null check(source_attempt between 1 and 100),
+  source_idempotency_key text not null
+    check(source_idempotency_key ~ '^[A-Za-z0-9._:-]{8,160}$'),
+  source_receipt_contract_version text not null check(source_receipt_contract_version in
+    ('core-transaction-receipt.v1','core-transaction-receipt.v2')),
+  authority_decision_id uuid not null,
+  resolver_decision_id uuid not null,
   artifact_id uuid not null references platform.jurisdiction_domain_artifacts(id)
     on delete restrict,
   jurisdiction_profile_id uuid not null,
@@ -75,6 +84,10 @@ create table platform.jurisdiction_domain_artifact_receipt_evidence(
   artifact_sha256 text not null check(artifact_sha256 ~ '^[a-f0-9]{64}$'),
   effective_at timestamptz not null,
   committed_at timestamptz not null default statement_timestamp(),
+  constraint jurisdiction_domain_artifact_receipt_evidence_pk
+    primary key(receipt_id,artifact_ordinal),
+  constraint jurisdiction_domain_artifact_receipt_domain_unique
+    unique(receipt_id,domain_code),
   constraint jurisdiction_domain_artifact_receipt_source_unique
     unique(source_transaction_id,source_command_id,artifact_id)
 );
@@ -239,6 +252,84 @@ on platform.jurisdiction_domain_artifact_receipt_evidence
 for each row execute function
   app_private.guard_jurisdiction_domain_artifact_receipt_evidence_v1();
 
+-- This deferred assertion observes the finalized idempotency receipt written by
+-- the Core host later in the same transaction. An INSERT detached from that
+-- host path cannot become durable, even when attempted by a database owner.
+create function app_private.assert_jurisdiction_domain_artifact_host_receipt_v1()
+returns trigger language plpgsql security definer set search_path=pg_catalog as $$
+declare v_receipt jsonb;v_artifact jsonb;v_projected_count integer;
+begin
+  select i.response_ref into v_receipt
+    from platform.idempotency_keys i
+    where i.tenant_id=new.tenant_id
+      and i.key='core-tx.v1:'||new.workspace_id::text||':'||new.source_idempotency_key
+      and i.actor_id=new.source_actor_id and i.status_code=200;
+  if v_receipt is null or pg_catalog.jsonb_typeof(v_receipt)<>'object'
+    or v_receipt->>'receipt_id' is distinct from new.receipt_id::text
+    or v_receipt->>'contract_version' is distinct from new.source_receipt_contract_version
+    or v_receipt->>'workspace_id' is distinct from new.workspace_id::text
+    or v_receipt->>'actor_id' is distinct from new.source_actor_id::text
+    or v_receipt->>'transaction_id' is distinct from new.source_transaction_id::text
+    or v_receipt->>'command_id' is distinct from new.source_command_id::text
+    or v_receipt->>'idempotency_key' is distinct from new.source_idempotency_key
+    or v_receipt->>'aggregate_type' is distinct from 'portfolio.property'
+    or v_receipt->>'aggregate_id' is distinct from new.source_property_id::text
+    or v_receipt#>>'{authority,decision_id}' is distinct from new.authority_decision_id::text
+    or (v_receipt#>>'{authority,transaction_context,attempt}')::integer
+      is distinct from new.source_attempt
+    or pg_catalog.jsonb_typeof(v_receipt->'jurisdiction_artifacts')<>'array' then
+    raise exception 'jurisdiction_domain_artifact_receipt_host_binding_missing'
+      using errcode='55000';
+  end if;
+  v_artifact:=v_receipt->'jurisdiction_artifacts'->(new.artifact_ordinal-1);
+  if v_artifact is null
+    or v_artifact->>'contract_version' is distinct from
+      'core-jurisdiction-domain-artifact-commit-candidate.v1'
+    or v_artifact->>'source_resolver_contract_version' is distinct from
+      'core-jurisdiction-domain-artifact-resolver-decision.v1'
+    or v_artifact->>'resolver_decision_id' is distinct from new.resolver_decision_id::text
+    or v_artifact->>'mode' is distinct from 'current'
+    or (v_artifact->>'evaluated_at')::timestamptz is distinct from new.effective_at
+    or v_artifact->>'property_id' is distinct from new.source_property_id::text
+    or v_artifact->>'reusable_as_command_authority' is distinct from 'false'
+    or v_artifact#>>'{fingerprint,profile_id}' is distinct from
+      new.jurisdiction_profile_id::text
+    or v_artifact#>>'{fingerprint,profile_code}' is distinct from new.profile_code
+    or (v_artifact#>>'{fingerprint,profile_version}')::integer
+      is distinct from new.profile_version
+    or v_artifact#>>'{fingerprint,country_code}' is distinct from
+      pg_catalog.btrim(new.country_code::text)
+    or v_artifact#>>'{fingerprint,profile_manifest_sha256}' is distinct from
+      new.profile_manifest_sha256
+    or v_artifact#>>'{fingerprint,domain_code}' is distinct from new.domain_code
+    or v_artifact#>>'{fingerprint,domain_version}' is distinct from new.domain_version
+    or v_artifact#>>'{fingerprint,artifact_sha256}' is distinct from new.artifact_sha256
+    or v_artifact#>>'{fingerprint,canonical_bytes_sha256}' is distinct from
+      new.artifact_sha256 then
+    raise exception 'jurisdiction_domain_artifact_receipt_fingerprint_mismatch'
+      using errcode='55000';
+  end if;
+  select pg_catalog.count(*)::integer into v_projected_count
+    from platform.jurisdiction_domain_artifact_receipt_evidence e
+    where e.receipt_id=new.receipt_id;
+  if v_projected_count is distinct from
+      pg_catalog.jsonb_array_length(v_receipt->'jurisdiction_artifacts') then
+    raise exception 'jurisdiction_domain_artifact_receipt_projection_incomplete'
+      using errcode='55000';
+  end if;
+  return null;
+exception when invalid_text_representation or numeric_value_out_of_range
+  or datetime_field_overflow then
+  raise exception 'jurisdiction_domain_artifact_receipt_host_binding_invalid'
+    using errcode='55000';
+end;
+$$;
+
+create constraint trigger jurisdiction_domain_artifact_host_receipt_assertion
+after insert on platform.jurisdiction_domain_artifact_receipt_evidence
+deferrable initially deferred for each row execute function
+  app_private.assert_jurisdiction_domain_artifact_host_receipt_v1();
+
 alter table platform.jurisdiction_domain_artifacts enable row level security;
 alter table platform.jurisdiction_domain_artifact_receipt_evidence enable row level security;
 revoke all on platform.jurisdiction_domain_artifacts
@@ -247,7 +338,8 @@ revoke all on platform.jurisdiction_domain_artifact_receipt_evidence
   from public,anon,authenticated,service_role;
 revoke all on function app_private.canonical_jsonb_text_v1(jsonb),
   app_private.guard_jurisdiction_domain_artifact_v1(),
-  app_private.guard_jurisdiction_domain_artifact_receipt_evidence_v1()
+  app_private.guard_jurisdiction_domain_artifact_receipt_evidence_v1(),
+  app_private.assert_jurisdiction_domain_artifact_host_receipt_v1()
   from public,anon,authenticated,service_role;
 
 -- The canonical NOLOGIN owner receives only the source reads required by the
@@ -284,6 +376,8 @@ alter function app_private.canonical_jsonb_text_v1(jsonb) owner to cladora_rpc_o
 alter function app_private.guard_jurisdiction_domain_artifact_v1()
   owner to cladora_rpc_owner;
 alter function app_private.guard_jurisdiction_domain_artifact_receipt_evidence_v1()
+  owner to cladora_rpc_owner;
+alter function app_private.assert_jurisdiction_domain_artifact_host_receipt_v1()
   owner to cladora_rpc_owner;
 alter table platform.jurisdiction_domain_artifact_receipt_evidence
   owner to cladora_rpc_owner;

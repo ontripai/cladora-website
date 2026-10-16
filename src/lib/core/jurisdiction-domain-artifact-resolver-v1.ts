@@ -17,6 +17,11 @@ import {
   selectCurrentPropertyJurisdictionProfileV1,
 } from './jurisdiction-profile-selector-v1.ts';
 import {
+  CORE_JURISDICTION_DOMAIN_ARTIFACT_COMMIT_CANDIDATE_V1,
+  coreJurisdictionDomainArtifactCommitCandidateV1Schema,
+  type CoreJurisdictionDomainArtifactCommitCandidateV1,
+} from './jurisdiction-domain-artifact-transaction-evidence-v1.ts';
+import {
   coreTransactionCommandV1Schema,
   coreTransactionCommandV2Schema,
   type CoreTransactionCommandV1,
@@ -182,6 +187,32 @@ export type CurrentJurisdictionDomainArtifactResolverRequestV1 = z.infer<
 export type HistoricalJurisdictionDomainArtifactResolverRequestV1 = z.infer<
   typeof historicalJurisdictionDomainArtifactResolverRequestV1Schema
 >;
+
+/**
+ * Narrows an accepted current decision to the only artifact fields the Core
+ * host may commit. Host-owned receipt and transaction identity are deliberately
+ * absent and cannot be supplied by the resolver or consumer.
+ */
+export function toCoreJurisdictionDomainArtifactCommitCandidateV1(
+  decisionValue: unknown,
+  propertyId: string,
+): CoreJurisdictionDomainArtifactCommitCandidateV1 {
+  const decision = jurisdictionDomainArtifactResolverDecisionV1Schema.parse(decisionValue);
+  if (decision.decision !== 'accepted' || decision.mode !== 'current') {
+    throw new Error('current_artifact_decision_required');
+  }
+  return coreJurisdictionDomainArtifactCommitCandidateV1Schema.parse({
+    contract_version: CORE_JURISDICTION_DOMAIN_ARTIFACT_COMMIT_CANDIDATE_V1,
+    source_resolver_contract_version: decision.contract_version,
+    resolver_version: decision.resolver_version,
+    resolver_decision_id: decision.decision_id,
+    mode: decision.mode,
+    evaluated_at: decision.evaluated_at,
+    property_id: propertyId,
+    fingerprint: decision.fingerprint,
+    reusable_as_command_authority: decision.reusable_as_command_authority,
+  });
+}
 type DenialReason = Extract<JurisdictionDomainArtifactResolverDecisionV1,
   { decision: 'denied' }>['denial_reason'];
 type ResolverMode = JurisdictionDomainArtifactResolverDecisionV1['mode'];
@@ -362,6 +393,8 @@ async function selectCommittedEvidenceRows(
     join platform.jurisdiction_profile_domains d
       on d.jurisdiction_profile_id=a.jurisdiction_profile_id and d.domain_code=a.domain_code
     where e.receipt_id=$1 and e.tenant_id=$2 and e.workspace_id=$3
+      and e.evidence_contract_version=
+        'core-jurisdiction-domain-artifact-committed-evidence.v1'
       and e.source_property_id=$4 and e.source_actor_id=$5
       and e.source_transaction_id=$6 and e.source_command_id=$7 and e.source_attempt=$8
       and e.jurisdiction_profile_id=$9 and e.profile_code=$10 and e.profile_version=$11
