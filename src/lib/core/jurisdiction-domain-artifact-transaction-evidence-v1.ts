@@ -47,4 +47,3 @@ export const coreJurisdictionDomainArtifactCommitCandidateV1Schema = z.strictObj
 export type CoreJurisdictionDomainArtifactCommitCandidateV1 = z.infer<
   typeof coreJurisdictionDomainArtifactCommitCandidateV1Schema
 >;
-
