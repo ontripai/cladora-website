@@ -73,7 +73,9 @@ assert.match(s4Migration, /revoke all privileges on table\s+communications\.priv
 assert.doesNotMatch(s4Migration, /\b(?:grant|alter\s+owner|create\s+(?:role|policy)|drop\s+policy|cascade)\b/i);
 assert.match(stagedLocalReplay, /CLADORA_LOCAL_STEP_SU_02_AUTHORIZED/);
 assert.match(stagedLocalReplay, /service_subject_link_step_su_02_receipt_missing_or_untrusted/);
-assert.match(stagedLocalReplay, /set session authorization supabase_admin; alter table app_private\.service_subject_link_step_su_02_receipt_v1 owner to supabase_admin; select app_private\.finalize_service_subject_link_role_membership_v1\(\)/i);
+assert.match(stagedLocalReplay, /PGOPTIONS="-c role=supabase_admin"/i);
+assert.match(stagedLocalReplay, /alter table app_private\.service_subject_link_step_su_02_receipt_v1 owner to supabase_admin; select app_private\.finalize_service_subject_link_role_membership_v1\(\)/i);
+assert.doesNotMatch(stagedLocalReplay, /set session authorization/i);
 assert.match(stagedLocalReplay, /supabase migration up --local/);
 assert.doesNotMatch(stagedLocalReplay, /\bsupabase\s+(?:link|db\s+push|functions\s+deploy)\b/i);
 for (const workflow of [databaseWorkflow, ceWorkflow]) {

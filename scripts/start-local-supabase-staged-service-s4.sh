@@ -61,8 +61,12 @@ if [[ $negative_status -eq 0 ]] \
 fi
 echo "S4 pre-STEP-SU-02 rejection: PASS"
 
-docker exec "$database_container" psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 \
-  -c "set session authorization supabase_admin; alter table app_private.service_subject_link_step_su_02_receipt_v1 owner to supabase_admin; select app_private.finalize_service_subject_link_role_membership_v1(); reset session authorization;"
+# The local `postgres` login is intentionally not a superuser. Supabase grants
+# it SET access to the NOLOGIN `supabase_admin` operator, so select that role at
+# connection startup instead of changing the session authorization identity.
+docker exec -e PGOPTIONS="-c role=supabase_admin" "$database_container" \
+  psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 \
+  -c "alter table app_private.service_subject_link_step_su_02_receipt_v1 owner to supabase_admin; select app_private.finalize_service_subject_link_role_membership_v1();"
 
 receipt_count="$(docker exec "$database_container" psql -U postgres -d postgres -X -A -t \
   -v ON_ERROR_STOP=1 -c "select count(*) from app_private.service_subject_link_step_su_02_receipt_v1 where receipt_key='STEP-SU-02' and finalized_by='supabase_admin' and role_graph_fingerprint='executor>runtime|admin=false|inherit=false|set=true';")"
