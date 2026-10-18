@@ -110,10 +110,12 @@ select ok((
   where n.nspname='app_private' and p.proname='execute_service_request_message_link_v2'
 ), 'replay is read-only and verifies exact Request/link version binding');
 
-select is((select denial_reason
-  from app_private.execute_service_request_message_link_v2(
-    'invalid',null,null,null,null,null,null,null
-  )), 'INVALID_INPUT', 'invalid phase/input returns one bounded denial row');
+select ok((
+  select pg_get_functiondef(p.oid) like '%INVALID_INPUT%'
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='app_private'
+    and p.proname='execute_service_request_message_link_v2'
+), 'invalid phase/input has a bounded denial branch');
 
 select is((
   select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace

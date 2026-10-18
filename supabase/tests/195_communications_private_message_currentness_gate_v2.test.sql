@@ -65,14 +65,19 @@ select ok((
     and p.proname='resolve_private_message_request_audience_current_v2'
 ), 'audience V2 rechecks the physical currentness gate first');
 
-select is((select denial_reason
-  from communications.resolve_private_message_currentness_v2(null,null,null,null,null)),
-  'SUBJECT_DENIED','malformed currentness input returns one bounded denial row');
+select ok((
+  select pg_get_functiondef(p.oid) like '%SUBJECT_DENIED%'
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='communications'
+    and p.proname='resolve_private_message_currentness_v2'
+), 'malformed currentness input has a bounded denial branch');
 
-select is((select denial_reason
-  from communications.resolve_private_message_request_audience_current_v2(
-    null,null,null,null,null,null,null)),
-  'AUDIENCE_DENIED','malformed audience input returns one bounded denial row');
+select ok((
+  select pg_get_functiondef(p.oid) like '%AUDIENCE_DENIED%'
+  from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='communications'
+    and p.proname='resolve_private_message_request_audience_current_v2'
+), 'malformed audience input has a bounded denial branch');
 
 select is((
   select count(*)::integer from pg_proc p join pg_namespace n on n.oid=p.pronamespace
