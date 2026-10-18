@@ -465,7 +465,7 @@ jobs:
         run: timeout 180s npm run test:service-role-graph-isolation:postgres
         env:
           SERVICE_ROLE_GRAPH_ISOLATION_EPHEMERAL: "1"
-          SERVICE_ROLE_GRAPH_ISOLATION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          SERVICE_ROLE_GRAPH_ISOLATION_TEST_DATABASE_URL: postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres
       - name: Run SERVICE pool-poisoning and concurrency gate
         run: timeout 240s npm run test:service-pool-poisoning-concurrency:postgres
         env:
