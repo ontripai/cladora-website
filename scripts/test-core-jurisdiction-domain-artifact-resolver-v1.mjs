@@ -293,8 +293,8 @@ await check('resolver stays SELECT-only and prior migrations remain byte-identic
   const tree=createHash('sha256');
   for(const name of previous){tree.update(name);tree.update(Buffer.from([0]));
     tree.update(createHash('sha256').update(readFileSync(new URL(name,directory))).digest());}
-  assert.equal(previous.length,259);
-  assert.equal(tree.digest('hex'),'535388f88ae02693bfbaa88385af8e7db9c89846709243eb67415fa093dc59de');
+  assert.equal(previous.length,263);
+  assert.equal(tree.digest('hex'),'3671b99d4bcdf7875975dfbae0d288dd552bfb55e2362525efe94ce44fc2ae61');
 });
 
 console.log(`Core jurisdiction domain artifact resolver contract: ${checks}/${checks} PASS`);
