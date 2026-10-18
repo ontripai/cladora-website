@@ -47,6 +47,17 @@ create role cladora_service_subject_link_executor
 create role cladora_service_subject_link_owner
   nologin noinherit nosuperuser nobypassrls nocreatedb nocreaterole
   noreplication password null;
+-- PostgreSQL 17 gives a non-superuser CREATEROLE creator ADMIN but not SET
+-- by default. S3 needs SET only to transfer the fixed package objects. The
+-- separately authorized STEP-SU-02 finalizer removes this temporary edge.
+do $$
+begin
+  execute format(
+    'grant cladora_service_subject_link_owner to %I with admin true, inherit false, set true',
+    current_user
+  );
+end;
+$$;
 grant cladora_service_subject_link_executor
   to cladora_service_subject_link_runtime
   with admin false, inherit false, set true;

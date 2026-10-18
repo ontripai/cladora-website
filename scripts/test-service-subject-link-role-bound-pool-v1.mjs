@@ -50,6 +50,7 @@ assert.equal(existsSync('src/app/api/customer/v1/services/requests/[id]/subject-
 assert.match(migration, /create role cladora_service_subject_link_runtime\s+login noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /create role cladora_service_subject_link_executor\s+nologin noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /create role cladora_service_subject_link_owner\s+nologin noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
+assert.match(migration, /grant cladora_service_subject_link_owner to %I with admin true, inherit false, set true/i);
 assert.match(migration, /grant cladora_service_subject_link_executor\s+to cladora_service_subject_link_runtime\s+with admin false, inherit false, set true/i);
 assert.match(migration, /owner to cladora_service_subject_link_owner/g);
 assert.match(migration, /provider_current_state_required|current-state|current state/i);
