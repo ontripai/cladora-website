@@ -86,7 +86,13 @@ for (const workflow of [databaseWorkflow, ceWorkflow]) {
 }
 assert.match(databaseWorkflow, /SERVICE_SUBJECT_LINK_LOCAL_STEP_SU_02_AND_S4:\s*["']1["']/);
 assert.match(databaseWorkflow, /cladora-service-http-postgres/);
-assert.match(databaseWorkflow, /pgtap--\$PGTAP_VERSION\.sql/);
+assert.match(databaseWorkflow,
+  /SOURCE_PG_IMAGE=\$\(docker inspect --format '\{\{\.Config\.Image\}\}' supabase_db_cladora-local\)/);
+assert.match(databaseWorkflow,
+  /docker run[\s\S]+cladora-service-http-postgres[\s\S]+"\$SOURCE_PG_IMAGE"/);
+assert.match(databaseWorkflow,
+  /select default_version from pg_available_extensions where name='pgtap'/);
+assert.doesNotMatch(databaseWorkflow, /postgres:17-alpine/);
 
 console.log(JSON.stringify({
   contract: 'core-platform-service-subject-link-role-bound-pool.v1',
