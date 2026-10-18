@@ -130,12 +130,13 @@ async function selectorDenied(source,options={}) {
 async function addDocument(extra={}) {
   const documentId=randomUUID(),vid=randomUUID();const sha=createHash('sha256').update(vid).digest('hex');
   const state={workspace:ids.workspaceIds[0],property:ids.propertyIds[0],classification:'internal',
-    scan:'clean',attested:true,checksum:'verified',...extra};
+    currentVersion:1,scan:'clean',attested:true,checksum:'verified',...extra};
   await pool.query('alter table documents.documents disable trigger document_workspace_creation_guard_v1');
   try {
-    await pool.query(`insert into documents.documents(id,tenant_id,workspace_id,property_id,title,document_type,classification)
-      values($1,$2,$3,$4,'Confidential title never projected','financial-test',$5)`,
-    [documentId,ids.tenantId,state.workspace,state.property,state.classification]);
+    await pool.query(`insert into documents.documents
+      (id,tenant_id,workspace_id,property_id,title,document_type,classification,current_version)
+      values($1,$2,$3,$4,'Confidential title never projected','financial-test',$5,$6)`,
+    [documentId,ids.tenantId,state.workspace,state.property,state.classification,state.currentVersion]);
   } finally {
     await pool.query('alter table documents.documents enable trigger document_workspace_creation_guard_v1');
   }
@@ -220,13 +221,12 @@ try {
   await check('selector denies stale immutable version identities and parent mappings with zero writes',async()=>{
     for(const source of [{document_id:doc,document_version_id:versionId,document_version:2},
       {document_id:doc,document_version_id:randomUUID(),document_version:1},
-      {document_id:doc,document_version_id:(await addDocument()).document_version_id,document_version:1}]) {
+      {document_id:doc,document_version_id:(await addDocument()).document_version_id,document_version:1},
+      await addDocument({currentVersion:2})]) {
       const decisions=[];await selectorDenied(source,{decisions});
       assert.equal(decisions.at(-1).decision,'denied');
       assert.ok(['STALE_REFERENCE','REFERENCE_DENIED'].includes(decisions.at(-1).denial_reason));
     }
-    assert.equal((await pool.query(
-      'select current_version from documents.documents where id=$1',[doc])).rows[0].current_version,1);
   });
   await check('selector denies unsafe scan and inactive lifecycle with zero writes',async()=>{
     for(const source of [await addDocument({scan:'scanning_pending'}),
@@ -295,9 +295,7 @@ try {
     await denied(await command({document_version:2}),{},'PROVIDER_UNAVAILABLE');
     await denied(await command({document_version_id:randomUUID()}),{},'PROVIDER_UNAVAILABLE');
     await denied(await command({document_version_id:(await addDocument()).document_version_id}),{},'PROVIDER_UNAVAILABLE');
-    await pool.query('update documents.documents set current_version=2 where id=$1',[doc]);
-    await denied(await command(),{},'PROVIDER_UNAVAILABLE');
-    await pool.query('update documents.documents set current_version=1 where id=$1',[doc]);
+    await denied(await command(await addDocument({currentVersion:2})),{},'PROVIDER_UNAVAILABLE');
   });
   await check('quarantined, pending, deferred, unattested and checksum-unsafe versions deny with zero writes',async()=>{
     for(const extra of [{scan:'scanning_pending'},{scan:'deferred'},{scan:'quarantined'},

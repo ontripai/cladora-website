@@ -1028,8 +1028,7 @@ try {
   });
   await check('stale, cross-Workspace, NULL Workspace and missing source lock fail closed', async () => {
     const staleGuide = await insertGuide();
-    const stale = await addImmutableDocumentReference(staleGuide);
-    await pool.query('update documents.documents set current_version=2 where id=$1', [stale.documentId]);
+    const stale = await addImmutableDocumentReference(staleGuide, { currentVersion: 2 });
     await zeroWrite(await command(staleGuide, 'publish', 1, {
       provider_source_ids: referenceSourceLocks(staleGuide, [stale]),
     }), 'PROVIDER_UNAVAILABLE');
