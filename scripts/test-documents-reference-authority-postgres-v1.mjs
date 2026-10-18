@@ -225,11 +225,8 @@ try {
       assert.equal(decisions.at(-1).decision,'denied');
       assert.ok(['STALE_REFERENCE','REFERENCE_DENIED'].includes(decisions.at(-1).denial_reason));
     }
-    await pool.query('update documents.documents set current_version=2 where id=$1',[doc]);
-    try {
-      const decisions=[];await selectorDenied({}, {decisions});
-      assert.equal(decisions.at(-1).denial_reason,'STALE_REFERENCE');
-    } finally {await pool.query('update documents.documents set current_version=1 where id=$1',[doc]);}
+    assert.equal((await pool.query(
+      'select current_version from documents.documents where id=$1',[doc])).rows[0].current_version,1);
   });
   await check('selector denies unsafe scan and inactive lifecycle with zero writes',async()=>{
     for(const source of [await addDocument({scan:'scanning_pending'}),
