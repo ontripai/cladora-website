@@ -465,7 +465,12 @@ revoke create on schema auth,app_private,identity,platform,audit
   from cladora_service_subject_link_executor,cladora_service_subject_link_runtime;
 grant execute on function
   auth.uid(),
-  app_private.check_workspace_native_permission_v2(uuid,uuid,text,text),
+  app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)
+  to cladora_service_subject_link_executor;
+-- These package functions now belong to the fixed NOLOGIN owner. Use the
+-- migration-only SET edge created above to install their executor ACLs.
+set role cladora_service_subject_link_owner;
+grant execute on function
   app_private.execute_service_request_message_link_v2(
     text,uuid,uuid,uuid,uuid,bigint,uuid,bigint),
   app_private.core_platform_service_subject_link_binding_allowed_v1(uuid,uuid),
@@ -474,6 +479,7 @@ grant execute on function
   app_private.core_platform_service_subject_link_identity_allowed_v1(text,uuid,uuid),
   app_private.core_platform_service_subject_link_ledger_allowed_v1(uuid,uuid,text,uuid)
   to cladora_service_subject_link_executor;
+reset role;
 
 grant select(id,tenant_id,archived_at,lifecycle_status),update(id)
   on platform.customer_workspaces to cladora_service_subject_link_executor;
@@ -1112,6 +1118,7 @@ alter function app_private.acquire_service_subject_link_role_safety_lease_v1()
   owner to cladora_service_subject_link_owner;
 alter function app_private.finalize_service_subject_link_role_membership_v1()
   owner to cladora_service_subject_link_owner;
+set role cladora_service_subject_link_owner;
 grant execute on function
   app_private.core_platform_service_subject_link_role_safety_valid_v1(),
   app_private.assert_service_subject_link_role_safety_v1(),
@@ -1119,6 +1126,7 @@ grant execute on function
   to cladora_service_subject_link_executor;
 grant execute on function app_private.finalize_service_subject_link_role_membership_v1()
   to supabase_admin;
+reset role;
 
 -- Keep the owner incapable of creating additional package objects.
 revoke create on schema app_private,communications,service_catalog,platform,identity,
