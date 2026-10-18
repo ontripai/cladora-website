@@ -53,7 +53,7 @@ create role cladora_service_subject_link_owner
 do $$
 begin
   execute format(
-    'grant cladora_service_subject_link_owner to %I with admin true, inherit false, set true',
+    'grant cladora_service_subject_link_owner to %I with admin false, inherit false, set true',
     current_user
   );
 end;
