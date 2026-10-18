@@ -61,11 +61,6 @@ const adminConnection = new URL(connectionString);
 // deliberately removes every indirect membership path from postgres, and this
 // test neither creates a credential nor weakens the production role contract.
 adminConnection.username = 'supabase_admin';
-const runtimeConnection = new URL(connectionString);
-// The local trust-only fixture can authenticate the fixed LOGIN runtime role
-// without manufacturing a password. Its session_user therefore matches the
-// production pool contract throughout physical connection reuse.
-runtimeConnection.username = runtimeRole;
 const adminPool = new pg.Pool({ connectionString: adminConnection.toString(), max: 5 });
 const liveRuntimePools = new Set();
 
@@ -86,10 +81,28 @@ async function waitFor(predicate, label) {
 }
 
 function runtimePool(max = 2) {
-  const physical = new pg.Pool({ connectionString: runtimeConnection.toString(), max });
+  // The production runtime role intentionally has PASSWORD NULL, so a TCP test
+  // must not invent a credential merely to exercise the binder. Authenticate
+  // with the disposable built-in operator, then irreversibly establish the
+  // fixed runtime session authorization once per new physical connection.
+  // Subsequent checkouts reuse the same runtime session, including poisoned
+  // role/GUC state, exactly as the binder contract requires.
+  const physical = new pg.Pool({ connectionString: adminConnection.toString(), max });
+  const initialized = new WeakSet();
   const pool = {
     get totalCount() { return physical.totalCount; },
-    async connect() { return physical.connect(); },
+    async connect() {
+      const client = await physical.connect();
+      if (initialized.has(client)) return client;
+      try {
+        await client.query(`set session authorization ${runtimeRole}`);
+        initialized.add(client);
+        return client;
+      } catch (error) {
+        client.release(true);
+        throw error;
+      }
+    },
     async end() { await physical.end(); },
   };
   liveRuntimePools.add(pool);
@@ -440,6 +453,8 @@ try {
     suite: 'service-pool-poisoning-concurrency-v1',
     checks,
     models: ['direct', 'session_pooler'],
+    runtime_transport_fixture:
+      'BUILT_IN_LOCAL_OPERATOR_TO_FIXED_SESSION_AUTHORIZATION_NO_CREDENTIAL',
     real_postgresql_40001: 'EXECUTED_WITH_FRESH_REQUEST_IDENTITY_AND_SAFETY_REBIND',
     existing_service_http_harness: '20_CASE_SOURCE_CONTRACT_INTEGRATED_NOT_RERUN',
     existing_message_concurrency_harness: '5_CASE_SOURCE_CONTRACT_INTEGRATED_NOT_RERUN',
