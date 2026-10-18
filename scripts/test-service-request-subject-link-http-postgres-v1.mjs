@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHmac, randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import pg from 'pg';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
@@ -1055,11 +1055,24 @@ try {
               protected_relation_owner_count,
             (select count(*)::int from direct_acl_lines) direct_acl_count,
             (select md5(string_agg(value,E'\\n' order by value)) from direct_acl_lines) direct_acl_md5,
+            (select array_agg(value order by value) from direct_acl_lines) acl_lines,
             (select count(*)::int from service_policies) policy_count,
             (select md5(string_agg(concat_ws('|',schema_name,relation_name,policy_name,polcmd,
               polpermissive::text,policy_roles::text,policy_using,policy_check),E'\\n'
               order by schema_name,relation_name,policy_name)) from service_policies) policy_md5`)).rows[0];
-        console.error(`SERVICE role safety diagnostic: ${JSON.stringify({ ...safety, ...diagnostic })}`);
+        const actualAclLines = diagnostic.acl_lines;
+        delete diagnostic.acl_lines;
+        const referencePath = process.env.SERVICE_ROLE_GRAPH_ACL_MANIFEST_PATH;
+        const aclDiff = referencePath && existsSync(referencePath) ? (() => {
+          const expected = JSON.parse(readFileSync(referencePath, 'utf8'));
+          return {
+            unexpected: actualAclLines.filter(line => !expected.includes(line)),
+            missing: expected.filter(line => !actualAclLines.includes(line)),
+          };
+        })() : null;
+        console.error(`SERVICE role safety diagnostic: ${JSON.stringify({
+          ...safety, ...diagnostic, acl_diff: aclDiff,
+        })}`);
       }
       assert.equal(safety.safe, true);
       assert.equal((await leaseClient.query(
