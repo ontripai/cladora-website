@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import pg from 'pg';
 
 const connectionString = process.env.SERVICE_ROLE_GRAPH_ISOLATION_TEST_DATABASE_URL;
@@ -280,17 +280,10 @@ async function verifyCatalog(databaseClient) {
       cross join roles role cross join lateral aclexplode(coalesce(function.proacl,
         acldefault('f',function.proowner))) privilege where privilege.grantee=role.oid
     ) select count(*)::integer line_count,
-      md5(string_agg(value,E'\\n' order by value)) fingerprint,
-      array_agg(value order by value) lines from lines`)).rows[0];
-  const aclLines = aclManifest.lines;
-  delete aclManifest.lines;
+      md5(string_agg(value,E'\\n' order by value)) fingerprint from lines`)).rows[0];
   assert.deepEqual(aclManifest, {
     line_count: 160, fingerprint: 'f0f91a9eb48b953ee558032b34aa5c42',
   }, 'executor/owner ACL manifest must remain exact');
-  if (process.env.SERVICE_ROLE_GRAPH_ACL_MANIFEST_PATH) {
-    writeFileSync(process.env.SERVICE_ROLE_GRAPH_ACL_MANIFEST_PATH,
-      `${JSON.stringify(aclLines)}\n`, { mode: 0o600 });
-  }
 
   const rlsCount = Number((await databaseClient.query(`with protected(schema_name,relation_name) as (values
       ${protectedRelationValues}

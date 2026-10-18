@@ -131,7 +131,7 @@ const migrationResult = validateProtectedDirectory({
     },
     '20261018163000_service_subject_link_role_bound_pool_privileged_v1.sql': {
       owner: 'SERVICE + Core / S3',
-      sha256: '9a85b589527f9604f31a28bd4df0cb510319600a987b8ab3a644ab7efc4b3118',
+      sha256: 'f48ca618b0ff959b5f6e15c73ec9b778d91c189c1772787b2b57edacabeb4a24',
     },
     '20261018170000_communications_service_role_acl_shutdown_v1.sql': {
       owner: 'SERVICE + Communications / S4',

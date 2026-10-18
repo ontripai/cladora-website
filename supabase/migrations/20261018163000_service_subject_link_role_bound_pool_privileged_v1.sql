@@ -1110,7 +1110,7 @@ revoke all on function
   app_private.assert_service_subject_link_role_safety_v1(),
   app_private.acquire_service_subject_link_role_safety_lease_v1(),
   app_private.finalize_service_subject_link_role_membership_v1()
-  from public,postgres,anon,authenticated,service_role,
+  from public,postgres,supabase_admin,anon,authenticated,service_role,
     cladora_service_subject_link_runtime,cladora_service_subject_link_owner;
 alter function app_private.core_platform_service_subject_link_role_safety_valid_v1()
   owner to cladora_service_subject_link_owner;
