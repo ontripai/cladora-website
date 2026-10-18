@@ -1060,7 +1060,9 @@ try {
     async connect() {
       const client = await httpPhysicalPool.connect();
       const identity = await client.query('select session_user::text as session_user');
-      if (identity.rows[0]?.session_user === 'postgres') {
+      if (identity.rows[0]?.session_user !== 'cladora_service_subject_link_runtime') {
+        assert.ok(['postgres', 'supabase_admin'].includes(identity.rows[0]?.session_user),
+          'disposable HTTP pool must bootstrap from a local operator');
         await client.query('set session authorization cladora_service_subject_link_runtime');
       }
       return client;
