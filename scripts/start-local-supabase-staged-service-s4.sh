@@ -63,7 +63,7 @@ echo "S4 pre-STEP-SU-02 rejection: PASS"
 
 # Use the built-in disposable Supabase operator directly. This creates no new
 # role or credential and remains confined to the local database container.
-docker exec "$database_container" \
+docker exec -e PGPASSWORD=postgres "$database_container" \
   psql -U supabase_admin -d postgres -X -v ON_ERROR_STOP=1 \
   -c "alter table app_private.service_subject_link_step_su_02_receipt_v1 owner to supabase_admin; select app_private.finalize_service_subject_link_role_membership_v1();"
 
