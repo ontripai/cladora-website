@@ -8,6 +8,7 @@ const sha256 = path => createHash('sha256').update(readFileSync(path)).digest('h
 const migrationPath = 'supabase/migrations/20261014200948_document_null_workspace_creation_closure_v1.sql';
 const migration = read(migrationPath);
 const writerPath = 'src/lib/customer/documents-workspace-binding-writer-v1.ts';
+const replacementWriterPath = 'src/lib/customer/documents-replacement-workspace-writer-v1.ts';
 const writer = read(writerPath);
 
 assert.equal(sha256('supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql'),
@@ -66,7 +67,7 @@ const walk = directory => {
   }
 };
 walk('src');
-assert.deepEqual(srcInsertOwners, [writerPath]);
+assert.deepEqual(srcInsertOwners, [replacementWriterPath, writerPath]);
 
 const intentRoute = read('src/app/api/customer/v1/documents/upload-intent/route.ts');
 const finalizeRoute = read('src/app/api/customer/v1/documents/upload/route.ts');
