@@ -311,6 +311,7 @@ create table platform.workspace_member_roles(
   property_id uuid,building_id uuid,unit_id uuid,valid_from timestamptz not null,valid_to timestamptz
 );
 create table platform.workspace_property_bindings(
+  id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,customer_workspace_id uuid not null,property_id uuid not null,
   status text not null,valid_from timestamptz not null,valid_to timestamptz
 );
@@ -358,7 +359,8 @@ create table maintenance.vendors(
   id uuid primary key,tenant_id uuid not null,party_id uuid not null,status text not null
 );
 create table maintenance.vendor_portal_memberships(
-  membership_id uuid not null,tenant_id uuid not null,vendor_id uuid not null,
+  id uuid primary key default gen_random_uuid(),membership_id uuid not null,
+  tenant_id uuid not null,vendor_id uuid not null,
   status text not null,accepted_at timestamptz,revoked_at timestamptz
 );
 
