@@ -520,7 +520,10 @@ try {
             'cladora_service_subject_link_executor','cladora_service_subject_link_owner')
           or member.rolname in ('cladora_service_subject_link_runtime',
             'cladora_service_subject_link_executor','cladora_service_subject_link_owner')`)).rows[0];
-      assert.deepEqual(before, { edge_count: 1, receipt_count: 0 });
+      // S3 deliberately leaves two edges before the separately authorized
+      // finalizer: executor -> runtime and the migration-only owner ->
+      // supabase_admin SET edge used to transfer the fixed package objects.
+      assert.deepEqual(before, { edge_count: 2, receipt_count: 0 });
       await operator.query('set session authorization supabase_admin');
       let finalized;
       try {
