@@ -85,6 +85,58 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Core / PR #448',
       sha256: '5e4ca3cf9c84a0604a55c2a30612aee30b54df40a5c94e74225967b42e14e422',
     },
+    '20261018060834_database_advisor_performance_hardening_v1.sql': {
+      owner: 'Database / PR #460',
+      sha256: '0ee2e9c82375b134c78485ba51b6dc97b4b0523925208e1db06cb9d0b063acab',
+    },
+    '20261018092958_documents_legacy_creation_rpc_shutdown_v1.sql': {
+      owner: 'Documents / D1',
+      sha256: 'd14a34f39242e2d05b16a713faa4fca1d5d45c2f59795495300046f6f6d39438',
+    },
+    '20261018094131_documents_canonical_storage_identity_v1.sql': {
+      owner: 'Documents / D2',
+      sha256: '34b1ea7f98ef235db3113775d3bee660f8de021768a8217ba2dcc208aceacf8b',
+    },
+    '20261018130000_documents_replacement_promotion_after_clean_v1.sql': {
+      owner: 'Documents / D3-D4',
+      sha256: '896d54f54b6a531f7c65a45198257b99471c8c05afc216cb8768247d8215d249',
+    },
+    '20261018133000_documents_vault_download_exact_workspace_v2.sql': {
+      owner: 'Documents / D5',
+      sha256: '38640d7d60b122966a8e18fe1a56d643f60022b4722998b70a1d8619c2d9c6a4',
+    },
+    '20261018140000_communications_private_conversation_workspace_binding_v1.sql': {
+      owner: 'Documents + Communications / D5',
+      sha256: '2a3edc9d1f757afc0bff43a4c1a19cfeac0c8d9dca6eaac0204f68cf4fb970f0',
+    },
+    '20261018143000_communications_document_attachment_workspace_gate_v2.sql': {
+      owner: 'Documents + Communications / D6',
+      sha256: 'a64fcd8e3e101b453b9b547fbe385b808ea8f4b024bdbbda2f3ba6da35cf8ee1',
+    },
+    '20261018150000_documents_retention_lifecycle_workspace_gate_v2.sql': {
+      owner: 'Documents / D7',
+      sha256: '53ca525fbd9970cc7260e28c60cf6e956c58e1e02cd33f63ef07c9337cc8436a',
+    },
+    '20261018151500_documents_service_role_acl_cleanup_v1.sql': {
+      owner: 'Documents / D8',
+      sha256: '756852f145ef156f1afba777b08f6bf2f179bef9c17dc033e078eea99993f56b',
+    },
+    '20261018153000_communications_private_message_currentness_gate_v2.sql': {
+      owner: 'SERVICE + Communications / S1',
+      sha256: '123c7335044bb96c3ba6e9d705ca4536d1103efb36216ac80ae6331616e2bbc3',
+    },
+    '20261018160000_service_request_message_link_finalizer_v2.sql': {
+      owner: 'SERVICE / S2',
+      sha256: 'b493ced51cb543182bf9b02b428ddce77a8585d40b6abadc7b6a4f2185eb0b73',
+    },
+    '20261018163000_service_subject_link_role_bound_pool_privileged_v1.sql': {
+      owner: 'SERVICE + Core / S3',
+      sha256: '3a76b09031c8ce7f838f41369c307c0364dcd8dd03f058f8183f227ee13c80e3',
+    },
+    '20261018170000_communications_service_role_acl_shutdown_v1.sql': {
+      owner: 'SERVICE + Communications / S4',
+      sha256: '85cf0be289620aba101497919884304619cfb39d53874c38c0132ee3b4f33800',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
@@ -110,11 +162,11 @@ const coreResult = validateProtectedDirectory({
   reviewedAdditions: {
     'communications-private-message-subject-provider-v1.ts': {
       owner: 'CE Communications / PR #377',
-      sha256: '2633525211cf4b6579290e1820fc099f76f3bc6b2a5f5afda819d7df73096a01',
+      sha256: '832a9481232662e3411a67ff9b2b81f8a5a842af4795381a1837faa5a2cb6248',
     },
     'communications-private-message-request-audience-provider-v1.ts': {
       owner: 'CE Communications / PR #386',
-      sha256: '778a88a3fd800b725c2f539e68e9cf726ce801d6063d0075d8af4723f167d39a',
+      sha256: '487aa0fd69f3e5222870cfead3ab2e0a97bb239a9240099f0d6fe027934b96e2',
     },
     'current-unit-property-selector-v1.ts': {
       owner: 'Core / PR #417',
@@ -142,7 +194,7 @@ const coreResult = validateProtectedDirectory({
     },
     'platform-role-bound-pool-v1.ts': {
       owner: 'Core / PR #409',
-      sha256: '6a3bf83e82424d0e26dc13e101d0f2e15cf241c17682809e7531cffd3e19511e',
+      sha256: 'd31f3b31a1302686d8022627475b2e14057cd36fff219a8b4441ff052798fc79',
     },
     'read-authority-profile-v1.ts': {
       owner: 'Core / PR #448',

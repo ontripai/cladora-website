@@ -17,8 +17,13 @@ end;
 $$;
 revoke all on function app_private.acquire_service_subject_link_role_safety_mutation_lock_v1()
   from public,anon,authenticated,service_role;
+-- PostgreSQL requires the target owner to hold CREATE on the containing
+-- schema while ownership is transferred. Keep that capability transactional
+-- and remove it immediately after the transfer.
+grant create on schema app_private to cladora_rpc_owner;
 alter function app_private.acquire_service_subject_link_role_safety_mutation_lock_v1()
   owner to cladora_rpc_owner;
+revoke create on schema app_private from cladora_rpc_owner;
 select app_private.acquire_service_subject_link_role_safety_mutation_lock_v1();
 
 do $$
