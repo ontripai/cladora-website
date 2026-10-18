@@ -448,6 +448,7 @@ alter function app_private.core_platform_service_subject_link_identity_allowed_v
   owner to cladora_service_subject_link_owner;
 alter function app_private.core_platform_service_subject_link_ledger_allowed_v1(uuid,uuid,text,uuid)
   owner to cladora_service_subject_link_owner;
+set role cladora_service_subject_link_owner;
 revoke all on function
   app_private.core_platform_service_subject_link_binding_allowed_v1(uuid,uuid),
   app_private.core_platform_service_subject_link_authority_allowed_v1(),
@@ -456,6 +457,7 @@ revoke all on function
   app_private.core_platform_service_subject_link_ledger_allowed_v1(uuid,uuid,text,uuid)
   from public,anon,authenticated,service_role,
     cladora_service_subject_link_runtime,cladora_service_subject_link_executor;
+reset role;
 
 -- Executor ACL is capability-scoped. It cannot call auth.jwt(), any legacy V1
 -- entrypoint, or either S1 resolver directly.
