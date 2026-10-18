@@ -508,11 +508,17 @@ jobs:
             "$PGTAP_TEMP/pgtap.control"
           docker cp "supabase_db_cladora-local:$SOURCE_PG_SHARE/extension/pgtap--$PGTAP_VERSION.sql" \
             "$PGTAP_TEMP/pgtap.sql"
+          docker exec --user 0 cladora-service-http-postgres \
+            mkdir -p "$TARGET_PG_SHARE/extension"
           docker cp "$PGTAP_TEMP/pgtap.control" \
-            "cladora-service-http-postgres:$TARGET_PG_SHARE/extension/pgtap.control"
+            cladora-service-http-postgres:/tmp/cladora-pgtap.control
           docker cp "$PGTAP_TEMP/pgtap.sql" \
-            "cladora-service-http-postgres:$TARGET_PG_SHARE/extension/pgtap--$PGTAP_VERSION.sql"
-          docker exec cladora-service-http-postgres chmod 0644 \
+            cladora-service-http-postgres:/tmp/cladora-pgtap.sql
+          docker exec --user 0 cladora-service-http-postgres \
+            cp /tmp/cladora-pgtap.control "$TARGET_PG_SHARE/extension/pgtap.control"
+          docker exec --user 0 cladora-service-http-postgres \
+            cp /tmp/cladora-pgtap.sql "$TARGET_PG_SHARE/extension/pgtap--$PGTAP_VERSION.sql"
+          docker exec --user 0 cladora-service-http-postgres chmod 0644 \
             "$TARGET_PG_SHARE/extension/pgtap.control" \
             "$TARGET_PG_SHARE/extension/pgtap--$PGTAP_VERSION.sql"
           STATUS_JSON=$(supabase status -o json)
