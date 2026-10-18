@@ -995,6 +995,73 @@ try {
       await leaseClient.query('begin');
       await leaseClient.query('set session authorization cladora_service_subject_link_runtime');
       await leaseClient.query('set role cladora_service_subject_link_executor');
+      const safety = (await leaseClient.query(`select current_user::text,session_user::text,
+        app_private.core_platform_service_subject_link_role_safety_valid_v1() safe`)).rows[0];
+      if (!safety.safe) {
+        const diagnostic = (await leaseClient.query(`with role_ids as (
+            select max(oid) filter(where rolname='cladora_service_subject_link_runtime') runtime_oid,
+              max(oid) filter(where rolname='cladora_service_subject_link_executor') executor_oid,
+              max(oid) filter(where rolname='cladora_service_subject_link_owner') owner_oid
+            from pg_roles where rolname like 'cladora_service_subject_link_%'
+          ),direct_acl_lines(value) as (
+            select concat_ws('|',role.rolname,'schema',namespace.nspname,acl.privilege_type)
+            from pg_namespace namespace cross join role_ids ids
+            join pg_roles role on role.oid=any(array[ids.runtime_oid,ids.executor_oid,ids.owner_oid])
+            cross join lateral aclexplode(coalesce(namespace.nspacl,
+              acldefault('n',namespace.nspowner))) acl where acl.grantee=role.oid
+            union all
+            select concat_ws('|',role.rolname,'relation',namespace.nspname||'.'||relation.relname,
+              acl.privilege_type) from pg_class relation
+            join pg_namespace namespace on namespace.oid=relation.relnamespace cross join role_ids ids
+            join pg_roles role on role.oid=any(array[ids.runtime_oid,ids.executor_oid,ids.owner_oid])
+            cross join lateral aclexplode(coalesce(relation.relacl,acldefault(
+              case when relation.relkind='S' then 'S'::\"char\" else 'r'::\"char\" end,
+              relation.relowner))) acl where acl.grantee=role.oid
+            union all
+            select concat_ws('|',role.rolname,'column',namespace.nspname||'.'||relation.relname||'.'||
+              attribute.attname,acl.privilege_type) from pg_attribute attribute
+            join pg_class relation on relation.oid=attribute.attrelid
+            join pg_namespace namespace on namespace.oid=relation.relnamespace cross join role_ids ids
+            join pg_roles role on role.oid=any(array[ids.runtime_oid,ids.executor_oid,ids.owner_oid])
+            cross join lateral aclexplode(attribute.attacl) acl
+            where attribute.attnum>0 and not attribute.attisdropped and acl.grantee=role.oid
+            union all
+            select concat_ws('|',role.rolname,'function',namespace.nspname||'.'||routine.proname||'('||
+              routine.proargtypes::text||')',acl.privilege_type) from pg_proc routine
+            join pg_namespace namespace on namespace.oid=routine.pronamespace cross join role_ids ids
+            join pg_roles role on role.oid=any(array[ids.runtime_oid,ids.executor_oid,ids.owner_oid])
+            cross join lateral aclexplode(coalesce(routine.proacl,
+              acldefault('f',routine.proowner))) acl where acl.grantee=role.oid
+          ),service_policies as (
+            select namespace.nspname schema_name,relation.relname relation_name,policy.polname policy_name,
+              policy.polcmd,policy.polpermissive,array(select role.rolname
+                from unnest(policy.polroles) role_oid join pg_roles role on role.oid=role_oid
+                order by role.rolname) policy_roles,
+              coalesce(pg_get_expr(policy.polqual,policy.polrelid),'') policy_using,
+              coalesce(pg_get_expr(policy.polwithcheck,policy.polrelid),'') policy_check
+            from pg_policy policy join pg_class relation on relation.oid=policy.polrelid
+            join pg_namespace namespace on namespace.oid=relation.relnamespace
+            where policy.polname like 'core_platform_service_subject_link_%'
+              or policy.polname like 'service_subject_link_owner_%'
+          ) select
+            (select count(*)::int from pg_auth_members membership,role_ids ids
+              where membership.member=any(array[ids.runtime_oid,ids.executor_oid,ids.owner_oid])
+                or membership.roleid=any(array[ids.runtime_oid,ids.executor_oid,ids.owner_oid])) edge_count,
+            (select count(*)::int from pg_proc routine,role_ids ids where routine.proowner=ids.owner_oid)
+              owner_function_count,
+            (select count(*)::int from pg_class relation,role_ids ids
+              where relation.relkind in ('r','p','S','v','m','f')
+                and relation.relowner=any(array[ids.runtime_oid,ids.executor_oid,ids.owner_oid]))
+              protected_relation_owner_count,
+            (select count(*)::int from direct_acl_lines) direct_acl_count,
+            (select md5(string_agg(value,E'\\n' order by value)) from direct_acl_lines) direct_acl_md5,
+            (select count(*)::int from service_policies) policy_count,
+            (select md5(string_agg(concat_ws('|',schema_name,relation_name,policy_name,polcmd,
+              polpermissive::text,policy_roles::text,policy_using,policy_check),E'\\n'
+              order by schema_name,relation_name,policy_name)) from service_policies) policy_md5`)).rows[0];
+        console.error(`SERVICE role safety diagnostic: ${JSON.stringify({ ...safety, ...diagnostic })}`);
+      }
+      assert.equal(safety.safe, true);
       assert.equal((await leaseClient.query(
         'select app_private.acquire_service_subject_link_role_safety_lease_v1() safe',
       )).rows[0].safe, true);
