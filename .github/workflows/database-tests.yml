@@ -535,7 +535,7 @@ jobs:
           SERVICE_SUBJECT_LINK_HTTP_EPHEMERAL: "1"
           SERVICE_SUBJECT_LINK_LOCAL_STEP_SU_02_AND_S4: "1"
           SERVICE_SUBJECT_LINK_HTTP_REAL_AAL2_REQUIRED: "1"
-          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres
+          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://supabase_admin:postgres@127.0.0.1:55432/postgres
           SERVICE_SUBJECT_LINK_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
