@@ -210,13 +210,22 @@ async function verifyCatalog(databaseClient) {
     resolved_count: 12, owner_count: 12, valid_count: 12, unexpected_count: 0,
   }, 'package functions must have exact owner, security mode, volatility and search_path');
 
-  const forbiddenExecute = Number((await databaseClient.query(`with protected(signature) as (values
+  const forbiddenDirectExecute = Number((await databaseClient.query(`with protected(signature) as (values
       ${expectedOwnedFunctions.map(([signature]) => `('${signature}'::text)`).join(',')}
-    ), callers(role_name) as (values ('public'::text),('anon'),('authenticated'),
-      ('service_role'),('${runtimeRole}'))
-    select count(*)::integer value from protected cross join callers
-    where has_function_privilege(role_name,to_regprocedure(signature),'EXECUTE')`)).rows[0].value);
-  assert.equal(forbiddenExecute, 0, 'public, client, service_role and runtime EXECUTE must remain absent');
+    ), callers(role_oid) as (
+      select 0::oid
+      union all select oid from pg_roles where rolname in (
+        'anon','authenticated','service_role','${runtimeRole}')
+    ), direct_execute as (
+      select function.oid,privilege.grantee
+      from protected join pg_proc function on function.oid=to_regprocedure(signature)
+      cross join lateral aclexplode(coalesce(function.proacl,
+        acldefault('f',function.proowner))) privilege
+      where privilege.privilege_type='EXECUTE'
+    ) select count(*)::integer value from direct_execute
+      join callers on callers.role_oid=direct_execute.grantee`)).rows[0].value);
+  assert.equal(forbiddenDirectExecute, 0,
+    'public, client, service_role and runtime direct EXECUTE ACL must remain absent');
 
   const exposedV2Count = Number((await databaseClient.query(`select count(*)::integer value
     from pg_proc function join pg_namespace namespace on namespace.oid=function.pronamespace
@@ -374,6 +383,21 @@ async function assertDirectExecutorDenial(statement) {
   }
 }
 
+async function assertDirectRoleFunctionDenial(roleName) {
+  await client.query('begin');
+  try {
+    await client.query(`set session authorization ${roleName}`);
+    await assert.rejects(client.query(`select * from
+      app_private.execute_service_request_message_link_v2(
+        'validate',null::uuid,null::uuid,null::uuid,null::uuid,1,null::uuid,1)`),
+    error => error?.code === '42501');
+  } finally {
+    await client.query('rollback').catch(() => undefined);
+    await client.query('reset role').catch(() => undefined);
+    await client.query('reset session authorization').catch(() => undefined);
+  }
+}
+
 try {
   await check('target is a local writable PostgreSQL 17 superuser fixture', async () => {
     const identity = (await client.query(`select current_user::text,
@@ -392,6 +416,12 @@ try {
   await check('executor direct domain-table access fails with SQLSTATE 42501', async () => {
     await assertDirectExecutorDenial('select * from communications.private_messages limit 1');
     await assertDirectExecutorDenial('delete from service_catalog.requests where false');
+  });
+
+  await check('clients, service_role and runtime cannot execute S2 without SET ROLE', async () => {
+    for (const roleName of ['anon', 'authenticated', 'service_role', runtimeRole]) {
+      await assertDirectRoleFunctionDenial(roleName);
+    }
   });
 
   const negativeCases = [
