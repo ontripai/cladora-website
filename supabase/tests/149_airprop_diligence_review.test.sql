@@ -151,8 +151,8 @@ select lives_ok($$select customer_api.create_airprop_underwriting_v2('14900000-0
 select lives_ok($$insert into diligence_test_response select customer_api.create_airprop_diligence_draft_v1('14900000-0000-0000-0000-000010000010','14900000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='14900000-0000-0000-0000-000000000100'),1,'diligence_draft_149')$$,'create exact-version draft through gateway');
 
 -- Canonical Vault verification and trusted scanner attestation; no forged clean client flags.
-insert into documents.documents(id,tenant_id,property_id,title,document_type,classification,created_by)
-values('14900000-0000-0000-0000-000000000701','14900000-0000-0000-0000-000000000001','14900000-0000-0000-0000-000000001000','Synthetic diligence evidence','legal','internal','14900000-0000-0000-0000-000000000020');
+insert into documents.documents(id,tenant_id,workspace_id,property_id,title,document_type,classification,created_by)
+values('14900000-0000-0000-0000-000000000701','14900000-0000-0000-0000-000000000001','14900000-0000-0000-0000-000000000100','14900000-0000-0000-0000-000000001000','Synthetic diligence evidence','legal','internal','14900000-0000-0000-0000-000000000020');
 insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,size_bytes,uploaded_by,created_at)
 values('14900000-0000-0000-0000-000000000702','14900000-0000-0000-0000-000000000001','14900000-0000-0000-0000-000000000701',1,'synthetic/diligence-149.txt',repeat('a',64),'text/plain',20,'14900000-0000-0000-0000-000000000020',now()-interval '1 minute');
 insert into storage.objects(bucket_id,name)values('document-vault','synthetic/diligence-149.txt');

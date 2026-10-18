@@ -18,6 +18,7 @@ function load(url) {
 const api = load(new URL('../src/lib/customer/documents-workspace-binding-writer-v1.ts', import.meta.url));
 const id = value => `74000000-0000-4000-8000-${String(value).padStart(12, '0')}`;
 const actor = id(1), workspace = id(2), context = id(3), intentId = id(4), documentId = id(5), versionId = id(6), tenant = id(10);
+const storageObjectId = id(13);
 const commandContext = { transaction_id: id(7), command_id: id(8), actor_id: actor, authority_version: 12 };
 const intent = {
   contract_version: 'documents-new-document-intent.v1', context_id: context, workspace_id: workspace,
@@ -48,7 +49,10 @@ let verifiedBeforeProvider = false;
 const verified = await api.verifyDocumentsStoredObjectBeforeTransactionV1(
   { bucket_id: 'document-vault', object_path: intent.object_path }, async target => {
     verifiedBeforeProvider = true;
-    return { ...target, sha256: 'a'.repeat(64), size_bytes: 1024,
+    return { ...target, storage_object_id: storageObjectId,
+      generation_capability: 'exposed', storage_generation: 'generation-1',
+      etag_capability: 'exposed', storage_etag: 'etag-1',
+      sha256: 'a'.repeat(64), size_bytes: 1024,
       detected_mime_type: 'application/pdf', non_overwritable: true };
   });
 
@@ -67,7 +71,7 @@ function scopeHarness({ replayValid = true } = {}) {
         return { rows: [{ valid: true }], rowCount: 1 };
       }
       if (text.includes('from documents.upload_intents ui where ui.id=')) return { rows: [{ valid: true }], rowCount: 1 };
-      if (text.includes("set_config('documents.workspace_binding_writer_v1'")) {
+      if (text.includes("set_config('documents.canonical_storage_identity_v1'")) {
         return { rows: [{ set_config: values[0] }], rowCount: 1 };
       }
       if (text.includes('insert into documents.upload_intents')) return { rows: [{ mutation_id: intentId }], rowCount: 1 };
@@ -131,12 +135,15 @@ await check('finalization requires pretransaction object proof and fresh unconsu
   assert.match(validation.text, /ui\.status='authorized' and ui\.consumed_at is null/);
   assert.match(validation.text, /for update of ui/);
   assert.deepEqual(await provider.mutate(scope, command), { mutation_id: versionId });
-  const marker = calls.find(call => call.text.includes("set_config('documents.workspace_binding_writer_v1'"));
+  const marker = calls.find(call => call.text.includes("set_config('documents.canonical_storage_identity_v1'"));
   assert.ok(marker);
   assert.deepEqual(JSON.parse(marker.values[0]), {
-    contract_version: 'documents-workspace-binding-writer.v1', intent_id: intentId,
+    contract_version: 'documents-canonical-storage-identity.v1', intent_id: intentId,
     document_id: documentId, version_id: versionId, workspace_id: workspace, actor_id: actor,
-    bucket_id: 'document-vault', object_path: intent.object_path, sha256: 'a'.repeat(64),
+    bucket_id: 'document-vault', object_path: intent.object_path,
+    storage_object_id: storageObjectId,
+    generation_capability: 'exposed', storage_generation: 'generation-1',
+    etag_capability: 'exposed', storage_etag: 'etag-1', sha256: 'a'.repeat(64),
     size_bytes: 1024, detected_mime_type: 'application/pdf', non_overwritable: true,
   });
   const documentInsert = calls.find(call => call.text.includes('insert into documents.documents'));
@@ -186,6 +193,18 @@ await check('schemas reject inferred/NULL Workspace, replacement fields and forg
     bucket_id: 'document-vault', object_path: intent.object_path, sha256: 'a'.repeat(64),
     size_bytes: 1024, detected_mime_type: 'application/pdf', non_overwritable: true,
   }), /stored_object_verification_required/);
+});
+
+await check('trusted verifier maps missing object identity or provider capability to unavailable', async () => {
+  await assert.rejects(api.verifyDocumentsStoredObjectBeforeTransactionV1(
+    { bucket_id: 'document-vault', object_path: intent.object_path }, async target => ({
+      ...target, sha256: 'a'.repeat(64), size_bytes: 1024,
+      detected_mime_type: 'application/pdf', non_overwritable: true,
+    })), /PROVIDER_UNAVAILABLE/);
+  await assert.rejects(api.verifyDocumentsStoredObjectBeforeTransactionV1(
+    { bucket_id: 'document-vault', object_path: intent.object_path }, async () => {
+      throw new Error('storage_offline');
+    }), /PROVIDER_UNAVAILABLE/);
 });
 
 await check('writer consumes canonical Core types and defines no host, authority interface or ledger', () => {

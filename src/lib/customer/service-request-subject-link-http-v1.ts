@@ -1,8 +1,14 @@
 import { createHash } from 'node:crypto';
-import type { Pool, PoolClient } from 'pg';
+import type { PoolClient } from 'pg';
 import { z } from 'zod';
 
 import { createCorePostgresTransactionHostV1 } from '../core/postgres-transaction-host-v1';
+import {
+  corePlatformServiceSubjectLinkExecutorRoleV1,
+  corePlatformServiceSubjectLinkRoleBoundPoolContractV1,
+  corePlatformServiceSubjectLinkRuntimeRoleV1,
+  type CorePlatformServiceSubjectLinkRoleBoundPoolV1,
+} from '../core/platform-role-bound-pool-v1';
 import { hasTrustedMutationOrigin } from '../security/same-origin';
 import { createClient } from '../supabase/server';
 import { serviceCollaborationIntentV1Schema } from './service-collaboration-v14-schema';
@@ -24,10 +30,8 @@ export type ServiceSubjectLinkAuthenticationV1 = (
   request: Request,
 ) => Promise<ServiceSubjectLinkVerifiedSessionV1 | null>;
 
-type CorePool = Pick<Pool, 'connect'>;
-
 export interface ServiceSubjectLinkHttpDependenciesV1 {
-  readonly pool: CorePool;
+  readonly role_bound_pool?: CorePlatformServiceSubjectLinkRoleBoundPoolV1 | null;
   readonly authenticate: ServiceSubjectLinkAuthenticationV1;
   readonly now?: () => number;
 }
@@ -80,16 +84,33 @@ const identitySettingsSql = `select
   set_config('request.jwt.claims',$1,true) as claims,
   set_config('request.jwt.claim.sub',$2,true) as subject,
   set_config('request.jwt.claim.aal',$3,true) as assurance,
-  set_config('request.jwt.claim.role',$4,true) as role`;
-const clearIdentitySettingsSql = `select
-  set_config('request.jwt.claims','',false),
-  set_config('request.jwt.claim.sub','',false),
-  set_config('request.jwt.claim.aal','',false),
-  set_config('request.jwt.claim.role','',false)`;
+  set_config('request.jwt.claim.role',$4,true) as role,
+  set_config('request.cladora.context_id',$5,true) as context,
+  set_config('request.cladora.workspace_id',$6,true) as workspace`;
+const roleBoundIdentitySql =
+  'select current_user::text as current_user,session_user::text as session_user';
 
-async function scrubConnectionIdentity(client: PoolClient) {
-  await client.query('reset role');
-  await client.query(clearIdentitySettingsSql);
+async function assertServiceSubjectLinkRoleBoundClient(client: PoolClient) {
+  const identity = await client.query<{ current_user: string; session_user: string }>(
+    roleBoundIdentitySql,
+  );
+  if (identity.rowCount !== 1
+    || identity.rows[0]?.current_user !== corePlatformServiceSubjectLinkExecutorRoleV1
+    || identity.rows[0]?.session_user !== corePlatformServiceSubjectLinkRuntimeRoleV1) {
+    throw new Error('service_subject_link_role_bound_lease_invalid');
+  }
+}
+
+function requireServiceSubjectLinkRoleBoundPoolV1(
+  pool: CorePlatformServiceSubjectLinkRoleBoundPoolV1 | null | undefined,
+) {
+  if (!pool
+    || pool.contract_version !== corePlatformServiceSubjectLinkRoleBoundPoolContractV1
+    || !['direct', 'session_pooler'].includes(pool.connection_model)
+    || typeof pool.connect !== 'function') {
+    throw new Error('service_subject_link_role_bound_pool_unavailable');
+  }
+  return pool;
 }
 
 function claimsFor(session: ServiceSubjectLinkVerifiedSessionV1) {
@@ -118,17 +139,21 @@ function stableCommandId(label: 'transaction' | 'command', workspaceId: string,
  * connection cannot retain another request's actor or AAL.
  */
 export function createServiceSubjectLinkRequestPoolV1(
-  pool: CorePool,
+  poolValue: CorePlatformServiceSubjectLinkRoleBoundPoolV1,
   sessionValue: ServiceSubjectLinkVerifiedSessionV1,
-): CorePool {
+  binding: Readonly<{ context_id: string; workspace_id: string }>,
+): Pick<CorePlatformServiceSubjectLinkRoleBoundPoolV1, 'connect'> {
+  const pool = requireServiceSubjectLinkRoleBoundPoolV1(poolValue);
   const session = verifiedSessionSchema.parse(sessionValue);
+  const contextId = uuid.parse(binding.context_id);
+  const workspaceId = uuid.parse(binding.workspace_id);
   return {
     async connect() {
       const client = await pool.connect();
       let released = false;
       let transactionOpen = false;
       try {
-        await scrubConnectionIdentity(client);
+        await assertServiceSubjectLinkRoleBoundClient(client);
       } catch (error) {
         client.release(true);
         throw error;
@@ -143,12 +168,14 @@ export function createServiceSubjectLinkRequestPoolV1(
         const result = await client.query(text, values);
         if (normalized.startsWith('begin')) {
           transactionOpen = true;
+          await assertServiceSubjectLinkRoleBoundClient(client);
           await client.query(identitySettingsSql, [
             claimsFor(session), session.actor_id, session.assurance_level, 'authenticated',
+            contextId, workspaceId,
           ]);
         } else if (normalized === 'commit' || normalized === 'rollback') {
           transactionOpen = false;
-          await scrubConnectionIdentity(client);
+          await assertServiceSubjectLinkRoleBoundClient(client);
         }
         return result;
       }) as PoolClient['query'];
@@ -159,15 +186,16 @@ export function createServiceSubjectLinkRequestPoolV1(
       };
       return wrapped;
     },
-  } as CorePool;
+  };
 }
 
 export async function readServiceSubjectLinkAuthorityVersionV1(
-  pool: CorePool,
+  pool: CorePlatformServiceSubjectLinkRoleBoundPoolV1,
   sessionValue: ServiceSubjectLinkVerifiedSessionV1,
+  binding: Readonly<{ context_id: string; workspace_id: string }>,
 ) {
   const session = verifiedSessionSchema.parse(sessionValue);
-  const client = await createServiceSubjectLinkRequestPoolV1(pool, session).connect();
+  const client = await createServiceSubjectLinkRequestPoolV1(pool, session, binding).connect();
   let ended = false;
   try {
     await client.query('begin isolation level serializable');
@@ -233,7 +261,16 @@ export async function handleServiceSubjectLinkHttpV1(
 
   let authorityVersion: number;
   try {
-    authorityVersion = await readServiceSubjectLinkAuthorityVersionV1(dependencies.pool, session);
+    const binding = {
+      context_id: parsedBody.data.context_id,
+      workspace_id: parsedBody.data.workspace_id,
+    };
+    const roleBoundPool = requireServiceSubjectLinkRoleBoundPoolV1(dependencies.role_bound_pool);
+    authorityVersion = await readServiceSubjectLinkAuthorityVersionV1(
+      roleBoundPool,
+      session,
+      binding,
+    );
   } catch {
     return bounded(503, 'AUTHORITY_UNAVAILABLE');
   }
@@ -247,7 +284,11 @@ export async function handleServiceSubjectLinkHttpV1(
     authority_version: authorityVersion,
   });
   const host = createCorePostgresTransactionHostV1(
-    createServiceSubjectLinkRequestPoolV1(dependencies.pool, session),
+    createServiceSubjectLinkRequestPoolV1(
+      requireServiceSubjectLinkRoleBoundPoolV1(dependencies.role_bound_pool),
+      session,
+      { context_id: parsedBody.data.context_id, workspace_id: parsedBody.data.workspace_id },
+    ),
   );
   const result = await host.execute(command, createServiceSubjectLinkCoreProvidersV1());
   if (result.status === 'committed' || result.status === 'exact_replay') {

@@ -223,7 +223,9 @@ begin
 
   -- Roles
   select id into v_role_admin from identity.roles where lower(code) = 'association_admin' and tenant_id is null and is_system = true limit 1;
-  select id into v_role_resident from identity.roles where lower(code) = 'resident' limit 1;
+  select id into v_role_resident from identity.roles
+  where lower(code) = 'tenant_resident' and tenant_id is null and is_system = true
+  limit 1;
 
   -- Memberships
   insert into identity.memberships (id, tenant_id, user_id, role_id, status, starts_at) values

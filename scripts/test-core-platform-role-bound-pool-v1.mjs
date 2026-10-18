@@ -8,7 +8,7 @@ const implementation = readFileSync('src/lib/core/platform-role-bound-pool-v1.ts
 const consumer = readFileSync('src/lib/community/experience-guide-lifecycle-http-v1.ts', 'utf8');
 const migrations = readdirSync('supabase/migrations').filter(name => name.endsWith('.sql')).sort();
 
-assert.equal(migrations.length, 262);
+assert.equal(migrations.length, 274);
 assert.ok(migrations.includes(migrationName));
 assert.match(migration, /create role cladora_ce_guide_runtime\s+login noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /create role cladora_ce_guide_executor\s+nologin noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
@@ -40,7 +40,8 @@ assert.doesNotMatch(migration, /grant select(?:\([^)]*\))? on auth\.users/i);
 assert.match(implementation, /core-platform-role-bound-pool\.v1/);
 assert.match(implementation, /'direct' \| 'session_pooler'/);
 assert.doesNotMatch(implementation, /transaction_pool/);
-assert.match(implementation, /set role \$\{corePlatformCeGuideExecutorRoleV1\}/);
+assert.match(implementation, /set role \$\{profile\.executor_role\}/);
+assert.match(implementation, /const ceGuideProfileV1 = Object\.freeze/);
 assert.doesNotMatch(implementation, /process\.env|request\.headers|request\.body|service_role|cladora_rpc_owner/);
 assert.match(implementation, /assertRuntimeIdentity/);
 assert.match(implementation, /assertExecutorIdentity/);

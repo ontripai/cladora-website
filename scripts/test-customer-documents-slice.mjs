@@ -16,15 +16,24 @@ const root = process.cwd();
 console.log("[Suite 1] Route Handlers Contract & Schema Delegation Verification");
 
 const DOC_ROUTES = [
-  { path: "src/app/api/customer/v1/documents/upload-intent/route.ts", rpc: "create_upload_intent_v1" },
-  { path: "src/app/api/customer/v1/documents/upload/route.ts", rpc: "finalize_upload_v1" },
-  { path: "src/app/api/customer/v1/documents/[id]/download/route.ts", rpc: "authorize_document_download_v1" },
+  { path: "src/app/api/customer/v1/documents/upload-intent/route.ts", maintenance: true },
+  { path: "src/app/api/customer/v1/documents/upload/route.ts", maintenance: true },
+  {
+    path: "src/app/api/customer/v1/documents/[id]/download/route.ts",
+    maintenance: true,
+    maintenanceCode: "CANONICAL_DOCUMENT_DOWNLOAD_UNAVAILABLE",
+  },
   { path: "src/app/api/customer/v1/documents/[id]/verify/route.ts", rpc: "verify_document_evidence_v1" },
-  { path: "src/app/api/customer/v1/documents/[id]/holds/route.ts", rpc: "place_legal_hold_v1" },
-  { path: "src/app/api/customer/v1/documents/[id]/holds/release/route.ts", rpc: "release_legal_hold_v1" },
-  { path: "src/app/api/customer/v1/documents/[id]/disposition/route.ts", rpc: "request_document_disposition_v1" },
-  { path: "src/app/api/customer/v1/documents/[id]/disposition/[reqId]/approve/route.ts", rpc: "approve_document_disposition_v1" },
-  { path: "src/app/api/customer/v1/documents/[id]/retention/route.ts", rpc: "assign_retention_policy_v1" },
+  { path: "src/app/api/customer/v1/documents/[id]/holds/route.ts", maintenance: true,
+    maintenanceCode: "CANONICAL_DOCUMENT_RETENTION_PREFLIGHT_UNAVAILABLE" },
+  { path: "src/app/api/customer/v1/documents/[id]/holds/release/route.ts", maintenance: true,
+    maintenanceCode: "CANONICAL_DOCUMENT_RETENTION_PREFLIGHT_UNAVAILABLE" },
+  { path: "src/app/api/customer/v1/documents/[id]/disposition/route.ts", maintenance: true,
+    maintenanceCode: "CANONICAL_DOCUMENT_RETENTION_PREFLIGHT_UNAVAILABLE" },
+  { path: "src/app/api/customer/v1/documents/[id]/disposition/[reqId]/approve/route.ts",
+    maintenance: true, maintenanceCode: "CANONICAL_DOCUMENT_RETENTION_PREFLIGHT_UNAVAILABLE" },
+  { path: "src/app/api/customer/v1/documents/[id]/retention/route.ts", maintenance: true,
+    maintenanceCode: "CANONICAL_DOCUMENT_RETENTION_PREFLIGHT_UNAVAILABLE" },
   { path: "src/app/api/customer/v1/documents/[id]/links/route.ts", rpc: "link_document_entity_v1" },
 ];
 
@@ -38,6 +47,18 @@ for (const route of DOC_ROUTES) {
   const fullPath = path.join(root, route.path);
   assert.ok(fs.existsSync(fullPath), `Route file ${route.path} must exist`);
   const content = fs.readFileSync(fullPath, "utf8");
+
+  if (route.maintenance) {
+    assert.ok(
+      content.includes(route.maintenanceCode ?? "CANONICAL_DOCUMENT_WRITER_UNAVAILABLE"),
+      `${route.path}: must expose its explicit fail-closed maintenance code`
+    );
+    assert.match(content, /status:\s*503/);
+    assert.doesNotMatch(content, /\.rpc\(|\.storage\s*\./);
+    assert.match(content, /hasTrustedMutationOrigin/);
+    assert.match(content, /HEADERS/);
+    continue;
+  }
 
   // Must use customer_api schema
   assert.ok(
@@ -73,16 +94,24 @@ for (const route of DOC_ROUTES) {
     `${route.path}: must apply defensive security headers`
   );
 }
-console.log("  ✓ All 10 Route Handlers conform strictly to customer_api gateway and security standards.");
+console.log("  ✓ All 10 Route Handlers conform to the customer_api gateway or an explicit fail-closed maintenance contract.");
 
 // The vault intent owns the exact tenant-scoped path. A user-scoped fallback
 // makes the Storage INSERT fail even when the intent and session are valid.
 const uploadRoute = fs.readFileSync(path.join(root, "src/app/api/customer/v1/documents/upload/route.ts"), "utf8");
 const dashboard = fs.readFileSync(path.join(root, "src/components/customer/CustomerDocumentsDashboard.tsx"), "utf8");
 assert.match(dashboard, /formData\.append\("object_path", intentData\.object_path\)/);
-assert.match(uploadRoute, /!objectPath \|\| bucketId !== "document-vault"/);
-assert.doesNotMatch(uploadRoute, /claims\.claims\.sub\}\/\$\{intentId\}/);
-console.log("  ✓ Vault upload uses the exact authorized intent path end to end.");
+assert.match(uploadRoute, /CANONICAL_DOCUMENT_WRITER_UNAVAILABLE/);
+assert.doesNotMatch(uploadRoute, /\.upload\(|finalize_upload_v1|already exists/);
+console.log("  ✓ Vault creation routes fail closed before any Storage or legacy RPC effect.");
+
+const downloadRoute = fs.readFileSync(
+  path.join(root, "src/app/api/customer/v1/documents/[id]/download/route.ts"),
+  "utf8"
+);
+assert.match(downloadRoute, /CANONICAL_DOCUMENT_DOWNLOAD_UNAVAILABLE/);
+assert.doesNotMatch(downloadRoute, /createAdminClient|createSignedUrl|authorize_document_download_v1/);
+console.log("  ✓ Vault download route fails closed before any legacy RPC, admin client or signed-URL effect.");
 
 // =============================================================================
 // Suite 2: Real Server-Side SHA-256 & Bounded Stream Checksum Verification

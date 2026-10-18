@@ -36,16 +36,7 @@ export async function POST(request: NextRequest) {
   if (errorResponse) return errorResponse;
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: { code: "INVALID_CONVERSATION" } }, { status: 400, headers });
-  const client = await createClient();
-  const { data: claims, error } = await client.auth.getClaims();
-  if (error || !claims?.claims?.sub) return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401, headers });
-  const result = await client.schema("customer_api").rpc("create_private_conversation_v1", {
-    p_context_id: parsed.data.context_id,
-    p_unit_id: parsed.data.unit_id,
-    p_recipient_membership_id: parsed.data.recipient_membership_id,
-    p_body: parsed.data.body,
-    p_request_id: parsed.data.request_id,
-  });
-  if (result.error) return NextResponse.json({ error: { code: result.error.code === "42501" ? "ACCESS_DENIED" : "CONVERSATION_CREATE_FAILED" } }, { status: result.error.code === "42501" ? 403 : 500, headers });
-  return NextResponse.json(result.data, { status: 201, headers });
+  return NextResponse.json({
+    error: { code: "CANONICAL_PRIVATE_CONVERSATION_WRITER_UNAVAILABLE" },
+  }, { status: 503, headers });
 }

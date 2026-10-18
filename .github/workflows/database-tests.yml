@@ -18,6 +18,7 @@ on:
       - "src/lib/core/transaction-provider-evidence-v1.ts"
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
+      - "scripts/test-communications-private-message-currentness-postgres-v2.mjs"
       - "scripts/test-communications-private-message-provider-postgres-v1.mjs"
       - "scripts/test-communications-private-message-request-audience-postgres-v1.mjs"
       - "scripts/test-service-request-subject-provider-postgres-v2.mjs"
@@ -45,6 +46,9 @@ on:
       - "scripts/test-core-platform-role-bound-pool-v1.mjs"
       - "scripts/test-core-platform-role-bound-pool-postgres-v1.mjs"
       - "src/lib/core/platform-role-bound-pool-v1.ts"
+      - "scripts/test-service-subject-link-role-bound-pool-v1.mjs"
+      - "supabase/migrations/*_service_subject_link_role_bound_pool_privileged_v1.sql"
+      - "supabase/tests/197_service_subject_link_role_bound_pool_privileged_v1.test.sql"
       - "src/lib/core/current-unit-property-selector-v1.ts"
       - "scripts/test-core-current-unit-property-selector-v1.mjs"
       - "scripts/test-core-current-unit-property-selector-postgres-v1.mjs"
@@ -69,7 +73,38 @@ on:
       - "supabase/tests/184_core_platform_role_bound_pool.test.sql"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs"
+      - "scripts/test-documents-legacy-creation-rpc-shutdown-v1.mjs"
+      - "scripts/test-documents-canonical-storage-identity-v1.mjs"
+      - "scripts/test-documents-replacement-workspace-writer-v1.mjs"
+      - "scripts/test-documents-replacement-promotion-after-clean-v1.mjs"
+      - "scripts/test-documents-vault-download-exact-workspace-v2.mjs"
+      - "scripts/test-communications-private-conversation-workspace-binding-v1.mjs"
+      - "scripts/test-communications-private-conversation-workspace-v1.mjs"
+      - "scripts/test-communications-private-conversation-workspace-postgres-v1.mjs"
+      - "scripts/test-communications-document-attachment-workspace-gate-v2.mjs"
+      - "scripts/test-communications-document-attachment-workspace-postgres-v2.mjs"
+      - "scripts/test-communications-document-attachment-http-v2.mjs"
+      - "scripts/test-documents-retention-lifecycle-workspace-gate-v2.mjs"
+      - "scripts/test-documents-retention-lifecycle-workspace-postgres-v2.mjs"
       - "src/lib/customer/documents-workspace-binding-writer-v1.ts"
+      - "src/lib/customer/documents-replacement-workspace-writer-v1.ts"
+      - "src/lib/customer/documents-replacement-promotion-after-clean-v1.ts"
+      - "src/lib/customer/documents-vault-download-exact-workspace-v2.ts"
+      - "src/app/api/customer/v1/documents/[id]/download/route.ts"
+      - "src/app/api/customer/v1/private-conversations/route.ts"
+      - "src/lib/customer/communications-private-conversation-workspace-v1.ts"
+      - "src/lib/customer/communications-document-attachment-workspace-v2.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/attachments/route.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/files/route.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/files/status/route.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/upload-context/route.ts"
+      - "src/app/api/customer/v1/private-conversations/attachments/[id]/download/route.ts"
+      - "src/lib/customer/documents-retention-lifecycle-workspace-v2.ts"
+      - "src/app/api/customer/v1/documents/[id]/retention/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/holds/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/holds/release/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/disposition/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/disposition/[reqId]/approve/route.ts"
       - "docs/contracts/CORE-AUTHORITY-REVISION-SOURCES-v1.json"
       - "scripts/lib/ap10-auth-e2e-fixture.mjs"
       - "scripts/lib/ap10-target-identity.mjs"
@@ -108,6 +143,7 @@ on:
       - "src/lib/core/transaction-provider-evidence-v1.ts"
       - "scripts/test-core-tx-provider-evidence-postgres-v1.mjs"
       - "scripts/test-communications-private-message-version-concurrency-v1.mjs"
+      - "scripts/test-communications-private-message-currentness-postgres-v2.mjs"
       - "scripts/test-communications-private-message-provider-postgres-v1.mjs"
       - "scripts/test-communications-private-message-request-audience-postgres-v1.mjs"
       - "scripts/test-service-request-subject-provider-postgres-v2.mjs"
@@ -119,6 +155,10 @@ on:
       - "scripts/test-service-request-subject-link-http-v1.mjs"
       - "scripts/test-service-request-subject-link-http-postgres-v1.mjs"
       - "src/lib/customer/service-request-subject-link-http-v1.ts"
+      - "src/lib/core/platform-role-bound-pool-v1.ts"
+      - "scripts/test-service-subject-link-role-bound-pool-v1.mjs"
+      - "supabase/migrations/*_service_subject_link_role_bound_pool_privileged_v1.sql"
+      - "supabase/tests/197_service_subject_link_role_bound_pool_privileged_v1.test.sql"
       - "src/lib/core/current-authority-postgres-provider-v1.ts"
       - "src/lib/core/current-authority-transaction-port-v1.ts"
       - "scripts/test-core-authority-revision-postgres-v1.mjs"
@@ -154,7 +194,38 @@ on:
       - "scripts/test-core-read-authority-profile-postgres-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-v1.mjs"
       - "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs"
+      - "scripts/test-documents-legacy-creation-rpc-shutdown-v1.mjs"
+      - "scripts/test-documents-canonical-storage-identity-v1.mjs"
+      - "scripts/test-documents-replacement-workspace-writer-v1.mjs"
+      - "scripts/test-documents-replacement-promotion-after-clean-v1.mjs"
+      - "scripts/test-documents-vault-download-exact-workspace-v2.mjs"
+      - "scripts/test-communications-private-conversation-workspace-binding-v1.mjs"
+      - "scripts/test-communications-private-conversation-workspace-v1.mjs"
+      - "scripts/test-communications-private-conversation-workspace-postgres-v1.mjs"
+      - "scripts/test-communications-document-attachment-workspace-gate-v2.mjs"
+      - "scripts/test-communications-document-attachment-workspace-postgres-v2.mjs"
+      - "scripts/test-communications-document-attachment-http-v2.mjs"
+      - "scripts/test-documents-retention-lifecycle-workspace-gate-v2.mjs"
+      - "scripts/test-documents-retention-lifecycle-workspace-postgres-v2.mjs"
       - "src/lib/customer/documents-workspace-binding-writer-v1.ts"
+      - "src/lib/customer/documents-replacement-workspace-writer-v1.ts"
+      - "src/lib/customer/documents-replacement-promotion-after-clean-v1.ts"
+      - "src/lib/customer/documents-vault-download-exact-workspace-v2.ts"
+      - "src/app/api/customer/v1/documents/[id]/download/route.ts"
+      - "src/app/api/customer/v1/private-conversations/route.ts"
+      - "src/lib/customer/communications-private-conversation-workspace-v1.ts"
+      - "src/lib/customer/communications-document-attachment-workspace-v2.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/attachments/route.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/files/route.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/files/status/route.ts"
+      - "src/app/api/customer/v1/private-conversations/[id]/upload-context/route.ts"
+      - "src/app/api/customer/v1/private-conversations/attachments/[id]/download/route.ts"
+      - "src/lib/customer/documents-retention-lifecycle-workspace-v2.ts"
+      - "src/app/api/customer/v1/documents/[id]/retention/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/holds/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/holds/release/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/disposition/route.ts"
+      - "src/app/api/customer/v1/documents/[id]/disposition/[reqId]/approve/route.ts"
       - "docs/contracts/CORE-AUTHORITY-REVISION-SOURCES-v1.json"
       - "scripts/lib/ap10-auth-e2e-fixture.mjs"
       - "scripts/lib/ap10-target-identity.mjs"
@@ -206,8 +277,10 @@ jobs:
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
-      - name: Start clean local database and apply migrations
-        run: supabase start
+      - name: Start clean local database with staged SERVICE S4 gate
+        run: bash scripts/start-local-supabase-staged-service-s4.sh start
+        env:
+          CLADORA_LOCAL_STEP_SU_02_AUTHORIZED: "1"
       - name: Run pgTAP database tests
         run: supabase test db
       - name: Setup Node.js for real concurrency tests
@@ -334,15 +407,40 @@ jobs:
           CORE_PLATFORM_ROLE_BOUND_POOL_EPHEMERAL: "1"
           CORE_PLATFORM_ROLE_BOUND_POOL_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Documents Workspace binding writer PostgreSQL conformance
-        run: npm run test:doc-null-workspace-closure && npm run test:doc-workspace-writer && timeout 120s npm run test:doc-workspace-writer:postgres
+        run: npm run test:doc-null-workspace-closure && npm run test:doc-workspace-writer && npm run test:documents-replacement-writer && npm run test:documents-replacement-promotion && npm run test:documents-vault-download-v2 && npm run test:communications-private-conversation-workspace && npm run test:communications-private-conversation-writer && npm run test:communications-document-attachment-workspace && npm run test:communications-document-attachment:http && npm run test:documents-retention-lifecycle-workspace && timeout 120s npm run test:doc-workspace-writer:postgres
         env:
           DOC_WORKSPACE_WRITER_EPHEMERAL: "1"
           DOC_WORKSPACE_WRITER_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Documents intent-rebind closure gate
+        run: timeout 300s npm run test:documents-intent-rebind-closure:postgres
+        env:
+          DOCUMENTS_INTENT_REBIND_EPHEMERAL: "1"
+          DOCUMENTS_INTENT_REBIND_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Communications private conversation Workspace PostgreSQL conformance
+        run: timeout 120s npm run test:communications-private-conversation-workspace:postgres
+        env:
+          COMM_CONVERSATION_WORKSPACE_EPHEMERAL: "1"
+          COMM_CONVERSATION_WORKSPACE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Communications document attachment Workspace PostgreSQL conformance
+        run: timeout 120s npm run test:communications-document-attachment-workspace:postgres
+        env:
+          COMM_ATTACHMENT_WORKSPACE_EPHEMERAL: "1"
+          COMM_ATTACHMENT_WORKSPACE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Documents retention lifecycle Workspace PostgreSQL conformance
+        run: timeout 120s npm run test:documents-retention-lifecycle-workspace:postgres
+        env:
+          DOC_RETENTION_LIFECYCLE_EPHEMERAL: "1"
+          DOC_RETENTION_LIFECYCLE_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Communications message version concurrency regression
         run: timeout 90s npm run test:communications-message-version:postgres
         env:
           COMM_MESSAGE_VERSION_EPHEMERAL: "1"
           COMM_MESSAGE_VERSION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run Communications physical Workspace currentness regression
+        run: timeout 120s npm run test:communications-currentness:postgres
+        env:
+          COMM_CURRENTNESS_EPHEMERAL: "1"
+          COMM_CURRENTNESS_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run Communications provider through the Core transaction host
         run: timeout 90s npm run test:communications-subject-provider:postgres
         env:
@@ -359,13 +457,56 @@ jobs:
           SERVICE_REQUEST_PROVIDER_EPHEMERAL: "1"
           SERVICE_REQUEST_PROVIDER_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run SERVICE private-message subject link through the Core transaction host
-        run: timeout 180s npm run test:service-subject-link:postgres
+        run: npm run test:service-subject-link-role-bound-pool && timeout 180s npm run test:service-subject-link:postgres
         env:
           SERVICE_SUBJECT_LINK_EPHEMERAL: "1"
           SERVICE_SUBJECT_LINK_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run SERVICE exact role-graph isolation gate
+        run: timeout 180s npm run test:service-role-graph-isolation:postgres
+        env:
+          SERVICE_ROLE_GRAPH_ISOLATION_EPHEMERAL: "1"
+          SERVICE_ROLE_GRAPH_ISOLATION_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      - name: Run SERVICE pool-poisoning and concurrency gate
+        run: timeout 240s npm run test:service-pool-poisoning-concurrency:postgres
+        env:
+          SERVICE_POOL_POISONING_EPHEMERAL: "1"
+          SERVICE_POOL_POISONING_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       - name: Run SERVICE subject-link isolated HTTP and real local AAL2 integration
         run: |
           set -euo pipefail
+          docker run --rm -d --name cladora-service-http-postgres \
+            -e POSTGRES_PASSWORD=postgres -p 127.0.0.1:55432:5432 postgres:17-alpine
+          PGTAP_TEMP="$(mktemp -d)"
+          cleanup_service_postgres() {
+            docker stop cladora-service-http-postgres >/dev/null 2>&1 || true
+            rm -f "$PGTAP_TEMP/pgtap.control" "$PGTAP_TEMP/pgtap.sql"
+            rmdir "$PGTAP_TEMP" 2>/dev/null || true
+          }
+          trap cleanup_service_postgres EXIT
+          for attempt in $(seq 1 60); do
+            docker exec cladora-service-http-postgres pg_isready -U postgres >/dev/null 2>&1 && break
+            if [ "$attempt" -eq 60 ]; then
+              echo "::error::Disposable SERVICE PostgreSQL did not become ready"
+              exit 1
+            fi
+            sleep 1
+          done
+          PGTAP_VERSION=$(docker exec supabase_db_cladora-local psql -U postgres -d postgres \
+            -X -A -t -v ON_ERROR_STOP=1 \
+            -c "select default_version from pg_available_extensions where name='pgtap';")
+          SOURCE_PG_SHARE=$(docker exec supabase_db_cladora-local pg_config --sharedir)
+          TARGET_PG_SHARE=$(docker exec cladora-service-http-postgres pg_config --sharedir)
+          docker cp "supabase_db_cladora-local:$SOURCE_PG_SHARE/extension/pgtap.control" \
+            "$PGTAP_TEMP/pgtap.control"
+          docker cp "supabase_db_cladora-local:$SOURCE_PG_SHARE/extension/pgtap--$PGTAP_VERSION.sql" \
+            "$PGTAP_TEMP/pgtap.sql"
+          docker cp "$PGTAP_TEMP/pgtap.control" \
+            "cladora-service-http-postgres:$TARGET_PG_SHARE/extension/pgtap.control"
+          docker cp "$PGTAP_TEMP/pgtap.sql" \
+            "cladora-service-http-postgres:$TARGET_PG_SHARE/extension/pgtap--$PGTAP_VERSION.sql"
+          docker exec cladora-service-http-postgres chmod 0644 \
+            "$TARGET_PG_SHARE/extension/pgtap.control" \
+            "$TARGET_PG_SHARE/extension/pgtap--$PGTAP_VERSION.sql"
           STATUS_JSON=$(supabase status -o json)
           ANON_KEY=$(echo "$STATUS_JSON" | jq -r '.ANON_KEY // empty')
           SERVICE_ROLE_KEY=$(echo "$STATUS_JSON" | jq -r '.SERVICE_ROLE_KEY // empty')
@@ -380,8 +521,9 @@ jobs:
           timeout 240s npm run test:service-subject-link:http:postgres
         env:
           SERVICE_SUBJECT_LINK_HTTP_EPHEMERAL: "1"
+          SERVICE_SUBJECT_LINK_LOCAL_STEP_SU_02_AND_S4: "1"
           SERVICE_SUBJECT_LINK_HTTP_REAL_AAL2_REQUIRED: "1"
-          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:55432/postgres
           SERVICE_SUBJECT_LINK_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres

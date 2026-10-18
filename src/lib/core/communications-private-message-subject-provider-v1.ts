@@ -134,7 +134,7 @@ export async function resolveCommunicationsPrivateMessageSubjectV1(
       decision,denial_reason,message_id::text,message_version::text,workspace_id::text,lifecycle_state,
       participant_current,participant_revoked,
       to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as evaluated_at
-      from communications.resolve_private_message_subject_v1($1,$2,$3,$4,$5)`, [
+      from communications.resolve_private_message_currentness_v2($1,$2,$3,$4,$5)`, [
       command.context_id,
       command.workspace_id,
       command.actor_id,

@@ -41,8 +41,9 @@ function load(url) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   });
   const loadedModule = { exports: {} };
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name),
+  new Function('require', 'module', 'exports', compiled.outputText)(name => name === 'server-only'
+    ? {} : name.startsWith('.')
+      ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name),
   loadedModule, loadedModule.exports);
   cache.set(url.href, loadedModule.exports);
   return loadedModule.exports;
@@ -50,6 +51,9 @@ function load(url) {
 
 const { createCorePostgresTransactionHostV1 } = load(new URL(
   '../src/lib/core/postgres-transaction-host-v1.ts', import.meta.url,
+));
+const { createCorePlatformServiceSubjectLinkRoleBoundPoolV1 } = load(new URL(
+  '../src/lib/core/platform-role-bound-pool-v1.ts', import.meta.url,
 ));
 const {
   buildServiceSubjectLinkCoreCommandV1,
@@ -64,6 +68,7 @@ const anonKey = process.env.SERVICE_SUBJECT_LINK_HTTP_ANON_KEY;
 const serviceRoleKey = process.env.SERVICE_SUBJECT_LINK_HTTP_SERVICE_ROLE_KEY;
 const realAal2Required = process.env.SERVICE_SUBJECT_LINK_HTTP_REAL_AAL2_REQUIRED === '1';
 const realAuthAvailable = Boolean(authUrl && anonKey && serviceRoleKey);
+const localStepSu02AndS4 = process.env.SERVICE_SUBJECT_LINK_LOCAL_STEP_SU_02_AND_S4 === '1';
 if (realAal2Required && !realAuthAvailable) {
   throw new Error('Local Supabase Auth URL, anon key and service-role test key are required');
 }
@@ -157,7 +162,27 @@ const primaryAuth = realAuthAvailable ? await createActualAal2Session('primary')
 const secondaryAuth = realAuthAvailable ? await createActualAal2Session('secondary') : syntheticAuth();
 
 const pool = new pg.Pool({ connectionString: target.toString(), max: 20 });
-const host = createCorePostgresTransactionHostV1(pool);
+const hostSqlErrors = [];
+const tracedHostPool = {
+  async connect() {
+    const client = await pool.connect();
+    const wrapped = Object.create(client);
+    wrapped.query = async (text, values) => {
+      try {
+        return await client.query(text, values);
+      } catch (error) {
+        hostSqlErrors.push({
+          code: error?.code ?? 'NO_SQLSTATE', message: error?.message ?? 'query_failed',
+          statement: typeof text === 'string' ? text.trim().slice(0, 120) : 'non_text_query',
+        });
+        throw error;
+      }
+    };
+    wrapped.release = error => client.release(error);
+    return wrapped;
+  },
+};
+const host = createCorePostgresTransactionHostV1(tracedHostPool);
 const id = () => randomUUID();
 const actor = primaryAuth.actor_id;
 const secondaryActor = secondaryAuth.actor_id;
@@ -189,6 +214,10 @@ const bootstrapSql = `
 do $$ begin create role anon nologin; exception when duplicate_object then null; end $$;
 do $$ begin create role authenticated nologin; exception when duplicate_object then null; end $$;
 do $$ begin create role service_role nologin; exception when duplicate_object then null; end $$;
+do $$ begin create role cladora_rpc_owner nologin; exception when duplicate_object then null; end $$;
+do $$ begin create role cladora_ce_guide_runtime login; exception when duplicate_object then null; end $$;
+do $$ begin create role cladora_ce_guide_executor nologin; exception when duplicate_object then null; end $$;
+do $$ begin create role supabase_admin superuser nologin; exception when duplicate_object then null; end $$;
 create schema auth;
 create schema platform;
 create schema identity;
@@ -292,7 +321,7 @@ create table service_catalog.offerings(
   provider_party_id uuid not null
 );
 create table communications.private_conversations(
-  id uuid primary key,tenant_id uuid not null,unit_id uuid not null,
+  id uuid primary key,tenant_id uuid not null,workspace_id uuid not null,unit_id uuid not null,
   created_by uuid not null,client_request_id uuid not null,created_at timestamptz default statement_timestamp()
 );
 create table communications.private_participants(
@@ -303,6 +332,18 @@ create table communications.private_messages(
   id uuid primary key,conversation_id uuid not null,sender_id uuid not null,
   client_request_id uuid not null,body text not null,sent_at timestamptz default statement_timestamp()
 );
+create table communications.private_message_documents(
+  id uuid primary key,conversation_id uuid not null,message_id uuid not null,
+  document_id uuid not null,version_id uuid not null,attached_by uuid not null,
+  created_at timestamptz default statement_timestamp()
+);
+alter table communications.private_conversations enable row level security;
+alter table communications.private_participants enable row level security;
+alter table communications.private_messages enable row level security;
+alter table communications.private_message_documents enable row level security;
+grant all privileges on table communications.private_conversations,
+  communications.private_participants,communications.private_messages,
+  communications.private_message_documents to service_role;
 create table maintenance.vendors(
   id uuid primary key,tenant_id uuid not null,party_id uuid not null,status text not null
 );
@@ -325,6 +366,14 @@ create table platform.outbox_events(
   aggregate_type text not null,aggregate_id uuid not null,aggregate_version bigint not null,
   event_type text not null,payload jsonb not null,trace_id uuid
 );
+
+create function app_private.acquire_core_platform_role_safety_mutation_lock_v1()
+returns boolean language plpgsql volatile security invoker set search_path=pg_catalog as $$
+begin
+  perform pg_advisory_xact_lock(hashtextextended('core-platform-role-bound-pool.v1',0));
+  return true;
+end
+$$;
 
 create function app_private.resolve_workspace_native_context_v2(p_context uuid,p_workspace uuid)
 returns table(tenant_id uuid,membership_id uuid) language sql stable security definer set search_path=pg_catalog as $$
@@ -440,8 +489,121 @@ try {
     '20261013120000_communications_private_message_subject_provider_v1.sql',
     '20261013150000_communications_private_message_request_audience_gate_v1.sql',
     '20261013170242_service_request_subject_link_v1.sql',
+    '20261018153000_communications_private_message_currentness_gate_v2.sql',
+    '20261018160000_service_request_message_link_finalizer_v2.sql',
+    '20261018163000_service_subject_link_role_bound_pool_privileged_v1.sql',
   ]) {
     await pool.query(readFileSync(new URL(`../supabase/migrations/${migration}`, import.meta.url), 'utf8'));
+  }
+  if (localStepSu02AndS4) {
+    const operator = await pool.connect();
+    try {
+      const before = (await operator.query(`select count(*)::integer edge_count,
+        (select count(*)::integer
+          from app_private.service_subject_link_step_su_02_receipt_v1) receipt_count
+        from pg_auth_members membership
+        join pg_roles granted on granted.oid=membership.roleid
+        join pg_roles member on member.oid=membership.member
+        where granted.rolname in ('cladora_service_subject_link_runtime',
+            'cladora_service_subject_link_executor','cladora_service_subject_link_owner')
+          or member.rolname in ('cladora_service_subject_link_runtime',
+            'cladora_service_subject_link_executor','cladora_service_subject_link_owner')`)).rows[0];
+      assert.deepEqual(before, { edge_count: 1, receipt_count: 0 });
+      await operator.query('set session authorization supabase_admin');
+      let finalized;
+      try {
+        finalized = (await operator.query(
+          'select app_private.finalize_service_subject_link_role_membership_v1() finalized',
+        )).rows[0]?.finalized;
+      } finally {
+        await operator.query('reset session authorization');
+      }
+      assert.equal(finalized, true);
+      const after = (await operator.query(`select count(*)::integer edge_count,
+        bool_and(granted.rolname='cladora_service_subject_link_executor'
+          and member.rolname='cladora_service_subject_link_runtime'
+          and not membership.admin_option and not membership.inherit_option
+          and membership.set_option) exact_edge,
+        (select count(*)::integer
+          from app_private.service_subject_link_step_su_02_receipt_v1
+          where receipt_key='STEP-SU-02'
+            and finalized_by='supabase_admin'
+            and finalized_at<=clock_timestamp()
+            and role_graph_fingerprint=
+              'executor>runtime|admin=false|inherit=false|set=true') receipt_count
+        from pg_auth_members membership
+        join pg_roles granted on granted.oid=membership.roleid
+        join pg_roles member on member.oid=membership.member
+        where granted.rolname in ('cladora_service_subject_link_runtime',
+            'cladora_service_subject_link_executor','cladora_service_subject_link_owner')
+          or member.rolname in ('cladora_service_subject_link_runtime',
+            'cladora_service_subject_link_executor','cladora_service_subject_link_owner')`)).rows[0];
+      assert.deepEqual(after, { edge_count: 1, exact_edge: true, receipt_count: 1 });
+
+      await operator.query(readFileSync(new URL(
+        '../supabase/migrations/20261018170000_communications_service_role_acl_shutdown_v1.sql',
+        import.meta.url,
+      ), 'utf8'));
+      const s4 = (await operator.query(`with targets(relation_name) as (values
+          ('communications.private_conversations'::text),
+          ('communications.private_participants'),
+          ('communications.private_messages'),
+          ('communications.private_message_documents')
+        ), effective_leaks as (
+          select relation_name,privilege_name from targets
+          cross join unnest(array['SELECT','INSERT','UPDATE','DELETE',
+            'TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) privilege_name
+          where has_table_privilege('service_role',relation_name,privilege_name)
+          union all
+          select relation_name,privilege_name from targets
+          cross join unnest(array['SELECT','INSERT','UPDATE','REFERENCES']) privilege_name
+          where has_any_column_privilege('service_role',relation_name,privilege_name)
+        )
+        select
+          (select count(*)::integer from effective_leaks) effective_leaks,
+          (select count(*)::integer from pg_class relation
+            join pg_namespace namespace on namespace.oid=relation.relnamespace
+            where namespace.nspname='communications'
+              and relation.relname in ('private_conversations','private_participants',
+                'private_messages','private_message_documents')
+              and relation.relrowsecurity) rls_tables,
+          (select count(*)::integer from (values
+              ('communications.private_conversations'::regclass),
+              ('communications.private_participants'::regclass),
+              ('communications.private_messages'::regclass)
+            ) target(relation_oid)
+            where has_table_privilege('cladora_service_subject_link_owner',
+              target.relation_oid,'SELECT')) package_owner_reads`)).rows[0];
+      assert.deepEqual(s4, { effective_leaks: 0, rls_tables: 4, package_owner_reads: 3 });
+      await operator.query('create schema if not exists extensions');
+      await operator.query('create extension if not exists pgtap with schema extensions');
+      await operator.query('set search_path=public,extensions');
+      const tapResults = await operator.query(readFileSync(new URL(
+        '../supabase/tests/198_communications_service_role_acl_shutdown.test.sql',
+        import.meta.url,
+      ), 'utf8'));
+      const tapLines = (Array.isArray(tapResults) ? tapResults : [tapResults])
+        .flatMap(result => result.rows ?? [])
+        .flatMap(row => Object.values(row))
+        .filter(value => typeof value === 'string');
+      assert.equal(tapLines.filter(line => /^ok [1-7] - /.test(line)).length, 7);
+      assert.equal(tapLines.some(line => /^not ok /.test(line)), false);
+      assert.ok(tapLines.includes('1..7'));
+      console.log(JSON.stringify({
+        step_su_02: 'EXECUTED_LOCAL_DISPOSABLE_ONLY',
+        before_edge_count: before.edge_count,
+        before_receipt_count: before.receipt_count,
+        after_edge_count: after.edge_count,
+        exact_set_only_edge: after.exact_edge,
+        step_su_02_receipt_count: after.receipt_count,
+        s4_effective_leaks: s4.effective_leaks,
+        s4_rls_tables: s4.rls_tables,
+        s4_package_owner_reads: s4.package_owner_reads,
+        pgtap_198: '7/7 PASS',
+      }));
+    } finally {
+      operator.release();
+    }
   }
   const subjectLinkPermission = (await pool.query(
     "select id::text from identity.permissions where code='services.orders.subject_link'",
@@ -538,8 +700,9 @@ try {
       serviceRoleId, communicationsRoleId, propertyId, buildingId, unitId,
     ]);
     await fixture.query(`insert into communications.private_conversations(
-      id,tenant_id,unit_id,created_by,client_request_id
-    ) values($1,$2,$3,$4,gen_random_uuid())`, [conversationId, tenantId, unitId, actorMembership]);
+      id,tenant_id,workspace_id,unit_id,created_by,client_request_id
+    ) values($1,$2,$3,$4,$5,gen_random_uuid())`,
+    [conversationId, tenantId, workspaceId, unitId, actorMembership]);
     await fixture.query(`insert into communications.private_participants(conversation_id,membership_id)
       values($1,$2),($1,$3)`, [conversationId, actorMembership, recipientMembership]);
     await fixture.query('commit');
@@ -702,7 +865,7 @@ try {
     const before = await effects(requestId);
     const counts = { authorityCalls, providerCalls, mutationCalls };
     const replay = await host.execute(committedCommand, providers());
-    assert.equal(replay.status, 'exact_replay');
+    assert.equal(replay.status, 'exact_replay', JSON.stringify({ replay, hostSqlErrors }));
     assert.deepEqual(replay.receipt, committed.receipt);
     assert.ok(authorityCalls > counts.authorityCalls);
     assert.equal(providerCalls, counts.providerCalls);
@@ -802,12 +965,41 @@ try {
       has_table_privilege('authenticated','service_catalog.request_subject_links','select') as authenticated_table,
       has_table_privilege('service_role','service_catalog.request_subject_links','select') as service_table,
       has_function_privilege('public','communications.resolve_private_message_request_audience_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as public_audience_gate,
-      has_function_privilege('authenticated','app_private.insert_service_request_message_link_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as authenticated_mutation,
-      has_function_privilege('service_role','app_private.insert_service_request_message_link_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as service_mutation`);
+      has_function_privilege('authenticated','app_private.execute_service_request_message_link_v2(text,uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as authenticated_mutation,
+      has_function_privilege('service_role','app_private.execute_service_request_message_link_v2(text,uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as service_mutation`);
     assert.deepEqual(acl.rows[0], {
       public_table: false, authenticated_table: false, service_table: false,
       public_audience_gate: false, authenticated_mutation: false, service_mutation: false,
     });
+  });
+
+  await check('active SERVICE lease blocks the global catalog mutation protocol', async () => {
+    const leaseClient = await pool.connect();
+    const mutatorClient = await pool.connect();
+    try {
+      await leaseClient.query('begin');
+      await leaseClient.query('set session authorization cladora_service_subject_link_runtime');
+      await leaseClient.query('set role cladora_service_subject_link_executor');
+      assert.equal((await leaseClient.query(
+        'select app_private.acquire_service_subject_link_role_safety_lease_v1() safe',
+      )).rows[0].safe, true);
+
+      await mutatorClient.query('begin');
+      await mutatorClient.query("set local lock_timeout='250ms'");
+      await assert.rejects(
+        mutatorClient.query('select app_private.acquire_core_platform_role_safety_mutation_lock_v1()'),
+        error => error?.code === '55P03',
+      );
+      await mutatorClient.query('rollback');
+      await leaseClient.query('rollback');
+    } finally {
+      await mutatorClient.query('rollback').catch(() => undefined);
+      await leaseClient.query('rollback').catch(() => undefined);
+      await leaseClient.query('reset role').catch(() => undefined);
+      await leaseClient.query('reset session authorization').catch(() => undefined);
+      leaseClient.release();
+      mutatorClient.release();
+    }
   });
 
   const sessionNonce = {
@@ -848,12 +1040,26 @@ try {
     };
   };
 
-  const httpPool = new pg.Pool({ connectionString: target.toString(), max: 1 });
+  const httpPhysicalPool = new pg.Pool({ connectionString: target.toString(), max: 1 });
+  const httpRuntimePool = {
+    async connect() {
+      const client = await httpPhysicalPool.connect();
+      const identity = await client.query('select session_user::text as session_user');
+      if (identity.rows[0]?.session_user === 'postgres') {
+        await client.query('set session authorization cladora_service_subject_link_runtime');
+      }
+      return client;
+    },
+  };
+  const httpPool = createCorePlatformServiceSubjectLinkRoleBoundPoolV1({
+    runtime_pool: httpRuntimePool,
+    connection_model: 'direct',
+  });
   await check('HTTP adapter reads canonical authority revision with bound identity', async () => {
     assert.equal(await readServiceSubjectLinkAuthorityVersionV1(httpPool, {
       source: 'supabase_verified_session', actor_id: actor, assurance_level: 'aal2',
       expires_at: Math.floor(Date.now() / 1000) + 300,
-    }), 1);
+    }, { context_id: contextId, workspace_id: workspaceId }), 1);
   });
   let activeHttpPool = httpPool;
   const server = createServer(async (incoming, outgoing) => {
@@ -870,7 +1076,7 @@ try {
       const match = /^\/isolated\/service-requests\/([0-9a-f-]+)\/subject-links$/.exec(path);
       const response = match
         ? await handleServiceSubjectLinkHttpV1(request, match[1], {
-          pool: activeHttpPool, authenticate,
+          role_bound_pool: activeHttpPool, authenticate,
         })
         : new Response(JSON.stringify({ outcome: 'denied', code: 'NOT_FOUND' }), { status: 404 });
       outgoing.writeHead(response.status, Object.fromEntries(response.headers));
@@ -963,41 +1169,71 @@ try {
       }
     });
 
-    await check('poisoned pooled role and JWT claims cannot leak across HTTP requests', async () => {
+    await check('inactive, expired and unpublished SERVICE module metadata fail closed with zero writes', async () => {
+      const invalidStates = [
+        { name: 'inactive', sql: 'is_active=false' },
+        { name: 'expired', sql: "valid_to=statement_timestamp()-interval '1 second'" },
+        { name: 'unpublished', sql: "lifecycle_status='draft'" },
+      ];
+      for (const state of invalidStates) {
+        const deniedRequest = await createRequest();
+        const deniedMessage = await createMessage();
+        const before = await effects(deniedRequest);
+        await pool.query(`update platform.module_definitions set ${state.sql} where id=$1`,
+          [serviceModuleId]);
+        try {
+          const denied = await send(httpIntent(deniedRequest, deniedMessage));
+          assert.equal(denied.response.status, 503, `${state.name}: ${JSON.stringify(denied.body)}`);
+          assert.deepEqual(denied.body, { outcome: 'denied', code: 'AUTHORITY_UNAVAILABLE' });
+          assert.deepEqual(await effects(deniedRequest), before);
+        } finally {
+          await pool.query(`update platform.module_definitions set is_active=true,
+            lifecycle_status='published',valid_to=null where id=$1`, [serviceModuleId]);
+        }
+      }
+    });
+
+    await check('Core binder scrubs poisoned pooled role and all six GUCs before reuse', async () => {
       const leakRequest = await createRequest();
       const leakMessage = await createMessage();
       const intent = httpIntent(leakRequest, leakMessage);
       const before = await effects(leakRequest);
-      const poisoned = await httpPool.connect();
+      const poisoned = await httpPhysicalPool.connect();
       const poisonedPid = (await poisoned.query('select pg_backend_pid()::int as pid')).rows[0].pid;
-      await poisoned.query('set role authenticated');
+      await poisoned.query('set role cladora_service_subject_link_executor');
       await poisoned.query(`select
         set_config('request.jwt.claims',$1,false),
         set_config('request.jwt.claim.sub',$2,false),
         set_config('request.jwt.claim.aal',$3,false),
-        set_config('request.jwt.claim.role',$4,false)`, [
+        set_config('request.jwt.claim.role',$4,false),
+        set_config('request.cladora.context_id',$5,false),
+        set_config('request.cladora.workspace_id',$6,false)`, [
         JSON.stringify({ sub: secondaryActor, aal: 'aal1', role: 'poisoned' }),
-        secondaryActor, 'aal1', 'poisoned',
+        secondaryActor, 'aal1', 'poisoned', otherWorkspaceId, otherWorkspaceId,
       ]);
       poisoned.release();
       const secondary = await send(intent, sessionNonce.secondaryAal2);
-      assert.equal(secondary.response.status, 503);
-      assert.deepEqual(secondary.body, { outcome: 'denied', code: 'TRANSACTION_FAILED' });
+      assert.equal(secondary.response.status, 403);
+      assert.deepEqual(secondary.body, { outcome: 'denied', code: 'SUBJECT_LINK_DENIED' });
       assert.deepEqual(await effects(leakRequest), before);
 
-      const scrubbed = await httpPool.connect();
+      const scrubbed = await httpPhysicalPool.connect();
       const state = (await scrubbed.query(`select
         pg_backend_pid()::int as pid,current_user as sql_role,
         current_setting('request.jwt.claims',true) as claims,
         current_setting('request.jwt.claim.sub',true) as subject,
         current_setting('request.jwt.claim.aal',true) as assurance,
-        current_setting('request.jwt.claim.role',true) as role`)).rows[0];
+        current_setting('request.jwt.claim.role',true) as role,
+        current_setting('request.cladora.context_id',true) as context,
+        current_setting('request.cladora.workspace_id',true) as workspace`)).rows[0];
       scrubbed.release();
       assert.equal(state.pid, poisonedPid, 'denial must return the same backend to the pool cleanly');
       assert.deepEqual({
         sql_role: state.sql_role, claims: state.claims ?? '', subject: state.subject ?? '',
         assurance: state.assurance ?? '', role: state.role ?? '',
-      }, { sql_role: 'postgres', claims: '', subject: '', assurance: '', role: '' });
+        context: state.context ?? '', workspace: state.workspace ?? '',
+      }, { sql_role: 'cladora_service_subject_link_runtime', claims: '', subject: '',
+        assurance: '', role: '', context: '', workspace: '' });
 
       const primary = await send(intent, sessionNonce.primaryAal2);
       assert.equal(primary.response.status, 200);
@@ -1024,7 +1260,7 @@ try {
         );
         insert into app_private.test_http_serialization_barrier values(true,1);
         create function app_private.test_http_serialization_conflict_v1()
-        returns trigger language plpgsql set search_path=pg_catalog as $$ begin
+        returns trigger language plpgsql security definer set search_path=pg_catalog as $$ begin
           if new.id='${retryRequest}'::uuid then
             perform b.revision from app_private.test_http_serialization_barrier b
               where b.singleton=true;
@@ -1085,6 +1321,8 @@ try {
       let acknowledgementLost = false;
       let lostBackendPid = null;
       activeHttpPool = {
+        contract_version: 'core-platform-service-subject-link-role-bound-pool.v1',
+        connection_model: 'direct',
         async connect() {
           const client = await httpPool.connect();
           lostBackendPid = (await client.query('select pg_backend_pid()::int as pid')).rows[0].pid;
@@ -1126,7 +1364,8 @@ try {
         sql_role: cleanState.sql_role, claims: cleanState.claims ?? '',
         subject: cleanState.subject ?? '', assurance: cleanState.assurance ?? '',
         role: cleanState.role ?? '',
-      }, { sql_role: 'postgres', claims: '', subject: '', assurance: '', role: '' });
+      }, { sql_role: 'cladora_service_subject_link_executor', claims: '',
+        subject: '', assurance: '', role: '' });
       assert.notEqual(cleanState.pid, lostBackendPid,
         'uncertain COMMIT connection must be destroyed instead of recycled');
       const recovered = await send(intent);
@@ -1163,7 +1402,7 @@ try {
   } finally {
     activeHttpPool = httpPool;
     await new Promise(resolve => server.close(resolve));
-    await httpPool.end();
+    await httpPhysicalPool.end();
   }
 
   console.log(`SERVICE subject link HTTP through verified local Auth and Core TX host: ${passed}/${passed} PASS`);

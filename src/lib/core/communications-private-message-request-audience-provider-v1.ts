@@ -122,7 +122,9 @@ export async function resolveCommunicationsPrivateMessageRequestAudienceV1(
   const result = await scope.query<AudienceRow>(`select
       decision,denial_reason,current_actor_can_read,request_party_audience_only,
       to_char(evaluated_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') as evaluated_at
-    from communications.resolve_private_message_request_audience_v1($1,$2,$3,$4,$5,$6,$7)`, [
+    from communications.resolve_private_message_request_audience_current_v2(
+      $1,$2,$3,$4,$5,$6,$7
+    )`, [
     command.context_id,
     command.workspace_id,
     command.actor_id,

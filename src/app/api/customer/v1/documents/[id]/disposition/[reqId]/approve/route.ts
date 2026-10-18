@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { HEADERS, mapDocumentsRpcError } from "@/lib/customer/documents-api-helper";
+import { HEADERS } from "@/lib/customer/documents-api-helper";
 import { approveDispositionSchema } from "@/lib/customer/documents-schema";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
@@ -22,7 +21,7 @@ export async function POST(
     );
   }
 
-  const { reqId } = await context.params;
+  await context.params;
   const { data: bodyJson, errorResponse } = await parseJsonWithLimit<unknown>(request, 16 * 1024);
   if (errorResponse || !bodyJson) {
     return errorResponse ?? NextResponse.json(
@@ -39,27 +38,10 @@ export async function POST(
     );
   }
 
-  const supabase = await createClient();
-  const { data: claims, error: authError } = await supabase.auth.getClaims();
-  if (authError || !claims?.claims?.sub) {
-    return NextResponse.json(
-      { error: { code: "UNAUTHORIZED", message: "Authentication required." } },
-      { status: 401, headers: HEADERS }
-    );
-  }
-
-  const p = parsed.data;
-  const { data, error } = await (supabase.schema("customer_api") as any).rpc("approve_document_disposition_v1", {
-    p_context_id: p.context_id,
-    p_request_id: reqId,
-    p_decision: p.decision,
-    p_rejection_reason: p.rejection_reason ?? null,
-  });
-
-  if (error) {
-    const { status, body } = mapDocumentsRpcError(error);
-    return NextResponse.json(body, { status, headers: HEADERS });
-  }
-
-  return NextResponse.json(data, { headers: HEADERS });
+  void parsed;
+  return NextResponse.json(
+    { error: { code: "CANONICAL_DOCUMENT_RETENTION_PREFLIGHT_UNAVAILABLE",
+      message: "Canonical document retention preflight is not active." } },
+    { status: 503, headers: HEADERS }
+  );
 }

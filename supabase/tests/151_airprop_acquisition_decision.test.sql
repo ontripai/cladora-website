@@ -163,8 +163,8 @@ select lives_ok($$select customer_api.create_airprop_underwriting_v2('15100000-0
 select lives_ok($$insert into diligence_test_response select customer_api.create_airprop_diligence_draft_v1('15100000-0000-0000-0000-000010000010','15100000-0000-0000-0000-000000000100',(select id from airprop.investment_opportunities where workspace_id='15100000-0000-0000-0000-000000000100'),1,'diligence_draft_151')$$,'create exact-version draft through gateway');
 
 -- Canonical Vault verification and trusted scanner attestation; no forged clean client flags.
-insert into documents.documents(id,tenant_id,property_id,title,document_type,classification,created_by)
-values('15100000-0000-0000-0000-000000000701','15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000001000','Synthetic diligence evidence','legal','internal','15100000-0000-0000-0000-000000000020');
+insert into documents.documents(id,tenant_id,workspace_id,property_id,title,document_type,classification,created_by)
+values('15100000-0000-0000-0000-000000000701','15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000000001000','Synthetic diligence evidence','legal','internal','15100000-0000-0000-0000-000000000020');
 insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,mime_type,size_bytes,uploaded_by,created_at)
 values('15100000-0000-0000-0000-000000000702','15100000-0000-0000-0000-000000000001','15100000-0000-0000-0000-000000000701',1,'synthetic/diligence-151.txt',repeat('a',64),'text/plain',20,'15100000-0000-0000-0000-000000000020',now()-interval '1 minute');
 insert into storage.objects(bucket_id,name)values('document-vault','synthetic/diligence-151.txt');
@@ -317,9 +317,9 @@ values('15100000-0000-0000-0000-000000000811','15100000-0000-0000-0000-000000000
 insert into portfolio.ownerships(id,tenant_id,unit_id,party_id,share,valid_from)
 values('15100000-0000-0000-0000-000000000812','15100000-0000-0000-0000-000000000001',
  '15100000-0000-0000-0000-000000100001','15100000-0000-0000-0000-000000000811',1,current_date-30);
-insert into documents.documents(id,tenant_id,property_id,title,document_type,classification,created_by)
+insert into documents.documents(id,tenant_id,workspace_id,property_id,title,document_type,classification,created_by)
 values('15100000-0000-0000-0000-000000000813','15100000-0000-0000-0000-000000000001',
- '15100000-0000-0000-0000-000000001000','Synthetic signed deed','legal','restricted',
+ '15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000000001000','Synthetic signed deed','legal','restricted',
  '15100000-0000-0000-0000-000000000020');
 insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,
  mime_type,size_bytes,uploaded_by,created_at)
@@ -427,9 +427,9 @@ select is((select count(*) from documents.document_permissions where document_id
 -- account, role, private-document or settlement authority.
 insert into portfolio.parties(id,tenant_id,type,legal_name)
 values('15100000-0000-0000-0000-000000000821','15100000-0000-0000-0000-000000000001','person','Synthetic lease tenant');
-insert into documents.documents(id,tenant_id,property_id,title,document_type,classification,created_by)
+insert into documents.documents(id,tenant_id,workspace_id,property_id,title,document_type,classification,created_by)
 values('15100000-0000-0000-0000-000000000822','15100000-0000-0000-0000-000000000001',
- '15100000-0000-0000-0000-000000001000','Synthetic signed lease','legal','restricted',
+ '15100000-0000-0000-0000-000000000100','15100000-0000-0000-0000-000000001000','Synthetic signed lease','legal','restricted',
  '15100000-0000-0000-0000-000000000020');
 insert into documents.document_versions(id,tenant_id,document_id,version,object_path,sha256,
  mime_type,size_bytes,uploaded_by,created_at)

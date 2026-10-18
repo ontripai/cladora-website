@@ -79,10 +79,30 @@ try {
     (id,tenant_id,customer_workspace_id,property_id,status,binding_source) values
     ($1,$3,$4,$6,'active','migration_verified'),($2,$3,$5,$7,'active','migration_verified')`,
   [ids.bindingA, ids.bindingB, ids.tenant, ids.workspaceA, ids.workspaceB, ids.propertyA, ids.propertyB]);
-  await pool.query(`insert into communications.private_conversations
-    (id,tenant_id,unit_id,created_by,client_request_id) values
-    ($1,$3,$4,$6,$7),($2,$3,$5,$6,$8)`, [ids.conversationA, ids.conversationB,
-    ids.tenant, ids.unitA, ids.unitB, ids.membershipA, ids.requestA, ids.requestB]);
+  await pool.query(`with writer_marker as (
+      select set_config('communications.private_conversation_workspace_writer_v1',
+        jsonb_build_object(
+          'contract_version','communications-private-conversation-workspace.v1',
+          'workspace_id',$3::text,'tenant_id',$2::text,'unit_id',$4::text,
+          'actor_membership_id',$5::text,'client_request_id',$6::text
+        )::text,true)
+    )
+    insert into communications.private_conversations
+      (id,tenant_id,workspace_id,unit_id,created_by,client_request_id)
+    select $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid from writer_marker`, [ids.conversationA, ids.tenant,
+    ids.workspaceA, ids.unitA, ids.membershipA, ids.requestA]);
+  await pool.query(`with writer_marker as (
+      select set_config('communications.private_conversation_workspace_writer_v1',
+        jsonb_build_object(
+          'contract_version','communications-private-conversation-workspace.v1',
+          'workspace_id',$3::text,'tenant_id',$2::text,'unit_id',$4::text,
+          'actor_membership_id',$5::text,'client_request_id',$6::text
+        )::text,true)
+    )
+    insert into communications.private_conversations
+      (id,tenant_id,workspace_id,unit_id,created_by,client_request_id)
+    select $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid from writer_marker`, [ids.conversationB, ids.tenant,
+    ids.workspaceB, ids.unitB, ids.membershipA, ids.requestB]);
   await pool.query(`insert into communications.private_participants(conversation_id,membership_id) values
     ($1,$2),($1,$3)`, [ids.conversationA, ids.membershipA, ids.membershipB]);
   await pool.query(`insert into communications.private_messages

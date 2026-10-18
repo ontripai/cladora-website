@@ -155,12 +155,13 @@ await check('provider object is directly consumable by CoreTransactionProvidersV
 
 await check('SQL resolver requires canonical Workspace permission and exact scoped assignment without role fallback', async () => {
   const sql = readFileSync(new URL(
-    '../supabase/migrations/20261013120000_communications_private_message_subject_provider_v1.sql',
+    '../supabase/migrations/20261018153000_communications_private_message_currentness_gate_v2.sql',
     import.meta.url,
   ), 'utf8');
-  assert.match(sql, /native_workspace_scope_for_membership_v2/);
+  assert.match(sql, /c\.workspace_id is not null/);
+  assert.match(sql, /c\.workspace_id=p_workspace_id/);
   assert.match(sql, /check_workspace_native_permission_v2\([\s\S]*'communications\.feed\.read','communications'/);
-  assert.match(sql, /workspace_member_role_authority_active_v1\([\s\S]*'unit',v_conversation\.unit_id/);
+  assert.doesNotMatch(sql, /workspace_property_bindings|native_workspace_scope_for_membership_v2/);
   assert.doesNotMatch(sql, /communications\.can_read_private\(/);
   assert.doesNotMatch(sql, /communications\.context_covers_unit\(/);
   assert.doesNotMatch(sql, /lower\(r\.code\)\s+in\s*\('association_admin'/);
@@ -171,7 +172,8 @@ await check('resolver query is one read-only statement with exact bindings', asy
   await resolveCommunicationsPrivateMessageSubjectV1(scope, command(), authority());
   assert.equal(calls.length, 1);
   assert.match(calls[0].text, /^select\s/i);
-  assert.match(calls[0].text, /resolve_private_message_subject_v1/);
+  assert.match(calls[0].text, /resolve_private_message_currentness_v2/);
+  assert.doesNotMatch(calls[0].text, /resolve_private_message_subject_v1/);
   assert.deepEqual(calls[0].values, [id(11), workspaceId, actorId, messageId, 3]);
 });
 

@@ -59,6 +59,7 @@ const host = createCorePostgresTransactionHostV1(pool);
 const id = () => randomUUID();
 const actor = id();
 const recipientUser = id();
+const outsiderUser = id();
 const tenantId = id();
 const workspaceId = id();
 const otherWorkspaceId = id();
@@ -67,25 +68,49 @@ const buildingId = id();
 const unitId = id();
 const actorMembership = id();
 const recipientMembership = id();
+const outsiderMembership = id();
 const contextId = id();
 const beneficiaryParty = id();
 const providerParty = id();
 const unrelatedParty = id();
+const outsiderParty = id();
 const conversationId = id();
 const offeringId = id();
 const publishedRevisionId = id();
 let passed = 0;
+let currentAuthorityVersion = 1;
 const check = async (name, run) => {
   activeCheck = name;
   await run();
   passed += 1;
   console.log(`ok ${passed} - ${name}`);
 };
+const deferred = () => {
+  let resolve;
+  let reject;
+  const promise = new Promise((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, resolve, reject };
+};
+const waitForLockWait = async pid => {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
+    const state = await pool.query(`select wait_event_type,wait_event
+      from pg_stat_activity where pid=$1`, [pid]);
+    if (state.rows[0]?.wait_event_type === 'Lock') return state.rows[0].wait_event;
+    await new Promise(resolve => setTimeout(resolve, 20));
+  }
+  throw new Error(`backend_${pid}_did_not_wait_on_lock`);
+};
 
 const bootstrapSql = `
 do $$ begin create role anon nologin; exception when duplicate_object then null; end $$;
 do $$ begin create role authenticated nologin; exception when duplicate_object then null; end $$;
 do $$ begin create role service_role nologin; exception when duplicate_object then null; end $$;
+do $$ begin create role cladora_rpc_owner nologin; exception when duplicate_object then null; end $$;
+do $$ begin create role cladora_ce_guide_runtime login; exception when duplicate_object then null; end $$;
+do $$ begin create role cladora_ce_guide_executor nologin; exception when duplicate_object then null; end $$;
 create schema auth;
 create schema platform;
 create schema identity;
@@ -169,6 +194,7 @@ create table platform.workspace_member_roles(
   property_id uuid,building_id uuid,unit_id uuid,valid_from timestamptz not null,valid_to timestamptz
 );
 create table platform.workspace_property_bindings(
+  id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null,customer_workspace_id uuid not null,property_id uuid not null,
   status text not null,valid_from timestamptz not null,valid_to timestamptz
 );
@@ -176,6 +202,16 @@ create table app_private.canonical_authority_revision_v1(
   singleton boolean primary key default true,revision bigint not null
 );
 insert into app_private.canonical_authority_revision_v1(singleton,revision) values(true,1);
+create function app_private.test_bump_canonical_authority_revision_v1()
+returns trigger language plpgsql security definer set search_path=pg_catalog as $$
+begin
+  update app_private.canonical_authority_revision_v1
+    set revision=revision+1 where singleton;
+  return null;
+end $$;
+create trigger canonical_authority_revision_changed
+after insert or update or delete on identity.memberships
+for each statement execute function app_private.test_bump_canonical_authority_revision_v1();
 
 create table service_catalog.requests(
   id uuid primary key,tenant_id uuid not null,workspace_id uuid not null,
@@ -189,11 +225,13 @@ create table service_catalog.offerings(
   provider_party_id uuid not null
 );
 create table communications.private_conversations(
-  id uuid primary key,tenant_id uuid not null,unit_id uuid not null,
+  id uuid primary key,tenant_id uuid not null,workspace_id uuid not null,unit_id uuid not null,
   created_by uuid not null,client_request_id uuid not null,created_at timestamptz default statement_timestamp()
 );
 create table communications.private_participants(
-  conversation_id uuid not null,membership_id uuid not null,joined_at timestamptz default statement_timestamp(),
+  conversation_id uuid not null references communications.private_conversations(id) on delete restrict,
+  membership_id uuid not null references identity.memberships(id) on delete restrict,
+  joined_at timestamptz default statement_timestamp(),
   revoked_at timestamptz,primary key(conversation_id,membership_id)
 );
 create table communications.private_messages(
@@ -204,7 +242,8 @@ create table maintenance.vendors(
   id uuid primary key,tenant_id uuid not null,party_id uuid not null,status text not null
 );
 create table maintenance.vendor_portal_memberships(
-  membership_id uuid not null,tenant_id uuid not null,vendor_id uuid not null,
+  id uuid primary key default gen_random_uuid(),membership_id uuid not null,
+  tenant_id uuid not null,vendor_id uuid not null,
   status text not null,accepted_at timestamptz,revoked_at timestamptz
 );
 
@@ -222,6 +261,9 @@ create table platform.outbox_events(
   aggregate_type text not null,aggregate_id uuid not null,aggregate_version bigint not null,
   event_type text not null,payload jsonb not null,trace_id uuid
 );
+
+create function app_private.acquire_core_platform_role_safety_mutation_lock_v1()
+returns boolean language sql as $$select true$$;
 
 create function app_private.resolve_workspace_native_context_v2(p_context uuid,p_workspace uuid)
 returns table(tenant_id uuid,membership_id uuid) language sql stable security definer set search_path=pg_catalog as $$
@@ -337,6 +379,8 @@ try {
     '20261013120000_communications_private_message_subject_provider_v1.sql',
     '20261013150000_communications_private_message_request_audience_gate_v1.sql',
     '20261013170242_service_request_subject_link_v1.sql',
+    '20261018153000_communications_private_message_currentness_gate_v2.sql',
+    '20261018160000_service_request_message_link_finalizer_v2.sql',
   ]) {
     await pool.query(readFileSync(new URL(`../supabase/migrations/${migration}`, import.meta.url), 'utf8'));
   }
@@ -355,7 +399,8 @@ try {
   try {
     await fixture.query('begin');
     await fixture.query(`insert into auth.users(id,email)
-      values($1,'actor@example.invalid'),($2,'recipient@example.invalid')`, [actor, recipientUser]);
+      values($1,'actor@example.invalid'),($2,'recipient@example.invalid'),
+        ($3,'outsider@example.invalid')`, [actor, recipientUser, outsiderUser]);
     await fixture.query('insert into platform.tenants(id) values($1)', [tenantId]);
     await fixture.query('insert into platform.customer_workspaces(id,tenant_id) values($1,$3),($2,$3)',
       [workspaceId, otherWorkspaceId, tenantId]);
@@ -371,14 +416,17 @@ try {
     [tenantId, workspaceId, propertyId]);
     await fixture.query(`insert into identity.memberships(id,tenant_id,user_id,status,starts_at)
       values($1,$3,$4,'active',statement_timestamp()-interval '1 day'),
-        ($2,$3,$5,'active',statement_timestamp()-interval '1 day')`,
-    [actorMembership, recipientMembership, tenantId, actor, recipientUser]);
+        ($2,$3,$5,'active',statement_timestamp()-interval '1 day'),
+        ($6,$3,$7,'active',statement_timestamp()-interval '1 day')`,
+    [actorMembership, recipientMembership, tenantId, actor, recipientUser,
+      outsiderMembership, outsiderUser]);
     await fixture.query(`insert into identity.context_grants(id,membership_id,tenant_id,starts_at)
       values($1,$2,$3,statement_timestamp()-interval '1 day'),
         (gen_random_uuid(),$4,$3,statement_timestamp()-interval '1 day')`,
     [contextId, actorMembership, tenantId, recipientMembership]);
-    await fixture.query('insert into portfolio.parties(id,tenant_id) values($1,$4),($2,$4),($3,$4)',
-      [beneficiaryParty, providerParty, unrelatedParty, tenantId]);
+    await fixture.query(`insert into portfolio.parties(id,tenant_id)
+      values($1,$5),($2,$5),($3,$5),($4,$5)`,
+    [beneficiaryParty, providerParty, unrelatedParty, outsiderParty, tenantId]);
     await fixture.query(`insert into service_catalog.offerings(
       id,tenant_id,workspace_id,provider_party_id
     ) values($1,$2,$3,$4)`, [offeringId, tenantId, workspaceId, providerParty]);
@@ -434,8 +482,9 @@ try {
       serviceRoleId, communicationsRoleId, propertyId, buildingId, unitId,
     ]);
     await fixture.query(`insert into communications.private_conversations(
-      id,tenant_id,unit_id,created_by,client_request_id
-    ) values($1,$2,$3,$4,gen_random_uuid())`, [conversationId, tenantId, unitId, actorMembership]);
+      id,tenant_id,workspace_id,unit_id,created_by,client_request_id
+    ) values($1,$2,$3,$4,$5,gen_random_uuid())`,
+    [conversationId, tenantId, workspaceId, unitId, actorMembership]);
     await fixture.query(`insert into communications.private_participants(conversation_id,membership_id)
       values($1,$2),($1,$3)`, [conversationId, actorMembership, recipientMembership]);
     await fixture.query('commit');
@@ -445,6 +494,9 @@ try {
   } finally {
     fixture.release();
   }
+  currentAuthorityVersion = Number((await pool.query(
+    'select revision::int from app_private.canonical_authority_revision_v1 where singleton',
+  )).rows[0].revision);
 
   const createRequest = async () => {
     const requestId = id();
@@ -481,7 +533,7 @@ try {
     transaction_id: overrides.transaction_id ?? id(),
     command_id: overrides.command_id ?? id(),
     actor_id: actor,
-    authority_version: overrides.authority_version ?? 1,
+    authority_version: overrides.authority_version ?? currentAuthorityVersion,
   });
   let authorityCalls = 0;
   let providerCalls = 0;
@@ -504,6 +556,29 @@ try {
       async mutate(scope, command) {
         mutationCalls += 1;
         return canonical.mutate(scope, command);
+      },
+    };
+  };
+  const providersPausedBeforeMutation = (entered, release) => {
+    const wrapped = providers();
+    return {
+      ...wrapped,
+      async mutate(scope, command) {
+        entered.resolve();
+        await release.promise;
+        return wrapped.mutate(scope, command);
+      },
+    };
+  };
+  const providersPausedAfterAuthority = (entered, release) => {
+    const wrapped = providers();
+    return {
+      ...wrapped,
+      async resolveAuthority(scope, request) {
+        const authority = await wrapped.resolveAuthority(scope, request);
+        entered.resolve();
+        await release.promise;
+        return authority;
       },
     };
   };
@@ -606,6 +681,19 @@ try {
     assert.deepEqual(await effects(requestId), before);
   });
 
+  await check('exact replay rejects changed participant currentness with zero writes', async () => {
+    const before = await effects(requestId);
+    await pool.query(`update communications.private_participants
+      set revoked_at=clock_timestamp() where conversation_id=$1 and membership_id=$2`,
+    [conversationId, actorMembership]);
+    const replay = await host.execute(committedCommand, providers());
+    assert.deepEqual(replay, { status: 'denied', code: 'REPLAY_CONFLICT' });
+    assert.deepEqual(await effects(requestId), before);
+    await pool.query(`update communications.private_participants
+      set revoked_at=null where conversation_id=$1 and membership_id=$2`,
+    [conversationId, actorMembership]);
+  });
+
   await check('changed replay conflicts before provider and writes nothing', async () => {
     const changed = await commandFor(requestId, messageId, {
       transaction_id: committedCommand.transaction_id,
@@ -682,6 +770,109 @@ try {
     });
   });
 
+  const assertParticipantWriteWaits = async (sql, values) => {
+    const raceRequest = await createRequest();
+    const raceMessage = await createMessage();
+    const entered = deferred();
+    const release = deferred();
+    const command = await commandFor(raceRequest, raceMessage);
+    const transaction = host.execute(command, providersPausedBeforeMutation(entered, release));
+    const blocker = await pool.connect();
+    let blockedQuery;
+    try {
+      await Promise.race([
+        entered.promise,
+        transaction.then(result => {
+          throw new Error(`subject_link_finished_before_mutation_pause:${result.status}`);
+        }),
+      ]);
+      await blocker.query('begin');
+      const pid = (await blocker.query('select pg_backend_pid()::int as pid')).rows[0].pid;
+      blockedQuery = blocker.query(sql, values);
+      const waitEvent = await waitForLockWait(pid);
+      assert.match(waitEvent, /transactionid|tuple/i);
+      release.resolve();
+      assert.equal((await transaction).status, 'committed');
+      await blockedQuery;
+    } finally {
+      release.resolve();
+      await blockedQuery?.catch(() => undefined);
+      await blocker.query('rollback').catch(() => undefined);
+      blocker.release();
+    }
+  };
+
+  await check('participant INSERT waits behind the conversation UPDATE lock', async () => {
+    await assertParticipantWriteWaits(
+      `insert into communications.private_participants(conversation_id,membership_id)
+        values($1,$2)`, [conversationId, outsiderMembership],
+    );
+  });
+
+  await check('participant revoke waits behind the participant SHARE lock', async () => {
+    await assertParticipantWriteWaits(
+      `update communications.private_participants set revoked_at=clock_timestamp()
+        where conversation_id=$1 and membership_id=$2`, [conversationId, recipientMembership],
+    );
+  });
+
+  await check('participant update waits behind the participant SHARE lock', async () => {
+    await assertParticipantWriteWaits(
+      `update communications.private_participants set joined_at=joined_at+interval '1 microsecond'
+        where conversation_id=$1 and membership_id=$2`, [conversationId, recipientMembership],
+    );
+  });
+
+  await check('participant DELETE waits behind the participant SHARE lock', async () => {
+    await assertParticipantWriteWaits(
+      `delete from communications.private_participants
+        where conversation_id=$1 and membership_id=$2`, [conversationId, recipientMembership],
+    );
+  });
+
+  await check('reverse authority-row mutation deadlock aborts one side without partial Core effects', async () => {
+    const deadlockRequest = await createRequest();
+    const deadlockMessage = await createMessage();
+    const before = await effects(deadlockRequest);
+    const entered = deferred();
+    const release = deferred();
+    const transaction = host.execute(
+      await commandFor(deadlockRequest, deadlockMessage),
+      providersPausedAfterAuthority(entered, release),
+    );
+    const writer = await pool.connect();
+    let writerQuery;
+    let writerError;
+    try {
+      await entered.promise;
+      await writer.query('begin');
+      const writerPid = (await writer.query('select pg_backend_pid()::int as pid')).rows[0].pid;
+      writerQuery = writer.query(`update identity.memberships
+        set ends_at=clock_timestamp() where id=$1`, [recipientMembership]);
+      await waitForLockWait(writerPid);
+      release.resolve();
+      await writerQuery.catch(error => { writerError = error; });
+      const result = await transaction;
+      assert.ok(writerError?.code === '40P01'
+        || (result.status === 'denied' && result.code === 'TRANSACTION_FAILED'));
+      if (result.status === 'committed') {
+        assert.equal(writerError?.code, '40P01');
+        assert.deepEqual(await effects(deadlockRequest), {
+          links: before.links + 1, request_version: before.request_version + 1,
+          idempotency: before.idempotency + 1, audit: before.audit + 1, outbox: before.outbox + 1,
+        });
+      } else {
+        assert.deepEqual(result, { status: 'denied', code: 'TRANSACTION_FAILED' });
+        assert.deepEqual(await effects(deadlockRequest), before);
+      }
+    } finally {
+      release.resolve();
+      await writerQuery?.catch(() => undefined);
+      await writer.query('rollback').catch(() => undefined);
+      writer.release();
+    }
+  });
+
   await check('cross-Workspace input fails closed with zero writes', async () => {
     const crossRequest = await createRequest();
     const crossMessage = await createMessage();
@@ -698,8 +889,8 @@ try {
       has_table_privilege('authenticated','service_catalog.request_subject_links','select') as authenticated_table,
       has_table_privilege('service_role','service_catalog.request_subject_links','select') as service_table,
       has_function_privilege('public','communications.resolve_private_message_request_audience_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as public_audience_gate,
-      has_function_privilege('authenticated','app_private.insert_service_request_message_link_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as authenticated_mutation,
-      has_function_privilege('service_role','app_private.insert_service_request_message_link_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as service_mutation`);
+      has_function_privilege('authenticated','app_private.execute_service_request_message_link_v2(text,uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as authenticated_mutation,
+      has_function_privilege('service_role','app_private.execute_service_request_message_link_v2(text,uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as service_mutation`);
     assert.deepEqual(acl.rows[0], {
       public_table: false, authenticated_table: false, service_table: false,
       public_audience_gate: false, authenticated_mutation: false, service_mutation: false,

@@ -3,9 +3,9 @@ create extension if not exists pgtap with schema extensions;
 set search_path=public,extensions;
 select plan(3);
 
-select ok(has_function_privilege('authenticated',
+select ok(not has_function_privilege('authenticated',
   'customer_api.my_private_file_scan_status_v1(uuid,uuid,uuid,uuid)', 'EXECUTE'),
-  'authenticated members may request a scoped status');
+  'authenticated callers cannot use the pre-D6 status path');
 select ok(not has_function_privilege('anon',
   'customer_api.my_private_file_scan_status_v1(uuid,uuid,uuid,uuid)', 'EXECUTE'),
   'anonymous callers cannot request file status');
@@ -17,8 +17,8 @@ select throws_ok(
     '12800000-0000-4000-8000-000000000003',
     '12800000-0000-4000-8000-000000000004',
     '12800000-0000-4000-8000-000000000005')$$,
-  '42501', 'private_file_denied',
-  'a user without conversation access cannot probe a document scan state');
+  '55000', 'canonical_private_attachment_required',
+  'legacy scan-status lookup fails closed after D6');
 
 select * from finish();
 rollback;

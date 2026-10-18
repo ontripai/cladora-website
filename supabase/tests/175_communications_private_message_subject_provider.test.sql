@@ -117,15 +117,37 @@ insert into platform.workspace_member_roles(
   '17500000-0000-4000-8000-000000000009','Communications provider pgTAP fixture',
   statement_timestamp()-interval '1 day'
 );
+select set_config('communications.private_conversation_workspace_writer_v1',
+  jsonb_build_object(
+    'contract_version','communications-private-conversation-workspace.v1',
+    'workspace_id','17500000-0000-4000-8000-000000000013',
+    'tenant_id','17500000-0000-4000-8000-000000000003',
+    'unit_id','17500000-0000-4000-8000-000000000008',
+    'actor_membership_id','17500000-0000-4000-8000-000000000009',
+    'client_request_id','17500000-0000-4000-8000-000000000019'
+  )::text,true);
 insert into communications.private_conversations(
-  id,tenant_id,unit_id,created_by,client_request_id
-) values
-(
+  id,tenant_id,workspace_id,unit_id,created_by,client_request_id
+) values(
   '17500000-0000-4000-8000-000000000015','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000013',
   '17500000-0000-4000-8000-000000000008','17500000-0000-4000-8000-000000000009',
   '17500000-0000-4000-8000-000000000019'
-),(
+);
+select set_config('communications.private_conversation_workspace_writer_v1',
+  jsonb_build_object(
+    'contract_version','communications-private-conversation-workspace.v1',
+    'workspace_id','17500000-0000-4000-8000-000000000014',
+    'tenant_id','17500000-0000-4000-8000-000000000003',
+    'unit_id','17500000-0000-4000-8000-000000000024',
+    'actor_membership_id','17500000-0000-4000-8000-000000000009',
+    'client_request_id','17500000-0000-4000-8000-000000000026'
+  )::text,true);
+insert into communications.private_conversations(
+  id,tenant_id,workspace_id,unit_id,created_by,client_request_id
+) values(
   '17500000-0000-4000-8000-000000000025','17500000-0000-4000-8000-000000000003',
+  '17500000-0000-4000-8000-000000000014',
   '17500000-0000-4000-8000-000000000024','17500000-0000-4000-8000-000000000009',
   '17500000-0000-4000-8000-000000000026'
 );

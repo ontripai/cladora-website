@@ -74,10 +74,24 @@ export type DocumentsInitialVersionV1 = z.input<typeof documentsInitialVersionV1
 const verifiedObjectSchema = z.strictObject({
   bucket_id: z.literal('document-vault'),
   object_path: z.string().min(3).max(1024),
+  storage_object_id: uuid,
+  generation_capability: z.enum(['exposed', 'not_exposed']),
+  storage_generation: z.string().trim().min(1).max(255).nullable(),
+  etag_capability: z.enum(['exposed', 'not_exposed']),
+  storage_etag: z.string().trim().min(1).max(1024).nullable(),
   sha256,
   size_bytes: z.number().int().positive().max(20 * 1024 * 1024),
   detected_mime_type: allowedMime,
   non_overwritable: z.literal(true),
+}).superRefine((value, context) => {
+  if ((value.generation_capability === 'exposed') !== (value.storage_generation !== null)) {
+    context.addIssue({ code: 'custom', path: ['storage_generation'],
+      message: 'storage_generation_capability_mismatch' });
+  }
+  if ((value.etag_capability === 'exposed') !== (value.storage_etag !== null)) {
+    context.addIssue({ code: 'custom', path: ['storage_etag'],
+      message: 'storage_etag_capability_mismatch' });
+  }
 });
 export type DocumentsStoredObjectMeasurementV1 = z.infer<typeof verifiedObjectSchema>;
 
@@ -90,6 +104,13 @@ export type DocumentsStoredObjectVerifierV1 = (
   target: Readonly<{ bucket_id: 'document-vault'; object_path: string }>,
 ) => Promise<unknown>;
 
+export class DocumentsStoredObjectProviderUnavailableV1 extends Error {
+  constructor() {
+    super('PROVIDER_UNAVAILABLE');
+    this.name = 'DocumentsStoredObjectProviderUnavailableV1';
+  }
+}
+
 /** Storage/network verification must finish before the Core SQL transaction begins. */
 export async function verifyDocumentsStoredObjectBeforeTransactionV1(
   target: Readonly<{ bucket_id: 'document-vault'; object_path: string }>,
@@ -98,10 +119,18 @@ export async function verifyDocumentsStoredObjectBeforeTransactionV1(
   const normalizedTarget = z.strictObject({
     bucket_id: z.literal('document-vault'), object_path: z.string().min(3).max(1024),
   }).parse(target);
-  const measurement = verifiedObjectSchema.parse(await verifier(Object.freeze(normalizedTarget)));
+  let observation: unknown;
+  try {
+    observation = await verifier(Object.freeze(normalizedTarget));
+  } catch {
+    throw new DocumentsStoredObjectProviderUnavailableV1();
+  }
+  const parsed = verifiedObjectSchema.safeParse(observation);
+  if (!parsed.success) throw new DocumentsStoredObjectProviderUnavailableV1();
+  const measurement = parsed.data;
   if (measurement.bucket_id !== normalizedTarget.bucket_id
     || measurement.object_path !== normalizedTarget.object_path) {
-    throw new Error('stored_object_binding_mismatch');
+    throw new DocumentsStoredObjectProviderUnavailableV1();
   }
   return Object.freeze(Object.assign(measurement, { [verifiedObjectBrand]: true as const }));
 }
@@ -191,10 +220,12 @@ export function buildDocumentsInitialVersionCommandV1(
     fingerprint('docwf1', { input, object, actor_id: context.actor_id }));
 }
 
-function requireVerifiedObject(value: VerifiedDocumentsStoredObjectV1) {
+export function requireVerifiedDocumentsStoredObjectV1(value: VerifiedDocumentsStoredObjectV1) {
   if (!value || value[verifiedObjectBrand] !== true) throw new Error('stored_object_verification_required');
   return verifiedObjectSchema.parse(value);
 }
+
+const requireVerifiedObject = requireVerifiedDocumentsStoredObjectV1;
 
 function exactCommand(expected: CoreTransactionCommandV1, actual: CoreTransactionCommandV1) {
   return JSON.stringify(actual) === JSON.stringify(expected);
@@ -273,8 +304,9 @@ export function createDocumentsNewDocumentIntentProvidersV1(
       const inserted = await scope.query<{ mutation_id: string }>(`insert into documents.upload_intents(
           id,tenant_id,context_id,user_id,document_id,bucket_id,object_path,expected_version,
           declared_mime_type,max_size_bytes,idempotency_key,status,server_auth_hash,expires_at,
-          workspace_id,prospective_document_id)
-        values($1,$2,$3,$4,null,'document-vault',$5,1,$6,$7,$8,'authorized',$9,$10,$11,$12)
+          workspace_id,prospective_document_id,operation_kind,expected_parent_version_id)
+        values($1,$2,$3,$4,null,'document-vault',$5,1,$6,$7,$8,'authorized',$9,$10,$11,$12,
+          'new_document',null)
         returning id::text as mutation_id`, [
         input.intent_id, scope.tenant_id, input.context_id, scope.actor_id, input.object_path,
         input.declared_mime_type, input.max_size_bytes, input.idempotency_key, authHash,
@@ -307,11 +339,14 @@ export function createDocumentsInitialVersionProvidersV1(
         || !await requestIsAal2(scope)) return false;
       const state = await scope.query<{ valid: boolean }>(`select
           ui.tenant_id=$2 and ui.context_id=$3 and ui.workspace_id=$4
-          and ui.user_id=$5 and ui.prospective_document_id=$6
-          and ui.document_id is null and ui.expected_version=1
+          and ui.user_id=$5 and ui.operation_kind='new_document'
+          and ui.prospective_document_id=$6 and ui.document_id is null
+          and ui.expected_parent_version_id is null and ui.expected_version=1
           and ui.bucket_id=$7 and ui.object_path=$8
           and ui.declared_mime_type=$9 and ui.max_size_bytes >= $10
           and ui.status='authorized' and ui.consumed_at is null
+          and ui.committed_document_id is null and ui.committed_version_id is null
+          and ui.verified_storage_object_id is null and ui.verified_sha256 is null
           and ui.attempts < ui.max_attempts and ui.expires_at > clock_timestamp()
           and not exists(select 1 from documents.documents d where d.id=$6)
           and not exists(select 1 from documents.document_versions v where v.id=$11)
@@ -367,10 +402,17 @@ export function createDocumentsInitialVersionProvidersV1(
           join documents.document_versions v on v.id=$11 and v.tenant_id=ui.tenant_id
             and v.document_id=d.id
           where ui.id=$1 and ui.tenant_id=$2 and ui.context_id=$3 and ui.workspace_id=$4
-            and ui.user_id=$5 and ui.prospective_document_id=$6 and ui.document_id is null
-            and ui.expected_version=1 and ui.bucket_id=$7 and ui.object_path=$8
+            and ui.user_id=$5 and ui.operation_kind='new_document'
+            and ui.prospective_document_id=$6 and ui.document_id is null
+            and ui.expected_parent_version_id is null and ui.expected_version=1
+            and ui.bucket_id=$7 and ui.object_path=$8
             and ui.declared_mime_type=$9 and ui.max_size_bytes >= $10
             and ui.status='consumed' and ui.consumed_at is not null and ui.attempts=1
+            and ui.committed_document_id=$6 and ui.committed_version_id=$11
+            and ui.verified_storage_object_id=$19
+            and ui.verified_storage_generation is not distinct from $20
+            and ui.verified_storage_etag is not distinct from $21
+            and ui.verified_sha256=$15 and ui.verified_size_bytes=$10
             and d.workspace_id=$4 and d.title=$12 and d.document_type=$13
             and d.classification=$14::documents.classification and d.current_version=1
             and d.status='active'::platform.record_status and d.created_by=$5
@@ -379,6 +421,10 @@ export function createDocumentsInitialVersionProvidersV1(
             and v.version=1 and v.object_path=$8 and v.sha256=$15 and v.mime_type=$16
             and v.size_bytes=$10 and v.uploaded_by=$5 and v.checksum_status='verified'
             and v.detected_mime_type=$16
+            and v.upload_intent_id=$1 and v.replaces_version_id is null
+            and v.bucket_id=$7 and v.storage_object_id=$19
+            and v.storage_generation is not distinct from $20
+            and v.storage_etag is not distinct from $21
             and v.metadata_json=jsonb_build_object(
               'binding_contract','documents-workspace-binding-writer.v1',
               'workspace_id',$4::text,'upload_intent_id',$1::text,
@@ -394,6 +440,7 @@ export function createDocumentsInitialVersionProvidersV1(
         input.document_id, object.bucket_id, object.object_path, object.detected_mime_type,
         object.size_bytes, input.version_id, input.title, input.document_type, input.classification,
         object.sha256, object.detected_mime_type, command.transaction_id, command.command_id,
+        object.storage_object_id, object.storage_generation, object.storage_etag,
       ]);
       const evaluatedAt = new Date(state.rows[0]?.now ?? authority.evaluated_at).toISOString();
       return replayDecision(scope, command, authority, receipt, evaluatedAt,
@@ -401,9 +448,9 @@ export function createDocumentsInitialVersionProvidersV1(
     },
     async mutate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1) {
       if (!exactCommand(expected, command)) throw new Error('documents_finalize_command_mismatch');
-      await scope.query(`select set_config('documents.workspace_binding_writer_v1',$1,true)`, [
+      await scope.query(`select set_config('documents.canonical_storage_identity_v1',$1,true)`, [
         JSON.stringify({
-          contract_version: DOCUMENTS_WORKSPACE_WRITER_REPLAY_PROVIDER_CODE_V1,
+          contract_version: 'documents-canonical-storage-identity.v1',
           intent_id: input.intent_id,
           document_id: input.document_id,
           version_id: input.version_id,
@@ -411,6 +458,11 @@ export function createDocumentsInitialVersionProvidersV1(
           actor_id: scope.actor_id,
           bucket_id: object.bucket_id,
           object_path: object.object_path,
+          storage_object_id: object.storage_object_id,
+          generation_capability: object.generation_capability,
+          storage_generation: object.storage_generation,
+          etag_capability: object.etag_capability,
+          storage_etag: object.storage_etag,
           sha256: object.sha256,
           size_bytes: object.size_bytes,
           detected_mime_type: object.detected_mime_type,
@@ -418,10 +470,15 @@ export function createDocumentsInitialVersionProvidersV1(
         }),
       ]);
       const consumed = await scope.query(`update documents.upload_intents
-        set status='consumed',consumed_at=clock_timestamp(),attempts=attempts+1
+        set status='consumed',consumed_at=clock_timestamp(),attempts=attempts+1,
+          committed_document_id=$4,committed_version_id=$5,
+          verified_storage_object_id=$6,verified_storage_generation=$7,
+          verified_storage_etag=$8,verified_sha256=$9,verified_size_bytes=$10
         where id=$1 and tenant_id=$2 and workspace_id=$3 and prospective_document_id=$4
           and status='authorized' and consumed_at is null`,
-      [input.intent_id, scope.tenant_id, input.workspace_id, input.document_id]);
+      [input.intent_id, scope.tenant_id, input.workspace_id, input.document_id,
+        input.version_id, object.storage_object_id, object.storage_generation,
+        object.storage_etag, object.sha256, object.size_bytes]);
       if (consumed.rowCount !== 1) throw new Error('documents_intent_consume_failed');
       const document = await scope.query(`insert into documents.documents(
           id,tenant_id,workspace_id,property_id,title,document_type,classification,current_version,
@@ -432,16 +489,20 @@ export function createDocumentsInitialVersionProvidersV1(
       if (document.rowCount !== 1) throw new Error('documents_document_insert_failed');
       const version = await scope.query<{ mutation_id: string }>(`insert into documents.document_versions(
           id,tenant_id,document_id,version,object_path,sha256,mime_type,size_bytes,metadata_json,
-          uploaded_by,checksum_status,scanning_status,detected_mime_type,created_at)
+          uploaded_by,checksum_status,scanning_status,detected_mime_type,created_at,
+          upload_intent_id,replaces_version_id,bucket_id,storage_object_id,
+          storage_generation,storage_etag)
         values($1,$2,$3,1,$4,$5,$6,$7,jsonb_build_object(
           'binding_contract','documents-workspace-binding-writer.v1',
           'workspace_id',$8::text,'upload_intent_id',$9::text,
           'transaction_id',$10::text,'command_id',$11::text),
-          $12,'verified','deferred',$6,clock_timestamp())
+          $12,'verified','deferred',$6,clock_timestamp(),
+          $9::uuid,null,'document-vault',$13::uuid,$14,$15)
         returning id::text as mutation_id`, [
         input.version_id, scope.tenant_id, input.document_id, object.object_path, object.sha256,
         object.detected_mime_type, object.size_bytes, input.workspace_id, input.intent_id,
-        command.transaction_id, command.command_id, scope.actor_id,
+        command.transaction_id, command.command_id, scope.actor_id, object.storage_object_id,
+        object.storage_generation, object.storage_etag,
       ]);
       if (version.rowCount !== 1) throw new Error('documents_version_insert_failed');
       await scope.query(`insert into documents.access_events(

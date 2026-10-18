@@ -44,59 +44,60 @@ const authority = {
     transaction_id: id(5), command_id: id(6), attempt: 1, isolation_level: 'serializable',
     lock: { kind: 'command_aggregate', workspace_id: intent.workspace_id,
       aggregate_type: 'service_request', aggregate_id: intent.service_request_id,
-      acquired_at: '2026-10-13T17:00:00.000Z' },
+      acquired_at: '2026-10-18T16:00:00.000Z' },
   },
   evaluator: 'app_private.check_workspace_native_permission_v2', source_disclosure: 'status_only',
-  source_reference: null, evaluated_at: '2026-10-13T17:00:00.001Z',
+  source_reference: null, evaluated_at: '2026-10-18T16:00:00.001Z',
   rechecked_after_lock: true, transaction_bound: true, reusable_as_command_authority: false,
   current_authority_recheck_required_on_retry: true, decision: 'allowed', denial_reason: null,
 };
-const messageRow = {
-  decision: 'accepted', denial_reason: null, message_id: intent.reference_id,
-  message_version: String(intent.source_version), workspace_id: intent.workspace_id,
-  lifecycle_state: 'available', participant_current: true, participant_revoked: false,
-  evaluated_at: '2026-10-13T17:00:00.002Z',
-};
-const gateRow = { decision: 'accepted', denial_reason: null,
-  current_actor_can_read: true, request_party_audience_only: true,
-  evaluated_at: '2026-10-13T17:00:00.003Z' };
+const accepted = phase => ({
+  decision: 'accepted', denial_reason: null,
+  mutation_id: phase === 'validate' ? null : id(9),
+  request_version: '5', message_version: '7',
+  evaluated_at: '2026-10-18T16:00:00.002Z', write_applied: phase === 'apply',
+});
 
-function harness({ message = messageRow, gate = gateRow, mutation = id(9), sqlError } = {}) {
+function harness(rows = {}) {
   const calls = [];
   const scope = {
     transaction_id: command.transaction_id, database_transaction_id: '99',
     workspace_id: command.workspace_id, tenant_id: id(10), actor_id: command.actor_id, attempt: 1,
     async query(text, values) {
       calls.push({ text, values });
-      if (sqlError) throw Object.assign(new Error('database failure'), { code: sqlError });
-      if (text.includes('resolve_private_message_subject_v1')) {
-        return { rows: message ? [structuredClone(message)] : [], rowCount: message ? 1 : 0 };
-      }
-      if (text.includes('resolve_private_message_request_audience_v1')) {
-        return { rows: gate ? [structuredClone(gate)] : [], rowCount: gate ? 1 : 0 };
-      }
-      if (text.includes('insert_service_request_message_link_v1')) {
-        return { rows: mutation ? [{ mutation_id: mutation }] : [], rowCount: mutation ? 1 : 0 };
-      }
-      throw new Error('unexpected query');
+      assert.match(text, /app_private\.execute_service_request_message_link_v2/);
+      const phase = values[0];
+      const row = Object.hasOwn(rows, phase) ? rows[phase] : accepted(phase);
+      return { rows: row ? [structuredClone(row)] : [], rowCount: row ? 1 : 0 };
     },
   };
   return { scope, calls };
 }
 
+function receipt() {
+  return {
+    contract_version: 'core-transaction-receipt.v2', receipt_version: 2, receipt_id: id(11),
+    transaction_id: command.transaction_id, command_id: command.command_id,
+    workspace_id: command.workspace_id, actor_id: command.actor_id,
+    aggregate_type: command.aggregate_type, aggregate_id: command.aggregate_id,
+    aggregate_version: command.aggregate_version, input_fingerprint: command.input_fingerprint,
+    idempotency_key: command.idempotency_key, mutation_id: id(9),
+    subject_reference: command.subject_reference,
+    replay_validation: { contract_version: 'core-transaction-replay-provider-requirement.v1',
+      provider_code: 'communications.private_message_request_audience' },
+    provider_evidence: { provider_code: 'communications.private_message_request_audience' },
+    authority, audit_event_id: '1', outbox_event_id: id(12),
+    committed_at: '2026-10-18T16:00:00.003Z',
+  };
+}
+
 let passed = 0;
 async function check(name, run) {
   await run();
-  passed += 1;
-  console.log(`ok ${passed} - ${name}`);
+  console.log(`ok ${++passed} - ${name}`);
 }
 
-await check('existing collaboration intent maps to exact Core V2 mutation command', () => {
-  assert.equal(command.permission_code, 'services.orders.subject_link');
-  assert.equal(command.module_code, 'services_orders');
-  assert.equal(command.evaluation_purpose, 'service.request.subject_link');
-  assert.equal(command.aggregate_type, 'service_request');
-  assert.equal(command.aggregate_id, intent.service_request_id);
+await check('collaboration intent maps to the exact Core V2 command', () => {
   assert.equal(command.aggregate_version, 5);
   assert.deepEqual(command.provider_source_ids, [intent.reference_id]);
   assert.deepEqual(command.subject_reference, {
@@ -106,54 +107,79 @@ await check('existing collaboration intent maps to exact Core V2 mutation comman
   assert.equal(command.input_fingerprint, fingerprintServiceProviderInput(intent));
 });
 
-await check('read and request permissions are never substituted for subject-link authority', () => {
+await check('subject-link authority is not substituted by request/read authority', () => {
   assert.equal(SERVICE_SUBJECT_LINK_CORE_BINDING_V1.permission_code, 'services.orders.subject_link');
   assert.notEqual(SERVICE_SUBJECT_LINK_CORE_BINDING_V1.permission_code, 'services.orders.read');
-  assert.notEqual(SERVICE_SUBJECT_LINK_CORE_BINDING_V1.permission_code, 'services.orders.request');
 });
 
-await check('CE-owned Communications Request audience provider accepts metadata only', async () => {
+await check('provider requires current-state replay', () => {
+  const providers = createServiceSubjectLinkCoreProvidersV1();
+  assert.equal(providers.provider_code, 'communications.private_message_request_audience');
+  assert.equal(providers.replay_policy, 'provider_current_state_required');
+  assert.equal(typeof providers.validateReplay, 'function');
+});
+
+await check('validate uses only the fixed private S2 validate phase', async () => {
   const providers = createServiceSubjectLinkCoreProvidersV1();
   const { scope, calls } = harness();
   const result = await providers.validateProviders(scope, command, authority);
   assert.equal(result.decision, 'accepted');
-  assert.equal(result.provider_code, 'communications.private_message_request_audience');
-  assert.equal(result.evaluated_at, gateRow.evaluated_at);
   assert.equal(result.source_reference, null);
-  assert.equal(calls.length, 2);
-  assert.match(calls[0].text, /communications\.resolve_private_message_subject_v1/);
-  assert.match(calls[1].text, /communications\.resolve_private_message_request_audience_v1/);
-  assert.equal(calls[1].values.at(-1), 4);
-  assert.equal(JSON.stringify(result).includes('participant'), false);
-  assert.equal(JSON.stringify(result).includes('beneficiary'), false);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].values, ['validate', intent.context_id, intent.workspace_id, id(7),
+    intent.service_request_id, 4, intent.reference_id, 7]);
 });
 
-for (const denial_reason of ['AUDIENCE_DENIED']) {
-  await check(`${denial_reason} is bounded and produces no mutation`, async () => {
-    const providers = createServiceSubjectLinkCoreProvidersV1();
-    const { scope, calls } = harness({ gate: { decision: 'denied', denial_reason,
-      current_actor_can_read: null, request_party_audience_only: null,
-      evaluated_at: gateRow.evaluated_at } });
-    const result = await providers.validateProviders(scope, command, authority);
-    assert.equal(result.decision, 'denied');
-    assert.equal(result.denial_reason, 'SUBJECT_DENIED');
-    assert.equal(calls.some(call => call.text.includes('insert_service_request_message_link_v1')), false);
-  });
-}
+await check('authority mismatch denies before SQL', async () => {
+  const providers = createServiceSubjectLinkCoreProvidersV1();
+  const { scope, calls } = harness();
+  const result = await providers.validateProviders(scope, command,
+    { ...authority, authority_version: 12 });
+  assert.equal(result.decision, 'denied');
+  assert.equal(result.denial_reason, 'SUBJECT_DENIED');
+  assert.equal(calls.length, 0);
+});
 
-for (const denial_reason of ['STALE_REQUEST', 'STALE_SUBJECT']) {
-  await check(`${denial_reason} maps to bounded stale evidence`, async () => {
-    const providers = createServiceSubjectLinkCoreProvidersV1();
-    const { scope } = harness({ gate: { decision: 'denied', denial_reason,
-      current_actor_can_read: null, request_party_audience_only: null,
-      evaluated_at: gateRow.evaluated_at } });
-    const result = await providers.validateProviders(scope, command, authority);
-    assert.equal(result.decision, 'denied');
-    assert.equal(result.denial_reason, 'STALE_SUBJECT');
-  });
-}
+await check('stale phase result maps to bounded provider evidence', async () => {
+  const providers = createServiceSubjectLinkCoreProvidersV1();
+  const { scope } = harness({ validate: { ...accepted('validate'), decision: 'denied',
+    denial_reason: 'STALE_REQUEST', request_version: null, message_version: null } });
+  const result = await providers.validateProviders(scope, command, authority);
+  assert.equal(result.decision, 'denied');
+  assert.equal(result.denial_reason, 'STALE_SUBJECT');
+});
 
-await check('mismatched Core binding denies before either provider query', async () => {
+await check('apply returns the S2 link identity and internally derived result version', async () => {
+  const providers = createServiceSubjectLinkCoreProvidersV1();
+  const { scope, calls } = harness();
+  assert.deepEqual(await providers.mutate(scope, command), { mutation_id: id(9) });
+  assert.equal(calls[0].values[0], 'apply');
+  assert.equal(calls[0].values.includes(command.transaction_id), false);
+  assert.equal(calls[0].values.includes(command.command_id), false);
+  assert.equal(calls[0].values.includes(command.idempotency_key), false);
+});
+
+await check('exact replay executes the read-only S2 replay phase', async () => {
+  const providers = createServiceSubjectLinkCoreProvidersV1();
+  const { scope, calls } = harness();
+  const result = await providers.validateReplay(scope, command, authority, receipt());
+  assert.equal(result.decision, 'accepted');
+  assert.equal(result.read_only, true);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].values[0], 'replay');
+});
+
+await check('changed replay state is rejected without mutation', async () => {
+  const providers = createServiceSubjectLinkCoreProvidersV1();
+  const { scope } = harness({ replay: { ...accepted('replay'), decision: 'denied',
+    denial_reason: 'REPLAY_STATE_CHANGED', mutation_id: null,
+    request_version: null, message_version: null } });
+  const result = await providers.validateReplay(scope, command, authority, receipt());
+  assert.equal(result.decision, 'denied');
+  assert.equal(result.denial_reason, 'REPLAY_STATE_CHANGED');
+});
+
+await check('mismatched Core binding denies before the S2 finalizer', async () => {
   const providers = createServiceSubjectLinkCoreProvidersV1();
   const { scope, calls } = harness();
   const result = await providers.validateProviders(scope,
@@ -163,53 +189,32 @@ await check('mismatched Core binding denies before either provider query', async
   assert.equal(calls.length, 0);
 });
 
-await check('mutation uses one private callback and returns its domain link identity', async () => {
-  const providers = createServiceSubjectLinkCoreProvidersV1();
-  const { scope, calls } = harness();
-  const result = await providers.mutate(scope, command);
-  assert.deepEqual(result, { mutation_id: id(9) });
-  assert.equal(calls.length, 1);
-  assert.match(calls[0].text, /app_private\.insert_service_request_message_link_v1/);
-  assert.deepEqual(calls[0].values, [intent.context_id, intent.workspace_id, id(7),
-    intent.service_request_id, 4, intent.reference_id, 7]);
-});
-
-await check('database serialization errors reach the Core host retry loop', async () => {
-  const providers = createServiceSubjectLinkCoreProvidersV1();
-  const { scope } = harness({ sqlError: '40001' });
-  await assert.rejects(providers.validateProviders(scope, command, authority),
-    error => error.code === '40001');
-});
-
-await check('migration keeps one SERVICE link store and reuses Core ledgers', () => {
+await check('S2 migration freezes one private phase-aware signature', () => {
   const sql = readFileSync(new URL(
-    '../supabase/migrations/20261013170242_service_request_subject_link_v1.sql', import.meta.url,
+    '../supabase/migrations/20261018160000_service_request_message_link_finalizer_v2.sql',
+    import.meta.url,
   ), 'utf8');
-  assert.match(sql, /create table service_catalog\.request_subject_links/);
-  assert.equal((sql.match(/create table/g) ?? []).length, 1);
-  for (const parallel of ['create table platform.idempotency', 'create table audit.',
-    'create table platform.outbox', 'create table communications.private_messages']) {
-    assert.equal(sql.includes(parallel), false);
-  }
-  assert.match(sql, /services\.orders\.subject_link/);
-  assert.match(sql, /platform\.module_permission_bindings/);
-  assert.match(sql, /communications\.resolve_private_message_request_audience_v1/);
-  assert.doesNotMatch(sql, /identity\.membership_parties|communications\.private_participants/);
-  assert.doesNotMatch(sql, /workspace_role_permissions|workspace_member_roles/);
-  assert.match(sql, /revoke all[\s\S]*public,anon,authenticated,service_role/);
+  assert.match(sql, /execute_service_request_message_link_v2/);
+  assert.match(sql, /p_mode not in \('validate','apply','replay'\)/);
+  assert.match(sql, /v_result_request_version:=p_expected_request_version\+1/);
+  assert.match(sql, /resolve_private_message_request_audience_current_v2/);
+  assert.match(sql, /from public,anon,authenticated,service_role/);
+  assert.doesNotMatch(sql, /p_(transaction_id|command_id|idempotency_key|input_fingerprint)/);
+  assert.doesNotMatch(sql, /grant execute|create table platform\.idempotency|create table audit\./i);
 });
 
-await check('package has no route, grant, notification or runtime activation', () => {
+await check('S2 adds no route, credential or runtime activation', () => {
   const source = readFileSync(new URL(
     '../src/lib/customer/service-request-subject-link-v1.ts', import.meta.url,
   ), 'utf8');
   const sql = readFileSync(new URL(
-    '../supabase/migrations/20261013170242_service_request_subject_link_v1.sql', import.meta.url,
+    '../supabase/migrations/20261018160000_service_request_message_link_finalizer_v2.sql',
+    import.meta.url,
   ), 'utf8');
-  for (const forbidden of ['src/app', 'customer_api', 'grant execute', 'communications.notifications',
+  for (const forbidden of ['src/app', 'customer_api', 'grant execute', 'credential',
     'workspace_modules', 'workspace_entitlements']) {
-    assert.equal(`${source}\n${sql}`.includes(forbidden), false, forbidden);
+    assert.equal(`${source}\n${sql}`.toLowerCase().includes(forbidden.toLowerCase()), false, forbidden);
   }
 });
 
-console.log(`SERVICE subject-link contract and inactive Core binding: ${passed}/${passed} PASS`);
+console.log(`SERVICE S2 subject-link finalizer contract: ${passed}/${passed} PASS`);

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { HEADERS, mapDocumentsRpcError } from "@/lib/customer/documents-api-helper";
+import { HEADERS } from "@/lib/customer/documents-api-helper";
 import { authorizeDownloadSchema } from "@/lib/customer/documents-schema";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
+import { z } from "zod";
 
 export async function POST(
   request: NextRequest,
@@ -24,6 +23,12 @@ export async function POST(
   }
 
   const { id: documentId } = await context.params;
+  if (!z.string().uuid().safeParse(documentId).success) {
+    return NextResponse.json(
+      { error: { code: "INVALID_REQUEST", message: "Invalid document UUID" } },
+      { status: 400, headers: HEADERS }
+    );
+  }
   const { data: bodyJson, errorResponse } = await parseJsonWithLimit<unknown>(request, 16 * 1024);
   if (errorResponse || !bodyJson) {
     return errorResponse ?? NextResponse.json(
@@ -40,71 +45,13 @@ export async function POST(
     );
   }
 
-  const supabase = await createClient();
-  const { data: claims, error: authError } = await supabase.auth.getClaims();
-  if (authError || !claims?.claims?.sub) {
-    return NextResponse.json(
-      { error: { code: "UNAUTHORIZED", message: "Authentication required." } },
-      { status: 401, headers: HEADERS }
-    );
-  }
-
-  const p = parsed.data;
-  const { data, error } = await (supabase.schema("customer_api") as any).rpc("authorize_document_download_v1", {
-    p_context_id: p.context_id,
-    p_document_id: documentId,
-    p_version_id: p.version_id ?? null,
-    p_admin_inspection: p.admin_inspection ?? false,
-  });
-
-  if (error) {
-    const { status, body } = mapDocumentsRpcError(error);
-    return NextResponse.json(body, { status, headers: HEADERS });
-  }
-
-  // Create signed storage download URL with attachment Content-Disposition
-  const bucketId = data?.bucket_id || "document-vault";
-  const objectPath = data?.object_path;
-
-  if (!objectPath) {
-    return NextResponse.json(
-      { error: { code: "STORAGE_ERROR", message: "Object path missing from authorization record" } },
-      { status: 500, headers: HEADERS }
-    );
-  }
-
-  // Authenticated sessions cannot read the bucket directly. The checked RPC
-  // above authorizes this exact version before the server signs its path.
-  if (bucketId !== "document-vault") {
-    return NextResponse.json(
-      { error: { code: "STORAGE_ERROR", message: "Unexpected document bucket" } },
-      { status: 500, headers: HEADERS }
-    );
-  }
-  const { data: signedData, error: signError } = await createAdminClient().storage
-    .from(bucketId)
-    .createSignedUrl(objectPath, 60, {
-      download: true, // Forces Content-Disposition: attachment
-    });
-
-  if (signError || !signedData?.signedUrl) {
-    return NextResponse.json(
-      { error: { code: "SIGNING_FAILED", message: signError?.message || "Failed to generate signed download URL" } },
-      { status: 500, headers: HEADERS }
-    );
-  }
-
   return NextResponse.json(
     {
-      document_id: documentId,
-      version_id: data.version_id,
-      download_url: signedData.signedUrl,
-      expires_in_seconds: 60,
-      mime_type: data.mime_type,
-      size_bytes: data.size_bytes,
-      sha256: data.sha256,
-      is_admin_inspection: data.is_admin_inspection,
+      error: {
+        code: "CANONICAL_DOCUMENT_DOWNLOAD_UNAVAILABLE",
+        message: "Canonical document download is not active.",
+      },
     },
-    { headers: HEADERS }
+    { status: 503, headers: HEADERS }
   );
 }

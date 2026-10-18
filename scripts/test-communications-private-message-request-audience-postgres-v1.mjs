@@ -65,6 +65,7 @@ const actor = randomUUID();
 const providerUser = randomUUID();
 const providerMembershipId = randomUUID();
 const conversationId = randomUUID();
+const conversationRequestId = randomUUID();
 const messageId = randomUUID();
 const beneficiaryPartyId = randomUUID();
 const providerPartyId = randomUUID();
@@ -79,6 +80,7 @@ const samePartyOfferingId = randomUUID();
 const samePartyRevisionId = randomUUID();
 const samePartyRequestId = randomUUID();
 const samePartyConversationId = randomUUID();
+const samePartyConversationRequestId = randomUUID();
 const samePartyMessageId = randomUUID();
 let mutations = 0;
 let providerCalls = 0;
@@ -304,10 +306,19 @@ try {
     permissionCode: 'services.orders.subject_link', scope: 'workspace',
   });
 
-  await pool.query(`insert into communications.private_conversations(
-      id,tenant_id,unit_id,created_by,client_request_id
-    ) values($1,$2,$3,$4,$5)`, [
-    conversationId, ids.tenantId, ids.unitIds[0], ids.membershipId, randomUUID(),
+  await pool.query(`with writer_marker as (
+      select set_config('communications.private_conversation_workspace_writer_v1',
+        jsonb_build_object(
+          'contract_version','communications-private-conversation-workspace.v1',
+          'workspace_id',$3::text,'tenant_id',$2::text,'unit_id',$4::text,
+          'actor_membership_id',$5::text,'client_request_id',$6::text
+        )::text,true)
+    )
+    insert into communications.private_conversations(
+      id,tenant_id,workspace_id,unit_id,created_by,client_request_id)
+    select $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid from writer_marker`, [
+    conversationId, ids.tenantId, ids.workspaceIds[0], ids.unitIds[0],
+    ids.membershipId, conversationRequestId,
   ]);
   await pool.query(`insert into communications.private_participants(conversation_id,membership_id)
     values($1,$2),($1,$3)`, [conversationId, ids.membershipId, providerMembershipId]);
@@ -316,10 +327,19 @@ try {
     ) values($1,$2,$3,$4,'Private audience fixture body')`, [
     messageId, conversationId, ids.membershipId, randomUUID(),
   ]);
-  await pool.query(`insert into communications.private_conversations(
-      id,tenant_id,unit_id,created_by,client_request_id
-    ) values($1,$2,$3,$4,$5)`, [
-    samePartyConversationId, ids.tenantId, ids.unitIds[0], ids.membershipId, randomUUID(),
+  await pool.query(`with writer_marker as (
+      select set_config('communications.private_conversation_workspace_writer_v1',
+        jsonb_build_object(
+          'contract_version','communications-private-conversation-workspace.v1',
+          'workspace_id',$3::text,'tenant_id',$2::text,'unit_id',$4::text,
+          'actor_membership_id',$5::text,'client_request_id',$6::text
+        )::text,true)
+    )
+    insert into communications.private_conversations(
+      id,tenant_id,workspace_id,unit_id,created_by,client_request_id)
+    select $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid from writer_marker`, [
+    samePartyConversationId, ids.tenantId, ids.workspaceIds[0], ids.unitIds[0],
+    ids.membershipId, samePartyConversationRequestId,
   ]);
   await pool.query(`insert into communications.private_participants(conversation_id,membership_id)
     values($1,$2)`, [samePartyConversationId, ids.membershipId]);
@@ -531,10 +551,10 @@ try {
 
   await check('private audience resolver has no public or API-role execution grant', async () => {
     const acl = await pool.query(`select
-      has_function_privilege('public','communications.resolve_private_message_request_audience_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as public,
-      has_function_privilege('anon','communications.resolve_private_message_request_audience_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as anon,
-      has_function_privilege('authenticated','communications.resolve_private_message_request_audience_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as authenticated,
-      has_function_privilege('service_role','communications.resolve_private_message_request_audience_v1(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as service_role`);
+      has_function_privilege('public','communications.resolve_private_message_request_audience_current_v2(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as public,
+      has_function_privilege('anon','communications.resolve_private_message_request_audience_current_v2(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as anon,
+      has_function_privilege('authenticated','communications.resolve_private_message_request_audience_current_v2(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as authenticated,
+      has_function_privilege('service_role','communications.resolve_private_message_request_audience_current_v2(uuid,uuid,uuid,uuid,bigint,uuid,bigint)','execute') as service_role`);
     assert.deepEqual(acl.rows[0], {
       public: false, anon: false, authenticated: false, service_role: false,
     });

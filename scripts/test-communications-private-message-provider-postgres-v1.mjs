@@ -64,6 +64,7 @@ const host = createCorePostgresTransactionHostV1(hostPool);
 const driver = createAp10CoreAuthorityDriver(pool);
 const actor = randomUUID();
 const conversationId = randomUUID();
+const conversationRequestId = randomUUID();
 const messageId = randomUUID();
 const communicationsRoleId = randomUUID();
 const outsideScopeAssignmentId = randomUUID();
@@ -84,21 +85,26 @@ try {
     actor, `comm-provider-${randomUUID()}@example.invalid`,
   ]);
   const ids = await driver.setup({ userId: actor, runId: randomUUID(), target: 'local' });
-  // AP10 intentionally begins with a tenant-wide Core context and AIRPROP
-  // system persona. Keep that context exact for the real Core host, while using
-  // the existing Communications reader role on the same canonical membership.
-  await pool.query(`update identity.memberships set role_id=(
-      select id from identity.roles
-      where code='association_admin' and tenant_id is null and is_system
-    ) where id=$1`, [ids.membershipId]);
+  // Keep the AP10 base persona unchanged. Communications authority must come
+  // only from the explicit Workspace role assignment below, so an assignment
+  // for a different unit cannot be masked by a broad system-role permission.
   await pool.query(`insert into platform.workspace_entitlements(
       customer_workspace_id,entitlement_key,value_type,boolean_value,valid_from
     ) values($1,'module.communications','boolean',true,statement_timestamp()-interval '1 second')`,
   [ids.workspaceIds[0]]);
-  await pool.query(`insert into communications.private_conversations(
-      id,tenant_id,unit_id,created_by,client_request_id
-    ) values($1,$2,$3,$4,$5)`,
-  [conversationId, ids.tenantId, ids.unitIds[0], ids.membershipId, randomUUID()]);
+  await pool.query(`with writer_marker as (
+      select set_config('communications.private_conversation_workspace_writer_v1',
+        jsonb_build_object(
+          'contract_version','communications-private-conversation-workspace.v1',
+          'workspace_id',$3::text,'tenant_id',$2::text,'unit_id',$4::text,
+          'actor_membership_id',$5::text,'client_request_id',$6::text
+        )::text,true)
+    )
+    insert into communications.private_conversations(
+      id,tenant_id,workspace_id,unit_id,created_by,client_request_id)
+    select $1::uuid,$2::uuid,$3::uuid,$4::uuid,$5::uuid,$6::uuid from writer_marker`,
+  [conversationId, ids.tenantId, ids.workspaceIds[0], ids.unitIds[0],
+    ids.membershipId, conversationRequestId]);
   await pool.query(`insert into communications.private_participants(conversation_id,membership_id)
     values($1,$2)`, [conversationId, ids.membershipId]);
   await pool.query(`insert into communications.private_messages(
@@ -227,6 +233,16 @@ try {
       communicationsRoleId, ids.propertyIds[0], ids.buildingIds[0], ids.unitIds[unitIndex], actor,
     ]);
   };
+  const assignCommunicationsWorkspace = async assignmentId => {
+    await pool.query(`insert into platform.workspace_member_roles(
+        id,tenant_id,customer_workspace_id,membership_id,workspace_role_id,
+        scope_type,assigned_by_user_id,assigned_by_membership_id,reason,valid_from
+      ) values($1,$2,$3,$4,$5,'workspace',$6,$4,
+        'Communications provider exact Workspace fixture',statement_timestamp()-interval '1 second')`, [
+      assignmentId, ids.tenantId, ids.workspaceIds[0], ids.membershipId,
+      communicationsRoleId, actor,
+    ]);
+  };
 
   await check('base role and native Workspace without Communications module/permission deny with zero durable effects', async () => {
     const unscoped = await command();
@@ -242,7 +258,7 @@ try {
 
   await installCommunicationsRole();
   await assignCommunicationsUnit(outsideScopeAssignmentId, 1);
-  await check('Communications assignment outside the message unit denies with zero durable effects', async () => {
+  await check('unit-scoped Communications assignment is insufficient for the Workspace gate', async () => {
     const outsideScope = await command();
     const before = await effects();
     const beforeMutations = mutations;
@@ -254,7 +270,7 @@ try {
     assert.deepEqual(await effects(), before);
   });
 
-  await assignCommunicationsUnit(exactScopeAssignmentId, 0);
+  await assignCommunicationsWorkspace(exactScopeAssignmentId);
 
   await check('stale subject is bounded after current authority with zero durable effects', async () => {
     const stale = await command({ subjectVersion: 2 });

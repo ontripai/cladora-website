@@ -38,12 +38,13 @@ assert.match(migration,
   /revoke all on function documents\.require_workspace_bound_document_insert_v1\(\)[^]*from public, anon, authenticated, service_role/i);
 assert.doesNotMatch(migration, /\b(?:grant|update\s+documents\.documents|alter\s+column\s+workspace_id\s+set\s+default|backfill)\b/i);
 
-const markerAt = writer.indexOf("set_config('documents.workspace_binding_writer_v1'");
+const markerAt = writer.indexOf("set_config('documents.canonical_storage_identity_v1'");
 const consumeAt = writer.indexOf('update documents.upload_intents', markerAt);
 const documentAt = writer.indexOf('insert into documents.documents', markerAt);
 assert.ok(markerAt > 0 && consumeAt > markerAt && documentAt > consumeAt);
 for (const binding of ['intent_id', 'document_id', 'version_id', 'workspace_id', 'actor_id',
-  'bucket_id', 'object_path', 'sha256', 'size_bytes', 'detected_mime_type', 'non_overwritable']) {
+  'bucket_id', 'object_path', 'storage_object_id', 'generation_capability',
+  'etag_capability', 'sha256', 'size_bytes', 'detected_mime_type', 'non_overwritable']) {
   assert.match(writer.slice(markerAt, consumeAt), new RegExp(`\\b${binding}\\b`));
 }
 
@@ -69,8 +70,10 @@ assert.deepEqual(srcInsertOwners, [writerPath]);
 
 const intentRoute = read('src/app/api/customer/v1/documents/upload-intent/route.ts');
 const finalizeRoute = read('src/app/api/customer/v1/documents/upload/route.ts');
-assert.match(intentRoute, /rpc\("create_upload_intent_v1"/);
-assert.match(finalizeRoute, /rpc\("finalize_upload_v1"/);
+assert.match(intentRoute, /CANONICAL_DOCUMENT_WRITER_UNAVAILABLE/);
+assert.match(finalizeRoute, /CANONICAL_DOCUMENT_WRITER_UNAVAILABLE/);
+assert.doesNotMatch(intentRoute, /create_upload_intent_v1|\.rpc\(/);
+assert.doesNotMatch(finalizeRoute, /finalize_upload_v1|\.rpc\(|\.upload\(/);
 assert.match(read('supabase/migrations/20260909133706_secure_documents_evidence_vault.sql'),
   /create or replace function customer_api\.finalize_upload_v1[^]*return documents\.finalize_upload_internal/i);
 assert.match(read('supabase/migrations/20260927211340_scoped_company_contractor_document_upload.sql'),

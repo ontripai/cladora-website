@@ -164,7 +164,8 @@ await check('exact Request and message bindings reach the private gate', async (
   await resolveCommunicationsPrivateMessageRequestAudienceV1(scope, profile, authority());
   assert.equal(calls.length, 2);
   assert.ok(calls.every(call => /^select\s/i.test(call.text)));
-  assert.match(calls[1].text, /resolve_private_message_request_audience_v1/);
+  assert.match(calls[1].text, /resolve_private_message_request_audience_current_v2/);
+  assert.doesNotMatch(calls[1].text, /resolve_private_message_request_audience_v1/);
   assert.deepEqual(calls[1].values, [id(7), workspaceId, actorId, messageId, 3, requestId, 5]);
 });
 
@@ -256,20 +257,12 @@ await check('evidence and SQL output disclose no message body or audience identi
 
 await check('SQL consumes canonical owners and has no fallback allow or durable write', async () => {
   const sql = readFileSync(new URL(
-    '../supabase/migrations/20261013150000_communications_private_message_request_audience_gate_v1.sql',
+    '../supabase/migrations/20261018153000_communications_private_message_currentness_gate_v2.sql',
     import.meta.url,
   ), 'utf8');
-  assert.match(sql, /service_request_subject_context_v1/);
-  assert.match(sql, /service_catalog\.requests/);
-  assert.match(sql, /service_catalog\.offerings/);
-  assert.match(sql, /identity\.membership_parties/);
-  assert.match(sql, /maintenance\.vendor_portal_memberships/);
-  assert.match(sql, /resolve_private_message_subject_v1/);
-  assert.match(sql, /resolution_count=1/);
-  assert.match(sql, /v_present_party_count<>v_required_party_count/);
-  assert.match(sql, /v_beneficiary_party_id=v_provider_party_id then 1 else 2/);
-  assert.match(sql, /p\.revoked_at is null/);
-  assert.match(sql, /m\.status='active'/);
+  assert.match(sql, /resolve_private_message_currentness_v2/);
+  assert.match(sql, /resolve_private_message_request_audience_v1/);
+  assert.match(sql, /c\.workspace_id=p_workspace_id/);
   assert.doesNotMatch(sql, /\b(insert|update|delete)\s+(into|communications|service_catalog|identity|maintenance|platform|audit)\b/i);
   assert.doesNotMatch(sql, /grant\s+execute/i);
   assert.doesNotMatch(sql, /association_admin|property_manager|role_code/i);
