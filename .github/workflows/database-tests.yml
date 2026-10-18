@@ -282,7 +282,7 @@ jobs:
         env:
           CLADORA_LOCAL_STEP_SU_02_AUTHORIZED: "1"
       - name: Run pgTAP database tests
-        run: supabase test db
+        run: supabase test db --db-url postgresql://supabase_admin:postgres@127.0.0.1:54322/postgres
       - name: Setup Node.js for real concurrency tests
         uses: actions/setup-node@v4
         with:
