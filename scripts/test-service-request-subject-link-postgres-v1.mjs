@@ -54,7 +54,18 @@ const {
   createServiceSubjectLinkCoreProvidersV1,
 } = load(new URL('../src/lib/customer/service-request-subject-link-v1.ts', import.meta.url));
 
+let poolCleanupStarted = false;
 const pool = new pg.Pool({ connectionString: target.toString(), max: 20 });
+pool.on('error', error => {
+  // The Core host deliberately destroys connections after uncertain/committed
+  // outcomes. A destroyed socket can finish closing after Pool.end() resolves;
+  // DROP DATABASE ... WITH (FORCE) then reports 57P01 on that already-retired
+  // idle client. It is expected only while tearing down this disposable DB.
+  if (poolCleanupStarted && error?.code === '57P01') return;
+  const code = typeof error?.code === 'string' ? error.code : 'NO_SQLSTATE';
+  console.error(`::error title=SERVICE subject-link PostgreSQL pool::${escape(`${activeCheck}: ${code}: ${error.message}`)}`);
+  process.exitCode = 1;
+});
 const host = createCorePostgresTransactionHostV1(pool);
 const id = () => randomUUID();
 const actor = id();
@@ -899,6 +910,7 @@ try {
 
   console.log(`SERVICE subject link through Core TX host: ${passed}/${passed} PASS`);
 } finally {
+  poolCleanupStarted = true;
   await pool.end();
   if (adminPool && isolatedDatabaseName) {
     await adminPool.query(`drop database "${isolatedDatabaseName}" with (force)`);

@@ -161,7 +161,17 @@ const syntheticAuth = () => {
 const primaryAuth = realAuthAvailable ? await createActualAal2Session('primary') : syntheticAuth();
 const secondaryAuth = realAuthAvailable ? await createActualAal2Session('secondary') : syntheticAuth();
 
+let poolCleanupStarted = false;
 const pool = new pg.Pool({ connectionString: target.toString(), max: 20 });
+pool.on('error', error => {
+  // Core intentionally destroys connections after committed/uncertain results.
+  // Their sockets may finish closing after Pool.end(); tolerate only the
+  // administrator shutdown emitted while dropping this disposable database.
+  if (poolCleanupStarted && error?.code === '57P01') return;
+  const code = typeof error?.code === 'string' ? error.code : 'NO_SQLSTATE';
+  console.error(`::error title=SERVICE subject-link HTTP PostgreSQL pool::${escape(`${activeCheck}: ${code}: ${error.message}`)}`);
+  process.exitCode = 1;
+});
 const hostSqlErrors = [];
 const tracedHostPool = {
   async connect() {
@@ -1419,6 +1429,7 @@ try {
     production_activation: false,
   }));
 } finally {
+  poolCleanupStarted = true;
   await pool.end();
   if (adminPool && isolatedDatabaseName) {
     await adminPool.query(`drop database "${isolatedDatabaseName}"`);
