@@ -57,10 +57,10 @@ const workspaceA = '30000000-0000-4000-8000-000000000001';
 const workspaceB = '30000000-0000-4000-8000-000000000002';
 
 const adminConnection = new URL(connectionString);
-// supabase_admin is deliberately NOLOGIN. Connect through the disposable
-// postgres fixture and assume the fixed administrator role at startup without
-// creating a credential or weakening the production role contract.
-adminConnection.searchParams.set('options', '-c role=supabase_admin');
+// Connect directly as the built-in disposable Supabase operator. STEP-SU-02
+// deliberately removes every indirect membership path from postgres, and this
+// test neither creates a credential nor weakens the production role contract.
+adminConnection.username = 'supabase_admin';
 const runtimeConnection = new URL(connectionString);
 // The local trust-only fixture can authenticate the fixed LOGIN runtime role
 // without manufacturing a password. Its session_user therefore matches the
