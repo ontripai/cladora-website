@@ -55,7 +55,7 @@ assert.match(migration, /owner to cladora_service_subject_link_owner/g);
 assert.match(migration, /provider_current_state_required|current-state|current state/i);
 assert.match(migration, /finalize_service_subject_link_role_membership_v1/);
 assert.match(migration, /create table app_private\.service_subject_link_step_su_02_receipt_v1/i);
-assert.match(migration, /service_subject_link_step_su_02_receipt_v1\s+owner to supabase_admin/i);
+assert.doesNotMatch(migration, /service_subject_link_step_su_02_receipt_v1\s+owner to supabase_admin/i);
 assert.match(migration, /current_user<>'supabase_admin'/i);
 assert.match(migration, /insert into app_private\.service_subject_link_step_su_02_receipt_v1/i);
 assert.match(migration, /grant execute on function app_private\.finalize_service_subject_link_role_membership_v1\(\)\s+to supabase_admin/i);
@@ -70,7 +70,7 @@ assert.match(s4Migration, /revoke all privileges on table\s+communications\.priv
 assert.doesNotMatch(s4Migration, /\b(?:grant|alter\s+owner|create\s+(?:role|policy)|drop\s+policy|cascade)\b/i);
 assert.match(stagedLocalReplay, /CLADORA_LOCAL_STEP_SU_02_AUTHORIZED/);
 assert.match(stagedLocalReplay, /service_subject_link_step_su_02_receipt_missing_or_untrusted/);
-assert.match(stagedLocalReplay, /set session authorization supabase_admin; select app_private\.finalize_service_subject_link_role_membership_v1\(\)/i);
+assert.match(stagedLocalReplay, /set session authorization supabase_admin; alter table app_private\.service_subject_link_step_su_02_receipt_v1 owner to supabase_admin; select app_private\.finalize_service_subject_link_role_membership_v1\(\)/i);
 assert.match(stagedLocalReplay, /supabase migration up --local/);
 assert.doesNotMatch(stagedLocalReplay, /\bsupabase\s+(?:link|db\s+push|functions\s+deploy)\b/i);
 for (const workflow of [databaseWorkflow, ceWorkflow]) {

@@ -70,8 +70,8 @@ create table app_private.service_subject_link_step_su_02_receipt_v1 (
     check(role_graph_fingerprint=
       'executor>runtime|admin=false|inherit=false|set=true')
 );
-alter table app_private.service_subject_link_step_su_02_receipt_v1
-  owner to supabase_admin;
+-- Ownership is transferred to supabase_admin by the separately authorized
+-- STEP-SU-02 operation. The migration runner cannot SET ROLE supabase_admin.
 revoke all on table app_private.service_subject_link_step_su_02_receipt_v1
   from public,anon,authenticated,service_role,
     cladora_service_subject_link_runtime,
