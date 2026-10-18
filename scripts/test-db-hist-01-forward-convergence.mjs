@@ -18,8 +18,8 @@ const baseline = migrations.filter((name) => name.slice(0, 14) <= '2026100711221
 assert.equal(baseline.length, 238, 'forward baseline must contain 238 migrations');
 const baselineManifest = baseline.map((name) => `${name} ${hash(readFileSync(join(migrationsDir, name)))}\n`).join('');
 assert.equal(hash(baselineManifest), 'b66e6fd930fb358e5f5e0fcf21c51020f503a56a250471046c633cba4a709185', 'all 238 baseline migration names and bytes stay immutable');
-assert.equal(migrations.filter(name => name.slice(0, 14) <= '20261012190924').length, 247,
-  'forward baseline plus Artifact A and authority revision must contain exactly 247 migrations; later additive packages are independent');
+assert.equal(migrations.filter(name => name.slice(0, 14) <= '20261012190924').length, 251,
+  'forward baseline, four recovered PM ledger migrations, Artifact A and authority revision must contain exactly 251 migrations; later additive packages are independent');
 assert.equal(migrations.filter(name => name === '20261013062342_service_request_subject_context_v1.sql').length, 1, 'SERVICE subject-context migration occurs once');
 assert.equal(migrations.filter((name) => name === candidateName).length, 1, 'forward migration must occur once');
 

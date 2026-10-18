@@ -17,7 +17,7 @@ const core = readFileSync('src/lib/core/platform-role-bound-pool-v1.ts', 'utf8')
 const handler = readFileSync('src/lib/customer/service-request-subject-link-http-v1.ts', 'utf8');
 const migrations = readdirSync('supabase/migrations').filter(name => name.endsWith('.sql')).sort();
 
-assert.equal(migrations.length, 274);
+assert.equal(migrations.length, 278);
 assert.equal(migrations.at(-2), migrationName);
 assert.equal(migrations.at(-1), '20261018170000_communications_service_role_acl_shutdown_v1.sql');
 assert.match(core, /createCorePlatformServiceSubjectLinkRoleBoundPoolV1/);

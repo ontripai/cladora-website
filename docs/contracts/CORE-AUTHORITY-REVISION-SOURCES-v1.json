@@ -44,9 +44,9 @@
   ],
   "evaluator_definition_sha256": "ebaa8d3d23d29bfb71bc9dc6f735d07c128b3e05c5cb206f97bbdd66dc98ed47",
   "baseline_migrations": {
-    "count": 246,
+    "count": 250,
     "last_version": "20261009121000",
-    "sha256": "d96dca276012d121c211b8ebb90c3053171dd2c02a92846d04cf911058cbf72f"
+    "sha256": "574587df21343fcaa713c155de3e8d224e401a2c5c353842c7c6c7e1abaa9a4a"
   },
   "original_baseline_migrations": {
     "count": 238,

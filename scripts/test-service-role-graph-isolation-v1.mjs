@@ -20,7 +20,7 @@ const s4 = readFileSync(new URL(`../supabase/migrations/${s4Name}`, import.meta.
 const migrations = readdirSync(new URL('../supabase/migrations', import.meta.url))
   .filter(name => name.endsWith('.sql')).sort();
 
-assert.equal(migrations.length, 274);
+assert.equal(migrations.length, 278);
 assert.deepEqual(migrations.slice(-2), [s3Name, s4Name]);
 assert.match(s3, /create function app_private\.core_platform_service_subject_link_role_safety_valid_v1\(\)/i);
 assert.match(s3, /create table app_private\.service_subject_link_step_su_02_receipt_v1/i);

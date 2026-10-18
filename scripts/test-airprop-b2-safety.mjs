@@ -25,8 +25,10 @@ const migrationVersion = path => {
 };
 const migrationResult = validateProtectedDirectory({
   directory: 'supabase/migrations',
-  expectedProtectedCount: 247,
-  expectedProtectedDigest: '3cd04c33b66896f2dc6b0f5b86e901d8184931b8afb09526f9d7918d74d6a018',
+  // Includes the four byte-exact PM control-plane migrations recovered from
+  // the applied Production ledger on 2026-10-18.
+  expectedProtectedCount: 251,
+  expectedProtectedDigest: '11b52ba4747d2fdf2e46b55e7fd9af3e69330b2d82cbadf2e89f0d161762d6ff',
   isProtected: path => migrationVersion(path) <= migrationCutoff,
   reviewedAdditions: {
     '20261013062342_service_request_subject_context_v1.sql': {
