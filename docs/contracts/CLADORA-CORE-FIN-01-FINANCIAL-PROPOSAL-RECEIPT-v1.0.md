@@ -4,7 +4,7 @@
 
 **Owner:** Core Finance owns posting, invoice/receivable/payment/payable references, reversals and financial authority. Domain owners may propose source-linked financial work but do not post journals directly.
 
-**Delivery boundary:** additive TypeScript contracts and static gateway mapping only. No migration, endpoint, journal, backfill, central manifest rewrite or Production effect.
+**Delivery boundary:** the first runtime adapter projects an existing published SERVICE quote through the existing bounded quote API and UI. It adds no Finance table, journal, approval, Order, backfill, central manifest rewrite or Production effect.
 
 ## Existing sources reused
 
@@ -35,7 +35,13 @@ The Finance gateway must independently verify:
 
 Within one transaction the accepted gateway records or replays the Finance-owned artifacts, receipt, audit and existing outbox evidence. Domain consumers cannot insert or update `finance.journals` or `finance.journal_entries`, select accounts, mark a journal posted, mutate invoice/payment state, or bypass closed-period/reversal rules.
 
-## Existing evidence and future runtime gate
+## First runtime consumer and remaining posting gate
+
+`customer_api.read_service_quote_publications_v1` is the first real consumer. For a publication already disclosed by the existing SERVICE authority gateway, it returns a `financial-proposal-posting-receipt.v1` proposal whose ID/version/source/payer and amount are derived server-side from the quote and beneficiary. Drafts expose no proposal. Current publications remain `pending`; expired or superseded publications become `expired`. The SERVICE quote screen renders this state explicitly.
+
+This is deliberately not quote acceptance. The current SERVICE acceptance package has no runtime Order/acceptance record, so FIN-01 does not invent one and never marks the payer approved. `posting_authorization` remains `not_evaluated`, the adapter has no ledger access, and OPS-01 continues withholding proposal-backed execution until a genuine approved proposal/posting receipt exists.
+
+## Existing evidence and future posting gate
 
 Repository evidence already covers ledger balance/immutability, charge allocation, close reporting, canonical monthly cycle, maintenance payable authority, payment reconciliation, cash discipline, idempotency and concurrent posting behavior. Relevant sources include:
 
@@ -46,6 +52,6 @@ Repository evidence already covers ledger balance/immutability, charge allocatio
 - `scripts/test-financial-close-concurrency.mjs`;
 - `scripts/test-cash-discipline-concurrency.mjs`.
 
-This slice does not claim a new database run. A future adapter requires a selected first consumer and disposable tests for closed periods, currency/amount mismatch, payer denial, source-version conflict, idempotent replay, concurrent posting, reversal parity and proof that the domain role has zero direct journal mutation privilege.
+The projection slice has disposable pgTAP, API-boundary, TypeScript and UI-consumer evidence. A future posting adapter still requires disposable tests for closed periods, currency/amount mismatch, payer denial, source-version conflict, idempotent replay, concurrent posting, reversal parity and proof that the domain role has zero direct journal mutation privilege.
 
 CI success is evidence, not acceptance, merge authorization, remote migration authorization or Production release. Documentation & PM owns the central manifest and final acceptance; this branch does not modify either.
