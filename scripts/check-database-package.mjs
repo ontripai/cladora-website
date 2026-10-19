@@ -36,7 +36,7 @@ let assertionTotal = 0;
 for (const name of tests) {
   const sql = readFileSync(join(testsDir, name), "utf8");
   const plan = Number(sql.match(/select\s+plan\((\d+)\)/i)?.[1] ?? -1);
-  const directAssertions = (sql.match(/^select\s+(?:has_schema|has_table|has_function|has_trigger|ok\(|is\(|isnt\(|cmp_ok\(|lives_ok\(|throws_like\(|throws_ok\()/gim) ?? []).length;
+  const directAssertions = (sql.match(/^select\s+(?:has_schema|has_table|has_function|has_trigger|ok\(|is\(|isnt\(|alike\(|unalike\(|cmp_ok\(|lives_ok\(|throws_like\(|throws_ok\()/gim) ?? []).length;
   const skippedAssertions = [...sql.matchAll(/select\s+\*\s+from\s+skip\(\s*'(?:''|[^'])*'\s*,\s*(\d+)\s*\)/gim)]
     .reduce((total, match) => total + Number(match[1]), 0);
   const assertions = directAssertions + skippedAssertions;
