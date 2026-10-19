@@ -20,15 +20,28 @@ s4_name="20261018170000_communications_service_role_acl_shutdown_v1.sql"
 s4_path="$repository_root/supabase/migrations/$s4_name"
 hold_directory="$(mktemp -d)"
 held_s4="$hold_directory/$s4_name"
+supabase_output="$hold_directory/supabase-cli.log"
 database_container="supabase_db_cladora-local"
 
 restore_s4() {
   if [[ -f "$held_s4" ]]; then
     mv "$held_s4" "$s4_path"
   fi
+  rm -f "$supabase_output"
   rmdir "$hold_directory" 2>/dev/null || true
 }
 trap restore_s4 EXIT INT TERM
+
+run_supabase_silently() {
+  local operation="$1"
+  shift
+  if "$@" >"$supabase_output" 2>&1; then
+    echo "$operation: PASS (credential-bearing CLI output withheld)"
+  else
+    echo "$operation failed; CLI output withheld to prevent credential disclosure." >&2
+    return 1
+  fi
+}
 
 if [[ ! -f "$s4_path" ]]; then
   echo "S4 migration is missing: $s4_path" >&2
@@ -38,9 +51,9 @@ fi
 mv "$s4_path" "$held_s4"
 cd "$repository_root"
 if [[ "$mode" == "start" ]]; then
-  supabase start
+  run_supabase_silently "Supabase local start" supabase start
 else
-  supabase db reset
+  run_supabase_silently "Supabase local reset" supabase db reset
 fi
 
 if ! docker inspect "$database_container" >/dev/null 2>&1; then

@@ -73,6 +73,9 @@ assert.match(s4Migration, /revoke all privileges on table\s+communications\.priv
 assert.doesNotMatch(s4Migration, /\b(?:grant|alter\s+owner|create\s+(?:role|policy)|drop\s+policy|cascade)\b/i);
 assert.match(stagedLocalReplay, /CLADORA_LOCAL_STEP_SU_02_AUTHORIZED/);
 assert.match(stagedLocalReplay, /service_subject_link_step_su_02_receipt_missing_or_untrusted/);
+assert.match(stagedLocalReplay, /run_supabase_silently "Supabase local start" supabase start/);
+assert.match(stagedLocalReplay, /"\$@" >"\$supabase_output" 2>&1/);
+assert.doesNotMatch(stagedLocalReplay, /^\s*supabase start\s*$/m);
 assert.match(stagedLocalReplay, /psql -U supabase_admin -d postgres/i);
 assert.match(stagedLocalReplay, /docker exec -e PGPASSWORD=postgres/i);
 assert.doesNotMatch(stagedLocalReplay, /PGOPTIONS=/i);
