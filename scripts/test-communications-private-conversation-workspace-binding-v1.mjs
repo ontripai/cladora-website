@@ -19,8 +19,8 @@ assert.doesNotMatch(migration, /resolve_private_message_subject_v1/);
 assert.doesNotMatch(migration, /resolve_private_message_request_audience_v1/);
 assert.doesNotMatch(migration,
   /^\s*revoke\s+(?:all|select|insert|update|delete).*\s+on\s+(?:table\s+)?communications\.private_/im);
-assert.match(route, /CANONICAL_PRIVATE_CONVERSATION_WRITER_UNAVAILABLE/);
-assert.doesNotMatch(route, /create_private_conversation_v1/);
+assert.doesNotMatch(route, /CANONICAL_PRIVATE_CONVERSATION_WRITER_UNAVAILABLE/);
+assert.match(route, /create_private_conversation_v2/);
 
 for (const fixturePath of [
   'scripts/test-service-request-subject-link-postgres-v1.mjs',
