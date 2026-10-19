@@ -7,6 +7,7 @@ import { ownerLabel } from '@/lib/owner-portfolio/labels';
 import { OwnerOverviewPanel } from './OwnerOverviewPanel';
 import { SignOutButton } from '@/components/auth/SignOutButton';
 import type { Language } from '@/types';
+import type { OwnerPortfolioProjectionV1 } from '@/lib/core/owner-portfolio-projection-v1';
 
 type Unit = { id: string; building_label: string; unit_label: string; address_text: string; usage_kind: string };
 type Lease = { id: string; tenant_label: string; starts_on: string; ends_on: string | null; monthly_rent: number; currency: string; status: string };
@@ -40,6 +41,8 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
   const [loadedCharges, setLoadedCharges] = useState<{ unitId: string; links: UnitLink[]; data: OfficialCharge[] } | null>(null);
   const [year, setYear] = useState(new Date().getFullYear());
   const [loadedAnnual, setLoadedAnnual] = useState<{ year: number; data: AnnualGroup[] } | null>(null);
+  const [officialProjections, setOfficialProjections] = useState<OwnerPortfolioProjectionV1[] | null>(null);
+  const [projectionFailed, setProjectionFailed] = useState(false);
   // Only display detail records belonging to the current selection. A failed or
   // delayed request must never leave the previous unit's finances on screen.
   const detailsReady = loadedView?.unitId === selected && loadedView?.offset === offset && loadedView?.detailsOffset === detailsOffset;
@@ -65,6 +68,17 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
     if (!response.ok) throw new Error('READ_FAILED');
     setLoadedView({ unitId: selected, offset, detailsOffset, data: await response.json() as View });
   }, [offset, selected, detailsOffset,fetch]);
+  useEffect(() => {
+    let active = true;
+    void fetch(`${endpoint}/projection`, { credentials: 'same-origin', cache: 'no-store' })
+      .then(async response => {
+        if (!response.ok) throw new Error('PROJECTION_READ_FAILED');
+        return await response.json() as { projections: OwnerPortfolioProjectionV1[] };
+      })
+      .then(data => { if (active) setOfficialProjections(data.projections); })
+      .catch(() => { if (active) { setOfficialProjections([]); setProjectionFailed(true); } });
+    return () => { active = false; };
+  }, [fetch]);
   useEffect(() => {
     let active = true;
     void fetch(`${endpoint}/links`, { credentials: 'same-origin', cache: 'no-store' })
@@ -147,6 +161,29 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
   return <main dir={lang === 'fa' ? 'rtl' : 'ltr'} className="mx-auto max-w-5xl space-y-6 p-6 text-slate-900">
     <header><div className="mb-4 flex flex-wrap items-center justify-between gap-3"><Link href={`/${lang}/account?choose=1`} className="text-sm text-teal-800 underline">{lang === 'fa' ? 'انتخاب محیط کار' : lang === 'ro' ? 'Schimbă spațiul' : 'Switch workspace'}</Link><div className="flex items-center gap-3">{!preview&&<Link href={`/${lang}/profile`} className="text-sm font-semibold text-teal-800 underline">{lang === 'fa' ? 'پروفایل من' : lang === 'ro' ? 'Profilul meu' : 'My profile'}</Link>}{(['ro','en','fa'] as const).map(locale=><Link key={locale} href={`/${locale}/owner-portfolio`} hrefLang={locale} className="text-sm underline">{locale==='fa'?'فارسی':locale==='ro'?'Română':'English'}</Link>)}{!preview&&<SignOutButton lang={lang}/>}</div></div><Link href={`/${lang}/cases`} className="text-sm text-teal-800">{t.return}</Link><h1 className="mt-3 text-2xl font-bold">{t.title}</h1><p className="mt-2 text-sm text-slate-600">{t.private}</p></header>
     <OwnerOverviewPanel lang={lang} revision={loadedView} onChange={() => setReload(value => value + 1)} />
+    <section className="space-y-3 rounded-xl border border-sky-200 bg-sky-50 p-5">
+      <h2 className="font-bold">{lang === 'fa' ? 'دفتر رسمی واحدها' : lang === 'ro' ? 'Registrul oficial al unităților' : 'Official unit records'}</h2>
+      <p className="text-sm text-slate-600">{lang === 'fa' ? 'این نمایش خواندنی از ورک‌اسپیس‌های رسمی است و با قراردادها و جریان مالی خصوصی بالا ادغام نمی‌شود.' : lang === 'ro' ? 'Această proiecție doar în citire provine din spațiile oficiale și nu se combină cu registrul privat.' : 'This read-only projection comes from official Workspaces and is never combined with the private lease or cash book.'}</p>
+      {officialProjections === null && <p role="status" className="text-sm text-slate-500">{lang === 'fa' ? 'در حال بررسی اختیار جاری…' : lang === 'ro' ? 'Se verifică autoritatea curentă…' : 'Checking current authority…'}</p>}
+      {projectionFailed && <p className="text-sm text-slate-500">{lang === 'fa' ? 'نمایش رسمی در دسترس نیست؛ دفتر خصوصی بدون تغییر باقی مانده است.' : lang === 'ro' ? 'Proiecția oficială nu este disponibilă; registrul privat rămâne neschimbat.' : 'The official projection is unavailable; the private book remains unchanged.'}</p>}
+      {officialProjections?.length === 0 && !projectionFailed && <p className="text-sm text-slate-500">{lang === 'fa' ? 'واحد رسمی قابل افشایی وجود ندارد.' : lang === 'ro' ? 'Nu există unități oficiale care pot fi dezvăluite.' : 'No official units are currently disclosable.'}</p>}
+      {officialProjections?.map(projection => projection.projection_status === 'available' && <article key={projection.portfolio_workspace_id} className="space-y-3 rounded-lg border bg-white p-4">
+        <h3 className="font-semibold">Workspace · <bdi>{projection.portfolio_workspace_id}</bdi></h3>
+        <ul className="space-y-3">{projection.items.map(item => item.resource.item_kind === 'canonical_resource' && <li key={`${item.resource.relationship.relationship_id}:${item.resource.canonical_reference.resource_id}`} className="rounded border p-3 text-sm">
+          <strong>{item.resource.canonical_reference.display_name ?? item.resource.canonical_reference.resource_id}</strong>
+          <dl className="mt-2 grid gap-1 text-slate-600 sm:grid-cols-2">
+            <div><dt className="inline font-medium">{lang === 'fa' ? 'رابطه' : lang === 'ro' ? 'Relație' : 'Relationship'}: </dt><dd className="inline">{item.resource.relationship.relationship_kind}</dd></div>
+            <div><dt className="inline font-medium">{lang === 'fa' ? 'منبع' : lang === 'ro' ? 'Sursă' : 'Source'}: </dt><dd className="inline"><bdi>{item.resource.source.source_reference}</bdi></dd></div>
+            <div><dt className="inline font-medium">{lang === 'fa' ? 'نسخه' : lang === 'ro' ? 'Versiune' : 'Version'}: </dt><dd className="inline">{item.resource.canonical_reference.resource_version} / {item.resource.relationship.relationship_version}</dd></div>
+            <div><dt className="inline font-medium">{lang === 'fa' ? 'افشا' : lang === 'ro' ? 'Dezvăluire' : 'Disclosure'}: </dt><dd className="inline">{item.resource.canonical_reference.reference_status}</dd></div>
+            <div className="sm:col-span-2"><dt className="inline font-medium">{lang === 'fa' ? 'اعتبار' : lang === 'ro' ? 'Valabilitate' : 'Validity'}: </dt><dd className="inline"><bdi>{item.resource.relationship.valid_from} — {item.resource.relationship.valid_until ?? '∞'}</bdi></dd></div>
+          </dl>
+          <div className="mt-3">{item.actions.map((action, index) => action.action_status === 'allowed'
+            ? <Link key={action.action_code} href={`/${lang}${action.href}`} className="text-teal-800 underline">{lang === 'fa' ? 'مشاهدهٔ خدمات ورک‌اسپیس' : lang === 'ro' ? 'Vezi serviciile spațiului' : 'View Workspace services'}</Link>
+            : <span key={`${action.action_status}-${index}`} className="text-slate-500">{lang === 'fa' ? 'پیوند اقدام محفوظ است' : lang === 'ro' ? 'Legătura de acțiune este ascunsă' : 'Action link withheld'}</span>)}</div>
+        </li>)}</ul>
+      </article>)}
+    </section>
     {error && <p role="alert" className="rounded bg-rose-50 p-3 text-rose-800">{error}</p>}
     <form onSubmit={event => void submit(event,'unit')} className="grid gap-3 rounded-xl border bg-white p-5 sm:grid-cols-2">
       <label>{t.building}<input required name="building_label" minLength={2} maxLength={160} className="mt-1 w-full rounded border p-2" /></label>
