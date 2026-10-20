@@ -19,8 +19,8 @@ import {
 export const SUITE = 'CE-AIRPROP-LOCAL-BROWSER-DISCOVERY-DENIAL-01';
 export const executeVerifiedDenial = (options, consume) => withVerifiedPf01LocalTarget(options, consume);
 const UI = {
-  ro: { title: 'Workspace AIRPROP', choose: 'Alege workspace-ul', context: 'Context activ' },
-  en: { title: 'AIRPROP workspace', choose: 'Choose workspace', context: 'Active context' },
+  ro: { title: 'Workspace AIRPROP', choose: 'Selectează workspace-ul', context: 'Context activ' },
+  en: { title: 'AIRPROP workspace', choose: 'Select workspace', context: 'Active context' },
   fa: { title: 'ورک‌اسپیس AIRPROP', choose: 'انتخاب ورک‌اسپیس', context: 'زمینه فعال' },
 };
 
