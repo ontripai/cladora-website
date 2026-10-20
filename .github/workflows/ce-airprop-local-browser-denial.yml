@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/ce-airprop-local-browser-denial.yml'
       - 'scripts/test-ce-airprop-local-browser-denial*.mjs'
+      - 'scripts/lib/ce-airprop-local-browser-fixture.mjs'
       - 'scripts/test-pf01-owner-portfolio-local-browser.mjs'
       - 'scripts/test-pf01-owner-portfolio-local-http.mjs'
       - 'scripts/lib/pf01-owner-portfolio-local-fixture.mjs'
@@ -76,6 +77,7 @@ jobs:
           npx --no-install eslint --max-warnings=0
           scripts/test-ce-airprop-local-browser-denial.mjs
           scripts/test-ce-airprop-local-browser-denial-safety.mjs
+          scripts/lib/ce-airprop-local-browser-fixture.mjs
       - name: Type-check repository contracts
         run: npm run typecheck
       - name: Validate patch whitespace

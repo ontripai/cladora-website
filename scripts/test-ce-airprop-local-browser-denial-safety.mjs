@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { EventEmitter } from 'node:events';
 import { chromium } from '@playwright/test';
-import { browserInputs, browserContextOptions, configureBrowserContext, closeBrowserResources } from './test-pf01-owner-portfolio-local-browser.mjs';
+import { browserInputs, browserContextOptions, configureBrowserContext } from './test-pf01-owner-portfolio-local-browser.mjs';
+import { bounded, launchOwnedCeBrowser, closeOwnedCeBrowser, observeCeRequests } from './lib/ce-airprop-local-browser-fixture.mjs';
 import { executeVerifiedDenial, sessionCookies, requireError } from './test-ce-airprop-local-browser-denial.mjs';
 
 const APP = 'http://127.0.0.1:41793'; const API = 'http://127.0.0.1:54321';
@@ -73,19 +75,111 @@ requireError({ status: 403, body: { error: { code: 'AIRPROP_ACCESS_DENIED' } } }
 const source = await readFile(new URL('./test-ce-airprop-local-browser-denial.mjs', import.meta.url), 'utf8');
 for (const forbidden of ['route.fulfill(', '.storageState(', '.screenshot(', '.tracing.', 'recordVideo:', 'recordHar:', 'page.setContent(']) assert.equal(source.includes(forbidden), false);
 checks += 1;
-let cleanup = 'NOT_RUN_NOT_PASS';
+// Deterministic lifecycle controls: never treat stale/aborted headers as denial.
+function fakeRequest(workspace = 'selected-workspace') {
+  return { url: () => `${APP}/api/customer/v2/airprop/opportunities?context_id=selected-context&workspace_id=${workspace}`,
+    method: () => 'GET', failure: () => ({ errorText: 'net::ERR_ABORTED' }) };
+}
+function fakeResponse(request, body) { return { request: () => request, status: () => 403, body }; }
+{
+  const context = new EventEmitter(); const events = [];
+  const observer = observeCeRequests(context, APP, event => events.push(event), { bodyMs: 20 });
+  const stale = fakeRequest(); let staleReads = 0;
+  context.emit('request', stale);
+  context.emit('response', fakeResponse(stale, async () => { staleReads += 1; return Buffer.from('{}'); }));
+  context.emit('requestfailed', stale);
+  const current = fakeRequest(); context.emit('request', current);
+  context.emit('response', fakeResponse(current, async () => Buffer.from(JSON.stringify({ error: { code: 'AIRPROP_ACCESS_DENIED' } }))));
+  context.emit('requestfinished', current);
+  const result = await observer.selected({ after: 0, endpoint: 'opportunity', contextId: 'selected-context', workspaceId: 'selected-workspace', ms: 50 });
+  requireError(result, 403, 'AIRPROP_ACCESS_DENIED'); assert.equal(staleReads, 0);
+  assert.equal(JSON.stringify(events).includes('selected-context'), false);
+  assert.equal(JSON.stringify(events).includes('selected-workspace'), false);
+  observer.stop(); await observer.drain();
+  assert.equal(context.eventNames().length, 0); checks += 1;
+}
+{
+  const context = new EventEmitter(); const events = [];
+  const observer = observeCeRequests(context, APP, event => events.push(event), { bodyMs: 20 });
+  const request = fakeRequest(); context.emit('request', request);
+  context.emit('response', fakeResponse(request, async () => Buffer.from('{}')));
+  await assert.rejects(observer.selected({ after: 0, endpoint: 'opportunity', contextId: 'selected-context', workspaceId: 'selected-workspace', ms: 20 }), error => error.stage === 'current_ui_request_completion');
+  assert.ok(events.some(event => event.stage === 'headers_received'));
+  assert.equal(events.some(event => event.stage === 'reader_started'), false);
+  observer.stop(); await observer.drain(); checks += 1;
+}
+{
+  const context = new EventEmitter(); const events = [];
+  let cancelBody;
+  const body = new Promise((_, reject) => { cancelBody = () => reject(new Error('context_closed')); });
+  const observer = observeCeRequests(context, APP, event => events.push(event), { bodyMs: 20 });
+  const request = fakeRequest(); context.emit('request', request);
+  context.emit('response', fakeResponse(request, () => body)); context.emit('requestfinished', request);
+  await assert.rejects(observer.selected({ after: 0, endpoint: 'opportunity', contextId: 'selected-context', workspaceId: 'selected-workspace', ms: 50 }), error => error.stage === 'selected_response_body');
+  assert.ok(events.some(event => event.stage === 'reader_deadline' && event.operation === 'selected_response_body'));
+  observer.stop(); cancelBody(); await observer.drain(); assert.equal(context.eventNames().length, 0); checks += 1;
+}
+{
+  const context = new EventEmitter(); const observer = observeCeRequests(context, APP);
+  const controller = new AbortController();
+  const waiting = observer.selected({ after: 0, endpoint: 'opportunity', contextId: 'selected-context', workspaceId: 'selected-workspace', signal: controller.signal });
+  controller.abort(); await assert.rejects(waiting, error => error.name === 'BrowserProofDeadline');
+  observer.stop(); await observer.drain(); assert.equal(context.eventNames().length, 0); checks += 1;
+}
+{
+  const controller = new AbortController(); let adds = 0; let removes = 0;
+  const add = controller.signal.addEventListener.bind(controller.signal), remove = controller.signal.removeEventListener.bind(controller.signal);
+  controller.signal.addEventListener = (...args) => { adds += 1; return add(...args); };
+  controller.signal.removeEventListener = (...args) => { removes += 1; return remove(...args); };
+  assert.equal(await bounded(async () => 'done', { ms: 20, signal: controller.signal }), 'done');
+  assert.equal(adds, removes); checks += 1;
+}
+{
+  let peerClosed = false; let forced = false; let connected = true;
+  const processHandle = { exitCode: null, signalCode: null };
+  const contexts = new Set([{ close: () => new Promise(() => {}) }, { close: async () => { peerClosed = true; } }]);
+  const owned = { process: processHandle, browser: { close: () => new Promise(() => {}), isConnected: () => connected },
+    server: { close: () => new Promise(() => {}), kill: async () => { forced = true; connected = false; processHandle.signalCode = 'SIGKILL'; } } };
+  const result = await closeOwnedCeBrowser(owned, contexts, { ms: 20 });
+  assert.equal(peerClosed, true); assert.equal(forced, true); assert.equal(contexts.size, 0);
+  assert.equal(result.mode, 'FORCED_OWNED_TERMINATION_VERIFIED');
+  assert.deepEqual(result.errors.sort(), ['CONTEXT_CLOSE_FAILED', 'BROWSER_GRACEFUL_CLOSE_FAILED', 'SERVER_GRACEFUL_CLOSE_FAILED'].sort()); checks += 1;
+}
+let cleanup = 'NOT_RUN_NOT_PASS'; let forcedCleanup = 'NOT_RUN_NOT_PASS';
 if (process.argv.includes('--real-chromium')) {
-  const browser = await chromium.launch({ headless: true }); const contexts = new Set();
+  const owned = await launchOwnedCeBrowser(chromium); const contexts = new Set();
   let injected = false;
   try {
-    const context = await browser.newContext(opts); contexts.add(context); await context.newPage();
+    const context = await owned.browser.newContext(opts); contexts.add(context); await context.newPage();
     throw new Error('redacted-ce-injected-failure');
   } catch (error) { injected = error.message === 'redacted-ce-injected-failure'; }
-  finally { await closeBrowserResources(browser, contexts); }
-  assert.equal(injected, true); assert.equal(contexts.size, 0); assert.equal(browser.isConnected(), false);
-  cleanup = 'PASS_REAL_BROWSER_CONTEXTS_CLOSED'; checks += 1;
+  finally {
+    const result = await closeOwnedCeBrowser(owned, contexts);
+    assert.equal(result.mode, 'GRACEFUL_VERIFIED');
+  }
+  assert.equal(injected, true); assert.equal(contexts.size, 0); assert.equal(owned.browser.isConnected(), false);
+  cleanup = 'PASS_REAL_BROWSER_CONTEXTS_PROCESS_EXIT_VERIFIED'; checks += 1;
+  const forceOwned = await launchOwnedCeBrowser(chromium); const forceContexts = new Set();
+  let peerClosed = false;
+  try {
+    const stuck = await forceOwned.browser.newContext(opts); await stuck.newPage();
+    const peer = await forceOwned.browser.newContext(opts); await peer.newPage();
+    forceContexts.add({ close: () => new Promise(() => {}) });
+    forceContexts.add({ close: async () => { await peer.close(); peerClosed = true; } });
+    const injectedHandles = { process: forceOwned.process,
+      browser: { close: () => new Promise(() => {}), isConnected: () => forceOwned.browser.isConnected() },
+      server: { close: () => new Promise(() => {}), kill: () => forceOwned.server.kill() } };
+    const result = await closeOwnedCeBrowser(injectedHandles, forceContexts, { ms: 500 });
+    assert.equal(result.mode, 'FORCED_OWNED_TERMINATION_VERIFIED'); assert.equal(result.errors.length, 3);
+    assert.equal(result.process_gone, true); assert.equal(peerClosed, true);
+    forcedCleanup = 'PASS_INJECTED_GRACEFUL_FAILURE_FORCE_ONLY_EXACT_OWNED_PROCESS'; checks += 1;
+  } finally {
+    if (forceOwned.process.exitCode === null && forceOwned.process.signalCode === null) await forceOwned.server.kill();
+  }
 }
-console.log(JSON.stringify({ suite: 'CE-AIRPROP-denial-safety', status: 'PASS', checks,
+console.log(JSON.stringify({ suite: 'CORE-CE-AIRPROP-recovery-safety', status: 'PASS', checks,
   rejected_target_fixture_mutations: 0, rejected_target_authenticated_navigation: 0,
-  denial_not_runtime_failure: 'VERIFIED', browser_failure_cleanup: cleanup,
+  lifecycle_deadlines_stale_cancellation_body_and_drain: 'VERIFIED',
+  context_failure_does_not_starve_peers: 'VERIFIED', timers_listeners_removed: 'VERIFIED',
+  denial_not_runtime_failure: 'VERIFIED', browser_failure_cleanup: cleanup, forced_failure_cleanup: forcedCleanup,
   connected_acceptance: 'SEPARATE_REAL_BROWSER_JOB' }, null, 2));
