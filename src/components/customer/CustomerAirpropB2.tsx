@@ -3,6 +3,31 @@ import { useEffect, useState } from 'react';
 import { managementPortfolioResponseV1Schema } from '@/lib/airprop/commercial-lifecycle-v1';
 import { AIRPROP_B2_ID } from '@/lib/airprop/artifact-b2-contract';
 
+/** Consume only this failed read response; never classify its body as authorization. */
+async function consumeFailedRead(response: Response, signal: AbortSignal) {
+ if(signal.aborted){void response.body?.cancel().catch(()=>{});throw new Error('AIRPROP_READ_UNAVAILABLE');}
+ if(!response.body)throw new Error('AIRPROP_READ_UNAVAILABLE');
+ const reader=response.body.getReader();
+ let stop:()=>void=()=>{},complete=false,bytes=0;
+ const interrupted=new Promise<never>((_,reject)=>{stop=()=>reject(new Error('AIRPROP_READ_UNAVAILABLE'));});
+ const timer=setTimeout(stop,1500);
+ signal.addEventListener('abort',stop,{once:true});
+ try{
+  while(true){
+   const {done,value}=await Promise.race([reader.read(),interrupted]);
+   if(done){complete=true;return;}
+   bytes+=value.byteLength;
+   if(bytes>16384)throw new Error('AIRPROP_READ_UNAVAILABLE');
+  }
+ }finally{
+  clearTimeout(timer);signal.removeEventListener('abort',stop);
+  // Do not await cancellation: a broken underlying stream may never settle it.
+  if(!complete)void reader.cancel().catch(()=>{});
+  reader.releaseLock();
+ }
+}
+
+
 const copy = {
   en: { title: 'Managed property portfolio', closed: 'Commercial commands are currently unavailable.', empty: 'No currently authorized managed property.', owner: 'Owner', scope: 'Scope', operations: 'Operations owns execution details.', finance: 'Finance is not connected.' },
   ro: { title: 'Portofoliu de proprietăți administrate', closed: 'Comenzile comerciale nu sunt disponibile momentan.', empty: 'Nicio proprietate administrată autorizată în prezent.', owner: 'Proprietar', scope: 'Domeniu', operations: 'Operations deține detaliile execuției.', finance: 'Finance nu este conectat.' },
@@ -22,7 +47,8 @@ export function CustomerAirpropB2Workspace({ lang, contextId, workspaceId }: {
     async function read() {
       try {
         const response = await fetch(`/api/customer/v2/airprop/artifact-b2?${query}`, { cache: 'no-store', signal: controller.signal });
-        const data = response.ok ? await response.json() : null;
+        if (!response.ok) { await consumeFailedRead(response, controller.signal); throw new Error('AIRPROP_READ_UNAVAILABLE'); }
+        const data = await response.json();
         const view = data?.artifact_id === AIRPROP_B2_ID && data?.commands === null && data?.can_edit === false
           && data?.state === 'pre_activation' ? data.view : null;
         if (current) setResult({ identity, view });

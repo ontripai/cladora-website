@@ -7,6 +7,31 @@ import { CustomerAirpropB2Workspace } from './CustomerAirpropB2';
 import { useCustomerContext } from './CustomerContextProvider';
 import { createAirpropOpportunityV2Schema } from '@/lib/airprop/opportunity-contract-v2';
 
+/** Consume only this failed read response; never classify its body as authorization. */
+async function consumeFailedRead(response: Response, signal: AbortSignal) {
+ if(signal.aborted){void response.body?.cancel().catch(()=>{});throw new Error('AIRPROP_READ_UNAVAILABLE');}
+ if(!response.body)throw new Error('AIRPROP_READ_UNAVAILABLE');
+ const reader=response.body.getReader();
+ let stop:()=>void=()=>{},complete=false,bytes=0;
+ const interrupted=new Promise<never>((_,reject)=>{stop=()=>reject(new Error('AIRPROP_READ_UNAVAILABLE'));});
+ const timer=setTimeout(stop,1500);
+ signal.addEventListener('abort',stop,{once:true});
+ try{
+  while(true){
+   const {done,value}=await Promise.race([reader.read(),interrupted]);
+   if(done){complete=true;return;}
+   bytes+=value.byteLength;
+   if(bytes>16384)throw new Error('AIRPROP_READ_UNAVAILABLE');
+  }
+ }finally{
+  clearTimeout(timer);signal.removeEventListener('abort',stop);
+  // Do not await cancellation: a broken underlying stream may never settle it.
+  if(!complete)void reader.cancel().catch(()=>{});
+  reader.releaseLock();
+ }
+}
+
+
 const copy = {
  en: { title: 'AIRPROP workspace', choose: 'Select workspace', empty: 'No authorized workspace is available in this context.', context: 'Select a context to continue.', error: 'Unable to load this workspace.', name: 'Opportunity name', city: 'City', price: 'Asking price', currency: 'Currency', create: 'Create opportunity', retry: 'Retry the same request', pending: 'The result is uncertain. Retry this request before creating another opportunity.', invalid: 'Check the name, city and positive price (up to four decimal places).', denied: 'This action is unavailable with your current access.', mfa: 'Verify your identity to continue.', nameError: 'Enter a name of 1–160 characters without control characters.', cityError: 'Enter a city of 1–120 characters without control characters.', priceError: 'Enter a positive price using a decimal point and up to four decimal places.', success: 'Opportunity saved.', opportunities: 'Opportunities', none: 'No opportunities yet.', loading: 'Loading…', status: 'Status', refresh: 'Refresh', draft: 'Draft', qualified: 'Qualified', underwriting: 'Underwriting', approved: 'Approved', rejected: 'Rejected', archived: 'Archived', unsavedTitle: 'Discard opportunity edits?', unsavedBody: 'This opportunity has unsaved edits. Discard them before switching workspaces?', keepEditing: 'Keep editing', discardEdits: 'Discard edits' },
  ro: { title: 'Workspace AIRPROP', choose: 'Selectează workspace-ul', empty: 'Nu există un workspace autorizat în acest context.', context: 'Selectează un context pentru a continua.', error: 'Workspace-ul nu poate fi încărcat.', name: 'Numele oportunității', city: 'Oraș', price: 'Preț solicitat', currency: 'Monedă', create: 'Creează oportunitatea', retry: 'Reîncearcă aceeași cerere', pending: 'Rezultatul este incert. Reîncearcă această cerere înainte de a crea altă oportunitate.', invalid: 'Verifică numele, orașul și prețul pozitiv (maximum patru zecimale).', denied: 'Acțiunea nu este disponibilă cu accesul actual.', mfa: 'Confirmă-ți identitatea pentru a continua.', nameError: 'Introdu un nume de 1–160 de caractere, fără caractere de control.', cityError: 'Introdu un oraș de 1–120 de caractere, fără caractere de control.', priceError: 'Introdu un preț pozitiv cu punct zecimal și maximum patru zecimale.', success: 'Oportunitate salvată.', opportunities: 'Oportunități', none: 'Nu există încă oportunități.', loading: 'Se încarcă…', status: 'Stare', refresh: 'Actualizează', draft: 'Ciornă', qualified: 'Calificată', underwriting: 'Analiză', approved: 'Aprobată', rejected: 'Respinsă', archived: 'Arhivată', unsavedTitle: 'Renunți la modificările oportunității?', unsavedBody: 'Această oportunitate are modificări nesalvate. Renunți la ele înainte de a schimba workspace-ul?', keepEditing: 'Continuă editarea', discardEdits: 'Renunță la modificări' },
@@ -75,7 +100,7 @@ function WorkspaceSelection({ contextId, lang }: { contextId: string; lang: Lang
  },[]);
  function requestWorkspace(next:string){if(next===workspace)return;if(draftDirty&&draftGuard.current){setPendingWorkspace(next);return;}setWorkspace(next);}
  function discardAndSwitch(){if(pendingWorkspace===undefined)return;const next=pendingWorkspace;draftGuard.current?.();draftGuard.current=null;setDraftDirty(false);setPendingWorkspace(undefined);setWorkspace(next);}
- useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v1/workspace/targets?context_id=${encodeURIComponent(contextId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error();const body=await r.json();if(!Array.isArray(body.workspaces))throw new Error();if(controller.signal.aborted)return;setTargets(body.workspaces);}).catch(()=>{if(!controller.signal.aborted)setError(true);});return()=>controller.abort();},[contextId]);
+ useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v1/workspace/targets?context_id=${encodeURIComponent(contextId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok){await consumeFailedRead(r,controller.signal);throw new Error();}const body=await r.json();if(!Array.isArray(body.workspaces))throw new Error();if(controller.signal.aborted)return;setTargets(body.workspaces);}).catch(()=>{if(!controller.signal.aborted)setError(true);});return()=>controller.abort();},[contextId]);
  if(error)return <p role="alert">{t.error}</p>;
  if(!targets)return <p role="status">{t.loading}</p>;
  if(!targets.length)return <p>{t.empty}</p>;
@@ -103,7 +128,7 @@ function OpportunityPanel({ contextId,workspaceId,lang,registerDraftGuard }: { c
  useEffect(()=>registerUnsavedGuard(`airprop-opportunity:${contextId}:${workspaceId}`,dirty,discardDraft),[contextId,dirty,discardDraft,registerUnsavedGuard,workspaceId]);
  useEffect(()=>{let cancelled=false;Promise.resolve().then(()=>{if(cancelled)return;try{const saved=sessionStorage.getItem(storageKey);if(saved){const parsed=createAirpropOpportunityV2Schema.safeParse(JSON.parse(saved));if(parsed.success&&parsed.data.context_id===contextId&&parsed.data.workspace_id===workspaceId){pending.current=parsed.data;const p=parsed.data.payload;setName(p.name);setCity(p.city);setPrice(p.asking_price);setCurrency(p.currency);setUncertain(true);setMessage(t.pending);}else sessionStorage.removeItem(storageKey);}}catch{setMessage(t.error);}setRecovering(false);});return()=>{cancelled=true;};},[storageKey,contextId,workspaceId,t.pending,t.error]);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
- useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v2/airprop/opportunities?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok)throw new Error();const body=await r.json();if(!Array.isArray(body.opportunities))throw new Error();if(controller.signal.aborted)return;setRows(body.opportunities);setLoadError(false);}).catch(()=>{if(!controller.signal.aborted)setLoadError(true);});return()=>controller.abort();},[contextId,workspaceId,nonce]);
+ useEffect(()=>{const controller=new AbortController();fetch(`/api/customer/v2/airprop/opportunities?context_id=${encodeURIComponent(contextId)}&workspace_id=${encodeURIComponent(workspaceId)}`,{cache:'no-store',signal:controller.signal}).then(async r=>{if(!r.ok){await consumeFailedRead(r,controller.signal);throw new Error();}const body=await r.json();if(!Array.isArray(body.opportunities))throw new Error();if(controller.signal.aborted)return;setRows(body.opportunities);setLoadError(false);}).catch(()=>{if(!controller.signal.aborted)setLoadError(true);});return()=>controller.abort();},[contextId,workspaceId,nonce]);
  async function submit(event:React.FormEvent){event.preventDefault();if(busy)return;
   if(!pending.current){const parsed=createAirpropOpportunityV2Schema.safeParse({version:2,context_id:contextId,workspace_id:workspaceId,idempotency_key:crypto.randomUUID(),payload:{name,city,asking_price:price,currency,country_code:'RO'}});if(!parsed.success){const errors=Object.fromEntries(parsed.error.issues.filter(issue=>issue.path[0]==='payload').map(issue=>[String(issue.path[1]),true]));setFieldErrors(errors);setMessage(t.invalid);const first=['name','city','asking_price','currency'].find(field=>errors[field]);if(first)(formRef.current?.elements.namedItem(first) as HTMLElement|null)?.focus();return;}setFieldErrors({});pending.current=parsed.data;}
   try{sessionStorage.setItem(storageKey,JSON.stringify(pending.current));}catch{setMessage(t.error);return;}
