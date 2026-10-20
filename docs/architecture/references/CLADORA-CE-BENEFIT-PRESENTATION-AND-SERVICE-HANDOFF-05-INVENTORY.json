@@ -64,7 +64,8 @@
       "owner": "Community & Experience",
       "finding": "Community workflows are independent of benefit presentation.",
       "classification": "inactive",
-      "sha256": "dbb13ba183dac875cc409c30062f70fa9d9b9e670952ad524e591d295f12cb94"
+      "reviewed_commit": "898e5fc30cf844fcd69e826840a06903e246dea2",
+      "sha256": "b4a55a3a3eba8db53918b52a0bb890f4fa50bace6984ab93da57c13241075737"
     },
     {
       "path": "src/components/customer/CustomerCommunityBasePage.tsx",
@@ -72,7 +73,8 @@
       "owner": "Community & Experience",
       "finding": "Community adapter exposes no benefit outcome or SERVICE transaction.",
       "classification": "inactive",
-      "sha256": "ce74a3e608d1b43b1f2ec68acbe865197e1b69f6139002a5dca53cc0baaa39cf"
+      "reviewed_commit": "898e5fc30cf844fcd69e826840a06903e246dea2",
+      "sha256": "4f37679f354e4f533e73748a0d06a41e5d803b6324e160273f49cfa33be42536"
     },
     {
       "path": "src/components/customer/CustomerEventInterestPage.tsx",

@@ -28,7 +28,15 @@ is stored in:
 
 `docs/architecture/references/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-INVENTORY.json`
 
-The inventory pins the reviewed commit, tree and SHA-256 of every covered file.
+The inventory retains the historical baseline commit and tree and pins the
+reviewed SHA-256 of every covered file. An entry's `reviewed_commit`, when
+present, identifies a later reviewed revision rather than the historical baseline.
+The two Community component entries were re-reviewed at
+`898e5fc30cf844fcd69e826840a06903e246dea2` for CE Context draft guards:
+the optional guard adapter and form lifecycle changes introduce no benefit
+outcome, SERVICE dependency or transaction. Their classifications are unchanged;
+the other 21 entries retain their reviewed hashes. This follow-up does not
+authorize benefit implementation or activation.
 The static harness verifies the inventory and contract without network or Git
 history.
 
