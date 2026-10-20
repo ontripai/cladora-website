@@ -19,6 +19,7 @@ import {
   verifyPf01LocalTarget,
 } from './lib/pf01-owner-portfolio-local-fixture.mjs';
 
+let phase = 'preflight';
 const VERIFY_ONLY = process.argv.includes('--verify-target-only');
 
 function required(name) {
@@ -147,15 +148,20 @@ async function run() {
     await assertPf01NoDotenv();
     await assertNextAcceptsLocalSupabase(supabaseUrl, anonKey);
 
+    phase = 'owner-auth';
     owner = await createPf01Aal2User({ adminClient, supabaseUrl, anonKey, label: 'owner', onCreated });
+    phase = 'other-auth';
     other = await createPf01Aal2User({ adminClient, supabaseUrl, anonKey, label: 'other-owner', onCreated });
+    phase = 'owner-db-fixture';
     const fixture = await createPf01DatabaseFixture(pool, {
       ownerUserId: owner.userId,
       otherUserId: other.userId,
       ownerEmail: owner.email,
       otherEmail: other.email,
     });
+    phase = 'state-negative-control';
     await provePf01ContentUpdateDetection(pool);
+    phase = 'next-startup';
     next = await startNext({ port, supabaseUrl, anonKey, signal: cancellation.signal });
 
     const before = await snapshotPf01ReadState(pool);
@@ -163,6 +169,7 @@ async function run() {
     assert.equal(anonymous.response.status, 401);
     assert.deepEqual(anonymous.body, { error: 'UNAUTHORIZED' });
 
+    phase = 'owner-http';
     const primary = await readJson(next.endpoint, owner.cookie);
     assert.equal(primary.response.status, 200);
     assert.equal(primary.response.headers.get('cache-control'), 'no-store, private');
@@ -188,6 +195,7 @@ async function run() {
     assert.equal(workspace(primary, fixture.workspaceOne).items[0].actions[0].action_status, 'allowed');
     assert.equal(workspace(primary, fixture.workspaceTwo).items[0].actions[0].action_status, 'withheld');
 
+    phase = 'other-owner-http';
     const isolated = await readJson(next.endpoint, other.cookie);
     assert.equal(isolated.response.status, 200);
     assert.deepEqual(isolated.body.projections, []);
@@ -195,6 +203,7 @@ async function run() {
     assert.equal(repeated.response.status, 200);
     assert.deepEqual(await snapshotPf01ReadState(pool), before, 'anonymous, isolated and repeated reads must be zero-write');
 
+    phase = 'management-revocation';
     const preserved = await revokePf01ManagementAuthority(pool, owner.userId);
     assert.equal(preserved.ownerships, 3);
     assert.equal(preserved.private_units, 3);
@@ -208,9 +217,11 @@ async function run() {
       'management-revoked read must not mutate independent ownership or ledgers',
     );
 
+    phase = 'authority-revocation';
     await revokePf01CurrentAuthority(pool, owner.userId);
     await owner.revokeSession();
     const afterAuthorityRevoke = await snapshotPf01ReadState(pool);
+    phase = 'revoked-replay-http';
     const replayedCookie = await readJson(next.endpoint, owner.cookie);
     assert.equal(replayedCookie.response.status, 403);
     assert.deepEqual(replayedCookie.body, { error: 'ACCESS_DENIED' });
@@ -263,6 +274,6 @@ try {
   await run();
 } catch (error) {
   console.error(JSON.stringify({ suite: 'CORE-PF01-LOCAL-ENV-SUCCESSOR-01', result: 'FAILED',
-    diagnostic: error?.message ?? 'unknown_failure', production: 'NOT_RUN_NOT_PASS' }));
+    phase, diagnostic: error?.message ?? 'unknown_failure', production: 'NOT_RUN_NOT_PASS' }));
   process.exitCode = 1;
 }
