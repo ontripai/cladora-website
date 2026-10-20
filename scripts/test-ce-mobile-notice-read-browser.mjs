@@ -48,10 +48,8 @@ async function executable() {
 async function build() {
   temp = await mkdtemp(join(tmpdir(), 'ce-mobile-viewport-'));
   const entry = join(temp, 'entry.tsx');
-  const link = join(temp, 'link.tsx');
   const loader = join(temp, 'typescript-loader.cjs');
   await writeFile(loader, `const ts=require(${JSON.stringify(require.resolve('typescript'))});module.exports=function(source){return ts.transpileModule(source,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText;};`);
-  await writeFile(link, 'import React from "react";export default function Link({children,...props}){return <a {...props}>{children}</a>;}');
   await writeFile(entry, `import React,{useEffect} from 'react';
 import {createRoot} from 'react-dom/client';
 import {CustomerContextProvider,useCustomerContext} from ${JSON.stringify(provider)};
@@ -61,8 +59,11 @@ const root=createRoot(document.getElementById('root'));window.disposeViewportCon
   const webpack = require('next/dist/compiled/webpack/webpack').webpack;
   compiler = webpack({ mode: 'development', devtool: false, target: 'web', entry,
     output: { path: temp, filename: 'control.js' },
+    // Supply Next's own browser process polyfill, as its normal bundler does.
+    // next/link and DashboardTransport themselves remain the installed source.
+    plugins: [new webpack.ProvidePlugin({ process: require.resolve('next/dist/build/polyfills/process') })],
     resolve: { extensions: ['.tsx', '.ts', '.js', '.json'], modules: [join(root, 'node_modules')],
-      alias: { '@': join(root, 'src'), 'next/link': link } },
+      alias: { '@': join(root, 'src') } },
     module: { rules: [{ test: /\.tsx?$/, exclude: /node_modules/, use: [{ loader }] }] },
   });
   await bounded(new Promise((resolveBuild, reject) => compiler.run((error, stats) => {
