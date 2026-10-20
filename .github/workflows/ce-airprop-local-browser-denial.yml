@@ -192,7 +192,7 @@ jobs:
           PF01_LOCAL_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres \
           PF01_LOCAL_ANON_KEY="$anon_key" \
           PF01_LOCAL_SERVICE_ROLE_KEY="$service_key" \
-            node scripts/test-ce-airprop-local-browser-denial.mjs
+            timeout --signal=TERM --kill-after=60s 900s node scripts/test-ce-airprop-local-browser-denial.mjs
           proof_status=$?
           set -e
           exit "$proof_status"

@@ -48,7 +48,7 @@ const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).
 const pathOf = response => new URL(response.url()).pathname;
 async function readInBrowser(page, path) {
   return page.evaluate(async path => {
-    const response = await fetch(path, { cache: 'no-store' });
+    const response = await fetch(path, { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
     return { status: response.status, body: await response.json() };
   }, path);
 }
