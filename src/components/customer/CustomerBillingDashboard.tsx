@@ -547,9 +547,10 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   }
   useLayoutEffect(() => {
     currentScope.current = selectionScope;
+    loadGeneration.current += 1;
     paymentGeneration.current += 1;
   }, [selectionScope]);
-  useEffect(() => () => { paymentGeneration.current += 1; }, []);
+  useEffect(() => () => { loadGeneration.current += 1; paymentGeneration.current += 1; }, []);
 
   useEffect(() => {
     // Auth events fence in-flight replies even if the visible Context has not refreshed yet.
@@ -666,6 +667,8 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
     const scope = selectionScope;
     const generation = ++loadGeneration.current;
     const authVersion = authGeneration.current;
+    const isCurrentRead = () => currentScope.current === scope && generation === loadGeneration.current
+      && authVersion === authGeneration.current;
     setLoading(true);
     setError(false);
     try {
@@ -684,17 +687,38 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
         cache: 'no-store',
         credentials: 'same-origin',
       });
+      if (response.status === 401 || response.status === 403) {
+        if (isCurrentRead()) {
+          // Revoke presentation immediately, including pending payment replies.
+          // Keep paymentAttempts/paymentBusy: the server operation may have committed.
+          paymentGeneration.current += 1;
+          setData(null);
+          setDataScope('');
+          setSelectedInvoice(null);
+          setSelectedInvoiceScope('');
+          setShowDirectPayModal(false);
+          setPayInstruction(null);
+          setPayTargetInvoice(null);
+          setPayScope('');
+          setPaySettled(false);
+          setPayError(null);
+          setPayLoading(false);
+          setCopiedField(null);
+          setError(true);
+        }
+        return;
+      }
       // also include cache:'no-store' literal for foundation test assertion
       if (!response.ok) throw new Error('Failed to fetch billing data');
       const json = (await response.json()) as BillingData;
-      if (currentScope.current !== scope || generation !== loadGeneration.current || authVersion !== authGeneration.current) return;
+      if (!isCurrentRead()) return;
       setDataScope(scope);
       setData(json);
 
     } catch {
-      if (currentScope.current === scope && generation === loadGeneration.current) setError(true);
+      if (isCurrentRead()) setError(true);
     } finally {
-      if (currentScope.current === scope && generation === loadGeneration.current) setLoading(false);
+      if (isCurrentRead()) setLoading(false);
     }
   }, [active, from, offset, query, status, to, selectionScope]);
 

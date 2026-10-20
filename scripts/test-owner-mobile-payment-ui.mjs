@@ -38,7 +38,7 @@ for (const [key, value] of Object.entries({ window: dom.window, document: dom.wi
 }
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status });
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
-let root, calls, mode, postGate, instructionGate, invoice, canonicalStatus;
+let root, calls, mode, postGate, instructionGate, invoice, canonicalStatus, billingHandler;
 const texts = { en: { pay: 'Pay', close: 'Close', retry: 'Check existing payment', card: 'Debit / Credit Card', unknown: 'outcome is unknown' },
   ro: { pay: 'Plătește', close: 'Închide', retry: 'Verifică plata existentă', card: 'Card bancar', unknown: 'este necunoscut' },
   fa: { pay: 'پرداخت', close: 'بستن', retry: 'بررسی پرداخت موجود', card: 'کارت بانکی', unknown: 'نامشخص' } };
@@ -49,10 +49,10 @@ function makeInvoice(unit = id(3)) { return { id: id(4), invoice_no: 701, unit_i
   credited_amount: 0, outstanding_amount: 10, overdue: false, journal_id: null, journal_no: null }; }
 async function settle() { await act(async () => { await new Promise(r => setTimeout(r, 5)); }); }
 async function mount(lang, configuration = 'ok', unit = id(3)) {
-  select(); userId = id(1); calls = []; mode = configuration; canonicalStatus = 'created'; invoice = makeInvoice(unit); postGate = deferred(); instructionGate = deferred();
+  select(); userId = id(1); calls = []; billingHandler = null; mode = configuration; canonicalStatus = 'created'; invoice = makeInvoice(unit); postGate = deferred(); instructionGate = deferred();
   globalThis.fetch = async (url, init = {}) => {
     calls.push({ url: String(url), method: init.method ?? 'GET', body: init.body });
-    if (String(url).includes('/billing?')) return json({ total: 1, invoices: [invoice], summary: [], aging: [], lines: [], journal: null, read_only: true, limit: 25, offset: 0 });
+    if (String(url).includes('/billing?')) return billingHandler ? billingHandler(String(url)) : billingResponse();
     if (init.method === 'POST') {
       if (mode === 'post-hold') await postGate.promise;
       if (mode === 'unknown') throw new TypeError('synthetic transport outcome unknown');
@@ -77,8 +77,142 @@ function button(text, within = document) { const b = [...within.querySelectorAll
 async function click(b, twice = false) { await act(async () => { b.click(); if (twice) b.click(); }); await settle(); }
 const posts = () => calls.filter(c => c.method === 'POST');
 async function unmount() { await act(async () => root.unmount()); root = null; }
+function billingResponse(value = invoice) { return json({ total: 1, invoices: [value], summary: [], aging: [], lines: [], journal: null, read_only: true, limit: 25, offset: 0 }); }
+const correctionOnly = process.argv.includes('--review-correction');
+const readFenceOnly = process.argv.includes('--read-fence-regressions');
+const denialText = {
+  en: { refresh: 'Refresh data', error: 'Billing data could not be securely loaded.' },
+  ro: { refresh: 'Reîmprospătează datele', error: 'Datele de facturare nu au putut fi încărcate securizat.' },
+  fa: { refresh: 'به‌روزرسانی اطلاعات', error: 'بارگذاری امن داده‌های مالی ناموفق بود.' },
+};
+async function readAgain(lang) {
+  await click(button(denialText[lang].refresh));
+  await act(async () => { await new Promise(r => setTimeout(r, 230)); });
+}
+function checkDenied(lang) {
+  assert.equal(document.querySelectorAll('[role="dialog"]').length, 0, 'current 401/403 removes invoice detail AND payment presentation');
+  assert.equal(document.body.textContent.includes('A-01'), false, 'cached invoice data removed');
+  assert.equal(document.body.textContent.includes('SYNTHETIC BANK DESTINATION'), false);
+  assert.equal(document.body.textContent.includes('SYNTHETIC-REFERENCE'), false);
+  assert.equal(document.querySelector('[data-payment-action]'), null, 'old payment affordance removed');
+  assert.equal(document.querySelector('[role="status"]'), null, 'no stale settlement confirmation');
+  assert.equal(document.querySelector('[role="alert"]')?.textContent.trim(), denialText[lang].error);
+}
+async function correctionRegressions(lang) {
+  const t = texts[lang];
+  for (const httpStatus of [401, 403]) {
+    await mount(lang); await click(button('#701'));
+    assert.equal(document.querySelectorAll('[role="dialog"]').length, 1);
+    billingHandler = () => json({ error: { code: 'FORBIDDEN' } }, httpStatus);
+    await readAgain(lang); checkDenied(lang); assert.equal(posts().length, 0);
+    scenarios++; await unmount();
+
+    // Already visible instruction and invoice detail are both cleared. Reauthorization
+    // resumes the SAME known intent, not another POST/key.
+    await mount(lang); await click(button('#701')); await click(button(t.pay));
+    const key = JSON.parse(posts()[0].body).idempotency_key;
+    assert.equal(document.querySelectorAll('[role="dialog"]').length, 2);
+    billingHandler = () => json({}, httpStatus); await readAgain(lang); checkDenied(lang);
+    billingHandler = null; await readAgain(lang); await click(button(t.pay));
+    assert.equal(posts().length, 1); assert.equal(JSON.parse(posts()[0].body).idempotency_key, key);
+    assert.match(document.querySelector('[role="dialog"]').textContent, /SYNTHETIC BANK DESTINATION/);
+    scenarios++; await unmount();
+
+    await mount(lang, 'instruction-hold'); await click(button(t.pay));
+    assert.equal(calls.filter(c => c.url.includes('/bank-instruction?')).length, 1);
+    billingHandler = () => json({}, httpStatus); await readAgain(lang); checkDenied(lang);
+    instructionGate.resolve(); await settle(); checkDenied(lang);
+    mode = 'ok'; billingHandler = null; await readAgain(lang); await click(button(t.pay));
+    assert.equal(posts().length, 1, 'late instruction does not reset retained known attempt');
+    scenarios++; await unmount();
+
+    await mount(lang, 'unknown'); await click(button(t.pay));
+    const unknownPayload = posts()[0].body;
+    billingHandler = () => json({}, httpStatus); await readAgain(lang); checkDenied(lang);
+    billingHandler = null; await readAgain(lang); await click(button(t.pay));
+    assert.equal(posts().length, 1); assert.equal(posts()[0].body, unknownPayload);
+    assert.ok(document.querySelector('[role="alert"]').textContent.includes(t.unknown));
+    scenarios++; await unmount();
+
+    await mount(lang, 'post-hold'); await click(button(t.pay));
+    billingHandler = () => json({}, httpStatus); await readAgain(lang); checkDenied(lang);
+    postGate.resolve(); await settle(); checkDenied(lang);
+    assert.equal(calls.filter(c => c.url.includes('/bank-instruction?')).length, 0);
+    mode = 'ok'; billingHandler = null; await readAgain(lang); await click(button(t.pay));
+    assert.equal(posts().length, 1, 'late committed ID retained while its old presentation is fenced');
+    assert.match(document.querySelector('[role="dialog"]').textContent, /SYNTHETIC BANK DESTINATION/);
+    scenarios++; await unmount();
+  }
+  for (const denyWhileNewReadPending of [false, true]) {
+    await mount(lang);
+    const old = deferred(); const newer = deferred();
+    billingHandler = () => old.promise;
+    await readAgain(lang);
+    select(12);
+    const other = { ...makeInvoice(), id: id(14), invoice_no: 702, unit_code: 'B-02' };
+    billingHandler = () => denyWhileNewReadPending ? newer.promise : billingResponse(other);
+    await act(async () => root.render(React.createElement(CustomerBillingDashboard, { lang })));
+    await act(async () => { await new Promise(r => setTimeout(r, 230)); });
+    if (denyWhileNewReadPending) assert.equal(button(denialText[lang].refresh).disabled, true);
+    else assert.ok(document.body.textContent.includes('B-02'));
+    old.resolve(json({}, 403)); await settle();
+    assert.equal(document.querySelector('[role="alert"]'), null, 'old denial cannot mark current selection denied');
+    if (denyWhileNewReadPending) {
+      assert.equal(button(denialText[lang].refresh).disabled, true, 'old finally cannot clear newer loading state');
+      newer.resolve(billingResponse(other)); await settle();
+    }
+    assert.ok(document.body.textContent.includes('B-02'));
+    assert.ok(document.querySelector('[data-payment-action]'));
+    scenarios++; await unmount();
+  }
+  // Same Context, newer read generation: old denial cannot clear current detail.
+  await mount(lang); const old = deferred(); billingHandler = () => old.promise; await readAgain(lang);
+  billingHandler = null; await click(button('#701'));
+  old.resolve(json({}, 401)); await settle();
+  assert.equal(document.querySelectorAll('[role="dialog"]').length, 1);
+  assert.ok(document.body.textContent.includes('A-01')); assert.equal(document.querySelector('[role="alert"]'), null);
+  scenarios++; await unmount();
+
+  // Same Context after a new Auth generation: old denial/finally cannot clear the new read.
+  await mount(lang); const oldAuth = deferred(); billingHandler = () => oldAuth.promise; await readAgain(lang);
+  billingHandler = null; userId = id(11);
+  await act(async () => authListener('SIGNED_IN', { user: { id: userId } }));
+  await act(async () => { await new Promise(r => setTimeout(r, 230)); });
+  assert.ok(document.body.textContent.includes('A-01'));
+  oldAuth.resolve(json({}, 403)); await settle();
+  assert.equal(document.querySelector('[role="alert"]'), null); assert.ok(document.body.textContent.includes('A-01'));
+  scenarios++; await unmount();
+}
+
+async function readFenceRegressions(lang) {
+  // An older successful billing read must not restore a current authoritative denial.
+  await mount(lang); const success = deferred(); billingHandler = () => success.promise; await readAgain(lang);
+  billingHandler = () => json({}, 403); await click(button('#701')); checkDenied(lang);
+  success.resolve(billingResponse()); await settle(); checkDenied(lang);
+  scenarios++; await unmount();
+
+  // Generic error/catch/finally from an older read must not affect a newer detail read.
+  await mount(lang); const failure = deferred(); billingHandler = () => failure.promise; await readAgain(lang);
+  billingHandler = null; await click(button('#701'));
+  failure.resolve(json({}, 500)); await settle();
+  assert.equal(document.querySelector('[role="alert"]'), null);
+  assert.equal(document.querySelectorAll('[role="dialog"]').length, 1);
+  assert.equal(button(denialText[lang].refresh).disabled, false);
+  scenarios++; await unmount();
+
+  // Selection identity is an epoch, not merely an A->B->A tuple string comparison.
+  await mount(lang); const previousEpoch = deferred(); billingHandler = () => previousEpoch.promise; await readAgain(lang);
+  select(12); await act(async () => root.render(React.createElement(CustomerBillingDashboard, { lang })));
+  select(2); await act(async () => root.render(React.createElement(CustomerBillingDashboard, { lang })));
+  previousEpoch.resolve(json({}, 401)); await settle();
+  assert.equal(document.querySelector('[role="alert"]'), null, 'old A denial cannot act on the new A epoch');
+  scenarios++; await unmount();
+}
+
 try {
   for (const lang of ['en', 'ro', 'fa']) {
+    if (readFenceOnly) { await readFenceRegressions(lang); continue; }
+    if (correctionOnly) { await correctionRegressions(lang); continue; }
     const t = texts[lang];
     await mount(lang, 'post-hold');
     await click(button(t.pay), true);
@@ -141,5 +275,5 @@ try {
   dom.window.close();
   for (const [key, value] of saved) { if (value) Object.defineProperty(globalThis, key, value); else delete globalThis[key]; }
 }
-console.log(JSON.stringify({ suite: 'CORE-MOBILE-PAYMENT-ATTEMPT-01-mounted', result: 'PASS', scenarios, locales: 3,
+console.log(JSON.stringify({ suite: readFenceOnly ? 'CORE-MOBILE-PAYMENT-ATTEMPT-01-read-fence' : correctionOnly ? 'CORE-MOBILE-PAYMENT-ATTEMPT-01-review-correction' : 'CORE-MOBILE-PAYMENT-ATTEMPT-01-mounted', result: 'PASS', scenarios, locales: 3,
   provenance: 'actual React component mounted in JSDOM; synthetic Auth/HTTP transport, NOT connected/browser/mobile device acceptance' }));
