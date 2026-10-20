@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -26,6 +26,8 @@ import {
   Copy,
   Check
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { createDirectPaymentAttemptsV1, parseDirectPaymentInstructionV1, type DirectPaymentInstructionV1 } from '@/lib/payments/direct-payment-attempt-v1';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
 import { CustomerRegistryPicker } from './CustomerRegistryPicker';
@@ -232,6 +234,10 @@ const copy = {
     paymentSetupRequired: 'Asociația trebuie să configureze politica de plată și contul beneficiar înainte de generarea instrucțiunilor.',
     paymentContextUnavailable: 'Accesul la această factură în contextul ales a expirat sau nu este disponibil. Selectați din nou rolul și contactați administratorul dacă problema persistă.',
     destinationUnavailable: 'IBAN-ul complet verificat nu este disponibil. Contactați administratorul asociației.',
+    paymentUnknown: 'Rezultatul cererii este necunoscut. Nu inițiați o altă plată. Verificarea necesită asistență; reîncărcarea paginii nu recuperează această cerere.',
+    paymentReadUnavailable: 'Instrucțiunile nu pot fi citite acum. Nu este confirmată plata.',
+    paymentReadAgain: 'Verifică plata existentă',
+    paymentSettled: 'Serverul confirmă plata. Instrucțiunile bancare nu reprezintă o chitanță.',
   },
   en: {
     title: 'Billing, Charges & Receivables',
@@ -330,6 +336,10 @@ const copy = {
     paymentSetupRequired: 'The association must configure its payment policy and beneficiary account before instructions can be generated.',
     paymentContextUnavailable: 'Access to this invoice in the selected context has expired or is unavailable. Select your role again and contact the administrator if this continues.',
     destinationUnavailable: 'A verified full beneficiary IBAN is unavailable. Contact the association administrator.',
+    paymentUnknown: 'The request outcome is unknown. Do not start another payment. Assistance is required; reloading does not recover this attempt.',
+    paymentReadUnavailable: 'Instructions cannot be read now. Payment is not confirmed.',
+    paymentReadAgain: 'Check existing payment',
+    paymentSettled: 'The server confirms payment. Bank instructions are not a receipt.',
   },
   fa: {
     title: 'صورتحساب‌ها، هزینه‌ها و مطالبات',
@@ -428,6 +438,10 @@ const copy = {
     paymentSetupRequired: 'مدیر ساختمان باید سیاست پرداخت و حساب مقصد را تنظیم کند تا دستور پرداخت صادر شود.',
     paymentContextUnavailable: 'دسترسی به این صورتحساب در نقش انتخابی منقضی شده یا در دسترس نیست. نقش خود را دوباره انتخاب کنید و اگر مشکل ادامه داشت با مدیر ساختمان تماس بگیرید.',
     destinationUnavailable: 'شماره شبای کامل و تأییدشدهٔ مقصد در دسترس نیست. با مدیر ساختمان تماس بگیرید.',
+    paymentUnknown: 'نتیجهٔ درخواست نامشخص است. پرداخت تازه\u200cای آغاز نکنید. بررسی نیازمند پشتیبانی است؛ بارگذاری دوباره این درخواست را بازیابی نمی\u200cکند.',
+    paymentReadUnavailable: 'دستور بانکی اکنون قابل خواندن نیست. پرداخت تأیید نشده است.',
+    paymentReadAgain: 'بررسی پرداخت موجود',
+    paymentSettled: 'سرور پرداخت را تأیید کرده است. دستور بانکی رسید پرداخت نیست.',
   }
 };
 
@@ -451,11 +465,19 @@ const money = (n: number, currency = 'RON', lang: Language) => {
 };
 
 export function CustomerBillingDashboard({ lang }: { lang: Language }) {
-  const { active } = useCustomerContext();
+  const { active, dashboard } = useCustomerContext();
+  const workspaceId = dashboard?.contextId === active?.context_id ? dashboard?.workspace_id ?? null : null;
+  const selectionScope = JSON.stringify([active?.membership_id, active?.context_id, workspaceId]);
+  const currentScope = useRef(selectionScope);
+  const authGeneration = useRef(0);
+  const authActor = useRef<string | null>(null);
   const t = copy[lang];
   const isRTL = lang === 'fa';
 
-  const [data, setData] = useState<BillingData | null>(null);
+  const [rawData, setData] = useState<BillingData | null>(null);
+  const [dataScope, setDataScope] = useState('');
+  const data = dataScope === selectionScope ? rawData : null;
+  const loadGeneration = useRef(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [query, setQuery] = useState('');
@@ -463,7 +485,9 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [offset, setOffset] = useState(0);
-  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoiceValue, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [selectedInvoiceScope, setSelectedInvoiceScope] = useState('');
+  const selectedInvoice = selectedInvoiceScope === selectionScope ? selectedInvoiceValue : null;
   const [nonce, setNonce] = useState(0);
 
   // Modals
@@ -496,7 +520,14 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
   // Direct Association Payment States
   const [showDirectPayModal, setShowDirectPayModal] = useState(false);
   const [payTargetInvoice, setPayTargetInvoice] = useState<Invoice | null>(null);
-  const [payInstruction, setPayInstruction] = useState<any | null>(null);
+  const [payInstruction, setPayInstruction] = useState<DirectPaymentInstructionV1 | null>(null);
+  const [payScope, setPayScope] = useState('');
+  const [paySettled, setPaySettled] = useState(false);
+  const [paymentAttempts] = useState(() => createDirectPaymentAttemptsV1());
+  const paymentBusy = useRef(false);
+  const paymentGeneration = useRef(0);
+  const paymentClose = useRef<HTMLButtonElement>(null);
+  const paymentOpener = useRef<HTMLElement | null>(null);
   const [payLoading, setPayLoading] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [selectedPayTab, setSelectedPayTab] = useState<'bank' | 'card'>('bank');
@@ -504,49 +535,122 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
 
   const limit = 25;
 
+  const [previousSelection, setPreviousSelection] = useState(selectionScope);
+  if (previousSelection !== selectionScope) {
+    setPreviousSelection(selectionScope);
+    setShowDirectPayModal(false);
+    setPayInstruction(null);
+    setPayError(null);
+    setPayTargetInvoice(null);
+    setSelectedInvoice(null);
+    setCopiedField(null);
+  }
+  useLayoutEffect(() => {
+    currentScope.current = selectionScope;
+    paymentGeneration.current += 1;
+  }, [selectionScope]);
+  useEffect(() => () => { paymentGeneration.current += 1; }, []);
+
+  useEffect(() => {
+    // Auth events fence in-flight replies even if the visible Context has not refreshed yet.
+    try {
+      const { data: subscription } = createClient().auth.onAuthStateChange((event, session) => {
+        const previousActor = authActor.current;
+        const nextActor = session?.user.id ?? null;
+        authActor.current = nextActor;
+        if (event === 'INITIAL_SESSION' || (event !== 'SIGNED_OUT' && previousActor === nextActor)) return;
+        authGeneration.current += 1;
+        loadGeneration.current += 1;
+        paymentGeneration.current += 1;
+        setShowDirectPayModal(false);
+        setPayInstruction(null);
+        setPayTargetInvoice(null);
+        setSelectedInvoice(null);
+        setData(null);
+        setNonce(n => n + 1);
+      });
+      return () => subscription.subscription.unsubscribe();
+    } catch { /* Identity is verified again before every payment operation. */ }
+  }, []);
+
+  useEffect(() => {
+    if (showDirectPayModal) paymentClose.current?.focus();
+  }, [showDirectPayModal]);
+
   async function openDirectPayment(inv: Invoice) {
-    if (!active) return;
+    if (!active || paymentBusy.current) return;
+    paymentBusy.current = true; // synchronous guard, before Auth or fetch can yield
+    const scope = selectionScope;
+    const authVersion = authGeneration.current;
+    const generation = ++paymentGeneration.current;
+    const visible = () => currentScope.current === scope && generation === paymentGeneration.current
+      && authVersion === authGeneration.current;
+    if (!showDirectPayModal) paymentOpener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    setPayScope(scope);
     setPayTargetInvoice(inv);
     setShowDirectPayModal(true);
     setPayLoading(true);
+    setPaySettled(false);
     setPayError(null);
     setPayInstruction(null);
+    setCopiedField(null);
     setSelectedPayTab('bank');
-
     try {
-      const intentRes = await fetch('/api/customer/v1/payments/intents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          context_id: active.context_id,
-          unit_id: inv.unit_id || '00000000-0000-0000-0000-000000000000',
-          amount: inv.outstanding_amount,
-          currency: inv.currency,
-          payment_method: 'bank_transfer',
-          selected_invoices: [{ invoice_id: inv.id, amount: inv.outstanding_amount }],
-        }),
-      });
-
-      if (!intentRes.ok) {
-        const errJson = await intentRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.code === 'PAYMENT_SETUP_REQUIRED' ? t.paymentSetupRequired : errJson.error?.code === 'PAYMENT_CONTEXT_UNAVAILABLE' ? t.paymentContextUnavailable : errJson.error?.message || 'Failed to initialize payment intent');
+      if (!inv.unit_id || !data?.invoices.some(item => item.id === inv.id && item.unit_id === inv.unit_id
+        && item.currency === inv.currency && item.outstanding_amount === inv.outstanding_amount)) {
+        if (visible()) setPayError(t.paymentContextUnavailable);
+        return;
       }
-
-      const intentData = await intentRes.json();
-
-      const instRes = await fetch(`/api/customer/v1/payments/intents/${intentData.payment_intent_id}/bank-instruction?context_id=${active.context_id}`);
-      if (!instRes.ok) {
-        const errJson = await instRes.json().catch(() => ({}));
-        throw new Error(errJson.error?.code === 'PAYMENT_DESTINATION_UNAVAILABLE' ? t.destinationUnavailable : errJson.error?.message || 'Failed to generate bank transfer instruction');
+      const { data: identity, error: identityError } = await createClient().auth.getUser();
+      if (identityError || !identity.user || !visible()) {
+        if (visible()) setPayError(t.paymentContextUnavailable);
+        return;
       }
-
-      const instData = await instRes.json();
-      setPayInstruction(instData);
-    } catch (err: any) {
-      setPayError(err.message || 'Error initializing direct association payment');
+      authActor.current = identity.user.id;
+      const tuple = { actor_id: identity.user.id,
+        context_id: active.context_id, workspace_id: workspaceId, unit_id: inv.unit_id,
+        invoice_id: inv.id, currency: inv.currency, amount: inv.outstanding_amount };
+      let result = await paymentAttempts.run(tuple, fetch);
+      if (!visible()) return;
+      if (result.state === 'instruction_ready' && result.payment_intent_id) {
+        // Existing bank-instruction consumer; retry this read only after canonical status.
+        const intentData = { payment_intent_id: result.payment_intent_id };
+        const instructionResponse = await fetch(`/api/customer/v1/payments/intents/${intentData.payment_intent_id}/bank-instruction?context_id=${encodeURIComponent(active.context_id)}`, {
+          cache: 'no-store', credentials: 'same-origin', signal: AbortSignal.timeout(15_000),
+        });
+        const instructionData: unknown = await instructionResponse.json();
+        const instruction = instructionResponse.ok ? parseDirectPaymentInstructionV1(instructionData, tuple) : null;
+        result = instruction ? { state: 'instruction', instruction }
+          : { state: 'unavailable', code: instructionResponse.status === 409 || instructionResponse.ok
+            ? 'PAYMENT_DESTINATION_UNAVAILABLE' : 'PAYMENT_INSTRUCTION_UNAVAILABLE' };
+      }
+      if (!visible()) return;
+      setPayInstruction(result.instruction ?? null);
+      setPaySettled(result.state === 'settled');
+      if (result.state !== 'instruction' && result.state !== 'settled') {
+        setPayError(result.code === 'PAYMENT_SETUP_REQUIRED' ? t.paymentSetupRequired
+          : result.code === 'PAYMENT_DESTINATION_UNAVAILABLE' ? t.destinationUnavailable
+          : result.state === 'unknown' ? t.paymentUnknown
+          : result.code === 'PAYMENT_CONTEXT_UNAVAILABLE' || result.code === 'FORBIDDEN' ? t.paymentContextUnavailable
+          : t.paymentReadUnavailable);
+      }
+    } catch {
+      if (visible()) setPayError(t.paymentReadUnavailable);
     } finally {
-      setPayLoading(false);
+      paymentBusy.current = false;
+      if (visible()) setPayLoading(false);
     }
+  }
+
+  function closeDirectPayment() {
+    paymentGeneration.current += 1;
+    setShowDirectPayModal(false);
+    setPayInstruction(null);
+    setPayError(null);
+    setPayTargetInvoice(null);
+    setCopiedField(null);
+    paymentOpener.current?.focus();
+    // Closing the view does NOT cancel or reset a possibly committed attempt.
   }
 
   function copyToClipboard(text: string, field: string) {
@@ -559,6 +663,9 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
 
   const loadData = useCallback(async (invoiceId?: string) => {
     if (!active) return;
+    const scope = selectionScope;
+    const generation = ++loadGeneration.current;
+    const authVersion = authGeneration.current;
     setLoading(true);
     setError(false);
     try {
@@ -580,14 +687,16 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
       // also include cache:'no-store' literal for foundation test assertion
       if (!response.ok) throw new Error('Failed to fetch billing data');
       const json = (await response.json()) as BillingData;
+      if (currentScope.current !== scope || generation !== loadGeneration.current || authVersion !== authGeneration.current) return;
+      setDataScope(scope);
       setData(json);
 
     } catch {
-      setError(true);
+      if (currentScope.current === scope && generation === loadGeneration.current) setError(true);
     } finally {
-      setLoading(false);
+      if (currentScope.current === scope && generation === loadGeneration.current) setLoading(false);
     }
-  }, [active, from, offset, query, status, to]);
+  }, [active, from, offset, query, status, to, selectionScope]);
 
   useEffect(() => {
     const timer = setTimeout(() => void loadData(), 200);
@@ -612,6 +721,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
 
   // Open invoice detail
   async function openDetail(inv: Invoice) {
+    setSelectedInvoiceScope(selectionScope);
     setSelectedInvoice(inv);
     await loadData(inv.id);
   }
@@ -1115,8 +1225,9 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                           {inv.outstanding_amount > 0 && inv.status !== 'draft' && inv.status !== 'void' && (
                             <button
                               type="button"
+                              data-payment-action="bank-transfer"
                               onClick={() => void openDirectPayment(inv)}
-                              className="rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+                              className="min-h-11 min-w-11 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
                             >
                               {t.payDirectShort}
                             </button>
@@ -1348,8 +1459,9 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 {selectedInvoice.outstanding_amount > 0 && selectedInvoice.status !== 'draft' && selectedInvoice.status !== 'void' && (
                   <button
                     type="button"
+                    data-payment-action="bank-transfer"
                     onClick={() => void openDirectPayment(selectedInvoice)}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
+                    className="min-h-11 min-w-11 inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-700"
                   >
                     <Receipt className="h-3.5 w-3.5" />
                     {t.payDirect}
@@ -1681,12 +1793,22 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
       )}
 
       {/* Direct-to-Association Payment Modal */}
-      {showDirectPayModal && payTargetInvoice && (
+      {showDirectPayModal && payTargetInvoice && payScope === selectionScope && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
           <div
             role="dialog"
             aria-modal="true"
             aria-label={t.payDirect}
+            dir={isRTL ? 'rtl' : 'ltr'}
+            onKeyDown={event => {
+              if (event.key === 'Escape') { event.preventDefault(); closeDirectPayment(); }
+              if (event.key === 'Tab') {
+                const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+                const first = buttons[0]; const last = buttons[buttons.length - 1];
+                if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+                else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+              }
+            }}
             className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl"
           >
             {/* Modal Header */}
@@ -1704,8 +1826,9 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
               </div>
               <button
                 type="button"
-                onClick={() => setShowDirectPayModal(false)}
-                className="rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                onClick={closeDirectPayment}
+                ref={paymentClose} aria-label={t.close}
+                className="min-h-11 min-w-11 rounded-xl p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -1725,7 +1848,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
               <button
                 type="button"
                 onClick={() => setSelectedPayTab('bank')}
-                className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
+                className={`min-h-11 flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
                   selectedPayTab === 'bank'
                     ? 'border-emerald-600 text-emerald-800'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -1737,7 +1860,7 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
               <button
                 type="button"
                 onClick={() => setSelectedPayTab('card')}
-                className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
+                className={`min-h-11 flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-bold transition ${
                   selectedPayTab === 'card'
                     ? 'border-blue-600 text-blue-800'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -1758,12 +1881,15 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                 <DollarSign className="mx-auto mb-2 h-10 w-10 text-blue-500" />
                 <h4 className="text-sm font-bold text-blue-900">{t.cardCheckoutTitle}</h4>
                 <p className="mx-auto mt-2 max-w-md text-xs leading-relaxed text-blue-700">{t.cardDeferredNotice}</p>
-                <button type="button" onClick={() => setSelectedPayTab('bank')} className="mt-4 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">{t.bankTransferTab}</button>
+                <button type="button" onClick={() => setSelectedPayTab('bank')} className="min-h-11 mt-4 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700">{t.bankTransferTab}</button>
               </div>
             ) : payError ? (
               <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800">
-                <p className="font-bold">{payError}</p>
+                <p role="alert" className="font-bold">{payError}</p>
+                <button type="button" disabled={payLoading} onClick={() => void openDirectPayment(payTargetInvoice)}
+                  className="mt-3 min-h-11 rounded-xl border px-4">{t.paymentReadAgain}</button>
               </div>
+            ) : paySettled ? (<p role="status" className="mt-6 text-sm">{t.paymentSettled}</p>
             ) : selectedPayTab === 'bank' && payInstruction ? (
               <div className="mt-5 space-y-4">
                 {/* Bank Transfer Details Cards */}
@@ -1789,13 +1915,13 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                     <button
                       type="button"
                       onClick={() => copyToClipboard(payInstruction.iban, 'iban')}
-                      className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                      className="min-h-11 min-w-11 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
                     >
                       {copiedField === 'iban' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                       {copiedField === 'iban' ? t.copied : t.copy}
                     </button>
                   </div>
-                  <p className="mt-2 font-mono text-base font-black tracking-wider text-slate-900 select-all">
+                  <p className="mt-2 font-mono text-base font-black break-all tracking-wider text-slate-900 select-all">
                     {payInstruction.iban}
                   </p>
                 </div>
@@ -1807,13 +1933,13 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
                     <button
                       type="button"
                       onClick={() => copyToClipboard(payInstruction.structured_reference, 'ref')}
-                      className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                      className="min-h-11 min-w-11 inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200"
                     >
                       {copiedField === 'ref' ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                       {copiedField === 'ref' ? t.copied : t.copy}
                     </button>
                   </div>
-                  <p className="mt-2 font-mono text-sm font-extrabold text-blue-700 select-all">
+                  <p className="mt-2 font-mono text-sm break-all font-extrabold text-blue-700 select-all">
                     {payInstruction.structured_reference}
                   </p>
                 </div>
@@ -1836,8 +1962,8 @@ export function CustomerBillingDashboard({ lang }: { lang: Language }) {
             <div className="mt-6 flex justify-end border-t border-slate-100 pt-4">
               <button
                 type="button"
-                onClick={() => setShowDirectPayModal(false)}
-                className="rounded-xl border border-slate-200 px-5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                onClick={closeDirectPayment}
+                className="min-h-11 rounded-xl border border-slate-200 px-5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
               >
                 {t.close}
               </button>
