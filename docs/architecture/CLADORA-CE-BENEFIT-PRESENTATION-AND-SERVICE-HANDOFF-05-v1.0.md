@@ -37,6 +37,18 @@ the optional guard adapter and form lifecycle changes introduce no benefit
 outcome, SERVICE dependency or transaction. Their classifications are unchanged;
 the other 21 entries retain their reviewed hashes. This follow-up does not
 authorize benefit implementation or activation.
+
+Page-only follow-up proposed for independent Coordinator review under
+`CE-COMMUNITY-SELECTION-GUARD-01`: source revision
+`44903b7bbe7858047e42dde32592158339f5379e` adds local Community-selection draft confirmation,
+localized keyboard/focus handling and fail-closed selection on unavailable
+communities. Its Page SHA-256 is `8fb78db10593f808482e0610fbb5d156079109db8253cbd8e3ed5690e3e2241e`.
+Only that Page entry's reviewed revision and hash are updated; the historical
+baseline and the other 22 entries, hashes and classifications are retained.
+This UI navigation change introduces no benefit outcome, SERVICE transaction,
+backend command, permission or activation. This records the proposed revision,
+not independent acceptance or release approval.
+
 The static harness verifies the inventory and contract without network or Git
 history.
 
