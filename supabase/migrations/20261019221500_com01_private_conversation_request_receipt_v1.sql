@@ -24,6 +24,7 @@ create table communications.request_receipts (
 );
 create index communication_request_receipts_workspace_time_idx
   on communications.request_receipts(tenant_id,workspace_id,recorded_at desc,id);
+create index communication_request_receipts_workspace_id_idx on communications.request_receipts(workspace_id);
 create index communication_request_receipts_context_idx on communications.request_receipts(context_id);
 create index communication_request_receipts_notification_idx on communications.request_receipts(notification_id);
 create index communication_request_receipts_requested_by_idx on communications.request_receipts(requested_by);

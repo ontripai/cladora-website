@@ -2,8 +2,8 @@
 
 Status: **presentation contract and static evidence; implementation and activation not authorized**
 
-Baseline: `main@536a9526222a36a1fd5d28e4267ca4b2d783786c`
-(`tree 83947ebd1278b5c3af65fb1e43a07a1f8e30a21d`)
+Baseline: `codex/c15-savings-value-slice@aa854730df7590e7ed48666f3d45cf653ede4f15`
+(`tree aebc118d045a73b8a787243e43ecb1e48849cc34`)
 
 Ownership dependency: `CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md`, as reconciled by merged PR #454. This package consumes its current `OPEN_PRODUCT_DECISION` status and bounded CE domain row without restating or changing that ownership contract. It does not create a benefit engine, choose a product owner, persist an allowance, redeem a benefit, create a SERVICE transaction or activate an editor or command.
 

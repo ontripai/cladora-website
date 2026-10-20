@@ -161,7 +161,7 @@ const migrationResult = validateProtectedDirectory({
     },
     '20261019221500_com01_private_conversation_request_receipt_v1.sql': {
       owner: 'Communications / COM01',
-      sha256: '8acfff5aa605496ee1018887a98f30f90e80ab3af34c13676704ca1b61d4e408',
+      sha256: '9277409a94fa0e57d01f31b3af77f8579ed6751094f0237d0841067e9f77168d',
     },
     '20261019230000_bk01_c13_amenity_capacity_v1.sql': {
       owner: 'Booking + C13 / BK01-C13',
@@ -169,7 +169,7 @@ const migrationResult = validateProtectedDirectory({
     },
     '20261019233000_c14_workspace_cost_benchmark_v1.sql': {
       owner: 'Finance / C14',
-      sha256: '16311a5c7faddf12b70f39af8d1f4f40b5b0a5b9d92b07a85df6b39ebfb916b5',
+      sha256: 'd4c6c010725755aa271c8b513b1fafeae52e159588be9d4cbeb939e5e2f49f47',
     },
     '20261019234500_c15_observed_savings_evidence_v1.sql': {
       owner: 'Finance / C15',

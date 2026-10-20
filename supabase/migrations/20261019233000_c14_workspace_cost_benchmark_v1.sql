@@ -11,6 +11,85 @@ from platform.module_definitions m cross join identity.permissions p
 where m.code='accounting' and m.version=1 and p.code='finance.reports.read'
 on conflict(module_definition_id,permission_id,binding_version) do nothing;
 
+-- C14 extends the accepted accounting manifest by one read-only, v1,
+-- non-delegable binding. Keep the historic ten-module validator exact while
+-- preserving the six separately enumerated high-risk non-delegable controls.
+create or replace function app_private.validate_module_permission_bindings_v2_seeding_v1()
+returns void
+language plpgsql
+security definer
+set search_path = pg_catalog, platform, identity
+as $$
+declare
+  v_total_count integer;
+  v_active_count integer;
+  v_delegable_active_count integer;
+  v_non_delegable_active_count integer;
+  v_v2_non_delegable_count integer;
+begin
+  select count(*) into v_total_count
+  from platform.module_permission_bindings
+  where module_definition_id in (
+    select id from platform.module_definitions
+    where code in ('occupancy','billing','payments','accounting','maintenance',
+      'utilities','governance','communications','documents','security')
+  );
+  if v_total_count <> 91 then
+    raise exception 'module_permission_bindings_total_count_mismatch: expected 91, got %', v_total_count
+      using errcode = 'P0002';
+  end if;
+
+  select count(*) into v_active_count
+  from platform.module_permission_bindings
+  where module_definition_id in (
+    select id from platform.module_definitions
+    where code in ('occupancy','billing','payments','accounting','maintenance',
+      'utilities','governance','communications','documents','security')
+  ) and lifecycle_status = 'active';
+  if v_active_count <> 49 then
+    raise exception 'module_permission_bindings_active_count_mismatch: expected 49, got %', v_active_count
+      using errcode = 'P0002';
+  end if;
+
+  select count(*) into v_delegable_active_count
+  from platform.module_permission_bindings
+  where module_definition_id in (
+    select id from platform.module_definitions
+    where code in ('occupancy','billing','payments','accounting','maintenance',
+      'utilities','governance','communications','documents','security')
+  ) and lifecycle_status = 'active' and is_delegable = true;
+  if v_delegable_active_count <> 42 then
+    raise exception 'delegable_active_count_mismatch: expected 42, got %', v_delegable_active_count
+      using errcode = 'P0002';
+  end if;
+
+  select count(*) into v_non_delegable_active_count
+  from platform.module_permission_bindings
+  where module_definition_id in (
+    select id from platform.module_definitions
+    where code in ('occupancy','billing','payments','accounting','maintenance',
+      'utilities','governance','communications','documents','security')
+  ) and lifecycle_status = 'active' and is_delegable = false;
+  if v_non_delegable_active_count <> 7 then
+    raise exception 'non_delegable_active_count_mismatch: expected 7, got %', v_non_delegable_active_count
+      using errcode = 'P0002';
+  end if;
+
+  select count(*) into v_v2_non_delegable_count
+  from platform.module_permission_bindings b
+  join identity.permissions p on p.id = b.permission_id
+  where p.code in (
+    'billing.cancel','payments.reverse','payments.reconcile',
+    'utilities.tariffs.manage','governance.votes.administer','governance.minutes.finalize'
+  ) and b.binding_version = 2;
+  if v_v2_non_delegable_count <> 0 then
+    raise exception 'non_delegable_permissions_must_not_have_v2_records' using errcode = 'P0002';
+  end if;
+end;
+$$;
+revoke all on function app_private.validate_module_permission_bindings_v2_seeding_v1()
+  from public, anon, authenticated, service_role;
+
 create function customer_api.get_workspace_cost_benchmark_v1(
  p_context_id uuid,
  p_workspace_id uuid,
