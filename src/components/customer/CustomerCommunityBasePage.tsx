@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Language } from '@/types';
 import { useDashboardFetch } from '@/components/dashboard-lab/DashboardTransport';
 import { useCustomerContext } from './CustomerContextProvider';
-import { CustomerCommunityBase, type CommunityBaseCommands, type CommunityBaseView } from './CustomerCommunityBase';
+import { CustomerCommunityBase, type CommunityBaseCommands, type CommunityBaseView, type CommunityDraftGuard } from './CustomerCommunityBase';
 import { classifyCommunityResponse, communityReadResponseSchema, newCommunityCommandIdentity, toCommunityViews, type CommunityLoadFailure } from '@/lib/community/community-base-client';
 
 const copy = {
@@ -22,7 +22,11 @@ export function CustomerCommunityBasePage({ lang }: { lang: Language }) {
 
 function CommunityWorkspace({ lang, contextId, workspaceId }: { lang: Language; contextId: string; workspaceId: string }) {
   const fetch = useDashboardFetch(); const t = copy[lang];
+  const { registerUnsavedGuard } = useCustomerContext();
   const [communities, setCommunities] = useState<CommunityBaseView[] | null>(null); const [selectedId, setSelectedId] = useState('');
+  const registerDraftGuard = useCallback<CommunityDraftGuard>((form, dirty, discard) =>
+    registerUnsavedGuard(JSON.stringify(['ce-community', contextId, workspaceId, selectedId, form]), dirty, discard),
+  [registerUnsavedGuard, contextId, workspaceId, selectedId]);
   const [failure, setFailure] = useState<CommunityLoadFailure | null>(null); const [attempt, setAttempt] = useState(0);
   const load = useCallback(async (signal?: AbortSignal) => {
     const response = await fetch(`/api/customer/v1/community/base?${new URLSearchParams({ context_id: contextId, workspace_id: workspaceId })}`, { cache: 'no-store', credentials: 'same-origin', signal });
@@ -56,7 +60,7 @@ function CommunityWorkspace({ lang, contextId, workspaceId }: { lang: Language; 
   const retryRefresh = failure === 'session' ? undefined : () => { void load().catch(() => setFailure('retry')); };
   if (failure && communities === null) return <Notice lang={lang} text={failureMessage} retry={retryInitialLoad} retryLabel={t.again} />;
   if (communities === null) return <Notice lang={lang} text={t.loading} />;
-  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5"><header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>{failure ? <Notice lang={lang} text={failureMessage} retry={retryRefresh} retryLabel={t.again} alert /> : null}{!communities.length ? <Notice lang={lang} text={t.empty} /> : <><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold text-[#102A43]">{t.choose}</span><select aria-label={t.choose} value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="w-full rounded-xl border p-3">{communities.map((community) => <option key={community.community_id} value={community.community_id}>{community.name}</option>)}</select></label><CustomerCommunityBase key={`${workspaceId}:${selectedId}`} lang={lang} view={selected} commands={commands} onChanged={() => { void load().catch(() => setFailure('retry')); }} /></>}</section>;
+  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5"><header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>{failure ? <Notice lang={lang} text={failureMessage} retry={retryRefresh} retryLabel={t.again} alert /> : null}{!communities.length ? <Notice lang={lang} text={t.empty} /> : <><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold text-[#102A43]">{t.choose}</span><select aria-label={t.choose} value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="w-full rounded-xl border p-3">{communities.map((community) => <option key={community.community_id} value={community.community_id}>{community.name}</option>)}</select></label><CustomerCommunityBase key={`${workspaceId}:${selectedId}`} lang={lang} view={selected} commands={commands} registerDraftGuard={registerDraftGuard} onChanged={() => { void load().catch(() => setFailure('retry')); }} /></>}</section>;
 }
 
 function Notice({ lang, text, retry, retryLabel, alert = false }: { lang: Language; text: string; retry?: () => void; retryLabel?: string; alert?: boolean }) {
