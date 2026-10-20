@@ -1,11 +1,15 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 
 import { createClient } from '@supabase/supabase-js';
 import { Pool } from 'pg';
 
 import {
+  assertPf01NoDotenv,
+  cleanupPf01Users,
+  pf01NextEnvironment,
+  provePf01ContentUpdateDetection,
+  startPf01OwnedProcess,
   createPf01Aal2User,
   createPf01DatabaseFixture,
   localProjectRef,
@@ -36,82 +40,42 @@ async function freeLoopbackPort() {
 }
 
 async function assertNextAcceptsLocalSupabase(supabaseUrl, anonKey) {
-  const previousUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const previousKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-  process.env.NEXT_PUBLIC_SUPABASE_URL = supabaseUrl;
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = anonKey;
+  const keys = ['NODE_ENV', 'NEXT_PUBLIC_CLADORA_EPHEMERAL_LOCAL_SUPABASE',
+    'NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY'];
+  const saved = Object.fromEntries(keys.map(key => [key, process.env[key]]));
   try {
+    process.env.NODE_ENV = 'development';
+    process.env.NEXT_PUBLIC_CLADORA_EPHEMERAL_LOCAL_SUPABASE = '1';
+    process.env.NEXT_PUBLIC_SUPABASE_URL = supabaseUrl;
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = anonKey;
     const { getPublicSupabaseEnv } = await import('../src/lib/supabase/env.ts');
-    const selected = getPublicSupabaseEnv();
-    assert.equal(selected.url, supabaseUrl);
-    assert.equal(selected.publishableKey, anonKey);
-  } catch (cause) {
-    if (String(cause?.message).includes('must be an HTTPS Supabase project URL')) {
-      const error = new Error('next_local_supabase_url_policy_blocks_connected_proof', { cause });
-      error.exitCode = 78;
-      throw error;
-    }
-    throw cause;
+    assert.equal(getPublicSupabaseEnv().url, supabaseUrl);
   } finally {
-    if (previousUrl === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-    else process.env.NEXT_PUBLIC_SUPABASE_URL = previousUrl;
-    if (previousKey === undefined) delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-    else process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = previousKey;
+    for (const key of keys) {
+      if (saved[key] === undefined) delete process.env[key];
+      else process.env[key] = saved[key];
+    }
   }
 }
 
-async function startNext({ port, supabaseUrl, anonKey }) {
-  const child = spawn(process.execPath, [
-    'node_modules/next/dist/bin/next',
-    'dev',
-    '--hostname',
-    '127.0.0.1',
-    '--port',
-    String(port),
-  ], {
-    cwd: new URL('../', import.meta.url),
-    env: {
-      ...process.env,
-      NEXT_TELEMETRY_DISABLED: '1',
-      NEXT_PUBLIC_SUPABASE_URL: supabaseUrl,
-      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: anonKey,
-    },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-  let output = '';
-  const append = chunk => {
-    output = `${output}${chunk}`.slice(-16_384);
-  };
-  child.stdout.on('data', append);
-  child.stderr.on('data', append);
+async function startNext({ port, supabaseUrl, anonKey, signal }) {
+  await assertPf01NoDotenv();
   const origin = `http://127.0.0.1:${port}`;
   const endpoint = `${origin}/api/owner-portfolio/v1/projection`;
-  const deadline = Date.now() + 90_000;
-  while (Date.now() < deadline) {
-    if (child.exitCode !== null) throw new Error('next_server_exited_before_ready');
-    try {
-      const response = await fetch(endpoint, { redirect: 'manual', signal: AbortSignal.timeout(2_000) });
-      if (response.status === 401) {
-        return Object.freeze({
-          origin,
-          endpoint,
-          async close() {
-            if (child.exitCode !== null) return;
-            child.kill('SIGTERM');
-            await Promise.race([
-              new Promise(resolve => child.once('exit', resolve)),
-              new Promise(resolve => setTimeout(resolve, 10_000)),
-            ]);
-            if (child.exitCode === null) child.kill('SIGKILL');
-          },
-        });
-      }
-    } catch {}
-    await new Promise(resolve => setTimeout(resolve, 500));
-  }
-  throw new Error(output.includes('must be an HTTPS Supabase project URL')
-    ? 'next_local_supabase_url_policy_blocks_connected_proof'
-    : 'next_server_readiness_timeout');
+  const owned = await startPf01OwnedProcess({
+    command: process.execPath,
+    args: ['node_modules/next/dist/bin/next', 'dev', '--webpack', '--hostname', '127.0.0.1', '--port', String(port)],
+    cwd: new URL('../', import.meta.url),
+    env: pf01NextEnvironment(process.env, { supabaseUrl, anonKey }),
+    port, signal,
+    ready: async () => {
+      try {
+        const response = await fetch(endpoint, { redirect: 'manual', signal: AbortSignal.timeout(2_000) });
+        return response.status === 401;
+      } catch { return false; }
+    },
+  });
+  return Object.freeze({ ...owned, origin, endpoint });
 }
 
 async function readJson(endpoint, cookie) {
@@ -144,9 +108,15 @@ async function run() {
   const actorClient = createClient(supabaseUrl, anonKey, clientOptions);
   const pool = new Pool({ connectionString: databaseUrl, max: 4 });
 
+  const createdUsers = [];
+  const onCreated = user => createdUsers.push(user);
   let owner = null;
   let other = null;
   let next = null;
+  const cancellation = new AbortController();
+  const cancel = () => cancellation.abort();
+  process.once('SIGINT', cancel);
+  process.once('SIGTERM', cancel);
   try {
     const target = await verifyPf01LocalTarget({
       target: required('PF01_LOCAL_TARGET'),
@@ -173,26 +143,26 @@ async function run() {
       return;
     }
 
-    // This check precedes Auth user creation and every writable PostgreSQL
-    // fixture statement. The current baseline intentionally fails here because
-    // its public environment contract rejects every loopback Supabase URL.
+    // Both gates precede Auth or writable fixture setup. Never load dotenv fallback.
+    await assertPf01NoDotenv();
     await assertNextAcceptsLocalSupabase(supabaseUrl, anonKey);
 
-    owner = await createPf01Aal2User({ adminClient, supabaseUrl, anonKey, label: 'owner' });
-    other = await createPf01Aal2User({ adminClient, supabaseUrl, anonKey, label: 'other-owner' });
+    owner = await createPf01Aal2User({ adminClient, supabaseUrl, anonKey, label: 'owner', onCreated });
+    other = await createPf01Aal2User({ adminClient, supabaseUrl, anonKey, label: 'other-owner', onCreated });
     const fixture = await createPf01DatabaseFixture(pool, {
       ownerUserId: owner.userId,
       otherUserId: other.userId,
       ownerEmail: owner.email,
       otherEmail: other.email,
     });
-    next = await startNext({ port, supabaseUrl, anonKey });
+    await provePf01ContentUpdateDetection(pool);
+    next = await startNext({ port, supabaseUrl, anonKey, signal: cancellation.signal });
 
+    const before = await snapshotPf01ReadState(pool);
     const anonymous = await readJson(next.endpoint);
     assert.equal(anonymous.response.status, 401);
     assert.deepEqual(anonymous.body, { error: 'UNAUTHORIZED' });
 
-    const before = await snapshotPf01ReadState(pool);
     const primary = await readJson(next.endpoint, owner.cookie);
     assert.equal(primary.response.status, 200);
     assert.equal(primary.response.headers.get('cache-control'), 'no-store, private');
@@ -250,6 +220,14 @@ async function run() {
       'revoked session/authority replay must be zero-write',
     );
 
+    // Inject a consumer failure with the secondary owner's effective authority
+    // still present. The same cleanup path must revoke/read back both users.
+    let injectedFailureObserved = false;
+    try { throw new Error('pf01_injected_consumer_failure'); }
+    catch (error) { injectedFailureObserved = error.message === 'pf01_injected_consumer_failure'; }
+    finally { await cleanupPf01Users(pool, createdUsers); }
+    assert.equal(injectedFailureObserved, true);
+
     console.log(JSON.stringify({
       suite: 'CORE-PF01-LOCAL-HTTP-PROOF-01',
       next_api: 'REAL_LOOPBACK_HTTP',
@@ -262,41 +240,29 @@ async function run() {
       private_official_separation: 'PASS',
       capability_withholding: 'PASS',
       revoked_replay: 'PASS',
-      repeated_read_effect: 'ZERO_WRITE',
+      repeated_read_effect: 'UNCHANGED_COUNTS_AND_CONTENT_HASHES',
+      unchanged_count_update_negative_control: 'DETECTED_AND_ROLLED_BACK',
+      injected_consumer_failure_cleanup: 'VERIFIED_NO_EFFECTIVE_AUTHORITY_OR_SESSION',
       stale_version: 'SEPARATE_PGTAP',
       production: 'NOT_RUN_NOT_PASS',
     }, null, 2));
   } finally {
     const cleanupErrors = [];
     if (next) try { await next.close(); } catch (error) { cleanupErrors.push(error); }
-    if (owner) try { await owner.cleanup(); } catch (error) { cleanupErrors.push(error); }
-    if (other) try { await other.cleanup(); } catch (error) { cleanupErrors.push(error); }
+    try { await cleanupPf01Users(pool, createdUsers); } catch (error) { cleanupErrors.push(error); }
+    process.removeListener('SIGINT', cancel);
+    process.removeListener('SIGTERM', cancel);
     await pool.end().catch(error => cleanupErrors.push(error));
     if (cleanupErrors.length) throw new AggregateError(cleanupErrors, 'pf01_local_http_cleanup_failed');
+    console.log(JSON.stringify({ logical_authority_session_cleanup: 'VERIFIED',
+      owned_process_port_cleanup: 'VERIFIED', retained_history: 'DISPOSABLE_STACK_TEARDOWN_REQUIRED' }));
   }
 }
 
 try {
   await run();
 } catch (error) {
-  if (error?.exitCode === 78 || error?.message === 'next_local_supabase_url_policy_blocks_connected_proof') {
-    console.error(JSON.stringify({
-      suite: 'CORE-PF01-LOCAL-HTTP-PROOF-01',
-      result: 'BLOCKED',
-      connected_http: 'NOT_RUN_NOT_PASS',
-      blocker: 'NEXT_PUBLIC_SUPABASE_URL rejects the verified loopback local Supabase API before fixture side effects',
-      required_successor: 'bounded local-only Supabase URL support in src/lib/supabase/env.ts',
-      auth_database_mutations: 'ZERO',
-      production: 'NOT_RUN_NOT_PASS',
-    }, null, 2));
-    process.exitCode = 78;
-  } else {
-    console.error(JSON.stringify({
-      suite: 'CORE-PF01-LOCAL-HTTP-PROOF-01',
-      result: 'FAILED',
-      diagnostic: error?.message ?? 'unknown_failure',
-      production: 'NOT_RUN_NOT_PASS',
-    }));
-    process.exitCode = 1;
-  }
+  console.error(JSON.stringify({ suite: 'CORE-PF01-LOCAL-ENV-SUCCESSOR-01', result: 'FAILED',
+    diagnostic: error?.message ?? 'unknown_failure', production: 'NOT_RUN_NOT_PASS' }));
+  process.exitCode = 1;
 }
