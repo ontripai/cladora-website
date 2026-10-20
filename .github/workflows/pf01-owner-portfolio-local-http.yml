@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - '.github/workflows/pf01-owner-portfolio-local-http.yml'
+      - 'scripts/test-supabase-local-env-contract.mjs'
       - 'scripts/test-pf01-owner-portfolio-local-http.mjs'
       - 'scripts/test-pf01-owner-portfolio-local-http-safety.mjs'
       - 'scripts/lib/pf01-owner-portfolio-local-fixture.mjs'
@@ -44,11 +45,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify bounded local environment behavior
+        run: node --experimental-strip-types scripts/test-supabase-local-env-contract.mjs
       - name: Reject target mismatches before side effects
         run: node scripts/test-pf01-owner-portfolio-local-http-safety.mjs
       - name: Lint the bounded proof package
         run: >-
           npx eslint --max-warnings=0
+          src/lib/supabase/env.ts
+          scripts/test-supabase-local-env-contract.mjs
           scripts/test-pf01-owner-portfolio-local-http.mjs
           scripts/test-pf01-owner-portfolio-local-http-safety.mjs
           scripts/lib/pf01-owner-portfolio-local-fixture.mjs
@@ -58,6 +63,7 @@ jobs:
         run: git diff --check "origin/${GITHUB_BASE_REF}...HEAD"
 
   connected-local-proof:
+    needs: safety-contract
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -158,10 +164,6 @@ jobs:
             node --experimental-strip-types scripts/test-pf01-owner-portfolio-local-http.mjs
           proof_status=$?
           set -e
-          if [[ $proof_status -eq 78 ]]; then
-            echo '::error::Connected proof is NOT_RUN_NOT_PASS: baseline Next Supabase URL policy rejects the verified loopback API'
-            exit 1
-          fi
           exit "$proof_status"
       - name: Tear down only the task-owned local stack
         if: always()

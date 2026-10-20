@@ -1,9 +1,17 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { createServer } from 'node:net';
 
 import {
   PF01_PRODUCTION_PROJECT_REF_HASH,
+  assertPf01NoDotenv,
+  cleanupPf01Users,
+  pf01NextEnvironment,
+  pf01PortIsLive,
+  startPf01OwnedProcess,
   assertPf01LocalExecutionInputs,
   withVerifiedPf01LocalTarget,
 } from './lib/pf01-owner-portfolio-local-fixture.mjs';
@@ -124,6 +132,9 @@ for (const [label, mutate, expected] of [
 }
 
 for (const [label, override, expected] of [
+  ['missing proof', { inspectStack: async () => null }, /local_stack_identity_unavailable/],
+  ['untrusted proof', { inspectStack: async () => stackProof({ source: 'untrusted' }) }, /disposable_environment_identity_mismatch/],
+  ['wrong environment proof', { inspectStack: async () => stackProof({ environment: 'preview' }) }, /disposable_environment_identity_mismatch/],
   ['stack project mismatch', {
     inspectStack: async () => stackProof({ projectRef: 'different-local' }),
   }, /local_project_identity_mismatch/],
@@ -169,9 +180,7 @@ for (const [label, override, expected] of [
 }
 
 {
-  const envSource = await readFile(new URL('../src/lib/supabase/env.ts', import.meta.url), 'utf8');
-  assert.match(envSource, /must be an HTTPS Supabase project URL/);
-  assert.match(envSource, /url\.endsWith\('\.supabase\.co'\)/);
+
   assert.throws(() => assertPf01LocalExecutionInputs({
     target: 'local',
     ephemeralOptIn: '1',
@@ -187,12 +196,67 @@ for (const [label, override, expected] of [
   cases += 1;
 }
 
+const childEnv = pf01NextEnvironment({ PATH: process.env.PATH, HTTPS_PROXY: 'proxy-control',
+  NODE_EXTRA_CA_CERTS: 'ca-control', SUPABASE_SERVICE_ROLE_KEY: 'must-not-inherit',
+  VERCEL_TOKEN: 'must-not-inherit', DATABASE_URL: 'must-not-inherit', NODE_OPTIONS: '--require secret' },
+{ supabaseUrl: LOCAL_API, anonKey: ANON_KEY });
+assert.equal(childEnv.HTTPS_PROXY, 'proxy-control');
+assert.equal(childEnv.NODE_EXTRA_CA_CERTS, 'ca-control');
+for (const name of ['SUPABASE_SERVICE_ROLE_KEY', 'VERCEL_TOKEN', 'DATABASE_URL', 'NODE_OPTIONS']) {
+  assert.equal(childEnv[name], undefined);
+}
+cases += 1;
+const temp = await mkdtemp(join(tmpdir(), 'pf01-dotenv-safety-'));
+try {
+  await assertPf01NoDotenv(temp);
+  await writeFile(join(temp, '.env.development.local'), '');
+  await assert.rejects(assertPf01NoDotenv(temp), /pf01_dotenv_presence_prohibited/);
+  cases += 1;
+} finally { await rm(temp, { recursive: true, force: true }); }
+
+async function freePort() {
+  const server = createServer();
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port;
+  await new Promise(resolve => server.close(resolve));
+  return port;
+}
+for (const mode of ['timeout', 'early-exit', 'cancellation']) {
+  const port = await freePort();
+  let pid;
+  const controller = new AbortController();
+  const childScript = mode === 'early-exit' ? 'process.exit(9)'
+    : `require('node:net').createServer().listen(${port},'127.0.0.1')`;
+  let cancelTimer;
+  if (mode === 'cancellation') cancelTimer = setTimeout(() => controller.abort(), 250);
+  try {
+    await assert.rejects(startPf01OwnedProcess({ command: process.execPath,
+      args: ['-e', childScript], cwd: tmpdir(), env: { PATH: process.env.PATH }, port,
+      ready: async () => false, timeoutMs: 600, signal: controller.signal,
+      onSpawn: value => { pid = value; } }), /pf01_process_|pf01_startup_cancelled/);
+    assert.equal(await pf01PortIsLive(port), false);
+    if (pid) assert.throws(() => process.kill(pid, 0), { code: 'ESRCH' });
+    cases += 1;
+  } finally { clearTimeout(cancelTimer); }
+}
+// A failed cleanup stage must not skip another user or become PASS.
+{
+  let authCleanups = 0;
+  const fakePool = { connect: async () => { throw new Error('injected_revoke_failure'); },
+    query: async () => ({ rows: [{ memberships: 0, contexts: 0, assignments: 0, links: 0,
+      invitations: 0, authorities: 0, sessions: 0 }] }) };
+  await assert.rejects(cleanupPf01Users(fakePool, [1, 2].map(n => ({ userId: String(n),
+    cleanup: async () => { authCleanups += 1; } }))), /pf01_logical_cleanup_failed/);
+  assert.equal(authCleanups, 2);
+  cases += 1;
+}
+
 console.log(JSON.stringify({
   suite: 'CORE-PF01-LOCAL-HTTP-PROOF-01-safety',
   cases,
   static_target_gate: 'PASS',
   mismatch_zero_mutation: 'PASS',
   production_project_rejected: 'PASS',
-  current_connected_next_local_url: 'BLOCKED_LOCAL_URL_POLICY_NOT_RUN_NOT_PASS',
+  current_connected_next_local_url: 'BEHAVIORAL_HELPER_CHECK_SEPARATE_CONNECTED_CI_REQUIRED',
   remote_mutations: 'NONE',
 }, null, 2));
