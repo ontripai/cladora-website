@@ -129,6 +129,27 @@ try {
     assert.equal(globalThis.displayInjected, undefined);
     assert.equal(section.querySelector('h3').textContent.replace(/\s+/g, ' ').trim(), copy[lang].heading(new Intl.NumberFormat(lang).format(1)));
     scenarios += 1;
+    // DOM contracts only: JSDOM cannot prove rendered size, keyboard avoidance,
+    // safe-area geometry, real browser/device behavior or mobile E2E.
+    const main = document.querySelector('main');
+    for (const token of ['w-full', 'min-w-0', 'p-4', 'sm:p-6',
+      '[overflow-wrap:anywhere]', 'pb-[max(1rem,env(safe-area-inset-bottom))]',
+      '[&_a]:min-h-11', '[&_button]:min-h-11', '[&_input]:min-h-11',
+      '[&_input]:text-base', '[&_select]:text-base', '[&_textarea]:text-base']) {
+      assert.ok(main.classList.contains(token), `mobile layout hook retained: ${token}`);
+    }
+    assert.ok(document.querySelector('header > div > div').classList.contains('flex-wrap'));
+    assert.ok(section.querySelector('dl').classList.contains('grid-cols-1'));
+    scenarios += 1;
+    const longName = (lang === 'fa' ? 'واحد-با-نام-طولانی' : 'Long-canonical-unit-reference').repeat(12);
+    const longReference = projection(workspaceOne, longName, 'withheld');
+    longReference.items[0].resource.source.source_reference = 'official:'.repeat(30);
+    const longSection = await render([longReference]);
+    assert.equal(longSection.querySelector('strong').textContent, longName, 'do not truncate or invent canonical display data');
+    assert.equal(longSection.querySelector('a'), null, 'mobile styling must not grant a withheld action');
+    assert.ok(longSection.querySelector('dl').classList.contains('min-w-0'));
+    assert.equal(main.dir, lang === 'fa' ? 'rtl' : 'ltr');
+    scenarios += 1;
     await act(async () => root.unmount());
     root = null;
   }
@@ -144,5 +165,7 @@ assert.ok(calls.length > 0);
 console.log(JSON.stringify({ suite: 'CORE-PF01-WORKSPACE-DISPLAY-01-component', result: 'PASS',
   locales: 3, scenarios, zero_one_multiple_withheld_revoked_groups: 'PASS',
   opaque_key_unit_pairing_unchanged: 'PASS', localized_unavailable_headings_bidi_escaping: 'PASS',
+  mobile_layout_hooks_long_content_withheld_actions: 'PASS_COMPONENT_CONTRACT_ONLY',
+  mobile_viewport_visual_and_real_devices: 'NOT_RUN_NOT_PASS',
   synthetic_component_transport: 'NOT_REAL_BROWSER_ACCEPTANCE',
   product_limitation: 'WORKSPACE_CANONICAL_NAME_UNAVAILABLE' }, null, 2));
