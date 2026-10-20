@@ -124,7 +124,9 @@
     "test:service-subject-link": "node scripts/test-service-request-subject-link-v1.mjs",
     "test:service-subject-link:postgres": "node scripts/test-service-request-subject-link-postgres-v1.mjs",
     "test:service-subject-link:http": "node scripts/test-service-request-subject-link-http-v1.mjs",
-    "test:service-subject-link:http:postgres": "node scripts/test-service-request-subject-link-http-postgres-v1.mjs"
+    "test:service-subject-link:http:postgres": "node scripts/test-service-request-subject-link-http-postgres-v1.mjs",
+    "test:pf01-local-browser": "node scripts/test-pf01-owner-portfolio-local-browser.mjs",
+    "test:pf01-local-browser:safety": "node scripts/test-pf01-owner-portfolio-local-browser-safety.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
@@ -143,6 +145,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/node": "^20.17.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",

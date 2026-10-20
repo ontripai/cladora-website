@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
-import { connect } from 'node:net';
+import { connect, createServer } from 'node:net';
 import { once } from 'node:events';
 
 import { createServerClient } from '@supabase/ssr';
@@ -21,6 +21,40 @@ import {
 
 export const PF01_LOCAL_FIXTURE_VERSION = 'pf01-owner-portfolio-local-http-fixture.v1';
 export const PF01_PRODUCTION_PROJECT_REF_HASH = '4bcbe70e4d2cef78506e6317e7fc90adb62b94ea18a17b0e8e866eacdd69da03';
+
+// Additive browser setup only: keep the accepted HTTP fixture path unchanged.
+export async function pf01FreeLoopbackPort() {
+  const server = createServer();
+  await new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(0, '127.0.0.1', resolve);
+  });
+  const address = server.address();
+  await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
+  if (!address || typeof address === 'string') throw new Error('loopback_port_unavailable');
+  return address.port;
+}
+
+export async function startPf01BrowserNextApp({ port, supabaseUrl, anonKey, signal }) {
+  await assertPf01NoDotenv();
+  const origin = `http://127.0.0.1:${port}`;
+  const owned = await startPf01OwnedProcess({
+    command: process.execPath,
+    args: ['node_modules/next/dist/bin/next', 'dev', '--webpack', '--hostname', '127.0.0.1', '--port', String(port)],
+    cwd: new URL('../../', import.meta.url),
+    env: pf01NextEnvironment(process.env, { supabaseUrl, anonKey }),
+    port, signal,
+    ready: async () => {
+      try {
+        const response = await fetch(`${origin}/api/owner-portfolio/v1/projection`, {
+          redirect: 'manual', signal: AbortSignal.timeout(2_000),
+        });
+        return response.status === 401;
+      } catch { return false; }
+    },
+  });
+  return Object.freeze({ ...owned, origin });
+}
 
 const LOOPBACK_HOSTS = new Set(['127.0.0.1', 'localhost', '[::1]']);
 const OWNER_ONE_PLACEHOLDER = 'f1010000-0000-4000-8000-000000000001';
