@@ -26,7 +26,48 @@ function WorkspaceSelection({ contextId, lang }: { contextId: string; lang: Lang
  const [pendingWorkspace,setPendingWorkspace]=useState<string|undefined>();
  const [draftDirty,setDraftDirty]=useState(false);
  const draftGuard=useRef<(()=>void)|null>(null);
+ const workspaceSelectRef=useRef<HTMLSelectElement>(null);
+ const dialogRef=useRef<HTMLDivElement>(null);
+ const keepEditingRef=useRef<HTMLButtonElement>(null);
  const dialogTitleId=useId(),dialogBodyId=useId();
+ useEffect(()=>{
+  if(pendingWorkspace===undefined||!dialogRef.current)return;
+  const dialog=dialogRef.current;
+  const selector=workspaceSelectRef.current;
+  const outside=new Map<Element,string|null>();
+  // Make every sibling outside the dialog inert, including the surrounding app.
+  let branch:Element=dialog;
+  while(branch.parentElement){
+   for(const sibling of Array.from(branch.parentElement.children)){if(sibling!==branch){outside.set(sibling,sibling.getAttribute('inert'));sibling.setAttribute('inert','');}}
+   if(branch.parentElement===document.body)break;
+   branch=branch.parentElement;
+  }
+  const focusKeep=()=>keepEditingRef.current?.focus();
+  const blockOutside=(event:Event)=>{if(event.target instanceof window.Node&&!dialog.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}};
+  const containFocus=(event:FocusEvent)=>{if(event.target instanceof window.Node&&!dialog.contains(event.target))focusKeep();};
+  const handleKey=(event:KeyboardEvent)=>{
+   if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();setPendingWorkspace(undefined);}
+   else if(event.key==='Tab'){
+    event.preventDefault();event.stopImmediatePropagation();
+    const buttons=Array.from(dialog.querySelectorAll<HTMLButtonElement>('button'));
+    const index=buttons.findIndex(button=>button===document.activeElement);
+    buttons[(index+(event.shiftKey?-1:1)+buttons.length)%buttons.length]?.focus();
+   }
+  };
+  document.addEventListener('keydown',handleKey,true);
+  document.addEventListener('focusin',containFocus,true);
+  document.addEventListener('pointerdown',blockOutside,true);
+  document.addEventListener('click',blockOutside,true);
+  focusKeep();
+  return()=>{
+   document.removeEventListener('keydown',handleKey,true);
+   document.removeEventListener('focusin',containFocus,true);
+   document.removeEventListener('pointerdown',blockOutside,true);
+   document.removeEventListener('click',blockOutside,true);
+   outside.forEach((inert,element)=>{if(inert===null)element.removeAttribute('inert');else element.setAttribute('inert',inert);});
+   if(selector?.isConnected)selector.focus();
+  };
+ },[pendingWorkspace]);
  const registerDraftGuard=useCallback((dirty:boolean,discard:()=>void)=>{
   if(dirty){draftGuard.current=discard;setDraftDirty(true);}
   else {if(!draftGuard.current||draftGuard.current===discard)draftGuard.current=null;setDraftDirty(false);}
@@ -38,8 +79,8 @@ function WorkspaceSelection({ contextId, lang }: { contextId: string; lang: Lang
  if(error)return <p role="alert">{t.error}</p>;
  if(!targets)return <p role="status">{t.loading}</p>;
  if(!targets.length)return <p>{t.empty}</p>;
- return <div className="space-y-6"><label className="block">{t.choose}<select className="ms-3 rounded border p-2" value={workspace} onChange={e=>requestWorkspace(e.target.value)}><option value="">—</option>{targets.map(x=><option key={x.workspace_id} value={x.workspace_id}>{x.workspace_id} · {x.environment}</option>)}</select></label>
-  {pendingWorkspace!==undefined&&<div role="alertdialog" aria-modal="true" aria-labelledby={dialogTitleId} aria-describedby={dialogBodyId} className="space-y-3 rounded border border-amber-500 bg-amber-50 p-4 text-slate-950"><h2 id={dialogTitleId} className="font-semibold">{t.unsavedTitle}</h2><p id={dialogBodyId}>{t.unsavedBody}</p><div className="flex flex-wrap gap-3"><button type="button" className="rounded border border-slate-500 px-3 py-2 font-medium" onClick={()=>setPendingWorkspace(undefined)}>{t.keepEditing}</button><button type="button" className="rounded bg-slate-900 px-3 py-2 font-medium text-white" onClick={discardAndSwitch}>{t.discardEdits}</button></div></div>}
+ return <div className="space-y-6"><label className="block">{t.choose}<select ref={workspaceSelectRef} className="ms-3 rounded border p-2" value={workspace} onChange={e=>requestWorkspace(e.target.value)}><option value="">—</option>{targets.map(x=><option key={x.workspace_id} value={x.workspace_id}>{x.workspace_id} · {x.environment}</option>)}</select></label>
+  {pendingWorkspace!==undefined&&<div ref={dialogRef} role="alertdialog" aria-modal="true" aria-labelledby={dialogTitleId} aria-describedby={dialogBodyId} className="space-y-3 rounded border border-amber-500 bg-amber-50 p-4 text-slate-950"><h2 id={dialogTitleId} className="font-semibold">{t.unsavedTitle}</h2><p id={dialogBodyId}>{t.unsavedBody}</p><div className="flex flex-wrap gap-3"><button ref={keepEditingRef} type="button" className="rounded border border-slate-500 px-3 py-2 font-medium" onClick={()=>setPendingWorkspace(undefined)}>{t.keepEditing}</button><button type="button" className="rounded bg-slate-900 px-3 py-2 font-medium text-white" onClick={discardAndSwitch}>{t.discardEdits}</button></div></div>}
   {workspace&&<><CustomerAirpropB2Workspace key={`b2:${contextId}:${workspace}`} lang={lang} contextId={contextId} workspaceId={workspace}/><OpportunityPanel key={workspace} contextId={contextId} workspaceId={workspace} lang={lang} registerDraftGuard={registerDraftGuard}/></>}</div>;
 }
 function OpportunityPanel({ contextId,workspaceId,lang,registerDraftGuard }: { contextId:string;workspaceId:string;lang:Language;registerDraftGuard:(dirty:boolean,discard:()=>void)=>()=>void }) {
