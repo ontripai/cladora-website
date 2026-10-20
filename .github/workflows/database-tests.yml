@@ -487,12 +487,26 @@ jobs:
             echo "::error::Supabase PostgreSQL image could not be resolved"
             exit 1
           fi
-          docker run --rm -d --name cladora-service-http-postgres \
-            -e POSTGRES_PASSWORD=postgres -p 127.0.0.1:55432:5432 "$SOURCE_PG_IMAGE"
+          if docker inspect cladora-service-http-postgres >/dev/null 2>&1; then
+            echo "::error::SERVICE fixture container already exists; refusing to replace it"
+            exit 1
+          fi
           cleanup_service_postgres() {
             docker stop cladora-service-http-postgres >/dev/null 2>&1 || true
           }
           trap cleanup_service_postgres EXIT
+          docker run --rm -d --name cladora-service-http-postgres \
+            -e POSTGRES_PASSWORD=postgres -p 127.0.0.1::5432 "$SOURCE_PG_IMAGE"
+          SERVICE_PG_BINDING=$(docker port cladora-service-http-postgres 5432/tcp)
+          if [[ ! "$SERVICE_PG_BINDING" =~ ^127\.0\.0\.1:([0-9]+)$ ]]; then
+            echo "::error::SERVICE PostgreSQL must publish exactly one loopback port"
+            exit 1
+          fi
+          SERVICE_PG_PORT="${BASH_REMATCH[1]}"
+          if (( SERVICE_PG_PORT < 1024 || SERVICE_PG_PORT > 65535 )); then
+            echo "::error::SERVICE PostgreSQL published port is invalid"
+            exit 1
+          fi
           for attempt in $(seq 1 90); do
             first_ready=$(timeout 5s docker exec cladora-service-http-postgres \
               psql -U postgres -d postgres -X -A -t -v ON_ERROR_STOP=1 \
@@ -530,12 +544,12 @@ jobs:
           echo "::add-mask::$SERVICE_ROLE_KEY"
           SERVICE_SUBJECT_LINK_HTTP_ANON_KEY="$ANON_KEY" \
           SERVICE_SUBJECT_LINK_HTTP_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL="postgresql://supabase_admin:postgres@127.0.0.1:${SERVICE_PG_PORT}/postgres" \
           timeout 240s npm run test:service-subject-link:http:postgres
         env:
           SERVICE_SUBJECT_LINK_HTTP_EPHEMERAL: "1"
           SERVICE_SUBJECT_LINK_LOCAL_STEP_SU_02_AND_S4: "1"
           SERVICE_SUBJECT_LINK_HTTP_REAL_AAL2_REQUIRED: "1"
-          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://supabase_admin:postgres@127.0.0.1:55432/postgres
           SERVICE_SUBJECT_LINK_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
