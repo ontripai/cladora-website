@@ -73,8 +73,8 @@
       "owner": "Community & Experience",
       "finding": "Community adapter exposes no benefit outcome or SERVICE transaction.",
       "classification": "inactive",
-      "reviewed_commit": "898e5fc30cf844fcd69e826840a06903e246dea2",
-      "sha256": "4f37679f354e4f533e73748a0d06a41e5d803b6324e160273f49cfa33be42536"
+      "reviewed_commit": "44903b7bbe7858047e42dde32592158339f5379e",
+      "sha256": "8fb78db10593f808482e0610fbb5d156079109db8253cbd8e3ed5690e3e2241e"
     },
     {
       "path": "src/components/customer/CustomerEventInterestPage.tsx",
