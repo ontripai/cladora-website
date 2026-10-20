@@ -114,6 +114,7 @@ async function run() {
   let owner = null;
   let other = null;
   let next = null;
+  let primaryError = null;
   const cancellation = new AbortController();
   const cancel = () => cancellation.abort();
   process.once('SIGINT', cancel);
@@ -257,6 +258,9 @@ async function run() {
       stale_version: 'SEPARATE_PGTAP',
       production: 'NOT_RUN_NOT_PASS',
     }, null, 2));
+  } catch (error) {
+    primaryError = error;
+    throw error;
   } finally {
     const cleanupErrors = [];
     if (next) try { await next.close(); } catch (error) { cleanupErrors.push(error); }
@@ -264,16 +268,26 @@ async function run() {
     process.removeListener('SIGINT', cancel);
     process.removeListener('SIGTERM', cancel);
     await pool.end().catch(error => cleanupErrors.push(error));
-    if (cleanupErrors.length) throw new AggregateError(cleanupErrors, 'pf01_local_http_cleanup_failed');
+    if (cleanupErrors.length) throw new AggregateError([primaryError, ...cleanupErrors].filter(Boolean), 'pf01_local_http_cleanup_failed');
     console.log(JSON.stringify({ logical_authority_session_cleanup: 'VERIFIED',
       owned_process_port_cleanup: 'VERIFIED', retained_history: 'DISPOSABLE_STACK_TEARDOWN_REQUIRED' }));
   }
 }
 
+function boundedFailure(error) {
+  const location = error?.stack?.split('\n').find(line => /at .*scripts\//.test(line))?.trim();
+  const value = item => typeof item === 'number' || typeof item === 'boolean' ? item
+    : typeof item === 'string' && /^[a-zA-Z0-9_, .:-]{1,120}$/.test(item)
+      && !/[0-9a-f]{8}-[0-9a-f]{4}-/i.test(item) ? item : undefined;
+  return { name: error?.name, code: error?.code, location,
+    diagnostic: error?.name === 'AssertionError' ? 'assertion_failed' : error?.message?.replace(/eyJ[A-Za-z0-9_.-]+/g, '[REDACTED]'),
+    actual: value(error?.actual), expected: value(error?.expected),
+    causes: error instanceof AggregateError ? error.errors.map(boundedFailure) : undefined };
+}
 try {
   await run();
 } catch (error) {
   console.error(JSON.stringify({ suite: 'CORE-PF01-LOCAL-ENV-SUCCESSOR-01', result: 'FAILED',
-    phase, diagnostic: error?.message ?? 'unknown_failure', production: 'NOT_RUN_NOT_PASS' }));
+    phase, failure: boundedFailure(error), production: 'NOT_RUN_NOT_PASS' }));
   process.exitCode = 1;
 }
