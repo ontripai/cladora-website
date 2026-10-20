@@ -174,7 +174,8 @@ async function run() {
     const primary = await readJson(next.endpoint, owner.cookie);
     assert.equal(primary.response.status, 200);
     assert.equal(primary.response.headers.get('cache-control'), 'no-store, private');
-    assert.equal(primary.response.headers.get('vary'), 'Cookie');
+    assert.ok(primary.response.headers.get('vary')?.split(',').some(name => name.trim().toLowerCase() === 'cookie'),
+      'actual Next Vary header must retain Cookie among its framework tokens');
     assert.ok(Array.isArray(primary.body?.projections));
     assert.equal(primary.body.projections.length, 2);
     assert.deepEqual(
