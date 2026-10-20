@@ -132,6 +132,8 @@ function ContextHarness({ lang }) {
     showCommunity ? React.createElement(CustomerCommunityBasePage, { lang }) : null);
 }
 let postStatus = 200; let readFailure = false; let pendingPost = null; let deferPost = false; let projectionVersion = 3;
+let selectionCommunities = null;
+let holdNextProjection = false; let finishProjection;
 let allowCreate = true; let allowReport = true; let allowModerate = true;
 const guardPosts = [];
 const scopedFetch = async (input, init = {}) => {
@@ -150,10 +152,15 @@ const scopedFetch = async (input, init = {}) => {
   if (url.startsWith('/api/customer/v1/community/base')) {
     if (readFailure) return response({ error: { code: 'REFRESH_FAILED' } }, 500);
     assert.equal(query.get('workspace_id'), activeWorkspace);
-    return response({ ...payload, workspace_id: activeWorkspace,
-      communities: payload.communities.map((item) => ({ ...item, workspace_id: activeWorkspace, version: projectionVersion, can_create_announcement: allowCreate, can_decide_reports: allowModerate })),
-      announcements: payload.announcements.map((item) => ({ ...item, can_report: item.can_report && allowReport })),
-    });
+    const available = selectionCommunities ?? [communityId];
+    const scopedId = (value, community) => community === communityId ? value : ({ [draftId]: id(44), [publishedId]: id(45), [reportId]: id(46) })[value] ?? value;
+    const nextProjection = { ...payload, workspace_id: activeWorkspace,
+      communities: available.flatMap((community) => payload.communities.map((item) => ({ ...item, id: community, name: community === communityId ? 'Named community' : 'Second community', workspace_id: activeWorkspace, version: projectionVersion, can_create_announcement: allowCreate, can_decide_reports: allowModerate }))),
+      announcements: available.flatMap((community) => payload.announcements.map((item) => ({ ...item, id: scopedId(item.id, community), community_id: community, can_report: item.can_report && allowReport }))),
+      reports: available.flatMap((community) => payload.reports.map((item) => ({ ...item, id: scopedId(item.id, community), community_id: community }))),
+    };
+    if (holdNextProjection) { holdNextProjection = false; return new Promise((resolve) => { finishProjection = () => resolve(response(nextProjection)); }); }
+    return response(nextProjection);
   }
   throw new Error(`Unexpected Context test request: ${url}`);
 };
@@ -347,6 +354,210 @@ for (const lang of ['ro', 'en', 'fa']) {
   await act(async () => root.unmount());
 }
 console.log(`CE-CONTEXT-DRAFT-GUARD-01 passed: ${contextScenarios} real-provider mounted scenarios across RO/EN/FA, RTL, selection-only dirtiness, independent guard cleanup, failures/409/refresh recovery, scope isolation, late completion and zero-write navigation.`);
+
+// Community selection tests exercise the real local dialog, actual Page and
+// actual Provider. Context controls remain a harness, not the shared shell UI.
+const secondCommunity = id(43);
+const selectionCopy = {
+  ro: { title: 'Păstrezi modificările?', keep: 'Continuă editarea', discard: 'Renunță și schimbă comunitatea', unavailable: 'Comunitatea selectată nu mai este disponibilă.' },
+  en: { title: 'Keep your changes?', keep: 'Keep editing', discard: 'Discard and switch community', unavailable: 'The selected community is no longer available.' },
+  fa: { title: 'تغییرات حفظ شوند؟', keep: 'ادامهٔ ویرایش', discard: 'کنارگذاشتن پیش‌نویس و تغییر جامعه', unavailable: 'جامعهٔ انتخاب‌شده دیگر در دسترس نیست.' },
+};
+const selector = () => container.querySelector('select[aria-label]');
+const localDialog = () => container.querySelector('[role="alertdialog"]');
+async function chooseCommunity(target) {
+  const before = guardPosts.length;
+  await act(async () => { selector().focus(); edit(selector(), target); }); await flush();
+  assert.equal(guardPosts.length, before, 'Community selection is zero-write');
+}
+async function decideCommunity(index) {
+  const before = guardPosts.length;
+  await act(async () => localDialog().querySelectorAll('button')[index].click()); await flush();
+  assert.equal(guardPosts.length, before, 'Keep/Discard causes no domain mutation');
+}
+async function keyInDialog(key, shiftKey = false) {
+  const before = guardPosts.length;
+  await act(async () => document.activeElement.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, shiftKey, bubbles: true, cancelable: true }))); await flush();
+  assert.equal(guardPosts.length, before, 'keyboard navigation is zero-write');
+}
+async function publishAndRefresh() {
+  const before = guardPosts.length;
+  await act(async () => container.querySelector('article button').click()); await flush();
+  assert.equal(guardPosts.length, before + 1, 'only explicit publish sends a command');
+}
+async function finishDeferredPost() {
+  await act(async () => pendingPost()); await flush();
+  deferPost = false;
+}
+let selectionScenarios = 0;
+for (const [lang, t] of Object.entries(selectionCopy)) {
+  selectionCommunities = [communityId, secondCommunity];
+  postStatus = 200; readFailure = false; deferPost = false;
+  root = createRoot(container);
+  await act(async () => root.render(React.createElement(DashboardTransportProvider, { value: scopedFetch },
+    React.createElement(CustomerContextProvider, null, React.createElement(ContextHarness, { lang })))));
+  await flush();
+  assert.equal(selector().value, communityId);
+  await chooseCommunity(communityId); assert.equal(localDialog(), null, 'same selection never asks');
+  await chooseCommunity(secondCommunity); assert.equal(localDialog(), null, 'clean selection never asks');
+  assert.equal(selector().value, secondCommunity); assertClean();
+  await chooseCommunity(communityId); selectionScenarios += 1;
+
+  for (let index = 0; index < 3; index += 1) {
+    await dirtyForm(index); const before = values();
+    await chooseCommunity(communityId); assert.equal(localDialog(), null, 'dirty same selection also needs no confirmation');
+    await chooseCommunity(secondCommunity);
+    const dialog = localDialog(); const [keep, discard] = dialog.querySelectorAll('button');
+    assert.equal(selector().value, communityId, 'dirty selection retains the controlled active community');
+    assert.deepEqual(values(), before);
+    assert.equal(dialog.getAttribute('aria-modal'), 'true');
+    assert.equal(dialog.getAttribute('dir'), lang === 'fa' ? 'rtl' : 'ltr');
+    assert.equal(document.getElementById(dialog.getAttribute('aria-labelledby')).textContent, t.title);
+    assert.ok(document.getElementById(dialog.getAttribute('aria-describedby')).textContent);
+    assert.equal(keep.textContent, t.keep); assert.equal(discard.textContent, t.discard);
+    assert.equal(document.activeElement, keep, 'initial focus is the safe Keep action');
+    assert.ok(selector().closest('[inert]'), 'old form/selector background is inert');
+    assert.ok(container.querySelector('[data-harness="context-b"]').closest('[inert]'), 'surrounding controls are inert');
+    await keyInDialog('Tab', true); assert.equal(document.activeElement, discard, 'Shift+Tab wraps to last action');
+    await keyInDialog('Tab'); assert.equal(document.activeElement, keep, 'Tab wraps to first action');
+    await keyInDialog('Tab'); assert.equal(document.activeElement, discard);
+    await act(async () => selector().focus()); assert.equal(document.activeElement, keep, 'focus cannot escape');
+    const writes = guardPosts.length;
+    await act(async () => {
+      container.querySelector('article button').click();
+      currentForms()[index].dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+      container.querySelector('[data-harness="context-b"]').click();
+    }); await flush();
+    assert.equal(guardPosts.length, writes, 'background click and submit cannot activate');
+    assert.equal(contextState.active.context_id, contextId);
+    await keyInDialog('Escape');
+    assert.equal(localDialog(), null); assert.equal(document.activeElement, selector(), 'Escape restores selector focus');
+    assert.deepEqual(values(), before); assert.equal(selector().closest('[inert]'), null);
+    await chooseCommunity(secondCommunity); await decideCommunity(0);
+    assert.deepEqual(values(), before); assert.equal(selector().value, communityId); assert.equal(document.activeElement, selector());
+    await chooseCommunity(secondCommunity); await decideCommunity(1);
+    assert.equal(selector().value, secondCommunity); assert.equal(document.activeElement, selector()); assertClean();
+    await chooseCommunity(communityId); assert.equal(localDialog(), null); assertClean();
+    selectionScenarios += 1;
+  }
+
+  for (let index = 0; index < 3; index += 1) await dirtyForm(index);
+  const allDrafts = values();
+  await chooseCommunity(secondCommunity); await decideCommunity(0); assert.deepEqual(values(), allDrafts);
+  await chooseCommunity(secondCommunity); await decideCommunity(1); assertClean();
+  await chooseCommunity(communityId); assertClean(); selectionScenarios += 1;
+
+  // A Context request suspends the local dialog. Context Keep resumes the valid
+  // local decision, while actual Context confirm destroys that old local scope.
+  await dirtyForm(0); await chooseCommunity(secondCommunity);
+  await act(async () => contextState.select(contextB)); await flush();
+  assert.equal(localDialog(), null); assert.equal(contextState.pendingContextId, contextB);
+  await navigate('keep'); assert.ok(localDialog(), 'cancelled Context request resumes local decision');
+  await act(async () => contextState.select(contextB)); await flush(); await navigate('discard');
+  assert.equal(contextState.active.context_id, contextB); assert.equal(localDialog(), null);
+  assert.equal(selector().value, communityId); assertClean();
+  await navigate('context-a'); assertClean(); selectionScenarios += 1;
+
+  // Submission failure, conflict reconciliation and refresh failure keep the
+  // original scope's drafts usable by the new local-selection guard.
+  for (const failureStatus of [500, 409]) {
+    for (let index = 0; index < 3; index += 1) await dirtyForm(index);
+    const before = values(); postStatus = failureStatus; await sendForm(1);
+    assert.deepEqual(values(), before);
+    await chooseCommunity(secondCommunity); await decideCommunity(0); assert.deepEqual(values(), before);
+    postStatus = 200; readFailure = true; await sendForm(1);
+    assert.deepEqual(values()[0], before[0]); assert.deepEqual(values()[2], before[2]);
+    await chooseCommunity(secondCommunity); await decideCommunity(0);
+    readFailure = false;
+    await act(async () => container.querySelector('[role="alert"] button').click()); await flush();
+    assert.deepEqual(values()[0], before[0]); assert.deepEqual(values()[2], before[2]);
+    await chooseCommunity(secondCommunity); await decideCommunity(1); assertClean();
+    await chooseCommunity(communityId); selectionScenarios += 1;
+  }
+
+  // Refreshes are driven by completion of an existing explicit command, never a
+  // synthetic call into the Page's load or the Provider guard implementation.
+  await dirtyForm(0); deferPost = true; await sendForm(0);
+  await chooseCommunity(secondCommunity); selectionCommunities = [communityId];
+  await finishDeferredPost();
+  assert.equal(localDialog(), null, 'removed target cancels pending local selection');
+  assert.equal(selector().value, communityId);
+  // Completed draft is cleared normally; no obsolete selection happens if the target returns.
+  selectionCommunities = [communityId, secondCommunity]; await publishAndRefresh();
+  assert.equal(localDialog(), null); assert.equal(selector().value, communityId); selectionScenarios += 1;
+
+  // Removing a target must also preserve OTHER unsent forms and their Context guards.
+  await dirtyForm(0); await dirtyForm(1); deferPost = true; await sendForm(1);
+  await chooseCommunity(secondCommunity); selectionCommunities = [communityId]; await finishDeferredPost();
+  assert.equal(localDialog(), null); assert.equal(values()[0][0], 'Unsent 0');
+  await navigate('context-b'); assert.equal(contextState.pendingContextId, contextB); await navigate('keep');
+  selectionCommunities = [communityId, secondCommunity]; await publishAndRefresh();
+  await chooseCommunity(secondCommunity); await decideCommunity(1); await chooseCommunity(communityId); selectionScenarios += 1;
+
+  // Current-community removal fails closed: no automatic fallback, no old content
+  // or authority, and explicit selection is required even if the old community returns.
+  for (let index = 0; index < 3; index += 1) await dirtyForm(index);
+  deferPost = true; await publishAndRefresh(); await chooseCommunity(secondCommunity);
+  selectionCommunities = [secondCommunity]; await finishDeferredPost();
+  assert.equal(localDialog(), null); assert.equal(selector().value, ''); assert.equal(currentForms().length, 0);
+  assert.ok(container.textContent.includes(t.unavailable));
+  assert.equal(document.activeElement, selector());
+  await chooseCommunity(secondCommunity); assert.equal(localDialog(), null); assertClean();
+  selectionCommunities = [communityId, secondCommunity]; await publishAndRefresh();
+  assert.equal(selector().value, secondCommunity, 'returning eligibility never restores the old selection or drafts');
+  await chooseCommunity(communityId); assertClean();
+  await navigate('context-c'); assert.equal(contextState.pendingContextId, null, 'unavailable forms leave no guard');
+  await navigate('context-a'); assertClean(); selectionScenarios += 1;
+
+  // A late user-command result cannot clear the new Community's draft or create
+  // another mutation. Existing in-flight semantics are otherwise unchanged.
+  await dirtyForm(0); deferPost = true; const beforeLate = guardPosts.length; await sendForm(0);
+  assert.equal(guardPosts.at(-1).community_id, communityId);
+  await chooseCommunity(secondCommunity); await decideCommunity(1); assertClean();
+  await dirtyForm(0); const newDraft = values(); await finishDeferredPost();
+  assert.deepEqual(values(), newDraft); assert.equal(selector().value, secondCommunity);
+  assert.equal(guardPosts.length, beforeLate + 1);
+  await chooseCommunity(communityId); await decideCommunity(1); assertClean(); selectionScenarios += 1;
+
+  // Older projection responses cannot resurrect an already removed target.
+  await dirtyForm(0); holdNextProjection = true; await publishAndRefresh();
+  await chooseCommunity(secondCommunity);
+  selectionCommunities = [communityId];
+  // Keep the draft, then explicitly publish again to obtain a newer projection
+  // without remounting the Page or replacing its actual load implementation.
+  await decideCommunity(0); await publishAndRefresh();
+  assert.equal(selector().querySelector(`option[value="${secondCommunity}"]`), null);
+  await act(async () => finishProjection()); await flush();
+  assert.equal(selector().querySelector(`option[value="${secondCommunity}"]`), null);
+  assert.equal(localDialog(), null);
+  await clearForm(0); selectionScenarios += 1;
+
+  // Capability refresh may remove every dirty form while a local decision is
+  // visible. Cleanup must not leave a hidden Context or Community guard.
+  selectionCommunities = [communityId, secondCommunity]; await publishAndRefresh();
+  for (let index = 0; index < 3; index += 1) await dirtyForm(index);
+  deferPost = true; await publishAndRefresh(); await chooseCommunity(secondCommunity);
+  allowCreate = false; allowReport = false; allowModerate = false; await finishDeferredPost();
+  assert.equal(currentForms().length, 0);
+  await decideCommunity(0);
+  await chooseCommunity(secondCommunity); assert.equal(localDialog(), null, 'no invisible Community guard');
+  await navigate('context-b'); assert.equal(contextState.pendingContextId, null, 'no invisible Context guard');
+  allowCreate = true; allowReport = true; allowModerate = true;
+  await navigate('context-a'); assertClean(); selectionScenarios += 1;
+
+  // Every community disappearing closes the modal and restores focus to the
+  // remaining Page, without an invisible guard or stale selection after reload.
+  selectionCommunities = [communityId, secondCommunity]; await publishAndRefresh();
+  await dirtyForm(0); deferPost = true; await publishAndRefresh(); await chooseCommunity(secondCommunity);
+  selectionCommunities = []; await finishDeferredPost();
+  assert.equal(localDialog(), null); assert.equal(selector(), null); assert.equal(currentForms().length, 0);
+  assert.equal(document.activeElement, container.querySelector('section'));
+  await navigate('context-b'); assert.equal(contextState.pendingContextId, null);
+  await act(async () => root.unmount());
+  assert.equal(container.querySelector('[inert]'), null); selectionScenarios += 1;
+}
+selectionCommunities = null;
+console.log(`CE-COMMUNITY-SELECTION-GUARD-01 passed: ${selectionScenarios} mounted selection/accessibility scenarios across RO/EN/FA; actual Page/dialog/Provider, no shell UI claim.`);
 
 for (const file of runtimeFiles) fs.rmSync(file, { force: true });
 
