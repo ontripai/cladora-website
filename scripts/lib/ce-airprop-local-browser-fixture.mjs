@@ -219,3 +219,74 @@ export function observeCeRequests(context, origin, emit = () => {}, { bodyMs = 5
     },
   };
 }
+
+// The product deliberately does not consume non-OK fetch bodies. Observe a tee
+// of those SAME real responses so the browser can finish their streams. Return
+// the original Response untouched: no extra request, fabricated body or code.
+export async function installCeErrorBodyDrain(context, emit = () => {}) {
+  await context.exposeBinding('__ceBodyDrainDiagnostic', (_, event) => {
+    if (!['passive_ui_body_drained', 'passive_ui_body_deadline', 'passive_ui_body_cancelled', 'passive_ui_body_failed'].includes(event?.stage)
+        || !['opportunity', 'b2'].includes(event?.endpoint)
+        || !Number.isInteger(event?.status) || event.status < 400 || event.status > 599) return;
+    emit({ stage: event.stage, endpoint: event.endpoint, status: event.status });
+  });
+  await context.addInitScript(() => {
+    const originalFetch = globalThis.fetch;
+    const active = new Set();
+    const report = event => { void globalThis.__ceBodyDrainDiagnostic(event).catch(() => {}); };
+    const cancelAll = () => { for (const cancel of [...active]) cancel(); return active.size; };
+    Object.defineProperty(globalThis, '__ceCancelErrorBodyDrains', { value: cancelAll });
+    addEventListener('pagehide', cancelAll, { once: true });
+    globalThis.fetch = function (...args) {
+      return Reflect.apply(originalFetch, this, args).then(response => {
+        const input = args[0], init = args[1];
+        const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url, location.href);
+        const method = String(init?.method ?? input?.method ?? 'GET').toUpperCase();
+        const endpoint = url.pathname === '/api/customer/v2/airprop/opportunities' ? 'opportunity'
+          : url.pathname === '/api/customer/v2/airprop/artifact-b2' ? 'b2' : null;
+        if (url.origin !== location.origin || method !== 'GET' || !endpoint || response.status < 400
+            || !url.searchParams.get('context_id') || !url.searchParams.get('workspace_id')) return response;
+        let reader;
+        try { reader = response.clone().body?.getReader(); }
+        catch { report({ stage: 'passive_ui_body_failed', endpoint, status: response.status }); return response; }
+        if (!reader) return response;
+        let timer; let settled = false; let rejectDeadline;
+        const stop = stage => {
+          if (settled) return;
+          settled = true; clearTimeout(timer); active.delete(cancel);
+          report({ stage, endpoint, status: response.status });
+          void reader.cancel().catch(() => {});
+          rejectDeadline?.(new Error('bounded_passive_body_stopped'));
+        };
+        const cancel = () => stop('passive_ui_body_cancelled');
+        active.add(cancel);
+        const deadline = new Promise((_, reject) => {
+          rejectDeadline = reject;
+          timer = setTimeout(() => stop('passive_ui_body_deadline'), 5_000);
+        });
+        const drain = async () => {
+          let bytes = 0;
+          while (true) {
+            const chunk = await Promise.race([reader.read(), deadline]);
+            if (chunk.done) break;
+            bytes += chunk.value.byteLength;
+            if (bytes > 256 * 1024) throw new Error('bounded_passive_body_size');
+          }
+          if (!settled) {
+            settled = true; clearTimeout(timer); active.delete(cancel);
+            report({ stage: 'passive_ui_body_drained', endpoint, status: response.status });
+            reader.releaseLock();
+          }
+        };
+        void drain().catch(() => stop('passive_ui_body_failed'));
+        return response;
+      });
+    };
+  });
+}
+export async function cancelCeErrorBodyDrains(context) {
+  await bounded(() => Promise.all(context.pages().map(page => bounded(
+    () => page.evaluate(() => globalThis.__ceCancelErrorBodyDrains?.()),
+    { ms: 1_000, stage: 'page_body_reader_cancel' },
+  ))), { ms: 1_500, stage: 'context_body_reader_cancel' });
+}

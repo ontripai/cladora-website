@@ -13,6 +13,7 @@ import {
 import {
   bounded, ceFingerprint, ceReadState, createCeAirpropLocalFixture, verifyCeNativeFixture,
   verifyCeControlCleanup, launchOwnedCeBrowser, closeOwnedCeBrowser, observeCeRequests,
+  installCeErrorBodyDrain, cancelCeErrorBodyDrains,
 } from './lib/ce-airprop-local-browser-fixture.mjs';
 
 export const SUITE = 'CORE-CE-AIRPROP-BROWSER-RECOVERY-01';
@@ -94,11 +95,13 @@ export async function runDenialProof() {
         const context = await owned.browser.newContext(browserContextOptions(origin, locale));
         contexts.add(context); stats.contexts += 1;
         const observer = observeCeRequests(context, origin, emit); observers.push(observer);
+        await installCeErrorBodyDrain(context, emit);
         await configureBrowserContext(context, { origin, supabaseUrl: inputs.supabaseUrl, stats });
         if (cookie) await context.addCookies(sessionCookies(cookie, origin));
         return { context, observer };
       };
       const close = async ({ context, observer }) => {
+        await cancelCeErrorBodyDrains(context);
         observer.stop();
         await bounded(() => context.close(), { ms: 5_000, stage: 'scenario_context_close', emit, signal: cancellation.signal });
         contexts.delete(context); await observer.drain(); emit({ stage: 'scenario_context_closed' });
@@ -212,8 +215,9 @@ export async function runDenialProof() {
       try { await bounded(work, { ms, stage: `cleanup_${stage}`, emit }); emit({ stage: `cleanup_${stage}_finished` }); }
       catch { errors.push(stage.toUpperCase() + '_CLEANUP_FAILED'); emit({ stage: `cleanup_${stage}_failed` }); }
     };
-    for (const observer of observers) observer.stop();
     phase = 'cleanup';
+    await cleanup('passive_readers', () => Promise.all([...contexts].map(context => cancelCeErrorBodyDrains(context))), 2_000);
+    for (const observer of observers) observer.stop();
     await cleanup('browser', async () => {
       receipt.browser_cleanup = await closeOwnedCeBrowser(owned, contexts, { emit });
       if (receipt.browser_cleanup.errors.length) errors.push(...receipt.browser_cleanup.errors);

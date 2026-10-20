@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { EventEmitter } from 'node:events';
+import { createServer } from 'node:http';
 import { chromium } from '@playwright/test';
 import { browserInputs, browserContextOptions, configureBrowserContext } from './test-pf01-owner-portfolio-local-browser.mjs';
-import { bounded, launchOwnedCeBrowser, closeOwnedCeBrowser, observeCeRequests } from './lib/ce-airprop-local-browser-fixture.mjs';
+import { bounded, launchOwnedCeBrowser, closeOwnedCeBrowser, observeCeRequests, installCeErrorBodyDrain, cancelCeErrorBodyDrains } from './lib/ce-airprop-local-browser-fixture.mjs';
 import { executeVerifiedDenial, sessionCookies, requireError } from './test-ce-airprop-local-browser-denial.mjs';
 
 const APP = 'http://127.0.0.1:41793'; const API = 'http://127.0.0.1:54321';
@@ -159,6 +160,35 @@ if (process.argv.includes('--real-chromium')) {
   }
   assert.equal(injected, true); assert.equal(contexts.size, 0); assert.equal(owned.browser.isConnected(), false);
   cleanup = 'PASS_REAL_BROWSER_CONTEXTS_PROCESS_EXIT_VERIFIED'; checks += 1;
+  // Real loopback HTTP response, original UI-style fetch deliberately ignores its
+  // non-OK body. The passive clone must finish that same request, not issue another.
+  const http = createServer((request, response) => {
+    if (request.url.startsWith('/api/')) {
+      realRequests += 1;
+      response.writeHead(403, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store, private' });
+      response.end(JSON.stringify({ error: { code: 'AIRPROP_ACCESS_DENIED' } }));
+    } else { response.writeHead(200, { 'Content-Type': 'text/html' }); response.end('<!doctype html><title>Local body reader control</title>'); }
+  });
+  let realRequests = 0;
+  await new Promise(resolve => http.listen(0, '127.0.0.1', resolve));
+  const localOrigin = `http://127.0.0.1:${http.address().port}`;
+  const bodyOwned = await launchOwnedCeBrowser(chromium); const bodyContexts = new Set();
+  try {
+    const context = await bodyOwned.browser.newContext(browserContextOptions(localOrigin, 'en')); bodyContexts.add(context);
+    const events = []; const observer = observeCeRequests(context, localOrigin, event => events.push(event));
+    await installCeErrorBodyDrain(context, event => events.push(event));
+    const page = await context.newPage(); await page.goto(localOrigin);
+    const result = await page.evaluate(() => fetch('/api/customer/v2/airprop/opportunities?context_id=selected-context&workspace_id=selected-workspace').then(response =>
+      ({ status: response.status, realResponse: response instanceof Response, originalBodyUsed: response.bodyUsed })));
+    assert.deepEqual(result, { status: 403, realResponse: true, originalBodyUsed: false });
+    requireError(await observer.selected({ after: 0, endpoint: 'opportunity', contextId: 'selected-context', workspaceId: 'selected-workspace', ms: 10_000 }), 403, 'AIRPROP_ACCESS_DENIED');
+    assert.equal(realRequests, 1, 'passive body observation must never replace the original UI request with a second GET');
+    assert.ok(events.some(event => event.stage === 'passive_ui_body_drained'));
+    await cancelCeErrorBodyDrains(context); observer.stop(); await observer.drain(); checks += 1;
+  } finally {
+    await closeOwnedCeBrowser(bodyOwned, bodyContexts);
+    await new Promise((resolve, reject) => http.close(error => error ? reject(error) : resolve()));
+  }
   const forceOwned = await launchOwnedCeBrowser(chromium); const forceContexts = new Set();
   let peerClosed = false;
   try {
