@@ -60,6 +60,7 @@ export function requireError(result, status, code) {
 export async function runDenialProof() {
   let phase = 'preflight'; let browser = null; let next = null; let pool = null;
   const contexts = new Set(); const users = []; const blockers = new Set();
+  const errorReads = []; const httpErrors = new Map();
   const stats = { readMethods: {}, authMethods: {}, domainMutationRequests: 0,
     remoteBackend: 0, externalRequests: 0, contexts: 0 };
   const receipt = { suite: SUITE,
@@ -101,6 +102,20 @@ export async function runDenialProof() {
       const open = async (locale, cookie) => {
         const context = await browser.newContext(browserContextOptions(origin, locale));
         contexts.add(context); stats.contexts += 1;
+        context.on('response', response => {
+          const url = new URL(response.url());
+          if (url.origin !== origin || !url.pathname.startsWith('/api/') || response.status() < 400) return;
+          if (response.status() >= 500) blockers.add('UNEXPECTED_API_SERVER_ERROR');
+          errorReads.push((async () => {
+            let code = 'ERROR_BODY_UNAVAILABLE';
+            try {
+              const body = await response.json();
+              if (typeof body?.error?.code === 'string' && /^[A-Z0-9_]{1,100}$/.test(body.error.code)) code = body.error.code;
+            } catch { /* Record a bounded classification, never a raw body. */ }
+            const item = { path: url.pathname, status: response.status(), code };
+            httpErrors.set(JSON.stringify(item), item);
+          })());
+        });
         await configureBrowserContext(context, { origin, supabaseUrl: inputs.supabaseUrl, stats });
         if (cookie) await context.addCookies(sessionCookies(cookie, origin));
         return context;
@@ -212,6 +227,8 @@ export async function runDenialProof() {
     process.removeListener('SIGINT', cancel); process.removeListener('SIGTERM', cancel);
     receipt.cleanup = errors.length ? errors : users.length ? 'VERIFIED_OWNED_BROWSER_PROCESS_AUTHORITY_SESSIONS' : 'NO_AUTH_FIXTURE_OR_BROWSER_CREATED';
     if (errors.length) receipt.status = 'FAILED_NOT_PASS';
+    await Promise.allSettled(errorReads);
+    receipt.http_errors = [...httpErrors.values()];
     receipt.blockers = [...blockers]; receipt.network = stats;
     receipt.stack_cleanup = 'REQUIRED_WORKFLOW_ALWAYS_TEARDOWN';
     console.log(JSON.stringify(receipt, null, 2));
