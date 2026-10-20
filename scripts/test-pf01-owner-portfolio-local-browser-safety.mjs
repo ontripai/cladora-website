@@ -124,13 +124,18 @@ let realBrowserCleanup = 'NOT_RUN_NOT_PASS';
 if (process.argv.includes('--real-chromium')) {
   const browser = await chromium.launch({ headless: true });
   const contexts = new Set();
+  let contextCreated = false;
+  let injectedFailureObserved = false;
   try {
     const context = await browser.newContext(contextOptions);
     contexts.add(context);
     await context.newPage();
+    contextCreated = true;
     throw new Error('redacted_safety_failure');
-  } catch {}
+  } catch (error) { injectedFailureObserved = error.message === 'redacted_safety_failure'; }
   finally { await closeBrowserResources(browser, contexts); }
+  assert.equal(contextCreated, true);
+  assert.equal(injectedFailureObserved, true);
   assert.equal(contexts.size, 0);
   assert.equal(browser.isConnected(), false);
   realBrowserCleanup = 'PASS_REAL_CHROMIUM_CONTEXT_BROWSER_CLOSED';
