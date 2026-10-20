@@ -329,7 +329,7 @@ export async function createPf01DatabaseFixture(pool, {
     if (collision.rowCount) throw new Error('pf01_fixture_identity_collision');
     await client.query(sql);
     await client.query(`insert into platform.tenants(id,legal_name,registration_number,status)
-      values($1,'PF01 other owner personal','PF01-OTHER-' || left($1::text,8),'active')`, [otherTenantId]);
+      values($1::uuid,'PF01 other owner personal','PF01-OTHER-' || left($1::text,8),'active')`, [otherTenantId]);
     await client.query(`insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at)
       select $1,$2,$3,r.id,'active',statement_timestamp()-interval '1 day'
       from identity.roles r where r.tenant_id is null and r.code='multi_unit_owner'`, [
@@ -401,6 +401,7 @@ const READ_TABLES = Object.freeze([
   'platform.workspace_property_authorities', 'platform.workspace_modules',
   'platform.workspace_entitlements', 'platform.workspace_taxonomy_assignments',
   'platform.idempotency_keys', 'audit.events', 'platform.outbox_events',
+  'app_private.canonical_authority_revision_v1',
 ]);
 
 export async function snapshotPf01ReadState(pool) {
