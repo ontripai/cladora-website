@@ -11,9 +11,9 @@ const {createRoot}=await import('react-dom/client');
 const require=createRequire(import.meta.url);const cache=new Map();
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const party=uuid(1),offering=uuid(2),revision=uuid(3),context=uuid(4),workspace=uuid(5);
-let writes=[],lose=false,deferred=null,deny=false,noParty=false,historyFail=false,readOffline=false,readUnauthorized=false,conflictOnce=false;
+let writes=[],lose=false,deferred=null,deny=false,noParty=false,historyFail=false,readOffline=false,readUnauthorized=false,conflictOnce=false,writeStatus=0;
 const fetch=async(url,options)=>{
- if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(conflictOnce){conflictOnce=false;return Response.json({error:{code:'CONFLICT'}},{status:409});}if(lose){lose=false;throw new Error('Lost reply');}return Response.json({request_id:uuid(6),status:'submitted'});}
+ if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(writeStatus)return Response.json({error:{code:'DENIED'}},{status:writeStatus});if(conflictOnce){conflictOnce=false;return Response.json({error:{code:'CONFLICT'}},{status:409});}if(lose){lose=false;throw new Error('Lost reply');}return Response.json({request_id:uuid(6),status:'submitted'});}
  if(historyFail&&writes.length)throw new Error('History unavailable');
  if(readOffline)throw new Error('Offline');
  if(readUnauthorized)return Response.json({error:{code:'SESSION'}},{status:401});
@@ -38,13 +38,31 @@ const fill=async()=>act(async()=>{
  const input=document.querySelector('textarea');Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set.call(input,'Synthetic service request');input.dispatchEvent(new window.Event('input',{bubbles:true}));
 });
 const submit=async()=>act(async()=>document.querySelector('button').click());
-let cases=0;const check=async(name,fn)=>{await fn();cases++;console.log('PASS '+name);};
+const authorityOnly=process.argv.includes('--authority-denial');
+let cases=0;const check=async(name,fn)=>{if(authorityOnly&&!/write denial|Authority revoked|Confirmed request stays/.test(name))return;await fn();cases++;console.log('PASS '+name);};
 try{
  for(const lang of ['en','ro','fa'])await check(lang+' localized request',async()=>{writes=[];await render(lang);await fill();await submit();assert.equal(writes.length,1);assert.equal(writes[0].beneficiary_party_id,party);assert.equal(writes[0].published_revision_id,revision);assert.equal(writes[0].description,'Synthetic service request');assert.equal(document.querySelector('textarea').value,'');});
  await check('Lost reply retries same command and blocks editing',async()=>{writes=[];lose=true;await render();await fill();await submit();assert.match(document.body.textContent,/result is unknown/);assert.equal(document.querySelector('textarea').disabled,true);await submit();assert.equal(writes.length,2);assert.deepEqual(writes[0],writes[1]);assert.match(document.body.textContent,/Request received/);});
  await check('Confirmed write survives failed history refresh',async()=>{writes=[];historyFail=true;await render();await fill();await submit();assert.match(document.body.textContent,/Request received/);assert.doesNotMatch(document.body.textContent,/result is unknown/);historyFail=false;});
  await check('Double click sends once and obsolete reply stays hidden',async()=>{writes=[];let resolve;deferred={promise:new Promise(done=>{resolve=done;})};await render();await fill();await act(async()=>{document.querySelector('button').click();document.querySelector('button').click();});assert.equal(writes.length,1);await render();await act(async()=>resolve(Response.json({request_id:uuid(6),status:'submitted'})));assert.doesNotMatch(document.body.textContent,/Request received/);deferred=null;});
  await check('Denied read hides form',async()=>{deny=true;await render();assert.equal(document.querySelector('textarea'),null);assert.match(document.body.textContent,/unavailable/);deny=false;});
+ for(const lang of ['en','ro','fa'])for(const status of [401,403])await check(lang+' write denial '+status+' removes stale request form',async()=>{
+  writes=[];writeStatus=status;await render(lang);await fill();await submit();
+  assert.equal(writes.length,1);assert.equal(document.querySelector('textarea'),null);
+  assert.equal(document.querySelector('select'),null);assert.ok(document.querySelector('[role="status"]'));
+  assert.equal(document.body.textContent.includes('Synthetic service request'),false);
+  writeStatus=0;
+ });
+ await check('Authority revoked during conflict refresh clears the stale form',async()=>{
+  writes=[];conflictOnce=true;await render();await fill();await submit();deny=true;
+  await act(async()=>document.querySelector('button').click());
+  assert.equal(document.querySelector('textarea'),null);assert.equal(writes.length,1);deny=false;
+ });
+ await check('Confirmed request stays confirmed when history authority expires',async()=>{
+  writes=[];await render();await fill();readUnauthorized=true;await submit();
+  assert.equal(document.querySelector('textarea'),null);assert.match(document.body.textContent,/Request received/);
+  assert.doesNotMatch(document.body.textContent,/result is unknown/);assert.equal(writes.length,1);readUnauthorized=false;
+ });
  await check('Offline read offers retry without claiming denied access',async()=>{readOffline=true;await render();assert.equal(document.querySelector('textarea'),null);assert.match(document.body.textContent,/check your connection/);assert.doesNotMatch(document.body.textContent,/unavailable for this account/);readOffline=false;await act(async()=>document.querySelector('button').click());assert.ok(document.querySelector('textarea'));});
  await check('Unauthorized read asks for session verification',async()=>{readUnauthorized=true;await render();assert.equal(document.querySelector('textarea'),null);assert.match(document.body.textContent,/session needs verification/);readUnauthorized=false;});
  await check('Definitive conflict refresh keeps the description and creates a new command',async()=>{writes=[];refreshed=0;conflictOnce=true;await render();await fill();await submit();assert.match(document.body.textContent,/offering or request changed/);assert.equal(document.querySelector('textarea').value,'Synthetic service request');await act(async()=>document.querySelector('button').click());assert.equal(refreshed,1);assert.equal(document.querySelector('textarea').value,'Synthetic service request');await submit();assert.equal(writes.length,2);assert.notEqual(writes[0].idempotency_key,writes[1].idempotency_key);});

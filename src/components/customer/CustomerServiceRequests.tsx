@@ -44,7 +44,11 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,on
       setData(updated);setPending(null);setConflict(false);setNotice('');
       if(!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
       if(!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
-    }catch(reason){if(alive.current)setNotice(reason instanceof Error&&reason.message==='denied'?t.unavailable:reason instanceof Error&&reason.message==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'به‌روزرسانی انجام نشد؛ اتصال را بررسی و دوباره تلاش کنید.':lang==='ro'?'Actualizarea a eșuat; verifică conexiunea și reîncearcă.':'Refresh failed; check your connection and try again.');}
+    }catch(reason){if(alive.current){
+      if(reason instanceof Error&&(reason.message==='denied'||reason.message==='session')){
+        setData(null);setReadStatus(reason.message);
+      }
+      setNotice(reason instanceof Error&&reason.message==='denied'?t.unavailable:reason instanceof Error&&reason.message==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'به‌روزرسانی انجام نشد؛ اتصال را بررسی و دوباره تلاش کنید.':lang==='ro'?'Actualizarea a eșuat; verifică conexiunea și reîncearcă.':'Refresh failed; check your connection and try again.');}}
     finally{if(alive.current)setBusy(false);}
   }
   async function submit(){
@@ -60,12 +64,16 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,on
       }setFieldErrors({offering:false,party:false,description:false});command=parsed.data;setPending(command);}
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
     try {const response=await fetch('/api/customer/v1/services/requests',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command),signal:controller.signal});
-      if(!response.ok){if(alive.current){setConflict(response.status===409);setNotice(response.status===409?t.conflict:response.status===403?t.unavailable:t.error);}return;}
+      if(!response.ok){if(alive.current){
+        if(response.status===401||response.status===403){setData(null);setReadStatus(response.status===401?'session':'denied');setNotice('');}
+        else{setConflict(response.status===409);setNotice(response.status===409?t.conflict:t.error);}
+      }return;}
       serviceRequestResultSchema.parse(await response.json());
       if(!alive.current||controller.signal.aborted)return;setPending(null);setDescription('');setNotice(t.success);
       // Confirmed writes remain confirmed even when refreshing history fails.
       try {const read=await fetch(`/api/customer/v1/services/requests?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
         if(read.ok){const updated=serviceRequestReadSchema.parse(await read.json());if(alive.current&&!controller.signal.aborted)setData(updated);}
+        else if(alive.current&&!controller.signal.aborted&&(read.status===401||read.status===403)){setData(null);setReadStatus(read.status===401?'session':'denied');}
       }catch{/* Keep the confirmed result. */}
     }catch{if(alive.current&&!controller.signal.aborted)setNotice(t.error);}finally{submitting.current=false;if(alive.current)setBusy(false);}
   }
