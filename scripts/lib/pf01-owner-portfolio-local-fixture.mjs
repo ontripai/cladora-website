@@ -482,7 +482,7 @@ export async function revokePf01CurrentAuthority(pool, ownerUserId) {
         revocation_reason='PF01 local cleanup'
       where customer_workspace_id in (select customer_workspace_id from platform.workspace_member_roles
         where membership_id in (select id from identity.memberships where user_id=$1))
-        and status='active'`, [ownerUserId]);
+        and status='active' and (valid_to is null or valid_to>statement_timestamp())`, [ownerUserId]);
     await client.query('commit');
   } catch (error) {
     await client.query('rollback');
