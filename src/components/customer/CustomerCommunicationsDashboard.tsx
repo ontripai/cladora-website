@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -137,6 +137,9 @@ const copy = {
     readonly: "Read-only · confidential responses aggregated",
     details: "Details",
     close: "Close",
+    finishEvidenceDraft: "Save or close the evidence form before changing the list filters.",
+    previous: "Previous page",
+    next: "Next page",
     published: "Published posts",
     openPolls: "Open polls",
     unread: "Unread notifications",
@@ -210,6 +213,9 @@ const copy = {
     readonly: "Doar citire · răspunsurile confidențiale sunt agregate",
     details: "Detalii",
     close: "Închide",
+    finishEvidenceDraft: "Salvați sau închideți formularul de dovezi înainte de a schimba filtrele listei.",
+    previous: "Pagina anterioară",
+    next: "Pagina următoare",
     published: "Postări publicate",
     openPolls: "Sondaje deschise",
     unread: "Notificări necitite",
@@ -283,6 +289,9 @@ const copy = {
     readonly: "فقط خواندنی · پاسخ‌های محرمانه تجمیع شده‌اند",
     details: "جزئیات",
     close: "بستن",
+    finishEvidenceDraft: "پیش از تغییر فیلترهای فهرست، فرم شواهد را ذخیره کنید یا ببندید.",
+    previous: "صفحه قبل",
+    next: "صفحه بعد",
     published: "پست‌های منتشرشده",
     openPolls: "نظرسنجی‌های باز",
     unread: "اعلان‌های خوانده‌نشده",
@@ -344,6 +353,68 @@ const date = (v: unknown, l: string) =>
       }).format(new Date(String(v)))
     : "—";
 
+// A reader owns its debounce timer/controller and fences even transports which
+// resolve after abort. Changing identity removes old content during render.
+function useNoticeRead<T>(url: string | null, scope: string, failure: string, nonce = 0, delay = 0, expectedNoticeId?: string) {
+  const identity = JSON.stringify([scope, url, nonce, failure]);
+  const empty = { identity, data: null as T | null, loading: Boolean(url), error: "" };
+  const [state, setState] = useState(empty);
+  if (state.identity !== identity) setState(empty);
+  useEffect(() => {
+    const controller = new AbortController();
+    let current = true;
+    const timer = setTimeout(async () => {
+      if (!url) return;
+      try {
+        const response = await fetch(url, { cache: "no-store", credentials: "same-origin", signal: controller.signal });
+        if (!response.ok) throw new Error("notice_read_failed");
+        const data = await response.json() as T;
+        if (expectedNoticeId) {
+          const detail = data as NoticeDetailData;
+          if (detail?.notice?.id !== expectedNoticeId || typeof detail.notice.status !== "string") throw new Error("notice_identity_mismatch");
+        }
+        if (current && !controller.signal.aborted) setState({ identity, data, loading: false, error: "" });
+      } catch {
+        if (current && !controller.signal.aborted) setState({ identity, data: null, loading: false, error: failure });
+      }
+    }, delay);
+    return () => { current = false; clearTimeout(timer); controller.abort(); };
+  }, [url, identity, failure, delay, expectedNoticeId]);
+  return state.identity === identity ? state : empty;
+}
+
+// Mutation responses may finish after navigation; never write feedback or
+// trigger refresh in another mounted notice. Mutations themselves are unchanged.
+function useNoticeLifetime() {
+  const alive = useRef(false);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  return useCallback(() => alive.current, []);
+}
+
+// All detail dialogs share local keyboard containment and restore their opener.
+function useNoticeDialog(close: () => void) {
+  const dialog = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const fallback = dialog.current?.parentElement?.querySelector<HTMLElement>("button[data-notice-refresh]");
+    dialog.current?.focus();
+    return () => {
+      if (opener?.isConnected) opener.focus();
+      else if (fallback?.isConnected) fallback.focus();
+    };
+  }, []);
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
+    if (event.key !== "Tab") return;
+    const nodes = Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]') ?? []);
+    const first = nodes[0]; const last = nodes[nodes.length - 1];
+    if (!first) { event.preventDefault(); return; }
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog.current)) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog.current)) { event.preventDefault(); first.focus(); }
+  };
+  return { ref: dialog, tabIndex: -1, onKeyDown };
+}
+
 export function CustomerCommunicationsDashboard({
   lang,
   initialView = "official_notices",
@@ -357,98 +428,47 @@ export function CustomerCommunicationsDashboard({
     active?.role_code?.toLowerCase() ?? ""
   );
   const [view, setView] = useState<View>(initialView);
-  const [data, setData] = useState<Payload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [offset, setOffset] = useState(0);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
-  const [detailedNotice, setDetailedNotice] = useState<NoticeDetailData | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
+  const [hasEvidenceDraft, setHasEvidenceDraft] = useState(false);
+  // Identity includes server-derived membership/role, not a guessed capability.
+  const contextScope = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code]);
+  const scope = JSON.stringify([contextScope, view, offset, query, status, from, to]);
+  const [selection, setSelection] = useState<{ scope: string; row: Record<string, unknown> | null }>({ scope, row: null });
+  // Adjust on render so previous content is absent even before effect cleanup.
+  // Reset the tag too: A -> B -> A must not resurrect an old selection.
+  if (selection.scope !== scope) setSelection({ scope, row: null });
+  const selected = selection.scope === scope ? selection.row : null;
+  const setSelected = (row: Record<string, unknown> | null) => setSelection({ scope, row });
+  const [creation, setCreation] = useState({ scope: contextScope, open: false });
+  if (creation.scope !== contextScope) setCreation({ scope: contextScope, open: false });
+  const showCreateModal = creation.scope === contextScope && creation.open;
+  const setShowCreateModal = (open: boolean) => setCreation({ scope: contextScope, open });
 
-  const load = useCallback(async () => {
-    if (!active) {
-      setLoading(false);
-      setData(null);
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      if (view === "official_notices") {
-        const p = new URLSearchParams({
-          context_id: active.context_id,
-          limit: "20",
-          offset: String(offset),
-        });
-        if (status) p.set("status", status);
-        const r = await fetch(`/api/customer/v1/communications/notices?${p}`, {
-          cache: "no-store",
-          credentials: "same-origin",
-        });
-        if (!r.ok) throw new Error();
-        const json = await r.json();
-        setData(json);
-      } else {
-        const p = new URLSearchParams({
-          context_id: active.context_id,
-          view,
-          limit: "20",
-          offset: String(offset),
-        });
-        if (query) p.set("query", query);
-        if (status) p.set("status", status);
-        if (from) p.set("from", from);
-        if (to) p.set("to", to);
-        const r = await fetch(`/api/customer/v1/communications?${p}`, {
-          cache: "no-store",
-          credentials: "same-origin",
-        });
-        if (!r.ok) throw new Error();
-        setData(await r.json());
-      }
-    } catch {
-      setError(t.error);
-    } finally {
-      setLoading(false);
-    }
-  }, [active, view, offset, query, status, from, to, t.error]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => void load(), 150);
-    return () => clearTimeout(timer);
-  }, [load, nonce]);
-
-  const loadNoticeDetail = async (noticeId: string) => {
-    if (!active) return;
-    setLoadingDetail(true);
-    setActionMessage(null);
-    try {
-      const res = await fetch(
-        `/api/customer/v1/communications/notices/${noticeId}?context_id=${active.context_id}`,
-        { cache: "no-store", credentials: "same-origin" }
-      );
-      if (res.ok) {
-        const detail = await res.json();
-        setDetailedNotice(detail);
-      }
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
+  const params = new URLSearchParams({ context_id: active?.context_id ?? "", limit: "20", offset: String(offset) });
+  if (status) params.set("status", status);
+  if (view !== "official_notices") {
+    params.set("view", view);
+    if (query) params.set("query", query);
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+  }
+  const listUrl = active ? `/api/customer/v1/communications${view === "official_notices" ? "/notices" : ""}?${params}` : null;
+  const { data, loading, error } = useNoticeRead<Payload>(listUrl, scope, t.error, nonce, 150);
+  const detailUrl = active && selected && view === "official_notices" && !error
+    ? `/api/customer/v1/communications/notices/${encodeURIComponent(String(selected.id))}?context_id=${encodeURIComponent(active.context_id)}` : null;
+  const detailRead = useNoticeRead<NoticeDetailData>(detailUrl, scope, t.error, nonce, 0, selected ? String(selected.id) : undefined);
 
   return (
-    <div className="space-y-5" dir={lang === "fa" ? "rtl" : "ltr"}>
+    <div className="min-w-0 max-w-full space-y-5 [overflow-wrap:anywhere] [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:focus-visible:outline-2 [&_button]:focus-visible:outline-offset-2 [&_input]:min-h-11 [&_input]:min-w-0 [&_select]:min-h-11 [&_select]:min-w-0" dir={lang === "fa" ? "rtl" : "ltr"}>
       <header className="rounded-2xl border bg-white p-6 shadow-sm">
         <div className="flex flex-wrap justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0E9F8E]">
               <Megaphone className="h-4 w-4" />
               C11 · Communications & Legal Notices
@@ -496,12 +516,14 @@ export function CustomerCommunicationsDashboard({
           <button
             type="button"
             key={v}
+            aria-pressed={view === v}
+            disabled={hasEvidenceDraft}
             onClick={() => {
+              if (hasEvidenceDraft) return;
               setView(v);
               setOffset(0);
               setStatus("");
               setSelected(null);
-              setDetailedNotice(null);
             }}
             className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
               view === v
@@ -514,25 +536,29 @@ export function CustomerCommunicationsDashboard({
         ))}
       </div>
 
+      {hasEvidenceDraft ? <p role="status" className="text-sm text-[#52667A]">{t.finishEvidenceDraft}</p> : null}
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          if (hasEvidenceDraft) return;
           setOffset(0);
           setQuery(draft.trim());
         }}
-        className="grid gap-3 rounded-2xl border bg-white p-4 shadow-sm md:grid-cols-6"
+        className="grid min-w-0 gap-3 rounded-2xl border bg-white p-4 shadow-sm md:grid-cols-6 [&>input]:w-full [&>input]:max-w-full"
       >
         <label className="relative md:col-span-2">
           <Search className="absolute start-3 top-2.5 h-4 w-4 text-[#7B8A9A]" />
           <span className="sr-only">{t.search}</span>
           <input
             value={draft}
+            disabled={hasEvidenceDraft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={t.search}
             className="w-full rounded-xl border py-2 pe-3 ps-9 text-sm"
           />
         </label>
         <input
+          disabled={hasEvidenceDraft}
           aria-label={t.status}
           value={status}
           onChange={(e) => {
@@ -544,6 +570,7 @@ export function CustomerCommunicationsDashboard({
         />
         <input
           type="date"
+          disabled={hasEvidenceDraft}
           aria-label={t.from}
           value={from}
           onChange={(e) => {
@@ -554,6 +581,7 @@ export function CustomerCommunicationsDashboard({
         />
         <input
           type="date"
+          disabled={hasEvidenceDraft}
           aria-label={t.to}
           value={to}
           onChange={(e) => {
@@ -565,6 +593,7 @@ export function CustomerCommunicationsDashboard({
         <button
           type="button"
           aria-label={t.refresh}
+          data-notice-refresh
           onClick={() => setNonce((n) => n + 1)}
           className="rounded-xl border p-2 transition hover:bg-slate-50"
         >
@@ -584,13 +613,13 @@ export function CustomerCommunicationsDashboard({
       {loading ? (
         <Box value={t.loading} />
       ) : error ? (
-        <Box value={error} />
+        <Box value={error} alert />
       ) : !data?.rows?.length ? (
         <Box value={t.empty} />
       ) : view === "official_notices" ? (
         <>
-          <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
-            <table className="w-full min-w-[900px] text-xs">
+          <div role="region" aria-label={t[view]} tabIndex={0} className="min-w-0 max-w-full overflow-x-auto rounded-2xl border bg-white shadow-sm">
+            <table className="w-full min-w-[900px] table-fixed text-xs">
               <thead className="bg-[#F6F9FC] text-[#52667A]">
                 <tr>
                   <th className="p-3 text-start">{t.noticeNo}</th>
@@ -643,7 +672,6 @@ export function CustomerCommunicationsDashboard({
                           type="button"
                           onClick={() => {
                             setSelected(r);
-                            void loadNoticeDetail(String(r.id));
                           }}
                           className="font-bold text-[#087A6E] hover:underline"
                         >
@@ -659,13 +687,16 @@ export function CustomerCommunicationsDashboard({
           <Pagination
             offset={offset}
             total={data.total}
-            setOffset={setOffset}
+            setOffset={(next) => { if (!hasEvidenceDraft) setOffset(next); }}
+            locked={hasEvidenceDraft}
+            previousLabel={t.previous}
+            nextLabel={t.next}
           />
         </>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
-            <table className="w-full min-w-[900px] text-xs">
+          <div role="region" aria-label={t[view]} tabIndex={0} className="min-w-0 max-w-full overflow-x-auto rounded-2xl border bg-white shadow-sm">
+            <table className="w-full min-w-[900px] table-fixed text-xs">
               <thead className="bg-[#F6F9FC] text-[#52667A]">
                 <tr>
                   <th className="p-3 text-start">{t.date}</th>
@@ -697,7 +728,10 @@ export function CustomerCommunicationsDashboard({
           <Pagination
             offset={offset}
             total={data.total}
-            setOffset={setOffset}
+            setOffset={(next) => { if (!hasEvidenceDraft) setOffset(next); }}
+            locked={hasEvidenceDraft}
+            previousLabel={t.previous}
+            nextLabel={t.next}
           />
         </>
       )}
@@ -705,29 +739,26 @@ export function CustomerCommunicationsDashboard({
       {/* Notice Detail & Action Dialog */}
       {selected && view === "official_notices" ? (
         <NoticeDetailModal
+          key={`${scope}:${String(selected.id)}`}
           lang={lang}
           noticeSummary={selected}
-          detail={detailedNotice}
-          loading={loadingDetail}
-          actionMessage={actionMessage}
-          setActionMessage={setActionMessage}
+          onDraftChange={setHasEvidenceDraft}
+          detail={error ? null : detailRead.data}
+          loading={detailRead.loading}
+          error={error || detailRead.error}
           onRefresh={() => {
-            if (selected?.id) void loadNoticeDetail(String(selected.id));
             setNonce((n) => n + 1);
           }}
-          close={() => {
-            setSelected(null);
-            setDetailedNotice(null);
-            setActionMessage(null);
-          }}
+          close={() => setSelected(null)}
         />
-      ) : selected ? (
-        <Detail row={selected} close={() => setSelected(null)} label={t.close} />
+      ) : selected && !error ? (
+        <Detail key={`${scope}:${String(selected.id)}`} row={selected} close={() => setSelected(null)} label={t.close} title={t.details} />
       ) : null}
 
       {/* Create Draft Notice Modal */}
       {showCreateModal && canManageNotices ? (
         <CreateNoticeModal
+          key={contextScope}
           lang={lang}
           close={() => setShowCreateModal(false)}
           onCreated={() => {
@@ -758,10 +789,16 @@ function Pagination({
   offset,
   total,
   setOffset,
+  previousLabel,
+  nextLabel,
+  locked,
 }: {
+  locked: boolean;
+  previousLabel: string;
+  nextLabel: string;
   offset: number;
   total: number;
-  setOffset: React.Dispatch<React.SetStateAction<number>>;
+  setOffset: (offset: number) => void;
 }) {
   return (
     <div className="flex justify-between text-xs text-[#52667A]">
@@ -771,7 +808,8 @@ function Pagination({
       <div className="flex gap-2">
         <button
           type="button"
-          disabled={!offset}
+          aria-label={previousLabel}
+          disabled={locked || !offset}
           onClick={() => setOffset(Math.max(0, offset - 20))}
           className="rounded-xl border bg-white p-2 disabled:opacity-40"
         >
@@ -779,7 +817,8 @@ function Pagination({
         </button>
         <button
           type="button"
-          disabled={offset + 20 >= total}
+          aria-label={nextLabel}
+          disabled={locked || offset + 20 >= total}
           onClick={() => setOffset(offset + 20)}
           className="rounded-xl border bg-white p-2 disabled:opacity-40"
         >
@@ -802,9 +841,9 @@ function Metric({ label, value }: { label: string; value: unknown }) {
   );
 }
 
-function Box({ value }: { value: string }) {
+function Box({ value, alert = false }: { value: string; alert?: boolean }) {
   return (
-    <div className="rounded-2xl border bg-white p-10 text-center text-sm text-[#52667A] shadow-sm">
+    <div role={alert ? "alert" : "status"} className="rounded-2xl border bg-white p-10 text-center text-sm text-[#52667A] shadow-sm">
       {value}
     </div>
   );
@@ -846,18 +885,23 @@ function Detail({
   row,
   close,
   label,
+  title,
 }: {
+  title: string;
   row: Record<string, unknown>;
   close: () => void;
   label: string;
 }) {
+  const dialog = useNoticeDialog(close);
   return (
     <div
+      {...dialog}
       role="dialog"
+      aria-label={title}
       aria-modal="true"
       className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4"
     >
-      <div className="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 shadow-xl">
+      <div className="max-h-[85dvh] min-w-0 w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 shadow-xl">
         <div className="flex justify-end">
           <button type="button" onClick={close} aria-label={label} className="p-1 text-slate-400 hover:text-slate-600">
             <X className="h-5 w-5" />
@@ -881,32 +925,49 @@ function Detail({
 function NoticeDetailModal({
   lang,
   noticeSummary,
+  onDraftChange,
   detail,
   loading,
-  actionMessage,
-  setActionMessage,
+  error,
   onRefresh,
   close,
 }: {
   lang: string;
   noticeSummary: Record<string, unknown>;
+  onDraftChange: (dirty: boolean) => void;
   detail: NoticeDetailData | null;
   loading: boolean;
-  actionMessage: string | null;
-  setActionMessage: (msg: string | null) => void;
+  error: string;
   onRefresh: () => void;
   close: () => void;
 }) {
   const t = copy[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
   const { active } = useCustomerContext();
+  const isCurrent = useNoticeLifetime();
+  const dialog = useNoticeDialog(close);
+  const titleId = useId();
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showEvidenceForm, setShowEvidenceForm] = useState(false);
   const [evidenceType, setEvidenceType] = useState("noticeboard_posting");
   const [evidenceRef, setEvidenceRef] = useState("");
   const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0, 16));
   const [evidenceNotes, setEvidenceNotes] = useState("");
-  const [deliveries, setDeliveries] = useState<Record<string, unknown>[] | null>(null);
-  const [loadingDeliveries, setLoadingDeliveries] = useState(false);
+  const [deliveriesRevision, setDeliveriesRevision] = useState(0);
+  const deliveriesRequested = deliveriesRevision > 0;
+  const deliveryRead = useNoticeRead<{ rows: Record<string, unknown>[] }>(
+    active && deliveriesRequested ? `/api/customer/v1/communications/notices/${encodeURIComponent(String(noticeSummary.id))}/deliveries?context_id=${encodeURIComponent(active.context_id)}&limit=50` : null,
+    JSON.stringify([active?.context_id, active?.membership_id, noticeSummary.id]), t.error, deliveriesRevision);
+  const deliveries = deliveryRead.data?.rows ?? null;
+  const { registerUnsavedGuard } = useCustomerContext();
+  const guardId = useId();
+  const [evidenceTouched, setEvidenceTouched] = useState(false);
+  const evidenceDirty = showEvidenceForm && evidenceTouched;
+  useEffect(() => {
+    onDraftChange(evidenceDirty);
+    return () => onDraftChange(false);
+  }, [onDraftChange, evidenceDirty]);
+  useEffect(() => registerUnsavedGuard(guardId, evidenceDirty, close), [registerUnsavedGuard, guardId, evidenceDirty, close]);
 
   const noticeId = String(noticeSummary.id);
   const noticeStatus = String(detail?.notice?.status ?? noticeSummary.status);
@@ -921,17 +982,19 @@ function NoticeDetailModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context_id: active.context_id, ...body }),
       });
+      if (!isCurrent()) return;
       if (res.ok) {
         setActionMessage(t.successAction);
         onRefresh();
       } else {
         const errJson = await res.json().catch(() => ({}));
+        if (!isCurrent()) return;
         setActionMessage(errJson?.error?.message || t.failAction);
       }
     } catch {
-      setActionMessage(t.failAction);
+      if (isCurrent()) setActionMessage(t.failAction);
     } finally {
-      setSubmitting(false);
+      if (isCurrent()) setSubmitting(false);
     }
   };
 
@@ -952,6 +1015,7 @@ function NoticeDetailModal({
           notes: evidenceNotes || null,
         }),
       });
+      if (!isCurrent()) return;
       if (res.ok) {
         setShowEvidenceForm(false);
         setEvidenceRef("");
@@ -960,10 +1024,13 @@ function NoticeDetailModal({
         onRefresh();
       } else {
         const err = await res.json().catch(() => ({}));
+        if (!isCurrent()) return;
         setActionMessage(err?.error?.message || t.failAction);
       }
+    } catch {
+      if (isCurrent()) setActionMessage(t.failAction);
     } finally {
-      setSubmitting(false);
+      if (isCurrent()) setSubmitting(false);
     }
   };
 
@@ -980,42 +1047,28 @@ function NoticeDetailModal({
           decision,
         }),
       });
+      if (!isCurrent()) return;
       if (res.ok) {
         setActionMessage(t.successAction);
         onRefresh();
       } else {
         const err = await res.json().catch(() => ({}));
+        if (!isCurrent()) return;
         setActionMessage(err?.error?.message || t.failAction);
       }
+    } catch {
+      if (isCurrent()) setActionMessage(t.failAction);
     } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleLoadDeliveries = async () => {
-    if (!active) return;
-    setLoadingDeliveries(true);
-    try {
-      const res = await fetch(
-        `/api/customer/v1/communications/notices/${noticeId}/deliveries?context_id=${active.context_id}&limit=50`,
-        { cache: "no-store", credentials: "same-origin" }
-      );
-      if (res.ok) {
-        const json = await res.json();
-        setDeliveries(json.rows || []);
-      }
-    } finally {
-      setLoadingDeliveries(false);
+      if (isCurrent()) setSubmitting(false);
     }
   };
 
   const notice = detail?.notice;
-  const title =
-    lang === "ro"
-      ? notice?.title_ro || noticeSummary.title_ro
-      : lang === "fa"
-        ? notice?.title_fa || noticeSummary.title_fa || notice?.title_ro || noticeSummary.title_ro
-        : notice?.title_en || noticeSummary.title_en || notice?.title_ro || noticeSummary.title_ro;
+  // A newer detail response can redact a translation: never revive an older
+  // summary translation in preference to the current server response.
+  const title = lang === "ro" ? notice?.title_ro
+    : lang === "fa" ? notice?.title_fa || notice?.title_ro
+    : notice?.title_en || notice?.title_ro;
 
   const body =
     lang === "ro"
@@ -1026,17 +1079,24 @@ function NoticeDetailModal({
 
   return (
     <div
+      {...dialog}
       role="dialog"
+      aria-labelledby={titleId}
       aria-modal="true"
       className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4"
     >
-      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b pb-4">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-sm font-bold text-slate-500">
-              #{show(notice?.notice_number ?? noticeSummary.notice_number)}
-            </span>
-            <StatusBadge status={noticeStatus} />
+      <div className="max-h-[90dvh] min-w-0 w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-4 sm:p-6 shadow-2xl">
+        <h2 id={titleId} className="sr-only">{t.details}</h2>
+        <div className="flex items-center justify-between gap-3 border-b pb-4">
+          <div className="flex flex-wrap items-center gap-3">
+            {!error ? (
+              <>
+                <span className="font-mono text-sm font-bold text-slate-500">
+                  #{show(notice?.notice_number ?? noticeSummary.notice_number)}
+                </span>
+                <StatusBadge status={noticeStatus} />
+              </>
+            ) : null}
           </div>
           <button
             type="button"
@@ -1048,15 +1108,15 @@ function NoticeDetailModal({
           </button>
         </div>
 
-        {actionMessage ? (
-          <div className="mt-4 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs font-bold text-[#0A6E62]">
+        {actionMessage && !error ? (
+          <div role="status" className="mt-4 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs font-bold text-[#0A6E62]">
             {actionMessage}
           </div>
         ) : null}
 
-        {loading ? (
-          <div className="p-8 text-center text-xs text-slate-500">{t.loading}</div>
-        ) : (
+        {error ? <div role="alert" className="mt-4 rounded-xl border p-4">{error}</div> : loading ? (
+          <div role="status" className="p-8 text-center text-xs text-slate-500">{t.loading}</div>
+        ) : detail ? (
           <div className="mt-5 space-y-6">
             <div>
               <h2 className="text-xl font-bold text-[#102A43]">{show(title)}</h2>
@@ -1172,7 +1232,7 @@ function NoticeDetailModal({
 
               <button
                 type="button"
-                onClick={() => void handleLoadDeliveries()}
+                onClick={() => setDeliveriesRevision((n) => n + 1)}
                 className="flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-xs font-bold text-[#334E68] transition hover:bg-slate-50"
               >
                 <FileText className="h-4 w-4" />
@@ -1181,18 +1241,18 @@ function NoticeDetailModal({
             </div>
 
             {/* Delivery Outbox Drawer / Section */}
-            {deliveries ? (
+            {deliveriesRequested ? (
               <div className="rounded-2xl border bg-slate-50 p-4">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold text-[#102A43]">{t.deliveriesTitle}</div>
-                  <span className="font-mono text-xs text-slate-500">Total: {deliveries.length}</span>
+                  <span className="font-mono text-xs text-slate-500">Total: {deliveries?.length ?? 0}</span>
                 </div>
-                {loadingDeliveries ? (
+                {deliveryRead.loading ? (
                   <div className="py-4 text-center text-xs text-slate-400">{t.loading}</div>
-                ) : !deliveries.length ? (
+                ) : deliveryRead.error ? (<div role="alert">{deliveryRead.error}</div>) : !deliveries?.length ? (
                   <div className="py-4 text-center text-xs text-slate-500">No delivery attempts logged.</div>
                 ) : (
-                  <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border bg-white">
+                  <div role="region" aria-label={t.deliveriesTitle} tabIndex={0} className="mt-3 max-h-48 max-w-full overflow-auto rounded-xl border bg-white">
                     <table className="w-full text-[11px]">
                       <thead className="bg-[#F6F9FC] text-[#52667A]">
                         <tr>
@@ -1248,7 +1308,7 @@ function NoticeDetailModal({
                     {t.evidenceType}
                     <select
                       value={evidenceType}
-                      onChange={(e) => setEvidenceType(e.target.value)}
+                      onChange={(e) => { setEvidenceType(e.target.value); setEvidenceTouched(true); }}
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     >
                       <option value="noticeboard_posting">Noticeboard Posting (Afișare la avizier)</option>
@@ -1267,7 +1327,7 @@ function NoticeDetailModal({
                     <input
                       required
                       value={evidenceRef}
-                      onChange={(e) => setEvidenceRef(e.target.value)}
+                      onChange={(e) => { setEvidenceRef(e.target.value); setEvidenceTouched(true); }}
                       placeholder="e.g. PV-2026/09, AWB RO12345678"
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     />
@@ -1279,7 +1339,7 @@ function NoticeDetailModal({
                       type="datetime-local"
                       required
                       value={occurredAt}
-                      onChange={(e) => setOccurredAt(e.target.value)}
+                      onChange={(e) => { setOccurredAt(e.target.value); setEvidenceTouched(true); }}
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     />
                   </label>
@@ -1288,7 +1348,7 @@ function NoticeDetailModal({
                     {t.notes}
                     <input
                       value={evidenceNotes}
-                      onChange={(e) => setEvidenceNotes(e.target.value)}
+                      onChange={(e) => { setEvidenceNotes(e.target.value); setEvidenceTouched(true); }}
                       placeholder="Witness, location, photo record hash..."
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     />
@@ -1326,7 +1386,7 @@ function NoticeDetailModal({
                       className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-3.5 shadow-sm"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-mono text-xs font-bold text-[#102A43]">
                             {ev.evidence_type}
                           </span>
@@ -1366,7 +1426,7 @@ function NoticeDetailModal({
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -1396,6 +1456,14 @@ function CreateNoticeModal({
   const [legalClass, setLegalClass] = useState("informational_optional");
   const [sourceModule, setSourceModule] = useState("general");
 
+  const isCurrent = useNoticeLifetime();
+  const { registerUnsavedGuard } = useCustomerContext();
+  const guardId = useId();
+  const dirty = Boolean(titleRo || bodyRo || titleEn || bodyEn || titleFa || bodyFa || commType !== "general_announcement" || legalClass !== "informational_optional" || sourceModule !== "general");
+  useEffect(() => registerUnsavedGuard(guardId, dirty, close), [registerUnsavedGuard, guardId, dirty, close]);
+  const dialog = useNoticeDialog(close);
+  const titleId = useId();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!active) return;
@@ -1418,28 +1486,31 @@ function CreateNoticeModal({
           source_module: sourceModule,
         }),
       });
+      if (!isCurrent()) return;
       if (res.ok) {
         onCreated();
       } else {
         const errJson = await res.json().catch(() => ({}));
-        setError(errJson?.error?.message || t.failAction);
+        if (isCurrent()) setError(errJson?.error?.message || t.failAction);
       }
     } catch {
-      setError(t.failAction);
+      if (isCurrent()) setError(t.failAction);
     } finally {
-      setSubmitting(false);
+      if (isCurrent()) setSubmitting(false);
     }
   };
 
   return (
     <div
+      {...dialog}
       role="dialog"
+      aria-labelledby={titleId}
       aria-modal="true"
       className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4"
     >
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+      <div className="max-h-[90dvh] min-w-0 w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-4 sm:p-6 shadow-2xl">
         <div className="flex items-center justify-between border-b pb-4">
-          <h2 className="text-lg font-extrabold text-[#102A43]">{t.newNotice}</h2>
+          <h2 id={titleId} className="text-lg font-extrabold text-[#102A43]">{t.newNotice}</h2>
           <button
             type="button"
             onClick={close}
