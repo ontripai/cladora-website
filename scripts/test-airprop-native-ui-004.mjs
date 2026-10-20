@@ -46,6 +46,91 @@ const setCurrency=value=>{const select=document.querySelector('form select');Obj
 const click=async(button)=>act(async()=>button.dispatchEvent(new dom.window.MouseEvent('click',{bubbles:true,cancelable:true})));
 const mutationCount=()=>calls.filter(({options})=>options.method&&options.method!=='GET').length;
 
+async function testRealContextProvider(){
+ const nativeFetch=globalThis.fetch,contextStorageKey='cladora.customer-context.v1';
+ const previousContext=sessionStorage.getItem(contextStorageKey),integrationCalls=[];
+ sessionStorage.removeItem(contextStorageKey);
+ const contexts=[contextA,contextB].map((context_id,index)=>({context_id,membership_id:context_id,tenant_name:`Test tenant ${index}`,role_code:'OWNER',role_name:'Owner',scope_type:'tenant',context_label:`Context ${index===0?'A':'B'}`}));
+ globalThis.fetch=async(url,options={})=>{
+  integrationCalls.push({url,options});
+  assert.equal(options.method??'GET','GET','real-provider navigation must never dispatch a mutation');
+  assert.ok(typeof url==='string'&&url.startsWith('/api/customer/'),'only mocked relative customer requests are allowed');
+  const parsed=new URL(url,'https://cladora.test'),contextId=parsed.searchParams.get('context_id');
+  let body;
+  if(parsed.pathname==='/api/customer/v1/contexts')body={contexts};
+  else if(parsed.pathname==='/api/customer/v1/dashboard'){
+   assert.ok([contextA,contextB].includes(contextId));body={contextId};
+  }else if(parsed.pathname==='/api/customer/v1/workspace/targets'){
+   assert.ok([contextA,contextB].includes(contextId));body={workspaces:[{workspace_id:contextId===contextA?workspaceA:workspaceB,environment:'TEST'}]};
+  }else if(parsed.pathname==='/api/customer/v2/airprop/opportunities'){
+   assert.equal(parsed.searchParams.get('workspace_id'),contextId===contextA?workspaceA:workspaceB);body={opportunities:[]};
+  }else assert.fail(`Unexpected mocked provider request: ${parsed.pathname}`);
+  return{ok:true,json:async()=>body};
+ };
+ try{
+  // Only transport and unrelated panels are mocked. Context state/guards are the real implementation.
+  const provider=load('src/components/customer/CustomerContextProvider.tsx',{'@/components/dashboard-lab/DashboardTransport':{useDashboardFetch:()=>globalThis.fetch,useDashboardPreview:()=>false}});
+  const {CustomerAirpropWorkspace:RealWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{
+   './CustomerContextProvider':provider,
+   './CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},
+   './CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},
+   './CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},
+   '@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts'),
+  });
+  function ContextControls(){
+   const state=provider.useCustomerContext();
+   // Harness controls exercise the provider API, not the production shell's confirmation UI.
+   return React.createElement(React.Fragment,null,
+    React.createElement('output',{'data-context-state':'active'},state.active?.context_id??''),
+    React.createElement('output',{'data-context-state':'pending'},state.pendingContextId??''),
+    React.createElement('button',{type:'button','data-context-control':'a',onClick:()=>state.select(contextA)},'Select context A'),
+    React.createElement('button',{type:'button','data-context-control':'b',onClick:()=>state.select(contextB)},'Select context B'),
+    React.createElement('button',{type:'button','data-context-control':'cancel',onClick:state.cancelContextChange},'Cancel context change'),
+    React.createElement('button',{type:'button','data-context-control':'confirm',onClick:state.confirmContextChange},'Confirm context change'),
+    React.createElement(RealWorkspace,{lang:'en'}));
+  }
+  const contextState=name=>document.querySelector(`[data-context-state="${name}"]`).textContent;
+  const control=name=>document.querySelector(`[data-context-control="${name}"]`);
+  const values=()=>['name','city','asking_price'].map(name=>document.querySelector(`[name="${name}"]`).value).concat(document.querySelector('form select').value);
+  const assertNoMutations=step=>assert.equal(integrationCalls.filter(({options})=>(options.method??'GET')!=='GET').length,0,`${step}: zero mutation requests`);
+  await act(async()=>root.render(React.createElement(provider.CustomerContextProvider,null,React.createElement(ContextControls))));
+  assert.equal(contextState('active'),contextA);assert.equal(contextState('pending'),'');
+  await choose(workspaceA);assert.deepEqual(values(),['','','','EUR']);
+  await click(control('b'));
+  assert.equal(contextState('active'),contextB,'clean Context A switches through the real provider');
+  assert.equal(contextState('pending'),'','clean switch needs no confirmation');
+  assert.equal(workspaceSelect().value,'');assert.equal(document.querySelector('form'),null);
+  assert.ok(integrationCalls.some(({url})=>url===`/api/customer/v1/dashboard?context_id=${contextB}`));
+  assertNoMutations('clean context switch');
+
+  await click(control('a'));await choose(workspaceA);
+  await act(async()=>{setInput('name','Unsent context A draft');setInput('city','Cluj');setInput('asking_price','42.5000');setCurrency('RON');});
+  const draftForm=document.querySelector('form'),draftValues=['Unsent context A draft','Cluj','42.5000','RON'];
+  await click(control('b'));
+  assert.equal(contextState('active'),contextA,'dirty context remains active');assert.equal(contextState('pending'),contextB,'real provider records the pending context');
+  assert.equal(document.querySelector('form'),draftForm);assert.equal(workspaceSelect().value,workspaceA);assert.deepEqual(values(),draftValues);
+  assertNoMutations('dirty context selection');
+  await click(control('cancel'));
+  assert.equal(contextState('active'),contextA);assert.equal(contextState('pending'),'');
+  assert.equal(document.querySelector('form'),draftForm);assert.deepEqual(values(),draftValues,'real cancel retains every draft value');
+  assertNoMutations('cancel context change');
+  await click(control('b'));assert.equal(contextState('pending'),contextB);await click(control('confirm'));
+  assert.equal(contextState('active'),contextB);assert.equal(contextState('pending'),'');
+  assert.equal(draftForm.isConnected,false,'confirmed switch removes the old rendered draft');
+  assert.equal(workspaceSelect().value,'');assert.equal(document.querySelector('form'),null);
+  assertNoMutations('confirm context change');
+  await choose(workspaceB);assert.deepEqual(values(),['','','','EUR'],'Context B does not inherit any Context A field');
+  await click(control('a'));
+  assert.equal(contextState('active'),contextA);assert.equal(contextState('pending'),'','discarded guard does not block clean navigation');
+  await choose(workspaceA);assert.deepEqual(values(),['','','','EUR'],'returning to Context A does not restore the discarded draft');
+  assertNoMutations('destination and return navigation');
+ }finally{
+  await act(async()=>root.render(null));
+  globalThis.fetch=nativeFetch;
+  if(previousContext===null)sessionStorage.removeItem(contextStorageKey);else sessionStorage.setItem(contextStorageKey,previousContext);
+ }
+}
+
 try{
  await render('explicit');
  assert.equal(workspaceSelect().value,'');
@@ -190,6 +275,8 @@ try{
  posted=calls.filter(x=>x.options.method==='POST');assert.deepEqual(JSON.parse(posted.at(-1).options.body),pending,'retry sends the exact pending command');
  assert.equal(sessionStorage.getItem(storageKey),null);assert.equal(document.querySelector('fieldset').disabled,false);assert.match(document.body.textContent,/Opportunity saved/);assert.equal(document.querySelector('[name="name"]').value,'');assert.equal(guards.size,0,'success clears dirty guard');
 
+ await testRealContextProvider();
+
  // Existing route and scope behavior remains intact.
  const access=load('src/lib/customer/access-matrix.ts');
  const classifier=load('src/lib/customer/route-classifier.ts',{'./access-matrix.ts':access});
@@ -203,7 +290,7 @@ try{
  await act(async()=>root.render(React.createElement(CustomerRouteGuard,{lang:'en'},React.createElement('p',null,'native-selector'))));assert.equal(document.body.textContent.includes('native-selector'),false);
  active={context_id:contextA,scope_type:'tenant'};pathname='/en/app/airprop/unknown';
  await act(async()=>root.render(React.createElement(CustomerRouteGuard,{lang:'en'},React.createElement('p',null,'native-selector'))));assert.equal(document.body.textContent.includes('native-selector'),false);
- console.log('PASS actual rendered AIRPROP UI: draft guards, workspace/context navigation, EN/RO/FA, pending exact retry, zero-mutation navigation and existing regressions');
+ console.log('PASS actual rendered AIRPROP UI: real Context provider integration, draft guards, workspace/context navigation, EN/RO/FA, pending exact retry, zero-mutation navigation and existing regressions');
 }finally{
  await act(async()=>root.unmount());globalThis.fetch=originalFetch;
  for(const [key,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}
