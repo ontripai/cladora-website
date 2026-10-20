@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/pf01-owner-portfolio-local-browser.yml'
       - 'scripts/test-pf01-owner-portfolio-local-browser*.mjs'
+      - 'scripts/test-owner-portfolio-workspace-display.mjs'
       - 'scripts/test-pf01-owner-portfolio-local-http.mjs'
       - 'scripts/lib/pf01-owner-portfolio-local-fixture.mjs'
       - 'scripts/lib/ap10-*.mjs'
@@ -53,6 +54,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify honest localized Workspace display
+        run: node scripts/test-owner-portfolio-workspace-display.mjs
       - name: Install pinned Chromium from official Playwright sources
         run: node node_modules/@playwright/test/cli.js install --with-deps chromium
       - name: Run browser side-effect and cleanup gates before connected execution
@@ -60,6 +63,8 @@ jobs:
       - name: Lint only the browser proof package
         run: >-
           npx --no-install eslint --max-warnings=0
+          src/components/owner/OwnerPortfolioPanel.tsx
+          scripts/test-owner-portfolio-workspace-display.mjs
           scripts/test-pf01-owner-portfolio-local-browser.mjs
           scripts/test-pf01-owner-portfolio-local-browser-safety.mjs
           scripts/lib/pf01-owner-portfolio-local-fixture.mjs

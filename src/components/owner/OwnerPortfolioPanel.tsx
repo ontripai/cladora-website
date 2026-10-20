@@ -167,8 +167,13 @@ export function OwnerPortfolioPanel({ lang }: { lang: Language }) {
       {officialProjections === null && <p role="status" className="text-sm text-slate-500">{lang === 'fa' ? 'در حال بررسی اختیار جاری…' : lang === 'ro' ? 'Se verifică autoritatea curentă…' : 'Checking current authority…'}</p>}
       {projectionFailed && <p className="text-sm text-slate-500">{lang === 'fa' ? 'نمایش رسمی در دسترس نیست؛ دفتر خصوصی بدون تغییر باقی مانده است.' : lang === 'ro' ? 'Proiecția oficială nu este disponibilă; registrul privat rămâne neschimbat.' : 'The official projection is unavailable; the private book remains unchanged.'}</p>}
       {officialProjections?.length === 0 && !projectionFailed && <p className="text-sm text-slate-500">{lang === 'fa' ? 'واحد رسمی قابل افشایی وجود ندارد.' : lang === 'ro' ? 'Nu există unități oficiale care pot fi dezvăluite.' : 'No official units are currently disclosable.'}</p>}
-      {officialProjections?.map(projection => projection.projection_status === 'available' && <article key={projection.portfolio_workspace_id} className="space-y-3 rounded-lg border bg-white p-4">
-        <h3 className="font-semibold">Workspace · <bdi>{projection.portfolio_workspace_id}</bdi></h3>
+      {/* Ordinals distinguish only the currently displayed groups; IDs remain the keys and request identity. */}
+      {officialProjections?.filter(projection => projection.projection_status === 'available').map((projection, groupIndex) => <article key={projection.portfolio_workspace_id} className="space-y-3 rounded-lg border bg-white p-4">
+        <h3 className="font-semibold">
+          {lang === 'fa' ? 'ورک‌اسپیس رسمی' : lang === 'ro' ? 'Spațiu oficial' : 'Official Workspace'}{' '}
+          <bdi>{new Intl.NumberFormat(lang, { useGrouping: false }).format(groupIndex + 1)}</bdi>
+          {' — '}{lang === 'fa' ? 'نام در دسترس نیست' : lang === 'ro' ? 'nume indisponibil' : 'name unavailable'}
+        </h3>
         <ul className="space-y-3">{projection.items.map(item => item.resource.item_kind === 'canonical_resource' && <li key={`${item.resource.relationship.relationship_id}:${item.resource.canonical_reference.resource_id}`} className="rounded border p-3 text-sm">
           <strong>{item.resource.canonical_reference.display_name ?? item.resource.canonical_reference.resource_id}</strong>
           <dl className="mt-2 grid gap-1 text-slate-600 sm:grid-cols-2">

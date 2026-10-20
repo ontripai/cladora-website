@@ -21,6 +21,12 @@ const UI = {
   en: { title: 'Multi-unit owner portfolio', official: 'Official unit records', withheld: 'Action link withheld', empty: 'No official units are currently disclosable.' },
   fa: { title: 'کارتابل مالک چندواحدی', official: 'دفتر رسمی واحدها', withheld: 'پیوند اقدام محفوظ است', empty: 'واحد رسمی قابل افشایی وجود ندارد.' },
 };
+function workspaceHeading(locale, ordinal) {
+  const number = new Intl.NumberFormat(locale, { useGrouping: false }).format(ordinal);
+  return locale === 'fa' ? `ورک‌اسپیس رسمی ${number} — نام در دسترس نیست`
+    : locale === 'ro' ? `Spațiu oficial ${number} — nume indisponibil`
+      : `Official Workspace ${number} — name unavailable`;
+}
 const REQUIRED_INPUTS = {
   target: 'PF01_LOCAL_TARGET', ephemeralOptIn: 'PF01_LOCAL_EPHEMERAL',
   realAuthOptIn: 'PF01_LOCAL_REAL_AUTH', supabaseUrl: 'PF01_LOCAL_SUPABASE_URL',
@@ -159,7 +165,9 @@ async function loadPortfolio({ page, locale, stats, origin }) {
 async function verifyOfficial(page, locale, projections, fixture, blockers) {
   const official = officialSection(page, locale);
   await expect(official).toBeVisible();
-  await expect(official.locator('article')).toHaveCount(projections.length);
+  const available = projections.filter(projection => projection.projection_status === 'available');
+  const articles = official.locator('article');
+  await expect(articles).toHaveCount(available.length);
   const text = await official.innerText();
   for (const hidden of ['Private-A', 'Private owner address', 'Secret Other', 'Other-X',
     'private evidence must not leak', 'other owner evidence secret', 'cross tenant evidence secret',
@@ -167,14 +175,19 @@ async function verifyOfficial(page, locale, projections, fixture, blockers) {
     assert.equal(text.includes(hidden), false, 'private/foreign data must be absent from official DOM');
     assert.equal(JSON.stringify(projections).includes(hidden), false, 'private/foreign data must be absent from browser projection');
   }
-  const workspaceNames = new Map([[fixture.workspaceOne, 'PF01 operator one'], [fixture.workspaceTwo, 'PF01 operator two']]);
+  // commercial_owner is NOT a canonical name. Ordinals are presentation only,
+  // matched to actual ordered RPC groups and their canonical Unit content.
+  const headings = (await articles.getByRole('heading', { level: 3 }).allTextContents()).map(text => text.replace(/\s+/g, ' ').trim());
+  assert.deepEqual(headings, available.map((_, index) => workspaceHeading(locale, index + 1)));
+  assert.equal(new Set(headings).size, available.length, 'visible group headings must be distinct');
+  for (const heading of headings) {
+    assert.equal(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i.test(heading), false, 'Workspace UUID must not become a display name');
+    assert.equal(/PF01 operator|Property One|Property Two/.test(heading), false, 'operator/property names must not substitute for a Workspace name');
+  }
   const unitNames = new Map([[fixture.unitOne, 'A-01'], [fixture.unitTwo, 'B-02']]);
-  for (const projection of projections) {
-    const article = official.locator('article').filter({ hasText: projection.portfolio_workspace_id });
-    await expect(article).toHaveCount(1);
-    if (!(await article.getByRole('heading', { level: 3 }).innerText()).includes(workspaceNames.get(projection.portfolio_workspace_id))) {
-      blockers.add('UI_WORKSPACE_NAME_MISSING_UUID_FALLBACK');
-    }
+  for (const [index, projection] of available.entries()) {
+    const article = articles.nth(index);
+    await expect(article.locator('li')).toHaveCount(projection.items.length);
     for (const item of projection.items) {
       const { canonical_reference: reference, relationship, source } = item.resource;
       const row = article.locator('li').filter({ hasText: reference.display_name ?? reference.resource_id });
@@ -228,6 +241,7 @@ export async function runBrowserProof() {
   const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
   const receipt = { suite: SUITE, sha, browser: 'NOT_RUN_NOT_PASS', locales: 0, scenarios: 0,
     path: 'NOT_RUN_NOT_PASS', results, blockers: [], production: 'NOT_RUN_NOT_PASS',
+    product_limitations: ['WORKSPACE_CANONICAL_NAME_UNAVAILABLE'],
     hosted_preview_e2e: 'NOT_RUN_NOT_PASS', pilot_release: 'NOT_RUN_NOT_PASS' };
   try {
     const port = await pf01FreeLoopbackPort();
@@ -290,6 +304,7 @@ export async function runBrowserProof() {
       const isolatedPage = await isolated.newPage();
       const empty = await loadPortfolio({ page: isolatedPage, locale, stats, origin });
       assert.deepEqual(empty, []);
+      await verifyOfficial(isolatedPage, locale, empty, fixture, blockers);
       await expect(officialSection(isolatedPage, locale).getByText(UI[locale].empty, { exact: true })).toBeVisible();
       await verifyPrivate(isolatedPage, locale, true);
       await closed(isolated);
@@ -300,6 +315,7 @@ export async function runBrowserProof() {
     results.after_read_state_sha256 = createHash('sha256').update(JSON.stringify(await snapshotPf01ReadState(pool))).digest('hex');
     Object.assign(results, { real_page_api_rpc_db: 'PASS', actor_locale_isolation: 'PASS', private_official_separation: 'PASS',
       relationship_source_version_validity: 'PASS', allowed_withheld_links: 'PASS', read_count_content_fingerprints: 'UNCHANGED_27_TABLES',
+      localized_distinct_workspace_unavailable_headings: 'PASS_ZERO_AND_MULTIPLE_GROUPS',
       negative_content_control: 'DETECTED_ROLLED_BACK' });
     receipt.path = 'REAL_CHROMIUM_NEXT_PAGE_NEXT_API_ACTOR_RPC_LOCAL_POSTGRES';
 
@@ -317,6 +333,7 @@ export async function runBrowserProof() {
     assert.deepEqual(await snapshotPf01ReadState(pool), afterManagement);
     receipt.scenarios += 1;
     results.management_revoke_ownership_preserved = 'PASS';
+    results.localized_distinct_workspace_unavailable_headings = 'PASS_ZERO_MULTIPLE_AND_REVOKED_SINGLE_GROUP';
 
     phase = 'current-authority-session-revoke-reload';
     await revokePf01CurrentAuthority(pool, owner.userId);
@@ -335,6 +352,8 @@ export async function runBrowserProof() {
     const replayedProjection = await replay.request.get(`${origin}/api/owner-portfolio/v1/projection`);
     assert.ok([401, 403].includes(replayedProjection.status()), 'old cookie cannot restore official visibility');
     assert.equal((await replayPage.locator('body').innerText()).includes(fixture.workspaceTwo), false);
+    await expect(replayPage.getByRole('heading', { name: workspaceHeading('en', 1), exact: true })).toHaveCount(0);
+    await expect(replayPage.getByText('B-02', { exact: true })).toHaveCount(0);
     await closed(replay);
     assert.deepEqual(await snapshotPf01ReadState(pool), afterRevoke);
     receipt.scenarios += 2;
