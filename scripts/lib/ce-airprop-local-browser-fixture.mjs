@@ -152,8 +152,8 @@ export function observeCeRequests(context, origin, emit = () => {}, { bodyMs = 5
   let sequence = 0;
   const records = new Map(); const waiters = new Set(); const pending = new Set();
   const cancellation = new AbortController();
-  const kind = url => url.pathname.endsWith('/opportunities') ? 'opportunity'
-    : url.pathname.endsWith('/artifact-b2') ? 'b2' : url.pathname.endsWith('/targets') ? 'targets' : 'other_api';
+  const kind = url => url.pathname === '/api/customer/v2/airprop/opportunities' ? 'opportunity'
+    : url.pathname === '/api/customer/v2/airprop/artifact-b2' ? 'b2' : url.pathname === '/api/customer/v1/workspace/targets' ? 'targets' : 'other_api';
   const notify = () => { for (const waiter of waiters) waiter(); };
   const request = req => {
     const url = new URL(req.url());

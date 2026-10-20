@@ -66,7 +66,7 @@ export async function runDenialProof() {
     product_limitations: ['WORKSPACE_CANONICAL_NAME_UNAVAILABLE'],
     positive_commercial_e2e: 'NOT_RUN_NOT_PASS', hosted_preview_e2e: 'NOT_RUN_NOT_PASS', release: 'NOT_RUN_NOT_PASS' };
   const cancellation = new AbortController(); const cancel = () => cancellation.abort();
-  const proofTimer = setTimeout(cancel, 720_000); // Leave cleanup margin inside the unchanged 900s outer watchdog.
+  const proofTimer = setTimeout(cancel, 600_000); // Leave cleanup margin inside the unchanged 900s outer watchdog.
   process.once('SIGINT', cancel); process.once('SIGTERM', cancel);
   let complete = false; let injected = false; let port;
   try {

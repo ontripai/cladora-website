@@ -100,6 +100,15 @@ function fakeResponse(request, body) { return { request: () => request, status: 
   assert.equal(context.eventNames().length, 0); checks += 1;
 }
 {
+  const context = new EventEmitter(); const observer = observeCeRequests(context, APP);
+  const unrelated = { ...fakeRequest(), url: () => `${APP}/api/unrelated/opportunities?context_id=selected-context&workspace_id=selected-workspace` };
+  context.emit('request', unrelated);
+  context.emit('response', fakeResponse(unrelated, async () => Buffer.from(JSON.stringify({ error: { code: 'AIRPROP_ACCESS_DENIED' } }))));
+  context.emit('requestfinished', unrelated);
+  await assert.rejects(observer.selected({ after: 0, endpoint: 'opportunity', contextId: 'selected-context', workspaceId: 'selected-workspace', ms: 20 }), error => error.stage === 'current_ui_request_completion');
+  observer.stop(); await observer.drain(); checks += 1;
+}
+{
   const context = new EventEmitter(); const events = [];
   const observer = observeCeRequests(context, APP, event => events.push(event), { bodyMs: 20 });
   const request = fakeRequest(); context.emit('request', request);
