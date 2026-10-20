@@ -10,6 +10,9 @@ on:
       - 'scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs'
       - 'scripts/test-airprop-legacy-country-defaults-audit-07.mjs'
       - 'scripts/test-airprop-b2-*.mjs'
+      - 'scripts/test-owner-mobile-payment-*.mjs'
+      - 'scripts/test-ce-mobile-notice-read-isolation.mjs'
+      - 'scripts/test-airprop-error-body-consumption.mjs'
       - 'scripts/lib/airprop-b2-safety-guard.mjs'
       - 'docs/contracts/AIRPROP-ADDRESS-STRUCTURE-PRESENTATION-EVALUATOR-v1.0.md'
       - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
@@ -47,6 +50,9 @@ on:
       - 'scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs'
       - 'scripts/test-airprop-legacy-country-defaults-audit-07.mjs'
       - 'scripts/test-airprop-b2-*.mjs'
+      - 'scripts/test-owner-mobile-payment-*.mjs'
+      - 'scripts/test-ce-mobile-notice-read-isolation.mjs'
+      - 'scripts/test-airprop-error-body-consumption.mjs'
       - 'scripts/lib/airprop-b2-safety-guard.mjs'
       - 'docs/contracts/AIRPROP-ADDRESS-STRUCTURE-PRESENTATION-EVALUATOR-v1.0.md'
       - 'scripts/test-ce-member-benefit-terminology-audit-v1.mjs'
@@ -97,6 +103,8 @@ jobs:
       - run: npm run test:ce:benefit-ownership-reconciliation
       - run: npm run test:ce:benefit-presentation-handoff
       - run: npm run test:unit
+      - name: Mobile consumer guards (mocked Auth/HTTP, no connected DB)
+        run: npm run test:mobile-consumer-guards
       - run: npm run test:core-jurisdiction-profile
       - run: npm run test:core-canonical-country-registry
       - run: npm run test:core-jurisdiction-domain-artifact

@@ -15,6 +15,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
+    "test:mobile-consumer-guards": "node scripts/test-owner-mobile-payment-ui.mjs && node scripts/test-owner-mobile-payment-ui.mjs --review-correction && node scripts/test-owner-mobile-payment-ui.mjs --read-fence-regressions && node scripts/test-owner-mobile-payment-api.mjs && node scripts/test-ce-mobile-notice-read-isolation.mjs && node scripts/test-airprop-error-body-consumption.mjs",
     "test:route-exports": "node scripts/test-core-main-route-exports.mjs",
     "test:claims": "node scripts/test-public-claims-compliance-r10.mjs",
     "test:guides-applicability": "node scripts/test-guides-applicability-regression.mjs",
