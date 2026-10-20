@@ -1,31 +1,9 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { Inter, Manrope, Vazirmatn } from 'next/font/google';
 import { SUPPORTED_LOCALES, getLocaleConfig, getIntlLocale, isSupportedLocale } from '@/types';
 import { notFound } from 'next/navigation';
 import { AppOrMarketingLayout } from '@/components/layout/AppOrMarketingLayout';
 import { getSiteUrl } from '@/config/site';
-
-const inter = Inter({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '600', '700', '800'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
-const manrope = Manrope({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['700', '800'],
-  variable: '--font-manrope',
-  display: 'swap',
-});
-
-const vazirmatn = Vazirmatn({
-  subsets: ['arabic', 'latin'],
-  weight: ['400', '600', '700', '800'],
-  variable: '--font-vazirmatn',
-  display: 'swap',
-});
 
 export async function generateStaticParams() {
   return SUPPORTED_LOCALES.map((lang) => ({ lang }));
@@ -190,15 +168,11 @@ export default async function LangLayout(
     ],
   };
 
-  const fontVariables = isFa
-    ? `${vazirmatn.variable} ${inter.variable}`
-    : `${inter.variable} ${manrope.variable}`;
-
   return (
     <html 
       lang={locale.code} 
       dir={locale.direction}
-      className={`${fontVariables} scroll-smooth`}
+      className="scroll-smooth"
     >
       <head>
         <script

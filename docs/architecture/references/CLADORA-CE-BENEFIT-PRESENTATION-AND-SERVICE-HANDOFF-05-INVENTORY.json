@@ -1,7 +1,7 @@
 {
   "schema": "ce-benefit-presentation-service-handoff-inventory.v1",
-  "baseline_commit": "536a9526222a36a1fd5d28e4267ca4b2d783786c",
-  "baseline_tree": "83947ebd1278b5c3af65fb1e43a07a1f8e30a21d",
+  "baseline_commit": "aa854730df7590e7ed48666f3d45cf653ede4f15",
+  "baseline_tree": "aebc118d045a73b8a787243e43ecb1e48849cc34",
   "hash_algorithm": "sha256",
   "entry_count": 23,
   "classification_counts": {
@@ -168,7 +168,7 @@
       "owner": "Core presentation infrastructure",
       "finding": "Localized layout applies direction, including Persian RTL.",
       "classification": "accepted",
-      "sha256": "78e2c32d55134d6f878a9157e9c6d9aa7d160caa6cdd8be2786643f06609208a"
+      "sha256": "aa6a13cc0ba7b0faf51e732ff8937ebd64d0e542fa723f526cfb95943a6c2ee0"
     },
     {
       "path": "src/dictionaries/ro.ts",

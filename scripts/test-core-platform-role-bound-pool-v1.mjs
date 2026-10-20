@@ -8,7 +8,7 @@ const implementation = readFileSync('src/lib/core/platform-role-bound-pool-v1.ts
 const consumer = readFileSync('src/lib/community/experience-guide-lifecycle-http-v1.ts', 'utf8');
 const migrations = readdirSync('supabase/migrations').filter(name => name.endsWith('.sql')).sort();
 
-assert.equal(migrations.length, 278);
+assert.equal(migrations.length, 287);
 assert.ok(migrations.includes(migrationName));
 assert.match(migration, /create role cladora_ce_guide_runtime\s+login noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
 assert.match(migration, /create role cladora_ce_guide_executor\s+nologin noinherit nosuperuser nobypassrls nocreatedb nocreaterole\s+noreplication password null/i);
@@ -63,9 +63,23 @@ const governed = [
   'communications.member_covers_unit',
   'communications.context_covers_unit',
 ];
+function mutatesGovernedCatalog(sql) {
+  return sql.split(';').some(statement => {
+    const normalized = statement
+      .replace(/^\s*(?:(?:--[^\n]*(?:\n|$))|(?:\/\*[\s\S]*?\*\/\s*))*/, '')
+      .trim();
+    if (/^(?:grant|revoke)\b/i.test(normalized)) {
+      return governed.some(token => normalized.includes(token));
+    }
+    const target = normalized.match(
+      /^(?:create\s+(?:or\s+replace\s+)?|alter\s+|drop\s+)(?:function|procedure|role)\s+(?:if\s+(?:not\s+)?exists\s+)?([a-z0-9_.]+)/i,
+    )?.[1];
+    return target !== undefined && governed.includes(target);
+  });
+}
 for (const name of migrations.filter(candidate => candidate >= migrationName)) {
   const sql = readFileSync(`supabase/migrations/${name}`, 'utf8');
-  if (!governed.some(token => sql.includes(token))) continue;
+  if (!mutatesGovernedCatalog(sql)) continue;
   assert.match(sql, /acquire_core_platform_role_safety_mutation_lock_v1/,
     `${name} mutates protected catalog state without the canonical exclusive lock`);
 }

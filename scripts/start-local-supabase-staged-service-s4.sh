@@ -89,7 +89,9 @@ fi
 echo "STEP-SU-02 local durable receipt: PASS"
 
 mv "$held_s4" "$s4_path"
-supabase migration up --local
+# S4 can be temporarily older than already-applied local migrations when a
+# later vertical slice is under test. This is still a local-only backfill.
+supabase migration up --local --include-all
 
 remaining_acl="$(docker exec "$database_container" psql -U postgres -d postgres -X -A -t \
   -v ON_ERROR_STOP=1 -c "select count(*) from (values ('communications.private_conversations'::text),('communications.private_participants'),('communications.private_messages'),('communications.private_message_documents')) target(relation_name) cross join unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) privilege_name where has_table_privilege('service_role',relation_name,privilege_name);")"

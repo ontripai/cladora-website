@@ -17,7 +17,7 @@ const fetch=async(url,options)=>{
  if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(lose){lose=false;throw new Error('Lost reply');}return Response.json({quote_id:uuid(6),version:1,status:'presented'},{status:conflict?409:writeStatus});}
  if(offline)throw new Error('Offline');
  if(historyFail&&writes.length)throw new Error('History unavailable');
- return Response.json({can_publish:canPublish,quotes:[{quote_id:uuid(6),version:1,description:'Synthetic request',scope:'Synthetic scope',total_minor:'9007199254740993',currency:'RON',valid_until:'2099-01-01T00:00:00Z',published_at:null,provider_label:'Provider',beneficiary_label:'Person',state:writes.length&&!lose?'presented':quoteState}]},{status:deny?403:readStatus});
+ return Response.json({can_publish:canPublish,quotes:[{quote_id:uuid(6),version:1,description:'Synthetic request',scope:'Synthetic scope',total_minor:'9007199254740993',currency:'RON',valid_until:'2099-01-01T00:00:00Z',published_at:null,provider_label:'Provider',beneficiary_label:'Person',state:writes.length&&!lose?'presented':quoteState,financial_proposal:null}]},{status:deny?403:readStatus});
 };
 function load(file) {
   if (!existsSync(file) && file.pathname.endsWith('.ts')) file = new URL(file.href.replace(/\.ts$/, '.tsx'));
@@ -25,7 +25,7 @@ function load(file) {
   const filename = fileURLToPath(file); const mod = new Module(filename);
   mod.require = name => name.endsWith('DashboardTransport') ? { useDashboardFetch: () => fetch }
     : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
-    : name.startsWith('.') ? load(new URL(`${name}.ts`, file)) : require(name);
+    : name.startsWith('.') ? load(new URL(/\.[cm]?[jt]sx?$/.test(name) ? name : `${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText, filename);
   cache.set(file.href, mod.exports); return mod.exports;
 }
