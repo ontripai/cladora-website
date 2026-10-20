@@ -40,7 +40,7 @@
     "test:retention:manifest": "node scripts/test-retention-manifest-vectors.mjs",
     "test:retention:operations": "node scripts/test-retention-operations-dry-run.mjs",
     "test:retention": "npm run test:retention:manifest && npm run test:retention:storage && npm run test:retention:concurrency && npm run test:retention:operations && npm run test:db:static",
-    "test:app-foundation": "node scripts/test-guides-applicability-regression.mjs && node scripts/test-supabase-foundation.mjs",
+    "test:app-foundation": "node scripts/test-guides-applicability-regression.mjs && node scripts/test-supabase-foundation.mjs && node --no-warnings --experimental-strip-types scripts/test-vercel-preview-application-origin.mjs",
     "test:ce:benefit-presentation-handoff": "node scripts/test-ce-benefit-presentation-service-handoff-v1.mjs",
     "test:ce:guide-translation-provenance": "node --no-warnings --experimental-strip-types scripts/test-ce-guide-translation-provenance-v1.mjs",
     "test:ce:member-benefit-terminology": "node scripts/test-ce-member-benefit-terminology-audit-v1.mjs",
