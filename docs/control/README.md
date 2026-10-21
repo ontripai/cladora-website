@@ -16,6 +16,7 @@
 - [دروازه مجوز Runtime پس از PM01-B](PM-01-RUNTIME-AUTHORIZATION-GATE-v1.0.md)
 - [مرجع UX و UI و CSS](UX-UI-CSS-REGISTRY-v1.0.md)
 - [فهرست مادر موجود](../CLADORA-CONTROLLED-DOCUMENTATION-MASTER-INDEX-v1.0.md)
+- [الزامات موبایل مالک و ساکن و ماتریس مسیرها — الحاقیهٔ محلی ۲۰ اکتبر](../roadmap/CLADORA-CORE-V14-WORK-PACKAGE-STATUS-v1.0.md#owner-and-resident-mobile-readiness--2026-10-20-addendum)
 
 ## Task routing
 

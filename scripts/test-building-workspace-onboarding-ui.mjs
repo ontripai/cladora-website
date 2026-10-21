@@ -1,0 +1,124 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createRequire,Module} from 'node:module';
+import {fileURLToPath} from 'node:url';
+import {JSDOM} from 'jsdom';
+import ts from 'typescript';
+const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div>',{url:'https://cladora.test'}),saved=new Map();
+for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,navigator:dom.window.navigator,FormData:dom.window.FormData,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
+const React=await import('react'),{act}=React,{createRoot}=await import('react-dom/client');
+const originalFetch=globalThis.fetch;
+function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true,target:ts.ScriptTarget.ES2022}}).outputText,filename);return mod.exports;}
+const schema=load('src/lib/customer/building-setup-schema.ts');
+const helper=load('src/lib/customer/building-workspace-onboarding.ts',{'./building-setup-schema':schema});
+const workspace='90000000-0000-0000-0000-000000000001',otherWorkspace='90000000-0000-0000-0000-000000000002';
+const ctx='80000000-0000-0000-0000-000000000004',other='80000000-0000-0000-0000-000000000006',run='80000000-0000-0000-0000-000000000005',membership='80000000-0000-0000-0000-000000000007';
+let revision=1,lastReceipt=null,creationKey='',creations=0;const completed=new Map();
+let active={context_id:ctx,membership_id:membership},mode='success',stage='draft',calls=[],payload,readOverride=null,deferred=null;
+const guards=new Map(),registerUnsavedGuard=(key,dirty,discard)=>{if(dirty)guards.set(key,discard);else guards.delete(key);return()=>{if(guards.get(key)===discard)guards.delete(key);};};
+const record=()=>({version:2,workspace_id:workspace,revision,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:stage==='submitted'?revision:null,submitted_payload_hash:stage==='submitted'?'a'.repeat(64):null,last_command_key:lastReceipt?.command_key??null,last_command_receipt:lastReceipt,run_id:run,status:stage,payload:structuredClone(payload),property_id:stage==='provisioned'?other:null,effective_units:null});
+const mutations=()=>calls.filter(c=>c.options.method);
+globalThis.fetch=async(url,options={})=>{
+ calls.push({url,options});
+ if(!options.method){if(mode==='deny-read')return {ok:false,status:403,json:async()=>({error:{code:'FORBIDDEN'}})};if(deferred)return deferred;if(new URL(url,'https://cladora.test').pathname.endsWith('/building-setup'))return {ok:true,json:async()=>({attempt:payload&&creationKey===new URL(url,'https://cladora.test').searchParams.get('idempotency_key')?record():null})};return {ok:true,json:async()=>readOverride??record()};}
+ const body=JSON.parse(options.body);
+ if(mode==='deny-write')return{ok:false,status:403,json:async()=>({error:{code:'FORBIDDEN'}})};
+ if(completed.has(body.command_key??body.idempotency_key))return {ok:true,json:async()=>completed.get(body.command_key??body.idempotency_key)};
+ if(!url.endsWith(run)&&!url.endsWith('/rehearse')&&!url.endsWith('/submit')&&!url.endsWith('/provision')){payload=body.payload;creationKey=body.idempotency_key;creations++;}
+ if(options.method==='PATCH')payload.units=body.units;
+ if(url.endsWith('/rehearse'))stage='rehearsed';
+ if(url.endsWith('/submit'))stage='submitted';
+ if(url.endsWith('/provision'))stage='provisioned';
+ if(body.command_key){revision++;lastReceipt={version:2,workspace_id:workspace,run_id:run,status:stage,revision,command_key:body.command_key,expected_revision:body.expected_revision,operation:options.method==='PATCH'?'update':url.split('/').at(-1)};}
+ const receipt=body.command_key?lastReceipt:{version:2,workspace_id:workspace,run_id:run,status:stage,revision,creation_request_hash:'b'.repeat(64)};completed.set(body.command_key??body.idempotency_key,receipt);
+ if(mode==='lost')throw Error('Synthetic lost response');
+ if(mode==='invalid-json')return{ok:true,json:async()=>{throw SyntaxError('Invalid JSON');}};
+ return{ok:true,json:async()=>receipt};
+};
+const {CustomerBuildingSetupWizard:Wizard}=load('src/components/customer/CustomerBuildingSetupWizard.tsx',{
+ './CustomerContextProvider':{useCustomerContext:()=>({active,dashboard:{workspace_id:active.context_id===ctx?workspace:otherWorkspace},registerUnsavedGuard})},
+ '@/lib/customer/building-setup-schema':schema,'@/lib/customer/building-workspace-onboarding':helper,
+ 'next/link':({href,children,...props})=>React.createElement('a',{href,...props},children),
+});
+const root=createRoot(document.getElementById('root'));
+const labels={en:['Create draft','Run rehearsal','Submit for approval','Provision structure','Refresh saved status','Check status and retry saved attempt'],ro:['Creează proiect','Rulează simularea','Trimite spre aprobare','Creează structura','Actualizează starea salvată','Verifică starea și reîncearcă operațiunea salvată'],fa:['ایجاد پیش‌نویس','اجرای آزمایشی','ارسال برای تأیید','ایجاد ساختار','دریافت وضعیت ثبت‌شده','بررسی وضعیت و تکرار همان تلاش']};
+const button=text=>[...document.querySelectorAll('button')].find(b=>b.textContent===text);
+const render=async(key,lang='en')=>act(async()=>root.render(React.createElement(Wizard,{key,lang})));
+const click=async text=>act(async()=>button(text).click());
+const input=async(selector,value)=>act(async()=>{const e=document.querySelector(selector);Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
+let checks=0;function eq(a,b,msg){checks++;assert.deepEqual(a,b,msg);}
+async function reset(){sessionStorage.clear();calls=[];mode='success';stage='draft';readOverride=null;revision=1;lastReceipt=null;creationKey='';creations=0;payload=null;completed.clear();active={context_id:ctx,membership_id:membership};}
+try{
+ for(const lang of ['en','ro','fa']){
+  await reset();await render(`flow-${lang}`,lang);eq(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
+  await click(labels[lang][0]);eq(mutations().length,1);const first=JSON.parse(mutations()[0].options.body);eq(first.payload.currency,'RON');
+  await click(labels[lang][1]);eq(stage,'rehearsed');await click(labels[lang][2]);eq(stage,'submitted');
+  eq(document.querySelector('a').getAttribute('href'),`/${lang}/pilot-reviewer`,'existing independent-review consumer reused');eq(button(labels[lang][3]).disabled,true,'no client self-approval');
+  stage='approved';const before=mutations().length;await click(labels[lang][4]);eq(mutations().length,before,'status refresh is read-only');
+  await click(labels[lang][3]);eq(stage,'provisioned');const count=mutations().length;await render(`provisioned-${lang}`,lang);eq(button(labels[lang][0]).disabled,true);eq(mutations().length,count,'remount does not create/provision again');
+ }
+ await reset();await render('lost-create');mode='lost';await click(labels.en[0]);const key=helper.setupStorageKey(ctx,membership,workspace),savedCommand=JSON.parse(sessionStorage.getItem(key)).pending.command;
+ eq(savedCommand.payload.association.name,'CLADORA Synthetic Association');eq(button(labels.en[0]).disabled,true);eq(document.querySelector('fieldset').disabled,true);
+ await render('lost-create-remount');eq(JSON.parse(sessionStorage.getItem(key)).pending.command,savedCommand);eq(mutations().length,1,'restoring a pending attempt performs reads only');
+ mode='success';active={context_id:other,membership_id:other};await render('other-context');eq(document.querySelector('fieldset input').value,'CLADORA Synthetic Association');eq(button(labels.en[0]).disabled,false,'independent Context unaffected');
+ active={context_id:ctx,membership_id:membership};await render('back-to-uncertain');eq(button(labels.en[0]).disabled,true);eq(mutations().length,1);
+ mode='success';await click(labels.en[5]);eq(mutations().at(-1).options.body,JSON.stringify(savedCommand));eq(creations,1,'key-bound replay creates no second run');
+ await reset();await render('ambiguous-action');await click(labels.en[0]);mode='lost';await click(labels.en[1]);eq(stage,'rehearsed');const beforeRead=mutations().length;mode='success';await click(labels.en[5]);eq(mutations().length,beforeRead,'committed lost response is reconciled without replay');eq(button(labels.en[2]).disabled,false);
+ // An exact known-run retry after an uncommitted failure reads first and preserves body.
+ mode='deny-write';await click(labels.en[2]);const attempted=mutations().at(-1).options.body;stage='rehearsed';mode='success';await click(labels.en[5]);eq(mutations().at(-1).options.body,attempted);eq(stage,'submitted');
+ await reset();await render('denied-read');await click(labels.en[0]);mode='deny-read';const beforeDenied=mutations().length;await click(labels.en[1]);eq(mutations().length,beforeDenied,'read denial must prevent mutation');
+ await reset();await render('changed-record');await click(labels.en[0]);payload.building.name='Changed by another operator';const beforeStale=mutations().length;await click(labels.en[1]);eq(mutations().length,beforeStale,'stale record is not written');eq(document.querySelectorAll('fieldset input')[1].value,'Changed by another operator');
+ await reset();sessionStorage.setItem(key,'broken json');await render('corrupt');eq(button(labels.en[0]).disabled,true,'corrupt storage fails closed, not new draft');eq(mutations().length,0);
+ await reset();await render('invalid');await input('input[aria-label="Area m² 1"]','0');await click(labels.en[0]);eq(mutations().length,0,'invalid area blocked before dispatch');
+ await reset();await render('invalid-json');mode='invalid-json';await click(labels.en[0]);eq(button(labels.en[0]).disabled,true);eq(JSON.parse(sessionStorage.getItem(key)).pending.action,'create');
+ // Synchronous double activation uses ref lock before React disabled state renders.
+ await reset();await render('double');await act(async()=>{button(labels.en[0]).click();button(labels.en[0]).click();});eq(mutations().length,1);
+ // Saved unit attempts survive a remount and retry exactly after authoritative read.
+ await reset();await render('save-retry');await click(labels.en[0]);await input('input[aria-label="Area m² 1"]','70');mode='deny-write';await click('Save units');const saveBody=mutations().at(-1).options.body;
+ await render('save-retry-remount');eq(document.querySelector('input[aria-label="Area m² 1"]').value,'70');mode='success';await click(labels.en[5]);eq(mutations().at(-1).options.body,saveBody);eq(payload.units[0].area_m2,70);
+ // Unavailable browser storage prevents dispatch instead of losing recovery identity.
+ await reset();await render('storage-unavailable');const nativeSet=dom.window.Storage.prototype.setItem;dom.window.Storage.prototype.setItem=()=>{throw Error('Synthetic storage quota');};
+ try{await click(labels.en[0]);eq(mutations().length,0);}finally{dom.window.Storage.prototype.setItem=nativeSet;}
+ // An old Context response cannot alter the new Context or erase its pending state.
+ await reset();await render('stale-source');await click(labels.en[0]);let release;deferred=new Promise(resolve=>{release=resolve;});
+ await act(async()=>{button(labels.en[4]).click();});active={context_id:other,membership_id:other};await render('stale-target');
+ const oldRecord=record();oldRecord.payload.building.name='OLD CONTEXT RESPONSE';await act(async()=>{release({ok:true,json:async()=>oldRecord});});deferred=null;
+ eq(document.querySelectorAll('fieldset input')[1].value,'Synthetic Building A');eq(mutations().length,1);
+
+ await reset();await render('legacy-before');await click(labels.en[0]);readOverride={...record(),creation_request_hash:null,creation_receipt:null};await click(labels.en[4]);eq(button(labels.en[1]).disabled,true,'legacy snapshot cannot advance');assert.match(document.querySelector('[role="alert"]').textContent,/legacy record/);readOverride=null;
+ // Reuse the existing reviewer consumer; no activation endpoint is called.
+ const {PilotReviewerPanel}=load('src/components/customer/PilotReviewerPanel.tsx',{'@/lib/customer/building-setup-schema':schema,'@/lib/customer/building-workspace-onboarding':helper,'next/link':({href,children})=>React.createElement('a',{href},children)});
+ const reviewPayload=structuredClone(savedCommand.payload);
+ for(const lang of ['en','ro','fa']){
+  sessionStorage.clear();let approvals=0;let review={version:2,workspace_id:workspace,revision:3,run_id:run,status:'submitted',payload:reviewPayload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:3,submitted_payload_hash:'a'.repeat(64),last_command_key:null,last_command_receipt:null};
+  globalThis.fetch=async(url,options={})=>{
+   if(url==='/api/customer/v1/pilot-reviewer')return {ok:true,json:async()=>({reviewer:{status:'active',context_id:ctx,workspace_id:workspace,runs:review.status==='submitted'?[{id:run,workspace_id:workspace,status:'submitted',building:'Synthetic',revision:3,payload_hash:'a'.repeat(64),submitted_revision:3,submitted_payload_hash:'a'.repeat(64)}]:[]}})};
+   if(!options.method)return{ok:true,json:async()=>review};
+   approvals++;const body=JSON.parse(options.body);review={...review,status:'approved',revision:4,last_command_key:body.command_key,last_command_receipt:{operation:'approve',expected_revision:3,command_key:body.command_key}};throw Error('Synthetic lost approval response');
+  };
+  await act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:`review-${lang}`,lang})));
+  const approveLabel={en:'Approve setup',ro:'Aprobă dosarul',fa:'تأیید پرونده'}[lang];
+  await act(async()=>{button(approveLabel).click();button(approveLabel).click();});eq(approvals,1,'reviewer synchronous duplicate prevented');
+  const stored=JSON.parse(sessionStorage.getItem(`cladora.setup-approval.v2:${ctx}:${workspace}`));eq(stored.command.expected_revision,3);eq(stored.command.expected_payload_hash,'a'.repeat(64));
+  await act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:`review-remount-${lang}`,lang})));
+  const retry=[...document.querySelectorAll('button')].find(e=>!e.disabled);
+  await act(async()=>retry.click());eq(approvals,1,'lost approval recovered through exact recorded receipt, no second POST');eq(sessionStorage.getItem(`cladora.setup-approval.v2:${ctx}:${workspace}`),null);
+ }
+ // Only the reserved creation-attempt hunk of the existing CaseConversation is exercised.
+ const caseSchemas=load('src/lib/customer/building-workspace-onboarding-case.ts',{'./building-setup-schema':schema});
+ const {CaseConversation}=load('src/components/cases/CasePortal.tsx',{'@/lib/customer/building-workspace-onboarding-case':caseSchemas,'next/link':({href,children})=>React.createElement('a',{href},children),'next/navigation':{useRouter:()=>({})},'@/components/platform/WorkspaceAccessBasisDialog':{WorkspaceAccessBasisDialog:()=>null}});
+ for(const lang of ['en','ro','fa']){
+  sessionStorage.clear();let posts=[],created=0,receipt=null,lost=true;
+  globalThis.fetch=async(url,options={})=>{
+   if(!options.method){if(new URL(url,'https://cladora.test').searchParams.has('idempotency_key'))return{ok:true,json:async()=>({attempt:receipt})};return{ok:true,json:async()=>({options:[{profile:'residential',model:'association_managed',profile_label:{en:'Residential'},model_label:{en:'Association'}}],prepared:[]})};}
+   posts.push(options.body);if(!receipt){created++;receipt={workspace_id:workspace,tenant_id:other,status:'LEAD'};}if(lost)throw Error('Synthetic lost case response');return{ok:true,json:async()=>({workspace:receipt})};
+  };
+  const props={lang,detail:{id:ctx,status:'open',workspace_id:workspace,contract_id:null,staff_view:true,messages:[],unread_count:0},documents:[],userId:membership,manager:true,approver:false,reviewer:false,staffOptions:[]};
+  const mount=key=>act(async()=>root.render(React.createElement(CaseConversation,{...props,key})));
+  await mount(`case-${lang}`);let form=document.querySelector('select[name="taxonomy"]').closest('form');form.querySelector('[name="taxonomy"]').value='0';form.querySelector('[name="commercial_owner"]').value='Synthetic manager';form.querySelector('[name="reason"]').value='Synthetic preparation reason';
+  await act(async()=>{form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));});eq(posts.length,1);eq(created,1);
+  const original=posts[0];await mount(`case-remount-${lang}`);form=document.querySelector('select[name="taxonomy"]').closest('form');eq(form.querySelector('fieldset').disabled,true,'uncertain case fields locked after remount');lost=false;
+  await act(async()=>form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true})));eq(posts.at(-1),original,'case retry uses original key and body');eq(created,1,'case recovery does not create another Workspace');eq(sessionStorage.getItem(`cladora.case-workspace-attempt.v2:${membership}:${ctx}`),null);
+ }
+ console.log(`PASS mounted building setup: ${checks} assertions, EN/RO/FA + RTL, exact persistence, synchronous double-submit, stale Context, denial, reconciliation; mocked transport/JSDOM, NOT real browser/Auth/DB.`);
+}finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;for(const[key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}dom.window.close();}

@@ -1,0 +1,194 @@
+name: PF01 owner portfolio local browser proof
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pf01-owner-portfolio-local-browser.yml'
+      - 'scripts/test-pf01-owner-portfolio-local-browser*.mjs'
+      - 'scripts/test-owner-portfolio-workspace-display.mjs'
+      - 'scripts/test-pf01-owner-portfolio-local-http.mjs'
+      - 'scripts/lib/pf01-owner-portfolio-local-fixture.mjs'
+      - 'scripts/lib/ap10-*.mjs'
+      - 'src/app/**/owner-portfolio/**'
+      - 'src/app/**/layout.tsx'
+      - 'src/app/layout.tsx'
+      - 'src/app/**/login/**'
+      - 'src/app/**/mfa/**'
+      - 'src/app/api/owner-portfolio/**'
+      - 'src/components/owner/**'
+      - 'src/components/auth/**'
+      - 'src/components/dashboard-lab/DashboardTransport.tsx'
+      - 'src/lib/core/**'
+      - 'src/lib/customer/**'
+      - 'src/lib/supabase/**'
+      - 'src/lib/owner-portfolio/**'
+      - 'src/types/**'
+      - 'src/proxy.ts'
+      - 'supabase/config.toml'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/204_pf01_owner_portfolio_projection_v1.test.sql'
+      - 'next.config.mjs'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pf01-owner-portfolio-local-browser-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  safety-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Verify honest localized Workspace display
+        run: node scripts/test-owner-portfolio-workspace-display.mjs
+      - name: Install pinned Chromium from official Playwright sources
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: Run browser side-effect and cleanup gates before connected execution
+        run: node scripts/test-pf01-owner-portfolio-local-browser-safety.mjs --real-chromium
+      - name: Lint only the browser proof package
+        run: >-
+          npx --no-install eslint --max-warnings=0
+          src/components/owner/OwnerPortfolioPanel.tsx
+          scripts/test-owner-portfolio-workspace-display.mjs
+          scripts/test-pf01-owner-portfolio-local-browser.mjs
+          scripts/test-pf01-owner-portfolio-local-browser-safety.mjs
+          scripts/lib/pf01-owner-portfolio-local-fixture.mjs
+      - name: Type-check repository contracts
+        run: npm run typecheck
+      - name: Validate patch whitespace
+        run: git diff --check "origin/${GITHUB_BASE_REF}...HEAD"
+
+  connected-local-proof:
+    needs: safety-contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Check out exact revision
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Set up pinned Supabase CLI
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
+        with:
+          version: 2.84.2
+      - run: npm ci
+      - name: Install pinned Chromium from official Playwright sources
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+      - name: Start verified disposable stack and apply local STEP-SU-02
+        shell: bash
+        run: |
+          set -euo pipefail
+          s4='supabase/migrations/20261018170000_communications_service_role_acl_shutdown_v1.sql'
+          held="$RUNNER_TEMP/$(basename "$s4")"
+          cli_log="$RUNNER_TEMP/pf01-supabase-cli.log"
+          restore_s4() {
+            if [[ -f "$held" ]]; then mv "$held" "$s4"; fi
+            rm -f "$cli_log"
+          }
+          trap restore_s4 EXIT INT TERM
+          mv "$s4" "$held"
+          if ! supabase start >"$cli_log" 2>&1; then
+            echo '::error::Disposable Supabase startup failed; credential-bearing CLI output withheld'
+            exit 1
+          fi
+          status_json="$(supabase status --output json)"
+          anon_key="$(jq -r '.ANON_KEY // empty' <<<"$status_json")"
+          service_key="$(jq -r '.SERVICE_ROLE_KEY // empty' <<<"$status_json")"
+          if [[ -z "$anon_key" || -z "$service_key" ]]; then
+            echo '::error::Local Supabase keys are unavailable'
+            exit 1
+          fi
+          echo "::add-mask::$anon_key"
+          echo "::add-mask::$service_key"
+          PF01_LOCAL_TARGET=local \
+          PF01_LOCAL_EPHEMERAL=1 \
+          PF01_LOCAL_REAL_AUTH=1 \
+          PF01_LOCAL_SUPABASE_URL=http://127.0.0.1:54321 \
+          PF01_LOCAL_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+          PF01_LOCAL_ANON_KEY="$anon_key" \
+          PF01_LOCAL_SERVICE_ROLE_KEY="$service_key" \
+            node --experimental-strip-types scripts/test-pf01-owner-portfolio-local-http.mjs --verify-target-only
+
+          set +e
+          negative_output="$(docker exec -i supabase_db_cladora-local \
+            psql -U postgres -d postgres -X -v ON_ERROR_STOP=1 < "$held" 2>&1)"
+          negative_status=$?
+          set -e
+          if [[ $negative_status -eq 0 ]] \
+            || [[ "$negative_output" != *'service_subject_link_step_su_02_receipt_missing_or_untrusted'* ]]; then
+            echo '::error::S4 did not fail closed before local STEP-SU-02'
+            exit 1
+          fi
+          docker exec -e PGPASSWORD=postgres supabase_db_cladora-local \
+            psql -U supabase_admin -d postgres -X -v ON_ERROR_STOP=1 \
+            -c "alter table app_private.service_subject_link_step_su_02_receipt_v1 owner to supabase_admin; select app_private.finalize_service_subject_link_role_membership_v1();" \
+            >/dev/null
+          receipt_count="$(docker exec supabase_db_cladora-local \
+            psql -U postgres -d postgres -X -A -t -v ON_ERROR_STOP=1 \
+            -c "select count(*) from app_private.service_subject_link_step_su_02_receipt_v1 where receipt_key='STEP-SU-02' and finalized_by='supabase_admin' and role_graph_fingerprint='executor>runtime|admin=false|inherit=false|set=true';")"
+          if [[ "$receipt_count" != '1' ]]; then
+            echo '::error::Local STEP-SU-02 read-back failed'
+            exit 1
+          fi
+          mv "$held" "$s4"
+          if ! supabase migration up --local --include-all >"$cli_log" 2>&1; then
+            echo '::error::Local staged S4 migration failed; CLI output withheld'
+            exit 1
+          fi
+      - name: Run actual Chromium Owner Portfolio to local PostgreSQL proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          status_json="$(supabase status --output json)"
+          anon_key="$(jq -r '.ANON_KEY // empty' <<<"$status_json")"
+          service_key="$(jq -r '.SERVICE_ROLE_KEY // empty' <<<"$status_json")"
+          echo "::add-mask::$anon_key"
+          echo "::add-mask::$service_key"
+          set +e
+          PF01_LOCAL_TARGET=local \
+          PF01_LOCAL_EPHEMERAL=1 \
+          PF01_LOCAL_REAL_AUTH=1 \
+          PF01_LOCAL_SUPABASE_URL=http://127.0.0.1:54321 \
+          PF01_LOCAL_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+          PF01_LOCAL_ANON_KEY="$anon_key" \
+          PF01_LOCAL_SERVICE_ROLE_KEY="$service_key" \
+            node scripts/test-pf01-owner-portfolio-local-browser.mjs
+          proof_status=$?
+          set -e
+          exit "$proof_status"
+      - name: Tear down only the task-owned local stack
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase stop --project-id cladora-local --no-backup
+          remaining=0
+          while IFS= read -r container_name; do
+            if [[ "$container_name" == supabase_*_cladora-local ]]; then remaining=1; fi
+          done < <(docker ps --format '{{.Names}}')
+          if [[ $remaining -ne 0 ]]; then
+            echo '::error::Task-owned Supabase containers remain after teardown'
+            exit 1
+          fi
+          git diff --exit-code -- supabase/migrations
+          echo 'PF01 task-owned local stack teardown: PASS'

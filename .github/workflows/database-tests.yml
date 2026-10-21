@@ -6,6 +6,7 @@ on:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
       - "scripts/check-database-package.mjs"
+      - "scripts/check-advisor-upstream-diagnostics.mjs"
       - "scripts/test-financial-close-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
@@ -279,12 +280,26 @@ jobs:
 
   postgres-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
+      - name: Acquire fresh CI-only Building Setup runtime lease
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(docker ps -aq)"
+          test -z "$(docker volume ls -q)"
+          echo 'BUILDING_SETUP_CI_OWNS_FRESH_DAEMON=1' >> "$GITHUB_ENV"
+          echo "BUILDING_SETUP_TEST_LEASE=building-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          supabase start --help
+          supabase test db --help
+          supabase stop --help
       - name: Start clean local database with staged SERVICE S4 gate
         run: bash scripts/start-local-supabase-staged-service-s4.sh start
         env:
@@ -298,6 +313,13 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Run integrated Building Setup source, API and mounted regressions
+        run: |
+          node scripts/test-building-setup-integration.mjs
+          node scripts/test-building-workspace-onboarding-api.mjs
+          node scripts/test-building-workspace-onboarding-ui.mjs
+      - name: Prove Building Setup concurrent commands in an owned synthetic clone
+        run: node scripts/run-building-setup-concurrency-ci.mjs
       - name: Run AIRPROP loopback read gateway contract
         run: npm run test:airprop-gateway-read:http
       - name: Run synthetic AP10 AAL2 and Core authority fixture
@@ -487,12 +509,26 @@ jobs:
             echo "::error::Supabase PostgreSQL image could not be resolved"
             exit 1
           fi
-          docker run --rm -d --name cladora-service-http-postgres \
-            -e POSTGRES_PASSWORD=postgres -p 127.0.0.1:55432:5432 "$SOURCE_PG_IMAGE"
+          if docker inspect cladora-service-http-postgres >/dev/null 2>&1; then
+            echo "::error::SERVICE fixture container already exists; refusing to replace it"
+            exit 1
+          fi
           cleanup_service_postgres() {
             docker stop cladora-service-http-postgres >/dev/null 2>&1 || true
           }
           trap cleanup_service_postgres EXIT
+          docker run --rm -d --name cladora-service-http-postgres \
+            -e POSTGRES_PASSWORD=postgres -p 127.0.0.1::5432 "$SOURCE_PG_IMAGE"
+          SERVICE_PG_BINDING=$(docker port cladora-service-http-postgres 5432/tcp)
+          if [[ ! "$SERVICE_PG_BINDING" =~ ^127\.0\.0\.1:([0-9]+)$ ]]; then
+            echo "::error::SERVICE PostgreSQL must publish exactly one loopback port"
+            exit 1
+          fi
+          SERVICE_PG_PORT="${BASH_REMATCH[1]}"
+          if (( SERVICE_PG_PORT < 1024 || SERVICE_PG_PORT > 65535 )); then
+            echo "::error::SERVICE PostgreSQL published port is invalid"
+            exit 1
+          fi
           for attempt in $(seq 1 90); do
             first_ready=$(timeout 5s docker exec cladora-service-http-postgres \
               psql -U postgres -d postgres -X -A -t -v ON_ERROR_STOP=1 \
@@ -530,12 +566,12 @@ jobs:
           echo "::add-mask::$SERVICE_ROLE_KEY"
           SERVICE_SUBJECT_LINK_HTTP_ANON_KEY="$ANON_KEY" \
           SERVICE_SUBJECT_LINK_HTTP_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL="postgresql://supabase_admin:postgres@127.0.0.1:${SERVICE_PG_PORT}/postgres" \
           timeout 240s npm run test:service-subject-link:http:postgres
         env:
           SERVICE_SUBJECT_LINK_HTTP_EPHEMERAL: "1"
           SERVICE_SUBJECT_LINK_LOCAL_STEP_SU_02_AND_S4: "1"
           SERVICE_SUBJECT_LINK_HTTP_REAL_AAL2_REQUIRED: "1"
-          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://supabase_admin:postgres@127.0.0.1:55432/postgres
           SERVICE_SUBJECT_LINK_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
@@ -611,7 +647,15 @@ jobs:
           path: r10-catalog-evidence.json
           if-no-files-found: ignore
       - name: Run local database security and performance advisors
-        run: supabase db lint --local --level warning
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db lint --help
+          node scripts/check-advisor-upstream-diagnostics.mjs --self-test
+          advisor_raw="$RUNNER_TEMP/database-advisor-raw.json"
+          supabase db lint --local --level warning --output json >"$advisor_raw"
+          cat "$advisor_raw"
+          node scripts/check-advisor-upstream-diagnostics.mjs --input "$advisor_raw"
       - name: Show service status on failure
         if: failure()
         run: supabase status || true

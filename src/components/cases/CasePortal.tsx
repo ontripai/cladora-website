@@ -1,6 +1,7 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { caseWorkspaceCommandSchema, caseWorkspaceReceiptSchema } from '@/lib/customer/building-workspace-onboarding-case';
 import { useRouter } from 'next/navigation';
 import { WorkspaceAccessBasisDialog } from '@/components/platform/WorkspaceAccessBasisDialog';
 
@@ -49,6 +50,16 @@ export function CaseConversation({ lang, detail, documents, userId, manager, app
   const fa=lang==='fa'; const [error,setError]=useState(''); const [busy,setBusy]=useState(false);
   const [workspaceOptions,setWorkspaceOptions]=useState<WorkspaceOption[]>([]);
   const [preparedWorkspace,setPreparedWorkspace]=useState('');
+  const preparationLock=useRef(false);
+  const [pendingPreparation,setPendingPreparation]=useState<ReturnType<typeof caseWorkspaceCommandSchema.parse>|null>(null);
+  const activeCase=useRef(detail.id);
+  useEffect(()=>{activeCase.current=detail.id;return()=>{activeCase.current='';};},[detail.id]);
+  useEffect(()=>{let cancelled=false;Promise.resolve().then(()=>{
+    const raw=window.sessionStorage.getItem(`cladora.case-workspace-attempt.v2:${userId}:${detail.id}`);
+    const saved=raw?caseWorkspaceCommandSchema.parse(JSON.parse(raw)):null;
+    if(saved&&saved.case_id!==detail.id)throw Error('foreign_attempt');
+    if(!cancelled)setPendingPreparation(saved);
+  }).catch(()=>{if(!cancelled)setError('SAVED_ATTEMPT_UNVERIFIED');});return()=>{cancelled=true;};},[userId,detail.id]);
   const [preparedItems,setPreparedItems]=useState<PreparedWorkspace[]>([]);
   const [approvalItem,setApprovalItem]=useState<PreparedWorkspace|null>(null);
   const [ownerPilot,setOwnerPilot]=useState<OwnerPilotStatus|null>(null);
@@ -72,9 +83,11 @@ export function CaseConversation({ lang, detail, documents, userId, manager, app
     }catch(cause){setError(cause instanceof Error?cause.message:'PILOT_ACTION_FAILED');}finally{setBusy(false);}
   }
   async function reloadPrepared(){
+    const caseId=detail.id;
     const response=await fetch(`/api/platform/v1/cases/workspaces?case_id=${encodeURIComponent(detail.id)}`,{credentials:'same-origin',cache:'no-store'});
     if(!response.ok)throw new Error('OPTIONS_UNAVAILABLE');
     const result=await response.json();
+    if(activeCase.current!==caseId)return;
     setWorkspaceOptions(result.options??[]);setPreparedItems(result.prepared??[]);
   }
   useEffect(()=>{
@@ -87,14 +100,36 @@ export function CaseConversation({ lang, detail, documents, userId, manager, app
     return ()=>{active=false;};
   },[manager,detail.id,detail.workspace_id]);
   async function prepareWorkspace(event:React.FormEvent<HTMLFormElement>){
-    event.preventDefault();setBusy(true);setError('');setPreparedWorkspace('');
-    try{const form=new FormData(event.currentTarget);const selected=workspaceOptions[Number(form.get('taxonomy'))];
-      if(!selected)throw new Error('INVALID_TAXONOMY');
-      const response=await fetch('/api/platform/v1/cases/workspaces',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:detail.id,workspace_type:form.get('workspace_type'),profile_code:selected.profile,model_code:selected.model,commercial_owner:form.get('commercial_owner'),reason:form.get('reason')})});
-      const result=await response.json();if(!response.ok)throw new Error(result.error?.code??'CREATION_FAILED');
-      setPreparedWorkspace(result.workspace.workspace_id);
+    event.preventDefault();if(preparationLock.current)return;
+    const form=new FormData(event.currentTarget),caseId=detail.id;
+    const storageKey=`cladora.case-workspace-attempt.v2:${userId}:${caseId}`;
+    preparationLock.current=true;setBusy(true);setError('');
+    try{
+      const raw=window.sessionStorage.getItem(storageKey);
+      let command;
+      if(raw){
+        command=caseWorkspaceCommandSchema.parse(JSON.parse(raw));
+        if(command.case_id!==caseId)throw Error('CASE_ATTEMPT_MISMATCH');
+        const recovery=await fetch(`/api/platform/v1/cases/workspaces?${new URLSearchParams({case_id:caseId,idempotency_key:command.idempotency_key})}`,{credentials:'same-origin',cache:'no-store'});
+        const found=await recovery.json();
+        if(!recovery.ok||!Object.hasOwn(found,'attempt'))throw Error('RECOVERY_NOT_ALLOWED');
+        // Replaying the exact command validates the immutable server fingerprint,
+        // including when its already-recorded result was found by the reader.
+      }else{
+        const selected=workspaceOptions[Number(form.get('taxonomy'))];if(!selected)throw Error('INVALID_TAXONOMY');
+        command=caseWorkspaceCommandSchema.parse({case_id:caseId,workspace_type:form.get('workspace_type'),profile_code:selected.profile,model_code:selected.model,commercial_owner:form.get('commercial_owner'),reason:form.get('reason'),idempotency_key:`case-${crypto.randomUUID()}`});
+        window.sessionStorage.setItem(storageKey,JSON.stringify(command));setPendingPreparation(command);
+      }
+      if(activeCase.current!==caseId)return;
+      const response=await fetch('/api/platform/v1/cases/workspaces',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command),signal:AbortSignal.timeout(20000)});
+      const result=await response.json();if(activeCase.current!==caseId)return;
+      if(!response.ok)throw Error('CREATION_OR_REPLAY_FAILED');
+      const receipt=caseWorkspaceReceiptSchema.parse(result.workspace);
+      setPreparedWorkspace(receipt.workspace_id);
       await reloadPrepared();
-    }catch(cause){setError(cause instanceof Error?cause.message:'CREATION_FAILED');}finally{setBusy(false);}
+      window.sessionStorage.removeItem(storageKey);if(activeCase.current===caseId)setPendingPreparation(null);
+    }catch{if(activeCase.current===caseId)setError(fa?'نتیجه مشخص نیست؛ تلاش ذخیره‌شده را با همین فرم دوباره بررسی کنید.':lang==='ro'?'Rezultat necunoscut; trimite din nou formularul pentru verificarea aceleiași operațiuni salvate.':'Result unknown; submit this form again to check and retry the saved attempt.');}
+    finally{preparationLock.current=false;if(activeCase.current===caseId)setBusy(false);}
   }
   async function send(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setBusy(true);setError('');
@@ -203,12 +238,15 @@ export function CaseConversation({ lang, detail, documents, userId, manager, app
     {approvalItem&&<WorkspaceAccessBasisDialog workspace={{id:approvalItem.workspace_id,workspace_type:approvalItem.workspace_type,environment:approvalItem.environment,lifecycle_status:approvalItem.lifecycle_status,commercial_owner:approvalItem.commercial_owner}} lang={fa?'fa':lang==='ro'?'ro':'en'} initialEmail={approvalItem.customer_email} onClose={()=>setApprovalItem(null)} onSaved={()=>void reloadPrepared()} />}
     {manager&&detail.workspace_id&&<form onSubmit={prepareWorkspace} className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'آماده‌سازی ورک‌اسپیس دیگر برای همین مشتری':'Prepare another workspace for this customer'}</h2>
       <p className="text-sm text-amber-800">{fa?'ورک‌اسپیس در وضعیت LEAD ایجاد می‌شود. اتصال به پرونده و دسترسی مشتری به تأیید تجاری مستقل نیاز دارد.':'Creates a LEAD workspace. Case linking and customer access require separate commercial approval.'}</p>
+      {pendingPreparation&&<p role="status">{fa?'همان تلاش ذخیره‌شده بررسی می‌شود؛ داده‌های جدید فرم ارسال نمی‌شوند.':lang==='ro'?'Se verifică aceeași operațiune salvată; datele noi nu sunt trimise.':'Checking the saved attempt; new form values will not be submitted.'}</p>}
+      <fieldset disabled={busy||!!pendingPreparation} className="space-y-3">
       <label className="block">{fa?'نوع ساختار':'Workspace structure'}<select name="workspace_type" required className="mt-1 w-full rounded border p-2"><option value="ASSOCIATION">{fa?'انجمن مالکان':'Owners association'}</option><option value="PROPERTY_MANAGER">{fa?'شرکت مدیریت ملک':'Property manager'}</option><option value="OWNER_PORTFOLIO">{fa?'پورتفوی مالک':'Owner portfolio'}</option><option value="HYBRID">{fa?'ساختار ترکیبی':'Hybrid'}</option></select></label>
       <label className="block">{fa?'نوع ملک و مدل ادارهٔ سازگار':'Compatible property and operating model'}<select name="taxonomy" required className="mt-1 w-full rounded border p-2"><option value="">{fa?'انتخاب کنید':'Select'}</option>{workspaceOptions.map((option,index)=><option key={`${option.profile}-${option.model}`} value={index}>{option.profile_label[lang]??option.profile} · {option.model_label[lang]??option.model}</option>)}</select></label>
       <label className="block">{fa?'مسئول تجاری':'Commercial owner'}<input name="commercial_owner" required minLength={3} maxLength={200} className="mt-1 w-full rounded border p-2" /></label>
       <label className="block">{fa?'دلیل آماده‌سازی':'Preparation reason'}<input name="reason" required minLength={8} maxLength={500} className="mt-1 w-full rounded border p-2" /></label>
       {preparedWorkspace&&<p role="status" className="text-emerald-800">{fa?'ورک‌اسپیس آماده شد؛ شناسه برای مراحل تأیید:':'Workspace prepared; ID for approval steps:'} {preparedWorkspace}</p>}
-      <button disabled={busy||workspaceOptions.length===0} className="rounded bg-emerald-700 px-4 py-2 text-white disabled:opacity-50">{fa?'آماده‌سازی':'Prepare workspace'}</button>
+      </fieldset>
+      <button disabled={busy||(!pendingPreparation&&workspaceOptions.length===0)} className="rounded bg-emerald-700 px-4 py-2 text-white disabled:opacity-50">{fa?'آماده‌سازی':'Prepare workspace'}</button>
     </form>}
     {manager&&<form onSubmit={link} className="space-y-3 rounded-xl border bg-white p-4"><h2 className="font-bold">{fa?'اتصال ورک‌اسپیس با مجوز تجاری ثبت‌شده':'Link an approved workspace'}</h2>
       <label className="block">Workspace ID<input name="workspace_id" required className="mt-1 w-full rounded border p-2" /></label>

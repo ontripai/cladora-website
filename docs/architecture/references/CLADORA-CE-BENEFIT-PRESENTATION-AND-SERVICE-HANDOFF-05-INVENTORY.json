@@ -64,7 +64,8 @@
       "owner": "Community & Experience",
       "finding": "Community workflows are independent of benefit presentation.",
       "classification": "inactive",
-      "sha256": "dbb13ba183dac875cc409c30062f70fa9d9b9e670952ad524e591d295f12cb94"
+      "reviewed_commit": "898e5fc30cf844fcd69e826840a06903e246dea2",
+      "sha256": "b4a55a3a3eba8db53918b52a0bb890f4fa50bace6984ab93da57c13241075737"
     },
     {
       "path": "src/components/customer/CustomerCommunityBasePage.tsx",
@@ -72,7 +73,8 @@
       "owner": "Community & Experience",
       "finding": "Community adapter exposes no benefit outcome or SERVICE transaction.",
       "classification": "inactive",
-      "sha256": "ce74a3e608d1b43b1f2ec68acbe865197e1b69f6139002a5dca53cc0baaa39cf"
+      "reviewed_commit": "44903b7bbe7858047e42dde32592158339f5379e",
+      "sha256": "8fb78db10593f808482e0610fbb5d156079109db8253cbd8e3ed5690e3e2241e"
     },
     {
       "path": "src/components/customer/CustomerEventInterestPage.tsx",
@@ -136,7 +138,8 @@
       "owner": "SERVICE",
       "finding": "A Request is created only by an explicit SERVICE form action.",
       "classification": "accepted",
-      "sha256": "128eb7a436b434b9a5aebdbd259b3e4f0213a04b5a7345c4b6c1a68cc9a8e191"
+      "reviewed_commit": "8330d04504aa3de14fea1e0c13bccb8a7e5cc467",
+      "sha256": "8cfb6baf8fca620b19491519e3adfefd2275f3bf1f475e8f525666a06ea9516d"
     },
     {
       "path": "src/lib/customer/service-catalog-schema.ts",

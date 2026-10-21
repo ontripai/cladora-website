@@ -175,6 +175,43 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Finance / C15',
       sha256: '724acdb5a57f91bdc7200e7e204ae2801f95e1d5c9a4cf943ecfb8cafa00198e',
     },
+    '20261021045324_core_mobile_payment_exact_replay_current_authority_v1.sql': {
+      owner: 'Core / bounded handoff R2 / PR #466',
+      sha256: 'f2946847392129e5e1c91b3b79310d939d9e141fa105580dd94e68efe48dd6c5',
+    },
+    '20261021045651_documents_canonical_unit_link_v1.sql': {
+      owner: 'Documents/Vault / bounded canonical Unit handoff / PR #466',
+      sha256: '7c3ecb5058cf910ba29e75b50f33985b11fcb1009d48b1ae7be73435704f2401',
+    },
+    '20261021045809_ce_communications_canonical_unit_v1.sql': {
+      owner: 'CE / bounded canonical Unit handoff / PR #466',
+      sha256: '47749ef20155547a3c82a3dcb18f9fee8daa405a28c40cecb036394d04be5263',
+    },
+    '20261021071420_advisor_finance_governance_sql_v1.sql': {
+      owner: 'Coordinator / bounded Finance-Governance Advisor correction / PR #466',
+      sha256: '4ab9d74120d7b8215050f43566134a747d73f1e10fdb7a62ed40f31b49fa5a66',
+    },
+    '20261021095634_assets_serial_digest_namespace_v1.sql': {
+      owner: 'Coordinator / Assets serial pgcrypto namespace correction / PR #466',
+      sha256: '26e182d4ea30347b1138901fe1287179eac7955f71b7db44ef63be428d6fea07',
+    },
+    '20261021093426_assets_explicit_caller_descriptor_v1.sql': {
+      owner: 'Coordinator / byte-preserved Assets caller descriptors / PR #466',
+      sha256: '9ce4834d26553eee8fad21c3e9f792f7e4de1d002c5e3c6f4a0be4adc37bdc18',
+    },
+    '20261021085559_assets_current_authority_v1.sql': {
+      owner: 'Coordinator / runtime-proven Assets temporal authority correction / PR #466',
+      sha256: 'ae14aa13d047ab5f3309a795000827eae8eae27236d6fabd98334fc69f8962c3',
+    },
+    // Byte-exact source review only; not Building Setup runtime or Release acceptance.
+    '20261021111641_building_setup_authority_v2.sql': {
+      owner: 'Core / PM reviewed scoped Building Setup native authority / PR #466',
+      sha256: 'de18c1436ada6763358dd1a99f4874cfc0d1920eab1e34ca13e9da6b9d172e60',
+    },
+    '20261021123054_building_setup_attempt_version_v2.sql': {
+      owner: 'Procedure / PM reviewed ordered versioned Building Setup commands / PR #466',
+      sha256: 'ce386d018fe9d5f9045739e9752a44aec1c0d4f963653b4f7d455290b4153c86',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });

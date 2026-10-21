@@ -35,11 +35,23 @@ for (const name of migrations) {
 let assertionTotal = 0;
 for (const name of tests) {
   const sql = readFileSync(join(testsDir, name), "utf8");
-  const plan = Number(sql.match(/select\s+plan\((\d+)\)/i)?.[1] ?? -1);
-  const directAssertions = (sql.match(/^select\s+(?:has_schema|has_table|has_function|has_trigger|ok\(|is\(|isnt\(|alike\(|unalike\(|cmp_ok\(|lives_ok\(|throws_like\(|throws_ok\()/gim) ?? []).length;
+  let plan = Number(sql.match(/select\s+plan\((\d+)\)/i)?.[1] ?? -1);
+  const directAssertions = (sql.match(/^select\s+(?:has_schema|has_table|has_function|has_trigger|has_column\(|hasnt_column\(|results_eq\(|ok\(|is\(|isnt\(|alike\(|unalike\(|cmp_ok\(|lives_ok\(|throws_like\(|throws_ok\()/gim) ?? []).length;
   const skippedAssertions = [...sql.matchAll(/select\s+\*\s+from\s+skip\(\s*'(?:''|[^'])*'\s*,\s*(\d+)\s*\)/gim)]
     .reduce((total, match) => total + Number(match[1]), 0);
-  const assertions = directAssertions + skippedAssertions;
+  let assertions = directAssertions + skippedAssertions;
+  // Test 216 probes pgTAP itself before initializing any TAP session. Its fixed
+  // standalone TAP plan and every catalog gate/case are independently audited;
+  // do not generalize this exception to arbitrary dynamic/manual TAP producers.
+  if (name === '216_pgtap_session_probe_v1_test.sql') {
+    const { audit } = await import('./test-pgtap-session-probe.mjs');
+    const receipt = audit(sql);
+    plan = Number(sql.match(/^select '1\.\.(\d+)';$/m)?.[1] ?? -1);
+    assertions = receipt.totalTapAssertionsAuthored;
+    if (directAssertions || skippedAssertions || assertions !== 30) {
+      failures.push(`${name}: standalone pgTAP probe contract changed`);
+    }
+  }
   assertionTotal += assertions;
   if (plan !== assertions) failures.push(`${name}: plan ${plan} does not match ${assertions} assertions`);
 }

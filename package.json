@@ -15,6 +15,7 @@
     "start": "next start",
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
+    "test:mobile-consumer-guards": "node scripts/test-owner-mobile-payment-ui.mjs && node scripts/test-owner-mobile-payment-ui.mjs --review-correction && node scripts/test-owner-mobile-payment-ui.mjs --read-fence-regressions && node scripts/test-owner-mobile-payment-api.mjs && node scripts/test-ce-mobile-notice-read-isolation.mjs && node scripts/test-airprop-error-body-consumption.mjs",
     "test:route-exports": "node scripts/test-core-main-route-exports.mjs",
     "test:claims": "node scripts/test-public-claims-compliance-r10.mjs",
     "test:guides-applicability": "node scripts/test-guides-applicability-regression.mjs",
@@ -124,7 +125,9 @@
     "test:service-subject-link": "node scripts/test-service-request-subject-link-v1.mjs",
     "test:service-subject-link:postgres": "node scripts/test-service-request-subject-link-postgres-v1.mjs",
     "test:service-subject-link:http": "node scripts/test-service-request-subject-link-http-v1.mjs",
-    "test:service-subject-link:http:postgres": "node scripts/test-service-request-subject-link-http-postgres-v1.mjs"
+    "test:service-subject-link:http:postgres": "node scripts/test-service-request-subject-link-http-postgres-v1.mjs",
+    "test:pf01-local-browser": "node scripts/test-pf01-owner-portfolio-local-browser.mjs",
+    "test:pf01-local-browser:safety": "node scripts/test-pf01-owner-portfolio-local-browser-safety.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.5",
@@ -143,6 +146,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/node": "^20.17.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
