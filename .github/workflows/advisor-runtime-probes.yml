@@ -16,6 +16,7 @@ on:
       - 'supabase/tests/216_pgtap_session_probe_v1_test.sql'
       - 'supabase/tests/217_assets_current_authority_catalog_v1_test.sql'
       - 'supabase/tests/218_assets_descriptor_actual_role_v1_test.sql'
+      - 'supabase/tests/219_advisor_upstream_extension_catalog_v1_test.sql'
 
 permissions:
   contents: read
@@ -111,7 +112,7 @@ jobs:
             supabase test db --local "$PROBE_SQL" supabase/tests/217_assets_current_authority_catalog_v1_test.sql supabase/tests/218_assets_descriptor_actual_role_v1_test.sql
             supabase db lint --local --schema assets --level error --fail-on error
           else
-            supabase test db --local "$PROBE_SQL"
+            supabase test db --local "$PROBE_SQL" supabase/tests/219_advisor_upstream_extension_catalog_v1_test.sql
           fi
       - name: Always tear down only this job-created disposable project
         if: always() && env.ADVISOR_CI_OWNS_FRESH_DAEMON == '1'

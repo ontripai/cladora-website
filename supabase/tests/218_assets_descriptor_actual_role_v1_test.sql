@@ -6,7 +6,7 @@
 begin;
 set local search_path = public, extensions, pg_catalog;
 set local row_security = on;
-select plan(209);
+select plan(212);
 
 -- Pure test identifiers: no shared fixture, product helper or ACL is changed.
 create function pg_temp.assets_probe_id(n integer) returns uuid
@@ -380,5 +380,19 @@ reset role;
 rollback to temporal_case;
 select is(pg_temp.descriptor_state(),(select fingerprint from descriptor_baseline),'member-revoked: all Assets tables and audit unchanged');
 
+-- Exercise the previously hidden serial-number branch, not only null/default input.
+select ok(exists(select 1 from pg_proc p join pg_depend d on d.classid='pg_proc'::regclass and d.objid=p.oid
+ join pg_extension e on e.oid=d.refobjid and d.refclassid='pg_extension'::regclass and d.deptype='e'
+ where p.oid=to_regprocedure('extensions.digest(text,text)') and e.extname='pgcrypto'),
+ 'serial hashing resolves to the existing pgcrypto extension member');
+set local role authenticated;
+select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.assets_probe_id(1),'role','authenticated','aal','aal2')::text,true);
+select lives_ok($$select customer_api.create_asset_v1(p_context_id=>pg_temp.assets_probe_id(100),
+ p_property_id=>pg_temp.assets_probe_id(30),p_category_id=>pg_temp.assets_probe_id(70),
+ p_asset_code=>'SERIAL-218-A',p_name=>'Synthetic serial path',p_serial_number=>'SERIAL-218-001')$$,
+ 'actual authenticated creation with nonempty serial number succeeds');
+reset role;
+select is((select serial_fingerprint from assets.assets where tenant_id=pg_temp.assets_probe_id(10) and asset_code='SERIAL-218-A'),
+ encode(extensions.digest('SERIAL-218-001','sha256'),'hex'),'serial fingerprint matches the expected existing pgcrypto algorithm');
 select * from finish();
 rollback;

@@ -148,6 +148,14 @@ for (const [index, item] of manifest.entries()) {
     item.name + ': only explicit caller descriptor changes; all domain logic/signature/security attributes preserved');
 }
 assert.doesNotMatch(sql, /\b(?:grant|revoke|alter|drop)\s|create\s+(?:table|type|schema|role|policy)\b/i);
+const serialSql = readFileSync('supabase/migrations/20261021095634_assets_serial_digest_namespace_v1.sql', 'utf8');
+const serialDefinitions = definitions(serialSql);
+assert.equal(serialDefinitions.length, 1);
+const descriptorCreate = after.find(match => match[1] === 'assets.create_asset_internal_v1')[0];
+assert.equal((descriptorCreate.match(/encode\(digest\(/g) ?? []).length, 1);
+assert.equal(serialDefinitions[0][0], descriptorCreate.replace('encode(digest(', 'encode(extensions.digest('),
+  'serial successor only qualifies the existing pgcrypto function; no path/ACL/domain change');
+assert.doesNotMatch(serialSql, /\b(?:grant|revoke|alter|drop)\s|create\s+(?:table|type|schema|role|policy)\b/i);
 assert.equal(createHash('sha256').update(readFileSync('supabase/tests/215_assets_actual_role_probe_v1_test.sql')).digest('hex'),
   '0ef1f5bc3e8a07f08826b551ab908ac21ea83d39494520aa6ec2884f9d3716fa');
 const probe = readFileSync('supabase/tests/218_assets_descriptor_actual_role_v1_test.sql', 'utf8');

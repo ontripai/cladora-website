@@ -17,7 +17,7 @@ const core = readFileSync('src/lib/core/platform-role-bound-pool-v1.ts', 'utf8')
 const handler = readFileSync('src/lib/customer/service-request-subject-link-http-v1.ts', 'utf8');
 const migrations = readdirSync('supabase/migrations').filter(name => name.endsWith('.sql')).sort();
 
-assert.equal(migrations.length, 293);
+assert.equal(migrations.length, 294);
 const migrationIndex = migrations.indexOf(migrationName);
 assert.ok(migrationIndex >= 0);
 assert.equal(

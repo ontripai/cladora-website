@@ -191,6 +191,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Coordinator / bounded Finance-Governance Advisor correction / PR #466',
       sha256: '4ab9d74120d7b8215050f43566134a747d73f1e10fdb7a62ed40f31b49fa5a66',
     },
+    '20261021095634_assets_serial_digest_namespace_v1.sql': {
+      owner: 'Coordinator / Assets serial pgcrypto namespace correction / PR #466',
+      sha256: '26e182d4ea30347b1138901fe1287179eac7955f71b7db44ef63be428d6fea07',
+    },
     '20261021093426_assets_explicit_caller_descriptor_v1.sql': {
       owner: 'Coordinator / byte-preserved Assets caller descriptors / PR #466',
       sha256: '9ce4834d26553eee8fad21c3e9f792f7e4de1d002c5e3c6f4a0be4adc37bdc18',
