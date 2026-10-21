@@ -1,6 +1,8 @@
 -- CE-PGTAP-SESSION-PROBE-01: Coordinator execution ONLY, in a fresh disposable backend.
 -- Standalone TAP producer: calling pgTAP here must not change our assertion counter.
--- No extension installation, replacement, ACL change or application fixture.
+-- Match the official CLI lint lifecycle: enable the packaged checker only inside
+-- this disposable test transaction, then roll it back. No replacement, upgrade,
+-- persistent extension installation, ACL change or application fixture.
 -- Expected diagnostic observations do NOT clear any Advisor finding.
 begin;
 
@@ -43,6 +45,11 @@ left join pg_namespace n on n.nspname='extensions'
 left join pg_proc p on p.pronamespace=n.oid and p.proname=t.name
 left join pg_language l on l.oid=p.prolang
 order by t.name,p.oid;
+
+-- Official CLI v2.84.2 internal/db/lint/lint.go uses this exact statement in a
+-- transaction that always rolls back. Entry metadata above remains untouched;
+-- the later receipt observes the actual installed version in this transaction.
+create extension if not exists plpgsql_check;
 
 create temporary table ce216_results (
   n integer generated always as identity, label text not null, good boolean not null,
@@ -87,7 +94,10 @@ from pg_temp.ce216_contract order by signature;
 insert into pg_temp.ce216_results(label,good,status,evidence)
 select 'checker version receipt',exists(select 1 from pg_extension where extname='plpgsql_check'),
   case when exists(select 1 from pg_extension where extname='plpgsql_check') then 'CATALOG_OBSERVED' else 'BLOCKED_UNKNOWN_CHECKER_VERSION' end,
-  jsonb_build_object('version',(select extversion from pg_extension where extname='plpgsql_check'));
+  jsonb_build_object('version',(select extversion from pg_extension where extname='plpgsql_check'),
+    'schema',(select n.nspname from pg_extension e join pg_namespace n on n.oid=e.extnamespace where e.extname='plpgsql_check'),
+    'owner',(select pg_get_userbyid(extowner) from pg_extension where extname='plpgsql_check'),
+    'lifecycle','ROLLBACK_ONLY_MATCHES_CLI_2.84.2');
 
 -- Detect pre-existing state; never erase/restart somebody else's TAP session.
 create temporary table ce216_entry_state on commit drop as

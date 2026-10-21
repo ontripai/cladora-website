@@ -6,12 +6,14 @@ on:
       - '.github/workflows/advisor-runtime-probes.yml'
       - 'scripts/check-database-package.mjs'
       - 'scripts/test-assets-actual-role-probe.mjs'
+      - 'scripts/test-assets-current-authority.mjs'
       - 'scripts/test-pgtap-session-probe.mjs'
       - 'scripts/start-local-supabase-staged-service-s4.sh'
       - 'supabase/config.toml'
       - 'supabase/migrations/**'
       - 'supabase/tests/215_assets_actual_role_probe_v1_test.sql'
       - 'supabase/tests/216_pgtap_session_probe_v1_test.sql'
+      - 'supabase/tests/217_assets_current_authority_catalog_v1_test.sql'
 
 permissions:
   contents: read
@@ -52,6 +54,12 @@ jobs:
         run: |
           node scripts/check-database-package.mjs
           node "$PROBE_SCRIPT"
+      - name: Validate the Assets delta and actual GET handler (mocked Auth/RPC)
+        if: matrix.probe == 'assets-actual-role'
+        run: |
+          npm ci
+          npx eslint --max-warnings=0 scripts/test-assets-current-authority.mjs
+          node scripts/test-assets-current-authority.mjs
       - name: Set up the reviewed official CLI version
         uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
         with:
@@ -94,7 +102,11 @@ jobs:
         run: |
           set -euo pipefail
           test "$ADVISOR_CI_OWNS_FRESH_DAEMON" = 1
-          supabase test db --local "$PROBE_SQL"
+          if [[ "$PROBE_SQL" == supabase/tests/215_assets_actual_role_probe_v1_test.sql ]]; then
+            supabase test db --local "$PROBE_SQL" supabase/tests/217_assets_current_authority_catalog_v1_test.sql
+          else
+            supabase test db --local "$PROBE_SQL"
+          fi
       - name: Always tear down only this job-created disposable project
         if: always() && env.ADVISOR_CI_OWNS_FRESH_DAEMON == '1'
         shell: bash

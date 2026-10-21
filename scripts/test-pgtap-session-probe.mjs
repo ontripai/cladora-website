@@ -64,7 +64,11 @@ export function audit(source) {
   assert.match(outer, /^begin ;/);
   assert.match(outer, /rollback ;$/);
   assert.doesNotMatch(outer.replaceAll('on commit drop', ''), /\b(?:commit|grant|revoke|alter|truncate|drop|copy|call)\b/);
-  assert.doesNotMatch(outer, /\bcreate (?:or replace |extension|schema|role|type)/);
+  const checkerSetup = 'create extension if not exists plpgsql_check ;';
+  assert.equal(outer.split(checkerSetup).length, 2, 'exactly one CLI-equivalent rollback-only checker setup');
+  assert.doesNotMatch(outer.replace(checkerSetup, ''), /\bcreate (?:or replace |extension|schema|role|type)/);
+  assert.ok(source.indexOf('create extension if not exists plpgsql_check;') > source.indexOf("'# CE216_ENV '"));
+  assert.ok(source.indexOf('create extension if not exists plpgsql_check;') < source.indexOf('create temporary table'));
   for (const match of outer.matchAll(/\bcreate (?:temporary table|function) ([^ (]+)/g)) {
     assert.ok(match[1].startsWith('ce216_') || match[1] === 'pg_temp', 'only owned temporary objects');
   }
@@ -143,11 +147,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     ['shrinking standalone plan', s => s.replace("select '1..30';", "select '1..1';")],
     ['wrong plan initializer type', s => s.replace('extensions.plan(20::integer)', 'extensions.plan(20::bigint)')],
     ['unknown checker receipt made green', s => s.replace("select 'checker version receipt',exists(select 1 from pg_extension where extname='plpgsql_check')", "select 'checker version receipt',true")],
+    ['different extension setup', s => s.replace('create extension if not exists plpgsql_check;', 'create extension if not exists dblink;')],
+    ['additional persistent schema', s => s.replace('create temporary table ce216_results', 'create schema unreviewed; create temporary table ce216_results')],
   ]) {
     assert.throws(() => audit(mutate(sql)), undefined, `negative control: ${label}`);
   }
   console.log(JSON.stringify({ status: 'OFFLINE_PACKAGE_AUDIT_PASS', ...result,
-    mutationControls: 9, sqlSha256: createHash('sha256').update(sql).digest('hex'),
+    mutationControls: 11, sqlSha256: createHash('sha256').update(sql).digest('hex'),
     postgresExecution: 'NOT_RUN_NOT_PASS', installedSignatures: 'UNKNOWN_UNTIL_COORDINATOR_CATALOG',
     findingClearance: 'NOT_CLAIMED', note: 'Lexical/source checks only; not a SQL or PostgreSQL runtime proof.' }, null, 2));
 }
