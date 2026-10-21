@@ -3,7 +3,7 @@
 begin;
 set local search_path=public,extensions,pg_catalog;
 set local row_security=on;
-select plan(134);
+select plan(135);
 create function pg_temp.bs_id(n integer) returns uuid language sql immutable
 as $$select ('c2200000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid$$;
 create temp table bs_state(name text primary key,value uuid not null);
@@ -494,7 +494,12 @@ release savepoint bs_assignment_ended;
 
 -- Fixture-only state transition; all product triggers/RLS remain enabled.
 savepoint bs_grantor_member_expired;
-update identity.memberships set ends_at=statement_timestamp() where id=pg_temp.bs_id(90);
+-- Apply the same real-time expiry protocol to the assignment grantor; the
+-- commercial access cap forbids an active membership's direct past-date update.
+update identity.memberships set ends_at=clock_timestamp()+interval '200 milliseconds' where id=pg_temp.bs_id(90);
+select pg_sleep(0.25);
+select ok((select status='active' and ends_at<=statement_timestamp() from identity.memberships
+ where id=pg_temp.bs_id(90)),'grantor_member_expired: grantor membership elapsed naturally');
 insert into bs_before select pg_temp.bs_fingerprint();
 set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.bs_id(3),'aal','aal2')::text,true);
