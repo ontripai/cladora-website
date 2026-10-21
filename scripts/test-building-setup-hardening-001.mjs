@@ -15,7 +15,7 @@ assert.match(migration,/from public,anon/);
 assert.doesNotMatch(migration,/insert\s+into|update\s+portfolio|delete\s+from/i);
 assert.match(dbTest,/^begin;/m);
 assert.match(dbTest,/^rollback;/m);
-assert.match(dbTest,/select plan\(30\)/);
+assert.match(dbTest,/select plan\(31\)/);
 assert.match(dbTest,/AAL1 fails closed/);
 assert.match(dbTest,/self approval remains blocked/);
 assert.match(dbTest,/emits no journal/);

@@ -280,12 +280,26 @@ jobs:
 
   postgres-runtime:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
+      - name: Acquire fresh CI-only Building Setup runtime lease
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(docker ps -aq)"
+          test -z "$(docker volume ls -q)"
+          echo 'BUILDING_SETUP_CI_OWNS_FRESH_DAEMON=1' >> "$GITHUB_ENV"
+          echo "BUILDING_SETUP_TEST_LEASE=building-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          supabase start --help
+          supabase test db --help
+          supabase stop --help
       - name: Start clean local database with staged SERVICE S4 gate
         run: bash scripts/start-local-supabase-staged-service-s4.sh start
         env:
@@ -299,6 +313,13 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Run integrated Building Setup source, API and mounted regressions
+        run: |
+          node scripts/test-building-setup-integration.mjs
+          node scripts/test-building-workspace-onboarding-api.mjs
+          node scripts/test-building-workspace-onboarding-ui.mjs
+      - name: Prove Building Setup concurrent commands in an owned synthetic clone
+        run: node scripts/run-building-setup-concurrency-ci.mjs
       - name: Run AIRPROP loopback read gateway contract
         run: npm run test:airprop-gateway-read:http
       - name: Run synthetic AP10 AAL2 and Core authority fixture

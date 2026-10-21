@@ -3,7 +3,7 @@
 begin;
 set local search_path=public,extensions,pg_catalog;
 set local row_security=on;
-select no_plan();
+select plan(133);
 create function pg_temp.bs_id(n integer) returns uuid language sql immutable
 as $$select ('c2200000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid$$;
 create temp table bs_state(name text primary key,value uuid not null);

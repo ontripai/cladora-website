@@ -1,13 +1,14 @@
--- Requires a Core-reviewed, already-authorized synthetic fixture in a leased disposable DB.
--- No adapter stub, role/module grant, activation or fallback fixture is created here.
+-- Uses Core's accepted canonical synthetic fixture; no external GUC/bootstrap prerequisite.
+-- SQL-session JWT fixture, not issued Auth/HTTP proof. No adapter stub or legacy assignment.
 -- Concurrent sessions are exercised by the companion PostgreSQL runner, not this transaction.
 begin;
+\ir fixtures/building_setup_authority_v2.inc
 select plan(12);
 do $$begin
  if nullif(current_setting('cladora.setup_fixture.actor',true),'') is null
  or nullif(current_setting('cladora.setup_fixture.context',true),'') is null
  or nullif(current_setting('cladora.setup_fixture.workspace',true),'') is null
- then raise exception 'Core-reviewed leased synthetic fixture required: NOT_RUN_NOT_PASS';end if;
+ then raise exception 'canonical Setup fixture initialization failed';end if;
 end$$;
 select set_config('request.jwt.claims',jsonb_build_object('sub',current_setting('cladora.setup_fixture.actor'),'role','authenticated','aal','aal2')::text,true);
 set local role authenticated;

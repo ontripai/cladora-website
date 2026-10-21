@@ -1,4 +1,6 @@
 begin;
+-- Unapplied Procedure candidate re-versioned using CLI migration-new so the
+-- accepted Core authority dependency (20261021111641) is installed first.
 -- Dependency: Core owns this adapter and its catalog binding/read isolation.
 -- Never substitute the tenant-only legacy resolver or install an authorization stub.
 do $$begin
@@ -159,7 +161,7 @@ declare c record;r platform.building_setup_runs%rowtype;v_hash text;v_receipt js
 begin
  if p_action not in ('update','rehearse','submit','approve','provision') or p_action is null then raise exception 'setup_invalid_action' using errcode='22023';end if;
  select * into strict c from app_private.require_building_setup_authority_v2(p_context_id,p_workspace_id,
- case when p_action in ('approve','provision') then 'onboarding.import.approve' else 'onboarding.import.manage' end,p_action);
+ case when p_action='approve' then 'onboarding.import.approve' else 'onboarding.import.manage' end,p_action);
  if c.actor_id is distinct from auth.uid() or c.workspace_id is distinct from p_workspace_id or c.tenant_id is null or c.membership_id is null then raise exception 'setup_authority_contract_invalid' using errcode='42501';end if;
  if p_expected_revision is null then raise exception 'setup_precondition_required' using errcode='22004';end if;
  if p_expected_revision<1 or p_command_key is null or length(p_command_key)>128
@@ -168,7 +170,7 @@ begin
  then raise exception 'setup_invalid_command_key' using errcode='22023';end if;
  select * into r from platform.building_setup_runs where id=p_run_id and tenant_id=c.tenant_id and customer_workspace_id=c.workspace_id for update;
  if not found then raise exception 'setup_run_not_found' using errcode='P0002';end if;
- select * into strict c from app_private.require_building_setup_authority_v2(p_context_id,p_workspace_id,case when p_action in ('approve','provision') then 'onboarding.import.approve' else 'onboarding.import.manage' end,p_action);
+ select * into strict c from app_private.require_building_setup_authority_v2(p_context_id,p_workspace_id,case when p_action='approve' then 'onboarding.import.approve' else 'onboarding.import.manage' end,p_action);
  if c.actor_id is distinct from auth.uid() or c.workspace_id is distinct from p_workspace_id or c.tenant_id is null or c.membership_id is null then raise exception 'setup_authority_contract_invalid' using errcode='42501';end if;
  if p_action<>'approve' and r.created_by<>c.actor_id then raise exception 'setup_actor_denied' using errcode='42501';end if;
  if p_action='approve' and (r.created_by=c.actor_id or r.submitted_by=c.actor_id) then raise exception 'setup_dual_control_violation' using errcode='42501';end if;
@@ -196,6 +198,7 @@ begin
   v_status:='submitted';
  elsif p_action='approve' then
   if r.status<>'submitted' then raise exception 'setup_invalid_state' using errcode='22023';end if;
+  if p_expected_payload_hash is null then raise exception 'setup_precondition_required' using errcode='22004';end if;
   if r.submitted_revision is distinct from r.revision or r.submitted_payload_hash is distinct from r.payload_hash
    or p_expected_payload_hash is distinct from r.submitted_payload_hash
   then raise exception 'setup_snapshot_conflict' using errcode='40001';end if;
