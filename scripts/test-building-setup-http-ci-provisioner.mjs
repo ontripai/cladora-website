@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
 import {CONTRACT,REVIEWED_EXECUTION_PLAN,validateGrant,validatePreflight,validateTarget,targetObservations,
-  validatePrivateFile,coreReceipt,provision,cli} from './provision-building-setup-http-ci.mjs';
+  validatePrivateFile,coreReceipt,coreEnvironment,provision,cli} from './provision-building-setup-http-ci.mjs';
 
 // No network/Docker/DB/Auth/HTTP/file provisioning. Every acquisition and
 // teardown below is virtual in-memory I/O; no real lease or marker is created.
@@ -152,13 +152,17 @@ test('unexpected container/image/stack/API port fails identity before private le
   }
 });
 
-test('actual identity derivation checks full inventory, health, gateway ports and Auth database linkage',()=>{
+function identityObservations(){
   const objects=plan.services.map((service,index)=>({name:service.name,image:service.image,id:[dbId,authId,'e'.repeat(64)][index],
     running:true,health:{Status:'healthy'},labels:{'com.supabase.cli.project':'cladora-local'},
     ports:index===0?{'5432/tcp':[{HostIp:'127.0.0.1',HostPort:'54322'}]}:index===2?{'8000/tcp':[{HostIp:'127.0.0.1',HostPort:'54321'}]}:{}}));
-  const observations={objects,networkIds:objects.map(x=>x.id),status:{DB_URL:'postgresql://postgres:'+secret+'@127.0.0.1:54322/postgres',
+  return {objects,networkIds:objects.map(x=>x.id),status:{DB_URL:'postgresql://postgres:'+secret+'@127.0.0.1:54322/postgres',
     API_URL:'http://127.0.0.1:54321',SERVICE_ROLE_KEY:secret},authDbUrl:'postgresql://auth:'+secret+'@supabase_db_cladora-local:5432/postgres',
     authRouteUrls:['http://supabase_auth_cladora-local:9999/']};
+}
+
+test('actual identity derivation checks full inventory, health, gateway ports and Auth database linkage',()=>{
+  const observations=identityObservations(),{objects}=observations;
   const safe=targetObservations(plan,observations);validateTarget(plan,safe);assert.ok(!JSON.stringify(safe).includes(secret));
   const unhealthy=clone(objects);unhealthy[1].health.Status='unhealthy';
   const port=clone(objects);port[0].ports['5432/tcp'].push({HostIp:'127.0.0.1',HostPort:'9999'});
@@ -167,6 +171,72 @@ test('actual identity derivation checks full inventory, health, gateway ports an
     {authRouteUrls:[]},{authRouteUrls:['http://remote.invalid:9999/']},
     {authDbUrl:'postgresql://auth:unused@remote.invalid:5432/postgres'},{objects:[...objects,{...objects[2],id:'f'.repeat(64),name:'/foreign'}]}])
     assert.throws(()=>validateTarget(plan,targetObservations(plan,{...observations,...delta})));
+});
+
+test('actual Auth URL derivation accepts the pinned official parameter-free PostgreSQL contract',()=>{
+  for(const protocol of ['postgresql','postgres']){
+    const observations=identityObservations();
+    observations.authDbUrl=protocol+'://supabase_auth_admin:'+secret+'@supabase_db_cladora-local:5432/postgres';
+    const target=targetObservations(plan,observations);validateTarget(plan,target);
+    assert.equal(target.sameStack,true);assert.ok(!JSON.stringify(target).includes(secret));
+  }
+});
+
+test('actual Auth URL derivation rejects wrong schemes, target options and fragments without disclosing configuration',()=>{
+  const base='postgresql://supabase_auth_admin:'+secret+'@supabase_db_cladora-local:5432/postgres';
+  const urls=[base.replace('postgresql:','https:'),base.replace('postgresql:','mysql:'),
+    base.replace('postgresql:','file:'),secret,undefined,base+'?',base+'#',
+    ...['host=remote.invalid','hostaddr=192.0.2.1','service=remote','port=9999','dbname=other',
+      'host=%2Ftmp','options=-c%20dbname%3Dother','sslmode=disable','application_name=gotrue',
+      '%68ost=remote.invalid','host=localhost&host=remote.invalid'].map(query=>base+'?'+query),
+    base+'#host=remote.invalid',base+'#'+secret];
+  for(const authDbUrl of urls){
+    assert.throws(()=>targetObservations(plan,{...identityObservations(),authDbUrl}),error=>{
+      assert.equal(error.code,'AUTH_DB');assert.ok(!String(error).includes(secret));return true;
+    });
+  }
+  // The pinned official contract needs no non-target parameter exception.
+  // Reject even benign-looking options rather than guessing a driver allowlist.
+});
+
+test('actual Auth URL graph rejects remote, socket, alternate database and port destinations',()=>{
+  const base='postgresql://supabase_auth_admin:'+secret+'@supabase_db_cladora-local:5432/postgres';
+  for(const authDbUrl of [base.replace('supabase_db_cladora-local','remote.invalid'),
+    base.replace('supabase_db_cladora-local','127.0.0.1'),base.replace(':5432/',':9999/'),
+    base.replace(':5432/', '/'),base.replace('/postgres','/other'),base.replace('/postgres','/postgres/other'),
+    base.replace('supabase_db_cladora-local','%2Ftmp')]){
+    assert.throws(()=>validateTarget(plan,targetObservations(plan,{...identityObservations(),authDbUrl})),error=>{
+      assert.ok(!String(error).includes(secret));return true;
+    });
+  }
+});
+
+test('actual Core environment construction preserves network/trust selectors and excludes ambient authority',()=>{
+  const networkKeys=['HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','http_proxy','https_proxy','all_proxy','no_proxy',
+    'NODE_EXTRA_CA_CERTS','SSL_CERT_FILE','SSL_CERT_DIR','REQUESTS_CA_BUNDLE','CURL_CA_BUNDLE',
+    'CODEX_PROXY_CERT','CODEX_NETWORK_POLICY','CODEX_NETWORK_POLICY_PATH'];
+  const ambient=Object.fromEntries(networkKeys.map(key=>[key,'configured-selector-for-'+key]));
+  const forbidden=['GITHUB_TOKEN','GH_TOKEN','ACTIONS_RUNTIME_TOKEN','SUPABASE_ACCESS_TOKEN','SUPABASE_DB_PASSWORD',
+    'DATABASE_URL','PGHOST','PGPASSWORD','GOTRUE_DB_DATABASE_URL','SUPABASE_SERVICE_ROLE_KEY',
+    'NEXT_PUBLIC_SUPABASE_URL','AWS_SECRET_ACCESS_KEY','GOOGLE_APPLICATION_CREDENTIALS',
+    'NODE_TLS_REJECT_UNAUTHORIZED','NODE_OPTIONS','NODE_PATH','DOCKER_HOST','DOCKER_CONTEXT',
+    'DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','CURL_INSECURE','CLADORA_LOCAL_STEP_SU_02_AUTHORIZED'];
+  for(const key of forbidden)ambient[key]=secret;
+  ambient.BUILDING_SETUP_HTTP_EPHEMERAL=secret;ambient.BUILDING_SETUP_HTTP_LEASE_FILE=secret;
+  const env=coreEnvironment(ambient,'/private/owned-lease.json');
+  for(const key of networkKeys)assert.equal(env[key],ambient[key]);
+  for(const key of forbidden)assert.equal(Object.hasOwn(env,key),false);
+  assert.equal(env.BUILDING_SETUP_HTTP_EPHEMERAL,'1');assert.equal(env.BUILDING_SETUP_HTTP_LEASE_FILE,'/private/owned-lease.json');
+  assert.ok(!JSON.stringify(env).includes(secret));
+  assert.deepEqual(ambient.GITHUB_TOKEN,secret); // Input was not mutated.
+});
+
+test('actual Core environment omits absent selectors and preserves explicitly configured empty values',()=>{
+  assert.deepEqual(coreEnvironment({},'/private/lease'),{
+    BUILDING_SETUP_HTTP_EPHEMERAL:'1',BUILDING_SETUP_HTTP_LEASE_FILE:'/private/lease'});
+  const env=coreEnvironment({NO_PROXY:'',ALL_PROXY:undefined,LANG:'C.UTF-8',TMP:'/private/tmp'},'/private/lease');
+  assert.equal(env.NO_PROXY,'');assert.equal(Object.hasOwn(env,'ALL_PROXY'),false);
+  assert.equal(env.LANG,'C.UTF-8');assert.equal(env.TMP,'/private/tmp');
 });
 
 test('private lease metadata rejects symlink, group/other modes, foreign UID and checkout/artifact paths',async()=>{

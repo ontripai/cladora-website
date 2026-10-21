@@ -96,7 +96,15 @@ export function validateTarget(plan,target){
 // Raw private status/container configuration stays in memory. These concrete
 // observations, rather than caller-provided PASS flags, derive live identity.
 export function targetObservations(plan,{objects,networkIds,status,authDbUrl,authRouteUrls}){
-  const url=new URL(status.DB_URL),authDb=new URL(authDbUrl);
+  const url=new URL(status.DB_URL);
+  let authDb;try{authDb=new URL(authDbUrl);}catch{throw new BindingError('AUTH_DB');}
+  // CLI v2.84.2 internal/start/start.go emits a PostgreSQL URL with no
+  // parameters. Accept no query/fragment (including empty delimiters): pgx
+  // connection options can override the authority/database being attested.
+  // Keep the original configuration private; never strip options to validate
+  // a different connection string or include its credentials in an error.
+  need(['postgres:','postgresql:'].includes(authDb.protocol)
+    &&!authDb.href.includes('?')&&!authDb.href.includes('#'),'AUTH_DB');
   need(['postgres:','postgresql:'].includes(url.protocol)&&url.hostname==='127.0.0.1'&&url.port==='54322'
     &&url.pathname==='/postgres'&&url.username==='postgres'&&!url.search&&!url.hash,'STATUS_DB');
   const db=objects.find(x=>x.name==='/supabase_db_cladora-local'),auth=objects.find(x=>x.name==='/supabase_auth_cladora-local');
@@ -118,6 +126,19 @@ export function targetObservations(plan,{objects,networkIds,status,authDbUrl,aut
     projectLabels:labels,noForeignResources:labels&&objects.every(x=>plan.services.some(service=>service.name===x.name)),
     exactPorts:ports&&db?.ports?.['5432/tcp']?.some(p=>p.HostPort==='54322'&&['127.0.0.1','0.0.0.0'].includes(p.HostIp))===true
       &&gateway?.ports?.['8000/tcp']?.some(p=>p.HostPort==='54321'&&['127.0.0.1','0.0.0.0'].includes(p.HostIp))===true};
+}
+
+// Aligned with Core nextEnvironment's explicit network/trust selectors.
+// Never inherit ambient credentials, app settings, TLS-disable or tool overrides.
+export function coreEnvironment(ambient,leasePath){
+  const env={};
+  for(const key of ['PATH','HOME','USER','TMPDIR','TMP','TEMP','LANG','LC_ALL','RUNNER_TEMP',
+    'HTTP_PROXY','HTTPS_PROXY','ALL_PROXY','NO_PROXY','http_proxy','https_proxy','all_proxy','no_proxy',
+    'NODE_EXTRA_CA_CERTS','SSL_CERT_FILE','SSL_CERT_DIR','REQUESTS_CA_BUNDLE','CURL_CA_BUNDLE',
+    'CODEX_PROXY_CERT','CODEX_NETWORK_POLICY','CODEX_NETWORK_POLICY_PATH']){
+    if(ambient[key]!==undefined)env[key]=ambient[key];
+  }
+  return {...env,BUILDING_SETUP_HTTP_EPHEMERAL:'1',BUILDING_SETUP_HTTP_LEASE_FILE:leasePath};
 }
 
 export function buildLease(plan,target,expiry,{runId=randomUUID(),prefix=randomBytes(4).toString('hex')}={}){
@@ -352,9 +373,7 @@ export async function createLiveIO(plan,ctx,external){
     },
     readFreshMarker:async()=>marker(),
     runCore:async(state,signal)=>{
-      const env={};
-      for(const key of ['PATH','HOME','USER','TMPDIR','RUNNER_TEMP','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','http_proxy','https_proxy','no_proxy','NODE_EXTRA_CA_CERTS','SSL_CERT_FILE','SSL_CERT_DIR'])if(process.env[key])env[key]=process.env[key];
-      env.BUILDING_SETUP_HTTP_EPHEMERAL='1';env.BUILDING_SETUP_HTTP_LEASE_FILE=state.leasePath;
+      const env=coreEnvironment(process.env,state.leasePath);
       coreResult=await capture(process.execPath,['scripts/core-building-setup-http-proof.mjs','--run'],{env,signal,timeout:20*60000});return coreResult;
     },
     restoreStaged:async state=>{
