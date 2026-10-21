@@ -40,18 +40,27 @@ insert into portfolio.parties(id,tenant_id,type,legal_name) values
 (pg_temp.adv214_id(61),pg_temp.adv214_id(10),'person','Owner B'),
 (pg_temp.adv214_id(62),pg_temp.adv214_id(10),'person','Ineligible owner'),
 (pg_temp.adv214_id(63),pg_temp.adv214_id(20),'person','Foreign owner');
+-- Match the existing allocation integrity guard, not just table nullability.
+insert into portfolio.ownerships(tenant_id,unit_id,party_id,share,valid_from) values
+(pg_temp.adv214_id(10),pg_temp.adv214_id(13),pg_temp.adv214_id(60),1,current_date-60);
 insert into billing.invoices(id,tenant_id,property_id,unit_id,liable_party_id,invoice_no,period_start,period_end,subtotal)
 overriding system value values
 (pg_temp.adv214_id(70),pg_temp.adv214_id(10),pg_temp.adv214_id(11),pg_temp.adv214_id(13),pg_temp.adv214_id(60),900214,current_date-30,current_date,12);
 insert into finance.charge_categories(id,tenant_id,code,name) values(pg_temp.adv214_id(80),pg_temp.adv214_id(10),'ADV214','Electricity');
+insert into finance.allocation_rules(id,tenant_id,property_id,charge_category_id,method,valid_from) values
+(pg_temp.adv214_id(86),pg_temp.adv214_id(10),pg_temp.adv214_id(11),pg_temp.adv214_id(80),'fixed',current_date-60);
 insert into finance.allocation_runs(id,tenant_id,property_id,period_start,period_end) values
 (pg_temp.adv214_id(81),pg_temp.adv214_id(10),pg_temp.adv214_id(11),current_date-30,current_date);
 insert into finance.allocation_inputs(id,tenant_id,run_id,source_type,source_id,category_id,amount,snapshot_json) values
 (pg_temp.adv214_id(82),pg_temp.adv214_id(10),pg_temp.adv214_id(81),'invoice',pg_temp.adv214_id(70),pg_temp.adv214_id(80),12,'{}'),
 (pg_temp.adv214_id(83),pg_temp.adv214_id(10),pg_temp.adv214_id(81),'manual',null,pg_temp.adv214_id(80),8,'{}');
-insert into finance.allocation_items(id,tenant_id,run_id,input_id,unit_id,responsible_party_id,method,allocated_amount,rule_snapshot) values
-(pg_temp.adv214_id(84),pg_temp.adv214_id(10),pg_temp.adv214_id(81),pg_temp.adv214_id(82),pg_temp.adv214_id(13),pg_temp.adv214_id(60),'fixed',12,'{}'),
-(pg_temp.adv214_id(85),pg_temp.adv214_id(10),pg_temp.adv214_id(81),pg_temp.adv214_id(83),pg_temp.adv214_id(13),pg_temp.adv214_id(60),'fixed',8,'{}');
+insert into finance.allocation_items(id,tenant_id,run_id,input_id,unit_id,responsible_party_id,method,basis_value,basis_total,allocated_amount,rule_snapshot,explanation_json) values
+(pg_temp.adv214_id(84),pg_temp.adv214_id(10),pg_temp.adv214_id(81),pg_temp.adv214_id(82),pg_temp.adv214_id(13),pg_temp.adv214_id(60),'fixed',1,1,12,
+ jsonb_build_object('rule_id',pg_temp.adv214_id(86),'version',1,'formula','fixed'),
+ jsonb_build_object('legal_debtor','owner','operational_payer','owner','evidence','ADV214 fixture','reason','fixed allocation')),
+(pg_temp.adv214_id(85),pg_temp.adv214_id(10),pg_temp.adv214_id(81),pg_temp.adv214_id(83),pg_temp.adv214_id(13),pg_temp.adv214_id(60),'fixed',1,1,8,
+ jsonb_build_object('rule_id',pg_temp.adv214_id(86),'version',1,'formula','fixed'),
+ jsonb_build_object('legal_debtor','owner','operational_payer','owner','evidence','ADV214 fixture','reason','fixed allocation'));
 insert into governance.meetings(id,tenant_id,property_id,title,meeting_type,scheduled_at,status,quorum_rule) values
 (pg_temp.adv214_id(90),pg_temp.adv214_id(10),pg_temp.adv214_id(11),'Owners A','annual',statement_timestamp(),'open','{}'),
 (pg_temp.adv214_id(91),pg_temp.adv214_id(20),pg_temp.adv214_id(21),'Foreign owners','annual',statement_timestamp(),'open','{}'),
