@@ -56,10 +56,10 @@ update platform.customer_workspaces set
  primary_admin_accepted_at=statement_timestamp()-interval '1 hour'
  where id=pg_temp.bs_id(50);
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,property_id,starts_at,ends_at)
- select pg_temp.bs_id(99+n),pg_temp.bs_id(10),pg_temp.bs_id(89+n),'tenant',null,
+ select pg_temp.bs_id(99+n),pg_temp.bs_id(10),pg_temp.bs_id(89+n),'tenant'::identity.scope_type,null,
  statement_timestamp()-interval '1 day',statement_timestamp()+interval '12 hours' from generate_series(1,2) n
  union all
- select pg_temp.bs_id(109+n),pg_temp.bs_id(10),pg_temp.bs_id(89+n),'property',pg_temp.bs_id(30),
+ select pg_temp.bs_id(109+n),pg_temp.bs_id(10),pg_temp.bs_id(89+n),'property'::identity.scope_type,pg_temp.bs_id(30),
  statement_timestamp()-interval '1 day',statement_timestamp()+interval '12 hours' from generate_series(1,2) n;
 insert into platform.workspace_modules
  (tenant_id,customer_workspace_id,module_definition_id,module_code,status,reason)

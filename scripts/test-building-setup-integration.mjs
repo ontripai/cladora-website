@@ -20,6 +20,7 @@ function audit(a, p, sql, fixture, proof) {
   assert.match(fixture, /select customer_api\.assign_workspace_role_v2\(/);
   assert.match(fixture, /primary_admin_user_id=pg_temp\.bs_id\(1\),primary_admin_membership_id=pg_temp\.bs_id\(90\),\s*primary_admin_accepted_at=/);
   assert.ok(fixture.indexOf('insert into identity.memberships') < fixture.indexOf('update platform.customer_workspaces set'));
+  for (const scope of ['tenant', 'property']) assert.ok(fixture.includes(`'${scope}'::identity.scope_type`), 'UNION fixture literals must retain the native enum type');
   assert.doesNotMatch(fixture, /insert\s+into\s+(?:platform\.workspace_member_roles|platform\.workspace_member_role_authority_sources|identity\.role_permissions)/i);
   assert.doesNotMatch(fixture, /create (?:or replace )?function (?:app_private|customer_api)\./i);
   assert.match(proof, /^\\ir fixtures\/building_setup_authority_v2\.inc$/m);
@@ -37,6 +38,7 @@ for (const args of [
   [authority[0], process[0], sql.replaceAll('r.revision<>p_expected_revision', 'false'), fixture, proof],
   [authority[0], process[0], sql, `${fixture}\ninsert into platform.workspace_member_roles values(null);`, proof],
   [authority[0], process[0], sql, fixture.replace('primary_admin_membership_id=pg_temp.bs_id(90)', 'primary_admin_membership_id=null'), proof],
+  [authority[0], process[0], sql, fixture.replaceAll('::identity.scope_type', ''), proof],
   [authority[0], process[0], sql, fixture, proof.replace('\\ir fixtures/building_setup_authority_v2.inc', '')],
 ]) { assert.throws(() => audit(...args)); controls++; }
 for (const path of ['081_controlled_building_setup_opening_rehearsal.test.sql', '082_building_setup_security_invoker_gateway.test.sql']) {
