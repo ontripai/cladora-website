@@ -59,7 +59,7 @@ function tokens(source) {
 function code(source) {
   return tokens(source).filter(t => !['string', 'dollar'].includes(t.kind)).map(t => t.value).join(' ');
 }
-function audit(source) {
+export function audit(source) {
   const lexical = tokens(source), outer = code(source);
   assert.match(outer, /^begin ;/);
   assert.match(outer, /rollback ;$/);
@@ -96,6 +96,7 @@ function audit(source) {
   assert.match(helper, /EXPECTED_DIAGNOSTIC_OBSERVED_FINDING_RETAINED/);
   assert.match(source, /case when good then 'ok ' else 'not ok '/);
   assert.match(source, /ALL_EIGHT_FINDINGS_RETAINED/);
+  assert.match(source, /^select '1\.\.30';$/m, 'fixed standalone TAP plan must not shrink at runtime');
 
   const contractSection = source.slice(source.indexOf('insert into pg_temp.ce216_contract('), source.indexOf('update pg_temp.ce216_contract'));
   const contracts = [...contractSection.matchAll(/\('(extensions\.[^']+)'/g)].map(m => m[1]);
@@ -124,19 +125,22 @@ function audit(source) {
   return { runtimeCasesAuthored: cases.length, signatureGatesAuthored: contracts.length,
     totalTapAssertionsAuthored: cases.length + contracts.length + 2 };
 }
-const result = audit(sql);
-// Mutation controls: ensure this audit rejects dangerous/false-green variants.
-for (const [label, mutate] of [
-  ['persistent commit', s => s.replace(/rollback;\s*$/, 'commit;')],
-  ['unknown contract changed to green', s => s.replace("false,'BLOCKED'", "true,'PASS'")],
-  ['missing extension membership', s => s.replaceAll("e.extname='pgtap'", 'true')],
-  ['return type unchecked', s => s.replace('p.prorettype=c.result_type', 'true')],
-  ['dynamic application read', s => s.replace('select 216::integer', 'select n from portfolio.units')],
-  ['unknown direct RPC', s => s.replace('extensions._currtest())', 'extensions.unverified())')],
-]) {
-  assert.throws(() => audit(mutate(sql)), undefined, `negative control: ${label}`);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const result = audit(sql);
+  // Mutation controls: ensure this audit rejects dangerous/false-green variants.
+  for (const [label, mutate] of [
+    ['persistent commit', s => s.replace(/rollback;\s*$/, 'commit;')],
+    ['unknown contract changed to green', s => s.replace("false,'BLOCKED'", "true,'PASS'")],
+    ['missing extension membership', s => s.replaceAll("e.extname='pgtap'", 'true')],
+    ['return type unchecked', s => s.replace('p.prorettype=c.result_type', 'true')],
+    ['dynamic application read', s => s.replace('select 216::integer', 'select n from portfolio.units')],
+    ['unknown direct RPC', s => s.replace('extensions._currtest())', 'extensions.unverified())')],
+    ['shrinking standalone plan', s => s.replace("select '1..30';", "select '1..1';")],
+  ]) {
+    assert.throws(() => audit(mutate(sql)), undefined, `negative control: ${label}`);
+  }
+  console.log(JSON.stringify({ status: 'OFFLINE_PACKAGE_AUDIT_PASS', ...result,
+    mutationControls: 7, sqlSha256: createHash('sha256').update(sql).digest('hex'),
+    postgresExecution: 'NOT_RUN_NOT_PASS', installedSignatures: 'UNKNOWN_UNTIL_COORDINATOR_CATALOG',
+    findingClearance: 'NOT_CLAIMED', note: 'Lexical/source checks only; not a SQL or PostgreSQL runtime proof.' }, null, 2));
 }
-console.log(JSON.stringify({ status: 'OFFLINE_PACKAGE_AUDIT_PASS', ...result,
-  mutationControls: 6, sqlSha256: createHash('sha256').update(sql).digest('hex'),
-  postgresExecution: 'NOT_RUN_NOT_PASS', installedSignatures: 'UNKNOWN_UNTIL_COORDINATOR_CATALOG',
-  findingClearance: 'NOT_CLAIMED', note: 'Lexical/source checks only; not a SQL or PostgreSQL runtime proof.' }, null, 2));

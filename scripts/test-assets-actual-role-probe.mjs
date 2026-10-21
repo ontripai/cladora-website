@@ -18,6 +18,7 @@ if (options.includes('--help')) {
   assert.match(sql, /BASE: 0b7f16f6127957d47c7fda233860d55c01b1dcfc/);
   assert.match(sql, /SQL-session JWT fixture, NOT a signed token/);
   assert.match(sql, /^begin;$/m);
+  assert.match(sql, /^select plan\(72\);$/m);
   assert.match(sql, /select \* from finish\(\);[\s\S]*rollback;\s*$/i);
   assert.match(sql, /set local role authenticated;/i);
   assert.match(sql, /set local row_security\s*=\s*on;/i);

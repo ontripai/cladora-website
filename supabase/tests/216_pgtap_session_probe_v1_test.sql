@@ -226,7 +226,7 @@ begin
 end $$;
 
 -- Unknown signatures are failing BLOCKED assertions, never missing/green cases.
-select '1..'||count(*) from pg_temp.ce216_results;
+select '1..30';
 select (case when good then 'ok ' else 'not ok ' end)||n||' - '||label||' ['||status||']'
   ||E'\n# CE216_RECEIPT '||evidence::text
 from pg_temp.ce216_results order by n;

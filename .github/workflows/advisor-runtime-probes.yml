@@ -1,0 +1,118 @@
+name: Advisor isolated runtime probes
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/advisor-runtime-probes.yml'
+      - 'scripts/check-database-package.mjs'
+      - 'scripts/test-assets-actual-role-probe.mjs'
+      - 'scripts/test-pgtap-session-probe.mjs'
+      - 'scripts/start-local-supabase-staged-service-s4.sh'
+      - 'supabase/config.toml'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/215_assets_actual_role_probe_v1_test.sql'
+      - 'supabase/tests/216_pgtap_session_probe_v1_test.sql'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: advisor-runtime-probes-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  isolated-probe:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      # A genuine Assets denial failure must not cancel the pgTAP catalog receipt.
+      fail-fast: false
+      matrix:
+        include:
+          - probe: assets-actual-role
+            script: scripts/test-assets-actual-role-probe.mjs
+            sql: supabase/tests/215_assets_actual_role_probe_v1_test.sql
+          - probe: pgtap-session
+            script: scripts/test-pgtap-session-probe.mjs
+            sql: supabase/tests/216_pgtap_session_probe_v1_test.sql
+    name: Advisor probe (${{ matrix.probe }})
+    env:
+      PROBE_SCRIPT: ${{ matrix.script }}
+      PROBE_SQL: ${{ matrix.sql }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Check the offline package and this probe's source contract
+        run: |
+          node scripts/check-database-package.mjs
+          node "$PROBE_SCRIPT"
+      - name: Set up the reviewed official CLI version
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
+        with:
+          version: 2.84.2
+      - name: Discover pinned local-only commands before use
+        run: |
+          supabase --version
+          supabase start --help
+          supabase migration up --help
+          supabase test db --help
+          supabase stop --help
+      - name: Bind the disposable CI-only lease to this fresh matrix job
+        shell: bash
+        env:
+          PROOF_RUN_ID: ${{ github.run_id }}
+          PROOF_RUN_ATTEMPT: ${{ github.run_attempt }}
+          PROOF_JOB: ${{ github.job }}
+          PROOF_PROBE: ${{ matrix.probe }}
+        run: |
+          set -euo pipefail
+          test -z "$(docker ps -aq)"
+          echo "CI-only lease: run=$PROOF_RUN_ID attempt=$PROOF_RUN_ATTEMPT job=$PROOF_JOB probe=$PROOF_PROBE sha=$(git rev-parse HEAD)"
+          echo 'Lease contract: https://github.com/ontripai/cladora-website/issues/463#issuecomment-6309625260'
+          echo 'ADVISOR_CI_OWNS_FRESH_DAEMON=1' >> "$GITHUB_ENV"
+      - name: Start only the official job-owned disposable stack
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ADVISOR_CI_OWNS_FRESH_DAEMON" = 1
+          start_log="$RUNNER_TEMP/advisor-probe-start.log"
+          trap 'rm -f "$start_log"' EXIT
+          if ! CLADORA_LOCAL_STEP_SU_02_AUTHORIZED=1 \
+            bash scripts/start-local-supabase-staged-service-s4.sh start >"$start_log" 2>&1; then
+            echo '::error::Disposable startup/migration failed; credential-bearing CLI output withheld'
+            exit 1
+          fi
+          echo 'Official disposable STEP-SU-02/S4 startup: PASS'
+      - name: Run actual PostgreSQL probe without suppressing failures
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ADVISOR_CI_OWNS_FRESH_DAEMON" = 1
+          supabase test db --local "$PROBE_SQL"
+      - name: Always tear down only this job-created disposable project
+        if: always() && env.ADVISOR_CI_OWNS_FRESH_DAEMON == '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup_log="$RUNNER_TEMP/advisor-probe-cleanup.log"
+          trap 'rm -f "$cleanup_log"' EXIT
+          if ! supabase stop --project-id cladora-local --no-backup >"$cleanup_log" 2>&1; then
+            echo '::error::Task-owned disposable cleanup failed; CLI output withheld'
+            exit 1
+          fi
+          remaining_containers="$(docker ps -a --format '{{.Names}}')"
+          while IFS= read -r container_name; do
+            if [[ "$container_name" == supabase_*_cladora-local ]]; then
+              echo '::error::Task-owned container remains after teardown'
+              exit 1
+            fi
+          done <<< "$remaining_containers"
+          test -z "$(docker volume ls --filter label=com.supabase.cli.project=cladora-local --format '{{.Name}}')"
+          test -z "$(docker network ls --filter label=com.supabase.cli.project=cladora-local --format '{{.ID}}')"
+          echo 'Task-owned disposable containers/volumes/network cleanup: PASS'

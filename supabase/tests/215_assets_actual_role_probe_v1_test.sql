@@ -6,7 +6,7 @@
 begin;
 set local search_path = public, extensions, pg_catalog;
 set local row_security = on;
-select no_plan();
+select plan(72);
 
 -- Pure test identifiers: no shared fixture, product helper or ACL is changed.
 create function pg_temp.assets_probe_id(n integer) returns uuid
