@@ -4,9 +4,9 @@ import { readFile } from 'node:fs/promises';
 import { spawn, execFileSync } from 'node:child_process';
 import { pipeline, Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
-import { cleanupOwnedDatabase } from './test-building-workspace-onboarding-postgres.mjs';
+import { cleanupOwnedDatabase, parseProofFailureRecord } from './test-building-workspace-onboarding-postgres.mjs';
 
-const sqlstates = new Set(['42501','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000']);
+const sqlstates = new Set(['42501','40001','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000']);
 const signals = new Set(['SIGTERM','SIGPIPE','SIGKILL','SIGINT','SIGABRT','SIGSEGV']);
 const processCodes = new Set(['ENOENT','EACCES','EPERM','EPIPE','ECONNRESET']);
 const stages = new Set(['preflight','connect','clone-create','snapshot','dump','restore','fixture-load','lease-set','concurrency-proof','cleanup']);
@@ -36,11 +36,33 @@ export function validateCi(env, sha, info) {
 
 export function observeProcess(child, stage) {
   let startError = null, sqlstate = null, category = null, tail = '', scanned = 0;
+  let proofFailure = null, line = '', discardLine = false, scanTruncated = false;
+  const proofLine = text => {
+    if (proofFailure || Buffer.byteLength(text, 'utf8') > 4096) return;
+    let record;
+    try { record = parseProofFailureRecord(JSON.parse(text)); } catch { return; }
+    if (record) { proofFailure = record; sqlstate = record.sqlstate; category = 'proof-failed'; }
+  };
   child.stderr?.on('data', chunk => {
     // Drain all stderr; bound both retained text and parsing work.
-    if (scanned >= 65536) return;
-    const text = tail + chunk.subarray(0, 65536 - scanned).toString('utf8');
+    if (scanned >= 65536) { scanTruncated = true; return; }
+    const remaining = 65536 - scanned;
+    const bounded = chunk.subarray(0, remaining).toString('utf8');
+    if (chunk.length > remaining) scanTruncated = true;
     scanned += chunk.length;
+    if (stage === 'concurrency-proof') {
+      const parts = bounded.split('\n');
+      for (let i = 0; i < parts.length; i++) {
+        if (!discardLine && line.length + parts[i].length > 4096) { discardLine = true; line = ''; }
+        if (!discardLine) line += parts[i];
+        if (i < parts.length - 1) {
+          if (!discardLine) proofLine(line);
+          line = ''; discardLine = false;
+        }
+      }
+      return; // Unvalidated JSON/noise must not be treated as psql diagnostics.
+    }
+    const text = tail + bounded;
     const code = text.match(/(?:ERROR|FATAL|PANIC):\s+([A-Z0-9]{5})(?:\s|:|$)/)?.[1];
     if (sqlstates.has(code)) sqlstate ??= code;
     for (const [pattern, label] of [
@@ -56,14 +78,18 @@ export function observeProcess(child, stage) {
   return new Promise(resolve => {
     child.once('error', error => { startError = processCodes.has(error?.code) ? error.code : 'UNKNOWN'; });
     // close, not exit/error, proves stdio has also settled.
-    child.once('close', (code, signal) => resolve({stage, exitCode:Number.isInteger(code) ? code : null,
-      signal:signals.has(signal) ? signal : null, startError, sqlstate,
-      category:category ?? (startError ? 'process-start-failed' : code === 0 && !signal ? 'ok' : 'process-failed')}));
+    child.once('close', (code, signal) => {
+      if (stage === 'concurrency-proof' && !scanTruncated && !discardLine && line) proofLine(line);
+      resolve({stage, exitCode:Number.isInteger(code) ? code : null,
+        signal:signals.has(signal) ? signal : null, startError, sqlstate,
+        category:category ?? (startError ? 'process-start-failed' : code === 0 && !signal ? 'ok' : 'process-failed'),
+        ...(proofFailure ? {proofFailure} : {})});
+    });
   });
 }
 
-function succeeded(result) {
-  return result.exitCode === 0 && result.signal === null && result.startError === null;
+export function succeeded(result) {
+  return result.exitCode === 0 && result.signal === null && result.startError === null && !result.proofFailure;
 }
 
 function terminateOwned(child) {

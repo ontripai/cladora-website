@@ -3,8 +3,8 @@ import {spawn} from 'node:child_process';
 import {once} from 'node:events';
 import {readFile} from 'node:fs/promises';
 import {test} from 'node:test';
-import {copySnapshot, loadFixture, observeProcess, safeFailure, validateCi} from './run-building-setup-concurrency-ci.mjs';
-import {cleanupOwnedDatabase, validateProofTarget} from './test-building-workspace-onboarding-postgres.mjs';
+import {copySnapshot, loadFixture, observeProcess, safeFailure, succeeded, validateCi} from './run-building-setup-concurrency-ci.mjs';
+import {cleanupOwnedDatabase, parseProofFailureRecord, proofFailureRecord, validateProofTarget, withProofCleanup} from './test-building-workspace-onboarding-postgres.mjs';
 
 // Offline: only isolated Node child processes/streams and mocked DB clients.
 // No Docker, PostgreSQL, Auth, HTTP, remote service, server or runtime startup.
@@ -187,4 +187,148 @@ test('entrypoint refusal before Docker/DB and retained actual-role concurrency/n
  for(const marker of ["set local role authenticated","role:'authenticated',aal:'aal2'","both creation sessions complete","payload collision is zero-write", "a prior creation receipt cannot bypass Context revoke","source fixture has no active sessions", "source fixture lease must match before clone"])assert.ok(proof.includes(marker));
  assert.equal((proof.match(/checks\+\+/g)??[]).length,15,'all original assertion counter sites retained');
  assert.ok(!proof.match(/pg_terminate_backend|drop database[^\n]*force|disable trigger|session_replication_role\s*=/i));
+});
+
+const legacyRecord=sqlstate=>({suite:'building-setup-postgres',result:'FAIL',sqlstate,detail:'proof or cleanup failed; sensitive output withheld'});
+async function childDiagnostic(record,{exit=1,split=false,prefix='',suffix=''}={}){
+ const wire=prefix+(typeof record==='string'?record:JSON.stringify(record))+suffix;
+ const code=split?
+  'const s='+JSON.stringify(wire)+';let i=0;const timer=setInterval(()=>{if(i<s.length)process.stderr.write(s[i++]);else{clearInterval(timer);process.exitCode='+exit+';}},1);':
+  'process.stderr.write('+JSON.stringify(wire)+');process.exitCode='+exit+';';
+ const child=node(code);child.stdout.resume();
+ return observeProcess(child,'concurrency-proof');
+}
+
+for(const sqlstate of ['42501','40001'])test('R1 forwards only validated real-child JSON SQLSTATE '+sqlstate,async()=>{
+ for(const record of [legacyRecord(sqlstate),proofFailureRecord(Object.assign(Error(secret),{code:sqlstate}))]){
+  const result=await childDiagnostic(record,{suffix:'\n'});
+  assert.equal(result.sqlstate,sqlstate);assert.deepEqual(result.proofFailure,record);
+  assert.equal(result.category,'proof-failed');assert.equal(succeeded(result),false);
+ }
+ assert.equal(safeFailure('concurrency-proof',{code:sqlstate}).diagnostic.sqlstate,sqlstate);
+});
+
+test('R1 bounded line buffering accepts split safe JSON and rejects FAIL even at exit zero',async()=>{
+ const result=await childDiagnostic(legacyRecord('40001'),{exit:0,split:true});
+ assert.equal(result.sqlstate,'40001');assert.equal(result.exitCode,0);assert.equal(succeeded(result),false);
+});
+
+test('R1 rejects unknown schema/values and does not parse noise as a psql error',async()=>{
+ const invalid=[{...legacyRecord('42501'),token:secret},{...legacyRecord(secret)},
+  {...legacyRecord('42501'),detail:secret},{...legacyRecord('42501'),suite:'foreign'},
+  {...legacyRecord('42501'),result:'PASS'},['ERROR: 42501 '+secret],
+  {noise:'ERROR: 42501 '+secret},JSON.stringify(legacyRecord('42501'))+secret];
+ for(const record of invalid){
+  const result=await childDiagnostic(record,{suffix:'\n'});
+  assert.equal(result.sqlstate,null);assert.equal(result.proofFailure,undefined);assert.equal(succeeded(result),false);
+  assert.ok(!JSON.stringify(result).includes(secret));
+ }
+});
+
+test('R1 rejects oversized records/noisy lines and resumes only at a clean record boundary',async()=>{
+ const oversized=JSON.stringify({...legacyRecord('42501'),noise:secret.repeat(2000)});
+ const rejected=await childDiagnostic(oversized,{suffix:'\n'});
+ assert.equal(rejected.proofFailure,undefined);assert.equal(rejected.sqlstate,null);
+ assert.ok(!JSON.stringify(rejected).includes(secret));
+ const recovered=await childDiagnostic(legacyRecord('40001'),{prefix:secret.repeat(200)+'\n',suffix:'\n'});
+ assert.equal(recovered.sqlstate,'40001');assert.ok(!JSON.stringify(recovered).includes(secret));
+});
+
+test('R2 preserves SQL primary, owned close/drop and admin end failures separately',async()=>{
+ const events=[];
+ let failure;
+ try{await withProofCleanup(async()=>{throw Object.assign(Error(secret),{code:'42501'});},[
+  {stage:'owned-database',run:()=>cleanupOwnedDatabase({name:source,created:true,clients:[
+   {end:async()=>{events.push('end1');throw Error(secret);}},{end:async()=>events.push('end2')}],
+   admin:{query:async()=>{events.push('drop');throw Object.assign(Error(secret),{code:'55006'});}}})},
+  {stage:'admin-end',run:async()=>{events.push('admin-end');throw Object.assign(Error(secret),{code:'08006'});}}
+ ]);}catch(error){failure=error;}
+ const record=proofFailureRecord(failure);
+ assert.deepEqual(events,['end1','end2','drop','admin-end']);
+ assert.deepEqual(record.primary,{category:'sql-error',sqlstate:'42501'});
+ assert.deepEqual(record.cleanup,[{stage:'owned-database',category:'sql-error',sqlstate:'55006'},
+  {stage:'admin-end',category:'sql-error',sqlstate:'08006'}]);
+ assert.equal(record.sqlstate,'42501');assert.ok(!JSON.stringify(record).includes(secret));
+ const result=await childDiagnostic(record,{suffix:'\n'});
+ assert.deepEqual(result.proofFailure,record);assert.equal(result.sqlstate,'42501');assert.equal(succeeded(result),false);
+});
+
+test('R2 assertion primary survives admin end failure; no assertion payload forwarded',async()=>{
+ let failure;
+ try{await withProofCleanup(async()=>assert.equal(secret,'different'),[
+  {stage:'admin-end',run:async()=>{throw Error(secret);}}
+ ]);}catch(error){failure=error;}
+ const record=proofFailureRecord(failure);
+ assert.deepEqual(record.primary,{category:'assertion-failed',sqlstate:null});
+ assert.deepEqual(record.cleanup,[{stage:'admin-end',category:'operation-failed',sqlstate:null}]);
+ assert.ok(!JSON.stringify(record).includes(secret));assert.ok(!JSON.stringify(record).includes('different'));
+ const result=await childDiagnostic(record,{suffix:'\n'});assert.deepEqual(result.proofFailure,record);
+});
+
+test('R2 successful proof plus end/absence failure stays failed; all-success result survives',async()=>{
+ const events=[];
+ await assert.rejects(withProofCleanup(async()=>({result:'PASS'}),[
+  {stage:'owned-database',run:async()=>{events.push('drop');throw Error(secret);}},
+  {stage:'admin-end',run:async()=>{events.push('end');throw Error(secret);}}
+ ]),error=>{
+  const record=proofFailureRecord(error);assert.equal(record.primary,null);assert.equal(record.cleanup.length,2);
+  assert.ok(parseProofFailureRecord(record));assert.ok(!JSON.stringify(record).includes(secret));return true;
+ });
+ assert.deepEqual(events,['drop','end']);
+ assert.deepEqual(await withProofCleanup(async()=>({result:'PASS'}),[{stage:'admin-end',run:async()=>{}}]),{result:'PASS'});
+});
+
+test('R2 nested client failures retain primary and every later cleanup outcome',async()=>{
+ const events=[];
+ await assert.rejects(withProofCleanup(()=>withProofCleanup(async()=>{throw Object.assign(Error(secret),{code:'40001'});},[
+  {stage:'rollback',run:async()=>{events.push('rollback');throw Error(secret);}},
+  {stage:'client-end',run:async()=>{events.push('client-end');throw Error(secret);}}
+ ]),[{stage:'owned-database',run:async()=>events.push('owned-database')},
+  {stage:'admin-end',run:async()=>{events.push('admin-end');throw Error(secret);}}]),error=>{
+   const record=proofFailureRecord(error);assert.equal(record.primary.sqlstate,'40001');
+   assert.deepEqual(record.cleanup.map(item=>item.stage),['rollback','client-end','admin-end']);
+   assert.ok(!JSON.stringify(record).includes(secret));return true;
+  });
+ assert.deepEqual(events,['rollback','client-end','owned-database','admin-end']);
+});
+
+test('R2 source lease-read failure survives source end and later admin end failure',async()=>{
+ const events=[];
+ await assert.rejects(withProofCleanup(()=>withProofCleanup(async()=>assert.equal(secret,'expected-lease'),[
+  {stage:'source-end',run:async()=>{events.push('source-end');throw Error(secret);}}
+ ]),[{stage:'owned-database',run:async()=>events.push('owned-database')},
+  {stage:'admin-end',run:async()=>{events.push('admin-end');throw Error(secret);}}]),error=>{
+   const record=proofFailureRecord(error);assert.equal(record.primary.category,'assertion-failed');
+   assert.deepEqual(record.cleanup.map(item=>item.stage),['source-end','admin-end']);
+   assert.ok(!JSON.stringify(record).includes(secret));return true;
+  });
+ assert.deepEqual(events,['source-end','owned-database','admin-end']);
+});
+
+test('R2 pure SQL denials retain original predicates; cleanup failure cannot count as an expected denial',async()=>{
+ for(const code of ['42501','23505','40001']){
+  await assert.rejects(withProofCleanup(async()=>{throw Object.assign(Error(secret),{code});},[
+   {stage:'client-end',run:async()=>{}}
+  ]),error=>error.code===code);
+  await assert.rejects(withProofCleanup(async()=>{throw Object.assign(Error(secret),{code});},[
+   {stage:'client-end',run:async()=>{throw Error(secret);}}
+  ]),error=>{
+   assert.equal(error.code,undefined);assert.equal(proofFailureRecord(error).primary.sqlstate,code);
+   assert.equal(proofFailureRecord(error).cleanup[0].stage,'client-end');return true;
+  });
+ }
+});
+
+test('R1 rejects arbitrary nested cleanup fields and inconsistent SQLSTATE forwarding',async()=>{
+ const valid={...legacyRecord('42501'),primary:{category:'sql-error',sqlstate:'42501'},cleanup:[]};
+ assert.deepEqual(parseProofFailureRecord(valid),valid);
+ for(const record of [{...valid,primary:{...valid.primary,query:secret}},
+  {...valid,cleanup:[{stage:'admin-end',category:'operation-failed',sqlstate:null,token:secret}]},
+  {...valid,cleanup:[{stage:secret,category:'operation-failed',sqlstate:null}]},
+  {...valid,sqlstate:'40001'},
+  {...valid,cleanup:Array.from({length:9},()=>({stage:'admin-end',category:'operation-failed',sqlstate:null}))}]){
+  assert.equal(parseProofFailureRecord(record),null);
+  const result=await childDiagnostic(record,{suffix:'\n'});assert.equal(result.proofFailure,undefined);assert.equal(result.sqlstate,null);
+  assert.ok(!JSON.stringify(result).includes(secret));
+ }
 });
