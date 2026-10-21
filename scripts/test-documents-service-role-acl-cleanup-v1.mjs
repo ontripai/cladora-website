@@ -9,8 +9,8 @@ const migrations = readdirSync('supabase/migrations').filter(name => name.endsWi
 const migration = readFileSync(`supabase/migrations/${migrationName}`, 'utf8');
 const test = readFileSync(`supabase/tests/${testName}`, 'utf8');
 
-// Includes the bounded handoff and the forward Finance/Governance Advisor correction.
-assert.equal(migrations.length, 291);
+// Includes the bounded handoff and forward Finance/Governance and Assets corrections.
+assert.equal(migrations.length, 292);
 assert.ok(migrations.indexOf(d7Name) < migrations.indexOf(migrationName));
 assert.ok(migrations.indexOf(migrationName) < migrations.indexOf(s1Name));
 assert.match(migration, /expected 96 direct privileges across 12 application tables/i);

@@ -191,6 +191,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Coordinator / bounded Finance-Governance Advisor correction / PR #466',
       sha256: '4ab9d74120d7b8215050f43566134a747d73f1e10fdb7a62ed40f31b49fa5a66',
     },
+    '20261021085559_assets_current_authority_v1.sql': {
+      owner: 'Coordinator / runtime-proven Assets temporal authority correction / PR #466',
+      sha256: 'ae14aa13d047ab5f3309a795000827eae8eae27236d6fabd98334fc69f8962c3',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });

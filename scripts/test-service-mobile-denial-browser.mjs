@@ -320,7 +320,17 @@ process.once('SIGTERM', cancel); process.once('SIGINT', cancel);
 try {
   deadline = setTimeout(cancel, 300_000);
   const path = await executable(); receipt.browser_executable = path; await build();
-  browser = await chromium.launch({ executablePath: path, headless: true, timeout: 20_000 }); receipt.browser = browser.version();
+  // CI has intermittently timed out before any scenario at the former 20s
+  // bootstrap limit. Allow one bounded 60s launch, never retry or skip cases;
+  // the unchanged five-minute whole-proof deadline and all assertions remain.
+  receipt.browser_launch_timeout_ms = 60_000;
+  const launchStarted = Date.now();
+  try {
+    browser = await chromium.launch({ executablePath: path, headless: true, timeout: receipt.browser_launch_timeout_ms });
+  } finally {
+    receipt.browser_launch_elapsed_ms = Date.now() - launchStarted;
+  }
+  receipt.browser = browser.version();
   if (injectFailure) { const context = await browser.newContext(); contexts.add(context); await context.newPage(); throw new Error('INJECTED_OWNED_RESOURCE_FAILURE'); }
   for (const lang of ['en', 'ro', 'fa']) for (const width of [320, 390, 768]) {
     if (aborted) throw new Error('BOUNDED_PROOF_DEADLINE_OR_SIGNAL');

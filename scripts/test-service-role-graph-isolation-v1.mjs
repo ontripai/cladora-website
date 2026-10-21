@@ -20,7 +20,7 @@ const s4 = readFileSync(new URL(`../supabase/migrations/${s4Name}`, import.meta.
 const migrations = readdirSync(new URL('../supabase/migrations', import.meta.url))
   .filter(name => name.endsWith('.sql')).sort();
 
-assert.equal(migrations.length, 291);
+assert.equal(migrations.length, 292);
 const s3Index = migrations.indexOf(s3Name);
 assert.ok(s3Index >= 0);
 assert.equal(migrations[s3Index + 1], s4Name);
