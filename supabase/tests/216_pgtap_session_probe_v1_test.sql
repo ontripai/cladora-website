@@ -55,7 +55,7 @@ create temporary table ce216_contract (
 -- Supported contracts are candidates, NEVER assertions about the installed version.
 -- Exact pg_proc identity + result shape + pg_depend membership must verify each.
 insert into pg_temp.ce216_contract(signature,result_type,returns_set) values
-('extensions.plan(bigint)','text'::regtype,false),
+('extensions.plan(integer)','text'::regtype,false),
 ('extensions.add_result(boolean,boolean,text,text,text)','integer'::regtype,false),
 ('extensions._def_is(text,text,anyelement,text)','text'::regtype,false),
 ('extensions._prokind(oid)','"char"'::regtype,false),
@@ -126,7 +126,7 @@ begin
   -- The sentinel rolls back its cache, sequences and all counter increments.
   begin
     if warm then
-      execute 'select extensions.plan(20::bigint)' into msg;
+      execute 'select extensions.plan(20::integer)' into msg;
       if msg is distinct from '1..20' then
         raise exception using errcode='P0217',message='unexpected plan response';
       end if;
@@ -156,7 +156,7 @@ end $$;
 -- Calls emit no nested TAP: pgTAP output is captured as JSON inside each case.
 do $$
 declare
-  plan_sig text:='extensions.plan(bigint)';
+  plan_sig text:='extensions.plan(integer)';
   add_sig text:='extensions.add_result(boolean,boolean,text,text,text)';
   check_sig text:='extensions.check_test(text,boolean,text,text,text,boolean)';
   curr_sig text:='extensions._currtest()';

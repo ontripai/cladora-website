@@ -129,7 +129,7 @@ $probe_call$;
 select diag('PROVENANCE: SQL-session JWT fixture only; not signed Auth/JWT/HTTP');
 select diag('runner session_user='||session_user||'; initial current_user='||current_user);
 select diag(n.nspname||'.'||p.proname||'; owner='||pg_get_userbyid(p.proowner)||
- '; definer='||p.prosecdef||'; volatility='||p.provolatile||
+ '; definer='||p.prosecdef||'; volatility='||p.provolatile::text||
  '; path='||coalesce(p.proconfig::text,'default')||'; acl='||coalesce(p.proacl::text,'default'))
 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
 where (n.nspname='assets' and p.proname in

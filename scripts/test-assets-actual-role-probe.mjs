@@ -28,6 +28,8 @@ if (options.includes('--help')) {
   assert.match(sql, /select is\(current_user::text,'authenticated'/);
   assert.match(sql, /select diag\('PROVENANCE: SQL-session JWT fixture only/);
   assert.match(sql, /owner='\|\|pg_get_userbyid/);
+  assert.match(sql, /'; volatility='\|\|p\.provolatile::text\|\|/,
+    'catalog diagnostic must explicitly cast PostgreSQL internal char before concatenation');
   assert.match(sql, /pg_temp\.assets_probe_call\([\s\S]*?security invoker set search_path=pg_catalog/i);
   const wrappers = ['create_asset_v1', 'register_equipment_v1',
     'get_asset_registration_choices_v1', 'get_asset_detail_v1'];

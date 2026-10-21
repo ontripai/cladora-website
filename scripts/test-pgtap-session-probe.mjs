@@ -94,6 +94,11 @@ export function audit(source) {
   assert.match(helper, /verdict:=clean and code=expected_state/);
   assert.match(helper, /coalesce\(observed->'ok'='true'::jsonb,false\)/);
   assert.match(helper, /EXPECTED_DIAGNOSTIC_OBSERVED_FINDING_RETAINED/);
+  assert.match(helper, /execute 'select extensions\.plan\(20::integer\)' into msg/,
+    'initializer must match the catalog-proven pgTAP 1.3.3 integer signature');
+  assert.doesNotMatch(source, /extensions\.plan\(bigint\)|extensions\.plan\(20::bigint\)/);
+  assert.match(source, /select 'checker version receipt',exists\(select 1 from pg_extension where extname='plpgsql_check'\)/,
+    'unknown checker receipt must not be silently made successful');
   assert.match(source, /case when good then 'ok ' else 'not ok '/);
   assert.match(source, /ALL_EIGHT_FINDINGS_RETAINED/);
   assert.match(source, /^select '1\.\.30';$/m, 'fixed standalone TAP plan must not shrink at runtime');
@@ -109,7 +114,7 @@ export function audit(source) {
     const required = tokens(requirementText).filter(t => ['string', 'word'].includes(t.kind))
       .map(t => t.kind === 'string' ? t.value : variables.get(t.value));
     assert.ok(required.length && required.every(x => contracts.includes(x)), `${label}: no unknown required contract`);
-    if (warm === 'true') assert.ok(required.includes('extensions.plan(bigint)'), `${label}: verified plan required`);
+    if (warm === 'true') assert.ok(required.includes('extensions.plan(integer)'), `${label}: verified plan required`);
     assert.match(code(query), /^with |^select /, `${label}: only a SELECT probe`);
     assert.doesNotMatch(code(query), /\b(?:insert|update|delete|create|alter|drop|grant|revoke|copy)\b/, `${label}: no hidden writes`);
     for (const m of query.matchAll(/extensions\.(\w+)\(/g)) {
@@ -136,11 +141,13 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     ['dynamic application read', s => s.replace('select 216::integer', 'select n from portfolio.units')],
     ['unknown direct RPC', s => s.replace('extensions._currtest())', 'extensions.unverified())')],
     ['shrinking standalone plan', s => s.replace("select '1..30';", "select '1..1';")],
+    ['wrong plan initializer type', s => s.replace('extensions.plan(20::integer)', 'extensions.plan(20::bigint)')],
+    ['unknown checker receipt made green', s => s.replace("select 'checker version receipt',exists(select 1 from pg_extension where extname='plpgsql_check')", "select 'checker version receipt',true")],
   ]) {
     assert.throws(() => audit(mutate(sql)), undefined, `negative control: ${label}`);
   }
   console.log(JSON.stringify({ status: 'OFFLINE_PACKAGE_AUDIT_PASS', ...result,
-    mutationControls: 7, sqlSha256: createHash('sha256').update(sql).digest('hex'),
+    mutationControls: 9, sqlSha256: createHash('sha256').update(sql).digest('hex'),
     postgresExecution: 'NOT_RUN_NOT_PASS', installedSignatures: 'UNKNOWN_UNTIL_COORDINATOR_CATALOG',
     findingClearance: 'NOT_CLAIMED', note: 'Lexical/source checks only; not a SQL or PostgreSQL runtime proof.' }, null, 2));
 }
