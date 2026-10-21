@@ -8,7 +8,8 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 const require=createRequire(import.meta.url);
 const {chromium,expect}=process.env.BUILDING_SETUP_PLAYWRIGHT_PATH?require(process.env.BUILDING_SETUP_PLAYWRIGHT_PATH):require('@playwright/test');
-const reviewOnly=process.env.BUILDING_SETUP_REVIEW_ONLY==='1';
+const lifecycleOnly=process.env.BUILDING_SETUP_LIFECYCLE_ONLY==='1';
+const reviewOnly=lifecycleOnly||process.env.BUILDING_SETUP_REVIEW_ONLY==='1';
 const reviewWidths=(process.env.BUILDING_SETUP_REVIEW_WIDTHS??'320,390,1280').split(',').map(Number);
 assert.ok(reviewWidths.length&&reviewWidths.every(width=>[320,390,1280].includes(width)),'supported review viewports required');
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
@@ -24,7 +25,7 @@ try{
  temp=await mkdtemp(join(tmpdir(),'building-setup-browser-'));const entry=join(temp,'entry.tsx'),loader=join(temp,'loader.cjs');
  await writeFile(loader,`const ts=require(${JSON.stringify(require.resolve('typescript'))});module.exports=s=>ts.transpileModule(s,{compilerOptions:{jsx:ts.JsxEmit.ReactJSX,module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2020}}).outputText;`);
  await writeFile(entry,`import React from 'react';import {createRoot} from 'react-dom/client';import {CustomerContextProvider,useCustomerContext} from ${JSON.stringify(provider)};import {CustomerBuildingSetupWizard} from ${JSON.stringify(component)};import {PilotReviewerPanel} from ${JSON.stringify(reviewer)};import {CaseConversation} from ${JSON.stringify(caseConsumer)};
- function Fixture(){const c=useCustomerContext();return <><nav aria-label="Synthetic Context controls"><button onClick={()=>c.select('${a}')} data-context="A">A</button><button onClick={()=>c.select('${b}')} data-context="B">B</button><button onClick={c.cancelContextChange} data-keep>Keep</button><button onClick={c.confirmContextChange} data-discard>Discard</button><output data-active>{c.active?.context_id}</output><output data-pending>{c.pendingContextId}</output></nav><CustomerBuildingSetupWizard lang={document.documentElement.lang}/></>;}const view=new URLSearchParams(location.search).get('view');const lang=document.documentElement.lang;createRoot(document.getElementById('root')).render(view==='reviewer'?<PilotReviewerPanel lang={lang}/>:view==='case'?<CaseConversation lang={lang} detail={{id:'${a}',status:'open',workspace_id:'${workspace}',contract_id:null,staff_view:true,messages:[],unread_count:0}} documents={[]} userId='${a}' manager={true} approver={false} reviewer={false} staffOptions={[]}/>:<CustomerContextProvider><Fixture/></CustomerContextProvider>);`);
+ function ReviewerFixture(){const [lang,setLang]=React.useState(document.documentElement.lang);return <><nav aria-label="Synthetic locale controls">{['en','ro','fa'].map(locale=><button key={locale} data-review-lang={locale} onClick={()=>setLang(locale)}>{locale}</button>)}</nav><PilotReviewerPanel lang={lang}/></>;}function Fixture(){const c=useCustomerContext();return <><nav aria-label="Synthetic Context controls"><button onClick={()=>c.select('${a}')} data-context="A">A</button><button onClick={()=>c.select('${b}')} data-context="B">B</button><button onClick={c.cancelContextChange} data-keep>Keep</button><button onClick={c.confirmContextChange} data-discard>Discard</button><output data-active>{c.active?.context_id}</output><output data-pending>{c.pendingContextId}</output></nav><CustomerBuildingSetupWizard lang={document.documentElement.lang}/></>;}const view=new URLSearchParams(location.search).get('view');const lang=document.documentElement.lang;createRoot(document.getElementById('root')).render(view==='reviewer'?<ReviewerFixture/>:view==='case'?<CaseConversation lang={lang} detail={{id:'${a}',status:'open',workspace_id:'${workspace}',contract_id:null,staff_view:true,messages:[],unread_count:0}} documents={[]} userId='${a}' manager={true} approver={false} reviewer={false} staffOptions={[]}/>:<CustomerContextProvider><Fixture/></CustomerContextProvider>);`);
  const webpack=require('next/dist/compiled/webpack/webpack').webpack;
  compiler=webpack({mode:'development',devtool:false,target:'web',entry,output:{path:temp,filename:'app.js'},plugins:[new webpack.ProvidePlugin({process:require.resolve('next/dist/build/polyfills/process')})],resolve:{extensions:['.tsx','.ts','.js','.json'],modules:[join(root,'node_modules')],alias:{'@':join(root,'src')}},module:{rules:[{test:/\.tsx?$/,exclude:/node_modules/,use:[{loader}]}]}});
  await new Promise((yes,no)=>compiler.run((error,stats)=>error||stats.hasErrors()?no(Error(stats?.toString({all:false,errors:true})??String(error))):yes()));
@@ -117,6 +118,30 @@ try{
   await context.route('**/*',async route=>{if(new URL(route.request().url()).origin!==origin){receipt.external_requests++;await route.abort();}else await route.continue();});
   const page=await context.newPage();page.on('pageerror',error=>errors.push(String(error)));
   await page.goto(`${origin}/${lang}?view=${view}`);
+  if(lifecycleOnly){
+   const labels={en:['Approve setup','Check and retry the same approval','Refresh review access'],ro:['Aprobă dosarul','Verifică și reîncearcă aceeași aprobare','Actualizează accesul la verificare'],fa:['تأیید پرونده','بررسی و تکرار همان تأیید','بررسی دسترسی بازبینی']};
+   const key=`cladora.setup-approval.v2:${a}:${workspace}`,saved=()=>page.evaluate(key=>sessionStorage.getItem(key),key);
+   const refresh=locale=>page.getByRole('button',{name:labels[locale][2],exact:true}),retry=locale=>page.getByRole('button',{name:labels[locale][1],exact:true});
+   // Confirm denied -> authorized does not leave stale denied feedback, for each locale.
+   const approve=()=>page.getByRole('button',{name:labels[lang][0],exact:true});
+   await expect(approve()).toBeEnabled();state.reviewerDeny=403;await refresh(lang).click();await expect(approve()).toHaveCount(0);await expect(page.getByRole('status')).toBeVisible();state.reviewerDeny=null;await refresh(lang).click();await expect(approve()).toBeEnabled();await expect(page.getByRole('status')).toHaveCount(0);
+   for(const target of (lang==='en'?['ro','fa']:['en'])){
+    let started,release;const began=new Promise(resolve=>{started=resolve;}),held=new Promise(resolve=>{release=resolve;});let writes=0;
+    await page.route('**/building-setup/*/approve',async route=>{writes++;started();await held;await route.abort('failed');});
+    await approve().click();await began;const original=await saved();assert.ok(original);
+    await page.evaluate(()=>{window.__reviewSection=document.querySelector('section');});
+    await page.locator(`[data-review-lang="${target}"]`).click();assert.equal(await page.evaluate(()=>window.__reviewSection===document.querySelector('section')),true,'same component DOM identity across locale rerender');
+    await expect(retry(target)).toBeDisabled();await refresh(target).click();await expect(retry(target)).toBeDisabled();release();await page.unrouteAll({behavior:'wait'});await expect(retry(target)).toBeEnabled();assert.equal(await saved(),original);assert.equal(writes,1);assert.equal(state.posts.length,0);
+    assert.equal(await page.locator('section').getAttribute('dir'),target==='fa'?'rtl':'ltr');
+    state.reviewerDeny=403;await refresh(target).click();await expect(retry(target)).toHaveCount(0);state.reviewerDeny=null;await refresh(target).click();await expect(retry(target)).toBeEnabled();
+    await expect(page.getByRole('status')).toContainText(target==='en'?'unknown':target==='ro'?'necunoscut':'نامشخص');assert.equal(await saved(),original);
+    state.invalidNext=false;await retry(target).focus();await page.keyboard.press('Enter');await expect(retry(target)).toHaveCount(0);assert.equal(state.posts.at(-1).body,JSON.stringify(JSON.parse(original).command));assert.equal(await saved(),null);
+    await page.evaluate(()=>window.__reviewSection=null);await context.clearCookies();
+    state.stage='submitted';state.revision=3;state.submittedRevision=3;state.lastReceipt=null;state.receipts.clear();state.posts=[];await page.reload();await expect(approve()).toBeEnabled();
+   }
+   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   receipt.cases.push({lang,width,view,result:'PASS',coverage:'same-instance-locale-rerender/held-POST/owned-busy-release/denied-authorized-feedback/unresolved-warning/exact-key-retry/keyboard/RTL'});await context.close();contexts.delete(context);continue;
+  }
   if(view==='reviewer'){
    const label={en:'Approve setup',ro:'Aprobă dosarul',fa:'تأیید پرونده'}[lang];const retryLabel={en:'Check and retry the same approval',ro:'Verifică și reîncearcă aceeași aprobare',fa:'بررسی و تکرار همان تأیید'}[lang];
    const approve=page.getByRole('button',{name:label,exact:true});await expect(approve).toBeEnabled();const box=await approve.boundingBox();assert.ok(box.x>=-1&&box.x+box.width<=width+1,'review approval control fits viewport');await approve.focus();await page.keyboard.press('Enter');

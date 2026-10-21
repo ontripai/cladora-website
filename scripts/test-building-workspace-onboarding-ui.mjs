@@ -4,6 +4,7 @@ import {createRequire,Module} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {JSDOM} from 'jsdom';
 import ts from 'typescript';
+const reviewOnly=process.env.BUILDING_SETUP_REVIEW_ONLY==='1';
 const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div>',{url:'https://cladora.test'}),saved=new Map();
 for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,navigator:dom.window.navigator,FormData:dom.window.FormData,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
 const React=await import('react'),{act}=React,{createRoot}=await import('react-dom/client');
@@ -49,6 +50,7 @@ const input=async(selector,value)=>act(async()=>{const e=document.querySelector(
 let checks=0;function eq(a,b,msg){checks++;assert.deepEqual(a,b,msg);}
 async function reset(){sessionStorage.clear();calls=[];mode='success';stage='draft';readOverride=null;revision=1;lastReceipt=null;creationKey='';creations=0;payload=null;completed.clear();active={context_id:ctx,membership_id:membership};}
 try{
+ if(!reviewOnly){
  for(const lang of ['en','ro','fa']){
   await reset();await render(`flow-${lang}`,lang);eq(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
   await click(labels[lang][0]);eq(mutations().length,1);const first=JSON.parse(mutations()[0].options.body);eq(first.payload.currency,'RON');
@@ -86,18 +88,20 @@ try{
  eq(document.querySelectorAll('fieldset input')[1].value,'Synthetic Building A');eq(mutations().length,1);
 
  await reset();await render('legacy-before');await click(labels.en[0]);readOverride={...record(),creation_request_hash:null,creation_receipt:null};await click(labels.en[4]);eq(button(labels.en[1]).disabled,true,'legacy snapshot cannot advance');assert.match(document.querySelector('[role="alert"]').textContent,/legacy record/);readOverride=null;
- // Reuse the existing reviewer consumer; no activation endpoint is called.
+ }
+ // Reuse the existing reviewer consumer; activation below is mocked only.
  const {PilotReviewerPanel}=load('src/components/customer/PilotReviewerPanel.tsx',{'@/lib/customer/building-setup-schema':schema,'@/lib/customer/building-workspace-onboarding':helper,'next/link':({href,children})=>React.createElement('a',{href},children)});
- const reviewPayload=structuredClone(savedCommand.payload);
+ const reviewPayload={association:{name:'Synthetic review'},building:{name:'Synthetic block',code:'B1',floors:1},currency:'RON',period_start:'2026-01-01',period_end:'2026-01-31',units:[{code:'U1',floor:0,area_m2:50}],opening_balances:[]};
  const reviewLabels={en:['Approve setup','Check and retry the same approval','Refresh review access'],ro:['Aprobă dosarul','Verifică și reîncearcă aceeași aprobare','Actualizează accesul la verificare'],fa:['تأیید پرونده','بررسی و تکرار همان تأیید','بررسی دسترسی بازبینی']};
  for(const lang of ['en','ro','fa']){
   const [approveLabel,retryLabel,refreshLabel]=reviewLabels[lang],approvalKey=`cladora.setup-approval.v2:${ctx}:${workspace}`;
-  let review,posts,accessStatus,access,readMode,postMode,holdRead,holdReviewer,holdPost;
-  const fresh=()=>{sessionStorage.clear();posts=[];accessStatus=200;access={status:'active',context_id:ctx,workspace_id:workspace};readMode='ok';postMode='lost-committed';holdRead=null;holdReviewer=null;holdPost=null;review={version:2,workspace_id:workspace,revision:3,run_id:run,status:'submitted',payload:reviewPayload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:3,submitted_payload_hash:'a'.repeat(64),last_command_key:null,last_command_receipt:null};};
+  let review,posts,accessStatus,access,readMode,postMode,holdRead,holdReviewer,holdPost,holdActivation,activationPosts;
+  const fresh=()=>{sessionStorage.clear();posts=[];accessStatus=200;access={status:'active',context_id:ctx,workspace_id:workspace};readMode='ok';postMode='lost-committed';holdRead=null;holdReviewer=null;holdPost=null;holdActivation=null;activationPosts=[];review={version:2,workspace_id:workspace,revision:3,run_id:run,status:'submitted',payload:reviewPayload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:3,submitted_payload_hash:'a'.repeat(64),last_command_key:null,last_command_receipt:null};};
   const response=(status,body)=>({ok:status===200,status,json:async()=>structuredClone(body)});
   const reviewerBody=()=>({reviewer:{...access,runs:access.status&&review.status==='submitted'?[{id:run,workspace_id:access.workspace_id,status:'submitted',building:'Synthetic sensitive',revision:3,payload_hash:'a'.repeat(64),submitted_revision:3,submitted_payload_hash:'a'.repeat(64)}]:[]}});
   globalThis.fetch=async(url,options={})=>{
    if(url==='/api/customer/v1/pilot-reviewer'){
+    if(options.method){activationPosts.push(options.body);if(holdActivation){const wait=holdActivation;holdActivation=null;return wait;}return response(200,{reviewer:access});}
     if(holdReviewer){const wait=holdReviewer;holdReviewer=null;return wait;}
     return response(accessStatus,accessStatus===200?reviewerBody():{error:{code:'FORBIDDEN'}});
    }
@@ -117,9 +121,28 @@ try{
    if(postMode==='lost-committed')throw Error('Synthetic committed lost response');
    return response(200,receipt);
   };
-  let serial=0;const mount=()=>act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:`review-${lang}-${++serial}`,lang})));
+  let serial=0,currentKey;const mount=()=>{currentKey=`review-${lang}-${++serial}`;return act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:currentKey,lang})));};
+  const rerender=locale=>act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:currentKey,lang:locale})));
   const focus=()=>act(async()=>window.dispatchEvent(new dom.window.Event('focus')));
   const stored=()=>JSON.parse(sessionStorage.getItem(approvalKey));
+  const unknown={en:/unknown/,ro:/necunoscut/,fa:/نامشخص/};
+  // Clear stale denial on authorized return, preserving unresolved approval warnings.
+  fresh();accessStatus=403;await mount();accessStatus=200;await click(refreshLabel);eq(document.querySelector('[role="status"]')===null,true,'CR-02: stale denial cleared after valid access read');
+  fresh();postMode='lost-uncommitted';await mount();await click(approveLabel);const deniedPending=stored();accessStatus=403;await focus();accessStatus=200;await click(refreshLabel);assert.match(document.querySelector('[role="status"]').textContent,unknown[lang],'authorized access does not resolve pending approval');eq(stored(),deniedPending);eq(posts.length,1);
+  // An ordinary refresh must preserve unknown-outcome feedback too.
+  await click(refreshLabel);assert.match(document.querySelector('[role="status"]').textContent,unknown[lang]);
+  // Same mounted identity across locale changes; a current access read must not strand busy.
+  for(const target of (lang==='en'?['ro','fa']:[lang==='ro'?'fa':'en'])){
+   fresh();postMode='lost-uncommitted';await mount();let releaseLocale;holdRead=new Promise(resolve=>{releaseLocale=resolve;});await act(async()=>button(approveLabel).click());const original=stored();await rerender(target);await focus();
+   const targetRetry=reviewLabels[target][1];eq(button(targetRetry).disabled,true,'pending old read retains exclusive operation ownership');
+   await act(async()=>releaseLocale(response(200,review)));eq(button(targetRetry).disabled,false,'CR-01: locale change must not strand busy after stale read settles');eq(stored(),original);eq(posts.length,0,'locale/access refresh never auto-approves');
+   let releaseNew;holdPost=new Promise(resolve=>{releaseNew=resolve;});postMode='ok';await click(targetRetry);eq(posts.length,1);eq(JSON.parse(posts[0]),original.command);await focus();eq(button(targetRetry).disabled,true,'current operation remains locked after newer refresh');await act(async()=>button(targetRetry).click());eq(posts.length,1);
+   await act(async()=>releaseNew(response(200,review.last_command_receipt)));eq(button(targetRetry).disabled,false,'only owning operation settlement releases busy');eq(stored(),original);await click(targetRetry);eq(posts.length,1,'exact recorded receipt recovered without another write');eq(stored(),null);
+   // Approval POST held across same-instance locale change and current read.
+   fresh();await mount();let releaseLocalePost;holdPost=new Promise(resolve=>{releaseLocalePost=resolve;});await click(approveLabel);const pendingPost=stored();await rerender(target);await focus();eq(button(targetRetry).disabled,true);await act(async()=>releaseLocalePost(response(200,review.last_command_receipt)));eq(button(targetRetry).disabled,false);eq(stored(),pendingPost);eq(posts.length,1);await click(targetRetry);eq(stored(),null);eq(posts.length,1);
+   // Existing activation endpoint is only a MOCK transport; no real access activated.
+   fresh();access.status='prepared';await mount();await input('input','Synthetic reviewer');let releaseActivation;holdActivation=new Promise(resolve=>{releaseActivation=resolve;});const activation={en:'Activate temporary access',ro:'Activează accesul temporar',fa:'فعال‌سازی دسترسی موقت'};await click(activation[lang]);await rerender(target);await focus();eq(button(activation[target]).disabled,true);await act(async()=>releaseActivation(response(200,{reviewer:access})));eq(button(activation[target]).disabled,false,'activation busy released after locale change');eq(activationPosts.length,1);
+  }
   const noRuns=()=>{eq(document.body.textContent.includes('Synthetic sensitive'),false,'confirmed authority loss clears displayed runs');eq(button(approveLabel),undefined,'no approval action after access loss');eq(button(retryLabel),undefined,'pending metadata never grants authority');};
   // Existing positive regression: lost committed approval, remount, exact receipt, no second POST.
   fresh();await mount();eq(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
@@ -165,6 +188,7 @@ try{
   // Old instance reads must not change the new instance after unmount/remount.
   fresh();await mount();let releaseUnmount;holdRead=new Promise(resolve=>{releaseUnmount=resolve;});await act(async()=>button(approveLabel).click());const retainedUnmount=stored();await mount();await act(async()=>releaseUnmount(response(200,review)));eq(posts.length,0);eq(stored(),retainedUnmount);eq(button(retryLabel).disabled,false);
  }
+ if(!reviewOnly){
  // Only the reserved creation-attempt hunk of the existing CaseConversation is exercised.
  const caseSchemas=load('src/lib/customer/building-workspace-onboarding-case.ts',{'./building-setup-schema':schema});
  const {CaseConversation}=load('src/components/cases/CasePortal.tsx',{'@/lib/customer/building-workspace-onboarding-case':caseSchemas,'next/link':({href,children})=>React.createElement('a',{href},children),'next/navigation':{useRouter:()=>({})},'@/components/platform/WorkspaceAccessBasisDialog':{WorkspaceAccessBasisDialog:()=>null}});
@@ -180,6 +204,7 @@ try{
   await act(async()=>{form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));});eq(posts.length,1);eq(created,1);
   const original=posts[0];await mount(`case-remount-${lang}`);form=document.querySelector('select[name="taxonomy"]').closest('form');eq(form.querySelector('fieldset').disabled,true,'uncertain case fields locked after remount');lost=false;
   await act(async()=>form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true})));eq(posts.at(-1),original,'case retry uses original key and body');eq(created,1,'case recovery does not create another Workspace');eq(sessionStorage.getItem(`cladora.case-workspace-attempt.v2:${membership}:${ctx}`),null);
+ }
  }
  console.log(`PASS mounted building setup: ${checks} assertions, EN/RO/FA + RTL, exact persistence, synchronous double-submit, stale Context, denial, reconciliation; mocked transport/JSDOM, NOT real browser/Auth/DB.`);
 }finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;for(const[key,descriptor]of saved){if(descriptor)Object.defineProperty(globalThis,key,descriptor);else delete globalThis[key];}dom.window.close();}

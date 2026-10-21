@@ -31,11 +31,12 @@ function savedAttempt(state:State){
 }
 export function PilotReviewerPanel({lang}:{lang:Language}){
  const t=copy[lang],r=recoveryCopy[lang];
- const lock=useRef(false),lifetime=useRef(0),request=useRef(0),scope=useRef('');
+ const operation=useRef<symbol|null>(null),lifetime=useRef(0),request=useRef(0),scope=useRef('');
  const [pending,setPending]=useState<ApprovalAttempt|null>(null),[state,setState]=useState<State|null>(null);
- const [name,setName]=useState(''),[busy,setBusy]=useState(false),[reading,setReading]=useState(false),[message,setMessage]=useState(''),[invalid,setInvalid]=useState(false);
+ const [name,setName]=useState(''),[busy,setBusy]=useState(false),[reading,setReading]=useState(false),[notice,setNotice]=useState<''|'denied'|'unknown'|'invalid'|'done'|'error'>(''),[invalid,setInvalid]=useState(false);
  // A newer access read invalidates every older read and in-flight approval continuation.
  const clearAccess=useCallback(()=>{request.current++;scope.current='';setState({});setPending(null);setName('');setInvalid(false);},[]);
+ // Locale changes translate notice rendering; they do not end an operation's lifetime.
  const refresh=useCallback(async()=>{
   const generation=lifetime.current,sequence=++request.current;
   const current=()=>lifetime.current===generation&&request.current===sequence;
@@ -43,19 +44,22 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
   try{
    const response=await fetch('/api/customer/v1/pilot-reviewer',{cache:'no-store',signal:AbortSignal.timeout(20000)});
    if(!current())return null;
-   if(response.status===401||response.status===403){clearAccess();setMessage(r.denied);setReading(false);return null;}
+   if(response.status===401||response.status===403){clearAccess();setNotice('denied');setReading(false);return null;}
    if(!response.ok)throw Error('review_read_unknown');
    const next=reviewerSetupStateSchema.parse((await response.json()).reviewer);
    if(!current())return null;
-   if(!next.status){clearAccess();setMessage(r.denied);setReading(false);return null;}
+   if(!next.status){clearAccess();setNotice('denied');setReading(false);return null;}
    scope.current=scopeOf(next);setState(next);
    // Stored metadata never grants access: load it only AFTER the authorized reader.
-   try{setPending(next.status==='active'?savedAttempt(next):null);setInvalid(false);}
-   catch{setPending(null);setInvalid(true);setMessage(r.invalid);return null;}
+   try{
+    const restored=next.status==='active'?savedAttempt(next):null;setPending(restored);setInvalid(false);
+    setNotice(previous=>previous==='denied'?(restored?'unknown':''):previous);
+   }
+   catch{setPending(null);setInvalid(true);setNotice('invalid');return null;}
    return next;
-  }catch{if(current()){clearAccess();setMessage(r.unknown);setReading(false);}return null;}
+  }catch{if(current()){clearAccess();setNotice('unknown');setReading(false);}return null;}
   finally{if(current())setReading(false);}
- },[clearAccess,r.denied,r.invalid,r.unknown]);
+ },[clearAccess]);
  const invalidateLifetime=useCallback(()=>{lifetime.current++;request.current++;scope.current='';},[]);
  useEffect(()=>{
   invalidateLifetime();const generation=lifetime.current;
@@ -65,19 +69,19 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
   return()=>{invalidateLifetime();window.removeEventListener('focus',onFocus);};
  },[refresh,invalidateLifetime]);
  async function act(path:string,payload:object){
-  if(lock.current)return;lock.current=true;setBusy(true);setMessage('');
+  if(operation.current)return;const owner=Symbol('activation');operation.current=owner;setBusy(true);setNotice('');
   const generation=lifetime.current,sequence=request.current;
   try{
    const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
    if(lifetime.current!==generation||request.current!==sequence)return;
-   if(response.status===401||response.status===403){clearAccess();setMessage(r.denied);return;}
-   setMessage(response.ok?t.done:t.error);await refresh();
-  }catch{if(lifetime.current===generation&&request.current===sequence)setMessage(r.unknown);}
-  finally{lock.current=false;if(lifetime.current===generation)setBusy(false);}
+   if(response.status===401||response.status===403){clearAccess();setNotice('denied');return;}
+   setNotice(response.ok?'done':'error');await refresh();
+  }catch{if(lifetime.current===generation&&request.current===sequence)setNotice('unknown');}
+  finally{if(operation.current===owner){operation.current=null;if(lifetime.current===generation)setBusy(false);}}
  }
  async function approve(run?:NonNullable<State['runs']>[number]){
-  if(lock.current||reading||invalid||state?.status!=='active'||!state.context_id||!state.workspace_id)return;
-  lock.current=true;setBusy(true);setMessage('');
+  if(operation.current||reading||invalid||state?.status!=='active'||!state.context_id||!state.workspace_id)return;
+  const owner=Symbol('approval');operation.current=owner;setBusy(true);setNotice('');
   const generation=lifetime.current,originalScope=scopeOf(state);
   let sequence=request.current;
   const current=()=>lifetime.current===generation&&request.current===sequence&&scope.current===originalScope;
@@ -108,7 +112,7 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
     if(record.status!=='submitted'||record.revision!==attempt.command.expected_revision||record.submitted_revision!==attempt.command.expected_revision||record.submitted_payload_hash!==attempt.command.expected_payload_hash||record.payload_hash!==attempt.command.expected_payload_hash)throw Error('stale_snapshot');
     const response=await fetch(`/api/customer/v1/onboarding/building-setup/${attempt.run_id}/approve`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(attempt.command),signal:AbortSignal.timeout(20000)});
     if(!current())return;
-    if(response.status===401||response.status===403){clearAccess();setMessage(r.denied);return;}
+    if(response.status===401||response.status===403){clearAccess();setNotice('denied');return;}
     if(!response.ok)throw Error('unknown');
     const receipt=buildingSetupReceiptSchema.parse(await response.json());
     if(!current())return;
@@ -119,13 +123,13 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
    if(!exact(verified))throw Error('unresolved');
    // Do not erase an attempt replaced by a different session/tab.
    if(sessionStorage.getItem(key)!==JSON.stringify(attempt))throw Error('attempt_changed');
-   sessionStorage.removeItem(key);setPending(null);setMessage(t.done);await refresh();
+   sessionStorage.removeItem(key);setPending(null);setNotice('done');await refresh();
   }catch(error){
    if(current()){
-    if(error instanceof SetupReadError&&(error.status===401||error.status===403)){clearAccess();setMessage(r.denied);}
-    else setMessage(r.unknown);
+    if(error instanceof SetupReadError&&(error.status===401||error.status===403)){clearAccess();setNotice('denied');}
+    else setNotice('unknown');
    }
-  }finally{lock.current=false;if(lifetime.current===generation)setBusy(false);}
+  }finally{if(operation.current===owner){operation.current=null;if(lifetime.current===generation)setBusy(false);}}
  }
  const canRecover=state?.status==='active'&&!!state.context_id&&!!state.workspace_id&&!invalid;
  return <section className="card-proptech space-y-4 bg-white p-6" dir={lang==='fa'?'rtl':'ltr'}><h1 className="text-xl font-bold">{t.title}</h1>
@@ -134,5 +138,5 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
  {state.status==='prepared'?<><p>{t.mfa} <Link className="underline" href={`/${lang}/mfa/setup?next=pilot-reviewer`}>MFA</Link> · <Link className="underline" href={`/${lang}/mfa?next=pilot-reviewer`}>TOTP</Link></p><label className="block">{t.name}<input className="block w-full rounded border p-2" value={name} onChange={e=>setName(e.target.value)}/></label><button disabled={busy||reading||name.trim().length<2} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50" onClick={()=>act('/api/customer/v1/pilot-reviewer',{workspace_id:state.workspace_id,display_name:name,locale:lang})}>{t.activate}</button></>
  :<div>{state.runs?.length?state.runs.map(run=><div key={run.id} className="flex flex-wrap items-center justify-between gap-4 border-b p-3"><span className="min-w-0 break-all">{run.building} · {run.id}</span><button disabled={busy||reading||invalid||!!pending||!state.context_id} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50" onClick={()=>approve(run)}>{t.approve}</button></div>):<p>{t.none}</p>}</div>}</>}
  {pending&&canRecover&&<button type="button" disabled={busy||reading} className="rounded border p-2" onClick={()=>approve()}>{r.retry}</button>}
- {message&&<p role="status" aria-live="polite">{message}</p>}</section>;
+ {notice&&<p role="status" aria-live="polite">{notice==='done'?t.done:notice==='error'?t.error:r[notice]}</p>}</section>;
 }
