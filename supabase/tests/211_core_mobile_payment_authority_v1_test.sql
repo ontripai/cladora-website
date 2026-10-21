@@ -119,7 +119,26 @@ create temp table core_mobile_financial_before as select
  (select md5(coalesce(jsonb_agg(to_jsonb(t) order by id),'[]'::jsonb)::text) from public.owner_private_units t) as private_hash;
 
 set local role authenticated;
+set local row_security=on;
 select set_config('request.jwt.claims','{"sub":"c2110000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+-- R1: this is an authenticated DATABASE-session regression with minimal claims,
+-- not a signed Auth token. The HTTP harness separately verifies genuine tokens.
+-- Never add selected-tenant/context claims to make these positives pass.
+select is(current_user::text,'authenticated','R1 uses the actual authenticated database role');
+select is(current_setting('row_security'),'on','R1 leaves row security enabled');
+select ok(not (auth.jwt() ?| array['active_tenant_id','active_context_id','active_membership_id']),
+ 'R1 minimal session has no selected-tenant/context/membership claims');
+select ok(row_security_active('portfolio.units'::regclass)
+ and row_security_active('portfolio.buildings'::regclass)
+ and row_security_active('identity.memberships'::regclass)
+ and row_security_active('identity.context_grants'::regclass),
+ 'R1 authenticated reads are actually subject to native RLS');
+select is((select count(*)::integer from portfolio.units where id=pg_temp.core_mobile_id(51)),0,
+ 'R1 native Unit row stays hidden without selected claims; no broad read policy added');
+select is((select count(*)::integer from identity.memberships where id=pg_temp.core_mobile_id(91)),0,
+ 'R1 membership row stays hidden to the minimal invoker');
+select is((select count(*)::integer from identity.context_grants where id=pg_temp.core_mobile_id(101)),0,
+ 'R1 Context row stays hidden to the minimal invoker');
 insert into core_mobile_result values('first',pg_temp.core_mobile_create('core-mobile-exact-211'));
 select is((pg_temp.core_mobile_create('core-mobile-exact-211')->>'payment_intent_id')::uuid,
  pg_temp.core_mobile_intent(),'exact replay returns same ID');
@@ -130,8 +149,12 @@ select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',71,
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',71,10,'bank_transfer',11)$$,'23505','payment_idempotency_conflict','changed total conflicts');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',71,10,'bank_transfer',10,51,'EUR')$$,'23505','payment_idempotency_conflict','changed currency conflicts');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',72,10,'bank_transfer',10,52)$$,'42501','payment_unit_access_denied','foreign Unit is authority denial, not fingerprint conflict');
-select lives_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'own current GET');
-select lives_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'own current instruction');
+-- Deliberately retain these positive expectations. A false denial is a FAIL,
+-- not grounds to mint claims, disable RLS or invert the assertion.
+select lives_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,
+ 'R1 legitimate owner GET must succeed with authenticated/minimal claims/RLS');
+select lives_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,
+ 'R1 legitimate owner instruction must succeed with authenticated/minimal claims/RLS');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',71,10,'bank_transfer',10,55)$$,'42501','payment_unit_access_denied','private Unit cannot be treated as official Unit');
 insert into core_mobile_result values('ordered', customer_api.create_payment_intent_v1(
  pg_temp.core_mobile_id(101),pg_temp.core_mobile_id(51),

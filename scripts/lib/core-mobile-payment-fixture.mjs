@@ -85,6 +85,7 @@ export async function runConnected() {
   const actorClient = createClient(supabaseUrl, anonKey, options);
   const users = [];
   const actors = [];
+  const verifiedActorClaims = [];
   let owned, app, phase = 'target-verification', failure;
   const cleanupErrors = [];
   const abort = new AbortController();
@@ -115,6 +116,20 @@ export async function runConnected() {
       const user = await createPf01Aal2User({ adminClient, supabaseUrl, anonKey,
         label: `core-mobile-${i}`, onCreated: user => users.push(user) });
       actors.push(user);
+    }
+    phase = 'r1-genuine-minimal-jwt';
+    for (const actor of actors) {
+      // Verify the actual Auth-issued token. Do not decode/re-sign a substitute,
+      // strip fields, add selected claims, or override RLS with an admin RPC.
+      const { data, error } = await actorClient.auth.getClaims(actor.accessToken);
+      assert.ifError(error);
+      assert.equal(data?.claims?.sub, actor.userId);
+      assert.equal(data?.claims?.role, 'authenticated');
+      assert.equal(data?.claims?.aal, 'aal2');
+      for (const claim of ['active_tenant_id', 'active_context_id', 'active_membership_id']) {
+        assert.equal(Object.hasOwn(data.claims, claim), false, 'genuine token must exercise the minimal-JWT path');
+      }
+      verifiedActorClaims.push(data.claims);
     }
     phase = 'canonical-fixture';
     const sql = await readFile(new URL('../../supabase/tests/211_core_mobile_payment_authority_v1_test.sql', import.meta.url), 'utf8');
@@ -156,6 +171,40 @@ export async function runConnected() {
     assert.equal(replay.data.payment_intent_id, intent); assert.equal(replay.data.is_idempotent_replay, true); pass(phase);
     const getUrl = (ctx = 101) => `${base}/${intent}?context_id=${id(ctx)}`;
     const instructionUrl = (ctx = 101) => `${base}/${intent}/bank-instruction?context_id=${id(ctx)}`;
+    phase = 'r1-authenticated-signed-jwt-rls';
+    const r1Results = [];
+    // Each reader has its own transaction so an actual GET error cannot abort
+    // the instruction probe. Claims are copied verbatim from the VERIFIED real
+    // token above, solely to reproduce PostgREST's authenticated SQL session.
+    for (const rpc of ['get_payment_intent_v1', 'generate_bank_instruction_v1']) {
+      const reader = await pool.connect();
+      try {
+        await reader.query('begin read only');
+        await reader.query('set local role authenticated');
+        await reader.query('set local row_security=on');
+        await reader.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify(verifiedActorClaims[0])]);
+        const proof = await reader.query(`select current_user as role, current_setting('row_security') as rls,
+          row_security_active('portfolio.units'::regclass) as unit_rls,
+          row_security_active('identity.memberships'::regclass) as membership_rls,
+          (select count(*)::int from portfolio.units where id=$1) as direct_unit_rows,
+          (select count(*)::int from identity.memberships where id=$2) as direct_membership_rows`, [id(51), id(91)]);
+        assert.equal(proof.rows[0].role, 'authenticated');
+        assert.equal(proof.rows[0].rls, 'on');
+        assert.equal(proof.rows[0].unit_rls, true);
+        assert.equal(proof.rows[0].membership_rls, true);
+        assert.equal(proof.rows[0].direct_unit_rows, 0);
+        assert.equal(proof.rows[0].direct_membership_rows, 0);
+        // rpc is selected from the fixed allowlist above, never external input.
+        const result = await reader.query(`select customer_api.${rpc}($1,$2) as data`, [id(101), intent]);
+        assert.equal(result.rows[0].data.payment_intent_id, intent);
+        r1Results.push({ rpc, result: 'PASS' });
+      } catch (error) {
+        r1Results.push({ rpc, result: 'FAIL', error: error.code ?? error.name });
+      } finally { await reader.query('rollback'); reader.release(); }
+    }
+    console.log(JSON.stringify({ check: phase, provenance: 'verified genuine Auth JWT + authenticated SQL role + enabled RLS', results: r1Results }));
+    // No assertion is weakened when the candidate's invoker path falsely denies.
+    assert.ok(r1Results.every(result => result.result === 'PASS'), 'R1 both legitimate read paths must succeed');
     assert.equal((await request('GET', getUrl(), actors[0])).status, 200);
     assert.equal((await request('GET', instructionUrl(), actors[0])).status, 200);
     phase = 'concurrent-first-writes';
