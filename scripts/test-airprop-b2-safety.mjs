@@ -203,6 +203,15 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Coordinator / runtime-proven Assets temporal authority correction / PR #466',
       sha256: 'ae14aa13d047ab5f3309a795000827eae8eae27236d6fabd98334fc69f8962c3',
     },
+    // Byte-exact source review only; not Building Setup runtime or Release acceptance.
+    '20261021111641_building_setup_authority_v2.sql': {
+      owner: 'Core / PM reviewed scoped Building Setup native authority / PR #466',
+      sha256: 'de18c1436ada6763358dd1a99f4874cfc0d1920eab1e34ca13e9da6b9d172e60',
+    },
+    '20261021123054_building_setup_attempt_version_v2.sql': {
+      owner: 'Procedure / PM reviewed ordered versioned Building Setup commands / PR #466',
+      sha256: 'ce386d018fe9d5f9045739e9752a44aec1c0d4f963653b4f7d455290b4153c86',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });

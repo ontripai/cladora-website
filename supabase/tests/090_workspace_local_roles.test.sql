@@ -41,11 +41,27 @@ select ok(exists(
 ), 'property_manager granted workspace.role.assign');
 
 -- 3. Module-Permission Binding Registry Invariants (9 assertions)
--- 3.1 Binding delegation invariants (version 1 non-delegable, sensitive permissions strictly non-delegable)
+-- 3.1 Only the three explicitly accepted Building Setup v1 bindings may delegate.
+-- All other version 1 bindings and the sensitive permission list remain denied.
 select ok(
   not exists (
-    select 1 from platform.module_permission_bindings
-    where binding_version = 1 and is_delegable is true
+    select 1 from platform.module_permission_bindings b
+    join platform.module_definitions m on m.id=b.module_definition_id
+    join identity.permissions p on p.id=b.permission_id
+    where b.binding_version = 1 and b.is_delegable is true
+      and not (m.code='building_setup' and m.version=1
+        and p.code in ('onboarding.import.read','onboarding.import.manage','onboarding.import.approve')
+        and b.lifecycle_status='active' and b.is_assignable_to_local_role
+        and b.requires_aal2 and b.valid_to is null
+        and b.permission_mode=case p.code when 'onboarding.import.read' then 'read'
+          when 'onboarding.import.manage' then 'manage' else 'execute' end)
+  ) and 3 = (
+    select count(*) from platform.module_permission_bindings b
+    join platform.module_definitions m on m.id=b.module_definition_id
+    join identity.permissions p on p.id=b.permission_id
+    where m.code='building_setup' and m.version=1 and b.binding_version=1
+      and b.is_delegable and p.code in
+        ('onboarding.import.read','onboarding.import.manage','onboarding.import.approve')
   ) and not exists (
     select 1 from platform.module_permission_bindings b
     join identity.permissions p on p.id = b.permission_id
@@ -54,7 +70,7 @@ select ok(
       'utilities.tariffs.manage', 'governance.votes.administer', 'governance.minutes.finalize'
     ) and b.is_delegable is true and b.lifecycle_status = 'active'
   ),
-  'version 1 bindings and sensitive permissions are strictly non-delegable'
+  'only accepted Building Setup v1 bindings delegate; all other v1 and sensitive bindings remain non-delegable'
 );
 
 -- 3.2 Attempting to insert is_delegable = true on strictly non-delegable permission is rejected

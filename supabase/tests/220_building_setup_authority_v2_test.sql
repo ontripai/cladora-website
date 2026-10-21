@@ -33,8 +33,8 @@ insert into platform.tenants(id,legal_name,registration_number,status) values
 -- Initially one Workspace: canonical v2 composes existing v1 internals, not a
 -- new bootstrap engine. Additional isolation targets are added after assignment.
 insert into platform.customer_workspaces
- (id,tenant_id,workspace_type,commercial_owner,environment,lifecycle_status,primary_admin_user_id)
- values(pg_temp.bs_id(50),pg_temp.bs_id(10),'ASSOCIATION','Synthetic','PILOT','ACTIVE',pg_temp.bs_id(1));
+ (id,tenant_id,workspace_type,commercial_owner,environment,lifecycle_status)
+ values(pg_temp.bs_id(50),pg_temp.bs_id(10),'ASSOCIATION','Synthetic','PILOT','ACTIVE');
 insert into portfolio.properties(id,tenant_id,type,name,status)
  values(pg_temp.bs_id(30),pg_temp.bs_id(10),'condominium','Synthetic RO property','active');
 insert into platform.workspace_property_bindings(tenant_id,customer_workspace_id,property_id,status,binding_source)
@@ -49,6 +49,12 @@ insert into identity.memberships(id,tenant_id,user_id,role_id,status,starts_at,e
  statement_timestamp()-interval '1 day',statement_timestamp()+interval '12 hours'
  from generate_series(1,2) n cross join identity.roles r
  where r.code='association_admin' and r.tenant_id is null;
+-- Seed the complete accepted-admin tuple only after its membership exists.
+-- The production CHECK constraint remains enabled throughout fixture creation.
+update platform.customer_workspaces set
+ primary_admin_user_id=pg_temp.bs_id(1),primary_admin_membership_id=pg_temp.bs_id(90),
+ primary_admin_accepted_at=statement_timestamp()-interval '1 hour'
+ where id=pg_temp.bs_id(50);
 insert into identity.context_grants(id,tenant_id,membership_id,scope_type,property_id,starts_at,ends_at)
  select pg_temp.bs_id(99+n),pg_temp.bs_id(10),pg_temp.bs_id(89+n),'tenant',null,
  statement_timestamp()-interval '1 day',statement_timestamp()+interval '12 hours' from generate_series(1,2) n
