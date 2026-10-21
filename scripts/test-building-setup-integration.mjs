@@ -29,6 +29,11 @@ function audit(a, p, sql, fixture, proof) {
 const sql = readFileSync(`${dir}/${process[0]}`, 'utf8');
 const fixture = readFileSync('supabase/tests/fixtures/building_setup_authority_v2.inc', 'utf8');
 const proof = readFileSync('supabase/tests/223_building_setup_command_proof_v2.test.sql', 'utf8');
+const authorityTest = readFileSync('supabase/tests/220_building_setup_authority_v2_test.sql', 'utf8');
+assert.match(authorityTest, /select plan\(134\);/);
+assert.match(authorityTest, /ends_at=clock_timestamp\(\)\+interval '200 milliseconds'/);
+assert.match(authorityTest, /select pg_sleep\(0\.25\);/);
+assert.doesNotMatch(authorityTest, /disable\s+trigger|session_replication_role/i);
 audit(authority[0], process[0], sql, fixture, proof);
 let controls = 0;
 for (const args of [

@@ -3,7 +3,7 @@
 begin;
 set local search_path=public,extensions,pg_catalog;
 set local row_security=on;
-select plan(133);
+select plan(134);
 create function pg_temp.bs_id(n integer) returns uuid language sql immutable
 as $$select ('c2200000-0000-4000-8000-'||lpad(n::text,12,'0'))::uuid$$;
 create temp table bs_state(name text primary key,value uuid not null);
@@ -381,7 +381,15 @@ release savepoint bs_context_future;
 
 -- Fixture-only state transition; all product triggers/RLS remain enabled.
 savepoint bs_member_expired;
-update identity.memberships set ends_at=statement_timestamp() where id=(select value from bs_state where name='reviewer_membership');
+-- An active membership cannot be updated directly into the past: the existing
+-- commercial cap trigger correctly rejects it. Set a short FUTURE expiry while
+-- valid, then let real database time expire it; never disable or replace a trigger.
+update identity.memberships set ends_at=clock_timestamp()+interval '200 milliseconds'
+ where id=(select value from bs_state where name='reviewer_membership');
+select pg_sleep(0.25);
+select ok((select status='active' and ends_at<=statement_timestamp() from identity.memberships
+ where id=(select value from bs_state where name='reviewer_membership')),
+ 'member_expired: active membership elapsed naturally with commercial trigger enabled');
 insert into bs_before select pg_temp.bs_fingerprint();
 set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.bs_id(3),'aal','aal2')::text,true);
