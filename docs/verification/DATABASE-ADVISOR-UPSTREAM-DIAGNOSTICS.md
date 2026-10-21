@@ -30,3 +30,25 @@ real-data, device and Release acceptance remain separate gates.
 Initial catalog evidence: exact SHA
 `a942c805b9691c6f0790d49c99d85943610b991d`,
 [Coordinator report](https://github.com/ontripai/cladora-website/issues/463#issuecomment-6312584982).
+
+## Official-source follow-up
+
+The official pgTAP [1.3.3 to 1.3.4 comparison](https://github.com/theory/pgtap/compare/v1.3.3...v1.3.4)
+and the SQL sources at both tags were inspected: all 15 overload definitions
+in these eight function families are byte-identical. An upgrade to 1.3.4 is
+therefore not a demonstrated fix for these diagnostics and was not performed.
+
+The [CLI 2.84.2 mass-check query](https://github.com/supabase/cli/blob/v2.84.2/internal/db/lint/templates/check.sql)
+checks every PL/pgSQL function in a schema, including extension members, using
+the checker's default context. The [checker 2.7 SQL contract](https://github.com/okbob/plpgsql_check/blob/v2.7.0/plpgsql_check--2.7.sql)
+defaults its historically misspelled `anyelememttype` argument to integer.
+Its [documented temporary-table limitations](https://github.com/okbob/plpgsql_check/blob/v2.7.0/README.md#temporary-tables)
+are relevant to TAP session caches.
+
+`scripts/sql/advisor-extension-context-probe.sql` is a separate rollback-only
+experiment, not a replacement for global lint. It retains raw diagnostics for
+18 cold/default, initialized/default and initialized/typed observations. Exact
+version, checker membership/signature, original function hashes, completeness
+and rollback are gated. The warm/typed hypotheses must pass in disposable CI
+before their results can be claimed. The global eight-error inventory is
+unchanged; this experiment does not mark any finding resolved or grant Release.

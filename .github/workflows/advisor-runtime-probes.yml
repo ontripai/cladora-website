@@ -9,6 +9,8 @@ on:
       - 'scripts/test-assets-current-authority.mjs'
       - 'scripts/test-assets-descriptor-lint.mjs'
       - 'scripts/test-pgtap-session-probe.mjs'
+      - 'scripts/test-advisor-extension-context.mjs'
+      - 'scripts/sql/advisor-extension-context-probe.sql'
       - 'scripts/start-local-supabase-staged-service-s4.sh'
       - 'supabase/config.toml'
       - 'supabase/migrations/**'
@@ -57,6 +59,7 @@ jobs:
         run: |
           node scripts/check-database-package.mjs
           node "$PROBE_SCRIPT"
+          node scripts/test-advisor-extension-context.mjs
       - name: Validate the Assets delta and actual GET handler (mocked Auth/RPC)
         if: matrix.probe == 'assets-actual-role'
         run: |
@@ -113,6 +116,9 @@ jobs:
             supabase db lint --local --schema assets --level error --fail-on error
           else
             supabase test db --local "$PROBE_SQL" supabase/tests/219_advisor_upstream_extension_catalog_v1_test.sql
+            psql --help
+            psql --no-psqlrc --set ON_ERROR_STOP=1 postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+              --file scripts/sql/advisor-extension-context-probe.sql
           fi
       - name: Always tear down only this job-created disposable project
         if: always() && env.ADVISOR_CI_OWNS_FRESH_DAEMON == '1'
