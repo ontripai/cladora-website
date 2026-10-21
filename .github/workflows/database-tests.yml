@@ -6,6 +6,15 @@ on:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
       - "scripts/check-database-package.mjs"
+      - "scripts/core-building-setup-http-proof.mjs"
+      - "scripts/lib/core-building-setup-http-fixture.mjs"
+      - "scripts/test-core-building-setup-http-safety.mjs"
+      - "scripts/provision-building-setup-http-ci.mjs"
+      - "scripts/test-building-setup-http-ci-provisioner.mjs"
+      - "src/app/api/customer/v1/onboarding/building-setup/**"
+      - "src/app/api/customer/v1/pilot-reviewer/route.ts"
+      - "src/lib/supabase/env.ts"
+      - "src/lib/supabase/server.ts"
       - "scripts/check-advisor-upstream-diagnostics.mjs"
       - "scripts/test-financial-close-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
@@ -136,6 +145,15 @@ on:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
       - "scripts/check-database-package.mjs"
+      - "scripts/core-building-setup-http-proof.mjs"
+      - "scripts/lib/core-building-setup-http-fixture.mjs"
+      - "scripts/test-core-building-setup-http-safety.mjs"
+      - "scripts/provision-building-setup-http-ci.mjs"
+      - "scripts/test-building-setup-http-ci-provisioner.mjs"
+      - "src/app/api/customer/v1/onboarding/building-setup/**"
+      - "src/app/api/customer/v1/pilot-reviewer/route.ts"
+      - "src/lib/supabase/env.ts"
+      - "src/lib/supabase/server.ts"
       - "scripts/test-financial-close-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
@@ -269,11 +287,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Offline Building Setup CI binding controls (no runtime)
+        run: node --test scripts/test-building-setup-http-ci-provisioner.mjs
       - run: npm run test:retention
       - run: npm run test:documents-country-retention-resolution
       - run: npm run test:documents-country-retention-operation
@@ -658,7 +681,61 @@ jobs:
           node scripts/check-advisor-upstream-diagnostics.mjs --input "$advisor_raw"
       - name: Show service status on failure
         if: failure()
-        run: supabase status || true
+        run: node scripts/provision-building-setup-http-ci.mjs --safe-status
       - name: Stop ephemeral database
         if: always()
         run: timeout 60s supabase stop --no-backup
+
+
+  # Preparation only. No execution SHA, environment approval or run lease exists.
+  # A separate reviewed execution plan must enable this job AND populate the
+  # helper's REVIEWED_EXECUTION_PLAN. Env flags/files cannot grant execution.
+  building-setup-core-http:
+    if: ${{ false }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    environment: building-setup-core-http
+    concurrency:
+      group: building-setup-core-http-${{ github.run_id }}-${{ github.run_attempt }}
+      cancel-in-progress: false
+    env:
+      # This is source selection only, never proof of execution authorization.
+      CLADORA_APPROVED_EXECUTION_SHA: ${{ vars.BUILDING_SETUP_HTTP_EXECUTION_SHA }}
+    steps:
+      - name: Checkout the actual approved Core branch (no synthetic rename)
+        uses: actions/checkout@v4
+        with:
+          ref: codex/core-building-setup-connected-http
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require the separately approved exact integrated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = codex/core-building-setup-connected-http
+          [[ "$CLADORA_APPROVED_EXECUTION_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$CLADORA_APPROVED_EXECUTION_SHA"
+          git merge-base --is-ancestor 87ddb06877fb31f562ba66477d14f7bc453a17ee HEAD
+          git merge-base --is-ancestor 37115e2a77f4c7e24f2de884cc808706f361dcdb HEAD
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.84.2
+      - name: Platform provisioner and separately delegated Core proof lane
+        run: node scripts/provision-building-setup-http-ci.mjs --run
+        env:
+          # Only read native protected-environment run approvals; not passed to Next/Core.
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Require actual final release evidence, including failure/cancellation
+        if: always()
+        run: node scripts/provision-building-setup-http-ci.mjs --release-evidence
+        # Missing/unfinished evidence fails closed. always() does not prove
+        # cleanup on runner loss or the workflow's hard timeout/cancellation.
