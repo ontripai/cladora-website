@@ -139,6 +139,8 @@ select is((select count(*)::integer from identity.memberships where id=pg_temp.c
  'R1 membership row stays hidden to the minimal invoker');
 select is((select count(*)::integer from identity.context_grants where id=pg_temp.core_mobile_id(101)),0,
  'R1 Context row stays hidden to the minimal invoker');
+select is((select count(*)::integer from portfolio.buildings where id=pg_temp.core_mobile_id(40)),0,
+ 'R2 native Building stays RLS withheld');
 insert into core_mobile_result values('first',pg_temp.core_mobile_create('core-mobile-exact-211'));
 select is((pg_temp.core_mobile_create('core-mobile-exact-211')->>'payment_intent_id')::uuid,
  pg_temp.core_mobile_intent(),'exact replay returns same ID');
@@ -155,6 +157,18 @@ select lives_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_
  'R1 legitimate owner GET must succeed with authenticated/minimal claims/RLS');
 select lives_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,
  'R1 legitimate owner instruction must succeed with authenticated/minimal claims/RLS');
+-- Direct helper, wrapper and instruction are distinct probes above/below.
+select lives_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,
+ 'R2 direct helper succeeds under authenticated/minimal claims/RLS');
+select is(app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent()),
+ customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent()),'thin GET returns exactly the reader projection');
+select results_eq($$select jsonb_object_keys(app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())) order by 1$$,
+ $$select unnest(array['payment_intent_id','tenant_id','property_id','unit_id','amount','currency','status','payment_method',
+ 'client_reference','beneficiary','allocation_policy','selected_invoices','expires_at','created_at','settled_at']) order by 1$$,
+ 'R2 exact existing GET key allowlist');
+select ok(app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())::text
+ !~ 'configuration_snapshot|request_identity|RO37BTRL0000000000000001|vault_secret|decrypted_secret',
+ 'R2 GET projection contains no request internals or full IBAN/Vault secret');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',71,10,'bank_transfer',10,55)$$,'42501','payment_unit_access_denied','private Unit cannot be treated as official Unit');
 insert into core_mobile_result values('ordered', customer_api.create_payment_intent_v1(
  pg_temp.core_mobile_id(101),pg_temp.core_mobile_id(51),
@@ -183,8 +197,52 @@ update identity.context_grants set unit_id=pg_temp.core_mobile_id(52) where id=p
 set local role authenticated;
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',72,10,'bank_transfer',10,52)$$,'23505','payment_idempotency_conflict','changed authorized Unit still conflicts on same key');
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','narrowed Context cannot read historic Unit');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','narrowed Context cannot read historic Unit');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','direct helper: narrowed Context cannot read historic Unit');
 reset role;
 rollback to before_scope;
+
+savepoint r2_native_scope;
+update identity.context_grants set scope_type='tenant',property_id=null,building_id=null,unit_id=null where id=pg_temp.core_mobile_id(101);
+set local role authenticated;
+select lives_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'app_private.read_payment_intent_scoped_v1 accepts canonical tenant ceiling for own intent');
+select lives_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'customer_api.get_payment_intent_v1 accepts canonical tenant ceiling for own intent');
+select lives_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'customer_api.generate_bank_instruction_v1 accepts canonical tenant ceiling for own intent');
+reset role;
+rollback to r2_native_scope;
+savepoint r2_native_scope;
+update identity.context_grants set scope_type='property',property_id=pg_temp.core_mobile_id(30),building_id=null,unit_id=null where id=pg_temp.core_mobile_id(101);
+set local role authenticated;
+select lives_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'app_private.read_payment_intent_scoped_v1 accepts canonical property ceiling for own intent');
+select lives_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'customer_api.get_payment_intent_v1 accepts canonical property ceiling for own intent');
+select lives_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'customer_api.generate_bank_instruction_v1 accepts canonical property ceiling for own intent');
+reset role;
+rollback to r2_native_scope;
+savepoint r2_native_scope;
+update identity.context_grants set scope_type='building',property_id=null,building_id=pg_temp.core_mobile_id(40),unit_id=null where id=pg_temp.core_mobile_id(101);
+set local role authenticated;
+select lives_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'app_private.read_payment_intent_scoped_v1 accepts canonical building ceiling for own intent');
+select lives_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'customer_api.get_payment_intent_v1 accepts canonical building ceiling for own intent');
+select lives_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'customer_api.generate_bank_instruction_v1 accepts canonical building ceiling for own intent');
+reset role;
+rollback to r2_native_scope;
+
+savepoint r2_hierarchy;
+update identity.context_grants set building_id=pg_temp.core_mobile_id(50) where id=pg_temp.core_mobile_id(101);
+set local role authenticated;
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','app_private.read_payment_intent_scoped_v1 rejects mismatched Context building_id ceiling');
+select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','customer_api.get_payment_intent_v1 rejects mismatched Context building_id ceiling');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','customer_api.generate_bank_instruction_v1 rejects mismatched Context building_id ceiling');
+reset role;
+rollback to r2_hierarchy;
+savepoint r2_hierarchy;
+update identity.context_grants set property_id=pg_temp.core_mobile_id(40) where id=pg_temp.core_mobile_id(101);
+set local role authenticated;
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','app_private.read_payment_intent_scoped_v1 rejects mismatched Context property_id ceiling');
+select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','customer_api.get_payment_intent_v1 rejects mismatched Context property_id ceiling');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payment_unit_access_denied','customer_api.generate_bank_instruction_v1 rejects mismatched Context property_id ceiling');
+reset role;
+rollback to r2_hierarchy;
 
 -- Legacy rows cannot establish equality from the all-outstanding projection.
 update payments.payment_intents set configuration_snapshot=configuration_snapshot-'request_identity_v1'
@@ -193,11 +251,51 @@ set local role authenticated;
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'23505','payment_idempotency_conflict','legacy unknown identity fails closed');
 reset role;
 
+-- Independent missing-actor and anonymous SQL entry-point checks.
+set local role authenticated;
+select set_config('request.jwt.claims','{}',true);
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','authentication_required','app_private.read_payment_intent_scoped_v1 rejects missing actor');
+select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','authentication_required','customer_api.get_payment_intent_v1 rejects missing actor');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','authentication_required','customer_api.generate_bank_instruction_v1 rejects missing actor');
+reset role;
+set local role anon;
+select throws_ok($$select app_private.read_payment_intent_scoped_v1('c2110000-0000-4000-8000-000000000101'::uuid,'c2110000-0000-4000-8000-000000000999'::uuid)$$,'42501',NULL,'app_private.read_payment_intent_scoped_v1 rejects anonymous invocation');
+select throws_ok($$select customer_api.get_payment_intent_v1('c2110000-0000-4000-8000-000000000101'::uuid,'c2110000-0000-4000-8000-000000000999'::uuid)$$,'42501',NULL,'customer_api.get_payment_intent_v1 rejects anonymous invocation');
+select throws_ok($$select customer_api.generate_bank_instruction_v1('c2110000-0000-4000-8000-000000000101'::uuid,'c2110000-0000-4000-8000-000000000999'::uuid)$$,'42501',NULL,'customer_api.generate_bank_instruction_v1 rejects anonymous invocation');
+reset role;
+select set_config('request.jwt.claims','{"sub":"c2110000-0000-4000-8000-000000000001","aal":"aal2"}',true);
+set local role authenticated;
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_id(999))$$,'22023','payment_intent_not_found','app_private.read_payment_intent_scoped_v1 rejects unknown intent');
+select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_id(999))$$,'22023','payment_intent_not_found','customer_api.get_payment_intent_v1 rejects unknown intent');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_id(999))$$,'22023','payment_intent_not_found','customer_api.generate_bank_instruction_v1 rejects unknown intent');
+reset role;
+savepoint r2_context_revoke;
+delete from identity.context_grants where id=pg_temp.core_mobile_id(101);
+set local role authenticated;
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','app_private.read_payment_intent_scoped_v1 rejects revoked Context');
+select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','customer_api.get_payment_intent_v1 rejects revoked Context');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','customer_api.generate_bank_instruction_v1 rejects revoked Context');
+reset role;
+rollback to r2_context_revoke;
+
+-- Existing customer MFA policy applies inside the helper as well.
+savepoint r2_mfa;
+update identity.memberships set role_id=(select id from identity.roles where tenant_id is null and code='association_admin')
+ where id=pg_temp.core_mobile_id(91);
+set local role authenticated;
+select set_config('request.jwt.claims','{"sub":"c2110000-0000-4000-8000-000000000001","aal":"aal1"}',true);
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','mfa_required','app_private.read_payment_intent_scoped_v1 preserves existing elevated-customer MFA policy');
+select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','mfa_required','customer_api.get_payment_intent_v1 preserves existing elevated-customer MFA policy');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','mfa_required','customer_api.generate_bank_instruction_v1 preserves existing elevated-customer MFA policy');
+reset role;
+rollback to r2_mfa;
+
 -- Revocation/expiry are genuine row mutations on the isolated fixture only.
 savepoint before_revoke;
 update identity.context_grants set ends_at=statement_timestamp()-interval '1 second' where id=pg_temp.core_mobile_id(101);
 set local role authenticated;
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','expired Context denies GET');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','expired Context denies GET');
 select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','expired Context denies instruction');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'42501','customer_context_access_denied','expired Context denies replay before fingerprint lookup');
 reset role;
@@ -205,6 +303,7 @@ rollback to before_revoke;
 update identity.memberships set ends_at=statement_timestamp()-interval '1 second' where id=pg_temp.core_mobile_id(91);
 set local role authenticated;
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','expired membership denies GET');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','expired membership denies GET');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'42501','customer_context_access_denied','expired membership denies replay');
 select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','expired membership denies instruction');
 reset role;
@@ -212,6 +311,7 @@ rollback to before_revoke;
 update identity.memberships set status='suspended' where id=pg_temp.core_mobile_id(91);
 set local role authenticated;
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','revoked membership denies GET');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','revoked membership denies GET');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'42501','customer_context_access_denied','revoked membership denies replay');
 select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','revoked membership denies instruction');
 reset role;
@@ -219,12 +319,16 @@ rollback to before_revoke;
 update identity.context_grants set starts_at=statement_timestamp()+interval '1 day' where id=pg_temp.core_mobile_id(101);
 set local role authenticated;
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','future Context denies GET');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','future Context denies GET');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','future Context denies GET');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'42501','customer_context_access_denied','future Context denies replay');
 reset role;
 rollback to before_revoke;
 update identity.memberships set starts_at=statement_timestamp()+interval '1 day' where id=pg_temp.core_mobile_id(91);
 set local role authenticated;
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','future membership denies GET');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','future membership denies GET');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','future membership denies GET');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'42501','customer_context_access_denied','future membership denies replay');
 reset role;
 rollback to before_revoke;
@@ -232,6 +336,7 @@ update identity.memberships set role_id=(select id from identity.roles where ten
 where id=pg_temp.core_mobile_id(91);
 set local role authenticated;
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payments_permission_required','membership without canonical read permission denies GET');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payments_permission_required','membership without canonical read permission denies GET');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'42501','payments_permission_required','membership without create permission denies replay');
 select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payments_permission_required','no read permission denies instruction');
 reset role;
@@ -239,6 +344,7 @@ rollback to before_revoke;
 update platform.workspace_entitlements set boolean_value=false where customer_workspace_id=pg_temp.core_mobile_id(160) and entitlement_key='module.payments';
 set local role authenticated;
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payments_entitlement_required','no current entitlement denies GET');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payments_entitlement_required','no current entitlement denies GET');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211')$$,'42501','payments_entitlement_required','no current entitlement denies replay');
 select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','payments_entitlement_required','no current entitlement denies instruction');
 reset role;
@@ -247,10 +353,16 @@ rollback to before_revoke;
 set local role authenticated;
 select set_config('request.jwt.claims','{"sub":"c2110000-0000-4000-8000-000000000002","aal":"aal2"}',true);
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','foreign actor cannot borrow owner Context');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','foreign actor cannot borrow owner Context');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(101),pg_temp.core_mobile_intent())$$,'42501','customer_context_access_denied','direct helper: foreign actor cannot borrow owner Context');
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(102),pg_temp.core_mobile_intent())$$,'42501','payment_intent_access_denied','foreign payer cannot read historic ID');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(102),pg_temp.core_mobile_intent())$$,'42501','payment_intent_access_denied','foreign payer cannot read historic ID');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(102),pg_temp.core_mobile_intent())$$,'42501','payment_intent_access_denied','direct helper: foreign payer cannot read historic ID');
 select throws_ok($$select pg_temp.core_mobile_create('core-mobile-exact-211',72,10,'bank_transfer',10,52,'RON',102)$$,'23505','payment_idempotency_conflict','same tenant key belongs to original actor');
 select set_config('request.jwt.claims','{"sub":"c2110000-0000-4000-8000-000000000003","aal":"aal2"}',true);
 select throws_ok($$select customer_api.get_payment_intent_v1(pg_temp.core_mobile_id(103),pg_temp.core_mobile_intent())$$,'22023','payment_intent_not_found','foreign tenant cannot find intent');
+select throws_ok($$select customer_api.generate_bank_instruction_v1(pg_temp.core_mobile_id(103),pg_temp.core_mobile_intent())$$,'22023','payment_intent_not_found','foreign tenant cannot find intent');
+select throws_ok($$select app_private.read_payment_intent_scoped_v1(pg_temp.core_mobile_id(103),pg_temp.core_mobile_intent())$$,'22023','payment_intent_not_found','direct helper: foreign tenant cannot find intent');
 select ok((pg_temp.core_mobile_create('core-mobile-exact-211',73,10,'bank_transfer',10,53,'RON',103)->>'payment_intent_id')::uuid
  <> pg_temp.core_mobile_intent(),'same key in other tenant is independent, not an old-tenant replay');
 reset role;
@@ -267,5 +379,32 @@ select results_eq($$select (select count(*) from payments.payments),(select coun
  from core_mobile_financial_before$$,'no financial effects or private/official crossover, counts and content');
 select ok(not (select prosecdef from pg_proc where oid='customer_api.get_payment_intent_v1(uuid,uuid)'::regprocedure),'GET remains invoker');
 select ok(not (select prosecdef from pg_proc where oid='customer_api.create_payment_intent_v1(uuid,uuid,jsonb,numeric,text,text,text)'::regprocedure),'creation wrapper remains invoker');
+-- These are actual-catalog checks only when pgTAP runs on the authorized DB.
+select is((select proowner from pg_proc where oid='app_private.read_payment_intent_scoped_v1(uuid,uuid)'::regprocedure),
+ (select proowner from pg_proc where oid='app_private.create_payment_intent_scoped_v1(uuid,uuid,jsonb,numeric,text,text,text)'::regprocedure),
+ 'R2 reader owner matches the existing scoped creation owner');
+select diag('R2 actual reader owner: ' || pg_get_userbyid(proowner)) from pg_proc
+ where oid='app_private.read_payment_intent_scoped_v1(uuid,uuid)'::regprocedure;
+select ok((select prosecdef and provolatile='s' and proconfig=array['search_path=pg_catalog']
+ and pronargs=2 and proargtypes='2950 2950'::oidvector and prorettype='jsonb'::regtype
+ from pg_proc where oid='app_private.read_payment_intent_scoped_v1(uuid,uuid)'::regprocedure),
+ 'R2 private reader is STABLE definer, fixed path, only two UUID inputs, JSONB output');
+select ok((select not prosecdef and provolatile='s' and proconfig=array['search_path=pg_catalog']
+ from pg_proc where oid='customer_api.get_payment_intent_v1(uuid,uuid)'::regprocedure),'R2 wrapper stays STABLE invoker with fixed path');
+select ok(has_schema_privilege('authenticated','app_private','USAGE'),'R2 uses existing private-schema USAGE');
+select ok(has_function_privilege('authenticated','app_private.read_payment_intent_scoped_v1(uuid,uuid)','EXECUTE')
+ and not has_function_privilege('anon','app_private.read_payment_intent_scoped_v1(uuid,uuid)','EXECUTE')
+ and not has_function_privilege('service_role','app_private.read_payment_intent_scoped_v1(uuid,uuid)','EXECUTE'),
+ 'R2 authenticated EXECUTE, no anonymous or service role access');
+select is((select count(*)::integer from pg_proc p,
+ lateral aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) acl
+ where p.oid='app_private.read_payment_intent_scoped_v1(uuid,uuid)'::regprocedure
+ and (acl.grantee not in (p.proowner,'authenticated'::regrole) or acl.is_grantable and acl.grantee<>p.proowner)),0,
+ 'R2 no PUBLIC/default extra grantee or delegated grant option');
+select diag('R2 actual wrapper owner: ' || pg_get_userbyid(proowner) || '; ACL: ' || coalesce(proacl::text,'default'))
+ from pg_proc where oid='customer_api.get_payment_intent_v1(uuid,uuid)'::regprocedure;
+select ok(has_function_privilege('authenticated','customer_api.get_payment_intent_v1(uuid,uuid)','EXECUTE')
+ and not has_function_privilege('anon','customer_api.get_payment_intent_v1(uuid,uuid)','EXECUTE'),
+ 'R2 existing public GET execute contract remains authenticated-only versus anon');
 select * from finish();
 rollback;

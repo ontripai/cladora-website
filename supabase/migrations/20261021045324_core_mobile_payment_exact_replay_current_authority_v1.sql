@@ -1,8 +1,8 @@
 begin;
 
--- CORE-MOBILE-PAYMENT-SERVER-PROOF-02: existing function bodies only.
--- No table/column/ACL/settlement/provider changes. CREATE OR REPLACE preserves
--- existing owners and grants; exposed functions remain SECURITY INVOKER.
+-- CORE-MOBILE-PAYMENT-SERVER-PROOF-02 / Coordinator R2: one private reader
+-- with narrow function EXECUTE; no table/schema grants or RLS changes.
+-- Existing function owners/ACLs are preserved; exposed RPCs remain invoker.
 
 create or replace function app_private.create_payment_intent_scoped_v1(
   p_context_id uuid,
@@ -287,14 +287,14 @@ end;
 $$;
 
 
-CREATE OR REPLACE FUNCTION customer_api.get_payment_intent_v1(
-  p_context_id uuid,
-  p_intent_id uuid
+CREATE OR REPLACE FUNCTION app_private.read_payment_intent_scoped_v1(
+  p_context_id pg_catalog.uuid,
+  p_intent_id pg_catalog.uuid
 )
-RETURNS jsonb
+RETURNS pg_catalog.jsonb
 LANGUAGE plpgsql
 STABLE
-SECURITY INVOKER
+SECURITY DEFINER
 SET search_path = pg_catalog
 AS $function$
 DECLARE
@@ -305,22 +305,31 @@ BEGIN
     RAISE EXCEPTION 'authentication_required' USING errcode = '42501';
   END IF;
 
-  SELECT g.*, m.id AS membership_key, m.role_id, r.code AS role_code
+  -- Reuse the existing customer MFA policy, not caller-selected authority.
+  IF app_private.customer_mfa_required() AND coalesce(auth.jwt()->>'aal','aal1') <> 'aal2' THEN
+    RAISE EXCEPTION 'mfa_required' USING errcode = '42501';
+  END IF;
+
+  SELECT g.tenant_id, g.scope_type, g.property_id, g.building_id, g.unit_id,
+         m.role_id, r.code AS role_code
   INTO v
   FROM identity.context_grants g
   JOIN identity.memberships m ON m.id = g.membership_id AND m.tenant_id = g.tenant_id
   JOIN identity.roles r ON r.id = m.role_id
   WHERE g.id = p_context_id
     AND m.user_id = auth.uid()
+    AND (r.tenant_id IS NULL OR r.tenant_id=m.tenant_id)
     AND m.status = 'active'
-    AND m.starts_at <= statement_timestamp() AND (m.ends_at IS NULL OR m.ends_at > statement_timestamp())
-    AND g.starts_at <= statement_timestamp() AND (g.ends_at IS NULL OR g.ends_at > statement_timestamp());
+    AND m.starts_at <= pg_catalog.statement_timestamp() AND (m.ends_at IS NULL OR m.ends_at > pg_catalog.statement_timestamp())
+    AND g.starts_at <= pg_catalog.statement_timestamp() AND (g.ends_at IS NULL OR g.ends_at > pg_catalog.statement_timestamp());
 
   IF NOT FOUND THEN
     RAISE EXCEPTION 'customer_context_access_denied' USING errcode = '42501';
   END IF;
 
   -- Current read authority, independent of historic intent possession.
+  -- Legacy first-active-Workspace entitlement lookup is retained. This is
+  -- NOT evidence of exact-Workspace authority. No new Workspace is inferred.
   PERFORM payments.assert_payments_module_entitled(v.tenant_id);
   IF NOT EXISTS (
     SELECT 1 FROM identity.role_permissions rp
@@ -330,7 +339,10 @@ BEGIN
     RAISE EXCEPTION 'payments_permission_required' USING errcode='42501';
   END IF;
 
-  SELECT * INTO v_intent
+  SELECT id, tenant_id, property_id, unit_id, payer_user_id, amount, currency,
+         status, payment_method, client_reference, beneficiary_snapshot,
+         allocation_policy_snapshot, selected_invoices_snapshot, expires_at,
+         created_at, settled_at INTO v_intent
   FROM payments.payment_intents
   WHERE id = p_intent_id AND tenant_id = v.tenant_id;
 
@@ -339,14 +351,19 @@ BEGIN
   END IF;
 
   -- Resident / Owner must match payer or unit
-  IF lower(v.role_code) IN ('owner', 'tenant_resident') AND v_intent.payer_user_id <> auth.uid() THEN
+  IF pg_catalog.lower(v.role_code) IN ('owner', 'tenant_resident') AND v_intent.payer_user_id IS DISTINCT FROM auth.uid() THEN
     RAISE EXCEPTION 'payment_intent_access_denied' USING errcode = '42501';
   END IF;
 
   IF NOT EXISTS (
     SELECT 1 FROM portfolio.units u
     JOIN portfolio.buildings b ON b.id=u.building_id AND b.tenant_id=u.tenant_id
+    JOIN portfolio.properties property ON property.id=b.property_id AND property.tenant_id=b.tenant_id
     WHERE u.id=v_intent.unit_id AND u.tenant_id=v.tenant_id
+      AND v_intent.property_id=property.id
+      AND (v.property_id IS NULL OR v.property_id=property.id)
+      AND (v.building_id IS NULL OR v.building_id=b.id)
+      AND (v.unit_id IS NULL OR v.unit_id=u.id)
       AND (v.scope_type='tenant'
         OR (v.scope_type='property' AND v.property_id=b.property_id)
         OR (v.scope_type='building' AND v.building_id=b.id)
@@ -355,7 +372,7 @@ BEGIN
     RAISE EXCEPTION 'payment_unit_access_denied' USING errcode='42501';
   END IF;
 
-  RETURN jsonb_build_object(
+  RETURN pg_catalog.jsonb_build_object(
     'payment_intent_id', v_intent.id,
     'tenant_id', v_intent.tenant_id,
     'property_id', v_intent.property_id,
@@ -373,6 +390,54 @@ BEGIN
     'settled_at', v_intent.settled_at
   );
 END;
+$function$;
+
+
+-- Fail closed if the migration executor does not already own the scoped creation
+-- boundary. Do not assume postgres, transfer ownership, or expand a role's rights.
+DO $owner_check$
+BEGIN
+  IF (SELECT proowner FROM pg_catalog.pg_proc
+      WHERE oid='app_private.read_payment_intent_scoped_v1(uuid,uuid)'::pg_catalog.regprocedure)
+     IS DISTINCT FROM
+     (SELECT proowner FROM pg_catalog.pg_proc
+      WHERE oid='app_private.create_payment_intent_scoped_v1(uuid,uuid,jsonb,numeric,text,text,text)'::pg_catalog.regprocedure)
+  THEN
+    RAISE EXCEPTION 'payment_read_helper_owner_mismatch';
+  END IF;
+END;
+$owner_check$;
+
+REVOKE EXECUTE ON FUNCTION app_private.read_payment_intent_scoped_v1(uuid,uuid) FROM PUBLIC, anon, service_role, authenticated;
+GRANT EXECUTE ON FUNCTION app_private.read_payment_intent_scoped_v1(uuid,uuid) TO authenticated;
+
+-- Reject unexpected per-role default ACLs too, without rewriting shared defaults.
+DO $acl_check$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_catalog.pg_proc p,
+      LATERAL pg_catalog.aclexplode(coalesce(p.proacl,pg_catalog.acldefault('f',p.proowner))) acl
+    WHERE p.oid='app_private.read_payment_intent_scoped_v1(uuid,uuid)'::pg_catalog.regprocedure
+      AND acl.grantee NOT IN (p.proowner, 'authenticated'::pg_catalog.regrole)
+  ) OR pg_catalog.has_function_privilege('service_role',
+    'app_private.read_payment_intent_scoped_v1(uuid,uuid)','EXECUTE')
+    OR NOT pg_catalog.has_schema_privilege('authenticated','app_private','USAGE') THEN
+    RAISE EXCEPTION 'payment_read_helper_acl_or_schema_usage_mismatch';
+  END IF;
+END;
+$acl_check$;
+
+CREATE OR REPLACE FUNCTION customer_api.get_payment_intent_v1(
+  p_context_id uuid,
+  p_intent_id uuid
+)
+RETURNS jsonb
+LANGUAGE sql
+STABLE
+SECURITY INVOKER
+SET search_path = pg_catalog
+AS $function$
+  SELECT app_private.read_payment_intent_scoped_v1(p_context_id, p_intent_id);
 $function$;
 
 
