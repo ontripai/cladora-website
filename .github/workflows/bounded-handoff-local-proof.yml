@@ -1,0 +1,184 @@
+name: Bounded handoff local proof
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/bounded-handoff-local-proof.yml'
+      - 'scripts/check-database-package.mjs'
+      - 'scripts/core-mobile-payment-server-proof.mjs'
+      - 'scripts/lib/core-mobile-payment-fixture.mjs'
+      - 'scripts/lib/pf01-owner-portfolio-local-fixture.mjs'
+      - 'scripts/lib/ap10-*.mjs'
+      - 'scripts/test-ce-communications-canonical-unit-api.mjs'
+      - 'scripts/test-documents-canonical-unit-link-api.mjs'
+      - 'scripts/test-service-mobile-denial-browser.mjs'
+      - 'scripts/start-local-supabase-staged-service-s4.sh'
+      - 'src/app/api/customer/v1/payments/**'
+      - 'src/app/api/customer/v1/communications/route.ts'
+      - 'src/app/api/customer/v1/documents/route.ts'
+      - 'src/components/customer/CustomerServiceRequests.tsx'
+      - 'src/components/customer/CustomerContextProvider.tsx'
+      - 'src/components/customer/ServicePilotSelfPerson.tsx'
+      - 'src/components/dashboard-lab/DashboardTransport.tsx'
+      - 'src/lib/supabase/**'
+      - 'src/styles/globals.css'
+      - 'supabase/config.toml'
+      - 'supabase/migrations/**'
+      - 'supabase/tests/211_core_mobile_payment_authority_v1_test.sql'
+      - 'supabase/tests/212_ce_communications_canonical_unit_v1_test.sql'
+      - 'supabase/tests/213_documents_canonical_unit_link_v1_test.sql'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'next.config.mjs'
+      - 'tailwind.config.js'
+
+permissions:
+  contents: read
+
+# A fresh runner owns a distinct local daemon; never cancel graceful teardown.
+concurrency:
+  group: bounded-handoff-local-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  consumer-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Validate integrated migration and pgTAP package (static only)
+        run: node scripts/check-database-package.mjs
+      - name: Check only the handoff scripts
+        run: >-
+          npx eslint --max-warnings=0
+          scripts/core-mobile-payment-server-proof.mjs
+          scripts/lib/core-mobile-payment-fixture.mjs
+          scripts/test-ce-communications-canonical-unit-api.mjs
+          scripts/test-documents-canonical-unit-link-api.mjs
+          scripts/test-service-mobile-denial-browser.mjs
+      - name: Verify latest scoped payment definitions (source only)
+        run: node scripts/core-mobile-payment-server-proof.mjs --source-check
+      - name: Exercise actual CE and Documents GET handlers (mocked DB boundary)
+        run: |
+          node scripts/test-ce-communications-canonical-unit-api.mjs
+          node scripts/test-documents-canonical-unit-link-api.mjs
+      - name: SERVICE real Chromium with synthetic transport (not connected DB)
+        run: node scripts/test-service-mobile-denial-browser.mjs
+      - name: SERVICE injected-failure owned-resource cleanup
+        run: node scripts/test-service-mobile-denial-browser.mjs --inject-failure
+
+  core-connected-local-proof:
+    needs: consumer-contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Set up the reviewed official CLI version
+        uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3
+        with:
+          version: 2.84.2
+      - name: Discover the pinned local-only CLI commands
+        run: |
+          supabase --version
+          supabase --help
+          supabase start --help
+          supabase migration up --help
+          supabase test db --help
+          supabase status --help
+          supabase stop --help
+      - run: npm ci
+      - name: Bind the CI-only lease to this fresh job before startup
+        shell: bash
+        env:
+          PROOF_RUN_ID: ${{ github.run_id }}
+          PROOF_RUN_ATTEMPT: ${{ github.run_attempt }}
+          PROOF_JOB: ${{ github.job }}
+        run: |
+          set -euo pipefail
+          # No borrowed/shared local stack is eligible for destructive opt-in.
+          existing_containers="$(docker ps -aq)"
+          if [[ -n "$existing_containers" ]]; then
+            echo '::error::Pre-existing containers: refusing to claim this daemon'
+            exit 1
+          fi
+          echo "CI-only lease: run=$PROOF_RUN_ID attempt=$PROOF_RUN_ATTEMPT job=$PROOF_JOB sha=$(git rev-parse HEAD)"
+          echo 'Lease contract: https://github.com/ontripai/cladora-website/issues/463#issuecomment-6309625260'
+          echo 'CORE_MOBILE_CI_OWNS_FRESH_DAEMON=1' >> "$GITHUB_ENV"
+      - name: Start official disposable stack with staged local STEP-SU-02 and S4
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CORE_MOBILE_CI_OWNS_FRESH_DAEMON" = 1
+          start_log="$RUNNER_TEMP/bounded-handoff-start.log"
+          trap 'rm -f "$start_log"' EXIT
+          if ! CLADORA_LOCAL_STEP_SU_02_AUTHORIZED=1 \
+            bash scripts/start-local-supabase-staged-service-s4.sh start >"$start_log" 2>&1; then
+            echo '::error::Disposable startup/migration failed; credential-bearing CLI output withheld'
+            exit 1
+          fi
+          echo 'Official local STEP-SU-02/S4 startup: PASS'
+      - name: Run new actual PostgreSQL regressions (rollback-only fixtures)
+        run: >-
+          supabase test db
+          supabase/tests/211_core_mobile_payment_authority_v1_test.sql
+          supabase/tests/212_ce_communications_canonical_unit_v1_test.sql
+          supabase/tests/213_documents_canonical_unit_link_v1_test.sql
+      - name: Core real Next to genuine local Auth and PostgreSQL proof
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$CORE_MOBILE_CI_OWNS_FRESH_DAEMON" = 1
+          status_json="$(supabase status --output json)"
+          anon_key="$(jq -r '.ANON_KEY // empty' <<<"$status_json")"
+          service_key="$(jq -r '.SERVICE_ROLE_KEY // empty' <<<"$status_json")"
+          if [[ -z "$anon_key" || -z "$service_key" ]]; then
+            echo '::error::Generated local Supabase keys are unavailable'
+            exit 1
+          fi
+          echo "::add-mask::$anon_key"
+          echo "::add-mask::$service_key"
+          CORE_MOBILE_PAYMENT_LOCAL_OPT_IN=1 \
+          CORE_MOBILE_PAYMENT_REAL_AUTH_OPT_IN=1 \
+          CORE_MOBILE_PAYMENT_DESTROY_OWNED_STACK=1 \
+          CORE_MOBILE_PAYMENT_LEASE_URL=https://github.com/ontripai/cladora-website/issues/463#issuecomment-6309625260 \
+          CORE_MOBILE_PAYMENT_LOCAL_SUPABASE_URL=http://127.0.0.1:54321 \
+          CORE_MOBILE_PAYMENT_LOCAL_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+          CORE_MOBILE_PAYMENT_LOCAL_ANON_KEY="$anon_key" \
+          CORE_MOBILE_PAYMENT_LOCAL_SERVICE_ROLE_KEY="$service_key" \
+            node --experimental-strip-types scripts/core-mobile-payment-server-proof.mjs --connected
+      - name: Always tear down only this job-created disposable project
+        if: always() && env.CORE_MOBILE_CI_OWNS_FRESH_DAEMON == '1'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cleanup_log="$RUNNER_TEMP/bounded-handoff-cleanup.log"
+          trap 'rm -f "$cleanup_log"' EXIT
+          if ! supabase stop --project-id cladora-local --no-backup >"$cleanup_log" 2>&1; then
+            echo '::error::Task-owned local stack cleanup failed; CLI output withheld'
+            exit 1
+          fi
+          remaining_containers="$(docker ps -a --format '{{.Names}}')"
+          while IFS= read -r container_name; do
+            if [[ "$container_name" == supabase_*_cladora-local ]]; then
+              echo '::error::Task-owned container remains after teardown'
+              exit 1
+            fi
+          done <<< "$remaining_containers"
+          remaining_volumes="$(docker volume ls --filter label=com.supabase.cli.project=cladora-local --format '{{.Name}}')"
+          remaining_networks="$(docker network ls --filter label=com.supabase.cli.project=cladora-local --format '{{.ID}}')"
+          test -z "$remaining_volumes"
+          test -z "$remaining_networks"
+          echo 'Task-owned disposable containers/volumes/network cleanup: PASS'

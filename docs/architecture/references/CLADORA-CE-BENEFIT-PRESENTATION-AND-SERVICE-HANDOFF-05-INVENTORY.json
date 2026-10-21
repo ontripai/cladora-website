@@ -138,8 +138,8 @@
       "owner": "SERVICE",
       "finding": "A Request is created only by an explicit SERVICE form action.",
       "classification": "accepted",
-      "reviewed_commit": "68448754ea1948ed8e422da2e64fe8d647eaf474",
-      "sha256": "ef3f1cd666939dba19ed5cdf06150d78ee8a58ad7fb1f464a76a99cbd261967a"
+      "reviewed_commit": "8330d04504aa3de14fea1e0c13bccb8a7e5cc467",
+      "sha256": "8cfb6baf8fca620b19491519e3adfefd2275f3bf1f475e8f525666a06ea9516d"
     },
     {
       "path": "src/lib/customer/service-catalog-schema.ts",

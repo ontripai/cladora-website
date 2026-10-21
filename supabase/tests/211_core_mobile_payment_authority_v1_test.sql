@@ -1,6 +1,6 @@
 -- CORE-MOBILE-PAYMENT-SERVER-PROOF-02. Run only on the authorized disposable stack.
 begin;
-select no_plan();
+select plan(113);
 
 create temp table core_mobile_users(slot integer primary key, user_id uuid not null);
 insert into auth.users(id,email) select

@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 set local search_path=public,extensions;
-select no_plan();
+select plan(25);
 create function pg_temp.ce212_id(n integer) returns uuid language sql immutable as $$
   select ('21200000-0000-4000-8000-' || lpad(n::text,12,'0'))::uuid
 $$;
