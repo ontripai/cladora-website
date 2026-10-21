@@ -1,10 +1,9 @@
 -- New experiment only: compare the same checker with cold/warm/typed context.
 -- No upstream routine, application object, ACL, role or global setting changes.
 begin;
-set local search_path=pg_catalog,public,extensions,pg_temp;
 do $preflight$
 begin
- if current_setting('server_version_num')<>'170006'
+ if current_schema()<>'public' or current_setting('server_version_num')<>'170006'
   or (select extversion from pg_extension where extname='pgtap') is distinct from '1.3.3'
   or exists(select 1 from pg_extension where extname='plpgsql_check')
   or to_regclass('__tcache__') is not null
@@ -14,6 +13,7 @@ begin
 end;
 $preflight$;
 create extension if not exists plpgsql_check;
+set local search_path=pg_catalog,public,extensions,pg_temp;
 do $checker_contract$
 begin
  if (select extversion from pg_extension where extname='plpgsql_check') is distinct from '2.7'
