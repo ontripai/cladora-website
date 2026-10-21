@@ -1,8 +1,8 @@
 "use client";
 import {useCallback,useEffect,useMemo,useRef,useState} from "react";
 import Link from "next/link";
-import { buildingSetupIdSchema, buildingSetupPayloadSchema, buildingSetupReadSchema, createBuildingSetupSchema } from "@/lib/customer/building-setup-schema";
-import { readSetupRecord, reconcileSetupAttempt, sameSetupPayload, setupSessionSchema, setupStorageKey, type SetupAttempt, type SetupSession, type SetupRecord, type SetupPayload, type SetupAction } from "@/lib/customer/building-workspace-onboarding";
+import { buildingSetupIdSchema, buildingSetupPayloadSchema, buildingSetupReadSchema, buildingSetupReceiptSchema, createBuildingSetupSchema } from "@/lib/customer/building-setup-schema";
+import { readSetupRecord, readSetupAttempt, reconcileSetupAttempt, sameSetupPayload, setupSessionSchema, setupStorageKey, type SetupAttempt, type SetupSession, type SetupRecord, type SetupPayload, type SetupAction } from "@/lib/customer/building-workspace-onboarding";
 import {useCustomerContext} from "./CustomerContextProvider";
 type Lang="ro"|"en"|"fa";type Unit={code:string;floor:string;area:string};type Stage="edit"|"draft"|"rehearsed"|"submitted"|"approved"|"provisioned"|"cancelled";
 const copy={
@@ -15,16 +15,18 @@ const recoveryCopy = {
  fa: { refresh: 'دریافت وضعیت ثبت‌شده', retry: 'بررسی وضعیت و تکرار همان تلاش', unknown: 'نتیجه نامشخص است. همان تلاش حفظ شده است؛ پیش از ادامه وضعیت ثبت‌شده را بررسی کنید.', createUnknown: 'نتیجه ایجاد پیش‌نویس نامشخص است. برای جلوگیری از ثبت تکراری، تلاش ذخیره‌شده قفل است. تطبیق شناسه تلاش به هماهنگ‌کننده نیاز دارد؛ پیش‌نویس دیگری ایجاد نکنید.', blocked: 'وضعیت ذخیره‌شده تأیید نشد. صفحه را دوباره بارگذاری کنید یا با هماهنگ‌کننده تماس بگیرید؛ درخواست نوشتن جدیدی ارسال نشد.', invalid: 'تاریخ‌ها، کد واحدها، متراژ و مانده افتتاحیه را بررسی کنید.', conflict: 'اطلاعات یا وضعیت ثبت‌شده تغییر کرده است؛ پیش از ادامه، اطلاعات تازه را بررسی کنید.', reviewer: 'ورود به تأیید مستقل', waiting: 'تأیید باید توسط فرد مجاز دیگری با حساب AAL2 خودش انجام شود. سپس به این صفحه برگردید و وضعیت ثبت‌شده را دریافت کنید.', resume: 'شناسه راه‌اندازی ذخیره‌شده', load: 'بارگذاری راه‌اندازی', loading: 'در حال بررسی وضعیت ثبت‌شده…' },
 };
 export function CustomerBuildingSetupWizard({lang}:{lang:Lang}) {
- const {active}=useCustomerContext();
- return <BuildingSetup key={`${active?.membership_id}:${active?.context_id}`} lang={lang}/>;
+ const {active,dashboard}=useCustomerContext();
+ if(!active||!dashboard?.workspace_id)return <p role="status">{copy[lang].context}</p>;
+ return <BuildingSetup key={`${active.membership_id}:${active.context_id}:${dashboard.workspace_id}`} lang={lang} workspaceId={dashboard.workspace_id}/>;
 }
-function BuildingSetup({lang}:{lang:Lang}) {
+function BuildingSetup({lang,workspaceId}:{lang:Lang;workspaceId:string}) {
  const t=copy[lang],r=recoveryCopy[lang],{active,registerUnsavedGuard}=useCustomerContext();
  const [association,setAssociation]=useState("CLADORA Synthetic Association"),[building,setBuilding]=useState("Synthetic Building A"),[code,setCode]=useState("BLD-A"),[floors,setFloors]=useState("4"),[start,setStart]=useState("2026-01-01"),[end,setEnd]=useState("2026-12-31"),[units,setUnits]=useState<Unit[]>([{code:"A-01",floor:"0",area:"62"}]),[debit,setDebit]=useState("0"),[credit,setCredit]=useState("0"),[runId,setRunId]=useState(""),[stage,setStage]=useState<Stage>("edit"),[busy,setBusy]=useState(false),[message,setMessage]=useState("");
+ const [legacy,setLegacy]=useState(false);
  const [savedUnits,setSavedUnits]=useState<Unit[]|null>(null),[pending,setPending]=useState<SetupAttempt|null>(null),[checking,setChecking]=useState(true),[blocked,setBlocked]=useState(false),[resumeId,setResumeId]=useState('');
  const alive=useRef(false),lock=useRef(false),recordRef=useRef<SetupRecord|null>(null),sessionRef=useRef<SetupSession|null>(null);
  const contextId=active?.context_id??'',membershipId=active?.membership_id??'';
- const storageKey=setupStorageKey(contextId,membershipId);
+ const storageKey=setupStorageKey(contextId,membershipId,workspaceId);
  const difference=useMemo(()=>Number(debit||0)-Number(credit||0),[debit,credit]),field="min-w-0 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600 disabled:bg-slate-50";
  const dirtyUnits=stage==="draft"&&JSON.stringify(units)!==JSON.stringify(savedUnits);
  const dirtyForm=stage==="edit"&&(association!=="CLADORA Synthetic Association"||building!=="Synthetic Building A"||code!=="BLD-A"||floors!=="4"||start!=="2026-01-01"||end!=="2026-12-31"||JSON.stringify(units)!==JSON.stringify([{code:"A-01",floor:"0",area:"62"}])||debit!=="0"||credit!=="0");
@@ -37,7 +39,7 @@ function BuildingSetup({lang}:{lang:Lang}) {
   return recorded;
  },[]);
  const applyRecord=useCallback((record:SetupRecord, attemptedUnits?:SetupPayload['units'])=>{
-  recordRef.current=record;setRunId(record.run_id);setStage(record.status);setSavedUnits(applyPayload(record.payload,record.effective_units));
+  setLegacy(record.creation_request_hash===null);recordRef.current=record;setRunId(record.run_id);setStage(record.status);setSavedUnits(applyPayload(record.payload,record.effective_units));
   if(attemptedUnits)setUnits(attemptedUnits.map(u=>({code:u.code,floor:u.floor===null?'':String(u.floor),area:u.area_m2===null?'':String(u.area_m2)})));
  },[applyPayload]);
  const persist=useCallback((session:SetupSession)=>{
@@ -51,21 +53,24 @@ function BuildingSetup({lang}:{lang:Lang}) {
   (async()=>{
    try {
     const raw=window.sessionStorage.getItem(storageKey);
-    const session=raw?setupSessionSchema.parse(JSON.parse(raw)):{version:1 as const,context_id:contextId,membership_id:membershipId,run_id:null,pending:null};
-    if(session.context_id!==contextId||session.membership_id!==membershipId)throw Error('foreign_session');
+    if(!raw&&window.sessionStorage.getItem(`cladora.building-setup.attempt.v1:${membershipId}:${contextId}`))throw Error('legacy_session_review_required');
+    const session=raw?setupSessionSchema.parse(JSON.parse(raw)):{version:2 as const,context_id:contextId,membership_id:membershipId,workspace_id:workspaceId,run_id:null,pending:null};
+    if(session.context_id!==contextId||session.membership_id!==membershipId||session.workspace_id!==workspaceId)throw Error('foreign_session');
     sessionRef.current=session;
     if(cancelled)return;
     setPending(session.pending);
     if(session.run_id)setRunId(session.run_id);
     if(session.pending?.action==='create')applyPayload(session.pending.command.payload);
     const urlId=new URLSearchParams(window.location.search).get('run_id');
-    // An uncertain create cannot be matched to a guessed/manual run without a key-bound reader.
-    if(session.pending?.action==='create'&&!session.run_id){setMessage(r.createUnknown);return;}
+    if(session.pending?.action==='create'&&!session.run_id){
+     await readSetupAttempt(contextId,workspaceId,session.pending.command.idempotency_key);
+     if(!cancelled)setMessage(r.unknown);return;
+    }
     const legacy=window.sessionStorage.getItem(`building-setup:${contextId}`);
     const restored=session.run_id??urlId??legacy;
     if(!restored)return;
     buildingSetupIdSchema.parse(restored);
-    const record=await readSetupRecord(contextId,restored);
+    const record=await readSetupRecord(contextId,workspaceId,restored);
     if(cancelled)return;
     const resolution=session.pending?reconcileSetupAttempt(session.pending,record):'done';
     if(resolution==='conflict')throw Error('conflict');
@@ -76,78 +81,85 @@ function BuildingSetup({lang}:{lang:Lang}) {
    finally{if(!cancelled)setChecking(false);}
   })();
   return()=>{cancelled=true;alive.current=false;};
- },[contextId,membershipId,storageKey,applyPayload,applyRecord,persist,r]);
+ },[contextId,membershipId,workspaceId,storageKey,applyPayload,applyRecord,persist,r]);
  const wireUnits=()=>units.map(u=>({code:u.code,floor:u.floor===""?null:Number(u.floor),area_m2:u.area===""?null:Number(u.area)}));
  const updateUnit=(i:number,key:keyof Unit,value:string)=>setUnits(list=>list.map((u,n)=>n===i?{...u,[key]:value}:u));
  async function refresh(id=runId) {
   if(lock.current||!contextId||!sessionRef.current)return;
-  if(sessionRef.current.pending?.action==='create'&&!sessionRef.current.run_id){setMessage(r.createUnknown);return;}
+  if(sessionRef.current.pending?.action==='create'&&!sessionRef.current.run_id){setMessage(r.unknown);return;}
   lock.current=true;setBusy(true);setMessage('');
   try {
    buildingSetupIdSchema.parse(id);
-   const record=await readSetupRecord(contextId,id);
+   const record=await readSetupRecord(contextId,workspaceId,id);
    if(!alive.current)return;
    const session=sessionRef.current;
    if(session.run_id&&session.run_id!==id)throw Error('conflict');
    const result=session.pending?reconcileSetupAttempt(session.pending,record):'done';
-   if(result==='conflict')throw Error('conflict');
+   if(result==='conflict'){applyRecord(record);throw Error('conflict');}
    persist({...session,run_id:id,pending:result==='done'?null:session.pending});
    applyRecord(record,result==='retry'&&session.pending?.action==='save'?session.pending.units:undefined);setBlocked(false);setMessage(result==='retry'?r.unknown:t.ok);
   }catch{if(alive.current){setBlocked(true);setMessage(r.blocked);}}
   finally{lock.current=false;if(alive.current)setBusy(false);}
  }
  async function call(action?:SetupAction) {
-  if(lock.current||checking||blocked||!sessionRef.current)return;
+  if(lock.current||checking||blocked||legacy||!sessionRef.current)return;
   if(!contextId){setMessage(t.context);return;}
   lock.current=true;setBusy(true);setMessage('');
   try {
    let session=sessionRef.current,attempt=session.pending;
-   if(attempt?.action==='create'&&!session.run_id){setMessage(r.createUnknown);return;}
-   if(attempt){
-    const record=await readSetupRecord(contextId,session.run_id!);
+   if(attempt?.action==='create'){
+    await readSetupAttempt(contextId,workspaceId,attempt.command.idempotency_key);
     if(!alive.current)return;
+   }else if(attempt){
+    const record=await readSetupRecord(contextId,workspaceId,session.run_id!);
+    if(!alive.current)return;
+    if(record.creation_request_hash===null){applyRecord(record);return;}
     const result=reconcileSetupAttempt(attempt,record);
-    if(result==='conflict'){setMessage(r.conflict);return;}
+    if(result==='conflict'){applyRecord(record);setMessage(r.conflict);return;}
     if(result==='done'){persist({...session,pending:null});applyRecord(record);setMessage(t.ok);return;}
    }else if(action){
     const before=recordRef.current;
     if(!before||!session.run_id)return;
-    const record=await readSetupRecord(contextId,session.run_id);
+    const record=await readSetupRecord(contextId,workspaceId,session.run_id);
     if(!alive.current)return;
+    if(record.creation_request_hash===null){applyRecord(record);return;}
     if(record.status!==before.status||!sameSetupPayload(record.payload,before.payload)){
      applyRecord(record);if(action==='save')setUnits(units);setMessage(r.conflict);return;
     }
     const expected={save:'draft',rehearse:'draft',submit:'rehearsed',provision:'approved'}[action];
     if(record.status!==expected){applyRecord(record);setMessage(r.conflict);return;}
     if(action==='rehearse'&&dirtyUnits){setMessage(t.save);return;}
-    attempt={action,run_id:record.run_id,context_id:contextId,before:record,...(action==='save'?{units:wireUnits()}: {})};
+    attempt={action,run_id:record.run_id,context_id:contextId,workspace_id:workspaceId,command_key:`setup-${record.run_id}-r${record.revision}-${crypto.randomUUID()}`,before:record,...(action==='save'?{units:wireUnits()}: {})};
    }else{
     if(session.run_id)return;
     if(!Number.isFinite(Number(debit))||!Number.isFinite(Number(credit))||Number(debit)<0||Number(credit)<0||difference!==0)throw Error('invalid_balances');
-    const command=createBuildingSetupSchema.parse({context_id:contextId,idempotency_key:`setup-${crypto.randomUUID()}`,payload:{association:{name:association},building:{name:building,code,floors:Number(floors)},currency:'RON',period_start:start,period_end:end,units:wireUnits(),opening_balances:[...(Number(debit)>0?[{account_code:'OPEN-DEBIT',side:'debit',amount:Number(debit)}]:[]),...(Number(credit)>0?[{account_code:'OPEN-CREDIT',side:'credit',amount:Number(credit)}]:[])]}});
+    const command=createBuildingSetupSchema.parse({context_id:contextId,workspace_id:workspaceId,idempotency_key:`setup-${crypto.randomUUID()}`,payload:{association:{name:association},building:{name:building,code,floors:Number(floors)},currency:'RON',period_start:start,period_end:end,units:wireUnits(),opening_balances:[...(Number(debit)>0?[{account_code:'OPEN-DEBIT',side:'debit',amount:Number(debit)}]:[]),...(Number(credit)>0?[{account_code:'OPEN-CREDIT',side:'credit',amount:Number(credit)}]:[])]}});
     attempt={action:'create',command};
    }
    // Persist BEFORE dispatch; storage failure sends zero writes. Never replace an uncertain attempt.
    persist({...session,pending:attempt});
    attempt=sessionRef.current!.pending!;
    const path=attempt.action==='create'?'':`/${attempt.run_id}${attempt.action==='save'?'':`/${attempt.action}`}`;
-   const body=attempt.action==='create'?attempt.command:{context_id:attempt.context_id,...(attempt.action==='save'?{units:attempt.units}:{})};
+   const body=attempt.action==='create'?attempt.command:{context_id:attempt.context_id,workspace_id:attempt.workspace_id,expected_revision:attempt.before.revision,command_key:attempt.command_key,...(attempt.action==='save'?{units:attempt.units}:{})};
    const response=await fetch(`/api/customer/v1/onboarding/building-setup${path}`,{method:attempt.action==='save'?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:AbortSignal.timeout(20_000)});
    const result=await response.json();
    if(!alive.current)return;
    if(!response.ok)throw Error('unknown');
-   const id=buildingSetupIdSchema.parse(result?.run_id);
+   const receipt=buildingSetupReceiptSchema.parse(result);
+   if(receipt.workspace_id!==workspaceId)throw Error('foreign_receipt');
+   const id=receipt.run_id;
+   if(attempt.action==='create'){if(!receipt.creation_request_hash)throw Error('missing_creation_binding');attempt={...attempt,receipt_hash:receipt.creation_request_hash};}
    if(attempt.action!=='create'&&id!==attempt.run_id)throw Error('mismatch');
    session={...session,run_id:id,pending:attempt};persist(session);setRunId(id);
-   const record=await readSetupRecord(contextId,id);
+   const record=await readSetupRecord(contextId,workspaceId,id);
    if(!alive.current)return;
    if(reconcileSetupAttempt(attempt,record)!=='done')throw Error('unknown');
    persist({...session,pending:null});applyRecord(record);setMessage(t.ok);
   }catch{
-   if(alive.current)setMessage(sessionRef.current?.pending?(sessionRef.current.pending.action==='create'&&!sessionRef.current.run_id?r.createUnknown:r.unknown):r.invalid);
+   if(alive.current)setMessage(sessionRef.current?.pending?r.unknown:r.invalid);
   }finally{lock.current=false;if(alive.current)setBusy(false);}
  }
- const frozen=busy||checking||blocked||!!pending;
+ const frozen=busy||checking||blocked||legacy||!!pending;
  const actionDefs:[Stage,SetupAction|undefined][]=[["edit",undefined],["draft","rehearse"],["rehearsed","submit"]];
  return <section dir={lang==="fa"?"rtl":"ltr"} className="mx-auto max-w-5xl space-y-6 rounded-2xl border bg-white p-6 shadow-sm"><header><h1 className="mt-2 text-2xl font-bold">{t.title}</h1><p className="mt-2 text-slate-600">{t.body}</p></header><p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm">{t.notice}</p>
  <fieldset disabled={frozen||stage!=="edit"} className="grid gap-4 md:grid-cols-2">{[[t.association,association,setAssociation],[t.building,building,setBuilding],[t.code,code,setCode],[t.floors,floors,setFloors]].map(([label,value,setter])=><label key={label as string} className="grid gap-1 text-sm">{label as string}<input className={field} type={label===t.floors?"number":"text"} value={value as string} onChange={e=>(setter as (v:string)=>void)(e.target.value)}/></label>)}</fieldset>
@@ -155,8 +167,9 @@ function BuildingSetup({lang}:{lang:Lang}) {
  <div className="space-y-3"><div className="flex items-center justify-between"><h2 className="font-semibold">{t.units}{savedUnits?` · ${t.saved}: ${savedUnits.length}`:""}</h2><button type="button" disabled={frozen||(stage!=="edit"&&stage!=="draft")} className="rounded-lg border px-3 py-2 text-sm disabled:opacity-40" onClick={()=>setUnits(u=>[...u,{code:`A-${String(u.length+1).padStart(2,"0")}`,floor:"",area:""}])}>{t.add}</button></div>{units.map((unit,i)=><div key={i} className="grid gap-2 sm:grid-cols-4"><input aria-label={`${t.code} ${i+1}`} disabled={frozen||(stage!=="edit"&&stage!=="draft")} className={field} value={unit.code} onChange={e=>updateUnit(i,"code",e.target.value)}/><input aria-label={`${t.floors} ${i+1}`} disabled={frozen||(stage!=="edit"&&stage!=="draft")} className={field} type="number" value={unit.floor} onChange={e=>updateUnit(i,"floor",e.target.value)}/><input aria-label={`${t.area} ${i+1}`} disabled={frozen||(stage!=="edit"&&stage!=="draft")} className={field} type="number" min="0" step="0.01" value={unit.area} onChange={e=>updateUnit(i,"area",e.target.value)}/><button type="button" disabled={frozen||units.length===1||(stage!=="edit"&&stage!=="draft")} className="rounded-lg border px-3 py-2 text-sm disabled:opacity-40" onClick={()=>setUnits(u=>u.filter((_,n)=>n!==i))}>{t.remove}</button></div>)}</div>
  <fieldset disabled={frozen||stage!=="edit"} className="grid gap-4 rounded-xl border p-4 md:grid-cols-2"><legend className="px-2 font-semibold">{t.preview}</legend><label className="grid gap-1 text-sm">{t.debit}<input className={field} type="number" min="0" step="0.01" value={debit} onChange={e=>setDebit(e.target.value)}/></label><label className="grid gap-1 text-sm">{t.credit}<input className={field} type="number" min="0" step="0.01" value={credit} onChange={e=>setCredit(e.target.value)}/></label><p className={`md:col-span-2 rounded-lg p-3 text-sm font-semibold ${difference===0?"bg-teal-50 text-teal-800":"bg-red-50 text-red-700"}`}>{t.difference}: {difference.toFixed(2)} RON · {units.length} {t.units}</p></fieldset>
  {dirtyUnits&&<p className="text-sm font-semibold text-amber-800">{t.save}</p>}<div className="flex flex-wrap gap-2">{actionDefs.map(([required,action],i)=><button key={required} disabled={frozen||!active||stage!==required||(required==="edit"&&(!Number.isFinite(difference)||difference!==0))||(required==="draft"&&dirtyUnits)} className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40" onClick={()=>call(action)}>{t.actions[i]}</button>)}{stage==="draft"&&<button disabled={frozen||!dirtyUnits} className="rounded-lg border border-teal-700 px-4 py-2 text-sm font-semibold text-teal-800 disabled:opacity-40" onClick={()=>call("save")}>{t.save}</button>}<button disabled={frozen||!runId||stage!=="approved"} className="rounded-lg bg-teal-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40" onClick={()=>call("provision")}>{t.actions[4]}</button></div>{stage==="submitted"&&<div className="space-y-2 rounded-lg border p-3"><p>{r.waiting}</p><Link className="inline-block rounded border px-3 py-2 underline" href={`/${lang}/pilot-reviewer`}>{r.reviewer}</Link></div>}
- {pending&&<div role="alert" className="break-words rounded-lg border border-amber-300 p-3"><p>{pending.action==='create'&&!runId?r.createUnknown:r.unknown}</p>{pending.action==='create'&&<code className="block break-all text-xs">{pending.command.idempotency_key}</code>}{runId&&<button type="button" disabled={busy||checking||blocked} className="mt-2 rounded-lg border p-2" onClick={()=>call()}>{r.retry}</button>}</div>}
+ {pending&&<div role="alert" className="break-words rounded-lg border border-amber-300 p-3"><p>{r.unknown}</p>{pending.action==='create'&&<code className="block break-all text-xs">{pending.command.idempotency_key}</code>}{<button type="button" disabled={busy||checking||blocked} className="mt-2 rounded-lg border p-2" onClick={()=>call()}>{r.retry}</button>}</div>}
  {runId&&<button type="button" disabled={busy||checking||(dirtyUnits&&!pending)} className="rounded-lg border p-2" onClick={()=>refresh()}>{r.refresh}</button>}
  {!runId&&!pending&&<form className="flex flex-wrap items-end gap-2" onSubmit={event=>{event.preventDefault();void refresh(resumeId);}}><label className="grid min-w-0 flex-1 gap-1">{r.resume}<input className={field} value={resumeId} onChange={event=>setResumeId(event.target.value)} disabled={busy||checking}/></label><button className="rounded-lg border p-2" disabled={busy||checking||!buildingSetupIdSchema.safeParse(resumeId).success}>{r.load}</button></form>}
+ {legacy&&<p role="alert">{lang==='fa'?'این رکورد قدیمی فاقد مبنای تأیید نسخه‌دار است و به بازبینی رسمی نیاز دارد.':lang==='ro'?'Înregistrarea veche nu are proveniența versiunii aprobate și necesită o revizuire autorizată.':'This legacy record has no bound approval provenance and requires authorized review.'}</p>}
  {checking&&<p role="status">{r.loading}</p>}
  <p aria-live="polite" className="break-words text-sm text-slate-700">{stage.toUpperCase()}{runId?` · ${runId}`:""}{message?` · ${message}`:""}</p></section>}
