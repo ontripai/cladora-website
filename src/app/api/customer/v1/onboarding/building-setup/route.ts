@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createBuildingSetupSchema } from "@/lib/customer/building-setup-schema";
+import { createBuildingSetupSchema, buildingSetupReceiptSchema } from "@/lib/customer/building-setup-schema";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
 import { mapOnboardingError, ONBOARDING_HEADERS } from "@/lib/customer/onboarding-import-helper";
@@ -19,5 +19,7 @@ export async function POST(request: NextRequest) {
     p_payload: parsed.data.payload,
   } as never);
   if (error) { const mapped = mapOnboardingError(error); return NextResponse.json({ error: { code: mapped.code } }, { status: mapped.status, headers: ONBOARDING_HEADERS }); }
-  return NextResponse.json(data, { status: 201, headers: ONBOARDING_HEADERS });
+  const receipt = buildingSetupReceiptSchema.safeParse(data);
+  if (!receipt.success) return NextResponse.json({ error: { code: "SETUP_INVALID_RESPONSE" } }, { status: 502, headers: ONBOARDING_HEADERS });
+  return NextResponse.json(receipt.data, { status: 201, headers: ONBOARDING_HEADERS });
 }
