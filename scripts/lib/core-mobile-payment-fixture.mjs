@@ -94,7 +94,16 @@ export async function runConnected() {
   const pass = name => console.log(JSON.stringify({ check: name, result: 'PASS', provenance: 'real local Next/Auth/PostgreSQL' }));
   try {
     await verifyPf01LocalTarget({ ...inputs, pool, adminClient, actorClient });
-    owned = await fingerprint(projectRef);
+    const resources = await fingerprint(projectRef);
+    // A lease/CLI project label alone cannot establish ownership of existing
+    // data. Accept only a fresh stack before claiming destructive teardown.
+    // Nonempty Auth or a colliding fixture is preserved, never reset/deleted.
+    const fresh = await pool.query(`select
+      (select count(*)::int from auth.users) as users,
+      exists(select 1 from platform.tenants where id=any($1::uuid[])) as collision`, [[id(10), id(20)]]);
+    assert.equal(fresh.rows[0].users, 0, 'existing Auth data: cannot claim fresh owned stack');
+    assert.equal(fresh.rows[0].collision, false, 'existing fixture: preserve stack');
+    owned = resources;
     console.log(JSON.stringify({ owned_resource_fingerprint: owned.hash,
       expected_writes: ['isolated fixture rows from test 211', 'ephemeral Auth users/MFA/sessions',
         'payment intents via canonical RPC', 'isolated Context/membership/entitlement negative controls',
