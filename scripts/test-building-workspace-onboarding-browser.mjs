@@ -8,6 +8,9 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 const require=createRequire(import.meta.url);
 const {chromium,expect}=process.env.BUILDING_SETUP_PLAYWRIGHT_PATH?require(process.env.BUILDING_SETUP_PLAYWRIGHT_PATH):require('@playwright/test');
+const reviewOnly=process.env.BUILDING_SETUP_REVIEW_ONLY==='1';
+const reviewWidths=(process.env.BUILDING_SETUP_REVIEW_WIDTHS??'320,390,1280').split(',').map(Number);
+assert.ok(reviewWidths.length&&reviewWidths.every(width=>[320,390,1280].includes(width)),'supported review viewports required');
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const reviewer=join(root,'src/components/customer/PilotReviewerPanel.tsx'),caseConsumer=join(root,'src/components/cases/CasePortal.tsx');
 const component=join(root,'src/components/customer/CustomerBuildingSetupWizard.tsx'),provider=join(root,'src/components/customer/CustomerContextProvider.tsx');
@@ -28,6 +31,7 @@ try{
  await new Promise((yes,no)=>compiler.close(error=>error?no(error):yes()));compiler=null;
  const css=await require('postcss')([require('tailwindcss')({...require(join(root,'tailwind.config.js')),content:[component,provider,reviewer,caseConsumer,entry]})]).process(await readFile(join(root,'src/styles/globals.css'),'utf8'),{from:join(root,'src/styles/globals.css')});
  const js=await readFile(join(temp,'app.js'));
+ receipt.reviewer_sha256=createHash('sha256').update(await readFile(reviewer)).digest('hex');
  receipt.source_sha256=createHash('sha256').update(await readFile(component)).digest('hex');
  receipt.css_sha256=createHash('sha256').update(css.css).digest('hex');
  server=createServer(async(req,res)=>{
@@ -41,7 +45,7 @@ try{
    requests.push({path:u.pathname,method:req.method,context:u.searchParams.get('context_id')});
    if(u.pathname.endsWith('/contexts')){send(res,200,{contexts:[a,b].map(id=>({context_id:id,membership_id:id,tenant_name:'Synthetic',role_code:'association_admin',role_name:'Administrator',scope_type:'tenant',context_label:id}))});return;}
    if(u.pathname.endsWith('/dashboard')){send(res,200,{contextId:u.searchParams.get('context_id'),workspace_id:u.searchParams.get('context_id')===a?workspace:otherWorkspace});return;}
-   if(u.pathname.endsWith('/pilot-reviewer')){send(res,200,{reviewer:{status:'active',context_id:a,workspace_id:workspace,runs:state.stage==='submitted'?[{id:run,workspace_id:workspace,status:'submitted',building:'Synthetic',revision:state.revision,payload_hash:'a'.repeat(64),submitted_revision:state.revision,submitted_payload_hash:'a'.repeat(64)}]:[]}});return;}
+   if(u.pathname.endsWith('/pilot-reviewer')){if(state.reviewerDeny){send(res,state.reviewerDeny,{error:{code:'FORBIDDEN'}});return;}send(res,200,{reviewer:{status:'active',context_id:a,workspace_id:workspace,runs:state.stage==='submitted'?[{id:run,workspace_id:workspace,status:'submitted',building:'Synthetic',revision:state.revision,payload_hash:'a'.repeat(64),submitted_revision:state.revision,submitted_payload_hash:'a'.repeat(64)}]:[]}});return;}
    if(u.pathname==='/api/platform/v1/cases/workspaces'){
     if(req.method==='GET'){send(res,200,u.searchParams.has('idempotency_key')?{attempt:state.caseReceipt??null}:{options:[{profile:'residential',model:'association_managed',profile_label:{en:'Synthetic'},model_label:{en:'Association'}}],prepared:[]});return;}
     let raw='';for await(const chunk of req)raw+=chunk;state.posts.push({path:u.pathname,body:raw});
@@ -51,9 +55,9 @@ try{
    }
    if(req.method==='GET'){
     if(state.deny){send(res,403,{error:{code:'FORBIDDEN'}});return;}
-    if(u.pathname.endsWith('/building-setup')){send(res,200,{attempt:state.payload&&state.creationKey===u.searchParams.get('idempotency_key')?{version:2,workspace_id:workspace,revision:state.revision,run_id:run,status:state.stage,payload:state.payload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:state.creationReceipt,submitted_revision:state.stage==='submitted'?state.revision:null,submitted_payload_hash:state.stage==='submitted'?'a'.repeat(64):null,last_command_key:state.lastReceipt?.command_key??null,last_command_receipt:state.lastReceipt}:null});return;}
+    if(u.pathname.endsWith('/building-setup')){send(res,200,{attempt:state.payload&&state.creationKey===u.searchParams.get('idempotency_key')?{version:2,workspace_id:workspace,revision:state.revision,run_id:run,status:state.stage,payload:state.payload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:state.creationReceipt,submitted_revision:['submitted','approved'].includes(state.stage)?(state.submittedRevision??state.revision):null,submitted_payload_hash:['submitted','approved'].includes(state.stage)?'a'.repeat(64):null,last_command_key:state.lastReceipt?.command_key??null,last_command_receipt:state.lastReceipt}:null});return;}
     if(!state.payload){send(res,404,{error:{code:'SETUP_NOT_FOUND'}});return;}
-    send(res,200,{version:2,workspace_id:workspace,revision:state.revision,creation_request_hash:state.legacy?null:'b'.repeat(64),creation_receipt:state.creationReceipt,payload_hash:'a'.repeat(64),submitted_revision:state.stage==='submitted'?state.revision:null,submitted_payload_hash:state.stage==='submitted'?'a'.repeat(64):null,last_command_key:state.lastReceipt?.command_key??null,last_command_receipt:state.lastReceipt,run_id:run,status:state.stage,payload:state.payload,property_id:state.stage==='provisioned'?b:null,effective_units:null});return;
+    send(res,200,{version:2,workspace_id:workspace,revision:state.revision,creation_request_hash:state.legacy?null:'b'.repeat(64),creation_receipt:state.creationReceipt,payload_hash:'a'.repeat(64),submitted_revision:['submitted','approved'].includes(state.stage)?(state.submittedRevision??state.revision):null,submitted_payload_hash:['submitted','approved'].includes(state.stage)?'a'.repeat(64):null,last_command_key:state.lastReceipt?.command_key??null,last_command_receipt:state.lastReceipt,run_id:run,status:state.stage,payload:state.payload,property_id:state.stage==='provisioned'?b:null,effective_units:null});return;
    }
    let text='';for await(const chunk of req)text+=chunk;
    const body=JSON.parse(text);state.posts.push({path:u.pathname,body:text});
@@ -62,8 +66,8 @@ try{
    if(u.pathname.endsWith('/building-setup')){state.payload=body.payload;state.stage='draft';state.creationKey=body.idempotency_key;}
    if(req.method==='PATCH')state.payload.units=body.units;
    if(u.pathname.endsWith('/rehearse'))state.stage='rehearsed';
-   if(u.pathname.endsWith('/submit'))state.stage='submitted';
-   if(u.pathname.endsWith('/approve'))state.stage='approved';
+   if(u.pathname.endsWith('/submit')){state.stage='submitted';state.submittedRevision=state.revision+1;}
+   if(u.pathname.endsWith('/approve')){state.submittedRevision??=state.revision;state.stage='approved';}
    if(u.pathname.endsWith('/provision')){state.stage='provisioned';state.provisions++;}
    if(body.command_key)state.revision++;
    const receipt={version:2,workspace_id:workspace,revision:state.revision,run_id:run,status:state.stage,...(body.command_key?{command_key:body.command_key,expected_revision:body.expected_revision,operation:req.method==='PATCH'?'update':u.pathname.split('/').at(-1)}:{creation_request_hash:'b'.repeat(64)})};
@@ -76,7 +80,7 @@ try{
  let executable;for(const path of ['/usr/bin/google-chrome','/usr/bin/chromium',chromium.executablePath()]){try{await access(path);executable=path;break;}catch{}}
  assert.ok(executable,'existing browser required, no download');
  browser=await chromium.launch({executablePath:executable,headless:true,timeout:60_000,args:['--no-sandbox']});
- for(const lang of ['en','ro','fa'])for(const width of [390,1280]){
+ for(const lang of ['en','ro','fa'])for(const width of (reviewOnly?[]:[390,1280])){
   state={revision:1,lastReceipt:null,creationKey:null,creationReceipt:null,receipts:new Map(),posts:[],payload:null,stage:'draft',provisions:0,invalidNext:false,deny:false};
   const context=await browser.newContext({viewport:{width,height:844},reducedMotion:'reduce'});contexts.add(context);
   await context.route('**/*',async route=>{if(new URL(route.request().url()).origin!==origin){receipt.external_requests++;await route.abort();}else await route.continue();});
@@ -107,7 +111,7 @@ try{
  }
 
  const seed={association:{name:'Synthetic review'},building:{name:'Synthetic block',code:'B1',floors:1},currency:'RON',period_start:'2026-01-01',period_end:'2026-01-31',units:[{code:'U1',floor:0,area_m2:50}],opening_balances:[]};
- for(const lang of ['en','ro','fa'])for(const width of [390,1280])for(const view of ['reviewer','case']){
+ for(const lang of ['en','ro','fa'])for(const width of (reviewOnly?reviewWidths:[390,1280]))for(const view of (reviewOnly?['reviewer']:['reviewer','case'])){
   state={revision:3,lastReceipt:null,creationReceipt:{run_id:run},creationKey:null,receipts:new Map(),posts:[],payload:structuredClone(seed),stage:'submitted',provisions:0,invalidNext:true,deny:false};
   const context=await browser.newContext({viewport:{width,height:844}});contexts.add(context);
   await context.route('**/*',async route=>{if(new URL(route.request().url()).origin!==origin){receipt.external_requests++;await route.abort();}else await route.continue();});
@@ -118,6 +122,49 @@ try{
    const approve=page.getByRole('button',{name:label,exact:true});await expect(approve).toBeEnabled();const box=await approve.boundingBox();assert.ok(box.x>=-1&&box.x+box.width<=width+1,'review approval control fits viewport');await approve.focus();await page.keyboard.press('Enter');
    const retry=page.getByRole('button',{name:retryLabel,exact:true});await expect(retry).toBeEnabled();assert.equal(state.posts.length,1);const command=JSON.parse(state.posts[0].body);assert.equal(command.expected_revision,3);assert.equal(command.expected_payload_hash,'a'.repeat(64));
    await page.reload();await expect(retry).toBeEnabled();await retry.focus();await page.keyboard.press('Enter');await expect(retry).toHaveCount(0);assert.equal(state.posts.length,1,'lost approval reconciles recorded receipt without another POST');
+   const refreshLabel={en:'Refresh review access',ro:'Actualizează accesul la verificare',fa:'بررسی دسترسی بازبینی'}[lang];
+   const refresh=page.getByRole('button',{name:refreshLabel,exact:true});
+   const key=`cladora.setup-approval.v2:${a}:${workspace}`;
+   const saved=()=>page.evaluate(key=>sessionStorage.getItem(key),key);
+   const submitted=()=>{state.stage='submitted';state.revision=3;state.lastReceipt=null;state.receipts.clear();state.invalidNext=false;state.reviewerDeny=null;state.deny=false;state.submittedRevision=3;};
+   // Noncommitted network ambiguity -> reload -> identical command replay.
+   submitted();await page.reload();await expect(approve).toBeEnabled();
+   let attempts=[];
+   await page.route('**/building-setup/*/approve',async route=>{attempts.push(route.request().postData());await route.abort('failed');});
+   await approve.click();await expect(retry).toBeEnabled();const original=await saved();assert.ok(original);
+   await page.reload();await expect(retry).toBeEnabled();
+   await page.unroute('**/building-setup/*/approve');await retry.click();await expect(retry).toHaveCount(0);assert.equal(state.posts.at(-1).body,attempts[0]);assert.equal(await saved(),null);
+   // 401/403 CURRENT access loss wipes sensitive state and hides recovery, without erasing key.
+   for(const status of [401,403]){
+    submitted();await page.reload();await expect(approve).toBeEnabled();
+    await page.route('**/building-setup/*/approve',route=>route.abort('failed'));
+    await approve.click();await expect(retry).toBeEnabled();const pending=await saved();const writes=state.posts.length;
+    state.reviewerDeny=status;await refresh.click();await expect(approve).toHaveCount(0);await expect(retry).toHaveCount(0);await expect(page.getByText('Synthetic',{exact:false})).toHaveCount(0);assert.equal(await saved(),pending);assert.equal(state.posts.length,writes);
+    state.reviewerDeny=null;await refresh.click();await expect(retry).toBeEnabled();
+    state.deny=true;await retry.click();await expect(retry).toHaveCount(0);await expect(approve).toHaveCount(0);assert.equal(await saved(),pending);assert.equal(state.posts.length,writes);
+    await page.unroute('**/building-setup/*/approve');await page.evaluate(key=>sessionStorage.removeItem(key),key);
+   }
+   // A previous reviewer read arriving after a newer denial cannot resurrect data.
+   submitted();await page.reload();await expect(approve).toBeEnabled();
+   let release,started;const began=new Promise(resolve=>{started=resolve;});const held=new Promise(resolve=>{release=resolve;});let reads=0;
+   await page.route('**/api/customer/v1/pilot-reviewer',async route=>{
+    if(++reads===1){started();await held;await route.fulfill({status:200,json:{reviewer:{status:'active',context_id:a,workspace_id:workspace,runs:[{id:run,workspace_id:workspace,status:'submitted',building:'Late sensitive record',revision:3,payload_hash:'a'.repeat(64),submitted_revision:3,submitted_payload_hash:'a'.repeat(64)}]}}});}
+    else await route.fulfill({status:403,json:{error:{code:'FORBIDDEN'}}});
+   });
+   await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await began;await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await expect(approve).toHaveCount(0);release();await page.unrouteAll({behavior:'wait'});await expect(page.getByText('Late sensitive record',{exact:false})).toHaveCount(0);await expect(approve).toHaveCount(0);
+   // Invalid stored Context and stale snapshots stay unresolved with zero POST.
+   submitted();const foreign={run_id:run,command:{context_id:b,workspace_id:workspace,expected_revision:3,expected_payload_hash:'a'.repeat(64),command_key:`setup-${run}-r3-foreign`}};
+   await page.evaluate(({key,value})=>sessionStorage.setItem(key,value),{key,value:JSON.stringify(foreign)});await page.reload();await expect(approve).toBeDisabled();await expect(retry).toHaveCount(0);assert.equal(await saved(),JSON.stringify(foreign));
+   await page.evaluate(key=>sessionStorage.removeItem(key),key);await page.reload();await expect(approve).toBeEnabled();
+   await page.route('**/building-setup/*/approve',route=>route.abort('failed'));await approve.click();await expect(retry).toBeEnabled();const stale=await saved(),writes=state.posts.length;await page.unroute('**/building-setup/*/approve');
+   state.revision=4;await retry.click();await expect(retry).toBeEnabled();assert.equal(await saved(),stale);assert.equal(state.posts.length,writes);
+   await page.evaluate(key=>sessionStorage.removeItem(key),key);
+   // A submitted-hash mismatch must preserve the same unresolved attempt as well.
+   submitted();await page.reload();await expect(approve).toBeEnabled();
+   await page.route('**/building-setup/*/approve',route=>route.abort('failed'));await approve.click();await expect(retry).toBeEnabled();const hashAttempt=await saved(),hashWrites=state.posts.length;await page.unroute('**/building-setup/*/approve');
+   await page.route('**/building-setup/*?*',async route=>{const response=await route.fetch();const record=await response.json();await route.fulfill({response,json:{...record,submitted_payload_hash:'c'.repeat(64)}});});
+   await retry.click();await expect(retry).toBeEnabled();assert.equal(await saved(),hashAttempt);assert.equal(state.posts.length,hashWrites);await page.unrouteAll({behavior:'wait'});
+
   }else{
    const form=page.locator('form').filter({has:page.locator('select[name="taxonomy"]')});await expect(form.locator('select[name="taxonomy"] option')).toHaveCount(2);
    await form.locator('select[name="taxonomy"]').selectOption('0');await form.locator('input[name="commercial_owner"]').fill('Synthetic manager');await form.locator('input[name="reason"]').fill('Synthetic preparation reason');
@@ -125,11 +172,11 @@ try{
    await page.reload();await expect(form.locator('input[name="commercial_owner"]')).toBeDisabled();await expect(prepare).toBeEnabled();await prepare.focus();await page.keyboard.press('Enter');await expect(form.locator('input[name="commercial_owner"]')).toBeEnabled();assert.equal(state.caseCreates,1);assert.equal(state.posts.at(-1).body,original);
   }
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-  receipt.cases.push({lang,width,view,result:'PASS',coverage:'keyboard/immutable-attempt/snapshot/reload/recovery/no-duplicate-domain-effect/layout'});
+  receipt.cases.push({lang,width,view,result:'PASS',coverage:view==='reviewer'?'keyboard/exact-key-retry/committed-recovery/401-403-clear/denied-record-read/late-success-after-denial/foreign-attempt/stale-revision-hash/no-unintended-write/layout':'keyboard/immutable-attempt/snapshot/reload/recovery/no-duplicate-domain-effect/layout'});
   await context.close();contexts.delete(context);
  }
 
- for(const lang of ['en','ro','fa']){
+ for(const lang of (reviewOnly?[]:['en','ro','fa'])){
   state={legacy:true,revision:1,lastReceipt:null,creationReceipt:null,receipts:new Map(),posts:[],payload:structuredClone(seed),stage:'draft'};
   const context=await browser.newContext({viewport:{width:390,height:844}});contexts.add(context);
   await context.route('**/*',async route=>{if(new URL(route.request().url()).origin!==origin){receipt.external_requests++;await route.abort();}else await route.continue();});

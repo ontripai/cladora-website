@@ -46,9 +46,13 @@ export function reconcileSetupAttempt(a: SetupAttempt, record: SetupRecord): 'do
     && receipt.expected_revision === a.before.revision && receipt.operation === (a.action === 'save' ? 'update' : a.action)) return 'done';
   return record.revision === a.before.revision && record.payload_hash === a.before.payload_hash && sameSetupPayload(record.payload,a.before.payload) && record.status === a.before.status ? 'retry' : 'conflict';
 }
+// Preserve the established Error message and helper signature for existing callers.
+export class SetupReadError extends Error {
+  constructor(readonly status: number) { super('setup_read_denied'); }
+}
 export async function readSetupRecord(context: string, workspace: string, run: string) {
   const response = await fetch(`/api/customer/v1/onboarding/building-setup/${run}?${new URLSearchParams({ context_id: context, workspace_id: workspace })}`, { cache: 'no-store', signal: AbortSignal.timeout(20_000) });
-  if (!response.ok) throw Error('setup_read_denied');
+  if (!response.ok) throw new SetupReadError(response.status);
   const record = buildingSetupReadSchema.parse(await response.json());
   if (record.run_id !== run || record.workspace_id !== workspace) throw Error('setup_read_mismatch');
   return record;
