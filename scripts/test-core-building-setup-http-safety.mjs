@@ -7,7 +7,7 @@ import {
   TASK,PARENT,ROOT,ROUTE,Cleanup,validateLease,assertContainer,nextEnvironment,browserKey,
   guardedFetch,nextRequest,fixtureSql,snapshot,deniedUnchanged,makeActor,closeOwnedProcess,portLive,createAndRecover,settledRequests,
 } from './lib/core-building-setup-http-fixture.mjs';
-import {help} from './core-building-setup-http-proof.mjs';
+import {help,buildSetupCommandBody} from './core-building-setup-http-proof.mjs';
 
 // OFFLINE / mounted negative controls only. No product server, real Auth/RPC,
 // Docker, PostgreSQL, supplied lease or remote endpoint is invoked by this suite.
@@ -19,6 +19,75 @@ const valid=()=>({version:1,task:TASK,worker:'CLADORA-CORE-WORKER-01',sha:head,r
   db_port:54322,db_container_id:'1'.repeat(64),auth_container_id:'2'.repeat(64),fixture_prefix:'e3817a32'});
 const env=()=>({BUILDING_SETUP_HTTP_EPHEMERAL:'1'});
 const gate=(lease=valid(),environment=env())=>validateLease({lease,env:environment,head,projectRef:'cladora-local'});
+
+test('canonical command: actual builder binds every operation to Setup run/revision and stable retry body',()=>{
+  const setupRun='22222222-2222-4222-8222-222222222222'; // Distinct from the lease run.
+  const base={context_id:'context',workspace_id:'workspace'};
+  const operations=['update','rehearse','submit','approve','provision'];
+  for(const [i,operation] of operations.entries()) {
+    const revision=i+1;
+    const extra=operation==='update'?{units:[{code:'1',area_m2:55}]}:
+      operation==='approve'?{expected_payload_hash:'a'.repeat(64)}:{};
+    const body=buildSetupCommandBody(setupRun,revision,operation,base,extra);
+    assert.equal(body.command_key,`setup-${setupRun}-r${revision}-${operation}`);
+    assert.equal(body.expected_revision,revision);
+    assert.deepEqual(body,{...base,...extra,expected_revision:revision,command_key:body.command_key});
+    assert.deepEqual(buildSetupCommandBody(setupRun,revision,operation,base,extra),body);
+    assert.ok(!body.command_key.includes(run),'must not bind the lease UUID');
+  }
+  assert.deepEqual(base,{context_id:'context',workspace_id:'workspace'});
+});
+
+test('canonical command: concurrent edits, winner collision, stale revision and revoked replay retain intent',()=>{
+  const update=suffix=>buildSetupCommandBody(run,1,'update',{}, {units:[{code:'1',area_m2:55}]},suffix);
+  const a=update('a'),b=update('b');
+  assert.notEqual(a.command_key,b.command_key);
+  for(const winner of [a,b]) {
+    const retried=update(winner.command_key.endsWith('-a')?'a':'b');
+    assert.deepEqual(retried,winner);
+    const collision={...retried,units:[{code:'1',area_m2:50}]};
+    assert.equal(collision.command_key,winner.command_key);
+    assert.notDeepEqual(collision,winner);
+  }
+  const stale=update('stale');
+  assert.ok(stale.command_key.startsWith(`setup-${run}-r1-`));
+  assert.equal(stale.expected_revision,1,'stale request must not silently advance to current revision 2');
+  const provision=()=>buildSetupCommandBody(run,5,'provision',{});
+  assert.deepEqual(provision(),provision(),'exact replay after success/revoke must retain key/body');
+});
+
+test('canonical command: source guard rejects old bh format, wrong run and wrong revision',async()=>{
+  const source=await readFile(new URL('supabase/migrations/20261021123054_building_setup_attempt_version_v2.sql',ROOT),'utf8');
+  assert.ok(source.includes("p_command_key not like 'setup-'||p_run_id::text||'-r'||p_expected_revision::text||'-%'"));
+  const lexical=new RegExp(source.match(/p_command_key !~ '([^']+)'/)[1]);
+  const body=buildSetupCommandBody(run,4,'approve',{});
+  assert.ok(lexical.test(body.command_key));
+  assert.ok(body.command_key.startsWith(`setup-${run}-r4-`));
+  for(const key of ['bh-'+run+'-approve-r4',
+    buildSetupCommandBody('22222222-2222-4222-8222-222222222222',4,'approve',{}).command_key,
+    buildSetupCommandBody(run,3,'approve',{}).command_key]) {
+    assert.ok(lexical.test(key),'negative control is lexically valid but misbound');
+    assert.ok(!key.startsWith(`setup-${run}-r4-`));
+  }
+});
+
+test('canonical command: lexical/128-character bounds and invalid builder inputs',async()=>{
+  const source=await readFile(new URL('supabase/migrations/20261021123054_building_setup_attempt_version_v2.sql',ROOT),'utf8');
+  const lexical=new RegExp(source.match(/p_command_key !~ '([^']+)'/)[1]);
+  const build=suffix=>buildSetupCommandBody(run,2147483647,'update',{}, {},suffix);
+  const prefixLength=build('x').command_key.length-1;
+  const maximum=build('x'.repeat(128-prefixLength));
+  assert.equal(maximum.command_key.length,128);assert.ok(lexical.test(maximum.command_key));
+  assert.ok(lexical.test(build('AZaz09._:-').command_key));
+  assert.throws(()=>build('x'.repeat(129-prefixLength)),/BH_COMMAND_KEY_LENGTH/);
+  for(const suffix of ['bad space','bad/slash','bad%','é','\n','bad\n',123])
+    assert.throws(()=>build(suffix),/BH_COMMAND_SUFFIX/);
+  assert.throws(()=>buildSetupCommandBody('not-a-uuid',1,'update',{}),/BH_COMMAND_RUN/);
+  assert.throws(()=>buildSetupCommandBody(run+'\n',1,'update',{}),/BH_COMMAND_RUN/);
+  for(const revision of [0,-1,1.5,'1',2147483648])
+    assert.throws(()=>buildSetupCommandBody(run,revision,'update',{}),/BH_COMMAND_REVISION/);
+  assert.throws(()=>buildSetupCommandBody(run,1,'invented',{}),/BH_COMMAND_OPERATION/);
+});
 
 test('valid exact task/SHA/loopback lease is copied and frozen',()=>{
   const lease=valid();const result=gate(lease);assert.ok(Object.isFrozen(result));

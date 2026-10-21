@@ -6,6 +6,18 @@ import {
   deniedUnchanged, revokeOwned, assertSessionsGone, leaseLive,createAndRecover,settledRequests,assertFreePort,
 } from './lib/core-building-setup-http-fixture.mjs';
 
+export function buildSetupCommandBody(run, revision, operation, base, extra = {}, suffix = '') {
+  check(typeof run === 'string' && run.length === 36
+    && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(run), 'COMMAND_RUN');
+  check(Number.isInteger(revision) && revision >= 1 && revision <= 2147483647, 'COMMAND_REVISION');
+  check(['update','rehearse','submit','approve','provision'].includes(operation), 'COMMAND_OPERATION');
+  check(typeof suffix === 'string' && !/[^A-Za-z0-9._:-]/.test(suffix), 'COMMAND_SUFFIX');
+  // Canonical command guard binds the Setup record, not the disposable lease run.
+  const key = 'setup-' + run + '-r' + revision + '-' + operation + (suffix ? '-' + suffix : '');
+  check(key.length <= 128, 'COMMAND_KEY_LENGTH');
+  return {...base,...extra,expected_revision:revision,command_key:key};
+}
+
 export function help() {
   return [
     TASK + ' (no Docker/startup/remote target fallback)',
@@ -132,8 +144,8 @@ export async function runConnected() {
     await deniedUnchanged(pool,()=>request(operator,{path:attemptPath({...base,workspace_id:ids[60]})}),403);
     await deniedUnchanged(pool,()=>readRun(outsider,run),403);
     setPhase('concurrent-revision');
-    const update=(suffix,revision=1)=>({...base,expected_revision:revision,command_key:'bh-'+lease.run_id+'-edit-'+suffix,
-      units:[{code:'1',floor:0,area_m2:55},{code:'2',floor:1,area_m2:60}]});
+    const update=(suffix,revision=1)=>buildSetupCommandBody(run,revision,'update',base,{
+      units:[{code:'1',floor:0,area_m2:55},{code:'2',floor:1,area_m2:60}]},suffix);
     const edits=await settledRequests(['a','b'].map(suffix=>request(operator,{path:ROUTE+'/'+run,method:'PATCH',body:update(suffix)})));
     assert.deepEqual(edits.map(r=>r.status).sort(),[200,409]);
     const current=expect(await readRun(operator,run),200);
@@ -145,7 +157,7 @@ export async function runConnected() {
       body:{...update(winner.command_key.endsWith('-a')?'a':'b'),units:payload.units}}),409);
     const command=(actor,action,revision,b=base,extra={})=>request(actor,{
       path:ROUTE+'/'+run+'/'+action,method:'POST',
-      body:{...b,expected_revision:revision,command_key:'bh-'+lease.run_id+'-'+action+'-r'+revision,...extra}});
+      body:buildSetupCommandBody(run,revision,action,b,extra)});
     setPhase('rehearse-submit-approval-snapshot');
     const rehearsed=expect(await command(operator,'rehearse',2),200);
     assert.equal(rehearsed.revision,3);assert.equal(rehearsed.status,'rehearsed');
