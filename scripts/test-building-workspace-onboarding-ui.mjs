@@ -89,20 +89,81 @@ try{
  // Reuse the existing reviewer consumer; no activation endpoint is called.
  const {PilotReviewerPanel}=load('src/components/customer/PilotReviewerPanel.tsx',{'@/lib/customer/building-setup-schema':schema,'@/lib/customer/building-workspace-onboarding':helper,'next/link':({href,children})=>React.createElement('a',{href},children)});
  const reviewPayload=structuredClone(savedCommand.payload);
+ const reviewLabels={en:['Approve setup','Check and retry the same approval','Refresh review access'],ro:['Aprobă dosarul','Verifică și reîncearcă aceeași aprobare','Actualizează accesul la verificare'],fa:['تأیید پرونده','بررسی و تکرار همان تأیید','بررسی دسترسی بازبینی']};
  for(const lang of ['en','ro','fa']){
-  sessionStorage.clear();let approvals=0;let review={version:2,workspace_id:workspace,revision:3,run_id:run,status:'submitted',payload:reviewPayload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:3,submitted_payload_hash:'a'.repeat(64),last_command_key:null,last_command_receipt:null};
+  const [approveLabel,retryLabel,refreshLabel]=reviewLabels[lang],approvalKey=`cladora.setup-approval.v2:${ctx}:${workspace}`;
+  let review,posts,accessStatus,access,readMode,postMode,holdRead,holdReviewer,holdPost;
+  const fresh=()=>{sessionStorage.clear();posts=[];accessStatus=200;access={status:'active',context_id:ctx,workspace_id:workspace};readMode='ok';postMode='lost-committed';holdRead=null;holdReviewer=null;holdPost=null;review={version:2,workspace_id:workspace,revision:3,run_id:run,status:'submitted',payload:reviewPayload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:3,submitted_payload_hash:'a'.repeat(64),last_command_key:null,last_command_receipt:null};};
+  const response=(status,body)=>({ok:status===200,status,json:async()=>structuredClone(body)});
+  const reviewerBody=()=>({reviewer:{...access,runs:access.status&&review.status==='submitted'?[{id:run,workspace_id:access.workspace_id,status:'submitted',building:'Synthetic sensitive',revision:3,payload_hash:'a'.repeat(64),submitted_revision:3,submitted_payload_hash:'a'.repeat(64)}]:[]}});
   globalThis.fetch=async(url,options={})=>{
-   if(url==='/api/customer/v1/pilot-reviewer')return {ok:true,json:async()=>({reviewer:{status:'active',context_id:ctx,workspace_id:workspace,runs:review.status==='submitted'?[{id:run,workspace_id:workspace,status:'submitted',building:'Synthetic',revision:3,payload_hash:'a'.repeat(64),submitted_revision:3,submitted_payload_hash:'a'.repeat(64)}]:[]}})};
-   if(!options.method)return{ok:true,json:async()=>review};
-   approvals++;const body=JSON.parse(options.body);review={...review,status:'approved',revision:4,last_command_key:body.command_key,last_command_receipt:{operation:'approve',expected_revision:3,command_key:body.command_key}};throw Error('Synthetic lost approval response');
+   if(url==='/api/customer/v1/pilot-reviewer'){
+    if(holdReviewer){const wait=holdReviewer;holdReviewer=null;return wait;}
+    return response(accessStatus,accessStatus===200?reviewerBody():{error:{code:'FORBIDDEN'}});
+   }
+   if(!options.method){
+    if(holdRead){const wait=holdRead;holdRead=null;return wait;}
+    if(readMode==='network')throw Error('Synthetic network unavailable');
+    if(typeof readMode==='number')return response(readMode,{error:{code:'FORBIDDEN'}});
+    return response(200,review);
+   }
+   posts.push(options.body);
+   if(typeof postMode==='number')return response(postMode,{error:{code:'FORBIDDEN'}});
+   if(postMode==='lost-uncommitted')throw Error('Synthetic uncommitted lost response');
+   const body=JSON.parse(options.body);
+   const receipt={version:2,run_id:run,workspace_id:workspace,status:'approved',revision:4,operation:'approve',expected_revision:3,command_key:body.command_key};
+   review={...review,status:'approved',revision:4,last_command_key:body.command_key,last_command_receipt:receipt};
+   if(holdPost){const wait=holdPost;holdPost=null;return wait;}
+   if(postMode==='lost-committed')throw Error('Synthetic committed lost response');
+   return response(200,receipt);
   };
-  await act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:`review-${lang}`,lang})));
-  const approveLabel={en:'Approve setup',ro:'Aprobă dosarul',fa:'تأیید پرونده'}[lang];
-  await act(async()=>{button(approveLabel).click();button(approveLabel).click();});eq(approvals,1,'reviewer synchronous duplicate prevented');
-  const stored=JSON.parse(sessionStorage.getItem(`cladora.setup-approval.v2:${ctx}:${workspace}`));eq(stored.command.expected_revision,3);eq(stored.command.expected_payload_hash,'a'.repeat(64));
-  await act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:`review-remount-${lang}`,lang})));
-  const retry=[...document.querySelectorAll('button')].find(e=>!e.disabled);
-  await act(async()=>retry.click());eq(approvals,1,'lost approval recovered through exact recorded receipt, no second POST');eq(sessionStorage.getItem(`cladora.setup-approval.v2:${ctx}:${workspace}`),null);
+  let serial=0;const mount=()=>act(async()=>root.render(React.createElement(PilotReviewerPanel,{key:`review-${lang}-${++serial}`,lang})));
+  const focus=()=>act(async()=>window.dispatchEvent(new dom.window.Event('focus')));
+  const stored=()=>JSON.parse(sessionStorage.getItem(approvalKey));
+  const noRuns=()=>{eq(document.body.textContent.includes('Synthetic sensitive'),false,'confirmed authority loss clears displayed runs');eq(button(approveLabel),undefined,'no approval action after access loss');eq(button(retryLabel),undefined,'pending metadata never grants authority');};
+  // Existing positive regression: lost committed approval, remount, exact receipt, no second POST.
+  fresh();await mount();eq(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
+  await act(async()=>{button(approveLabel).click();button(approveLabel).click();});eq(posts.length,1,'synchronous duplicate prevented');
+  const original=stored();eq(original.command.expected_revision,3);eq(original.command.expected_payload_hash,'a'.repeat(64));
+  await mount();await click(retryLabel);eq(posts.length,1,'committed receipt recovers with no second POST');eq(stored(),null);
+  // Unknown noncommitted result retains the original body/key through remount and a genuine retry.
+  fresh();postMode='lost-uncommitted';await mount();await click(approveLabel);const exactBody=posts[0];await mount();postMode='ok';await click(retryLabel);eq(posts.length,2);eq(posts[1],exactBody,'retry uses exact original key/body');eq(stored(),null);
+  for(const status of [401,403]){
+   fresh();postMode='lost-uncommitted';await mount();await click(approveLabel);const saved=stored();readMode=status;await click(retryLabel);noRuns();eq(stored(),saved,'expired/revoked reader preserves same pending attempt');eq(posts.length,1);
+   // Only a fresh current authorized read may restore the consumer, never stored metadata alone.
+   readMode='ok';await click(refreshLabel);eq(stored(),saved);eq(button(retryLabel).disabled,false);
+   accessStatus=status;await click(refreshLabel);noRuns();eq(stored(),saved);eq(posts.length,1);
+   fresh();postMode=status;await mount();await click(approveLabel);noRuns();eq(posts.length,1);eq(!!stored(),true,'write denial retains original attempt');
+  }
+  // Explicit empty reviewer state is access loss, not a successful approval.
+  fresh();await mount();access={};await click(refreshLabel);noRuns();eq(posts.length,0);
+  // Unknown network read is not a confirmed denial/success and must retain the same key.
+  fresh();readMode='network';await mount();await click(approveLabel);const networkAttempt=stored();eq(posts.length,0);eq(!!networkAttempt,true);assert.match(document.querySelector('[role="status"]').textContent,lang==='en'?/unknown/:lang==='ro'?/necunoscut/:/نامشخص/);
+  readMode='ok';postMode='ok';await click(retryLabel);eq(JSON.parse(posts[0]),networkAttempt.command);eq(stored(),null);
+  // Corrupt/foreign saved attempts never send a mutation or become actionable.
+  for(const field of ['context_id','workspace_id']){
+   fresh();const foreign={run_id:run,command:{context_id:ctx,workspace_id:workspace,expected_revision:3,expected_payload_hash:'a'.repeat(64),command_key:`setup-${run}-r3-original`}};foreign.command[field]=other;
+   sessionStorage.setItem(approvalKey,JSON.stringify(foreign));await mount();eq(button(approveLabel).disabled,true);eq(button(retryLabel),undefined);eq(posts.length,0);eq(stored(),foreign);
+  }
+  for(const mismatch of ['revision','hash','workspace','run','receipt']){
+   fresh();postMode='lost-uncommitted';await mount();await click(approveLabel);const saved=stored();
+   if(mismatch==='revision')review.revision=4;
+   if(mismatch==='hash')review.submitted_payload_hash='c'.repeat(64);
+   if(mismatch==='workspace')review.workspace_id=otherWorkspace;
+   if(mismatch==='run')review.run_id=other;
+   if(mismatch==='receipt')review={...review,status:'approved',revision:4,last_command_key:saved.command.command_key,last_command_receipt:{operation:'approve',command_key:saved.command.command_key,expected_revision:3}};
+   await click(retryLabel);eq(posts.length,1,`${mismatch} mismatch must not approve`);eq(stored(),saved,'mismatch retains original unresolved key');
+  }
+  // A changed Context/Workspace cannot reuse an old pending approval.
+  fresh();postMode='lost-uncommitted';await mount();await click(approveLabel);const oldAttempt=stored();access={status:'active',context_id:other,workspace_id:otherWorkspace};await click(refreshLabel);eq(button(retryLabel),undefined);eq(stored(),oldAttempt);eq(posts.length,1);
+  // Deferred old reviewer success cannot restore data after a newer CURRENT denial.
+  fresh();await mount();let releaseReviewer;holdReviewer=new Promise(resolve=>{releaseReviewer=resolve;});const delayed=reviewerBody();await focus();accessStatus=403;await focus();noRuns();await act(async()=>releaseReviewer(response(200,delayed)));noRuns();eq(posts.length,0);
+  // A deferred approval read cannot dispatch a mutation or erase pending state after denial.
+  fresh();await mount();let releaseRead;holdRead=new Promise(resolve=>{releaseRead=resolve;});await act(async()=>button(approveLabel).click());const retained=stored();accessStatus=403;await focus();noRuns();await act(async()=>releaseRead(response(200,review)));noRuns();eq(posts.length,0);eq(stored(),retained);
+  // A delayed committed POST response cannot clear the attempt after current denial.
+  fresh();await mount();let releasePost;holdPost=new Promise(resolve=>{releasePost=resolve;});await act(async()=>button(approveLabel).click());const postAttempt=stored();eq(posts.length,1);accessStatus=403;await focus();noRuns();await act(async()=>releasePost(response(200,review.last_command_receipt)));noRuns();eq(stored(),postAttempt,'late write success never erases denied pending attempt');eq(posts.length,1);
+  // Old instance reads must not change the new instance after unmount/remount.
+  fresh();await mount();let releaseUnmount;holdRead=new Promise(resolve=>{releaseUnmount=resolve;});await act(async()=>button(approveLabel).click());const retainedUnmount=stored();await mount();await act(async()=>releaseUnmount(response(200,review)));eq(posts.length,0);eq(stored(),retainedUnmount);eq(button(retryLabel).disabled,false);
  }
  // Only the reserved creation-attempt hunk of the existing CaseConversation is exercised.
  const caseSchemas=load('src/lib/customer/building-workspace-onboarding-case.ts',{'./building-setup-schema':schema});
