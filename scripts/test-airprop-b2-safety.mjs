@@ -187,6 +187,10 @@ const migrationResult = validateProtectedDirectory({
       owner: 'CE / bounded canonical Unit handoff / PR #466',
       sha256: '47749ef20155547a3c82a3dcb18f9fee8daa405a28c40cecb036394d04be5263',
     },
+    '20261021071420_advisor_finance_governance_sql_v1.sql': {
+      owner: 'Coordinator / bounded Finance-Governance Advisor correction / PR #466',
+      sha256: '419c20244fb960f0ac776f17ebe788967f465e2addc5ee1dc45bdd59b45898a2',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });

@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/bounded-handoff-local-proof.yml'
       - 'scripts/check-database-package.mjs'
+      - 'scripts/test-advisor-finance-governance.mjs'
       - 'scripts/core-mobile-payment-server-proof.mjs'
       - 'scripts/lib/core-mobile-payment-fixture.mjs'
       - 'scripts/lib/pf01-owner-portfolio-local-fixture.mjs'
@@ -27,6 +28,7 @@ on:
       - 'supabase/tests/211_core_mobile_payment_authority_v1_test.sql'
       - 'supabase/tests/212_ce_communications_canonical_unit_v1_test.sql'
       - 'supabase/tests/213_documents_canonical_unit_link_v1_test.sql'
+      - 'supabase/tests/214_advisor_finance_governance_sql_v1_test.sql'
       - 'package.json'
       - 'package-lock.json'
       - 'next.config.mjs'
@@ -60,6 +62,7 @@ jobs:
           npx eslint --max-warnings=0
           scripts/core-mobile-payment-server-proof.mjs
           scripts/lib/core-mobile-payment-fixture.mjs
+          scripts/test-advisor-finance-governance.mjs
           scripts/test-ce-communications-canonical-unit-api.mjs
           scripts/test-documents-canonical-unit-link-api.mjs
           scripts/test-service-mobile-denial-browser.mjs
@@ -69,6 +72,8 @@ jobs:
         run: |
           node scripts/test-ce-communications-canonical-unit-api.mjs
           node scripts/test-documents-canonical-unit-link-api.mjs
+      - name: Verify Finance and Governance SQL delta and actual GET handlers (mocked DB boundary)
+        run: node scripts/test-advisor-finance-governance.mjs
       - name: SERVICE real Chromium with synthetic transport (not connected DB)
         run: node scripts/test-service-mobile-denial-browser.mjs
       - name: SERVICE injected-failure owned-resource cleanup
@@ -97,6 +102,7 @@ jobs:
           supabase start --help
           supabase migration up --help
           supabase test db --help
+          supabase db lint --help
           supabase status --help
           supabase stop --help
       - run: npm ci
@@ -136,6 +142,9 @@ jobs:
           supabase/tests/211_core_mobile_payment_authority_v1_test.sql
           supabase/tests/212_ce_communications_canonical_unit_v1_test.sql
           supabase/tests/213_documents_canonical_unit_link_v1_test.sql
+          supabase/tests/214_advisor_finance_governance_sql_v1_test.sql
+      - name: Fail closed on remaining Finance or Governance SQL lint errors
+        run: supabase db lint --local --schema finance,governance --level error --fail-on error
       - name: Core real Next to genuine local Auth and PostgreSQL proof
         shell: bash
         run: |
