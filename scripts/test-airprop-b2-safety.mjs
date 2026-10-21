@@ -175,6 +175,18 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Finance / C15',
       sha256: '724acdb5a57f91bdc7200e7e204ae2801f95e1d5c9a4cf943ecfb8cafa00198e',
     },
+    '20261021045324_core_mobile_payment_exact_replay_current_authority_v1.sql': {
+      owner: 'Core / bounded handoff R2 / PR #466',
+      sha256: 'f2946847392129e5e1c91b3b79310d939d9e141fa105580dd94e68efe48dd6c5',
+    },
+    '20261021045651_documents_canonical_unit_link_v1.sql': {
+      owner: 'Documents/Vault / bounded canonical Unit handoff / PR #466',
+      sha256: '7c3ecb5058cf910ba29e75b50f33985b11fcb1009d48b1ae7be73435704f2401',
+    },
+    '20261021045809_ce_communications_canonical_unit_v1.sql': {
+      owner: 'CE / bounded canonical Unit handoff / PR #466',
+      sha256: '47749ef20155547a3c82a3dcb18f9fee8daa405a28c40cecb036394d04be5263',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });

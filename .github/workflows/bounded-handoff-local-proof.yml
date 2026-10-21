@@ -75,7 +75,7 @@ jobs:
         run: node scripts/test-service-mobile-denial-browser.mjs --inject-failure
 
   core-connected-local-proof:
-    needs: consumer-contracts
+    # A synthetic browser launch must not prevent independent real DB/Auth evidence.
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:

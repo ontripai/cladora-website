@@ -93,7 +93,9 @@ const bounded = (promise, ms, label) => {
   return Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(label)), ms); })]).finally(() => clearTimeout(timer));
 };
 async function executable() {
-  for (const path of [chromium.executablePath(), '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/google-chrome']) {
+  // Hosted Ubuntu runners provide native Chrome alongside a Chromium snap launcher.
+  // Prefer an installed native browser; do not download a browser or retry launches.
+  for (const path of [chromium.executablePath(), '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser']) {
     try { await access(path); return path; } catch { /* No download or substitution. */ }
   }
   throw new Error('COMPATIBLE_BROWSER_UNAVAILABLE_NO_INSTALL_ATTEMPT');

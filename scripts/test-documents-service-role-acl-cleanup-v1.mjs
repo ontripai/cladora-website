@@ -9,7 +9,8 @@ const migrations = readdirSync('supabase/migrations').filter(name => name.endsWi
 const migration = readFileSync(`supabase/migrations/${migrationName}`, 'utf8');
 const test = readFileSync(`supabase/tests/${testName}`, 'utf8');
 
-assert.equal(migrations.length, 287);
+// The bounded Core, Documents and Communications handoff adds three forward migrations.
+assert.equal(migrations.length, 290);
 assert.ok(migrations.indexOf(d7Name) < migrations.indexOf(migrationName));
 assert.ok(migrations.indexOf(migrationName) < migrations.indexOf(s1Name));
 assert.match(migration, /expected 96 direct privileges across 12 application tables/i);
