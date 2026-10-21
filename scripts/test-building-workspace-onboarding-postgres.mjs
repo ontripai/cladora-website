@@ -1,21 +1,51 @@
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
-import pg from 'pg';
-// Authoring only until PM grants a disposable lease + Core supplies accepted positive fixture.
-// Never start Docker, use a remote target, grant native authority or install an adapter stub.
-const url=process.env.BUILDING_SETUP_TEST_DATABASE_URL,lease=process.env.BUILDING_SETUP_TEST_LEASE;
-if(!url||!lease||process.env.BUILDING_SETUP_EPHEMERAL!=='1')throw Error('BLOCKED: explicit leased disposable target required; NOT_RUN_NOT_PASS');
-const target=new URL(url);
-if(!['postgres:','postgresql:'].includes(target.protocol)||!['127.0.0.1','localhost','[::1]'].includes(target.hostname)||target.search||!/^\/cladora_setup_fixture_[a-z0-9_]+$/.test(target.pathname))throw Error('BLOCKED: dedicated local synthetic fixture DB required; no query-string host override');
-const fixture=JSON.parse(process.env.BUILDING_SETUP_ACCEPTED_FIXTURE??'null');
-for(const key of ['actor','context','workspace'])assert.match(fixture?.[key]??'',/^[a-f0-9-]{36}$/i);
+import {execFileSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
+
+// Importing this module performs no database, Docker or environment operations.
+export function validateProofTarget(env, sha) {
+ const url=env.BUILDING_SETUP_TEST_DATABASE_URL,lease=env.BUILDING_SETUP_TEST_LEASE;
+ assert.ok(env.BUILDING_SETUP_EPHEMERAL==='1' && /^[a-f0-9]{40}$/.test(sha),'explicit disposable proof required');
+ assert.ok(new RegExp('^building-[0-9]+-[0-9]+-'+sha+'$').test(lease??''),'lease must bind exact checked-out SHA');
+ let target;
+ try{target=new URL(url);}catch{throw Error('dedicated local synthetic fixture DB required');}
+ assert.ok(['postgres:','postgresql:'].includes(target.protocol)
+  && ['127.0.0.1','localhost','[::1]'].includes(target.hostname) && target.port==='54322'
+  && target.username==='postgres' && target.password==='postgres'
+  && !target.search && !target.hash && /^\/cladora_setup_fixture_[a-f0-9]{32}$/.test(target.pathname),
+  'dedicated local synthetic fixture DB required; no endpoint overrides');
+ let fixture;
+ try{fixture=JSON.parse(env.BUILDING_SETUP_ACCEPTED_FIXTURE??'null');}catch{throw Error('accepted fixture metadata required');}
+ for(const key of ['actor','context','workspace']) assert.ok(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(fixture?.[key]??''),'accepted fixture UUID required');
+ return {url,lease,target,fixture};
+}
+
+export async function cleanupOwnedDatabase({admin,name,created,clients=[]}) {
+ assert.ok(/^cladora_setup_(?:fixture|proof)_[a-f0-9]{32}$/.test(name),'cleanup requires an owned random DB name');
+ // All task-owned connections get a graceful end, even if one end fails.
+ const closed=await Promise.allSettled(clients.map(client=>Promise.resolve().then(()=>client.end())));
+ let dropFailed=false,dropCode=null;
+ if(created){
+  try{
+   await admin.query('drop database "'+name+'"');
+   assert.ok((await admin.query('select count(*)::integer n from pg_database where datname=$1',[name])).rows[0].n===0,'owned DB must be absent');
+  }catch(error){dropFailed=true;if(['55006','42501','08006','57P01'].includes(error?.code))dropCode=error.code;}
+ }
+ if(dropFailed||closed.some(result=>result.status==='rejected')) throw Object.assign(Error('owned database cleanup failed; no force or session termination attempted'),{code:dropCode});
+}
+
+export async function runPostgresProof() {
+ const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const {url,lease,target,fixture}=validateProofTarget(process.env,sha);
+ const {default:pg}=await import('pg');
 // A TEMPLATE source must have NO connected clients, including this runner.
 // Read its lease on a short-lived connection; create/drop from maintenance DB.
 const owned=`cladora_setup_proof_${randomUUID().replaceAll('-','')}`,admin=new pg.Client({connectionString:new URL('/postgres',url).href}),clients=[];
 let created=false,checks=0,receipt,inspector;
 const payload={association:{name:'Synthetic concurrent proof'},building:{name:'Synthetic block',code:'B223',floors:1},currency:'RON',period_start:'2026-01-01',period_end:'2026-01-31',units:[{code:'U1',floor:0,area_m2:50}],opening_balances:[]};
 const creationKey=`proof-${randomUUID()}`;
-async function call(name,args,actor=fixture.actor){const client=new pg.Client({connectionString:new URL(`/${owned}`,url).href});clients.push(client);await client.connect();try{await client.query('begin');await client.query('set local statement_timeout=15000');await client.query('set local role authenticated');await client.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:actor,role:'authenticated',aal:'aal2'})]);const placeholders=args.map((_,i)=>`$${i+1}`).join(',');const r=await client.query(`select customer_api.${name}(${placeholders}) result`,args);await client.query('commit');return r.rows[0].result;}catch(e){await client.query('rollback');throw e;}finally{await client.end();clients.splice(clients.indexOf(client),1);}}
+async function call(name,args,actor=fixture.actor){const client=new pg.Client({connectionString:new URL(`/${owned}`,url).href});clients.push(client);try{await client.connect();await client.query('begin');await client.query('set local statement_timeout=15000');await client.query('set local role authenticated');await client.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:actor,role:'authenticated',aal:'aal2'})]);const placeholders=args.map((_,i)=>`$${i+1}`).join(',');const r=await client.query(`select customer_api.${name}(${placeholders}) result`,args);await client.query('commit');return r.rows[0].result;}catch(e){await client.query('rollback');throw e;}finally{await client.end();clients.splice(clients.indexOf(client),1);}}
 const tables=['platform.building_setup_runs','audit.events','platform.outbox_events','portfolio.properties','portfolio.buildings','portfolio.units','finance.accounting_periods','finance.journals','billing.invoices','identity.memberships','identity.context_grants','platform.workspace_property_bindings','platform.workspace_member_roles','platform.workspace_member_role_authority_sources','platform.workspace_role_handover_lineage'];
 async function fingerprint(){const parts=[];for(const table of tables){const r=await inspector.query(`select md5(coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text),'[]'::jsonb)::text) digest from ${table} t`);parts.push([table,r.rows[0].digest]);}return parts;}
 try{
@@ -57,9 +87,19 @@ try{
  assert.deepEqual(await fingerprint(),before,'a prior creation receipt cannot bypass Context revoke');checks++;
  receipt={result:'PASS',checks,boundary:'ACTUAL_POSTGRES_ROLE_WITH_FIXTURE_JWT_CLAIMS_NOT_ISSUED_AUTH',concurrent_creation:true,concurrent_revision:true,fingerprinted_tables:tables.length,real_auth_http:'NOT_RUN_NOT_PASS'};
 }finally{
- await Promise.allSettled(clients.map(c=>c.end()));
- try{if(inspector)await inspector.end();if(created){await admin.query(`drop database "${owned}"`);assert.equal((await admin.query('select count(*)::integer n from pg_database where datname=$1',[owned])).rows[0].n,0);}}
+ try{await cleanupOwnedDatabase({admin,name:owned,created,clients:[...clients,...(inspector?[inspector]:[])]});}
  finally{await admin.end();}
 }
 
-console.log(JSON.stringify({...receipt,owned_database_cleanup:'PASS'}));
+return {...receipt,owned_database_cleanup:'PASS'};
+
+}
+
+if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href){
+ runPostgresProof().then(receipt=>console.log(JSON.stringify(receipt))).catch(error=>{
+  // Raw pg/assertion errors may contain SQL/rows/credentials. Never print them.
+  const allowed=new Set(['42501','23505','40001','55006']);
+  console.error(JSON.stringify({suite:'building-setup-postgres',result:'FAIL',sqlstate:allowed.has(error?.code)?error.code:null,detail:'proof or cleanup failed; sensitive output withheld'}));
+  process.exitCode=1;
+ });
+}
