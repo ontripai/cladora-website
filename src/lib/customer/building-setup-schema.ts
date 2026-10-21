@@ -34,24 +34,50 @@ export const buildingSetupPayloadSchema = z.object({
 
 export const createBuildingSetupSchema = z.object({
   context_id: buildingSetupIdSchema,
+  workspace_id: buildingSetupIdSchema,
   idempotency_key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/),
   payload: buildingSetupPayloadSchema,
 }).strict();
-export const buildingSetupActionSchema = z.object({ context_id: buildingSetupIdSchema }).strict();
+export const buildingSetupActionSchema = z.object({
+  context_id: buildingSetupIdSchema, workspace_id: buildingSetupIdSchema,
+  expected_revision: z.number().int().positive(),
+  command_key: z.string().regex(/^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$/),
+}).strict();
+export const buildingSetupApprovalSchema = buildingSetupActionSchema.extend({ expected_payload_hash: z.string().regex(/^[0-9a-f]{64}$/) });
 
 export const buildingSetupUnitsSchema = buildingSetupPayloadSchema.shape.units.superRefine((units, ctx) => {
   const codes = units.map(unit => unit.code.toLowerCase());
   if (new Set(codes).size !== codes.length) ctx.addIssue({ code: 'custom', message: 'duplicate_unit_code' });
 });
 export const buildingSetupReadSchema = z.object({
+  version: z.literal(2),
+  workspace_id: buildingSetupIdSchema,
+  revision: z.number().int().positive(),
   run_id: buildingSetupIdSchema,
   status: z.enum(['draft', 'rehearsed', 'submitted', 'approved', 'provisioned', 'cancelled']),
   payload: buildingSetupPayloadSchema,
+  payload_hash: z.string().regex(/^[0-9a-f]{64}$/),
+  creation_request_hash: z.string().regex(/^[0-9a-f]{64}$/).nullable(),
+  creation_receipt: z.record(z.string(), z.unknown()).nullable(),
+  submitted_revision: z.number().int().positive().nullable(),
+  submitted_payload_hash: z.string().nullable(),
+  last_command_key: z.string().nullable(),
+  last_command_receipt: z.record(z.string(), z.unknown()).nullable(),
   property_id: buildingSetupIdSchema.nullable().optional(),
   effective_units: buildingSetupUnitsSchema.nullable().optional(),
 });
 
 export const buildingSetupReceiptSchema = z.object({
+  version: z.literal(2),
+  workspace_id: buildingSetupIdSchema,
+  revision: z.number().int().positive(),
   run_id: buildingSetupIdSchema,
   status: z.enum(['draft', 'rehearsed', 'submitted', 'approved', 'provisioned', 'cancelled']),
+  creation_request_hash: z.string().regex(/^[0-9a-f]{64}$/).optional(),
 }).passthrough();
+
+export const reviewerSetupStateSchema = z.object({
+  status: z.enum(['prepared','active']).optional(), workspace_id: buildingSetupIdSchema.optional(),
+  context_id: buildingSetupIdSchema.nullable().optional(), expires_at: z.string().optional(),
+  runs: z.array(z.object({ id: buildingSetupIdSchema, workspace_id: buildingSetupIdSchema, status: z.literal('submitted'), building: z.string(), revision: z.number().int().positive(), payload_hash: z.string().regex(/^[0-9a-f]{64}$/), submitted_revision: z.number().int().positive(), submitted_payload_hash: z.string().regex(/^[0-9a-f]{64}$/) })).optional(),
+}).superRefine((state,ctx)=>{if(state.runs?.some(r=>r.workspace_id!==state.workspace_id||r.revision!==r.submitted_revision||r.payload_hash!==r.submitted_payload_hash))ctx.addIssue({code:'custom',message:'review_snapshot_mismatch'});});
