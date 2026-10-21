@@ -171,12 +171,16 @@ export async function runConnected() {
     assert.equal(replay.data.payment_intent_id, intent); assert.equal(replay.data.is_idempotent_replay, true); pass(phase);
     const getUrl = (ctx = 101) => `${base}/${intent}?context_id=${id(ctx)}`;
     const instructionUrl = (ctx = 101) => `${base}/${intent}/bank-instruction?context_id=${id(ctx)}`;
-    phase = 'r1-authenticated-signed-jwt-rls';
+    assert.equal((await request('GET', getUrl(), null)).status, 401);
+    assert.equal((await request('GET', instructionUrl(), null)).status, 401);
+    phase = 'r2-authenticated-signed-jwt-rls';
     const r1Results = [];
     // Each reader has its own transaction so an actual GET error cannot abort
     // the instruction probe. Claims are copied verbatim from the VERIFIED real
     // token above, solely to reproduce PostgREST's authenticated SQL session.
-    for (const rpc of ['get_payment_intent_v1', 'generate_bank_instruction_v1']) {
+    const readRpcs = ['app_private.read_payment_intent_scoped_v1',
+      'customer_api.get_payment_intent_v1', 'customer_api.generate_bank_instruction_v1'];
+    for (const rpc of readRpcs) {
       const reader = await pool.connect();
       try {
         await reader.query('begin read only');
@@ -186,17 +190,31 @@ export async function runConnected() {
         const proof = await reader.query(`select current_user as role, current_setting('row_security') as rls,
           row_security_active('portfolio.units'::regclass) as unit_rls,
           row_security_active('identity.memberships'::regclass) as membership_rls,
+          row_security_active('portfolio.buildings'::regclass) as building_rls,
+          row_security_active('identity.context_grants'::regclass) as context_rls,
+          (select count(*)::int from portfolio.buildings where id=$3) as direct_building_rows,
+          (select count(*)::int from identity.context_grants where id=$4) as direct_context_rows,
           (select count(*)::int from portfolio.units where id=$1) as direct_unit_rows,
-          (select count(*)::int from identity.memberships where id=$2) as direct_membership_rows`, [id(51), id(91)]);
+          (select count(*)::int from identity.memberships where id=$2) as direct_membership_rows`, [id(51), id(91), id(40), id(101)]);
         assert.equal(proof.rows[0].role, 'authenticated');
         assert.equal(proof.rows[0].rls, 'on');
         assert.equal(proof.rows[0].unit_rls, true);
         assert.equal(proof.rows[0].membership_rls, true);
         assert.equal(proof.rows[0].direct_unit_rows, 0);
         assert.equal(proof.rows[0].direct_membership_rows, 0);
+        for (const name of ['building', 'context']) {
+          assert.equal(proof.rows[0][`${name}_rls`], true);
+          assert.equal(proof.rows[0][`direct_${name}_rows`], 0);
+        }
         // rpc is selected from the fixed allowlist above, never external input.
-        const result = await reader.query(`select customer_api.${rpc}($1,$2) as data`, [id(101), intent]);
+        const result = await reader.query(`select ${rpc}($1,$2) as data`, [id(101), intent]);
         assert.equal(result.rows[0].data.payment_intent_id, intent);
+        if (!rpc.endsWith('generate_bank_instruction_v1')) {
+          assert.deepEqual(Object.keys(result.rows[0].data).sort(), ['payment_intent_id', 'tenant_id',
+            'property_id', 'unit_id', 'amount', 'currency', 'status', 'payment_method', 'client_reference',
+            'beneficiary', 'allocation_policy', 'selected_invoices', 'expires_at', 'created_at', 'settled_at'].sort());
+          assert.doesNotMatch(JSON.stringify(result.rows[0].data), /configuration_snapshot|request_identity|RO37BTRL0000000000000001|vault_secret|decrypted_secret/);
+        }
         r1Results.push({ rpc, result: 'PASS' });
       } catch (error) {
         r1Results.push({ rpc, result: 'FAIL', error: error.code ?? error.name });
@@ -204,9 +222,33 @@ export async function runConnected() {
     }
     console.log(JSON.stringify({ check: phase, provenance: 'verified genuine Auth JWT + authenticated SQL role + enabled RLS', results: r1Results }));
     // No assertion is weakened when the candidate's invoker path falsely denies.
-    assert.ok(r1Results.every(result => result.result === 'PASS'), 'R1 both legitimate read paths must succeed');
+    assert.ok(r1Results.every(result => result.result === 'PASS'), 'R2 helper, GET and instruction must independently succeed');
     assert.equal((await request('GET', getUrl(), actors[0])).status, 200);
     assert.equal((await request('GET', instructionUrl(), actors[0])).status, 200);
+    // Independent SQL-session denials from each VERIFIED real token, without
+    // changing its claims. Each probe has its own transaction after an error.
+    const denyReads = async (actorIndex, ctx, expectedCode, targetIntent = intent) => {
+      const results = [];
+      for (const rpc of readRpcs) {
+        const reader = await pool.connect();
+        try {
+          await reader.query('begin read only');
+          await reader.query('set local role authenticated');
+          await reader.query('set local row_security=on');
+          await reader.query("select set_config('request.jwt.claims',$1,true)", [JSON.stringify(verifiedActorClaims[actorIndex])]);
+          try {
+            await reader.query(`select ${rpc}($1,$2)`, [id(ctx), targetIntent]);
+            results.push({ rpc, code: 'UNEXPECTED_SUCCESS' });
+          } catch (error) { results.push({ rpc, code: error.code ?? error.name }); }
+        } finally { await reader.query('rollback'); reader.release(); }
+      }
+      assert.deepEqual(results.map(result => result.code), readRpcs.map(() => expectedCode),
+        'all elevated/public/instruction paths must deny independently');
+    };
+    await denyReads(1, 101, '42501'); // borrowed Context
+    await denyReads(1, 102, '42501'); // foreign payer
+    await denyReads(2, 103, '22023'); // foreign tenant
+    await denyReads(0, 101, '22023', id(999)); // unknown intent
     phase = 'concurrent-first-writes';
     const concurrent = { ...body, idempotency_key: 'core-mobile-concurrent-211' };
     const responses = await Promise.all(Array.from({ length: 8 }, () => post(concurrent)));
@@ -286,6 +328,7 @@ export async function runConnected() {
     assert.equal((await request('GET', getUrl(102), actors[1])).status, 403);
     assert.equal((await request('GET', getUrl(103), actors[2])).status, 404); pass(phase);
     for (const [label, mutate, restore] of [
+      ['narrowed-unit', `update identity.context_grants set unit_id='${id(52)}' where id=$1`, `update identity.context_grants set unit_id='${id(51)}' where id=$1`],
       ['context-expiry', `update identity.context_grants set ends_at=statement_timestamp()-interval '1 second' where id=$1`, `update identity.context_grants set ends_at=null where id=$1`],
       ['context-future', `update identity.context_grants set starts_at=statement_timestamp()+interval '1 day' where id=$1`, `update identity.context_grants set starts_at=statement_timestamp()-interval '1 day' where id=$1`],
       ['context-revoke', 'delete from identity.context_grants where id=$1',
@@ -299,12 +342,13 @@ export async function runConnected() {
         `update platform.workspace_entitlements set boolean_value=true where customer_workspace_id=$1 and entitlement_key='module.payments'`],
     ]) {
       phase = label;
-      const target = id(label.startsWith('context') ? 101 : label === 'missing-entitlement' ? 160 : 91);
+      const target = id(label.startsWith('context') || label === 'narrowed-unit' ? 101 : label === 'missing-entitlement' ? 160 : 91);
       await pool.query(mutate, [target]);
       try {
         assert.equal((await post()).status, 403);
         assert.equal((await request('GET', getUrl(), actors[0])).status, 403);
         assert.equal((await request('GET', instructionUrl(), actors[0])).status, 403);
+        await denyReads(0, 101, '42501');
         assert.equal((await count(body.idempotency_key)).rows[0].n, 1); pass(phase);
       } finally { await pool.query(restore, [target]); }
     }
