@@ -2,83 +2,181 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { spawn, execFileSync } from 'node:child_process';
-import pg from 'pg';
+import { pipeline, Readable } from 'node:stream';
+import { pathToFileURL } from 'node:url';
+import { cleanupOwnedDatabase } from './test-building-workspace-onboarding-postgres.mjs';
 
-// Fresh job-owned official Supabase ONLY. Never borrow another Worker stack.
-assert.equal(process.env.GITHUB_ACTIONS, 'true', 'CI-only disposable proof');
-assert.equal(process.env.BUILDING_SETUP_CI_OWNS_FRESH_DAEMON, '1');
-const lease = process.env.BUILDING_SETUP_TEST_LEASE ?? '';
-assert.match(lease, /^building-[0-9]+-[0-9]+-[a-f0-9]{40}$/);
-const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-assert.ok(lease.endsWith(sha), 'lease binds the checked-out exact SHA');
-const dockerEnv = { ...process.env };
-for (const key of ['DOCKER_HOST', 'DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH']) delete dockerEnv[key];
-const docker = ['--host=unix:///var/run/docker.sock'];
-const container = 'supabase_db_cladora-local';
-const info = JSON.parse(execFileSync('docker', [...docker, 'inspect', container], { env: dockerEnv, encoding: 'utf8' }))[0];
-assert.equal(info.Config.Labels['com.supabase.cli.project'], 'cladora-local');
-assert.match(info.Config.Image, /(?:public\.ecr\.aws\/supabase\/|supabase\/)postgres:17\.6\.1\.095$/);
-const source = `cladora_setup_fixture_${randomUUID().replaceAll('-', '')}`;
-const url = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
-const admin = new pg.Client({ connectionString: url });
-let created = false;
+const sqlstates = new Set(['42501','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000']);
+const signals = new Set(['SIGTERM','SIGPIPE','SIGKILL','SIGINT','SIGABRT','SIGSEGV']);
+const processCodes = new Set(['ENOENT','EACCES','EPERM','EPIPE','ECONNRESET']);
+const stages = new Set(['preflight','connect','clone-create','snapshot','dump','restore','fixture-load','lease-set','concurrency-proof','cleanup']);
 
-function completion(child, label) {
-  // Do not print SQL, keys, fixture data or credential-bearing command output.
-  child.stdout?.resume();
-  child.stderr?.resume();
-  return new Promise((resolve, reject) => {
-    child.once('error', () => reject(Error(`${label}: process start failed`)));
-    child.once('close', code => code === 0 ? resolve() : reject(Error(`${label}: failed (SQL output withheld)`)));
+export class HarnessFailure extends Error {
+  constructor(diagnostic) {
+    super('building-setup harness failed: ' + JSON.stringify(diagnostic));
+    this.diagnostic = diagnostic;
+  }
+}
+
+// Never retain raw errors, SQL, command arguments, paths, fixture rows or causes.
+export function safeFailure(stage, error) {
+  if (error instanceof HarnessFailure) return error;
+  return new HarnessFailure({stage: stages.has(stage) ? stage : 'preflight',
+    category:'operation-failed', sqlstate:sqlstates.has(error?.code) ? error.code : null});
+}
+
+export function validateCi(env, sha, info) {
+  assert.ok(env.GITHUB_ACTIONS === 'true', 'CI-only disposable proof');
+  assert.ok(env.BUILDING_SETUP_CI_OWNS_FRESH_DAEMON === '1', 'fresh job-owned daemon required');
+  assert.ok(/^[a-f0-9]{40}$/.test(sha), 'full checked-out SHA required');
+  assert.ok(new RegExp('^building-[0-9]+-[0-9]+-' + sha + '$').test(env.BUILDING_SETUP_TEST_LEASE ?? ''), 'lease binds exact SHA');
+  assert.ok(info?.Config?.Labels?.['com.supabase.cli.project'] === 'cladora-local', 'official project identity required');
+  assert.ok(/^(?:public\.ecr\.aws\/supabase\/|supabase\/)postgres:17\.6\.1\.095$/.test(info?.Config?.Image ?? ''), 'pinned official image required');
+}
+
+export function observeProcess(child, stage) {
+  let startError = null, sqlstate = null, category = null, tail = '', scanned = 0;
+  child.stderr?.on('data', chunk => {
+    // Drain all stderr; bound both retained text and parsing work.
+    if (scanned >= 65536) return;
+    const text = tail + chunk.subarray(0, 65536 - scanned).toString('utf8');
+    scanned += chunk.length;
+    const code = text.match(/(?:ERROR|FATAL|PANIC):\s+([A-Z0-9]{5})(?:\s|:|$)/)?.[1];
+    if (sqlstates.has(code)) sqlstate ??= code;
+    for (const [pattern, label] of [
+      [/permission denied|must be owner|must be superuser/i, 'permission-denied'],
+      [/no space left on device|disk quota exceeded/i, 'storage-exhausted'],
+      [/password authentication failed/i, 'authentication-failed'],
+      [/connection refused|could not connect/i, 'connection-failed'],
+      [/syntax error/i, 'syntax-error'],
+      [/broken pipe/i, 'broken-pipe'],
+    ]) if (pattern.test(text)) category ??= label;
+    tail = text.slice(-1024);
+  });
+  return new Promise(resolve => {
+    child.once('error', error => { startError = processCodes.has(error?.code) ? error.code : 'UNKNOWN'; });
+    // close, not exit/error, proves stdio has also settled.
+    child.once('close', (code, signal) => resolve({stage, exitCode:Number.isInteger(code) ? code : null,
+      signal:signals.has(signal) ? signal : null, startError, sqlstate,
+      category:category ?? (startError ? 'process-start-failed' : code === 0 && !signal ? 'ok' : 'process-failed')}));
   });
 }
 
-try {
-  await admin.connect();
-  assert.equal((await admin.query('select current_database() name')).rows[0].name, 'postgres');
-  await admin.query(`create database "${source}" template template0`);
-  created = true;
-  // Clone a consistent logical snapshot without disconnecting Auth/PostgREST.
-  // The source postgres DB is never altered. --clean applies ONLY to the newly
-  // created task-owned destination, not a user database or shared stack.
-  const dump = spawn('docker', [...docker, 'exec', container, 'pg_dump', '-U', 'postgres', '-d', 'postgres', '--clean', '--if-exists'], { env: dockerEnv, stdio: ['ignore', 'pipe', 'pipe'] });
-  const restore = spawn('docker', [...docker, 'exec', '-i', container, 'psql', '-X', '-U', 'postgres', '-d', source, '-v', 'ON_ERROR_STOP=1'], { env: dockerEnv, stdio: ['pipe', 'ignore', 'pipe'] });
-  // Both processes are awaited, including the failure path; no dangling dump.
-  const dumpDone = new Promise((resolve, reject) => {
-    dump.stderr.resume();
-    dump.once('error', () => reject(Error('fixture snapshot process start failed')));
-    dump.once('close', code => code === 0 ? resolve() : reject(Error('fixture snapshot failed; SQL withheld')));
-  });
-  dump.stdout.pipe(restore.stdin);
-  restore.stdin.on('error', () => { dump.kill('SIGTERM'); });
-  const copied = await Promise.allSettled([dumpDone, completion(restore, 'fixture restore')]);
-  for (const result of copied) if (result.status === 'rejected') throw result.reason;
-  const fixture = await readFile(new URL('../supabase/tests/fixtures/building_setup_authority_v2.inc', import.meta.url), 'utf8');
-  assert.ok(!/^\s*\\/m.test(fixture), 'fixture contains SQL only, no psql shell commands');
-  const load = spawn('docker', [...docker, 'exec', '-i', container, 'psql', '-X', '-U', 'postgres', '-d', source, '-v', 'ON_ERROR_STOP=1'], { env: dockerEnv, stdio: ['pipe', 'ignore', 'pipe'] });
-  const loaded = completion(load, 'canonical fixture');
-  load.stdin.on('error', () => {}); // The process exit remains a required failure.
-  load.stdin.end(`begin;\n${fixture}\ncommit;\n`);
-  await loaded;
-  const setting = (await admin.query('select format(\'alter database %I set cladora.synthetic_setup_lease to %L\', $1::text, $2::text) sql', [source, lease])).rows[0].sql;
-  await admin.query(setting);
-  const run = spawn(process.execPath, ['scripts/test-building-workspace-onboarding-postgres.mjs'], {
-    env: { ...process.env, BUILDING_SETUP_EPHEMERAL: '1', BUILDING_SETUP_TEST_LEASE: lease,
-      BUILDING_SETUP_TEST_DATABASE_URL: new URL(`/${source}`, url).href,
-      BUILDING_SETUP_ACCEPTED_FIXTURE: JSON.stringify({ actor: 'c2200000-0000-4000-8000-000000000001', context: 'c2200000-0000-4000-8000-000000000100', workspace: 'c2200000-0000-4000-8000-000000000050' }) },
-    stdio: ['ignore', 'inherit', 'inherit'],
-  });
-  await new Promise((resolve, reject) => {
-    run.once('error', reject);
-    run.once('close', code => code === 0 ? resolve() : reject(Error('actual-role concurrency proof failed')));
-  });
-} finally {
+function succeeded(result) {
+  return result.exitCode === 0 && result.signal === null && result.startError === null;
+}
+
+function terminateOwned(child) {
+  if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
+}
+
+export async function copySnapshot({spawnProcess = spawn, docker, dockerEnv, container, source}) {
+  assert.ok(/^cladora_setup_fixture_[a-f0-9]{32}$/.test(source), 'owned snapshot destination required');
+  const dump = spawnProcess('docker', [...docker, 'exec', container, 'pg_dump', '-U', 'postgres', '-d', 'postgres', '--clean', '--if-exists'], {env:dockerEnv, stdio:['ignore','pipe','pipe']});
+  const dumpDone = observeProcess(dump, 'dump');
+  let restore;
   try {
-    if (created) {
-      // No FORCE/termination: an open foreign/owned session makes cleanup fail.
-      await admin.query(`drop database "${source}"`);
-      assert.equal((await admin.query('select count(*)::integer n from pg_database where datname=$1', [source])).rows[0].n, 0);
-    }
-  } finally { await admin.end(); }
+    restore = spawnProcess('docker', [...docker, 'exec', '-i', container, 'psql', '-X', '-U', 'postgres', '-d', source, '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=sqlstate'], {env:dockerEnv, stdio:['pipe','ignore','pipe']});
+  } catch {
+    dump.stdout.resume();
+    terminateOwned(dump);
+    const dumped = await dumpDone;
+    throw new HarnessFailure({stage:'snapshot', primary:'restore', dump:dumped,
+      restore:{stage:'restore', category:'process-start-failed'}});
+  }
+  const restoreDone = observeProcess(restore, 'restore');
+  const pipeDone = new Promise(resolve => pipeline(dump.stdout, restore.stdin, error => {
+    if (error) terminateOwned(dump);
+    resolve(error ? (processCodes.has(error.code) ? error.code : 'STREAM_FAILURE') : null);
+  }));
+  // Preserve BOTH outcomes: destination failure must not be masked by induced
+  // dump SIGTERM/EPIPE. Every process and stream settles before DB cleanup.
+  const [dumped, restored, pipeError] = await Promise.all([dumpDone, restoreDone, pipeDone]);
+  if (!succeeded(dumped) || !succeeded(restored) || pipeError) {
+    throw new HarnessFailure({stage:'snapshot',
+      failedStages:[...(!succeeded(dumped) ? ['dump'] : []), ...(!succeeded(restored) ? ['restore'] : []), ...(pipeError ? ['pipe'] : [])],
+      dump:dumped, restore:restored, pipeError});
+  }
 }
-console.log(JSON.stringify({ suite: 'building-setup-concurrency-ci', sha, fixture_database_cleanup: 'PASS', issued_auth_http: 'NOT_RUN_NOT_PASS' }));
+
+export async function loadFixture(child, fixture) {
+  const done = observeProcess(child, 'fixture-load');
+  const input = new Promise(resolve => pipeline(Readable.from(['begin;\n' + fixture + '\ncommit;\n']), child.stdin, error => {
+    if (error) terminateOwned(child);
+    resolve(error ? 'STREAM_FAILURE' : null);
+  }));
+  const [result, pipeError] = await Promise.all([done, input]);
+  if (!succeeded(result) || pipeError) throw new HarnessFailure({stage:'fixture-load', process:result, pipeError});
+}
+
+export async function runCi() {
+  let stage = 'preflight', failure;
+  // Fresh job-owned official Supabase ONLY. Never borrow another Worker stack.
+  assert.equal(process.env.GITHUB_ACTIONS, 'true', 'CI-only disposable proof');
+  assert.equal(process.env.BUILDING_SETUP_CI_OWNS_FRESH_DAEMON, '1');
+  const lease = process.env.BUILDING_SETUP_TEST_LEASE ?? '';
+  assert.match(lease, /^building-[0-9]+-[0-9]+-[a-f0-9]{40}$/);
+  const sha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8', stdio: ['ignore','pipe','pipe'] }).trim();
+  assert.ok(lease.endsWith(sha), 'lease binds the checked-out exact SHA');
+  const dockerEnv = { ...process.env };
+  for (const key of ['DOCKER_HOST', 'DOCKER_CONTEXT', 'DOCKER_TLS', 'DOCKER_TLS_VERIFY', 'DOCKER_CERT_PATH']) delete dockerEnv[key];
+  const docker = ['--host=unix:///var/run/docker.sock'];
+  const container = 'supabase_db_cladora-local';
+  const info = JSON.parse(execFileSync('docker', [...docker, 'inspect', container], { env: dockerEnv, encoding: 'utf8', stdio: ['ignore','pipe','pipe'] }))[0];
+  validateCi(process.env, sha, info);
+  const source = `cladora_setup_fixture_${randomUUID().replaceAll('-', '')}`;
+  const url = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+  const {default: pg} = await import('pg');
+  const admin = new pg.Client({ connectionString: url });
+  let created = false;
+
+  try {
+    stage = 'connect';
+    await admin.connect();
+    assert.equal((await admin.query('select current_database() name')).rows[0].name, 'postgres');
+    stage = 'clone-create';
+    await admin.query(`create database "${source}" template template0`);
+    created = true;
+    // Clone a consistent logical snapshot without disconnecting Auth/PostgREST.
+    // The source postgres DB is never altered. --clean applies ONLY to the newly
+    // created task-owned destination, not a user database or shared stack.
+    stage = 'snapshot';
+    await copySnapshot({docker, dockerEnv, container, source});
+    stage = 'fixture-load';
+    const fixture = await readFile(new URL('../supabase/tests/fixtures/building_setup_authority_v2.inc', import.meta.url), 'utf8');
+    assert.ok(!/^\s*\\/m.test(fixture), 'fixture contains SQL only, no psql shell commands');
+    const load = spawn('docker', [...docker, 'exec', '-i', container, 'psql', '-X', '-U', 'postgres', '-d', source, '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=sqlstate'], { env: dockerEnv, stdio: ['pipe', 'ignore', 'pipe'] });
+    await loadFixture(load, fixture);
+    stage = 'lease-set';
+    const setting = (await admin.query('select format(\'alter database %I set cladora.synthetic_setup_lease to %L\', $1::text, $2::text) sql', [source, lease])).rows[0].sql;
+    await admin.query(setting);
+    stage = 'concurrency-proof';
+    const run = spawn(process.execPath, ['scripts/test-building-workspace-onboarding-postgres.mjs'], {
+      env: { ...process.env, BUILDING_SETUP_EPHEMERAL: '1', BUILDING_SETUP_TEST_LEASE: lease,
+        BUILDING_SETUP_TEST_DATABASE_URL: new URL(`/${source}`, url).href,
+        BUILDING_SETUP_ACCEPTED_FIXTURE: JSON.stringify({ actor: 'c2200000-0000-4000-8000-000000000001', context: 'c2200000-0000-4000-8000-000000000100', workspace: 'c2200000-0000-4000-8000-000000000050' }) },
+      stdio: ['ignore', 'inherit', 'pipe'],
+    });
+    const result = await observeProcess(run, 'concurrency-proof');
+    if (!succeeded(result)) throw new HarnessFailure({stage:'concurrency-proof', process:result});
+  } catch (error) {
+    failure = safeFailure(stage, error);
+  } finally {
+    let cleanupFailure;
+    try {
+      await cleanupOwnedDatabase({admin, name:source, created});
+    } catch (error) { cleanupFailure = safeFailure('cleanup', error); }
+    try { await admin.end(); }
+    catch (error) { cleanupFailure ??= safeFailure('cleanup', error); }
+    if (cleanupFailure) throw new HarnessFailure({stage:'cleanup', prior:failure?.diagnostic ?? null, cleanup:cleanupFailure.diagnostic});
+  }
+  if (failure) throw failure;
+  return { suite: 'building-setup-concurrency-ci', sha, fixture_database_cleanup: 'PASS', issued_auth_http: 'NOT_RUN_NOT_PASS' };
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  runCi().then(result => console.log(JSON.stringify(result))).catch(error => {
+    console.error(safeFailure('preflight', error).message);
+    process.exitCode = 1;
+  });
+}
