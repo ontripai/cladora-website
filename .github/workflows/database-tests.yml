@@ -140,7 +140,7 @@ on:
       - "package.json"
       - "package-lock.json"
   push:
-    branches: [main]
+    branches: [main, codex/core-building-setup-connected-http]
     paths:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
@@ -280,10 +280,11 @@ permissions:
 
 concurrency:
   group: database-tests-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/codex/core-building-setup-connected-http' }}
 
 jobs:
   static-contract:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/codex/core-building-setup-connected-http' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -302,6 +303,7 @@ jobs:
       - run: npm run test:documents-country-retention-operation
 
   postgres-runtime:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/codex/core-building-setup-connected-http' }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -691,7 +693,7 @@ jobs:
   # A separate reviewed execution plan must enable this job AND populate the
   # helper's REVIEWED_EXECUTION_PLAN. Env flags/files cannot grant execution.
   building-setup-core-http:
-    if: ${{ false }}
+    if: ${{ false && github.event_name == 'push' && github.ref == 'refs/heads/codex/core-building-setup-connected-http' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
@@ -699,7 +701,7 @@ jobs:
       actions: read
     environment: building-setup-core-http
     concurrency:
-      group: building-setup-core-http-${{ github.run_id }}-${{ github.run_attempt }}
+      group: building-setup-core-http-${{ github.repository }}
       cancel-in-progress: false
     env:
       # This is source selection only, never proof of execution authorization.
@@ -718,6 +720,7 @@ jobs:
           test "$(git branch --show-current)" = codex/core-building-setup-connected-http
           [[ "$CLADORA_APPROVED_EXECUTION_SHA" =~ ^[a-f0-9]{40}$ ]]
           test "$(git rev-parse HEAD)" = "$CLADORA_APPROVED_EXECUTION_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           git merge-base --is-ancestor 87ddb06877fb31f562ba66477d14f7bc453a17ee HEAD
           git merge-base --is-ancestor 37115e2a77f4c7e24f2de884cc808706f361dcdb HEAD
       - uses: actions/setup-node@v4
