@@ -48,7 +48,7 @@ export function reconcileSetupAttempt(a: SetupAttempt, record: SetupRecord): 'do
 }
 // Preserve the established Error message and helper signature for existing callers.
 export class SetupReadError extends Error {
-  constructor(readonly status: number) { super('setup_read_denied'); }
+  constructor(readonly status: number, message = 'setup_read_denied') { super(message); }
 }
 export async function readSetupRecord(context: string, workspace: string, run: string) {
   const response = await fetch(`/api/customer/v1/onboarding/building-setup/${run}?${new URLSearchParams({ context_id: context, workspace_id: workspace })}`, { cache: 'no-store', signal: AbortSignal.timeout(20_000) });
@@ -59,7 +59,7 @@ export async function readSetupRecord(context: string, workspace: string, run: s
 }
 export async function readSetupAttempt(context: string, workspace: string, key: string) {
   const response = await fetch(`/api/customer/v1/onboarding/building-setup?${new URLSearchParams({ context_id: context, workspace_id: workspace, idempotency_key: key })}`, { cache: 'no-store', signal: AbortSignal.timeout(20_000) });
-  if (!response.ok) throw Error('setup_recovery_denied');
+  if (!response.ok) throw new SetupReadError(response.status, 'setup_recovery_denied');
   const result = await response.json();
   if (!Object.hasOwn(result, 'attempt')) throw Error('setup_recovery_invalid');
   if (result.attempt === null) return null;
