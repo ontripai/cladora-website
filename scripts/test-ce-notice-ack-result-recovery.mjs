@@ -51,14 +51,18 @@ const labels = {
   ro: { ack: 'Confirmă primirea', done: 'Primire confirmată', check: 'Verifică rezultatul confirmării', retry: 'Reîncearcă aceeași confirmare', unknown: 'Rezultatul confirmării este necunoscut.', close: 'Închide' },
   fa: { ack: 'اعلام وصول و تأیید دریافت', done: 'وصول تأیید شد', check: 'بررسی نتیجهٔ وصول', retry: 'تلاش مجدد همان وصول', unknown: 'نتیجهٔ ثبت وصول نامشخص است.', close: 'بستن' },
 };
-let root, ctx, lang = 'en', posts = [], reads = [], queuedGets = [], currentAck = null, all = [], cases = [];
+let root, ctx, lang = 'en', posts = [], reads = [], queuedGets = [], queuedLists = [], listReads = [], currentAck = null, all = [], cases = [];
+const listData = () => ({ total: 2, rows: [notice(N), notice(M)] });
 const response = (data, status = 200) => ({ status, ok: status >= 200 && status < 300, json: async () => data });
 globalThis.fetch = (input, options = {}) => {
   const url = new URL(String(input), dom.window.location.origin); const method = options.method ?? 'GET';
   assert.equal(url.origin, dom.window.location.origin, 'no external attempt');
   if (url.pathname.endsWith('/contexts')) return Promise.resolve(response({ contexts }));
   if (url.pathname.endsWith('/dashboard')) return Promise.resolve(response({}));
-  if (url.pathname.endsWith('/notices') && method === 'GET') return Promise.resolve(response({ total: 2, rows: [notice(N), notice(M)] }));
+  if (url.pathname.endsWith('/notices') && method === 'GET') {
+    listReads.push({ url, options });
+    return queuedLists.length ? queuedLists.shift()(url, options) : Promise.resolve(response(listData()));
+  }
   if (method === 'POST') {
     assert.ok(url.pathname.endsWith('/acknowledge'), 'only existing ack mutation permitted');
     return new Promise((resolve, reject) => { const r = { url, options, resolve, reject }; posts.push(r); all.push(r); });
@@ -91,12 +95,96 @@ const losePost = async () => { await act(async () => posts.at(-1).reject(new Err
 const hasDone = () => text().includes(labels[lang].done);
 async function test(name, fn, language = 'en') {
   await unmount(); storage.getItem = getItem; storage.setItem = setItem; storage.removeItem = removeItem;
-  sessionStorage.clear(); posts = []; reads = []; queuedGets = []; all = []; currentAck = null; fastTimeout = false;
+  sessionStorage.clear(); posts = []; reads = []; queuedGets = []; queuedLists = []; listReads = []; all = []; currentAck = null; fastTimeout = false;
   await mount(language);
   try { await fn(); cases.push(name); }
   finally { await unmount(); for (const r of all) r.resolve(response(receipt)); await tick(); assert.equal(timers.size, 0, `${name}: timer cleanup`); }
 }
 try {
+  const refresh = async () => { await click(document.querySelector('button[data-notice-refresh]')); await tick(180); };
+  const absent = () => { assert.equal(text().includes('PRIVATE-'), false); assert.equal(hasDone(), false); assert.equal(document.querySelector('[role="dialog"]'), null); };
+  for (const language of ['en', 'ro', 'fa']) {
+    for (const status of [401, 403]) for (const kind of ['POST', 'GET']) {
+      if (process.argv.includes('--r1-get') && kind !== 'GET') continue;
+      await test(`R1 ${language}: ${kind}${status} -> explicit still-denied/error/restored reads`, async () => {
+        await open(); await click(labels[lang].ack);
+        if (kind === 'POST') await finishPost({}, status);
+        else { await losePost(); queuedGets.push(() => Promise.resolve(response({}, status))); await click(labels[lang].check); }
+        absent(); const pending = sessionStorage.getItem(key()); const count = posts.length;
+        // A denied refresh must make exactly one new read, with no cache display or loop.
+        let resolveList; const before = listReads.length;
+        queuedLists.push(() => new Promise(r => { resolveList = r; })); await refresh();
+        assert.equal(listReads.length, before + 1, 'explicit same-Context refresh must issue a fresh list GET'); absent();
+        assert.equal(listReads.at(-1).url.searchParams.get('context_id'), A);
+        assert.equal(listReads.at(-1).options.cache, 'no-store');
+        await act(async () => resolveList(response({}, status))); await tick(180); absent();
+        assert.equal(listReads.length, before + 1, 'no denied retry loop');
+        queuedLists.push(() => Promise.resolve(response({}, 500))); await refresh(); absent();
+        queuedLists.push(() => Promise.reject(new Error('R1 modeled read failure'))); await refresh(); absent();
+        let obsoleteFetch;
+        queuedLists.push(() => new Promise(r => { obsoleteFetch = r; })); await refresh(); absent();
+        const obsoleteSignal = listReads.at(-1).options.signal;
+        let resolveBody;
+        queuedLists.push(() => Promise.resolve({ status: 200, ok: true, json: () => new Promise(r => { resolveBody = r; }) }));
+        await refresh(); absent(); assert.equal(sessionStorage.getItem(key()), pending);
+        assert.equal(obsoleteSignal.aborted, true);
+        await act(async () => obsoleteFetch(response(listData()))); await tick(); absent();
+        await act(async () => resolveBody(listData())); await tick(); await open();
+        assert.equal(posts.length, count); assert.ok(button(labels[lang].check)); assert.equal(hasDone(), false);
+        currentAck = ack; await click(labels[lang].check); assert.ok(hasDone());
+        assert.equal(posts.length, count); assert.equal(sessionStorage.getItem(key()), null);
+      }, language);
+    }
+    await test(`R1 ${language}: stale pre-denial list/detail bodies cannot revive data`, async () => {
+      await open(); await click(labels[lang].ack); let oldListBody, oldDetailBody;
+      queuedLists.push(() => Promise.resolve({ ok: true, status: 200, json: () => new Promise(r => { oldListBody = r; }) }));
+      queuedGets.push(() => Promise.resolve({ ok: true, status: 200, json: () => new Promise(r => { oldDetailBody = r; }) }));
+      await refresh(); await finishPost({}, 403); absent();
+      let fresh; queuedLists.push(() => new Promise(r => { fresh = r; })); await refresh(); absent();
+      await act(async () => { oldListBody(listData()); oldDetailBody(detail(ack)); }); await tick(); absent();
+      await act(async () => fresh(response(listData()))); await tick(); await open();
+      assert.ok(button(labels[lang].check)); assert.equal(hasDone(), false); assert.equal(posts.length, 1);
+    }, language);
+    await test(`R1 ${language}: timed-out POST body cannot complete after denial/revalidation`, async () => {
+      fastTimeout = true; await open(); await click(labels[lang].ack); let oldBody;
+      await act(async () => posts[0].resolve({ ok: true, status: 200, json: () => new Promise(r => { oldBody = r; }) }));
+      await tick(45); fastTimeout = false;
+      queuedGets.push(() => Promise.resolve(response({}, 401))); await click(labels[lang].check); absent();
+      await refresh(); await open(); const pending = sessionStorage.getItem(key());
+      await act(async () => oldBody(receipt)); await tick();
+      assert.equal(hasDone(), false); assert.equal(sessionStorage.getItem(key()), pending); assert.equal(posts.length, 1);
+      currentAck = ack; await click(labels[lang].check); assert.ok(hasDone()); assert.equal(posts.length, 1);
+    }, language);
+    await test(`R1 ${language}: conflict survives refresh/reopen and denial recovery`, async () => {
+      await open(); await click(labels[lang].ack); await finishPost({}, 409);
+      await refresh(); await click(labels[lang].close); await open();
+      queuedGets.push(() => Promise.resolve(response({}, 403))); await click(labels[lang].check); absent();
+      const pending = sessionStorage.getItem(key()); assert.equal(JSON.parse(pending).phase, 'conflict');
+      await refresh(); await open(); await click(labels[lang].check);
+      assert.equal(button(labels[lang].retry), undefined); assert.equal(button(labels[lang].ack)?.disabled, true);
+      assert.equal(sessionStorage.getItem(key()), pending); assert.equal(posts.length, 1);
+    }, language);
+    await test(`R1 ${language}: restored authorized null allows only explicit exact retry`, async () => {
+      await open(); await click(labels[lang].ack); const original = posts[0]; await finishPost({}, 403);
+      await refresh(); await open(); assert.equal(posts.length, 1);
+      await click(labels[lang].check); assert.equal(posts.length, 1);
+      await click(labels[lang].retry); assert.equal(posts.length, 2);
+      assert.equal(posts[1].url.href, original.url.href); assert.equal(posts[1].options.body, original.options.body);
+      await finishPost(); assert.ok(hasDone());
+    }, language);
+    await test(`R1 ${language}: superseded refresh fetch cannot populate another identity`, async () => {
+      await open(); await click(labels[lang].ack); await finishPost({}, 401); let stale;
+      queuedLists.push(() => new Promise(r => { stale = r; })); await refresh();
+      await act(async () => ctx.select(B)); await tick(180);
+      await act(async () => stale(response({ rows: [{ ...notice(N), title_en: 'STALE-OLD', title_ro: 'STALE-OLD', title_fa: 'STALE-OLD' }] }))); await tick();
+      assert.equal(text().includes('STALE-OLD'), false); assert.equal(posts.length, 1);
+      await open(M); assert.equal(hasDone(), false); assert.equal(button(labels[lang].check), undefined);
+      assert.ok(sessionStorage.getItem(key()));
+      await act(async () => ctx.select(A)); await tick(180); await open();
+      assert.ok(button(labels[lang].check)); assert.equal(posts.length, 1);
+    }, language);
+  }
+  if (!process.argv.includes('--r1')) {
   for (const language of ['en', 'ro', 'fa']) {
     await test(`${language}:valid receipt + no auto POST on locale/refresh`, async () => {
       await open(); assert.equal(document.querySelector('#root > div').dir, language === 'fa' ? 'rtl' : 'ltr');
@@ -278,8 +366,10 @@ try {
     assert.equal(posts[0].options.signal.aborted, true); assert.equal(timers.size, 0);
     posts[0].reject(new Error('late rejection after cleanup')); await tick();
   });
-  assert.deepEqual(unhandled, []); console.log(JSON.stringify({ suite: 'CE-NOTICE-ACK-RESULT-RECOVERY-01', result: 'PASS', groups: cases.length, cases,
-    boundary: 'ACTUAL_MOUNTED_CONSUMER_PROVIDER_MOCKED_HTTP_AND_MODELED_COMMIT', SQL_Auth_race: 'NOT_RUN_NOT_PASS', realBrowser: 'NOT_RUN_NOT_PASS', cleanup: 'NORMAL_AND_INJECTED_PASS', unhandled: unhandled.length }, null, 2));
+  }
+  assert.deepEqual(unhandled, []); console.log(JSON.stringify({ suite: 'CE-NOTICE-ACK-RESULT-RECOVERY-01', revision: 'R1', result: 'PASS', groups: cases.length, cases,
+    boundary: 'ACTUAL_MOUNTED_CONSUMER_PROVIDER_MOCKED_HTTP_AND_MODELED_COMMIT', SQL_Auth_race: 'NOT_RUN_NOT_PASS', realBrowser: 'NOT_RUN_NOT_PASS',
+    cleanup: cases.some(name => name.startsWith('injected fixture failure')) ? 'NORMAL_AND_INJECTED_PASS' : 'NORMAL_PASS', unhandled: unhandled.length }, null, 2));
 } finally {
   await unmount(); for (const r of all) r.resolve(response(receipt)); await tick();
   storage.getItem = getItem; storage.setItem = setItem; storage.removeItem = removeItem;

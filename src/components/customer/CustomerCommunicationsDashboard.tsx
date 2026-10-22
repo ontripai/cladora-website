@@ -598,7 +598,12 @@ export function CustomerCommunicationsDashboard({
           type="button"
           aria-label={t.refresh}
           data-notice-refresh
-          onClick={() => setNonce((n) => n + 1)}
+          onClick={() => {
+            // Explicit revalidation starts a new reader generation; it grants
+            // no access and cannot reuse pre-denial list/detail state.
+            if (ackAccessDenied) setAckDenial({ scope: contextScope, denied: false });
+            setNonce((n) => n + 1);
+          }}
           className="rounded-xl border p-2 transition hover:bg-slate-50"
         >
           <RefreshCw className="mx-auto h-4 w-4 text-[#52667A]" />
