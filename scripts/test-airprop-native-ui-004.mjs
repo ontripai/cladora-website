@@ -14,7 +14,7 @@ function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,i
 
 const contextA='11111111-1111-4111-8111-111111111111',contextB='11111111-1111-4111-8111-111111111112';
 const workspaceA='22222222-2222-4222-8222-222222222222',workspaceB='22222222-2222-4222-8222-222222222223';
-let active={context_id:contextA},targetsMode='targets',postMode='success',calls=[];
+let active={context_id:contextA},targetsMode='targets',postMode='success',calls=[],postReply=null;
 const guards=new Map();
 function registerUnsavedGuard(key,dirty,discard){
  if(dirty)guards.set(key,discard);else if(!guards.has(key)||guards.get(key)===discard)guards.delete(key);
@@ -24,7 +24,10 @@ globalThis.fetch=async(url,options={})=>{
  calls.push({url,options});
  if(url.includes('/workspace/targets'))return{ok:true,json:async()=>({workspaces:targetsMode==='empty'?[]:[{workspace_id:workspaceA,environment:'PILOT'},{workspace_id:workspaceB,environment:'PILOT'}]})};
  if(options.method==='POST'){
+  if(postReply)return postReply();
   if(postMode==='uncertain')throw new Error('connection lost');
+  const failures={unauthorized:[401,'UNAUTHORIZED'],conflict:[409,'IDEMPOTENCY_CONFLICT'],denied:[403,'AIRPROP_ACCESS_DENIED'],mfa:[403,'MFA_REQUIRED'],server:[500,'AIRPROP_REQUEST_FAILED']};
+  if(failures[postMode]){const [status,code]=failures[postMode];return{ok:false,status,json:async()=>({error:{code}})};}
   const request=JSON.parse(options.body);
   return{ok:true,json:async()=>({version:2,workspace_id:request.workspace_id,opportunity_id:contextA,idempotent:true})};
  }
@@ -129,6 +132,82 @@ async function testRealContextProvider(){
   globalThis.fetch=nativeFetch;
   if(previousContext===null)sessionStorage.removeItem(contextStorageKey);else sessionStorage.setItem(contextStorageKey,previousContext);
  }
+}
+
+async function testCommandErrors(){
+ const storageKey=`cladora.airprop.pending.v2:${contextA}:${workspaceA}`;
+ const pending={version:2,context_id:contextA,workspace_id:workspaceA,idempotency_key:'recovery-errors-01',payload:{name:'Retained intent',country_code:'RO',city:'Cluj',currency:'RON',asking_price:'42.5000',property_id:null,source_ref:null}};
+ const serialized=JSON.stringify(pending);
+ const submit=async()=>act(async()=>{document.querySelector('form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));});
+ const status=()=>document.querySelector('form [role="status"]').textContent;
+ const values=()=>['name','city','asking_price'].map(name=>document.querySelector(`[name="${name}"]`).value).concat(document.querySelector('form select').value);
+ const expected={
+  en:{session:/session.*unavailable/i,conflict:/blocked.*conflict/i,invalid:/Check the name/,denied:/unavailable with your current access/,mfa:/Verify your identity/,pending:/result is uncertain/,success:/Opportunity saved/},
+  ro:{session:/Sesiunea nu este disponibilă/,conflict:/blocată.*conflict/,invalid:/Verifică numele/,denied:/nu este disponibilă cu accesul actual/,mfa:/Confirmă-ți identitatea/,pending:/Rezultatul este incert/,success:/Oportunitate salvată/},
+  fa:{session:/نشست.*دسترس نیست/,conflict:/تعارض.*مسدود/,invalid:/نام، شهر و قیمت/,denied:/دسترسی فعلی.*مجاز نیست/,mfa:/هویت خود را تأیید/,pending:/نتیجهٔ درخواست مشخص نیست/,success:/فرصت ثبت شد/},
+ };
+ let groups=0;
+ for(const [lang,text] of Object.entries(expected)){
+  for(const restored of [false,true]){
+   sessionStorage.removeItem(storageKey);if(restored)sessionStorage.setItem(storageKey,serialized);
+   postMode='unauthorized';await render(`401-${lang}-${restored}`,lang);await choose(workspaceA);
+   if(!restored)await act(async()=>{setInput('name',pending.payload.name);setInput('city',pending.payload.city);setInput('asking_price','42.5000');setCurrency('RON');});
+   const draft=values(),before=mutationCount();await submit();
+   assert.equal(mutationCount(),before+1);assert.match(status(),text.session,`${lang}: 401 must explain session failure`);assert.doesNotMatch(status(),text.invalid);
+   assert.deepEqual(values(),draft,'401 does not erase the draft');assert.equal(document.querySelectorAll('form [aria-invalid="true"]').length,0);
+   assert.equal(document.querySelector('fieldset').disabled,restored,'unknown restored intent stays immutable');
+   if(restored){assert.equal(sessionStorage.getItem(storageKey),serialized);assert.deepEqual(JSON.parse(calls.at(-1).options.body),pending);}
+   const beforeNavigation=mutationCount();await choose(workspaceB);assert.equal(workspaceSelect().value,workspaceA);await click(document.querySelector('[role="alertdialog"] button'));
+   assert.deepEqual(values(),draft);assert.match(status(),text.session);assert.equal(mutationCount(),beforeNavigation,'401 Keep/navigation never posts');
+   postMode='success';await submit();assert.match(status(),text.success);assert.equal(sessionStorage.getItem(storageKey),null);
+   if(restored)assert.deepEqual(JSON.parse(calls.filter(c=>c.options.method==='POST').at(-1).options.body),pending,'session recovery uses the exact original command');
+   groups++;
+  }
+
+  sessionStorage.setItem(storageKey,serialized);postMode='conflict';await render(`409-${lang}`,lang);await choose(workspaceA);await submit();
+  const conflictPosts=mutationCount();assert.match(status(),text.conflict);assert.doesNotMatch(status(),text.invalid);assert.equal(sessionStorage.getItem(storageKey),serialized);
+  assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('form button').disabled,true,'conflict retry is disabled');
+  assert.deepEqual(JSON.parse(calls.filter(c=>c.options.method==='POST').at(-1).options.body),pending);
+  await click(document.querySelector('form button'));await submit();assert.equal(mutationCount(),conflictPosts,'even a dispatched submit cannot repeat a blocked conflict');
+  // Localized state must survive rerender/locale recovery without replaying or unlocking the command.
+  const nextLang=lang==='en'?'ro':'en';await render(`409-${lang}`,nextLang);assert.match(status(),expected[nextLang].conflict);
+  assert.equal(document.querySelector('form button').disabled,true);assert.equal(sessionStorage.getItem(storageKey),serialized);assert.equal(mutationCount(),conflictPosts);
+  await render(`409-${lang}`,lang);await choose(workspaceB);assert.equal(workspaceSelect().value,workspaceA);await click(document.querySelector('[role="alertdialog"] button'));
+  assert.match(status(),text.conflict);assert.equal(document.querySelector('form button').disabled,true);
+  await choose(workspaceB);await click(document.querySelectorAll('[role="alertdialog"] button')[1]);
+  assert.equal(workspaceSelect().value,workspaceB);assert.deepEqual(values(),['','','','EUR']);assert.equal(document.querySelector('form button').disabled,false,'new scope does not inherit the conflict');
+  assert.equal(sessionStorage.getItem(storageKey),serialized);assert.equal(mutationCount(),conflictPosts,'discard/navigation preserves pending evidence without mutation');groups++;
+
+  // Adjacent definitive denials and unknown outcomes retain the existing command semantics.
+  for(const mode of ['denied','mfa','uncertain','server']){
+   sessionStorage.setItem(storageKey,serialized);postMode=mode;await render(`${mode}-${lang}`,lang);await choose(workspaceA);await submit();
+   assert.match(status(),mode==='denied'?text.denied:mode==='mfa'?text.mfa:text.pending);
+   assert.equal(sessionStorage.getItem(storageKey),serialized);assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('form button').disabled,false);
+   postMode='success';await submit();assert.deepEqual(JSON.parse(calls.filter(c=>c.options.method==='POST').at(-1).options.body),pending);assert.equal(sessionStorage.getItem(storageKey),null);assert.match(status(),text.success);groups++;
+  }
+ }
+ // Resolve an OLD response body only after leaving and returning to the same scope.
+ // It must not delete the restored command, alter the new instance or unblock a newer conflict.
+ for(const kind of ['success','unauthorized','conflict'])for(const scope of ['workspace','context']){
+  sessionStorage.setItem(storageKey,serialized);await render(`late-${kind}-${scope}`);await choose(workspaceA);
+  let resolveBody;postReply=()=>({ok:kind==='success',status:kind==='success'?200:kind==='unauthorized'?401:409,json:()=>new Promise(resolve=>{resolveBody=resolve;})});
+  await submit();assert.equal(typeof resolveBody,'function');postReply=null;const beforeNavigation=mutationCount();
+  if(scope==='workspace'){
+   await choose(workspaceB);await click(document.querySelectorAll('[role="alertdialog"] button')[1]);await choose(workspaceA);
+  }else{
+   // Model the already-confirmed Context change through the registered discard hook.
+   // The real provider's confirmation/cancel implementation is exercised separately below.
+   await act(async()=>{for(const discard of guards.values())discard();});
+   active={context_id:contextB};await render(`late-${kind}-${scope}`);await choose(workspaceB);
+   assert.equal(document.querySelector('[name="name"]').value,'');assert.equal(mutationCount(),beforeNavigation);
+   active={context_id:contextA};await render(`late-${kind}-${scope}`);await choose(workspaceA);
+  }
+  postMode='conflict';await submit();const currentMessage=status(),currentPosts=mutationCount();assert.equal(currentPosts,beforeNavigation+1);assert.equal(document.querySelector('form button').disabled,true);
+  await act(async()=>resolveBody(kind==='success'?{version:2,workspace_id:workspaceA,opportunity_id:contextA,idempotent:true}:{error:{code:kind==='unauthorized'?'UNAUTHORIZED':'IDEMPOTENCY_CONFLICT'}}));
+  assert.equal(status(),currentMessage);assert.equal(sessionStorage.getItem(storageKey),serialized,'late body cannot erase the current recovery evidence');assert.equal(document.querySelector('form button').disabled,true);assert.equal(mutationCount(),currentPosts);groups++;
+ }
+ sessionStorage.removeItem(storageKey);postMode='success';postReply=null;
+ console.log(`PASS ${groups} mounted command-error groups: EN/RO/FA initial/restored 401, blocked 409, locale/navigation, 403/MFA/network/500/exact replay and stale body fences`);
 }
 
 try{
@@ -275,6 +354,7 @@ try{
  posted=calls.filter(x=>x.options.method==='POST');assert.deepEqual(JSON.parse(posted.at(-1).options.body),pending,'retry sends the exact pending command');
  assert.equal(sessionStorage.getItem(storageKey),null);assert.equal(document.querySelector('fieldset').disabled,false);assert.match(document.body.textContent,/Opportunity saved/);assert.equal(document.querySelector('[name="name"]').value,'');assert.equal(guards.size,0,'success clears dirty guard');
 
+ await testCommandErrors();
  await testRealContextProvider();
 
  // Existing route and scope behavior remains intact.
