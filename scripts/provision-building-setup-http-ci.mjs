@@ -5,6 +5,7 @@ import {constants} from 'node:fs';
 import {resolve, relative, join, isAbsolute} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createServer} from 'node:net';
+import {AsyncLocalStorage} from 'node:async_hooks';
 
 export const CONTRACT=Object.freeze({
   repository:'ontripai/cladora-website', origin:'https://github.com/ontripai/cladora-website.git',
@@ -12,9 +13,10 @@ export const CONTRACT=Object.freeze({
   task:'CORE-BUILDING-SETUP-CONNECTED-HTTP-01', worker:'CLADORA-CORE-WORKER-01',
   provisioner:'CLADORA-PLATFORM-WORKER-01', lane:'building-setup-core-http',
   parent:'87ddb06877fb31f562ba66477d14f7bc453a17ee', coreCorrection:'37115e2a77f4c7e24f2de884cc808706f361dcdb',
+  jobTimeoutMs:45*60000,
 });
-// No execution SHA, capacity attestation, protected environment or run grant has
-// been assigned. Only a separately reviewed source change may fill this plan.
+// Reviewed POLICY only: no candidate SHA may be embedded in this source profile.
+// No timing/capacity/target/reviewer profile or run grant has been assigned.
 // Environment flags/files cannot grant execution. The workflow job is also off.
 export const REVIEWED_EXECUTION_PLAN=null;
 const hex40=/^[a-f0-9]{40}$/, id64=/^[a-f0-9]{64}$/;
@@ -28,20 +30,32 @@ function fixedFailure(stage){return {stage,result:'FAIL'};}
 const within=(root,path)=>relative(root,path)===''||(!relative(root,path).startsWith('..')&&!isAbsolute(relative(root,path)));
 const exactKeys=(value,keys)=>value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).length===keys.length&&keys.every(k=>Object.hasOwn(value,k));
 
+export function policyDigest(policy){
+  need(policy&&typeof policy==='object'&&!Object.hasOwn(policy,'sha')
+    &&typeof policy.id==='string'&&policy.id.length>0,'POLICY_IDENTITY');
+  const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'
+    ?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+  return createHash('sha256').update(JSON.stringify(canonical(policy))).digest('hex');
+}
+
 export function validateGrant(plan,ctx,external,now=Date.now()){
   need(plan!==null,'UNGRANTED');
-  need(hex40.test(plan.sha)&&plan.ref===CONTRACT.ref&&plan.repository===CONTRACT.repository,'PLAN_SOURCE');
+  const digest=policyDigest(plan);
+  need(plan.ref===CONTRACT.ref&&plan.repository===CONTRACT.repository,'PLAN_SOURCE');
   need(plan.task===CONTRACT.task&&plan.worker===CONTRACT.worker&&plan.provisioner===CONTRACT.provisioner&&plan.lane===CONTRACT.lane,'PLAN_IDENTITY');
   need(Number.isSafeInteger(plan.environmentId)&&plan.environmentId>0&&Number.isSafeInteger(plan.reviewerId)&&plan.reviewerId>0,'EXTERNAL_REVIEW_REQUIRED');
-  need(ctx.actions===true&&ctx.job===CONTRACT.lane&&ctx.repository===plan.repository&&ctx.ref===plan.ref&&ctx.sha===plan.sha,'RUN_SOURCE');
+  need(ctx.actions===true&&ctx.event==='push'&&ctx.job===CONTRACT.lane&&ctx.repository===plan.repository
+    &&ctx.ref===plan.ref&&hex40.test(ctx.sha)&&ctx.selectedSha===ctx.sha,'RUN_SOURCE');
   need(/^[1-9][0-9]*$/.test(ctx.runId)&&/^[1-9][0-9]*$/.test(ctx.attempt),'RUN_ID');
   need(external?.run?.id===ctx.runId&&external.run.attempt===ctx.attempt&&external.run.sha===ctx.sha&&external.run.branch===CONTRACT.branch
+    &&external.run.event==='push'&&external.run.repository===CONTRACT.repository
     &&external.run.workflowPath==='.github/workflows/database-tests.yml','EXTERNAL_RUN');
   need(external.review?.state==='approved'&&external.review.reviewerId===plan.reviewerId&&external.review.environmentId===plan.environmentId,'EXTERNAL_APPROVAL');
   const grant=external.review.binding;
-  const keys=['version','run_id','attempt','sha','ref','lane','task','worker','provisioner','plan_id','expires_at','network'];
-  need(exactKeys(grant,keys)&&grant.version===1,'GRANT_SHAPE');
+  const keys=['version','run_id','attempt','sha','ref','lane','task','worker','provisioner','plan_id','policy_sha256','expires_at','network'];
+  need(exactKeys(grant,keys)&&grant.version===2,'GRANT_SHAPE');
   need(grant.run_id===ctx.runId&&grant.attempt===ctx.attempt&&grant.sha===ctx.sha&&grant.ref===plan.ref&&grant.plan_id===plan.id,'STALE_GRANT');
+  need(grant.policy_sha256===digest,'POLICY_BINDING');
   need(grant.lane===plan.lane&&grant.task===plan.task&&grant.worker===plan.worker&&grant.provisioner===plan.provisioner,'GRANT_IDENTITY');
   // Current enforcement must be externally observed for THIS runner/run, not
   // inferred from a local startup-policy file or a workflow env flag.
@@ -61,11 +75,23 @@ export function validateGrant(plan,ctx,external,now=Date.now()){
       &&!service.image.endsWith(':latest')&&typeof service.healthRequired==='boolean')
     &&['db','auth','kong'].every(kind=>plan.services.some(service=>service.name==='/supabase_'+kind+'_cladora-local'
       &&service.healthRequired===true)),'SERVICE_PLAN');
-  return {expiresAt:grant.expires_at};
+  validateTiming(plan.timing,external.run.jobStartedAt,now,expiry);
+  return {sha:external.run.sha,expiresAt:grant.expires_at,jobStartedAt:external.run.jobStartedAt};
 }
 
-export function validatePreflight(plan,observed){
-  need(observed.branch===CONTRACT.branch&&observed.head===plan.sha&&observed.fullAncestry===true&&observed.coreCorrection===true,'CHECKOUT_BINDING');
+export function validateTiming(timing,jobStartedAt,now,expiry){
+  need(exactKeys(timing,['jobTimeoutMs','acquisitionMs','cleanupMs','reportingMs','settleMs'])
+    &&Object.values(timing).every(value=>Number.isSafeInteger(value)&&value>0)
+    &&timing.jobTimeoutMs===CONTRACT.jobTimeoutMs
+    &&timing.settleMs<Math.min(timing.acquisitionMs,timing.cleanupMs,timing.reportingMs),'TIMING_PROFILE');
+  const started=Date.parse(jobStartedAt),total=timing.acquisitionMs+timing.cleanupMs+timing.reportingMs;
+  need(Number.isFinite(started)&&started<=now&&total<timing.jobTimeoutMs
+    &&now+total<started+timing.jobTimeoutMs&&now+total<expiry,'TIMING_BUDGET');
+  return Math.min(started+timing.jobTimeoutMs,expiry);
+}
+
+export function validatePreflight(plan,observed,sha){
+  need(hex40.test(sha)&&observed.branch===CONTRACT.branch&&observed.head===sha&&observed.fullAncestry===true&&observed.coreCorrection===true,'CHECKOUT_BINDING');
   need(observed.origin===CONTRACT.origin&&observed.clean===true&&observed.noDotenv===true,'DIRTY_SOURCE');
   need(observed.nodeMajor===22&&observed.cliVersion==='2.84.2','PINNED_TOOLS');
   need(observed.daemon==='unix:///var/run/docker.sock'&&observed.healthy===true&&observed.noOverrides===true,'DAEMON');
@@ -141,10 +167,10 @@ export function coreEnvironment(ambient,leasePath){
   return {...env,BUILDING_SETUP_HTTP_EPHEMERAL:'1',BUILDING_SETUP_HTTP_LEASE_FILE:leasePath};
 }
 
-export function buildLease(plan,target,expiry,{runId=randomUUID(),prefix=randomBytes(4).toString('hex')}={}){
-  need(uuid.test(runId)&&/^[a-f0-9]{8}$/.test(prefix)&&prefix!=='c2200000','NAMESPACE');
-  return {version:1,task:CONTRACT.task,worker:CONTRACT.worker,sha:plan.sha,run_id:runId,
-    lease_id:'building-http-'+runId+'-'+plan.sha,expires_at:expiry,project_ref:'cladora-local',
+export function buildLease(plan,target,expiry,sha,{runId=randomUUID(),prefix=randomBytes(4).toString('hex')}={}){
+  need(hex40.test(sha)&&uuid.test(runId)&&/^[a-f0-9]{8}$/.test(prefix)&&prefix!=='c2200000','NAMESPACE');
+  return {version:1,task:CONTRACT.task,worker:CONTRACT.worker,sha,run_id:runId,
+    lease_id:'building-http-'+runId+'-'+sha,expires_at:expiry,project_ref:'cladora-local',
     app_origin:'http://127.0.0.1:'+plan.appPort,api_origin:'http://127.0.0.1:54321',db_port:54322,
     db_container_id:target.dbId,auth_container_id:target.authId,fixture_prefix:prefix};
 }
@@ -165,70 +191,128 @@ export function coreReceipt(raw,sha){
     connected:record.connected==='PASS'&&record.transport==='REAL_NEXT_AUTH_AAL2_RPC_POSTGRES'};
 }
 
+const systemClock={now:()=>Date.now(),setTimer:(fn,ms)=>setTimeout(fn,ms),clearTimer:id=>clearTimeout(id)};
+// The deadline includes settling time. Abort only owned/cooperative work;
+// return an explicit unsettled failure rather than await it beyond this budget.
+export function boundedCall(operation,{clock=systemClock,deadline,settleMs,signal}){
+  return new Promise((yes,no)=>{
+    const control=new AbortController();let done=false,interruption=null,soft,hard;
+    const failure=(code,settled)=>Object.assign(new BindingError(code),{settled});
+    const finish=(error,value)=>{
+      if(done)return;done=true;clock.clearTimer(soft);clock.clearTimer(hard);
+      signal?.removeEventListener('abort',cancel);if(error)no(error);else yes(value);
+    };
+    const stop=code=>{
+      if(done||interruption)return;interruption=code;control.abort();
+      clock.clearTimer(soft);clock.clearTimer(hard);
+      hard=clock.setTimer(()=>finish(failure(code,false)),Math.max(0,Math.min(deadline,clock.now()+settleMs)-clock.now()));
+    };
+    const cancel=()=>stop('CANCELLED');
+    if(signal?.aborted||clock.now()>=deadline-settleMs){finish(failure(signal?.aborted?'CANCELLED':'DEADLINE',true));return;}
+    soft=clock.setTimer(()=>stop('DEADLINE'),deadline-settleMs-clock.now());
+    signal?.addEventListener('abort',cancel,{once:true});
+    Promise.resolve().then(()=>{
+      need(!control.signal.aborted,'CANCELLED');return operation(control.signal);
+    }).then(value=>finish(interruption?failure(interruption,true):clock.now()>=deadline-settleMs?failure('DEADLINE',true):null,value),
+      error=>finish(failure(interruption??'OPERATION_FAILED',error?.settled!==false)));
+  });
+}
+
 export async function provision({plan=REVIEWED_EXECUTION_PLAN,ctx,external,io,signal}){
-  let stage='grant',primary=null,lease=null,core=null,externalGrant;
-  const cleanup=[],state={registered:false,started:false,leasePath:null,markerAttempted:false,coreStarted:false,coreSettled:true};
+  let stage='grant',primary=null,lease=null,core=null,externalGrant,acquisition,cleanupWindow,jobDeadline;
+  const clock=io.clock??systemClock;
+  const cleanup=[],state={registered:false,started:false,leasePath:null,markerAttempted:false,coreStarted:false,coreSettled:true,acquisitionSettled:true};
+  const window=(ms,limit)=>({deadline:Math.min(clock.now()+ms,limit),settleMs:plan.timing.settleMs});
+  const call=async(name,args,period,externalSignal)=>{
+    try{return await boundedCall(async ownedSignal=>{
+      const invoke=()=>io[name](...args,ownedSignal);
+      return io.withBudget?io.withBudget({...period,signal:ownedSignal},invoke):invoke();
+    },{clock,...period,signal:externalSignal});}
+    catch(error){if(error.settled===false){state.acquisitionSettled=false;state.coreSettled=false;}throw error;}
+  };
   // Fixed teardown registry exists BEFORE any resource acquisition. Every step
   // is attempted; adapter checks exact ownership and never forces foreign work.
   const steps=[
-    ['staged-restore',()=>state.started?io.restoreStaged(state):undefined],
-    ['core-settle',async()=>{if(state.coreStarted)state.coreSettled=await io.settleCore(state);need(state.coreSettled,'CORE_UNSETTLED');}],
+    ['core-settle',async()=>{if(state.coreStarted){state.coreSettled=false;state.coreSettled=await io.settleCore(state);}need(state.coreSettled,'CORE_UNSETTLED');}],
+    ['staged-restore',()=>{if(state.started){need(state.coreSettled,'CORE_UNSETTLED');return io.restoreStaged(state);}}],
     ['core-logical-check',()=>{if(state.coreStarted)need(core?.logicalCleanup===true,'CORE_LOGICAL_CLEANUP');}],
     ['process-port-check',()=>state.started?io.verifyPortsClosed(state):undefined],
-    ['marker-clear',()=>state.markerAttempted&&state.coreSettled?io.clearMarker(lease,state):undefined],
+    ['marker-clear',()=>{if(state.markerAttempted){need(state.coreSettled,'CORE_UNSETTLED');return io.clearMarker(lease,state);}}],
     ['stack-stop',async()=>{if(state.started){need(state.coreSettled,'CORE_UNSETTLED');await io.stopOwned(state);}}],
     ['destruction-check',()=>state.started?io.verifyDestroyed(state):undefined],
     ['lease-remove',()=>state.leasePath?io.removeLease(state):undefined],
   ];
-  const live=()=>{need(!signal?.aborted,'CANCELLED');need(Date.parse(externalGrant.expiresAt)>io.now(),'GRANT_EXPIRED');};
+  const live=()=>{need(!signal?.aborted,'CANCELLED');need(clock.now()<acquisition.deadline-plan.timing.settleMs,'DEADLINE');need(Date.parse(externalGrant.expiresAt)>clock.now(),'GRANT_EXPIRED');};
+  const acquire=async(name,...args)=>{live();return call(name,args,acquisition,signal);};
   try{
-    externalGrant=validateGrant(plan,ctx,external,io.now());
-    live();stage='preflight';validatePreflight(plan,await io.preflight(plan));
-    live();stage='register';state.registered=true;await io.register(state);
+    externalGrant=validateGrant(plan,ctx,external,clock.now());
+    jobDeadline=Date.parse(externalGrant.jobStartedAt)+plan.timing.jobTimeoutMs;
+    acquisition=window(plan.timing.acquisitionMs,jobDeadline-plan.timing.cleanupMs-plan.timing.reportingMs);
+    stage='preflight';validatePreflight(plan,await acquire('preflight',plan,externalGrant.sha),externalGrant.sha);
+    live();stage='register';state.registered=true;await acquire('register',state);
     // Start intent is recorded before acquisition to cover partial startup.
-    live();stage='startup';state.started=true;await io.start(plan,state,signal);
-    live();stage='identity';const target=await io.target(plan,state);validateTarget(plan,target);
-    live();stage='lease';lease=buildLease(plan,target,externalGrant.expiresAt,await io.namespace());
+    live();stage='startup';state.started=true;await acquire('start',plan,state);
+    stage='identity';const target=await acquire('target',plan,state);validateTarget(plan,target);
+    stage='lease';lease=buildLease(plan,target,externalGrant.expiresAt,externalGrant.sha,await acquire('namespace'));
     need(exactKeys(lease,leaseFields),'LEASE_SHAPE');
-    await io.writeLease(lease,state);
-    validatePrivateFile(await io.leaseMeta(state),await io.privateContext());
-    live();stage='marker';state.markerAttempted=true;await io.setMarker(lease,state);
-    need(await io.readFreshMarker(lease,state)===lease.lease_id,'MARKER_READBACK');
+    await acquire('writeLease',lease,state);
+    validatePrivateFile(await acquire('leaseMeta',state),await acquire('privateContext'));
+    live();stage='marker';state.markerAttempted=true;await acquire('setMarker',lease,state);
+    need(await acquire('readFreshMarker',lease,state)===lease.lease_id,'MARKER_READBACK');
     live();stage='core-proof';state.coreStarted=true;state.coreSettled=false;
-    const result=await io.runCore(state,signal);state.coreSettled=result.settled===true;
-    need(state.coreSettled,'CORE_UNSETTLED');core=coreReceipt(result.stdout,plan.sha);
+    const result=await acquire('runCore',state);state.coreSettled=result.settled===true;
+    need(state.coreSettled,'CORE_UNSETTLED');core=coreReceipt(result.stdout,externalGrant.sha);
     need(result.exitCode===0&&core.result==='PASS'&&core.connected&&!result.cancelled&&!signal?.aborted,'CORE_FAILED');
   }catch{primary=fixedFailure(stage);}
   finally{
-    for(const [name,run] of steps){try{await run();}catch{cleanup.push(fixedFailure(name));}}
+    if(state.registered){
+      cleanupWindow=window(plan.timing.cleanupMs,Math.min(jobDeadline,Date.parse(externalGrant.expiresAt))-plan.timing.reportingMs);
+      // Each registry entry uses the SAME aggregate tail. Never begin another
+      // mutation while prior acquisition/cleanup work remains unsettled.
+      for(const [name,run] of steps){
+        try{
+          need(state.acquisitionSettled,'ACQUISITION_UNSETTLED');
+          await boundedCall(async ownedSignal=>{
+            const invoke=()=>run();return io.withBudget?io.withBudget({...cleanupWindow,signal:ownedSignal},invoke):invoke();
+          },{clock,...cleanupWindow});
+        }catch(error){cleanup.push(fixedFailure(name));if(error.settled===false){state.acquisitionSettled=false;state.coreSettled=false;}}
+      }
+    }
   }
+  if(signal?.aborted&&!primary)primary=fixedFailure('cancelled');
   const release=!state.registered?'NOT_ACQUIRED':!primary&&!cleanup.length?'CONFIRMED':!cleanup.length?'CLEANED_AFTER_FAILURE':'UNCONFIRMED';
   const evidence={task:'PLATFORM-BUILDING-SETUP-HTTP-CI-BINDING-03',sha:ctx?.sha??null,
     result:primary||cleanup.length?'FAIL':'PASS',primary,cleanup,release,core,
     runnerLoss:'UNCONFIRMED_IF_PROCESS_OR_RUNNER_IS_LOST'};
   // Final evidence is not an authorization token. Missing final evidence after
   // cancellation/timeout/runner loss can never be interpreted as clean release.
-  if(state.registered){try{await io.release(evidence,state);}catch{evidence.result='FAIL';evidence.release='UNCONFIRMED';evidence.cleanup.push(fixedFailure('release-evidence'));}}
+  if(state.registered){
+    const report=window(plan.timing.reportingMs,Math.min(jobDeadline,Date.parse(externalGrant.expiresAt)));
+    evidence.timing={cleanupCompletedAt:clock.now(),cleanupDeadline:cleanupWindow.deadline,reportDeadline:report.deadline,jobDeadline,grantExpiry:Date.parse(externalGrant.expiresAt)};
+    try{await call('release',[evidence,state],report);}catch{evidence.result='FAIL';evidence.release='UNCONFIRMED';evidence.cleanup.push(fixedFailure('release-evidence'));}
+  }
+  if(signal?.aborted){evidence.result='FAIL';evidence.primary??=fixedFailure('cancelled');if(evidence.release==='CONFIRMED')evidence.release='CLEANED_AFTER_FAILURE';}
   return evidence;
 }
 
 // Capture commands in memory only, wait for close, keep cancellation distinct.
 // No raw command stdout/stderr/error/cause is ever logged or put in artifacts.
-async function capture(command,args,{cwd=process.cwd(),env=process.env,signal,timeout=120000}={}){
+async function capture(command,args,{cwd=process.cwd(),env=process.env,signal,timeout=120000,settleMs=45000}={}){
   return new Promise(resolvePromise=>{
-    let stdout='',size=0,overflow=false,settled=false,cancelled=false;
+    let stdout='',size=0,overflow=false,cancelled=false,resolved=false;
     const child=spawn(command,args,{cwd,env,detached:true,stdio:['ignore','pipe','pipe']});
-    const stop=()=>{cancelled=true;if(child.pid){try{process.kill(-child.pid,'SIGTERM');}catch{ /* No force/foreign termination. */ }}};
+    let deadline;
+    const finish=value=>{if(resolved)return;resolved=true;clearTimeout(timer);clearTimeout(deadline);signal?.removeEventListener('abort',stop);resolvePromise(value);};
+    const stop=()=>{if(cancelled)return;cancelled=true;if(child.pid){try{process.kill(-child.pid,'SIGTERM');}catch{ /* No force/foreign termination. */ }}
+      deadline=setTimeout(()=>finish({exitCode:null,stdout:'',settled:false,cancelled:true,pid:child.pid}),settleMs);};
     const timer=setTimeout(stop,timeout);
-    const deadline=setTimeout(()=>{if(!settled)resolvePromise({exitCode:null,stdout:'',settled:false,cancelled:true,pid:child.pid});},timeout+45000);
     signal?.addEventListener('abort',stop,{once:true});
     if(signal?.aborted)stop();
     child.stdout.on('data',chunk=>{size+=chunk.length;if(size<=1024*1024)stdout+=chunk.toString();else overflow=true;});
     child.stderr.resume();child.on('error',()=>{});
-    child.once('close',code=>{settled=true;clearTimeout(timer);clearTimeout(deadline);signal?.removeEventListener('abort',stop);resolvePromise({exitCode:overflow?null:code,stdout:overflow?'':stdout,settled:true,cancelled,pid:child.pid});});
+    child.once('close',code=>finish({exitCode:overflow?null:code,stdout:overflow?'':stdout,settled:true,cancelled,pid:child.pid}));
   });
 }
-async function required(command,args,options){const r=await capture(command,args,options);need(r.exitCode===0&&r.settled,'COMMAND_FAILED');return r.stdout.trim();}
 function groupGone(pid){
   if(!Number.isInteger(pid))return true; // Spawn failure acquired no process.
   try{process.kill(-pid,0);return false;}catch(error){return error.code==='ESRCH';}
@@ -236,12 +320,35 @@ function groupGone(pid){
 async function portFree(port){
   await new Promise((yes,no)=>{const server=createServer();server.once('error',no);server.listen(port,'127.0.0.1',()=>server.close(yes));});
 }
-function commandContext(env){return {actions:env.GITHUB_ACTIONS==='true',job:env.GITHUB_JOB,repository:env.GITHUB_REPOSITORY,
-  ref:CONTRACT.ref,sha:env.CLADORA_APPROVED_EXECUTION_SHA,runId:env.GITHUB_RUN_ID,attempt:env.GITHUB_RUN_ATTEMPT};}
+export function commandContext(env){return {actions:env.GITHUB_ACTIONS==='true',event:env.GITHUB_EVENT_NAME,
+  job:env.GITHUB_JOB,repository:env.GITHUB_REPOSITORY,ref:env.GITHUB_REF,sha:env.GITHUB_SHA,
+  selectedSha:env.CLADORA_APPROVED_EXECUTION_SHA,runId:env.GITHUB_RUN_ID,attempt:env.GITHUB_RUN_ATTEMPT};}
+
+// Native observations only; the designated reviewer's JSON binds the policy
+// digest and candidate independently, without embedding this commit's own SHA.
+export function approvalObservations(plan,ctx,{run,reviews,jobs}){
+  need(plan!==null,'UNGRANTED');
+  const matches=jobs.filter(job=>job.name===CONTRACT.lane&&String(job.run_id)===ctx.runId&&String(job.run_attempt)===ctx.attempt
+    &&job.head_sha===run.head_sha&&job.status==='in_progress');
+  need(matches.length===1,'NATIVE_JOB');
+  let selected;
+  for(const review of reviews){
+    if(review.state!=='approved'||review.user?.id!==plan.reviewerId||!review.environments?.some(e=>e.id===plan.environmentId))continue;
+    let binding;try{binding=JSON.parse(review.comment);}catch{continue;}
+    if(binding.run_id===ctx.runId&&binding.attempt===ctx.attempt&&binding.sha===run.head_sha
+      &&binding.plan_id===plan.id&&binding.policy_sha256===policyDigest(plan)){
+      need(!selected,'AMBIGUOUS_APPROVAL');selected={state:review.state,reviewerId:review.user.id,environmentId:plan.environmentId,binding};
+    }
+  }
+  need(selected,'EXTERNAL_APPROVAL');
+  return {run:{id:String(run.id),attempt:String(run.run_attempt),sha:run.head_sha,branch:run.head_branch,
+    repository:run.repository?.full_name,event:run.event,workflowPath:run.path,jobStartedAt:matches[0].started_at},review:selected};
+}
 
 // Native GitHub protected-environment review is the external authority. A flag,
 // arbitrary JSON file or self-written lease cannot replace this API readback.
-// Future reviewed plan must pin its actual environment/reviewer/plan/SHA first.
+// Future policy pins environment/reviewer/profile; candidate comes from the
+// native run and review, and must equal the actual checked-out source.
 async function externalApproval(plan,ctx){
   need(plan!==null,'UNGRANTED');
   const get=async path=>{
@@ -250,11 +357,12 @@ async function externalApproval(plan,ctx){
       redirect:'error',signal:AbortSignal.timeout(15000)});
     need(response.ok,'APPROVAL_READBACK');return response.json();
   };
+  need(/^[1-9][0-9]*$/.test(ctx.runId)&&/^[1-9][0-9]*$/.test(ctx.attempt),'RUN_ID');
   const run=await get(''),reviews=await get('/approvals');
-  const review=reviews.find(item=>item.state==='approved'&&item.user?.id===plan.reviewerId&&item.environments?.some(e=>e.id===plan.environmentId));
-  let binding;try{binding=JSON.parse(review?.comment);}catch{throw new BindingError('EXTERNAL_APPROVAL');}
-  return {run:{id:String(run.id),attempt:String(run.run_attempt),sha:run.head_sha,branch:run.head_branch,workflowPath:run.path},
-    review:{state:review.state,reviewerId:review.user.id,environmentId:plan.environmentId,binding}};
+  // Attempt-specific job time includes checkout/install elapsed time; a local
+  // provisioner timer cannot restart the actual Actions job's hard timeout.
+  const jobs=await get('/attempts/'+ctx.attempt+'/jobs?per_page=100');
+  return approvalObservations(plan,ctx,{run,reviews,jobs:jobs.jobs});
 }
 
 export async function createLiveIO(plan,ctx,external){
@@ -263,6 +371,15 @@ export async function createLiveIO(plan,ctx,external){
   let targetStatus=null,privateDir=null,leaseInode=null,stagedHash=null,stagedContent=null;
   let ownedIds=[],ownedVolumes=[],coreResult=null,leaseId=null,markerConflict=false,releaseFile=null;
   const staged=join(root,'supabase/migrations/20261018170000_communications_service_role_acl_shutdown_v1.sql');
+  const budgets=new AsyncLocalStorage();
+  const budget=()=>{const b=budgets.getStore();need(b&&!b.signal.aborted&&Date.now()<b.deadline-b.settleMs,'DEADLINE');return b;};
+  const run=(command,args,options={})=>{const b=budget();return capture(command,args,{...options,signal:b.signal,
+    timeout:Math.min(options.timeout??120000,b.deadline-b.settleMs-Date.now()),settleMs:b.settleMs});};
+  const required=async(command,args,options)=>{
+    const r=await run(command,args,options);
+    if(!r.settled||!groupGone(r.pid))throw Object.assign(new BindingError('COMMAND_UNSETTLED'),{settled:false});
+    need(r.exitCode===0&&!r.cancelled,'COMMAND_FAILED');return r.stdout.trim();
+  };
   const dockerArgs=['--host=unix:///var/run/docker.sock'];
   const docker=(args)=>required('docker',[...dockerArgs,...args]);
   const cli=(args)=>required('supabase',args);
@@ -280,15 +397,18 @@ export async function createLiveIO(plan,ctx,external){
     return inv;
   };
   const query=async text=>{
+    const b=budget(),remaining=()=>Math.max(1,b.deadline-b.settleMs-Date.now());
     const {default:pg}=await import('pg');
-    const db=new pg.Client({connectionString:targetStatus.DB_URL,connectionTimeoutMillis:5000,query_timeout:10000});
-    try{await db.connect();return await db.query(text);}finally{await db.end();}
+    budget();
+    const db=new pg.Client({connectionString:targetStatus.DB_URL,connectionTimeoutMillis:Math.min(5000,remaining()),query_timeout:Math.min(10000,remaining())});
+    try{await db.connect();budget();return await db.query(text);}finally{await db.end();}
   };
   const marker=async()=>{const r=await query("select current_database() db,current_setting('cladora.synthetic_setup_lease',true) lease");need(r.rows[0].db==='postgres','MARKER_DB');return r.rows[0].lease;};
   return {
-    now:()=>Date.now(),
+    clock:systemClock,
+    withBudget:(b,fn)=>budgets.run(b,fn),
     namespace:async()=>({runId:randomUUID(),prefix:randomBytes(4).toString('hex')}),
-    preflight:async()=>{
+    preflight:async(_plan,sha)=>{
       for(const key of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH','NODE_OPTIONS','NODE_TLS_REJECT_UNAUTHORIZED','VERCEL','VERCEL_ENV','NEXT_PUBLIC_VERCEL_ENV'])need(!process.env[key],'RUNTIME_OVERRIDE');
       need(process.env.NODE_ENV!=='production','PRODUCTION');
       const git=args=>required('git',args);
@@ -304,12 +424,12 @@ export async function createLiveIO(plan,ctx,external){
       try{const [quota,period]=(await readFile('/sys/fs/cgroup/cpu.max','utf8')).trim().split(' ');if(quota!=='max')cpus=Math.min(cpus,Number(quota)/Number(period));}catch{ /* Host daemon limits remain visible. */ }
       let policy;try{policy=JSON.parse(await readFile('/etc/codex/network-policy.json','utf8'));}catch{policy=null;}
       const hosts=policy?.http_network_policy?.egress_rules?.map(item=>item.host)??[];
-      for(const port of [...plan.stackPorts,plan.appPort])await portFree(port);
+      for(const port of [...plan.stackPorts,plan.appPort]){budget();await portFree(port);}
       const status=await git(['status','--porcelain','--untracked-files=all']);
       const clean=status.split('\n').filter(Boolean).every(line=>line==='?? supabase/.temp/cli-latest');
       const files=await readdir(root);
-      const ancestry=await capture('git',['merge-base','--is-ancestor',CONTRACT.parent,plan.sha]);
-      const correction=await capture('git',['merge-base','--is-ancestor',CONTRACT.coreCorrection,plan.sha]);
+      const ancestry=await run('git',['merge-base','--is-ancestor',CONTRACT.parent,sha]);
+      const correction=await run('git',['merge-base','--is-ancestor',CONTRACT.coreCorrection,sha]);
       await cli(['start','--help']);await cli(['stop','--help']);await cli(['status','--help']);
       return {branch:await git(['branch','--show-current']),head:await git(['rev-parse','HEAD']),
         origin:await git(['remote','get-url','origin']),clean,noDotenv:!files.some(x=>x==='.env'||x.startsWith('.env.')&&x!=='.env.example'),
@@ -324,16 +444,20 @@ export async function createLiveIO(plan,ctx,external){
     },
     register:async state=>{
       stagedContent=await readFile(staged);stagedHash=createHash('sha256').update(stagedContent).digest('hex');
+      budget();
       privateDir=await mkdtemp(join(temp,'cladora-building-http-'));state.privateDir=privateDir;
       const path=join(temp,'cladora-building-http-release-'+ctx.runId+'-'+ctx.attempt+'.json');
+      budget();
       releaseFile=await open(path,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);
+      budget();
       await releaseFile.writeFile(JSON.stringify({sha:ctx.sha,runId:ctx.runId,attempt:ctx.attempt,release:'UNCONFIRMED'}));
       await releaseFile.sync();
     },
     start:async(_plan,state,signal)=>{
-      const r=await capture('bash',['scripts/start-local-supabase-staged-service-s4.sh','start'],{
+      const r=await run('bash',['scripts/start-local-supabase-staged-service-s4.sh','start'],{
         env:{...process.env,CLADORA_LOCAL_STEP_SU_02_AUTHORIZED:'1'},signal,timeout:12*60000});
       state.startSettled=r.settled&&groupGone(r.pid);
+      if(!state.startSettled)throw Object.assign(new BindingError('START_UNSETTLED'),{settled:false});
       const inv=await ownedInventory();ownedIds=inv.ids;ownedVolumes=inv.volumes;
       need(r.exitCode===0&&state.startSettled&&!r.cancelled,'START_FAILED');
     },
@@ -359,9 +483,10 @@ export async function createLiveIO(plan,ctx,external){
         authDbUrl:authEnv.find(entry=>entry.startsWith('GOTRUE_DB_DATABASE_URL='))?.slice('GOTRUE_DB_DATABASE_URL='.length),authRouteUrls});
     },
     writeLease:async(lease,state)=>{
+      budget();
       state.leasePath=join(privateDir,'lease.json');
       const fd=await open(state.leasePath,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL|constants.O_NOFOLLOW,0o600);
-      try{leaseInode=(await fd.stat()).ino;await fd.writeFile(JSON.stringify(lease));}finally{await fd.close();}
+      try{leaseInode=(await fd.stat()).ino;budget();await fd.writeFile(JSON.stringify(lease));}finally{await fd.close();}
     },
     leaseMeta:async state=>{const s=await lstat(state.leasePath);return{path:state.leasePath,regular:s.isFile(),symlink:s.isSymbolicLink(),uid:s.uid,mode:s.mode,size:s.size};},
     privateContext:async()=>({root:temp,checkout:root,uid}),
@@ -374,12 +499,12 @@ export async function createLiveIO(plan,ctx,external){
     readFreshMarker:async()=>marker(),
     runCore:async(state,signal)=>{
       const env=coreEnvironment(process.env,state.leasePath);
-      coreResult=await capture(process.execPath,['scripts/core-building-setup-http-proof.mjs','--run'],{env,signal,timeout:20*60000});return coreResult;
+      coreResult=await run(process.execPath,['scripts/core-building-setup-http-proof.mjs','--run'],{env,signal,timeout:20*60000});return coreResult;
     },
     restoreStaged:async state=>{
       need(state.startSettled!==false,'START_UNSETTLED');
       let current;try{current=await readFile(staged);}catch{current=null;}
-      if(current===null){const fd=await open(staged,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL,0o644);try{await fd.writeFile(stagedContent);}finally{await fd.close();}}
+      if(current===null){budget();const fd=await open(staged,constants.O_WRONLY|constants.O_CREAT|constants.O_EXCL,0o644);try{budget();await fd.writeFile(stagedContent);}finally{await fd.close();}}
       need(createHash('sha256').update(await readFile(staged)).digest('hex')===stagedHash,'STAGED_RESTORE');
     },
     settleCore:async()=>coreResult?.settled===true&&groupGone(coreResult.pid),
@@ -395,22 +520,38 @@ export async function createLiveIO(plan,ctx,external){
     },
     verifyDestroyed:async()=>{
       const inv=await inventory();need(inv.ids.length===0&&inv.volumes.length===0,'DESTRUCTION_UNCONFIRMED');
-      for(const port of plan.stackPorts)await portFree(port);
+      for(const port of plan.stackPorts){budget();await portFree(port);}
     },
     removeLease:async state=>{
       const s=await lstat(state.leasePath);
       need(s.isFile()&&!s.isSymbolicLink()&&s.uid===uid&&s.ino===leaseInode,'FOREIGN_LEASE_FILE');
+      budget();
       await unlink(state.leasePath);state.leasePath=null;
     },
     release:async evidence=>{
+      budget();
       try{if(privateDir){await rmdir(privateDir);privateDir=null;}}
       catch{evidence.result='FAIL';evidence.release='UNCONFIRMED';evidence.cleanup.push(fixedFailure('private-directory'));}
       // This bounded receipt is teardown evidence, NEVER a grant/lease. Keep it
       // outside checkout/artifacts so an always step can detect missing release.
-      if(releaseFile){try{await releaseFile.truncate(0);await releaseFile.write(JSON.stringify({sha:ctx.sha,runId:ctx.runId,attempt:ctx.attempt,release:evidence.release}),0,'utf8');await releaseFile.sync();}finally{await releaseFile.close();releaseFile=null;}}
+      if(releaseFile){try{
+        budget();await releaseFile.truncate(0);budget();
+        await releaseFile.write(JSON.stringify({sha:ctx.sha,runId:ctx.runId,attempt:ctx.attempt,release:evidence.release,
+          timing:evidence.timing,completedAt:Date.now()}),0,'utf8');await releaseFile.sync();budget();
+      }finally{await releaseFile.close();releaseFile=null;}}
       else throw new BindingError('RELEASE_EVIDENCE_MISSING');
     },
   };
+}
+
+export function validateReleaseReceipt(record,meta,ctx,observedAt){
+  need(record.sha===ctx.sha&&record.runId===ctx.runId&&record.attempt===ctx.attempt,'RELEASE_BINDING');
+  const t=record.timing;
+  need(t&&Object.values(t).every(Number.isSafeInteger)&&Number.isSafeInteger(record.completedAt)
+    &&record.completedAt<=t.reportDeadline&&meta.mtimeMs<=t.reportDeadline&&observedAt<=t.reportDeadline
+    &&t.cleanupCompletedAt<=t.cleanupDeadline&&t.cleanupCompletedAt<t.reportDeadline
+    &&t.reportDeadline<=t.jobDeadline&&t.reportDeadline<=t.grantExpiry,'LATE_RELEASE');
+  return ['CONFIRMED','CLEANED_AFTER_FAILURE'].includes(record.release);
 }
 
 export async function cli(args=process.argv.slice(2)){
@@ -424,8 +565,7 @@ export async function cli(args=process.argv.slice(2)){
     const file=join(await realpath(process.env.RUNNER_TEMP),'cladora-building-http-release-'+ctx.runId+'-'+ctx.attempt+'.json');
     const stat=await lstat(file);need(stat.isFile()&&!stat.isSymbolicLink()&&stat.uid===process.getuid()&&(stat.mode&0o777)===0o600&&stat.size<4096,'RELEASE_FILE');
     const record=JSON.parse(await readFile(file,'utf8'));
-    need(record.sha===ctx.sha&&record.runId===ctx.runId&&record.attempt===ctx.attempt,'RELEASE_BINDING');
-    const confirmed=['CONFIRMED','CLEANED_AFTER_FAILURE'].includes(record.release);
+    const confirmed=validateReleaseReceipt(record,stat,ctx,Date.now());
     console.log(JSON.stringify({task:'PLATFORM-BUILDING-SETUP-HTTP-CI-BINDING-03',release:confirmed?record.release:'UNCONFIRMED',runnerLoss:'MISSING_RECEIPT_IS_NOT_CLEANUP_PROOF'}));return confirmed?0:1;
   }
   need(args.length===1&&args[0]==='--run','EXPLICIT_RUN_REQUIRED');
