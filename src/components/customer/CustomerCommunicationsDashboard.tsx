@@ -435,9 +435,12 @@ export function CustomerCommunicationsDashboard({
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [nonce, setNonce] = useState(0);
+  const [ackDenial, setAckDenial] = useState({ scope: "", denied: false });
   const [hasEvidenceDraft, setHasEvidenceDraft] = useState(false);
   // Identity includes server-derived membership/role, not a guessed capability.
   const contextScope = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code]);
+  if (ackDenial.scope !== contextScope) setAckDenial({ scope: contextScope, denied: false });
+  const ackAccessDenied = ackDenial.scope === contextScope && ackDenial.denied;
   const scope = JSON.stringify([contextScope, view, offset, query, status, from, to]);
   const [selection, setSelection] = useState<{ scope: string; row: Record<string, unknown> | null }>({ scope, row: null });
   // Adjust on render so previous content is absent even before effect cleanup.
@@ -458,8 +461,9 @@ export function CustomerCommunicationsDashboard({
     if (from) params.set("from", from);
     if (to) params.set("to", to);
   }
-  const listUrl = active ? `/api/customer/v1/communications${view === "official_notices" ? "/notices" : ""}?${params}` : null;
-  const { data, loading, error } = useNoticeRead<Payload>(listUrl, scope, t.error, nonce, 150);
+  const listUrl = active && !ackAccessDenied ? `/api/customer/v1/communications${view === "official_notices" ? "/notices" : ""}?${params}` : null;
+  const { data, loading, error: readError } = useNoticeRead<Payload>(listUrl, scope, t.error, nonce, 150);
+  const error = ackAccessDenied ? t.error : readError;
   const detailUrl = active && selected && view === "official_notices" && !error
     ? `/api/customer/v1/communications/notices/${encodeURIComponent(String(selected.id))}?context_id=${encodeURIComponent(active.context_id)}` : null;
   const detailRead = useNoticeRead<NoticeDetailData>(detailUrl, scope, t.error, nonce, 0, selected ? String(selected.id) : undefined);
@@ -742,6 +746,7 @@ export function CustomerCommunicationsDashboard({
           key={`${scope}:${String(selected.id)}`}
           lang={lang}
           noticeSummary={selected}
+          onAccessDenied={() => { setAckDenial({ scope: contextScope, denied: true }); setSelected(null); }}
           onDraftChange={setHasEvidenceDraft}
           detail={error ? null : detailRead.data}
           loading={detailRead.loading}
@@ -925,6 +930,7 @@ function Detail({
 function NoticeDetailModal({
   lang,
   noticeSummary,
+  onAccessDenied,
   onDraftChange,
   detail,
   loading,
@@ -934,6 +940,7 @@ function NoticeDetailModal({
 }: {
   lang: string;
   noticeSummary: Record<string, unknown>;
+  onAccessDenied: () => void;
   onDraftChange: (dirty: boolean) => void;
   detail: NoticeDetailData | null;
   loading: boolean;
@@ -974,7 +981,7 @@ function NoticeDetailModal({
   // A receipt is display state, never authority. Only accept the canonical flat
   // object; malformed/legacy wrappers must not look like an acknowledgement.
   const rawAcknowledgement: unknown = detail?.my_acknowledgement;
-  const myAcknowledgement = rawAcknowledgement !== null
+  const detailAcknowledgement = rawAcknowledgement !== null
     && typeof rawAcknowledgement === "object"
     && !Array.isArray(rawAcknowledgement)
     && "id" in rawAcknowledgement
@@ -986,8 +993,139 @@ function NoticeDetailModal({
     && Number.isFinite(Date.parse(rawAcknowledgement.acknowledged_at))
       ? { id: rawAcknowledgement.id, acknowledged_at: rawAcknowledgement.acknowledged_at }
       : null;
-  const acknowledgementKnown = rawAcknowledgement === null || myAcknowledgement !== null;
+  const acknowledgementKnown = rawAcknowledgement === null || detailAcknowledgement !== null;
 
+
+  type AckIntent = { v: 1; context: string; membership: string; notice: string; phase: "unknown" | "conflict" };
+  type Receipt = { id: string; acknowledged_at: string };
+  type AckState = { phase: "loading" | "ready" | "sending" | "unknown" | "checking" | "retry" | "conflict" | "blocked" | "done";
+    intent: AckIntent | null; receipt: Receipt | null };
+  const ackCopy = {
+    en: { unknown: "Receipt outcome is unknown. Check before retrying.", check: "Check receipt result", retry: "Retry same receipt", sending: "Recording receipt…", checking: "Checking receipt…", blocked: "Receipt is blocked. Check the result; do not resend.", storage: "Pending receipt cannot be safely restored or saved. Sending is blocked; an earlier result may still exist.", retryReady: "No receipt was found. You may explicitly retry the same request." },
+    ro: { unknown: "Rezultatul confirmării este necunoscut. Verifică înainte de reîncercare.", check: "Verifică rezultatul confirmării", retry: "Reîncearcă aceeași confirmare", sending: "Se înregistrează confirmarea…", checking: "Se verifică confirmarea…", blocked: "Confirmarea este blocată. Verifică rezultatul; nu retrimite.", storage: "Confirmarea nu poate fi restaurată sau salvată sigur. Trimiterea este blocată; un rezultat anterior poate exista.", retryReady: "Nu s-a găsit confirmarea. Poți reîncerca explicit aceeași cerere." },
+    fa: { unknown: "نتیجهٔ ثبت وصول نامشخص است. پیش از تلاش مجدد بررسی کنید.", check: "بررسی نتیجهٔ وصول", retry: "تلاش مجدد همان وصول", sending: "در حال ثبت وصول…", checking: "در حال بررسی وصول…", blocked: "وصول مسدود است. نتیجه را بررسی کنید؛ دوباره ارسال نکنید.", storage: "ذخیره یا بازیابی امن درخواست ممکن نیست. ارسال مسدود است؛ ممکن است نتیجهٔ قبلی وجود داشته باشد.", retryReady: "رسیدی یافت نشد. می‌توانید همان درخواست را صریحاً دوباره ارسال کنید." },
+  }[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
+  const ackIdentity = JSON.stringify([active?.context_id, active?.membership_id, noticeId]);
+  const ackStorageKey = `cladora:notice-ack:v1:${ackIdentity}`;
+  const [ackState, setAckState] = useState<AckState>({ phase: "loading", intent: null, receipt: null });
+  const ackStateRef = useRef(ackState);
+  const ackIdentityRef = useRef(ackIdentity);
+  const ackFlight = useRef(false);
+  const ackSequence = useRef(0);
+  const ackRequest = useRef<{ controller: AbortController; timer: ReturnType<typeof setTimeout>; cancel: () => void } | null>(null);
+  const setAck = (next: AckState) => { ackStateRef.current = next; setAckState(next); };
+  const validReceipt = (value: unknown): value is Receipt => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const r = value as Record<string, unknown>;
+    return typeof r.id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(r.id)
+      && typeof r.acknowledged_at === "string" && /^\d{4}-\d{2}-\d{2}T/.test(r.acknowledged_at)
+      && Number.isFinite(Date.parse(r.acknowledged_at));
+  };
+  useEffect(() => {
+    const sequence = ackSequence;
+    const restore = (next: AckState) => { ackStateRef.current = next; setAckState(next); };
+    try {
+      const raw = window.sessionStorage.getItem(ackStorageKey);
+      if (raw === null) restore({ phase: "ready", intent: null, receipt: null });
+      else {
+        if (raw.length > 4096) throw new Error("invalid_pending_size");
+        const value = JSON.parse(raw);
+        if (!value || typeof value !== "object" || Array.isArray(value)
+          || Object.keys(value).sort().join() !== "context,membership,notice,phase,v"
+          || value.v !== 1 || value.context !== active?.context_id || value.membership !== active?.membership_id
+          || value.notice !== noticeId || !["unknown", "conflict"].includes(value.phase)) throw new Error("invalid_pending");
+        restore({ phase: value.phase, intent: value, receipt: null });
+      }
+    } catch { restore({ phase: "blocked", intent: null, receipt: null }); }
+    return () => {
+      sequence.current++;
+      ackRequest.current?.controller.abort();
+      ackRequest.current?.cancel();
+      if (ackRequest.current) clearTimeout(ackRequest.current.timer);
+      ackRequest.current = null;
+    };
+  }, [ackStorageKey, active?.context_id, active?.membership_id, noticeId]);
+  const myAcknowledgement = ackState.receipt ?? (ackState.intent ? null : detailAcknowledgement);
+  const acknowledge = async (check: boolean) => {
+    const before = ackStateRef.current;
+    if (!active || !detail || loading || error || submitting || ackFlight.current || !isCurrent()) return;
+    if (check ? !before.intent || !["unknown", "retry", "conflict"].includes(before.phase)
+      : !(before.phase === "ready" && !before.intent && acknowledgementKnown && !detailAcknowledgement) && before.phase !== "retry") return;
+    const intent: AckIntent = before.intent ?? { v: 1, context: active.context_id, membership: active.membership_id, notice: noticeId, phase: "unknown" };
+    // Freeze the existing endpoint/body BEFORE dispatch, including explicit retries.
+    const endpoint = `/api/customer/v1/communications/notices/${encodeURIComponent(intent.notice)}`;
+    const body = JSON.stringify({ context_id: intent.context });
+    const identity = ackIdentity;
+    const sequence = ++ackSequence.current;
+    const current = () => isCurrent() && ackIdentityRef.current === identity && ackSequence.current === sequence;
+    ackFlight.current = true;
+    if (!check) {
+      try {
+        const stored = JSON.stringify({ ...intent, phase: "unknown" });
+        window.sessionStorage.setItem(ackStorageKey, stored);
+        if (window.sessionStorage.getItem(ackStorageKey) !== stored) throw new Error("pending_not_saved");
+      } catch {
+        setAck({ phase: "blocked", intent: before.intent, receipt: null }); ackFlight.current = false; return;
+      }
+    }
+    setAck({ phase: check ? "checking" : "sending", intent, receipt: null });
+    setSubmitting(true);
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    let cancel = () => {};
+    const deadline = new Promise<never>((_, reject) => { cancel = () => reject(new Error("ack_unmounted")); timer = setTimeout(() => { controller.abort(); reject(new Error("unknown_timeout")); }, 15000); });
+    ackRequest.current = { controller, timer: timer!, cancel };
+    try {
+      const result = await Promise.race([(async () => {
+        const response = await fetch(check ? `${endpoint}?context_id=${encodeURIComponent(intent.context)}` : `${endpoint}/acknowledge`,
+          check ? { cache: "no-store", credentials: "same-origin", signal: controller.signal }
+            : { method: "POST", headers: { "Content-Type": "application/json" }, body, signal: controller.signal });
+        if (!current()) throw new Error("stale_ack");
+        if ([401, 403, 409].includes(response.status) || !response.ok) return { response, data: null };
+        const data: unknown = await response.json();
+        if (!current()) throw new Error("stale_ack_body");
+        return { response, data };
+      })(), deadline]);
+      if (!current()) return;
+      const { response, data } = result;
+      if (response.status === 401 || response.status === 403) { onAccessDenied(); return; }
+      const conflict = () => {
+        const blocked: AckIntent = { ...intent, phase: "conflict" };
+        try { window.sessionStorage.setItem(ackStorageKey, JSON.stringify(blocked)); } catch { /* Pending remains; no dispatch follows. */ }
+        setAck({ phase: "conflict", intent: blocked, receipt: null });
+      };
+      if (response.status === 409) { conflict(); return; }
+      if (!response.ok) { setAck({ phase: before.phase === "conflict" ? "conflict" : "unknown", intent, receipt: null }); return; }
+      let receipt: Receipt | null = null;
+      if (check) {
+        if (!data || typeof data !== "object" || Array.isArray(data)) { conflict(); return; }
+        const d = data as Record<string, unknown>;
+        const n = d.notice as Record<string, unknown> | undefined;
+        if (!n || n.id !== intent.notice || n.status !== "published"
+          || typeof n.tenant_id !== "string" || n.tenant_id !== (detail.notice as unknown as Record<string, unknown>).tenant_id) { conflict(); return; }
+        const a = d.my_acknowledgement;
+        if (a === null) { setAck({ phase: before.phase === "conflict" ? "conflict" : "retry", intent, receipt: null }); return; }
+        if (!validReceipt(a)) { conflict(); return; }
+        const evidence = a as Receipt & Record<string, unknown>;
+        if (evidence.notice_id !== intent.notice || evidence.membership_id !== intent.membership
+          || typeof n.tenant_id !== "string" || evidence.tenant_id !== n.tenant_id
+          || evidence.acknowledgement_method !== "in_app_click" || evidence.evidence_checksum !== null || evidence.notes !== null) { conflict(); return; }
+        receipt = a;
+      } else if (data && typeof data === "object" && !Array.isArray(data)) {
+        const d = data as Record<string, unknown>;
+        const candidate = { id: d.acknowledgement_id, acknowledged_at: d.acknowledged_at };
+        if (d.success === true && d.is_statutory_proof === false && validReceipt(candidate)) receipt = candidate;
+      }
+      if (!receipt) { setAck({ phase: "unknown", intent, receipt: null }); return; }
+      try { window.sessionStorage.removeItem(ackStorageKey); } catch { /* Retained pending permits a future read, never automatic replay. */ }
+      setAck({ phase: "done", intent: null, receipt });
+    } catch {
+      if (current()) setAck({ phase: before.phase === "conflict" ? "conflict" : "unknown", intent, receipt: null });
+    } finally {
+      clearTimeout(timer!);
+      if (current()) { ackFlight.current = false; ackRequest.current = null; setSubmitting(false); }
+    }
+  };
 
   const handleAction = async (endpoint: string, body: Record<string, unknown>) => {
     if (!active) return;
@@ -1161,6 +1299,17 @@ function NoticeDetailModal({
             </div>
 
             {/* Recipient Personal Acknowledgement Section */}
+            {ackState.phase !== "ready" && ackState.phase !== "done" && ackState.phase !== "loading" ? (
+              <div role="status" aria-live="polite" className="rounded-xl border p-3 text-sm">
+                {ackState.phase === "sending" ? ackCopy.sending : ackState.phase === "checking" ? ackCopy.checking
+                  : ackState.phase === "blocked" ? ackCopy.storage : ackState.phase === "conflict" ? ackCopy.blocked
+                  : ackState.phase === "retry" ? ackCopy.retryReady : ackCopy.unknown}
+                {ackState.intent && ["unknown", "retry", "conflict"].includes(ackState.phase) ? (
+                  <button type="button" className="ms-3 rounded-lg border px-3 py-2" onClick={() => { void acknowledge(true); }}>{ackCopy.check}</button>
+                ) : null}
+              </div>
+            ) : null}
+
             {noticeStatus === "published" ? (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1177,14 +1326,14 @@ function NoticeDetailModal({
                   {!myAcknowledgement ? (
                     <button
                       type="button"
-                      disabled={submitting || !acknowledgementKnown}
+                      disabled={submitting || !acknowledgementKnown || !["ready", "retry"].includes(ackState.phase)}
                       onClick={() =>
-                        void handleAction(`/api/customer/v1/communications/notices/${noticeId}/acknowledge`, {})
+                        void acknowledge(false)
                       }
                       className="flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
                     >
                       <CheckCircle2 className="h-4 w-4" />
-                      {t.ackReceipt}
+                      {ackState.phase === "retry" ? ackCopy.retry : t.ackReceipt}
                     </button>
                   ) : (
                     <span className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 shadow-sm">
