@@ -971,6 +971,23 @@ function NoticeDetailModal({
 
   const noticeId = String(noticeSummary.id);
   const noticeStatus = String(detail?.notice?.status ?? noticeSummary.status);
+  // A receipt is display state, never authority. Only accept the canonical flat
+  // object; malformed/legacy wrappers must not look like an acknowledgement.
+  const rawAcknowledgement: unknown = detail?.my_acknowledgement;
+  const myAcknowledgement = rawAcknowledgement !== null
+    && typeof rawAcknowledgement === "object"
+    && !Array.isArray(rawAcknowledgement)
+    && "id" in rawAcknowledgement
+    && typeof rawAcknowledgement.id === "string"
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawAcknowledgement.id)
+    && "acknowledged_at" in rawAcknowledgement
+    && typeof rawAcknowledgement.acknowledged_at === "string"
+    && /^\d{4}-\d{2}-\d{2}T/.test(rawAcknowledgement.acknowledged_at)
+    && Number.isFinite(Date.parse(rawAcknowledgement.acknowledged_at))
+      ? { id: rawAcknowledgement.id, acknowledged_at: rawAcknowledgement.acknowledged_at }
+      : null;
+  const acknowledgementKnown = rawAcknowledgement === null || myAcknowledgement !== null;
+
 
   const handleAction = async (endpoint: string, body: Record<string, unknown>) => {
     if (!active) return;
@@ -1149,18 +1166,18 @@ function NoticeDetailModal({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="text-xs font-bold text-emerald-950">
-                      {detail?.my_acknowledgement ? t.receiptAcknowledged : t.ackReceipt}
+                      {myAcknowledgement ? t.receiptAcknowledged : t.ackReceipt}
                     </div>
-                    <p className="mt-0.5 text-xs text-emerald-800">
-                      {detail?.my_acknowledgement
-                        ? `${t.acknowledged}: ${date(detail.my_acknowledgement.acknowledged_at, lang)}`
-                        : "Confirming receipt logs your digital acknowledgement under AAL1."}
+                    <p role={acknowledgementKnown ? undefined : "alert"} className="mt-0.5 text-xs text-emerald-800">
+                      {myAcknowledgement
+                        ? `${t.acknowledged}: ${date(myAcknowledgement.acknowledged_at, lang)}`
+                        : acknowledgementKnown ? "Confirming receipt logs your digital acknowledgement under AAL1." : t.error}
                     </p>
                   </div>
-                  {!detail?.my_acknowledgement ? (
+                  {!myAcknowledgement ? (
                     <button
                       type="button"
-                      disabled={submitting}
+                      disabled={submitting || !acknowledgementKnown}
                       onClick={() =>
                         void handleAction(`/api/customer/v1/communications/notices/${noticeId}/acknowledge`, {})
                       }
