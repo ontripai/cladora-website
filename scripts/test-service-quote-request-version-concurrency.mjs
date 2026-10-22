@@ -12,6 +12,7 @@ export const SERVICE_QUOTE_TIMEOUTS = Object.freeze({
   statement: 4_000,
   lock: 1_000,
   lockObservation: 3_000,
+  pendingSettlement: 2_000,
   cleanup: 2_000,
 });
 
@@ -114,7 +115,38 @@ export async function attestServiceQuoteTarget(inputs, attestTarget, {
   const expiresAt = Date.parse(proof.expires_at);
   const current = now();
   if (!Number.isFinite(expiresAt) || expiresAt <= current || expiresAt > current + 86_400_000) throw fail('disposable_lease_stale');
-  return Object.freeze({ leaseId: proof.lease_id, fixtureOwner, cleanupOwner, expiresAt });
+  return Object.freeze({ leaseId: proof.lease_id, fixtureOwner, cleanupOwner,
+    cleanupMode: proof.cleanup_mode, expiresAt });
+}
+
+function startBudget(timeouts) {
+  return (timeouts.connection * 3) + timeouts.query + timeouts.lockObservation + timeouts.cleanup;
+}
+
+export function createServiceQuoteLeaseGuard(proof, now, timeouts = SERVICE_QUOTE_TIMEOUTS) {
+  if (!proof || typeof now !== 'function') throw fail('disposable_lease_guard_invalid');
+  const requireBudget = (milliseconds, insufficientCode) => {
+    const remaining = proof.expiresAt - now();
+    if (remaining <= 0) throw fail('disposable_lease_expired');
+    if (remaining < milliseconds) throw fail(insufficientCode);
+    return remaining;
+  };
+  return Object.freeze({
+    assertStart: () => requireBudget(startBudget(timeouts), 'disposable_lease_start_budget_insufficient'),
+    assertConnect: () => requireBudget(timeouts.connection + timeouts.cleanup, 'disposable_lease_connect_budget_insufficient'),
+    assertOperation: (minimum = Math.max(timeouts.query, timeouts.statement, timeouts.lock) + timeouts.cleanup) =>
+      requireBudget(minimum, 'disposable_lease_operation_budget_insufficient'),
+    assertSettlement: () => {
+      if (proof.expiresAt - now() <= 0) throw fail('disposable_lease_expired_during_operation');
+    },
+    assertCleanup: () => {
+      if (proof.fixtureOwner !== proof.cleanupOwner || proof.cleanupMode !== CLEANUP_MODE) {
+        throw fail('fixture_cleanup_ownership_invalid');
+      }
+      return proof.cleanupOwner;
+    },
+    expiresAt: proof.expiresAt,
+  });
 }
 
 export function sanitizeHarnessFailure(error, stage = 'operation') {
@@ -157,7 +189,37 @@ export async function withServiceQuoteCleanup(operation, steps, timeouts = SERVI
   return result;
 }
 
-export function createBoundedServiceQuoteSession(Client, inputs, name, timeouts = SERVICE_QUOTE_TIMEOUTS) {
+export function observeServiceQuoteWork(promise, registry, label = 'query') {
+  const work = { label, registry, consumed: false, settled: null };
+  work.settled = Promise.resolve(promise).then(
+    value => ({ status: 'fulfilled', value }),
+    reason => ({ status: 'rejected', reason }),
+  );
+  registry?.add(work);
+  return work;
+}
+
+export async function consumeServiceQuoteWork(work, milliseconds, timeoutCode = 'pending_work_settlement_timeout') {
+  const outcome = await bounded(work.settled, milliseconds, timeoutCode);
+  work.consumed = true;
+  work.registry?.delete(work);
+  if (outcome.status === 'rejected') throw outcome.reason;
+  return outcome.value;
+}
+
+export async function settleServiceQuotePendingWork(session, timeouts = SERVICE_QUOTE_TIMEOUTS) {
+  const pending = [...session.pendingWork];
+  if (pending.length === 0) return;
+  const outcomes = await bounded(Promise.all(pending.map(work => work.settled)),
+    timeouts.pendingSettlement, 'pending_work_settlement_timeout');
+  for (const work of pending) { work.consumed = true; session.pendingWork.delete(work); }
+  const rejected = outcomes.find(outcome => outcome.status === 'rejected');
+  if (rejected) throw rejected.reason;
+  throw fail('unconsumed_pending_work_fulfilled');
+}
+
+export function createBoundedServiceQuoteSession(Client, inputs, name, leaseGuard,
+  timeouts = SERVICE_QUOTE_TIMEOUTS) {
   const client = new Client({
     connectionString: inputs.connectionString,
     application_name: name,
@@ -167,19 +229,40 @@ export function createBoundedServiceQuoteSession(Client, inputs, name, timeouts 
     lock_timeout: timeouts.lock,
     idle_in_transaction_session_timeout: timeouts.query,
   });
-  return { client, name, inTransaction: false, connectStarted: false, connected: false };
+  return { client, name, leaseGuard, pendingWork: new Set(), inTransaction: false,
+    connectStarted: false, connected: false };
 }
 
 export async function connectServiceQuoteSession(session, timeouts = SERVICE_QUOTE_TIMEOUTS) {
+  session.leaseGuard?.assertConnect();
   session.connectStarted = true;
-  await bounded(Promise.resolve().then(() => session.client.connect()), timeouts.connection + 250, 'connection_timeout');
+  const work = observeServiceQuoteWork(Promise.resolve().then(() => session.client.connect()),
+    session.pendingWork, `${session.name}:connect`);
+  await consumeServiceQuoteWork(work, timeouts.connection + 250, 'connection_timeout');
+  session.leaseGuard?.assertSettlement();
   session.connected = true;
   return session;
 }
 
 export function boundedServiceQuoteQuery(session, text, values = [], timeouts = SERVICE_QUOTE_TIMEOUTS) {
-  return bounded(Promise.resolve().then(() => session.client.query({ text, values, query_timeout: timeouts.query })),
-    timeouts.query + 250, 'query_timeout');
+  session.leaseGuard?.assertOperation();
+  const work = observeServiceQuoteWork(
+    Promise.resolve().then(() => session.client.query({ text, values, query_timeout: timeouts.query })),
+    session.pendingWork, `${session.name}:query`);
+  return consumeServiceQuoteWork(work, timeouts.query + 250, 'query_timeout').then(result => {
+    session.leaseGuard?.assertSettlement();
+    return result;
+  });
+}
+
+export async function rollbackServiceQuoteSessionForCleanup(session, timeouts = SERVICE_QUOTE_TIMEOUTS) {
+  if (!session.inTransaction) return;
+  session.leaseGuard?.assertCleanup();
+  const work = observeServiceQuoteWork(
+    Promise.resolve().then(() => session.client.query({ text: 'rollback', values: [], query_timeout: timeouts.cleanup })),
+    null, `${session.name}:cleanup-rollback`);
+  await consumeServiceQuoteWork(work, timeouts.cleanup, 'cleanup_rollback_timeout');
+  session.inTransaction = false;
 }
 
 async function begin(session, timeouts) {
@@ -189,12 +272,6 @@ async function begin(session, timeouts) {
 
 async function commit(session, timeouts) {
   await boundedServiceQuoteQuery(session, 'commit', [], timeouts);
-  session.inTransaction = false;
-}
-
-async function rollback(session, timeouts) {
-  if (!session.inTransaction) return;
-  await boundedServiceQuoteQuery(session, 'rollback', [], timeouts);
   session.inTransaction = false;
 }
 
@@ -224,14 +301,16 @@ export async function runServiceQuoteConcurrency({
   // Client is constructed. A caller cannot authorize itself with an env flag.
   const inputs = parseServiceQuoteHarnessInputs(env);
   const proof = await attestServiceQuoteTarget(inputs, attestTarget, { now, timeout: timeouts.attestation });
+  const leaseGuard = createServiceQuoteLeaseGuard(proof, now, timeouts);
+  leaseGuard.assertStart();
   const pg = await pgModuleLoader();
   const Client = pg.Client ?? pg.default?.Client;
   if (typeof Client !== 'function') throw fail('pg_client_unavailable');
 
   const sessions = [
-    createBoundedServiceQuoteSession(Client, inputs, 'service-quote-v2-control', timeouts),
-    createBoundedServiceQuoteSession(Client, inputs, 'service-quote-v2-first', timeouts),
-    createBoundedServiceQuoteSession(Client, inputs, 'service-quote-v2-second', timeouts),
+    createBoundedServiceQuoteSession(Client, inputs, 'service-quote-v2-control', leaseGuard, timeouts),
+    createBoundedServiceQuoteSession(Client, inputs, 'service-quote-v2-first', leaseGuard, timeouts),
+    createBoundedServiceQuoteSession(Client, inputs, 'service-quote-v2-second', leaseGuard, timeouts),
   ];
   const [control, first, second] = sessions;
   let cases = 0;
@@ -242,6 +321,10 @@ export async function runServiceQuoteConcurrency({
     'select customer_api.create_service_quote_draft_v2($1::jsonb) result', [JSON.stringify(command)])
     .then(result => result.rows[0].result);
   const denied = (promise, code) => assert.rejects(promise, error => error.code === code);
+  const observedRpc = (session, command) => observeServiceQuoteWork(rpc(session, command),
+    session.pendingWork, `${session.name}:rpc`);
+  const deniedObserved = (work, code) => denied(
+    consumeServiceQuoteWork(work, timeouts.query + timeouts.pendingSettlement, 'rpc_settlement_timeout'), code);
   const keyFor = command => `service_quote:sql_v2:${command.workspace_id}:${inputs.fixture.actorId}:${command.idempotency_key}`;
   const snapshot = async command => (await query(control, `
     select
@@ -263,7 +346,7 @@ export async function runServiceQuoteConcurrency({
       await commit(session, timeouts);
       return Number(result.rows[0].version);
     } catch (error) {
-      try { await rollback(session, timeouts); } catch (cleanupError) {
+      try { await rollbackServiceQuoteSessionForCleanup(session, timeouts); } catch (cleanupError) {
         throw new ServiceQuoteHarnessFailure(sanitizeHarnessFailure(error), [sanitizeHarnessFailure(cleanupError, 'rollback')]);
       }
       throw error;
@@ -288,12 +371,12 @@ export async function runServiceQuoteConcurrency({
       await begin(first, timeouts);
       await query(first, 'select app_private.lock_service_request_version_v1($1,$2,$3)',
         [inputs.fixture.workspaceId, inputs.fixture.requestId, initial]);
-      const waiting = rpc(second, stale);
+      const waiting = observedRpc(second, stale);
       await waitForServiceQuoteLock(control, second.name, timeouts, now, sleep);
       await query(first, 'update service_catalog.requests set version=version+1 where id=$1 and workspace_id=$2',
         [inputs.fixture.requestId, inputs.fixture.workspaceId]);
       await commit(first, timeouts);
-      await denied(waiting, '40001');
+      await deniedObserved(waiting, '40001');
       assert.deepEqual(await snapshot(stale), before);
     });
 
@@ -304,14 +387,14 @@ export async function runServiceQuoteConcurrency({
       await begin(first, timeouts);
       await query(first, 'select id from service_catalog.requests where id=$1 and workspace_id=$2 for update',
         [inputs.fixture.requestId, inputs.fixture.workspaceId]);
-      const waiting = rpc(second, revoked);
+      const waiting = observedRpc(second, revoked);
       await waitForServiceQuoteLock(control, second.name, timeouts, now, sleep);
       const removed = await query(control,
         "delete from app_private.test_authority where actor_id=$1 and workspace_id=$2 and permission='services.quotes.manage' returning actor_id",
         [inputs.fixture.actorId, inputs.fixture.workspaceId]);
       assert.equal(removed.rowCount, 1, 'owned disposable fixture must contain one quote authority row');
       await commit(first, timeouts);
-      try { await denied(waiting, '42501'); assert.deepEqual(await snapshot(revoked), before); }
+      try { await deniedObserved(waiting, '42501'); assert.deepEqual(await snapshot(revoked), before); }
       finally {
         await query(control,
           "insert into app_private.test_authority(actor_id,workspace_id,permission) values($1,$2,'services.quotes.manage')",
@@ -363,8 +446,13 @@ export async function runServiceQuoteConcurrency({
       postgres: 'EXECUTED_BY_CALLER', auth: 'FIXTURE_ONLY_NOT_ISSUED_AUTH',
     });
   }, sessions.flatMap(session => [
-    { stage: `${session.name}:rollback`, run: () => rollback(session, timeouts) },
-    { stage: `${session.name}:end`, run: () => session.connectStarted ? session.client.end() : undefined },
+    { stage: `${session.name}:pending`, run: () => {
+      leaseGuard.assertCleanup(); return settleServiceQuotePendingWork(session, timeouts);
+    } },
+    { stage: `${session.name}:rollback`, run: () => rollbackServiceQuoteSessionForCleanup(session, timeouts) },
+    { stage: `${session.name}:end`, run: () => {
+      leaseGuard.assertCleanup(); return session.connectStarted ? session.client.end() : undefined;
+    } },
   ]), timeouts);
 }
 
