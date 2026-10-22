@@ -9,6 +9,7 @@ export const createServiceQuoteDraftSchema = z.strictObject({
   context_id: uuidSchema,
   workspace_id: uuidSchema,
   request_id: uuidSchema,
+  expected_request_version: z.number().int().positive().safe(),
   published_revision_id: uuidSchema,
   scope: z.string().trim().min(5).max(5000),
   total_minor: minorAmount,
@@ -30,18 +31,19 @@ export const createServiceQuoteDraftSchema = z.strictObject({
 
 export type CreateServiceQuoteDraft = z.infer<typeof createServiceQuoteDraftSchema>;
 
-/** Uses the historical request revision, never the latest catalogue pointer.
+/** Uses the exact observed Request version and historical catalogue revision.
  * The future RPC must authorize provider/coordinator and every referenced party,
  * lock the request, and commit draft/audit/outbox/idempotency atomically.
  * Passing this check neither accepts the proposal nor creates an order.
  */
 export function checkServiceQuoteRequest(
   quote: CreateServiceQuoteDraft,
-  request: { id: string; workspace_id: string; published_revision_id: string; status: string },
+  request: { id: string; version: number; workspace_id: string; published_revision_id: string; status: string },
   now: number,
-): 'OK' | 'REQUEST_MISMATCH' | 'REVISION_MISMATCH' | 'UNAVAILABLE' {
+): 'OK' | 'REQUEST_MISMATCH' | 'REQUEST_VERSION_MISMATCH' | 'REVISION_MISMATCH' | 'UNAVAILABLE' {
   const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
   if (!same(quote.request_id, request.id) || !same(quote.workspace_id, request.workspace_id)) return 'REQUEST_MISMATCH';
+  if (quote.expected_request_version !== request.version) return 'REQUEST_VERSION_MISMATCH';
   if (!same(quote.published_revision_id, request.published_revision_id)) return 'REVISION_MISMATCH';
   const expiry = Date.parse(quote.valid_until);
   if (request.status !== 'submitted' || !Number.isFinite(now) || !Number.isFinite(expiry) || now >= expiry) return 'UNAVAILABLE';

@@ -60,7 +60,7 @@ export function CustomerServiceQuotes({contextId,workspaceId,lang}:{contextId:st
         (errors.request?requestRef:errors.scope?scopeRef:errors.amount?amountRef:expiryRef).current?.focus();return;
       }
       const parsed=createServiceQuoteDraftSchema.safeParse({context_id:contextId,workspace_id:workspaceId,request_id:request.request_id,
-        published_revision_id:request.published_revision_id,scope,total_minor:total,currency:code,
+        expected_request_version:request.request_version,published_revision_id:request.published_revision_id,scope,total_minor:total,currency:code,
         payer_shares:[{party_id:request.beneficiary_party_id,amount_minor:total}],valid_until:until.toISOString(),idempotency_key:crypto.randomUUID()});
       if(!parsed.success){setNotice(t.invalid);return;}setFieldErrors({request:false,scope:false,amount:false,expiry:false});command=parsed.data;setPending(command);
     }

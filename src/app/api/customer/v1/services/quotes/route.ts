@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return failure('UNAUTHORIZED', 401);
-  const { data, error } = await supabase.schema('customer_api').rpc('read_service_quote_drafts_v1' as never,
+  const { data, error } = await supabase.schema('customer_api').rpc('read_service_quote_drafts_v2' as never,
     { p_context_id: context.data, p_workspace_id: workspace.data } as never);
   if (error) return rpcFailure(error.code);
   if (!data) return failure('SERVICE_QUERY_FAILED', 500);
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   const command = createServiceQuoteDraftSchema.safeParse(body);
   if (!command.success) return failure('INVALID_REQUEST', 400);
   if (claims.claims.aal !== 'aal2') return failure('MFA_REQUIRED', 403);
-  const { data, error } = await supabase.schema('customer_api').rpc('create_service_quote_draft_v1' as never, { p_request: command.data } as never);
+  const { data, error } = await supabase.schema('customer_api').rpc('create_service_quote_draft_v2' as never, { p_request: command.data } as never);
   if (error) return rpcFailure(error.code);
   if (!data) return failure('SERVICE_QUERY_FAILED', 500);
   return NextResponse.json(data, { headers: HEADERS });
