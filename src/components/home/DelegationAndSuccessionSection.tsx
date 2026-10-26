@@ -32,7 +32,7 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
               ? 'Drepturi stabilite pe perioade clare și predarea ușoară a gestiunii'
               : lang === 'fa'
               ? 'مدت زمان معین برای هر مسئولیت و تحویل بی‌دردسر امور'
-              : 'Time-Bound Permissions & Stress-Free Management Handover'}
+              : 'Time-Bound Permissions & Clear Management Handover'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'

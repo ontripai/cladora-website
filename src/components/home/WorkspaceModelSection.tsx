@@ -139,7 +139,7 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
                   {lang === 'ro' ? 'Trei reguli simple pentru siguranță și claritate' : lang === 'fa' ? 'سه قاعده ساده برای نظم و امنیت' : 'Three Simple Rules for Clarity & Security'}
                 </h4>
                 <p className="text-xs text-[#9FB3C8]">
-                  {lang === 'ro' ? 'Cum păstrăm datele în siguranță și predarea responsabilităților simplă' : lang === 'fa' ? 'چگونگی حفظ امنیت داده‌ها و سهولت در تحویل مسئولیت' : 'Keeping data safe and role handovers stress-free'}
+                  {lang === 'ro' ? 'Cum păstrăm datele în siguranță și predarea responsabilităților simplă' : lang === 'fa' ? 'چگونگی حفظ امنیت داده‌ها و سهولت در تحویل مسئولیت' : 'Keeping data safe and role handovers organized'}
                 </p>
               </div>
             </div>
