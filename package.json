@@ -133,27 +133,27 @@
     "clsx": "^2.1.1",
     "fflate": "0.8.3",
     "lucide-react": "^0.453.0",
-    "next": "16.3.8",
+    "next": "16.4.1",
     "pdf-lib": "1.17.1",
     "pg": "^8.23.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "^3.10.1",
     "tailwind-merge": "^2.5.4",
-    "zod": "^4.4.3"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@types/node": "^20.17.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "autoprefixer": "10.5.4",
+    "braces": "file:vendor/braces-3.0.4-cladora.2.tgz",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.3",
     "jsdom": "26.1.0",
     "postcss": "8.5.26",
     "tailwindcss": "3.4.19",
-    "typescript": "^5.6.3",
-    "braces": "file:vendor/braces-3.0.4-cladora.2.tgz"
+    "typescript": "^5.6.3"
   },
   "overrides": {
     "braces": "$braces"
