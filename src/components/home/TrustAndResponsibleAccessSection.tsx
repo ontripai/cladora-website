@@ -1,13 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  ShieldCheck, 
-  Lock, 
-  EyeOff, 
-  FileCheck2, 
-  Database, 
-  Server, 
+import {
+  ShieldCheck,
+  Lock,
+  EyeOff,
+  FileCheck2,
+  Database,
+  Server,
   ArrowRight,
   CheckCircle2
 } from 'lucide-react';
@@ -20,44 +20,44 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
   return (
     <section className="py-20 bg-[#F8FAFC] border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
           <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider bg-[#EAF8F5] px-3.5 py-1 rounded-full border border-[#B2E5DF]">
-            {lang === 'ro' ? 'Securitate Fără Compromis' : lang === 'fa' ? 'امنیت، حریم خصوصی و دسترسی مسئولانه' : 'Responsible Access & Trust'}
+            {lang === 'ro' ? 'Siguranță și Confidențialitate' : lang === 'fa' ? 'امنیت و حفظ حریم خصوصی' : 'Privacy & Data Protection'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
-            {lang === 'ro' 
-              ? 'Protecția datelor și securitatea la nivel de arhitectură' 
-              : lang === 'fa' 
-              ? 'امنیت در پشت صحنه؛ سادگی در برابر کاربر' 
-              : 'Security in the Foundation, Clarity for the User'}
+            {lang === 'ro'
+              ? 'Datele tale sunt protejate, iar confidențialitatea este respectată'
+              : lang === 'fa'
+              ? 'امنیت در پشت صحنه، شفافیت و آرامش برای کاربران'
+              : 'Your Data is Protected and Kept Strictly Confidential'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'Datele financiare și documentele de proprietate necesită o protecție riguroasă. CLADORA aplică reguli stricte de confidențialitate și acces contextual, fără a complica experiența de zi cu zi.'
+              ? 'Actele de proprietate și plățile asociației au nevoie de siguranță maximă. CLADORA folosește reguli clare de securitate: fiecare utilizator vede doar informațiile la care are dreptul, fără complicații inutile.'
               : lang === 'fa'
-              ? 'اطلاعات ملکی و دفاتر مالی نیازمند بالاترین سطح محرمانگی هستند. کنترل‌های سخت‌گیرانه امنیتی در هسته سیستم اعمال می‌شوند و کاربر با محیطی شفاف، ساده و بدون پیچیدگی روبه‌رو است.'
-              : 'Financial records and title documentation demand rigorous safeguards. CLADORA enforces strict context-based access boundaries while keeping daily workflows clean and intuitive.'}
+              ? 'اسناد ملکی و حساب‌های مالی ساختمان نیازمند بیشترین سطح امنیت هستند. در کلادورا، هر کاربر صرفاً اطلاعات مربوط به خود را می‌بیند و حریم خصوصی همه به خوبی حفظ می‌شود.'
+              : 'Property documents and financial records require top-tier protection. CLADORA applies strict privacy rules: everyone sees only what they are authorized to see, without unnecessary friction.'}
           </p>
         </div>
 
         {/* 4 Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          
+
           <div className="card-proptech p-6 bg-white border-[#E2E8F0] space-y-3">
             <div className="w-10 h-10 rounded-xl bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center font-bold">
               <Lock className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#102A43]">
-              {lang === 'ro' ? 'Separare Logică în Workspace' : lang === 'fa' ? 'تفکیک منطقی داده‌ها در Workspace' : 'Logical Workspace Boundaries'}
+              {lang === 'ro' ? 'Spații Separate de Lucru' : lang === 'fa' ? 'فضاهای کاری مجزا برای هر مجموعه' : 'Separate Spaces for Each Organization'}
             </h3>
             <p className="text-xs text-[#52667A] leading-relaxed">
               {lang === 'ro'
-                ? 'Nicio organizație sau asociație nu poate accesa registrele alteia. Datele sunt separate logic prin politici stricte de autorizare și context de lucru.'
+                ? 'Nicio asociație sau firmă nu poate vedea actele sau registrele alteia. Datele fiecărui client sunt izolate și protejate.'
                 : lang === 'fa'
-                ? 'اطلاعات هیچ سازمان یا انجمنی بدون مجوز برای دیگری قابل مشاهده نیست. مرزهای امن داده‌ها با کنترل‌های دقیق دسترسی و هویت در سامانه تفکیک می‌شوند.'
-                : 'Workspaces enforce strict authorization boundaries and tenant context so that no organization accesses another’s operational ledgers.'}
+                ? 'هیچ ساختمانی به اسناد یا دفاتر ساختمان دیگر دسترسی ندارد. اطلاعات هر مجموعه کاملاً مستقل و محفوظ نگهداری می‌شود.'
+                : 'No building or company can see another’s files or ledgers. Every client’s data is strictly isolated and protected.'}
             </p>
           </div>
 
@@ -66,14 +66,14 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
               <EyeOff className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#102A43]">
-              {lang === 'ro' ? 'Vizibilitate pe Baza Relației' : lang === 'fa' ? 'دسترسی مبتنی بر رابطه و نقش' : 'Relationship-Aware Scopes'}
+              {lang === 'ro' ? 'Confidențialitate Între Locatari' : lang === 'fa' ? 'حفظ حریم خصوصی ساکنان' : 'Privacy Between Residents'}
             </h3>
             <p className="text-xs text-[#52667A] leading-relaxed">
               {lang === 'ro'
-                ? 'Chiriașul vede doar cheltuielile operaționale proprii; registrele contabile, fondurile de reparații și actele proprietarului rămân confidențiale.'
+                ? 'Chiriașul își vede doar cheltuielile proprii de consum. Actele private ale proprietarului și fondul de reparații nu sunt expuse.'
                 : lang === 'fa'
-                ? 'مستأجر منحصراً مصارف و خدمات مربوط به خود را مشاهده می‌کند؛ اسناد مالکیت، صندوق‌های سرمایه‌ای و اطلاعات اختصاصی مالک محرمانه می‌مانند.'
-                : 'Tenants view authorized personal utility consumption without exposure to owner confidential accounts or private agreements.'}
+                ? 'مستأجر فقط سهم هزینه‌های مصرفی خود را می‌بیند؛ اسناد مالکیت و امور خصوصی مالک کاملاً محرمانه می‌ماند.'
+                : 'Tenants see only their own utility dues. Owner private records and reserve funds remain private.'}
             </p>
           </div>
 
@@ -82,14 +82,14 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
               <ShieldCheck className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#102A43]">
-              {lang === 'ro' ? 'Verificare Suplimentară pentru Acțiuni Critice' : lang === 'fa' ? 'تأیید دومرحله‌ای برای عملیات حساس' : 'Step-Up Verification for Critical Actions'}
+              {lang === 'ro' ? 'Confirmare Suplimentară la Decizii Importante' : lang === 'fa' ? 'تأیید مجدد برای عملیات حساس' : 'Extra Confirmation for Critical Actions'}
             </h3>
             <p className="text-xs text-[#52667A] leading-relaxed">
               {lang === 'ro'
-                ? 'Modificarea conturilor bancare, închiderea lunară a balanței sau votul în adunarea generală cer confirmare sporită pentru prevenirea erorilor.'
+                ? 'Schimbarea contului bancar al blocului, închiderea lunii sau votul la adunare cer o confirmare în plus pentru a evita greșelile.'
                 : lang === 'fa'
-                ? 'تغییر شماره حساب یا شبا، بستن رسمی دوره مالی یا ثبت رأی در مجامع عمومی نیازمند تأیید مرحله‌ای با رمز یک‌بارمصرف است.'
-                : 'High-impact financial closes, IBAN modifications, and governance votes require additional multi-factor confirmation steps.'}
+                ? 'تغییر حساب بانکی ساختمان، بستن حساب‌های ماهانه یا ثبت رأی نیازمند تأیید دوباره است تا از هرگونه اشتباه جلوگیری شود.'
+                : 'Changing bank details, closing monthly accounts, or official voting requires an extra confirmation step to prevent mistakes.'}
             </p>
           </div>
 
@@ -98,14 +98,14 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
               <FileCheck2 className="w-5 h-5" />
             </div>
             <h3 className="text-base font-bold text-[#102A43]">
-              {lang === 'ro' ? 'Pistă de Audit & Păstrare Conform Politicii' : lang === 'fa' ? 'ثبت ردپای حسابرسی طبق سیاست نگهداری' : 'Audit Trail & Policy-Based Retention'}
+              {lang === 'ro' ? 'Istoric al Acțiunilor Înregistrate' : lang === 'fa' ? 'سوابق اقدامات ثبت‌شده' : 'History of Recorded Actions'}
             </h3>
             <p className="text-xs text-[#52667A] leading-relaxed">
               {lang === 'ro'
-                ? 'Fiecare factură aprobată, plată reconciliată sau modificare de index este înregistrată cu autor și dată, fiind păstrată conform politicii de retenție autorizate.'
+                ? 'Sumele încasate, facturile aprobate sau indexurile transmise rămân consemnate cu autorul și data respectivă, pentru o verificare clară a evidențelor.'
                 : lang === 'fa'
-                ? 'تراکنش‌ها، تغییر ارقام کنتورها، مصوبات و پرداخت‌ها با شناسه عامل و زمان دقیق ثبت می‌شوند و نگهداری آن‌ها طبق سیاست معتبر سازمانی مدیریت می‌گردد.'
-                : 'Approved transactions, meter revisions, and governance decisions record the executing actor and timestamp under authorized retention policies.'}
+                ? 'پرداخت‌های ثبت‌شده، فاکتورهای تأییدشده یا ارقام کنتور با مشخصات ثبت‌کننده و زمان ثبت نگهداری می‌شوند تا بررسی سوابق همیشه آسان و روشن باشد.'
+                : 'Recorded payments, approved invoices, and submitted meter readings retain their author attribution and timestamp for clear verification.'}
             </p>
           </div>
 
@@ -117,10 +117,10 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
             <Database className="w-5 h-5 text-[#0E9F8E] shrink-0" />
             <span>
               {lang === 'ro'
-                ? 'Drepturile asupra datelor și exporturile conforme sunt asigurate prin contract și politici clare de confidențialitate.'
+                ? 'Datele asociației sunt gestionate transparent: poți genera rapoarte și extrase de activitate autorizate, în conformitate cu politicile de acces și confidențialitate.'
                 : lang === 'fa'
-                ? 'مالکیت داده‌ها و دسترسی به اطلاعات بر مبنای حقوق قانونی و قراردادهای معتبر است و خروجی استاندارد از سوابق مجاز فراهم می‌باشد.'
-                : 'Data ownership, privacy, and standard record exports are governed by clear contractual terms and regulatory compliance.'}
+                ? 'داده‌های ساختمان با شفافیت مدیریت می‌شوند: امکان دریافت گزارش‌ها و خلاصه‌های مجاز متناسب با دسترسی‌ها و سیاست‌های حفظ حریم خصوصی فراهم است.'
+                : 'Building records are managed transparently: generate authorized reports and summaries in accordance with access and data policies.'}
             </span>
           </div>
 
@@ -128,7 +128,7 @@ export const TrustAndResponsibleAccessSection: React.FC<TrustAndResponsibleAcces
             href={`/${lang}/platform/trust`}
             className="text-xs font-bold text-[#0E9F8E] hover:underline shrink-0 flex items-center gap-1"
           >
-            <span>{lang === 'ro' ? 'Detalii securitate & confidențialitate' : lang === 'fa' ? 'سیاست‌های امنیتی و محرمانگی' : 'Security & Trust specs'}</span>
+            <span>{lang === 'ro' ? 'Citește mai multe despre securitate' : lang === 'fa' ? 'اطلاعات بیشتر درباره امنیت داده‌ها' : 'Learn more about data security'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
