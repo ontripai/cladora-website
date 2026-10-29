@@ -16,7 +16,7 @@ const link={__esModule:true,default:({href,children,...props})=>React.createElem
 const mocks={
  'server-only':{},'next/link':link,
  'next/navigation':{usePathname:()=>pathname,notFound:()=>{throw Error('NOT_FOUND');}},
- '@/components/layout/Header':{Header:()=>null},'@/components/layout/Footer':{Footer:()=>null},
+ '@/components/layout/Header':{Header:()=>React.createElement('header',{'data-marketing-header':true})},'@/components/layout/Footer':{Footer:()=>React.createElement('footer',{'data-marketing-footer':true})},
  '@/data/demoStore':{DemoProvider:({children})=>{providers++;return React.createElement('div',{'data-demo-provider':true},children);}},
  '@/components/demo/DemoDashboardPage':{__esModule:true,default:()=>React.createElement('p',null,'isolated dashboard')},
  '@/components/demo/DemoAccountingPage':{__esModule:true,default:()=>React.createElement('p',null,'isolated accounting')},
@@ -73,6 +73,11 @@ for(const route of ['/en','/en/app/dashboard','/en/platform/dashboard-lab','/en/
 }
 for(const route of ['/en/demo','/en/demo/app/dashboard','/en/demo/app/accounting']){
  pathname=route;providers=0;renderToStaticMarkup(React.createElement(AppOrMarketingLayout,{lang:'en'},'demo content'));equal(providers,1,'demo store scoped to '+route);
+}
+for(const [route,marketing] of [['/en',true],['/en/demo',true],['/en/demo/app/dashboard',false],['/en/demo/app/maintenance',false],['/en/app/dashboard',false]]){
+ pathname=route;const output=renderToStaticMarkup(React.createElement(AppOrMarketingLayout,{lang:'en'},'content'));
+ equal(output.includes('data-marketing-header'),marketing,'exact shell on '+route);
+ equal(output.includes('data-marketing-footer'),marketing,'exact footer on '+route);
 }
 const demoSource=readFileSync(path.join(root,'src/app/[lang]/demo/app/[...slug]/page.tsx'),'utf8');
 check(!/from\s+['"]@\/app\/.*\/app\//.test(demoSource),'demo route must not import authenticated app pages');

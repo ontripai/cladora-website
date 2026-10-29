@@ -110,14 +110,27 @@ try {
   await check('Changed payload with same key conflicts',async()=>denied(()=>draft({...quote,scope:'Changed scope'}),'23505'));
   await check('Foreign workspace cannot read or write',async()=>{await denied(()=>readQuotes(foreignWorkspace),'42501');await denied(()=>draft({...quote,workspace_id:foreignWorkspace}),'42501');});
   await check('Unrelated request is hidden',async()=>denied(()=>draft({...quote,request_id:id(99)}),'P0002'));
-  await check('Historical revision cannot be replaced',async()=>denied(()=>draft({...quote,published_revision_id:id(99)}),'40001'));
+  await check('Historical revision cannot be replaced: changed replay conflicts, fresh command fails CAS with zero writes',async()=>{
+    const before=await q('select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys) keys');
+    await denied(()=>draft({...quote,published_revision_id:id(99)}),'23505');
+    await denied(()=>draft({...quote,published_revision_id:id(99),idempotency_key:'quote-014-wrong-revision-new'}),'40001');
+    assert.deepEqual(await q('select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys) keys'),before);
+  });
   await check('Missing, unsafe and stale Request versions fail before durable writes',async()=>{
     for(const expected_request_version of [undefined,0,-1,1.5,9007199254740992])await denied(()=>draft({...quote,expected_request_version,idempotency_key:`quote-014-version-${String(expected_request_version)}`}),'22023');
     const before=await q("select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys where key like 'service_quote:sql_v2:%') keys");
     await denied(()=>draft({...quote,expected_request_version:2,idempotency_key:'quote-014-stale'}),'40001');
     const after=await q("select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys where key like 'service_quote:sql_v2:%') keys");assert.deepEqual(after,before);
   });
-  await check('Committed replay remains exact after Request version advances; a new stale key is zero-write',async()=>changed(`select app_private.lock_service_request_version_v1('${workspace}','${submitted.request_id}',1);update service_catalog.requests set version=2 where id='${submitted.request_id}'`,async()=>{assert.deepEqual(await draft(quote),result);await denied(()=>draft({...quote,idempotency_key:'quote-014-after-version-change'}),'40001');assert.equal((await q("select count(*)::int n from platform.idempotency_keys where key like '%quote-014-after-version-change'"))[0].n,0);}));
+  await check('Committed replay remains exact after Request version advances; a new stale key is zero-write',async()=>changed(`select app_private.lock_service_request_version_v1('${workspace}','${submitted.request_id}',1);update service_catalog.requests set version=2 where id='${submitted.request_id}'`,async()=>{
+    assert.deepEqual(await draft(quote),result);
+    // Expected SQL errors abort the surrounding transaction. Recover only this
+    // failed statement before observing rows; the fixture's version bump stays live.
+    await db.exec('savepoint quote_stale_probe');
+    await denied(()=>draft({...quote,idempotency_key:'quote-014-after-version-change'}),'40001');
+    await db.exec('rollback to savepoint quote_stale_probe');
+    assert.equal((await q("select count(*)::int n from platform.idempotency_keys where key like '%quote-014-after-version-change'"))[0].n,0);
+  }));
   await check('Different or additional payer denied',async()=>{await denied(()=>draft({...quote,payer_shares:[{party_id:id(10),amount_minor:quote.total_minor}]}),'42501');await denied(()=>draft({...quote,payer_shares:[{party_id:provider,amount_minor:'1'},{party_id:id(10),amount_minor:'9007199254740992'}]}),'42501');});
   for(const field of ['actor_id','tenant_id','status','version','order_id','accepted_by','work_order_id'])await check(field+' injection rejected',async()=>denied(()=>draft({...quote,[field]:'injected'}),'22023'));
   for(const value of ['-1','01','1.23','1e2',123,null])await check('Noncanonical amount '+value,async()=>denied(()=>draft({...quote,total_minor:value}),'22023'));

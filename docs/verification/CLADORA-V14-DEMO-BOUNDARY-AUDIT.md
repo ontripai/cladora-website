@@ -1,7 +1,9 @@
 # Release demo and application boundary audit
 
-This review is limited to the release candidate. Main, production deployment,
-Vercel variables, database, roles and customer data were not changed.
+This source review is limited to the release candidate. Main, production deployment,
+database, roles and customer data were not changed. The initial audit did not modify
+Vercel variables; the subsequent Preview-only staging configuration and integration
+follow-up are recorded in CLADORA-V14-INTEGRATION-RECONCILIATION.md.
 
 ## Findings and corrections
 
@@ -53,7 +55,9 @@ Preview-to-staging configuration and real Auth/backend validation remain separat
   retains its original request. Remount restores its exact saved input without an automatic resend. Discard restores empty fields without a server write.
 - Existing password-recovery security contract and all 14 public-API suites passed.
 - Typecheck and targeted lint passed with existing local dependencies.
-- Native browser, real Auth, PostgreSQL, Storage and actual provider proof were not run.
+- The initial audit did not run native browser, real Auth, PostgreSQL, Storage or
+  actual provider proof. The integration follow-up records the later local Chromium
+  route checks separately from these backend gates.
 
 The dedicated release-safety CI job does not replace, skip or neutralize other CI
 failures. Main merge and production promotion remain gated on their actual results.
