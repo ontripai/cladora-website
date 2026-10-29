@@ -50,7 +50,7 @@ export function CustomerBuildingSetupWizard({lang}:{lang:Lang}) {
 }
 function BuildingSetup({lang,workspaceId,targetAvailable}:{lang:Lang;workspaceId:string;targetAvailable:boolean}) {
  const t=copy[lang],r=recoveryCopy[lang],{active,registerUnsavedGuard,loading:contextLoading,error:contextError}=useCustomerContext();
- const [association,setAssociation]=useState("CLADORA Synthetic Association"),[building,setBuilding]=useState("Synthetic Building A"),[code,setCode]=useState("BLD-A"),[floors,setFloors]=useState("4"),[start,setStart]=useState("2026-01-01"),[end,setEnd]=useState("2026-12-31"),[units,setUnits]=useState<Unit[]>([{code:"A-01",floor:"0",area:"62"}]),[debit,setDebit]=useState("0"),[credit,setCredit]=useState("0"),[runId,setRunId]=useState(""),[stage,setStage]=useState<Stage>("edit"),[busy,setBusy]=useState(false),[notice,setNotice]=useState<''|'unknown'|'blocked'|'invalid'|'conflict'|'ok'|'save'|'context'>('');
+ const [association,setAssociation]=useState(""),[building,setBuilding]=useState(""),[code,setCode]=useState(""),[floors,setFloors]=useState(""),[start,setStart]=useState(""),[end,setEnd]=useState(""),[units,setUnits]=useState<Unit[]>([{code:"",floor:"",area:""}]),[debit,setDebit]=useState("0"),[credit,setCredit]=useState("0"),[runId,setRunId]=useState(""),[stage,setStage]=useState<Stage>("edit"),[busy,setBusy]=useState(false),[notice,setNotice]=useState<''|'unknown'|'blocked'|'invalid'|'conflict'|'ok'|'save'|'context'>('');
  const ready=targetAvailable&&!contextLoading&&!contextError;
  const [readiness,setReadiness]=useState({ready,version:0});
  if(readiness.ready!==ready)setReadiness({ready,version:readiness.version+1});
@@ -70,7 +70,7 @@ function BuildingSetup({lang,workspaceId,targetAvailable}:{lang:Lang;workspaceId
  },[scopeVersion,contextId,membershipId,workspaceId]);
  const difference=useMemo(()=>Number(debit||0)-Number(credit||0),[debit,credit]),field="min-w-0 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-teal-600 disabled:bg-slate-50";
  const dirtyUnits=stage==="draft"&&JSON.stringify(units)!==JSON.stringify(savedUnits);
- const dirtyForm=stage==="edit"&&(association!=="CLADORA Synthetic Association"||building!=="Synthetic Building A"||code!=="BLD-A"||floors!=="4"||start!=="2026-01-01"||end!=="2026-12-31"||JSON.stringify(units)!==JSON.stringify([{code:"A-01",floor:"0",area:"62"}])||debit!=="0"||credit!=="0");
+ const dirtyForm=stage==="edit"&&(association!==""||building!==""||code!==""||floors!==""||start!==""||end!==""||JSON.stringify(units)!==JSON.stringify([{code:"",floor:"",area:""}])||debit!=="0"||credit!=="0");
  const applyPayload=useCallback((payload:SetupPayload, effective?:SetupPayload['units']|null)=>{
   const recorded=(effective??payload.units).map(u=>({code:u.code,floor:u.floor===null?'':String(u.floor),area:u.area_m2===null?'':String(u.area_m2)}));
   setUnits(recorded);setAssociation(payload.association.name);setBuilding(payload.building.name);setCode(payload.building.code);setFloors(String(payload.building.floors));setStart(payload.period_start);setEnd(payload.period_end);
@@ -85,7 +85,7 @@ function BuildingSetup({lang,workspaceId,targetAvailable}:{lang:Lang;workspaceId
  const discardUnsaved=useCallback(()=>{
   localDraft.current=null;setRetainedKind(null);
   if(recordRef.current){setSavedUnits(applyPayload(recordRef.current.payload,recordRef.current.effective_units));return;}
-  setAssociation("CLADORA Synthetic Association");setBuilding("Synthetic Building A");setCode("BLD-A");setFloors("4");setStart("2026-01-01");setEnd("2026-12-31");setUnits([{code:"A-01",floor:"0",area:"62"}]);setDebit("0");setCredit("0");
+  setAssociation("");setBuilding("");setCode("");setFloors("");setStart("");setEnd("");setUnits([{code:"",floor:"",area:""}]);setDebit("0");setCredit("0");
  },[applyPayload]);
  useEffect(()=>registerUnsavedGuard(`building-setup:${membershipId}:${contextId}`,dirtyUnits||dirtyForm||!!retainedKind||!!pending,discardUnsaved),[registerUnsavedGuard,membershipId,contextId,dirtyUnits,dirtyForm,retainedKind,pending,discardUnsaved]);
  const requireConfirmation=useCallback((record:SetupRecord)=>{

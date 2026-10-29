@@ -40,9 +40,7 @@ export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, child
   const legacyDarkRoutes: string[] = [];
   const isLegacyDarkRoute = pathname ? legacyDarkRoutes.includes(pathname) : false;
 
-  return (
-    <DemoProvider>
-      {isAppRoute ? (
+  const page = isAppRoute ? (
         <>{children}</>
       ) : (
         <div className="flex flex-col min-h-screen">
@@ -52,7 +50,7 @@ export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, child
           </div>
           <Footer lang={lang} />
         </div>
-      )}
-    </DemoProvider>
-  );
+      );
+  const isDemoRoute = pathname === `/${lang}/demo` || pathname?.startsWith(`/${lang}/demo/`);
+  return isDemoRoute ? <DemoProvider>{page}</DemoProvider> : page;
 };

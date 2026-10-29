@@ -1,0 +1,35 @@
+name: Release safety boundaries
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/layout/AppOrMarketingLayout.tsx'
+      - 'src/components/customer/CustomerBuildingSetupWizard.tsx'
+      - 'src/app/**/demo/**'
+      - 'src/lib/auth/**'
+      - 'src/lib/supabase/server-env.ts'
+      - 'src/lib/security/turnstile-server.ts'
+      - 'scripts/test-release-*.mjs'
+      - '.github/workflows/release-safety.yml'
+permissions:
+  contents: read
+jobs:
+  safety-boundaries:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-release-demo-isolation.mjs
+      - run: node --no-warnings --experimental-strip-types scripts/test-password-recovery-security.mjs
+      - run: node --no-warnings --experimental-strip-types scripts/test-public-apis.mjs
+      - run: node scripts/test-release-checklist-composition.mjs
+      - run: node scripts/test-release-summary-composition.mjs --receipt-only
+      - run: node scripts/test-release-assets-composition.mjs --classification-only
+      - run: npm run typecheck

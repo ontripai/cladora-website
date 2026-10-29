@@ -39,6 +39,10 @@ export const PortfolioIntelligenceSection: React.FC<PortfolioSectionProps> = ({ 
           </p>
         </div>
 
+        <p className="mt-6 text-center text-sm text-[#52667A]">
+          {lang === 'ro' ? 'Exemplu ilustrativ cu date sintetice.' : lang === 'fa' ? 'نمونهٔ نمایشی با داده‌های مصنوعی.' : 'Illustrative example using synthetic data.'}
+        </p>
+
         {/* Portfolio KPI Bar */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-12">
           <div className="card-proptech p-5 bg-white">
