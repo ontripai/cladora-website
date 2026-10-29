@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   Wrench,
   Shield,
@@ -23,6 +23,42 @@ import {
 import type { Language } from "@/types";
 import { EquipmentRegistrationPanel } from "./EquipmentRegistrationPanel";
 import { useCustomerContext } from "./CustomerContextProvider";
+
+// Decode only the bounded error envelope. HTTP status alone is not authority.
+async function decodeAssetsFailure(response: Response): Promise<{ error: { code: string; message: string } }> {
+  const reader = response.body?.getReader();
+  if (!reader) throw new Error("Invalid equipment response");
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > 16 * 1024) {
+        await reader.cancel();
+        throw new Error("Invalid equipment response");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const bytes = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  const body: unknown = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes));
+  if (!body || typeof body !== "object" || Array.isArray(body) || !("error" in body)) throw new Error("Invalid equipment response");
+  const error = body.error;
+  if (!error || typeof error !== "object" || Array.isArray(error) || !("code" in error) || typeof error.code !== "string" || error.code.length > 64) throw new Error("Invalid equipment response");
+  if ("message" in error && (typeof error.message !== "string" || error.message.length > 512)) throw new Error("Invalid equipment response");
+  const message = "message" in error ? String(error.message) : "Equipment operation failed";
+  return { error: { code: error.code, message } };
+}
+
+function isConfirmedAssetsDenial(response: Response, body: { error?: { code?: string } }) {
+  return (response.status === 401 && body.error?.code === "UNAUTHORIZED") || (response.status === 403 && body.error?.code === "FORBIDDEN");
+}
 
 interface Asset {
   id: string;
@@ -88,6 +124,11 @@ interface WarrantyClaim {
 
 const copy = {
   en: {
+    close: "Close",
+    cancel: "Cancel",
+    confirmDowntime: "Confirm Downtime",
+    downtimeReason: "Reason for downtime (e.g., motor trip, emergency inspection)...",
+    plannedDowntime: "Planned Maintenance Downtime",
     title: "Building Assets & Equipment Registry",
     subtitle: "Enterprise equipment catalog, compliance scheduler, atomic downtime tracking, and dual-control lifecycle.",
     totalAssets: "Total Equipment",
@@ -131,6 +172,11 @@ const copy = {
     error: "Operation failed: ",
   },
   ro: {
+    close: "Închide",
+    cancel: "Anulează",
+    confirmDowntime: "Confirmă indisponibilitatea",
+    downtimeReason: "Motivul indisponibilității (de exemplu, avarie la motor, inspecție de urgență)...",
+    plannedDowntime: "Indisponibilitate pentru mentenanță planificată",
     title: "Registru Echipamente & Active Clădire",
     subtitle: "Catalog tehnic de echipamente, planificare conformitate legală, monitorizare indisponibilitate și control dezafectare.",
     totalAssets: "Total Echipamente",
@@ -174,6 +220,11 @@ const copy = {
     error: "Operațiune eșuată: ",
   },
   fa: {
+    close: "بستن",
+    cancel: "انصراف",
+    confirmDowntime: "تأیید توقف",
+    downtimeReason: "دلیل توقف (مانند خرابی موتور یا بازرسی اضطراری)...",
+    plannedDowntime: "توقف برای نگهداری برنامه‌ریزی‌شده",
     title: "سامانه دارایی‌ها و تجهیزات ساختمان",
     subtitle: "رجیستری تجهیزات فنی، مدیریت بازرسی دوره‌ای، ثبت توقف و ازکارافتادگی اتمیک و کنترل خروج از خدمت دوکاربره.",
     totalAssets: "کل تجهیزات",
@@ -218,10 +269,94 @@ const copy = {
   },
 };
 
+// Local UI-only modal: request ownership and operation handlers remain unchanged.
+type RegistryFocusLease = { node: HTMLDivElement; opener: HTMLElement | null; parent: RegistryFocusLease | null };
+function RegistryDialog({ label, close, children, focusOwnerRef, drawer = false, inactive = false }: {
+  label: string; close: () => void; children: ReactNode; focusOwnerRef: { current: RegistryFocusLease | null }; drawer?: boolean; inactive?: boolean;
+}) {
+  const dialog = useRef<HTMLDivElement>(null);
+  const originalOpener = useRef<HTMLElement | null | undefined>(undefined);
+  useLayoutEffect(() => {
+    const node = dialog.current;
+    if (!node) return;
+    const previous = focusOwnerRef.current;
+    if (originalOpener.current === undefined) {
+      const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      // A keyed replacement may remove the old focused node in this same commit.
+      originalOpener.current = focused === document.body && previous && !previous.node.isConnected ? previous.opener : focused;
+    }
+    let parent = previous;
+    while (parent && (parent.node === node || !parent.node.isConnected)) parent = parent.parent;
+    const owner: RegistryFocusLease = { node, opener: originalOpener.current, parent };
+    focusOwnerRef.current = owner;
+    const first = node.querySelector<HTMLElement>('button:not(:disabled),textarea:not(:disabled),input:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]');
+    (first ?? node).focus();
+    // Only this opening may restore focus, after actual removal and inert updates.
+    // StrictMode replay or a newer opening replaces the owner before continuation.
+    return () => { queueMicrotask(() => {
+      if (focusOwnerRef.current !== owner || node.isConnected) return;
+      let parent = owner.parent;
+      while (parent && !parent.node.isConnected) parent = parent.parent;
+      focusOwnerRef.current = parent;
+      const opener = owner.opener;
+      if (opener?.isConnected && !opener.closest('[inert]') && (!parent || parent.node.contains(opener))) opener.focus();
+    }); };
+  }, [focusOwnerRef]);
+  return <div ref={dialog} role="dialog" aria-label={label} aria-modal={inactive ? undefined : true}
+    aria-hidden={inactive || undefined} inert={inactive || undefined} tabIndex={-1}
+    onKeyDown={event => {
+      if (inactive) return;
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close(); return; }
+      if (event.key !== 'Tab') return;
+      const nodes = Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),[tabindex="0"]') ?? [])
+        .filter(node => !node.closest('[hidden],[inert]') && node.getClientRects().length > 0);
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (!first) { event.preventDefault(); dialog.current?.focus(); }
+      else if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog.current)) { event.preventDefault(); first.focus(); }
+    }}
+    className={drawer ? 'fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-end' : 'fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4'}>
+    <div className={drawer ? 'w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl p-6 overflow-y-auto space-y-6' : 'bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800 max-h-[85vh] overflow-y-auto'}>{children}</div>
+  </div>;
+}
+
+// Existing provider identities define a UI binding, not new authority.
 export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
+  const { active, loading, error, dashboard } = useCustomerContext();
+  const [retry, setRetry] = useState(0);
+  const ready = !!active && !loading && !error && dashboard?.contextId === active.context_id;
+  const binding = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code, active?.scope_type]);
+  if (!ready) return <p role="status" dir={lang === "fa" ? "rtl" : "ltr"}>{scopeCopy[lang].unavailable}</p>;
+  // Removing this subtree also removes its registration form and local drafts.
+  return <BoundAssetsDashboard key={`${binding}:${retry}`} lang={lang} contextId={active.context_id} onRetry={() => setRetry(value => value + 1)} />;
+}
+
+const scopeCopy = {
+  en: { unavailable: "Equipment is unavailable until the current context is confirmed.", retry: "Retry", denied: "Equipment access could not be confirmed. Retry to check current access." },
+  ro: { unavailable: "Echipamentele nu sunt disponibile până la confirmarea contextului curent.", retry: "Reîncearcă", denied: "Accesul la echipamente nu a fost confirmat. Reîncearcă pentru a verifica accesul curent." },
+  fa: { unavailable: "تا تأیید زمینهٔ جاری، تجهیزات قابل نمایش نیستند.", retry: "تلاش دوباره", denied: "دسترسی به تجهیزات تأیید نشد؛ برای بررسی دسترسی جاری دوباره تلاش کنید." },
+};
+
+function BoundAssetsDashboard({ lang, contextId, onRetry }: { lang: Language; contextId: string; onRetry: () => void }) {
   const t = copy[lang as keyof typeof copy] || copy.en;
   const isRtl = lang === "fa";
-  const { active, loading: ctxLoading } = useCustomerContext();
+  const dialogFocusOwnerRef = useRef<RegistryFocusLease | null>(null);
+  const live = useRef(false);
+  const listSequence = useRef(0);
+  const detailSequence = useRef(0);
+  const selection = useRef<string | null>(null);
+  const [denied, setDenied] = useState(false);
+  useLayoutEffect(() => {
+    live.current = true;
+    return () => { live.current = false; };
+  }, []);
+  const deny = useCallback(() => {
+    if (!live.current) return;
+    live.current = false;
+    listSequence.current++;
+    detailSequence.current++;
+    setDenied(true);
+  }, []);
 
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(false);
@@ -236,7 +371,6 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
   const [safetyOnly, setSafetyOnly] = useState(false);
 
   // Active Selected Asset & Drawer
-  const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "downtime" | "inspections" | "warranty" | "decommission">("overview");
 
@@ -259,13 +393,19 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
   const [showDecomModal, setShowDecomModal] = useState(false);
   const [decomReason, setDecomReason] = useState("");
 
+  const query = useMemo(() => ({ search, lifecycleFilter, operationalFilter, criticalityFilter, safetyOnly }), [search, lifecycleFilter, operationalFilter, criticalityFilter, safetyOnly]);
+  const committedQuery = useRef(query);
+  useLayoutEffect(() => { committedQuery.current = query; listSequence.current++; }, [query]);
+
   const loadAssets = useCallback(async () => {
-    if (!active?.context_id) return;
+    if (!live.current || committedQuery.current !== query) return;
+    const sequence = ++listSequence.current;
+    const current = () => live.current && committedQuery.current === query && listSequence.current === sequence;
     setLoading(true);
     setErrorMsg(null);
     try {
       const params = new URLSearchParams({
-        context_id: active.context_id,
+        context_id: contextId,
         limit: "50",
       });
       if (search.trim()) params.set("search", search.trim());
@@ -275,17 +415,27 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
       if (safetyOnly) params.set("is_safety_critical", "true");
 
       const res = await fetch(`/api/customer/v1/assets?${params.toString()}`);
-      const json = await res.json();
+      if (!current()) return;
+      const json = await (res.ok ? res.json() : decodeAssetsFailure(res));
+      if (!current()) return;
+      if (!res.ok && isConfirmedAssetsDenial(res, json)) { deny(); return; }
       if (!res.ok) {
         throw new Error(json.error?.message || "Failed to load assets");
       }
       setAssets(json.items || []);
     } catch (err: any) {
+      if (!current()) return;
+      setAssets([]);
+      selection.current = null;
+      detailSequence.current++;
+      setSelectedAsset(null);
+      setInspections([]);
+      setWarrantyClaims([]);
       setErrorMsg(err.message || "Failed to fetch equipment");
     } finally {
-      setLoading(false);
+      if (current()) setLoading(false);
     }
-  }, [active, search, lifecycleFilter, operationalFilter, criticalityFilter, safetyOnly]);
+  }, [contextId, query, search, lifecycleFilter, operationalFilter, criticalityFilter, safetyOnly, deny]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -294,95 +444,119 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
     return () => clearTimeout(timer);
   }, [loadAssets]);
 
-  // Load Asset Detail
+  // A selected asset owns its entire detail/inspection/warranty continuation.
   const loadAssetDetail = useCallback(async (assetId: string) => {
-    if (!active?.context_id) return;
+    if (!live.current || selection.current !== assetId) return;
+    const sequence = ++detailSequence.current;
+    const current = () => live.current && selection.current === assetId && detailSequence.current === sequence;
     setDetailLoading(true);
+    setInspections([]);
+    setWarrantyClaims([]);
+    const read = async (suffix: string) => {
+      const res = await fetch(`/api/customer/v1/assets/${assetId}${suffix}?context_id=${encodeURIComponent(contextId)}`);
+      if (!current()) return null;
+      const json = await (res.ok ? res.json() : decodeAssetsFailure(res));
+      if (!current()) return null;
+      if (!res.ok && isConfirmedAssetsDenial(res, json)) { deny(); return null; }
+      if (!res.ok) throw new Error(json.error?.message || "Failed to load equipment details");
+      return json;
+    };
     try {
-      const res = await fetch(`/api/customer/v1/assets/${assetId}?context_id=${active.context_id}`);
-      const json = await res.json();
-      if (res.ok) {
-        setSelectedAsset(json);
-      }
-      // Fetch child inspections
-      const inspRes = await fetch(`/api/customer/v1/assets/${assetId}/inspections?context_id=${active.context_id}`);
-      const inspJson = await inspRes.json();
-      if (inspRes.ok) {
-        setInspections(inspJson.items || []);
-      }
-      // Fetch warranty claims
-      const claimsRes = await fetch(`/api/customer/v1/assets/${assetId}/warranty/claims?context_id=${active.context_id}`);
-      const claimsJson = await claimsRes.json();
-      if (claimsRes.ok) {
-        setWarrantyClaims(claimsJson.items || []);
-      }
-    } catch (err) {
-      console.error(err);
+      const asset = await read("");
+      if (!current() || !asset) return;
+      setSelectedAsset(asset);
+      const inspection = await read("/inspections");
+      if (!current() || !inspection) return;
+      setInspections(inspection.items || []);
+      const claims = await read("/warranty/claims");
+      if (!current() || !claims) return;
+      setWarrantyClaims(claims.items || []);
+    } catch (err: any) {
+      if (!current()) return;
+      setSelectedAsset(null);
+      setInspections([]);
+      setWarrantyClaims([]);
+      setErrorMsg(err.message || "Failed to load equipment details");
     } finally {
-      setDetailLoading(false);
+      if (current()) setDetailLoading(false);
     }
-  }, [active]);
+  }, [contextId, deny]);
 
   const handleSelectAsset = (asset: Asset) => {
-    setSelectedAssetId(asset.id);
+    if (!live.current) return;
+    selection.current = asset.id;
     setSelectedAsset(asset);
     setActiveTab("overview");
-    loadAssetDetail(asset.id);
+    void loadAssetDetail(asset.id);
   };
 
   // Actions
   const handleStartDowntime = async () => {
-    if (!active?.context_id || !selectedAsset) return;
+    if (!live.current || !selectedAsset || selection.current !== selectedAsset.id) return;
+    const owner = detailSequence.current;
+    const current = () => live.current && selection.current === selectedAsset.id && detailSequence.current === owner;
     try {
       const res = await fetch(`/api/customer/v1/assets/${selectedAsset.id}/downtime/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          context_id: active.context_id,
+          context_id: contextId,
           reason: downtimeReason || "Manual downtime event",
           is_planned: downtimePlanned,
         }),
       });
-      const json = await res.json();
+      if (!current()) return;
+      const json = await (res.ok ? res.json() : decodeAssetsFailure(res));
+      if (!current()) return;
+      if (!res.ok && isConfirmedAssetsDenial(res, json)) { deny(); return; }
       if (!res.ok) throw new Error(json.error?.message || "Failed to start downtime");
       setSuccessMsg(t.success);
       setShowDowntimeModal(false);
       loadAssetDetail(selectedAsset.id);
       loadAssets();
     } catch (err: any) {
+      if (!current()) return;
       setErrorMsg(t.error + err.message);
     }
   };
 
   const handleEndDowntime = async () => {
-    if (!active?.context_id || !selectedAsset?.active_downtime?.id) return;
+    if (!live.current || !selectedAsset?.active_downtime?.id || selection.current !== selectedAsset.id) return;
+    const owner = detailSequence.current;
+    const current = () => live.current && selection.current === selectedAsset.id && detailSequence.current === owner;
     try {
       const res = await fetch(`/api/customer/v1/assets/${selectedAsset.active_downtime.id}/downtime/end`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          context_id: active.context_id,
+          context_id: contextId,
           restored_operational_status: "operational",
         }),
       });
-      const json = await res.json();
+      if (!current()) return;
+      const json = await (res.ok ? res.json() : decodeAssetsFailure(res));
+      if (!current()) return;
+      if (!res.ok && isConfirmedAssetsDenial(res, json)) { deny(); return; }
       if (!res.ok) throw new Error(json.error?.message || "Failed to end downtime");
       setSuccessMsg(t.success);
       loadAssetDetail(selectedAsset.id);
       loadAssets();
     } catch (err: any) {
+      if (!current()) return;
       setErrorMsg(t.error + err.message);
     }
   };
 
   const handleRecordInspection = async () => {
-    if (!active?.context_id || !selectedAsset) return;
+    if (!live.current || !selectedAsset || selection.current !== selectedAsset.id) return;
+    const owner = detailSequence.current;
+    const current = () => live.current && selection.current === selectedAsset.id && detailSequence.current === owner;
     try {
       const res = await fetch(`/api/customer/v1/assets/${selectedAsset.id}/inspections`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          context_id: active.context_id,
+          context_id: contextId,
           inspection_type: inspType,
           scheduled_date: inspDate,
           performed_at: new Date().toISOString(),
@@ -390,51 +564,67 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
           inspector_name: inspInspector || undefined,
         }),
       });
-      const json = await res.json();
+      if (!current()) return;
+      const json = await (res.ok ? res.json() : decodeAssetsFailure(res));
+      if (!current()) return;
+      if (!res.ok && isConfirmedAssetsDenial(res, json)) { deny(); return; }
       if (!res.ok) throw new Error(json.error?.message || "Failed to record inspection");
       setSuccessMsg(t.success);
       setShowInspectionModal(false);
       loadAssetDetail(selectedAsset.id);
     } catch (err: any) {
+      if (!current()) return;
       setErrorMsg(t.error + err.message);
     }
   };
 
   const handleVerifyInspection = async (inspId: string) => {
-    if (!active?.context_id || !selectedAsset) return;
+    if (!live.current || !selectedAsset || selection.current !== selectedAsset.id) return;
+    const owner = detailSequence.current;
+    const current = () => live.current && selection.current === selectedAsset.id && detailSequence.current === owner;
     try {
       const res = await fetch(`/api/customer/v1/assets/${selectedAsset.id}/inspections/${inspId}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ context_id: active.context_id }),
+        body: JSON.stringify({ context_id: contextId }),
       });
-      const json = await res.json();
+      if (!current()) return;
+      const json = await (res.ok ? res.json() : decodeAssetsFailure(res));
+      if (!current()) return;
+      if (!res.ok && isConfirmedAssetsDenial(res, json)) { deny(); return; }
       if (!res.ok) throw new Error(json.error?.message || "Failed to verify inspection");
       setSuccessMsg(t.success);
       loadAssetDetail(selectedAsset.id);
     } catch (err: any) {
+      if (!current()) return;
       setErrorMsg(t.error + err.message);
     }
   };
 
   const handleRequestDecommission = async () => {
-    if (!active?.context_id || !selectedAsset) return;
+    if (!live.current || !selectedAsset || selection.current !== selectedAsset.id) return;
+    const owner = detailSequence.current;
+    const current = () => live.current && selection.current === selectedAsset.id && detailSequence.current === owner;
     try {
       const res = await fetch(`/api/customer/v1/assets/${selectedAsset.id}/decommission`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          context_id: active.context_id,
+          context_id: contextId,
           reason: decomReason || "End of lifecycle decommissioning",
         }),
       });
-      const json = await res.json();
+      if (!current()) return;
+      const json = await (res.ok ? res.json() : decodeAssetsFailure(res));
+      if (!current()) return;
+      if (!res.ok && isConfirmedAssetsDenial(res, json)) { deny(); return; }
       if (!res.ok) throw new Error(json.error?.message || "Failed to request decommission");
       setSuccessMsg(t.success);
       setShowDecomModal(false);
       loadAssetDetail(selectedAsset.id);
       loadAssets();
     } catch (err: any) {
+      if (!current()) return;
       setErrorMsg(t.error + err.message);
     }
   };
@@ -459,6 +649,8 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
     }
   };
 
+  if (denied) return <div role="alert" dir={isRtl ? "rtl" : "ltr"}><p>{scopeCopy[lang].denied}</p><button type="button" onClick={onRetry}>{scopeCopy[lang].retry}</button></div>;
+
   return (
     <div className={`w-full max-w-7xl mx-auto space-y-6 ${isRtl ? "rtl" : "ltr"}`} dir={isRtl ? "rtl" : "ltr"}>
       {/* Header */}
@@ -482,7 +674,7 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
         </div>
       </div>
 
-      {active?.context_id && <EquipmentRegistrationPanel lang={lang} contextId={active.context_id} onRegistered={loadAssets} />}
+      <EquipmentRegistrationPanel lang={lang} contextId={contextId} onRegistered={loadAssets} onUnavailable={deny} />
 
       {/* Notifications */}
       {errorMsg && (
@@ -677,8 +869,8 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
 
       {/* Selected Asset Details Drawer / Modal */}
       {selectedAsset && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-end">
-          <div className="w-full max-w-2xl bg-white dark:bg-slate-900 h-full shadow-2xl p-6 overflow-y-auto space-y-6">
+        <RegistryDialog focusOwnerRef={dialogFocusOwnerRef} drawer label={selectedAsset.name} inactive={showDowntimeModal || showInspectionModal || showDecomModal}
+          close={() => { selection.current = null; detailSequence.current++; setSelectedAsset(null); }}>
             <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -692,7 +884,8 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
                 <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">{selectedAsset.name}</h2>
               </div>
               <button
-                onClick={() => setSelectedAsset(null)}
+                type="button" aria-label={t.close}
+                onClick={() => { selection.current = null; detailSequence.current++; setSelectedAsset(null); }}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 <X className="w-5 h-5" />
@@ -940,17 +1133,16 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
                 )}
               </div>
             )}
-          </div>
-        </div>
+        </RegistryDialog>
       )}
 
       {/* Start Downtime Modal */}
       {showDowntimeModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+        <RegistryDialog focusOwnerRef={dialogFocusOwnerRef} label={t.startDowntime} close={() => setShowDowntimeModal(false)}>
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.startDowntime}</h3>
             <textarea
-              placeholder="Reason for downtime (e.g., motor trip, emergency inspection)..."
+              aria-label={t.downtimeReason}
+              placeholder={t.downtimeReason}
               value={downtimeReason}
               onChange={(e) => setDowntimeReason(e.target.value)}
               className="w-full p-3 text-sm rounded-lg border border-slate-300 dark:border-slate-700 bg-transparent text-slate-900 dark:text-slate-100 h-24"
@@ -962,30 +1154,28 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
                 onChange={(e) => setDowntimePlanned(e.target.checked)}
                 className="rounded"
               />
-              Planned Maintenance Downtime
+              {t.plannedDowntime}
             </label>
             <div className="flex justify-end gap-2 pt-2">
               <button
                 onClick={() => setShowDowntimeModal(false)}
                 className="px-3 py-1.5 text-xs rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
               >
-                Cancel
+                {t.cancel}
               </button>
               <button
                 onClick={handleStartDowntime}
                 className="px-3 py-1.5 text-xs rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-medium"
               >
-                Confirm Downtime
+                {t.confirmDowntime}
               </button>
             </div>
-          </div>
-        </div>
+        </RegistryDialog>
       )}
 
       {/* Record Inspection Modal */}
       {showInspectionModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+        <RegistryDialog focusOwnerRef={dialogFocusOwnerRef} label={t.recordInspection} close={() => setShowInspectionModal(false)}>
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.recordInspection}</h3>
             <div className="space-y-3 text-xs">
               <div>
@@ -1043,14 +1233,12 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
                 Save Inspection
               </button>
             </div>
-          </div>
-        </div>
+        </RegistryDialog>
       )}
 
       {/* Request Decommission Modal */}
       {showDecomModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-xl max-w-md w-full p-6 space-y-4 shadow-xl border border-slate-200 dark:border-slate-800">
+        <RegistryDialog focusOwnerRef={dialogFocusOwnerRef} label={t.requestDecommission} close={() => setShowDecomModal(false)}>
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t.requestDecommission}</h3>
             <p className="text-xs text-slate-500">
               This will request formal decommissioning. For safety-critical assets, an independent approver with AAL2 elevation must certify the decommission.
@@ -1075,8 +1263,7 @@ export function CustomerAssetsDashboard({ lang }: { lang: Language }) {
                 Submit Decommission Request
               </button>
             </div>
-          </div>
-        </div>
+        </RegistryDialog>
       )}
     </div>
   );

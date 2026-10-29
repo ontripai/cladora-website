@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { buildingSetupIdSchema, buildingSetupPayloadSchema, buildingSetupReadSchema, buildingSetupUnitsSchema, createBuildingSetupSchema } from './building-setup-schema';
+import { buildingSetupIdSchema, buildingSetupPayloadSchema, buildingSetupReadSchema, buildingSetupUnitsSchema, createBuildingSetupSchema, buildingSetupCommandLookupSchema, buildingSetupCommandLookupResponseSchema, type BuildingSetupCommandLookup, type BuildingSetupCommandLookupResponse } from './building-setup-schema';
 export type SetupRecord = z.infer<typeof buildingSetupReadSchema>;
 export type SetupPayload = z.infer<typeof buildingSetupPayloadSchema>;
 export type SetupAction = 'save' | 'rehearse' | 'submit' | 'provision';
@@ -66,4 +66,44 @@ export async function readSetupAttempt(context: string, workspace: string, key: 
   const record = buildingSetupReadSchema.parse(result.attempt);
   if (record.workspace_id !== workspace) throw Error('setup_recovery_mismatch');
   return record;
+}
+
+// Actor identity is checked by the canonical SSR route against verified claims;
+// this consumer additionally binds the response to its saved scope and intent.
+export async function readSetupCommandReceipt(query: BuildingSetupCommandLookup, before: {revision:number;status:string;payload_hash:string}, units: SetupPayload['units']|null = null, expectedHash: string|null = null, membership?: string) {
+  const q = buildingSetupCommandLookupSchema.parse(query);
+  const response = await fetch(`/api/customer/v1/onboarding/building-setup/${q.run_id}/commands/${encodeURIComponent(q.command_key)}?${new URLSearchParams({context_id:q.context_id,workspace_id:q.workspace_id,operation:q.operation,expected_revision:String(q.expected_revision)})}`, {cache:'no-store',signal:AbortSignal.timeout(20_000)});
+  if (!response.ok) throw new SetupReadError(response.status, 'setup_command_lookup_failed');
+  const result = buildingSetupCommandLookupResponseSchema.parse(await response.json());
+  if (result.scope.context_id!==q.context_id||result.scope.workspace_id!==q.workspace_id||result.scope.run_id!==q.run_id
+    ||(membership!==undefined&&result.scope.membership_id!==membership)||result.command.command_key!==q.command_key
+    ||result.command.operation!==q.operation||result.command.expected_revision!==q.expected_revision) throw Error('setup_command_binding');
+  if (result.outcome==='complete') {
+    const e=result.evidence, input=e.input_descriptor;
+    // Value comparison is NOT a recreation of the PostgreSQL request hash.
+    const ordered=(a:SetupPayload['units']|null,b:SetupPayload['units']|null)=>a===null?b===null:b!==null&&a.length===b.length&&a.every((u,i)=>u.code===b[i].code&&u.floor===b[i].floor&&u.area_m2===b[i].area_m2);
+    if(e.before_record.revision!==before.revision||e.before_record.status!==before.status||e.before_record.payload_hash!==before.payload_hash
+      ||!ordered(input.units,units)||input.expected_payload_hash!==expectedHash)throw Error('setup_command_intent');
+  }
+  return result;
+}
+export function setupCommandMatchesCurrent(result: Extract<BuildingSetupCommandLookupResponse,{outcome:'complete'}>, record:SetupRecord) {
+  const receipt=result.evidence.receipt;
+  return record.workspace_id===receipt.workspace_id&&record.run_id===receipt.run_id&&record.revision>=receipt.revision
+    &&(record.revision>receipt.revision||(record.last_command_key===receipt.command_key&&record.status===receipt.status&&record.payload_hash===receipt.payload_hash
+      &&(record.property_id??null)===receipt.property_id
+      &&(receipt.operation!=='update'||sameSetupUnits(record.payload.units,result.evidence.input_descriptor.units!))));
+}
+export async function recoverSetupCommand(attempt: Exclude<SetupAttempt,{action:'create'}>, record:SetupRecord, membership:string, current:()=>boolean) {
+  if(reconcileSetupAttempt(attempt,record)==='done')return {resolution:'done' as const,record};
+  const result=await readSetupCommandReceipt({context_id:attempt.context_id,workspace_id:attempt.workspace_id,run_id:attempt.run_id,command_key:attempt.command_key,operation:attempt.action==='save'?'update':attempt.action,expected_revision:attempt.before.revision},attempt.before,attempt.units??null,null,membership);
+  if(!current())throw Error('setup_stale');
+  if(result.outcome==='unknown')throw Error('setup_lookup_unknown');
+  if(result.outcome==='conflict')return {resolution:'conflict' as const,record};
+  const fresh=await readSetupRecord(attempt.context_id,attempt.workspace_id,attempt.run_id);
+  if(!current())throw Error('setup_stale');
+  if(result.outcome==='complete')return {resolution:setupCommandMatchesCurrent(result,fresh)?'done' as const:'conflict' as const,record:fresh};
+  // A concurrent original COMMIT can become the fresh exact last-slot proof
+  // after the point-in-time absence. Completion comes from that read, not absence.
+  return {resolution:reconcileSetupAttempt(attempt,fresh),record:fresh};
 }

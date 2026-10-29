@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { useCustomerContext } from "./CustomerContextProvider";
+import { createNoticeDraftTransport, type DraftTransportState } from "@/lib/customer/notice-draft-transport";
 
 export type View =
   | "channels"
@@ -113,8 +114,8 @@ const hidden = new Set([
 
 const copy = {
   en: {
-    title: "Communications, Notices & Delivery Evidence",
-    sub: "Authorized notices, statutory delivery evidence, channel communications and notifications.",
+    title: "Notices and communications",
+    sub: "Saving a draft does not publish or deliver it. Publication, delivery and receipt acknowledgement are separate steps.",
     official_notices: "Official Notices",
     channels: "Channels",
     announcements: "Announcements",
@@ -168,7 +169,7 @@ const copy = {
     acknowledged: "Acknowledged",
     verifiedEvidence: "Verified Evidence",
     approveNotice: "Approve Notice",
-    publishNotice: "Publish & Freeze Recipients",
+    publishNotice: "Publish and fix the recipient list",
     cancelNotice: "Cancel Notice",
     ackReceipt: "Acknowledge Receipt",
     receiptAcknowledged: "Receipt Acknowledged",
@@ -182,15 +183,15 @@ const copy = {
     verifyEvidence: "Verify Evidence",
     rejectEvidence: "Reject Evidence",
     viewDeliveries: "View Delivery Outbox",
-    deliveriesTitle: "Delivery Outbox Attempts",
+    deliveriesTitle: "Delivery attempts to recipients",
     deliveredAt: "Delivered At",
     attempt: "Attempt",
-    successAction: "Action completed successfully.",
-    failAction: "Action failed. Please review requirements.",
+    successAction: "The action was recorded. Check the notice status and delivery records separately.",
+    failAction: "The request result is not yet known. Check the notice status, your access and requirements before trying again.",
   },
   ro: {
-    title: "Comunicări, avizier & dovezi de comunicare",
-    sub: "Înștiințări oficiale, dovezi de comunicare legală, canale de discuții și notificări.",
+    title: "Înștiințări și comunicări",
+    sub: "Salvarea unei ciorne nu înseamnă publicare sau livrare. Publicarea, livrarea și confirmarea primirii sunt pași separați.",
     official_notices: "Avizier & Înștiințări",
     channels: "Canale",
     announcements: "Anunțuri",
@@ -244,7 +245,7 @@ const copy = {
     acknowledged: "Confirmări",
     verifiedEvidence: "Dovezi verificate",
     approveNotice: "Aprobă înștiințarea",
-    publishNotice: "Publică și blochează destinatarii",
+    publishNotice: "Publică și fixează lista destinatarilor",
     cancelNotice: "Anulează înștiințarea",
     ackReceipt: "Confirmă primirea",
     receiptAcknowledged: "Primire confirmată",
@@ -258,15 +259,15 @@ const copy = {
     verifyEvidence: "Validează dovadă",
     rejectEvidence: "Respinge dovadă",
     viewDeliveries: "Jurnal trimiteri",
-    deliveriesTitle: "Încercări de trimitere către destinatari",
+    deliveriesTitle: "Încercări de livrare către destinatari",
     deliveredAt: "Livrat la",
     attempt: "Încercare",
-    successAction: "Operațiunea a fost finalizată cu succes.",
-    failAction: "Operațiunea a eșuat. Verificați permisiunile și cerințele.",
+    successAction: "Acțiunea a fost înregistrată. Verifică separat starea înștiințării și înregistrările de livrare.",
+    failAction: "Rezultatul cererii nu este încă cunoscut. Verifică starea înștiințării, accesul și cerințele înainte de a reîncerca.",
   },
   fa: {
-    title: "ارتباطات، ابلاغیه‌ها و شواهد قانونی تحویل",
-    sub: "ابلاغیه‌های معتبر، شواهد قانونی تسلیم، محتوای کانال‌ها و اعلان‌ها.",
+    title: "ابلاغیه‌ها و ارتباطات",
+    sub: "ذخیرهٔ پیش‌نویس به معنی انتشار یا تحویل آن نیست. انتشار، تحویل و تأیید دریافت مرحله‌های جداگانه‌اند.",
     official_notices: "ابلاغیه‌های رسمی",
     channels: "کانال‌ها",
     announcements: "اطلاعیه‌ها",
@@ -320,7 +321,7 @@ const copy = {
     acknowledged: "تأییدشده‌ها",
     verifiedEvidence: "شواهد تأییدشده قانونی",
     approveNotice: "تصویب رسمی ابلاغیه",
-    publishNotice: "انتشار و تثبیت فهرست گیرندگان",
+    publishNotice: "انتشار و نهایی‌کردن فهرست گیرندگان",
     cancelNotice: "لغو ابلاغیه",
     ackReceipt: "اعلام وصول و تأیید دریافت",
     receiptAcknowledged: "وصول تأیید شد",
@@ -334,11 +335,11 @@ const copy = {
     verifyEvidence: "تأیید رسمی شواهد",
     rejectEvidence: "رد شواهد",
     viewDeliveries: "کارتابل ارسال‌ها",
-    deliveriesTitle: "تلاش‌های ارسال به گیرندگان",
+    deliveriesTitle: "تلاش‌های تحویل به گیرندگان",
     deliveredAt: "تحویل‌شده در",
     attempt: "تلاش",
-    successAction: "عملیات با موفقیت انجام شد.",
-    failAction: "عملیات ناموفق بود. لطفاً دسترسی‌ها و شرایط را بازبینی کنید.",
+    successAction: "عملیات ثبت شد. وضعیت ابلاغیه و سوابق تحویل را جداگانه بررسی کنید.",
+    failAction: "نتیجه درخواست هنوز مشخص نیست. پیش از تلاش دوباره، وضعیت ابلاغیه، دسترسی و شرایط را بررسی کنید.",
   },
 } as const;
 
@@ -423,7 +424,7 @@ export function CustomerCommunicationsDashboard({
   initialView?: View;
 }) {
   const t = copy[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
-  const { active } = useCustomerContext();
+  const { active, dashboard } = useCustomerContext();
   const canManageNotices = ["association_admin", "property_manager", "president"].includes(
     active?.role_code?.toLowerCase() ?? ""
   );
@@ -438,7 +439,11 @@ export function CustomerCommunicationsDashboard({
   const [ackDenial, setAckDenial] = useState({ scope: "", denied: false });
   const [hasEvidenceDraft, setHasEvidenceDraft] = useState(false);
   // Identity includes server-derived membership/role, not a guessed capability.
-  const contextScope = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code]);
+  const contextScope = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code, dashboard?.workspace_id]);
+  const currentContextScope = useRef(contextScope);
+  useLayoutEffect(() => { currentContextScope.current = contextScope; }, [contextScope]);
+  const [savedDraft, setSavedDraft] = useState<{ scope: string; id: string } | null>(null);
+  if (savedDraft && savedDraft.scope !== contextScope) setSavedDraft(null);
   if (ackDenial.scope !== contextScope) setAckDenial({ scope: contextScope, denied: false });
   const ackAccessDenied = ackDenial.scope === contextScope && ackDenial.denied;
   const scope = JSON.stringify([contextScope, view, offset, query, status, from, to]);
@@ -539,6 +544,18 @@ export function CustomerCommunicationsDashboard({
           </button>
         ))}
       </div>
+
+      {savedDraft?.scope === contextScope && !ackAccessDenied ? <div role="status" data-notice-saved className="rounded-xl border bg-white p-4 text-sm">
+        <p>{lang === "fa" ? "ذخیرهٔ همان پیش‌نویس تأیید شد؛ این نتیجه تأیید انتشار یا تحویل نیست." : lang === "ro" ? "Salvarea aceleiași ciorne a fost confirmată; acest rezultat nu confirmă publicarea sau livrarea." : "The same draft save was confirmed; this result does not confirm publication or delivery."}</p>
+        <button type="button" data-notice-open-saved className="mt-2 rounded-lg border px-3 py-2" onClick={() => {
+          if (currentContextScope.current !== savedDraft.scope || hasEvidenceDraft) return;
+          // Receipt identity chooses a target, never content or authority. The
+          // existing detail reader must fetch a fresh, authorized response.
+          setView("official_notices"); setOffset(0); setDraft(""); setQuery(""); setStatus(""); setFrom(""); setTo("");
+          setSelection({ scope: JSON.stringify([contextScope, "official_notices", 0, "", "", "", ""]), row: { id: savedDraft.id } });
+          setNonce(n => n + 1);
+        }} disabled={hasEvidenceDraft}>{lang === "fa" ? "بازکردن پیش‌نویس ذخیره‌شده" : lang === "ro" ? "Deschide ciorna salvată" : "Open saved draft"}</button>
+      </div> : null}
 
       {hasEvidenceDraft ? <p role="status" className="text-sm text-[#52667A]">{t.finishEvidenceDraft}</p> : null}
       <form
@@ -771,8 +788,10 @@ export function CustomerCommunicationsDashboard({
           key={contextScope}
           lang={lang}
           close={() => setShowCreateModal(false)}
-          onCreated={() => {
+          onCreated={(noticeId) => {
+            if (currentContextScope.current !== contextScope) return;
             setShowCreateModal(false);
+            if (noticeId) setSavedDraft({ scope: contextScope, id: noticeId });
             setNonce((n) => n + 1);
           }}
         />
@@ -1610,12 +1629,48 @@ function CreateNoticeModal({
 }: {
   lang: string;
   close: () => void;
-  onCreated: () => void;
+  onCreated: (noticeId?: string) => void;
 }) {
   const t = copy[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
-  const { active } = useCustomerContext();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { active, dashboard } = useCustomerContext();
+  type SubmitPhase = "idle" | "sending" | "unknown" | "unauthorized" | "forbidden" | "validation" | "conflict" | "done";
+  const [phase, setPhase] = useState<SubmitPhase>("idle");
+  const dispatchPhase = useRef<SubmitPhase>("idle");
+  const sequence = useRef(0);
+  const request = useRef<{ controller: AbortController; timer: ReturnType<typeof setTimeout>; cancel: () => void } | null>(null);
+  const identity = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code, dashboard?.workspace_id]);
+  const initialIdentity = useRef(identity);
+  const [durableMode, setDurableMode] = useState(false);
+  const [durable, setDurable] = useState<DraftTransportState>({ phase: "loading", scope: null, pending: null, receipt: null, inventory: "unknown", protocolInFlight: "none", durableStarted: false });
+  const durableController = useRef<ReturnType<typeof createNoticeDraftTransport> | null>(null);
+  const effectiveDurable = durableMode || Boolean(durable.pending);
+  const durableBusy = ["loading", "sending", "checking"].includes(durable.phase);
+  const legacyBlocked = durable.inventory !== "empty" || durable.protocolInFlight !== "none" || durable.durableStarted;
+  const submitting = phase === "sending" || durable.phase === "sending";
+  const locked = effectiveDurable ? durableBusy || durable.protocolInFlight !== "none" : legacyBlocked || (phase !== "idle" && phase !== "validation");
+  const submitCopy = {
+    en: {
+      unknown: "The request result is not yet known; the draft may already be saved. Another save is blocked in this window. Check your notices before starting another draft. Closing or reloading removes this protection and duplicates are possible.",
+      unauthorized: "Your session could not be verified. Sending is blocked. Sign in again before starting another draft.",
+      forbidden: "You do not currently have permission to create this draft. Sending is blocked.",
+      validation: "Check the draft values before submitting again.",
+      conflict: "The request was rejected due to a conflict. Do not resend it here.",
+    },
+    ro: {
+      unknown: "Rezultatul cererii nu este încă cunoscut; ciorna poate fi deja salvată. O nouă salvare este blocată în această fereastră. Verifică înștiințările înainte de a începe altă ciornă. Închiderea sau reîncărcarea elimină această protecție și pot apărea duplicate.",
+      unauthorized: "Sesiunea nu a putut fi verificată. Trimiterea este blocată. Autentifică-te din nou înainte de a începe altă ciornă.",
+      forbidden: "Nu ai în prezent permisiunea de a crea această ciornă. Trimiterea este blocată.",
+      validation: "Verifică valorile ciornei înainte de trimitere.",
+      conflict: "Cererea a fost respinsă din cauza unui conflict. Nu o retrimite aici.",
+    },
+    fa: {
+      unknown: "نتیجه درخواست هنوز مشخص نیست؛ ممکن است پیش‌نویس ذخیره شده باشد. ذخیرهٔ دوباره در این پنجره مسدود است. پیش از شروع پیش‌نویس دیگری، ابلاغیه‌ها را بررسی کنید. بستن یا بارگذاری مجدد این محافظت را از بین می‌برد و احتمال ایجاد نسخهٔ تکراری وجود دارد.",
+      unauthorized: "نشست شما تأیید نشد. ارسال مسدود است. پیش از شروع پیش‌نویس دیگری دوباره وارد شوید.",
+      forbidden: "در حال حاضر اجازهٔ ایجاد این پیش‌نویس را ندارید. ارسال مسدود است.",
+      validation: "مقادیر پیش‌نویس را پیش از ارسال بررسی کنید.",
+      conflict: "درخواست به علت تعارض رد شد. آن را در این پنجره دوباره ارسال نکنید.",
+    },
+  }[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
 
   const [titleRo, setTitleRo] = useState("");
   const [bodyRo, setBodyRo] = useState("");
@@ -1626,50 +1681,171 @@ function CreateNoticeModal({
   const [commType, setCommType] = useState("general_announcement");
   const [legalClass, setLegalClass] = useState("informational_optional");
   const [sourceModule, setSourceModule] = useState("general");
+  const label = (en: string, ro: string, fa: string) => lang === "fa" ? fa : lang === "ro" ? ro : en;
+  const communicationOptions = [
+    ["general_announcement", label("General announcement", "Anunț general", "اطلاعیه عمومی")],
+    ["meeting_convening", label("Meeting convening", "Convocarea ședinței", "دعوت به جلسه")],
+    ["reconvened_meeting", label("Reconvened meeting", "Ședință reconvocată", "جلسه تجدید دعوت‌شده")],
+    ["resolution_publication", label("Resolution publication", "Publicarea hotărârii", "انتشار مصوبه")],
+    ["billing_reminder", label("Billing reminder", "Memento de facturare", "یادآوری صورتحساب")],
+    ["maintenance_notice", label("Maintenance notice", "Notificare de întreținere", "اطلاعیه نگهداری")],
+  ] as const;
+  const legalOptions = [
+    ["informational_optional", label("Informational (optional)", "Informativ (opțional)", "اطلاع‌رسانی اختیاری")],
+    ["statutory_governance", label("Statutory governance", "Guvernanță statutară", "حاکمیت طبق قانون")],
+    ["operational_mandatory", label("Operational mandatory", "Operațional obligatoriu", "عملیاتی الزامی")],
+  ] as const;
+  const sourceOptions = [
+    ["general", label("General", "General", "عمومی")],
+    ["governance", label("Governance", "Guvernanță", "حاکمیت")],
+    ["maintenance", label("Maintenance", "Întreținere", "نگهداری")],
+    ["billing", label("Billing", "Facturare", "صورتحساب")],
+    ["utilities", label("Utilities", "Utilități", "خدمات مصرفی")],
+  ] as const;
 
   const isCurrent = useNoticeLifetime();
+  useEffect(() => {
+    if (!active) return;
+    const controller = createNoticeDraftTransport({ fetch: (...args) => fetch(...args),
+        storage: { get length() { return window.localStorage.length; }, key: index => window.localStorage.key(index),
+          getItem: key => window.localStorage.getItem(key), setItem: (key, value) => window.localStorage.setItem(key, value) },
+        crypto: window.crypto, isCurrent: () => isCurrent() && initialIdentity.current === identity,
+        onState: setDurable });
+      durableController.current = controller;
+      void controller.open(active.context_id, active.membership_id);
+    return () => { controller?.dispose(); durableController.current = null; };
+  }, [identity, active, isCurrent]);
   const { registerUnsavedGuard } = useCustomerContext();
   const guardId = useId();
   const dirty = Boolean(titleRo || bodyRo || titleEn || bodyEn || titleFa || bodyFa || commType !== "general_announcement" || legalClass !== "informational_optional" || sourceModule !== "general");
   useEffect(() => registerUnsavedGuard(guardId, dirty, close), [registerUnsavedGuard, guardId, dirty, close]);
   const dialog = useNoticeDialog(close);
   const titleId = useId();
+  useEffect(() => {
+    const attempts = sequence;
+    return () => {
+      attempts.current++;
+      request.current?.controller.abort();
+      request.current?.cancel();
+      if (request.current) clearTimeout(request.current.timer);
+      request.current = null;
+    };
+  }, [identity]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!active) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/customer/v1/communications/notices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          context_id: active.context_id,
-          title_ro: titleRo,
-          body_ro: bodyRo,
-          title_en: titleEn || null,
-          body_en: bodyEn || null,
-          title_fa: titleFa || null,
-          body_fa: bodyFa || null,
-          communication_type: commType,
-          legal_classification: legalClass,
-          source_module: sourceModule,
-        }),
-      });
-      if (!isCurrent()) return;
-      if (res.ok) {
-        onCreated();
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        if (isCurrent()) setError(errJson?.error?.message || t.failAction);
+    if (!active || !isCurrent() || !["idle", "validation"].includes(dispatchPhase.current)) return;
+    if (!effectiveDurable && !durableController.current) return;
+    // Match the existing route's trimmed string limits; optional blanks are omitted.
+    const titles = [titleRo, titleEn, titleFa].map(value => value.trim());
+    const bodies = [bodyRo, bodyEn, bodyFa].map(value => value.trim());
+    if (!titles[0] || !bodies[0] || titles.some(value => value.length > 250) || bodies.some(value => value.length > 20000)
+      || !communicationOptions.some(([value]) => value === commType)
+      || !legalOptions.some(([value]) => value === legalClass)
+      || !sourceOptions.some(([value]) => value === sourceModule)) {
+      dispatchPhase.current = "validation";
+      setPhase("validation");
+      return;
+    }
+    // The serialized snapshot cannot acquire edits made while the request waits.
+    const payload = {
+      context_id: active.context_id,
+      title_ro: titles[0], body_ro: bodies[0],
+      title_en: titles[1] || undefined, body_en: bodies[1] || undefined,
+      title_fa: titles[2] || undefined, body_fa: bodies[2] || undefined,
+      communication_type: commType, legal_classification: legalClass, source_module: sourceModule,
+    };
+    if (effectiveDurable) {
+      const controller = durableController.current;
+      if (!controller) return;
+      const version = sequence.current;
+      // One synchronous composer gate covers BOTH protocol choices before await.
+      dispatchPhase.current = "sending"; setPhase("sending");
+      try {
+        const result = await controller.send(JSON.parse(JSON.stringify(payload)));
+        if (result && isCurrent() && initialIdentity.current === identity && sequence.current === version
+          && controller === durableController.current && controller.getState().phase === "resolved") onCreated(result.notice_id);
+      } finally {
+        if (isCurrent() && initialIdentity.current === identity && sequence.current === version) {
+          dispatchPhase.current = "idle"; setPhase("idle");
+        }
       }
+      return;
+    }
+    const releaseLegacy = durableController.current?.beginLegacy();
+    if (!releaseLegacy) return;
+    const snapshot = Object.freeze({ identity, body: JSON.stringify(payload) });
+    const attempt = ++sequence.current;
+    const current = () => isCurrent() && initialIdentity.current === snapshot.identity && sequence.current === attempt;
+    const settle = (next: SubmitPhase) => { dispatchPhase.current = next; setPhase(next); };
+    // Ref guard precedes dispatch: React state alone cannot guard two sync events.
+    settle("sending");
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    let cancel = () => {};
+    const deadline = new Promise<never>((_, reject) => {
+      cancel = () => reject(new Error("composer_closed"));
+      timer = setTimeout(() => { controller.abort(); reject(new Error("composer_outcome_unknown")); }, 15000);
+    });
+    request.current = { controller, timer: timer!, cancel };
+    try {
+      const result = await Promise.race([(async () => {
+        const res = await fetch("/api/customer/v1/communications/notices", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: snapshot.body, signal: controller.signal,
+        });
+        if (!current()) throw new Error("stale_composer");
+        if (!res.ok) return { status: res.status, data: null };
+        const data: unknown = await res.json();
+        if (!current()) throw new Error("stale_composer_body");
+        return { status: res.status, data };
+      })(), deadline]);
+      if (!current()) return;
+      if (result.status === 401) { settle("unauthorized"); return; }
+      if (result.status === 403) { settle("forbidden"); return; }
+      if ([400, 413, 415, 422].includes(result.status)) { settle("validation"); return; }
+      if (result.status === 409) { settle("conflict"); return; }
+      const data = result.data;
+      if (result.status < 200 || result.status >= 300 || !data || typeof data !== "object" || Array.isArray(data)
+        || !("success" in data) || data.success !== true || !("status" in data) || data.status !== "draft"
+        || !("notice_id" in data) || typeof data.notice_id !== "string"
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.notice_id)) {
+        settle("unknown"); return;
+      }
+      settle("done");
+      onCreated(data.notice_id);
     } catch {
-      if (isCurrent()) setError(t.failAction);
+      if (current()) settle("unknown");
     } finally {
-      if (isCurrent()) setSubmitting(false);
+      releaseLegacy();
+      clearTimeout(timer!);
+      if (current()) request.current = null;
     }
   };
+
+  const recoveryPayload = () => ({ context_id: active?.context_id, title_ro: titleRo.trim(), body_ro: bodyRo.trim(),
+    ...(titleEn.trim() ? { title_en: titleEn.trim() } : {}), ...(bodyEn.trim() ? { body_en: bodyEn.trim() } : {}),
+    ...(titleFa.trim() ? { title_fa: titleFa.trim() } : {}), ...(bodyFa.trim() ? { body_fa: bodyFa.trim() } : {}),
+    communication_type: commType, legal_classification: legalClass, source_module: sourceModule });
+  const recover = async (action: "check" | "retry" | "new") => {
+    const controller = durableController.current, version = sequence.current;
+    if (!controller || !isCurrent()) return;
+    let completed = false;
+    if (action === "check") await controller.check();
+    else if (action === "retry") completed = Boolean(await controller.retry(recoveryPayload()));
+    else await controller.newDraft(recoveryPayload());
+    const result = controller.getState().receipt;
+    if (completed && result && isCurrent() && sequence.current === version && initialIdentity.current === identity
+      && controller === durableController.current && controller.getState().phase === "resolved") onCreated(result.notice_id);
+  };
+  const durableMessage = durable.phase === "resolved"
+    ? label("The matching draft save result was found. This is not publication, delivery or receipt acknowledgement.", "A fost găsit rezultatul salvării aceleiași ciorne. Nu înseamnă publicare, livrare sau confirmarea primirii.", "نتیجهٔ ذخیرهٔ همان پیش‌نویس پیدا شد. این به معنی انتشار، تحویل یا تأیید دریافت نیست.")
+    : durable.phase === "retry"
+    ? label("No result was found in this check. If you choose to retry, the same request key and unchanged draft are used. After reload, first re-enter the identical draft in the same context.", "La această verificare nu a fost găsit un rezultat. Dacă alegi să reîncerci, se folosesc aceeași cheie a cererii și ciorna neschimbată. După reîncărcare, reintrodu mai întâi ciorna identică în același context.", "در این بررسی نتیجه‌ای پیدا نشد. اگر تلاش دوباره را انتخاب کنید، همان کلید درخواست و پیش‌نویس بدون تغییر استفاده می‌شود. پس از بارگذاری مجدد، ابتدا همان پیش‌نویس را در همان زمینه وارد کنید.")
+    : durable.phase === "unknown"
+    ? label("The request result is not yet known. Check it before saving another draft. This browser keeps the pending request details after closing or reloading. They cannot be recovered if browser storage is erased or you use another device.", "Rezultatul cererii nu este încă cunoscut. Verifică-l înainte de a salva altă ciornă. Acest browser păstrează datele cererii în așteptare după închidere sau reîncărcare. Nu le poți recupera dacă ștergi stocarea browserului sau folosești alt dispozitiv.", "نتیجه درخواست هنوز مشخص نیست. پیش از ذخیرهٔ پیش‌نویس دیگری آن را بررسی کنید. این مرورگر مشخصات درخواست معلق را پس از بستن یا بارگذاری مجدد نگه می‌دارد. با پاک‌شدن ذخیرهٔ مرورگر یا استفاده از دستگاه دیگر، این مشخصات قابل‌بازیابی نیستند.")
+    : durable.phase === "loading" || durable.phase === "checking" || durable.phase === "sending"
+    ? label("Checking recoverable draft…", "Se verifică ciorna recuperabilă…", "در حال بررسی پیش‌نویس قابل‌بازیابی…")
+    : label("Recovery is blocked. Keep the draft; verify your access and result before sending. Do not clear stored pending metadata.", "Recuperarea este blocată. Păstrează ciorna; verifică accesul și rezultatul înainte de trimitere. Nu șterge metadatele în așteptare.", "بازیابی مسدود است. پیش‌نویس را حفظ و دسترسی و نتیجه را بررسی کنید؛ دادهٔ درخواست معلق را پاک نکنید.");
 
   return (
     <div
@@ -1692,13 +1868,39 @@ function CreateNoticeModal({
           </button>
         </div>
 
-        {error ? (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-800">
-            {error}
+        {phase !== "idle" && phase !== "done" ? (
+          <div role="status" aria-live="polite" className="mt-4 rounded-xl border p-3 text-xs font-bold">
+            {phase === "sending" ? t.creatingDraft : submitCopy[phase]}
           </div>
         ) : null}
 
+        <div className="mt-4 space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" data-durable-mode checked={effectiveDurable}
+              disabled={submitting || Boolean(durable.pending) || durable.durableStarted || durable.protocolInFlight !== "none" || !["idle", "validation"].includes(phase)}
+              onChange={event => { if (dispatchPhase.current !== "sending") setDurableMode(event.target.checked); }} />
+            {label("Keep request details to check the save result later", "Păstrează datele cererii pentru a verifica mai târziu rezultatul salvării", "نگه‌داشتن مشخصات درخواست برای بررسی نتیجهٔ ذخیره در آینده")}
+          </label>
+          {(effectiveDurable && durable.phase !== "ready") || durable.inventory !== "empty" || durable.pending ? <div role="status" aria-live="polite" data-durable-status className="rounded-xl border p-3 text-sm">
+            {durableMessage}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {durable.pending && ["unknown", "retry", "blocked"].includes(durable.phase) ? <button type="button" data-durable-check onClick={() => void recover("check")}>
+                {label("Check draft result", "Verifică rezultatul ciornei", "بررسی نتیجهٔ پیش‌نویس")}</button> : null}
+              {durable.phase === "retry" ? <button type="button" data-durable-retry onClick={() => void recover("retry")}>
+                {label("Retry same draft", "Reîncearcă aceeași ciornă", "تلاش مجدد همان پیش‌نویس")}</button> : null}
+              {durable.phase === "resolved" ? <>
+                <button type="button" data-durable-result onClick={() => {
+                  const controller = durableController.current;
+                  const result = controller?.getState();
+                  if (isCurrent() && initialIdentity.current === identity && result?.phase === "resolved" && result.receipt) onCreated(result.receipt.notice_id);
+                }}>{label("Use recovered result", "Folosește rezultatul recuperat", "استفاده از نتیجهٔ بازیابی‌شده")}</button>
+                <button type="button" data-durable-new onClick={() => void recover("new")}>{label("Start another draft (identical re-entry may be required)", "Începe altă ciornă (poate necesita reintroducerea identică)", "شروع پیش‌نویس دیگر (ممکن است ورود متن یکسان لازم باشد)")}</button>
+              </> : null}
+            </div>
+          </div> : null}
+        </div>
         <form onSubmit={(e) => void handleSubmit(e)} className="mt-5 space-y-4">
+          <fieldset disabled={locked} className="min-w-0 space-y-4">
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-xs font-bold text-[#334E68]">
               {t.commType}
@@ -1707,14 +1909,7 @@ function CreateNoticeModal({
                 onChange={(e) => setCommType(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-xs font-normal"
               >
-                <option value="general_announcement">General Announcement</option>
-                <option value="general_meeting_convening">General Meeting Convening (Convocare AG)</option>
-                <option value="noticeboard_mandatory">Noticeboard Mandatory (Afișare avizier)</option>
-                <option value="executive_decision">Executive Committee Decision</option>
-                <option value="urgent_safety">Urgent Safety / Emergency</option>
-                <option value="debt_notice_reminder">Debt Notice / Reminder</option>
-                <option value="maintenance_intervention">Maintenance Intervention</option>
-                <option value="internal_governance_notice">Internal Governance Notice</option>
+                {communicationOptions.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
               </select>
             </label>
 
@@ -1725,10 +1920,7 @@ function CreateNoticeModal({
                 onChange={(e) => setLegalClass(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-xs font-normal"
               >
-                <option value="informational_optional">Informational (Optional)</option>
-                <option value="statutory_mandatory">Statutory Mandatory (Legea 196/2018)</option>
-                <option value="contractual_mandatory">Contractual Mandatory</option>
-                <option value="emergency_alert">Emergency Alert</option>
+                {legalOptions.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
               </select>
             </label>
 
@@ -1739,11 +1931,7 @@ function CreateNoticeModal({
                 onChange={(e) => setSourceModule(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-xs font-normal"
               >
-                <option value="general">General</option>
-                <option value="governance">Governance</option>
-                <option value="operations">Operations</option>
-                <option value="billing">Billing</option>
-                <option value="maintenance">Maintenance</option>
+                {sourceOptions.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
               </select>
             </label>
           </div>
@@ -1753,6 +1941,8 @@ function CreateNoticeModal({
               {t.titleRo}
               <input
                 required
+                minLength={1}
+                maxLength={250}
                 value={titleRo}
                 onChange={(e) => setTitleRo(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-sm font-normal"
@@ -1763,6 +1953,8 @@ function CreateNoticeModal({
               {t.bodyRo}
               <textarea
                 required
+                minLength={1}
+                maxLength={20000}
                 rows={4}
                 value={bodyRo}
                 onChange={(e) => setBodyRo(e.target.value)}
@@ -1782,6 +1974,7 @@ function CreateNoticeModal({
                 {t.titleEn}
                 <input
                   value={titleEn}
+                  maxLength={250}
                   onChange={(e) => setTitleEn(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal"
                 />
@@ -1791,6 +1984,7 @@ function CreateNoticeModal({
                 <textarea
                   rows={3}
                   value={bodyEn}
+                  maxLength={20000}
                   onChange={(e) => setBodyEn(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal"
                 />
@@ -1800,6 +1994,7 @@ function CreateNoticeModal({
                 <input
                   dir="rtl"
                   value={titleFa}
+                  maxLength={250}
                   onChange={(e) => setTitleFa(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal text-right"
                 />
@@ -1810,6 +2005,7 @@ function CreateNoticeModal({
                   dir="rtl"
                   rows={3}
                   value={bodyFa}
+                  maxLength={20000}
                   onChange={(e) => setBodyFa(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal text-right"
                 />
@@ -1817,6 +2013,7 @@ function CreateNoticeModal({
             </div>
           </details>
 
+          </fieldset>
           <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
@@ -1827,7 +2024,7 @@ function CreateNoticeModal({
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={locked || (effectiveDurable && durable.phase !== "ready")}
               className="rounded-xl bg-[#0E9F8E] px-5 py-2 text-xs font-bold text-white transition hover:bg-[#087A6E] disabled:opacity-50"
             >
               {submitting ? t.creatingDraft : t.createDraft}

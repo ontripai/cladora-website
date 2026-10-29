@@ -1,18 +1,18 @@
 'use client';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { z } from 'zod';
 import { buildingSetupApprovalSchema, buildingSetupIdSchema, buildingSetupReceiptSchema, reviewerSetupStateSchema } from '@/lib/customer/building-setup-schema';
-import { readSetupRecord, SetupReadError } from '@/lib/customer/building-workspace-onboarding';
+import { readSetupRecord, readSetupCommandReceipt, SetupReadError } from '@/lib/customer/building-workspace-onboarding';
 import type { Language } from '@/types';
 
 type State=z.infer<typeof reviewerSetupStateSchema>;
 const approvalAttemptSchema=z.object({run_id:buildingSetupIdSchema,command:buildingSetupApprovalSchema}).strict();
 type ApprovalAttempt=z.infer<typeof approvalAttemptSchema>;
 const copy={
- fa:{title:'تأیید مستقل راه‌اندازی ساختمان',empty:'دعوت فعال برای این حساب پیدا نشد.',mfa:'ابتدا ورود دومرحله‌ای را تکمیل کنید.',name:'نام نمایشی',activate:'فعال‌سازی دسترسی موقت',approve:'تأیید پرونده',error:'عملیات انجام نشد؛ وضعیت حساب و MFA را بررسی کنید.',done:'وضعیت به‌روزرسانی شد.',none:'پروندهٔ ارسالی برای بررسی وجود ندارد.'},
- ro:{title:'Aprobarea independentă a clădirii',empty:'Nu există invitație activă pentru acest cont.',mfa:'Finalizează mai întâi autentificarea în doi pași.',name:'Nume afișat',activate:'Activează accesul temporar',approve:'Aprobă dosarul',error:'Operațiunea a eșuat; verifică sesiunea și MFA.',done:'Starea a fost actualizată.',none:'Nu există dosare trimise.'},
- en:{title:'Independent building setup review',empty:'No active invitation for this account.',mfa:'Complete two-factor verification first.',name:'Display name',activate:'Activate temporary access',approve:'Approve setup',error:'Operation failed; check your session and MFA.',done:'Status updated.',none:'No submitted setup to review.'},
+ fa:{title:'تأیید مستقل راه‌اندازی ساختمان',empty:'دعوت فعال برای این حساب پیدا نشد.',mfa:'ابتدا ورود دومرحله‌ای را تکمیل کنید.',name:'نام نمایشی',activate:'فعال‌سازی دسترسی موقت',approve:'تأیید پرونده',error:'عملیات انجام نشد؛ وضعیت حساب و MFA را بررسی کنید.',done:'وضعیت به‌روزرسانی شد.',none:'پروندهٔ ارسالی برای بررسی وجود ندارد.',recorded:'تأیید شما ثبت شده است.'},
+ ro:{title:'Aprobarea independentă a clădirii',empty:'Nu există invitație activă pentru acest cont.',mfa:'Finalizează mai întâi autentificarea în doi pași.',name:'Nume afișat',activate:'Activează accesul temporar',approve:'Aprobă dosarul',error:'Operațiunea a eșuat; verifică sesiunea și MFA.',done:'Starea a fost actualizată.',none:'Nu există dosare trimise.',recorded:'Aprobarea ta a fost înregistrată.'},
+ en:{title:'Independent building setup review',empty:'No active invitation for this account.',mfa:'Complete two-factor verification first.',name:'Display name',activate:'Activate temporary access',approve:'Approve setup',error:'Operation failed; check your session and MFA.',done:'Status updated.',none:'No submitted setup to review.',recorded:'Your approval was recorded.'},
 };
 const recoveryCopy={
  en:{retry:'Check and retry the same approval',refresh:'Refresh review access',denied:'Review access is no longer available. Sign in with an authorized account.',unknown:'Result unknown. The saved approval is retained; check current access before retrying.',invalid:'Saved approval cannot be verified. No approval was sent.'},
@@ -31,15 +31,16 @@ function savedAttempt(state:State){
 }
 export function PilotReviewerPanel({lang}:{lang:Language}){
  const t=copy[lang],r=recoveryCopy[lang];
+ const readOwner=useRef<symbol|null>(null);
  const operation=useRef<symbol|null>(null),lifetime=useRef(0),request=useRef(0),scope=useRef('');
  const [pending,setPending]=useState<ApprovalAttempt|null>(null),[state,setState]=useState<State|null>(null);
- const [name,setName]=useState(''),[busy,setBusy]=useState(false),[reading,setReading]=useState(false),[notice,setNotice]=useState<''|'denied'|'unknown'|'invalid'|'done'|'error'>(''),[invalid,setInvalid]=useState(false);
+ const [name,setName]=useState(''),[busy,setBusy]=useState(false),[reading,setReading]=useState(false),[notice,setNotice]=useState<''|'denied'|'unknown'|'invalid'|'done'|'recorded'|'error'>(''),[invalid,setInvalid]=useState(false);
  // A newer access read invalidates every older read and in-flight approval continuation.
  const clearAccess=useCallback(()=>{request.current++;scope.current='';setState({});setPending(null);setName('');setInvalid(false);},[]);
  // Locale changes translate notice rendering; they do not end an operation's lifetime.
  const refresh=useCallback(async()=>{
-  const generation=lifetime.current,sequence=++request.current;
-  const current=()=>lifetime.current===generation&&request.current===sequence;
+  const generation=lifetime.current,sequence=++request.current,owner=Symbol('access');readOwner.current=owner;
+  const current=()=>lifetime.current===generation&&request.current===sequence&&readOwner.current===owner;
   setReading(true);
   try{
    const response=await fetch('/api/customer/v1/pilot-reviewer',{cache:'no-store',signal:AbortSignal.timeout(20000)});
@@ -58,15 +59,16 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
    catch{setPending(null);setInvalid(true);setNotice('invalid');return null;}
    return next;
   }catch{if(current()){clearAccess();setNotice('unknown');setReading(false);}return null;}
-  finally{if(current())setReading(false);}
+  finally{if(lifetime.current===generation&&readOwner.current===owner){readOwner.current=null;setReading(false);}}
  },[clearAccess]);
- const invalidateLifetime=useCallback(()=>{lifetime.current++;request.current++;scope.current='';},[]);
+ const invalidateLifetime=useCallback(()=>{lifetime.current++;request.current++;scope.current='';readOwner.current=null;operation.current=null;},[]);
+ useLayoutEffect(()=>()=>{invalidateLifetime();},[invalidateLifetime]);
  useEffect(()=>{
   invalidateLifetime();const generation=lifetime.current;
   void Promise.resolve().then(()=>{if(lifetime.current===generation)void refresh();});
   const onFocus=()=>{void refresh();};
   window.addEventListener('focus',onFocus);
-  return()=>{invalidateLifetime();window.removeEventListener('focus',onFocus);};
+  return()=>{window.removeEventListener('focus',onFocus);};
  },[refresh,invalidateLifetime]);
  async function act(path:string,payload:object){
   if(operation.current)return;const owner=Symbol('activation');operation.current=owner;setBusy(true);setNotice('');
@@ -80,11 +82,12 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
   finally{if(operation.current===owner){operation.current=null;if(lifetime.current===generation)setBusy(false);}}
  }
  async function approve(run?:NonNullable<State['runs']>[number]){
-  if(operation.current||reading||invalid||state?.status!=='active'||!state.context_id||!state.workspace_id)return;
+  if(operation.current||readOwner.current||reading||invalid||state?.status!=='active'||!state.context_id||!state.workspace_id)return;
   const owner=Symbol('approval');operation.current=owner;setBusy(true);setNotice('');
   const generation=lifetime.current,originalScope=scopeOf(state);
-  let sequence=request.current;
-  const current=()=>lifetime.current===generation&&request.current===sequence&&scope.current===originalScope;
+  let sequence=request.current,originalBytes:string|null|undefined;
+  const key=storageKey(state);
+  const current=()=>lifetime.current===generation&&request.current===sequence&&scope.current===originalScope&&operation.current===owner&&(originalBytes===undefined||sessionStorage.getItem(key)===originalBytes);
   try{
    // Re-establish CURRENT authority, including after remount and before every retry.
    sequence=request.current+1;const authorized=await refresh();
@@ -93,22 +96,15 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
    const snapshot=run&&authorized.runs?.find(item=>item.id===run.id);
    if(!restored&&(!snapshot||snapshot.revision!==run?.revision||snapshot.submitted_payload_hash!==run?.submitted_payload_hash))throw Error('stale_snapshot');
    const attempt=restored??approvalAttemptSchema.parse({run_id:snapshot?.id,command:{context_id:authorized.context_id,workspace_id:authorized.workspace_id,expected_revision:snapshot?.revision,expected_payload_hash:snapshot?.submitted_payload_hash,command_key:`setup-${snapshot?.id}-r${snapshot?.revision}-${crypto.randomUUID()}`}});
-   const key=storageKey(authorized);
+
    // Retain the immutable attempt even when the FIRST read has an unknown result.
-   sessionStorage.setItem(key,JSON.stringify(attempt));setPending(attempt);
-   const exact=(record:Awaited<ReturnType<typeof readSetupRecord>>)=>{
-    const receipt=record.last_command_receipt;
-    return record.status==='approved'&&record.revision===attempt.command.expected_revision+1
-     &&record.payload_hash===attempt.command.expected_payload_hash&&receipt?.version===2&&receipt.status==='approved'
-     &&record.submitted_revision===attempt.command.expected_revision
-     &&record.submitted_payload_hash===attempt.command.expected_payload_hash
-     &&record.last_command_key===attempt.command.command_key&&receipt?.command_key===attempt.command.command_key
-     &&receipt.operation==='approve'&&receipt.expected_revision===attempt.command.expected_revision
-     &&receipt.run_id===attempt.run_id&&receipt.workspace_id===attempt.command.workspace_id&&receipt.revision===record.revision;
-   };
-   const record=await readSetupRecord(attempt.command.context_id,attempt.command.workspace_id,attempt.run_id);
-   if(!current())return;
-   if(!exact(record)){
+   if(!restored)sessionStorage.setItem(key,JSON.stringify(attempt));
+   originalBytes=sessionStorage.getItem(key);setPending(attempt);
+   // A saved uncertain approval is looked up directly: the current full run
+   // may now be provisioned and is outside this reviewer's disclosure scope.
+   const sendApproval=async()=>{
+    const record=await readSetupRecord(attempt.command.context_id,attempt.command.workspace_id,attempt.run_id);
+    if(!current())return;
     if(record.status!=='submitted'||record.revision!==attempt.command.expected_revision||record.submitted_revision!==attempt.command.expected_revision||record.submitted_payload_hash!==attempt.command.expected_payload_hash||record.payload_hash!==attempt.command.expected_payload_hash)throw Error('stale_snapshot');
     const response=await fetch(`/api/customer/v1/onboarding/building-setup/${attempt.run_id}/approve`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(attempt.command),signal:AbortSignal.timeout(20000)});
     if(!current())return;
@@ -117,13 +113,21 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
     const receipt=buildingSetupReceiptSchema.parse(await response.json());
     if(!current())return;
     if(receipt.run_id!==attempt.run_id||receipt.workspace_id!==attempt.command.workspace_id||receipt.command_key!==attempt.command.command_key||receipt.operation!=='approve'||receipt.expected_revision!==attempt.command.expected_revision)throw Error('unknown');
+   };
+   if(!restored){await sendApproval();if(!current())return;}
+   const lookup=()=>readSetupCommandReceipt({context_id:attempt.command.context_id,workspace_id:attempt.command.workspace_id,run_id:attempt.run_id,command_key:attempt.command.command_key,operation:'approve',expected_revision:attempt.command.expected_revision},{revision:attempt.command.expected_revision,status:'submitted',payload_hash:attempt.command.expected_payload_hash},null,attempt.command.expected_payload_hash);
+   let proof=await lookup();if(!current())return;
+   // UNKNOWN is never non-COMMIT. Only this explicit retry, with the same
+   // covered command and a fresh matching submitted snapshot, may resend.
+   if(restored&&proof.outcome==='unknown'&&proof.reason==='coverage_gap'&&authorized.runs?.some(item=>item.id===attempt.run_id&&item.revision===attempt.command.expected_revision&&item.submitted_revision===attempt.command.expected_revision&&item.payload_hash===attempt.command.expected_payload_hash&&item.submitted_payload_hash===attempt.command.expected_payload_hash)){
+    await sendApproval();if(!current())return;proof=await lookup();if(!current())return;
    }
-   const verified=await readSetupRecord(attempt.command.context_id,attempt.command.workspace_id,attempt.run_id);
-   if(!current())return;
-   if(!exact(verified))throw Error('unresolved');
+   if(proof.outcome!=='complete')throw Error('unresolved');
+   sequence=request.current+1;const refreshed=await refresh();
+   if(!refreshed||!current()||scopeOf(refreshed)!==originalScope)return;
    // Do not erase an attempt replaced by a different session/tab.
-   if(sessionStorage.getItem(key)!==JSON.stringify(attempt))throw Error('attempt_changed');
-   sessionStorage.removeItem(key);setPending(null);setNotice('done');await refresh();
+   if(sessionStorage.getItem(key)!==originalBytes)throw Error('attempt_changed');
+   sessionStorage.removeItem(key);setPending(null);setNotice('recorded');
   }catch(error){
    if(current()){
     if(error instanceof SetupReadError&&(error.status===401||error.status===403)){clearAccess();setNotice('denied');}
@@ -138,5 +142,5 @@ export function PilotReviewerPanel({lang}:{lang:Language}){
  {state.status==='prepared'?<><p>{t.mfa} <Link className="underline" href={`/${lang}/mfa/setup?next=pilot-reviewer`}>MFA</Link> · <Link className="underline" href={`/${lang}/mfa?next=pilot-reviewer`}>TOTP</Link></p><label className="block">{t.name}<input className="block w-full rounded border p-2" value={name} onChange={e=>setName(e.target.value)}/></label><button disabled={busy||reading||name.trim().length<2} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50" onClick={()=>act('/api/customer/v1/pilot-reviewer',{workspace_id:state.workspace_id,display_name:name,locale:lang})}>{t.activate}</button></>
  :<div>{state.runs?.length?state.runs.map(run=><div key={run.id} className="flex flex-wrap items-center justify-between gap-4 border-b p-3"><span className="min-w-0 break-all">{run.building} · {run.id}</span><button disabled={busy||reading||invalid||!!pending||!state.context_id} className="rounded bg-teal-700 p-2 text-white disabled:opacity-50" onClick={()=>approve(run)}>{t.approve}</button></div>):<p>{t.none}</p>}</div>}</>}
  {pending&&canRecover&&<button type="button" disabled={busy||reading} className="rounded border p-2" onClick={()=>approve()}>{r.retry}</button>}
- {notice&&<p role="status" aria-live="polite">{notice==='done'?t.done:notice==='error'?t.error:r[notice]}</p>}</section>;
+ {notice&&<p role="status" aria-live="polite">{notice==='done'?t.done:notice==='recorded'?t.recorded:notice==='error'?t.error:r[notice]}</p>}</section>;
 }

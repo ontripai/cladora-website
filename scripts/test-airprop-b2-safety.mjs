@@ -212,6 +212,22 @@ const migrationResult = validateProtectedDirectory({
       owner: 'Procedure / PM reviewed ordered versioned Building Setup commands / PR #466',
       sha256: 'ce386d018fe9d5f9045739e9752a44aec1c0d4f963653b4f7d455290b4153c86',
     },
+    '20261022071629_service_quote_request_version_binding_v2.sql': {
+      owner: 'SERVICE / Request-version binding / source 148a2062 / PM scoped acceptance 6339327720',
+      sha256: '472f74027b5ccd250432cb1ff16879461f74633808a386498883cfc28dd3d324',
+    },
+    '20261022071709_ce_notice_ack_read_shape_v1.sql': {
+      owner: 'CE / Notice acknowledgement read shape / source 5b86be90 / PM scoped acceptance 6336181733 / exact integration 6338305091',
+      sha256: '76beec0cd96f9dc1c72cd884c073a4c1a58f828a9ead65ab05378f032d2d96e5',
+    },
+    '20261022082451_core_notice_ack_receipt_replay_v1.sql': {
+      owner: 'Core / Notice acknowledgement receipt replay / source e17c5a72 / PM exact source acceptance 6338305091',
+      sha256: '368a8cbfefaa5292eed640789fd811411d2996eee1220cd532cc9efa8026c679',
+    },
+    '20261025214155_building_setup_command_receipts_v1.sql': {
+      owner: 'Core / G2 command receipts / delivery 6404045002 / SERVICE scoped acceptance PM176 6397895865',
+      sha256: '254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
@@ -296,7 +312,7 @@ const coreResult = validateProtectedDirectory({
     'postgres-transaction-host-v1.ts': {
       owner: 'Core / PR #431',
       historicalSha256: 'eb89d03320549a721a54df10fa747f8977d9f42f6dfaa2e85ae89e1265c37d7c',
-      sha256: 'ce0360f30f1c49ff06e8ec944ba7263e0012c56fb2c27e5094d6604a1cf09a6e',
+      sha256: '5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06',
     },
   },
   historicalProtectedCount: 16,

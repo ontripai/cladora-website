@@ -10,7 +10,7 @@ const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div
 for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
 const {createRoot}=await import('react-dom/client');
 const originalFetch=globalThis.fetch;
-function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return mod.exports;}
+function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:id==='@/lib/customer/airprop-opportunity-recovery'?load('src/lib/customer/airprop-opportunity-recovery.ts',{'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')}):require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return mod.exports;}
 
 const contextA='11111111-1111-4111-8111-111111111111',contextB='11111111-1111-4111-8111-111111111112';
 const workspaceA='22222222-2222-4222-8222-222222222222',workspaceB='22222222-2222-4222-8222-222222222223';
@@ -34,6 +34,7 @@ globalThis.fetch=async(url,options={})=>{
  return{ok:true,json:async()=>({opportunities:[]})};
 };
 const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{
+ './CustomerAirpropValuation':{CustomerAirpropValuation:()=>null},
  './CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},
  './CustomerContextProvider':{useCustomerContext:()=>({active,registerUnsavedGuard})},
  './CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},
@@ -75,6 +76,7 @@ async function testRealContextProvider(){
   const provider=load('src/components/customer/CustomerContextProvider.tsx',{'@/components/dashboard-lab/DashboardTransport':{useDashboardFetch:()=>globalThis.fetch,useDashboardPreview:()=>false}});
   const {CustomerAirpropWorkspace:RealWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{
    './CustomerContextProvider':provider,
+   './CustomerAirpropValuation':{CustomerAirpropValuation:()=>null},
    './CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},
    './CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},
    './CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},
@@ -138,12 +140,14 @@ async function testCommandErrors(){
  const storageKey=`cladora.airprop.pending.v2:${contextA}:${workspaceA}`;
  const pending={version:2,context_id:contextA,workspace_id:workspaceA,idempotency_key:'recovery-errors-01',payload:{name:'Retained intent',country_code:'RO',city:'Cluj',currency:'RON',asking_price:'42.5000',property_id:null,source_ref:null}};
  const serialized=JSON.stringify(pending);
+ const {writeAirpropOpportunityRecovery}=load('src/lib/customer/airprop-opportunity-recovery.ts',{'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
+ const uncertainRecord=writeAirpropOpportunityRecovery(pending,'uncertain'),blockedRecord=writeAirpropOpportunityRecovery(pending,'blocked');
  const submit=async()=>act(async()=>{document.querySelector('form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));});
  const status=()=>document.querySelector('form [role="status"]').textContent;
  const values=()=>['name','city','asking_price'].map(name=>document.querySelector(`[name="${name}"]`).value).concat(document.querySelector('form select').value);
  const expected={
-  en:{session:/session.*unavailable/i,conflict:/blocked.*conflict/i,invalid:/Check the name/,denied:/unavailable with your current access/,mfa:/Verify your identity/,pending:/result is uncertain/,success:/Opportunity saved/},
-  ro:{session:/Sesiunea nu este disponibilă/,conflict:/blocată.*conflict/,invalid:/Verifică numele/,denied:/nu este disponibilă cu accesul actual/,mfa:/Confirmă-ți identitatea/,pending:/Rezultatul este incert/,success:/Oportunitate salvată/},
+  en:{session:/session.*unavailable/i,conflict:/blocked.*conflict/i,invalid:/Check the name/,denied:/unavailable with your current access/,mfa:/Verify your identity/,pending:/The request result is not yet known/,success:/Opportunity saved/},
+  ro:{session:/Sesiunea nu este disponibilă/,conflict:/blocată.*conflict/,invalid:/Verifică numele/,denied:/nu este disponibilă cu accesul actual/,mfa:/Confirmă-ți identitatea/,pending:/Rezultatul cererii nu este încă cunoscut/,success:/Oportunitate salvată/},
   fa:{session:/نشست.*دسترس نیست/,conflict:/تعارض.*مسدود/,invalid:/نام، شهر و قیمت/,denied:/دسترسی فعلی.*مجاز نیست/,mfa:/هویت خود را تأیید/,pending:/نتیجهٔ درخواست مشخص نیست/,success:/فرصت ثبت شد/},
  };
  let groups=0;
@@ -156,7 +160,7 @@ async function testCommandErrors(){
    assert.equal(mutationCount(),before+1);assert.match(status(),text.session,`${lang}: 401 must explain session failure`);assert.doesNotMatch(status(),text.invalid);
    assert.deepEqual(values(),draft,'401 does not erase the draft');assert.equal(document.querySelectorAll('form [aria-invalid="true"]').length,0);
    assert.equal(document.querySelector('fieldset').disabled,restored,'unknown restored intent stays immutable');
-   if(restored){assert.equal(sessionStorage.getItem(storageKey),serialized);assert.deepEqual(JSON.parse(calls.at(-1).options.body),pending);}
+   if(restored){assert.equal(sessionStorage.getItem(storageKey),uncertainRecord);assert.deepEqual(JSON.parse(calls.at(-1).options.body),pending);}
    const beforeNavigation=mutationCount();await choose(workspaceB);assert.equal(workspaceSelect().value,workspaceA);await click(document.querySelector('[role="alertdialog"] button'));
    assert.deepEqual(values(),draft);assert.match(status(),text.session);assert.equal(mutationCount(),beforeNavigation,'401 Keep/navigation never posts');
    postMode='success';await submit();assert.match(status(),text.success);assert.equal(sessionStorage.getItem(storageKey),null);
@@ -165,24 +169,26 @@ async function testCommandErrors(){
   }
 
   sessionStorage.setItem(storageKey,serialized);postMode='conflict';await render(`409-${lang}`,lang);await choose(workspaceA);await submit();
-  const conflictPosts=mutationCount();assert.match(status(),text.conflict);assert.doesNotMatch(status(),text.invalid);assert.equal(sessionStorage.getItem(storageKey),serialized);
+  const conflictPosts=mutationCount();assert.match(status(),text.conflict);assert.doesNotMatch(status(),text.invalid);assert.equal(sessionStorage.getItem(storageKey),blockedRecord);
+  await render(`409-remount-${lang}`,lang);await choose(workspaceA);
+  assert.equal(document.querySelector('form button').disabled,true,'known conflict remains blocked after remount');
   assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('form button').disabled,true,'conflict retry is disabled');
   assert.deepEqual(JSON.parse(calls.filter(c=>c.options.method==='POST').at(-1).options.body),pending);
   await click(document.querySelector('form button'));await submit();assert.equal(mutationCount(),conflictPosts,'even a dispatched submit cannot repeat a blocked conflict');
   // Localized state must survive rerender/locale recovery without replaying or unlocking the command.
-  const nextLang=lang==='en'?'ro':'en';await render(`409-${lang}`,nextLang);assert.match(status(),expected[nextLang].conflict);
-  assert.equal(document.querySelector('form button').disabled,true);assert.equal(sessionStorage.getItem(storageKey),serialized);assert.equal(mutationCount(),conflictPosts);
-  await render(`409-${lang}`,lang);await choose(workspaceB);assert.equal(workspaceSelect().value,workspaceA);await click(document.querySelector('[role="alertdialog"] button'));
+  const nextLang=lang==='en'?'ro':'en';await render(`409-remount-${lang}`,nextLang);assert.match(status(),expected[nextLang].conflict);
+  assert.equal(document.querySelector('form button').disabled,true);assert.equal(sessionStorage.getItem(storageKey),blockedRecord);assert.equal(mutationCount(),conflictPosts);
+  await render(`409-remount-${lang}`,lang);await choose(workspaceB);assert.equal(workspaceSelect().value,workspaceA);await click(document.querySelector('[role="alertdialog"] button'));
   assert.match(status(),text.conflict);assert.equal(document.querySelector('form button').disabled,true);
   await choose(workspaceB);await click(document.querySelectorAll('[role="alertdialog"] button')[1]);
   assert.equal(workspaceSelect().value,workspaceB);assert.deepEqual(values(),['','','','EUR']);assert.equal(document.querySelector('form button').disabled,false,'new scope does not inherit the conflict');
-  assert.equal(sessionStorage.getItem(storageKey),serialized);assert.equal(mutationCount(),conflictPosts,'discard/navigation preserves pending evidence without mutation');groups++;
+  assert.equal(sessionStorage.getItem(storageKey),blockedRecord);assert.equal(mutationCount(),conflictPosts,'discard/navigation preserves pending evidence without mutation');groups++;
 
   // Adjacent definitive denials and unknown outcomes retain the existing command semantics.
   for(const mode of ['denied','mfa','uncertain','server']){
    sessionStorage.setItem(storageKey,serialized);postMode=mode;await render(`${mode}-${lang}`,lang);await choose(workspaceA);await submit();
    assert.match(status(),mode==='denied'?text.denied:mode==='mfa'?text.mfa:text.pending);
-   assert.equal(sessionStorage.getItem(storageKey),serialized);assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('form button').disabled,false);
+   assert.equal(sessionStorage.getItem(storageKey),uncertainRecord);assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('form button').disabled,false);
    postMode='success';await submit();assert.deepEqual(JSON.parse(calls.filter(c=>c.options.method==='POST').at(-1).options.body),pending);assert.equal(sessionStorage.getItem(storageKey),null);assert.match(status(),text.success);groups++;
   }
  }
@@ -204,10 +210,81 @@ async function testCommandErrors(){
   }
   postMode='conflict';await submit();const currentMessage=status(),currentPosts=mutationCount();assert.equal(currentPosts,beforeNavigation+1);assert.equal(document.querySelector('form button').disabled,true);
   await act(async()=>resolveBody(kind==='success'?{version:2,workspace_id:workspaceA,opportunity_id:contextA,idempotent:true}:{error:{code:kind==='unauthorized'?'UNAUTHORIZED':'IDEMPOTENCY_CONFLICT'}}));
-  assert.equal(status(),currentMessage);assert.equal(sessionStorage.getItem(storageKey),serialized,'late body cannot erase the current recovery evidence');assert.equal(document.querySelector('form button').disabled,true);assert.equal(mutationCount(),currentPosts);groups++;
+  assert.equal(status(),currentMessage);assert.equal(sessionStorage.getItem(storageKey),blockedRecord,'late body cannot erase the current recovery evidence');assert.equal(document.querySelector('form button').disabled,true);assert.equal(mutationCount(),currentPosts);groups++;
  }
  sessionStorage.removeItem(storageKey);postMode='success';postReply=null;
  console.log(`PASS ${groups} mounted command-error groups: EN/RO/FA initial/restored 401, blocked 409, locale/navigation, 403/MFA/network/500/exact replay and stale body fences`);
+}
+
+async function testPersistentConflict(){
+ const storageKey=`cladora.airprop.pending.v2:${contextA}:${workspaceA}`;
+ const command={version:2,context_id:contextA,workspace_id:workspaceA,idempotency_key:'durable-conflict-01',payload:{name:'Original intent',country_code:'RO',city:'Cluj',currency:'RON',asking_price:'25.0000',property_id:null,source_ref:null}};
+ const serialized=JSON.stringify(command);
+ const {writeAirpropOpportunityRecovery:encode}=load('src/lib/customer/airprop-opportunity-recovery.ts',{'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
+ const submit=async()=>act(async()=>{document.querySelector('form').dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true}));});
+ const status=()=>document.querySelector('form [role="status"]').textContent;
+ const storagePrototype=dom.window.Storage.prototype,originalSet=storagePrototype.setItem,originalGet=storagePrototype.getItem;
+ const uuidDescriptor=Object.getOwnPropertyDescriptor(globalThis.crypto,'randomUUID');
+ const originalUUID=globalThis.crypto.randomUUID;let uuidCalls=0,groups=0;
+ Object.defineProperty(globalThis.crypto,'randomUUID',{configurable:true,value:()=>{uuidCalls++;return originalUUID.call(globalThis.crypto);}});
+ const texts={en:{conflict:/blocked.*conflict/i,notSaved:/block could not be saved/,recovery:/could not be read or stored safely/},ro:{conflict:/blocată.*conflict/,notSaved:/blocarea nu a putut fi salvată/,recovery:/nu a putut fi citită sau păstrată/},fa:{conflict:/تعارض.*مسدود/,notSaved:/ذخیرهٔ وضعیت مسدود ناموفق/,recovery:/خواندن یا ذخیرهٔ امن درخواست ممکن نشد/}};
+ const freshReload=async(lang)=>{
+  await act(async()=>root.render(null));
+  // Fresh product module/component with only the existing session storage retained.
+  // This models client reload in JSDOM, not an actual connected browser reload.
+  const fresh=load('src/components/customer/CustomerAirpropWorkspace.tsx',{
+   './CustomerContextProvider':{useCustomerContext:()=>({active,registerUnsavedGuard})},
+   './CustomerAirpropValuation':{CustomerAirpropValuation:()=>null},
+   './CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},'./CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},
+   '@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts'),
+  });
+  await act(async()=>root.render(React.createElement(fresh.CustomerAirpropWorkspace,{lang})));await choose(workspaceA);
+ };
+ try{
+  for(const [lang,text] of Object.entries(texts)){
+   sessionStorage.setItem(storageKey,serialized);postMode='conflict';await render(`persist-${lang}`,lang);await choose(workspaceA);await submit();
+   const evidence=sessionStorage.getItem(storageKey),record=JSON.parse(evidence),posts=mutationCount(),keys=uuidCalls;
+   assert.equal(record.recovery_version,1);assert.equal(record.state,'blocked');assert.deepEqual(record.command,command);assert.equal(record.error_code,'IDEMPOTENCY_CONFLICT');
+   for(const reload of [false,true]){
+    if(reload)await freshReload(lang);else{await render(`remount-persist-${lang}`,lang);await choose(workspaceA);}
+    assert.match(status(),text.conflict);assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('form button').disabled,true);
+    assert.equal(document.querySelector('[name="name"]').value,command.payload.name);assert.equal(guards.size,1);assert.equal(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
+    await click(document.querySelector('form button'));await submit();assert.equal(mutationCount(),posts);assert.equal(uuidCalls,keys);assert.equal(sessionStorage.getItem(storageKey),evidence);
+   }
+   // Returning to A after explicit workspace discard still reads the blocked envelope.
+   await choose(workspaceB);await click(document.querySelectorAll('[role="alertdialog"] button')[1]);assert.equal(document.querySelector('[name="name"]').value,'');
+   await choose(workspaceA);assert.match(status(),text.conflict);await submit();assert.equal(mutationCount(),posts);assert.equal(uuidCalls,keys);assert.equal(sessionStorage.getItem(storageKey),evidence);groups++;
+
+   for(const failure of ['throw','silent']){
+    sessionStorage.setItem(storageKey,serialized);await render(`failed-save-${lang}-${failure}`,lang);await choose(workspaceA);
+    storagePrototype.setItem=function(key,value){if(key===storageKey&&JSON.parse(value).state==='blocked'){if(failure==='throw')throw new Error('synthetic storage failure');return;}return originalSet.call(this,key,value);};
+    try{
+     await submit();assert.match(status(),text.notSaved);const failedPosts=mutationCount(),failedKeys=uuidCalls;
+     assert.equal(JSON.parse(sessionStorage.getItem(storageKey)).state,'uncertain','failure is NOT successful durable conflict persistence');
+     await submit();assert.equal(document.querySelector('form button').disabled,true);assert.equal(mutationCount(),failedPosts);assert.equal(uuidCalls,failedKeys);
+     await render(`failed-save-${lang}-${failure}`,lang==='en'?'ro':'en');await submit();assert.equal(mutationCount(),failedPosts);assert.equal(uuidCalls,failedKeys);
+    }finally{storagePrototype.setItem=originalSet;}
+    groups++;
+   }
+   const invalidRecords=['{',JSON.stringify({...command,context_id:contextB}),JSON.stringify({...command,workspace_id:workspaceB}),JSON.stringify({recovery_version:9,state:'blocked',command,error_code:'IDEMPOTENCY_CONFLICT'})];
+   for(const [index,raw] of invalidRecords.entries()){
+    sessionStorage.setItem(storageKey,raw);const posts=mutationCount(),keys=uuidCalls;await render(`invalid-${lang}-${index}`,lang);await choose(workspaceA);await submit();
+    assert.match(status(),text.recovery);assert.equal(document.querySelector('[name="name"]').value,'','invalid/foreign record is not copied into the form');assert.equal(sessionStorage.getItem(storageKey),raw);assert.equal(document.querySelector('form button').disabled,true);assert.equal(mutationCount(),posts);assert.equal(uuidCalls,keys);groups++;
+   }
+  }
+  // An unreadable store blocks before key generation, and is never silently cleared.
+  sessionStorage.removeItem(storageKey);postMode='success';const readsBefore=mutationCount(),keysBefore=uuidCalls;
+  storagePrototype.getItem=function(key){if(key===storageKey)throw new Error('synthetic read failure');return originalGet.call(this,key);};
+  try{await render('read-failure');await choose(workspaceA);await submit();assert.match(status(),texts.en.recovery);assert.equal(mutationCount(),readsBefore);assert.equal(uuidCalls,keysBefore);}finally{storagePrototype.getItem=originalGet;}groups++;
+  // A second instance's persisted conflict must be observed at dispatch, before UUID/POST.
+  await render('dispatch-recheck');await choose(workspaceA);sessionStorage.setItem(storageKey,encode(command,'blocked'));
+  await submit();assert.match(status(),texts.en.conflict);assert.equal(mutationCount(),readsBefore);assert.equal(uuidCalls,keysBefore);groups++;
+ }finally{
+  storagePrototype.setItem=originalSet;storagePrototype.getItem=originalGet;
+  if(uuidDescriptor)Object.defineProperty(globalThis.crypto,'randomUUID',uuidDescriptor);else delete globalThis.crypto.randomUUID;
+  sessionStorage.removeItem(storageKey);postMode='success';
+ }
+ console.log(`PASS ${groups} mounted persistence groups: remount/fresh-module reload, exact evidence/no UUID or POST, locales/RTL/guards, storage failures and invalid/foreign records`);
 }
 
 try{
@@ -355,6 +432,7 @@ try{
  assert.equal(sessionStorage.getItem(storageKey),null);assert.equal(document.querySelector('fieldset').disabled,false);assert.match(document.body.textContent,/Opportunity saved/);assert.equal(document.querySelector('[name="name"]').value,'');assert.equal(guards.size,0,'success clears dirty guard');
 
  await testCommandErrors();
+ await testPersistentConflict();
  await testRealContextProvider();
 
  // Existing route and scope behavior remains intact.

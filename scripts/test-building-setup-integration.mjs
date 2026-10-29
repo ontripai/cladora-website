@@ -1,6 +1,24 @@
 import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 
+// Narrow G2 delta mode; old accepted suite stays intact and is not rerun.
+if (process.argv.includes('--g2-only')) {
+ const {buildSource}=await import('./build-building-setup-command-receipts-source-v1.mjs');
+ const {checkDelivery}=await import('./check-building-setup-command-receipts-v1.mjs');
+ const built=buildSource();checkDelivery(built.sql,built.manifest);
+ const proof=readFileSync('supabase/tests/223_building_setup_command_proof_v2.test.sql','utf8');
+ assert.match(proof,/g2_covered_command_proof/);
+ assert.match(proof,/genuinely covered superseded command returns the immutable original receipt/);
+ assert.match(proof,/superseded bounded receipt fails unresolved/);
+ assert.match(proof,/changed-payload key collision denied/);
+ assert.match(proof,/stale parallel-tab edit denied/);
+ assert.match(proof,/legacy mutation bypass closed/);
+ const runner=readFileSync('scripts/test-building-workspace-onboarding-postgres.mjs','utf8');
+ assert.match(runner,/commandProof==='g2'/);
+ assert.match(runner,/assert\.rejects\(replay\(\),e=>e\.code==='40001'\)/);
+ assert.match(runner,/durable replay after successor is zero-write/);
+ console.log(JSON.stringify({suite:'building-g2-integration-source-delta',result:'PASS',closed_suites_repeated:[],sql:'NOT_RUN'}));
+} else {
 // Offline seam regressions only; never substitute this for actual PostgreSQL.
 const dir = 'supabase/migrations';
 const names = readdirSync(dir);
@@ -60,3 +78,5 @@ assert.match(runner, /source fixture has no active sessions/);
 assert.match(runner, /target\.search/);
 assert.doesNotMatch(runner, /pg_terminate_backend|with\s*\(force\)/i);
 console.log(JSON.stringify({ suite: 'building-setup-integration-source', result: 'PASS', negative_controls: controls, runtime: 'NOT_RUN_NOT_PASS' }));
+
+}

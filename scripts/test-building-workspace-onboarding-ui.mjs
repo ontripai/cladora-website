@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {JSDOM} from 'jsdom';
 import ts from 'typescript';
 const wizardOnly=process.env.BUILDING_SETUP_WIZARD_ONLY==='1';
+const g2Only=process.env.BUILDING_SETUP_G2_ONLY==='1';
 const reviewOnly=process.env.BUILDING_SETUP_REVIEW_ONLY==='1';
 const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div>',{url:'https://cladora.test'}),saved=new Map();
 for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,navigator:dom.window.navigator,FormData:dom.window.FormData,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
@@ -18,10 +19,17 @@ const ctx='80000000-0000-0000-0000-000000000004',other='80000000-0000-0000-0000-
 let revision=1,lastReceipt=null,creationKey='',creations=0,postDeferred=null;const completed=new Map();
 let active={context_id:ctx,membership_id:membership},mode='success',stage='draft',calls=[],payload,readOverride=null,deferred=null;
 const guards=new Map(),registerUnsavedGuard=(key,dirty,discard)=>{if(dirty)guards.set(key,discard);else guards.delete(key);return()=>{if(guards.get(key)===discard)guards.delete(key);};};
-const record=()=>({version:2,workspace_id:workspace,revision,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{version:2,run_id:run,workspace_id:workspace,revision:1,status:'draft',creation_request_hash:'b'.repeat(64)},submitted_revision:stage==='submitted'?revision:null,submitted_payload_hash:stage==='submitted'?'a'.repeat(64):null,last_command_key:lastReceipt?.command_key??null,last_command_receipt:lastReceipt,run_id:run,status:stage,payload:structuredClone(payload),property_id:stage==='provisioned'?other:null,effective_units:null});
+const record=()=>({version:2,workspace_id:workspace,revision,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{version:2,run_id:run,workspace_id:workspace,revision:1,status:'draft',creation_request_hash:'b'.repeat(64)},submitted_revision:stage==='submitted'?revision:null,submitted_payload_hash:stage==='submitted'?'a'.repeat(64):null,last_command_key:lastReceipt?.command_key??null,last_command_receipt:lastReceipt,run_id:run,status:stage,payload:structuredClone(payload),property_id:stage==='provisioned'?other:null,effective_units:stage==='provisioned'?structuredClone(payload.units):null});
 const mutations=()=>calls.filter(c=>c.options.method);
 globalThis.fetch=async(url,options={})=>{
  calls.push({url,options});
+ if(!options.method&&url.includes('/commands/')){
+  if(mode==='deny-read'||mode==='deny-read-401')return{ok:false,status:mode==='deny-read'?403:401,json:async()=>({})};
+  const a=JSON.parse(sessionStorage.getItem(helper.setupStorageKey(ctx,membership,workspace))).pending,operation=a.action==='save'?'update':a.action;
+  const proof={version:1,scope:{tenant_id:other,workspace_id:workspace,run_id:run,context_id:ctx,membership_id:membership,actor_id:other},command:{command_key:a.command_key,operation,expected_revision:a.before.revision},coverage:{status:'covered',epoch_id:'building-g2-pm169-v1',from_expected_revision:1,checked_at:'2026-10-26T00:00:00Z'},retention:{status:'activation_hold',policy_id:null},outcome:completed.has(a.command_key)?'complete':'absent'};
+  if(proof.outcome==='complete')proof.evidence={request_hash:'b'.repeat(64),input_descriptor:{units:a.units??null,expected_payload_hash:null},before_record:{revision:a.before.revision,status:a.before.status,payload_hash:a.before.payload_hash},receipt:completed.get(a.command_key),epoch_id:'building-g2-pm169-v1',recorded_at:'2026-10-26T00:00:00Z'};
+  return{ok:true,status:200,json:async()=>proof};
+ }
  if(!options.method){if(mode==='deny-read'||mode==='deny-read-401')return {ok:false,status:mode==='deny-read'?403:401,json:async()=>({error:{code:'FORBIDDEN'}})};if(deferred)return deferred;if(mode==='lookup-transient'&&new URL(url,'https://cladora.test').pathname.endsWith('/building-setup'))return {ok:false,status:503,json:async()=>({})};if(new URL(url,'https://cladora.test').pathname.endsWith('/building-setup'))return {ok:true,json:async()=>({attempt:payload&&creationKey===new URL(url,'https://cladora.test').searchParams.get('idempotency_key')?(readOverride??record()):null})};return {ok:true,json:async()=>readOverride??record()};}
  const body=JSON.parse(options.body);
  if(mode==='lost-before')throw Error('Synthetic transport before commit');
@@ -33,7 +41,7 @@ globalThis.fetch=async(url,options={})=>{
  if(url.endsWith('/rehearse'))stage='rehearsed';
  if(url.endsWith('/submit'))stage='submitted';
  if(url.endsWith('/provision'))stage='provisioned';
- if(body.command_key){revision++;lastReceipt={version:2,workspace_id:workspace,run_id:run,status:stage,revision,command_key:body.command_key,expected_revision:body.expected_revision,operation:options.method==='PATCH'?'update':url.split('/').at(-1)};}
+ if(body.command_key){revision++;lastReceipt={version:2,workspace_id:workspace,run_id:run,status:stage,revision,command_key:body.command_key,expected_revision:body.expected_revision,operation:options.method==='PATCH'?'update':url.split('/').at(-1),payload_hash:'a'.repeat(64),property_id:stage==='provisioned'?other:null};}
  const receipt=body.command_key?lastReceipt:{version:2,workspace_id:workspace,run_id:run,status:stage,revision,creation_request_hash:'b'.repeat(64)};completed.set(body.command_key??body.idempotency_key,receipt);
  if(postDeferred)return postDeferred;
  if(mode==='lost')throw Error('Synthetic lost response');
@@ -41,6 +49,8 @@ globalThis.fetch=async(url,options={})=>{
  return{ok:true,json:async()=>receipt};
 };
 const {CustomerBuildingSetupWizard:Wizard}=load('src/components/customer/CustomerBuildingSetupWizard.tsx',{
+ './CustomerOnboardingTemplates':{CustomerOnboardingTemplates:()=>null},
+ './CustomerBuildingSetupProgress':{CustomerBuildingSetupProgress:()=>null},
  './CustomerContextProvider':{useCustomerContext:()=>({active,dashboard:{workspace_id:active.context_id===ctx?workspace:otherWorkspace},registerUnsavedGuard})},
  '@/lib/customer/building-setup-schema':schema,'@/lib/customer/building-workspace-onboarding':helper,
  'next/link':({href,children,...props})=>React.createElement('a',{href,...props},children),
@@ -54,13 +64,13 @@ const input=async(selector,value)=>act(async()=>{const e=document.querySelector(
 let checks=0;function eq(a,b,msg){checks++;assert.deepEqual(a,b,msg);}
 async function reset(){sessionStorage.clear();calls=[];mode='success';stage='draft';readOverride=null;revision=1;lastReceipt=null;creationKey='';creations=0;payload=null;completed.clear();postDeferred=null;active={context_id:ctx,membership_id:membership};}
 try{
- if(!reviewOnly){
+ if(!reviewOnly&&!g2Only){
  for(const lang of ['en','ro','fa']){
   await reset();await render(`flow-${lang}`,lang);eq(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');
   await click(labels[lang][0]);eq(mutations().length,1);const first=JSON.parse(mutations()[0].options.body);eq(first.payload.currency,'RON');
   await click(labels[lang][1]);eq(stage,'rehearsed');await click(labels[lang][2]);eq(stage,'submitted');
   eq(document.querySelector('a').getAttribute('href'),`/${lang}/pilot-reviewer`,'existing independent-review consumer reused');eq(button(labels[lang][3]).disabled,true,'no client self-approval');
-  stage='approved';const before=mutations().length;await click(labels[lang][4]);eq(mutations().length,before,'status refresh is read-only');
+  stage='approved';revision++;lastReceipt={version:2,workspace_id:workspace,run_id:run,status:stage,revision,expected_revision:revision-1,command_key:`setup-${run}-r${revision-1}-independent-review`,operation:'approve',payload_hash:'a'.repeat(64),property_id:null};const before=mutations().length;await click(labels[lang][4]);eq(mutations().length,before,'status refresh is read-only');
   await click(labels[lang][3]);eq(stage,'provisioned');const count=mutations().length;await render(`provisioned-${lang}`,lang);eq(button(labels[lang][0]).disabled,true);eq(mutations().length,count,'remount does not create/provision again');
  }
  await reset();await render('lost-create');mode='lost';await click(labels.en[0]);const key=helper.setupStorageKey(ctx,membership,workspace),savedCommand=JSON.parse(sessionStorage.getItem(key)).pending.command;
@@ -91,7 +101,7 @@ try{
  const oldRecord=record();oldRecord.payload.building.name='OLD CONTEXT RESPONSE';await act(async()=>{release({ok:true,json:async()=>oldRecord});});deferred=null;
  eq(document.querySelectorAll('fieldset input')[1].value,'Synthetic Building A');eq(mutations().length,1);
 
- await reset();await render('legacy-before');await click(labels.en[0]);readOverride={...record(),creation_request_hash:null,creation_receipt:null};await click(labels.en[4]);eq(button(labels.en[1]).disabled,true,'legacy snapshot cannot advance');assert.match(document.querySelector('[role="alert"]').textContent,/legacy record/);readOverride=null;
+ await reset();await render('legacy-before');await click(labels.en[0]);readOverride={...record(),creation_request_hash:null,creation_receipt:null};await click(labels.en[4]);eq(button(labels.en[1]).disabled,true,'legacy snapshot cannot advance');assert.match(document.querySelector('[role="alert"]').textContent,/^These older details need review by an authorized person\.$/);readOverride=null;
 
  const statusLabels={en:'Check saved access and status',ro:'Verifică accesul și starea salvate',fa:'بررسی دسترسی و وضعیت ذخیره‌شده'};
  const noSensitive=()=>{eq(document.querySelectorAll('input,fieldset').length,0,'denial removes every data field');eq(document.body.textContent.includes('Synthetic Building A'),false);eq(document.body.textContent.includes('CLADORA Synthetic Association'),false);eq(document.body.textContent.includes(run),false,'no prior run/status detail');};
@@ -125,8 +135,8 @@ try{
  const reviewLabels={en:['Approve setup','Check and retry the same approval','Refresh review access'],ro:['Aprobă dosarul','Verifică și reîncearcă aceeași aprobare','Actualizează accesul la verificare'],fa:['تأیید پرونده','بررسی و تکرار همان تأیید','بررسی دسترسی بازبینی']};
  for(const lang of ['en','ro','fa']){
   const [approveLabel,retryLabel,refreshLabel]=reviewLabels[lang],approvalKey=`cladora.setup-approval.v2:${ctx}:${workspace}`;
-  let review,posts,accessStatus,access,readMode,postMode,holdRead,holdReviewer,holdPost,holdActivation,activationPosts;
-  const fresh=()=>{sessionStorage.clear();posts=[];accessStatus=200;access={status:'active',context_id:ctx,workspace_id:workspace};readMode='ok';postMode='lost-committed';holdRead=null;holdReviewer=null;holdPost=null;holdActivation=null;activationPosts=[];review={version:2,workspace_id:workspace,revision:3,run_id:run,status:'submitted',payload:reviewPayload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:3,submitted_payload_hash:'a'.repeat(64),last_command_key:null,last_command_receipt:null};};
+  let review,posts,accessStatus,access,readMode,postMode,holdRead,holdReviewer,holdPost,holdActivation,activationPosts,lookupMode,readUrls;
+  const fresh=()=>{sessionStorage.clear();posts=[];lookupMode='ok';readUrls=[];accessStatus=200;access={status:'active',context_id:ctx,workspace_id:workspace};readMode='ok';postMode='lost-committed';holdRead=null;holdReviewer=null;holdPost=null;holdActivation=null;activationPosts=[];review={version:2,workspace_id:workspace,revision:3,run_id:run,status:'submitted',payload:reviewPayload,payload_hash:'a'.repeat(64),creation_request_hash:'b'.repeat(64),creation_receipt:{run_id:run},submitted_revision:3,submitted_payload_hash:'a'.repeat(64),last_command_key:null,last_command_receipt:null};};
   const response=(status,body)=>({ok:status===200,status,json:async()=>structuredClone(body)});
   const reviewerBody=()=>({reviewer:{...access,runs:access.status&&review.status==='submitted'?[{id:run,workspace_id:access.workspace_id,status:'submitted',building:'Synthetic sensitive',revision:3,payload_hash:'a'.repeat(64),submitted_revision:3,submitted_payload_hash:'a'.repeat(64)}]:[]}});
   globalThis.fetch=async(url,options={})=>{
@@ -136,16 +146,30 @@ try{
     return response(accessStatus,accessStatus===200?reviewerBody():{error:{code:'FORBIDDEN'}});
    }
    if(!options.method){
+    readUrls.push(url);
     if(holdRead){const wait=holdRead;holdRead=null;return wait;}
     if(readMode==='network')throw Error('Synthetic network unavailable');
     if(typeof readMode==='number')return response(readMode,{error:{code:'FORBIDDEN'}});
+    if(url.includes('/commands/')){
+     if(typeof lookupMode==='number')return response(lookupMode,{});
+     const saved=JSON.parse(sessionStorage.getItem(approvalKey)),command=saved.command;
+     const proof={version:1,scope:{tenant_id:other,workspace_id:workspace,run_id:run,context_id:ctx,membership_id:membership,actor_id:other},command:{command_key:command.command_key,operation:'approve',expected_revision:command.expected_revision},coverage:{status:'covered',epoch_id:'building-g2-pm169-v1',from_expected_revision:1,checked_at:'2026-10-26T00:00:00Z'},retention:{status:'activation_hold',policy_id:null},outcome:'unknown',reason:'coverage_gap'};
+     if(review.last_command_key===command.command_key||lookupMode==='historical'){
+      proof.outcome='complete';delete proof.reason;
+      proof.evidence={request_hash:'b'.repeat(64),input_descriptor:{units:null,expected_payload_hash:command.expected_payload_hash},before_record:{revision:command.expected_revision,status:'submitted',payload_hash:command.expected_payload_hash},receipt:lookupMode==='historical'?{version:2,run_id:run,workspace_id:workspace,status:'approved',revision:command.expected_revision+1,operation:'approve',expected_revision:command.expected_revision,command_key:command.command_key,payload_hash:command.expected_payload_hash,property_id:null}:structuredClone(review.last_command_receipt),epoch_id:'building-g2-pm169-v1',recorded_at:'2026-10-26T00:00:00Z'};
+     }
+     if(lookupMode==='legacy'){proof.coverage={...proof.coverage,status:'uncovered',epoch_id:null,from_expected_revision:null};proof.outcome='unknown';proof.reason='legacy_uncovered';delete proof.evidence;}
+     if(lookupMode==='malformed')return response(200,{});
+     if(lookupMode==='conflict'){proof.outcome='conflict';proof.reason='own_command_descriptor_mismatch';delete proof.evidence;}
+     return response(200,proof);
+    }
     return response(200,review);
    }
    posts.push(options.body);
    if(typeof postMode==='number')return response(postMode,{error:{code:'FORBIDDEN'}});
    if(postMode==='lost-uncommitted')throw Error('Synthetic uncommitted lost response');
    const body=JSON.parse(options.body);
-   const receipt={version:2,run_id:run,workspace_id:workspace,status:'approved',revision:4,operation:'approve',expected_revision:3,command_key:body.command_key};
+   const receipt={version:2,run_id:run,workspace_id:workspace,status:'approved',revision:4,operation:'approve',expected_revision:3,command_key:body.command_key,payload_hash:'a'.repeat(64),property_id:null};
    review={...review,status:'approved',revision:4,last_command_key:body.command_key,last_command_receipt:receipt};
    if(holdPost){const wait=holdPost;holdPost=null;return wait;}
    if(postMode==='lost-committed')throw Error('Synthetic committed lost response');
@@ -156,6 +180,7 @@ try{
   const focus=()=>act(async()=>window.dispatchEvent(new dom.window.Event('focus')));
   const stored=()=>JSON.parse(sessionStorage.getItem(approvalKey));
   const unknown={en:/unknown/,ro:/necunoscut/,fa:/نامشخص/};
+  if(!g2Only){
   // Clear stale denial on authorized return, preserving unresolved approval warnings.
   fresh();accessStatus=403;await mount();accessStatus=200;await click(refreshLabel);eq(document.querySelector('[role="status"]')===null,true,'CR-02: stale denial cleared after valid access read');
   fresh();postMode='lost-uncommitted';await mount();await click(approveLabel);const deniedPending=stored();accessStatus=403;await focus();accessStatus=200;await click(refreshLabel);assert.match(document.querySelector('[role="status"]').textContent,unknown[lang],'authorized access does not resolve pending approval');eq(stored(),deniedPending);eq(posts.length,1);
@@ -217,8 +242,38 @@ try{
   fresh();await mount();let releasePost;holdPost=new Promise(resolve=>{releasePost=resolve;});await act(async()=>button(approveLabel).click());const postAttempt=stored();eq(posts.length,1);accessStatus=403;await focus();noRuns();await act(async()=>releasePost(response(200,review.last_command_receipt)));noRuns();eq(stored(),postAttempt,'late write success never erases denied pending attempt');eq(posts.length,1);
   // Old instance reads must not change the new instance after unmount/remount.
   fresh();await mount();let releaseUnmount;holdRead=new Promise(resolve=>{releaseUnmount=resolve;});await act(async()=>button(approveLabel).click());const retainedUnmount=stored();await mount();await act(async()=>releaseUnmount(response(200,review)));eq(posts.length,0);eq(stored(),retainedUnmount);eq(button(retryLabel).disabled,false);
+  }
+  // G2 own approval recovery after provision never reads the full run.
+  for(const outcome of ['historical','unknown','malformed','legacy','conflict',401,403,404,503]){
+   fresh();await mount();await click(approveLabel);const original=stored();
+   review={...review,status:'provisioned',revision:5,last_command_key:`setup-${run}-r4-later`,last_command_receipt:null};lookupMode=outcome;
+   await mount();readUrls=[];const beforePosts=posts.length;await click(retryLabel);
+   eq(posts.length,beforePosts);eq(readUrls.length,1);eq(readUrls[0].includes('/commands/'),true,'no full provisioned-run disclosure');
+   eq(document.querySelector('a[href$="/app/dashboard"]'),null);
+   if(outcome==='historical'){eq(stored(),null);assert.match(document.querySelector('[role="status"]').textContent,lang==='en'?/Your approval/:lang==='ro'?/Aprobarea ta/:/تأیید شما/);}
+   else eq(stored(),original,'unverified own approval remains pending');
+  }
+  for(const stale of ['replacement','denial','unmount']){
+   fresh();await mount();await click(approveLabel);lookupMode='historical';await mount();const raw=sessionStorage.getItem(approvalKey);let release;
+   const wait=new Promise(resolve=>{release=resolve;}),previousFetch=globalThis.fetch;
+   globalThis.fetch=async(url,options)=>{const reply=await previousFetch(url,options);if(url.includes('/commands/'))await wait;return reply;};
+   await click(retryLabel);
+   const replacement=raw.replace('r3-','r3-replacement-');
+   if(stale==='replacement')sessionStorage.setItem(approvalKey,replacement);
+   if(stale==='denial'){accessStatus=403;await focus();}
+   if(stale==='unmount')await mount();
+   await act(async()=>release());eq(sessionStorage.getItem(approvalKey),stale==='replacement'?replacement:raw);eq(posts.length,1);
+   eq(document.querySelector('a[href$="/app/dashboard"]'),null);globalThis.fetch=previousFetch;
+  }
+  // A fresh final access denial or scope switch invalidates prior lookup proof.
+  for(const denial of [403,'scope']){
+   fresh();await mount();await click(approveLabel);lookupMode='historical';await mount();const original=stored();
+   let accessReads=0;const previousFetch=globalThis.fetch;
+   globalThis.fetch=async(url,options)=>{if(url==='/api/customer/v1/pilot-reviewer'&&++accessReads===2){if(denial===403)return response(403,{});return response(200,{reviewer:{status:'active',context_id:other,workspace_id:otherWorkspace,runs:[]}});}return previousFetch(url,options);};
+   await click(retryLabel);eq(stored(),original);eq(posts.length,1);globalThis.fetch=previousFetch;
+  }
  }
- if(!reviewOnly){
+ if(!reviewOnly&&!g2Only){
  // Only the reserved creation-attempt hunk of the existing CaseConversation is exercised.
  const caseSchemas=load('src/lib/customer/building-workspace-onboarding-case.ts',{'./building-setup-schema':schema});
  const {CaseConversation}=load('src/components/cases/CasePortal.tsx',{'@/lib/customer/building-workspace-onboarding-case':caseSchemas,'next/link':({href,children})=>React.createElement('a',{href},children),'next/navigation':{useRouter:()=>({})},'@/components/platform/WorkspaceAccessBasisDialog':{WorkspaceAccessBasisDialog:()=>null}});

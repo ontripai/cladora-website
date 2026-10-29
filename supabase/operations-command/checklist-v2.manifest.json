@@ -1,0 +1,856 @@
+{
+  "format": "CLADORA_OPERATIONS_CHECKLIST_C03_SOURCE.v2",
+  "task": "282-1",
+  "owner": "Core / Operations",
+  "reviewer": "SERVICE",
+  "status": "SOURCE_LOCAL_SUCCESSOR_289_CORRECTIONS_INDEPENDENT_REVIEW_REQUIRED",
+  "BASE": "8c8225fb3297035a2349357bd968d60779388063",
+  "baseline": {
+    "composition": "Core236 + CE238 + CE239 + PROCEDURE240 + accepted277 full successor replacing260",
+    "files": 2281,
+    "official_artifacts": [
+      {
+        "filename": "candidate236.patch",
+        "bytes": 6664242,
+        "sha256": "6e0b320e04ea2c31f242cafdf8bb725aa313824b6554b982a411c29729bfe898",
+        "git_blob": "15fdf8e9fcf3b2d0bc2f00ff641993cc96f23cf5"
+      },
+      {
+        "filename": "candidate236.manifest.json",
+        "bytes": 72150,
+        "sha256": "2f7643771f2aa18be5344419900959901e6f95210218a178f417122e0493c399",
+        "git_blob": "ba425cec89daedb5aea15206762f46acd63d4700"
+      },
+      {
+        "filename": "delta238.patch",
+        "bytes": 9724,
+        "sha256": "2a5bee44eb8c1a9a95028ca828091e6ba147cc8c8122305f271eb715cced34b2",
+        "git_blob": "3659e40bc82b168c1920d2717ca3240577af06be"
+      },
+      {
+        "filename": "delta238.manifest.json",
+        "bytes": 16316,
+        "sha256": "fdf747871be002cd017717c09581339b6eeff2e6861e631cae2a49186d15b2ef",
+        "git_blob": "498353226bae4fb0c24fb65108e98a9d1096df59"
+      },
+      {
+        "filename": "delta239.patch",
+        "bytes": 1832,
+        "sha256": "89eb22bb3e402acb00d812ebe585e28adb3fd3d6ffd05f9353cfca9b1cba8423",
+        "git_blob": "41efbbe32fe9bcb8cbe448449d693087d46c65db"
+      },
+      {
+        "filename": "delta239.manifest.json",
+        "bytes": 30828,
+        "sha256": "5195fd27084bdca6cf0a0206d2f26c00e3d3e9ef8a7684ec8777a7dd33e44e42",
+        "git_blob": "8c3840c347c9239fa85be8dea47a397d34724866"
+      },
+      {
+        "filename": "PROCEDURE-240-1-building-copy.delta.patch",
+        "bytes": 1869,
+        "sha256": "a121f47b96144e732b642a30629743fd8734be2f7507485a23feace080c5ff5d",
+        "git_blob": "a1932dbfdee8625fc9e8ec0baff17d4958152c04"
+      },
+      {
+        "filename": "PROCEDURE-240-1-building-copy.delivery.json",
+        "bytes": 18091,
+        "sha256": "aa683f9c966edf5664ce4d95e129807499f706958e0245f863d7259ce548797c",
+        "git_blob": "78bcbd6dc99ac28e4767750899d6dc0862290de3"
+      },
+      {
+        "filename": "PROCEDURE-277-1.patch",
+        "bytes": 52142,
+        "sha256": "fea464c7b08580a55b1767c64d6267d0df778d4ddd806c4beeb2fcffe4c9215a",
+        "git_blob": "eb4390311e1d135821edea31326668e8f609dce3"
+      },
+      {
+        "filename": "PROCEDURE-277-1.delivery.json",
+        "bytes": 16567,
+        "sha256": "608402bb2b524b22c4cb299ea7a58794b44bc47a043482e07ddb64f9f1bbea92",
+        "git_blob": "f913d03b64cf850a7de56766c1f4206767749ec0"
+      }
+    ]
+  },
+  "authority": {
+    "design": "260-3 + SERVICE265-1 + explicit owner decisions task282-1",
+    "review": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6490918510",
+    "independent_summary_review": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6491654831",
+    "native_provider": "app_private.operations_checkpoint_v1(uuid,jsonb)",
+    "permissions": [
+      "maintenance.work_orders.read (existing OPEN)",
+      "maintenance.work_orders.manage (Checklist scope)"
+    ],
+    "aal": "existing AAL2/session-current checkpoint; no issuer/claims/permission fork"
+  },
+  "paths": [
+    "src/lib/customer/operations-command.ts",
+    "src/lib/customer/operations-command-client.ts",
+    "src/lib/customer/operations-command-server.ts",
+    "src/components/customer/OperationsCommandGate.tsx",
+    "src/components/customer/WorkOrderChecklistPanel.tsx",
+    "src/app/api/customer/v1/work-orders/[id]/checklist/route.ts",
+    "src/lib/customer/operations-checklist-cutover.ts",
+    "src/components/customer/DurableWorkOrderChecklistPanel.tsx",
+    "supabase/operations-command/operations-command-v2.sql",
+    "supabase/operations-command/checklist-cutover-proposal.sql",
+    "supabase/operations-command/checklist-v2.manifest.json",
+    "scripts/test-operations-checklist-command-v2.mjs",
+    "supabase/tests/operations-checklist-command-v2.test.sql",
+    "docs/contracts/OPERATIONS-CHECKLIST-C03-v2.md"
+  ],
+  "preimages": [
+    {
+      "path": "src/lib/customer/operations-command.ts",
+      "before": {
+        "bytes": 7641,
+        "sha256": "e653c6f6be637edf3cb1b8a97d6ae95072d2264b0dd8366a11c7771cc880f90e",
+        "git_blob": "0e4c93981f24fa43704dcf15477a4151906caaba"
+      },
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "src/lib/customer/operations-command-client.ts",
+      "before": {
+        "bytes": 7005,
+        "sha256": "abb83df5b93ccdfc22ecc40fe6bd874509aceb3aa540d86d4815ccd964f423ad",
+        "git_blob": "17bd06731a4ecf90f8b18f092658e73b8f8e8014"
+      },
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "src/lib/customer/operations-command-server.ts",
+      "before": {
+        "bytes": 2745,
+        "sha256": "e3eb7b07074c5a6a4aac9fefc174aa98ee57d6729cae8b8ece5bb80484c29ac2",
+        "git_blob": "8f8fa96434746de97fe1b7abadd7f12c646412d6"
+      },
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "src/components/customer/OperationsCommandGate.tsx",
+      "before": {
+        "bytes": 6604,
+        "sha256": "139935f7e5bc32ed6cda05a9087fa4d064c5e6ab4571b62f646332a24bcfde9a",
+        "git_blob": "770c11f7ef2264707a15c04fc5128bf1da9852e0"
+      },
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "src/components/customer/WorkOrderChecklistPanel.tsx",
+      "before": {
+        "bytes": 11805,
+        "sha256": "86295ce2bdc663ed858c002bdb6f2f38560bb2e2e0e23c0da071f72cc8058ae1",
+        "git_blob": "de9db685ea1810dc524f560d8fee009d5559a110"
+      },
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "src/app/api/customer/v1/work-orders/[id]/checklist/route.ts",
+      "before": {
+        "bytes": 2462,
+        "sha256": "44dd11f21684a792b6aa184bee9f4153b81a1b18f552340ad3e9c394fa350a90",
+        "git_blob": "9eb73cb031b92d43028d332fc918745a88a84cf3"
+      },
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "src/lib/customer/operations-checklist-cutover.ts",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "src/components/customer/DurableWorkOrderChecklistPanel.tsx",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "supabase/operations-command/operations-command-v2.sql",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "supabase/operations-command/checklist-cutover-proposal.sql",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "supabase/operations-command/checklist-v2.manifest.json",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "scripts/test-operations-checklist-command-v2.mjs",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "supabase/tests/operations-checklist-command-v2.test.sql",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    },
+    {
+      "path": "docs/contracts/OPERATIONS-CHECKLIST-C03-v2.md",
+      "before": "ABSENT",
+      "owner": "Core / Operations"
+    }
+  ],
+  "source_identities_excluding_self": [
+    {
+      "path": "src/lib/customer/operations-command.ts",
+      "bytes": 10428,
+      "sha256": "c7d3a59c063c0d990c4cd1eeca81d36cf3a3ed219db5ced21cede6fac0f55b96",
+      "git_blob": "148e14b7f3d52d985561e91db20808afe30ee179"
+    },
+    {
+      "path": "src/lib/customer/operations-command-client.ts",
+      "bytes": 8247,
+      "sha256": "f0dd85ffad455b67b2f821ab05ad9683933f369176198029586a44953d2deafa",
+      "git_blob": "6ce82ac2af1369c4ab2d6c87c94fc188e0c97b2d"
+    },
+    {
+      "path": "src/lib/customer/operations-command-server.ts",
+      "bytes": 3230,
+      "sha256": "7aefa85064d6e471daf33de8b6bf0142b4674612af89b1813925159b04b588bc",
+      "git_blob": "083bf477466fbb12f30758997f337369b2f741e4"
+    },
+    {
+      "path": "src/components/customer/OperationsCommandGate.tsx",
+      "bytes": 7853,
+      "sha256": "c25a2789bd9b0d346d32f506b54d0d2ad1089006d09bdb7d1a8b79277f06ee5e",
+      "git_blob": "46596d649f5608414eba6a60553d33d9151a5fe9"
+    },
+    {
+      "path": "src/components/customer/WorkOrderChecklistPanel.tsx",
+      "bytes": 14140,
+      "sha256": "ae5f7d2a67d54fc74e956b0d003cb01251976c528200bc5c74069cd03a8087c9",
+      "git_blob": "999036cc37fca435fe88a7ca31aa82dd4053d4fa"
+    },
+    {
+      "path": "src/app/api/customer/v1/work-orders/[id]/checklist/route.ts",
+      "bytes": 3433,
+      "sha256": "daddca7d0906300f12368deb7d2c87c47014c9c4089f447e3baa68770566e02d",
+      "git_blob": "5740675d1701841d99bf2b760c8be0acce38a5da"
+    },
+    {
+      "path": "src/lib/customer/operations-checklist-cutover.ts",
+      "bytes": 6575,
+      "sha256": "edfad014319fcca9d93fd3d0269f21fc25fc74f48b6d6a5ec1323e3008677178",
+      "git_blob": "26e8519991df05a531eb98f3624cdcc2dc6517e2"
+    },
+    {
+      "path": "src/components/customer/DurableWorkOrderChecklistPanel.tsx",
+      "bytes": 9582,
+      "sha256": "3efe443244923e045de092b1cedc3d9446ea73bbe507938a35f8c635b11f187a",
+      "git_blob": "c22b4510f7c2bfe56a0e34b7bdee45a5fa0789df"
+    },
+    {
+      "path": "supabase/operations-command/operations-command-v2.sql",
+      "bytes": 22737,
+      "sha256": "8957739602d7d9522da0ecb6b932af52866e7c720fb50afde93f9020e82677a0",
+      "git_blob": "eb6f2155fb651353344464890d58e15ae69fdfa6"
+    },
+    {
+      "path": "supabase/operations-command/checklist-cutover-proposal.sql",
+      "bytes": 3974,
+      "sha256": "c9d071f537a09a094a79d43ef83d25f7765f07516147404e7881d65268aa1a2b",
+      "git_blob": "df252f2f9f9dbbad8ee245223f703ac4445047fd"
+    },
+    {
+      "path": "scripts/test-operations-checklist-command-v2.mjs",
+      "bytes": 52624,
+      "sha256": "03453fb461e2a89892ccd74e18ebbccf347f2c218e068e1f05c43af819cc99bf",
+      "git_blob": "ade6751dbf7aad89b59dcd6fe36e626181d40710"
+    },
+    {
+      "path": "supabase/tests/operations-checklist-command-v2.test.sql",
+      "bytes": 10490,
+      "sha256": "c4ef35deac1a847b958b72e2c4f411b296ce5d3824e19c80ec647d2092856bf7",
+      "git_blob": "bf23a28410b96ea5762ece8679d074c3584a3fcd"
+    },
+    {
+      "path": "docs/contracts/OPERATIONS-CHECKLIST-C03-v2.md",
+      "bytes": 16608,
+      "sha256": "2b044b396eecbde62d8e414c94081ed7eec6be94da164e801f03b402a2a02e65",
+      "git_blob": "9eac987919693c2e8a40b51b96d9510af69be724"
+    }
+  ],
+  "self_identity": "external delivery manifest seals this file; no recursive/self hash",
+  "immutable_sources": [
+    {
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "bytes": 736073,
+      "sha256": "da5a4e3ac421f71674ddc309feff3c0d03d6ebc6f168911d48f41b799c73ae35",
+      "git_blob": "5fcdf690888d6bec186b654eeafb826601572d27"
+    },
+    {
+      "path": "supabase/install/v14-operations/assets.sql",
+      "bytes": 225315,
+      "sha256": "311f5615008e9de4544b0c51e94533dd825d57294d5205d160c238975112683c",
+      "git_blob": "240675ce997a8dfc2416995e25143c3f0e403d7c"
+    },
+    {
+      "path": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "bytes": 297448,
+      "sha256": "8eb3d843fb161a5ebdfdbe1d80bc67b8df3bf0aa316a886c8baab20320294652",
+      "git_blob": "e21b988299460f967f3dd8ea2906358f6407b21e"
+    },
+    {
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "bytes": 262457,
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "git_blob": "45737a8100b3542ad787ea4414090d0f304fc123"
+    },
+    {
+      "path": "supabase/install/v14-operations/preflight.sql",
+      "bytes": 8147,
+      "sha256": "e3fae2606fd8cce9e21038fb9359b3562b932704ea0280d46900ff125b415a6e",
+      "git_blob": "554b19aa11736b5be2c3b8ccd028e10244d0154f"
+    },
+    {
+      "path": "supabase/install/v14-operations/verify.sql",
+      "bytes": 8172,
+      "sha256": "7ef3710594ed8c55f6c24e0edf18f4dbe67216cad0e3d4589b9b03db35246e0b",
+      "git_blob": "6321d6f4d481a088657df6fc5c45941ccff861d9"
+    },
+    {
+      "path": "supabase/install/v14-operations/manifest.json",
+      "bytes": 1043685,
+      "sha256": "64d98e3870d6a19f6aa2a1a9f4a74b24f0d1b813808dc80afce95396128b73bf",
+      "git_blob": "d60c07f1820a52117a9a67901de0554a9fc5c9b8"
+    },
+    {
+      "path": "supabase/install/v14-operations/recovery.md",
+      "bytes": 11236,
+      "sha256": "a32f30f9758de3a76a9d8c4cbbc1ef0654284231cb847e86d4698a1c5d8576cd",
+      "git_blob": "0842daf0fd76ff413650e42ae3ce154672e27066"
+    },
+    {
+      "path": "supabase/migrations/20261004111339_audited_work_order_checklist.sql",
+      "bytes": 3553,
+      "sha256": "a4862f635dca7ee006ca838074494dbe08c81cd41b62bbcde9112f52ef8af725",
+      "git_blob": "eec479668bf7eb3ec8b23e4788432f4e5cb20b3e"
+    },
+    {
+      "path": "src/components/customer/WorkOrderLifecyclePanel.tsx",
+      "bytes": 20117,
+      "sha256": "640104a817a857163b3cbc68261a7c8cb98b427ccb377f02c08832ad171cfa3e",
+      "git_blob": "34ac959246bcf0058a6ece53ec497e0d2f0d6eaf"
+    },
+    {
+      "path": "src/components/customer/CustomerMaintenanceDashboard.tsx",
+      "bytes": 19699,
+      "sha256": "b59d4f2dc942d5aae50b5c0f40b38a1edaf1594aaa15fbba06947bdf1a69571a",
+      "git_blob": "b6c1e3c3a09cfbd7a96640a24fc3d5e69bb0b711"
+    },
+    {
+      "path": "src/app/api/customer/v1/operations/commands/route.ts",
+      "bytes": 121,
+      "sha256": "98e81486aa424d9dfc033dfd71233cb07d57de1ca6cf1263f1a0c79b112f1054",
+      "git_blob": "f765515f5a267ff2370de09551dbf85cc9a5c0ec"
+    },
+    {
+      "path": "src/lib/customer/maintenance-schema.ts",
+      "bytes": 6989,
+      "sha256": "2c6c9e70119af113ed5f81f8cc453edde1d5d94cfe7f3420411d86efb96512eb",
+      "git_blob": "fe2035ae5d0bcc4cb7560c1f3d65921254287018"
+    },
+    {
+      "path": "src/lib/customer/maintenance-defaults.ts",
+      "bytes": 4771,
+      "sha256": "a195283d8c1a09baf8a28dcdc638a4725e1120dcc66840d139c97c3c8d645398",
+      "git_blob": "0fe27152211b1af6197d64f2090ab0d830c9d000"
+    },
+    {
+      "path": "src/lib/security/same-origin.ts",
+      "bytes": 532,
+      "sha256": "b00a95fb384e286fd116c979847693d0e286283c19750e254f934576a55f96cc",
+      "git_blob": "a0aa79dbc7b5d8e8c1d5f1c3b8402e8c01505bca"
+    },
+    {
+      "path": "src/lib/security/request-body.ts",
+      "bytes": 2930,
+      "sha256": "6842df203b9032221f7ad645a60f619ca9f165b01d26ccb5c24701b4f4b2e427",
+      "git_blob": "67b7c1ca5fb609878d40cd79a70e3f3eeb3d88c6"
+    },
+    {
+      "path": "src/lib/supabase/server.ts",
+      "bytes": 791,
+      "sha256": "5eb2bc418fbd3933ab2c45b2426f70f43cf1d392392788069b7832d5d6adffdc",
+      "git_blob": "8e5a47b6c28ef827efe1d58a9992cb37cf15e9e8"
+    },
+    {
+      "path": "scripts/test-operations-user-recovery-260-3.mjs",
+      "bytes": 22520,
+      "sha256": "7ad33c95e50f091a7229dac7c092431c5e608356f9d9afb42b06a97af4984dbe",
+      "git_blob": "7eefcde133129b28fbc620b33e13307f924341af"
+    },
+    {
+      "path": "docs/contracts/OPERATIONS-USER-RECOVERY-260-3.md",
+      "bytes": 21602,
+      "sha256": "5d1aa2677499a1e4fdd3ee697a95338f4982960161ea19308841c7afa4bd6d20",
+      "git_blob": "3a998ec06b0058060f5610eae5d78ab7e5d84ba8"
+    },
+    {
+      "path": "package.json",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    }
+  ],
+  "canonical_helper_pins": [
+    {
+      "function": "app_private.operations_command_v1",
+      "body_sha256": "396f758089ec9cea4503b1797bdc2a38dc6b59c2d30bdcaa5ec82550fcd9071d",
+      "body_bytes": 22285,
+      "source": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "source_start_line": 3773,
+      "source_end_line": 3968
+    },
+    {
+      "function": "app_private.operations_checkpoint_v1",
+      "body_sha256": "4dfcdcae09c7545a3f7fd181fcde131cef9dff220fa6b341e1ba7050e525c706",
+      "body_bytes": 2724,
+      "source": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "source_start_line": 3735,
+      "source_end_line": 3770
+    },
+    {
+      "function": "app_private.guard_operations_unresolved_v1",
+      "body_sha256": "857e75c373e2a2cf34ef350dcea4bc70c0099153860b0c44c2cdf26615337c82",
+      "body_bytes": 2129,
+      "source": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "source_start_line": 3974,
+      "source_end_line": 4002
+    },
+    {
+      "function": "maintenance.work_order_checklist_v1",
+      "body_sha256": "f95999f78c7173ed54c346e018e9729b1de30f2da35caf1496775b5c181b8ab3",
+      "body_bytes": 2513,
+      "source": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "source_start_line": 2819,
+      "source_end_line": 2844
+    }
+  ],
+  "objects": [
+    {
+      "object": "app_private.operations_command_v2",
+      "arguments_source": "p_phase text,p_context_id uuid,p_key uuid,p_wire text,p_fingerprint text",
+      "kind": "create-inactive",
+      "language": "plpgsql",
+      "security": "DEFINER",
+      "search_path": "pg_catalog",
+      "owner": "postgres (prestate/creator asserted, runtime rights unproven)",
+      "source": "supabase/operations-command/operations-command-v2.sql",
+      "lines": [
+        45,
+        214
+      ],
+      "body_bytes": 14331,
+      "body_sha256": "105ec1761260014ac31264defc56f6446fe97b86443d28358069d2c009cfde13",
+      "positive_grants": []
+    },
+    {
+      "object": "customer_api.operations_command_v2",
+      "arguments_source": "p_phase text,p_context_id uuid,p_key uuid,p_wire text,p_fingerprint text",
+      "kind": "create-inactive",
+      "language": "sql",
+      "security": "INVOKER",
+      "search_path": "pg_catalog",
+      "owner": "postgres (prestate/creator asserted, runtime rights unproven)",
+      "source": "supabase/operations-command/operations-command-v2.sql",
+      "lines": [
+        216,
+        218
+      ],
+      "body_bytes": 91,
+      "body_sha256": "a7e964fad058de5a662e8ca4637b8089286790eedfa19a50b8e9cf76d2799be5",
+      "positive_grants": []
+    },
+    {
+      "object": "app_private.get_work_order_checklist_v2",
+      "arguments_source": "p_context_id uuid,p_work_order_id uuid",
+      "kind": "create-inactive",
+      "language": "plpgsql",
+      "security": "DEFINER",
+      "search_path": "pg_catalog",
+      "owner": "postgres (prestate/creator asserted, runtime rights unproven)",
+      "source": "supabase/operations-command/operations-command-v2.sql",
+      "lines": [
+        221,
+        244
+      ],
+      "body_bytes": 1503,
+      "body_sha256": "7796a443af56af12e9ca0ed7f26a1a9be6d35faf6a7d29d5718bac19a52becdb",
+      "positive_grants": []
+    },
+    {
+      "object": "customer_api.get_work_order_checklist_v2",
+      "arguments_source": "p_context_id uuid,p_work_order_id uuid",
+      "kind": "create-inactive",
+      "language": "sql",
+      "security": "INVOKER",
+      "search_path": "pg_catalog",
+      "owner": "postgres (prestate/creator asserted, runtime rights unproven)",
+      "source": "supabase/operations-command/operations-command-v2.sql",
+      "lines": [
+        246,
+        248
+      ],
+      "body_bytes": 78,
+      "body_sha256": "d5f1535e1465467507f11e794db0ad8c03478f3af58ff95aba5d064690ab2600",
+      "positive_grants": []
+    },
+    {
+      "object": "customer_api.operations_command_v1",
+      "arguments_source": "p_phase text,p_context_id uuid,p_key uuid,p_wire text,p_fingerprint text",
+      "kind": "replace-proposed",
+      "language": "plpgsql",
+      "security": "INVOKER",
+      "search_path": "pg_catalog",
+      "owner": "postgres (prestate/creator asserted, runtime rights unproven)",
+      "source": "supabase/operations-command/checklist-cutover-proposal.sql",
+      "lines": [
+        37,
+        48
+      ],
+      "body_bytes": 618,
+      "body_sha256": "e943f0807f06c7a62ca8d3b8b51e274f5408ee4ea21c965b1877b00b2da2536d",
+      "positive_grants": []
+    }
+  ],
+  "ABI": {
+    "http": "POST /api/customer/v1/operations/commands; envelope version2, existing5 phases",
+    "wire_version": 2,
+    "action": "record_checklist",
+    "expected_status": "in_progress",
+    "intent_fields": [
+      "version",
+      "action",
+      "context_id",
+      "target_id",
+      "expected_status",
+      "input"
+    ],
+    "input_fields": [
+      "context_id",
+      "item_id",
+      "notes"
+    ],
+    "key": "one lowercase UUID; exact snapshot before first dispatch",
+    "fingerprint": "SHA256 exact UTF8 wire, lower64hex; verified browser + route + SQL",
+    "request_hash": "existing C03 JSONB version2 + authority_at_reservation + exact wire; distinct from fingerprint",
+    "receipt": "operations-command-receipt.v2",
+    "result": [
+      "work_order_id",
+      "item_id",
+      "completed",
+      "completed_at",
+      "notes",
+      "already_recorded"
+    ],
+    "summary": [
+      "action",
+      "outcome",
+      "recorded_at"
+    ],
+    "v1": "delegated to original unchanged private host; explicit wire/receipt decoder branches; incompatible old clients hold"
+  },
+  "storage": {
+    "physical": "platform.idempotency_keys",
+    "namespace": "operations.command.v1/<Workspace>/<key>",
+    "new_ledger": false,
+    "admission": "existing actor+Workspace / resource locks and existing unresolved guard; both versions together",
+    "frame": "existing private C03 running_xid; not caller GUC",
+    "states": [
+      "absent",
+      "reserved102",
+      "committed200/rejected409",
+      "acknowledged"
+    ],
+    "hold": [
+      "known absent",
+      "pending",
+      "expired",
+      "missing RPC",
+      "denied/current binding drift",
+      "invalid receipt or ACK"
+    ],
+    "retry": "explicit same key/wire/fingerprint only",
+    "GET": "new read-only facade; zero persistent writes, no receipt/ACK/reservation"
+  },
+  "atomicity": {
+    "native_writer": "maintenance.work_order_checklist_v1(uuid,uuid,uuid,text)",
+    "effects_order": [
+      "existing running frame",
+      "work-order/item locks",
+      "current authority",
+      "native item+domain audit",
+      "current authority",
+      "command audit",
+      "current authority",
+      "outbox",
+      "current authority",
+      "C03 receipt",
+      "current authority response"
+    ],
+    "same_key": "same canonical receipt, no duplicate native/domain/command audit/outbox",
+    "already_recorded": "new independently authorized command only; no second native/domain effect, own command audit/outbox/receipt; cannot close earlier legacy POST",
+    "failure": "bounded business subtransaction rollback then rejection receipt; final currentness failure/unknown error/timeout never success",
+    "COMMIT": "no function COMMIT; RPC execution boundary, later native lane required",
+    "not_claimed": "strict concurrent logout/COMMIT serialization; WAL/sequence rollback"
+  },
+  "cutover": {
+    "default_mode": "legacy",
+    "product_state": "inactive, all bindings NULL",
+    "modes": {
+      "legacy": "inactive + all four seals NULL; old writer selected with deny-only marker",
+      "v2": "active + complete independently reviewed seals; new panel/protocol2/read facade; direct POST428",
+      "hold": "partial/stale/malformed/unknown stops both protocols/checklist GET/POST, no fallback"
+    },
+    "controller": "NOT_IMPLEMENTED; frozen source seam only; seal format is not native proof",
+    "proposal": "separate55000-held SQL pauses four old entry points, owner-only closures then rewires public v1 facade to shared v2 port; no positive grant/activation",
+    "required_inputs": {
+      "installed_source_seal": null,
+      "caller_acl_seal": null,
+      "legacy_inventory_seal": null,
+      "execution_authorization": null
+    },
+    "legacy_UNKNOWN": "no key generation/migration/resend/GET or new receipt closure; deny-only marker has no unknown-clear API; historical lost identifiers require actual inventory and future approved disposition"
+  },
+  "retention": {
+    "technical_test_policy": "CLOSED_OWNER_POLICY_SCOPED_TEST_ONLY",
+    "unresolved": "safe hold; no automatic expiry/purge/cancel",
+    "public_real_data": "OPEN",
+    "wire_notes": "retained exact for technical-test recovery; no general public retention policy inferred",
+    "other_domains": "CE/Building policy not inherited"
+  },
+  "ACL": {
+    "new_routines": "four; owner-only OC1 before commit; final ROLLBACK",
+    "positive_grants": [],
+    "default_ACL_mutation": false,
+    "managed_Auth_mutation": false,
+    "roles_permissions_seeds_tables_types_created": [],
+    "future_callers": "actual existing customer transport principals must be censused; schema USAGE + facade/private EXECUTE exact allowlist separately authorized; legacy mixed/native and private v1 remain owner-only after proposed cutover"
+  },
+  "receiver_census": [
+    {
+      "callee": "customer_api.operations_command_v2",
+      "caller": "operations-command-server.ts request version2 only in approved active mode"
+    },
+    {
+      "callee": "app_private.operations_command_v2",
+      "caller": "new v2 facade; proposed v1 compatibility facade"
+    },
+    {
+      "callee": "app_private.operations_command_v1",
+      "caller": "v2 dispatcher explicit v1 branch and OPEN discovery, owner nesting"
+    },
+    {
+      "callee": "maintenance.work_order_checklist_v1",
+      "caller": "v2 private execute after work-order/item/current-authority gates; old mixed facade retired at future cutover"
+    },
+    {
+      "callee": "customer_api.get_work_order_checklist_v2",
+      "caller": "checklist route GET active mode"
+    },
+    {
+      "callee": "app_private.get_work_order_checklist_v2",
+      "caller": "new read-only facade; actual checkpoint then tenant/work-order filtered read"
+    },
+    {
+      "callee": "legacy mixed facades",
+      "caller": "legacy mode only; all nonowner SQL execution closure proposed, no residual writer fallback"
+    }
+  ],
+  "test_only_effects": [
+    {
+      "object": "app_private.core282_proof_audit_fault_v1()",
+      "kind": "rollback-local fault trigger function",
+      "security": "INVOKER",
+      "owner": "future authorized proof executor; rights independently gated",
+      "path": "supabase/tests/operations-checklist-command-v2.test.sql"
+    },
+    {
+      "object": "audit.events / core282_audit_fault",
+      "kind": "rollback-local AFTER INSERT trigger",
+      "callee": "app_private.core282_proof_audit_fault_v1()",
+      "path": "supabase/tests/operations-checklist-command-v2.test.sql",
+      "cleanup": "ROLLBACK TO checklist_audit_fault; whole catalog equality asserted; final ROLLBACK"
+    }
+  ],
+  "fixture_contract": {
+    "actual_bindings": null,
+    "required": [
+      "approved technical-test actor and issued current session/AAL2",
+      "original test Context/Workspace with native manage/read authority",
+      "in_progress test work order with exact tenant-bound incomplete item",
+      "independently authorized executor with schema CREATE + audit TRIGGER for test-only rollback-local fault"
+    ],
+    "provisioned": false,
+    "proof": "one transaction/finalROLLBACK, real native C03 calls and deliberate audit fault source; no fake Auth/provider in SQL",
+    "native_lanes_open": [
+      "true PG compilation/ACL/RLS/currentness",
+      "two-connection concurrent revoke/races",
+      "actual COMMIT/reply loss",
+      "native issued Auth/MFA",
+      "rollout/caller inventory"
+    ]
+  },
+  "runtime_bindings": {
+    "native": null,
+    "operator": null,
+    "fixture": null,
+    "activation": null
+  },
+  "execution_authorized": false,
+  "source_holds": [
+    "operations SQL unconditional55000 + final ROLLBACK",
+    "cutover SQL independent unconditional55000 + final ROLLBACK",
+    "frozen inactive build-time selection"
+  ],
+  "post62_checkpoint": {
+    "functional_or_proof_source": [
+      "operations-command-server.ts: reject v2 answer on protocol1",
+      "checklist-cutover-proposal.sql: pause old C03 entries and proposed compatible v1 facade",
+      "operations-checklist-command-v2.test.sql: schema-bound rollback-local fault and explicit privilege gates"
+    ],
+    "final_additions": [
+      "focused regression script assertions",
+      "this source manifest",
+      "ABI/cutover contract doc"
+    ],
+    "old_62_evidence": "checkpoint only; final affected checks rerun after these changes, not inferred from old PASS"
+  },
+  "verification_boundary": "actual TS/React/Next handlers + explicit fake Auth/C03 atomic model; bounded SQL text and coherent mutations only; no SQL parser/compile/runtime proof",
+  "protected": [
+    "accepted277 summary projection",
+    "Foundation/installer/history",
+    "runner",
+    "AIR collector/provider/engine",
+    "CE",
+    "unrelated UI/dependencies/lockfiles"
+  ],
+  "not_run": [
+    "SQL parser/compile/execute",
+    "DB/Auth/connection",
+    "real fixture/provisioning/GRANT",
+    "install/activation",
+    "CI/Push/deployment"
+  ],
+  "transfer": "LOCAL_ONLY successor correcting289; prior282 blob immutable, no new transfer authorized",
+  "review_corrections_289": {
+    "review": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6476716748",
+    "predecessor": {
+      "patch_blob": "81df80eccc6107bcef07050a1a9083c479b42c29",
+      "manifest_blob": "4b03aad1ef017556109525be9a4bed6d976981f0"
+    },
+    "source_delta_paths": [
+      "src/components/customer/WorkOrderChecklistPanel.tsx",
+      "src/lib/customer/operations-checklist-cutover.ts",
+      "src/components/customer/DurableWorkOrderChecklistPanel.tsx",
+      "scripts/test-operations-checklist-command-v2.mjs",
+      "docs/contracts/OPERATIONS-CHECKLIST-C03-v2.md",
+      "supabase/operations-command/checklist-v2.manifest.json"
+    ],
+    "289-SR-01": "canonical rejected + exact ACK is known rejected; explicit successful current observation before next intent, no implicit retry; real UNKNOWN remains held",
+    "289-SR-02": "per-attempt retained journal entry + live owner handle; known reply touches own inflight only; ownerless v1 and UNKNOWN never clear",
+    "legacy_browser_ABI": {
+      "entry_version": 2,
+      "prefix": "cladora.operations.checklist.legacy-keyless.v1.attempt.v2:",
+      "owner": "exact browser-lifetime issued handle+storage object; no copied handle; never C03/server command identity",
+      "states": [
+        "inflight",
+        "unknown",
+        "known"
+      ],
+      "retirement": "inflight→known only by original complete validated response; entry retained",
+      "unknown_clear": "NONE",
+      "old_v1": "held independently, no migration/claiming",
+      "storage": "enumerable WebStorage required at runtime; unsupported storage fails closed",
+      "CAS_or_global_exclusion": "NOT_CLAIMED; conservative independent holds under overlap",
+      "retention": "no new TTL/purge/cancel; public real-data policy OPEN"
+    },
+    "hash_delta": [
+      {
+        "JSON_path": "/source_identities_excluding_self/4",
+        "path": "src/components/customer/WorkOrderChecklistPanel.tsx",
+        "before": {
+          "bytes": 13980,
+          "sha256": "7b1f7209238ad01315a00239fd923d67c41a2954fd0df1a9fc3475f9974f7fe1",
+          "git_blob": "cc6060305b7750932a5c53b6d5641bf9de7802eb"
+        },
+        "after": {
+          "bytes": 14140,
+          "sha256": "ae5f7d2a67d54fc74e956b0d003cb01251976c528200bc5c74069cd03a8087c9",
+          "git_blob": "999036cc37fca435fe88a7ca31aa82dd4053d4fa"
+        }
+      },
+      {
+        "JSON_path": "/source_identities_excluding_self/6",
+        "path": "src/lib/customer/operations-checklist-cutover.ts",
+        "before": {
+          "bytes": 3721,
+          "sha256": "907a9341c9f6c247d93ff5ce627dcb0ccf6416b4b4b99bcad32d2139cbc77fb9",
+          "git_blob": "3728c8ae22e7d1081e16704fd52d8ef07754802c"
+        },
+        "after": {
+          "bytes": 6575,
+          "sha256": "edfad014319fcca9d93fd3d0269f21fc25fc74f48b6d6a5ec1323e3008677178",
+          "git_blob": "26e8519991df05a531eb98f3624cdcc2dc6517e2"
+        }
+      },
+      {
+        "JSON_path": "/source_identities_excluding_self/7",
+        "path": "src/components/customer/DurableWorkOrderChecklistPanel.tsx",
+        "before": {
+          "bytes": 7961,
+          "sha256": "06f652a3016642036a964cee68d847eb8648867ec5a6046ba2673f5067369f91",
+          "git_blob": "12ea8070e3f266f5190592a795249129586f6c2f"
+        },
+        "after": {
+          "bytes": 9582,
+          "sha256": "3efe443244923e045de092b1cedc3d9446ea73bbe507938a35f8c635b11f187a",
+          "git_blob": "c22b4510f7c2bfe56a0e34b7bdee45a5fa0789df"
+        }
+      },
+      {
+        "JSON_path": "/source_identities_excluding_self/10",
+        "path": "scripts/test-operations-checklist-command-v2.mjs",
+        "before": {
+          "bytes": 40615,
+          "sha256": "2d486e07809cd0fe197940e7fc79f62d23db460896168b01b483f6bc990873dd",
+          "git_blob": "91018e1744970c3e7c4e986434fda7da8d06b9ff"
+        },
+        "after": {
+          "bytes": 52624,
+          "sha256": "03453fb461e2a89892ccd74e18ebbccf347f2c218e068e1f05c43af819cc99bf",
+          "git_blob": "ade6751dbf7aad89b59dcd6fe36e626181d40710"
+        }
+      },
+      {
+        "JSON_path": "/source_identities_excluding_self/12",
+        "path": "docs/contracts/OPERATIONS-CHECKLIST-C03-v2.md",
+        "before": {
+          "bytes": 13344,
+          "sha256": "dae5037a3277daccf49ad041d6941654ef1f81201d24fa6c75397b2163037f22",
+          "git_blob": "edebc4423d683acd3876dbb85e52a5c4fb33b505"
+        },
+        "after": {
+          "bytes": 16608,
+          "sha256": "2b044b396eecbde62d8e414c94081ed7eec6be94da164e801f03b402a2a02e65",
+          "git_blob": "9eac987919693c2e8a40b51b96d9510af69be724"
+        }
+      }
+    ],
+    "protected": "Gate/client/server/route/codecs/SQL/native helper bodies/277 summary byte-identical",
+    "clock_288_1": "accepted source CE293-2; no suite/review repeated, no291 request changes; future explicitly bound integration only",
+    "runtime_evidence": "NOT_RUN_NOT_PASS",
+    "checks": "focused offline correction suite + two affected existing journal cases and identity check; unrelated67-case suite not rerun"
+  }
+}

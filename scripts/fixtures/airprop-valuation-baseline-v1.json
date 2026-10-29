@@ -1,0 +1,359 @@
+{
+  "notice": "SYNTHETIC ONLY: invented units, evidence, rights and Core read observations; not a licensed dataset, live authority or market calibration. No actual transaction.",
+  "oracle_method": "Independent hand arithmetic: unit prices1000/2000/3000EUR per sqm, equal weights, subject100sqm -> low100000/central200000/high300000. Rent uses distinct synthetic50sqm rows500/1000/1500 -> subject100sqm yields1000/2000/3000 per MONTH.",
+  "sale_oracle": {
+    "low": "100000.00",
+    "central": "200000.00",
+    "high": "300000.00"
+  },
+  "rent_oracle": {
+    "low": "1000.00",
+    "central": "2000.00",
+    "high": "3000.00"
+  },
+  "weighted_oracle": {
+    "central": "250000.00"
+  },
+  "base": {
+    "resource": {
+      "contract": "resource-valuation-input.v1",
+      "resource_id": "00000003-0000-4000-8000-000000000003",
+      "resource_version": 4,
+      "resource_type": "unit",
+      "workspace_id": "00000002-0000-4000-8000-000000000002",
+      "snapshot_as_of": "2026-10-01T00:00:00.000Z",
+      "country_code": "RO",
+      "location": {
+        "locality": "București"
+      },
+      "attributes": {
+        "area": "100",
+        "area_unit": "sqm",
+        "floor": 2,
+        "condition": "good",
+        "bedrooms": 2,
+        "market_location_key": "RO/B/synthetic-zone",
+        "unit_kind": "apartment"
+      },
+      "evidence_refs": []
+    },
+    "request": {
+      "contract": "valuation-request-receipt.v1",
+      "valuation_id": "00000009-0000-4000-8000-000000000009",
+      "request_id": "0000000a-0000-4000-8000-00000000000a",
+      "resource_id": "00000003-0000-4000-8000-000000000003",
+      "resource_version": 4,
+      "workspace_id": "00000002-0000-4000-8000-000000000002",
+      "purposes": [
+        "sale_estimate"
+      ],
+      "requested_at": "2026-10-01T00:00:00.000Z",
+      "accepted_at": "2026-10-01T00:00:00.000Z",
+      "idempotency_key": "synthetic-fixture-01"
+    },
+    "as_of": "2026-10-01T00:00:00.000Z",
+    "computed_at": "2026-10-01T00:00:00.000Z",
+    "policy": {
+      "contract": "valuation-baseline-policy.v1",
+      "policy_version": "synthetic-policy-1",
+      "model_version": "comparable-envelope-1",
+      "dataset_kind": "synthetic",
+      "market": {
+        "country_code": "RO",
+        "locality": "București",
+        "location_key": "RO/B/synthetic-zone"
+      },
+      "resource_type": "unit",
+      "transaction_kind": "sale",
+      "evidence_kind": "verified_transaction",
+      "rental_period": null,
+      "area_attribute": "area",
+      "area_unit_attribute": "area_unit",
+      "match_attributes": [
+        "unit_kind",
+        "floor",
+        "condition",
+        "bedrooms"
+      ],
+      "min_comparables": 3,
+      "min_area_ratio": "0.5",
+      "max_area_ratio": "2",
+      "outlier_ratio": "4",
+      "source_weights": [
+        {
+          "source_id": "synthetic-a",
+          "weight": 1,
+          "rationale_ref": "synthetic://equal-weight-example-NOT-CALIBRATION"
+        }
+      ],
+      "time_adjustments": [],
+      "location_key_attribute": "market_location_key"
+    },
+    "quality_policy": {
+      "contract": "valuation-quality-policy.v1",
+      "policy_version": "synthetic-policy-1",
+      "as_of": "2026-10-01T00:00:00.000Z",
+      "target_currency": "EUR",
+      "target_area_unit": "sqm",
+      "freshness_days": {
+        "asking": 90,
+        "verified_transaction": 365,
+        "external_estimate": 60
+      },
+      "fx_rates": []
+    },
+    "observations": [
+      {
+        "contract": "market-observation.v1",
+        "observation_id": "00000014-0000-4000-8000-000000000014",
+        "resource_type": "unit",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "transaction_kind": "sale",
+        "evidence_kind": "verified_transaction",
+        "source": {
+          "source_id": "synthetic-a",
+          "source_type": "company",
+          "source_record_id": "synthetic-record-0",
+          "collected_at": "2026-09-20T00:00:00.000Z",
+          "usage_rights": "internal"
+        },
+        "observed_at": "2026-09-20T00:00:00.000Z",
+        "location_key": "RO/B/synthetic-zone",
+        "currency": "EUR",
+        "amount": "100000",
+        "area": "100",
+        "area_unit": "sqm",
+        "attributes": {
+          "floor": 2,
+          "condition": "good",
+          "bedrooms": 2,
+          "time_adjusted": false,
+          "unit_kind": "apartment"
+        },
+        "verification": "transaction_verified",
+        "quarantined": false,
+        "quarantine_reasons": []
+      },
+      {
+        "contract": "market-observation.v1",
+        "observation_id": "00000015-0000-4000-8000-000000000015",
+        "resource_type": "unit",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "transaction_kind": "sale",
+        "evidence_kind": "verified_transaction",
+        "source": {
+          "source_id": "synthetic-a",
+          "source_type": "company",
+          "source_record_id": "synthetic-record-1",
+          "collected_at": "2026-09-20T00:00:00.000Z",
+          "usage_rights": "internal"
+        },
+        "observed_at": "2026-09-20T00:00:00.000Z",
+        "location_key": "RO/B/synthetic-zone",
+        "currency": "EUR",
+        "amount": "200000",
+        "area": "100",
+        "area_unit": "sqm",
+        "attributes": {
+          "floor": 2,
+          "condition": "good",
+          "bedrooms": 2,
+          "time_adjusted": false,
+          "unit_kind": "apartment"
+        },
+        "verification": "transaction_verified",
+        "quarantined": false,
+        "quarantine_reasons": []
+      },
+      {
+        "contract": "market-observation.v1",
+        "observation_id": "00000016-0000-4000-8000-000000000016",
+        "resource_type": "unit",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "transaction_kind": "sale",
+        "evidence_kind": "verified_transaction",
+        "source": {
+          "source_id": "synthetic-a",
+          "source_type": "company",
+          "source_record_id": "synthetic-record-2",
+          "collected_at": "2026-09-20T00:00:00.000Z",
+          "usage_rights": "internal"
+        },
+        "observed_at": "2026-09-20T00:00:00.000Z",
+        "location_key": "RO/B/synthetic-zone",
+        "currency": "EUR",
+        "amount": "300000",
+        "area": "100",
+        "area_unit": "sqm",
+        "attributes": {
+          "floor": 2,
+          "condition": "good",
+          "bedrooms": 2,
+          "time_adjusted": false,
+          "unit_kind": "apartment"
+        },
+        "verification": "transaction_verified",
+        "quarantined": false,
+        "quarantine_reasons": []
+      }
+    ],
+    "sources": [
+      {
+        "contract": "valuation-source-inventory.v1",
+        "source_id": "synthetic-a",
+        "source_version": "synthetic-1",
+        "owner_ref": "synthetic://curator",
+        "acquisition_method": "manual_import",
+        "evidence_kinds": [
+          "asking",
+          "verified_transaction",
+          "external_estimate"
+        ],
+        "freshness_days": 90,
+        "review_state": "verified",
+        "rights": {
+          "evidence_ref": "synthetic://usage-evidence-NOT-A-LICENSE",
+          "reviewed_at": "2026-01-01T00:00:00.000Z",
+          "effective_from": "2026-01-01T00:00:00.000Z",
+          "effective_until": "2027-01-01T00:00:00.000Z",
+          "scope": "licensed_workspace",
+          "workspace_id": "00000002-0000-4000-8000-000000000002",
+          "permitted_uses": [
+            "quality_evaluation",
+            "result_display",
+            "comparable_display"
+          ],
+          "raw_retention_until": "2027-01-01T00:00:00.000Z",
+          "derived_retention_until": "2027-01-01T00:00:00.000Z"
+        }
+      }
+    ],
+    "unit_links": [
+      {
+        "observation_id": "00000014-0000-4000-8000-000000000014",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "unit_id": "SYNTHETIC-UNIT-0",
+        "review_ref": "synthetic://independent-unit-curation",
+        "reviewed_at": "2026-09-20T00:00:00.000Z"
+      },
+      {
+        "observation_id": "00000015-0000-4000-8000-000000000015",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "unit_id": "SYNTHETIC-UNIT-1",
+        "review_ref": "synthetic://independent-unit-curation",
+        "reviewed_at": "2026-09-20T00:00:00.000Z"
+      },
+      {
+        "observation_id": "00000016-0000-4000-8000-000000000016",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "unit_id": "SYNTHETIC-UNIT-2",
+        "review_ref": "synthetic://independent-unit-curation",
+        "reviewed_at": "2026-09-20T00:00:00.000Z"
+      }
+    ],
+    "core_request": {
+      "contract_version": "core-resource-authority.v1",
+      "evaluation_time": "2026-10-01T00:00:00.000Z",
+      "resource": {
+        "contract_version": "canonical-resource-reference.v1",
+        "context_id": "00000001-0000-4000-8000-000000000001",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "resource_type": "unit",
+        "resource_id": "00000003-0000-4000-8000-000000000003",
+        "resource_version": 4,
+        "permission_code": "airprop.asset.read",
+        "purpose": "airprop.management.portfolio"
+      },
+      "relationship": {
+        "relationship_id": "00000004-0000-4000-8000-000000000004",
+        "relationship_version": 2,
+        "relationship_kind": "management",
+        "required_scope_codes": [
+          "owner_reporting"
+        ]
+      },
+      "authority": {
+        "contract_version": "workspace-native-effective-authority.v2",
+        "decision_id": "00000005-0000-4000-8000-000000000005",
+        "context_id": "00000001-0000-4000-8000-000000000001",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "permission_code": "airprop.asset.read",
+        "module_code": "airprop_commercial",
+        "target_scope_type": "workspace",
+        "target_scope_id": "00000002-0000-4000-8000-000000000002",
+        "evaluation_purpose": "airprop.management.portfolio"
+      }
+    },
+    "core_evidence": {
+      "resource": {
+        "contract_version": "canonical-resource-reference.v1",
+        "reference_status": "verified",
+        "tenant_id": "00000006-0000-4000-8000-000000000006",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "resource_type": "unit",
+        "resource_id": "00000003-0000-4000-8000-000000000003",
+        "resource_version": 4,
+        "party_kind": null,
+        "display_name": "SYNTHETIC apartment unit",
+        "lifecycle_status": "active",
+        "evaluated_at": "2026-10-01T00:00:00.000Z",
+        "action_authorization": "not_evaluated"
+      },
+      "relationship": {
+        "contract_version": "resource-relationship.v1",
+        "relationship_id": "00000004-0000-4000-8000-000000000004",
+        "relationship_version": 2,
+        "tenant_id": "00000006-0000-4000-8000-000000000006",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "party_id": "00000007-0000-4000-8000-000000000007",
+        "party_kind": "company",
+        "resource_type": "unit",
+        "resource_id": "00000003-0000-4000-8000-000000000003",
+        "relationship_kind": "management",
+        "scope_codes": [
+          "owner_reporting"
+        ],
+        "valid_from": "2026-01-01T00:00:00.000Z",
+        "valid_until": "2027-01-01T00:00:00.000Z",
+        "evidence_reference": "synthetic://relationship",
+        "relationship_status": "effective",
+        "evaluated_at": "2026-10-01T00:00:00.000Z",
+        "action_authorization": "not_evaluated"
+      },
+      "authority": {
+        "contract_version": "workspace-native-effective-authority.v2",
+        "decision_id": "00000005-0000-4000-8000-000000000005",
+        "workspace_id": "00000002-0000-4000-8000-000000000002",
+        "permission_code": "airprop.asset.read",
+        "module_code": "airprop_commercial",
+        "target_scope_type": "workspace",
+        "target_scope_id": "00000002-0000-4000-8000-000000000002",
+        "evaluator": "app_private.check_workspace_native_permission_v2",
+        "authority_policy_version": 2,
+        "source_disclosure": "status_only",
+        "source_reference": null,
+        "evaluated_at": "2026-10-01T00:00:00.000Z",
+        "current_authority_recheck_required": true,
+        "reusable_as_command_authority": false,
+        "decision": "allowed",
+        "reason_codes": [
+          "current_effective_permission_allowed"
+        ]
+      }
+    }
+  },
+  "successor": {
+    "prepared_contract": "valuation-baseline-prepared-input.v2",
+    "run_contract": "valuation-baseline-run.v2",
+    "wrapper_contract": "valuation-baseline-result.v1",
+    "index_producer_status": "NOT_READY_NO_ACCEPTED_PRODUCER",
+    "independent_reference": "base is independently prepared synthetic input; never derive trusted reference from a tampered run",
+    "before_findings": [
+      "tampered central/hash accepted",
+      "trace private_payload leaked",
+      "matched Core decision ID change same run hash",
+      "FX publication-time change same run hash",
+      "monthly rent has no machine-readable period"
+    ]
+  }
+}

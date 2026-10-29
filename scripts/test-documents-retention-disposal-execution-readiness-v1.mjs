@@ -24,7 +24,7 @@ const expectedHashes = Object.freeze({
   operation: 'fa0d815e149b64f02ff864f2293b89fe2acfffb8b1b6e821fc2b7d85c907ce3c',
   operationContract: 'cb167391603adaca55a96cb0b8c5fd4fd918b5b03892d1d309d8462254ecbcd0',
   writer: '33946d944b49eea1495bddca1979aa19f227694e533106c91d4ceed234f83c94',
-  host: 'ce0360f30f1c49ff06e8ec944ba7263e0012c56fb2c27e5094d6604a1cf09a6e',
+  host: '5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06',
   replay: 'eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4',
   baseVault: 'c5533819e44344d06619f2887c2a24d16fbfa7b9ccd31e6eb87f21dda5a04375',
   canonicalVault: 'd7f41f90b94336bfaae4fea2c6a35be77eb30dd5640fe9c87fbe01f9d7ecaaf1',

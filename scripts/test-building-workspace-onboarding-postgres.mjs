@@ -105,7 +105,9 @@ export async function cleanupOwnedDatabase({admin,name,created,clients=[]}) {
  if(dropFailed||closed.some(result=>result.status==='rejected')) throw Object.assign(Error('owned database cleanup failed; no force or session termination attempted'),{code:dropCode});
 }
 
-export async function runPostgresProof() {
+export async function runPostgresProof({commandProof='legacy',sessionId=null}={}) {
+ assert.ok(['legacy','g2'].includes(commandProof),'explicit command proof profile');
+ if(commandProof==='g2')assert.match(sessionId??'',/^[a-f0-9-]{36}$/i,'separately prepared native fixture session required; not created here');
  const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
  const {url,lease,target,fixture}=validateProofTarget(process.env,sha);
  const {default:pg}=await import('pg');
@@ -121,7 +123,7 @@ async function call(name,args,actor=fixture.actor){
  return withProofCleanup(async()=>{
   await client.connect();await client.query('begin');transaction=true;
   await client.query('set local statement_timeout=15000');await client.query('set local role authenticated');
-  await client.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:actor,role:'authenticated',aal:'aal2'})]);
+  await client.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:actor,role:'authenticated',aal:'aal2',...(commandProof==='g2'?{session_id:sessionId}:{})})]);
   const placeholders=args.map((_,i)=>`$${i+1}`).join(',');
   const r=await client.query(`select customer_api.${name}(${placeholders}) result`,args);
   await client.query('commit');transaction=false;return r.rows[0].result;
@@ -129,6 +131,7 @@ async function call(name,args,actor=fixture.actor){
   {stage:'client-end',run:async()=>{await client.end();clients.splice(clients.indexOf(client),1);}}]);
 }
 const tables=['platform.building_setup_runs','audit.events','platform.outbox_events','portfolio.properties','portfolio.buildings','portfolio.units','finance.accounting_periods','finance.journals','billing.invoices','identity.memberships','identity.context_grants','platform.workspace_property_bindings','platform.workspace_member_roles','platform.workspace_member_role_authority_sources','platform.workspace_role_handover_lineage'];
+if(commandProof==='g2')tables.push('platform.building_setup_command_receipt_epochs','platform.building_setup_command_coverage','platform.building_setup_command_receipts','app_private.canonical_authority_revision_v1');
 async function fingerprint(){const parts=[];for(const table of tables){const r=await inspector.query(`select md5(coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text),'[]'::jsonb)::text) digest from ${table} t`);parts.push([table,r.rows[0].digest]);}return parts;}
 return withProofCleanup(async()=>{
  await admin.connect();
@@ -159,7 +162,12 @@ return withProofCleanup(async()=>{
  assert.deepEqual(await call('create_building_setup_v2',args),both[0]);checks++;
  assert.deepEqual(await fingerprint(),before,'exact receipts return without another data/audit write');checks++;
  const next=winner.operation==='update'?'rehearse_building_setup_v2':'submit_building_setup_v2';await call(next,[fixture.context,fixture.workspace,run,2,key(2,'next')]);
- before=await fingerprint();await assert.rejects(replay(),e=>e.code==='40001');checks++;
+ before=await fingerprint();
+ if(commandProof==='g2'){
+  assert.equal((await inspector.query("select count(*)::integer n from platform.building_setup_command_coverage where run_id=$1 and epoch_id='building-g2-pm169-v1' and from_expected_revision=1",[run])).rows[0].n,1,'coverage must come from this creation, never backfill');checks++;
+  assert.deepEqual(await replay(),winner,'covered superseded command returns original immutable receipt');checks++;
+  assert.deepEqual(await fingerprint(),before,'durable replay after successor is zero-write');checks++;
+ } else {await assert.rejects(replay(),e=>e.code==='40001');checks++;}
  await assert.rejects(call('get_building_setup_attempt_v2',[fixture.context,fixture.workspace,creationKey],'c2200000-0000-4000-8000-000000000004'),e=>e.code==='42501');checks++;
  assert.deepEqual(await fingerprint(),before,'superseded receipt and borrowed Context denial are zero-write');checks++;
  // Fixture-only revoke outside the measured denied-call window; never change
