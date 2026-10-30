@@ -37,7 +37,7 @@ async function snapshot(dumpCode,restoreCode,options={}){
 }
 
 test('accept exact official image, full-SHA lease and loopback fixture',()=>{
- validateCi(env,sha,info);
+ for(const registry of ['public.ecr.aws/supabase/','ghcr.io/supabase/','supabase/'])validateCi(env,sha,{Config:{...info.Config,Image:registry+'postgres:17.6.1.095'}});
  assert.equal(validateProofTarget(env,sha).target.pathname,'/'+source);
  const alias={...env,BUILDING_SETUP_TEST_DATABASE_URL:env.BUILDING_SETUP_TEST_DATABASE_URL.replace('127.0.0.1','[::1]')};
  assert.equal(validateProofTarget(alias,sha).target.hostname,'[::1]');
@@ -46,7 +46,7 @@ test('accept exact official image, full-SHA lease and loopback fixture',()=>{
 test('reject missing CI/daemon, mismatched/partial lease, project and image before work',()=>{
  for(const delta of [{GITHUB_ACTIONS:'false'},{BUILDING_SETUP_CI_OWNS_FRESH_DAEMON:'0'},{BUILDING_SETUP_TEST_LEASE:'building-12-1-'+'c'.repeat(40)},{BUILDING_SETUP_TEST_LEASE:'building-12-1-'+sha+'junk'}]) assert.throws(()=>validateCi({...env,...delta},sha,info));
  assert.throws(()=>validateCi(env,sha.slice(0,7),info));
- for(const Config of [{...info.Config,Image:'attacker.example/supabase/postgres:17.6.1.095'},{...info.Config,Image:'supabase/postgres:latest'},{...info.Config,Labels:{'com.supabase.cli.project':'foreign'}}]) assert.throws(()=>validateCi(env,sha,{Config}));
+ for(const Config of [{...info.Config,Image:'attacker.example/supabase/postgres:17.6.1.095'},{...info.Config,Image:'supabase/postgres:latest'},{...info.Config,Image:'ghcr.io/attacker/postgres:17.6.1.095'},{...info.Config,Image:'ghcr.io/supabase/postgres:latest'},{...info.Config,Image:'ghcr.io/supabase/postgres:17.6.1.095-extra'},{...info.Config,Labels:{'com.supabase.cli.project':'foreign'}}]) assert.throws(()=>validateCi(env,sha,{Config}));
 });
 
 test('reject remote, alternate port/user, shared DB, query/fragment and encoded endpoint overrides',()=>{

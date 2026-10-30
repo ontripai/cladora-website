@@ -31,7 +31,7 @@ export function validateCi(env, sha, info) {
   assert.ok(/^[a-f0-9]{40}$/.test(sha), 'full checked-out SHA required');
   assert.ok(new RegExp('^building-[0-9]+-[0-9]+-' + sha + '$').test(env.BUILDING_SETUP_TEST_LEASE ?? ''), 'lease binds exact SHA');
   assert.ok(info?.Config?.Labels?.['com.supabase.cli.project'] === 'cladora-local', 'official project identity required');
-  assert.ok(/^(?:public\.ecr\.aws\/supabase\/|supabase\/)postgres:17\.6\.1\.095$/.test(info?.Config?.Image ?? ''), 'pinned official image required');
+  assert.ok(/^(?:public\.ecr\.aws\/supabase\/|ghcr\.io\/supabase\/|supabase\/)postgres:17\.6\.1\.095$/.test(info?.Config?.Image ?? ''), 'pinned official image required');
 }
 
 export function observeProcess(child, stage) {
@@ -150,6 +150,7 @@ export async function runCi() {
   const container = 'supabase_db_cladora-local';
   const info = JSON.parse(execFileSync('docker', [...docker, 'inspect', container], { env: dockerEnv, encoding: 'utf8', stdio: ['ignore','pipe','pipe'] }))[0];
   validateCi(process.env, sha, info);
+  console.log("Verified official pinned local PostgreSQL image: " + info.Config.Image);
   const source = `cladora_setup_fixture_${randomUUID().replaceAll('-', '')}`;
   const url = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
   const {default: pg} = await import('pg');
