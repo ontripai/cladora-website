@@ -124,11 +124,117 @@ try {
     'canonical pilot creation records audit');
   check(sql(`select count(*) from identity.memberships where user_id='${id}'::uuid;`) === '0',
     'platform fixture does not grant customer membership');
+  receipt.first_administrator = 'PASS';
+  // Bounded PILOT is an explicit canonical access mode, requiring no invented
+  // signed contract/payment evidence. The customer is a distinct GoTrue user;
+  // only application RPCs may create their profile, membership and Context.
+  const customer = createClient(api.origin, status.ANON_KEY, options);
+  const customerEmail = `pilot-customer-${run}@example.invalid`;
+  const customerPassword = randomBytes(32).toString('base64url') + 'aA1!';
+  const customerCreated = success(await admin.auth.admin.createUser({ email: customerEmail,
+    password: customerPassword, email_confirm: true,
+    app_metadata: { cladora_disposable_pilot_customer: true } }), 'local_customer_auth_creation_failed');
+  const customerId = customerCreated.user?.id;
+  check(/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/.test(customerId ?? '') && customerId !== id,
+    'distinct real GoTrue customer UUID');
+  const customerVerified = success(await admin.auth.admin.getUserById(customerId), 'customer_auth_readback_failed');
+  check(customerVerified.user.email === customerEmail && !!customerVerified.user.email_confirmed_at,
+    'managed Auth verified synthetic customer');
+  success(await customer.auth.signInWithPassword({ email: customerEmail, password: customerPassword }), 'customer_signin_failed');
+  check(success(await customer.auth.mfa.getAuthenticatorAssuranceLevel(), 'customer_aal1_failed').currentLevel === 'aal1',
+    'distinct customer password session starts AAL1');
+  const roles = success(await actor.schema('customer_api').from('workspace_primary_admin_roles_v1')
+    .select('id,code').eq('code', 'association_admin'), 'primary_admin_role_lookup_failed');
+  check(roles.length === 1, 'canonical association primary administrator role discovered through API');
+  const basis = success(await actor.schema('customer_api').rpc('prepare_workspace_access_basis_v1', {
+    p_workspace_id: pilot.workspace.id, p_email: customerEmail, p_role_id: roles[0].id,
+    p_mode: 'PILOT', p_duration_hours: 24, p_contract_id: null, p_payment_reference: null,
+    p_payment_amount: null, p_payment_currency: null, p_paid_on: null, p_paid_through: null,
+    p_evidence_note: `Explicit disposable CI technical pilot approval; 24 hours; run ${run}; no payment or contract claimed`,
+  }), 'canonical_pilot_preparation_failed');
+  check(basis.status === 'prepared' && basis.mode === 'PILOT' && basis.access_active === false
+    && basis.email_sent === false, 'canonical 24-hour PILOT preparation grants no membership or email invitation');
+  // The lifecycle API requires every intermediate state even for PILOT. These
+  // names describe the state machine, not assertions that a contract was signed
+  // or payment received; the sole provisioning evidence is the prepared PILOT.
+  let workspace = pilot.workspace;
+  for (const target of ['UNDER_REVIEW', 'APPROVED', 'CONTRACT_PENDING', 'PAYMENT_PENDING', 'PROVISIONING']) {
+    const next = success(await actor.schema('customer_api').rpc('transition_workspace_lifecycle_v1', {
+      p_workspace_id: workspace.id, p_target_status: target, p_expected_version: workspace.version,
+      p_reason: `Disposable 24-hour PILOT technical lifecycle progression to ${target}; no contractual or payment claim`,
+    }), 'canonical_pilot_lifecycle_failed');
+    check(next.id === workspace.id && next.lifecycle_status === target && next.environment === 'PILOT'
+      && next.version === workspace.version + 1, `canonical version-bound PILOT lifecycle ${target}`);
+    workspace = next;
+  }
+  check((await customer.schema('customer_api').rpc('list_my_prepared_workspace_access_v1')).error?.code === '42501',
+    'prepared access list denies real customer AAL1');
+  check((await customer.schema('customer_api').rpc('activate_prepared_workspace_access_v1', {
+    p_basis_id: basis.id, p_display_name: 'Disposable pilot customer', p_locale: 'en',
+  })).error?.code === '42501', 'prepared access activation denies real customer AAL1');
+  const customerFactor = success(await customer.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Disposable customer TOTP' }),
+    'customer_totp_enrollment_failed');
+  check(customerFactor.type === 'totp' && !!customerFactor.totp?.secret, 'real customer TOTP enrollment');
+  success(await customer.auth.mfa.challengeAndVerify({ factorId: customerFactor.id,
+    code: generateTotp(customerFactor.totp.secret) }), 'customer_totp_challenge_failed');
+  check(success(await customer.auth.mfa.getAuthenticatorAssuranceLevel(), 'customer_aal2_failed').currentLevel === 'aal2'
+    && success(await customer.auth.getUser(), 'customer_aal2_user_failed').user.id === customerId,
+  'distinct customer receives real managed AAL2 session');
+  const prepared = success(await customer.schema('customer_api').rpc('list_my_prepared_workspace_access_v1'), 'customer_prepared_list_failed');
+  check(prepared.length === 1 && prepared[0].id === basis.id && prepared[0].workspace_id === workspace.id
+    && prepared[0].duration_hours === 24 && prepared[0].mode === 'PILOT', 'customer sees exact prepared bounded PILOT basis');
+  check(success(await actor.schema('customer_api').rpc('list_my_prepared_workspace_access_v1'), 'other_actor_prepared_list_failed').length === 0,
+    'platform administrator cannot list another verified email prepared access');
+  check((await actor.schema('customer_api').rpc('activate_prepared_workspace_access_v1', {
+    p_basis_id: basis.id, p_display_name: 'Wrong verified actor', p_locale: 'en',
+  })).error?.code === '42501', 'wrong AAL2 actor cannot activate customer basis');
+  const activated = success(await customer.schema('customer_api').rpc('activate_prepared_workspace_access_v1', {
+    p_basis_id: basis.id, p_display_name: 'Disposable pilot customer', p_locale: 'en',
+  }), 'customer_pilot_activation_failed');
+  check(activated.workspace_id === workspace.id && activated.mode === 'PILOT' && !!activated.membership_id,
+    'canonical prepared-access activation creates customer membership');
+  const contexts = success(await customer.schema('customer_api').rpc('list_contexts_v1'), 'customer_contexts_failed');
+  check(contexts.length === 1 && contexts[0].membership_id === activated.membership_id
+    && contexts[0].tenant_id === pilot.tenant_id && contexts[0].role_code === 'association_admin'
+    && contexts[0].scope_type === 'tenant' && Number.isFinite(Date.parse(contexts[0].ends_at)),
+  'real customer Context is projected from bounded canonical membership');
+  const expiry = JSON.parse(sql(`select jsonb_build_object('same_bound',m.ends_at=b.expires_at and g.ends_at=b.expires_at,
+    'duration',extract(epoch from (b.expires_at-b.activated_at)), 'profile',exists(select 1 from identity.profiles p where p.user_id=m.user_id),
+    'no_commercial_claim',b.contract_id is null and b.payment_reference is null and b.payment_amount is null)
+    from platform.workspace_access_bases b join identity.memberships m on m.id=b.membership_id
+    join identity.context_grants g on g.id=b.context_grant_id where m.user_id='${customerId}'::uuid;`));
+  check(expiry.same_bound && Number(expiry.duration) === 24 * 60 * 60 && expiry.profile && expiry.no_commercial_claim,
+    'owner readback confirms exact 24-hour membership Context basis expiry and canonical profile without commercial claim');
+  const beforeOnboarding = success(await customer.schema('customer_api').rpc('get_my_primary_admin_onboarding_v1', {
+    p_workspace_id: workspace.id,
+  }), 'customer_onboarding_read_failed');
+  check(beforeOnboarding.length === 1 && beforeOnboarding[0].customer_workspace_id === workspace.id
+    && beforeOnboarding[0].onboarding_completed === false, 'canonical primary administrator onboarding is pending');
+  check((await actor.schema('customer_api').rpc('complete_primary_admin_onboarding_v1', {
+    p_workspace_id: workspace.id, p_expected_version: beforeOnboarding[0].workspace_version,
+    p_reason: 'Wrong verified actor must not complete customer onboarding',
+  })).error?.code === '42501', 'platform administrator cannot complete another actor onboarding');
+  const completed = success(await customer.schema('customer_api').rpc('complete_primary_admin_onboarding_v1', {
+    p_workspace_id: workspace.id, p_expected_version: beforeOnboarding[0].workspace_version,
+    p_reason: 'Disposable customer completed verified identity real TOTP and bounded PILOT access onboarding',
+  }), 'customer_onboarding_completion_failed');
+  check(completed.onboarding_completed === true && completed.customer_workspace_id === workspace.id
+    && completed.workspace_version === beforeOnboarding[0].workspace_version + 1,
+  'real AAL2 customer completes version-bound primary administrator onboarding');
+  const afterOnboarding = success(await customer.schema('customer_api').rpc('get_my_primary_admin_onboarding_v1', {
+    p_workspace_id: workspace.id,
+  }), 'completed_onboarding_read_failed');
+  check(afterOnboarding.length === 1 && afterOnboarding[0].onboarding_completed === true
+    && afterOnboarding[0].workspace_version === completed.workspace_version, 'canonical onboarding readback agrees');
+  check(sql(`select count(*) from audit.events where actor_id='${customerId}'::uuid
+    and action in ('WORKSPACE_ACCESS_BASIS_ACTIVATED','PRIMARY_ADMIN_ONBOARDING_COMPLETED');`) === '2',
+    'customer activation and onboarding both have real audit records');
+  receipt.customer_onboarding = 'PASS_LOCAL_PREPARED_24_HOUR_PILOT_ONLY';
   receipt.result = 'PASS';
-  receipt.scope = 'Real local managed Auth/password/TOTP/AAL2, owner platform fixture, canonical platform context and pilot LEAD creation only';
-  receipt.next = 'Canonical bounded pilot access preparation and lifecycle, customer acceptance, onboarding and native workspace authority remain unproved';
+  receipt.scope = 'Real local Auth/TOTP for two distinct users; narrow owner platform fixture; canonical 24-hour PILOT preparation, lifecycle, customer activation, membership/Context and primary-admin onboarding';
+  receipt.next = 'Workspace remains PROVISIONING; ACTIVE transition, native workspace/module authority, customer dashboard, operations and building workflows remain unproved';
   receipt.teardown = 'Owned CI Supabase project must be destroyed; synthetic fixture deliberately retained until teardown';
-  console.log('PASS: disposable real Auth first administrator and canonical pilot LEAD creation; no browser, hosted or customer onboarding claim.');
+  console.log('PASS: disposable real Auth platform administrator and bounded PILOT customer onboarding; no browser, hosted, native-workspace or operations acceptance claim.');
 } catch {
   receipt.result = 'FAIL';
   // Neither raw SDK errors nor assertion values are safe credential diagnostics.

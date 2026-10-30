@@ -107,8 +107,16 @@ linked to a verified synthetic Auth UUID in an initially empty local platform.
 It never inserts Auth users through SQL or signs replacement JWTs. Canonical
 RPCs must reject AAL1 and accept the actual AAL2 platform administrator; pilot
 creation must remain in the normal LEAD lifecycle and create its audit event.
-Customer membership, lifecycle transitions, browser journeys and hosted
-administrator provisioning remain outside that bounded result.
+The customer extension follows canonical 24-hour PILOT preparation and every
+required version-bound lifecycle transition. A distinct real Auth/TOTP customer
+must see and activate only their email-bound prepared access, obtain a profile,
+membership and Context from application RPCs, and complete primary-admin
+onboarding. No owner SQL creates customer authority or bypasses lifecycle;
+no contract, payment or email delivery is claimed. The result stops at
+PROVISIONING. ACTIVE status, native workspace/module authority, dashboard,
+building/Operations workflows, browser journeys and hosted provisioning remain
+separate proof boundaries. First-administrator success is retained separately if
+the later customer boundary fails.
 
 The connection-boundary controls independently reject a production project,
 mismatched project/user/API/host tuples, transaction pooling, unverified TLS
