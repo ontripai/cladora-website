@@ -36,7 +36,7 @@ export function validateCi(env, sha, info) {
 }
 
 export function observeProcess(child, stage) {
-  let startError = null, sqlstate = null, category = null, tail = '', scanned = 0;
+  let startError = null, sqlstate = null, category = null, tail = '', scanned = 0, missingFunction = null;
   let proofFailure = null, line = '', discardLine = false, scanTruncated = false;
   const proofLine = text => {
     if (proofFailure || Buffer.byteLength(text, 'utf8') > 4096) return;
@@ -66,6 +66,9 @@ export function observeProcess(child, stage) {
     const text = tail + bounded;
     const code = text.match(/(?:ERROR|FATAL|PANIC):\s+([A-Z0-9]{5})(?:\s|:|$)/)?.[1];
     if (sqlstates.has(code)) sqlstate ??= code;
+    // Public catalog identifier only: never the argument list or error text.
+    const missing=text.match(/ERROR:\s+42883:\s+function ([a-z_][a-z0-9_]{0,62}(?:\.[a-z_][a-z0-9_]{0,62})?)\(/i)?.[1];
+    if(missing)missingFunction??=missing;
     for (const [pattern, label] of [
       [/can only create extension in database/i, 'database-bound-extension'],
       [/permission denied|must be owner|must be superuser/i, 'permission-denied'],
@@ -86,7 +89,8 @@ export function observeProcess(child, stage) {
         signal:signals.has(signal) ? signal : null, startError, sqlstate,
         category:category ?? (startError ? 'process-start-failed' : code === 0 && !signal ? 'ok' : 'process-failed'),
         ...(proofFailure ? {proofFailure} : {}),
-        ...(scanTruncated ? {diagnosticScanTruncated:true} : {})});
+        ...(scanTruncated ? {diagnosticScanTruncated:true} : {}),
+        ...(missingFunction ? {missingFunction} : {})});
     });
   });
 }

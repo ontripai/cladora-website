@@ -345,3 +345,8 @@ for(const code of ['2BP01','42704','XX000','P0001','55000','42883','42804','2202
  const child=node('process.stderr.write('+JSON.stringify('ERROR:  '+code+' '+secret+'\n')+');process.exitCode=3;');child.stdout.resume();
  const result=await observeProcess(child,'restore');assert.equal(result.sqlstate,code);assert.ok(!JSON.stringify(result).includes(secret));
 });
+
+test('missing-function diagnostic retains only a bounded catalog name, never signature or values',async()=>{
+ const child=node('process.stderr.write('+JSON.stringify('ERROR:  42883: function app_private.missing_clone_function(text, '+secret+') does not exist\n')+');process.exitCode=3;');child.stdout.resume();
+ const result=await observeProcess(child,'restore');assert.equal(result.sqlstate,'42883');assert.equal(result.missingFunction,'app_private.missing_clone_function');assert.ok(!JSON.stringify(result).includes(secret));
+});
