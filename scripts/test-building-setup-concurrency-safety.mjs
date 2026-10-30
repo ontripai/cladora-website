@@ -341,7 +341,7 @@ test('R1 rejects arbitrary nested cleanup fields and inconsistent SQLSTATE forwa
  }
 });
 
-for(const code of ['2BP01','42704','XX000','P0001','55000'])test('snapshot records only allowlisted SQLSTATE '+code+' without raw server output',async()=>{
+for(const code of ['2BP01','42704','XX000','P0001','55000','42883','42804','22023'])test('snapshot records only allowlisted SQLSTATE '+code+' without raw server output',async()=>{
  const child=node('process.stderr.write('+JSON.stringify('ERROR:  '+code+' '+secret+'\n')+');process.exitCode=3;');child.stdout.resume();
  const result=await observeProcess(child,'restore');assert.equal(result.sqlstate,code);assert.ok(!JSON.stringify(result).includes(secret));
 });

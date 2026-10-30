@@ -126,11 +126,15 @@ async function mounted(work,lang='en'){
  const dom=new JSDOM('<div id="root"></div>',{url:'https://cladora.test/'+lang+'/app/maintenance'}),old=new Map(),originalFetch=globalThis.fetch;
  for(const [k,v]of Object.entries({window:dom.window,document:dom.window.document,navigator:dom.window.navigator,Event:dom.window.Event,HTMLElement:dom.window.HTMLElement,IS_REACT_ACT_ENVIRONMENT:true})){old.set(k,Object.getOwnPropertyDescriptor(globalThis,k));Object.defineProperty(globalThis,k,{value:v,configurable:true,writable:true});}
  Object.defineProperty(dom.window.navigator,'locks',{value:{request:async(_n,_o,callback)=>callback({})},configurable:true});
+ const pending=new Set(),started=new Map();
  globalThis.fetch=async(url,options={})=>{
   if(url!=='/api/customer/v1/operations/commands')throw Error('Unexpected network attempt: '+url);
-  const p=JSON.parse(options.body),r=await commandRequest(p.phase,p.context_id,p.command);
-  const wait=state.wait;if(wait&&wait.phase===p.phase&&wait.context===p.context_id&&!wait.used){wait.used=true;await wait.promise;}
-  return r;
+  const p=JSON.parse(options.body),ticket={context:p.context_id};pending.add(ticket);started.set(p.context_id,(started.get(p.context_id)??0)+1);
+  try {
+   const r=await commandRequest(p.phase,p.context_id,p.command);
+   const wait=state.wait;if(wait&&wait.phase===p.phase&&wait.context===p.context_id&&!wait.used){wait.used=true;await wait.promise;}
+   return r;
+  } finally {pending.delete(ticket);}
  };
  const rr=createRoot(dom.window.document.getElementById('root'));
  const settle=async(predicate,message)=>{
@@ -138,10 +142,19 @@ async function mounted(work,lang='en'){
   while(!predicate()&&performance.now()<deadline)await act(async()=>{await tick();});
   ok(predicate(),message);
  };
- const render=async(context,options={})=>{await act(async()=>{rr.render(React.createElement(OperationsCommandGate,{contextId:context,lang,...options},React.createElement(Consumer)));await tick();});for(let i=0;i<10;i++){if(state.wait?.used)break;await act(async()=>{await tick();});if(latest?.ready||!dom.window.document.querySelector('button[disabled]'))break;}};
+ const render=async(context,options={})=>{
+  await act(async()=>{rr.render(React.createElement(OperationsCommandGate,{contextId:context,lang,...options},React.createElement(Consumer)));await tick();});
+  let stable=0;
+  await settle(()=>{
+   if(state.wait?.context===context&&state.wait.used)return true;
+   const idle=(started.get(context)??0)>0&&![...pending].some(ticket=>ticket.context===context);
+   stable=idle&&(latest?.ready||!dom.window.document.querySelector('button[disabled]'))?stable+1:0;
+   return stable>=2;
+  },'current fixture must reach its held phase or settle its actual RPC/React work');
+ };
  const storageEvent=async()=>act(async()=>{dom.window.dispatchEvent(new dom.window.StorageEvent('storage'));await tick();});
  try{await work({dom,render,storageEvent,rr,settle});}
- finally{await act(async()=>rr.unmount());globalThis.fetch=originalFetch;for(const [k,d]of old){if(d)Object.defineProperty(globalThis,k,d);else delete globalThis[k];}dom.window.close();}
+ finally{await act(async()=>rr.unmount());state.wait?.resolve?.();await settle(()=>pending.size===0,'owned fake requests must drain before resetting the next fixture');await act(async()=>{await tick();await tick();});globalThis.fetch=originalFetch;for(const [k,d]of old){if(d)Object.defineProperty(globalThis,k,d);else delete globalThis[k];}dom.window.close();}
 }
 
 if(process.argv.includes('--probe-summary-preimage')){
@@ -173,7 +186,7 @@ reset();{
 }
 reset();{
  seed();const hold=deferred();state.wait={phase:'ack',context:A,...hold};
- await mounted(async({render,dom,settle})=>{await render(A);ok(state.wait.used);eq(latest.ready,false);eq(latest.receipt,null);consumerValue(null);eq(dom.window.document.querySelector('[aria-label="Command receipt history"]'),null);await act(async()=>{hold.resolve();await tick();});await settle(()=>latest.ready,'exact ACK must settle the real client before admission');ok(latest.ready);ok(latest.receipt);consumerValue(state.rows[0].receipt);});
+ await mounted(async({render,dom,settle})=>{await render(A);await settle(()=>state.wait.used,'held ACK must reach its actual protocol phase');ok(state.wait.used);eq(latest.ready,false);eq(latest.receipt,null);consumerValue(null);eq(dom.window.document.querySelector('[aria-label="Command receipt history"]'),null);await act(async()=>{hold.resolve();await tick();});await settle(()=>latest.ready,'exact ACK must settle the real client before admission');ok(latest.ready);ok(latest.receipt);consumerValue(state.rows[0].receipt);});
  scenarios.push('no-summary-before-exact-ACK');
 }
 for(const fault of ['receipt-actor','receipt-context','receipt-result','ack-mismatch']){
@@ -183,9 +196,9 @@ for(const fault of ['receipt-actor','receipt-context','receipt-result','ack-mism
 }
 for(const phase of ['lookup','ack'])for(const next of [B,C]){
  reset();seed();const hold=deferred();state.wait={phase,context:A,...hold};
- await mounted(async({render,dom})=>{
-  await render(A);ok(state.wait.used);state.rows[0].ack=true;
-  await render(next);ok(latest.ready);eq(latest.receipt,null);consumerValue(null);
+ await mounted(async({render,dom,settle})=>{
+  await render(A);await settle(()=>state.wait.used,'held lookup/ACK must begin before Context transition');ok(state.wait.used);state.rows[0].ack=true;
+  await render(next);await settle(()=>latest.ready,'new Context must finish its own admission independently of the held old Context');ok(latest.ready);eq(latest.receipt,null);consumerValue(null);
   await act(async()=>{hold.resolve();await tick();});eq(latest.receipt,null);consumerValue(null);ok(latest.ready);eq(dom.window.document.querySelector('[aria-label="Command receipt history"]'),null);
  });scenarios.push('unkeyed-Context-A-to-'+(next===B?'same-Workspace-B':'foreign-Workspace-C')+'-late-'+phase+'-A-isolated');
 }

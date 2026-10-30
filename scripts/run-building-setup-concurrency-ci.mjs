@@ -4,9 +4,10 @@ import { readFile } from 'node:fs/promises';
 import { spawn, execFileSync } from 'node:child_process';
 import { pipeline, Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
+import {postgres17Sqlstates} from './lib/postgres17-sqlstates.mjs';
 import { cleanupOwnedDatabase, parseProofFailureRecord } from './test-building-workspace-onboarding-postgres.mjs';
 
-const sqlstates = new Set(['42501','40001','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000','2BP01','P0001','0A000','42710','3D000','3F000','55000']);
+const sqlstates = postgres17Sqlstates;
 const signals = new Set(['SIGTERM','SIGPIPE','SIGKILL','SIGINT','SIGABRT','SIGSEGV']);
 const processCodes = new Set(['ENOENT','EACCES','EPERM','EPIPE','ECONNRESET']);
 const stages = new Set(['preflight','connect','clone-create','snapshot','dump','restore','fixture-load','lease-set','concurrency-proof','cleanup']);
@@ -84,7 +85,8 @@ export function observeProcess(child, stage) {
       resolve({stage, exitCode:Number.isInteger(code) ? code : null,
         signal:signals.has(signal) ? signal : null, startError, sqlstate,
         category:category ?? (startError ? 'process-start-failed' : code === 0 && !signal ? 'ok' : 'process-failed'),
-        ...(proofFailure ? {proofFailure} : {})});
+        ...(proofFailure ? {proofFailure} : {}),
+        ...(scanTruncated ? {diagnosticScanTruncated:true} : {})});
     });
   });
 }
