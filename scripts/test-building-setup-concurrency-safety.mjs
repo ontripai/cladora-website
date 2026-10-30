@@ -185,7 +185,12 @@ test('entrypoint refusal before Docker/DB and retained actual-role concurrency/n
  const [exit]=await once(child,'close');assert.equal(exit,1);assert.ok(output.includes('preflight')&&!output.includes(secret));
  const proof=await readFile(new URL('./test-building-workspace-onboarding-postgres.mjs',import.meta.url),'utf8');
  for(const marker of ["set local role authenticated","role:'authenticated',aal:'aal2'","both creation sessions complete","payload collision is zero-write", "a prior creation receipt cannot bypass Context revoke","source fixture has no active sessions", "source fixture lease must match before clone"])assert.ok(proof.includes(marker));
- assert.equal((proof.match(/checks\+\+/g)??[]).length,15,'all original assertion counter sites retained');
+ const g2Start=proof.indexOf("if(commandProof==='g2'){",proof.indexOf('const race='));
+ const g2End=proof.indexOf('} else {',g2Start);
+ assert.ok(g2Start>0&&g2End>g2Start,'separate G2 replay branch remains explicit');
+ assert.equal((proof.slice(g2Start,g2End).match(/checks\+\+/g)??[]).length,3,'three additional G2-only checks retained');
+ const baselineProof=proof.slice(0,g2Start)+proof.slice(g2End);
+ assert.equal((baselineProof.match(/checks\+\+/g)??[]).length,15,'all original baseline assertion counter sites retained');
  assert.ok(!proof.match(/pg_terminate_backend|drop database[^\n]*force|disable trigger|session_replication_role\s*=/i));
 });
 

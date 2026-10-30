@@ -73,7 +73,8 @@ for (const path of ['081_controlled_building_setup_opening_rehearsal.test.sql', 
 }
 const runner = readFileSync('scripts/test-building-workspace-onboarding-postgres.mjs', 'utf8');
 assert.match(runner, /new URL\('\/postgres',url\)/);
-assert.match(runner, /finally\{await source\.end\(\);\}/);
+assert.match(runner, /await withProofCleanup\(async\(\)=>\{await source\.connect\(\)/);
+assert.match(runner, /\[\{stage:'source-end',run:\(\)=>source\.end\(\)\}\]\)/);
 assert.match(runner, /source fixture has no active sessions/);
 assert.match(runner, /target\.search/);
 assert.doesNotMatch(runner, /pg_terminate_backend|with\s*\(force\)/i);
