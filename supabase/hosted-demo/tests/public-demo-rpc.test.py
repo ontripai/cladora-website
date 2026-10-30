@@ -1,4 +1,4 @@
-"""Real-hosted two-user test. Native role/MFA guards stay unchanged.
+"""Real-hosted two-user preview-only test. Signup is the only write journey.
 
 Run with CLADORA_PUBLIC_DEMO_HOSTED_TEST=1 and dedicated staging variables.
 After independent owner readback, run the same command with argument cleanup.
@@ -116,116 +116,122 @@ def initialize(actor, name, consent):
                'p_privacy_accepted': True, 'p_locale': 'fa'})
 
 
+def verify_registration_retry(actor):
+    before = ok(actor, 'demo_get_my_workspace_v1')
+    report_before = ok(actor, 'demo_get_reports_v1', {'p_workspace_id': before['id']})
+    changed = ok(actor, 'demo_initialize_workspace_v1',
+                 {'p_first_name': 'Changed', 'p_last_name': 'Not saved',
+                  'p_mobile': '+989999999999', 'p_workspace_name': 'Not saved workspace',
+                  'p_marketing_consent': not before['profile']['marketing_consent'],
+                  'p_privacy_accepted': True, 'p_locale': 'en'})
+    check('registration retry cannot edit workspace profile or marketing consent',
+          changed['created'] is False and changed['workspace'] == before)
+    report_after = ok(actor, 'demo_get_reports_v1', {'p_workspace_id': before['id']})
+    check('registration retry cannot reseed samples or change reports and activity',
+          all(report_after[key] == report_before[key] for key in ('counts', 'finance', 'activity')))
+
+
 def run():
-    a = fixture('a', {'role': 'PLATFORM_SUPER_ADMIN'})
-    check('new account has no workspace until validated signup',
+    a = fixture('preview-a', {'role': 'PLATFORM_SUPER_ADMIN'})
+    check('new verified account has no workspace before registration',
           ok(a, 'demo_get_my_workspace_v1') is None)
-    check('privacy acceptance required', denied(a, 'demo_initialize_workspace_v1',
+    check('registration still requires privacy acceptance', denied(a, 'demo_initialize_workspace_v1',
           {'p_first_name': 'A', 'p_last_name': 'Test', 'p_mobile': '+989121234567',
            'p_workspace_name': 'Workspace A'}, '22023'))
-    check('invalid signup creates no partial workspace',
-          ok(a, 'demo_get_my_workspace_v1') is None)
     created = initialize(a, 'A', False)
     w = created['workspace']['id']
     a['workspace_id'] = w
     save()
-    check('signup atomically creates own seeded demo workspace',
-          created['created'] is True and created['workspace']['is_demo'] is True
-          and created['workspace']['role'] == 'demo_owner')
-    check('contact fields persisted without phone verification or forced consent',
-          created['workspace']['profile']['first_name'] == 'آزمایش'
-          and created['workspace']['profile']['last_name'] == 'A'
-          and created['workspace']['profile']['mobile_contact'] == '+989121234567'
-          and created['workspace']['profile']['mobile_verified'] is False
-          and created['workspace']['profile']['marketing_consent'] is False)
-    nav = {x['key']: x['access'] for x in created['workspace']['navigation']}
-    check('nonfinancial menus interactive and financial sensitive actions closed',
-          nav['maintenance'] == 'interactive' and nav['finance'] == 'read_only'
-          and nav['payments'] == 'locked' and not any(created['workspace']['features'].values()))
-    listing = ok(a, 'demo_list_items_v1', {'p_workspace_id': w, 'p_limit': 100})
+    descriptor = created['workspace']
+    check('registration provisions own preview workspace',
+          created['created'] is True and descriptor['is_demo'] is True
+          and descriptor['role'] == 'demo_owner' and descriptor['demo_mode'] == 'preview_only')
+    check('all section menus are readonly or locked',
+          len(descriptor['navigation']) == 16
+          and all(x['access'] in ('read_only', 'locked') for x in descriptor['navigation']))
+    check('initial forms visible but save and continue disabled',
+          descriptor['features']['form_preview'] is True
+          and descriptor['features']['demo_data_write'] is False
+          and descriptor['features']['workflow_continue'] is False
+          and all(value is False for key, value in descriptor['features'].items() if key != 'form_preview'))
+    profile = descriptor['profile']
+    check('private contact captured without forced marketing or phone verification',
+          profile['first_name'] == 'آزمایش' and profile['last_name'] == 'A'
+          and profile['mobile_verified'] is False and profile['marketing_consent'] is False)
+    check('repeat initialization does not reseed', initialize(a, 'A', False)['created'] is False)
+    verify_registration_retry(a)
+    first = ok(a, 'demo_list_items_v1', {'p_workspace_id': w})
+    second = ok(a, 'demo_list_items_v1', {'p_workspace_id': w, 'p_offset': 50})
+    listing = first['items'] + second['items']
+    check('two readonly pages cover all75 sample items without overlap',
+          first['total'] == second['total'] == 75 and len(first['items']) == 50
+          and len(second['items']) == 25 and len({x['id'] for x in listing}) == 75)
+    check('all items belong to the real own workspace',
+          all(x['workspace_id'] == w and 'owner_user_id' not in x for x in listing))
     reports = ok(a, 'demo_get_reports_v1', {'p_workspace_id': w})
-    counts = dict(collections.Counter(x['kind'] for x in listing['items']))
-    check('reports count the actual persisted item list',
-          listing['total'] == len(listing['items']) == 75 and counts == reports['counts'])
+    check('dashboard reports persisted75 items',
+          sum(reports['counts'].values()) == 75 and reports['source'] == 'persisted_demo_records'
+          and reports['native_business_data'] is False)
     finance = reports['finance']
-    check('read-only sample finance aggregates internally reconcile',
-          finance['read_only'] is True and finance['invoice_count'] == 24
-          and len(finance['monthly']) == 6 and finance['outstanding'] > 0
-          and finance['invoiced'] - finance['paid'] == finance['outstanding']
-          and sum(x['invoiced'] for x in finance['monthly']) == finance['invoiced'])
-    repeated = initialize(a, 'A', False)
-    check('repeat signup does not create a second workspace or reseed',
-          repeated['created'] is False and repeated['workspace']['id'] == w
-          and ok(a, 'demo_list_items_v1', {'p_workspace_id': w})['total'] == 75
-          and ok(a, 'demo_get_reports_v1', {'p_workspace_id': w})['finance'] == finance)
-    b = fixture('b', {'role': 'PLATFORM_SUPER_ADMIN', 'workspace_id': w})
-    other = initialize(b, 'B', True)['workspace']
-    wb = other['id']
+    check('six months of financial samples remain readonly and unchanged',
+          finance['read_only'] is True and finance['sample_data'] is True
+          and finance['invoice_count'] == 24 and len(finance['monthly']) == 6
+          and finance['currency'] == 'RON' and finance['invoiced'] == 6420
+          and finance['paid'] == 5580 and finance['outstanding'] == 840)
+    b = fixture('preview-b', {'role': 'demo_owner', 'workspace_id': w})
+    created_b = initialize(b, 'B', True)
+    wb = created_b['workspace']['id']
     b['workspace_id'] = wb
     save()
-    check('forged role/workspace metadata grants no other workspace',
-          wb != w and other['role'] == 'demo_owner'
-          and other['profile']['last_name'] == 'B'
-          and other['profile']['marketing_consent'] is True)
-    check('other user cannot read items', denied(b, 'demo_list_items_v1', {'p_workspace_id': w}))
-    check('other user cannot read reports', denied(b, 'demo_get_reports_v1', {'p_workspace_id': w}))
-    parent = next(x['id'] for x in listing['items'] if x['kind'] == 'property')
-    create = {'p_workspace_id': w, 'p_module': 'maintenance', 'p_kind': 'ticket',
-              'p_title': 'Actual persisted demo test request', 'p_data': {'priority': 'normal'},
-              'p_idempotency_key': str(uuid.uuid4()), 'p_parent_id': parent}
-    item = ok(a, 'demo_create_item_v1', create)
-    retry = ok(a, 'demo_create_item_v1', create)
-    check('idempotent create persists only one request',
-          item['id'] == retry['id'] and item['version'] == 1
-          and ok(a, 'demo_list_items_v1', {'p_workspace_id': w})['total'] == 76)
-    check('idempotency rejects a changed request', denied(a, 'demo_create_item_v1',
-          {**create, 'p_title': 'Different'}, '22023'))
-    updated = ok(a, 'demo_update_item_v1', {'p_workspace_id': w, 'p_item_id': item['id'],
-                 'p_expected_version': 1, 'p_patch': {'status': 'closed'}})
-    check('allowed interaction persists with a new version',
-          updated['status'] == 'closed' and updated['version'] == 2)
-    check('stale update rejected', denied(a, 'demo_update_item_v1',
-          {'p_workspace_id': w, 'p_item_id': item['id'], 'p_expected_version': 1,
-           'p_patch': {'status': 'open'}}, 'PT409'))
-    check('workspace ownership patch rejected', denied(a, 'demo_update_item_v1',
-          {'p_workspace_id': w, 'p_item_id': item['id'], 'p_expected_version': 2,
-           'p_patch': {'workspace_id': wb}}, '22023'))
-    changed = ok(a, 'demo_get_reports_v1', {'p_workspace_id': w})
-    other_reports = ok(b, 'demo_get_reports_v1', {'p_workspace_id': wb})
-    check('reports change after database interaction but other workspace does not',
-          changed['counts']['ticket'] == reports['counts']['ticket'] + 1
-          and other_reports['counts']['ticket'] == reports['counts']['ticket']
-          and any(x['kind'] == 'ticket' and x['status'] == 'closed' and x['count'] == 3
-                  for x in changed['maintenance'])
-          and changed['finance'] == finance)
-    check('other user cannot create in this workspace', denied(b, 'demo_create_item_v1', create))
-    check('other user cannot update this workspace', denied(b, 'demo_update_item_v1',
-          {'p_workspace_id': w, 'p_item_id': item['id'], 'p_expected_version': 2,
-           'p_patch': {'status': 'open'}}))
-    check('cross-workspace parent blocked', denied(b, 'demo_create_item_v1',
-          {**create, 'p_workspace_id': wb, 'p_idempotency_key': str(uuid.uuid4())}))
-    for module, kind in [('finance', 'payment'), ('payments', 'payment'),
-                         ('role_administration', 'role'), ('governance', 'ballot')]:
-        check('sensitive write blocked: ' + module, denied(a, 'demo_create_item_v1',
-              {**create, 'p_module': module, 'p_kind': kind, 'p_idempotency_key': str(uuid.uuid4())}))
-    meeting = next(x['id'] for x in listing['items'] if x['module'] == 'governance')
-    check('seeded sensitive item remains readonly', denied(a, 'demo_update_item_v1',
-          {'p_workspace_id': w, 'p_item_id': meeting, 'p_expected_version': 1,
-           'p_patch': {'status': 'open'}}))
-    code, _ = http('/rest/v1/workspaces?select=id', token=a['access_token'], schema='demo')
-    check('private demo schema not exposed through Data API', code == 406)
+    check('forged workspace metadata cannot select another owner workspace',
+          wb != w and created_b['workspace']['demo_mode'] == 'preview_only')
+    check('cross-user section read denied', denied(b, 'demo_list_items_v1', {'p_workspace_id': w}))
+    check('cross-user report read denied', denied(b, 'demo_get_reports_v1', {'p_workspace_id': w}))
+    check('own profile still loads independently',
+          ok(b, 'demo_get_my_workspace_v1')['id'] == wb)
+    for module, kind in [('properties', 'building'), ('residents', 'resident'),
+                         ('maintenance', 'work_order'), ('assets', 'asset'),
+                         ('utilities', 'meter_reading'), ('communications', 'announcement'),
+                         ('documents', 'document'), ('bookings', 'booking'),
+                         ('services', 'service_request'), ('governance', 'ballot'),
+                         ('finance', 'payment'), ('role_administration', 'role')]:
+        check('save denied for section: ' + module, denied(a, 'demo_create_item_v1',
+              {'p_workspace_id': w, 'p_module': module, 'p_kind': kind, 'p_title': 'Not saved',
+               'p_data': {}, 'p_idempotency_key': str(uuid.uuid4())}))
+    for module in sorted({x['module'] for x in listing}):
+        item = next(x for x in listing if x['module'] == module)
+        check('edit or workflow continue denied: ' + module, denied(a, 'demo_update_item_v1',
+              {'p_workspace_id': w, 'p_item_id': item['id'], 'p_expected_version': item['version'],
+               'p_patch': {'title': 'Not saved', 'status': 'closed'}}))
+    check('forged ownership cannot restore write access', denied(b, 'demo_create_item_v1',
+          {'p_workspace_id': w, 'p_module': 'maintenance', 'p_kind': 'ticket',
+           'p_title': 'Not saved', 'p_data': {}, 'p_idempotency_key': str(uuid.uuid4())}))
+    unchanged = ok(a, 'demo_get_reports_v1', {'p_workspace_id': w})
+    check('denied save and continue attempts leave counts finance and activity unchanged',
+          unchanged['counts'] == reports['counts'] and unchanged['finance'] == finance
+          and unchanged['activity'] == reports['activity'])
+    other = ok(b, 'demo_get_reports_v1', {'p_workspace_id': wb})
+    check('second workspace remains75items with unchanged financial samples',
+          sum(other['counts'].values()) == 75 and other['finance'] == finance)
+    code, _ = http('/rest/v1/items?select=id', token=a['access_token'], schema='demo')
+    check('private data schema remains unexposed', code == 406)
     code, _ = http('/rest/v1/rpc/demo_get_my_workspace_v1', 'POST', {}, schema='customer_api')
-    check('anonymous account access denied', code in (401, 403))
-    check('demo signup creates no native platform access',
+    check('anonymous preview data access denied', code in (401, 403))
+    code, _ = http('/rest/v1/rpc/demo_create_item_v1', 'POST',
+                   {'p_workspace_id': w, 'p_module': 'maintenance', 'p_kind': 'ticket',
+                    'p_title': 'Not saved', 'p_data': {}, 'p_idempotency_key': str(uuid.uuid4())},
+                   schema='customer_api')
+    check('anonymous save access denied', code in (401, 403))
+    check('registration creates no native platform role',
           ok(a, 'has_platform_access_v1') is False and ok(b, 'has_platform_access_v1') is False)
-    check('native privileged MFA guard still rejects ordinary demo password token',
-          denied(a, 'get_my_platform_auth_context_v1', {}))
+    check('native MFA requirement remains unchanged', denied(a, 'get_my_platform_auth_context_v1', {}))
     receipt['result'] = 'PASS_AWAITING_OWNER_READBACK_AND_CLEANUP'
+    receipt['mode'] = 'preview_only'
     receipt['workspace_ids'] = [w, wb]
     receipt['actor_ids'] = [a['uid'], b['uid']]
-    receipt['expected_persisted_items'] = {w: 76, wb: 75}
+    receipt['expected_persisted_items'] = {w: 75, wb: 75}
     receipt['email_delivery_tested'] = False
-    receipt['native_workflow_or_browser_acceptance'] = False
+    receipt['browser_tested'] = False
     RECEIPT.write_text(json.dumps(receipt, indent=2) + '\n')
 
 
@@ -248,6 +254,10 @@ receipt = json.loads(RECEIPT.read_text()) if RECEIPT.exists() else {'project_ref
 try:
     if len(sys.argv) > 1 and sys.argv[1] == 'cleanup':
         cleanup()
+    elif len(sys.argv) > 1 and sys.argv[1] == 'registration-retry':
+        if not state['actors']:
+            raise RuntimeError('existing_preview_test_fixture_required')
+        verify_registration_retry(state['actors'][0])
     else:
         if state['actors']:
             raise RuntimeError('clean_existing_test_fixtures_before_new_run')
