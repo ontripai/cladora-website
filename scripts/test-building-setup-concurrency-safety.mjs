@@ -350,3 +350,12 @@ test('missing-function diagnostic retains only a bounded catalog name, never sig
  const child=node('process.stderr.write('+JSON.stringify('ERROR:  42883: function app_private.missing_clone_function(text, '+secret+') does not exist\n')+');process.exitCode=3;');child.stdout.resume();
  const result=await observeProcess(child,'restore');assert.equal(result.sqlstate,'42883');assert.equal(result.missingFunction,'app_private.missing_clone_function');assert.ok(!JSON.stringify(result).includes(secret));
 });
+
+test('privileged local control plane issues the fixture lease; source/proof ownership and runtime URL remain postgres',async()=>{
+ const runner=await readFile(new URL('./run-building-setup-concurrency-ci.mjs',import.meta.url),'utf8');
+ assert.match(runner,/const managementUrl=new URL\(url\);managementUrl.username='supabase_admin'/);
+ assert.match(runner,/connectionString: managementUrl.href/);
+ assert.match(runner,/create database "\$\{source\}" owner postgres template template0/);
+ assert.match(runner,/BUILDING_SETUP_TEST_DATABASE_URL: new URL\(`\/\$\{source\}`, url\).href/);
+ assert.match(runner,/const url = 'postgresql:\/\/postgres:postgres@127\.0\.0\.1:54322\/postgres'/);
+});

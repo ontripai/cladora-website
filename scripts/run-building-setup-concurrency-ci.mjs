@@ -164,7 +164,8 @@ export async function runCi() {
   const source = `cladora_setup_fixture_${randomUUID().replaceAll('-', '')}`;
   const url = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
   const {default: pg} = await import('pg');
-  const admin = new pg.Client({ connectionString: url });
+  const managementUrl=new URL(url);managementUrl.username='supabase_admin';
+  const admin = new pg.Client({ connectionString: managementUrl.href });
   let created = false;
 
   try {
@@ -181,7 +182,7 @@ export async function runCi() {
     assert.equal(managedGraphql.length,1,'original native database must retain managed GraphQL');
     console.log('Owned building clone scope: application/Auth; database-bound scheduler and managed GraphQL excluded; neither interface is claimed by this building SQL proof');
     stage = 'clone-create';
-    await admin.query(`create database "${source}" template template0`);
+    await admin.query(`create database "${source}" owner postgres template template0`);
     created = true;
     // Clone a consistent logical snapshot without disconnecting Auth/PostgREST.
     // The source postgres DB is never altered. --clean applies ONLY to the newly
