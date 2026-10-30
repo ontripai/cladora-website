@@ -6,7 +6,7 @@ import { pipeline, Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
 import { cleanupOwnedDatabase, parseProofFailureRecord } from './test-building-workspace-onboarding-postgres.mjs';
 
-const sqlstates = new Set(['42501','40001','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000']);
+const sqlstates = new Set(['42501','40001','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000','2BP01','P0001','0A000','42710','3D000','3F000']);
 const signals = new Set(['SIGTERM','SIGPIPE','SIGKILL','SIGINT','SIGABRT','SIGSEGV']);
 const processCodes = new Set(['ENOENT','EACCES','EPERM','EPIPE','ECONNRESET']);
 const stages = new Set(['preflight','connect','clone-create','snapshot','dump','restore','fixture-load','lease-set','concurrency-proof','cleanup']);
@@ -98,11 +98,14 @@ function terminateOwned(child) {
 
 export async function copySnapshot({spawnProcess = spawn, docker, dockerEnv, container, source}) {
   assert.ok(/^cladora_setup_fixture_[a-f0-9]{32}$/.test(source), 'owned snapshot destination required');
-  const dump = spawnProcess('docker', [...docker, 'exec', container, 'pg_dump', '-U', 'postgres', '-d', 'postgres', '--clean', '--if-exists'], {env:dockerEnv, stdio:['ignore','pipe','pipe']});
+  // A complete Auth/extension snapshot requires the existing local operator.
+  // This never changes application roles or grants; restore targets only the
+  // fresh task-owned clone, and the proof still calls as authenticated.
+  const dump = spawnProcess('docker', [...docker, 'exec', '-e', 'PGPASSWORD=postgres', container, 'pg_dump', '-U', 'supabase_admin', '-d', 'postgres', '--clean', '--if-exists'], {env:dockerEnv, stdio:['ignore','pipe','pipe']});
   const dumpDone = observeProcess(dump, 'dump');
   let restore;
   try {
-    restore = spawnProcess('docker', [...docker, 'exec', '-i', container, 'psql', '-X', '-U', 'postgres', '-d', source, '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=sqlstate'], {env:dockerEnv, stdio:['pipe','ignore','pipe']});
+    restore = spawnProcess('docker', [...docker, 'exec', '-i', '-e', 'PGPASSWORD=postgres', container, 'psql', '-X', '-U', 'supabase_admin', '-d', source, '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=sqlstate'], {env:dockerEnv, stdio:['pipe','ignore','pipe']});
   } catch {
     dump.stdout.resume();
     terminateOwned(dump);

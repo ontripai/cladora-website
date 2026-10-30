@@ -61,6 +61,8 @@ test('successful streaming copy preserves exact command safety and awaits both p
  assert.ok(children.every(child=>child.exitCode===0));
  assert.equal(commands[0][0],'docker');
  assert.ok(commands[0][1].includes('pg_dump'));
+ for(const [,args] of commands){assert.equal(args[args.indexOf('-U')+1],'supabase_admin');assert.ok(args.includes('PGPASSWORD=postgres'));}
+ assert.equal(commands[1][1][commands[1][1].indexOf('-d')+1],source,'operator restore is confined to the fresh owned clone');
  assert.ok(commands[0][1].includes('--clean')&&commands[0][1].includes('--if-exists'));
  assert.equal(commands[0][1][commands[0][1].indexOf('-d')+1],'postgres');
  assert.equal(commands[1][1][commands[1][1].indexOf('-d')+1],source);
@@ -336,4 +338,9 @@ test('R1 rejects arbitrary nested cleanup fields and inconsistent SQLSTATE forwa
   const result=await childDiagnostic(record,{suffix:'\n'});assert.equal(result.proofFailure,undefined);assert.equal(result.sqlstate,null);
   assert.ok(!JSON.stringify(result).includes(secret));
  }
+});
+
+for(const code of ['2BP01','42704','XX000','P0001'])test('snapshot records only allowlisted SQLSTATE '+code+' without raw server output',async()=>{
+ const child=node('process.stderr.write('+JSON.stringify('ERROR:  '+code+' '+secret+'\n')+');process.exitCode=3;');child.stdout.resume();
+ const result=await observeProcess(child,'restore');assert.equal(result.sqlstate,code);assert.ok(!JSON.stringify(result).includes(secret));
 });
