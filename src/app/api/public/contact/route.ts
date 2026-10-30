@@ -249,6 +249,20 @@ export async function POST(request: NextRequest) {
     },
   };
 
+  const enrichedMetadata = {
+    ...initialMetadata,
+    structuredIntake: {
+      role: data.role || null,
+      propertyType: data.propertyType || null,
+      portfolioScope: data.portfolioScope || null,
+      stage: data.stage || null,
+      services: data.services || [],
+      workspaceStatus: data.workspaceStatus || null,
+      city: data.city || null,
+      unitsCount: data.unitsCount || null,
+    },
+  };
+
   let savedReferenceId: string | null = null;
   const MAX_RETRIES = 3;
 
@@ -275,20 +289,6 @@ export async function POST(request: NextRequest) {
     const parsedUnits = data.unitsCount && data.unitsCount.trim() !== ''
       ? parseInt(data.unitsCount.trim(), 10)
       : null;
-
-    const enrichedMetadata = {
-      ...initialMetadata,
-      structuredIntake: {
-        role: data.role || null,
-        propertyType: data.propertyType || null,
-        portfolioScope: data.portfolioScope || null,
-        stage: data.stage || null,
-        services: data.services || [],
-        workspaceStatus: data.workspaceStatus || null,
-        city: data.city || null,
-        unitsCount: data.unitsCount || null,
-      },
-    };
 
     for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
       const candidateReferenceId = generateReferenceId('contact');
@@ -403,7 +403,7 @@ export async function POST(request: NextRequest) {
       .from('marketing_leads')
       .update({
         metadata: {
-          ...initialMetadata,
+          ...enrichedMetadata,
           notification: {
             status: notifResult.status,
             attemptedAt: notifResult.attemptedAt,
