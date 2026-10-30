@@ -1,0 +1,251 @@
+{
+  "version": 1,
+  "purpose": "Each verified customer signs up and tests an isolated workspace with persisted sample data. Financial reports are read-only; sensitive actions are unavailable.",
+  "api": {
+    "schema": "customer_api",
+    "client": "Use the existing Supabase browser client with the branch-scoped public URL and publishable key.",
+    "authority": "Real Auth session plus database workspace ownership. Never trust a role or workspace ID from user_metadata, a role selector, query parameters or localStorage.",
+    "public_demo_auth": "Verified email and password session (AAL1 allowed). Do not weaken native MFA requirements or give native/platform roles to demo users.",
+    "registration_fields": [
+      "email",
+      "password",
+      "first_name",
+      "last_name",
+      "mobile_contact",
+      "workspace_name"
+    ],
+    "consent": "Privacy acceptance required; marketing consent optional and separate; phone is contact-only, not SMS verified.",
+    "signup_sequence": [
+      "Collect registration fields, privacy acceptance and optional marketing consent.",
+      "Use real Supabase Auth signUp. Non-authoritative contact fields may be carried as signup metadata, never permissions.",
+      "If Auth returns no session, show email confirmation pending and resume after the verified callback.",
+      "Call demo_get_my_workspace_v1. If null, validate signup fields through demo_initialize_workspace_v1; otherwise load the existing workspace.",
+      "Route to the authenticated demo workspace, fetch items and reports, and keep caches scoped by Auth UID plus workspace ID.",
+      "Only explicit profile/consent edits should call initialization again for an existing workspace. Reloads must not repeatedly overwrite consent."
+    ]
+  },
+  "rpc": {
+    "demo_get_my_workspace_v1": {
+      "arguments": {},
+      "returns": "null or workspace descriptor with id, name, locale, is_demo, role, navigation, features and own profile"
+    },
+    "demo_initialize_workspace_v1": {
+      "arguments": {
+        "p_first_name": "trimmed text, 1..80 characters",
+        "p_last_name": "trimmed text, 1..80 characters",
+        "p_mobile": "8..15 digits, optional leading plus; spaces/parentheses/hyphens normalized",
+        "p_workspace_name": "trimmed text, 2..120 characters",
+        "p_marketing_consent": "boolean, default false",
+        "p_privacy_accepted": "must be true",
+        "p_locale": "fa, en or ro"
+      },
+      "returns": {
+        "created": "boolean",
+        "workspace": "workspace descriptor"
+      },
+      "semantics": "One workspace per real Auth user; initialization is atomic and repeat-safe; existing workspaces are not reseeded."
+    },
+    "demo_list_items_v1": {
+      "arguments": {
+        "p_workspace_id": "uuid",
+        "p_module": "module key or null",
+        "p_limit": "1..100, default 50",
+        "p_offset": "nonnegative, default 0"
+      },
+      "returns": "workspace_id, is_demo, items, total, limit, offset",
+      "item_fields": [
+        "id",
+        "workspace_id",
+        "parent_id",
+        "module",
+        "kind",
+        "title",
+        "status",
+        "data",
+        "version",
+        "seed_key",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "demo_create_item_v1": {
+      "arguments": {
+        "p_workspace_id": "uuid",
+        "p_module": "allowed module",
+        "p_kind": "matching kind",
+        "p_title": "1..180 characters",
+        "p_data": "validated object",
+        "p_idempotency_key": "stable request UUID, reuse on network retry",
+        "p_parent_id": "optional same-workspace item UUID"
+      },
+      "returns": "persisted item",
+      "limits": "500 items per workspace; retries with the same key and request create no duplicate"
+    },
+    "demo_update_item_v1": {
+      "arguments": {
+        "p_workspace_id": "uuid",
+        "p_item_id": "uuid",
+        "p_expected_version": "current positive integer",
+        "p_patch": "only title, status, data"
+      },
+      "returns": "persisted item with incremented version",
+      "conflict": "HTTP409 / PT409: refresh the record and show a localized conflict message; do not retry blindly."
+    },
+    "demo_get_reports_v1": {
+      "arguments": {
+        "p_workspace_id": "uuid"
+      },
+      "returns": "workspace_id, is_demo, generated_at, counts, maintenance, finance, activity, source, native_business_data",
+      "finance_fields": [
+        "currency",
+        "read_only",
+        "sample_data",
+        "invoice_count",
+        "invoiced",
+        "paid",
+        "outstanding",
+        "monthly"
+      ],
+      "financial_truth": "Use these SQL-derived sample totals and periods. Do not invent bank balances or real ledger results from them."
+    }
+  },
+  "interactive_modules": {
+    "properties": [
+      "property",
+      "building",
+      "unit"
+    ],
+    "residents": [
+      "resident"
+    ],
+    "maintenance": [
+      "ticket",
+      "work_order",
+      "inspection"
+    ],
+    "assets": [
+      "asset"
+    ],
+    "utilities": [
+      "meter_reading"
+    ],
+    "communications": [
+      "announcement"
+    ],
+    "documents": [
+      "document metadata only"
+    ],
+    "bookings": [
+      "booking"
+    ],
+    "services": [
+      "service_request"
+    ]
+  },
+  "readonly_modules": [
+    "governance",
+    "finance",
+    "reports",
+    "activity"
+  ],
+  "sensitive_actions_closed": [
+    "financial writes",
+    "full IBAN",
+    "native Operations dispatch",
+    "platform administration",
+    "role assignment",
+    "ballot mutation",
+    "external email/SMS",
+    "real file upload",
+    "bulk delete",
+    "export"
+  ],
+  "data_keys_for_create_or_patch": [
+    "description",
+    "priority",
+    "assignee",
+    "scheduled_on",
+    "unit_label",
+    "building_label",
+    "category",
+    "reading_value",
+    "resource",
+    "start_at",
+    "end_at",
+    "condition",
+    "address",
+    "area_m2",
+    "floors",
+    "floor",
+    "occupants"
+  ],
+  "statuses_by_kind": {
+    "ticket/work_order/service_request/inspection": [
+      "open",
+      "in_progress",
+      "closed",
+      "cancelled"
+    ],
+    "booking": [
+      "scheduled",
+      "done",
+      "cancelled"
+    ],
+    "announcement": [
+      "draft",
+      "published"
+    ],
+    "asset": [
+      "active",
+      "maintenance",
+      "retired"
+    ],
+    "meter_reading": [
+      "recorded"
+    ],
+    "property/building/unit/resident": [
+      "active",
+      "inactive"
+    ],
+    "document": [
+      "available",
+      "archived"
+    ]
+  },
+  "seed": {
+    "records_per_workspace": 75,
+    "properties": 1,
+    "buildings": 2,
+    "units": 12,
+    "residents": 12,
+    "tickets": 6,
+    "work_orders": 4,
+    "assets": 8,
+    "meter_readings": 12,
+    "announcements": 3,
+    "document_metadata": 5,
+    "bookings": 4,
+    "service_requests": 4,
+    "readonly_meetings": 2,
+    "readonly_financial_rows": 24,
+    "financial_months": 6,
+    "currency": "RON",
+    "visibility": "Show a clear sample-data demo label; no real dispatch, payment or document upload."
+  },
+  "frontend_acceptance": [
+    "Signup, verification callback, login and automatic own-workspace provisioning on the actual preview.",
+    "No manual administrator, shared pilot workspace or native membership is required for public signup.",
+    "All relevant site menus remain visible according to the actual demo role and server feature flags; finance is read-only and sensitive actions visibly unavailable.",
+    "Replace static/mock DemoStore report data with these RPC reads. Save nonfinancial interactions through RPC, then refetch reports; handle failure without fake success.",
+    "After refresh or logout/login, persisted edits remain; switching accounts clears old workspace state and never leaks another user's data.",
+    "No native Operations/financial endpoints, service secrets, privileged role grants or guard removal.",
+    "RO/EN/FA desktop/mobile browser evidence for two separate customer sessions, including at least one edit changing a report.",
+    "Typecheck, relevant lint/build and browser checks on the submitted commit. Never claim email delivery or browser acceptance from backend-only tests."
+  ],
+  "verification": {
+    "receipt": "verification.staging.json",
+    "hosted_test_command": "CLADORA_PUBLIC_DEMO_HOSTED_TEST=1 CLADORA_DEMO_TEST_ARTIFACT_DIR=<private temporary directory> python supabase/hosted-demo/tests/public-demo-rpc.test.py",
+    "cleanup_command": "Same environment and command with argument cleanup; never commit the private session file",
+    "email_delivery_and_browser_acceptance": "NOT_RUN"
+  }
+}
