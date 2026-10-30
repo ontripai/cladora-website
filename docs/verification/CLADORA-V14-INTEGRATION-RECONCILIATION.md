@@ -82,6 +82,13 @@ The current country-signal inventory supplement classifies five byte-exact addit
 from the official Platform264 manifest; the historical audit and its 15 findings remain
 unchanged. Address presentation, current audit and application foundation checks pass.
 
+The AIRPROP fixture loader resolves actual TSX files as well as TS modules. The
+error-body suite isolates its unrelated valuation sibling and uses the current localized
+error copy. All 111 mounted original-response controls pass: targets, opportunities and
+B2 in EN/RO/FA, reader cancellation, malformed/oversized/deadline bodies, late Context
+and exact pending-command retry. The B2 regression suite also passes. These are native
+Response/ReadableStream objects with mocked fetch, not connected PostgreSQL/Auth proof.
+
 On commit7ced0c47, CI completed with 27 successes, 9 failures and 1 skip. One remaining
 application fixture failure is corrected in this follow-up. Native startup reached
 `20261025214155_building_setup_command_receipts_v1.sql` and returned SQLSTATE55000.

@@ -32,10 +32,12 @@ const load = createB2Loader({
   './CustomerAirpropB2': { CustomerAirpropB2Workspace: () => null },
   './CustomerAirpropUnderwriting': { CustomerAirpropUnderwriting: () => null },
   './CustomerAirpropDiligence': { CustomerAirpropDiligence: () => null },
+  // Valuation is a sibling consumer; this suite probes B2/opportunity error bodies.
+  './CustomerAirpropValuation': { CustomerAirpropValuation: () => null },
   './CustomerContextProvider': { useCustomerContext: () => ({ active, registerUnsavedGuard }) },
 });
 const { CustomerAirpropWorkspace } = load('src/components/customer/CustomerAirpropWorkspace.tsx');
-const errorCopy = { en: 'Unable to load this workspace.', ro: 'Workspace-ul nu poate fi încărcat.', fa: 'اطلاعات ورک‌اسپیس دریافت نشد.' };
+const errorCopy = { en: 'Workspace details could not be loaded. Check your access and return to the opportunities page.', ro: 'Datele spațiului de lucru nu au putut fi încărcate. Verifică accesul și revino la pagina oportunităților.', fa: 'اطلاعات فضای کاری دریافت نشد. دسترسی خود را بررسی کنید و به صفحهٔ فرصت\u200cها برگردید.' };
 const unavailable = { en: 'The managed portfolio is currently unavailable.', ro: 'Portofoliul administrat nu este disponibil momentan.', fa: 'سبد تحت مدیریت در حال حاضر در دسترس نیست.' };
 const empty = { en: 'No opportunities yet.', ro: 'Nu există încă oportunități.', fa: 'هنوز فرصتی ثبت نشده است.' };
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));

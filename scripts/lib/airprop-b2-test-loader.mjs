@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import ts from 'typescript';
 
@@ -17,8 +17,11 @@ export function createB2Loader(mocks = {}) {
       if (Object.hasOwn(mocks, name)) return mocks[name];
       if (!name.startsWith('.') && !name.startsWith('@/')) return require(name);
       const target = name.startsWith('@/') ? new URL(`src/${name.slice(2)}`, root) : new URL(name, url);
-      if (!/\.(tsx?|mjs)$/.test(target.pathname)) target.pathname += '.ts';
-      return load(target);
+      const candidates = /\.(tsx?|mjs|js)$/.test(target.pathname) ? [target]
+        : [target, ...['.ts','.tsx','.js','/index.ts','/index.tsx'].map(suffix=>new URL(target.href+suffix))];
+      const resolved = candidates.find(candidate=>existsSync(candidate)&&statSync(candidate).isFile());
+      if (!resolved) throw Error(`Missing test module: ${name} from ${url.pathname}`);
+      return load(resolved);
     }, mod, mod.exports);
     cache.set(url.href, mod.exports); return mod.exports;
   }
