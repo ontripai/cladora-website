@@ -297,7 +297,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Verify exact local baseline profile and source preservation
-        run: node scripts/test-local-migration-profile.mjs
+        run: node scripts/test-local-migration-profile.mjs && node scripts/test-local-baseline-pgtap.mjs
       - name: Offline Building Setup CI binding controls (no runtime)
         run: node --test scripts/test-building-setup-http-ci-provisioner.mjs
       - run: npm run test:retention

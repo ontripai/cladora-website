@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {test} from 'node:test';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import {createRequire} from 'node:module';
 import {execFileSync} from 'node:child_process';
 import {runInNewContext} from 'node:vm';
@@ -508,6 +508,19 @@ test('workflow YAML parses; original filters/suites preserved and Core lane is d
     if(oldSteps[i].name==='Show service status on failure'){
       assert.equal(newSteps[i].run,'node scripts/provision-building-setup-http-ci.mjs --safe-status');
       assert.equal(newSteps[i].if,oldSteps[i].if);
+    }else if(oldSteps[i].name==='Run pgTAP database tests'){
+      assert.deepEqual(newSteps[i],{name:oldSteps[i].name,run:'node scripts/run-local-baseline-pgtap.mjs'});
+      const {baselineTapFiles}=await import('./run-local-baseline-pgtap.mjs');
+      const all=(await readdir('supabase/tests')).filter(name=>name.endsWith('.sql')).sort();
+      assert.equal(all.length,219);
+      assert.deepEqual(baselineTapFiles(),all.filter(name=>name!=='operations-checklist-command-v2.test.sql').map(name=>'supabase/tests/'+name));
+      const runner=await readFile(new URL('./run-local-baseline-pgtap.mjs',import.meta.url),'utf8');
+      assert.match(runner,/spawnSync\('supabase',\['test','db','--local','--workdir',project\]/);
+      assert.match(runner,/prepareProfile/);
+      assert.match(runner,/rmSync\(join\(project,'supabase\/tests\/operations-checklist-command-v2.test.sql'\)\)/);
+      assert.match(runner,/status=result\.status\?\?1/);
+      assert.match(runner,/process\.exit\(status\)/);
+      assert.match(runner,/c4ef35deac1a847b958b72e2c4f411b296ce5d3824e19c80ec647d2092856bf7/);
     }else assert.deepEqual(newSteps[i],oldSteps[i]);
   }
   for(const step of baseline.jobs['static-contract'].steps){
