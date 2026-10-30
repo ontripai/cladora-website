@@ -105,3 +105,12 @@ failed statement using a savepoint before continuing a transaction-level observa
 All 34 sequential scenarios pass in isolated PGlite0.5.3 with bounded authority fixtures;
 this does not prove native PG17 concurrency or managed Auth. Native/runtime and connected proof jobs remain
 independent release gates. No failed check has been disabled or represented as passed.
+
+
+## Exact local baseline migration profile
+
+Eight native jobs stopped before their suites at the unconditional SQLSTATE 55000 guard in `20261025214155_building_setup_command_receipts_v1.sql`. This independently sealed fresh-install G2 packet is not an incremental migration. Its 732202 bytes, guard, proof bindings, inventory attribution and SHA-256 `254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3` remain unchanged.
+
+The disposable local/CI bootstrap now builds a fresh unlinked `baseline-v14` profile: all 300 source identities are verified, then the 299 sequential migrations are copied outside the source tree. Only the exact inactive G2 packet is excluded from automatic CLI migration discovery. The existing staged S4 denial, separately authorized STEP-SU-02 and final ACL checks remain required. Before native suites run, the original G2 source is submitted separately to local PostgreSQL and must reject with SQLSTATE 55000; migration history must not claim it was installed. No test suite or application assertion is disabled. Native jobs therefore prove the sequential baseline only; G2 remains `NOT_INSTALLED_NOT_PROVED`.
+
+Offline profile controls verify exact after-images, preservation of all source files, omission of linked credentials, and rejection of changed inputs, inventory drift, unsafe destinations and reuse before allocation. This does not authorize hosted database changes, G2 installation, production promotion, or reuse of consumed rehearsal requests. Native CI results are reported separately.
