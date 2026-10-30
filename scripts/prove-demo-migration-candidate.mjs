@@ -20,7 +20,9 @@ const receipt = { kind:'DEMO_CANDIDATE_NATIVE_CATALOG_ONLY', commit:process.env.
   operations:'NOT_INSTALLED', ce_pool:'UNFINALIZED', s3_s4_g2:'NOT_INSTALLED' };
 const hash = s => createHash('sha256').update(s).digest('hex');
 function docker(args, input) {
-  const r = spawnSync('docker', args, {input, encoding:'utf8', maxBuffer:32*1024*1024, timeout:120000});
+  const env = {...process.env};
+  for(const name of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH']) delete env[name];
+  const r = spawnSync('docker', ['--host=unix:///var/run/docker.sock',...args], {input, env, encoding:'utf8', maxBuffer:32*1024*1024, timeout:120000});
   if(r.error) throw Error('LOCAL_DOCKER_FAILURE');
   return r;
 }

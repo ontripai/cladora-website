@@ -97,3 +97,21 @@ during database-image extraction with `no space left on device`; no database
 container or application SQL was created there. This is infrastructure failure,
 not a successful candidate test. The dedicated disposable CI job records its own
 outcome independently.
+
+## First-administrator verification
+
+The dedicated local job additionally exercises real GoTrue user creation,
+password login, TOTP enrollment/verification, and issued AAL2 sessions. Its only
+owner bootstrap fixture is an atomic pair of application control-plane records,
+linked to a verified synthetic Auth UUID in an initially empty local platform.
+It never inserts Auth users through SQL or signs replacement JWTs. Canonical
+RPCs must reject AAL1 and accept the actual AAL2 platform administrator; pilot
+creation must remain in the normal LEAD lifecycle and create its audit event.
+Customer membership, lifecycle transitions, browser journeys and hosted
+administrator provisioning remain outside that bounded result.
+
+The connection-boundary controls independently reject a production project,
+mismatched project/user/API/host tuples, transaction pooling, unverified TLS
+options and connection-option injection. They open no connections and do not
+grant deployment authority. Every native Docker operation selects the local
+Unix socket explicitly rather than inheriting another Docker context.
