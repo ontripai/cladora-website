@@ -112,11 +112,15 @@ required version-bound lifecycle transition. A distinct real Auth/TOTP customer
 must see and activate only their email-bound prepared access, obtain a profile,
 membership and Context from application RPCs, and complete primary-admin
 onboarding. No owner SQL creates customer authority or bypasses lifecycle;
-no contract, payment or email delivery is claimed. The result stops at
-PROVISIONING. ACTIVE status, native workspace/module authority, dashboard,
-building/Operations workflows, browser journeys and hosted provisioning remain
-separate proof boundaries. First-administrator success is retained separately if
-the later customer boundary fails.
+no contract, payment or email delivery is claimed. The next stage tests canonical
+versioned ACTIVE transition and the actual basic dashboard RPC, including
+pre-ACTIVE/customer-actor denials, Context/tenant/workspace binding, typed payload,
+empty counts, preserved expiry and audit readback. Native workspace/module
+authority, commercial entitlements, building/Operations workflows, browser
+journeys and hosted provisioning remain separate proof boundaries.
+First-administrator and customer-onboarding successes are retained separately if
+a later boundary fails; only a passing receipt for that exact source establishes
+the additional ACTIVE/dashboard result.
 
 The connection-boundary controls independently reject a production project,
 mismatched project/user/API/host tuples, transaction pooling, unverified TLS

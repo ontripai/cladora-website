@@ -230,11 +230,50 @@ try {
     and action in ('WORKSPACE_ACCESS_BASIS_ACTIVATED','PRIMARY_ADMIN_ONBOARDING_COMPLETED');`) === '2',
     'customer activation and onboarding both have real audit records');
   receipt.customer_onboarding = 'PASS_LOCAL_PREPARED_24_HOUR_PILOT_ONLY';
+  const contextId = contexts[0].context_id;
+  check((await customer.schema('customer_api').rpc('get_dashboard_v1', { p_context_id: contextId })).error?.code === '42501',
+    'canonical customer dashboard denies workspace still PROVISIONING');
+  const activeArgs = { p_workspace_id: workspace.id, p_target_status: 'ACTIVE',
+    p_expected_version: completed.workspace_version,
+    p_reason: 'Activate disposable 24-hour PILOT after real customer identity MFA and onboarding; no commercial claim' };
+  check((await customer.schema('customer_api').rpc('transition_workspace_lifecycle_v1', activeArgs)).error?.code === '42501',
+    'customer primary administrator cannot perform platform lifecycle transition');
+  const activeWorkspace = success(await actor.schema('customer_api').rpc('transition_workspace_lifecycle_v1', activeArgs),
+    'canonical_pilot_active_transition_failed');
+  check(activeWorkspace.id === workspace.id && activeWorkspace.environment === 'PILOT'
+    && activeWorkspace.lifecycle_status === 'ACTIVE' && activeWorkspace.version === completed.workspace_version + 1
+    && activeWorkspace.primary_admin_user_id === customerId && !!activeWorkspace.onboarding_completed_at,
+  'canonical platform AAL2 versioned transition activates completed bounded PILOT');
+  const dashboard = success(await customer.schema('customer_api').rpc('get_dashboard_v1', { p_context_id: contextId }),
+    'active_customer_dashboard_failed');
+  check(dashboard.version === 1 && dashboard.persona === 'association_admin'
+    && dashboard.contextId === contextId && dashboard.context?.id === contextId
+    && dashboard.context.tenant_id === pilot.tenant_id && dashboard.context.role_code === dashboard.persona
+    && dashboard.context.scope_type === 'tenant' && dashboard.workspace_id === workspace.id,
+  'actual customer dashboard binds current Context tenant persona and ACTIVE workspace');
+  check(['permissions', 'entitlements', 'modules', 'capabilities', 'sections'].every(key =>
+    Array.isArray(dashboard[key]) && dashboard[key].every(value => typeof value === 'string'))
+    && Number.isFinite(Date.parse(dashboard.generated_at)), 'actual versioned dashboard returns typed arrays and timestamp');
+  check(dashboard.kpis?.properties === 0 && dashboard.kpis.buildings === 0 && dashboard.kpis.units === 0,
+    'fresh customer dashboard reports actual empty property building and unit counts');
+  check(dashboard.entitlements.length === 0 && dashboard.modules.includes('dashboard')
+    && dashboard.modules.every(module => ['dashboard', 'audit'].includes(module)),
+  'basic dashboard does not imply enabled commercial modules or operations entitlement');
+  check((await actor.schema('customer_api').rpc('get_dashboard_v1', { p_context_id: contextId })).error?.code === '42501',
+    'platform administrator cannot read customer dashboard without customer Context authority');
+  const activeContexts = success(await customer.schema('customer_api').rpc('list_contexts_v1'), 'active_contexts_read_failed');
+  check(activeContexts.length === 1 && activeContexts[0].context_id === contextId
+    && activeContexts[0].membership_id === activated.membership_id && activeContexts[0].ends_at === contexts[0].ends_at,
+  'ACTIVE transition preserves exact bounded customer Context and expiry');
+  check(sql(`select count(*) from audit.events where actor_id='${id}'::uuid
+    and action='WORKSPACE_LIFECYCLE_TRANSITION' and after_snapshot->>'status'='ACTIVE';`) === '1',
+    'canonical ACTIVE transition has its own platform audit record');
+  receipt.customer_dashboard = 'PASS_LOCAL_ACTIVE_BOUNDED_PILOT_RPC_ONLY';
   receipt.result = 'PASS';
-  receipt.scope = 'Real local Auth/TOTP for two distinct users; narrow owner platform fixture; canonical 24-hour PILOT preparation, lifecycle, customer activation, membership/Context and primary-admin onboarding';
-  receipt.next = 'Workspace remains PROVISIONING; ACTIVE transition, native workspace/module authority, customer dashboard, operations and building workflows remain unproved';
+  receipt.scope = 'Real local Auth/TOTP for two distinct users; narrow owner platform fixture; canonical 24-hour PILOT preparation, customer onboarding, versioned ACTIVE transition and actual basic customer dashboard RPC';
+  receipt.next = 'Native workspace/module authority, commercial entitlements, browser/application routes, operations and building workflows remain unproved';
   receipt.teardown = 'Owned CI Supabase project must be destroyed; synthetic fixture deliberately retained until teardown';
-  console.log('PASS: disposable real Auth platform administrator and bounded PILOT customer onboarding; no browser, hosted, native-workspace or operations acceptance claim.');
+  console.log('PASS: disposable real Auth, bounded PILOT onboarding, canonical ACTIVE transition and customer dashboard RPC; no browser, hosted, native-workspace or operations acceptance claim.');
 } catch {
   receipt.result = 'FAIL';
   // Neither raw SDK errors nor assertion values are safe credential diagnostics.
