@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { summarizeFailure } from './lib/local-supabase-failure-summary.mjs';
+const name = '20261022082451_core_notice_ack_receipt_replay_v1.sql';
+const secret = 'secret-value-never-echoed';
+const log = `password=${secret}\npostgres://user:${secret}@private.invalid/db\nApplying migration ${name}...\nERROR: missing object ${secret} (SQLSTATE 42704)\n`;
+assert.deepEqual(summarizeFailure(log, [name]), {status:'FAILED',category:'DATABASE_ERROR',last_known_migration:name,sqlstate:'42704',raw_output:'WITHHELD'});
+assert.ok(!JSON.stringify(summarizeFailure(log, [name])).includes(secret));
+assert.equal(summarizeFailure(log, []).last_known_migration, null);
+assert.equal(summarizeFailure(`SQLSTATE SECRET\n${secret}`, []).sqlstate, null);
+assert.equal(summarizeFailure('must be able to SET ROLE "private-secret-role"', []).category, 'OWNER_TRANSFER_SET_ROLE');
+assert.equal(summarizeFailure('could not connect; password=hidden', []).category, 'CONNECTIVITY');
+assert.equal(summarizeFailure('manifest unknown', []).category, 'CONTAINER_IMAGE');
+assert.equal(summarizeFailure('relation "private-relation" already exists', []).category, 'RELATION_ALREADY_EXISTS');
+assert.equal(summarizeFailure(secret, []).category, 'UNCLASSIFIED');
+console.log('PASS safe local Supabase failure diagnostics: known migration/SQLSTATE only; no raw credentials or payloads');

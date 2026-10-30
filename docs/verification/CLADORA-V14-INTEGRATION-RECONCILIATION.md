@@ -42,11 +42,34 @@ Native Chromium checked 24 local route/viewport combinations in RO/EN/FA at 390 
 app-to-login redirect. External requests were blocked and no credentials or data writes
 were used. These checks do not establish real Auth, RLS, installed RPCs or persistence.
 
-The broader historical `test:unit` chain is not PASS: after the fixed Checklist gateway,
-its legacy lifecycle fixture cannot load the new durable panel/command gate. That
-fixture must be reconciled with the actual canonical command protocol; re-enabling old
-mutation routes or dropping its assertions is not a fix. The dedicated release suites
-remain additional scoped evidence, not replacements for failing required checks.
+The lifecycle component fixture now loads actual current modules and models the public
+command-result port explicitly instead of dispatching removed legacy mutation routes.
+The independent release Checklist/summary suites continue to exercise the real gate,
+client, canonical wire and receipt protocol. Dashboard fixtures provide matching Context,
+current dashboard and valid response schemas; parent private snapshots are asserted
+separately from freshly authorized child observations. DOM identity failures are reported
+as bounded booleans rather than recursively dumping React/DOM graphs.
+
+This reconciliation reproduced an actual component admission gap on commit50ff9945:
+a known command reply followed by a failed current read allowed a stale mounted handler
+to submit another command before React committed. The correction holds edits/submission
+until a successful current observation commits in the same scope. Known replies stay
+known, true UNKNOWN remains held, and canonical rejections retain their existing behavior.
+The exact previous component fails the counterexample; the corrected component passes
+527 lifecycle/dashboard assertions and 40 settlement scenarios / 562 assertions. These
+are mounted component tests with a controlled command-result port, not real DB effects.
+The original accepted component identity is retained as an intermediate composition pin.
+The complete `npm run test:unit` chain subsequently passed with loopback networking
+available for its deliberate offline-database rejection probe. The earlier restricted
+sandbox run could not produce that probe's expected ECONNREFUSED response. No test
+assertion was relaxed for the sandbox. Registry/calendar fixtures now verify the closed
+legacy POST (428, zero RPCs), real current intent validation and authenticated read mapping.
+
+The summary ACK test now waits on the real client's ready state with a 2-second failure
+bound after releasing the controlled ACK. It retains all receipt/privacy assertions.
+Safe local Supabase startup diagnostics expose only allowlisted migration names,
+SQLSTATE and fixed categories; raw CLI output and credentials remain withheld.
+
 The quote fixture now tests both the changed-key-body replay conflict (23505) and a
 fresh-key stale revision (40001), with unchanged row counts. It also recovers its expected
 failed statement using a savepoint before continuing a transaction-level observation.

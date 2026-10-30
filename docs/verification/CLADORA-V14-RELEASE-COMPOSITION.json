@@ -18,10 +18,14 @@
         "sha256": "640104a817a857163b3cbc68261a7c8cb98b427ccb377f02c08832ad171cfa3e"
       },
       "after": {
+        "bytes": 22081,
+        "sha256": "dd4d57fcd199f87d703d17c838e6b1ade1814a631b88b3b9d0b1ac470e58cea4"
+      },
+      "source": "PROCEDURE253-4 plus reviewed final UI296 overlay; verified264 baseline and exact apply; release correction: synchronous observation admission until React commits a fresh read; before/after mounted counterexample",
+      "accepted_intermediate": {
         "bytes": 21577,
         "sha256": "3cbbe7eeeed99f53fa3bf5e84e161b783cd0395a9f8208a6c908d1891b34d8d2"
-      },
-      "source": "PROCEDURE253-4 plus reviewed final UI296 overlay; verified264 baseline and exact apply"
+      }
     },
     {
       "path": "src/components/customer/CustomerMaintenanceDashboard.tsx",

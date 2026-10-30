@@ -133,9 +133,14 @@ async function mounted(work,lang='en'){
   return r;
  };
  const rr=createRoot(dom.window.document.getElementById('root'));
+ const settle=async(predicate,message)=>{
+  const deadline=performance.now()+2000;
+  while(!predicate()&&performance.now()<deadline)await act(async()=>{await tick();});
+  ok(predicate(),message);
+ };
  const render=async(context,options={})=>{await act(async()=>{rr.render(React.createElement(OperationsCommandGate,{contextId:context,lang,...options},React.createElement(Consumer)));await tick();});for(let i=0;i<10;i++){if(state.wait?.used)break;await act(async()=>{await tick();});if(latest?.ready||!dom.window.document.querySelector('button[disabled]'))break;}};
  const storageEvent=async()=>act(async()=>{dom.window.dispatchEvent(new dom.window.StorageEvent('storage'));await tick();});
- try{await work({dom,render,storageEvent,rr});}
+ try{await work({dom,render,storageEvent,rr,settle});}
  finally{await act(async()=>rr.unmount());globalThis.fetch=originalFetch;for(const [k,d]of old){if(d)Object.defineProperty(globalThis,k,d);else delete globalThis[k];}dom.window.close();}
 }
 
@@ -168,7 +173,7 @@ reset();{
 }
 reset();{
  seed();const hold=deferred();state.wait={phase:'ack',context:A,...hold};
- await mounted(async({render,dom})=>{await render(A);ok(state.wait.used);eq(latest.ready,false);eq(latest.receipt,null);consumerValue(null);eq(dom.window.document.querySelector('[aria-label="Command receipt history"]'),null);await act(async()=>{hold.resolve();await tick();});ok(latest.ready);ok(latest.receipt);consumerValue(state.rows[0].receipt);});
+ await mounted(async({render,dom,settle})=>{await render(A);ok(state.wait.used);eq(latest.ready,false);eq(latest.receipt,null);consumerValue(null);eq(dom.window.document.querySelector('[aria-label="Command receipt history"]'),null);await act(async()=>{hold.resolve();await tick();});await settle(()=>latest.ready,'exact ACK must settle the real client before admission');ok(latest.ready);ok(latest.receipt);consumerValue(state.rows[0].receipt);});
  scenarios.push('no-summary-before-exact-ACK');
 }
 for(const fault of ['receipt-actor','receipt-context','receipt-result','ack-mismatch']){

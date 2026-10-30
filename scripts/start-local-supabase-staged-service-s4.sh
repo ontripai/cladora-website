@@ -39,6 +39,7 @@ run_supabase_silently() {
     echo "$operation: PASS (credential-bearing CLI output withheld)"
   else
     echo "$operation failed; CLI output withheld to prevent credential disclosure." >&2
+    node "$repository_root/scripts/summarize-local-supabase-failure.mjs" "$supabase_output"
     return 1
   fi
 }

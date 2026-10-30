@@ -1,6 +1,7 @@
 /** Offline mounted consumers only; fake fetch, no server/DB/Auth/browser connection. */
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
+import {dirname,resolve} from 'node:path';
 import {createRequire,Module} from 'node:module';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {JSDOM} from 'jsdom';
@@ -11,21 +12,54 @@ export const response=(value,status=200)=>({ok:status>=200&&status<300,status,js
 export function workOrder(status='draft',id=ID){return {id,title:`Synthetic order ${id.slice(-2)}`,work_order_no:id===ID?74:75,status,vendor_name:'Recorded contractor',started_at:['in_progress','completed','verified'].includes(status)?TIME:null,completed_at:['completed','verified'].includes(status)?TIME:null,verified_at:status==='verified'?TIME:null,completion_summary:['completed','verified'].includes(status)?'Recorded service':null,cost_totals:{},created_at:TIME,priority:'normal'};}
 export async function createHarness({sourceRoot=new URL('../',import.meta.url)}={}){
  const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div>',{url:'https://cladora.test'}),saved=new Map(),originalFetch=globalThis.fetch;
- for(const[key,value]of Object.entries({window:dom.window,document:dom.window.document,navigator:dom.window.navigator,FormData:dom.window.FormData,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
+ for(const[key,value]of Object.entries({window:dom.window,self:dom.window,document:dom.window.document,navigator:dom.window.navigator,FormData:dom.window.FormData,Event:dom.window.Event,HTMLElement:dom.window.HTMLElement,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
  const React=await import('react'),{act}=React,{createRoot}=await import('react-dom/client');
- function load(path,mocks={}){const filename=fileURLToPath(new URL(path,sourceRoot)),loaded=new Module(filename);loaded.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);loaded._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return loaded.exports;}
+ // Component-unit boundary only: the canonical gate/client/receipt protocol is
+ // exercised separately by test-release-checklist/summary-composition. These
+ // tests probe the lifecycle's own fences even when its supplied port stays ready.
+ let h;
+ const portMock={useOperationsCommands:()=>h.commandPort,OperationsCommandGate:({children})=>children};
+ const cache=new Map();
+ function load(path,mocks={}){
+  const filename=fileURLToPath(new URL(path,sourceRoot));if(cache.has(filename))return cache.get(filename).exports;
+  const loaded=new Module(filename);cache.set(filename,loaded);
+  loaded.require=id=>{
+   if(id==='./OperationsCommandGate')return portMock;
+   if(id==='next/link')return {__esModule:true,default:({children,href,...props})=>React.createElement('a',{href,...props},children)};
+   if(Object.hasOwn(mocks,id))return mocks[id];
+   if(id==='server-only')return {};
+   if(id.startsWith('@/')||id.startsWith('.')){
+    const base=id.startsWith('@/')?resolve(fileURLToPath(sourceRoot),'src',id.slice(2)):resolve(dirname(filename),id);
+    const found=[base,base+'.ts',base+'.tsx'].find(p=>existsSync(p));
+    if(found)return load(found,mocks);
+   }
+   return require(id);
+  };
+  loaded._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return loaded.exports;
+ }
  const schema=load('src/lib/customer/maintenance-schema.ts'),defaults=load('src/lib/customer/maintenance-defaults.ts');
  const checklist=load('src/components/customer/WorkOrderChecklistPanel.tsx',{'@/lib/customer/maintenance-schema':schema,'@/lib/customer/maintenance-defaults':defaults});
  const lifecycle=load('src/components/customer/WorkOrderLifecyclePanel.tsx',{'./WorkOrderChecklistPanel':checklist,'@/lib/customer/maintenance-schema':schema});
- const h={React,act,dom,calls:[],changes:[],readiness:[],handlers:{},rows:new Map(),items:[],checks:0,context:null,root:null};
+ h={React,act,dom,calls:[],changes:[],readiness:[],handlers:{},rows:new Map(),items:[],checks:0,context:null,root:null};
  const dashboard=load('src/components/customer/CustomerMaintenanceDashboard.tsx',{'./WorkOrderLifecyclePanel':lifecycle,'./PreventiveMaintenancePanel':{PreventiveMaintenancePanel:()=>null},'@/lib/customer/maintenance-defaults':defaults,'./CustomerContextProvider':{useCustomerContext:()=>h.context}});
  Object.assign(h,{...lifecycle,...checklist,...dashboard});
+ h.commandPort={ready:true,receipt:null,send:async intent=>{
+  const wire=JSON.stringify(intent);const command=JSON.parse(wire);
+  assert.equal(command.context_id,intent.context_id);assert.equal(command.action,intent.action);
+  assert.equal(command.target_id,intent.target_id);
+  const call={channel:'FAKE_CANONICAL_COMMAND_PORT',kind:'mutation',intent:command,action:command.action,id:command.target_id,
+   url:'/api/customer/v1/operations/commands',body:command.input,options:{method:'COMMAND',body:wire}};
+  h.calls.push(call);
+  const result=h.handlers.mutation?await h.handlers.mutation(call,()=>h.model(call)):await h.model(call);
+  if(!result.ok){if(result.status===400||result.status===409)throw Object.assign(Error('fake canonical rejection'),{canonicalRejection:true,errorCode:result.status===409?'40001':'22023'});throw Error('fake command port unavailable: '+result.status);}
+  return result.json();
+ }};
  h.changed=status=>h.changes.push(status);h.onReady=value=>h.readiness.push(value);
- h.eq=(a,b,message)=>{h.checks++;assert.deepEqual(a,b,message);};h.ok=(v,message)=>{h.checks++;assert.ok(v,message);};
+ h.eq=(a,b,message)=>{h.checks++;if(a instanceof dom.window.Node||b instanceof dom.window.Node)assert.equal(a===b,true,message??'DOM identity mismatch');else assert.deepEqual(a,b,message);};h.ok=(v,message)=>{h.checks++;assert.ok(v,message);};
  h.reset=async(status='in_progress')=>{
   if(h.root)await act(async()=>h.root.unmount());h.root=createRoot(document.getElementById('root'));
-  h.calls=[];h.changes=[];h.readiness=[];h.handlers={};h.rows=new Map([[ID,workOrder(status)],[OTHER,workOrder('assigned',OTHER)]]);h.items=[{id:ITEM,label:'CLADORA_PM_HVAC_FILTER',required:true,completed:false,completed_at:null,notes:null}];
-  h.context={active:{context_id:CTX,membership_id:VENDOR,role_code:'operator',scope_type:'property',context_label:'Synthetic context'},loading:false,error:null};
+  dom.window.localStorage.clear();h.calls=[];h.changes=[];h.readiness=[];h.handlers={};h.rows=new Map([[ID,workOrder(status)],[OTHER,workOrder('assigned',OTHER)]]);h.items=[{id:ITEM,label:'CLADORA_PM_HVAC_FILTER',required:true,completed:false,completed_at:null,notes:null}];
+  h.context={dashboard:{contextId:CTX},active:{context_id:CTX,membership_id:VENDOR,role_code:'operator',scope_type:'property',context_label:'Synthetic context'},loading:false,error:null};
  };
  h.payload=(url)=>{const u=new URL(url,'https://cladora.test'),p=u.searchParams,id=p.get('id'),view=p.get('view')??'work_orders';let rows=[...h.rows.values()];if(id)rows=rows.filter(r=>r.id===id);if(p.get('status'))rows=rows.filter(r=>r.status===p.get('status'));return {context:{id:p.get('context_id')},view,rows,detail:id?(rows[0]??null):null,total:rows.length,summary:{assets:0,open_work_orders:rows.filter(r=>!['completed','verified'].includes(r.status)).length,overdue:0,cost_total:{}},read_only:true,generated_at:TIME,limit:Number(p.get('limit')??20),offset:Number(p.get('offset')??0)};};
  h.checklistValue=(id=ID)=>({work_order_id:id,status:h.rows.get(id)?.status??'in_progress',items:structuredClone(h.items)});
@@ -57,7 +91,7 @@ export async function createHarness({sourceRoot=new URL('../',import.meta.url)}=
  h.click=async button=>{assert.ok(button,'button exists');await act(async()=>button.click());};
  h.submit=async form=>{assert.ok(form,'form exists');await act(async()=>form.dispatchEvent(new dom.window.Event('submit',{bubbles:true,cancelable:true})));};
  h.change=async(node,value)=>{assert.ok(node);await act(async()=>{Object.getOwnPropertyDescriptor(node.tagName==='TEXTAREA'?dom.window.HTMLTextAreaElement.prototype:dom.window.HTMLInputElement.prototype,'value').set.call(node,value);node.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});};
- h.writes=()=>h.calls.filter(c=>c.options.method==='POST');
+ h.writes=()=>h.calls.filter(c=>c.options.method==='POST'||c.kind==='mutation');
  h.close=async()=>{if(h.root)await act(async()=>h.root.unmount());globalThis.fetch=originalFetch;for(const[key,d]of saved){if(d)Object.defineProperty(globalThis,key,d);else delete globalThis[key];}dom.window.close();};
  await h.reset();return h;
 }
@@ -136,7 +170,8 @@ export async function runAdmissionRegression(kind){
      if(kind==='lifecycle')await h.click(h.button('Observe current work order'));else await h.click(h.button('Observe current checklist'));
      if(inputs.some(n=>n.tagName==='TEXTAREA')){
       const value=document.querySelector('textarea')?.value;
-      if(value!=='Frozen original evidence'&&!(kind==='checklist'&&outcome==='readback'&&document.body.textContent.includes('Frozen original evidence')))failures.push({kind,action,outcome,retainedNotes:value});
+      if(kind==='lifecycle'&&action==='verify'&&outcome==='readback'){h.eq(document.querySelector('form'),null,'known verification plus fresh terminal read cannot reopen a mutation');h.eq(h.writes()[0].body.verification_notes,'Frozen original evidence');}
+      else if(value!=='Frozen original evidence'&&!(kind==='checklist'&&outcome==='readback'&&document.body.textContent.includes('Frozen original evidence')))failures.push({kind,action,outcome,retainedNotes:value});
      }
      // A recorded completion readback exposes the verify form, not actual_cost.
      // Its original wire=0 was asserted above; other complete cases retain the input.
@@ -165,7 +200,7 @@ export async function runAdmissionRegression(kind){
   console.log('SETTLEMENT_GAP_TRACES '+JSON.stringify(traces));
   console.log('ADMISSION_FAILURES '+JSON.stringify(failures));
   assert.deepEqual(failures,[],`${kind}: post-settlement admission/snapshot invariant`);
-  console.log(JSON.stringify({suite:`${kind}-settlement-admission`,cases:traces.length,assertions:h.checks,result:'PASS',boundary:'actual mounted handlers, async act batches commits; controlled fake fetch only',SQL_Auth_HTTP_runtime:'NOT_RUN'}));
+  console.log(JSON.stringify({suite:`${kind}-settlement-admission`,cases:traces.length,assertions:h.checks,result:'PASS',boundary:'actual mounted handlers and React commit gap; controlled fake command-result port and fetch; canonical gate tested separately',SQL_Auth_HTTP_runtime:'NOT_RUN'}));
  }finally{await h.close();}
 }
 async function runChecklist(){

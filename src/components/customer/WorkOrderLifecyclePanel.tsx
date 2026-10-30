@@ -54,6 +54,7 @@ export function WorkOrderLifecyclePanel({contextId,workOrderId,status,lang,onCha
  const token=useMemo(()=>({binding,status,lang,admitted,onChanged,onUnavailable}),[binding,status,lang,admitted,onChanged,onUnavailable]);
  const committed=useRef<typeof token|null>(null),operation=useRef<symbol|null>(null),readOwner=useRef<symbol|null>(null),controller=useRef<AbortController|null>(null),attemptRef=useRef<Attempt|null>(null);
  const [attempt,setAttempt]=useState<Attempt|null>(null),[observation,setObservation]=useState<{token:typeof token;row:WorkOrderObservation}|null>(null),[reading,setReading]=useState(true),[notice,setNotice]=useState<''|'error'|'forbidden'|'conflict'|'saved'|'observed'>('');
+ const needsObservation=useRef(true);
  const [fields,setFields]=useState({binding,notes:'',cost:''}),fieldsRef=useRef(fields);
  const checklistRef=useRef<{token:typeof token;ready:boolean}|null>(null),[checklist,setChecklist]=useState<{token:typeof token;ready:boolean}|null>(null);
  const [checklistPresence,setChecklistPresence]=useState<{binding:string;keep:boolean}|null>(null);
@@ -66,6 +67,7 @@ export function WorkOrderLifecyclePanel({contextId,workOrderId,status,lang,onCha
  const onReady=useCallback((value:boolean)=>{if(committed.current===token){const item={token,ready:value&&!attemptBlocked()};checklistRef.current=item;setChecklist(item);}},[token,attemptBlocked]);
  const observe=useCallback(async()=>{
   if(committed.current!==token||!admitted||operation.current)return;
+  needsObservation.current=true;
   const owner=Symbol('work-order-read');readOwner.current=owner;const abort=new AbortController();controller.current?.abort();controller.current=abort;
   setReading(true);setObservation(null);checklistRef.current=null;setChecklist(null);setNotice('');
   const signal=AbortSignal.any([abort.signal,AbortSignal.timeout(20000)]);
@@ -75,15 +77,20 @@ export function WorkOrderLifecyclePanel({contextId,workOrderId,status,lang,onCha
   finally{if(current()){readOwner.current=null;setReading(false);}}
  },[token,admitted,contextId,workOrderId,binding,onUnavailable]);
  useLayoutEffect(()=>{
-  committed.current=token;operation.current=null;readOwner.current=null;checklistRef.current=null;
+  committed.current=token;needsObservation.current=true;operation.current=null;readOwner.current=null;checklistRef.current=null;
   if(attemptRef.current?.binding===binding&&attemptRef.current.phase==='sending')attemptRef.current={...attemptRef.current,phase:'unknown'};
   const sameBinding=fieldsRef.current.binding===binding;
   if(!sameBinding)fieldsRef.current={binding,notes:'',cost:''};
   void Promise.resolve().then(()=>{if(committed.current===token){setChecklist(null);setAttempt(attemptRef.current);setFields(fieldsRef.current);setObservation(null);setReading(admitted);setNotice(previous=>sameBinding&&!admitted&&['forbidden','conflict','error'].includes(previous)?previous:'');if(admitted)void observe();}});
   return()=>{if(committed.current===token){committed.current=null;operation.current=null;readOwner.current=null;checklistRef.current=null;controller.current?.abort();}};
  },[token,binding,admitted,observe]);
+ // A known command reply does not validate a stale render's resource row.
+ // Release admission only when React commits the successful current observation.
+ useLayoutEffect(()=>{
+  if(committed.current===token&&observation?.token===token)needsObservation.current=false;
+ },[token,observation]);
  async function submit(){
-  if(committed.current!==token||!admitted||operation.current||readOwner.current||blocked||attemptBlocked()||!row||!action)return;
+  if(committed.current!==token||!admitted||needsObservation.current||operation.current||readOwner.current||blocked||attemptBlocked()||!row||!action)return;
   if(action==='complete'&&!(checklistRef.current?.token===token&&checklistRef.current.ready))return;
   let body:Record<string,unknown>={context_id:contextId};
   try{if(action==='complete'){const f=fieldsRef.current;body=completeWorkOrderSchema.parse({...body,completion_notes:f.notes,...(f.cost!==''?{actual_cost:Number(f.cost)}:{})});}else if(action==='verify')body=verifyWorkOrderSchema.parse({...body,verification_notes:fieldsRef.current.notes});else body=issueWorkOrderSchema.parse(body);}
@@ -101,6 +108,7 @@ export function WorkOrderLifecyclePanel({contextId,workOrderId,status,lang,onCha
    const result=responseSchemas[action].parse(await operations.send(intent));
    if(!current())return;signal.throwIfAborted();if(result.id!==workOrderId)throw Error('work_order_response_identity');
    mark('acknowledged'); // Canonical C03 receipt verified; a later GET is a separate observation.
+   needsObservation.current=true;setObservation(null);
    const fresh=await readWorkOrderObservation(contextId,workOrderId,signal);if(!current())return;signal.throwIfAborted();
    if(fresh.status!==nextStatus[action])throw Error('work_order_readback_state');
    if(action==='complete'&&fresh.completion_summary!==body.completion_notes)throw Error('work_order_readback_notes');
@@ -112,7 +120,7 @@ export function WorkOrderLifecyclePanel({contextId,workOrderId,status,lang,onCha
   }catch(error){if(current()){mark(attemptRef.current?.phase==='acknowledged'?'acknowledged':error&&typeof error==='object'&&'canonicalRejection'in error&&error.canonicalRejection===true?'rejected':'unknown');setObservation(null);setNotice(error&&typeof error==='object'&&'canonicalRejection'in error&&error.canonicalRejection===true&&'errorCode'in error?(error.errorCode==='42501'?'forbidden':error.errorCode==='40001'?'conflict':'error'):'error');onUnavailable?.();}}
   finally{if(current())operation.current=null;}
  }
- const edit=(key:'notes'|'cost',value:string)=>{if(operation.current||blocked||attemptBlocked()||committed.current!==token)return;const next={...(fieldsRef.current.binding===binding?fieldsRef.current:{binding,notes:'',cost:''}),[key]:value};fieldsRef.current=next;setFields(next);};
+ const edit=(key:'notes'|'cost',value:string)=>{if(needsObservation.current||operation.current||blocked||attemptBlocked()||committed.current!==token)return;const next={...(fieldsRef.current.binding===binding?fieldsRef.current:{binding,notes:'',cost:''}),[key]:value};fieldsRef.current=next;setFields(next);};
  return <section className="mb-4 space-y-3 rounded-xl border border-teal-200 bg-teal-50 p-4 text-sm"><h2 className="font-bold">{t.title}</h2>{row?<div className="space-y-1 text-sm"><p className="font-semibold">#{row.work_order_no} · {row.title}</p><p>{row.vendor_name}</p>{row.completion_summary?<p>{row.completion_summary}</p>:null}<dl className="grid gap-1 text-xs">{([[lang==='fa'?'شروع کار':lang==='ro'?'Început':'Started',row.started_at],[lang==='fa'?'ثبت تکمیل':lang==='ro'?'Finalizare':'Completed',row.completed_at],[lang==='fa'?'تأیید':lang==='ro'?'Verificare':'Verified',row.verified_at]] as const).map(([label,value])=>value?<div key={label}><dt className="inline font-semibold">{label}: </dt><dd className="inline"><time dateTime={value}>{new Intl.DateTimeFormat(lang==='fa'?'fa-IR':lang==='ro'?'ro-RO':'en-US',{dateStyle:'medium',timeStyle:'short'}).format(new Date(value))}</time></dd></div>:null)}</dl><a className="text-teal-800 underline" href={`/${lang}/app/maintenance?context=${encodeURIComponent(contextId)}&work_order=${encodeURIComponent(workOrderId)}`}>{lang==='fa'?'بازکردن دوبارهٔ سابقه':lang==='ro'?'Redeschide înregistrarea':'Reopen this record'}</a></div>:null}
   <p>{blocked||ownAttempt?.phase==='acknowledged'&&notice===''?progressCopy[lang].last:t.status}: {row?t[row.status]:reading&&admitted?t.loading:progressCopy[lang].unconfirmed}</p><p className="text-xs text-slate-600">{t.note}</p>
   {ownAttempt?.phase==='sending'?<p role="status">{progressCopy[lang].pending}</p>:ownAttempt?.phase==='acknowledged'&&notice===''?<p role="status">{progressCopy[lang].readback}</p>:ownAttempt?.phase==='unknown'?<p role="status">{t.uncertain}</p>:notice?<p role="status">{t[notice]}</p>:null}
