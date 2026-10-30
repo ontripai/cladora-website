@@ -108,7 +108,7 @@ export async function copySnapshot({spawnProcess = spawn, docker, dockerEnv, con
   // A complete Auth/extension snapshot requires the existing local operator.
   // This never changes application roles or grants; restore targets only the
   // fresh task-owned clone, and the proof still calls as authenticated.
-  const dump = spawnProcess('docker', [...docker, 'exec', '-e', 'PGPASSWORD=postgres', container, 'pg_dump', '-U', 'supabase_admin', '-d', 'postgres', '--clean', '--if-exists', '--exclude-extension=pg_cron', '--exclude-schema=cron'], {env:dockerEnv, stdio:['ignore','pipe','pipe']});
+  const dump = spawnProcess('docker', [...docker, 'exec', '-e', 'PGPASSWORD=postgres', container, 'pg_dump', '-U', 'supabase_admin', '-d', 'postgres', '--clean', '--if-exists', '--exclude-extension=pg_cron', '--exclude-schema=cron', '--exclude-extension=pg_graphql', '--exclude-schema=graphql', '--exclude-schema=graphql_public'], {env:dockerEnv, stdio:['ignore','pipe','pipe']});
   const dumpDone = observeProcess(dump, 'dump');
   let restore;
   try {
@@ -177,7 +177,9 @@ export async function runCi() {
     const scheduler=(await admin.query("select extversion,current_setting('cron.database_name') database from pg_extension where extname='pg_cron'")).rows;
     assert.equal(scheduler.length,1,'source native database must retain pg_cron');
     assert.equal(scheduler[0].database,'postgres','source scheduler must remain bound to postgres');
-    console.log('Owned building clone scope: application/Auth snapshot; pg_cron/cron excluded; scheduler proof NOT_IN_SCOPE');
+    const managedGraphql=(await admin.query("select extversion from pg_extension where extname='pg_graphql'")).rows;
+    assert.equal(managedGraphql.length,1,'original native database must retain managed GraphQL');
+    console.log('Owned building clone scope: application/Auth; database-bound scheduler and managed GraphQL excluded; neither interface is claimed by this building SQL proof');
     stage = 'clone-create';
     await admin.query(`create database "${source}" template template0`);
     created = true;
@@ -215,7 +217,7 @@ export async function runCi() {
     if (cleanupFailure) throw new HarnessFailure({stage:'cleanup', prior:failure?.diagnostic ?? null, cleanup:cleanupFailure.diagnostic});
   }
   if (failure) throw failure;
-  return { suite: 'building-setup-concurrency-ci', sha, fixture_database_cleanup: 'PASS', snapshot_profile:'application-and-auth-excluding-database-bound-cron', clone_scheduler:'NOT_INSTALLED_NOT_PROVED', issued_auth_http: 'NOT_RUN_NOT_PASS' };
+  return { suite: 'building-setup-concurrency-ci', sha, fixture_database_cleanup: 'PASS', snapshot_profile:'building-application-and-auth-excluding-managed-platform-interfaces', clone_scheduler:'NOT_INSTALLED_NOT_PROVED', clone_graphql:'NOT_INSTALLED_NOT_PROVED', issued_auth_http: 'NOT_RUN_NOT_PASS' };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

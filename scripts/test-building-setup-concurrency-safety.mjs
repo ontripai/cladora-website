@@ -64,7 +64,7 @@ test('successful streaming copy preserves exact command safety and awaits both p
  for(const [,args] of commands){assert.equal(args[args.indexOf('-U')+1],'supabase_admin');assert.ok(args.includes('PGPASSWORD=postgres'));}
  assert.equal(commands[1][1][commands[1][1].indexOf('-d')+1],source,'operator restore is confined to the fresh owned clone');
  assert.ok(commands[0][1].includes('--clean')&&commands[0][1].includes('--if-exists'));
- assert.deepEqual(commands[0][1].filter(arg=>arg.startsWith('--exclude-')),['--exclude-extension=pg_cron','--exclude-schema=cron'],'only the database-bound operational scheduler is excluded; application/Auth data stay included');
+ assert.deepEqual(commands[0][1].filter(arg=>arg.startsWith('--exclude-')),['--exclude-extension=pg_cron','--exclude-schema=cron','--exclude-extension=pg_graphql','--exclude-schema=graphql','--exclude-schema=graphql_public'],'only the explicitly out-of-scope managed scheduler/GraphQL interfaces are excluded; application/Auth data stay included');
  assert.equal(commands[0][1][commands[0][1].indexOf('-d')+1],'postgres');
  assert.equal(commands[1][1][commands[1][1].indexOf('-d')+1],source);
  assert.ok(commands[1][1].includes('ON_ERROR_STOP=1')&&commands[1][1].includes('VERBOSITY=verbose'));
