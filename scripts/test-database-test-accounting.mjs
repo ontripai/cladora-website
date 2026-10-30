@@ -27,7 +27,7 @@ assert.throws(() => checkTapPlan(dynamic + '\nselect plan(1);', 1), /exactly one
 assert.throws(() => checkTapPlan('select ok(true);', 1), /exactly one/);
 for (const [file, count, kind] of [
   ['223_building_setup_command_proof_v2.test.sql', 12, 'fixed'],
-  ['225_service_quote_request_version_v2.test.sql', 21, 'fixed'],
+  ['225_service_quote_request_version_v2.test.sql', 26, 'fixed'],
   ['226_core_notice_ack_receipt_replay_v1.test.sql', 42, 'dynamic'],
 ]) {
   const sql = readFileSync(new URL(`../supabase/tests/${file}`, import.meta.url), 'utf8');

@@ -1,11 +1,26 @@
 -- Catalog/source gates. The separate two-session harness proves the races.
 begin;
-select plan(21);
+select plan(26);
 
 select has_column('service_catalog','quote_drafts','request_version','quote provenance records the locked Request version');
 select col_is_null('service_catalog','quote_drafts','request_version','historical quote provenance remains nullable');
 select is((select column_default from information_schema.columns where table_schema='service_catalog' and table_name='quote_drafts' and column_name='request_version'),null,'historical rows receive no fabricated default');
-select ok((select pg_get_constraintdef(oid) like '%request_version IS NULL%request_version >= 1%request_version <= 9007199254740991%' from pg_constraint where conname='service_quote_request_version_positive_safe'),'provenance accepts only a positive safe version when present');
+-- Exercise the installed constraint expression, independently of PostgreSQL's
+-- pretty-printer casts/parentheses. No domain rows are inserted.
+do $constraint_probe$
+declare expression text;
+begin
+ select pg_get_expr(conbin,conrelid) into strict expression
+ from pg_constraint where conname='service_quote_request_version_positive_safe'
+ and conrelid='service_catalog.quote_drafts'::regclass and contype='c';
+ execute format('create temporary table quote_request_version_probe(request_version bigint check (%s)) on commit drop',expression);
+end $constraint_probe$;
+select lives_ok('insert into quote_request_version_probe values (null)','historical NULL provenance remains permitted');
+select lives_ok('insert into quote_request_version_probe values (1)','minimum positive version is permitted');
+select lives_ok('insert into quote_request_version_probe values (9007199254740991)','maximum safe version is permitted');
+select throws_ok('insert into quote_request_version_probe values (0)','23514',null,'zero version is rejected');
+select throws_ok('insert into quote_request_version_probe values (-1)','23514',null,'negative version is rejected');
+select throws_ok('insert into quote_request_version_probe values (9007199254740992)','23514',null,'unsafe positive version is rejected');
 
 select has_function('customer_api','create_service_quote_draft_v2',array['jsonb'],'version-bound create entrypoint exists');
 select has_function('customer_api','read_service_quote_drafts_v2',array['uuid','uuid'],'version-bearing read entrypoint exists');

@@ -19,9 +19,9 @@ import {
 export const SUITE = 'CORE-CE-AIRPROP-BROWSER-RECOVERY-01';
 export const executeVerifiedDenial = (options, consume) => withVerifiedPf01LocalTarget(options, consume);
 const UI = {
-  ro: { title: 'Workspace AIRPROP', choose: 'Selectează workspace-ul', error: 'Workspace-ul nu poate fi încărcat.', b2: 'Portofoliul administrat nu este disponibil momentan.' },
-  en: { title: 'AIRPROP workspace', choose: 'Select workspace', error: 'Unable to load this workspace.', b2: 'The managed portfolio is currently unavailable.' },
-  fa: { title: 'ورک‌اسپیس AIRPROP', choose: 'انتخاب ورک‌اسپیس', error: 'اطلاعات ورک‌اسپیس دریافت نشد.', b2: 'سبد تحت مدیریت در حال حاضر در دسترس نیست.' },
+  ro: { title: 'Oportunități imobiliare · AIRPROP', choose: 'Alege spațiul de lucru', error: 'Datele spațiului de lucru nu au putut fi încărcate. Verifică accesul și revino la pagina oportunităților.', b2: 'Portofoliul administrat nu este disponibil momentan.' },
+  en: { title: 'Property opportunities · AIRPROP', choose: 'Choose a workspace', error: 'Workspace details could not be loaded. Check your access and return to the opportunities page.', b2: 'The managed portfolio is currently unavailable.' },
+  fa: { title: 'فرصت‌های ملکی · AIRPROP', choose: 'انتخاب فضای کاری', error: 'اطلاعات فضای کاری دریافت نشد. دسترسی خود را بررسی کنید و به صفحهٔ فرصت‌ها برگردید.', b2: 'سبد تحت مدیریت در حال حاضر در دسترس نیست.' },
 };
 export function sessionCookies(cookie, origin) {
   browserContextOptions(origin, 'en');
