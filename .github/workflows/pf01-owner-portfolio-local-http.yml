@@ -96,6 +96,7 @@ jobs:
           mv "$s4" "$held"
           if ! supabase start >"$cli_log" 2>&1; then
             echo '::error::Disposable Supabase startup failed; credential-bearing CLI output withheld'
+            node scripts/summarize-local-supabase-failure.mjs "$cli_log"
             exit 1
           fi
           status_json="$(supabase status --output json)"
@@ -140,6 +141,7 @@ jobs:
           mv "$held" "$s4"
           if ! supabase migration up --local --include-all >"$cli_log" 2>&1; then
             echo '::error::Local staged S4 migration failed; CLI output withheld'
+            node scripts/summarize-local-supabase-failure.mjs "$cli_log"
             exit 1
           fi
       - name: Run narrow PF01 pgTAP evidence

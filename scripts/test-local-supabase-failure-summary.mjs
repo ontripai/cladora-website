@@ -7,9 +7,16 @@ assert.deepEqual(summarizeFailure(log, [name]), {status:'FAILED',category:'DATAB
 assert.ok(!JSON.stringify(summarizeFailure(log, [name])).includes(secret));
 assert.equal(summarizeFailure(log, []).last_known_migration, null);
 assert.equal(summarizeFailure(`SQLSTATE SECRET\n${secret}`, []).sqlstate, null);
-assert.equal(summarizeFailure('must be able to SET ROLE "private-secret-role"', []).category, 'OWNER_TRANSFER_SET_ROLE');
+assert.equal(summarizeFailure('ERROR: must be able to SET ROLE "private-secret-role"', []).category, 'OWNER_TRANSFER_SET_ROLE');
 assert.equal(summarizeFailure('could not connect; password=hidden', []).category, 'CONNECTIVITY');
 assert.equal(summarizeFailure('manifest unknown', []).category, 'CONTAINER_IMAGE');
-assert.equal(summarizeFailure('relation "private-relation" already exists', []).category, 'RELATION_ALREADY_EXISTS');
+assert.equal(summarizeFailure('ERROR: relation "private-relation" already exists', []).category, 'RELATION_ALREADY_EXISTS');
+assert.equal(summarizeFailure('NOTICE: relation "private-relation" already exists\nERROR: building_g2_inactive_source_only (SQLSTATE 55000)', []).category, 'INACTIVE_SOURCE_GUARD');
+assert.equal(summarizeFailure('NOTICE: relation "private-relation" already exists\nERROR: intentional_hold (SQLSTATE 55000)', []).category, 'DATABASE_ERROR');
 assert.equal(summarizeFailure(secret, []).category, 'UNCLASSIFIED');
+const wrapped = secret+'\n'+JSON.stringify({...summarizeFailure(log,[name]),password:secret});
+assert.deepEqual(summarizeFailure(wrapped,[name]),summarizeFailure(log,[name]));
+assert.equal(summarizeFailure(wrapped,[]).last_known_migration,null);
+assert.equal(JSON.stringify(summarizeFailure(wrapped,[name])).includes(secret),false);
+assert.equal(summarizeFailure(JSON.stringify({status:'FAILED',raw_output:'WITHHELD',category:secret}),[]).category,'UNCLASSIFIED');
 console.log('PASS safe local Supabase failure diagnostics: known migration/SQLSTATE only; no raw credentials or payloads');

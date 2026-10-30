@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync,existsSync } from 'node:fs';
+import {resolve,dirname,relative} from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { createRequire, Module } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -21,11 +22,20 @@ for (const [key, value] of Object.entries({ window: dom.window, document: dom.wi
 }
 const originalFetch = globalThis.fetch;
 const { createRoot } = await import('react-dom/client');
+const sourceRoot=fileURLToPath(new URL('../',import.meta.url));
+const loadedModules=new Map();
 function load(path, mocks, atBase = false) {
-  const filename = fileURLToPath(new URL(`../${path}`, import.meta.url));
+  const filename = resolve(sourceRoot,path);
+  path=relative(sourceRoot,filename);
+  const cacheKey=String(atBase)+':'+filename;if(loadedModules.has(cacheKey))return loadedModules.get(cacheKey).exports;
   const source = atBase ? execFileSync('git', ['show', `${BASE}:${path}`], { encoding: 'utf8' }) : readFileSync(filename, 'utf8');
-  const mod = new Module(filename);
-  mod.require = id => Object.hasOwn(mocks, id) ? mocks[id] : require(id);
+  const mod = new Module(filename);loadedModules.set(cacheKey,mod);
+  mod.require = id => {
+    if(Object.hasOwn(mocks,id))return mocks[id];
+    if(id==='server-only')return {};
+    if(id.startsWith('@/')||id.startsWith('.')){const base=id.startsWith('@/')?resolve(sourceRoot,'src',id.slice(2)):resolve(dirname(filename),id);const found=[base,base+'.ts',base+'.tsx'].find(p=>existsSync(p));if(found)return load(found,mocks,atBase);}
+    return require(id);
+  };
   mod._compile(ts.transpileModule(source, { compilerOptions: {
     module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
   } }).outputText, filename);
@@ -66,13 +76,13 @@ const take = predicate => {
 };
 const list = id => take(r => r.url.pathname.endsWith('/notices') && r.url.searchParams.get('context_id') === id);
 const detail = id => take(r => r.url.pathname.endsWith(`/notices/${id}`));
-const reply = (r, body, ok = true) => act(async () => r.resolve({ ok, json: async () => body }));
+const reply = (r, body, ok = true) => act(async () => r.resolve({ ok, status:ok?200:403, json: async () => body }));
 const fail = r => act(async () => r.reject(new Error('synthetic offline')));
 const tick = () => act(async () => { await new Promise(r => setTimeout(r, 5)); });
 const translations = {
-  en: { details: 'Details', close: 'Close', refresh: 'Refresh', create: 'Create Official Notice', save: 'Save Notice Draft', evidence: 'Record Physical Evidence', submit: 'Record Evidence', deliveries: 'View Delivery Outbox', approve: 'Approve Notice', next: 'Next page', error: 'Communications could not be loaded.' },
-  ro: { details: 'Detalii', close: 'Închide', refresh: 'Reîncarcă', create: 'Creează înștiințare oficială', save: 'Salvează ciornă', evidence: 'Înregistrează dovadă fizică', submit: 'Înregistrează dovadă', deliveries: 'Jurnal trimiteri', approve: 'Aprobă înștiințarea', next: 'Pagina următoare', error: 'Comunicările nu au putut fi încărcate.' },
-  fa: { details: 'جزئیات', close: 'بستن', refresh: 'بازخوانی', create: 'ثبت ابلاغیه رسمی جدید', save: 'ذخیره پیش‌نویس ابلاغیه', evidence: 'ثبت مدرک فیزیکی / پستی', submit: 'ثبت شواهد', deliveries: 'کارتابل ارسال‌ها', approve: 'تصویب رسمی ابلاغیه', next: 'صفحه بعد', error: 'دریافت ارتباطات ناموفق بود.' },
+  en: { saveDenied: 'You do not currently have permission to create this draft. Sending is blocked.', details: 'Details', close: 'Close', refresh: 'Refresh', create: 'Create Official Notice', save: 'Save Notice Draft', evidence: 'Record Physical Evidence', submit: 'Record Evidence', deliveries: 'View Delivery Outbox', approve: 'Approve Notice', next: 'Next page', error: 'Communications could not be loaded.' },
+  ro: { saveDenied: 'Nu ai în prezent permisiunea de a crea această ciornă. Trimiterea este blocată.', details: 'Detalii', close: 'Închide', refresh: 'Reîncarcă', create: 'Creează înștiințare oficială', save: 'Salvează ciornă', evidence: 'Înregistrează dovadă fizică', submit: 'Înregistrează dovadă', deliveries: 'Jurnal trimiteri', approve: 'Aprobă înștiințarea', next: 'Pagina următoare', error: 'Comunicările nu au putut fi încărcate.' },
+  fa: { saveDenied: 'در حال حاضر اجازهٔ ایجاد این پیش‌نویس را ندارید. ارسال مسدود است.', details: 'جزئیات', close: 'بستن', refresh: 'بازخوانی', create: 'ثبت ابلاغیه رسمی جدید', save: 'ذخیره پیش‌نویس ابلاغیه', evidence: 'ثبت مدرک فیزیکی / پستی', submit: 'ثبت شواهد', deliveries: 'کارتابل ارسال‌ها', approve: 'تصویب رسمی ابلاغیه', next: 'صفحه بعد', error: 'دریافت ارتباطات ناموفق بود.' },
 };
 const mutations = () => requests.filter(r => (r.options.method ?? 'GET') !== 'GET');
 const absent = (...values) => values.forEach(value => assert.equal(text().includes(value), false, `hide ${value}`));
@@ -230,10 +240,10 @@ try {
       const save = take(r => r.options.method === 'POST');
       assert.equal(save.url.pathname, '/api/customer/v1/communications/notices');
       assert.deepEqual(JSON.parse(save.options.body), { context_id: 'A', title_ro: 'UNSAVED-TITLE', body_ro: 'UNSAVED-BODY',
-        title_en: null, body_en: null, title_fa: null, body_fa: null, communication_type: 'general_announcement',
+        communication_type: 'general_announcement',
         legal_classification: 'informational_optional', source_module: 'general' });
       await reply(save, { error: { message: 'MOCK-SAVE-DENIED' } }, false);
-      assert.equal(titleInput.value, 'UNSAVED-TITLE'); assert.ok(text().includes('MOCK-SAVE-DENIED'));
+      assert.equal(titleInput.value, 'UNSAVED-TITLE'); assert.ok(text().includes(t.saveDenied)); absent('MOCK-SAVE-DENIED');
       await select('B'); await act(async () => ctx.confirmContextChange());
       assert.equal(ctx.active.context_id, 'B'); assert.equal(document.querySelector('[role="dialog"]'), null);
       completed.push(`${lang}:manager-draft-refresh-keep-explicit-submit-payload-discard`);

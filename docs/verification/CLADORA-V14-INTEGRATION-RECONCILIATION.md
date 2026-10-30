@@ -42,6 +42,11 @@ Native Chromium checked 24 local route/viewport combinations in RO/EN/FA at 390 
 app-to-login redirect. External requests were blocked and no credentials or data writes
 were used. These checks do not establish real Auth, RLS, installed RPCs or persistence.
 
+Read-only staging inspection subsequently returned no application tables in the
+requested public/platform/identity/portfolio/customer_api/assets/maintenance/documents/
+communications schemas, and an empty migration history. No user records were requested.
+The staging backend still needs a separately validated installation profile.
+
 The lifecycle component fixture now loads actual current modules and models the public
 command-result port explicitly instead of dispatching removed legacy mutation routes.
 The independent release Checklist/summary suites continue to exercise the real gate,
@@ -69,6 +74,23 @@ The summary ACK test now waits on the real client's ready state with a 2-second 
 bound after releasing the controlled ACK. It retains all receipt/privacy assertions.
 Safe local Supabase startup diagnostics expose only allowlisted migration names,
 SQLSTATE and fixed categories; raw CLI output and credentials remain withheld.
+
+The later Communications fixture passes 33 mounted scenarios across all three locales.
+It resolves the actual transport, expects omitted blank optional translations, and
+checks localized denied feedback without reflecting an arbitrary raw server message.
+The current country-signal inventory supplement classifies five byte-exact additions
+from the official Platform264 manifest; the historical audit and its 15 findings remain
+unchanged. Address presentation, current audit and application foundation checks pass.
+
+On commit7ced0c47, CI completed with 27 successes, 9 failures and 1 skip. One remaining
+application fixture failure is corrected in this follow-up. Native startup reached
+`20261025214155_building_setup_command_receipts_v1.sql` and returned SQLSTATE55000.
+Its first DO block unconditionally raises `building_g2_inactive_source_only`; this is
+an independent, fresh-install source packet, not an authorized sequential migration.
+Its guard and all null proof/authority bindings remain intact. Removing that guard,
+claiming baseline-only tests prove G2, or installing the packet in hosted staging would
+not be a valid fix. A separate installation/profile and native proof gate remain open.
+Outer CI wrappers now preserve the same redacted diagnostic summary on failure.
 
 The quote fixture now tests both the changed-key-body replay conflict (23505) and a
 fresh-key stale revision (40001), with unchanged row counts. It also recovers its expected

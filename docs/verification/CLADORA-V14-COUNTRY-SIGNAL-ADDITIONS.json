@@ -1,0 +1,54 @@
+{
+  "scope": "Current source inventory supplement; frozen audit and findings preserved",
+  "official_manifest_blob": "3a52004d7281fac5f64780d00101c5daebdb3639",
+  "official_manifest_sha256": "9f59d7f1e01157f5109595df0f7ba3f85427758e7c03ca078986bda5f62f92dd",
+  "entries": [
+    {
+      "path": "scripts/test-airprop-opportunity-recovery.mjs",
+      "bytes": 3681,
+      "sha256": "d6b693f200ae47ad0b32817a51ddf8ff40cdb2f8c72b1642b19f7d5133b9b610",
+      "git_blob": "a60faf249d772ed86469a8b2456df940bd21956f",
+      "classification": "synthetic/test fixture",
+      "reason": "Explicit synthetic RO/Cluj command used only by the recovery fixture; no inferred country.",
+      "last_writer": "Core236"
+    },
+    {
+      "path": "scripts/test-airprop-valuation-read-v1.mjs",
+      "bytes": 17304,
+      "sha256": "8259f47dee60d5220b5fd7e20985ebf1224364c5d0587a4693afd52208dabbf6",
+      "git_blob": "d2fa23d18d686a7a15c04b0833052218aa7b640c",
+      "classification": "synthetic/test fixture",
+      "reason": "Synthetic Bucuresti display row in a mocked read transport; no installed valuation or country authority.",
+      "last_writer": "AIRPROP253-2"
+    },
+    {
+      "path": "src/lib/airprop/valuation-baseline-explanation-v1.ts",
+      "bytes": 3814,
+      "sha256": "df8db8c5f5a210ea7300cc3faa480f5d626f6f3036c3e182779d4e16d6ac90f6",
+      "git_blob": "44dfb32159c6722535cc96cf87537bd56750bc19",
+      "classification": "presentation-only",
+      "reason": "Displays the explicit policy market label; does not infer a country or grant authority.",
+      "last_writer": "engine6"
+    },
+    {
+      "path": "src/lib/airprop/valuation-baseline-policy-v1.ts",
+      "bytes": 4115,
+      "sha256": "623d4bf9ef0f2fd5216736866e60a77366e7ce6e793a4e019407bdb1359db5b2",
+      "git_blob": "3e0722305264c1e7ba9ceb4bc3a6b5f073a45f17",
+      "classification": "dormant or superseded definition",
+      "reason": "Inactive baseline input schema requires an explicit country/locality; syntax is not registry or jurisdiction authority.",
+      "last_writer": "engine6"
+    },
+    {
+      "path": "src/lib/airprop/valuation-baseline-v1.ts",
+      "bytes": 25684,
+      "sha256": "9dadfa28bf5b7b2abd821e72428bd0b14dbab5de60aa5e82cf553515055dfa0d",
+      "git_blob": "a0d4761bcbce67a378ce8a267d69ef55359b6640",
+      "classification": "dormant or superseded definition",
+      "reason": "Pure baseline calculator compares explicit subject/policy markets; operational producer remains NOT_READY.",
+      "last_writer": "engine6"
+    }
+  ],
+  "authority": "NONE",
+  "runtime_adoption": "NOT_READY"
+}
