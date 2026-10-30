@@ -6,7 +6,7 @@ import { pipeline, Readable } from 'node:stream';
 import { pathToFileURL } from 'node:url';
 import { cleanupOwnedDatabase, parseProofFailureRecord } from './test-building-workspace-onboarding-postgres.mjs';
 
-const sqlstates = new Set(['42501','40001','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000','2BP01','P0001','0A000','42710','3D000','3F000']);
+const sqlstates = new Set(['42501','40001','42P01','42704','42P07','23505','08001','08006','28P01','53100','53200','53400','55006','57P01','42601','58P01','XX000','2BP01','P0001','0A000','42710','3D000','3F000','55000']);
 const signals = new Set(['SIGTERM','SIGPIPE','SIGKILL','SIGINT','SIGABRT','SIGSEGV']);
 const processCodes = new Set(['ENOENT','EACCES','EPERM','EPIPE','ECONNRESET']);
 const stages = new Set(['preflight','connect','clone-create','snapshot','dump','restore','fixture-load','lease-set','concurrency-proof','cleanup']);
@@ -66,6 +66,7 @@ export function observeProcess(child, stage) {
     const code = text.match(/(?:ERROR|FATAL|PANIC):\s+([A-Z0-9]{5})(?:\s|:|$)/)?.[1];
     if (sqlstates.has(code)) sqlstate ??= code;
     for (const [pattern, label] of [
+      [/can only create extension in database/i, 'database-bound-extension'],
       [/permission denied|must be owner|must be superuser/i, 'permission-denied'],
       [/no space left on device|disk quota exceeded/i, 'storage-exhausted'],
       [/password authentication failed/i, 'authentication-failed'],
@@ -101,11 +102,11 @@ export async function copySnapshot({spawnProcess = spawn, docker, dockerEnv, con
   // A complete Auth/extension snapshot requires the existing local operator.
   // This never changes application roles or grants; restore targets only the
   // fresh task-owned clone, and the proof still calls as authenticated.
-  const dump = spawnProcess('docker', [...docker, 'exec', '-e', 'PGPASSWORD=postgres', container, 'pg_dump', '-U', 'supabase_admin', '-d', 'postgres', '--clean', '--if-exists'], {env:dockerEnv, stdio:['ignore','pipe','pipe']});
+  const dump = spawnProcess('docker', [...docker, 'exec', '-e', 'PGPASSWORD=postgres', container, 'pg_dump', '-U', 'supabase_admin', '-d', 'postgres', '--clean', '--if-exists', '--exclude-extension=pg_cron', '--exclude-schema=cron'], {env:dockerEnv, stdio:['ignore','pipe','pipe']});
   const dumpDone = observeProcess(dump, 'dump');
   let restore;
   try {
-    restore = spawnProcess('docker', [...docker, 'exec', '-i', '-e', 'PGPASSWORD=postgres', container, 'psql', '-X', '-U', 'supabase_admin', '-d', source, '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=sqlstate'], {env:dockerEnv, stdio:['pipe','ignore','pipe']});
+    restore = spawnProcess('docker', [...docker, 'exec', '-i', '-e', 'PGPASSWORD=postgres', container, 'psql', '-X', '-U', 'supabase_admin', '-d', source, '-v', 'ON_ERROR_STOP=1', '-v', 'VERBOSITY=verbose'], {env:dockerEnv, stdio:['pipe','ignore','pipe']});
   } catch {
     dump.stdout.resume();
     terminateOwned(dump);
@@ -164,6 +165,13 @@ export async function runCi() {
     stage = 'connect';
     await admin.connect();
     assert.equal((await admin.query('select current_database() name')).rows[0].name, 'postgres');
+    // pg_cron is intentionally bound to the server's postgres DB. Recreating
+    // its operational scheduler in a named fixture DB is invalid and would
+    // duplicate scheduled jobs. The original native test DB retains pg_cron.
+    const scheduler=(await admin.query("select extversion,current_setting('cron.database_name') database from pg_extension where extname='pg_cron'")).rows;
+    assert.equal(scheduler.length,1,'source native database must retain pg_cron');
+    assert.equal(scheduler[0].database,'postgres','source scheduler must remain bound to postgres');
+    console.log('Owned building clone scope: application/Auth snapshot; pg_cron/cron excluded; scheduler proof NOT_IN_SCOPE');
     stage = 'clone-create';
     await admin.query(`create database "${source}" template template0`);
     created = true;
@@ -201,7 +209,7 @@ export async function runCi() {
     if (cleanupFailure) throw new HarnessFailure({stage:'cleanup', prior:failure?.diagnostic ?? null, cleanup:cleanupFailure.diagnostic});
   }
   if (failure) throw failure;
-  return { suite: 'building-setup-concurrency-ci', sha, fixture_database_cleanup: 'PASS', issued_auth_http: 'NOT_RUN_NOT_PASS' };
+  return { suite: 'building-setup-concurrency-ci', sha, fixture_database_cleanup: 'PASS', snapshot_profile:'application-and-auth-excluding-database-bound-cron', clone_scheduler:'NOT_INSTALLED_NOT_PROVED', issued_auth_http: 'NOT_RUN_NOT_PASS' };
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
