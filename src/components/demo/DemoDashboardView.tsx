@@ -38,8 +38,18 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
 
   const reportsRequestIdRef = useRef(0);
 
+  // Reset state during render when workspace changes (official React pattern)
+  const [prevWorkspaceId, setPrevWorkspaceId] = useState(workspace.id);
+  if (prevWorkspaceId !== workspace.id) {
+    setPrevWorkspaceId(workspace.id);
+    setReports(null);
+    setError(null);
+    setLoading(configured);
+  }
+
   useEffect(() => {
     if (!configured) return;
+
     let isMounted = true;
     const reqId = ++reportsRequestIdRef.current;
     const client = createClient();
@@ -90,16 +100,19 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
   const counts = reports.counts || {};
   const totalItems = Object.values(counts).reduce((a, b) => a + (typeof b === 'number' && Number.isFinite(b) ? b : 0), 0);
 
-  const finance = reports.finance || {
-    currency: 'RON',
-    invoiced: 0,
-    paid: 0,
-    outstanding: 0,
-    invoice_count: 0,
-    monthly: []
-  };
+  const isFinanceComplete = Boolean(
+    reports.finance &&
+    typeof reports.finance.invoiced === 'number' &&
+    Number.isFinite(reports.finance.invoiced) &&
+    typeof reports.finance.paid === 'number' &&
+    Number.isFinite(reports.finance.paid) &&
+    typeof reports.finance.outstanding === 'number' &&
+    Number.isFinite(reports.finance.outstanding)
+  );
 
-  const collectionRate = finance.invoiced > 0
+  const finance = reports.finance || null;
+
+  const collectionRate = isFinanceComplete && finance && finance.invoiced > 0
     ? Math.round((finance.paid / finance.invoiced) * 100)
     : 0;
 
@@ -184,8 +197,14 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
             <Coins className="w-5 h-5 text-[#0E9F8E]" />
             <span>{lang === 'ro' ? 'Date Financiare de Probă (SQL)' : lang === 'fa' ? 'گزارش مالی نمونه (استخراج از SQL)' : 'Sample Financial Overview (SQL)'}</span>
           </h2>
-          <span className="text-xs text-[#627D98] bg-[#F0F4F8] px-2.5 py-1 rounded-lg border border-[#CBD5E1]">
-            {lang === 'ro' ? 'Numai date simulate' : lang === 'fa' ? 'صرفاً ارقام نمونه' : 'Simulated Sample Only'}
+          <span className={`text-xs px-2.5 py-1 rounded-lg border ${
+            isFinanceComplete
+              ? 'text-[#627D98] bg-[#F0F4F8] border-[#CBD5E1]'
+              : 'text-amber-700 bg-amber-50 border-amber-200 font-semibold'
+          }`}>
+            {isFinanceComplete
+              ? (lang === 'ro' ? 'Numai date simulate' : lang === 'fa' ? 'صرفاً ارقام نمونه' : 'Simulated Sample Only')
+              : (lang === 'ro' ? 'Răspuns financiar parțial/incomplet' : lang === 'fa' ? 'اطلاعات مالی ناقص' : 'Incomplete Financial Response')}
           </span>
         </div>
 
@@ -196,10 +215,12 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {lang === 'ro' ? 'Total Facturat (6 luni)' : lang === 'fa' ? 'مجموع صدور شارژ (۶ ماه)' : 'Total Invoiced (6 Mo)'}
             </span>
             <div className="text-xl sm:text-2xl font-bold text-[#102A43] font-mono">
-              {finance.invoiced.toLocaleString()} {finance.currency}
+              {isFinanceComplete && finance ? `${finance.invoiced.toLocaleString()} ${finance.currency}` : '—'}
             </div>
             <span className="text-[11px] text-[#627D98] block">
-              {finance.invoice_count} {lang === 'ro' ? 'facturi de probă' : lang === 'fa' ? 'فاکتور نمونه' : 'sample invoices'}
+              {isFinanceComplete && finance
+                ? `${finance.invoice_count} ${lang === 'ro' ? 'facturi de probă' : lang === 'fa' ? 'فاکتور نمونه' : 'sample invoices'}`
+                : (lang === 'ro' ? 'Date indisponibile' : lang === 'fa' ? 'اطلاعات در دسترس نیست' : 'Data unavailable')}
             </span>
           </div>
 
@@ -209,10 +230,12 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {lang === 'ro' ? 'Încasat / Plătit' : lang === 'fa' ? 'وصول‌شده / واریزی' : 'Collected / Paid'}
             </span>
             <div className="text-xl sm:text-2xl font-bold text-emerald-600 font-mono">
-              {finance.paid.toLocaleString()} {finance.currency}
+              {isFinanceComplete && finance ? `${finance.paid.toLocaleString()} ${finance.currency}` : '—'}
             </div>
             <span className="text-[11px] text-emerald-700 block">
-              {collectionRate}% {lang === 'ro' ? 'rată de colectare' : lang === 'fa' ? 'نرخ تسویه' : 'collection rate'}
+              {isFinanceComplete
+                ? `${collectionRate}% ${lang === 'ro' ? 'rată de colectare' : lang === 'fa' ? 'نرخ تسویه' : 'collection rate'}`
+                : (lang === 'ro' ? 'Indisponibil' : lang === 'fa' ? 'نامشخص' : 'Unavailable')}
             </span>
           </div>
 
@@ -222,10 +245,12 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {lang === 'ro' ? 'Sold Rămas / Restanțe' : lang === 'fa' ? 'مانده معوقه' : 'Outstanding Balance'}
             </span>
             <div className="text-xl sm:text-2xl font-bold text-amber-600 font-mono">
-              {finance.outstanding.toLocaleString()} {finance.currency}
+              {isFinanceComplete && finance ? `${finance.outstanding.toLocaleString()} ${finance.currency}` : '—'}
             </div>
             <span className="text-[11px] text-amber-700 block">
-              {lang === 'ro' ? 'Alocare transparentă' : lang === 'fa' ? 'تسهیم شفاف بر واحدها' : 'Transparent allocation'}
+              {isFinanceComplete
+                ? (lang === 'ro' ? 'Alocare transparentă' : lang === 'fa' ? 'تسهیم شفاف بر واحدها' : 'Transparent allocation')
+                : (lang === 'ro' ? 'Indisponibil' : lang === 'fa' ? 'نامشخص' : 'Unavailable')}
             </span>
           </div>
 

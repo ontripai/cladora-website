@@ -19,14 +19,16 @@ import {
   LogOut,
   ShieldCheck,
   Eye,
-  EyeOff
+  EyeOff,
+  RefreshCw
 } from 'lucide-react';
 import {
   fetchDemoWorkspace,
   initializeDemoWorkspace,
   validateDemoPhone,
   validateDemoPersonName,
-  validateDemoWorkspaceName
+  validateDemoWorkspaceName,
+  normalizeDigitsToAscii
 } from '@/lib/demo/demo-client';
 import type { DemoWorkspaceDescriptor } from '@/lib/demo/demo-types';
 
@@ -42,6 +44,8 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [existingWorkspace, setExistingWorkspace] = useState<DemoWorkspaceDescriptor | null>(null);
   const [needsWorkspaceSetup, setNeedsWorkspaceSetup] = useState(false);
+  const [workspaceLookupError, setWorkspaceLookupError] = useState<string | null>(null);
+  const [isRetryingLookup, setIsRetryingLookup] = useState(false);
 
   // Tab state: 'signup' | 'signin'
   const [activeTab, setActiveTab] = useState<'signup' | 'signin'>('signup');
@@ -64,117 +68,200 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
 
   // Request ID ref for stale/out-of-order response invalidation
   const authRequestIdRef = useRef(0);
+  const activeUserIdRef = useRef<string | null>(null);
 
-  // Check current session on mount or config change
+  // Check current session and listen to auth changes
   useEffect(() => {
     if (!configured) return;
     let isMounted = true;
-    const reqId = ++authRequestIdRef.current;
     const client = createClient();
 
-    async function checkAuth() {
+    const checkSessionAndWorkspace = async (user: any, reqId: number) => {
+      if (!user) {
+        if (!isMounted || reqId !== authRequestIdRef.current) return;
+        activeUserIdRef.current = null;
+        setCurrentUser(null);
+        setExistingWorkspace(null);
+        setNeedsWorkspaceSetup(false);
+        setWorkspaceLookupError(null);
+        return;
+      }
+
+      activeUserIdRef.current = user.id;
+      setCurrentUser(user);
+      setWorkspaceLookupError(null);
+
       try {
-        const { data: { session }, error: sessionError } = await client.auth.getSession();
+        const { workspace: ws, error: wsError } = await fetchDemoWorkspace(client);
         if (!isMounted || reqId !== authRequestIdRef.current) return;
 
-        if (sessionError) {
-          console.error('Session error:', sessionError);
-          setErrorMessage(sessionError.message);
+        if (wsError) {
+          setWorkspaceLookupError(wsError.message || 'Error checking demo workspace');
           return;
         }
 
-        if (session?.user) {
-          setCurrentUser(session.user);
-          const { workspace: ws, error: wsError } = await fetchDemoWorkspace(client);
-          if (!isMounted || reqId !== authRequestIdRef.current) return;
+        if (ws) {
+          setExistingWorkspace(ws);
+          setNeedsWorkspaceSetup(false);
+        } else {
+          const meta = user.user_metadata || {};
+          const metaFirstName = typeof meta.first_name === 'string' ? meta.first_name.trim() : '';
+          const metaLastName = typeof meta.last_name === 'string' ? meta.last_name.trim() : '';
+          const metaWorkspaceName = typeof meta.workspace_name === 'string' ? meta.workspace_name.trim() : '';
+          const rawMetaMobile = typeof meta.mobile_contact === 'string' ? meta.mobile_contact.trim() : '';
+          const metaMobile = normalizeDigitsToAscii(rawMetaMobile);
+          const metaPrivacy = meta.privacy_accepted === true;
+          const metaMarketing = meta.marketing_consent === true;
 
-          if (wsError) {
-            setErrorMessage(wsError.message || 'Error checking demo workspace');
-            return;
-          }
+          const phoneCheck = validateDemoPhone(metaMobile);
+          const isFirstValid = validateDemoPersonName(metaFirstName);
+          const isLastValid = validateDemoPersonName(metaLastName);
+          const isWsValid = validateDemoWorkspaceName(metaWorkspaceName);
 
-          if (ws) {
-            // Workspace already exists - preserve it without alteration
-            setExistingWorkspace(ws);
-          } else {
-            // Verified user with workspace === null
-            const meta = session.user.user_metadata || {};
-            const metaFirstName = typeof meta.first_name === 'string' ? meta.first_name.trim() : '';
-            const metaLastName = typeof meta.last_name === 'string' ? meta.last_name.trim() : '';
-            const metaWorkspaceName = typeof meta.workspace_name === 'string' ? meta.workspace_name.trim() : '';
-            const metaMobile = typeof meta.mobile_contact === 'string' ? meta.mobile_contact.trim() : '';
-            const metaPrivacy = Boolean(meta.privacy_accepted);
-            const metaMarketing = Boolean(meta.marketing_consent);
-
-            const phoneCheck = validateDemoPhone(metaMobile);
-            const isFirstValid = validateDemoPersonName(metaFirstName);
-            const isLastValid = validateDemoPersonName(metaLastName);
-            const isWsValid = validateDemoWorkspaceName(metaWorkspaceName);
-
-            if (isFirstValid && isLastValid && isWsValid && phoneCheck.valid && metaPrivacy) {
-              // Valid metadata present -> automatically initialize
-              try {
-                const initRes = await initializeDemoWorkspace(client, {
-                  firstName: metaFirstName,
-                  lastName: metaLastName,
-                  workspaceName: metaWorkspaceName,
-                  mobile: phoneCheck.normalized,
-                  marketingConsent: metaMarketing,
-                  privacyAccepted: true,
-                  locale: lang,
-                });
-                if (!isMounted || reqId !== authRequestIdRef.current) return;
-                setExistingWorkspace(initRes.workspace);
-                router.push(`/${lang}/demo/app/dashboard`);
-              } catch (initErr: any) {
-                if (!isMounted || reqId !== authRequestIdRef.current) return;
-                setErrorMessage(initErr.message || 'Auto-initialization failed');
-                setNeedsWorkspaceSetup(true);
-              }
-            } else {
-              // Incomplete info -> show completion form (NO password / re-signup)
+          if (isFirstValid && isLastValid && isWsValid && phoneCheck.valid && metaPrivacy) {
+            try {
+              const initRes = await initializeDemoWorkspace(client, {
+                firstName: metaFirstName,
+                lastName: metaLastName,
+                workspaceName: metaWorkspaceName,
+                mobile: phoneCheck.normalized,
+                marketingConsent: metaMarketing,
+                privacyAccepted: true,
+                locale: lang,
+              });
+              if (!isMounted || reqId !== authRequestIdRef.current) return;
+              setExistingWorkspace(initRes.workspace);
+              setNeedsWorkspaceSetup(false);
+              router.push(`/${lang}/demo/app/dashboard`);
+            } catch (initErr: any) {
+              if (!isMounted || reqId !== authRequestIdRef.current) return;
+              setErrorMessage(initErr.message || 'Auto-initialization failed');
               setNeedsWorkspaceSetup(true);
-              if (metaFirstName) setFirstName(metaFirstName);
-              if (metaLastName) setLastName(metaLastName);
-              if (metaWorkspaceName) setWorkspaceName(metaWorkspaceName);
-              if (phoneCheck.valid) setMobile(phoneCheck.normalized);
-              if (metaPrivacy) setPrivacyAccepted(true);
-              if (metaMarketing) setMarketingConsent(true);
             }
+          } else {
+            setNeedsWorkspaceSetup(true);
+            if (metaFirstName) setFirstName(metaFirstName);
+            if (metaLastName) setLastName(metaLastName);
+            if (metaWorkspaceName) setWorkspaceName(metaWorkspaceName);
+            if (phoneCheck.valid) setMobile(phoneCheck.normalized);
+            if (metaPrivacy) setPrivacyAccepted(true);
+            if (metaMarketing) setMarketingConsent(true);
           }
         }
       } catch (err: any) {
         if (!isMounted || reqId !== authRequestIdRef.current) return;
-        console.error('Session check error:', err);
-        setErrorMessage(err.message || 'Authentication check failed');
-      } finally {
-        if (isMounted && reqId === authRequestIdRef.current) {
-          setIsLoadingSession(false);
-        }
+        setWorkspaceLookupError(err.message || 'Authentication check failed');
       }
-    }
+    };
 
-    void checkAuth();
+    const reqId = ++authRequestIdRef.current;
+    client.auth.getSession().then(({ data: { session }, error: sessionError }) => {
+      if (!isMounted || reqId !== authRequestIdRef.current) return;
+      if (sessionError) {
+        setErrorMessage(sessionError.message);
+        setIsLoadingSession(false);
+        return;
+      }
+
+      if (session?.user) {
+        void checkSessionAndWorkspace(session.user, reqId).finally(() => {
+          if (isMounted && reqId === authRequestIdRef.current) {
+            setIsLoadingSession(false);
+          }
+        });
+      } else {
+        setIsLoadingSession(false);
+      }
+    }).catch((err) => {
+      if (isMounted && reqId === authRequestIdRef.current) {
+        setErrorMessage(err.message || 'Authentication check failed');
+        setIsLoadingSession(false);
+      }
+    });
+
+    const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      if (!isMounted) return;
+      const nextReqId = ++authRequestIdRef.current;
+      const newUser = session?.user || null;
+
+      if (event === 'SIGNED_OUT' || !newUser) {
+        activeUserIdRef.current = null;
+        setCurrentUser(null);
+        setExistingWorkspace(null);
+        setNeedsWorkspaceSetup(false);
+        setWorkspaceLookupError(null);
+        setPendingVerification(false);
+        setErrorMessage(null);
+        return;
+      }
+
+      // UID switch: if previous identity differs from incoming identity, clear previous state synchronously BEFORE awaiting network
+      if (activeUserIdRef.current && activeUserIdRef.current !== newUser.id) {
+        setExistingWorkspace(null);
+        setNeedsWorkspaceSetup(false);
+        setWorkspaceLookupError(null);
+        setErrorMessage(null);
+        setFirstName('');
+        setLastName('');
+        setMobile('');
+        setWorkspaceName('');
+        setPrivacyAccepted(false);
+        setMarketingConsent(false);
+      }
+
+      activeUserIdRef.current = newUser.id;
+      void checkSessionAndWorkspace(newUser, nextReqId);
+    });
 
     return () => {
       isMounted = false;
+      subscription.unsubscribe();
     };
   }, [configured, lang, router]);
+
+  const handleRetryLookup = async () => {
+    if (!currentUser || isRetryingLookup) return;
+    setIsRetryingLookup(true);
+    setWorkspaceLookupError(null);
+    const reqId = ++authRequestIdRef.current;
+    try {
+      const client = createClient();
+      const { workspace: ws, error: wsError } = await fetchDemoWorkspace(client);
+      if (reqId !== authRequestIdRef.current) return;
+
+      if (wsError) {
+        setWorkspaceLookupError(wsError.message || 'Error checking demo workspace');
+        return;
+      }
+
+      if (ws) {
+        setExistingWorkspace(ws);
+        setNeedsWorkspaceSetup(false);
+      } else {
+        setNeedsWorkspaceSetup(true);
+      }
+    } catch (err: any) {
+      if (reqId === authRequestIdRef.current) {
+        setWorkspaceLookupError(err.message || 'Retry failed');
+      }
+    } finally {
+      if (reqId === authRequestIdRef.current) {
+        setIsRetryingLookup(false);
+      }
+    }
+  };
 
   const handleSignOut = async () => {
     // Invalidate any in-flight requests immediately
     authRequestIdRef.current++;
+    activeUserIdRef.current = null;
     setIsSubmitting(true);
 
-    if (isSupabaseConfigured()) {
-      const client = createClient();
-      await client.auth.signOut();
-    }
-
-    // Immediately clear all user, workspace, form fields, and error states
+    // Immediately clear all user, workspace, form fields, and error states BEFORE awaiting network
     setCurrentUser(null);
     setExistingWorkspace(null);
     setNeedsWorkspaceSetup(false);
+    setWorkspaceLookupError(null);
     setPendingVerification(false);
     setErrorMessage(null);
     setFirstName('');
@@ -185,6 +272,16 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
     setWorkspaceName('');
     setPrivacyAccepted(false);
     setMarketingConsent(false);
+
+    if (isSupabaseConfigured()) {
+      try {
+        const client = createClient();
+        await client.auth.signOut();
+      } catch (err) {
+        console.warn('Sign out error:', err);
+      }
+    }
+
     setIsSubmitting(false);
   };
 
@@ -300,14 +397,15 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         return;
       }
 
-      // Check if email confirmation is required
-      if (!authData.session || (authData.user?.identities && authData.user.identities.length === 0)) {
+      // Check if email confirmation is required or user is null
+      if (!authData.session || !authData.user || (authData.user?.identities && authData.user.identities.length === 0)) {
         setPendingVerification(true);
         setIsSubmitting(false);
         return;
       }
 
       // Session established immediately
+      activeUserIdRef.current = authData.user.id;
       setCurrentUser(authData.user);
 
       // Verify or initialize demo workspace
@@ -315,7 +413,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       if (reqId !== authRequestIdRef.current) return;
 
       if (wsError) {
-        setErrorMessage(wsError.message || 'Error loading demo workspace');
+        setWorkspaceLookupError(wsError.message || 'Error loading demo workspace');
         setIsSubmitting(false);
         return;
       }
@@ -371,7 +469,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
 
       if (reqId !== authRequestIdRef.current) return;
 
-      if (authError) {
+      if (authError || !authData.user) {
         setErrorMessage(
           lang === 'ro'
             ? 'Date de autentificare invalide sau cont neverificat.'
@@ -383,6 +481,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         return;
       }
 
+      activeUserIdRef.current = authData.user.id;
       setCurrentUser(authData.user);
 
       // Check existing workspace
@@ -390,7 +489,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       if (reqId !== authRequestIdRef.current) return;
 
       if (wsError) {
-        setErrorMessage(wsError.message || 'Error checking demo workspace');
+        setWorkspaceLookupError(wsError.message || 'Error checking demo workspace');
         setIsSubmitting(false);
         return;
       }
@@ -404,9 +503,10 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         const metaFirstName = typeof meta.first_name === 'string' ? meta.first_name.trim() : '';
         const metaLastName = typeof meta.last_name === 'string' ? meta.last_name.trim() : '';
         const metaWorkspaceName = typeof meta.workspace_name === 'string' ? meta.workspace_name.trim() : '';
-        const metaMobile = typeof meta.mobile_contact === 'string' ? meta.mobile_contact.trim() : '';
-        const metaPrivacy = Boolean(meta.privacy_accepted);
-        const metaMarketing = Boolean(meta.marketing_consent);
+        const rawMetaMobile = typeof meta.mobile_contact === 'string' ? meta.mobile_contact.trim() : '';
+        const metaMobile = normalizeDigitsToAscii(rawMetaMobile);
+        const metaPrivacy = meta.privacy_accepted === true;
+        const metaMarketing = meta.marketing_consent === true;
 
         const phoneCheck = validateDemoPhone(metaMobile);
         const isFirstValid = validateDemoPersonName(metaFirstName);
@@ -522,18 +622,8 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
 
       if (reqId !== authRequestIdRef.current) return;
 
-      // Update metadata in auth user for persistence across future sessions
-      void supabase.auth.updateUser({
-        data: {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          workspace_name: workspaceName.trim(),
-          mobile_contact: phoneCheck.normalized,
-          marketing_consent: Boolean(marketingConsent),
-          privacy_accepted: true,
-        },
-      });
-
+      // Note: Do NOT call supabase.auth.updateUser after initialization.
+      // If initResult.created === false, do not mutate profile/locale/consent.
       setNeedsWorkspaceSetup(false);
       setExistingWorkspace(initResult.workspace);
       router.push(`/${lang}/demo/app/dashboard`);
@@ -676,6 +766,68 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
     );
   }
 
+  // State 2.5: Workspace Lookup Error (Retryable without falling back to signup/password)
+  if (currentUser && workspaceLookupError && !existingWorkspace) {
+    return (
+      <div className="max-w-md mx-auto p-8 sm:p-10 bg-white rounded-3xl border border-red-200 shadow-card text-center space-y-6 animate-in fade-in duration-200">
+        <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto border border-red-100">
+          <AlertCircle className="w-7 h-7" />
+        </div>
+
+        <div className="space-y-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+            {lang === 'ro' ? 'Eroare Verificare Workspace' : lang === 'fa' ? 'خطا در بررسی ورک‌اسپیس' : 'Workspace Verification Error'}
+          </span>
+          <h2 className="text-xl sm:text-2xl font-display font-extrabold text-[#102A43]">
+            {lang === 'ro' ? 'Nu s-a putut verifica spațiul de lucru' : lang === 'fa' ? 'امکان بارگذاری اطلاعات ورک‌اسپیس وجود ندارد' : 'Could Not Verify Workspace'}
+          </h2>
+          <p className="text-xs sm:text-sm text-[#52667A] max-w-sm mx-auto leading-relaxed">
+            {lang === 'ro'
+              ? `Ești autentificat ca ${currentUser.email}, dar a intervenit o eroare la interogarea spațiului demonstrativ.`
+              : lang === 'fa'
+              ? `شما با حساب ${currentUser.email} وارد شده‌اید، اما در بررسی وضعیت ورک‌اسپیس خطایی رخ داده است.`
+              : `You are authenticated as ${currentUser.email}, but an error occurred while checking your demo workspace.`}
+          </p>
+        </div>
+
+        <div className="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-700 text-center font-mono">
+          {workspaceLookupError}
+        </div>
+
+        <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={handleRetryLookup}
+            disabled={isRetryingLookup}
+            className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-white bg-[#0E9F8E] hover:bg-[#0A7E71] rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            {isRetryingLookup ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>{lang === 'ro' ? 'Se reîncearcă...' : lang === 'fa' ? 'در حال بررسی مجدد...' : 'Retrying...'}</span>
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                <span>{lang === 'ro' ? 'Reîncearcă Verificarea' : lang === 'fa' ? 'تلاش مجدد برای بررسی' : 'Retry Verification'}</span>
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isSubmitting || isRetryingLookup}
+            className="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-[#52667A] hover:text-[#102A43] bg-[#F0F4F8] hover:bg-[#E2E8F0] rounded-xl transition-colors flex items-center justify-center gap-2"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>{lang === 'ro' ? 'Deconectare' : lang === 'fa' ? 'خروج' : 'Sign Out'}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // State 3: User verified but workspace === null (Completion Form - NO password/signup re-entry)
   if (currentUser && needsWorkspaceSetup) {
     return (
@@ -783,7 +935,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
                   type="tel"
                   required
                   value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
+                  onChange={(e) => setMobile(normalizeDigitsToAscii(e.target.value))}
                   placeholder={lang === 'fa' ? '۰۹۱۲۱۲۳۴۵۶۷' : '+40 712 345 678'}
                   className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
                 />
@@ -1081,7 +1233,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
                   type="tel"
                   required
                   value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
+                  onChange={(e) => setMobile(normalizeDigitsToAscii(e.target.value))}
                   placeholder={lang === 'fa' ? '۰۹۱۲۱۲۳۴۵۶۷' : '+40 712 345 678'}
                   className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
                 />

@@ -118,11 +118,11 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
+    router.push(`/${lang}/demo`);
     if (isSupabaseConfigured()) {
       const supabase = createClient();
       await supabase.auth.signOut();
     }
-    router.push(`/${lang}/demo`);
   };
 
   const appBase = `/${lang}/demo/app`;
@@ -134,6 +134,15 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
       backendNavMap.set(item.key, item);
     });
   }
+
+  // Derive Community Experience (CE) access ONLY from permitted existing capabilities
+  // (communications and bookings). If neither is authorized, CE cannot invent access and must be locked.
+  const commItem = backendNavMap.get('communications');
+  const bookItem = backendNavMap.get('bookings');
+  const commPermitted = commItem && commItem.access !== 'locked';
+  const bookPermitted = bookItem && bookItem.access !== 'locked';
+  const isCePermitted = Boolean(commPermitted || bookPermitted);
+  const derivedCeAccess: 'read_only' | 'locked' = isCePermitted ? 'read_only' : 'locked';
 
   // Canonical ordering prioritizing backend descriptor order
   const descriptorKeys = Array.isArray(workspace.navigation) && workspace.navigation.length > 0
@@ -170,11 +179,35 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
     }
   }
 
+  // Ensure settings is present in navigation if not already
+  if (!finalKeys.includes('settings')) {
+    finalKeys.push('settings');
+  }
+
   const navItems = finalKeys.map((key) => {
+    const isCe = key === 'community_experience' || key === 'community-experience';
+    const isSettings = key === 'settings';
+    const isDashboard = key === 'dashboard';
+
     const backendItem = backendNavMap.get(key) || backendNavMap.get(key.replace('_', '-')) || backendNavMap.get(key.replace('-', '_'));
-    const access = backendItem ? backendItem.access : (key === 'payments' || key === 'role_administration' ? 'locked' : 'read_only');
+
+    // Determine access without inventing fake read_only capabilities for missing/corrupted descriptor
+    let access: 'read' | 'interactive' | 'metadata_only' | 'read_only' | 'locked';
+    if (isCe) {
+      access = derivedCeAccess;
+    } else if (isSettings) {
+      access = 'read_only';
+    } else if (isDashboard) {
+      access = backendItem ? backendItem.access : 'read';
+    } else if (backendItem) {
+      access = backendItem.access;
+    } else {
+      // Missing or corrupt descriptor items must NEVER invent read_only capability access
+      access = 'locked';
+    }
+
     const label = navLabels[key]?.[lang] || backendItem?.title || key;
-    const pathSlug = key === 'community_experience' ? 'community-experience' : key;
+    const pathSlug = isCe ? 'community-experience' : key;
     const href = `${appBase}/${pathSlug}`;
     const Icon = navIconMap[key] || Building2;
 

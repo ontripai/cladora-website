@@ -298,7 +298,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Rezervarea facilităților fără suprapuneri sau conflicte' : lang === 'fa' ? 'رزرو امکانات رفاهی بدون تداخل یا تعارض نوبت‌ها' : 'Amenity reservation without schedule conflicts'}</span>
+                  <span>{lang === 'ro' ? 'Programarea transparentă a facilităților conform capacității stabilite' : lang === 'fa' ? 'برنامه‌ریزی شفاف امکانات با تطبیق سقف ظرفیت و زمان‌بندی' : 'Structured amenity reservation aligned with capacity boundaries'}</span>
                 </li>
               </ul>
             </div>

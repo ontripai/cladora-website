@@ -6,12 +6,21 @@ import type {
   DemoReportsResult
 } from './demo-types';
 
+export function normalizeDigitsToAscii(str: string): string {
+  if (!str || typeof str !== 'string') return '';
+  const map: Record<string, string> = {
+    '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4', '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+  };
+  return str.replace(/[۰-۹٠-٩]/g, (ch) => map[ch] || ch);
+}
+
 export function validateDemoPhone(phone: string): { valid: boolean; normalized: string } {
   if (!phone || typeof phone !== 'string') return { valid: false, normalized: '' };
-  const trimmed = phone.trim();
-  if (!/^\+?[0-9 ()-]+$/.test(trimmed)) return { valid: false, normalized: '' };
-  const prefix = trimmed.startsWith('+') ? '+' : '';
-  const digits = trimmed.replace(/[^0-9]/g, '');
+  const ascii = normalizeDigitsToAscii(phone).trim();
+  if (!/^\+?[0-9 ()-]+$/.test(ascii)) return { valid: false, normalized: '' };
+  const prefix = ascii.startsWith('+') ? '+' : '';
+  const digits = ascii.replace(/[^0-9]/g, '');
   const normalized = prefix + digits;
   if (!/^\+?[0-9]{8,15}$/.test(normalized)) {
     return { valid: false, normalized: '' };

@@ -88,19 +88,29 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
   const isCeModule = moduleKey === 'community-experience' || moduleKey === 'community_experience';
   const isReportDriven = moduleKey === 'finance' || moduleKey === 'reports' || moduleKey === 'activity';
   const isLockedModule = moduleKey === 'payments' || moduleKey === 'role_administration';
+  const isSettingsModule = moduleKey === 'settings';
 
-  // Reset pagination & search during render when module changes (official React pattern)
+  // Reset pagination & search during render when module or workspace changes (official React pattern)
   const [prevModuleKey, setPrevModuleKey] = useState(moduleKey);
-  if (prevModuleKey !== moduleKey) {
+  const [prevWorkspaceId, setPrevWorkspaceId] = useState(workspace.id);
+  if (prevModuleKey !== moduleKey || prevWorkspaceId !== workspace.id) {
     setPrevModuleKey(moduleKey);
+    setPrevWorkspaceId(workspace.id);
     setPage(1);
     setSearchTerm('');
     setFormFields({});
     setActiveTab('records');
+    setItems([]);
+    setTotal(0);
+    setReportsData(null);
+    setError(null);
+    setLoading(!isLockedModule && moduleKey !== 'settings' && configured);
   }
 
   useEffect(() => {
-    if (!configured || isLockedModule) return;
+    if (!configured || isLockedModule || isSettingsModule) {
+      return;
+    }
 
     let isMounted = true;
     const reqId = ++moduleReqIdRef.current;
@@ -175,7 +185,7 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [configured, workspace.id, moduleKey, isCeModule, ceSubView, isReportDriven, isLockedModule, page, limit]);
+  }, [configured, workspace.id, moduleKey, isCeModule, ceSubView, isReportDriven, isLockedModule, isSettingsModule, page, limit]);
 
   const filteredItems = items.filter((item) => {
     if (!searchTerm.trim()) return true;
@@ -353,6 +363,102 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
     );
   }
 
+  // 1.5. SETTINGS MODULE VIEW (Never calls demo_list_items_v1 RPC with invalid 'settings' module)
+  if (isSettingsModule) {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        <div className="bg-white rounded-3xl border border-[#CBD5E1] p-6 sm:p-8 shadow-card flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#0E9F8E] bg-[#EAF8F5] px-2.5 py-0.5 rounded-full border border-[#B2E5DF]">
+                {lang === 'ro' ? 'Configurație Demo' : lang === 'fa' ? 'پیکربندی دمو' : 'Demo Configuration'}
+              </span>
+              <span className="text-xs text-[#627D98]">
+                ID: {workspace.id.slice(0, 8)}...
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-display font-extrabold text-[#102A43]">
+              {currentMeta.title[lang]}
+            </h1>
+            <p className="text-xs text-[#52667A] mt-1">
+              {currentMeta.desc[lang]}
+            </p>
+          </div>
+        </div>
+
+        {/* Settings Detail Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Workspace Attributes */}
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-card space-y-4">
+            <h2 className="text-sm font-bold text-[#102A43] flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-[#0E9F8E]" />
+              <span>{lang === 'ro' ? 'Parametrii Spațiului de Lucru' : lang === 'fa' ? 'مشخصات محیط کاری' : 'Workspace Parameters'}</span>
+            </h2>
+            <div className="divide-y divide-[#F0F4F8] text-xs">
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Nume Workspace' : lang === 'fa' ? 'نام ورک‌اسپیس' : 'Workspace Name'}</span>
+                <span className="font-bold text-[#102A43]">{workspace.name}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">ID Workspace</span>
+                <span className="font-mono text-[11px] text-[#52667A]">{workspace.id}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Limbă & Regiune' : lang === 'fa' ? 'زبان و منطقه' : 'Locale'}</span>
+                <span className="font-bold uppercase text-[#102A43]">{workspace.locale}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Versiune Date Demo' : lang === 'fa' ? 'نسخه داده‌های دمو' : 'Seed Version'}</span>
+                <span className="font-mono text-[#0E9F8E] font-bold">v{workspace.seed_version}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Rol Utilizator' : lang === 'fa' ? 'نقش کاربری' : 'Assigned Role'}</span>
+                <span className="font-semibold text-[#102A43]">{workspace.role}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* User Profile */}
+          <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 shadow-card space-y-4">
+            <h2 className="text-sm font-bold text-[#102A43] flex items-center gap-2">
+              <Users className="w-4 h-4 text-[#0E9F8E]" />
+              <span>{lang === 'ro' ? 'Profil Administrator Demo' : lang === 'fa' ? 'پروفایل مدیر دمو' : 'Demo Administrator Profile'}</span>
+            </h2>
+            <div className="divide-y divide-[#F0F4F8] text-xs">
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Nume complet' : lang === 'fa' ? 'نام و نام خانوادگی' : 'Full Name'}</span>
+                <span className="font-bold text-[#102A43]">{workspace.profile.first_name} {workspace.profile.last_name}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Email de acces' : lang === 'fa' ? 'ایمیل ثبت‌شده' : 'Access Email'}</span>
+                <span className="font-semibold text-[#102A43]">{workspace.profile.email}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Telefon contact' : lang === 'fa' ? 'شماره تماس' : 'Phone'}</span>
+                <span className="font-mono text-[#52667A]">{workspace.profile.mobile_contact || '—'}</span>
+              </div>
+              <div className="py-2.5 flex items-center justify-between">
+                <span className="text-[#627D98]">{lang === 'ro' ? 'Mod Previzualizare' : lang === 'fa' ? 'وضعیت پیش‌نمایش' : 'Preview Mode'}</span>
+                <span className="font-bold text-[#0E9F8E] uppercase">{workspace.demo_mode}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#CBD5E1] text-xs text-[#52667A] flex items-center gap-2">
+          <ShieldCheck className="w-4 h-4 text-[#0E9F8E] shrink-0" />
+          <span>
+            {lang === 'ro'
+              ? 'Modulul de Setări afișează sumarul spațiului tău demonstrativ. Schimbarea parametrilor sistemului este disponibilă în versiunea operațională de producție.'
+              : lang === 'fa'
+              ? 'این بخش مشخصات محیط دموی اختصاصی شما را نمایش می‌دهد. تغییر تنظیمات پایهٔ سیستم در نسخه تجاری فعال است.'
+              : 'The settings view presents your demo environment configuration. Core parameter mutation is reserved for production workspaces.'}
+          </span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
 
@@ -471,102 +577,130 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
       {/* 3. REPORT-DRIVEN MODULE: FINANCE */}
       {moduleKey === 'finance' && reportsData && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
-              <span className="text-xs font-semibold text-[#627D98] block">
-                {lang === 'ro' ? 'Total Facturat (6 luni)' : lang === 'fa' ? 'کل شارژ صادره (۶ ماه)' : 'Total Invoiced (6 Mo)'}
-              </span>
-              <div className="text-2xl font-bold text-[#102A43] font-mono">
-                {reportsData.finance.invoiced.toLocaleString()} {reportsData.finance.currency}
-              </div>
-              <span className="text-[11px] text-[#627D98] block">
-                {reportsData.finance.invoice_count} {lang === 'ro' ? 'facturi emise' : lang === 'fa' ? 'صورت‌حساب صادرشده' : 'invoices issued'}
-              </span>
-            </div>
-
-            <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
-              <span className="text-xs font-semibold text-[#627D98] block">
-                {lang === 'ro' ? 'Încasat / Plătit' : lang === 'fa' ? 'مجموع واریز شده' : 'Collected / Paid'}
-              </span>
-              <div className="text-2xl font-bold text-emerald-600 font-mono">
-                {reportsData.finance.paid.toLocaleString()} {reportsData.finance.currency}
-              </div>
-              <span className="text-[11px] text-emerald-700 block">
-                {reportsData.finance.invoiced > 0
-                  ? Math.round((reportsData.finance.paid / reportsData.finance.invoiced) * 100)
-                  : 0}% {lang === 'ro' ? 'rată colectare' : lang === 'fa' ? 'نرخ وصول' : 'collection rate'}
-              </span>
-            </div>
-
-            <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
-              <span className="text-xs font-semibold text-[#627D98] block">
-                {lang === 'ro' ? 'Sold Rămas / Restanțe' : lang === 'fa' ? 'مانده معوقه' : 'Outstanding Balance'}
-              </span>
-              <div className="text-2xl font-bold text-amber-600 font-mono">
-                {reportsData.finance.outstanding.toLocaleString()} {reportsData.finance.currency}
-              </div>
-              <span className="text-[11px] text-amber-700 block">
-                {lang === 'ro' ? 'Restanțe curente' : lang === 'fa' ? 'معوقات جاری واحدها' : 'Current outstanding'}
-              </span>
-            </div>
-
-            <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
-              <span className="text-xs font-semibold text-[#627D98] block">
-                {lang === 'ro' ? 'Monedă Referință' : lang === 'fa' ? 'ارز محاسباتی' : 'Ledger Currency'}
-              </span>
-              <div className="text-2xl font-bold text-[#0E9F8E] font-mono">
-                {reportsData.finance.currency}
-              </div>
-              <span className="text-[11px] text-[#627D98] block">
-                {lang === 'ro' ? 'Configurat per workspace' : lang === 'fa' ? 'تنظیم‌شده در ورک‌اسپیس' : 'Workspace base currency'}
-              </span>
-            </div>
-          </div>
-
-          {/* Monthly Breakdown Table */}
-          <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
-            <div className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#102A43]">
-                {lang === 'ro' ? 'Defalcare Lunară Registru Financiar' : lang === 'fa' ? 'تفکیک ماهانه دفاتر مالی' : 'Monthly Financial Ledger Breakdown'}
+          {(!reportsData.finance ||
+            typeof reportsData.finance.invoiced !== 'number' ||
+            !Number.isFinite(reportsData.finance.invoiced) ||
+            typeof reportsData.finance.paid !== 'number' ||
+            !Number.isFinite(reportsData.finance.paid) ||
+            typeof reportsData.finance.outstanding !== 'number' ||
+            !Number.isFinite(reportsData.finance.outstanding)) ? (
+            <div className="p-8 bg-amber-50 rounded-2xl border border-amber-200 text-center space-y-3">
+              <AlertCircle className="w-8 h-8 text-amber-600 mx-auto" />
+              <h2 className="text-base font-bold text-[#102A43]">
+                {lang === 'ro'
+                  ? 'Date Financiare Incomplete în Răspunsul Serverului'
+                  : lang === 'fa'
+                  ? 'پاسخ مالی دریافتی از سرور ناقص است'
+                  : 'Incomplete Financial Data from Server'}
               </h2>
-              <span className="text-[11px] text-[#627D98]">
-                {lang === 'ro' ? 'Sursă: demo.finance_samples' : lang === 'fa' ? 'منبع: demo.finance_samples' : 'Source: demo.finance_samples'}
-              </span>
+              <p className="text-xs text-[#52667A] max-w-md mx-auto leading-relaxed">
+                {lang === 'ro'
+                  ? 'Răspunsul primit nu conține indicatorii financiari agregați ceruți. Pentru a preveni dezinformarea, nu sunt afișate valori artificiale de zero.'
+                  : lang === 'fa'
+                  ? 'داده‌های دریافت‌شده فاقد فیلدهای مالی معتبر است. به منظور جلوگیری از خطای محاسباتی، گزارش صفر نمایش داده نمی‌شود.'
+                  : 'The financial response is missing required aggregated values. Zero values are suppressed to avoid misleading reports.'}
+              </p>
             </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
+                  <span className="text-xs font-semibold text-[#627D98] block">
+                    {lang === 'ro' ? 'Total Facturat (6 luni)' : lang === 'fa' ? 'کل شارژ صادره (۶ ماه)' : 'Total Invoiced (6 Mo)'}
+                  </span>
+                  <div className="text-2xl font-bold text-[#102A43] font-mono">
+                    {reportsData.finance.invoiced.toLocaleString()} {reportsData.finance.currency}
+                  </div>
+                  <span className="text-[11px] text-[#627D98] block">
+                    {reportsData.finance.invoice_count} {lang === 'ro' ? 'facturi emise' : lang === 'fa' ? 'صورت‌حساب صادرشده' : 'invoices issued'}
+                  </span>
+                </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-start">
-                <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#627D98] font-bold uppercase tracking-wider text-[10px]">
-                  <tr>
-                    <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Perioadă / Lună' : lang === 'fa' ? 'دوره / ماه' : 'Period'}</th>
-                    <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Facturat' : lang === 'fa' ? 'شارژ صادره' : 'Invoiced'}</th>
-                    <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Încasat' : lang === 'fa' ? 'وصول‌شده' : 'Paid'}</th>
-                    <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Restanță' : lang === 'fa' ? 'مانده' : 'Outstanding'}</th>
-                    <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Rată Încasare' : lang === 'fa' ? 'درصد تسویه' : 'Collection Rate'}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F0F4F8]">
-                  {Array.isArray(reportsData.finance.monthly) && reportsData.finance.monthly.map((row: DemoFinanceMonth, idx: number) => {
-                    const rowRate = row.invoiced > 0 ? Math.round((row.paid / row.invoiced) * 100) : 0;
-                    const rowOutstanding = row.outstanding ?? (row.invoiced - row.paid);
-                    return (
-                      <tr key={row.period || row.month || idx} className="hover:bg-[#F8FAFC] transition-colors">
-                        <td className="py-3 px-4 font-bold text-[#102A43] font-mono">{row.period || row.month || '—'}</td>
-                        <td className="py-3 px-4 font-mono">{row.invoiced.toLocaleString()} {reportsData.finance.currency}</td>
-                        <td className="py-3 px-4 font-mono text-emerald-600 font-semibold">{row.paid.toLocaleString()} {reportsData.finance.currency}</td>
-                        <td className="py-3 px-4 font-mono text-amber-600 font-semibold">{rowOutstanding.toLocaleString()} {reportsData.finance.currency}</td>
-                        <td className="py-3 px-4">
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            {rowRate}%
-                          </span>
-                        </td>
+                <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
+                  <span className="text-xs font-semibold text-[#627D98] block">
+                    {lang === 'ro' ? 'Încasat / Plătit' : lang === 'fa' ? 'مجموع واریز شده' : 'Collected / Paid'}
+                  </span>
+                  <div className="text-2xl font-bold text-emerald-600 font-mono">
+                    {reportsData.finance.paid.toLocaleString()} {reportsData.finance.currency}
+                  </div>
+                  <span className="text-[11px] text-emerald-700 block">
+                    {reportsData.finance.invoiced > 0
+                      ? Math.round((reportsData.finance.paid / reportsData.finance.invoiced) * 100)
+                      : 0}% {lang === 'ro' ? 'rată colectare' : lang === 'fa' ? 'نرخ وصول' : 'collection rate'}
+                  </span>
+                </div>
+
+                <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
+                  <span className="text-xs font-semibold text-[#627D98] block">
+                    {lang === 'ro' ? 'Sold Rămas / Restanțe' : lang === 'fa' ? 'مانده معوقه' : 'Outstanding Balance'}
+                  </span>
+                  <div className="text-2xl font-bold text-amber-600 font-mono">
+                    {reportsData.finance.outstanding.toLocaleString()} {reportsData.finance.currency}
+                  </div>
+                  <span className="text-[11px] text-amber-700 block">
+                    {lang === 'ro' ? 'Restanțe curente' : lang === 'fa' ? 'معوقات جاری واحدها' : 'Current outstanding'}
+                  </span>
+                </div>
+
+                <div className="p-5 bg-white rounded-2xl border border-[#E2E8F0] shadow-2xs space-y-1">
+                  <span className="text-xs font-semibold text-[#627D98] block">
+                    {lang === 'ro' ? 'Monedă Referință' : lang === 'fa' ? 'ارز محاسباتی' : 'Ledger Currency'}
+                  </span>
+                  <div className="text-2xl font-bold text-[#0E9F8E] font-mono">
+                    {reportsData.finance.currency}
+                  </div>
+                  <span className="text-[11px] text-[#627D98] block">
+                    {lang === 'ro' ? 'Configurat per workspace' : lang === 'fa' ? 'تنظیم‌شده در ورک‌اسپیس' : 'Workspace base currency'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Monthly Breakdown Table */}
+              <div className="bg-white rounded-2xl border border-[#E2E8F0] shadow-card overflow-hidden">
+                <div className="p-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-[#102A43]">
+                    {lang === 'ro' ? 'Defalcare Lunară Registru Financiar' : lang === 'fa' ? 'تفکیک ماهانه دفاتر مالی' : 'Monthly Financial Ledger Breakdown'}
+                  </h2>
+                  <span className="text-[11px] text-[#627D98]">
+                    {lang === 'ro' ? 'Sursă: demo.finance_samples' : lang === 'fa' ? 'منبع: demo.finance_samples' : 'Source: demo.finance_samples'}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-start">
+                    <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[#627D98] font-bold uppercase tracking-wider text-[10px]">
+                      <tr>
+                        <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Perioadă / Lună' : lang === 'fa' ? 'دوره / ماه' : 'Period'}</th>
+                        <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Facturat' : lang === 'fa' ? 'شارژ صادره' : 'Invoiced'}</th>
+                        <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Încasat' : lang === 'fa' ? 'وصول‌شده' : 'Paid'}</th>
+                        <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Restanță' : lang === 'fa' ? 'مانده' : 'Outstanding'}</th>
+                        <th className="py-3 px-4 text-start">{lang === 'ro' ? 'Rată Încasare' : lang === 'fa' ? 'درصد تسویه' : 'Collection Rate'}</th>
                       </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0F4F8]">
+                      {Array.isArray(reportsData.finance.monthly) && reportsData.finance.monthly.map((row: DemoFinanceMonth, idx: number) => {
+                        const rowRate = row.invoiced > 0 ? Math.round((row.paid / row.invoiced) * 100) : 0;
+                        const rowOutstanding = row.outstanding ?? (row.invoiced - row.paid);
+                        return (
+                          <tr key={row.period || row.month || idx} className="hover:bg-[#F8FAFC] transition-colors">
+                            <td className="py-3 px-4 font-bold text-[#102A43] font-mono">{row.period || row.month || '—'}</td>
+                            <td className="py-3 px-4 font-mono">{row.invoiced.toLocaleString()} {reportsData.finance.currency}</td>
+                            <td className="py-3 px-4 font-mono text-emerald-600 font-semibold">{row.paid.toLocaleString()} {reportsData.finance.currency}</td>
+                            <td className="py-3 px-4 font-mono text-amber-600 font-semibold">{rowOutstanding.toLocaleString()} {reportsData.finance.currency}</td>
+                            <td className="py-3 px-4">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                {rowRate}%
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -745,15 +879,15 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                 <p className="text-xs text-[#52667A] leading-relaxed">
                   {ceSubView === 'guides'
                     ? (lang === 'ro'
-                      ? 'În versiunea operațională completă, ghidurile conțin regulamentul de ordine interioară, manualele tehnice ale instalațiilor și instrucțiunile de reciclare.'
+                      ? 'Ghidurile de spațiu documentează regulamentele și instrucțiunile de utilizare specifice proprietății. Acest spațiu demonstrativ nu include ghiduri preîncărcate.'
                       : lang === 'fa'
-                      ? 'در نسخه عملیاتی، این بخش شامل آیین‌نامه داخلی، دستورالعمل‌های بهره‌برداری از تجهیزات و راهنمای تفکیک پسماند است.'
-                      : 'In the production platform, space guides document internal building bylaws, appliance operational manuals, and waste procedures.')
+                      ? 'راهنماهای فضا برای مستندسازی مقررات و دستورالعمل‌های بهره‌برداری از مشاعات ساختمان به کار می‌روند. در این پیش‌نمایش، راهنمای پیش‌فرضی بارگذاری نشده است.'
+                      : 'Space guides document property-specific rules and operational instructions. This demo workspace does not include preloaded guides.')
                     : (lang === 'ro'
-                      ? 'Adunările sociale, atelierele tematice și inițiativele de sustenabilitate pot fi configurate la cererea comitetului executiv al asociației.'
+                      ? 'Secțiunea de evenimente reflectă activitățile și inițiativele organizate la nivelul comunității. În prezent, nu sunt înregistrate evenimente în acest spațiu demonstrativ.'
                       : lang === 'fa'
-                      ? 'رویدادهای ساکنان، کارگاه‌های ساختمانی و برنامه‌های مشترک به درخواست هیئت مدیره ساختمان در این بخش تعریف می‌شوند.'
-                      : 'Community events, tenant workshops, and sustainability initiatives are organized upon association board request.')}
+                      ? 'بخش رویدادها فعالیت‌ها و برنامه‌های جامعهٔ ساکنان را نمایش می‌دهد. در حال حاضر هیچ رویدادی در این محیط نمونه ثبت نشده است.'
+                      : 'The community events section reflects activities and initiatives organized for residents. Currently, no events are recorded in this demo workspace.')}
                 </p>
               </div>
               <div className="pt-2">

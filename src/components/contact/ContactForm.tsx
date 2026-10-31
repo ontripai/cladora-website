@@ -26,6 +26,9 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
+import { normalizeDigitsToAscii } from '@/lib/demo/demo-client';
+
+const SERVER_REFERENCE_REGEX = /^CLD-C[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}$/;
 
 interface ContactFormProps {
   lang: Language;
@@ -167,22 +170,29 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
 
       const data = await response.json();
 
-      const rawRef = data?.referenceId || data?.referenceCode || data?.reference;
-      const validRef = typeof rawRef === 'string' && rawRef.trim().length > 0 ? rawRef.trim() : null;
+      const rawRef = typeof data?.referenceId === 'string' && data.referenceId.trim().length > 0
+        ? data.referenceId.trim()
+        : typeof data?.referenceCode === 'string' && data.referenceCode.trim().length > 0
+        ? data.referenceCode.trim()
+        : typeof data?.reference === 'string' && data.reference.trim().length > 0
+        ? data.reference.trim()
+        : '';
 
-      if (response.ok && data?.ok && validRef) {
+      const isRefValid = SERVER_REFERENCE_REGEX.test(rawRef);
+
+      if (response.ok && data?.ok === true && isRefValid) {
         setSubmissionSuccess(true);
-        setReferenceCode(validRef);
+        setReferenceCode(rawRef);
       } else {
         setSubmissionSuccess(false);
         setReferenceCode(null);
         setErrorMessage(
           data?.message ||
           (lang === 'ro'
-            ? 'Răspunsul serverului a fost incomplet (lipsește codul de referință). Datele tale au fost păstrate; te rugăm să reîncerci trimiterea.'
+            ? 'Răspunsul serverului a fost invalid sau a inclus un cod de referință neconform. Datele introduse au fost păstrate; te rugăm să reîncerci trimiterea.'
             : lang === 'fa'
-            ? 'پاسخ سرور فاقد کد پیگیری معتبر بود. اطلاعات شما حفظ شده است؛ لطفاً مجدداً تلاش فرمایید.'
-            : 'Server response was incomplete (missing reference ID). Your entered data has been preserved; please try submitting again.')
+            ? 'پاسخ سرور نامعتبر بود یا فاقد شناسه رهگیری استاندارد است. اطلاعات شما حفظ گردیده؛ لطفاً مجدداً تلاش فرمایید.'
+            : 'Server response was invalid or missing a compliant reference ID. Your entered data has been preserved; please try submitting again.')
         );
       }
     } catch (err) {
@@ -648,7 +658,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                       name="phone"
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => setPhone(normalizeDigitsToAscii(e.target.value))}
                       placeholder={lang === 'fa' ? '۰۹۱۲۱۲۳۴۵۶۷' : '+40 712 345 678'}
                       className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
                     />
@@ -682,7 +692,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                     name="unitsCount"
                     type="text"
                     value={unitsCount}
-                    onChange={(e) => setUnitsCount(e.target.value)}
+                    onChange={(e) => setUnitsCount(normalizeDigitsToAscii(e.target.value))}
                     placeholder={lang === 'ro' ? 'ex. 1 bloc de 80 apartamente sau 5 spații comerciale' : lang === 'fa' ? 'مثال: یک مجتمع ۶۰ واحدی یا ۳ سوله انبار' : 'e.g. 80 residential units or 12 commercial offices'}
                     className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none"
                   />
