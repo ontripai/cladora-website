@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { useCustomerContext } from "./CustomerContextProvider";
+import { createNoticeDraftTransport, type DraftTransportState } from "@/lib/customer/notice-draft-transport";
 
 export type View =
   | "channels"
@@ -113,8 +114,8 @@ const hidden = new Set([
 
 const copy = {
   en: {
-    title: "Communications, Notices & Delivery Evidence",
-    sub: "Authorized notices, statutory delivery evidence, channel communications and notifications.",
+    title: "Notices and communications",
+    sub: "Saving a draft does not publish or deliver it. Publication, delivery and receipt acknowledgement are separate steps.",
     official_notices: "Official Notices",
     channels: "Channels",
     announcements: "Announcements",
@@ -137,6 +138,9 @@ const copy = {
     readonly: "Read-only · confidential responses aggregated",
     details: "Details",
     close: "Close",
+    finishEvidenceDraft: "Save or close the evidence form before changing the list filters.",
+    previous: "Previous page",
+    next: "Next page",
     published: "Published posts",
     openPolls: "Open polls",
     unread: "Unread notifications",
@@ -165,7 +169,7 @@ const copy = {
     acknowledged: "Acknowledged",
     verifiedEvidence: "Verified Evidence",
     approveNotice: "Approve Notice",
-    publishNotice: "Publish & Freeze Recipients",
+    publishNotice: "Publish and fix the recipient list",
     cancelNotice: "Cancel Notice",
     ackReceipt: "Acknowledge Receipt",
     receiptAcknowledged: "Receipt Acknowledged",
@@ -179,15 +183,15 @@ const copy = {
     verifyEvidence: "Verify Evidence",
     rejectEvidence: "Reject Evidence",
     viewDeliveries: "View Delivery Outbox",
-    deliveriesTitle: "Delivery Outbox Attempts",
+    deliveriesTitle: "Delivery attempts to recipients",
     deliveredAt: "Delivered At",
     attempt: "Attempt",
-    successAction: "Action completed successfully.",
-    failAction: "Action failed. Please review requirements.",
+    successAction: "The action was recorded. Check the notice status and delivery records separately.",
+    failAction: "The request result is not yet known. Check the notice status, your access and requirements before trying again.",
   },
   ro: {
-    title: "Comunicări, avizier & dovezi de comunicare",
-    sub: "Înștiințări oficiale, dovezi de comunicare legală, canale de discuții și notificări.",
+    title: "Înștiințări și comunicări",
+    sub: "Salvarea unei ciorne nu înseamnă publicare sau livrare. Publicarea, livrarea și confirmarea primirii sunt pași separați.",
     official_notices: "Avizier & Înștiințări",
     channels: "Canale",
     announcements: "Anunțuri",
@@ -210,6 +214,9 @@ const copy = {
     readonly: "Doar citire · răspunsurile confidențiale sunt agregate",
     details: "Detalii",
     close: "Închide",
+    finishEvidenceDraft: "Salvați sau închideți formularul de dovezi înainte de a schimba filtrele listei.",
+    previous: "Pagina anterioară",
+    next: "Pagina următoare",
     published: "Postări publicate",
     openPolls: "Sondaje deschise",
     unread: "Notificări necitite",
@@ -238,7 +245,7 @@ const copy = {
     acknowledged: "Confirmări",
     verifiedEvidence: "Dovezi verificate",
     approveNotice: "Aprobă înștiințarea",
-    publishNotice: "Publică și blochează destinatarii",
+    publishNotice: "Publică și fixează lista destinatarilor",
     cancelNotice: "Anulează înștiințarea",
     ackReceipt: "Confirmă primirea",
     receiptAcknowledged: "Primire confirmată",
@@ -252,15 +259,15 @@ const copy = {
     verifyEvidence: "Validează dovadă",
     rejectEvidence: "Respinge dovadă",
     viewDeliveries: "Jurnal trimiteri",
-    deliveriesTitle: "Încercări de trimitere către destinatari",
+    deliveriesTitle: "Încercări de livrare către destinatari",
     deliveredAt: "Livrat la",
     attempt: "Încercare",
-    successAction: "Operațiunea a fost finalizată cu succes.",
-    failAction: "Operațiunea a eșuat. Verificați permisiunile și cerințele.",
+    successAction: "Acțiunea a fost înregistrată. Verifică separat starea înștiințării și înregistrările de livrare.",
+    failAction: "Rezultatul cererii nu este încă cunoscut. Verifică starea înștiințării, accesul și cerințele înainte de a reîncerca.",
   },
   fa: {
-    title: "ارتباطات، ابلاغیه‌ها و شواهد قانونی تحویل",
-    sub: "ابلاغیه‌های معتبر، شواهد قانونی تسلیم، محتوای کانال‌ها و اعلان‌ها.",
+    title: "ابلاغیه‌ها و ارتباطات",
+    sub: "ذخیرهٔ پیش‌نویس به معنی انتشار یا تحویل آن نیست. انتشار، تحویل و تأیید دریافت مرحله‌های جداگانه‌اند.",
     official_notices: "ابلاغیه‌های رسمی",
     channels: "کانال‌ها",
     announcements: "اطلاعیه‌ها",
@@ -283,6 +290,9 @@ const copy = {
     readonly: "فقط خواندنی · پاسخ‌های محرمانه تجمیع شده‌اند",
     details: "جزئیات",
     close: "بستن",
+    finishEvidenceDraft: "پیش از تغییر فیلترهای فهرست، فرم شواهد را ذخیره کنید یا ببندید.",
+    previous: "صفحه قبل",
+    next: "صفحه بعد",
     published: "پست‌های منتشرشده",
     openPolls: "نظرسنجی‌های باز",
     unread: "اعلان‌های خوانده‌نشده",
@@ -311,7 +321,7 @@ const copy = {
     acknowledged: "تأییدشده‌ها",
     verifiedEvidence: "شواهد تأییدشده قانونی",
     approveNotice: "تصویب رسمی ابلاغیه",
-    publishNotice: "انتشار و تثبیت فهرست گیرندگان",
+    publishNotice: "انتشار و نهایی‌کردن فهرست گیرندگان",
     cancelNotice: "لغو ابلاغیه",
     ackReceipt: "اعلام وصول و تأیید دریافت",
     receiptAcknowledged: "وصول تأیید شد",
@@ -325,11 +335,11 @@ const copy = {
     verifyEvidence: "تأیید رسمی شواهد",
     rejectEvidence: "رد شواهد",
     viewDeliveries: "کارتابل ارسال‌ها",
-    deliveriesTitle: "تلاش‌های ارسال به گیرندگان",
+    deliveriesTitle: "تلاش‌های تحویل به گیرندگان",
     deliveredAt: "تحویل‌شده در",
     attempt: "تلاش",
-    successAction: "عملیات با موفقیت انجام شد.",
-    failAction: "عملیات ناموفق بود. لطفاً دسترسی‌ها و شرایط را بازبینی کنید.",
+    successAction: "عملیات ثبت شد. وضعیت ابلاغیه و سوابق تحویل را جداگانه بررسی کنید.",
+    failAction: "نتیجه درخواست هنوز مشخص نیست. پیش از تلاش دوباره، وضعیت ابلاغیه، دسترسی و شرایط را بررسی کنید.",
   },
 } as const;
 
@@ -344,6 +354,68 @@ const date = (v: unknown, l: string) =>
       }).format(new Date(String(v)))
     : "—";
 
+// A reader owns its debounce timer/controller and fences even transports which
+// resolve after abort. Changing identity removes old content during render.
+function useNoticeRead<T>(url: string | null, scope: string, failure: string, nonce = 0, delay = 0, expectedNoticeId?: string) {
+  const identity = JSON.stringify([scope, url, nonce, failure]);
+  const empty = { identity, data: null as T | null, loading: Boolean(url), error: "" };
+  const [state, setState] = useState(empty);
+  if (state.identity !== identity) setState(empty);
+  useEffect(() => {
+    const controller = new AbortController();
+    let current = true;
+    const timer = setTimeout(async () => {
+      if (!url) return;
+      try {
+        const response = await fetch(url, { cache: "no-store", credentials: "same-origin", signal: controller.signal });
+        if (!response.ok) throw new Error("notice_read_failed");
+        const data = await response.json() as T;
+        if (expectedNoticeId) {
+          const detail = data as NoticeDetailData;
+          if (detail?.notice?.id !== expectedNoticeId || typeof detail.notice.status !== "string") throw new Error("notice_identity_mismatch");
+        }
+        if (current && !controller.signal.aborted) setState({ identity, data, loading: false, error: "" });
+      } catch {
+        if (current && !controller.signal.aborted) setState({ identity, data: null, loading: false, error: failure });
+      }
+    }, delay);
+    return () => { current = false; clearTimeout(timer); controller.abort(); };
+  }, [url, identity, failure, delay, expectedNoticeId]);
+  return state.identity === identity ? state : empty;
+}
+
+// Mutation responses may finish after navigation; never write feedback or
+// trigger refresh in another mounted notice. Mutations themselves are unchanged.
+function useNoticeLifetime() {
+  const alive = useRef(false);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
+  return useCallback(() => alive.current, []);
+}
+
+// All detail dialogs share local keyboard containment and restore their opener.
+function useNoticeDialog(close: () => void) {
+  const dialog = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null;
+    const fallback = dialog.current?.parentElement?.querySelector<HTMLElement>("button[data-notice-refresh]");
+    dialog.current?.focus();
+    return () => {
+      if (opener?.isConnected) opener.focus();
+      else if (fallback?.isConnected) fallback.focus();
+    };
+  }, []);
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
+    if (event.key !== "Tab") return;
+    const nodes = Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]') ?? []);
+    const first = nodes[0]; const last = nodes[nodes.length - 1];
+    if (!first) { event.preventDefault(); return; }
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog.current)) { event.preventDefault(); last.focus(); }
+    else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog.current)) { event.preventDefault(); first.focus(); }
+  };
+  return { ref: dialog, tabIndex: -1, onKeyDown };
+}
+
 export function CustomerCommunicationsDashboard({
   lang,
   initialView = "official_notices",
@@ -352,103 +424,60 @@ export function CustomerCommunicationsDashboard({
   initialView?: View;
 }) {
   const t = copy[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
-  const { active } = useCustomerContext();
+  const { active, dashboard } = useCustomerContext();
   const canManageNotices = ["association_admin", "property_manager", "president"].includes(
     active?.role_code?.toLowerCase() ?? ""
   );
   const [view, setView] = useState<View>(initialView);
-  const [data, setData] = useState<Payload | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [offset, setOffset] = useState(0);
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  const [selected, setSelected] = useState<Record<string, unknown> | null>(null);
-  const [detailedNotice, setDetailedNotice] = useState<NoticeDetailData | null>(null);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [nonce, setNonce] = useState(0);
+  const [ackDenial, setAckDenial] = useState({ scope: "", denied: false });
+  const [hasEvidenceDraft, setHasEvidenceDraft] = useState(false);
+  // Identity includes server-derived membership/role, not a guessed capability.
+  const contextScope = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code, dashboard?.workspace_id]);
+  const currentContextScope = useRef(contextScope);
+  useLayoutEffect(() => { currentContextScope.current = contextScope; }, [contextScope]);
+  const [savedDraft, setSavedDraft] = useState<{ scope: string; id: string } | null>(null);
+  if (savedDraft && savedDraft.scope !== contextScope) setSavedDraft(null);
+  if (ackDenial.scope !== contextScope) setAckDenial({ scope: contextScope, denied: false });
+  const ackAccessDenied = ackDenial.scope === contextScope && ackDenial.denied;
+  const scope = JSON.stringify([contextScope, view, offset, query, status, from, to]);
+  const [selection, setSelection] = useState<{ scope: string; row: Record<string, unknown> | null }>({ scope, row: null });
+  // Adjust on render so previous content is absent even before effect cleanup.
+  // Reset the tag too: A -> B -> A must not resurrect an old selection.
+  if (selection.scope !== scope) setSelection({ scope, row: null });
+  const selected = selection.scope === scope ? selection.row : null;
+  const setSelected = (row: Record<string, unknown> | null) => setSelection({ scope, row });
+  const [creation, setCreation] = useState({ scope: contextScope, open: false });
+  if (creation.scope !== contextScope) setCreation({ scope: contextScope, open: false });
+  const showCreateModal = creation.scope === contextScope && creation.open;
+  const setShowCreateModal = (open: boolean) => setCreation({ scope: contextScope, open });
 
-  const load = useCallback(async () => {
-    if (!active) {
-      setLoading(false);
-      setData(null);
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      if (view === "official_notices") {
-        const p = new URLSearchParams({
-          context_id: active.context_id,
-          limit: "20",
-          offset: String(offset),
-        });
-        if (status) p.set("status", status);
-        const r = await fetch(`/api/customer/v1/communications/notices?${p}`, {
-          cache: "no-store",
-          credentials: "same-origin",
-        });
-        if (!r.ok) throw new Error();
-        const json = await r.json();
-        setData(json);
-      } else {
-        const p = new URLSearchParams({
-          context_id: active.context_id,
-          view,
-          limit: "20",
-          offset: String(offset),
-        });
-        if (query) p.set("query", query);
-        if (status) p.set("status", status);
-        if (from) p.set("from", from);
-        if (to) p.set("to", to);
-        const r = await fetch(`/api/customer/v1/communications?${p}`, {
-          cache: "no-store",
-          credentials: "same-origin",
-        });
-        if (!r.ok) throw new Error();
-        setData(await r.json());
-      }
-    } catch {
-      setError(t.error);
-    } finally {
-      setLoading(false);
-    }
-  }, [active, view, offset, query, status, from, to, t.error]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => void load(), 150);
-    return () => clearTimeout(timer);
-  }, [load, nonce]);
-
-  const loadNoticeDetail = async (noticeId: string) => {
-    if (!active) return;
-    setLoadingDetail(true);
-    setActionMessage(null);
-    try {
-      const res = await fetch(
-        `/api/customer/v1/communications/notices/${noticeId}?context_id=${active.context_id}`,
-        { cache: "no-store", credentials: "same-origin" }
-      );
-      if (res.ok) {
-        const detail = await res.json();
-        setDetailedNotice(detail);
-      }
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
+  const params = new URLSearchParams({ context_id: active?.context_id ?? "", limit: "20", offset: String(offset) });
+  if (status) params.set("status", status);
+  if (view !== "official_notices") {
+    params.set("view", view);
+    if (query) params.set("query", query);
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+  }
+  const listUrl = active && !ackAccessDenied ? `/api/customer/v1/communications${view === "official_notices" ? "/notices" : ""}?${params}` : null;
+  const { data, loading, error: readError } = useNoticeRead<Payload>(listUrl, scope, t.error, nonce, 150);
+  const error = ackAccessDenied ? t.error : readError;
+  const detailUrl = active && selected && view === "official_notices" && !error
+    ? `/api/customer/v1/communications/notices/${encodeURIComponent(String(selected.id))}?context_id=${encodeURIComponent(active.context_id)}` : null;
+  const detailRead = useNoticeRead<NoticeDetailData>(detailUrl, scope, t.error, nonce, 0, selected ? String(selected.id) : undefined);
 
   return (
-    <div className="space-y-5" dir={lang === "fa" ? "rtl" : "ltr"}>
+    <div className="min-w-0 max-w-full space-y-5 [overflow-wrap:anywhere] [&_button]:min-h-11 [&_button]:min-w-11 [&_button]:focus-visible:outline-2 [&_button]:focus-visible:outline-offset-2 [&_input]:min-h-11 [&_input]:min-w-0 [&_select]:min-h-11 [&_select]:min-w-0" dir={lang === "fa" ? "rtl" : "ltr"}>
       <header className="rounded-2xl border bg-white p-6 shadow-sm">
         <div className="flex flex-wrap justify-between gap-4">
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0E9F8E]">
               <Megaphone className="h-4 w-4" />
               C11 · Communications & Legal Notices
@@ -496,12 +525,14 @@ export function CustomerCommunicationsDashboard({
           <button
             type="button"
             key={v}
+            aria-pressed={view === v}
+            disabled={hasEvidenceDraft}
             onClick={() => {
+              if (hasEvidenceDraft) return;
               setView(v);
               setOffset(0);
               setStatus("");
               setSelected(null);
-              setDetailedNotice(null);
             }}
             className={`rounded-xl px-3 py-2 text-xs font-bold transition ${
               view === v
@@ -514,25 +545,41 @@ export function CustomerCommunicationsDashboard({
         ))}
       </div>
 
+      {savedDraft?.scope === contextScope && !ackAccessDenied ? <div role="status" data-notice-saved className="rounded-xl border bg-white p-4 text-sm">
+        <p>{lang === "fa" ? "ذخیرهٔ همان پیش‌نویس تأیید شد؛ این نتیجه تأیید انتشار یا تحویل نیست." : lang === "ro" ? "Salvarea aceleiași ciorne a fost confirmată; acest rezultat nu confirmă publicarea sau livrarea." : "The same draft save was confirmed; this result does not confirm publication or delivery."}</p>
+        <button type="button" data-notice-open-saved className="mt-2 rounded-lg border px-3 py-2" onClick={() => {
+          if (currentContextScope.current !== savedDraft.scope || hasEvidenceDraft) return;
+          // Receipt identity chooses a target, never content or authority. The
+          // existing detail reader must fetch a fresh, authorized response.
+          setView("official_notices"); setOffset(0); setDraft(""); setQuery(""); setStatus(""); setFrom(""); setTo("");
+          setSelection({ scope: JSON.stringify([contextScope, "official_notices", 0, "", "", "", ""]), row: { id: savedDraft.id } });
+          setNonce(n => n + 1);
+        }} disabled={hasEvidenceDraft}>{lang === "fa" ? "بازکردن پیش‌نویس ذخیره‌شده" : lang === "ro" ? "Deschide ciorna salvată" : "Open saved draft"}</button>
+      </div> : null}
+
+      {hasEvidenceDraft ? <p role="status" className="text-sm text-[#52667A]">{t.finishEvidenceDraft}</p> : null}
       <form
         onSubmit={(e) => {
           e.preventDefault();
+          if (hasEvidenceDraft) return;
           setOffset(0);
           setQuery(draft.trim());
         }}
-        className="grid gap-3 rounded-2xl border bg-white p-4 shadow-sm md:grid-cols-6"
+        className="grid min-w-0 gap-3 rounded-2xl border bg-white p-4 shadow-sm md:grid-cols-6 [&>input]:w-full [&>input]:max-w-full"
       >
         <label className="relative md:col-span-2">
           <Search className="absolute start-3 top-2.5 h-4 w-4 text-[#7B8A9A]" />
           <span className="sr-only">{t.search}</span>
           <input
             value={draft}
+            disabled={hasEvidenceDraft}
             onChange={(e) => setDraft(e.target.value)}
             placeholder={t.search}
             className="w-full rounded-xl border py-2 pe-3 ps-9 text-sm"
           />
         </label>
         <input
+          disabled={hasEvidenceDraft}
           aria-label={t.status}
           value={status}
           onChange={(e) => {
@@ -544,6 +591,7 @@ export function CustomerCommunicationsDashboard({
         />
         <input
           type="date"
+          disabled={hasEvidenceDraft}
           aria-label={t.from}
           value={from}
           onChange={(e) => {
@@ -554,6 +602,7 @@ export function CustomerCommunicationsDashboard({
         />
         <input
           type="date"
+          disabled={hasEvidenceDraft}
           aria-label={t.to}
           value={to}
           onChange={(e) => {
@@ -565,7 +614,13 @@ export function CustomerCommunicationsDashboard({
         <button
           type="button"
           aria-label={t.refresh}
-          onClick={() => setNonce((n) => n + 1)}
+          data-notice-refresh
+          onClick={() => {
+            // Explicit revalidation starts a new reader generation; it grants
+            // no access and cannot reuse pre-denial list/detail state.
+            if (ackAccessDenied) setAckDenial({ scope: contextScope, denied: false });
+            setNonce((n) => n + 1);
+          }}
           className="rounded-xl border p-2 transition hover:bg-slate-50"
         >
           <RefreshCw className="mx-auto h-4 w-4 text-[#52667A]" />
@@ -584,13 +639,13 @@ export function CustomerCommunicationsDashboard({
       {loading ? (
         <Box value={t.loading} />
       ) : error ? (
-        <Box value={error} />
+        <Box value={error} alert />
       ) : !data?.rows?.length ? (
         <Box value={t.empty} />
       ) : view === "official_notices" ? (
         <>
-          <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
-            <table className="w-full min-w-[900px] text-xs">
+          <div role="region" aria-label={t[view]} tabIndex={0} className="min-w-0 max-w-full overflow-x-auto rounded-2xl border bg-white shadow-sm">
+            <table className="w-full min-w-[900px] table-fixed text-xs">
               <thead className="bg-[#F6F9FC] text-[#52667A]">
                 <tr>
                   <th className="p-3 text-start">{t.noticeNo}</th>
@@ -643,7 +698,6 @@ export function CustomerCommunicationsDashboard({
                           type="button"
                           onClick={() => {
                             setSelected(r);
-                            void loadNoticeDetail(String(r.id));
                           }}
                           className="font-bold text-[#087A6E] hover:underline"
                         >
@@ -659,13 +713,16 @@ export function CustomerCommunicationsDashboard({
           <Pagination
             offset={offset}
             total={data.total}
-            setOffset={setOffset}
+            setOffset={(next) => { if (!hasEvidenceDraft) setOffset(next); }}
+            locked={hasEvidenceDraft}
+            previousLabel={t.previous}
+            nextLabel={t.next}
           />
         </>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-2xl border bg-white shadow-sm">
-            <table className="w-full min-w-[900px] text-xs">
+          <div role="region" aria-label={t[view]} tabIndex={0} className="min-w-0 max-w-full overflow-x-auto rounded-2xl border bg-white shadow-sm">
+            <table className="w-full min-w-[900px] table-fixed text-xs">
               <thead className="bg-[#F6F9FC] text-[#52667A]">
                 <tr>
                   <th className="p-3 text-start">{t.date}</th>
@@ -697,7 +754,10 @@ export function CustomerCommunicationsDashboard({
           <Pagination
             offset={offset}
             total={data.total}
-            setOffset={setOffset}
+            setOffset={(next) => { if (!hasEvidenceDraft) setOffset(next); }}
+            locked={hasEvidenceDraft}
+            previousLabel={t.previous}
+            nextLabel={t.next}
           />
         </>
       )}
@@ -705,33 +765,33 @@ export function CustomerCommunicationsDashboard({
       {/* Notice Detail & Action Dialog */}
       {selected && view === "official_notices" ? (
         <NoticeDetailModal
+          key={`${scope}:${String(selected.id)}`}
           lang={lang}
           noticeSummary={selected}
-          detail={detailedNotice}
-          loading={loadingDetail}
-          actionMessage={actionMessage}
-          setActionMessage={setActionMessage}
+          onAccessDenied={() => { setAckDenial({ scope: contextScope, denied: true }); setSelected(null); }}
+          onDraftChange={setHasEvidenceDraft}
+          detail={error ? null : detailRead.data}
+          loading={detailRead.loading}
+          error={error || detailRead.error}
           onRefresh={() => {
-            if (selected?.id) void loadNoticeDetail(String(selected.id));
             setNonce((n) => n + 1);
           }}
-          close={() => {
-            setSelected(null);
-            setDetailedNotice(null);
-            setActionMessage(null);
-          }}
+          close={() => setSelected(null)}
         />
-      ) : selected ? (
-        <Detail row={selected} close={() => setSelected(null)} label={t.close} />
+      ) : selected && !error ? (
+        <Detail key={`${scope}:${String(selected.id)}`} row={selected} close={() => setSelected(null)} label={t.close} title={t.details} />
       ) : null}
 
       {/* Create Draft Notice Modal */}
       {showCreateModal && canManageNotices ? (
         <CreateNoticeModal
+          key={contextScope}
           lang={lang}
           close={() => setShowCreateModal(false)}
-          onCreated={() => {
+          onCreated={(noticeId) => {
+            if (currentContextScope.current !== contextScope) return;
             setShowCreateModal(false);
+            if (noticeId) setSavedDraft({ scope: contextScope, id: noticeId });
             setNonce((n) => n + 1);
           }}
         />
@@ -758,10 +818,16 @@ function Pagination({
   offset,
   total,
   setOffset,
+  previousLabel,
+  nextLabel,
+  locked,
 }: {
+  locked: boolean;
+  previousLabel: string;
+  nextLabel: string;
   offset: number;
   total: number;
-  setOffset: React.Dispatch<React.SetStateAction<number>>;
+  setOffset: (offset: number) => void;
 }) {
   return (
     <div className="flex justify-between text-xs text-[#52667A]">
@@ -771,7 +837,8 @@ function Pagination({
       <div className="flex gap-2">
         <button
           type="button"
-          disabled={!offset}
+          aria-label={previousLabel}
+          disabled={locked || !offset}
           onClick={() => setOffset(Math.max(0, offset - 20))}
           className="rounded-xl border bg-white p-2 disabled:opacity-40"
         >
@@ -779,7 +846,8 @@ function Pagination({
         </button>
         <button
           type="button"
-          disabled={offset + 20 >= total}
+          aria-label={nextLabel}
+          disabled={locked || offset + 20 >= total}
           onClick={() => setOffset(offset + 20)}
           className="rounded-xl border bg-white p-2 disabled:opacity-40"
         >
@@ -802,9 +870,9 @@ function Metric({ label, value }: { label: string; value: unknown }) {
   );
 }
 
-function Box({ value }: { value: string }) {
+function Box({ value, alert = false }: { value: string; alert?: boolean }) {
   return (
-    <div className="rounded-2xl border bg-white p-10 text-center text-sm text-[#52667A] shadow-sm">
+    <div role={alert ? "alert" : "status"} className="rounded-2xl border bg-white p-10 text-center text-sm text-[#52667A] shadow-sm">
       {value}
     </div>
   );
@@ -846,18 +914,23 @@ function Detail({
   row,
   close,
   label,
+  title,
 }: {
+  title: string;
   row: Record<string, unknown>;
   close: () => void;
   label: string;
 }) {
+  const dialog = useNoticeDialog(close);
   return (
     <div
+      {...dialog}
       role="dialog"
+      aria-label={title}
       aria-modal="true"
       className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4"
     >
-      <div className="max-h-[85vh] w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 shadow-xl">
+      <div className="max-h-[85dvh] min-w-0 w-full max-w-2xl overflow-auto rounded-2xl bg-white p-6 shadow-xl">
         <div className="flex justify-end">
           <button type="button" onClick={close} aria-label={label} className="p-1 text-slate-400 hover:text-slate-600">
             <X className="h-5 w-5" />
@@ -881,35 +954,202 @@ function Detail({
 function NoticeDetailModal({
   lang,
   noticeSummary,
+  onAccessDenied,
+  onDraftChange,
   detail,
   loading,
-  actionMessage,
-  setActionMessage,
+  error,
   onRefresh,
   close,
 }: {
   lang: string;
   noticeSummary: Record<string, unknown>;
+  onAccessDenied: () => void;
+  onDraftChange: (dirty: boolean) => void;
   detail: NoticeDetailData | null;
   loading: boolean;
-  actionMessage: string | null;
-  setActionMessage: (msg: string | null) => void;
+  error: string;
   onRefresh: () => void;
   close: () => void;
 }) {
   const t = copy[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
   const { active } = useCustomerContext();
+  const isCurrent = useNoticeLifetime();
+  const dialog = useNoticeDialog(close);
+  const titleId = useId();
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showEvidenceForm, setShowEvidenceForm] = useState(false);
   const [evidenceType, setEvidenceType] = useState("noticeboard_posting");
   const [evidenceRef, setEvidenceRef] = useState("");
   const [occurredAt, setOccurredAt] = useState(new Date().toISOString().slice(0, 16));
   const [evidenceNotes, setEvidenceNotes] = useState("");
-  const [deliveries, setDeliveries] = useState<Record<string, unknown>[] | null>(null);
-  const [loadingDeliveries, setLoadingDeliveries] = useState(false);
+  const [deliveriesRevision, setDeliveriesRevision] = useState(0);
+  const deliveriesRequested = deliveriesRevision > 0;
+  const deliveryRead = useNoticeRead<{ rows: Record<string, unknown>[] }>(
+    active && deliveriesRequested ? `/api/customer/v1/communications/notices/${encodeURIComponent(String(noticeSummary.id))}/deliveries?context_id=${encodeURIComponent(active.context_id)}&limit=50` : null,
+    JSON.stringify([active?.context_id, active?.membership_id, noticeSummary.id]), t.error, deliveriesRevision);
+  const deliveries = deliveryRead.data?.rows ?? null;
+  const { registerUnsavedGuard } = useCustomerContext();
+  const guardId = useId();
+  const [evidenceTouched, setEvidenceTouched] = useState(false);
+  const evidenceDirty = showEvidenceForm && evidenceTouched;
+  useEffect(() => {
+    onDraftChange(evidenceDirty);
+    return () => onDraftChange(false);
+  }, [onDraftChange, evidenceDirty]);
+  useEffect(() => registerUnsavedGuard(guardId, evidenceDirty, close), [registerUnsavedGuard, guardId, evidenceDirty, close]);
 
   const noticeId = String(noticeSummary.id);
   const noticeStatus = String(detail?.notice?.status ?? noticeSummary.status);
+  // A receipt is display state, never authority. Only accept the canonical flat
+  // object; malformed/legacy wrappers must not look like an acknowledgement.
+  const rawAcknowledgement: unknown = detail?.my_acknowledgement;
+  const detailAcknowledgement = rawAcknowledgement !== null
+    && typeof rawAcknowledgement === "object"
+    && !Array.isArray(rawAcknowledgement)
+    && "id" in rawAcknowledgement
+    && typeof rawAcknowledgement.id === "string"
+    && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rawAcknowledgement.id)
+    && "acknowledged_at" in rawAcknowledgement
+    && typeof rawAcknowledgement.acknowledged_at === "string"
+    && /^\d{4}-\d{2}-\d{2}T/.test(rawAcknowledgement.acknowledged_at)
+    && Number.isFinite(Date.parse(rawAcknowledgement.acknowledged_at))
+      ? { id: rawAcknowledgement.id, acknowledged_at: rawAcknowledgement.acknowledged_at }
+      : null;
+  const acknowledgementKnown = rawAcknowledgement === null || detailAcknowledgement !== null;
+
+
+  type AckIntent = { v: 1; context: string; membership: string; notice: string; phase: "unknown" | "conflict" };
+  type Receipt = { id: string; acknowledged_at: string };
+  type AckState = { phase: "loading" | "ready" | "sending" | "unknown" | "checking" | "retry" | "conflict" | "blocked" | "done";
+    intent: AckIntent | null; receipt: Receipt | null };
+  const ackCopy = {
+    en: { unknown: "Receipt outcome is unknown. Check before retrying.", check: "Check receipt result", retry: "Retry same receipt", sending: "Recording receipt…", checking: "Checking receipt…", blocked: "Receipt is blocked. Check the result; do not resend.", storage: "Pending receipt cannot be safely restored or saved. Sending is blocked; an earlier result may still exist.", retryReady: "No receipt was found. You may explicitly retry the same request." },
+    ro: { unknown: "Rezultatul confirmării este necunoscut. Verifică înainte de reîncercare.", check: "Verifică rezultatul confirmării", retry: "Reîncearcă aceeași confirmare", sending: "Se înregistrează confirmarea…", checking: "Se verifică confirmarea…", blocked: "Confirmarea este blocată. Verifică rezultatul; nu retrimite.", storage: "Confirmarea nu poate fi restaurată sau salvată sigur. Trimiterea este blocată; un rezultat anterior poate exista.", retryReady: "Nu s-a găsit confirmarea. Poți reîncerca explicit aceeași cerere." },
+    fa: { unknown: "نتیجهٔ ثبت وصول نامشخص است. پیش از تلاش مجدد بررسی کنید.", check: "بررسی نتیجهٔ وصول", retry: "تلاش مجدد همان وصول", sending: "در حال ثبت وصول…", checking: "در حال بررسی وصول…", blocked: "وصول مسدود است. نتیجه را بررسی کنید؛ دوباره ارسال نکنید.", storage: "ذخیره یا بازیابی امن درخواست ممکن نیست. ارسال مسدود است؛ ممکن است نتیجهٔ قبلی وجود داشته باشد.", retryReady: "رسیدی یافت نشد. می‌توانید همان درخواست را صریحاً دوباره ارسال کنید." },
+  }[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
+  const ackIdentity = JSON.stringify([active?.context_id, active?.membership_id, noticeId]);
+  const ackStorageKey = `cladora:notice-ack:v1:${ackIdentity}`;
+  const [ackState, setAckState] = useState<AckState>({ phase: "loading", intent: null, receipt: null });
+  const ackStateRef = useRef(ackState);
+  const ackIdentityRef = useRef(ackIdentity);
+  const ackFlight = useRef(false);
+  const ackSequence = useRef(0);
+  const ackRequest = useRef<{ controller: AbortController; timer: ReturnType<typeof setTimeout>; cancel: () => void } | null>(null);
+  const setAck = (next: AckState) => { ackStateRef.current = next; setAckState(next); };
+  const validReceipt = (value: unknown): value is Receipt => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+    const r = value as Record<string, unknown>;
+    return typeof r.id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(r.id)
+      && typeof r.acknowledged_at === "string" && /^\d{4}-\d{2}-\d{2}T/.test(r.acknowledged_at)
+      && Number.isFinite(Date.parse(r.acknowledged_at));
+  };
+  useEffect(() => {
+    const sequence = ackSequence;
+    const restore = (next: AckState) => { ackStateRef.current = next; setAckState(next); };
+    try {
+      const raw = window.sessionStorage.getItem(ackStorageKey);
+      if (raw === null) restore({ phase: "ready", intent: null, receipt: null });
+      else {
+        if (raw.length > 4096) throw new Error("invalid_pending_size");
+        const value = JSON.parse(raw);
+        if (!value || typeof value !== "object" || Array.isArray(value)
+          || Object.keys(value).sort().join() !== "context,membership,notice,phase,v"
+          || value.v !== 1 || value.context !== active?.context_id || value.membership !== active?.membership_id
+          || value.notice !== noticeId || !["unknown", "conflict"].includes(value.phase)) throw new Error("invalid_pending");
+        restore({ phase: value.phase, intent: value, receipt: null });
+      }
+    } catch { restore({ phase: "blocked", intent: null, receipt: null }); }
+    return () => {
+      sequence.current++;
+      ackRequest.current?.controller.abort();
+      ackRequest.current?.cancel();
+      if (ackRequest.current) clearTimeout(ackRequest.current.timer);
+      ackRequest.current = null;
+    };
+  }, [ackStorageKey, active?.context_id, active?.membership_id, noticeId]);
+  const myAcknowledgement = ackState.receipt ?? (ackState.intent ? null : detailAcknowledgement);
+  const acknowledge = async (check: boolean) => {
+    const before = ackStateRef.current;
+    if (!active || !detail || loading || error || submitting || ackFlight.current || !isCurrent()) return;
+    if (check ? !before.intent || !["unknown", "retry", "conflict"].includes(before.phase)
+      : !(before.phase === "ready" && !before.intent && acknowledgementKnown && !detailAcknowledgement) && before.phase !== "retry") return;
+    const intent: AckIntent = before.intent ?? { v: 1, context: active.context_id, membership: active.membership_id, notice: noticeId, phase: "unknown" };
+    // Freeze the existing endpoint/body BEFORE dispatch, including explicit retries.
+    const endpoint = `/api/customer/v1/communications/notices/${encodeURIComponent(intent.notice)}`;
+    const body = JSON.stringify({ context_id: intent.context });
+    const identity = ackIdentity;
+    const sequence = ++ackSequence.current;
+    const current = () => isCurrent() && ackIdentityRef.current === identity && ackSequence.current === sequence;
+    ackFlight.current = true;
+    if (!check) {
+      try {
+        const stored = JSON.stringify({ ...intent, phase: "unknown" });
+        window.sessionStorage.setItem(ackStorageKey, stored);
+        if (window.sessionStorage.getItem(ackStorageKey) !== stored) throw new Error("pending_not_saved");
+      } catch {
+        setAck({ phase: "blocked", intent: before.intent, receipt: null }); ackFlight.current = false; return;
+      }
+    }
+    setAck({ phase: check ? "checking" : "sending", intent, receipt: null });
+    setSubmitting(true);
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    let cancel = () => {};
+    const deadline = new Promise<never>((_, reject) => { cancel = () => reject(new Error("ack_unmounted")); timer = setTimeout(() => { controller.abort(); reject(new Error("unknown_timeout")); }, 15000); });
+    ackRequest.current = { controller, timer: timer!, cancel };
+    try {
+      const result = await Promise.race([(async () => {
+        const response = await fetch(check ? `${endpoint}?context_id=${encodeURIComponent(intent.context)}` : `${endpoint}/acknowledge`,
+          check ? { cache: "no-store", credentials: "same-origin", signal: controller.signal }
+            : { method: "POST", headers: { "Content-Type": "application/json" }, body, signal: controller.signal });
+        if (!current()) throw new Error("stale_ack");
+        if ([401, 403, 409].includes(response.status) || !response.ok) return { response, data: null };
+        const data: unknown = await response.json();
+        if (!current()) throw new Error("stale_ack_body");
+        return { response, data };
+      })(), deadline]);
+      if (!current()) return;
+      const { response, data } = result;
+      if (response.status === 401 || response.status === 403) { onAccessDenied(); return; }
+      const conflict = () => {
+        const blocked: AckIntent = { ...intent, phase: "conflict" };
+        try { window.sessionStorage.setItem(ackStorageKey, JSON.stringify(blocked)); } catch { /* Pending remains; no dispatch follows. */ }
+        setAck({ phase: "conflict", intent: blocked, receipt: null });
+      };
+      if (response.status === 409) { conflict(); return; }
+      if (!response.ok) { setAck({ phase: before.phase === "conflict" ? "conflict" : "unknown", intent, receipt: null }); return; }
+      let receipt: Receipt | null = null;
+      if (check) {
+        if (!data || typeof data !== "object" || Array.isArray(data)) { conflict(); return; }
+        const d = data as Record<string, unknown>;
+        const n = d.notice as Record<string, unknown> | undefined;
+        if (!n || n.id !== intent.notice || n.status !== "published"
+          || typeof n.tenant_id !== "string" || n.tenant_id !== (detail.notice as unknown as Record<string, unknown>).tenant_id) { conflict(); return; }
+        const a = d.my_acknowledgement;
+        if (a === null) { setAck({ phase: before.phase === "conflict" ? "conflict" : "retry", intent, receipt: null }); return; }
+        if (!validReceipt(a)) { conflict(); return; }
+        const evidence = a as Receipt & Record<string, unknown>;
+        if (evidence.notice_id !== intent.notice || evidence.membership_id !== intent.membership
+          || typeof n.tenant_id !== "string" || evidence.tenant_id !== n.tenant_id
+          || evidence.acknowledgement_method !== "in_app_click" || evidence.evidence_checksum !== null || evidence.notes !== null) { conflict(); return; }
+        receipt = a;
+      } else if (data && typeof data === "object" && !Array.isArray(data)) {
+        const d = data as Record<string, unknown>;
+        const candidate = { id: d.acknowledgement_id, acknowledged_at: d.acknowledged_at };
+        if (d.success === true && d.is_statutory_proof === false && validReceipt(candidate)) receipt = candidate;
+      }
+      if (!receipt) { setAck({ phase: "unknown", intent, receipt: null }); return; }
+      try { window.sessionStorage.removeItem(ackStorageKey); } catch { /* Retained pending permits a future read, never automatic replay. */ }
+      setAck({ phase: "done", intent: null, receipt });
+    } catch {
+      if (current()) setAck({ phase: before.phase === "conflict" ? "conflict" : "unknown", intent, receipt: null });
+    } finally {
+      clearTimeout(timer!);
+      if (current()) { ackFlight.current = false; ackRequest.current = null; setSubmitting(false); }
+    }
+  };
 
   const handleAction = async (endpoint: string, body: Record<string, unknown>) => {
     if (!active) return;
@@ -921,17 +1161,19 @@ function NoticeDetailModal({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ context_id: active.context_id, ...body }),
       });
+      if (!isCurrent()) return;
       if (res.ok) {
         setActionMessage(t.successAction);
         onRefresh();
       } else {
         const errJson = await res.json().catch(() => ({}));
+        if (!isCurrent()) return;
         setActionMessage(errJson?.error?.message || t.failAction);
       }
     } catch {
-      setActionMessage(t.failAction);
+      if (isCurrent()) setActionMessage(t.failAction);
     } finally {
-      setSubmitting(false);
+      if (isCurrent()) setSubmitting(false);
     }
   };
 
@@ -952,6 +1194,7 @@ function NoticeDetailModal({
           notes: evidenceNotes || null,
         }),
       });
+      if (!isCurrent()) return;
       if (res.ok) {
         setShowEvidenceForm(false);
         setEvidenceRef("");
@@ -960,10 +1203,13 @@ function NoticeDetailModal({
         onRefresh();
       } else {
         const err = await res.json().catch(() => ({}));
+        if (!isCurrent()) return;
         setActionMessage(err?.error?.message || t.failAction);
       }
+    } catch {
+      if (isCurrent()) setActionMessage(t.failAction);
     } finally {
-      setSubmitting(false);
+      if (isCurrent()) setSubmitting(false);
     }
   };
 
@@ -980,42 +1226,28 @@ function NoticeDetailModal({
           decision,
         }),
       });
+      if (!isCurrent()) return;
       if (res.ok) {
         setActionMessage(t.successAction);
         onRefresh();
       } else {
         const err = await res.json().catch(() => ({}));
+        if (!isCurrent()) return;
         setActionMessage(err?.error?.message || t.failAction);
       }
+    } catch {
+      if (isCurrent()) setActionMessage(t.failAction);
     } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleLoadDeliveries = async () => {
-    if (!active) return;
-    setLoadingDeliveries(true);
-    try {
-      const res = await fetch(
-        `/api/customer/v1/communications/notices/${noticeId}/deliveries?context_id=${active.context_id}&limit=50`,
-        { cache: "no-store", credentials: "same-origin" }
-      );
-      if (res.ok) {
-        const json = await res.json();
-        setDeliveries(json.rows || []);
-      }
-    } finally {
-      setLoadingDeliveries(false);
+      if (isCurrent()) setSubmitting(false);
     }
   };
 
   const notice = detail?.notice;
-  const title =
-    lang === "ro"
-      ? notice?.title_ro || noticeSummary.title_ro
-      : lang === "fa"
-        ? notice?.title_fa || noticeSummary.title_fa || notice?.title_ro || noticeSummary.title_ro
-        : notice?.title_en || noticeSummary.title_en || notice?.title_ro || noticeSummary.title_ro;
+  // A newer detail response can redact a translation: never revive an older
+  // summary translation in preference to the current server response.
+  const title = lang === "ro" ? notice?.title_ro
+    : lang === "fa" ? notice?.title_fa || notice?.title_ro
+    : notice?.title_en || notice?.title_ro;
 
   const body =
     lang === "ro"
@@ -1026,17 +1258,24 @@ function NoticeDetailModal({
 
   return (
     <div
+      {...dialog}
       role="dialog"
+      aria-labelledby={titleId}
       aria-modal="true"
       className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4"
     >
-      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
-        <div className="flex items-center justify-between border-b pb-4">
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-sm font-bold text-slate-500">
-              #{show(notice?.notice_number ?? noticeSummary.notice_number)}
-            </span>
-            <StatusBadge status={noticeStatus} />
+      <div className="max-h-[90dvh] min-w-0 w-full max-w-4xl overflow-y-auto rounded-3xl bg-white p-4 sm:p-6 shadow-2xl">
+        <h2 id={titleId} className="sr-only">{t.details}</h2>
+        <div className="flex items-center justify-between gap-3 border-b pb-4">
+          <div className="flex flex-wrap items-center gap-3">
+            {!error ? (
+              <>
+                <span className="font-mono text-sm font-bold text-slate-500">
+                  #{show(notice?.notice_number ?? noticeSummary.notice_number)}
+                </span>
+                <StatusBadge status={noticeStatus} />
+              </>
+            ) : null}
           </div>
           <button
             type="button"
@@ -1048,15 +1287,15 @@ function NoticeDetailModal({
           </button>
         </div>
 
-        {actionMessage ? (
-          <div className="mt-4 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs font-bold text-[#0A6E62]">
+        {actionMessage && !error ? (
+          <div role="status" className="mt-4 rounded-xl border border-[#B2E5DF] bg-[#EAF8F5] p-3 text-xs font-bold text-[#0A6E62]">
             {actionMessage}
           </div>
         ) : null}
 
-        {loading ? (
-          <div className="p-8 text-center text-xs text-slate-500">{t.loading}</div>
-        ) : (
+        {error ? <div role="alert" className="mt-4 rounded-xl border p-4">{error}</div> : loading ? (
+          <div role="status" className="p-8 text-center text-xs text-slate-500">{t.loading}</div>
+        ) : detail ? (
           <div className="mt-5 space-y-6">
             <div>
               <h2 className="text-xl font-bold text-[#102A43]">{show(title)}</h2>
@@ -1084,30 +1323,41 @@ function NoticeDetailModal({
             </div>
 
             {/* Recipient Personal Acknowledgement Section */}
+            {ackState.phase !== "ready" && ackState.phase !== "done" && ackState.phase !== "loading" ? (
+              <div role="status" aria-live="polite" className="rounded-xl border p-3 text-sm">
+                {ackState.phase === "sending" ? ackCopy.sending : ackState.phase === "checking" ? ackCopy.checking
+                  : ackState.phase === "blocked" ? ackCopy.storage : ackState.phase === "conflict" ? ackCopy.blocked
+                  : ackState.phase === "retry" ? ackCopy.retryReady : ackCopy.unknown}
+                {ackState.intent && ["unknown", "retry", "conflict"].includes(ackState.phase) ? (
+                  <button type="button" className="ms-3 rounded-lg border px-3 py-2" onClick={() => { void acknowledge(true); }}>{ackCopy.check}</button>
+                ) : null}
+              </div>
+            ) : null}
+
             {noticeStatus === "published" ? (
               <div className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <div className="text-xs font-bold text-emerald-950">
-                      {detail?.my_acknowledgement ? t.receiptAcknowledged : t.ackReceipt}
+                      {myAcknowledgement ? t.receiptAcknowledged : t.ackReceipt}
                     </div>
-                    <p className="mt-0.5 text-xs text-emerald-800">
-                      {detail?.my_acknowledgement
-                        ? `${t.acknowledged}: ${date(detail.my_acknowledgement.acknowledged_at, lang)}`
-                        : "Confirming receipt logs your digital acknowledgement under AAL1."}
+                    <p role={acknowledgementKnown ? undefined : "alert"} className="mt-0.5 text-xs text-emerald-800">
+                      {myAcknowledgement
+                        ? `${t.acknowledged}: ${date(myAcknowledgement.acknowledged_at, lang)}`
+                        : acknowledgementKnown ? "Confirming receipt logs your digital acknowledgement under AAL1." : t.error}
                     </p>
                   </div>
-                  {!detail?.my_acknowledgement ? (
+                  {!myAcknowledgement ? (
                     <button
                       type="button"
-                      disabled={submitting}
+                      disabled={submitting || !acknowledgementKnown || !["ready", "retry"].includes(ackState.phase)}
                       onClick={() =>
-                        void handleAction(`/api/customer/v1/communications/notices/${noticeId}/acknowledge`, {})
+                        void acknowledge(false)
                       }
                       className="flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-800 disabled:opacity-50"
                     >
                       <CheckCircle2 className="h-4 w-4" />
-                      {t.ackReceipt}
+                      {ackState.phase === "retry" ? ackCopy.retry : t.ackReceipt}
                     </button>
                   ) : (
                     <span className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 shadow-sm">
@@ -1172,7 +1422,7 @@ function NoticeDetailModal({
 
               <button
                 type="button"
-                onClick={() => void handleLoadDeliveries()}
+                onClick={() => setDeliveriesRevision((n) => n + 1)}
                 className="flex items-center gap-2 rounded-xl border bg-white px-4 py-2 text-xs font-bold text-[#334E68] transition hover:bg-slate-50"
               >
                 <FileText className="h-4 w-4" />
@@ -1181,18 +1431,18 @@ function NoticeDetailModal({
             </div>
 
             {/* Delivery Outbox Drawer / Section */}
-            {deliveries ? (
+            {deliveriesRequested ? (
               <div className="rounded-2xl border bg-slate-50 p-4">
                 <div className="flex items-center justify-between">
                   <div className="text-xs font-bold text-[#102A43]">{t.deliveriesTitle}</div>
-                  <span className="font-mono text-xs text-slate-500">Total: {deliveries.length}</span>
+                  <span className="font-mono text-xs text-slate-500">Total: {deliveries?.length ?? 0}</span>
                 </div>
-                {loadingDeliveries ? (
+                {deliveryRead.loading ? (
                   <div className="py-4 text-center text-xs text-slate-400">{t.loading}</div>
-                ) : !deliveries.length ? (
+                ) : deliveryRead.error ? (<div role="alert">{deliveryRead.error}</div>) : !deliveries?.length ? (
                   <div className="py-4 text-center text-xs text-slate-500">No delivery attempts logged.</div>
                 ) : (
-                  <div className="mt-3 max-h-48 overflow-y-auto rounded-xl border bg-white">
+                  <div role="region" aria-label={t.deliveriesTitle} tabIndex={0} className="mt-3 max-h-48 max-w-full overflow-auto rounded-xl border bg-white">
                     <table className="w-full text-[11px]">
                       <thead className="bg-[#F6F9FC] text-[#52667A]">
                         <tr>
@@ -1248,7 +1498,7 @@ function NoticeDetailModal({
                     {t.evidenceType}
                     <select
                       value={evidenceType}
-                      onChange={(e) => setEvidenceType(e.target.value)}
+                      onChange={(e) => { setEvidenceType(e.target.value); setEvidenceTouched(true); }}
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     >
                       <option value="noticeboard_posting">Noticeboard Posting (Afișare la avizier)</option>
@@ -1267,7 +1517,7 @@ function NoticeDetailModal({
                     <input
                       required
                       value={evidenceRef}
-                      onChange={(e) => setEvidenceRef(e.target.value)}
+                      onChange={(e) => { setEvidenceRef(e.target.value); setEvidenceTouched(true); }}
                       placeholder="e.g. PV-2026/09, AWB RO12345678"
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     />
@@ -1279,7 +1529,7 @@ function NoticeDetailModal({
                       type="datetime-local"
                       required
                       value={occurredAt}
-                      onChange={(e) => setOccurredAt(e.target.value)}
+                      onChange={(e) => { setOccurredAt(e.target.value); setEvidenceTouched(true); }}
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     />
                   </label>
@@ -1288,7 +1538,7 @@ function NoticeDetailModal({
                     {t.notes}
                     <input
                       value={evidenceNotes}
-                      onChange={(e) => setEvidenceNotes(e.target.value)}
+                      onChange={(e) => { setEvidenceNotes(e.target.value); setEvidenceTouched(true); }}
                       placeholder="Witness, location, photo record hash..."
                       className="mt-1 w-full rounded-xl border bg-white p-2 text-xs font-normal"
                     />
@@ -1326,7 +1576,7 @@ function NoticeDetailModal({
                       className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-white p-3.5 shadow-sm"
                     >
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-mono text-xs font-bold text-[#102A43]">
                             {ev.evidence_type}
                           </span>
@@ -1366,7 +1616,7 @@ function NoticeDetailModal({
               </div>
             </div>
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
@@ -1379,12 +1629,48 @@ function CreateNoticeModal({
 }: {
   lang: string;
   close: () => void;
-  onCreated: () => void;
+  onCreated: (noticeId?: string) => void;
 }) {
   const t = copy[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
-  const { active } = useCustomerContext();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { active, dashboard } = useCustomerContext();
+  type SubmitPhase = "idle" | "sending" | "unknown" | "unauthorized" | "forbidden" | "validation" | "conflict" | "done";
+  const [phase, setPhase] = useState<SubmitPhase>("idle");
+  const dispatchPhase = useRef<SubmitPhase>("idle");
+  const sequence = useRef(0);
+  const request = useRef<{ controller: AbortController; timer: ReturnType<typeof setTimeout>; cancel: () => void } | null>(null);
+  const identity = JSON.stringify([active?.context_id, active?.membership_id, active?.role_code, dashboard?.workspace_id]);
+  const initialIdentity = useRef(identity);
+  const [durableMode, setDurableMode] = useState(false);
+  const [durable, setDurable] = useState<DraftTransportState>({ phase: "loading", scope: null, pending: null, receipt: null, inventory: "unknown", protocolInFlight: "none", durableStarted: false });
+  const durableController = useRef<ReturnType<typeof createNoticeDraftTransport> | null>(null);
+  const effectiveDurable = durableMode || Boolean(durable.pending);
+  const durableBusy = ["loading", "sending", "checking"].includes(durable.phase);
+  const legacyBlocked = durable.inventory !== "empty" || durable.protocolInFlight !== "none" || durable.durableStarted;
+  const submitting = phase === "sending" || durable.phase === "sending";
+  const locked = effectiveDurable ? durableBusy || durable.protocolInFlight !== "none" : legacyBlocked || (phase !== "idle" && phase !== "validation");
+  const submitCopy = {
+    en: {
+      unknown: "The request result is not yet known; the draft may already be saved. Another save is blocked in this window. Check your notices before starting another draft. Closing or reloading removes this protection and duplicates are possible.",
+      unauthorized: "Your session could not be verified. Sending is blocked. Sign in again before starting another draft.",
+      forbidden: "You do not currently have permission to create this draft. Sending is blocked.",
+      validation: "Check the draft values before submitting again.",
+      conflict: "The request was rejected due to a conflict. Do not resend it here.",
+    },
+    ro: {
+      unknown: "Rezultatul cererii nu este încă cunoscut; ciorna poate fi deja salvată. O nouă salvare este blocată în această fereastră. Verifică înștiințările înainte de a începe altă ciornă. Închiderea sau reîncărcarea elimină această protecție și pot apărea duplicate.",
+      unauthorized: "Sesiunea nu a putut fi verificată. Trimiterea este blocată. Autentifică-te din nou înainte de a începe altă ciornă.",
+      forbidden: "Nu ai în prezent permisiunea de a crea această ciornă. Trimiterea este blocată.",
+      validation: "Verifică valorile ciornei înainte de trimitere.",
+      conflict: "Cererea a fost respinsă din cauza unui conflict. Nu o retrimite aici.",
+    },
+    fa: {
+      unknown: "نتیجه درخواست هنوز مشخص نیست؛ ممکن است پیش‌نویس ذخیره شده باشد. ذخیرهٔ دوباره در این پنجره مسدود است. پیش از شروع پیش‌نویس دیگری، ابلاغیه‌ها را بررسی کنید. بستن یا بارگذاری مجدد این محافظت را از بین می‌برد و احتمال ایجاد نسخهٔ تکراری وجود دارد.",
+      unauthorized: "نشست شما تأیید نشد. ارسال مسدود است. پیش از شروع پیش‌نویس دیگری دوباره وارد شوید.",
+      forbidden: "در حال حاضر اجازهٔ ایجاد این پیش‌نویس را ندارید. ارسال مسدود است.",
+      validation: "مقادیر پیش‌نویس را پیش از ارسال بررسی کنید.",
+      conflict: "درخواست به علت تعارض رد شد. آن را در این پنجره دوباره ارسال نکنید.",
+    },
+  }[lang === "fa" ? "fa" : lang === "ro" ? "ro" : "en"];
 
   const [titleRo, setTitleRo] = useState("");
   const [bodyRo, setBodyRo] = useState("");
@@ -1395,51 +1681,183 @@ function CreateNoticeModal({
   const [commType, setCommType] = useState("general_announcement");
   const [legalClass, setLegalClass] = useState("informational_optional");
   const [sourceModule, setSourceModule] = useState("general");
+  const label = (en: string, ro: string, fa: string) => lang === "fa" ? fa : lang === "ro" ? ro : en;
+  const communicationOptions = [
+    ["general_announcement", label("General announcement", "Anunț general", "اطلاعیه عمومی")],
+    ["meeting_convening", label("Meeting convening", "Convocarea ședinței", "دعوت به جلسه")],
+    ["reconvened_meeting", label("Reconvened meeting", "Ședință reconvocată", "جلسه تجدید دعوت‌شده")],
+    ["resolution_publication", label("Resolution publication", "Publicarea hotărârii", "انتشار مصوبه")],
+    ["billing_reminder", label("Billing reminder", "Memento de facturare", "یادآوری صورتحساب")],
+    ["maintenance_notice", label("Maintenance notice", "Notificare de întreținere", "اطلاعیه نگهداری")],
+  ] as const;
+  const legalOptions = [
+    ["informational_optional", label("Informational (optional)", "Informativ (opțional)", "اطلاع‌رسانی اختیاری")],
+    ["statutory_governance", label("Statutory governance", "Guvernanță statutară", "حاکمیت طبق قانون")],
+    ["operational_mandatory", label("Operational mandatory", "Operațional obligatoriu", "عملیاتی الزامی")],
+  ] as const;
+  const sourceOptions = [
+    ["general", label("General", "General", "عمومی")],
+    ["governance", label("Governance", "Guvernanță", "حاکمیت")],
+    ["maintenance", label("Maintenance", "Întreținere", "نگهداری")],
+    ["billing", label("Billing", "Facturare", "صورتحساب")],
+    ["utilities", label("Utilities", "Utilități", "خدمات مصرفی")],
+  ] as const;
+
+  const isCurrent = useNoticeLifetime();
+  useEffect(() => {
+    if (!active) return;
+    const controller = createNoticeDraftTransport({ fetch: (...args) => fetch(...args),
+        storage: { get length() { return window.localStorage.length; }, key: index => window.localStorage.key(index),
+          getItem: key => window.localStorage.getItem(key), setItem: (key, value) => window.localStorage.setItem(key, value) },
+        crypto: window.crypto, isCurrent: () => isCurrent() && initialIdentity.current === identity,
+        onState: setDurable });
+      durableController.current = controller;
+      void controller.open(active.context_id, active.membership_id);
+    return () => { controller?.dispose(); durableController.current = null; };
+  }, [identity, active, isCurrent]);
+  const { registerUnsavedGuard } = useCustomerContext();
+  const guardId = useId();
+  const dirty = Boolean(titleRo || bodyRo || titleEn || bodyEn || titleFa || bodyFa || commType !== "general_announcement" || legalClass !== "informational_optional" || sourceModule !== "general");
+  useEffect(() => registerUnsavedGuard(guardId, dirty, close), [registerUnsavedGuard, guardId, dirty, close]);
+  const dialog = useNoticeDialog(close);
+  const titleId = useId();
+  useEffect(() => {
+    const attempts = sequence;
+    return () => {
+      attempts.current++;
+      request.current?.controller.abort();
+      request.current?.cancel();
+      if (request.current) clearTimeout(request.current.timer);
+      request.current = null;
+    };
+  }, [identity]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!active) return;
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/customer/v1/communications/notices", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          context_id: active.context_id,
-          title_ro: titleRo,
-          body_ro: bodyRo,
-          title_en: titleEn || null,
-          body_en: bodyEn || null,
-          title_fa: titleFa || null,
-          body_fa: bodyFa || null,
-          communication_type: commType,
-          legal_classification: legalClass,
-          source_module: sourceModule,
-        }),
-      });
-      if (res.ok) {
-        onCreated();
-      } else {
-        const errJson = await res.json().catch(() => ({}));
-        setError(errJson?.error?.message || t.failAction);
+    if (!active || !isCurrent() || !["idle", "validation"].includes(dispatchPhase.current)) return;
+    if (!effectiveDurable && !durableController.current) return;
+    // Match the existing route's trimmed string limits; optional blanks are omitted.
+    const titles = [titleRo, titleEn, titleFa].map(value => value.trim());
+    const bodies = [bodyRo, bodyEn, bodyFa].map(value => value.trim());
+    if (!titles[0] || !bodies[0] || titles.some(value => value.length > 250) || bodies.some(value => value.length > 20000)
+      || !communicationOptions.some(([value]) => value === commType)
+      || !legalOptions.some(([value]) => value === legalClass)
+      || !sourceOptions.some(([value]) => value === sourceModule)) {
+      dispatchPhase.current = "validation";
+      setPhase("validation");
+      return;
+    }
+    // The serialized snapshot cannot acquire edits made while the request waits.
+    const payload = {
+      context_id: active.context_id,
+      title_ro: titles[0], body_ro: bodies[0],
+      title_en: titles[1] || undefined, body_en: bodies[1] || undefined,
+      title_fa: titles[2] || undefined, body_fa: bodies[2] || undefined,
+      communication_type: commType, legal_classification: legalClass, source_module: sourceModule,
+    };
+    if (effectiveDurable) {
+      const controller = durableController.current;
+      if (!controller) return;
+      const version = sequence.current;
+      // One synchronous composer gate covers BOTH protocol choices before await.
+      dispatchPhase.current = "sending"; setPhase("sending");
+      try {
+        const result = await controller.send(JSON.parse(JSON.stringify(payload)));
+        if (result && isCurrent() && initialIdentity.current === identity && sequence.current === version
+          && controller === durableController.current && controller.getState().phase === "resolved") onCreated(result.notice_id);
+      } finally {
+        if (isCurrent() && initialIdentity.current === identity && sequence.current === version) {
+          dispatchPhase.current = "idle"; setPhase("idle");
+        }
       }
+      return;
+    }
+    const releaseLegacy = durableController.current?.beginLegacy();
+    if (!releaseLegacy) return;
+    const snapshot = Object.freeze({ identity, body: JSON.stringify(payload) });
+    const attempt = ++sequence.current;
+    const current = () => isCurrent() && initialIdentity.current === snapshot.identity && sequence.current === attempt;
+    const settle = (next: SubmitPhase) => { dispatchPhase.current = next; setPhase(next); };
+    // Ref guard precedes dispatch: React state alone cannot guard two sync events.
+    settle("sending");
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    let cancel = () => {};
+    const deadline = new Promise<never>((_, reject) => {
+      cancel = () => reject(new Error("composer_closed"));
+      timer = setTimeout(() => { controller.abort(); reject(new Error("composer_outcome_unknown")); }, 15000);
+    });
+    request.current = { controller, timer: timer!, cancel };
+    try {
+      const result = await Promise.race([(async () => {
+        const res = await fetch("/api/customer/v1/communications/notices", {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: snapshot.body, signal: controller.signal,
+        });
+        if (!current()) throw new Error("stale_composer");
+        if (!res.ok) return { status: res.status, data: null };
+        const data: unknown = await res.json();
+        if (!current()) throw new Error("stale_composer_body");
+        return { status: res.status, data };
+      })(), deadline]);
+      if (!current()) return;
+      if (result.status === 401) { settle("unauthorized"); return; }
+      if (result.status === 403) { settle("forbidden"); return; }
+      if ([400, 413, 415, 422].includes(result.status)) { settle("validation"); return; }
+      if (result.status === 409) { settle("conflict"); return; }
+      const data = result.data;
+      if (result.status < 200 || result.status >= 300 || !data || typeof data !== "object" || Array.isArray(data)
+        || !("success" in data) || data.success !== true || !("status" in data) || data.status !== "draft"
+        || !("notice_id" in data) || typeof data.notice_id !== "string"
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(data.notice_id)) {
+        settle("unknown"); return;
+      }
+      settle("done");
+      onCreated(data.notice_id);
     } catch {
-      setError(t.failAction);
+      if (current()) settle("unknown");
     } finally {
-      setSubmitting(false);
+      releaseLegacy();
+      clearTimeout(timer!);
+      if (current()) request.current = null;
     }
   };
 
+  const recoveryPayload = () => ({ context_id: active?.context_id, title_ro: titleRo.trim(), body_ro: bodyRo.trim(),
+    ...(titleEn.trim() ? { title_en: titleEn.trim() } : {}), ...(bodyEn.trim() ? { body_en: bodyEn.trim() } : {}),
+    ...(titleFa.trim() ? { title_fa: titleFa.trim() } : {}), ...(bodyFa.trim() ? { body_fa: bodyFa.trim() } : {}),
+    communication_type: commType, legal_classification: legalClass, source_module: sourceModule });
+  const recover = async (action: "check" | "retry" | "new") => {
+    const controller = durableController.current, version = sequence.current;
+    if (!controller || !isCurrent()) return;
+    let completed = false;
+    if (action === "check") await controller.check();
+    else if (action === "retry") completed = Boolean(await controller.retry(recoveryPayload()));
+    else await controller.newDraft(recoveryPayload());
+    const result = controller.getState().receipt;
+    if (completed && result && isCurrent() && sequence.current === version && initialIdentity.current === identity
+      && controller === durableController.current && controller.getState().phase === "resolved") onCreated(result.notice_id);
+  };
+  const durableMessage = durable.phase === "resolved"
+    ? label("The matching draft save result was found. This is not publication, delivery or receipt acknowledgement.", "A fost găsit rezultatul salvării aceleiași ciorne. Nu înseamnă publicare, livrare sau confirmarea primirii.", "نتیجهٔ ذخیرهٔ همان پیش‌نویس پیدا شد. این به معنی انتشار، تحویل یا تأیید دریافت نیست.")
+    : durable.phase === "retry"
+    ? label("No result was found in this check. If you choose to retry, the same request key and unchanged draft are used. After reload, first re-enter the identical draft in the same context.", "La această verificare nu a fost găsit un rezultat. Dacă alegi să reîncerci, se folosesc aceeași cheie a cererii și ciorna neschimbată. După reîncărcare, reintrodu mai întâi ciorna identică în același context.", "در این بررسی نتیجه‌ای پیدا نشد. اگر تلاش دوباره را انتخاب کنید، همان کلید درخواست و پیش‌نویس بدون تغییر استفاده می‌شود. پس از بارگذاری مجدد، ابتدا همان پیش‌نویس را در همان زمینه وارد کنید.")
+    : durable.phase === "unknown"
+    ? label("The request result is not yet known. Check it before saving another draft. This browser keeps the pending request details after closing or reloading. They cannot be recovered if browser storage is erased or you use another device.", "Rezultatul cererii nu este încă cunoscut. Verifică-l înainte de a salva altă ciornă. Acest browser păstrează datele cererii în așteptare după închidere sau reîncărcare. Nu le poți recupera dacă ștergi stocarea browserului sau folosești alt dispozitiv.", "نتیجه درخواست هنوز مشخص نیست. پیش از ذخیرهٔ پیش‌نویس دیگری آن را بررسی کنید. این مرورگر مشخصات درخواست معلق را پس از بستن یا بارگذاری مجدد نگه می‌دارد. با پاک‌شدن ذخیرهٔ مرورگر یا استفاده از دستگاه دیگر، این مشخصات قابل‌بازیابی نیستند.")
+    : durable.phase === "loading" || durable.phase === "checking" || durable.phase === "sending"
+    ? label("Checking recoverable draft…", "Se verifică ciorna recuperabilă…", "در حال بررسی پیش‌نویس قابل‌بازیابی…")
+    : label("Recovery is blocked. Keep the draft; verify your access and result before sending. Do not clear stored pending metadata.", "Recuperarea este blocată. Păstrează ciorna; verifică accesul și rezultatul înainte de trimitere. Nu șterge metadatele în așteptare.", "بازیابی مسدود است. پیش‌نویس را حفظ و دسترسی و نتیجه را بررسی کنید؛ دادهٔ درخواست معلق را پاک نکنید.");
+
   return (
     <div
+      {...dialog}
       role="dialog"
+      aria-labelledby={titleId}
       aria-modal="true"
       className="fixed inset-0 z-[80] grid place-items-center bg-black/60 p-4"
     >
-      <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
+      <div className="max-h-[90dvh] min-w-0 w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-4 sm:p-6 shadow-2xl">
         <div className="flex items-center justify-between border-b pb-4">
-          <h2 className="text-lg font-extrabold text-[#102A43]">{t.newNotice}</h2>
+          <h2 id={titleId} className="text-lg font-extrabold text-[#102A43]">{t.newNotice}</h2>
           <button
             type="button"
             onClick={close}
@@ -1450,13 +1868,39 @@ function CreateNoticeModal({
           </button>
         </div>
 
-        {error ? (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-800">
-            {error}
+        {phase !== "idle" && phase !== "done" ? (
+          <div role="status" aria-live="polite" className="mt-4 rounded-xl border p-3 text-xs font-bold">
+            {phase === "sending" ? t.creatingDraft : submitCopy[phase]}
           </div>
         ) : null}
 
+        <div className="mt-4 space-y-2">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" data-durable-mode checked={effectiveDurable}
+              disabled={submitting || Boolean(durable.pending) || durable.durableStarted || durable.protocolInFlight !== "none" || !["idle", "validation"].includes(phase)}
+              onChange={event => { if (dispatchPhase.current !== "sending") setDurableMode(event.target.checked); }} />
+            {label("Keep request details to check the save result later", "Păstrează datele cererii pentru a verifica mai târziu rezultatul salvării", "نگه‌داشتن مشخصات درخواست برای بررسی نتیجهٔ ذخیره در آینده")}
+          </label>
+          {(effectiveDurable && durable.phase !== "ready") || durable.inventory !== "empty" || durable.pending ? <div role="status" aria-live="polite" data-durable-status className="rounded-xl border p-3 text-sm">
+            {durableMessage}
+            <div className="mt-2 flex flex-wrap gap-2">
+              {durable.pending && ["unknown", "retry", "blocked"].includes(durable.phase) ? <button type="button" data-durable-check onClick={() => void recover("check")}>
+                {label("Check draft result", "Verifică rezultatul ciornei", "بررسی نتیجهٔ پیش‌نویس")}</button> : null}
+              {durable.phase === "retry" ? <button type="button" data-durable-retry onClick={() => void recover("retry")}>
+                {label("Retry same draft", "Reîncearcă aceeași ciornă", "تلاش مجدد همان پیش‌نویس")}</button> : null}
+              {durable.phase === "resolved" ? <>
+                <button type="button" data-durable-result onClick={() => {
+                  const controller = durableController.current;
+                  const result = controller?.getState();
+                  if (isCurrent() && initialIdentity.current === identity && result?.phase === "resolved" && result.receipt) onCreated(result.receipt.notice_id);
+                }}>{label("Use recovered result", "Folosește rezultatul recuperat", "استفاده از نتیجهٔ بازیابی‌شده")}</button>
+                <button type="button" data-durable-new onClick={() => void recover("new")}>{label("Start another draft (identical re-entry may be required)", "Începe altă ciornă (poate necesita reintroducerea identică)", "شروع پیش‌نویس دیگر (ممکن است ورود متن یکسان لازم باشد)")}</button>
+              </> : null}
+            </div>
+          </div> : null}
+        </div>
         <form onSubmit={(e) => void handleSubmit(e)} className="mt-5 space-y-4">
+          <fieldset disabled={locked} className="min-w-0 space-y-4">
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="text-xs font-bold text-[#334E68]">
               {t.commType}
@@ -1465,14 +1909,7 @@ function CreateNoticeModal({
                 onChange={(e) => setCommType(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-xs font-normal"
               >
-                <option value="general_announcement">General Announcement</option>
-                <option value="general_meeting_convening">General Meeting Convening (Convocare AG)</option>
-                <option value="noticeboard_mandatory">Noticeboard Mandatory (Afișare avizier)</option>
-                <option value="executive_decision">Executive Committee Decision</option>
-                <option value="urgent_safety">Urgent Safety / Emergency</option>
-                <option value="debt_notice_reminder">Debt Notice / Reminder</option>
-                <option value="maintenance_intervention">Maintenance Intervention</option>
-                <option value="internal_governance_notice">Internal Governance Notice</option>
+                {communicationOptions.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
               </select>
             </label>
 
@@ -1483,10 +1920,7 @@ function CreateNoticeModal({
                 onChange={(e) => setLegalClass(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-xs font-normal"
               >
-                <option value="informational_optional">Informational (Optional)</option>
-                <option value="statutory_mandatory">Statutory Mandatory (Legea 196/2018)</option>
-                <option value="contractual_mandatory">Contractual Mandatory</option>
-                <option value="emergency_alert">Emergency Alert</option>
+                {legalOptions.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
               </select>
             </label>
 
@@ -1497,11 +1931,7 @@ function CreateNoticeModal({
                 onChange={(e) => setSourceModule(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-xs font-normal"
               >
-                <option value="general">General</option>
-                <option value="governance">Governance</option>
-                <option value="operations">Operations</option>
-                <option value="billing">Billing</option>
-                <option value="maintenance">Maintenance</option>
+                {sourceOptions.map(([value, text]) => <option key={value} value={value}>{text}</option>)}
               </select>
             </label>
           </div>
@@ -1511,6 +1941,8 @@ function CreateNoticeModal({
               {t.titleRo}
               <input
                 required
+                minLength={1}
+                maxLength={250}
                 value={titleRo}
                 onChange={(e) => setTitleRo(e.target.value)}
                 className="mt-1 w-full rounded-xl border bg-white p-2.5 text-sm font-normal"
@@ -1521,6 +1953,8 @@ function CreateNoticeModal({
               {t.bodyRo}
               <textarea
                 required
+                minLength={1}
+                maxLength={20000}
                 rows={4}
                 value={bodyRo}
                 onChange={(e) => setBodyRo(e.target.value)}
@@ -1540,6 +1974,7 @@ function CreateNoticeModal({
                 {t.titleEn}
                 <input
                   value={titleEn}
+                  maxLength={250}
                   onChange={(e) => setTitleEn(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal"
                 />
@@ -1549,6 +1984,7 @@ function CreateNoticeModal({
                 <textarea
                   rows={3}
                   value={bodyEn}
+                  maxLength={20000}
                   onChange={(e) => setBodyEn(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal"
                 />
@@ -1558,6 +1994,7 @@ function CreateNoticeModal({
                 <input
                   dir="rtl"
                   value={titleFa}
+                  maxLength={250}
                   onChange={(e) => setTitleFa(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal text-right"
                 />
@@ -1568,6 +2005,7 @@ function CreateNoticeModal({
                   dir="rtl"
                   rows={3}
                   value={bodyFa}
+                  maxLength={20000}
                   onChange={(e) => setBodyFa(e.target.value)}
                   className="mt-1 w-full rounded-xl border bg-white p-2 text-sm font-normal text-right"
                 />
@@ -1575,6 +2013,7 @@ function CreateNoticeModal({
             </div>
           </details>
 
+          </fieldset>
           <div className="flex justify-end gap-3 pt-3">
             <button
               type="button"
@@ -1585,7 +2024,7 @@ function CreateNoticeModal({
             </button>
             <button
               type="submit"
-              disabled={submitting}
+              disabled={locked || (effectiveDurable && durable.phase !== "ready")}
               className="rounded-xl bg-[#0E9F8E] px-5 py-2 text-xs font-bold text-white transition hover:bg-[#087A6E] disabled:opacity-50"
             >
               {submitting ? t.creatingDraft : t.createDraft}

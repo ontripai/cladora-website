@@ -44,7 +44,11 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,on
       setData(updated);setPending(null);setConflict(false);setNotice('');
       if(!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
       if(!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
-    }catch(reason){if(alive.current)setNotice(reason instanceof Error&&reason.message==='denied'?t.unavailable:reason instanceof Error&&reason.message==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'به‌روزرسانی انجام نشد؛ اتصال را بررسی و دوباره تلاش کنید.':lang==='ro'?'Actualizarea a eșuat; verifică conexiunea și reîncearcă.':'Refresh failed; check your connection and try again.');}
+    }catch(reason){if(alive.current){
+      if(reason instanceof Error&&(reason.message==='denied'||reason.message==='session')){
+        setData(null);setReadStatus(reason.message);
+      }
+      setNotice(reason instanceof Error&&reason.message==='denied'?t.unavailable:reason instanceof Error&&reason.message==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'به‌روزرسانی انجام نشد؛ اتصال را بررسی و دوباره تلاش کنید.':lang==='ro'?'Actualizarea a eșuat; verifică conexiunea și reîncearcă.':'Refresh failed; check your connection and try again.');}}
     finally{if(alive.current)setBusy(false);}
   }
   async function submit(){
@@ -60,18 +64,22 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,on
       }setFieldErrors({offering:false,party:false,description:false});command=parsed.data;setPending(command);}
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
     try {const response=await fetch('/api/customer/v1/services/requests',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command),signal:controller.signal});
-      if(!response.ok){if(alive.current){setConflict(response.status===409);setNotice(response.status===409?t.conflict:response.status===403?t.unavailable:t.error);}return;}
+      if(!response.ok){if(alive.current){
+        if(response.status===401||response.status===403){setData(null);setReadStatus(response.status===401?'session':'denied');setNotice('');}
+        else{setConflict(response.status===409);setNotice(response.status===409?t.conflict:t.error);}
+      }return;}
       serviceRequestResultSchema.parse(await response.json());
       if(!alive.current||controller.signal.aborted)return;setPending(null);setDescription('');setNotice(t.success);
       // Confirmed writes remain confirmed even when refreshing history fails.
       try {const read=await fetch(`/api/customer/v1/services/requests?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
         if(read.ok){const updated=serviceRequestReadSchema.parse(await read.json());if(alive.current&&!controller.signal.aborted)setData(updated);}
+        else if(alive.current&&!controller.signal.aborted&&(read.status===401||read.status===403)){setData(null);setReadStatus(read.status===401?'session':'denied');}
       }catch{/* Keep the confirmed result. */}
     }catch{if(alive.current&&!controller.signal.aborted)setNotice(t.error);}finally{submitting.current=false;if(alive.current)setBusy(false);}
   }
-  return <section dir={lang==='fa'?'rtl':'ltr'} className="space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t.title}</h2>
-    {notice?<p role="status">{notice}</p>:null}{conflict?<button type="button" disabled={busy} onClick={()=>void refreshConflict()} className="rounded-xl border px-4 py-2">{t.refresh}</button>:null}
-    {!data?<div role="status"><p>{readStatus==='loading'?t.loading:readStatus==='denied'?t.unavailable:readStatus==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'دریافت درخواست‌ها ناموفق بود؛ اتصال را بررسی کنید.':lang==='ro'?'Cererile nu au putut fi încărcate; verifică conexiunea.':'Requests could not be loaded; check your connection.'}</p>{readStatus==='retry'?<button type="button" onClick={()=>{setReadStatus('loading');setReadAttempt(n=>n+1);}} className="rounded-xl border px-4 py-2">{lang==='fa'?'تلاش دوباره':lang==='ro'?'Încearcă din nou':'Try again'}</button>:null}</div>:<>
+  return <section dir={lang==='fa'?'rtl':'ltr'} className="min-w-0 space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t.title}</h2>
+    {notice?<p role="status">{notice}</p>:null}{conflict?<button type="button" disabled={busy} onClick={()=>void refreshConflict()} className="min-h-11 rounded-xl border px-4 py-2">{t.refresh}</button>:null}
+    {!data?<div role="status"><p>{readStatus==='loading'?t.loading:readStatus==='denied'?t.unavailable:readStatus==='session'?lang==='fa'?'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.':lang==='ro'?'Sesiunea necesită verificare; autentifică-te din nou.':'Your session needs verification; sign in again.':lang==='fa'?'دریافت درخواست‌ها ناموفق بود؛ اتصال را بررسی کنید.':lang==='ro'?'Cererile nu au putut fi încărcate; verifică conexiunea.':'Requests could not be loaded; check your connection.'}</p>{readStatus==='retry'?<button type="button" onClick={()=>{setReadStatus('loading');setReadAttempt(n=>n+1);}} className="min-h-11 rounded-xl border px-4 py-2">{lang==='fa'?'تلاش دوباره':lang==='ro'?'Încearcă din nou':'Try again'}</button>:null}</div>:<>
     {data.can_request&&data.beneficiaries.length?<div className="space-y-3">
       <p className="text-sm">{t.disclaimer}</p>
       <label className="block">{t.offering}<select ref={offeringRef} aria-invalid={fieldErrors.offering} aria-describedby={fieldErrors.offering?`${fieldId}-offering-error`:undefined} value={offering} disabled={busy||!!pending} onChange={e=>{setOffering(e.target.value);setFieldErrors(old=>({...old,offering:false}));}} className="block w-full rounded-xl border p-3"><option value="">{t.choose}</option>{offerings.filter(item=>item.acquisition_mode!=='reservation').map(item=><option key={item.offering_id} value={item.offering_id}>{item.labels[lang]}</option>)}</select></label>
@@ -80,9 +88,9 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,on
       {fieldErrors.party?<p id={`${fieldId}-party-error`} className="text-sm text-red-700">{t.personError}</p>:null}
       <label className="block">{t.description}<textarea ref={descriptionRef} aria-invalid={fieldErrors.description} aria-describedby={fieldErrors.description?`${fieldId}-description-error`:undefined} value={description} maxLength={5000} disabled={busy||!!pending} onChange={e=>{setDescription(e.target.value);setFieldErrors(old=>({...old,description:false}));}} className="block w-full rounded-xl border p-3"/></label>
       {fieldErrors.description?<p id={`${fieldId}-description-error`} className="text-sm text-red-700">{t.descriptionError}</p>:null}
-      <button type="button" disabled={busy||conflict} onClick={()=>void submit()} className="rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white disabled:opacity-50">{pending?t.retry:t.submit}</button>
+      <button type="button" disabled={busy||conflict} onClick={()=>void submit()} className="min-h-11 rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white disabled:opacity-50">{pending?t.retry:t.submit}</button>
     </div>:<div><p>{data.can_request?t.noParty:t.unavailable}</p>{data.can_request?<ServicePilotSelfPerson key={`${contextId}:${workspaceId}`} contextId={contextId} workspaceId={workspaceId} lang={lang}/>:null}</div>}
-    {data.requests.length?<ul className="space-y-3">{data.requests.map(item=><li key={item.request_id} className="rounded-xl border p-3"><strong>{t.submitted}</strong><p className="whitespace-pre-line">{item.description}</p><bdi className="text-xs">{item.request_id}</bdi></li>)}</ul>:<p>{t.empty}</p>}
+    {data.requests.length?<ul className="min-w-0 space-y-3">{data.requests.map(item=><li key={item.request_id} className="min-w-0 rounded-xl border p-3"><strong>{t.submitted}</strong><p className="break-words whitespace-pre-line">{item.description}</p><bdi className="text-xs">{item.request_id}</bdi></li>)}</ul>:<p>{t.empty}</p>}
     </>}
   </section>;
 }

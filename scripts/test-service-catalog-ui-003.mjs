@@ -37,7 +37,7 @@ function load(file) {
   mod.require = name => name.endsWith('CustomerContextProvider') ? { useCustomerContext: () => ({ active }) }
     : name.endsWith('DashboardTransport') ? { useDashboardFetch: () => fetch }
     : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
-    : name.startsWith('.') ? load(new URL(`${name}.ts`, file)) : require(name);
+    : name.startsWith('.') ? load(new URL(/\.[cm]?[jt]sx?$/.test(name) ? name : `${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText, filename);
   cache.set(file.href, mod.exports); return mod.exports;
 }

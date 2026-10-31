@@ -3,15 +3,15 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  Building, 
-  Sparkles, 
-  FileCheck2, 
-  KeyRound, 
-  Home, 
-  Wrench, 
-  TrendingUp, 
-  RefreshCw, 
+import {
+  Building,
+  Sparkles,
+  FileCheck2,
+  KeyRound,
+  Home,
+  Wrench,
+  TrendingUp,
+  RefreshCw,
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
@@ -29,133 +29,133 @@ export const PropertyLifecycleSection: React.FC<PropertyLifecycleSectionProps> =
     {
       id: 'definition',
       number: '01',
-      title: lang === 'ro' ? 'Definire Proiect & Pre-vânzare' : lang === 'fa' ? 'تعریف پروژه، اسناد و پیش‌فروش' : 'Project Definition & Pre-Sale',
-      tag: lang === 'ro' ? 'Înainte de finalizarea clădirii' : lang === 'fa' ? 'پیش از تکمیل ساختمان' : 'Pre-construction phase',
+      title: lang === 'ro' ? 'Pregătire Proiect & Pre-vânzare' : lang === 'fa' ? 'تعریف پروژه و پیش‌فروش' : 'Project Setup & Pre-Sales',
+      tag: lang === 'ro' ? 'Înainte de finalizarea clădirii' : lang === 'fa' ? 'پیش از اتمام ساخت' : 'Before building completion',
       icon: Sparkles,
       desc: lang === 'ro'
-        ? 'Stabilirea identității imobilului, structurarea unităților, gestionarea oportunităților comerciale, rezervări, contracte de pre-vânzare și seif digital pentru documentația tehnică inițială.'
+        ? 'Evidența clară a apartamentelor, cotelor și spațiilor încă din faza de proiect. Înregistrarea rezervărilor, a antecontractelor și păstrarea într-un loc sigur a cărții tehnice și a planurilor clădirii.'
         : lang === 'fa'
-        ? 'آغاز همراهی کلادورا می‌تواند پیش از تکمیل ساختمان باشد: ثبت هویت ملک و واحدها، فرصت‌های تجاری و متقاضیان، رزرو، پیش‌فروش و نگهداری نقشه‌ها و اسناد اولیه.'
-        : 'CLADORA begins before construction completes: establishing unit registries, commercial leads, reservations, pre-sales contracts, and digital vault for technical records.',
+        ? 'ثبت مشخصات واحدها، متراژها و مشاعات از ابتدای پروژه؛ مدیریت رزروها، پیش‌فروش و نگهداری امن نقشه‌ها و پرونده‌های فنی ساختمان.'
+        : 'Clear registry of units, shares, and spaces from project inception. Tracking reservations, purchase agreements, and storing technical plans securely.',
       scopeNote: lang === 'ro'
-        ? 'Notă: Managementul de șantier și execuția efectivă a construcției nu fac parte din produs.'
+        ? 'Notă: Programarea lucrărilor fizice pe șantier și execuția efectivă nu fac parte din platformă.'
         : lang === 'fa'
-        ? 'توجه: مدیریت اجرایی کارگاه ساخت و عملیات پیمانکاری سازه خارج از دامنهٔ محصول است.'
-        : 'Scope boundary: Physical construction site scheduling and contractor site execution remain out of scope.',
+        ? 'توجه: زمان‌بندی عملیات اجرایی کارگاه ساختمانی و پیمانکاری عمرانی خارج از دامنه این سامانه است.'
+        : 'Note: Physical construction work and on-site contractor scheduling are outside the platform’s scope.',
       capabilities: [
-        lang === 'ro' ? 'Catalog digital al unităților și cotelor' : lang === 'fa' ? 'ثبت شناسنامه واحدها و متراژ' : 'Unit & share catalog',
-        lang === 'ro' ? 'Gestiune rezervări și antecontracte' : lang === 'fa' ? 'مدیریت فرصت‌ها و پیش‌فروش' : 'Reservation & pre-sale ledger',
-        lang === 'ro' ? 'Seif securizat de documente tehnice' : lang === 'fa' ? 'بایگانی امن اسناد و مدارک' : 'Secure technical document vault'
+        lang === 'ro' ? 'Catalog digital al apartamentelor și cotelor-părți' : lang === 'fa' ? 'شناسنامه دیجیتال واحدها و سهم مشاعات' : 'Digital catalog of units and shared shares',
+        lang === 'ro' ? 'Gestiunea rezervărilor și a antecontractelor' : lang === 'fa' ? 'مدیریت رزروها و قراردادهای اولیه' : 'Reservation and agreement management',
+        lang === 'ro' ? 'Păstrarea în siguranță a dosarului tehnic' : lang === 'fa' ? 'بایگانی امن مدارک و نقشه‌های فنی' : 'Secure technical documentation storage'
       ]
     },
     {
       id: 'handover',
       number: '02',
-      title: lang === 'ro' ? 'Predare-Primire & Recepție (Completă / Parțială)' : lang === 'fa' ? 'تحویل کامل یا جزئی و پیگیری موارد باقیمانده' : 'Full or Partial Handover & Punch-List',
-      tag: lang === 'ro' ? 'Tranziția către proprietari' : lang === 'fa' ? 'تحویل رسمی و رفع نقایص' : 'Delivery & punch-list',
+      title: lang === 'ro' ? 'Predare-Primire & Verificare' : lang === 'fa' ? 'تحویل واحدها و رفع نواقص' : 'Handover & Defect Checklist',
+      tag: lang === 'ro' ? 'Primirea cheilor și mutarea' : lang === 'fa' ? 'کلیدتحویل و صورت‌جلسه' : 'Key handover & move-in',
       icon: KeyRound,
       desc: lang === 'ro'
-        ? 'Predarea protocolară a unităților și spațiilor comune (recepție completă sau parțială/etapizată). Înregistrarea listelor de remedieri (punch-list), contoarelor inițiale și transferul de drepturi.'
+        ? 'Predarea organizată a apartamentelor și spațiilor comune. Se consemnează pe loc eventualele remedieri necesare (punch-list), indexurile inițiale ale contoarelor de apă și căldură și se creează conturile locatarilor.'
         : lang === 'fa'
-        ? 'فرایند رسمی تحویل کامل یا فازبندی‌شده/جزئی واحدها و مشاعات به خریداران یا انجمن مالکان. ثبت صورت‌جلسه تحویل، پیگیری دقیق نقایص و تعهدات باز (Punch-List) و ثبت ارقام اولیه کنتورها.'
-        : 'Formal handover of units and common areas for full or partial deliveries. Punch-list defect resolution tracking, baseline utility meter registration, and initial occupancy rights activation.',
+        ? 'تحویل رسمی واحدها و فضاهای مشترک همراه با ثبت نقایص احتمالی برای رفع، ثبت ارقام اولیه کنتورها و فعال‌سازی دسترسی ساکنان جدید.'
+        : 'Organized delivery of apartments and common areas. Log any defects needing resolution (punch-list), record baseline utility meters, and onboard residents.',
       scopeNote: lang === 'ro'
-        ? 'Serviciile CLADORA nu se opresc la recepție—ele continuă pe toată durata vieții imobilului.'
+        ? 'Platforma continuă să fie utilă și după predare—ea devine baza de date pentru întreaga viață a blocului.'
         : lang === 'fa'
-        ? 'خدمات محصول با تحویل ساختمان پایان نمی‌یابند؛ بلکه مرحله بهره‌برداری آغاز می‌شود.'
-        : 'Services do not terminate at handover—they form the factual baseline for operations.',
+        ? 'خدمات سامانه با تحویل کلید پایان نمی‌یابد، بلکه پایهٔ اطلاعاتی برای ادارهٔ روزمره ساختمان خواهد شد.'
+        : 'The platform continues well beyond handover, becoming the operational foundation for daily building life.',
       capabilities: [
-        lang === 'ro' ? 'Protocol digital de predare (complet / parțial)' : lang === 'fa' ? 'صورت‌جلسه دیجیتال تحویل کامل یا جزئی' : 'Digital full or partial handover protocol',
-        lang === 'ro' ? 'Urmărire punch-list și remedieri deschise' : lang === 'fa' ? 'پیگیری موارد باز و رفع نقایص تحویل' : 'Punch-list & defect resolution tracking',
-        lang === 'ro' ? 'Înregistrare contoare și activare conturi' : lang === 'fa' ? 'ثبت کنتورهای پایه و دعوت ساکنان' : 'Meter baselines and occupant onboarding'
+        lang === 'ro' ? 'Proces-verbal digital de predare-primire' : lang === 'fa' ? 'صورت‌جلسه دیجیتال تحویل واحد و مشاعات' : 'Digital handover checklists and protocols',
+        lang === 'ro' ? 'Lista clară a remedierilor de finalizat' : lang === 'fa' ? 'فهرست شفاف موارد باقیمانده برای اصلاح' : 'Track list of pending repairs and fixes',
+        lang === 'ro' ? 'Înregistrarea indexurilor inițiale la contoare' : lang === 'fa' ? 'ثبت ارقام اولیه کنتورهای آب، برق و گاز' : 'Initial utility meter readings and account invites'
       ]
     },
     {
       id: 'operations',
       number: '03',
-      title: lang === 'ro' ? 'Exploatare Zilnică & Servicii' : lang === 'fa' ? 'بهره‌برداری، زندگی و خدمات روزمره' : 'Active Living & Operations',
-      tag: lang === 'ro' ? 'Viața de zi cu zi' : lang === 'fa' ? 'سکونت و فعالیت مستمر' : 'Daily living phase',
+      title: lang === 'ro' ? 'Viața de Zi cu Zi & Administrare' : lang === 'fa' ? 'سکونت، شارژ و امور روزمره' : 'Daily Living & Building Operations',
+      tag: lang === 'ro' ? 'Locuire și întreținere curentă' : lang === 'fa' ? 'زندگی و مدیریت جاری' : 'Everyday living and operations',
       icon: Home,
       desc: lang === 'ro'
-        ? 'Evidența transparentă a cotelor de întreținere, citirea asistată a contoarelor, comunicări oficiale, adunări generale, acces securizat și catalog de servicii rezidențiale sau de birou.'
+        ? 'Evidența cotelor de întreținere, transmiterea indexurilor, avizier digital, comunicări pentru comunitate și consultări ale asociației—pentru o viață de zi cu zi organizată.'
         : lang === 'fa'
-        ? 'محاسبه شفاف هزینه‌ها و شارژ، قرائت کنتورها، مکاتبات و اعلانات، برگزاری جلسات و مجامع، کنترل دسترسی و اتصال به خدمات رفاهی و سکونتی.'
-        : 'Day-to-day community operations: explainable cost allocation, utility metering, board notices, formal general meetings, access control, and amenity services.',
+        ? 'ثبت هزینه‌های نگهداری و شارژ، ثبت ارقام کنتورها، تابلوی اعلانات، اطلاع‌رسانی به ساکنان و هماهنگی امور انجمن برای نظم بیشتر در زندگی روزمره.'
+        : 'Clear maintenance fee breakdowns, meter reading logs, digital notice boards, resident communications, and community consultations for well-organized daily operations.',
       scopeNote: lang === 'ro'
-        ? 'Fiecare rol accesează strict datele permise (chiriașul nu vede contabilitatea proprietarului).'
+        ? 'Fiecare vede doar ce îl privește: chiriașul nu vede datele private ale proprietarului, iar vecinii nu văd plățile confidențiale ale altora.'
         : lang === 'fa'
-        ? 'دسترسی هر شخص دقیقاً بر اساس نوع نقش و مبنای معتبر او تعیین و کنترل می‌شود.'
-        : 'Access strictly governed by relationship: tenants never view owner confidential financial books.',
+        ? 'هر شخص فقط اطلاعات مجاز خود را می‌بیند؛ مستأجر به امور محرمانه مالک دسترسی ندارد و اطلاعات مالی هر واحد محفوظ است.'
+        : 'Strict privacy: tenants never see private owner ledgers, and neighbors cannot access confidential personal records.',
       capabilities: [
-        lang === 'ro' ? 'Calcul cote și plăți online securizate' : lang === 'fa' ? 'تسهیم دقیق هزینه‌ها و پرداخت' : 'Explainable charges & collections',
-        lang === 'ro' ? 'Avizier digital și adunări votabile' : lang === 'fa' ? 'تابلو اعلانات دیجیتال و جلسات' : 'Digital notice board & voting ballots',
-        lang === 'ro' ? 'Comenzi de servicii zilnice și mentenanță' : lang === 'fa' ? 'سفارش خدمات روزمره و نظافت' : 'Daily living requests & concierge'
+        lang === 'ro' ? 'Afișarea cotelor de întreținere și a situației plăților' : lang === 'fa' ? 'نمایش شفاف سهم شارژ و وضعیت پرداخت‌ها' : 'Clear breakdown of maintenance fees and payment status',
+        lang === 'ro' ? 'Avizier digital și consultări ale asociației' : lang === 'fa' ? 'تابلوی اعلانات دیجیتال و نظرسنجی از ساکنان' : 'Digital notice board and community polling',
+        lang === 'ro' ? 'Sesizări rapide pentru probleme curente' : lang === 'fa' ? 'ثبت سریع درخواست‌ها و گزارش مشکلات روزمره' : 'Quick issue reporting and daily requests'
       ]
     },
     {
       id: 'maintenance',
       number: '04',
-      title: lang === 'ro' ? 'Mentenanță & Păstrare Activ' : lang === 'fa' ? 'نگهداری فنی و حفظ ارزش دارایی' : 'Maintenance & Asset Care',
-      tag: lang === 'ro' ? 'Protecția valorii tehnice' : lang === 'fa' ? 'سرویس‌های دوره‌ای و اضطراری' : 'Facility management',
+      title: lang === 'ro' ? 'Revizii Tehnice & Reparații' : lang === 'fa' ? 'تعمیرات، نگهداری و سرویس‌های دوره‌ای' : 'Maintenance & Equipment Care',
+      tag: lang === 'ro' ? 'Păstrarea stării tehnice bune' : lang === 'fa' ? 'سرویس منظم آسانسور و تأسیسات' : 'Routine checks & breakdown fixes',
       icon: Wrench,
       desc: lang === 'ro'
-        ? 'Evidența echipamentelor (ascensoare, centrale, hidrofoare), planuri de revizii periodice, sesizări de avarii, comenzi de lucru pentru tehnicieni și arhivarea costurilor pe fișa activului.'
+        ? 'Evidența echipamentelor comune (lifturi, pompe de apă, centrale termice), calendarul reviziilor obligatorii, trimiterea comenzilor către tehnicieni și păstrarea facturilor de reparații.'
         : lang === 'fa'
-        ? 'ثبت و پایش تأسیسات و تجهیزات، تدوین برنامه‌های نگهداری پیشگیرانه، اعلام خرابی‌ها، صدور دستورکار برای تعمیرکاران و ثبت سوابق سرویس روی شناسنامه دارایی.'
-        : 'Equipment registry, preventative maintenance schedules, breakdown reporting, vendor work orders, service logs, and capital reserve planning.',
+        ? 'شناسنامه تجهیزات ساختمان (آسانسور، موتورخانه، پمپ‌ها)، زمان‌بندی سرویس‌های دوره‌ای، صدور دستورکار برای تعمیرکاران و نگهداری فاکتورها.'
+        : 'Tracking shared equipment (lifts, heating, booster pumps), scheduling mandatory inspections, dispatching work orders to technicians, and keeping repair invoices on file.',
       scopeNote: lang === 'ro'
-        ? 'Sursa unică de adevăr tehnic care crește valoarea de piață a proprietății.'
+        ? 'Istoricul intervențiilor ajută la planificarea întreținerii și la urmărirea stării echipamentelor.'
         : lang === 'fa'
-        ? 'تاریخچه مدون تعمیرات و هزینه‌ها سبب شفافیت و ارتقای ارزش واقعی ملک می‌شود.'
-        : 'A documented maintenance history strengthens property valuation and reduces emergency breakdowns.',
+        ? 'سابقهٔ سرویس‌ها به برنامه‌ریزی نگهداری و پیگیری وضعیت تجهیزات کمک می‌کند.'
+        : 'Maintenance history helps plan upkeep and track equipment condition.',
       capabilities: [
-        lang === 'ro' ? 'Registru de active și istoric de revizie' : lang === 'fa' ? 'شناسنامه فنی دارایی‌ها و تجهیزات' : 'Asset registers & maintenance logbooks',
-        lang === 'ro' ? 'Flux comenzi de lucru și recepție tehnică' : lang === 'fa' ? 'صدور و پیگیری دستورکارهای فنی' : 'Work order dispatch & sign-off',
-        lang === 'ro' ? 'SLA furnizori și devize aprobate' : lang === 'fa' ? 'ارزیابی پیمانکاران و هزینه‌های مصوب' : 'Contractor SLA & approved quotes'
+        lang === 'ro' ? 'Registrul echipamentelor și reviziilor periodice' : lang === 'fa' ? 'شناسنامه تجهیزات و تاریخچه سرویس‌ها' : 'Equipment registry and scheduled maintenance log',
+        lang === 'ro' ? 'Comenzi clare pentru tehnicieni și meșteri' : lang === 'fa' ? 'ارسال دستورکار و تأیید انجام کار توسط تعمیرکار' : 'Clear work orders and technician sign-offs',
+        lang === 'ro' ? 'Istoric de costuri și devize aprobate' : lang === 'fa' ? 'سابقه هزینه‌ها و فاکتورهای تأییدشده' : 'Repair expense history and approved estimates'
       ]
     },
     {
       id: 'leasing',
       number: '05',
-      title: lang === 'ro' ? 'Închiriere & Mandat de Administrare' : lang === 'fa' ? 'اجاره و مدیریت بهره‌برداری' : 'Leasing & Property Mandates',
-      tag: lang === 'ro' ? 'Optimizare randament' : lang === 'fa' ? 'مدیریت موجر و مستأجر' : 'Tenancy lifecycle',
+      title: lang === 'ro' ? 'Închiriere & Relația Proprietar-Chiriaș' : lang === 'fa' ? 'مدیریت اجاره و تفکیک هزینه‌ها' : 'Rentals & Tenant Management',
+      tag: lang === 'ro' ? 'Venituri și cheltuieli separate' : lang === 'fa' ? 'ارتباط مالک و مستأجر' : 'Tenant & landlord clarity',
       icon: TrendingUp,
       desc: lang === 'ro'
-        ? 'Gestiunea contractelor de închiriere, urmărirea încasărilor, separarea cheltuielilor de consum ale chiriașului de obligațiile proprietarului și delegarea către manageri profesioniști.'
+        ? 'Evidența contractelor de închiriere, urmărirea distinctă a cheltuielilor de consum față de fondul de reparații și colaborarea organizată cu firmele de administrare.'
         : lang === 'fa'
-        ? 'مدیریت قراردادهای اجاره، پیگیری دریافت اجاره‌بها، تفکیک کامل هزینه‌های مصرفی مستأجر از تعهدات سرمایه‌ای مالک، و واگذاری مدیریت به کارگزاران املاک.'
-        : 'Lease agreement administration, rental collections, isolation of operational tenant utilities from capital owner expenses, and third-party management mandates.',
+        ? 'ثبت قراردادهای اجاره، پیگیری مجزای هزینه‌های مصرفی از سهم تعمیرات اساسی، و همکاری منظم با شرکت‌های مدیریت اجاره.'
+        : 'Tracking lease agreements, keeping tenant utility dues distinct from capital reserve contributions, and organized collaboration with property managers.',
       scopeNote: lang === 'ro'
-        ? 'Schimbarea chiriașului nu șterge istoricul consumurilor sau identitatea unității.'
+        ? 'Când pleacă un chiriaș, istoricul apartamentului rămâne intact, iar noul locatar pornește de la zero cu datele sale.'
         : lang === 'fa'
-        ? 'جابه‌جایی مستأجر هویت ملک و سوابق معتبر دوره‌های قبلی را مخدوش نمی‌کند.'
-        : 'Tenant turnover never wipes unit history or approved historical consumptions.',
+        ? 'با جابه‌جایی مستأجر، پیشینه و مصرف‌های گذشته ملک محفوظ می‌ماند و مستأجر جدید از نقطه مشخص آغاز می‌کند.'
+        : 'When a tenant moves out, unit history stays intact and the incoming tenant begins with a clean personal slate.',
       capabilities: [
-        lang === 'ro' ? 'Evidență contracte și indexuri de intrare/ieșire' : lang === 'fa' ? 'ثبت قرارداد و صورت‌جلسه تحویل و تخلیه' : 'Lease contracts & move-in/move-out logs',
-        lang === 'ro' ? 'Separare automată chiriaș vs proprietar' : lang === 'fa' ? 'تفکیک اتوماتیک هزینه‌های مالک و مستأجر' : 'Automated debtor/payer separation',
-        lang === 'ro' ? 'Mandate de administrare cu drepturi clare' : lang === 'fa' ? 'واگذاری مدیریت با اختیارات زمان‌دار' : 'Management mandates with bounded scope'
+        lang === 'ro' ? 'Evidența contractelor și a predării cheilor la mutare' : lang === 'fa' ? 'ثبت قرارداد و صورت‌جلسه ورود و تخلیه مستأجر' : 'Lease registry and move-in/move-out checks',
+        lang === 'ro' ? 'Evidența distinctă a cheltuielilor chiriașului și proprietarului' : lang === 'fa' ? 'ثبت جداگانهٔ هزینه‌های مستأجر و مالک' : 'Separate records of tenant and owner expenses',
+        lang === 'ro' ? 'Acces delegat pentru firmele de administrare' : lang === 'fa' ? 'دسترسی مشخص برای مدیران املاک استیجاری' : 'Delegated access for rental management firms'
       ]
     },
     {
       id: 'succession',
       number: '06',
-      title: lang === 'ro' ? 'Tranzacții, Ieșire din Serviciu & Predare' : lang === 'fa' ? 'معاملات بعدی، خروج از خدمت و تحویل مسئولیت' : 'Transfers, Decommissioning & Succession',
-      tag: lang === 'ro' ? 'Continuitate fără pierdere de date' : lang === 'fa' ? 'انتقال مسئولیت و بستن تعهدات' : 'Accountable succession',
+      title: lang === 'ro' ? 'Predare Imobil, Schimbare Rol sau Scoatere din Uz' : lang === 'fa' ? 'تحویل ملک، انتقال مدیریت و خروج تجهیزات از خدمت' : 'Property Handover, Role Succession & Decommissioning',
+      tag: lang === 'ro' ? 'Documente organizate pentru o predare mai clară' : lang === 'fa' ? 'اسناد منظم برای تحویل روشن‌تر مسئولیت' : 'Organized records for a clearer handover',
       icon: RefreshCw,
       desc: lang === 'ro'
-        ? 'Vânzarea imobilului, schimbarea administratorului sau retragerea unui echipament din uz. Responsabilitățile se închid ordonat, sarcinile deschise se clarifică, iar succesorul preia doar evidențele autorizate conform politicii de retenție.'
+        ? 'La schimbarea conducerii, transferul unui imobil sau scoaterea din uz a unor spații și echipamente, documentele tehnice, istoricul intervențiilor și evidențele financiare sunt organizate pentru o predare clară și verificabilă către succesori.'
         : lang === 'fa'
-        ? 'تغییر مالک، مدیر یا خروج دارایی از خدمت. پایان مسئولیت قبلی با تعیین تکلیف کارهای باز، حفظ انتساب قطعی اسناد گذشته به عاملان اصلی و تحویل سوابق مجاز به جانشین طبق سیاست معتبر نگهداری همراه است.'
-        : 'Ownership change, vendor turnover, or equipment decommissioning. Prior responsibilities close gracefully, open tasks are settled, past actions remain permanently credited to historical signatories, and successors receive authorized records under governance policy.',
+        ? 'هنگام تغییر مدیریت، انتقال واحدها یا خروج فضاها و تجهیزات فرسوده از چرخه، سوابق فنی، تاریخچهٔ سرویس‌ها و دفاتر مالی برای تحویل منظم و شفاف به جانشینان مستند می‌شوند.'
+        : 'When leadership changes, property or units are transferred, or spaces and equipment are decommissioned, technical records, maintenance history, and financial logs are organized for a clear, verifiable handover to successors.',
       scopeNote: lang === 'ro'
-        ? 'Predare ordonată, fără litigii și fără dosare pierdute conform politicii de arhivare.'
+        ? 'Predare structurată a gestiunii, cu respectarea confidențialității pe bază de rol și a politicilor de păstrare a documentelor.'
         : lang === 'fa'
-        ? 'تحویل مسئولیت با شفافیت حقوقی، تعیین تکلیف کارهای باز و حفظ پیوستگی سوابق مجاز.'
-        : 'Orderly succession without lost archives, hidden liabilities, or governance disputes under verified retention policy.',
+        ? 'تحویل ساختاریافتهٔ مسئولیت‌ها با رعایت تفکیک دسترسی‌ها و سیاست‌های نگهداری اسناد.'
+        : 'Structured handover of management, respecting role-based privacy and document retention policies.',
       capabilities: [
-        lang === 'ro' ? 'Predare formală a dosarului către succesor' : lang === 'fa' ? 'تحویل سیستمی پرونده به مدیر یا مالک جدید' : 'Controlled handover pack for successors',
-        lang === 'ro' ? 'Păstrarea neatinsă a semnăturilor istorice' : lang === 'fa' ? 'ماندگاری اسناد گذشته به نام افراد پیشین' : 'Preserved historical signatures and logs',
-        lang === 'ro' ? 'Încheierea responsabilităților și arhivare' : lang === 'fa' ? 'بستن مسئولیت‌ها و نگهداری سوابق مجاز' : 'Responsibility offboarding & compliant retention'
+        lang === 'ro' ? 'Dosar structurat pentru predarea către noul administrator sau proprietar' : lang === 'fa' ? 'پروندهٔ مدون برای تحویل به مدیر جدید یا مالک بعدی' : 'Structured handover documentation for new managers or owners',
+        lang === 'ro' ? 'Scoaterea din uz a echipamentelor vechi și arhivarea intervențiilor' : lang === 'fa' ? 'ثبت سوابق خروج تجهیزات فرسوده از خدمت و بایگانی پیشینهٔ اقدامات' : 'Decommissioning records for retired equipment and archived logs',
+        lang === 'ro' ? 'Închiderea clară a mandatelor precedente conform politicilor stabilite' : lang === 'fa' ? 'خاتمهٔ منظم دوره‌های مسئولیتی پیشین طبق اختیارات و سیاست‌های مصوب' : 'Clear transition of prior roles in accordance with established policy'
       ]
     }
   ];
@@ -163,25 +163,25 @@ export const PropertyLifecycleSection: React.FC<PropertyLifecycleSectionProps> =
   return (
     <section className="py-20 bg-[#F8FAFC] border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Heading */}
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
           <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider bg-[#EAF8F5] px-3.5 py-1 rounded-full border border-[#B2E5DF]">
-            {lang === 'ro' ? 'Continuitate & Ecosistem Ciclic' : lang === 'fa' ? 'پیوستگی سوابق و چرخهٔ غیرخطی ملک' : 'Non-Linear Property Lifecycle'}
+            {lang === 'ro' ? 'De la Construcție la Viața de Zi cu Zi' : lang === 'fa' ? 'از آغاز ساخت تا زندگی روزمره' : 'From New Build to Everyday Living'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
-            {lang === 'ro' 
-              ? 'CLADORA însoțește proprietatea în toate etapele vieții sale' 
-              : lang === 'fa' 
-              ? 'همراهی CLADORA در تمام مراحل زندگی ملک' 
-              : 'CLADORA Accompanies the Property Through Every Life Phase'}
+            {lang === 'ro'
+              ? 'CLADORA este alături de tine în toate etapele clădirii'
+              : lang === 'fa'
+              ? 'همراهی CLADORA در تمام مراحل ساختمان'
+              : 'CLADORA Supports Your Building at Every Stage'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'Ciclul de viață al unei clădiri nu este o linie rigidă: mentenanța, închirierea, serviciile zilnice, schimbarea administratorilor și re-vânzarea au loc concomitent și ciclic. CLADORA păstrează firul roșu al identității și al evidențelor autorizate pe tot parcursul.'
+              ? 'Administrarea unei clădiri nu este un proces rigid: întreținerea curentă, închirierea, reparațiile neprevăzute sau schimbarea administratorilor se întâmplă continuu. CLADORA păstrează toate actele și plățile în ordine, de la primele chei până peste ani.'
               : lang === 'fa'
-              ? 'چرخهٔ عمر ملک یک مسیر خطی و تک‌بُعدی نیست؛ بهره‌برداری، نگهداری فنی، اجاره، تغییر مدیر و معاملات مجدد می‌توانند هم‌زمان، تکرارشونده و در مراحل گوناگون رخ دهند. کلادورا پیوستگی سوابق مجاز را در تمامی این مراحل حفظ می‌کند.'
-              : 'Property lifecycle is not a rigid linear conveyor: maintenance, tenancies, day-to-day services, managerial transitions, and resales happen concurrently and repeatedly across decades.'}
+              ? 'مدیریت ساختمان یک مسیر ثابت نیست؛ نگهداری روزمره، اجاره واحدها، تعمیرات پیش‌بینی‌نشده یا تغییر مدیر به مرور زمان رخ می‌دهند. کلادورا تمام اسناد و هزینه‌ها را از زمان تحویل کلید تا سال‌های متمادی منظم نگه می‌دارد.'
+              : 'Managing a building is not a rigid one-off process: ongoing maintenance, rentals, unexpected repairs, or management handovers happen continuously. CLADORA keeps every record and invoice in order, from initial handover through decades of operation.'}
           </p>
         </div>
 
@@ -245,7 +245,7 @@ export const PropertyLifecycleSection: React.FC<PropertyLifecycleSectionProps> =
                   href={`/${lang}/platform/lifecycle`}
                   className="text-xs font-bold text-[#0E9F8E] hover:text-[#0A7E71] flex items-center gap-1 self-start sm:self-auto"
                 >
-                  <span>{lang === 'ro' ? 'Vezi ghidul ciclului de viață' : lang === 'fa' ? 'مشاهده توضیحات کامل چرخهٔ عمر' : 'Explore lifecycle details'}</span>
+                  <span>{lang === 'ro' ? 'Află mai multe despre etapele clădirii' : lang === 'fa' ? 'توضیحات بیشتر درباره مراحل ساختمان' : 'Learn more about building stages'}</span>
                   <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
                 </Link>
               </div>
@@ -259,7 +259,7 @@ export const PropertyLifecycleSection: React.FC<PropertyLifecycleSectionProps> =
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#F0F4F8]">
                 <div className="space-y-3">
                   <span className="text-xs font-bold uppercase tracking-wider text-[#627D98] block">
-                    {lang === 'ro' ? 'Capabilități cheie în această etapă:' : lang === 'fa' ? 'قابلیت‌های کلیدی در این مرحله:' : 'Key capabilities at this stage:'}
+                    {lang === 'ro' ? 'Capabilități principale în această etapă:' : lang === 'fa' ? 'امکانات کلیدی در این مرحله:' : 'Key capabilities at this stage:'}
                   </span>
                   <ul className="space-y-2 text-xs sm:text-sm text-[#334E68]">
                     {current.capabilities.map((cap, cIdx) => (

@@ -6,6 +6,16 @@ on:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
       - "scripts/check-database-package.mjs"
+      - "scripts/core-building-setup-http-proof.mjs"
+      - "scripts/lib/core-building-setup-http-fixture.mjs"
+      - "scripts/test-core-building-setup-http-safety.mjs"
+      - "scripts/provision-building-setup-http-ci.mjs"
+      - "scripts/test-building-setup-http-ci-provisioner.mjs"
+      - "src/app/api/customer/v1/onboarding/building-setup/**"
+      - "src/app/api/customer/v1/pilot-reviewer/route.ts"
+      - "src/lib/supabase/env.ts"
+      - "src/lib/supabase/server.ts"
+      - "scripts/check-advisor-upstream-diagnostics.mjs"
       - "scripts/test-financial-close-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
@@ -130,11 +140,20 @@ on:
       - "package.json"
       - "package-lock.json"
   push:
-    branches: [main]
+    branches: [main, codex/core-building-setup-connected-http]
     paths:
       - "supabase/**"
       - ".github/workflows/database-tests.yml"
       - "scripts/check-database-package.mjs"
+      - "scripts/core-building-setup-http-proof.mjs"
+      - "scripts/lib/core-building-setup-http-fixture.mjs"
+      - "scripts/test-core-building-setup-http-safety.mjs"
+      - "scripts/provision-building-setup-http-ci.mjs"
+      - "scripts/test-building-setup-http-ci-provisioner.mjs"
+      - "src/app/api/customer/v1/onboarding/building-setup/**"
+      - "src/app/api/customer/v1/pilot-reviewer/route.ts"
+      - "src/lib/supabase/env.ts"
+      - "src/lib/supabase/server.ts"
       - "scripts/test-financial-close-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-concurrency.mjs"
       - "scripts/test-workspace-taxonomy-mutation-concurrency.mjs"
@@ -261,36 +280,59 @@ permissions:
 
 concurrency:
   group: database-tests-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/codex/core-building-setup-connected-http' }}
 
 jobs:
   static-contract:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/codex/core-building-setup-connected-http' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+      - name: Verify exact local baseline profile and source preservation
+        run: node scripts/test-local-migration-profile.mjs && node scripts/test-local-baseline-pgtap.mjs
+      - name: Offline Building Setup CI binding controls (no runtime)
+        run: node --test scripts/test-building-setup-http-ci-provisioner.mjs
       - run: npm run test:retention
       - run: npm run test:documents-country-retention-resolution
       - run: npm run test:documents-country-retention-operation
 
   postgres-runtime:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/codex/core-building-setup-connected-http' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
+      - name: Acquire fresh CI-only Building Setup runtime lease
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(docker ps -aq)"
+          test -z "$(docker volume ls -q)"
+          echo 'BUILDING_SETUP_CI_OWNS_FRESH_DAEMON=1' >> "$GITHUB_ENV"
+          echo "BUILDING_SETUP_TEST_LEASE=building-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          supabase start --help
+          supabase test db --help
+          supabase stop --help
       - name: Start clean local database with staged SERVICE S4 gate
         run: bash scripts/start-local-supabase-staged-service-s4.sh start
         env:
           CLADORA_LOCAL_STEP_SU_02_AUTHORIZED: "1"
       - name: Run pgTAP database tests
-        run: supabase test db
+        run: node scripts/run-local-baseline-pgtap.mjs
       - name: Setup Node.js for real concurrency tests
         uses: actions/setup-node@v4
         with:
@@ -298,6 +340,13 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Run integrated Building Setup source, API and mounted regressions
+        run: |
+          node scripts/test-building-setup-integration.mjs
+          node scripts/test-building-workspace-onboarding-api.mjs
+          node scripts/test-building-workspace-onboarding-ui.mjs
+      - name: Prove Building Setup concurrent commands in an owned synthetic clone
+        run: node scripts/run-building-setup-concurrency-ci.mjs
       - name: Run AIRPROP loopback read gateway contract
         run: npm run test:airprop-gateway-read:http
       - name: Run synthetic AP10 AAL2 and Core authority fixture
@@ -487,12 +536,26 @@ jobs:
             echo "::error::Supabase PostgreSQL image could not be resolved"
             exit 1
           fi
-          docker run --rm -d --name cladora-service-http-postgres \
-            -e POSTGRES_PASSWORD=postgres -p 127.0.0.1:55432:5432 "$SOURCE_PG_IMAGE"
+          if docker inspect cladora-service-http-postgres >/dev/null 2>&1; then
+            echo "::error::SERVICE fixture container already exists; refusing to replace it"
+            exit 1
+          fi
           cleanup_service_postgres() {
             docker stop cladora-service-http-postgres >/dev/null 2>&1 || true
           }
           trap cleanup_service_postgres EXIT
+          docker run --rm -d --name cladora-service-http-postgres \
+            -e POSTGRES_PASSWORD=postgres -p 127.0.0.1::5432 "$SOURCE_PG_IMAGE"
+          SERVICE_PG_BINDING=$(docker port cladora-service-http-postgres 5432/tcp)
+          if [[ ! "$SERVICE_PG_BINDING" =~ ^127\.0\.0\.1:([0-9]+)$ ]]; then
+            echo "::error::SERVICE PostgreSQL must publish exactly one loopback port"
+            exit 1
+          fi
+          SERVICE_PG_PORT="${BASH_REMATCH[1]}"
+          if (( SERVICE_PG_PORT < 1024 || SERVICE_PG_PORT > 65535 )); then
+            echo "::error::SERVICE PostgreSQL published port is invalid"
+            exit 1
+          fi
           for attempt in $(seq 1 90); do
             first_ready=$(timeout 5s docker exec cladora-service-http-postgres \
               psql -U postgres -d postgres -X -A -t -v ON_ERROR_STOP=1 \
@@ -530,12 +593,12 @@ jobs:
           echo "::add-mask::$SERVICE_ROLE_KEY"
           SERVICE_SUBJECT_LINK_HTTP_ANON_KEY="$ANON_KEY" \
           SERVICE_SUBJECT_LINK_HTTP_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" \
+          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL="postgresql://supabase_admin:postgres@127.0.0.1:${SERVICE_PG_PORT}/postgres" \
           timeout 240s npm run test:service-subject-link:http:postgres
         env:
           SERVICE_SUBJECT_LINK_HTTP_EPHEMERAL: "1"
           SERVICE_SUBJECT_LINK_LOCAL_STEP_SU_02_AND_S4: "1"
           SERVICE_SUBJECT_LINK_HTTP_REAL_AAL2_REQUIRED: "1"
-          SERVICE_SUBJECT_LINK_HTTP_TEST_DATABASE_URL: postgresql://supabase_admin:postgres@127.0.0.1:55432/postgres
           SERVICE_SUBJECT_LINK_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Run Core transaction host PostgreSQL and concurrency conformance
         run: timeout 90s npm run test:core-tx-host:postgres
@@ -611,10 +674,73 @@ jobs:
           path: r10-catalog-evidence.json
           if-no-files-found: ignore
       - name: Run local database security and performance advisors
-        run: supabase db lint --local --level warning
+        shell: bash
+        run: |
+          set -euo pipefail
+          supabase db lint --help
+          node scripts/check-advisor-upstream-diagnostics.mjs --self-test
+          advisor_raw="$RUNNER_TEMP/database-advisor-raw.json"
+          supabase db lint --local --level warning --output json >"$advisor_raw"
+          cat "$advisor_raw"
+          node scripts/check-advisor-upstream-diagnostics.mjs --input "$advisor_raw"
       - name: Show service status on failure
         if: failure()
-        run: supabase status || true
+        run: node scripts/provision-building-setup-http-ci.mjs --safe-status
       - name: Stop ephemeral database
         if: always()
         run: timeout 60s supabase stop --no-backup
+
+
+  # Preparation only. No execution SHA, environment approval or run lease exists.
+  # A separate reviewed execution plan must enable this job AND populate the
+  # helper's REVIEWED_EXECUTION_PLAN. Env flags/files cannot grant execution.
+  building-setup-core-http:
+    if: ${{ false && github.event_name == 'push' && github.ref == 'refs/heads/codex/core-building-setup-connected-http' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: read
+    environment: building-setup-core-http
+    concurrency:
+      group: building-setup-core-http-${{ github.repository }}
+      cancel-in-progress: false
+    env:
+      # This is source selection only, never proof of execution authorization.
+      CLADORA_APPROVED_EXECUTION_SHA: ${{ vars.BUILDING_SETUP_HTTP_EXECUTION_SHA }}
+    steps:
+      - name: Checkout the actual approved Core branch (no synthetic rename)
+        uses: actions/checkout@v4
+        with:
+          ref: codex/core-building-setup-connected-http
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Require the separately approved exact integrated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = codex/core-building-setup-connected-http
+          [[ "$CLADORA_APPROVED_EXECUTION_SHA" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$CLADORA_APPROVED_EXECUTION_SHA"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          git merge-base --is-ancestor 87ddb06877fb31f562ba66477d14f7bc453a17ee HEAD
+          git merge-base --is-ancestor 37115e2a77f4c7e24f2de884cc808706f361dcdb HEAD
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.84.2
+      - name: Platform provisioner and separately delegated Core proof lane
+        run: node scripts/provision-building-setup-http-ci.mjs --run
+        env:
+          # Only read native protected-environment run approvals; not passed to Next/Core.
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Require actual final release evidence, including failure/cancellation
+        if: always()
+        run: node scripts/provision-building-setup-http-ci.mjs --release-evidence
+        # Missing/unfinished evidence fails closed. always() does not prove
+        # cleanup on runner loss or the workflow's hard timeout/cancellation.

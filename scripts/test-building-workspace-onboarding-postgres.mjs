@@ -1,0 +1,191 @@
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {pathToFileURL} from 'node:url';
+
+const proofSqlstates=new Set(['42501','23505','40001','55006','08006','57P01']);
+const failureCategories=new Set(['sql-error','assertion-failed','operation-failed']);
+const cleanupStages=new Set(['rollback','client-end','source-end','owned-database','admin-end']);
+const failureDetail='proof or cleanup failed; sensitive output withheld';
+
+function sanitizedOutcome(error){
+ const sqlstate=proofSqlstates.has(error?.code)?error.code:null;
+ return {category:sqlstate?'sql-error':error?.code==='ERR_ASSERTION'?'assertion-failed':'operation-failed',sqlstate};
+}
+
+export class ProofFailure extends Error{
+ constructor(primary,cleanup){
+  super(failureDetail);
+  const boundedCleanup=cleanup.slice(0,8);
+  this.diagnostic={suite:'building-setup-postgres',result:'FAIL',
+   sqlstate:primary?.sqlstate??boundedCleanup.find(outcome=>outcome.sqlstate)?.sqlstate??null,
+   detail:failureDetail,primary,cleanup:boundedCleanup};
+  // Keep existing expected-denial predicates only for a pure SQL failure.
+  // A rollback/end failure must never satisfy those predicates.
+  if(primary?.sqlstate&&boundedCleanup.length===0)this.code=primary.sqlstate;
+ }
+}
+
+// Validate the whole bounded wire schema, then rebuild only enum-valued fields.
+// Legacy four-field failure records remain readable during source handoff.
+export function parseProofFailureRecord(value){
+ const keys=(object,expected)=>object!==null&&typeof object==='object'&&!Array.isArray(object)
+  &&Object.keys(object).length===expected.length&&expected.every(key=>Object.hasOwn(object,key));
+ const code=value=>value===null||proofSqlstates.has(value);
+ const outcome=value=>keys(value,['category','sqlstate'])&&failureCategories.has(value.category)&&code(value.sqlstate)
+  &&(value.category==='sql-error')===(value.sqlstate!==null);
+ const legacy=keys(value,['suite','result','sqlstate','detail']);
+ if(!legacy&&!keys(value,['suite','result','sqlstate','detail','primary','cleanup']))return null;
+ if(value.suite!=='building-setup-postgres'||value.result!=='FAIL'||value.detail!==failureDetail||!code(value.sqlstate))return null;
+ const record={suite:'building-setup-postgres',result:'FAIL',sqlstate:value.sqlstate,detail:failureDetail};
+ if(legacy)return record;
+ if(value.primary!==null&&!outcome(value.primary))return null;
+ if(!Array.isArray(value.cleanup)||value.cleanup.length>8)return null;
+ for(const item of value.cleanup){
+  if(!keys(item,['stage','category','sqlstate'])||!cleanupStages.has(item.stage)||!outcome({category:item.category,sqlstate:item.sqlstate}))return null;
+ }
+ if(value.primary===null&&value.cleanup.length===0)return null;
+ const expectedCode=value.primary?.sqlstate??value.cleanup.find(item=>item.sqlstate)?.sqlstate??null;
+ if(value.sqlstate!==expectedCode)return null;
+ return {...record,primary:value.primary===null?null:{category:value.primary.category,sqlstate:value.primary.sqlstate},
+  cleanup:value.cleanup.map(item=>({stage:item.stage,category:item.category,sqlstate:item.sqlstate}))};
+}
+
+// The same lifetime wrapper is used by RPC calls, the source lease reader and
+// the outer proof. Every owned cleanup step runs; none can replace the primary.
+export async function withProofCleanup(operation,cleanupSteps){
+ assert.ok(cleanupSteps.every(step=>cleanupStages.has(step.stage)),'known owned cleanup stages required');
+ let result,primary=null;
+ const cleanup=[];
+ try{result=await operation();}
+ catch(error){
+  if(error instanceof ProofFailure){primary=error.diagnostic.primary;cleanup.push(...error.diagnostic.cleanup);}
+  else primary=sanitizedOutcome(error);
+ }
+ for(const {stage,run} of cleanupSteps){
+  try{await run();}catch(error){cleanup.push({stage,...sanitizedOutcome(error)});}
+ }
+ if(primary||cleanup.length)throw new ProofFailure(primary,cleanup);
+ return result;
+}
+
+export function proofFailureRecord(error){
+ return error instanceof ProofFailure?error.diagnostic:new ProofFailure(sanitizedOutcome(error),[]).diagnostic;
+}
+
+// Importing this module performs no database, Docker or environment operations.
+export function validateProofTarget(env, sha) {
+ const url=env.BUILDING_SETUP_TEST_DATABASE_URL,lease=env.BUILDING_SETUP_TEST_LEASE;
+ assert.ok(env.BUILDING_SETUP_EPHEMERAL==='1' && /^[a-f0-9]{40}$/.test(sha),'explicit disposable proof required');
+ assert.ok(new RegExp('^building-[0-9]+-[0-9]+-'+sha+'$').test(lease??''),'lease must bind exact checked-out SHA');
+ let target;
+ try{target=new URL(url);}catch{throw Error('dedicated local synthetic fixture DB required');}
+ assert.ok(['postgres:','postgresql:'].includes(target.protocol)
+  && ['127.0.0.1','localhost','[::1]'].includes(target.hostname) && target.port==='54322'
+  && target.username==='postgres' && target.password==='postgres'
+  && !target.search && !target.hash && /^\/cladora_setup_fixture_[a-f0-9]{32}$/.test(target.pathname),
+  'dedicated local synthetic fixture DB required; no endpoint overrides');
+ let fixture;
+ try{fixture=JSON.parse(env.BUILDING_SETUP_ACCEPTED_FIXTURE??'null');}catch{throw Error('accepted fixture metadata required');}
+ for(const key of ['actor','context','workspace']) assert.ok(/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(fixture?.[key]??''),'accepted fixture UUID required');
+ return {url,lease,target,fixture};
+}
+
+export async function cleanupOwnedDatabase({admin,name,created,clients=[]}) {
+ assert.ok(/^cladora_setup_(?:fixture|proof)_[a-f0-9]{32}$/.test(name),'cleanup requires an owned random DB name');
+ // All task-owned connections get a graceful end, even if one end fails.
+ const closed=await Promise.allSettled(clients.map(client=>Promise.resolve().then(()=>client.end())));
+ let dropFailed=false,dropCode=null;
+ if(created){
+  try{
+   await admin.query('drop database "'+name+'"');
+   assert.ok((await admin.query('select count(*)::integer n from pg_database where datname=$1',[name])).rows[0].n===0,'owned DB must be absent');
+  }catch(error){dropFailed=true;if(['55006','42501','08006','57P01'].includes(error?.code))dropCode=error.code;}
+ }
+ if(dropFailed||closed.some(result=>result.status==='rejected')) throw Object.assign(Error('owned database cleanup failed; no force or session termination attempted'),{code:dropCode});
+}
+
+export async function runPostgresProof({commandProof='legacy',sessionId=null}={}) {
+ assert.ok(['legacy','g2'].includes(commandProof),'explicit command proof profile');
+ if(commandProof==='g2')assert.match(sessionId??'',/^[a-f0-9-]{36}$/i,'separately prepared native fixture session required; not created here');
+ const sha=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
+ const {url,lease,target,fixture}=validateProofTarget(process.env,sha);
+ const {default:pg}=await import('pg');
+// A TEMPLATE source must have NO connected clients, including this runner.
+// Read its lease on a short-lived connection; create/drop from maintenance DB.
+const owned=`cladora_setup_proof_${randomUUID().replaceAll('-','')}`,admin=new pg.Client({connectionString:new URL('/postgres',url).href}),clients=[];
+let created=false,checks=0,receipt,inspector;
+const payload={association:{name:'Synthetic concurrent proof'},building:{name:'Synthetic block',code:'B223',floors:1},currency:'RON',period_start:'2026-01-01',period_end:'2026-01-31',units:[{code:'U1',floor:0,area_m2:50}],opening_balances:[]};
+const creationKey=`proof-${randomUUID()}`;
+async function call(name,args,actor=fixture.actor){
+ const client=new pg.Client({connectionString:new URL(`/${owned}`,url).href});clients.push(client);
+ let transaction=false;
+ return withProofCleanup(async()=>{
+  await client.connect();await client.query('begin');transaction=true;
+  await client.query('set local statement_timeout=15000');await client.query('set local role authenticated');
+  await client.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:actor,role:'authenticated',aal:'aal2',...(commandProof==='g2'?{session_id:sessionId}:{})})]);
+  const placeholders=args.map((_,i)=>`$${i+1}`).join(',');
+  const r=await client.query(`select customer_api.${name}(${placeholders}) result`,args);
+  await client.query('commit');transaction=false;return r.rows[0].result;
+ },[{stage:'rollback',run:async()=>{if(transaction)await client.query('rollback');}},
+  {stage:'client-end',run:async()=>{await client.end();clients.splice(clients.indexOf(client),1);}}]);
+}
+const tables=['platform.building_setup_runs','audit.events','platform.outbox_events','portfolio.properties','portfolio.buildings','portfolio.units','finance.accounting_periods','finance.journals','billing.invoices','identity.memberships','identity.context_grants','platform.workspace_property_bindings','platform.workspace_member_roles','platform.workspace_member_role_authority_sources','platform.workspace_role_handover_lineage'];
+if(commandProof==='g2')tables.push('platform.building_setup_command_receipt_epochs','platform.building_setup_command_coverage','platform.building_setup_command_receipts','app_private.canonical_authority_revision_v1');
+async function fingerprint(){const parts=[];for(const table of tables){const r=await inspector.query(`select md5(coalesce(jsonb_agg(to_jsonb(t) order by to_jsonb(t)::text),'[]'::jsonb)::text) digest from ${table} t`);parts.push([table,r.rows[0].digest]);}return parts;}
+return withProofCleanup(async()=>{
+ await admin.connect();
+ const source=new pg.Client({connectionString:url});
+ await withProofCleanup(async()=>{await source.connect();assert.equal((await source.query("select current_setting('cladora.synthetic_setup_lease',true) lease")).rows[0].lease,lease,'source fixture lease must match before clone');},
+  [{stage:'source-end',run:()=>source.end()}]);
+ assert.equal((await admin.query('select count(*)::integer n from pg_stat_activity where datname=$1',[target.pathname.slice(1)])).rows[0].n,0,'source fixture has no active sessions; never terminate another connection');
+ // Names derive only from validated source DB and task-owned random identifier.
+ await admin.query(`create database "${owned}" template "${target.pathname.slice(1)}"`);created=true;
+ inspector=new pg.Client({connectionString:new URL(`/${owned}`,url).href});await inspector.connect();
+ const args=[fixture.context,fixture.workspace,creationKey,JSON.stringify(payload)];
+ const creation=await Promise.allSettled([call('create_building_setup_v2',args),call('create_building_setup_v2',args)]);
+ assert.equal(creation.filter(r=>r.status==='fulfilled').length,2,'both creation sessions complete');
+ const both=creation.map(r=>r.value);assert.deepEqual(both[0],both[1]);checks++;
+ assert.equal((await inspector.query('select count(*)::integer n from platform.building_setup_runs where idempotency_key=$1',[creationKey])).rows[0].n,1);checks++;
+ const run=both[0].run_id,key=(rev,suffix)=>`setup-${run}-r${rev}-${suffix}`;
+ const changed={...payload,building:{...payload.building,name:'Different'}};
+ let before=await fingerprint();
+ await assert.rejects(call('create_building_setup_v2',[fixture.context,fixture.workspace,creationKey,JSON.stringify(changed)]),e=>e.code==='23505');checks++;
+ assert.deepEqual(await fingerprint(),before,'payload collision is zero-write across all guarded stores');checks++;
+ const race=await Promise.allSettled([call('update_building_setup_units_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-update'),JSON.stringify([{code:'U1',floor:0,area_m2:70}])]),call('rehearse_building_setup_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-rehearse')])]);
+ assert.equal(race.filter(r=>r.status==='fulfilled').length,1);assert.equal(race.find(r=>r.status==='rejected').reason.code,'40001');checks++;
+ assert.equal((await inspector.query('select revision from platform.building_setup_runs where id=$1',[run])).rows[0].revision,2);checks++;
+ assert.equal((await inspector.query("select count(*)::integer n from audit.events where entity_type='building_setup_run' and entity_id=$1",[run])).rows[0].n,1);checks++;
+ const winner=race.find(r=>r.status==='fulfilled').value;
+ const replay=winner.operation==='update'?()=>call('update_building_setup_units_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-update'),JSON.stringify([{code:'U1',floor:0,area_m2:70}])]):()=>call('rehearse_building_setup_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-rehearse')]);
+ before=await fingerprint();assert.deepEqual(await replay(),winner);checks++;
+ assert.deepEqual(await call('create_building_setup_v2',args),both[0]);checks++;
+ assert.deepEqual(await fingerprint(),before,'exact receipts return without another data/audit write');checks++;
+ const next=winner.operation==='update'?'rehearse_building_setup_v2':'submit_building_setup_v2';await call(next,[fixture.context,fixture.workspace,run,2,key(2,'next')]);
+ before=await fingerprint();
+ if(commandProof==='g2'){
+  assert.equal((await inspector.query("select count(*)::integer n from platform.building_setup_command_coverage where run_id=$1 and epoch_id='building-g2-pm169-v1' and from_expected_revision=1",[run])).rows[0].n,1,'coverage must come from this creation, never backfill');checks++;
+  assert.deepEqual(await replay(),winner,'covered superseded command returns original immutable receipt');checks++;
+  assert.deepEqual(await fingerprint(),before,'durable replay after successor is zero-write');checks++;
+ } else {await assert.rejects(replay(),e=>e.code==='40001');checks++;}
+ await assert.rejects(call('get_building_setup_attempt_v2',[fixture.context,fixture.workspace,creationKey],'c2200000-0000-4000-8000-000000000004'),e=>e.code==='42501');checks++;
+ assert.deepEqual(await fingerprint(),before,'superseded receipt and borrowed Context denial are zero-write');checks++;
+ // Fixture-only revoke outside the measured denied-call window; never change
+ // roles or rewrite an evaluator to manufacture an authorized positive.
+ await inspector.query('update identity.context_grants set ends_at=clock_timestamp() where id=$1',[fixture.context]);
+ before=await fingerprint();await assert.rejects(call('create_building_setup_v2',args),e=>e.code==='42501');checks++;
+ assert.deepEqual(await fingerprint(),before,'a prior creation receipt cannot bypass Context revoke');checks++;
+ receipt={result:'PASS',checks,boundary:'ACTUAL_POSTGRES_ROLE_WITH_FIXTURE_JWT_CLAIMS_NOT_ISSUED_AUTH',concurrent_creation:true,concurrent_revision:true,fingerprinted_tables:tables.length,real_auth_http:'NOT_RUN_NOT_PASS'};
+return {...receipt,owned_database_cleanup:'PASS'};
+},[{stage:'owned-database',run:()=>cleanupOwnedDatabase({admin,name:owned,created,clients:[...clients,...(inspector?[inspector]:[])]})},
+ {stage:'admin-end',run:()=>admin.end()}]);
+
+}
+
+if(process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href){
+ runPostgresProof().then(receipt=>console.log(JSON.stringify(receipt))).catch(error=>{
+  // Raw pg/assertion errors may contain SQL/rows/credentials. Never print them.
+  console.error(JSON.stringify(proofFailureRecord(error)));
+  process.exitCode=1;
+ });
+}

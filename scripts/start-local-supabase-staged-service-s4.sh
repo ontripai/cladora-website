@@ -17,8 +17,10 @@ fi
 
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 s4_name="20261018170000_communications_service_role_acl_shutdown_v1.sql"
-s4_path="$repository_root/supabase/migrations/$s4_name"
 hold_directory="$(mktemp -d)"
+profile_root="$hold_directory/profile"
+node "$repository_root/scripts/prepare-local-migration-profile.mjs" "$profile_root"
+s4_path="$profile_root/supabase/migrations/$s4_name"
 held_s4="$hold_directory/$s4_name"
 supabase_output="$hold_directory/supabase-cli.log"
 database_container="supabase_db_cladora-local"
@@ -39,6 +41,7 @@ run_supabase_silently() {
     echo "$operation: PASS (credential-bearing CLI output withheld)"
   else
     echo "$operation failed; CLI output withheld to prevent credential disclosure." >&2
+    node "$repository_root/scripts/summarize-local-supabase-failure.mjs" "$supabase_output"
     return 1
   fi
 }
@@ -51,15 +54,17 @@ fi
 mv "$s4_path" "$held_s4"
 cd "$repository_root"
 if [[ "$mode" == "start" ]]; then
-  run_supabase_silently "Supabase local start" supabase start
+  run_supabase_silently "Supabase local start" supabase start --workdir "$profile_root"
 else
-  run_supabase_silently "Supabase local reset" supabase db reset
+  run_supabase_silently "Supabase local reset" supabase db reset --workdir "$profile_root"
 fi
 
 if ! docker inspect "$database_container" >/dev/null 2>&1; then
   echo "local Supabase database container is unavailable" >&2
   exit 69
 fi
+
+CLADORA_LOCAL_STEP_SU_02_AUTHORIZED=1 bash "$repository_root/scripts/assert-local-inactive-g2.sh"
 
 set +e
 negative_output="$(docker exec -i "$database_container" \
@@ -89,7 +94,9 @@ fi
 echo "STEP-SU-02 local durable receipt: PASS"
 
 mv "$held_s4" "$s4_path"
-supabase migration up --local
+# S4 can be temporarily older than already-applied local migrations when a
+# later vertical slice is under test. This is still a local-only backfill.
+run_supabase_silently "Supabase baseline S4 apply" supabase migration up --local --include-all --workdir "$profile_root"
 
 remaining_acl="$(docker exec "$database_container" psql -U postgres -d postgres -X -A -t \
   -v ON_ERROR_STOP=1 -c "select count(*) from (values ('communications.private_conversations'::text),('communications.private_participants'),('communications.private_messages'),('communications.private_message_documents')) target(relation_name) cross join unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER','MAINTAIN']) privilege_name where has_table_privilege('service_role',relation_name,privilege_name);")"

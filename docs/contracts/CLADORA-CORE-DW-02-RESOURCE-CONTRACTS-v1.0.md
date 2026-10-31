@@ -4,7 +4,7 @@
 
 **Owner:** Core/Platform owns shared identity, canonical references and relationship envelopes. Domain works own their records, commands and state machines.
 
-**Delivery boundary:** additive TypeScript contracts and static verification only. No migration, endpoint, remote database operation, registry replacement, manifest rewrite or Production effect.
+**Delivery boundary:** the canonical Unit-reference vertical slice is accepted on a disposable local database and authenticated API. Other resource kinds and relationship/provider/geography resolvers remain withheld or contract-only. No remote database operation, registry replacement, manifest rewrite or Production effect is authorized.
 
 ## Existing sources reused
 
@@ -48,8 +48,26 @@ Geography is never inferred from descriptive Workspace taxonomy. A country/regio
 - Core owns the shared envelope and adapters over accepted canonical sources only.
 - Documentation & PM owns the central manifest and final acceptance; this branch does not modify either.
 
-## Acceptance and remaining implementation gates
+## Accepted Unit vertical slice
 
-This slice is complete when the schemas are strict, withheld variants structurally prohibit identifiers/source details, relationship validity is checked, static contract tests pass, TypeScript passes, and existing DW-01A/minimum-consumer tests remain green.
+The implemented slice is intentionally narrow and connected:
 
-Executable resolvers remain a later narrow slice. Before a resolver is enabled it requires an accepted source mapping, Workspace-native authority integration, permitted/stale/withheld/cross-tenant tests, zero-write denial evidence and an isolated database test. A schema or successful CI run is not acceptance, merge authorization, remote migration authorization or Production release.
+- `customer_api.resolve_canonical_resource_reference_v1` maps the existing Core Unit and Unit specification history only;
+- `app_private.resolve_workspace_native_context_v2` and `app_private.check_workspace_native_permission_v2` remain the only authority resolver/evaluator;
+- `core.units.identity.read` and `core_unit_identity` are fixed server-side for the accepted purpose `core.unit_identity.history`;
+- the existing property-operations mandate remains mandatory;
+- `customer_api.get_core_unit_identity_history_v1`, already exposed by `/api/customer/v1/core/unit-identity`, consumes the DW-02 resolver and returns its bounded `resource_reference`;
+- `/api/customer/v1/core/resources/unit-reference` exposes the strict authenticated read API without a service-role path;
+- `supabase/tests/202_dw02_canonical_unit_reference_v1.test.sql` proves verified, stale, not-found, withheld, AUTH-01 deny, cross-tenant denial, zero writes and real-consumer behavior with 37 pgTAP assertions;
+- `supabase/tests/162_lifecycle_core_identity_history_read.test.sql` remains green with 8 pgTAP assertions after the consumer cut-over.
+
+## Remaining blockers without widening this slice
+
+- `party`, `property`, `building`, `entrance` and `asset` remain withheld until each has an accepted integer version source, exact permission/purpose and a real consumer. They do not block the accepted Unit slice or existing operations.
+- `resource-relationship.v1` remains a schema over existing domain-owned relationship sources; no parallel relationship engine is introduced.
+- Provider-agreement verification remains blocked on an accepted canonical agreement/mandate source.
+- Geographic coverage remains blocked on an approved source/version mapping and is never inferred from Workspace taxonomy.
+- PC-01 and PF-01 may proceed independently against accepted DW-01/DW-02 surfaces; completing all PC-01 projections is not a gate for PF-01 or existing operations.
+- BK-01 is only a prerequisite for C13 shared-resource reservation and is not on the DW-02, PC-01, PF-01, COM-01, FIN-01 or OPS-01 path.
+
+This local acceptance is not merge authorization, remote migration authorization or Production release.

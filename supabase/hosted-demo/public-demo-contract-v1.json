@@ -1,0 +1,212 @@
+{
+  "version": 2,
+  "purpose": "Registered customers browse their own persisted sample workspace, menus and initial forms. Every internal Save and Continue action is disabled. Only signup and first workspace provisioning write data.",
+  "api": {
+    "schema": "customer_api",
+    "client": "Use the existing Supabase browser client with the branch-scoped public URL and publishable key.",
+    "authority": "Real Auth session plus database workspace ownership. Never trust a role or workspace ID from user_metadata, a role selector, query parameters or localStorage.",
+    "public_demo_auth": "Verified email/password session. AAL1 is allowed for viewing this sample-only preview; native MFA requirements remain unchanged.",
+    "registration_fields": [
+      "email",
+      "password",
+      "first_name",
+      "last_name",
+      "mobile_contact",
+      "workspace_name"
+    ],
+    "consent": "Privacy acceptance required; marketing consent optional and separate; phone is contact-only, not SMS verified.",
+    "signup_sequence": [
+      "Collect registration fields, required privacy acknowledgement and optional separate marketing consent.",
+      "Use real Supabase Auth signUp; contact metadata may prefill registration, never grant authority.",
+      "If no session is returned, show confirmation pending; resume after the verified callback. Never disable email verification to make a test pass.",
+      "Call demo_get_my_workspace_v1. If null, validate registration with demo_initialize_workspace_v1; otherwise load the existing workspace.",
+      "A repeated initialization is read-only for an existing workspace: it does not reseed or overwrite its name, locale, profile or consent.",
+      "Show menus, lists, SQL-derived reports and initial forms. Save, Submit, Continue, Send, Dispatch and other operational controls remain disabled.",
+      "Any form input used for preview remains transient in memory only; do not save it through RPC or browser persistence. Clear it on account change/logout."
+    ],
+    "workspace_descriptor": "demo_mode=preview_only; role=demo_owner means UID ownership only. All navigation entries are read_only or locked. features.form_preview=true, demo_data_write=false, workflow_continue=false; all sensitive flags=false."
+  },
+  "rpc": {
+    "demo_get_my_workspace_v1": {
+      "arguments": {},
+      "returns": "null or workspace descriptor with id, name, locale, is_demo, role, navigation, features and own profile"
+    },
+    "demo_initialize_workspace_v1": {
+      "arguments": {
+        "p_first_name": "trimmed text, 1..80 characters",
+        "p_last_name": "trimmed text, 1..80 characters",
+        "p_mobile": "8..15 digits, optional leading plus; spaces/parentheses/hyphens normalized",
+        "p_workspace_name": "trimmed text, 2..120 characters",
+        "p_marketing_consent": "boolean, default false",
+        "p_privacy_accepted": "must be true",
+        "p_locale": "fa, en or ro"
+      },
+      "returns": {
+        "created": "boolean",
+        "workspace": "workspace descriptor"
+      },
+      "semantics": "One workspace per real verified Auth user; first registration atomically creates its private lead and sample workspace. Repeating the call returns the unchanged existing descriptor and cannot act as a profile/consent/workspace edit API."
+    },
+    "demo_list_items_v1": {
+      "arguments": {
+        "p_workspace_id": "uuid",
+        "p_module": "module key or null",
+        "p_limit": "1..100, default 50",
+        "p_offset": "nonnegative, default 0"
+      },
+      "returns": "workspace_id, is_demo, items, total, limit, offset",
+      "item_fields": [
+        "id",
+        "workspace_id",
+        "parent_id",
+        "module",
+        "kind",
+        "title",
+        "status",
+        "data",
+        "version",
+        "seed_key",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "demo_get_reports_v1": {
+      "arguments": {
+        "p_workspace_id": "uuid"
+      },
+      "returns": "workspace_id, is_demo, generated_at, counts, maintenance, finance, activity, source, native_business_data",
+      "finance_fields": [
+        "currency",
+        "read_only",
+        "sample_data",
+        "invoice_count",
+        "invoiced",
+        "paid",
+        "outstanding",
+        "monthly"
+      ],
+      "financial_truth": "Use these SQL-derived sample totals and periods. Do not invent bank balances or real ledger results from them."
+    }
+  },
+  "readonly_modules": [
+    "dashboard",
+    "properties",
+    "residents",
+    "maintenance",
+    "assets",
+    "utilities",
+    "communications",
+    "documents",
+    "bookings",
+    "services",
+    "governance",
+    "finance",
+    "reports",
+    "activity"
+  ],
+  "sensitive_actions_closed": [
+    "all internal item saves and edits",
+    "all internal Continue or Submit actions",
+    "maintenance dispatch and status transitions",
+    "contact messages to owners tenants or contractors",
+    "financial writes",
+    "full IBAN",
+    "platform administration",
+    "role assignment",
+    "ballot mutation",
+    "external email/SMS except Auth confirmation",
+    "real file upload",
+    "bulk delete",
+    "export"
+  ],
+  "seed": {
+    "records_per_workspace": 75,
+    "properties": 1,
+    "buildings": 2,
+    "units": 12,
+    "residents": 12,
+    "tickets": 6,
+    "work_orders": 4,
+    "assets": 8,
+    "meter_readings": 12,
+    "announcements": 3,
+    "document_metadata": 5,
+    "bookings": 4,
+    "service_requests": 4,
+    "readonly_meetings": 2,
+    "readonly_financial_rows": 24,
+    "financial_months": 6,
+    "currency": "RON",
+    "visibility": "Clearly label all data as sample. Existing sample statuses describe seeded examples, not operations performed by the viewer. Forms can be previewed but cannot save or continue."
+  },
+  "frontend_acceptance": [
+    "Real signup, verification callback, login and automatic own-workspace provisioning on the actual staging preview.",
+    "No manual administrator, shared pilot workspace, native membership or role simulation is needed for signup.",
+    "Site-relevant menus, sample records and initial forms are visible according to server preview_only navigation/features. Save/Continue and every internal mutation remain disabled with a clear localized explanation.",
+    "Initial forms for building/workspace details, owners/tenants, contractor contacts and maintenance planning are previews only. No item creation, profile edit, message, assignment, booking, payment or operational transition is submitted.",
+    "Replace static MOCK demo reports with demo_list_items_v1 and demo_get_reports_v1 reads; paginate75 sample records instead of silently showing only the default50.",
+    "Workspace registration fields are collected once. Repeated initialization or reload does not overwrite contact/consent/workspace data.",
+    "Two separate authenticated sessions see only their own samples; logout/account switch clears prior state and late responses cannot leak data.",
+    "Direct calls to disabled item write RPCs fail as well as buttons being disabled. No native Operations/financial endpoint, service secret, privileged role grant or safeguard removal.",
+    "RO/EN/FA desktop/mobile evidence shows menus, lists, forms, disabled Save/Continue and unchanged sample reports after attempted actions. Include keyboard/focus/error/loading states and comparable performance evidence.",
+    "Typecheck, relevant lint/build and callback/demo browser checks on the submitted SHA. Backend Auth fixtures admin-confirmed by the test are not mail-delivery or browser proof."
+  ],
+  "verification": {
+    "receipt": "verification.preview-only.staging.json",
+    "hosted_test_command": "CLADORA_PUBLIC_DEMO_HOSTED_TEST=1 CLADORA_DEMO_TEST_ARTIFACT_DIR=<private temporary directory> python supabase/hosted-demo/tests/public-demo-rpc.test.py",
+    "cleanup_command": "Same environment and command with argument cleanup; never commit the private session file",
+    "email_delivery_and_browser_acceptance": "NOT_RUN"
+  },
+  "installation_order": [
+    "public-demo-workspaces-v1.sql",
+    "public-demo-version-conflict-v1.sql",
+    "public-demo-preview-only-v1.sql",
+    "public-demo-registration-idempotency-v1.sql"
+  ],
+  "installation_warning": "Apply in this order. Earlier source files are historical installation steps, not the current write policy; never replay them over the final preview-only restrictions.",
+  "disabled_rpc": {
+    "demo_create_item_v1": {
+      "status": "DISABLED_PREVIEW_ONLY",
+      "http": "403 for authenticated callers; SQLSTATE42501",
+      "reason": "Execute revoked from PUBLIC, anon, authenticated and service_role; function body unconditionally denies all saves/edits/workflow transitions."
+    },
+    "demo_update_item_v1": {
+      "status": "DISABLED_PREVIEW_ONLY",
+      "http": "403 for authenticated callers; SQLSTATE42501",
+      "reason": "Execute revoked from PUBLIC, anon, authenticated and service_role; function body unconditionally denies all saves/edits/workflow transitions."
+    }
+  },
+  "preview_modules": {
+    "properties": [
+      "property",
+      "building",
+      "unit"
+    ],
+    "residents": [
+      "resident"
+    ],
+    "maintenance": [
+      "ticket",
+      "work_order",
+      "inspection"
+    ],
+    "assets": [
+      "asset"
+    ],
+    "utilities": [
+      "meter_reading"
+    ],
+    "communications": [
+      "announcement"
+    ],
+    "documents": [
+      "document metadata only"
+    ],
+    "bookings": [
+      "booking"
+    ],
+    "services": [
+      "service_request"
+    ]
+  }
+}

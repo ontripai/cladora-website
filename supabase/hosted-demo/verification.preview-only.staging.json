@@ -1,0 +1,82 @@
+{
+  "project_ref": "ryygcqiunqqtfkpkflzf",
+  "result": "PASS_HOSTED_PREVIEW_ONLY_API_AND_DATABASE",
+  "scope": "Menus, sample data and initial forms visible. All internal Save/Continue/actions disabled at API and feature-flag level. Real signup and first workspace seed only.",
+  "checks_passed": 69,
+  "checks_failed": 0,
+  "execution": "63 actual hosted preview/denial/read/isolation checks, then6 targeted existing-fixture checks after registration-idempotency amendment; no unrelated previous suite repeated.",
+  "real_auth_accounts": 2,
+  "ordinary_password_aal": "aal1",
+  "synthetic_emails_admin_confirmed": true,
+  "email_delivery_tested": false,
+  "browser_tested": false,
+  "frontend_connected": false,
+  "disabled_item_rpc_effective_execute": {
+    "anon": false,
+    "authenticated": false,
+    "service_role": false
+  },
+  "disabled_item_rpc_bodies": "Unconditional42501 denial even if mistakenly granted later",
+  "signup_initialization": "creates once; later valid initialization calls return unchanged workspace/profile/consent",
+  "workspace_feature_flags": {
+    "demo_mode": "preview_only",
+    "form_preview": true,
+    "demo_data_write": false,
+    "workflow_continue": false
+  },
+  "owner_sql_readback": {
+    "workspaces": [
+      {
+        "sample_items": 75,
+        "financial_rows": 24,
+        "invoiced": 6420,
+        "paid": 5580,
+        "outstanding": 840,
+        "item_create_receipts": 0,
+        "nonseed_activity": 0
+      },
+      {
+        "sample_items": 75,
+        "financial_rows": 24,
+        "invoiced": 6420,
+        "paid": 5580,
+        "outstanding": 840,
+        "item_create_receipts": 0,
+        "nonseed_activity": 0
+      }
+    ]
+  },
+  "function_bodies_and_search_paths_matched": 14,
+  "private_force_rls_tables": 6,
+  "native_api_bodies_hash_before_and_after": "82c726b20fddc3451166b6d51e7b2eeb",
+  "native_api_definitions_changed": false,
+  "source_installation": {
+    "restricted_native_variants": 297,
+    "supplemental_migrations": 5,
+    "remote_history_count": 302,
+    "native_S3_S4_G2": "HELD_NOT_APPLIED"
+  },
+  "security_advisors": {
+    "rls_enabled_no_policy": 111,
+    "authenticated_security_definer_function_executable": 15,
+    "auth_leaked_password_protection": 1
+  },
+  "cleanup": {
+    "auth_users_deleted": 2,
+    "private_session_file_removed": true,
+    "database_readback": {
+      "fixture_auth_users_remaining": 0,
+      "demo_workspaces": 0,
+      "demo_items": 0,
+      "demo_finance_samples": 0,
+      "demo_leads": 0,
+      "demo_activity": 0,
+      "demo_create_receipts": 0
+    }
+  },
+  "historical_backend_evidence": "verification.staging.json atb412182 documented53tests of the earlier interactive scope; not current frontend acceptance",
+  "deployment_sources": {
+    "public-demo-preview-only-v1.sql": "09bf52adee252d103b9471672d1badf5317107c55451db6401035acbcee6087b",
+    "public-demo-registration-idempotency-v1.sql": "c1baa7fe4c5ab8f74baffea9c2a7a31217e6a6f58e178ca76930bc4433a2c439"
+  }
+}

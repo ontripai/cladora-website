@@ -28,11 +28,11 @@ export const productRightProvenanceV1Schema = z.discriminatedUnion('kind', [
 ]);
 
 export const productRightValueV1Schema = z.discriminatedUnion('value_type', [
-  z.strictObject({ value_type: z.literal('boolean'), boolean_value: z.boolean() }),
-  z.strictObject({ value_type: z.literal('numeric'), numeric_value: z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/) }),
-  z.strictObject({ value_type: z.literal('string'), string_value: z.string().max(4096) }),
-  z.strictObject({ value_type: z.literal('array'), array_value: z.array(z.unknown()).max(1024) }),
-  z.strictObject({ value_type: z.literal('json'), json_value: z.record(z.string(), z.unknown()) }),
+  z.strictObject({ value_type: z.literal('boolean'), boolean_value: z.boolean().nullable() }),
+  z.strictObject({ value_type: z.literal('numeric'), numeric_value: z.string().regex(/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/).nullable() }),
+  z.strictObject({ value_type: z.literal('string'), string_value: z.string().nullable() }),
+  z.strictObject({ value_type: z.literal('array'), array_value: z.array(z.unknown()).nullable() }),
+  z.strictObject({ value_type: z.literal('json'), json_value: z.record(z.string(), z.unknown()).nullable() }),
 ]);
 
 export const productRightOverrideV1Schema = z.discriminatedUnion('status', [

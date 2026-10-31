@@ -52,6 +52,28 @@ export const operationsExecutionRequestV1Schema = z.strictObject({
   }
 });
 
+// The first runtime consumer is deliberately narrow: an existing immutable
+// SERVICE request may ask Operations to create a draft Work Order for a DW-02
+// canonical Unit. Other source domains remain contract-only until they have a
+// real consumer and their own source/currentness adapter.
+export const serviceOperationsExecutionRequestV1Schema = operationsExecutionRequestV1Schema.superRefine((value, ctx) => {
+  if (value.source.source_domain !== 'service' || value.source.source_entity_type !== 'service_request') {
+    ctx.addIssue({ code: 'custom', path: ['source'], message: 'service_request_source_required' });
+  }
+  if (value.source.source_reference
+      !== `service_catalog.requests:${value.source.source_entity_id}:v${value.source.source_version}`) {
+    ctx.addIssue({ code: 'custom', path: ['source', 'source_reference'], message: 'source_reference_mismatch' });
+  }
+  if (value.resource.context_id !== value.context_id || value.resource.workspace_id !== value.workspace_id) {
+    ctx.addIssue({ code: 'custom', path: ['resource'], message: 'resource_context_mismatch' });
+  }
+  if (value.resource.resource_type !== 'unit'
+      || value.resource.permission_code !== 'core.units.identity.read'
+      || value.resource.purpose !== 'core.unit_identity.history') {
+    ctx.addIssue({ code: 'custom', path: ['resource'], message: 'dw02_canonical_unit_required' });
+  }
+});
+
 const operationsExecutionReceiptBaseV1Schema = z.strictObject({
   contract_version: z.literal('operations-execution-request-receipt.v1'),
   request_id: uuidSchema,
@@ -90,4 +112,5 @@ export const operationsExecutionRequestReceiptV1Schema = z.discriminatedUnion('r
 ]);
 
 export type OperationsExecutionRequestV1 = z.infer<typeof operationsExecutionRequestV1Schema>;
+export type ServiceOperationsExecutionRequestV1 = z.infer<typeof serviceOperationsExecutionRequestV1Schema>;
 export type OperationsExecutionRequestReceiptV1 = z.infer<typeof operationsExecutionRequestReceiptV1Schema>;

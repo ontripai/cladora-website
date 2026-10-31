@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { z } from 'zod';
 import type { Language } from '@/types';
 import { useDashboardFetch } from '@/components/dashboard-lab/DashboardTransport';
@@ -12,63 +12,106 @@ export const quotePublicationCopy = {
 };
 type Read = z.infer<typeof serviceQuotePublicationsSchema>;
 type Command = z.infer<typeof publishServiceQuoteSchema>;
+type Notice = 'loadError'|'signIn'|'writeDenied'|'denied'|'unknown'|'conflict';
+type ReadOperation = { generation:number; kind:'effect'|'refresh'|'postpublish'; controller:AbortController; controlsBusy:boolean };
+const isConfirmedReadDenial=(status:number)=>status===401||status===403||status===404;
 export function CustomerServiceQuotePublications(props:{contextId:string;workspaceId:string;lang:Language;mode:'coordinator'|'recipient'}) {
   // Remount on scope changes: an unresolved command never moves to another identity/workspace.
   return <PublicationPanel key={`${props.contextId}:${props.workspaceId}:${props.mode}`} {...props}/>;
 }
 function PublicationPanel({contextId,workspaceId,lang,mode}:{contextId:string;workspaceId:string;lang:Language;mode:'coordinator'|'recipient'}) {
   const fetch=useDashboardFetch();const t=quotePublicationCopy[lang];
-  const [data,setData]=useState<Read|null>(null);const [notice,setNotice]=useState('');const [pending,setPending]=useState<Command|null>(null);
-  const [busy,setBusy]=useState(false);const [blocked,setBlocked]=useState(false);const [attempt,setAttempt]=useState(0);
+  const [data,setData]=useState<Read|null>(null);const [notice,setNotice]=useState<Notice|null>(null);const [receiptNotice,setReceiptNotice]=useState<'success'|null>(null);const [pending,setPending]=useState<Command|null>(null);
+  const [busy,setBusy]=useState(false);const [blocked,setBlocked]=useState(false);
   const inFlight=useRef(false);const active=useRef(true);const write=useRef<AbortController|null>(null);
+  const readGeneration=useRef(0);const readOperation=useRef<ReadOperation|null>(null);
   const url=`/api/customer/v1/services/quotes/publications?${new URLSearchParams({context_id:contextId,workspace_id:workspaceId,mode})}`;
-  useEffect(()=>{active.current=true;const controller=new AbortController();
-    void fetch(url,{cache:'no-store',credentials:'same-origin',signal:controller.signal}).then(async response=>{
-      if(!response.ok){if(!controller.signal.aborted)setNotice(response.status===401?t.signIn:[403,404].includes(response.status)?t.denied:t.loadError);return null;}return serviceQuotePublicationsSchema.parse(await response.json());
-    }).then(value=>{if(!controller.signal.aborted)setData(value);}).catch(()=>{if(!controller.signal.aborted)setNotice(t.loadError);});
-    return()=>{active.current=false;controller.abort();write.current?.abort();};
-  },[fetch,url,attempt,t.denied,t.loadError,t.signIn]);
+  const isCurrentRead=useCallback((operation:ReadOperation)=>active.current&&readOperation.current===operation&&readGeneration.current===operation.generation&&!operation.controller.signal.aborted,[]);
+  const beginRead=useCallback((kind:ReadOperation['kind'],controlsBusy:boolean)=>{
+    const previous=readOperation.current;
+    if(kind==='refresh'&&previous?.kind==='refresh')return null;
+    previous?.controller.abort();
+    const operation:ReadOperation={generation:++readGeneration.current,kind,controller:new AbortController(),controlsBusy:controlsBusy||Boolean(previous?.controlsBusy)};
+    readOperation.current=operation;
+    if(operation.controlsBusy)setBusy(true);
+    return operation;
+  },[]);
+  const finishRead=useCallback((operation:ReadOperation)=>{
+    if(readOperation.current!==operation||readGeneration.current!==operation.generation)return;
+    readOperation.current=null;
+    if(operation.controlsBusy&&active.current&&!inFlight.current)setBusy(false);
+  },[]);
+  const endLifetime=useCallback(()=>{
+    active.current=false;readGeneration.current++;
+    readOperation.current?.controller.abort();readOperation.current=null;
+    write.current?.abort();
+  },[]);
+  useEffect(()=>{
+    active.current=true;
+    return endLifetime;
+  },[endLifetime]);
+  useEffect(()=>{
+    const operation=beginRead('effect',false);if(!operation)return;
+    void (async()=>{
+      try{
+        const response=await fetch(url,{cache:'no-store',credentials:'same-origin',signal:operation.controller.signal});
+        if(!isCurrentRead(operation))return;
+        if(!response.ok){if(isConfirmedReadDenial(response.status)){setData(null);setBlocked(true);}setNotice(response.status===401?'signIn':[403,404].includes(response.status)?'denied':'loadError');return;}
+        const body=await response.json();if(!isCurrentRead(operation))return;
+        const value=serviceQuotePublicationsSchema.parse(body);if(!isCurrentRead(operation))return;
+        setData(value);setBlocked(false);setNotice(null);
+      }catch{if(isCurrentRead(operation))setNotice('loadError');}
+      finally{finishRead(operation);}
+    })();
+    return()=>{operation.controller.abort();finishRead(operation);};
+  },[beginRead,fetch,finishRead,isCurrentRead,url]);
   async function publish(quote:Read['quotes'][number]) {
     if(inFlight.current||blocked)return;
     const command=pending??publishServiceQuoteSchema.parse({context_id:contextId,workspace_id:workspaceId,quote_id:quote.quote_id,expected_version:quote.version,idempotency_key:crypto.randomUUID()});
-    setPending(command);inFlight.current=true;setBusy(true);setNotice('');const controller=new AbortController();write.current=controller;
+    setPending(command);inFlight.current=true;setBusy(true);setNotice(null);setReceiptNotice(null);const controller=new AbortController();write.current=controller;
     try{const response=await fetch('/api/customer/v1/services/quotes/publications',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command),signal:controller.signal});
       if(!active.current||controller.signal.aborted)return;
-      if(!response.ok){setBlocked([400,401,403,404,409].includes(response.status));setNotice(response.status===401?t.signIn:[403,404].includes(response.status)?t.writeDenied:[400,409].includes(response.status)?t.conflict:t.unknown);return;}
+      if(!response.ok){setBlocked([400,401,403,404,409].includes(response.status));setNotice(response.status===401?'signIn':[403,404].includes(response.status)?'writeDenied':[400,409].includes(response.status)?'conflict':'unknown');return;}
       const result=serviceQuotePublicationResultSchema.parse(await response.json());
       if(result.quote_id!==command.quote_id||result.version!==command.expected_version)throw new Error('unexpected result');
       if(!active.current||controller.signal.aborted)return;
-      setPending(null);setNotice(t.success);
+      setPending(null);setReceiptNotice('success');
       // Disable an already confirmed presentation even if the following history read fails.
       setData(old=>old?{...old,quotes:old.quotes.map(q=>q.quote_id===result.quote_id?{...q,state:'presented'}:q)}:old);
-      try{const response=await fetch(url,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
-        if(response.ok){const next=serviceQuotePublicationsSchema.parse(await response.json());if(active.current&&!controller.signal.aborted)setData(next);}
+      const operation=beginRead('postpublish',true);
+      if(operation)try{
+        const response=await fetch(url,{cache:'no-store',credentials:'same-origin',signal:operation.controller.signal});
+        if(!isCurrentRead(operation))return;
+        if(isConfirmedReadDenial(response.status)){setData(null);setBlocked(true);setNotice(response.status===401?'signIn':'denied');}
+        else if(response.ok){const body=await response.json();if(!isCurrentRead(operation))return;const next=serviceQuotePublicationsSchema.parse(body);if(isCurrentRead(operation))setData(next);}
       }catch{/* A confirmed presentation stays confirmed. */}
-    }catch{if(active.current&&!controller.signal.aborted)setNotice(t.unknown);}
-    finally{inFlight.current=false;if(active.current&&!controller.signal.aborted)setBusy(false);}
+      finally{finishRead(operation);}
+    }catch{if(active.current&&!controller.signal.aborted)setNotice('unknown');}
+    finally{inFlight.current=false;if(active.current&&!controller.signal.aborted&&!readOperation.current?.controlsBusy)setBusy(false);}
   }
   async function refresh(){
-    if(busy)return;
-    if(!blocked){setData(null);setNotice('');setAttempt(n=>n+1);return;}
-    setBusy(true);
-    const controller=new AbortController();write.current=controller;
+    if(inFlight.current)return;
+    const operation=beginRead('refresh',true);if(!operation)return;
+    if(!blocked){setData(null);setNotice(null);}
     try{
-      const response=await fetch(url,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
-      if(!response.ok)throw new Error(response.status===401?'session':[403,404].includes(response.status)?'denied':'retry');
-      const next=serviceQuotePublicationsSchema.parse(await response.json());
-      if(!active.current||controller.signal.aborted)return;
-      setData(next);setPending(null);setBlocked(false);setNotice('');
-    }catch(reason){
-      if(active.current&&!controller.signal.aborted)setNotice(reason instanceof Error&&reason.message==='session'?t.signIn:reason instanceof Error&&reason.message==='denied'?t.denied:t.loadError);
-    }finally{if(active.current&&!controller.signal.aborted)setBusy(false);}
+      const response=await fetch(url,{cache:'no-store',credentials:'same-origin',signal:operation.controller.signal});
+      if(!isCurrentRead(operation))return;
+      if(!response.ok){if(isConfirmedReadDenial(response.status)){setData(null);setBlocked(true);}setNotice(response.status===401?'signIn':[403,404].includes(response.status)?'denied':'loadError');return;}
+      const body=await response.json();if(!isCurrentRead(operation))return;
+      const next=serviceQuotePublicationsSchema.parse(body);if(!isCurrentRead(operation))return;
+      setData(next);setPending(null);setBlocked(false);setNotice(null);
+    }catch{if(isCurrentRead(operation))setNotice('loadError');}
+    finally{finishRead(operation);}
   }
   return <section dir={lang==='fa'?'rtl':'ltr'} className="space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t[mode]}</h2>
-    <p className="rounded-xl bg-amber-50 p-3 text-sm">{t.note}</p>{notice?<p role="status">{notice}</p>:null}
+    <p className="rounded-xl bg-amber-50 p-3 text-sm">{t.note}</p>{receiptNotice?<p role="status">{t[receiptNotice]}</p>:null}{notice?<p role="status">{t[notice]}</p>:null}
     <button type="button" disabled={busy||!!pending&&!blocked} onClick={()=>void refresh()} className="rounded-xl border px-4 py-2 disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2">{t.refresh}</button>
     {!data?<p role="status">{notice?'':t.loading}</p>:<>{mode==='coordinator'&&!data.can_publish?<p>{t.readOnly}</p>:null}<p className="text-xs text-slate-600">{t.bounded}</p>{!data.quotes.length?<p>{t.empty}</p>:<ul className="space-y-4">{data.quotes.map(quote=><li key={quote.quote_id} className="space-y-2 rounded-xl border p-4">
       <strong>{t[quote.state]} · {t.version} {quote.version}</strong><p>{quote.description}</p><p className="whitespace-pre-line">{quote.scope}</p>
       <p>{t.provider}: {quote.provider_label}</p><p>{t.beneficiary}: {quote.beneficiary_label}</p>
-      <p><bdi>{serviceQuoteMinorToAmount(quote.total_minor,quote.currency)} {quote.currency}</bdi></p><p>{t.expiry}: <bdi><time dateTime={quote.valid_until}>{new Intl.DateTimeFormat(lang==='fa'?'fa-IR':lang==='ro'?'ro-RO':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(quote.valid_until))} UTC</time></bdi></p>
+      <p><bdi>{serviceQuoteMinorToAmount(quote.total_minor,quote.currency)} {quote.currency}</bdi></p>
+      {quote.financial_proposal?<p className="rounded-lg bg-slate-50 p-2 text-sm">{lang==='fa'?'پیشنهاد FIN01':lang==='ro'?'Propunere FIN01':'FIN01 proposal'}: {quote.financial_proposal.approval_state==='pending'?(lang==='fa'?'در انتظار تأیید پرداخت‌کننده؛ ثبت مالی مسدود است':lang==='ro'?'Aprobarea plătitorului este în așteptare; înregistrarea financiară este blocată':'Payer approval pending; financial posting is withheld'):(lang==='fa'?'منقضی؛ ثبت مالی مسدود است':lang==='ro'?'Expirată; înregistrarea financiară este blocată':'Expired; financial posting is withheld')}</p>:null}
+      <p>{t.expiry}: <bdi><time dateTime={quote.valid_until}>{new Intl.DateTimeFormat(lang==='fa'?'fa-IR':lang==='ro'?'ro-RO':'en-GB',{dateStyle:'medium',timeStyle:'short',timeZone:'UTC'}).format(new Date(quote.valid_until))} UTC</time></bdi></p>
       <p className="text-sm text-slate-600">{t[quote.state==='draft'?'nextDraft':quote.state==='presented'?'nextPresented':quote.state==='expired'?'nextExpired':'nextSuperseded']}</p>
       {mode==='coordinator'&&data.can_publish&&quote.state==='draft'?<button type="button" disabled={busy||blocked||!!pending&&pending.quote_id!==quote.quote_id} onClick={()=>void publish(quote)} className="rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2">{pending?.quote_id===quote.quote_id?t.retry:t.publish}</button>:null}
     </li>)}</ul>}</>}

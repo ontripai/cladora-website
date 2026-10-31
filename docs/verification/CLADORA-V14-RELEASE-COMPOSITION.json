@@ -1,0 +1,45 @@
+{
+  "format": "CLADORA_RELEASE_COMPOSITION_V1",
+  "base": "8c8225fb3297035a2349357bd968d60779388063",
+  "source_layers": [
+    "Platform264 nine-layer assembly",
+    "summary277",
+    "export281",
+    "B01 inventory v3",
+    "Checklist282 PROCEDURE289 successor",
+    "UI296 final StrictMode successor",
+    "homepage474 nine components; canonical package/lock preserved"
+  ],
+  "immutable_source_overlays": [
+    {
+      "path": "src/components/customer/WorkOrderLifecyclePanel.tsx",
+      "before": {
+        "bytes": 20117,
+        "sha256": "640104a817a857163b3cbc68261a7c8cb98b427ccb377f02c08832ad171cfa3e"
+      },
+      "after": {
+        "bytes": 22081,
+        "sha256": "dd4d57fcd199f87d703d17c838e6b1ade1814a631b88b3b9d0b1ac470e58cea4"
+      },
+      "source": "PROCEDURE253-4 plus reviewed final UI296 overlay; verified264 baseline and exact apply; release correction: synchronous observation admission until React commits a fresh read; before/after mounted counterexample",
+      "accepted_intermediate": {
+        "bytes": 21577,
+        "sha256": "3cbbe7eeeed99f53fa3bf5e84e161b783cd0395a9f8208a6c908d1891b34d8d2"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerMaintenanceDashboard.tsx",
+      "before": {
+        "bytes": 19699,
+        "sha256": "b59d4f2dc942d5aae50b5c0f40b38a1edaf1594aaa15fbba06947bdf1a69571a"
+      },
+      "after": {
+        "bytes": 23045,
+        "sha256": "e570ae7e9bc8ea9bcec800b0391faef58975346f46d08f49735ac3dc6ac2c093"
+      },
+      "source": "PROCEDURE253-4 plus reviewed final UI296 overlay; verified264 baseline and exact apply"
+    }
+  ],
+  "runtime_and_installation": "NOT_RUN_NOT_PASS",
+  "target_toolchain_local": "NOT_RUN; existing Next16.3.8/Zod4.4.3 used without installation"
+}

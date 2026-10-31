@@ -1,12 +1,24 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
+import {dirname,resolve,relative} from 'node:path';
 import {createRequire,Module} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const require=createRequire(import.meta.url);
+const root=fileURLToPath(new URL('../',import.meta.url)),cache=new Map();
 function load(path,mocks={}){
  const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);
- mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);
+ if(cache.has(filename))return cache.get(filename).exports;cache.set(filename,mod);
+ mod.require=id=>{
+  if(Object.hasOwn(mocks,id))return mocks[id];
+  if(id==='server-only')return {};
+  if(id.startsWith('@/')||id.startsWith('.')){
+   const base=id.startsWith('@/')?resolve(root,'src',id.slice(2)):resolve(dirname(filename),id);
+   const found=[base,base+'.ts',base+'.tsx'].find(p=>existsSync(p));
+   if(found)return load(relative(root,found),mocks);
+  }
+  return require(id);
+ };
  mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);
  return mod.exports;
 }
@@ -36,38 +48,40 @@ for(const id of invalid){
  calls=[];
  assert.equal((await evidence.GET(get('maintenance',id))).status,400);
  assert.equal((await calendar.GET(get('maintenance-plans',id))).status,400);
- assert.equal((await calendar.POST(post({...payload,asset_id:id}))).status,400);
+ assert.equal((await calendar.POST(post({...payload,asset_id:id}))).status,428);
  assert.equal(calls.length,0,'malformed identifiers never reach RPC');
 }
 for(const id of [pilot,normal,normal.toUpperCase()]){
  calls=[];let response=await evidence.GET(get('maintenance',id));assert.equal(response.status,200);assert.equal(calls.at(-1).args.p_context_id,id);assert.equal(calls.at(-1).name,'get_maintenance_v1');assert.match(response.headers.get('cache-control'),/no-store/);
  response=await calendar.GET(get('maintenance-plans',id));assert.equal(response.status,200);assert.deepEqual(calls.at(-1),{name:'list_calendar_plans_v1',args:{p_context_id:id}});
 }
-calls=[];assert.equal((await calendar.POST(post())).status,200);assert.equal(calls.at(-1).name,'save_calendar_plan_v1');assert.equal(calls.at(-1).args.p_asset_id,pilot);assert.equal(calls.at(-1).args.p_vendor_id,pilot);
-assert.equal((await calendar.POST(post({action:'generate',context_id:pilot,plan_id:pilot,due_on:'2026-10-04'}))).status,200);assert.equal(calls.at(-1).name,'generate_calendar_order_v1');
-calls=[];assert.equal((await calendar.POST(post(payload,'https://evil.test'))).status,403);assert.equal((await calendar.POST(post({...payload,tenant_id:pilot}))).status,400);assert.equal(calls.length,0);
-authenticated=false;calls=[];assert.equal((await evidence.GET(get('maintenance',pilot))).status,401);assert.equal((await calendar.GET(get('maintenance-plans',pilot))).status,401);assert.equal((await calendar.POST(post())).status,401);assert.equal(calls.length,0);authenticated=true;
+// Core236 intentionally closed these legacy writes. Canonical command validation,
+// mutation and receipt binding are covered by the release Checklist/Operations suites.
+calls=[];assert.equal((await calendar.POST(post())).status,428);
+assert.equal((await calendar.POST(post({action:'generate',context_id:pilot,plan_id:pilot,due_on:'2026-10-04'}))).status,428);assert.equal(calls.length,0);
+calls=[];assert.equal((await calendar.POST(post(payload,'https://evil.test'))).status,428);assert.equal((await calendar.POST(post({...payload,tenant_id:pilot}))).status,428);assert.equal(calls.length,0);
+authenticated=false;calls=[];assert.equal((await evidence.GET(get('maintenance',pilot))).status,401);assert.equal((await calendar.GET(get('maintenance-plans',pilot))).status,401);assert.equal((await calendar.POST(post())).status,428);assert.equal(calls.length,0);authenticated=true;
 for(const message of ['customer_context_access_denied','mfa_required','maintenance_permission_required']){
- rpcError={code:'42501',message};assert.equal((await evidence.GET(get('maintenance',pilot))).status,403);assert.equal((await calendar.GET(get('maintenance-plans',pilot))).status,403);assert.equal((await calendar.POST(post())).status,403);
+ rpcError={code:'42501',message};assert.equal((await evidence.GET(get('maintenance',pilot))).status,403);assert.equal((await calendar.GET(get('maintenance-plans',pilot))).status,403);calls=[];assert.equal((await calendar.POST(post())).status,428);assert.equal(calls.length,0);
 }
-rpcError={code:'40001',message:'private revision detail'};assert.equal((await calendar.POST(post())).status,409);
-console.log('PASS maintenance PostgreSQL identifiers: real schemas and gateways, pilot/RFC IDs, malformed IDs, origin, strict payload, authentication, authorization, MFA and conflict');
+rpcError={code:'40001',message:'private revision detail'};calls=[];assert.equal((await calendar.POST(post())).status,428);assert.equal(calls.length,0);
+console.log('PASS maintenance read identifiers and authentication/authorization; all deprecated calendar writes remain 428 with zero RPCs');
 
-// Exercise the separate start gateway: stored IDs must reach the guarded RPC.
+// The separate legacy start gateway is also closed, regardless of identifiers.
 rpcError=null;
 const start=load('src/app/api/customer/v1/work-orders/[id]/start/route.ts',mocks);
 const startPost=(context_id=pilot,origin='https://cladora.test')=>new NextRequest('https://cladora.test/api/customer/v1/work-orders/'+pilot+'/start',{method:'POST',headers:{origin,'content-type':'application/json'},body:JSON.stringify({context_id,notes:'  Pilot start  '})});
 const startParams=id=>({params:Promise.resolve({id})});
 for(const id of [pilot,normal,normal.toUpperCase()]){
- calls=[];const response=await start.POST(startPost(id),startParams(id));assert.equal(response.status,200);assert.deepEqual(calls,[{name:'start_work_order_v1',args:{p_context_id:id,p_work_order_id:id,p_notes:'Pilot start'}}]);assert.match(response.headers.get('cache-control'),/no-store/);
+ calls=[];const response=await start.POST(startPost(id),startParams(id));assert.equal(response.status,428);assert.deepEqual(calls,[]);assert.match(response.headers.get('cache-control'),/no-store/);
 }
 for(const id of invalid){
- calls=[];assert.equal((await start.POST(startPost(id),startParams(pilot))).status,400);assert.equal((await start.POST(startPost(),startParams(id))).status,400);assert.equal(calls.length,0);
+ calls=[];assert.equal((await start.POST(startPost(id),startParams(pilot))).status,428);assert.equal((await start.POST(startPost(),startParams(id))).status,428);assert.equal(calls.length,0);
 }
-calls=[];assert.equal((await start.POST(startPost(pilot,'https://evil.test'),startParams(pilot))).status,403);assert.equal(calls.length,0);
-authenticated=false;calls=[];assert.equal((await start.POST(startPost(),startParams(pilot))).status,401);assert.equal(calls.length,0);authenticated=true;
+calls=[];assert.equal((await start.POST(startPost(pilot,'https://evil.test'),startParams(pilot))).status,428);assert.equal(calls.length,0);
+authenticated=false;calls=[];assert.equal((await start.POST(startPost(),startParams(pilot))).status,428);assert.equal(calls.length,0);authenticated=true;
 for(const message of ['customer_context_access_denied','mfa_required','maintenance_permission_required']){
- rpcError={code:'42501',message};assert.equal((await start.POST(startPost(),startParams(pilot))).status,403);
+ rpcError={code:'42501',message};calls=[];assert.equal((await start.POST(startPost(),startParams(pilot))).status,428);assert.equal(calls.length,0);
 }
-rpcError={code:'P0001',message:'invalid_work_order_transition'};assert.equal((await start.POST(startPost(),startParams(pilot))).status,409);
-console.log('PASS work-order start PostgreSQL IDs, invalid context/path rejection, exact RPC, origin, authentication, permissions, MFA and conflict');
+rpcError={code:'P0001',message:'invalid_work_order_transition'};calls=[];assert.equal((await start.POST(startPost(),startParams(pilot))).status,428);assert.equal(calls.length,0);
+console.log('PASS legacy work-order start remains 428 with zero RPCs for valid/invalid IDs, foreign origin, missing authentication, denial and conflict');

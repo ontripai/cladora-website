@@ -1,69 +1,54 @@
--- Test 081: CLADORA-P2-SETUP-001
+-- Original Setup flow migrated to real native v2 authority; domain assertions retained.
 begin;
+\ir fixtures/building_setup_authority_v2.inc
 select plan(28);
-
-insert into auth.users(id,email) values
- ('81100000-0000-0000-0000-000000000001','setup-author-081@cladora.test'),
- ('81100000-0000-0000-0000-000000000002','setup-reviewer-081@cladora.test');
-insert into platform.tenants(id,legal_name,registration_number,status)
-values('81200000-0000-0000-0000-000000000001','Setup 081 Association','SETUP-081','active');
-insert into identity.memberships(id,tenant_id,user_id,role_id,status)
-select x.id,'81200000-0000-0000-0000-000000000001',x.user_id,r.id,'active'
-from (values
- ('81300000-0000-0000-0000-000000000001'::uuid,'81100000-0000-0000-0000-000000000001'::uuid),
- ('81300000-0000-0000-0000-000000000002'::uuid,'81100000-0000-0000-0000-000000000002'::uuid)
-) x(id,user_id) cross join identity.roles r where r.tenant_id is null and r.code='association_admin';
-insert into platform.customer_workspaces(id,tenant_id,workspace_type,lifecycle_status,commercial_owner,environment,version)
-values('81400000-0000-0000-0000-000000000001','81200000-0000-0000-0000-000000000001','ASSOCIATION','ACTIVE','Test 081','PILOT',1);
-insert into identity.context_grants(id,membership_id,tenant_id,scope_type) values
- ('81500000-0000-0000-0000-000000000001','81300000-0000-0000-0000-000000000001','81200000-0000-0000-0000-000000000001','tenant'),
- ('81500000-0000-0000-0000-000000000002','81300000-0000-0000-0000-000000000002','81200000-0000-0000-0000-000000000001','tenant');
-
 select has_table('platform','building_setup_runs','setup run table exists');
-select has_function('customer_api','create_building_setup_v1',array['uuid','text','jsonb'],'create RPC exists');
-select has_function('customer_api','rehearse_building_setup_v1',array['uuid','uuid'],'rehearsal RPC exists');
-select has_function('customer_api','approve_building_setup_v1',array['uuid','uuid'],'approval RPC exists');
-select has_function('customer_api','provision_building_setup_v1',array['uuid','uuid'],'provision RPC exists');
-select ok(not has_function_privilege('anon','customer_api.create_building_setup_v1(uuid,text,jsonb)','execute'),'anon denied');
-
+select has_function('customer_api','create_building_setup_v2',array['uuid','uuid','text','jsonb'],'create RPC exists');
+select has_function('customer_api','rehearse_building_setup_v2',array['uuid','uuid','uuid','integer','text'],'rehearsal RPC exists');
+select has_function('customer_api','approve_building_setup_v2',array['uuid','uuid','uuid','integer','text','text'],'approval RPC exists');
+select has_function('customer_api','provision_building_setup_v2',array['uuid','uuid','uuid','integer','text'],'provision RPC exists');
+select ok(not has_function_privilege('anon','customer_api.create_building_setup_v2(uuid,uuid,text,jsonb)','execute'),'anon denied');
 set local role authenticated;
-select set_config('request.jwt.claims','{"sub":"81100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"81200000-0000-0000-0000-000000000001","active_context_id":"81500000-0000-0000-0000-000000000001"}',true);
-select lives_ok($$
- select customer_api.create_building_setup_v1(
-  '81500000-0000-0000-0000-000000000001','SETUP-081-KEY',
-  '{"association":{"name":"Synthetic Setup 081"},"building":{"name":"Main","code":"A","floors":2},"currency":"RON","period_start":"2026-01-01","period_end":"2026-01-31","units":[{"code":"1","floor":0,"area_m2":50},{"code":"2","floor":1,"area_m2":60}],"opening_balances":[{"side":"debit","amount":100},{"side":"credit","amount":100}]}'::jsonb)
-$$,'author creates a synthetic draft');
+select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.bs_id(1),'aal','aal2')::text,true);
+select lives_ok($$select set_config('cladora.setup_fixture.creation',pg_temp.bs_create('SETUP-081-KEY')::text,true)$$,'author creates a synthetic draft');
+select set_config('cladora.setup_fixture.run',current_setting('cladora.setup_fixture.creation')::jsonb->>'run_id',true);
 select ok((select count(*) from platform.building_setup_runs)=1,'idempotent draft persisted once');
-select lives_ok($$select customer_api.create_building_setup_v1('81500000-0000-0000-0000-000000000001','SETUP-081-KEY','{"association":{"name":"Synthetic Setup 081"},"building":{"name":"Main"},"currency":"RON","period_start":"2026-01-01","period_end":"2026-01-31","units":[{"code":"1"}]}'::jsonb)$$,'idempotent retry lives');
+select is(pg_temp.bs_create('SETUP-081-KEY'),current_setting('cladora.setup_fixture.creation')::jsonb,'exact receipt replay');
 select ok((select count(*) from platform.building_setup_runs)=1,'retry creates no duplicate');
-select lives_ok($$select customer_api.rehearse_building_setup_v1('81500000-0000-0000-0000-000000000001',(select id from platform.building_setup_runs limit 1))$$,'balanced opening rehearsal passes');
-select ok((select count(*) from portfolio.properties where tenant_id='81200000-0000-0000-0000-000000000001')=0,'rehearsal performs zero property writes');
-select lives_ok($$select customer_api.submit_building_setup_v1('81500000-0000-0000-0000-000000000001',(select id from platform.building_setup_runs limit 1))$$,'author submits');
-select throws_ok($$select customer_api.approve_building_setup_v1('81500000-0000-0000-0000-000000000001',(select id from platform.building_setup_runs limit 1))$$,'42501','setup_dual_control_violation','author cannot self-approve');
-
-select set_config('request.jwt.claims','{"sub":"81100000-0000-0000-0000-000000000002","aal":"aal2","active_tenant_id":"81200000-0000-0000-0000-000000000001","active_context_id":"81500000-0000-0000-0000-000000000002"}',true);
-select lives_ok($$select customer_api.approve_building_setup_v1('81500000-0000-0000-0000-000000000002',(select id from platform.building_setup_runs limit 1))$$,'independent reviewer approves');
-select lives_ok($$select customer_api.provision_building_setup_v1('81500000-0000-0000-0000-000000000002',(select id from platform.building_setup_runs limit 1))$$,'approved setup provisions atomically');
-select ok((select count(*) from portfolio.properties where tenant_id='81200000-0000-0000-0000-000000000001')=1,'one property provisioned');
-select ok((select count(*) from portfolio.buildings where tenant_id='81200000-0000-0000-0000-000000000001')=1,'one building provisioned');
-select ok((select count(*) from portfolio.units where tenant_id='81200000-0000-0000-0000-000000000001')=2,'two units provisioned');
-select ok((select count(*) from finance.accounting_periods where tenant_id='81200000-0000-0000-0000-000000000001' and status='open')=1,'one open period provisioned');
--- Inspect the private binding as the test owner; authenticated callers must not gain table access.
+select lives_ok($$select pg_temp.bs_command('rehearse',1)$$,'balanced opening rehearsal passes');
 reset role;
-select ok((select count(*) from platform.workspace_property_bindings where customer_workspace_id='81400000-0000-0000-0000-000000000001' and status='active')=1,'provision binds property to workspace');
--- Both grants are inspected independently of the reviewer's row visibility.
-select ok((select count(*) from identity.context_grants where membership_id='81300000-0000-0000-0000-000000000001' and scope_type='property')=1,'original operator gains property context');
-select ok((select count(*) from identity.context_grants where membership_id='81300000-0000-0000-0000-000000000002' and scope_type='property')=0,'reviewer gains no property context');
+select ok((select count(*) from portfolio.properties where tenant_id=pg_temp.bs_id(10))=1,'rehearsal performs zero property writes beyond fixture');
 set local role authenticated;
-select lives_ok($$select customer_api.provision_building_setup_v1('81500000-0000-0000-0000-000000000002',(select id from platform.building_setup_runs limit 1))$$,'provision retry is deterministic');
+select lives_ok($$select pg_temp.bs_command('submit',2)$$,'author submits');
+-- Give the operator independently assigned approval capability for this negative
+-- control, so the process dual-control check itself is exercised, not a missing grant.
+select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.bs_id(2),'aal','aal2')::text,true);
+select customer_api.assign_workspace_role_v2(pg_temp.bs_id(111),pg_temp.bs_id(101),pg_temp.bs_id(90),
+ (select value from bs_state where name='reviewer_role'),'workspace',null,null,null,
+ statement_timestamp()+interval '2 hours','Synthetic self approval negative control','bs081-dual-role');
+select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.bs_id(1),'aal','aal2')::text,true);
+select throws_ok($$select pg_temp.bs_command('approve',3)$$,'42501','setup_dual_control_violation','author cannot self-approve');
+select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.bs_id(3),'aal','aal2')::text,true);
+select lives_ok($$select pg_temp.bs_command('approve',3,current_setting('cladora.setup_fixture.reviewer_context')::uuid)$$,'independent reviewer approves');
+select set_config('request.jwt.claims',jsonb_build_object('sub',pg_temp.bs_id(1),'aal','aal2')::text,true);
+select lives_ok($$select set_config('cladora.setup_fixture.provision',pg_temp.bs_command('provision',4)::text,true)$$,'approved setup provisions atomically');
 reset role;
-select ok((select count(*) from platform.workspace_property_bindings where customer_workspace_id='81400000-0000-0000-0000-000000000001' and status='active')=1,'retry creates no duplicate binding');
+select ok((select count(*) from portfolio.properties where id=(current_setting('cladora.setup_fixture.provision')::jsonb->>'property_id')::uuid)=1,'one property provisioned');
+select ok((select count(*) from portfolio.buildings where property_id=(current_setting('cladora.setup_fixture.provision')::jsonb->>'property_id')::uuid)=1,'one building provisioned');
+select ok((select count(*) from portfolio.units where tenant_id=pg_temp.bs_id(10))=2,'two units provisioned');
+select ok((select count(*) from finance.accounting_periods where property_id=(current_setting('cladora.setup_fixture.provision')::jsonb->>'property_id')::uuid and status='open')=1,'one open period provisioned');
+select ok((select count(*) from platform.workspace_property_bindings where property_id=(current_setting('cladora.setup_fixture.provision')::jsonb->>'property_id')::uuid and customer_workspace_id=pg_temp.bs_id(50) and status='active')=1,'provision binds property to workspace');
+select ok((select count(*) from identity.context_grants where membership_id=pg_temp.bs_id(90) and property_id=(current_setting('cladora.setup_fixture.provision')::jsonb->>'property_id')::uuid)=1,'original operator gains property context');
+select ok((select count(*) from identity.context_grants where membership_id=(select value from bs_state where name='reviewer_membership') and property_id=(current_setting('cladora.setup_fixture.provision')::jsonb->>'property_id')::uuid)=0,'reviewer gains no property context');
 set local role authenticated;
-select ok((select count(*) from finance.journals where tenant_id='81200000-0000-0000-0000-000000000001')=0,'setup and rehearsal emit no journal');
-
-select set_config('request.jwt.claims','{"sub":"81100000-0000-0000-0000-000000000001","aal":"aal2","active_tenant_id":"81200000-0000-0000-0000-000000000001","active_context_id":"81500000-0000-0000-0000-000000000001"}',true);
-select lives_ok($$select customer_api.create_building_setup_v1('81500000-0000-0000-0000-000000000001','SETUP-081-UNBALANCED','{"association":{"name":"Synthetic Unbalanced"},"building":{"name":"Other","code":"B","floors":1},"currency":"RON","period_start":"2026-02-01","period_end":"2026-02-28","units":[{"code":"1"}],"opening_balances":[{"side":"debit","amount":10}]}'::jsonb)$$,'unbalanced synthetic draft can be previewed');
-select throws_ok($$select customer_api.rehearse_building_setup_v1('81500000-0000-0000-0000-000000000001',(select id from platform.building_setup_runs where idempotency_key='SETUP-081-UNBALANCED'))$$,'22023','opening_balance_rehearsal_not_zero','non-zero opening rehearsal fails closed');
-
+select is(pg_temp.bs_command('provision',4),current_setting('cladora.setup_fixture.provision')::jsonb,'provision retry returns exact receipt');
+reset role;
+select ok((select count(*) from platform.workspace_property_bindings where property_id=(current_setting('cladora.setup_fixture.provision')::jsonb->>'property_id')::uuid and customer_workspace_id=pg_temp.bs_id(50) and status='active')=1,'retry creates no duplicate binding');
+select ok((select count(*) from finance.journals where tenant_id=pg_temp.bs_id(10))=0,'setup and rehearsal emit no journal');
+set local role authenticated;
+select lives_ok($$select set_config('cladora.setup_fixture.unbalanced',pg_temp.bs_create('SETUP-081-UNBALANCED','[{"account_code":"OPEN","side":"debit","amount":10}]')::text,true)$$,'unbalanced synthetic draft can be previewed');
+select set_config('cladora.setup_fixture.run',current_setting('cladora.setup_fixture.unbalanced')::jsonb->>'run_id',true);
+select throws_ok($$select pg_temp.bs_command('rehearse',1)$$,'22023','opening_balance_rehearsal_not_zero','non-zero opening rehearsal fails closed');
+reset role;
 select * from finish();
 rollback;

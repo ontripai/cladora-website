@@ -18,13 +18,15 @@ function load(file) {
   return loadedModule.exports;
 }
 const { createServiceQuoteDraftSchema: schema, checkServiceQuoteRequest: check } = load(new URL('../src/lib/customer/service-quote-schema.ts', import.meta.url));
+const { serviceQuoteReadSchema, serviceQuoteResultSchema } = load(new URL('../src/lib/customer/service-quote-read-schema.ts', import.meta.url));
 const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', other='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
-const quote={context_id:id,workspace_id:id,request_id:id,published_revision_id:id,scope:'Synthetic maintenance quote',total_minor:'12345',currency:'RON',payer_shares:[{party_id:id,amount_minor:'2345'},{party_id:other,amount_minor:'10000'}],valid_until:'2026-10-06T12:00:00Z',idempotency_key:'service-quote-013'};
+const quote={context_id:id,workspace_id:id,request_id:id,expected_request_version:7,published_revision_id:id,scope:'Synthetic maintenance quote',total_minor:'12345',currency:'RON',payer_shares:[{party_id:id,amount_minor:'2345'},{party_id:other,amount_minor:'10000'}],valid_until:'2026-10-06T12:00:00Z',idempotency_key:'service-quote-013'};
 let cases=0;
 function valid(value, expected){assert.equal(schema.safeParse(value).success,expected);cases++;}
 valid(quote,true);
 for(const field of Object.keys(quote))valid({...quote,[field]:undefined},false);
 for(const field of ['context_id','workspace_id','request_id','published_revision_id']) for(const value of [null,'bad'])valid({...quote,[field]:value},false);
+for(const expected_request_version of [undefined,null,0,-1,1.5,Number.MAX_SAFE_INTEGER+1,'7'])valid({...quote,expected_request_version},false);
 for(const field of ['actor_id','tenant_id','provider_party_id','beneficiary_party_id','status','quote_version','order_id','accepted_by','payment_id','work_order_id'])valid({...quote,[field]:id},false);
 for(const total_minor of ['-1','01','1.23','1e2',' 12345','1000000000000000000',12345,null])valid({...quote,total_minor},false);
 for(const currency of ['JPY','ron','XXX',null])valid({...quote,currency},false);
@@ -35,13 +37,19 @@ valid({...quote,total_minor:'0',payer_shares:[{party_id:id,amount_minor:'0'}]},t
 valid({...quote,total_minor:'999999999999999999',payer_shares:[{party_id:id,amount_minor:'999999999999999999'}]},true);
 for(const valid_until of ['bad','2026-10-06',null])valid({...quote,valid_until},false);
 for(const scope of ['','    ','x'.repeat(5001)])valid({...quote,scope},false);
-const request={id,workspace_id:id,published_revision_id:id,status:'submitted'},now=Date.parse('2026-10-05T12:00:00Z');
+const request={id,version:7,workspace_id:id,published_revision_id:id,status:'submitted'},now=Date.parse('2026-10-05T12:00:00Z');
 assert.equal(check(quote,request,now),'OK');
 assert.equal(check(quote,{...request,id:other},now),'REQUEST_MISMATCH');
 assert.equal(check(quote,{...request,workspace_id:other},now),'REQUEST_MISMATCH');
+assert.equal(check(quote,{...request,version:8},now),'REQUEST_VERSION_MISMATCH');
 assert.equal(check(quote,{...request,published_revision_id:other},now),'REVISION_MISMATCH');
 assert.equal(check(quote,{...request,id:id.toUpperCase()},now),'OK');
 for(const status of ['cancelled','completed','draft'])assert.equal(check(quote,{...request,status},now),'UNAVAILABLE');
 for(const t of [NaN,Infinity,Date.parse(quote.valid_until),Date.parse(quote.valid_until)+1])assert.equal(check(quote,request,t),'UNAVAILABLE');
 assert.equal(check({...quote,valid_until:'bad'},request,now),'UNAVAILABLE');
+const read={requests:[{request_id:id,request_version:7,published_revision_id:id,beneficiary_party_id:id,beneficiary_label:'Beneficiary',provider_label:'Provider',description:'Request',quotes:[]}]};
+assert.equal(serviceQuoteReadSchema.safeParse(read).success,true);
+for(const request_version of [undefined,0,-1,1.5,Number.MAX_SAFE_INTEGER+1,'7'])assert.equal(serviceQuoteReadSchema.safeParse({requests:[{...read.requests[0],request_version}]}).success,false);
+assert.equal(serviceQuoteResultSchema.safeParse({quote_id:id,version:1,request_version:7,status:'draft'}).success,true);
+assert.equal(serviceQuoteResultSchema.safeParse({quote_id:id,version:1,status:'draft'}).success,false);
 console.log(`PASS ${cases} quote payload cases plus historical revision, workspace and expiry boundaries`);
