@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Calendar,
   FileSpreadsheet,
-  Coins
+  Coins,
+  Users
 } from 'lucide-react';
 
 interface ThreeDomainsSectionProps {
@@ -33,17 +34,17 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
             {lang === 'ro'
-              ? 'O bază sigură de date și trei secțiuni practice pentru clădirea ta'
+              ? 'O bază sigură de date și patru domenii practice pentru clădirea ta'
               : lang === 'fa'
-              ? 'پایگاه امن اطلاعات و سه بخش کاربردی برای ساختمان شما'
-              : 'One Secure Foundation & Three Practical Modules for Your Building'}
+              ? 'پایگاه امن اطلاعات و چهار حوزهٔ کاربردی برای ساختمان شما'
+              : 'One Secure Foundation & Four Practical Domains for Your Building'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'CLADORA adună totul la un loc: datele clădirii, plățile și actele sunt păstrate în siguranță, în timp ce secțiunile dedicate se ocupă de vânzări/închirieri, comenzi de servicii și reparații tehnice.'
+              ? 'CLADORA adună totul la un loc: datele clădirii, plățile și actele sunt păstrate în siguranță, în timp ce domeniile dedicate se ocupă de tranzacții și închirieri, comenzi de servicii, reparații tehnice și experiența comunitară.'
               : lang === 'fa'
-              ? 'کلادورا همه چیز را یکپارچه می‌کند: مشخصات ساختمان، حساب‌ها و اسناد در مکانی امن نگهداری می‌شوند و سه بخش مجزا به امور اجاره و فروش، سفارش خدمات و تعمیرات فنی اختصاص دارند.'
-              : 'CLADORA brings everything together: building records, payments, and documents stay organized in one place, while dedicated modules handle rentals, service requests, and maintenance.'}
+              ? 'کلادورا همه چیز را یکپارچه می‌کند: مشخصات ساختمان، حساب‌ها و اسناد در مکانی امن نگهداری می‌شوند و چهار حوزه مجزا به امور اجاره و فروش، سفارش خدمات، تعمیرات فنی و جامعه و تجربه سکونت اختصاص دارند.'
+              : 'CLADORA brings everything together: building records, payments, and documents stay organized in one place, while dedicated domains handle transactions & leasing, service requests, technical operations, and community experience.'}
           </p>
         </div>
 
@@ -86,11 +87,11 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
           </div>
         </div>
 
-        {/* 3 Operational Domains Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* 4 Operational Domains Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
           {/* Domain 1: AIRPROP */}
-          <div className="card-proptech p-8 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-amber-400 hover:shadow-lg transition-all group">
+          <div className="card-proptech p-6 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-amber-400 hover:shadow-lg transition-all group">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center">
@@ -146,7 +147,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
           </div>
 
           {/* Domain 2: SERVICE */}
-          <div className="card-proptech p-8 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-teal-400 hover:shadow-lg transition-all group">
+          <div className="card-proptech p-6 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-teal-400 hover:shadow-lg transition-all group">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 border border-teal-200 flex items-center justify-center">
@@ -202,7 +203,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
           </div>
 
           {/* Domain 3: Operations & Maintenance */}
-          <div className="card-proptech p-8 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-blue-400 hover:shadow-lg transition-all group">
+          <div className="card-proptech p-6 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-blue-400 hover:shadow-lg transition-all group">
             <div className="space-y-5">
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 border border-blue-200 flex items-center justify-center">
@@ -252,6 +253,62 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 className="text-xs font-bold text-blue-700 hover:text-blue-800 flex items-center justify-between w-full"
               >
                 <span>{lang === 'ro' ? 'Află mai multe despre Operațiuni' : lang === 'fa' ? 'اطلاعات بیشتر درباره بخش عملیات و نگهداری' : 'Learn more about Operations'}</span>
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Domain 4: CE (Community & Experience) */}
+          <div className="card-proptech p-6 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-indigo-400 hover:shadow-lg transition-all group">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-200 flex items-center justify-center">
+                  <Users className="w-6 h-6" />
+                </div>
+                <span className="text-xs font-extrabold uppercase tracking-wider text-indigo-700 bg-indigo-100/60 px-2.5 py-1 rounded-full">
+                  CE
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-[#102A43] group-hover:text-indigo-700 transition-colors">
+                  {lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience'}
+                </h3>
+                <p className="text-xs text-[#627D98] font-medium mt-0.5">
+                  {lang === 'ro' ? 'Ghiduri de spațiu, facilități & comunicare' : lang === 'fa' ? 'راهنمای فضاها، امکانات رفاهی و ارتباط مستقیم' : 'Space guides, amenities & resident updates'}
+                </p>
+              </div>
+
+              <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
+                {lang === 'ro'
+                  ? 'Conectează rezidenții și utilizatorii clădirii la facilități, evenimente și ghiduri utile de utilizare a spațiului, păstrând comunicarea directă și sigură fără a amesteca rolurile de administrare.'
+                  : lang === 'fa'
+                  ? 'ساکنان و بهره‌برداران را به امکانات رفاهی، رویدادها و راهنمای فضاهای ساختمان متصل می‌کند؛ با برقراری ارتباط مستقیم و امن، بدون تداخل با اختیارات مدیریتی یا دسترسی‌های محرمانه.'
+                  : 'Connects residents and occupants to amenities, local events, and practical space guides, maintaining direct and secure communication without conflating administrative roles.'}
+              </p>
+
+              <ul className="space-y-2 text-xs text-[#334E68] pt-2 border-t border-[#F0F4F8]">
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span>{lang === 'ro' ? 'Ghiduri practice de spațiu și utilizare a facilităților clădirii' : lang === 'fa' ? 'راهنمای کاربردی استفاده از مشاعات و فضاهای مشترک' : 'Practical space guides and building amenity utilization'}</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span>{lang === 'ro' ? 'Canale clare de anunțuri și consultare a comunității' : lang === 'fa' ? 'کانال‌های اطلاع‌رسانی رسمی و نظرسنجی از ساکنان' : 'Structured announcements and community notice channels'}</span>
+                </li>
+                <li className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <span>{lang === 'ro' ? 'Rezervarea facilităților fără suprapuneri sau conflicte' : lang === 'fa' ? 'رزرو امکانات رفاهی بدون تداخل یا تعارض نوبت‌ها' : 'Amenity reservation without schedule conflicts'}</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-6 mt-6 border-t border-[#F0F4F8]">
+              <Link
+                href={`/${lang}/community-experience`}
+                className="text-xs font-bold text-indigo-700 hover:text-indigo-800 flex items-center justify-between w-full"
+              >
+                <span>{lang === 'ro' ? 'Află mai multe despre Comunitate' : lang === 'fa' ? 'اطلاعات بیشتر درباره جامعه و تجربه' : 'Learn more about Community'}</span>
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>

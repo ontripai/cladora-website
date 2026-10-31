@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
 import { 
@@ -58,6 +58,15 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const formTopRef = useRef<HTMLDivElement>(null);
+
+  const scrollToFormTop = () => {
+    if (formTopRef.current) {
+      const yOffset = -90; // prevent title from being obscured by sticky header
+      const y = formTopRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+    }
+  };
 
   const toggleService = (srv: string) => {
     setServices((prev) => 
@@ -82,12 +91,14 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
     if (isStepValid()) {
       setCurrentStep((prev) => Math.min(6, prev + 1));
       setErrorMessage(null);
+      scrollToFormTop();
     }
   };
 
   const handleBack = () => {
     setCurrentStep((prev) => Math.max(1, prev - 1));
     setErrorMessage(null);
+    scrollToFormTop();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -191,6 +202,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
     { id: 'airprop', label: 'AIRPROP', desc: lang === 'ro' ? 'Prezentare imobil, oportunități, pre-vânzări & închirieri' : lang === 'fa' ? 'عرضه ملک، فرصت‌ها، پیش‌فروش و قراردادهای اجاره' : 'Property marketing, pre-sales & leasing' },
     { id: 'service', label: 'SERVICE', desc: lang === 'ro' ? 'Catalog servicii, ofertare, comenzi & recepție lucrări' : lang === 'fa' ? 'کاتالوگ خدمات، استعلام قیمت، سفارش و نظارت بر اجرا' : 'Service catalog, quote comparison & execution' },
     { id: 'operations', label: lang === 'ro' ? 'Operațiuni & Mentenanță' : lang === 'fa' ? 'عملیات و نگهداری' : 'Operations & Maintenance', desc: lang === 'ro' ? 'Active tehnice, planuri preventive & tichete avarii' : lang === 'fa' ? 'تجهیزات فنی، نگهداری دوره‌ای و دستورکارها' : 'Equipment logs, recurring plans & work orders' },
+    {
+      id: 'community_experience',
+      label: lang === 'ro' ? 'Comunitate & Experiență (CE)' : lang === 'fa' ? 'جامعه و تجربه (CE)' : 'Community & Experience (CE)',
+      desc: lang === 'ro' ? 'Comunitate de rezidenți, comunicare directă, facilități și experiență de locuire' : lang === 'fa' ? 'جامعه ساکنان، ارتباطات مستقیم، خدمات رفاهی و تجربه سکونت' : 'Resident community, direct communication, amenities & living experience'
+    },
     { id: 'finance', label: lang === 'ro' ? 'Adevăr Financiar' : lang === 'fa' ? 'مدیریت مالی و تسهیم هزینه‌ها' : 'Financial Truth & Ledger', desc: lang === 'ro' ? 'Calcul cote, liste de plată, reconciliere bancară' : lang === 'fa' ? 'محاسبه شفاف سهم شارژ، تطبیق بانکی و گزارش‌ها' : 'Explainable charges, payment lists & bank matching' },
     { id: 'governance', label: lang === 'ro' ? 'Guvernanță & Seif' : lang === 'fa' ? 'مدیریت اسناد، جلسات و آرا' : 'Governance & Vault', desc: lang === 'ro' ? 'Seif documente, adunări generale & comunicări' : lang === 'fa' ? 'بایگانی اسناد، مجامع عمومی و اعلانات رسمی' : 'Document vault, AGM voting & notices' },
   ];
@@ -252,7 +268,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
   }
 
   return (
-    <div className="w-full max-w-3xl mx-auto px-3 sm:px-6">
+    <div ref={formTopRef} className="w-full max-w-3xl mx-auto px-3 sm:px-6 scroll-mt-28">
       
       {/* Form Card */}
       <div className="w-full bg-white rounded-3xl border border-[#E2E8F0] shadow-card overflow-hidden">
@@ -444,10 +460,19 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                 {availableServices.map((srv) => {
                   const isChecked = services.includes(srv.id);
                   return (
-                    <div
+                    <button
                       key={srv.id}
+                      type="button"
+                      role="checkbox"
+                      aria-checked={isChecked}
                       onClick={() => toggleService(srv.id)}
-                      className={`p-4 rounded-2xl border cursor-pointer text-start transition-all flex items-start gap-3 ${
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' || e.key === 'Enter') {
+                          e.preventDefault();
+                          toggleService(srv.id);
+                        }
+                      }}
+                      className={`w-full p-4 rounded-2xl border text-start transition-all flex items-start gap-3 focus:outline-hidden focus:ring-2 focus:ring-[#0E9F8E] focus:ring-offset-2 ${
                         isChecked
                           ? 'border-[#0E9F8E] bg-[#EAF8F5] text-[#102A43] ring-1 ring-[#0E9F8E]'
                           : 'border-[#E2E8F0] bg-white text-[#334E68] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
@@ -456,15 +481,15 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                       <div className={`w-5 h-5 rounded-md border flex items-center justify-center mt-0.5 shrink-0 ${isChecked ? 'bg-[#0E9F8E] border-[#0E9F8E] text-white' : 'border-[#CBD5E1] bg-white'}`}>
                         {isChecked && <CheckCircle2 className="w-4 h-4" />}
                       </div>
-                      <div>
-                        <span className="text-xs sm:text-sm font-bold block">
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs sm:text-sm font-bold block break-words">
                           {srv.label}
                         </span>
-                        <span className="text-xs text-[#52667A]">
+                        <span className="text-xs text-[#52667A] block break-words mt-0.5">
                           {srv.desc}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -485,13 +510,13 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                       key={ws.id}
                       type="button"
                       onClick={() => setWorkspaceStatus(ws.id)}
-                      className={`w-full p-4 rounded-2xl border text-start transition-all flex items-center justify-between ${
+                      className={`w-full p-4 rounded-2xl border text-start transition-all flex items-center justify-between gap-3 ${
                         isSelected
                           ? 'border-[#0E9F8E] bg-[#EAF8F5] text-[#102A43] shadow-2xs ring-1 ring-[#0E9F8E]'
                           : 'border-[#E2E8F0] bg-white text-[#334E68] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
                       }`}
                     >
-                      <span className="text-xs sm:text-sm font-bold">
+                      <span className="text-xs sm:text-sm font-bold min-w-0 flex-1 break-words">
                         {ws.label}
                       </span>
                       {isSelected && <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0" />}

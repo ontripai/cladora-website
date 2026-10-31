@@ -28,11 +28,11 @@ const DEFAULT_DESTINATIONS = {
 };
 
 const ALLOWED_NEXT_PATHS = {
-  email: (lang) => [`/${lang}/app/dashboard`],
+  email: (lang) => [`/${lang}/app/dashboard`, `/${lang}/demo`],
   invite: (lang) => [`/${lang}/invitation-continuation`, `/${lang}/cases`, `/${lang}/pilot-reviewer`],
   magiclink: (lang) => [`/${lang}/app/dashboard`, `/${lang}/invitation-continuation`],
   recovery: (lang) => [`/${lang}/reset-password`],
-  signup: (lang) => [`/${lang}/app/dashboard`],
+  signup: (lang) => [`/${lang}/app/dashboard`, `/${lang}/demo`],
   email_change: (lang) => [`/${lang}/app/settings`],
 };
 
@@ -167,6 +167,7 @@ export function resolvePkceDestination(lang, rawNext) {
   const allowedPaths = [
     `/${lang}/reset-password`,
     `/${lang}/app/dashboard`,
+    `/${lang}/demo`,
     `/${lang}/invitation-continuation`,
     `/${lang}/pilot-reviewer`,
     `/${lang}/app/settings`,
