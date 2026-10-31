@@ -103,6 +103,8 @@ jobs:
       - run: npm run test:ce:benefit-ownership-reconciliation
       - run: npm run test:ce:benefit-presentation-handoff
       - run: npm run test:unit
+      - name: Contact intake retention (real handler, controlled persistence and notifier)
+        run: node scripts/test-contact-intake-retention.mjs
       - name: Mobile consumer guards (mocked Auth/HTTP, no connected DB)
         run: npm run test:mobile-consumer-guards
       - run: npm run test:core-jurisdiction-profile
