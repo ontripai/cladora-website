@@ -58,8 +58,23 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'records' | 'preview_form'>('records');
 
-  // CE-specific subview tab: 'announcements' | 'bookings' | 'guides' | 'events'
-  const [ceSubView, setCeSubView] = useState<'announcements' | 'bookings' | 'guides' | 'events'>('announcements');
+  // Capability permissions from workspace navigation descriptor
+  const isCeModule = moduleKey === 'community-experience' || moduleKey === 'community_experience';
+  const commItem = Array.isArray(workspace.navigation)
+    ? workspace.navigation.find((i) => i.key === 'communications')
+    : undefined;
+  const bookItem = Array.isArray(workspace.navigation)
+    ? workspace.navigation.find((i) => i.key === 'bookings')
+    : undefined;
+  const commPermitted = Boolean(commItem && commItem.access !== 'locked');
+  const bookPermitted = Boolean(bookItem && bookItem.access !== 'locked');
+  const isCePermitted = Boolean(commPermitted || bookPermitted);
+
+  // CE-specific subview tab: default to first permitted capability or unseeded guides
+  const defaultCeSubView: 'announcements' | 'bookings' | 'guides' | 'events' = commPermitted
+    ? 'announcements'
+    : (bookPermitted ? 'bookings' : 'guides');
+  const [ceSubView, setCeSubView] = useState<'announcements' | 'bookings' | 'guides' | 'events'>(defaultCeSubView);
 
   // Query state
   const configured = isSupabaseConfigured();
@@ -85,9 +100,9 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
   const moduleReqIdRef = useRef(0);
 
   // Determine view mode
-  const isCeModule = moduleKey === 'community-experience' || moduleKey === 'community_experience';
   const isReportDriven = moduleKey === 'finance' || moduleKey === 'reports' || moduleKey === 'activity';
   const isLockedModule = moduleKey === 'payments' || moduleKey === 'role_administration';
+  const isModuleLocked = isLockedModule || (isCeModule && !isCePermitted);
   const isSettingsModule = moduleKey === 'settings';
 
   // Reset pagination & search during render when module or workspace changes (official React pattern)
@@ -104,11 +119,12 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
     setTotal(0);
     setReportsData(null);
     setError(null);
-    setLoading(!isLockedModule && moduleKey !== 'settings' && configured);
+    setLoading(!isModuleLocked && moduleKey !== 'settings' && configured);
+    setCeSubView(commPermitted ? 'announcements' : (bookPermitted ? 'bookings' : 'guides'));
   }
 
   useEffect(() => {
-    if (!configured || isLockedModule || isSettingsModule) {
+    if (!configured || isModuleLocked || isSettingsModule) {
       return;
     }
 
@@ -129,8 +145,8 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
             setItems([]);
           }
         } else if (isCeModule) {
-          // CE loads specific modules per subview instead of module: null (which dumped all 75 items)
-          if (ceSubView === 'announcements') {
+          // CE queries specific subview ONLY if authorized in descriptor
+          if (ceSubView === 'announcements' && commPermitted) {
             const res = await fetchDemoItems(client, workspace.id, {
               module: 'communications',
               limit,
@@ -140,7 +156,7 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
               setItems(res.items || []);
               setTotal(res.total || 0);
             }
-          } else if (ceSubView === 'bookings') {
+          } else if (ceSubView === 'bookings' && bookPermitted) {
             const res = await fetchDemoItems(client, workspace.id, {
               module: 'bookings',
               limit,
@@ -151,7 +167,7 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
               setTotal(res.total || 0);
             }
           } else {
-            // Space Guides & Community Events are unseeded in public demo
+            // Space Guides & Community Events (unseeded) or locked subviews
             if (isMounted && reqId === moduleReqIdRef.current) {
               setItems([]);
               setTotal(0);
@@ -185,7 +201,7 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [configured, workspace.id, moduleKey, isCeModule, ceSubView, isReportDriven, isLockedModule, isSettingsModule, page, limit]);
+  }, [configured, workspace.id, moduleKey, isCeModule, ceSubView, isReportDriven, isModuleLocked, isSettingsModule, commPermitted, bookPermitted, page, limit]);
 
   const filteredItems = items.filter((item) => {
     if (!searchTerm.trim()) return true;
@@ -280,10 +296,11 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
     desc: { ro: 'Explorare date și formulare demonstrative.', fa: 'مشاهده داده‌ها و فرم‌های نمونه.', en: 'Inspect sample records and forms.' },
   };
 
-  // 1. LOCKED MODULE VIEW (Payments & Role Administration)
-  if (isLockedModule) {
+  // 1. LOCKED MODULE VIEW (Payments, Role Administration, & CE when not permitted)
+  if (isModuleLocked) {
     const isPayment = moduleKey === 'payments';
-    const Icon = isPayment ? CreditCard : UserCheck;
+    const isCeLocked = isCeModule && !isCePermitted;
+    const Icon = isPayment ? CreditCard : isCeLocked ? Users : UserCheck;
 
     return (
       <div className="space-y-6 animate-in fade-in duration-200">
@@ -313,6 +330,8 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
             <h2 className="text-xl font-bold text-[#102A43]">
               {isPayment
                 ? (lang === 'ro' ? 'Modulul de Plăți este blocat în mediul demonstrativ' : lang === 'fa' ? 'ماژول پرداخت‌ها در محیط پیش‌نمایش قفل است' : 'Payments Module is Locked in Preview')
+                : isCeLocked
+                ? (lang === 'ro' ? 'Modulul Community & Experience este blocat în mediul demonstrativ' : lang === 'fa' ? 'ماژول تجربه جامعه در محیط پیش‌نمایش قفل است' : 'Community & Experience Module is Locked in Preview')
                 : (lang === 'ro' ? 'Administrarea Rolurilor este blocată în mediul demonstrativ' : lang === 'fa' ? 'مدیریت نقش‌ها در محیط پیش‌نمایش قفل است' : 'Role Administration is Locked in Preview')}
             </h2>
             <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed max-w-lg mx-auto">
@@ -322,6 +341,12 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                   : lang === 'fa'
                   ? 'پردازش واقعی تراکنش‌های مالی نیازمند احراز هویت حقوقی، اتصال امن به درگاه‌های شاپرک/بانکی و رعایت استانداردهای مالی است.'
                   : 'Live financial processing requires verified corporate identity, certified banking gateway credentials, PCI-DSS compliance, and verified mandates.')
+                : isCeLocked
+                ? (lang === 'ro'
+                  ? 'Accesul la capacitățile de comunicare și rezervări nu este autorizat în descriptorul de navigare al spațiului demonstrativ curent.'
+                  : lang === 'fa'
+                  ? 'دسترسی به قابلیت‌های ارتباطات و رزرواسیون در توصیف‌گر ناوبری این فضای کاری فعال نشده است.'
+                  : 'Access to communications and amenity booking capabilities is not authorized in current workspace navigation descriptor.')
                 : (lang === 'ro'
                   ? 'Modificarea structurii de permisiuni și drepturi de acces este rezervată exclusiv administratorilor desemnați prin statutul asociației de proprietari în mediul de producție.'
                   : lang === 'fa'
@@ -339,6 +364,11 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                 <>
                   <li>{lang === 'ro' ? 'Contract de procesare plăți cu procesator autorizat' : lang === 'fa' ? 'قرارداد رسمی با ارائه‌دهنده خدمات پرداخت' : 'Merchant processing agreement with authorized payment provider'}</li>
                   <li>{lang === 'ro' ? 'Cont bancar dedicat deschis pe numele asociației' : lang === 'fa' ? 'حساب بانکی حقوقی فعال به نام مجتمع/ساختمان' : 'Dedicated legal bank account in property association name'}</li>
+                </>
+              ) : isCeLocked ? (
+                <>
+                  <li>{lang === 'ro' ? 'Activare permisiuni de comunicare sau rezervări în descriptorul spațiului' : lang === 'fa' ? 'فعال‌سازی مجوزهای ارتباطات یا رزرو در توصیف‌گر فضای کاری' : 'Enable communications or bookings permissions in workspace descriptor'}</li>
+                  <li>{lang === 'ro' ? 'Configurare facilități și canale oficiale de anunțuri' : lang === 'fa' ? 'پیکربندی مشاعات و کانال‌های رسمی اطلاع‌رسانی' : 'Configure amenities and official announcement channels'}</li>
                 </>
               ) : (
                 <>
@@ -525,27 +555,39 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
           </span>
           <button
             type="button"
-            onClick={() => setCeSubView('announcements')}
+            disabled={!commPermitted}
+            onClick={() => {
+              if (commPermitted) setCeSubView('announcements');
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              ceSubView === 'announcements'
+              !commPermitted
+                ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400'
+                : ceSubView === 'announcements'
                 ? 'bg-[#EAF8F5] text-[#0E9F8E] border border-[#B2E5DF]'
                 : 'text-[#52667A] hover:bg-[#F0F4F8]'
             }`}
           >
             <Megaphone className="w-3.5 h-3.5" />
             <span>{lang === 'ro' ? 'Anunțuri Oficiale' : lang === 'fa' ? 'تابلوی اعلانات' : 'Announcements'}</span>
+            {!commPermitted && <Lock className="w-2.5 h-2.5 text-slate-400" />}
           </button>
           <button
             type="button"
-            onClick={() => setCeSubView('bookings')}
+            disabled={!bookPermitted}
+            onClick={() => {
+              if (bookPermitted) setCeSubView('bookings');
+            }}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-              ceSubView === 'bookings'
+              !bookPermitted
+                ? 'opacity-50 cursor-not-allowed bg-slate-100 text-slate-400'
+                : ceSubView === 'bookings'
                 ? 'bg-[#EAF8F5] text-[#0E9F8E] border border-[#B2E5DF]'
                 : 'text-[#52667A] hover:bg-[#F0F4F8]'
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
             <span>{lang === 'ro' ? 'Facilități & Rezervări' : lang === 'fa' ? 'رزرو مشاعات' : 'Amenity Bookings'}</span>
+            {!bookPermitted && <Lock className="w-2.5 h-2.5 text-slate-400" />}
           </button>
           <button
             type="button"
@@ -609,10 +651,10 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                     {lang === 'ro' ? 'Total Facturat (6 luni)' : lang === 'fa' ? 'کل شارژ صادره (۶ ماه)' : 'Total Invoiced (6 Mo)'}
                   </span>
                   <div className="text-2xl font-bold text-[#102A43] font-mono">
-                    {reportsData.finance.invoiced.toLocaleString()} {reportsData.finance.currency}
+                    {reportsData.finance.invoiced.toLocaleString()} {reportsData.finance.currency || 'RON'}
                   </div>
                   <span className="text-[11px] text-[#627D98] block">
-                    {reportsData.finance.invoice_count} {lang === 'ro' ? 'facturi emise' : lang === 'fa' ? 'صورت‌حساب صادرشده' : 'invoices issued'}
+                    {reportsData.finance.invoice_count ?? 0} {lang === 'ro' ? 'facturi emise' : lang === 'fa' ? 'صورت‌حساب صادرشده' : 'invoices issued'}
                   </span>
                 </div>
 
@@ -621,7 +663,7 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                     {lang === 'ro' ? 'Încasat / Plătit' : lang === 'fa' ? 'مجموع واریز شده' : 'Collected / Paid'}
                   </span>
                   <div className="text-2xl font-bold text-emerald-600 font-mono">
-                    {reportsData.finance.paid.toLocaleString()} {reportsData.finance.currency}
+                    {reportsData.finance.paid.toLocaleString()} {reportsData.finance.currency || 'RON'}
                   </div>
                   <span className="text-[11px] text-emerald-700 block">
                     {reportsData.finance.invoiced > 0
@@ -635,7 +677,7 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                     {lang === 'ro' ? 'Sold Rămas / Restanțe' : lang === 'fa' ? 'مانده معوقه' : 'Outstanding Balance'}
                   </span>
                   <div className="text-2xl font-bold text-amber-600 font-mono">
-                    {reportsData.finance.outstanding.toLocaleString()} {reportsData.finance.currency}
+                    {reportsData.finance.outstanding.toLocaleString()} {reportsData.finance.currency || 'RON'}
                   </div>
                   <span className="text-[11px] text-amber-700 block">
                     {lang === 'ro' ? 'Restanțe curente' : lang === 'fa' ? 'معوقات جاری واحدها' : 'Current outstanding'}
@@ -647,7 +689,7 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                     {lang === 'ro' ? 'Monedă Referință' : lang === 'fa' ? 'ارز محاسباتی' : 'Ledger Currency'}
                   </span>
                   <div className="text-2xl font-bold text-[#0E9F8E] font-mono">
-                    {reportsData.finance.currency}
+                    {reportsData.finance.currency || 'RON'}
                   </div>
                   <span className="text-[11px] text-[#627D98] block">
                     {lang === 'ro' ? 'Configurat per workspace' : lang === 'fa' ? 'تنظیم‌شده در ورک‌اسپیس' : 'Workspace base currency'}
@@ -679,14 +721,19 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                     </thead>
                     <tbody className="divide-y divide-[#F0F4F8]">
                       {Array.isArray(reportsData.finance.monthly) && reportsData.finance.monthly.map((row: DemoFinanceMonth, idx: number) => {
-                        const rowRate = row.invoiced > 0 ? Math.round((row.paid / row.invoiced) * 100) : 0;
-                        const rowOutstanding = row.outstanding ?? (row.invoiced - row.paid);
+                        const rowInvoiced = typeof row?.invoiced === 'number' && Number.isFinite(row.invoiced) ? row.invoiced : 0;
+                        const rowPaid = typeof row?.paid === 'number' && Number.isFinite(row.paid) ? row.paid : 0;
+                        const rowRate = rowInvoiced > 0 ? Math.round((rowPaid / rowInvoiced) * 100) : 0;
+                        const rowOutstanding = typeof row?.outstanding === 'number' && Number.isFinite(row.outstanding)
+                          ? row.outstanding
+                          : (rowInvoiced - rowPaid);
+                        const currencyStr = reportsData.finance?.currency || 'RON';
                         return (
-                          <tr key={row.period || row.month || idx} className="hover:bg-[#F8FAFC] transition-colors">
-                            <td className="py-3 px-4 font-bold text-[#102A43] font-mono">{row.period || row.month || '—'}</td>
-                            <td className="py-3 px-4 font-mono">{row.invoiced.toLocaleString()} {reportsData.finance.currency}</td>
-                            <td className="py-3 px-4 font-mono text-emerald-600 font-semibold">{row.paid.toLocaleString()} {reportsData.finance.currency}</td>
-                            <td className="py-3 px-4 font-mono text-amber-600 font-semibold">{rowOutstanding.toLocaleString()} {reportsData.finance.currency}</td>
+                          <tr key={row?.period || row?.month || idx} className="hover:bg-[#F8FAFC] transition-colors">
+                            <td className="py-3 px-4 font-bold text-[#102A43] font-mono">{row?.period || row?.month || '—'}</td>
+                            <td className="py-3 px-4 font-mono">{rowInvoiced.toLocaleString()} {currencyStr}</td>
+                            <td className="py-3 px-4 font-mono text-emerald-600 font-semibold">{rowPaid.toLocaleString()} {currencyStr}</td>
+                            <td className="py-3 px-4 font-mono text-amber-600 font-semibold">{rowOutstanding.toLocaleString()} {currencyStr}</td>
                             <td className="py-3 px-4">
                               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 {rowRate}%

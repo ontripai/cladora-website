@@ -164,11 +164,16 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       }
 
       if (session?.user) {
-        void checkSessionAndWorkspace(session.user, reqId).finally(() => {
-          if (isMounted && reqId === authRequestIdRef.current) {
-            setIsLoadingSession(false);
-          }
-        });
+        if (activeUserIdRef.current !== session.user.id) {
+          activeUserIdRef.current = session.user.id;
+          void checkSessionAndWorkspace(session.user, reqId).finally(() => {
+            if (isMounted && reqId === authRequestIdRef.current) {
+              setIsLoadingSession(false);
+            }
+          });
+        } else {
+          setIsLoadingSession(false);
+        }
       } else {
         setIsLoadingSession(false);
       }
@@ -181,7 +186,6 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
 
     const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return;
-      const nextReqId = ++authRequestIdRef.current;
       const newUser = session?.user || null;
 
       if (event === 'SIGNED_OUT' || !newUser) {
@@ -192,25 +196,51 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         setWorkspaceLookupError(null);
         setPendingVerification(false);
         setErrorMessage(null);
-        return;
-      }
-
-      // UID switch: if previous identity differs from incoming identity, clear previous state synchronously BEFORE awaiting network
-      if (activeUserIdRef.current && activeUserIdRef.current !== newUser.id) {
-        setExistingWorkspace(null);
-        setNeedsWorkspaceSetup(false);
-        setWorkspaceLookupError(null);
-        setErrorMessage(null);
         setFirstName('');
         setLastName('');
+        setEmail('');
+        setPassword('');
         setMobile('');
         setWorkspaceName('');
         setPrivacyAccepted(false);
         setMarketingConsent(false);
+        setIsSubmitting(false);
+        setIsLoadingSession(false);
+        return;
       }
 
-      activeUserIdRef.current = newUser.id;
-      void checkSessionAndWorkspace(newUser, nextReqId);
+      // Check if this is the exact same user ID we already processed
+      const isSameUser = activeUserIdRef.current === newUser.id;
+
+      if (!isSameUser) {
+        // UID switch or initial login: clear previous identity data synchronously before awaiting network
+        setExistingWorkspace(null);
+        setNeedsWorkspaceSetup(false);
+        setWorkspaceLookupError(null);
+        setPendingVerification(false);
+        setErrorMessage(null);
+        setFirstName('');
+        setLastName('');
+        setEmail('');
+        setPassword('');
+        setMobile('');
+        setWorkspaceName('');
+        setPrivacyAccepted(false);
+        setMarketingConsent(false);
+        setIsSubmitting(false);
+
+        activeUserIdRef.current = newUser.id;
+        const nextReqId = ++authRequestIdRef.current;
+        void checkSessionAndWorkspace(newUser, nextReqId).finally(() => {
+          if (isMounted && nextReqId === authRequestIdRef.current) {
+            setIsLoadingSession(false);
+          }
+        });
+      } else {
+        // Same UID event (TOKEN_REFRESHED, USER_UPDATED, duplicate INITIAL_SESSION / SIGNED_IN)
+        // Keep existing user and workspace intact; simply terminate session loading
+        setIsLoadingSession(false);
+      }
     });
 
     return () => {

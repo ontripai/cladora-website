@@ -30,7 +30,8 @@ import {
   Lock,
   ArrowRight,
   CreditCard,
-  UserCheck
+  UserCheck,
+  Loader2
 } from 'lucide-react';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -116,12 +117,32 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
     };
   }, [mobileDrawerOpen]);
 
+  // Auth state listener: immediately hide children and redirect on SIGNED_OUT
+  useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsSigningOut(true);
+        router.push(`/${lang}/demo`);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [lang, router]);
+
   const handleSignOut = async () => {
     setIsSigningOut(true);
     router.push(`/${lang}/demo`);
     if (isSupabaseConfigured()) {
-      const supabase = createClient();
-      await supabase.auth.signOut();
+      try {
+        const supabase = createClient();
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.warn('Sign out error:', err);
+      }
     }
   };
 
@@ -437,7 +458,16 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
         {/* Main Content Viewport */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
-            {children}
+            {isSigningOut ? (
+              <div className="py-24 text-center space-y-4 animate-in fade-in duration-150">
+                <Loader2 className="w-8 h-8 text-[#0E9F8E] animate-spin mx-auto" />
+                <p className="text-xs font-semibold text-[#627D98]">
+                  {lang === 'ro' ? 'Se deconectează din spațiul demo...' : lang === 'fa' ? 'در حال خروج از محیط دمو...' : 'Signing out of demo workspace...'}
+                </p>
+              </div>
+            ) : (
+              children
+            )}
           </div>
         </main>
       </div>

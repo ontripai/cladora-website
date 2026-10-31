@@ -116,6 +116,14 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
     ? Math.round((finance.paid / finance.invoiced) * 100)
     : 0;
 
+  const financialIntroSnippet = isFinanceComplete && finance && typeof finance.invoice_count === 'number'
+    ? (lang === 'ro'
+        ? ` și ${finance.invoice_count} operațiuni financiare simulate`
+        : lang === 'fa'
+        ? ` و ${finance.invoice_count} ردیف مالی شبیه‌سازی‌شده`
+        : ` and ${finance.invoice_count} simulated financial rows`)
+    : '';
+
   const appBase = `/${lang}/demo/app`;
 
   // Singular SQL kinds mapped directly without fake constant fallbacks (real 0 is preserved)
@@ -164,10 +172,10 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
 
           <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? `Bine ai venit, ${workspace.profile.first_name}! Acest spațiu conține ${totalItems} înregistrări de probă și ${finance.invoice_count} operațiuni financiare simulate pentru a explora structura completă CLADORA.`
+              ? `Bine ai venit, ${workspace.profile.first_name}! Acest spațiu conține ${totalItems} înregistrări de probă${financialIntroSnippet} pentru a explora structura completă CLADORA.`
               : lang === 'fa'
-              ? `خوش آمدید، ${workspace.profile.first_name}! این محیط حاوی ${totalItems} قلم داده نمونه و ${finance.invoice_count} ردیف مالی شبیه‌سازی‌شده است تا ساختار کامل کلادورا را بدون ریسک بررسی فرمایید.`
-              : `Welcome, ${workspace.profile.first_name}! This isolated space includes ${totalItems} sample records and ${finance.invoice_count} financial rows so you can explore the complete CLADORA architecture.`}
+              ? `خوش آمدید، ${workspace.profile.first_name}! این محیط حاوی ${totalItems} قلم داده نمونه${financialIntroSnippet} است تا ساختار کامل کلادورا را بدون ریسک بررسی فرمایید.`
+              : `Welcome, ${workspace.profile.first_name}! This isolated space includes ${totalItems} sample records${financialIntroSnippet} so you can explore the complete CLADORA architecture.`}
           </p>
         </div>
 
@@ -215,10 +223,12 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {lang === 'ro' ? 'Total Facturat (6 luni)' : lang === 'fa' ? 'مجموع صدور شارژ (۶ ماه)' : 'Total Invoiced (6 Mo)'}
             </span>
             <div className="text-xl sm:text-2xl font-bold text-[#102A43] font-mono">
-              {isFinanceComplete && finance ? `${finance.invoiced.toLocaleString()} ${finance.currency}` : '—'}
+              {isFinanceComplete && finance && typeof finance.invoiced === 'number'
+                ? `${finance.invoiced.toLocaleString()} ${finance.currency || 'RON'}`
+                : '—'}
             </div>
             <span className="text-[11px] text-[#627D98] block">
-              {isFinanceComplete && finance
+              {isFinanceComplete && finance && typeof finance.invoice_count === 'number'
                 ? `${finance.invoice_count} ${lang === 'ro' ? 'facturi de probă' : lang === 'fa' ? 'فاکتور نمونه' : 'sample invoices'}`
                 : (lang === 'ro' ? 'Date indisponibile' : lang === 'fa' ? 'اطلاعات در دسترس نیست' : 'Data unavailable')}
             </span>
@@ -230,7 +240,9 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {lang === 'ro' ? 'Încasat / Plătit' : lang === 'fa' ? 'وصول‌شده / واریزی' : 'Collected / Paid'}
             </span>
             <div className="text-xl sm:text-2xl font-bold text-emerald-600 font-mono">
-              {isFinanceComplete && finance ? `${finance.paid.toLocaleString()} ${finance.currency}` : '—'}
+              {isFinanceComplete && finance && typeof finance.paid === 'number'
+                ? `${finance.paid.toLocaleString()} ${finance.currency || 'RON'}`
+                : '—'}
             </div>
             <span className="text-[11px] text-emerald-700 block">
               {isFinanceComplete
@@ -245,7 +257,9 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {lang === 'ro' ? 'Sold Rămas / Restanțe' : lang === 'fa' ? 'مانده معوقه' : 'Outstanding Balance'}
             </span>
             <div className="text-xl sm:text-2xl font-bold text-amber-600 font-mono">
-              {isFinanceComplete && finance ? `${finance.outstanding.toLocaleString()} ${finance.currency}` : '—'}
+              {isFinanceComplete && finance && typeof finance.outstanding === 'number'
+                ? `${finance.outstanding.toLocaleString()} ${finance.currency || 'RON'}`
+                : '—'}
             </div>
             <span className="text-[11px] text-amber-700 block">
               {isFinanceComplete
