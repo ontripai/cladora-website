@@ -49,29 +49,29 @@ export default async function CommunityExperiencePage(props: {
     ro: {
       breadcrumb: { home: 'Acasă', current: 'Comunitate & Experiență' },
       hero: {
-        badge: 'DOMENIUL PEER COMUNITATE & EXPERIENȚĂ (C&E)',
+        badge: 'DOMENIUL PEER COMUNITATE & EXPERIENȚĂ (CE)',
         title: 'Experiență Conectată la Contextul Proprietății',
         subtitle:
-          'Domeniul Comunitate & Experiență (C&E) din CLADORA este proiectat să compună viața comunitară, ghidurile de spațiu, evenimentele și călătoriile contextuale în jurul aceleiași identități de proprietate, acelorași granițe de workspace și aceluiași model de autoritate utilizate în întreaga platformă.',
+          'Domeniul Comunitate & Experiență (CE) din CLADORA este proiectat să compună viața comunitară, ghidurile de spațiu, evenimentele și călătoriile contextuale în jurul aceleiași identități de proprietate, acelorași granițe de workspace și aceluiași model de autoritate utilizate în întreaga platformă.',
         ctaPrimary: 'Explorează Arhitectura de Experiență',
         ctaSecondary: 'Arhitectura Platformei',
       },
       peerDomain: {
         badge: 'RANG ARHITECTURAL EGAL',
-        title: 'C&E ca Domeniu Peer Alături de AIRPROP, SERVICE & OPERAȚIUNI',
-        desc: 'În arhitectura CLADORA, experiența ocupantului nu este un simplu modul secundar de tichete și nici o aplicație izolată de chat rezidențial. C&E se poziționează ca un domeniu de prim rang (Peer Domain), proiectat să compună interacțiunea umană pe baza adevărului furnizat de nucleul comun.',
+        title: 'CE ca Domeniu Peer Alături de AIRPROP, SERVICE & OPERAȚIUNI',
+        desc: 'În arhitectura CLADORA, experiența ocupantului nu este un simplu modul secundar de tichete și nici o aplicație izolată de chat rezidențial. CE se poziționează ca un domeniu de prim rang (Peer Domain), proiectat să compună interacțiunea umană pe baza adevărului furnizat de nucleul comun.',
         points: [
           {
             title: 'Nu este un Submodul de Mentenanță',
-            desc: 'C&E nu este un apendice al modulului de intervenții tehnice. El guvernează modul în care oamenii percep și interacționează cu spațiul fizic.',
+            desc: 'CE nu este un apendice al modulului de intervenții tehnice. El guvernează modul în care oamenii percep și interacționează cu spațiul fizic.',
           },
           {
             title: 'Fără Baze de Date Duplicate',
-            desc: 'C&E nu își inventează propriul registru financiar, propriul calendar izolat de rezervări sau o identitate paralelă de utilizator.',
+            desc: 'CE nu își inventează propriul registru financiar, propriul calendar izolat de rezervări sau o identitate paralelă de utilizator.',
           },
           {
             title: 'Consumator de Adevăr Canonic',
-            desc: 'Orice interacțiune din C&E consumă identitatea din CORE, documentele din VAULT, capacitatea din BK01 și tranzacțiile din FIN01.',
+            desc: 'Orice interacțiune din CE consumă identitatea din CORE, documentele din VAULT, capacitatea din BK01 și tranzacțiile din FIN01.',
           },
         ],
       },
@@ -106,7 +106,7 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             num: '05',
-            name: 'Compoziția Experienței (C&E)',
+            name: 'Compoziția Experienței (CE)',
             desc: 'Sinteza ghidurilor relevante, avizierului, resurselor și fluxurilor disponibile.',
             icon: Compass,
           },
@@ -118,7 +118,7 @@ export default async function CommunityExperiencePage(props: {
           },
         ],
         principle:
-          'Principiu Arhitectural: C&E consumă relațiile verificate și granițele de proprietate din CORE (unde arhitectura impune respingerea oricărei mutații când autoritatea nu poate fi stabilită), adevărul de capacitate din BK01, contextul canonic de documente din DOCUMENTS și adevărul financiar din FIN01. C&E nu acționează niciodată ca o bază de date paralelă.',
+          'Principiu Arhitectural: CE consumă relațiile verificate și granițele de proprietate din CORE (unde arhitectura impune respingerea oricărei mutații când autoritatea nu poate fi stabilită), adevărul de capacitate din BK01, contextul canonic de documente din DOCUMENTS și adevărul financiar din FIN01. CE nu acționează niciodată ca o bază de date paralelă.',
       },
       communityLayer: {
         badge: 'STRATUL COMUNITAR',
@@ -146,7 +146,7 @@ export default async function CommunityExperiencePage(props: {
       guidesSection: {
         badge: 'GHIDURI & CONTEXT DE LOC',
         title: 'Ghiduri de Proprietate, Informații de Sosire & Asistență Spațială',
-        desc: 'C&E structurează documentația operațională pentru a fi utilă în momentul și locul potrivit (categorii ilustrative de ghiduri, neimplicând o bibliotecă live universală):',
+        desc: 'CE structurează documentația operațională pentru a fi utilă în momentul și locul potrivit (categorii ilustrative de ghiduri, neimplicând o bibliotecă live universală):',
         items: [
           {
             title: 'Ghidul Tehnic al Spațiului',
@@ -192,7 +192,7 @@ export default async function CommunityExperiencePage(props: {
       journeysSection: {
         badge: 'ARHETIPURI DE CĂLĂTORIE',
         title: 'Compoziția Călătoriilor Contextuale în Mediul Construit',
-        desc: 'C&E modelează experiența prin 6 arhetipuri fundamentale de călătorie (journey archetypes):',
+        desc: 'CE modelează experiența prin 6 arhetipuri fundamentale de călătorie (journey archetypes):',
         qualification:
           'Notă de Calificare Arhitecturală: Punctele de contact de mai jos reprezintă compoziții și arhetipuri conceptuale de călătorie utilizate în modelarea arhitecturii, nu fluxuri de lucru lansate universal în producție.',
         journeys: [
@@ -230,49 +230,49 @@ export default async function CommunityExperiencePage(props: {
       },
       boundariesSection: {
         badge: 'GRANIȚE CANONICE STRINGENTE',
-        title: 'Separarea Clară a Responsabilităților: C&E vs. Furnizorii de Adevăr',
-        desc: 'Pentru a preveni degradarea integrității datelor, rolul C&E este strict delimitat de cel al furnizorilor de adevăr canonic:',
+        title: 'Separarea Clară a Responsabilităților: CE vs. Furnizorii de Adevăr',
+        desc: 'Pentru a preveni degradarea integrității datelor, rolul CE este strict delimitat de cel al furnizorilor de adevăr canonic:',
         boundaries: [
           {
-            domain: 'C&E vs. SERVICE',
+            domain: 'CE vs. SERVICE',
             role: 'Compoziția Experienței vs. Semantica Comenzilor',
-            rule: 'C&E prezintă contextul sau catalogul de asistență; SERVICE este desemnat să dețină semantica cererilor și comenzilor de servicii, inclusiv etapele relevante de ofertare, comandă și acceptanță acolo unde sunt lansate în producție.',
+            rule: 'CE prezintă contextul sau catalogul de asistență; SERVICE este desemnat să dețină semantica cererilor și comenzilor de servicii, inclusiv etapele relevante de ofertare, comandă și acceptanță acolo unde sunt lansate în producție.',
             icon: Wrench,
           },
           {
-            domain: 'C&E vs. BK01',
+            domain: 'CE vs. BK01',
             role: 'Prezentare vs. Adevărul Capacității',
-            rule: 'C&E prezintă calendarele sau facilitățile; BK01 este desemnat drept autoritatea canonică responsabilă pentru modelul de disponibilitate, pragurile de capacitate și detectarea conflictelor de rezervare. C&E nu deține adevăr de rezervare.',
+            rule: 'CE prezintă calendarele sau facilitățile; BK01 este desemnat drept autoritatea canonică responsabilă pentru modelul de disponibilitate, pragurile de capacitate și detectarea conflictelor de rezervare. CE nu deține adevăr de rezervare.',
             icon: Calendar,
           },
           {
-            domain: 'C&E vs. FIN01',
+            domain: 'CE vs. FIN01',
             role: 'Interacțiune vs. Adevărul Financiar',
-            rule: 'C&E nu deține solduri, portofele electronice sau registre paralele. FIN01 este desemnat drept proprietarul canonic al adevărului financiar, tranzacțiilor și evidențelor contabile aplicabile.',
+            rule: 'CE nu deține solduri, portofele electronice sau registre paralele. FIN01 este desemnat drept proprietarul canonic al adevărului financiar, tranzacțiilor și evidențelor contabile aplicabile.',
             icon: DollarSign,
           },
           {
-            domain: 'C&E vs. COMUNICAȚII',
+            domain: 'CE vs. COMUNICAȚII',
             role: 'Punct de Contact vs. Livrarea Mesajelor',
-            rule: 'C&E identifică oportunitatea notificării în călătorie; COMUNICAȚII este desemnat să guverneze dispecerizarea mesajelor și jurnalele de livrare, conform capabilităților active de canal.',
+            rule: 'CE identifică oportunitatea notificării în călătorie; COMUNICAȚII este desemnat să guverneze dispecerizarea mesajelor și jurnalele de livrare, conform capabilităților active de canal.',
             icon: MessageSquare,
           },
           {
-            domain: 'C&E vs. DOCUMENTE (VAULT)',
+            domain: 'CE vs. DOCUMENTE (VAULT)',
             role: 'Afișare Ghiduri vs. Proveniență & Evidențe',
-            rule: 'C&E prezintă ghiduri și regulamente în interfață; DOCUMENTE (VAULT) deține versiunile canonice, etichetele sigure, proveniența și contextul auditat al documentelor, fără a presupune proprietăți criptografice necertificate.',
+            rule: 'CE prezintă ghiduri și regulamente în interfață; DOCUMENTE (VAULT) deține versiunile canonice, etichetele sigure, proveniența și contextul auditat al documentelor, fără a presupune proprietăți criptografice necertificate.',
             icon: FileText,
           },
           {
-            domain: 'C&E vs. OPERAȚIUNI',
+            domain: 'CE vs. OPERAȚIUNI',
             role: 'Interacțiune Ocupant vs. Execuție Mentenanță',
-            rule: 'C&E colectează cererea de asistență; OPERAȚIUNI este proprietarul canonic al execuției ordinelor de lucru, atribuirii tehnice și checklist-urilor de intervenție în funcție de maturitatea operațională.',
+            rule: 'CE colectează cererea de asistență; OPERAȚIUNI este proprietarul canonic al execuției ordinelor de lucru, atribuirii tehnice și checklist-urilor de intervenție în funcție de maturitatea operațională.',
             icon: Briefcase,
           },
           {
-            domain: 'C&E vs. CORE',
+            domain: 'CE vs. CORE',
             role: 'Experiență Locală vs. Autoritate & Identitate',
-            rule: 'C&E compune experiența în limitele rolului; CORE guvernează identitatea, apartenența la workspace și autoritatea, unde arhitectura impune respingerea mutațiilor când autoritatea nu poate fi stabilită.',
+            rule: 'CE compune experiența în limitele rolului; CORE guvernează identitatea, apartenența la workspace și autoritatea, unde arhitectura impune respingerea mutațiilor când autoritatea nu poate fi stabilită.',
             icon: ShieldCheck,
           },
         ],
@@ -327,7 +327,7 @@ export default async function CommunityExperiencePage(props: {
       intelligencePreview: {
         badge: 'PREVIZUALIZARE INTELIGENȚĂ ASISTIVĂ',
         title: 'Orchestrarea Asistivă în Călătoriile de Experiență',
-        desc: 'Asistența inteligentă în cadrul C&E acționează strict ca un orchestrator subordonat deciziei umane, urmând fluxul canonic în 6 pași:',
+        desc: 'Asistența inteligentă în cadrul CE acționează strict ca un orchestrator subordonat deciziei umane, urmând fluxul canonic în 6 pași:',
         steps: [
           { title: '1. Context', desc: 'Identifică spațiul, proprietatea și identitatea verificată.' },
           { title: '2. Intenție', desc: 'Clarifică ce anume solicită utilizatorul în contextul spațial.' },
@@ -343,7 +343,7 @@ export default async function CommunityExperiencePage(props: {
         title: 'Maturitatea Arhitecturală a Domeniului de Experiență',
         desc: 'Prezentarea publică a domeniului Comunitate & Experiență descrie modelul arhitectural complet conceput pentru lumea construită. În practică, disponibilitatea fiecărei funcționalități este guvernată individual de stadiul de lansare al versiunii de produs și de perimetrul agreat în fiecare implementare.',
         points: [
-          'Capabilitățile C&E sunt compuse modular în funcție de abonamentul activ al workspace-ului și profilul proprietății.',
+          'Capabilitățile CE sunt compuse modular în funcție de abonamentul activ al workspace-ului și profilul proprietății.',
           'Capabilitățile orientate spre viitor (precum directorul de membri, feed-ul social, mesageria directă, marketplace-ul, programele de loialitate, concierge-ul AI sau automatizările avansate pentru oaspeți și retail) constituie obiective de arhitectură supuse calendarelor de lansare, nu fluxuri active de producție.',
           'Integritatea arhitecturală este garantată: granițele la nivel de workspace sunt proiectate să prevină expunerea între contexte, iar arhitectura impune respingerea mutațiilor când autoritatea nu poate fi stabilită.',
         ],
@@ -358,7 +358,7 @@ export default async function CommunityExperiencePage(props: {
     en: {
       breadcrumb: { home: 'Home', current: 'Community & Experience' },
       hero: {
-        badge: 'COMMUNITY & EXPERIENCE (C&E) PEER DOMAIN',
+        badge: 'COMMUNITY & EXPERIENCE (CE) PEER DOMAIN',
         title: 'Experience Connected to the Property Context',
         subtitle:
           'CLADORA Community & Experience is designed to compose community, guides, events, and contextual journeys around the same property identity, workspace boundaries, and contextual authority used across the entire platform.',
@@ -367,16 +367,16 @@ export default async function CommunityExperiencePage(props: {
       },
       peerDomain: {
         badge: 'ARCHITECTURAL PEER STATUS',
-        title: 'C&E as a Peer Domain Alongside AIRPROP, SERVICE & OPERATIONS',
-        desc: 'In CLADORA’s platform design, occupant experience is neither a cosmetic add-on nor a subsidiary maintenance ticketing queue. C&E is architected as a first-class peer domain alongside commercial lifecycle (AIRPROP), procurement coordination (SERVICE), and technical maintenance (OPERATIONS).',
+        title: 'CE as a Peer Domain Alongside AIRPROP, SERVICE & OPERATIONS',
+        desc: 'In CLADORA’s platform design, occupant experience is neither a cosmetic add-on nor a subsidiary maintenance ticketing queue. CE is architected as a first-class peer domain alongside commercial lifecycle (AIRPROP), procurement coordination (SERVICE), and technical maintenance (OPERATIONS).',
         points: [
           {
             title: 'Not a Maintenance Sub-Feature',
-            desc: 'C&E is not a sub-branch of work-order dispatch. It governs how people understand, orient within, and interact with the physical built environment.',
+            desc: 'CE is not a sub-branch of work-order dispatch. It governs how people understand, orient within, and interact with the physical built environment.',
           },
           {
             title: 'No Parallel Database Silos',
-            desc: 'C&E rejects shadow ledgers, isolated booking silos, or disconnected resident profile databases.',
+            desc: 'CE rejects shadow ledgers, isolated booking silos, or disconnected resident profile databases.',
           },
           {
             title: 'Canonical Truth Consumer',
@@ -415,7 +415,7 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             num: '05',
-            name: 'Experience Composition (C&E)',
+            name: 'Experience Composition (CE)',
             desc: 'Situational synthesis of guides, notice boards, events, and touchpoints.',
             icon: Compass,
           },
@@ -427,7 +427,7 @@ export default async function CommunityExperiencePage(props: {
           },
         ],
         principle:
-          'Architectural Principle: C&E consumes verified relationships and property boundaries from CORE (where architecture requires mutation denial when authority cannot be established), capacity truth from BK01, canonical document context from DOCUMENTS, and financial truth from FIN01. It never acts as a shadow database.',
+          'Architectural Principle: CE consumes verified relationships and property boundaries from CORE (where architecture requires mutation denial when authority cannot be established), capacity truth from BK01, canonical document context from DOCUMENTS, and financial truth from FIN01. It never acts as a shadow database.',
       },
       communityLayer: {
         badge: 'COMMUNITY ARCHITECTURE',
@@ -455,7 +455,7 @@ export default async function CommunityExperiencePage(props: {
       guidesSection: {
         badge: 'SPATIAL & OPERATIONAL GUIDANCE',
         title: 'Property Guides, Arrival Information & Place Context',
-        desc: 'C&E structures operational guidance for contextual presentation (illustrative guidance categories, not an implied universal live library):',
+        desc: 'CE structures operational guidance for contextual presentation (illustrative guidance categories, not an implied universal live library):',
         items: [
           {
             title: 'Space & Equipment Guides',
@@ -501,7 +501,7 @@ export default async function CommunityExperiencePage(props: {
       journeysSection: {
         badge: 'JOURNEY COMPOSITION LAYER',
         title: 'Contextual Experience Archetypes Across the Built Environment',
-        desc: 'C&E models interaction through 6 canonical experience archetypes across property typologies:',
+        desc: 'CE models interaction through 6 canonical experience archetypes across property typologies:',
         qualification:
           'Architectural Qualification Notice: The touchpoints below represent conceptual journey archetypes and architectural composition examples, not universally released production workflows.',
         journeys: [
@@ -539,49 +539,49 @@ export default async function CommunityExperiencePage(props: {
       },
       boundariesSection: {
         badge: 'CANONICAL BOUNDARY DISCIPLINE',
-        title: 'Clear Ownership Separation: C&E vs. Canonical Providers of Truth',
-        desc: 'To maintain enterprise transactional integrity, C&E’s boundary is strictly separated from canonical providers:',
+        title: 'Clear Ownership Separation: CE vs. Canonical Providers of Truth',
+        desc: 'To maintain enterprise transactional integrity, CE’s boundary is strictly separated from canonical providers:',
         boundaries: [
           {
-            domain: 'C&E vs. SERVICE',
+            domain: 'CE vs. SERVICE',
             role: 'Experience Composition vs. Procurement Intent',
-            rule: 'C&E surfaces service discovery; SERVICE is designated to own service request and order semantics, including relevant quote, order, and acceptance stages where released.',
+            rule: 'CE surfaces service discovery; SERVICE is designated to own service request and order semantics, including relevant quote, order, and acceptance stages where released.',
             icon: Wrench,
           },
           {
-            domain: 'C&E vs. BK01',
+            domain: 'CE vs. BK01',
             role: 'Presentation vs. Capacity Truth',
-            rule: 'C&E presents amenity schedules; BK01 is designated as the canonical authority responsible for availability models, capacity thresholds, and reservation conflict detection. C&E owns zero booking truth.',
+            rule: 'CE presents amenity schedules; BK01 is designated as the canonical authority responsible for availability models, capacity thresholds, and reservation conflict detection. CE owns zero booking truth.',
             icon: Calendar,
           },
           {
-            domain: 'C&E vs. FIN01',
+            domain: 'CE vs. FIN01',
             role: 'Interaction vs. Financial Truth',
-            rule: 'C&E maintains no shadow wallets or point ledgers. FIN01 is designated to own financial truth, transactions, and applicable accounting records.',
+            rule: 'CE maintains no shadow wallets or point ledgers. FIN01 is designated to own financial truth, transactions, and applicable accounting records.',
             icon: DollarSign,
           },
           {
-            domain: 'C&E vs. COMMUNICATIONS',
+            domain: 'CE vs. COMMUNICATIONS',
             role: 'Context vs. Delivery Dispatch',
-            rule: 'C&E identifies contextual touchpoints; COMMUNICATIONS is designated to govern message dispatch and delivery logging, subject to active channel release capabilities.',
+            rule: 'CE identifies contextual touchpoints; COMMUNICATIONS is designated to govern message dispatch and delivery logging, subject to active channel release capabilities.',
             icon: MessageSquare,
           },
           {
-            domain: 'C&E vs. DOCUMENTS (VAULT)',
+            domain: 'CE vs. DOCUMENTS (VAULT)',
             role: 'Guide Presentation vs. Document Provenance',
-            rule: 'C&E surfaces operational guides and policies; DOCUMENTS (VAULT) owns canonical document versions, safe labels, provenance, and auditable document context, without unverified cryptographic claims.',
+            rule: 'CE surfaces operational guides and policies; DOCUMENTS (VAULT) owns canonical document versions, safe labels, provenance, and auditable document context, without unverified cryptographic claims.',
             icon: FileText,
           },
           {
-            domain: 'C&E vs. OPERATIONS',
+            domain: 'CE vs. OPERATIONS',
             role: 'Occupant Interaction vs. Work-Order Execution',
-            rule: 'C&E captures assistance requests; OPERATIONS is the canonical owner of work-order execution, technician dispatch, and maintenance checklists subject to release maturity.',
+            rule: 'CE captures assistance requests; OPERATIONS is the canonical owner of work-order execution, technician dispatch, and maintenance checklists subject to release maturity.',
             icon: Briefcase,
           },
           {
-            domain: 'C&E vs. CORE',
+            domain: 'CE vs. CORE',
             role: 'Local Experience vs. Authority & Identity',
-            rule: 'C&E composes experience within role limits; CORE governs identity, workspace membership, and authority, where architecture requires mutation denial when authority cannot be established.',
+            rule: 'CE composes experience within role limits; CORE governs identity, workspace membership, and authority, where architecture requires mutation denial when authority cannot be established.',
             icon: ShieldCheck,
           },
         ],
@@ -636,7 +636,7 @@ export default async function CommunityExperiencePage(props: {
       intelligencePreview: {
         badge: 'ASSISTIVE INTELLIGENCE PREVIEW',
         title: 'Governed AI Orchestration Within Experience Journeys',
-        desc: 'Assistive intelligence inside C&E operates strictly as an orchestrator subordinate to verified human authority, following a 6-step flow:',
+        desc: 'Assistive intelligence inside CE operates strictly as an orchestrator subordinate to verified human authority, following a 6-step flow:',
         steps: [
           { title: '1. Context', desc: 'Identifies the physical space, property asset, and verified identity.' },
           { title: '2. Intent', desc: 'Clarifies what the occupant seeks to accomplish in context.' },
@@ -652,7 +652,7 @@ export default async function CommunityExperiencePage(props: {
         title: 'Experience Architecture Maturity & Release Governance',
         desc: 'Our public presentation outlines the holistic architectural model of Community & Experience. In real-world enterprise deployments, capability availability is governed individually by product release status and customer implementation agreements.',
         points: [
-          'C&E capabilities are modularly assembled based on active workspace subscription tiers and property DNA requirements.',
+          'CE capabilities are modularly assembled based on active workspace subscription tiers and property DNA requirements.',
           'Target-heavy capabilities (such as member directories, social feeds, direct messaging, marketplace, loyalty programs, AI concierge, or advanced guest/retail experience automation) represent architectural design targets subject to release roadmaps, not live production workflows.',
           'Architectural integrity is maintained: workspace-scoped boundaries are designed to prevent cross-context exposure, and architecture requires mutation denial when authority cannot be established.',
         ],
@@ -665,23 +665,23 @@ export default async function CommunityExperiencePage(props: {
       },
     },
     fa: {
-      breadcrumb: { home: 'خانه', current: 'جامعه و تجربه کاربری (C&E)' },
+      breadcrumb: { home: 'خانه', current: 'جامعه و تجربه کاربری (CE)' },
       hero: {
-        badge: 'دامنهٔ هم‌ردهٔ جامعه و تجربه کاربری (C&E)',
+        badge: 'دامنهٔ هم‌ردهٔ جامعه و تجربه کاربری (CE)',
         title: 'تجربهٔ کاربری متصل به بستر و بافت ملک',
         subtitle:
-          'دامنهٔ جامعه و تجربه کاربری (C&E) در کلادورا طوری طراحی شده است که تعاملات جمعی، راهنمای اماکن، رویدادها و مسیرهای کاربری را بر پایه همان هویت پایدار ملک، تفکیک فضاهای کاری و حدود اختیارات سراسری پلتفرم ترکیب نماید.',
+          'دامنهٔ جامعه و تجربه کاربری (CE) در کلادورا طوری طراحی شده است که تعاملات جمعی، راهنمای اماکن، رویدادها و مسیرهای کاربری را بر پایه همان هویت پایدار ملک، تفکیک فضاهای کاری و حدود اختیارات سراسری پلتفرم ترکیب نماید.',
         ctaPrimary: 'بررسی معماری لایه تجربه کاربری',
         ctaSecondary: 'مشاهده معماری جامع پلتفرم',
       },
       peerDomain: {
         badge: 'جایگاه هم‌رده و مستقل در معماری',
-        title: 'C&E به عنوان دامنهٔ هم‌رده در کنار AIRPROP، SERVICE و OPERATIONS',
-        desc: 'در ساختار مهندسی کلادورا، تجربه کاربری یک افزونهٔ تزئینی یا صرفاً صف تیکت‌های نگهداری نیست. C&E به عنوان یک دامنهٔ هم‌رده و مستقل (Peer Domain) در کنار چرخه تجاری (AIRPROP)، هماهنگی خدمات (SERVICE) و عملیات فنی نگهداری (OPERATIONS) قرار دارد.',
+        title: 'CE به عنوان دامنهٔ هم‌رده در کنار AIRPROP، SERVICE و OPERATIONS',
+        desc: 'در ساختار مهندسی کلادورا، تجربه کاربری یک افزونهٔ تزئینی یا صرفاً صف تیکت‌های نگهداری نیست. CE به عنوان یک دامنهٔ هم‌رده و مستقل (Peer Domain) در کنار چرخه تجاری (AIRPROP)، هماهنگی خدمات (SERVICE) و عملیات فنی نگهداری (OPERATIONS) قرار دارد.',
         points: [
           {
             title: 'یک ماژول فرعی تعمیراتی نیست',
-            desc: 'C&E شاخه‌ای از صدور دستورکار نیست، بلکه شیوه درک، جهت‌یابی و تعامل افراد با دارایی فیزیکی را سازمان‌دهی می‌کند.',
+            desc: 'CE شاخه‌ای از صدور دستورکار نیست، بلکه شیوه درک، جهت‌یابی و تعامل افراد با دارایی فیزیکی را سازمان‌دهی می‌کند.',
           },
           {
             title: 'نفی جزیره‌های اطلاعاتی موازی',
@@ -724,7 +724,7 @@ export default async function CommunityExperiencePage(props: {
           },
           {
             num: '۰۵',
-            name: 'ترکیب تجربه کاربری (C&E)',
+            name: 'ترکیب تجربه کاربری (CE)',
             desc: 'چینش هوشمند راهنماها، تابلوی اعلانات، رویدادها و خدمات.',
             icon: Compass,
           },
@@ -736,7 +736,7 @@ export default async function CommunityExperiencePage(props: {
           },
         ],
         principle:
-          'اصل بنیادین معماری: C&E روابط تأییدشده و مرزهای دارایی را از CORE (که در آن معماری مستلزم رد هرگونه تغییر در صورت عدم احراز صلاحیت است)، حقیقت ظرفیت را از BK01، زمینه اسناد مرجع را از DOCUMENTS و حقیقت مالی را از FIN01 دریافت می‌نماید. C&E هرگز به عنوان یک پایگاه داده موازی عمل نمی‌کند.',
+          'اصل بنیادین معماری: CE روابط تأییدشده و مرزهای دارایی را از CORE (که در آن معماری مستلزم رد هرگونه تغییر در صورت عدم احراز صلاحیت است)، حقیقت ظرفیت را از BK01، زمینه اسناد مرجع را از DOCUMENTS و حقیقت مالی را از FIN01 دریافت می‌نماید. CE هرگز به عنوان یک پایگاه داده موازی عمل نمی‌کند.',
       },
       communityLayer: {
         badge: 'لایه تعاملات جمعی',
@@ -764,7 +764,7 @@ export default async function CommunityExperiencePage(props: {
       guidesSection: {
         badge: 'راهنماها و بستر مکانی',
         title: 'راهنمای دارایی، پروتکل‌های ورود و راهنمایی محیطی',
-        desc: 'دامنه C&E ساختار راهنماهای بهره‌برداری را بر بستر مکانی تعریف می‌کند (نمونه‌های تصویری از دسته‌بندی راهنماها، بدون ادعای کتابخانهٔ فراگیر فعال):',
+        desc: 'دامنه CE ساختار راهنماهای بهره‌برداری را بر بستر مکانی تعریف می‌کند (نمونه‌های تصویری از دسته‌بندی راهنماها، بدون ادعای کتابخانهٔ فراگیر فعال):',
         items: [
           {
             title: 'راهنمای فنی تجهیزات و واحد',
@@ -810,7 +810,7 @@ export default async function CommunityExperiencePage(props: {
       journeysSection: {
         badge: 'لایه ترکیب مسیرهای کاربری',
         title: 'الگوهای شش‌گانه مسیرهای تعاملی در دنیای املاک',
-        desc: 'دامنه C&E تجربه کاربری را از طریق ۶ الگوی مرجع در کاربری‌های گوناگون طراحی می‌نماید:',
+        desc: 'دامنه CE تجربه کاربری را از طریق ۶ الگوی مرجع در کاربری‌های گوناگون طراحی می‌نماید:',
         qualification:
           'یادداشت انطباق معماری: نقاط تعاملی زیر الگوهای مفهومی مسیر کاربری و نمونه‌های ترکیب معماری هستند، نه جریان‌های کاری عرضه‌شدهٔ سراسری در محیط عملیاتی.',
         journeys: [
@@ -848,49 +848,49 @@ export default async function CommunityExperiencePage(props: {
       },
       boundariesSection: {
         badge: 'انضباط مرزهای متولیان داده',
-        title: 'تفکیک دقیق وظایف: C&E در برابر ارائه‌دهندگان مرجع حقیقت',
-        desc: 'برای حفظ یکپارچگی سیستمی و جلوگیری از تداخل داده‌ها، اختیارات C&E کاملاً از متولیان مرجع تفکیک شده است:',
+        title: 'تفکیک دقیق وظایف: CE در برابر ارائه‌دهندگان مرجع حقیقت',
+        desc: 'برای حفظ یکپارچگی سیستمی و جلوگیری از تداخل داده‌ها، اختیارات CE کاملاً از متولیان مرجع تفکیک شده است:',
         boundaries: [
           {
-            domain: 'C&E در برابر SERVICE',
+            domain: 'CE در برابر SERVICE',
             role: 'ترکیب تجربه در برابر قصد خرید خدمت',
-            rule: 'دامنه C&E بستر کشف خدمات را ارائه می‌دهد؛ SERVICE به عنوان متولی ساختاری مدیریت درخواست‌ها و سفارش‌های خدماتی تعیین شده و مراحل استعلام، سفارش و پذیرش را در صورت انتشار دربرمی‌گیرد.',
+            rule: 'دامنه CE بستر کشف خدمات را ارائه می‌دهد؛ SERVICE به عنوان متولی ساختاری مدیریت درخواست‌ها و سفارش‌های خدماتی تعیین شده و مراحل استعلام، سفارش و پذیرش را در صورت انتشار دربرمی‌گیرد.',
             icon: Wrench,
           },
           {
-            domain: 'C&E در برابر BK01',
+            domain: 'CE در برابر BK01',
             role: 'نمایش تقویم در برابر حقیقت ظرفیت',
-            rule: 'دامنه C&E تقویم و امکانات را نمایش می‌دهد؛ BK01 مرجع ساختاری تعیین‌شده برای الگوهای دسترسی، سقف ظرفیت‌ها و تشخیص تداخلات رزرواسیون است. C&E هیچ حقیقتی از رزرواسیون در اختیار ندارد.',
+            rule: 'دامنه CE تقویم و امکانات را نمایش می‌دهد؛ BK01 مرجع ساختاری تعیین‌شده برای الگوهای دسترسی، سقف ظرفیت‌ها و تشخیص تداخلات رزرواسیون است. CE هیچ حقیقتی از رزرواسیون در اختیار ندارد.',
             icon: Calendar,
           },
           {
-            domain: 'C&E در برابر FIN01',
+            domain: 'CE در برابر FIN01',
             role: 'تعامل در برابر حقیقت مالی',
-            rule: 'دامنه C&E هیچ کیف پول، امتیاز یا دفاتر موازی نگهداری نمی‌کند. FIN01 به عنوان متولی مرجع حقیقت مالی، تراکنش‌ها و اسناد حسابداری مرتبط تعیین شده است.',
+            rule: 'دامنه CE هیچ کیف پول، امتیاز یا دفاتر موازی نگهداری نمی‌کند. FIN01 به عنوان متولی مرجع حقیقت مالی، تراکنش‌ها و اسناد حسابداری مرتبط تعیین شده است.',
             icon: DollarSign,
           },
           {
-            domain: 'C&E در برابر COMMUNICATIONS',
+            domain: 'CE در برابر COMMUNICATIONS',
             role: 'موقعیت تعاملی در برابر ارسال پیام',
-            rule: 'دامنه C&E نقطه تعاملی اعلان را مشخص می‌سازد؛ COMMUNICATIONS به عنوان متولی ارسال پیام‌ها و ثبت گزارش‌های تحویل متناسب با کانال‌های فعال تعیین شده است.',
+            rule: 'دامنه CE نقطه تعاملی اعلان را مشخص می‌سازد؛ COMMUNICATIONS به عنوان متولی ارسال پیام‌ها و ثبت گزارش‌های تحویل متناسب با کانال‌های فعال تعیین شده است.',
             icon: MessageSquare,
           },
           {
-            domain: 'C&E در برابر DOCUMENTS (VAULT)',
+            domain: 'CE در برابر DOCUMENTS (VAULT)',
             role: 'نمایش راهنماها در برابر اصالت اسناد',
-            rule: 'دامنه C&E راهنماها و ضوابط را نمایش می‌دهد؛ DOCUMENTS (VAULT) متولی نگهداری نسخه‌های مرجع، برچسب‌های امن، منشأ سند و بستر ممیزی اسناد بدون ادعاهای رمزنگاری‌نشده است.',
+            rule: 'دامنه CE راهنماها و ضوابط را نمایش می‌دهد؛ DOCUMENTS (VAULT) متولی نگهداری نسخه‌های مرجع، برچسب‌های امن، منشأ سند و بستر ممیزی اسناد بدون ادعاهای رمزنگاری‌نشده است.',
             icon: FileText,
           },
           {
-            domain: 'C&E در برابر OPERATIONS',
+            domain: 'CE در برابر OPERATIONS',
             role: 'تعامل بهره‌بردار در برابر اجرای عملیات نگهداری',
-            rule: 'دامنه C&E درخواست نیاز را دریافت می‌کند؛ OPERATIONS متولی اصلی صدور و اجرای دستورکارها، اعزام تکنسین و چک‌لیست‌های فنی متناسب با فاز انتشار است.',
+            rule: 'دامنه CE درخواست نیاز را دریافت می‌کند؛ OPERATIONS متولی اصلی صدور و اجرای دستورکارها، اعزام تکنسین و چک‌لیست‌های فنی متناسب با فاز انتشار است.',
             icon: Briefcase,
           },
           {
-            domain: 'C&E در برابر CORE',
+            domain: 'CE در برابر CORE',
             role: 'تجربه موضعی در برابر هویت و حدود اختیارات',
-            rule: 'دامنه C&E تجربه کاربری را در چارچوب نقش شکل می‌دهد؛ CORE حاکم بر هویت، عضویت ورک‌اسپیس و اختیارات است، جایی که معماری در صورت عدم احراز صلاحیت، هرگونه تغییر را رد می‌کند.',
+            rule: 'دامنه CE تجربه کاربری را در چارچوب نقش شکل می‌دهد؛ CORE حاکم بر هویت، عضویت ورک‌اسپیس و اختیارات است، جایی که معماری در صورت عدم احراز صلاحیت، هرگونه تغییر را رد می‌کند.',
             icon: ShieldCheck,
           },
         ],
@@ -945,7 +945,7 @@ export default async function CommunityExperiencePage(props: {
       intelligencePreview: {
         badge: 'پیش‌نمایش هوش عملیاتی',
         title: 'ارکستراسیون تحت نظارت انسان در مسیرهای تعاملی',
-        desc: 'هوش مصنوعی در دامنه C&E صرفاً به عنوان دستیار کمکی و تحت فرمان مأموریت‌های انسانی در یک فرآیند ۶ مرحله‌ای عمل می‌کند:',
+        desc: 'هوش مصنوعی در دامنه CE صرفاً به عنوان دستیار کمکی و تحت فرمان مأموریت‌های انسانی در یک فرآیند ۶ مرحله‌ای عمل می‌کند:',
         steps: [
           { title: '۱. بافت ملک (Context)', desc: 'شناسایی فضا، دارایی فیزیکی و هویت احراز‌شده.' },
           { title: '۲. مقصود (Intent)', desc: 'شفاف‌سازی خواسته و هدف کاربر در بافت مکانی.' },
@@ -961,7 +961,7 @@ export default async function CommunityExperiencePage(props: {
         title: 'بلوغ معماری دامنه تجربه و حاکمیت استقرار',
         desc: 'بخش حاضر معماری کلان دامنه جامعه و تجربه کاربری را ترسیم می‌نماید. در استقرارهای واقعی در سطح سازمان‌ها، میزان فعال‌سازی هر قابلیت به فاز انتشار محصول و قرارداد اجرایی هر پروژه وابسته است.',
         points: [
-          'قابلیت‌های C&E بر اساس سطح اشتراک فعال ورک‌اسپیس و ویژگی‌های ساختاری دارایی فعال‌سازی می‌شوند.',
+          'قابلیت‌های CE بر اساس سطح اشتراک فعال ورک‌اسپیس و ویژگی‌های ساختاری دارایی فعال‌سازی می‌شوند.',
           'قابلیت‌های هدف‌محور (نظیر دایرکتوری اعضا، فید اجتماعی، پیام‌رسانی مستقیم، بازارگاه، برنامه‌های وفاداری، کنسیرژ هوش مصنوعی یا اتوماسیون پیشرفته مهمان و تجاری) اهداف معماری در نقشه راه هستند و جریان‌های فعال در محیط عملیاتی تلقی نمی‌شوند.',
           'یکپارچگی معماری تضمین شده است: مرزهای تفکیک‌شدهٔ ورک‌اسپیس برای جلوگیری از افشای داده‌ها میان بسترها طراحی شده‌اند و معماری در صورت عدم احراز صلاحیت، هرگونه تغییر را رد می‌کند.',
         ],
@@ -992,7 +992,7 @@ export default async function CommunityExperiencePage(props: {
   return (
     <main className="min-h-screen pt-32 pb-24 bg-[#F6F9FC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-20">
-        
+
         {/* 01 HERO SECTION */}
         <section className="space-y-6">
           <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-[#52667A] font-medium">

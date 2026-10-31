@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
 import { 
@@ -59,6 +59,8 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
   const [referenceCode, setReferenceCode] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const formTopRef = useRef<HTMLDivElement>(null);
+  const isBackNavigationRef = useRef(false);
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
 
   const scrollToFormTop = () => {
     if (formTopRef.current) {
@@ -69,7 +71,7 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
   };
 
   const toggleService = (srv: string) => {
-    setServices((prev) => 
+    setServices((prev) =>
       prev.includes(srv) ? prev.filter((s) => s !== srv) : [...prev, srv]
     );
   };
@@ -96,10 +98,28 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
   };
 
   const handleBack = () => {
+    isBackNavigationRef.current = true;
     setCurrentStep((prev) => Math.max(1, prev - 1));
     setErrorMessage(null);
     scrollToFormTop();
   };
+
+  useEffect(() => {
+    if (isBackNavigationRef.current) {
+      isBackNavigationRef.current = false;
+      const focusTarget = () => {
+        if (stepHeadingRef.current) {
+          stepHeadingRef.current.focus({ preventScroll: true });
+        }
+      };
+      const rId = requestAnimationFrame(focusTarget);
+      const timer = setTimeout(focusTarget, 60);
+      return () => {
+        cancelAnimationFrame(rId);
+        clearTimeout(timer);
+      };
+    }
+  }, [currentStep]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -147,17 +167,22 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
 
       const data = await response.json();
 
-      if (response.ok && data.ok) {
+      const rawRef = data?.referenceId || data?.referenceCode || data?.reference;
+      const validRef = typeof rawRef === 'string' && rawRef.trim().length > 0 ? rawRef.trim() : null;
+
+      if (response.ok && data?.ok && validRef) {
         setSubmissionSuccess(true);
-        setReferenceCode(data.referenceId || data.referenceCode || 'CLD-' + Math.floor(100000 + Math.random() * 900000));
+        setReferenceCode(validRef);
       } else {
+        setSubmissionSuccess(false);
+        setReferenceCode(null);
         setErrorMessage(
-          data.message || 
-          (lang === 'ro' 
-            ? 'A apărut o problemă temporară. Datele tale au fost păstrate; te rugăm să reîncerci.' 
-            : lang === 'fa' 
-            ? 'خطایی رخ داد. اطلاعات واردشده شما حفظ شده است؛ لطفاً مجدداً تلاش کنید.' 
-            : 'A temporary error occurred. Your entered data has been preserved; please try again.')
+          data?.message ||
+          (lang === 'ro'
+            ? 'Răspunsul serverului a fost incomplet (lipsește codul de referință). Datele tale au fost păstrate; te rugăm să reîncerci trimiterea.'
+            : lang === 'fa'
+            ? 'پاسخ سرور فاقد کد پیگیری معتبر بود. اطلاعات شما حفظ شده است؛ لطفاً مجدداً تلاش فرمایید.'
+            : 'Server response was incomplete (missing reference ID). Your entered data has been preserved; please try submitting again.')
         );
       }
     } catch (err) {
@@ -313,7 +338,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
           {/* Step 1: Role */}
           {currentStep === 1 && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              <h3 className="text-base sm:text-lg font-bold text-[#102A43]">
+              <h3
+                ref={stepHeadingRef}
+                tabIndex={-1}
+                className="text-base sm:text-lg font-bold text-[#102A43] outline-none focus:outline-none"
+              >
                 {lang === 'ro' ? '1. Care este rolul sau profilul tău principal?' : lang === 'fa' ? '۱. نقش یا موقعیت اصلی شما چیست؟' : '1. What is your primary role or stakeholder profile?'}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -347,6 +376,14 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
           {/* Step 2: Property Typology & Scope */}
           {currentStep === 2 && (
             <div className="space-y-5 animate-in fade-in duration-150">
+              <h3
+                ref={stepHeadingRef}
+                tabIndex={-1}
+                className="text-base sm:text-lg font-bold text-[#102A43] outline-none focus:outline-none"
+              >
+                {lang === 'ro' ? '2. Tipologia și anvergura proprietății' : lang === 'fa' ? '۲. نوع کاربری و مقیاس ملک' : '2. Property Typology & Asset Scope'}
+              </h3>
+
               {/* Asset Scope */}
               <div className="space-y-2">
                 <span className="text-xs font-semibold text-[#627D98] uppercase tracking-wider block">
@@ -417,7 +454,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
           {/* Step 3: Lifecycle Stage */}
           {currentStep === 3 && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              <h3 className="text-base sm:text-lg font-bold text-[#102A43]">
+              <h3
+                ref={stepHeadingRef}
+                tabIndex={-1}
+                className="text-base sm:text-lg font-bold text-[#102A43] outline-none focus:outline-none"
+              >
                 {lang === 'ro' ? '3. În ce etapă a ciclului de viață se află proprietatea?' : lang === 'fa' ? '۳. ملک در حال حاضر در کدام مرحله از چرخه عمر قرار دارد؟' : '3. What is the current lifecycle stage of the property?'}
               </h3>
               <div className="space-y-2.5">
@@ -449,7 +490,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
           {currentStep === 4 && (
             <div className="space-y-4 animate-in fade-in duration-150">
               <div className="flex items-center justify-between">
-                <h3 className="text-base sm:text-lg font-bold text-[#102A43]">
+                <h3
+                  ref={stepHeadingRef}
+                  tabIndex={-1}
+                  className="text-base sm:text-lg font-bold text-[#102A43] outline-none focus:outline-none"
+                >
                   {lang === 'ro' ? '4. Ce servicii sau capabilități te interesează?' : lang === 'fa' ? '۴. کدام حوزه‌های خدمات یا ماژول‌ها مورد نیاز شماست؟' : '4. Which service domains are you seeking?'}
                 </h3>
                 <span className="text-xs text-[#627D98]">
@@ -499,7 +544,11 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
           {/* Step 5: Workspace Status */}
           {currentStep === 5 && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              <h3 className="text-base sm:text-lg font-bold text-[#102A43]">
+              <h3
+                ref={stepHeadingRef}
+                tabIndex={-1}
+                className="text-base sm:text-lg font-bold text-[#102A43] outline-none focus:outline-none"
+              >
                 {lang === 'ro' ? '5. Care este situația mediului tău Workspace?' : lang === 'fa' ? '۵. وضعیت محیط کاری (Workspace) شما چگونه است؟' : '5. What is your current Workspace operational status?'}
               </h3>
               <div className="space-y-2.5">
@@ -541,18 +590,24 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
           {/* Step 6: Contact Information & Submission */}
           {currentStep === 6 && (
             <div className="space-y-4 animate-in fade-in duration-150">
-              <h3 className="text-base sm:text-lg font-bold text-[#102A43]">
+              <h3
+                ref={stepHeadingRef}
+                tabIndex={-1}
+                className="text-base sm:text-lg font-bold text-[#102A43] outline-none focus:outline-none"
+              >
                 {lang === 'ro' ? '6. Date de contact & Detalii proiect' : lang === 'fa' ? '۶. اطلاعات تماس و مشخصات تکمیلی پروژه' : '6. Contact Details & Additional Project Notes'}
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-[#102A43] block mb-1">
+                  <label htmlFor="fullName" className="text-xs font-bold text-[#102A43] block mb-1">
                     {lang === 'ro' ? 'Nume & Prenume *' : lang === 'fa' ? 'نام و نام خانوادگی *' : 'Full Name *'}
                   </label>
                   <div className="relative">
                     <User className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                     <input
+                      id="fullName"
+                      name="fullName"
                       type="text"
                       required
                       value={fullName}
@@ -564,12 +619,14 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[#102A43] block mb-1">
+                  <label htmlFor="email" className="text-xs font-bold text-[#102A43] block mb-1">
                     {lang === 'ro' ? 'Email de contact *' : lang === 'fa' ? 'پست الکترونیک (ایمیل) *' : 'Email Address *'}
                   </label>
                   <div className="relative">
                     <Mail className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                     <input
+                      id="email"
+                      name="email"
                       type="email"
                       required
                       value={email}
@@ -581,28 +638,32 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[#102A43] block mb-1">
+                  <label htmlFor="phone" className="text-xs font-bold text-[#102A43] block mb-1">
                     {lang === 'ro' ? 'Număr de telefon' : lang === 'fa' ? 'شماره تماس' : 'Phone Number'}
                   </label>
                   <div className="relative">
                     <Phone className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                     <input
+                      id="phone"
+                      name="phone"
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+40 700 000 000"
+                      placeholder={lang === 'fa' ? '۰۹۱۲۱۲۳۴۵۶۷' : '+40 712 345 678'}
                       className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-[#102A43] block mb-1">
+                  <label htmlFor="city" className="text-xs font-bold text-[#102A43] block mb-1">
                     {lang === 'ro' ? 'Oraș / Regiune' : lang === 'fa' ? 'شهر / استان' : 'City / Region'}
                   </label>
                   <div className="relative">
                     <MapPin className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                     <input
+                      id="city"
+                      name="city"
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
@@ -613,10 +674,12 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-bold text-[#102A43] block mb-1">
+                  <label htmlFor="unitsCount" className="text-xs font-bold text-[#102A43] block mb-1">
                     {lang === 'ro' ? 'Număr estimat de unități / spații' : lang === 'fa' ? 'تعداد تقریبی واحدها یا مساحت کل' : 'Estimated Units / Spaces Count'}
                   </label>
                   <input
+                    id="unitsCount"
+                    name="unitsCount"
                     type="text"
                     value={unitsCount}
                     onChange={(e) => setUnitsCount(e.target.value)}
@@ -626,10 +689,12 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="text-xs font-bold text-[#102A43] block mb-1">
+                  <label htmlFor="additionalNotes" className="text-xs font-bold text-[#102A43] block mb-1">
                     {lang === 'ro' ? 'Note suplimentare sau întrebări specifice' : lang === 'fa' ? 'توضیحات تکمیلی یا پرسش‌های ویژه' : 'Additional Notes or Questions'}
                   </label>
                   <textarea
+                    id="additionalNotes"
+                    name="additionalNotes"
                     rows={3}
                     value={additionalNotes}
                     onChange={(e) => setAdditionalNotes(e.target.value)}
@@ -641,8 +706,10 @@ export const ContactForm: React.FC<ContactFormProps> = ({ lang }) => {
 
               {/* Privacy Consent Checkbox */}
               <div className="pt-2">
-                <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
+                <label htmlFor="privacyConsent" className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
                   <input
+                    id="privacyConsent"
+                    name="privacyConsent"
                     type="checkbox"
                     required
                     checked={privacyConsent}

@@ -1,6 +1,6 @@
 export interface DemoNavigationItem {
   key: string;
-  title: string;
+  title?: string;
   access: 'read_only' | 'locked';
   path?: string;
   icon?: string;
@@ -16,10 +16,11 @@ export interface DemoFeatures {
 export interface DemoProfile {
   first_name: string;
   last_name: string;
+  email?: string;
   mobile_contact?: string;
   mobile_verified: boolean;
   marketing_consent: boolean;
-  privacy_accepted: boolean;
+  privacy_accepted?: boolean;
 }
 
 export interface DemoWorkspaceDescriptor {
@@ -29,6 +30,8 @@ export interface DemoWorkspaceDescriptor {
   is_demo: boolean;
   role: string;
   demo_mode: 'preview_only';
+  seed_version?: number;
+  created_at?: string;
   navigation: DemoNavigationItem[];
   features: DemoFeatures;
   profile: DemoProfile;
@@ -82,14 +85,27 @@ export interface DemoFinanceReport {
   monthly: DemoFinanceMonth[];
 }
 
+export interface DemoMaintenanceReportItem {
+  kind: string;
+  status: string;
+  count: number;
+}
+
+export interface DemoActivityItem {
+  id: number;
+  item_id?: string;
+  action: string;
+  created_at: string;
+}
+
 export interface DemoReportsResult {
   workspace_id: string;
   is_demo: boolean;
   generated_at: string;
   counts: Record<string, number>;
-  maintenance: any;
+  maintenance: DemoMaintenanceReportItem[];
   finance: DemoFinanceReport;
-  activity: any[];
+  activity: DemoActivityItem[];
   source: string;
   native_business_data: boolean;
 }

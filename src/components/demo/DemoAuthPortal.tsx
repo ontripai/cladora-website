@@ -1,30 +1,32 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Language } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
-import { 
-  Building2, 
-  Mail, 
-  Lock, 
-  User, 
-  Phone, 
-  Sparkles, 
-  CheckCircle2, 
-  AlertCircle, 
-  Loader2, 
-  ArrowRight, 
-  LogOut, 
+import {
+  Building2,
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Sparkles,
+  AlertCircle,
+  Loader2,
+  ArrowRight,
+  LogOut,
   ShieldCheck,
   Eye,
   EyeOff
 } from 'lucide-react';
-import { 
-  fetchDemoWorkspace, 
-  initializeDemoWorkspace 
+import {
+  fetchDemoWorkspace,
+  initializeDemoWorkspace,
+  validateDemoPhone,
+  validateDemoPersonName,
+  validateDemoWorkspaceName
 } from '@/lib/demo/demo-client';
 import type { DemoWorkspaceDescriptor } from '@/lib/demo/demo-types';
 
@@ -39,11 +41,12 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
   const [isLoadingSession, setIsLoadingSession] = useState(configured);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [existingWorkspace, setExistingWorkspace] = useState<DemoWorkspaceDescriptor | null>(null);
+  const [needsWorkspaceSetup, setNeedsWorkspaceSetup] = useState(false);
 
   // Tab state: 'signup' | 'signin'
   const [activeTab, setActiveTab] = useState<'signup' | 'signin'>('signup');
 
-  // Registration Fields
+  // Form Fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -59,28 +62,93 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [pendingVerification, setPendingVerification] = useState(false);
 
-  // Check current session on mount
+  // Request ID ref for stale/out-of-order response invalidation
+  const authRequestIdRef = useRef(0);
+
+  // Check current session on mount or config change
   useEffect(() => {
     if (!configured) return;
     let isMounted = true;
+    const reqId = ++authRequestIdRef.current;
     const client = createClient();
 
     async function checkAuth() {
       try {
-        const { data: { session } } = await client.auth.getSession();
-        if (!isMounted) return;
+        const { data: { session }, error: sessionError } = await client.auth.getSession();
+        if (!isMounted || reqId !== authRequestIdRef.current) return;
+
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setErrorMessage(sessionError.message);
+          return;
+        }
 
         if (session?.user) {
           setCurrentUser(session.user);
-          const ws = await fetchDemoWorkspace(client);
-          if (isMounted) {
+          const { workspace: ws, error: wsError } = await fetchDemoWorkspace(client);
+          if (!isMounted || reqId !== authRequestIdRef.current) return;
+
+          if (wsError) {
+            setErrorMessage(wsError.message || 'Error checking demo workspace');
+            return;
+          }
+
+          if (ws) {
+            // Workspace already exists - preserve it without alteration
             setExistingWorkspace(ws);
+          } else {
+            // Verified user with workspace === null
+            const meta = session.user.user_metadata || {};
+            const metaFirstName = typeof meta.first_name === 'string' ? meta.first_name.trim() : '';
+            const metaLastName = typeof meta.last_name === 'string' ? meta.last_name.trim() : '';
+            const metaWorkspaceName = typeof meta.workspace_name === 'string' ? meta.workspace_name.trim() : '';
+            const metaMobile = typeof meta.mobile_contact === 'string' ? meta.mobile_contact.trim() : '';
+            const metaPrivacy = Boolean(meta.privacy_accepted);
+            const metaMarketing = Boolean(meta.marketing_consent);
+
+            const phoneCheck = validateDemoPhone(metaMobile);
+            const isFirstValid = validateDemoPersonName(metaFirstName);
+            const isLastValid = validateDemoPersonName(metaLastName);
+            const isWsValid = validateDemoWorkspaceName(metaWorkspaceName);
+
+            if (isFirstValid && isLastValid && isWsValid && phoneCheck.valid && metaPrivacy) {
+              // Valid metadata present -> automatically initialize
+              try {
+                const initRes = await initializeDemoWorkspace(client, {
+                  firstName: metaFirstName,
+                  lastName: metaLastName,
+                  workspaceName: metaWorkspaceName,
+                  mobile: phoneCheck.normalized,
+                  marketingConsent: metaMarketing,
+                  privacyAccepted: true,
+                  locale: lang,
+                });
+                if (!isMounted || reqId !== authRequestIdRef.current) return;
+                setExistingWorkspace(initRes.workspace);
+                router.push(`/${lang}/demo/app/dashboard`);
+              } catch (initErr: any) {
+                if (!isMounted || reqId !== authRequestIdRef.current) return;
+                setErrorMessage(initErr.message || 'Auto-initialization failed');
+                setNeedsWorkspaceSetup(true);
+              }
+            } else {
+              // Incomplete info -> show completion form (NO password / re-signup)
+              setNeedsWorkspaceSetup(true);
+              if (metaFirstName) setFirstName(metaFirstName);
+              if (metaLastName) setLastName(metaLastName);
+              if (metaWorkspaceName) setWorkspaceName(metaWorkspaceName);
+              if (phoneCheck.valid) setMobile(phoneCheck.normalized);
+              if (metaPrivacy) setPrivacyAccepted(true);
+              if (metaMarketing) setMarketingConsent(true);
+            }
           }
         }
-      } catch (err) {
+      } catch (err: any) {
+        if (!isMounted || reqId !== authRequestIdRef.current) return;
         console.error('Session check error:', err);
+        setErrorMessage(err.message || 'Authentication check failed');
       } finally {
-        if (isMounted) {
+        if (isMounted && reqId === authRequestIdRef.current) {
           setIsLoadingSession(false);
         }
       }
@@ -91,16 +159,32 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
     return () => {
       isMounted = false;
     };
-  }, [configured]);
+  }, [configured, lang, router]);
 
   const handleSignOut = async () => {
+    // Invalidate any in-flight requests immediately
+    authRequestIdRef.current++;
     setIsSubmitting(true);
+
     if (isSupabaseConfigured()) {
       const client = createClient();
       await client.auth.signOut();
     }
+
+    // Immediately clear all user, workspace, form fields, and error states
     setCurrentUser(null);
     setExistingWorkspace(null);
+    setNeedsWorkspaceSetup(false);
+    setPendingVerification(false);
+    setErrorMessage(null);
+    setFirstName('');
+    setLastName('');
+    setEmail('');
+    setPassword('');
+    setMobile('');
+    setWorkspaceName('');
+    setPrivacyAccepted(false);
+    setMarketingConsent(false);
     setIsSubmitting(false);
   };
 
@@ -110,10 +194,10 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
 
     if (!privacyAccepted) {
       setErrorMessage(
-        lang === 'ro' 
-          ? 'Acceptarea Politicii de Confidențialitate este obligatorie.' 
-          : lang === 'fa' 
-          ? 'پذیرش سیاست حفظ حریم خصوصی الزامی است.' 
+        lang === 'ro'
+          ? 'Acceptarea Politicii de Confidențialitate este obligatorie.'
+          : lang === 'fa'
+          ? 'پذیرش سیاست حفظ حریم خصوصی الزامی است.'
           : 'Acceptance of the Privacy Policy is mandatory.'
       );
       return;
@@ -130,13 +214,47 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       return;
     }
 
-    if (!firstName.trim() || !lastName.trim() || !workspaceName.trim()) {
+    if (!validateDemoPersonName(firstName)) {
       setErrorMessage(
         lang === 'ro'
-          ? 'Te rugăm să completezi toate câmpurile obligatorii.'
+          ? 'Numele trebuie să conțină între 1 și 80 de caractere.'
           : lang === 'fa'
-          ? 'لطفاً تمامی فیلدهای الزامی را تکمیل کنید.'
-          : 'Please complete all required fields.'
+          ? 'نام باید بین ۱ تا ۸۰ کاراکتر باشد.'
+          : 'First name must be between 1 and 80 characters.'
+      );
+      return;
+    }
+
+    if (!validateDemoPersonName(lastName)) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Prenumele trebuie să conțină între 1 și 80 de caractere.'
+          : lang === 'fa'
+          ? 'نام خانوادگی باید بین ۱ تا ۸۰ کاراکتر باشد.'
+          : 'Last name must be between 1 and 80 characters.'
+      );
+      return;
+    }
+
+    if (!validateDemoWorkspaceName(workspaceName)) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Numele spațiului demo trebuie să conțină între 2 și 120 de caractere.'
+          : lang === 'fa'
+          ? 'نام ورک‌اسپیس نمونه باید بین ۲ تا ۱۲۰ کاراکتر باشد.'
+          : 'Workspace name must be between 2 and 120 characters.'
+      );
+      return;
+    }
+
+    const phoneCheck = validateDemoPhone(mobile);
+    if (!phoneCheck.valid) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Te rugăm să introduci un număr de telefon valid (8 - 15 cifre).'
+          : lang === 'fa'
+          ? 'لطفاً شماره تلفن معتبر (۸ تا ۱۵ رقم) وارد نمایید.'
+          : 'Please enter a valid phone number (8 to 15 digits).'
       );
       return;
     }
@@ -152,11 +270,12 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       return;
     }
 
+    const reqId = ++authRequestIdRef.current;
     setIsSubmitting(true);
 
     try {
       const supabase = createClient();
-      const redirectUrl = `${window.location.origin}/${lang}/demo`;
+      const redirectUrl = `${window.location.origin}/${lang}/auth/callback?next=/${lang}/demo`;
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -166,10 +285,14 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
             first_name: firstName.trim(),
             last_name: lastName.trim(),
             workspace_name: workspaceName.trim(),
-            mobile_contact: mobile.trim() || null,
+            mobile_contact: phoneCheck.normalized,
+            marketing_consent: Boolean(marketingConsent),
+            privacy_accepted: true,
           },
         },
       });
+
+      if (reqId !== authRequestIdRef.current) return;
 
       if (authError) {
         setErrorMessage(authError.message);
@@ -188,7 +311,15 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       setCurrentUser(authData.user);
 
       // Verify or initialize demo workspace
-      const existing = await fetchDemoWorkspace(supabase);
+      const { workspace: existing, error: wsError } = await fetchDemoWorkspace(supabase);
+      if (reqId !== authRequestIdRef.current) return;
+
+      if (wsError) {
+        setErrorMessage(wsError.message || 'Error loading demo workspace');
+        setIsSubmitting(false);
+        return;
+      }
+
       if (existing) {
         setExistingWorkspace(existing);
         router.push(`/${lang}/demo/app/dashboard`);
@@ -196,16 +327,18 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         const initResult = await initializeDemoWorkspace(supabase, {
           firstName: firstName.trim(),
           lastName: lastName.trim(),
-          mobile: mobile.trim() || '+40700000000',
+          mobile: phoneCheck.normalized,
           workspaceName: workspaceName.trim(),
-          marketingConsent,
+          marketingConsent: Boolean(marketingConsent),
           privacyAccepted: true,
           locale: lang,
         });
+        if (reqId !== authRequestIdRef.current) return;
         setExistingWorkspace(initResult.workspace);
         router.push(`/${lang}/demo/app/dashboard`);
       }
     } catch (err: any) {
+      if (reqId !== authRequestIdRef.current) return;
       setErrorMessage(err.message || 'An error occurred during demo workspace provisioning.');
       setIsSubmitting(false);
     }
@@ -226,6 +359,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       return;
     }
 
+    const reqId = ++authRequestIdRef.current;
     setIsSubmitting(true);
 
     try {
@@ -234,6 +368,8 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         email: email.trim(),
         password,
       });
+
+      if (reqId !== authRequestIdRef.current) return;
 
       if (authError) {
         setErrorMessage(
@@ -250,17 +386,160 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       setCurrentUser(authData.user);
 
       // Check existing workspace
-      const ws = await fetchDemoWorkspace(supabase);
+      const { workspace: ws, error: wsError } = await fetchDemoWorkspace(supabase);
+      if (reqId !== authRequestIdRef.current) return;
+
+      if (wsError) {
+        setErrorMessage(wsError.message || 'Error checking demo workspace');
+        setIsSubmitting(false);
+        return;
+      }
+
       if (ws) {
         setExistingWorkspace(ws);
         router.push(`/${lang}/demo/app/dashboard`);
       } else {
-        // Prompt for one-time initialization if user has no workspace yet
-        setActiveTab('signup');
-        setIsSubmitting(false);
+        // User is authenticated, but workspace is null
+        const meta = authData.user?.user_metadata || {};
+        const metaFirstName = typeof meta.first_name === 'string' ? meta.first_name.trim() : '';
+        const metaLastName = typeof meta.last_name === 'string' ? meta.last_name.trim() : '';
+        const metaWorkspaceName = typeof meta.workspace_name === 'string' ? meta.workspace_name.trim() : '';
+        const metaMobile = typeof meta.mobile_contact === 'string' ? meta.mobile_contact.trim() : '';
+        const metaPrivacy = Boolean(meta.privacy_accepted);
+        const metaMarketing = Boolean(meta.marketing_consent);
+
+        const phoneCheck = validateDemoPhone(metaMobile);
+        const isFirstValid = validateDemoPersonName(metaFirstName);
+        const isLastValid = validateDemoPersonName(metaLastName);
+        const isWsValid = validateDemoWorkspaceName(metaWorkspaceName);
+
+        if (isFirstValid && isLastValid && isWsValid && phoneCheck.valid && metaPrivacy) {
+          const initResult = await initializeDemoWorkspace(supabase, {
+            firstName: metaFirstName,
+            lastName: metaLastName,
+            workspaceName: metaWorkspaceName,
+            mobile: phoneCheck.normalized,
+            marketingConsent: metaMarketing,
+            privacyAccepted: true,
+            locale: lang,
+          });
+          if (reqId !== authRequestIdRef.current) return;
+          setExistingWorkspace(initResult.workspace);
+          router.push(`/${lang}/demo/app/dashboard`);
+        } else {
+          // Incomplete info: open completion form (NO password / re-signup)
+          setNeedsWorkspaceSetup(true);
+          if (metaFirstName) setFirstName(metaFirstName);
+          if (metaLastName) setLastName(metaLastName);
+          if (metaWorkspaceName) setWorkspaceName(metaWorkspaceName);
+          if (phoneCheck.valid) setMobile(phoneCheck.normalized);
+          if (metaPrivacy) setPrivacyAccepted(true);
+          if (metaMarketing) setMarketingConsent(true);
+          setIsSubmitting(false);
+        }
       }
     } catch (err: any) {
+      if (reqId !== authRequestIdRef.current) return;
       setErrorMessage(err.message || 'Error signing in.');
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCompleteWorkspaceSetup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+
+    if (!privacyAccepted) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Acceptarea Politicii de Confidențialitate este obligatorie.'
+          : lang === 'fa'
+          ? 'پذیرش سیاست حفظ حریم خصوصی الزامی است.'
+          : 'Acceptance of the Privacy Policy is mandatory.'
+      );
+      return;
+    }
+
+    if (!validateDemoPersonName(firstName)) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Numele trebuie să conțină între 1 și 80 de caractere.'
+          : lang === 'fa'
+          ? 'نام باید بین ۱ تا ۸۰ کاراکتر باشد.'
+          : 'First name must be between 1 and 80 characters.'
+      );
+      return;
+    }
+
+    if (!validateDemoPersonName(lastName)) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Prenumele trebuie să conțină între 1 și 80 de caractere.'
+          : lang === 'fa'
+          ? 'نام خانوادگی باید بین ۱ تا ۸۰ کاراکتر باشد.'
+          : 'Last name must be between 1 and 80 characters.'
+      );
+      return;
+    }
+
+    if (!validateDemoWorkspaceName(workspaceName)) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Numele spațiului demo trebuie să conțină între 2 și 120 de caractere.'
+          : lang === 'fa'
+          ? 'نام ورک‌اسپیس نمونه باید بین ۲ تا ۱۲۰ کاراکتر باشد.'
+          : 'Workspace name must be between 2 and 120 characters.'
+      );
+      return;
+    }
+
+    const phoneCheck = validateDemoPhone(mobile);
+    if (!phoneCheck.valid) {
+      setErrorMessage(
+        lang === 'ro'
+          ? 'Te rugăm să introduci un număr de telefon valid (8 - 15 cifre).'
+          : lang === 'fa'
+          ? 'لطفاً شماره تلفن معتبر (۸ تا ۱۵ رقم) وارد نمایید.'
+          : 'Please enter a valid phone number (8 to 15 digits).'
+      );
+      return;
+    }
+
+    const reqId = ++authRequestIdRef.current;
+    setIsSubmitting(true);
+
+    try {
+      const supabase = createClient();
+      const initResult = await initializeDemoWorkspace(supabase, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        mobile: phoneCheck.normalized,
+        workspaceName: workspaceName.trim(),
+        marketingConsent: Boolean(marketingConsent),
+        privacyAccepted: true,
+        locale: lang,
+      });
+
+      if (reqId !== authRequestIdRef.current) return;
+
+      // Update metadata in auth user for persistence across future sessions
+      void supabase.auth.updateUser({
+        data: {
+          first_name: firstName.trim(),
+          last_name: lastName.trim(),
+          workspace_name: workspaceName.trim(),
+          mobile_contact: phoneCheck.normalized,
+          marketing_consent: Boolean(marketingConsent),
+          privacy_accepted: true,
+        },
+      });
+
+      setNeedsWorkspaceSetup(false);
+      setExistingWorkspace(initResult.workspace);
+      router.push(`/${lang}/demo/app/dashboard`);
+    } catch (err: any) {
+      if (reqId !== authRequestIdRef.current) return;
+      setErrorMessage(err.message || 'Error initializing demo workspace.');
       setIsSubmitting(false);
     }
   };
@@ -294,7 +573,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
     );
   }
 
-  // State 1: User already authenticated with provisioned workspace
+  // State 1: User already authenticated with existing workspace
   if (currentUser && existingWorkspace) {
     return (
       <div className="max-w-xl mx-auto p-8 sm:p-10 bg-white rounded-3xl border border-[#CBD5E1] shadow-card text-center space-y-6 animate-in fade-in duration-200">
@@ -397,11 +676,239 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
     );
   }
 
-  // State 3: Registration / Sign In Form
+  // State 3: User verified but workspace === null (Completion Form - NO password/signup re-entry)
+  if (currentUser && needsWorkspaceSetup) {
+    return (
+      <div className="max-w-xl mx-auto px-4 animate-in fade-in duration-200">
+        <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-card overflow-hidden">
+          {/* Header */}
+          <div className="p-6 sm:p-8 bg-[#F8FAFC] border-b border-[#E2E8F0] text-center space-y-3">
+            <div className="w-12 h-12 rounded-2xl bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center mx-auto border border-[#B2E5DF]">
+              <Sparkles className="w-6 h-6" />
+            </div>
+
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0E9F8E] block">
+              {lang === 'ro' ? 'Finalizare Configurare Demo' : lang === 'fa' ? 'تکمیل اطلاعات راه‌اندازی دمو' : 'Complete Demo Setup'}
+            </span>
+
+            <h1 className="text-xl sm:text-2xl font-display font-extrabold text-[#102A43]">
+              {lang === 'ro'
+                ? 'Configurează spațiul tău demonstrativ'
+                : lang === 'fa'
+                ? 'راه‌اندازی ورک‌اسپیس نمونهٔ اختصاصی'
+                : 'Configure Your Private Demo Workspace'}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-[#52667A] max-w-md mx-auto leading-relaxed">
+              {lang === 'ro'
+                ? 'Contul tău este autentificat. Te rugăm să completezi detaliile de mai jos pentru a inițializa cele 75 de înregistrări de probă.'
+                : lang === 'fa'
+                ? 'حساب شما با موفقیت تأیید شد. لطفاً برای ایجاد ورک‌اسپیس و بارگذاری ۷۵ قلم دادهٔ نمونه، اطلاعات زیر را تکمیل فرمایید.'
+                : 'Your account is authenticated. Please enter the details below to initialize your 75 sample records.'}
+            </p>
+
+            {/* Read-only User Badge */}
+            <div className="p-2.5 bg-white rounded-xl border border-[#CBD5E1] text-xs text-[#52667A] inline-flex items-center gap-2">
+              <Mail className="w-4 h-4 text-[#0E9F8E]" />
+              <span className="font-semibold text-[#102A43]">{currentUser.email}</span>
+            </div>
+          </div>
+
+          {/* Error Alert */}
+          {errorMessage && (
+            <div className="mx-6 mt-6 p-4 rounded-2xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span className="flex-1 leading-relaxed">{errorMessage}</span>
+            </div>
+          )}
+
+          {/* Completion Form */}
+          <form onSubmit={handleCompleteWorkspaceSetup} className="p-6 sm:p-8 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="complete-firstName" className="text-xs font-bold text-[#102A43] block mb-1">
+                  {lang === 'ro' ? 'Nume *' : lang === 'fa' ? 'نام *' : 'First Name *'}
+                </label>
+                <div className="relative">
+                  <User className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
+                  <input
+                    id="complete-firstName"
+                    name="firstName"
+                    type="text"
+                    required
+                    maxLength={80}
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder={lang === 'ro' ? 'Ion' : lang === 'fa' ? 'علی' : 'John'}
+                    className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="complete-lastName" className="text-xs font-bold text-[#102A43] block mb-1">
+                  {lang === 'ro' ? 'Prenume *' : lang === 'fa' ? 'نام خانوادگی *' : 'Last Name *'}
+                </label>
+                <div className="relative">
+                  <User className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
+                  <input
+                    id="complete-lastName"
+                    name="lastName"
+                    type="text"
+                    required
+                    maxLength={80}
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder={lang === 'ro' ? 'Popescu' : lang === 'fa' ? 'رضایی' : 'Doe'}
+                    className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="complete-mobile" className="text-xs font-bold text-[#102A43]">
+                  {lang === 'ro' ? 'Telefon de contact (8-15 cifre) *' : lang === 'fa' ? 'شماره موبایل تماس (۸ تا ۱۵ رقم) *' : 'Contact Phone (8-15 digits) *'}
+                </label>
+                <span className="text-[10px] text-[#627D98]">
+                  {lang === 'ro' ? '(Neverificat prin SMS)' : lang === 'fa' ? '(بدون نیاز به تأیید پیامکی)' : '(Contact-only, not SMS verified)'}
+                </span>
+              </div>
+              <div className="relative">
+                <Phone className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
+                <input
+                  id="complete-mobile"
+                  name="mobile"
+                  type="tel"
+                  required
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
+                  placeholder={lang === 'fa' ? '۰۹۱۲۱۲۳۴۵۶۷' : '+40 712 345 678'}
+                  className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="complete-workspaceName" className="text-xs font-bold text-[#102A43] block mb-1">
+                {lang === 'ro' ? 'Numele Workspace-ului tău Demo *' : lang === 'fa' ? 'نام ورک‌اسپیس نمونه شما *' : 'Your Demo Workspace Name *'}
+              </label>
+              <div className="relative">
+                <Building2 className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
+                <input
+                  id="complete-workspaceName"
+                  name="workspaceName"
+                  type="text"
+                  required
+                  minLength={2}
+                  maxLength={120}
+                  value={workspaceName}
+                  onChange={(e) => setWorkspaceName(e.target.value)}
+                  placeholder={lang === 'ro' ? 'ex. Ansamblul Aviației 12B' : lang === 'fa' ? 'مثال: برج مسکونی آویاتسی ۱۲B' : 'e.g. Aviatiei Residence 12B'}
+                  className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <label htmlFor="complete-privacyAccepted" className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
+                <input
+                  id="complete-privacyAccepted"
+                  name="privacyAccepted"
+                  type="checkbox"
+                  required
+                  checked={privacyAccepted}
+                  onChange={(e) => setPrivacyAccepted(e.target.checked)}
+                  className="mt-0.5 rounded border-[#CBD5E1] text-[#0E9F8E] focus:ring-[#0E9F8E]"
+                />
+                <span className="leading-relaxed">
+                  {lang === 'ro' ? (
+                    <>
+                      Am citit și accept{' '}
+                      <Link href={`/${lang}/privacy`} className="text-[#0E9F8E] underline font-semibold" target="_blank">
+                        Politica de Confidențialitate
+                      </Link>{' '}
+                      CLADORA. *
+                    </>
+                  ) : lang === 'fa' ? (
+                    <>
+                      با{' '}
+                      <Link href={`/${lang}/privacy`} className="text-[#0E9F8E] underline font-semibold" target="_blank">
+                        سیاست حفظ حریم خصوصی
+                      </Link>{' '}
+                      کلادورا موافقت می‌نمایم. *
+                    </>
+                  ) : (
+                    <>
+                      I have read and agree to the{' '}
+                      <Link href={`/${lang}/privacy`} className="text-[#0E9F8E] underline font-semibold" target="_blank">
+                        Privacy Policy
+                      </Link>
+                      . *
+                    </>
+                  )}
+                </span>
+              </label>
+
+              <label htmlFor="complete-marketingConsent" className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
+                <input
+                  id="complete-marketingConsent"
+                  name="marketingConsent"
+                  type="checkbox"
+                  checked={marketingConsent}
+                  onChange={(e) => setMarketingConsent(e.target.checked)}
+                  className="mt-0.5 rounded border-[#CBD5E1] text-[#0E9F8E] focus:ring-[#0E9F8E]"
+                />
+                <span className="leading-relaxed">
+                  {lang === 'ro'
+                    ? 'Sunt de acord să primesc actualizări și noutăți legate de produs (Opțional).'
+                    : lang === 'fa'
+                    ? 'مایل به دریافت به‌روزرسانی‌ها و اخبار محصول هستم (اختیاری).'
+                    : 'I agree to receive occasional product updates and news (Optional).'}
+                </span>
+              </label>
+            </div>
+
+            <div className="pt-4 flex flex-col sm:flex-row items-center gap-3">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:flex-1 py-3 px-6 text-xs sm:text-sm font-bold text-white bg-[#0E9F8E] hover:bg-[#0A7E71] rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{lang === 'ro' ? 'Se configurează spațiul demo...' : lang === 'fa' ? 'در حال راه‌اندازی ورک‌اسپیس نمونه...' : 'Provisioning demo workspace...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{lang === 'ro' ? 'Inițializează Workspace Demo' : lang === 'fa' ? 'راه‌اندازی و ورود به ورک‌اسپیس' : 'Initialize Demo Workspace'}</span>
+                    <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleSignOut}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-4 py-3 text-xs font-bold text-[#52667A] hover:text-[#102A43] bg-[#F0F4F8] hover:bg-[#E2E8F0] rounded-xl transition-colors flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>{lang === 'ro' ? 'Deconectare' : lang === 'fa' ? 'خروج' : 'Sign Out'}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // State 4: Standard Registration / Sign In Form
   return (
     <div className="max-w-xl mx-auto px-4">
       <div className="bg-white rounded-3xl border border-[#E2E8F0] shadow-card overflow-hidden">
-        
         {/* Header */}
         <div className="p-6 sm:p-8 bg-[#F8FAFC] border-b border-[#E2E8F0] text-center space-y-3">
           <div className="w-12 h-12 rounded-2xl bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center mx-auto border border-[#B2E5DF]">
@@ -413,10 +920,10 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
           </span>
 
           <h1 className="text-xl sm:text-2xl font-display font-extrabold text-[#102A43]">
-            {lang === 'ro' 
-              ? 'Explorează platforma cu propriul Workspace de probă' 
-              : lang === 'fa' 
-              ? 'مشاهده قابلیت‌ها در ورک‌اسپیس نمونه اختصاصی' 
+            {lang === 'ro'
+              ? 'Explorează platforma cu propriul Workspace de probă'
+              : lang === 'fa'
+              ? 'مشاهده قابلیت‌ها در ورک‌اسپیس نمونه اختصاصی'
               : 'Explore CLADORA with Your Private Demo Workspace'}
           </h1>
 
@@ -469,16 +976,18 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         {activeTab === 'signup' ? (
           <form onSubmit={handleSignUp} className="p-6 sm:p-8 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* First Name */}
               <div>
-                <label className="text-xs font-bold text-[#102A43] block mb-1">
+                <label htmlFor="signup-firstName" className="text-xs font-bold text-[#102A43] block mb-1">
                   {lang === 'ro' ? 'Nume *' : lang === 'fa' ? 'نام *' : 'First Name *'}
                 </label>
                 <div className="relative">
                   <User className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                   <input
+                    id="signup-firstName"
+                    name="firstName"
                     type="text"
                     required
+                    maxLength={80}
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                     placeholder={lang === 'ro' ? 'Ion' : lang === 'fa' ? 'علی' : 'John'}
@@ -487,16 +996,18 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
                 </div>
               </div>
 
-              {/* Last Name */}
               <div>
-                <label className="text-xs font-bold text-[#102A43] block mb-1">
+                <label htmlFor="signup-lastName" className="text-xs font-bold text-[#102A43] block mb-1">
                   {lang === 'ro' ? 'Prenume *' : lang === 'fa' ? 'نام خانوادگی *' : 'Last Name *'}
                 </label>
                 <div className="relative">
                   <User className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                   <input
+                    id="signup-lastName"
+                    name="lastName"
                     type="text"
                     required
+                    maxLength={80}
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                     placeholder={lang === 'ro' ? 'Popescu' : lang === 'fa' ? 'رضایی' : 'Doe'}
@@ -506,14 +1017,15 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
               </div>
             </div>
 
-            {/* Email */}
             <div>
-              <label className="text-xs font-bold text-[#102A43] block mb-1">
+              <label htmlFor="signup-email" className="text-xs font-bold text-[#102A43] block mb-1">
                 {lang === 'ro' ? 'Email de acces *' : lang === 'fa' ? 'پست الکترونیک (ایمیل) *' : 'Email Address *'}
               </label>
               <div className="relative">
                 <Mail className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                 <input
+                  id="signup-email"
+                  name="email"
                   type="email"
                   required
                   value={email}
@@ -524,16 +1036,18 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
               </div>
             </div>
 
-            {/* Password */}
             <div>
-              <label className="text-xs font-bold text-[#102A43] block mb-1">
+              <label htmlFor="signup-password" className="text-xs font-bold text-[#102A43] block mb-1">
                 {lang === 'ro' ? 'Parolă (minim 8 caractere) *' : lang === 'fa' ? 'رمز عبور (حداقل ۸ کاراکتر) *' : 'Password (min. 8 characters) *'}
               </label>
               <div className="relative">
                 <Lock className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                 <input
+                  id="signup-password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
@@ -541,6 +1055,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute top-2.5 text-[#627D98] hover:text-[#102A43] ${lang === 'fa' ? 'left-3' : 'right-3'}`}
                 >
@@ -549,11 +1064,10 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
               </div>
             </div>
 
-            {/* Mobile Contact */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-xs font-bold text-[#102A43]">
-                  {lang === 'ro' ? 'Telefon de contact' : lang === 'fa' ? 'شماره موبایل تماس' : 'Contact Phone'}
+                <label htmlFor="signup-mobile" className="text-xs font-bold text-[#102A43]">
+                  {lang === 'ro' ? 'Telefon de contact (8-15 cifre) *' : lang === 'fa' ? 'شماره موبایل تماس (۸ تا ۱۵ رقم) *' : 'Contact Phone (8-15 digits) *'}
                 </label>
                 <span className="text-[10px] text-[#627D98]">
                   {lang === 'ro' ? '(Neverificat prin SMS)' : lang === 'fa' ? '(بدون نیاز به تأیید پیامکی)' : '(Contact-only, not SMS verified)'}
@@ -562,25 +1076,31 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
               <div className="relative">
                 <Phone className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                 <input
+                  id="signup-mobile"
+                  name="mobile"
                   type="tel"
+                  required
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value)}
-                  placeholder={lang === 'fa' ? '۰۹۱۲۱۲۳۴۵۶۷' : '+40 700 000 000'}
+                  placeholder={lang === 'fa' ? '۰۹۱۲۱۲۳۴۵۶۷' : '+40 712 345 678'}
                   className={`w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none ${lang === 'fa' ? 'pr-9 pl-3' : 'pl-9 pr-3'}`}
                 />
               </div>
             </div>
 
-            {/* Workspace Name */}
             <div>
-              <label className="text-xs font-bold text-[#102A43] block mb-1">
+              <label htmlFor="signup-workspaceName" className="text-xs font-bold text-[#102A43] block mb-1">
                 {lang === 'ro' ? 'Numele Workspace-ului tău Demo *' : lang === 'fa' ? 'نام ورک‌اسپیس نمونه شما *' : 'Your Demo Workspace Name *'}
               </label>
               <div className="relative">
                 <Building2 className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                 <input
+                  id="signup-workspaceName"
+                  name="workspaceName"
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={120}
                   value={workspaceName}
                   onChange={(e) => setWorkspaceName(e.target.value)}
                   placeholder={lang === 'ro' ? 'ex. Ansamblul Aviației 12B' : lang === 'fa' ? 'مثال: برج مسکونی آویاتسی ۱۲B' : 'e.g. Aviatiei Residence 12B'}
@@ -589,11 +1109,11 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
               </div>
             </div>
 
-            {/* Consents */}
             <div className="space-y-3 pt-2">
-              {/* Mandatory Privacy Acceptance */}
-              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
+              <label htmlFor="signup-privacyAccepted" className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
                 <input
+                  id="signup-privacyAccepted"
+                  name="privacyAccepted"
                   type="checkbox"
                   required
                   checked={privacyAccepted}
@@ -629,9 +1149,10 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
                 </span>
               </label>
 
-              {/* Optional Marketing Consent */}
-              <label className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
+              <label htmlFor="signup-marketingConsent" className="flex items-start gap-2.5 cursor-pointer text-xs text-[#52667A]">
                 <input
+                  id="signup-marketingConsent"
+                  name="marketingConsent"
                   type="checkbox"
                   checked={marketingConsent}
                   onChange={(e) => setMarketingConsent(e.target.checked)}
@@ -647,7 +1168,6 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
               </label>
             </div>
 
-            {/* Submit Button */}
             <div className="pt-4">
               <button
                 type="submit"
@@ -672,12 +1192,14 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
           /* Sign In Form */
           <form onSubmit={handleSignIn} className="p-6 sm:p-8 space-y-4">
             <div>
-              <label className="text-xs font-bold text-[#102A43] block mb-1">
+              <label htmlFor="signin-email" className="text-xs font-bold text-[#102A43] block mb-1">
                 {lang === 'ro' ? 'Email de acces' : lang === 'fa' ? 'پست الکترونیک (ایمیل)' : 'Email Address'}
               </label>
               <div className="relative">
                 <Mail className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                 <input
+                  id="signin-email"
+                  name="email"
                   type="email"
                   required
                   value={email}
@@ -689,12 +1211,14 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#102A43] block mb-1">
+              <label htmlFor="signin-password" className="text-xs font-bold text-[#102A43] block mb-1">
                 {lang === 'ro' ? 'Parolă' : lang === 'fa' ? 'رمز عبور' : 'Password'}
               </label>
               <div className="relative">
                 <Lock className={`w-4 h-4 text-[#627D98] absolute top-3 ${lang === 'fa' ? 'right-3' : 'left-3'}`} />
                 <input
+                  id="signin-password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
@@ -704,6 +1228,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute top-2.5 text-[#627D98] hover:text-[#102A43] ${lang === 'fa' ? 'left-3' : 'right-3'}`}
                 >
@@ -745,7 +1270,6 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
               : 'Isolated sample data • No commercial obligation • No credit card needed'}
           </span>
         </div>
-
       </div>
     </div>
   );

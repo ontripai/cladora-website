@@ -1,35 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Language } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import type { DemoWorkspaceDescriptor, DemoNavigationItem } from '@/lib/demo/demo-types';
-import { 
-  Building2, 
-  Home, 
-  Layers, 
-  FileSpreadsheet, 
-  Gauge, 
-  Wrench, 
-  Vote, 
-  Megaphone, 
-  FolderArchive, 
-  Settings, 
-  LogOut, 
-  Sparkles, 
-  ShieldCheck, 
-  Users, 
-  Calendar, 
-  Briefcase, 
-  BarChart3, 
-  Clock, 
-  Menu, 
+import {
+  Building2,
+  Home,
+  Layers,
+  FileSpreadsheet,
+  Gauge,
+  Wrench,
+  Vote,
+  Megaphone,
+  FolderArchive,
+  Settings,
+  LogOut,
+  ShieldCheck,
+  Users,
+  Calendar,
+  Briefcase,
+  BarChart3,
+  Clock,
+  Menu,
   X,
   Lock,
-  ArrowRight
+  ArrowRight,
+  CreditCard,
+  UserCheck
 } from 'lucide-react';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -57,6 +58,8 @@ const navIconMap: Record<string, React.ComponentType<{ className?: string }>> = 
   finance: FileSpreadsheet,
   reports: BarChart3,
   activity: Clock,
+  payments: CreditCard,
+  role_administration: UserCheck,
   settings: Settings,
 };
 
@@ -77,6 +80,8 @@ const navLabels: Record<string, Record<Language, string>> = {
   finance: { ro: 'Financiar & Registru', fa: 'مدیریت مالی و هزینه‌ها', en: 'Finance & Ledger' },
   reports: { ro: 'Rapoarte & Indicatori', fa: 'گزارش‌های عملکردی', en: 'Reports & Metrics' },
   activity: { ro: 'Jurnal Activitate', fa: 'گزارش وقایع و فعالیت‌ها', en: 'Activity Log' },
+  payments: { ro: 'Plăți & Tranzacții', fa: 'پرداخت‌ها و تراکنش‌ها', en: 'Payments & Transactions' },
+  role_administration: { ro: 'Administrare Roluri', fa: 'مدیریت نقش‌ها و دسترسی‌ها', en: 'Role Administration' },
   settings: { ro: 'Setări Workspace', fa: 'تنظیمات دمو', en: 'Workspace Settings' },
 };
 
@@ -91,6 +96,26 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
+  // Keyboard accessibility and scroll locking for mobile drawer
+  useEffect(() => {
+    if (!mobileDrawerOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileDrawerOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [mobileDrawerOpen]);
+
   const handleSignOut = async () => {
     setIsSigningOut(true);
     if (isSupabaseConfigured()) {
@@ -102,26 +127,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
 
   const appBase = `/${lang}/demo/app`;
 
-  // Merge backend navigation with fallback order to ensure all modules are accessible
-  const fallbackKeys = [
-    'dashboard',
-    'properties',
-    'residents',
-    'maintenance',
-    'assets',
-    'utilities',
-    'communications',
-    'documents',
-    'bookings',
-    'services',
-    'community_experience',
-    'governance',
-    'finance',
-    'reports',
-    'activity',
-    'settings',
-  ];
-
+  // Backend navigation items map
   const backendNavMap = new Map<string, DemoNavigationItem>();
   if (Array.isArray(workspace.navigation)) {
     workspace.navigation.forEach((item) => {
@@ -129,9 +135,44 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
     });
   }
 
-  const navItems = fallbackKeys.map((key) => {
-    const backendItem = backendNavMap.get(key) || backendNavMap.get(key.replace('_', '-'));
-    const access = backendItem ? backendItem.access : 'read_only';
+  // Canonical ordering prioritizing backend descriptor order
+  const descriptorKeys = Array.isArray(workspace.navigation) && workspace.navigation.length > 0
+    ? workspace.navigation.map((i) => i.key)
+    : [
+        'dashboard',
+        'properties',
+        'residents',
+        'maintenance',
+        'assets',
+        'utilities',
+        'communications',
+        'documents',
+        'bookings',
+        'services',
+        'community_experience',
+        'governance',
+        'finance',
+        'reports',
+        'activity',
+        'payments',
+        'role_administration',
+        'settings',
+      ];
+
+  // Ensure community-experience is present in navigation if not already
+  const finalKeys = [...descriptorKeys];
+  if (!finalKeys.includes('community-experience') && !finalKeys.includes('community_experience')) {
+    const servicesIndex = finalKeys.indexOf('services');
+    if (servicesIndex !== -1) {
+      finalKeys.splice(servicesIndex + 1, 0, 'community_experience');
+    } else {
+      finalKeys.push('community_experience');
+    }
+  }
+
+  const navItems = finalKeys.map((key) => {
+    const backendItem = backendNavMap.get(key) || backendNavMap.get(key.replace('_', '-')) || backendNavMap.get(key.replace('-', '_'));
+    const access = backendItem ? backendItem.access : (key === 'payments' || key === 'role_administration' ? 'locked' : 'read_only');
     const label = navLabels[key]?.[lang] || backendItem?.title || key;
     const pathSlug = key === 'community_experience' ? 'community-experience' : key;
     const href = `${appBase}/${pathSlug}`;
@@ -178,7 +219,9 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
             type="button"
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
             className="p-1.5 rounded-lg text-[#334E68] hover:bg-[#F0F4F8] lg:hidden"
-            aria-label="Toggle Navigation"
+            aria-label={mobileDrawerOpen ? 'Închide meniul' : 'Deschide meniul'}
+            aria-expanded={mobileDrawerOpen}
+            aria-controls="mobile-navigation-drawer"
           >
             {mobileDrawerOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
@@ -226,6 +269,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
 
             {navItems.map((item) => {
               const isActive = pathname === item.href || (item.key !== 'dashboard' && pathname.startsWith(item.href));
+              const isLocked = item.access === 'locked';
               const Icon = item.Icon;
 
               return (
@@ -235,16 +279,23 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
                   className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between transition-all group ${
                     isActive
                       ? 'bg-[#EAF8F5] text-[#0E9F8E] font-extrabold shadow-2xs'
+                      : isLocked
+                      ? 'text-[#627D98] hover:bg-[#F8FAFC] opacity-75'
                       : 'text-[#334E68] hover:bg-[#F8FAFC] hover:text-[#102A43]'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#0E9F8E]' : 'text-[#627D98] group-hover:text-[#102A43]'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 ${
+                      isActive ? 'text-[#0E9F8E]' : isLocked ? 'text-[#9FB3C8]' : 'text-[#627D98] group-hover:text-[#102A43]'
+                    }`} />
                     <span className="truncate">{item.label}</span>
                   </div>
 
-                  {item.access === 'locked' && (
-                    <Lock className="w-3 h-3 text-[#9FB3C8]" />
+                  {isLocked && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#627D98] bg-[#F0F4F8] px-1.5 py-0.5 rounded border border-[#CBD5E1] shrink-0">
+                      <Lock className="w-2.5 h-2.5 text-[#9FB3C8]" />
+                      <span>{lang === 'ro' ? 'Blocat' : lang === 'fa' ? 'قفل' : 'Locked'}</span>
+                    </span>
                   )}
                 </Link>
               );
@@ -272,8 +323,14 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
 
         {/* Mobile Navigation Drawer */}
         {mobileDrawerOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 flex">
-            <div 
+          <div
+            id="mobile-navigation-drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-label={lang === 'ro' ? 'Meniu de navigare mobil' : lang === 'fa' ? 'منوی ناوبری موبایل' : 'Mobile navigation menu'}
+            className="lg:hidden fixed inset-0 z-50 flex"
+          >
+            <div
               className="fixed inset-0 bg-black/40 backdrop-blur-xs"
               onClick={() => setMobileDrawerOpen(false)}
             />
@@ -287,6 +344,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
                   type="button"
                   onClick={() => setMobileDrawerOpen(false)}
                   className="p-1 rounded-lg text-[#627D98] hover:bg-[#F0F4F8]"
+                  aria-label="Close menu"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -295,6 +353,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
               <div className="py-2 space-y-1 flex-1">
                 {navItems.map((item) => {
                   const isActive = pathname === item.href || (item.key !== 'dashboard' && pathname.startsWith(item.href));
+                  const isLocked = item.access === 'locked';
                   const Icon = item.Icon;
 
                   return (
@@ -305,13 +364,24 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
                       className={`w-full px-3 py-2.5 rounded-xl text-xs font-bold flex items-center justify-between ${
                         isActive
                           ? 'bg-[#EAF8F5] text-[#0E9F8E] font-extrabold'
+                          : isLocked
+                          ? 'text-[#627D98] hover:bg-[#F8FAFC] opacity-75'
                           : 'text-[#334E68] hover:bg-[#F8FAFC]'
                       }`}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#0E9F8E]' : 'text-[#627D98]'}`} />
+                        <Icon className={`w-4 h-4 shrink-0 ${
+                          isActive ? 'text-[#0E9F8E]' : isLocked ? 'text-[#9FB3C8]' : 'text-[#627D98]'
+                        }`} />
                         <span className="truncate">{item.label}</span>
                       </div>
+
+                      {isLocked && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#627D98] bg-[#F0F4F8] px-1.5 py-0.5 rounded border border-[#CBD5E1] shrink-0">
+                          <Lock className="w-2.5 h-2.5 text-[#9FB3C8]" />
+                          <span>{lang === 'ro' ? 'Blocat' : lang === 'fa' ? 'قفل' : 'Locked'}</span>
+                        </span>
+                      )}
                     </Link>
                   );
                 })}

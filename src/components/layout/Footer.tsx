@@ -178,7 +178,7 @@ export const Footer: React.FC<FooterProps> = ({ lang }) => {
               </li>
               <li>
                 <Link href={`/${lang}/community-experience`} className="hover:text-white transition-colors">
-                  {lang === 'ro' ? 'Comunitate & Experiență (C&E)' : lang === 'fa' ? 'جامعه و تجربه کاربری (C&E)' : 'Community & Experience (C&E)'}
+                  {lang === 'ro' ? 'Comunitate & Experiență (CE)' : lang === 'fa' ? 'جامعه و تجربه (CE)' : 'Community & Experience (CE)'}
                 </Link>
               </li>
               <li>

@@ -58,6 +58,9 @@ export default async function DemoAppPage({
     'settings',
     'accounting',
     'meters',
+    'payments',
+    'role_administration',
+    'role-administration',
   ];
 
   const normalizedModule =
@@ -65,6 +68,8 @@ export default async function DemoAppPage({
       ? 'finance'
       : route === 'meters'
       ? 'utilities'
+      : route === 'role-administration'
+      ? 'role_administration'
       : route;
 
   if (supportedModules.includes(route) || supportedModules.includes(normalizedModule)) {

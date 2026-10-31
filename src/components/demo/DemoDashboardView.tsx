@@ -1,33 +1,27 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import type { DemoWorkspaceDescriptor, DemoReportsResult } from '@/lib/demo/demo-types';
 import { fetchDemoReports } from '@/lib/demo/demo-client';
-import { 
-  Building2, 
-  Users, 
-  Wrench, 
-  Layers, 
-  Gauge, 
-  Megaphone, 
-  FolderArchive, 
-  Calendar, 
-  Briefcase, 
-  Vote, 
-  FileSpreadsheet, 
-  BarChart3, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  ArrowRight, 
-  ShieldCheck, 
+import {
+  Building2,
+  Users,
+  Wrench,
+  Layers,
+  Gauge,
+  Megaphone,
+  FolderArchive,
+  Calendar,
+  Briefcase,
+  Vote,
+  AlertCircle,
+  ArrowRight,
+  ShieldCheck,
   Loader2,
-  DollarSign,
-  TrendingUp,
   Coins
 } from 'lucide-react';
 
@@ -42,23 +36,26 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
   const [loading, setLoading] = useState(configured);
   const [error, setError] = useState<string | null>(null);
 
+  const reportsRequestIdRef = useRef(0);
+
   useEffect(() => {
     if (!configured) return;
     let isMounted = true;
+    const reqId = ++reportsRequestIdRef.current;
     const client = createClient();
 
     async function loadReports() {
       try {
         const data = await fetchDemoReports(client, workspace.id);
-        if (isMounted) {
+        if (isMounted && reqId === reportsRequestIdRef.current) {
           setReports(data);
         }
       } catch (err: any) {
-        if (isMounted) {
+        if (isMounted && reqId === reportsRequestIdRef.current) {
           setError(err.message || 'Failed to load demo reports');
         }
       } finally {
-        if (isMounted) {
+        if (isMounted && reqId === reportsRequestIdRef.current) {
           setLoading(false);
         }
       }
@@ -91,34 +88,51 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
   }
 
   const counts = reports.counts || {};
-  const totalItems = Object.values(counts).reduce((a, b) => a + b, 0);
+  const totalItems = Object.values(counts).reduce((a, b) => a + (typeof b === 'number' && Number.isFinite(b) ? b : 0), 0);
+
   const finance = reports.finance || {
     currency: 'RON',
-    invoiced: 6420,
-    paid: 5580,
-    outstanding: 840,
-    invoice_count: 24,
+    invoiced: 0,
+    paid: 0,
+    outstanding: 0,
+    invoice_count: 0,
     monthly: []
   };
 
+  const collectionRate = finance.invoiced > 0
+    ? Math.round((finance.paid / finance.invoiced) * 100)
+    : 0;
+
   const appBase = `/${lang}/demo/app`;
 
+  // Singular SQL kinds mapped directly without fake constant fallbacks (real 0 is preserved)
+  const propertyCount = (counts.property ?? 0) + (counts.building ?? 0) + (counts.unit ?? 0);
+  const residentsCount = counts.resident ?? 0;
+  const maintenanceCount = (counts.ticket ?? 0) + (counts.work_order ?? 0);
+  const assetsCount = counts.asset ?? 0;
+  const utilitiesCount = counts.meter_reading ?? 0;
+  const communicationsCount = counts.announcement ?? 0;
+  const documentsCount = counts.document ?? 0;
+  const bookingsCount = counts.booking ?? 0;
+  const servicesCount = counts.service_request ?? 0;
+  const governanceCount = counts.meeting ?? 0;
+
   const modulePills = [
-    { key: 'properties', label: lang === 'ro' ? 'Proprietăți' : lang === 'fa' ? 'املاک و واحدها' : 'Properties', count: (counts.properties || 0) + (counts.buildings || 0) + (counts.units || 0) || 15, href: `${appBase}/properties`, icon: Building2 },
-    { key: 'residents', label: lang === 'ro' ? 'Rezidenți' : lang === 'fa' ? 'ساکنان' : 'Residents', count: counts.residents || 12, href: `${appBase}/residents`, icon: Users },
-    { key: 'maintenance', label: lang === 'ro' ? 'Mentenanță' : lang === 'fa' ? 'تعمیرات' : 'Maintenance', count: (counts.tickets || 0) + (counts.work_orders || 0) || 10, href: `${appBase}/maintenance`, icon: Wrench },
-    { key: 'assets', label: lang === 'ro' ? 'Active' : lang === 'fa' ? 'تجهیزات فنی' : 'Assets', count: counts.assets || 8, href: `${appBase}/assets`, icon: Layers },
-    { key: 'utilities', label: lang === 'ro' ? 'Utilități' : lang === 'fa' ? 'کنتورها' : 'Utilities', count: counts.meter_readings || 12, href: `${appBase}/utilities`, icon: Gauge },
-    { key: 'communications', label: lang === 'ro' ? 'Comunicări' : lang === 'fa' ? 'اطلاعیه‌ها' : 'Notices', count: counts.announcements || 3, href: `${appBase}/communications`, icon: Megaphone },
-    { key: 'documents', label: lang === 'ro' ? 'Documente' : lang === 'fa' ? 'اسناد' : 'Documents', count: counts.documents || 5, href: `${appBase}/documents`, icon: FolderArchive },
-    { key: 'bookings', label: lang === 'ro' ? 'Rezervări' : lang === 'fa' ? 'رزرو مشاعات' : 'Bookings', count: counts.bookings || 4, href: `${appBase}/bookings`, icon: Calendar },
-    { key: 'services', label: lang === 'ro' ? 'Servicii' : lang === 'fa' ? 'درخواست‌های خدمات' : 'Services', count: counts.services || 4, href: `${appBase}/services`, icon: Briefcase },
-    { key: 'governance', label: lang === 'ro' ? 'Guvernanță' : lang === 'fa' ? 'مجامع و مصوبات' : 'Governance', count: counts.meetings || 2, href: `${appBase}/governance`, icon: Vote },
+    { key: 'properties', label: lang === 'ro' ? 'Proprietăți' : lang === 'fa' ? 'املاک و واحدها' : 'Properties', count: propertyCount, href: `${appBase}/properties`, icon: Building2 },
+    { key: 'residents', label: lang === 'ro' ? 'Rezidenți' : lang === 'fa' ? 'ساکنان' : 'Residents', count: residentsCount, href: `${appBase}/residents`, icon: Users },
+    { key: 'maintenance', label: lang === 'ro' ? 'Mentenanță' : lang === 'fa' ? 'تعمیرات' : 'Maintenance', count: maintenanceCount, href: `${appBase}/maintenance`, icon: Wrench },
+    { key: 'assets', label: lang === 'ro' ? 'Active' : lang === 'fa' ? 'تجهیزات فنی' : 'Assets', count: assetsCount, href: `${appBase}/assets`, icon: Layers },
+    { key: 'utilities', label: lang === 'ro' ? 'Utilități' : lang === 'fa' ? 'کنتورها' : 'Utilities', count: utilitiesCount, href: `${appBase}/utilities`, icon: Gauge },
+    { key: 'communications', label: lang === 'ro' ? 'Comunicări' : lang === 'fa' ? 'اطلاعیه‌ها' : 'Notices', count: communicationsCount, href: `${appBase}/communications`, icon: Megaphone },
+    { key: 'documents', label: lang === 'ro' ? 'Documente' : lang === 'fa' ? 'اسناد' : 'Documents', count: documentsCount, href: `${appBase}/documents`, icon: FolderArchive },
+    { key: 'bookings', label: lang === 'ro' ? 'Rezervări' : lang === 'fa' ? 'رزرو مشاعات' : 'Bookings', count: bookingsCount, href: `${appBase}/bookings`, icon: Calendar },
+    { key: 'services', label: lang === 'ro' ? 'Servicii' : lang === 'fa' ? 'درخواست‌های خدمات' : 'Services', count: servicesCount, href: `${appBase}/services`, icon: Briefcase },
+    { key: 'governance', label: lang === 'ro' ? 'Guvernanță' : lang === 'fa' ? 'مجامع و مصوبات' : 'Governance', count: governanceCount, href: `${appBase}/governance`, icon: Vote },
   ];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
-      
+
       {/* Welcome Hero Card */}
       <div className="bg-white rounded-3xl border border-[#CBD5E1] p-6 sm:p-8 shadow-card flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
@@ -198,7 +212,7 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {finance.paid.toLocaleString()} {finance.currency}
             </div>
             <span className="text-[11px] text-emerald-700 block">
-              {Math.round((finance.paid / finance.invoiced) * 100)}% {lang === 'ro' ? 'rată de colectare' : lang === 'fa' ? 'نرخ تسویه' : 'collection rate'}
+              {collectionRate}% {lang === 'ro' ? 'rată de colectare' : lang === 'fa' ? 'نرخ تسویه' : 'collection rate'}
             </span>
           </div>
 
@@ -224,7 +238,7 @@ export const DemoDashboardView: React.FC<DemoDashboardViewProps> = ({ workspace,
               {totalItems}
             </div>
             <span className="text-[11px] text-[#627D98] block">
-              {lang === 'ro' ? 'Distribuite în 10 module' : lang === 'fa' ? 'توزیع‌شده در ۱۰ ماژول' : 'Distributed in 10 modules'}
+              {lang === 'ro' ? 'Distribuite în modulele active' : lang === 'fa' ? 'توزیع‌شده در ماژول‌های فعال' : 'Distributed across active modules'}
             </span>
           </div>
         </div>
