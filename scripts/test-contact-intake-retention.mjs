@@ -103,6 +103,7 @@ const sourcePaths = new Set([
   'src/app/api/public/contact/route.ts', 'src/lib/security/origin.ts',
   'src/lib/security/ip-hash.ts', 'src/lib/security/reference-id.ts',
   'src/lib/security/fingerprint.ts', 'src/lib/security/rate-limiter.ts',
+  'src/lib/security/contact-fingerprint.ts',
   'src/lib/security/turnstile-server.ts', 'src/lib/security/request-body.ts',
   'src/lib/security/lead-security-config.ts', 'src/lib/supabase/env.ts', 'src/config/rate-limits.ts',
 ]);
@@ -160,7 +161,22 @@ try {
     const response = await POST(request(payload, headers, body));
     return { response, body: await response.json() };
   };
-  if (process.argv.includes('--expect-metadata-loss')) {
+  if (process.argv.includes('--fingerprint-counterexample')) {
+    const baseMessage = 'Synthetic contact request with unchanged first sixty characters. '.repeat(2);
+    const results = [];
+    for (const [first, second] of [
+      [fields, { ...fields, services: ['operations'] }],
+      [{ ...fields, message: baseMessage + 'A' }, { ...fields, message: baseMessage + 'B' }],
+    ]) {
+      reset();
+      assert.equal((await invoke(first)).response.status, 200);
+      const answer = await invoke(second);
+      assert.equal(answer.response.status, 409);
+      assert.equal(state.inserts[0].submission_fingerprint, state.inserts[1].submission_fingerprint);
+      results.push({ first: 200, second: 409, leads: state.rows.length, notifications: state.notifications.length });
+    }
+    console.log(JSON.stringify({ mode: 'BASE_CONTACT_FP_COUNTEREXAMPLES', results, evidence: 'ACTUAL_HANDLER_CONTROLLED_MEMORY_ONLY' }));
+  } else if (process.argv.includes('--expect-metadata-loss')) {
     const answer = await invoke();
     assert.equal(answer.response.status, 200);
     assert.deepEqual(state.inserts[0].metadata.structuredIntake, structured(fields));
@@ -275,21 +291,57 @@ try {
       assert.equal(answer.response.status, 200); assert.deepEqual(state.rows[0].metadata.structuredIntake.services, ['community_experience']);
     });
 
-    // Separate known finding: evaluate the existing frontend template, NOT a replacement fingerprint.
-    const form = readFileSync(resolve(root, 'src/components/contact/ContactForm.tsx'), 'utf8');
-    const template = /const compiledMessage = (`[\s\S]*?`\.trim\(\));/.exec(form)?.[1];
-    assert.ok(template, 'review actual frontend template if this contract changes');
-    const names = ['role', 'portfolioScope', 'propertyType', 'stage', 'services', 'workspaceStatus', 'city', 'unitsCount', 'additionalNotes'];
-    const compileMessage = new Function(...names, `return ${template};`);
-    const make = services => { const payload = { ...fields, services }; payload.message = compileMessage(...names.map(key => key === 'additionalNotes' ? 'Synthetic notes only.' : payload[key])); return payload; };
-    reset(); const first = make(['community_experience']), second = make(['operations']);
-    assert.notEqual(first.message, second.message); assert.equal(first.message.slice(0, 60), second.message.slice(0, 60));
-    assert.equal((await invoke(first)).response.status, 200);
-    const duplicate = await invoke(second); assert.equal(duplicate.response.status, 409); assert.equal(duplicate.body.code, 'DUPLICATE_SUBMISSION');
-    assert.equal(state.inserts[0].submission_fingerprint, state.inserts[1].submission_fingerprint);
-    assert.equal(state.rows.length, 1); assert.equal(state.notifications.length, 1);
-    console.log(JSON.stringify({ finding: 'CONTACT-FP-01', status: 'OPEN_SEPARATE_SCOPE', counterexample: 'same applicant and first60 chars; different service selections => second request409', sharedFingerprintChanged: false }));
-    console.log(JSON.stringify({ task: 'CORE-CONTACT-INTAKE-RETENTION-01', result: 'PASS', checks: checks.length, cases: checks, routeAndRealSecuritySourceSHA256: Object.fromEntries(actualSources), toolchain: { node: process.version, next: require('next/package.json').version, zod: require('zod/package.json').version, typescript: ts.version }, evidence: 'ACTUAL_HANDLER_REAL_GUARDS_CONTROLLED_MEMORY_AND_TRANSPORT', hostedDB: 'NOT_RUN_NOT_PASS', realNotifier: 'NOT_IMPORTED_NOT_SENT' }, null, 2));
+    // CONTACT-FP-01 is now a behavior contract; no frontend template/name parsing.
+    async function distinct(first, second) {
+      reset(); assert.equal((await invoke(first)).response.status, 200);
+      assert.equal((await invoke(second)).response.status, 200);
+      assert.equal(state.rows.length, 2); assert.equal(state.notifications.length, 2);
+      assert.notEqual(state.inserts[0].submission_fingerprint, state.inserts[1].submission_fingerprint);
+      assert.deepEqual(state.rows[1].metadata.structuredIntake, structured(second));
+      assert.equal(state.rows[1].metadata.fingerprintVersion, 'cladora.contact.intent.v2');
+    }
+    async function duplicate(first, second) {
+      reset(); const original = await invoke(first); assert.equal(original.response.status, 200);
+      const row = clone(state.rows[0]); const answer = await invoke(second);
+      assert.equal(answer.response.status, 409); assert.equal(answer.body.code, 'DUPLICATE_SUBMISSION');
+      assert.equal(state.rows.length, 1); assert.equal(state.notifications.length, 1); assert.equal(state.updates.length, 1);
+      assert.equal(state.inserts[0].submission_fingerprint, state.inserts[1].submission_fingerprint);
+      assert.deepEqual(state.rows[0], row);
+    }
+    await check('CE versus Operations, identical message/applicant/bucket creates two leads', () => distinct(fields, { ...fields, services: ['operations'] }));
+    await check('full message tail after character60 creates a distinct lead', () => {
+      const prefix = 'Synthetic contact unchanged message prefix. '.repeat(3);
+      return distinct({ ...fields, message: prefix + 'CE' }, { ...fields, message: prefix + 'Operations' });
+    });
+    for (const [key, value] of Object.entries({
+      fullName: 'Another Synthetic Name', role: 'property_manager', propertyType: 'commercial',
+      portfolioScope: 'single_building', stage: 'planning', workspaceStatus: 'existing', city: 'Other Fixture City', unitsCount: '49', locale: 'en',
+    })) await check(`validated business change ${key} creates distinct intent`, () => distinct(fields, { ...fields, [key]: value }));
+    await check('object key order is not intent', () => duplicate(fields, Object.fromEntries(Object.entries(fields).reverse())));
+    await check('services order is not intent', () => duplicate({ ...fields, services: ['community_experience', 'operations'] }, { ...fields, services: ['operations', 'community_experience'] }));
+    await check('service duplicate/empty values do not create another selection', () => duplicate(fields, { ...fields, services: ['', ' community_experience ', 'community_experience'] }));
+    await check('email/phone normalization stays compatible', () => duplicate(fields, { ...fields, email: fields.email.toLowerCase(), phone: '+40(700).000-001' }));
+    await check('tracking/source/CAPTCHA changes do not create business intent', () => duplicate(fields, { ...fields, sourcePage: '/en/contact', utm_source: 'other-fixture' }));
+    await check('absent/null/empty optional business fields normalize equally', async () => {
+      const absent = { ...fields }; for (const key of [...keys, 'phone']) delete absent[key];
+      const nullable = { ...absent, ...Object.fromEntries([...keys, 'phone'].map(key => [key, null])) };
+      const empty = { ...absent, ...Object.fromEntries([...keys, 'phone'].map(key => [key, key === 'services' ? [] : ''])) };
+      await duplicate(absent, nullable); await duplicate(absent, empty);
+    });
+    await check('invalid message cannot reach fingerprint or persistence', async () => {
+      reset(); assert.equal((await invoke({ ...fields, message: 'x'.repeat(5001) })).response.status, 400);
+      assert.equal(state.rate.length, 0); assert.equal(state.inserts.length, 0);
+    });
+    await check('legacy contact hash does not guarantee same-bucket v2 dedupe; new retry still dedupes', async () => {
+      reset(); const { computeSubmissionFingerprint } = load(resolve(root, 'src/lib/security/fingerprint.ts'));
+      const old = computeSubmissionFingerprint({ leadType: 'contact', normalizedEmail: fields.email, normalizedPhone: fields.phone, messageSnippet: fields.message });
+      const historical = { reference_id: 'legacy-synthetic-fixture', submission_fingerprint: old.fingerprint, fingerprint_bucket: old.bucket, metadata: { historical: true } };
+      state.rows.push(clone(historical));
+      assert.equal((await invoke()).response.status, 200); assert.equal(state.rows.length, 2);
+      assert.deepEqual(state.rows[0], historical); assert.notEqual(state.rows[1].submission_fingerprint, old.fingerprint);
+      assert.equal((await invoke()).response.status, 409); assert.equal(state.notifications.length, 1); assert.equal(state.rows.length, 2);
+    });
+    console.log(JSON.stringify({ task: 'CORE-CONTACT-FINGERPRINT-02', result: 'PASS', retainedCases: 31, checks: checks.length, cases: checks, routeAndRealSecuritySourceSHA256: Object.fromEntries(actualSources), toolchain: { node: process.version, next: require('next/package.json').version, zod: require('zod/package.json').version, typescript: ts.version }, evidence: 'ACTUAL_HANDLER_REAL_GUARDS_CONTROLLED_MEMORY_AND_TRANSPORT', hostedDB: 'NOT_RUN_NOT_PASS', realNotifier: 'NOT_IMPORTED_NOT_SENT' }, null, 2));
   }
 } finally {
   globalThis.fetch = originalFetch; Date.now = originalNow;

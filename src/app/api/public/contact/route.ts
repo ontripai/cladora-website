@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { validateRequestOrigin } from '../../../../lib/security/origin.ts';
 import { getClientIp, hashClientIp } from '../../../../lib/security/ip-hash.ts';
 import { generateReferenceId } from '../../../../lib/security/reference-id.ts';
-import { computeSubmissionFingerprint } from '../../../../lib/security/fingerprint.ts';
+import { CONTACT_FINGERPRINT_VERSION, computeContactSubmissionFingerprint } from '../../../../lib/security/contact-fingerprint.ts';
 import { checkRateLimit } from '../../../../lib/security/rate-limiter.ts';
 import { verifyTurnstileToken } from '../../../../lib/security/turnstile-server.ts';
 import { notifyNewLead } from '../../../../lib/notifications/lead-notifier.ts';
@@ -195,14 +195,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 7. Atomic Deduplication via Rolling 15-Minute HMAC Fingerprint & Bucket
+  // 7. Contact-only canonical intent, HMAC and the existing 900-second bucket.
   const normalizedEmail = data.email.toLowerCase();
-  const { fingerprint: submissionFingerprint, bucket: fingerprintBucket } = computeSubmissionFingerprint({
-    leadType: 'contact',
-    normalizedEmail,
-    normalizedPhone: data.phone || undefined,
-    messageSnippet: data.message,
-  });
+  const { fingerprint: submissionFingerprint, bucket: fingerprintBucket } = computeContactSubmissionFingerprint(data);
 
   // 8. Lead Persistence to Supabase
   if (!isSupabaseConfigured()) {
@@ -243,6 +238,7 @@ export async function POST(request: NextRequest) {
     rateLimitCount: rateLimit.currentCount,
     submissionFingerprint,
     fingerprintBucket,
+    fingerprintVersion: CONTACT_FINGERPRINT_VERSION,
     notification: {
       status: 'pending',
       attemptedAt: nowIso,
