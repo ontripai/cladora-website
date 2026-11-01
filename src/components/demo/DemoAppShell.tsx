@@ -109,13 +109,86 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   const drawerOpenerRef = useRef<HTMLButtonElement | null>(null);
   const drawerRef = useRef<HTMLDivElement | null>(null);
   const prevMobileDrawerOpenRef = useRef(false);
+  const closedByBreakpointRef = useRef(false);
 
-  // Return focus to opener on normal close (not during sign out or UID switch)
+  // Breakpoint management (R6-12-F01):
+  // At the actual lg breakpoint (>= 1024px, including 1365px), immediately release drawer
+  // modal state, scroll locks, keyboard focus traps, and aria-hidden attributes.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleDesktopTransition = () => {
+      const isDesktop = (
+        (typeof window.matchMedia === 'function' && window.matchMedia('(min-width: 1024px)').matches) ||
+        (typeof window.innerWidth === 'number' && window.innerWidth >= 1024)
+      );
+      if (isDesktop) {
+        setMobileDrawerOpen((prev) => {
+          if (prev) {
+            closedByBreakpointRef.current = true;
+            return false;
+          }
+          return false;
+        });
+      }
+    };
+
+    let mql: MediaQueryList | null = null;
+    let mqlHandler: ((e: MediaQueryListEvent) => void) | null = null;
+
+    if (typeof window.matchMedia === 'function') {
+      try {
+        mql = window.matchMedia('(min-width: 1024px)');
+        mqlHandler = (e: MediaQueryListEvent) => {
+          if (e.matches) {
+            setMobileDrawerOpen((prev) => {
+              if (prev) {
+                closedByBreakpointRef.current = true;
+                return false;
+              }
+              return false;
+            });
+          }
+        };
+        if (typeof mql.addEventListener === 'function') {
+          mql.addEventListener('change', mqlHandler);
+        } else if (typeof (mql as any).addListener === 'function') {
+          (mql as any).addListener(mqlHandler);
+        }
+      } catch {
+        // Fallback to resize listener
+      }
+    }
+
+    window.addEventListener('resize', handleDesktopTransition, { passive: true });
+
+    return () => {
+      if (mql && mqlHandler) {
+        if (typeof mql.removeEventListener === 'function') {
+          mql.removeEventListener('change', mqlHandler);
+        } else if (typeof (mql as any).removeListener === 'function') {
+          (mql as any).removeListener(mqlHandler);
+        }
+      }
+      window.removeEventListener('resize', handleDesktopTransition);
+    };
+  }, []);
+
+  // Return focus to opener on normal close (not during sign out, UID switch, or breakpoint change to desktop)
   useEffect(() => {
     if (prevMobileDrawerOpenRef.current && !mobileDrawerOpen) {
-      if (!isSigningOut && drawerOpenerRef.current && typeof drawerOpenerRef.current.focus === 'function') {
+      const closedByBreakpoint = closedByBreakpointRef.current;
+      closedByBreakpointRef.current = false;
+
+      if (!isSigningOut && !closedByBreakpoint && drawerOpenerRef.current && typeof drawerOpenerRef.current.focus === 'function') {
         if (typeof document !== 'undefined' && document.contains(drawerOpenerRef.current)) {
           drawerOpenerRef.current.focus();
+        }
+      } else if (closedByBreakpoint) {
+        // R6-12-F01: Focus must NOT return to hidden opener on desktop.
+        // Blur active element if it was inside the closing drawer so Tab naturally moves to visible desktop controls.
+        if (drawerRef.current && typeof document !== 'undefined' && drawerRef.current.contains(document.activeElement)) {
+          (document.activeElement as HTMLElement)?.blur?.();
         }
       }
     }
