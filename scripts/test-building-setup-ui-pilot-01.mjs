@@ -1,6 +1,6 @@
 /**
  * Target Presentation & A11y Test Suite for ANTIGRAVITY-BUILDING-SETUP-UI-PILOT-01 / R1
- * 
+ *
  * Verifies presentation-only enhancements and findings closure:
  * 1. PILOT-F01: Accessible localized date names via aria-labelledby and stable id/name locators (no English overrides in FA/RO)
  * 2. PILOT-F02: High-contrast CTAs (bg-teal-800 text-white >= 4.5:1) and 44px touch targets across Wizard & Progress
@@ -454,4 +454,3 @@ console.log('NOTE: Zoom 200% visual layout test: BLOCKED_TOOL (Requires real bro
 console.log(`=======================================================`);
 console.log(`ALL PRESENTATION PILOT TESTS PASSED CLEANLY! (${checks} checks)`);
 console.log(`=======================================================\n`);
-
