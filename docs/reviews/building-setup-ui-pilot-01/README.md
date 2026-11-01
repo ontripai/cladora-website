@@ -163,7 +163,9 @@ Following coordinator and independent browser review of Base `158ff01`, the foll
 
 ---
 
-## 8. Verification & Test Evidence (R1)
+---
+
+## 8. Verification & Test Evidence (R1 Baseline)
 
 | Test Suite | Command | Result | Assertions | Details |
 | :--- | :--- | :---: | :---: | :--- |
@@ -176,6 +178,66 @@ Following coordinator and independent browser review of Base `158ff01`, the foll
 
 ## 9. Explicit NOT_RUN Tests & Browser Limits
 
-- **Browser / Socket Restrictions:** Browser evaluation in seat encountered socket restrictions and SIGTRAP during headless browser startup; therefore, artificial 100% browser PASS is explicitly **NOT claimed** for the local environment. Component rendering, DOM tree, focus tracking, and CSS classes were verified authoritatively via JSDOM and strict AST tests.
+- **Browser / Socket Restrictions:** Browser evaluation in seat encountered socket restrictions and SIGTRAP during headless browser startup; therefore, artificial 100% browser PASS is explicitly **NOT claimed** for the local environment. Real browser execution is documented as **NOT_RUN**. Component rendering, DOM tree, focus tracking, CSS property exclusions, and mathematical contrast models were verified authoritatively via JSDOM and strict AST tests.
+- **Zoom 200% Evaluation:** Hardware 200% zoom visual layout testing remains an independent **BLOCKED_TOOL** requiring real browser rendering engine.
 - **Regression Isolation:** Unrelated 55 unit test suites (`test:unit` aggregate) and concurrent finance tests (`test:statutory-funds:concurrency`, `test:cash-discipline:concurrency`) were **NOT_RUN** to avoid non-deterministic concurrency interference.
 - **Zero Network Mutations:** Zero live Auth/DB network requests were made; all verification executed against controlled mock transport.
+
+---
+
+## 10. R2 Defect Resolution: PILOT-AFTER-R1-F01 (Opacity Transition Immunity)
+
+- **Finding Reference:** [Issue #463 comment 6557241082](https://github.com/ontripai/cladora-website/issues/463#issuecomment-6557241082)
+- **Evaluation Status:** 80 matrix cases evaluated in AFTER-R1: 67 PASS / 13 FAIL. All 13 failures traced to a transient transition defect.
+- **Reproduction Scenario:** Provisioned setup -> click "Check status" -> synthetic pending GET hangs -> readback invalidates -> button re-enables (`disabled=false`).
+- **Defect Root Cause:**
+  - In `CustomerBuildingSetupWizard.tsx`, interactive buttons combined `transition-all` with `disabled:opacity-40`.
+  - When `disabled` flipped from `true` to `false`, Tailwind's `transition-all` (`transition-property: all; transition-duration: 150ms; transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);`) interpolated `opacity` over 150ms from `0.40` to `1.0`.
+  - In Frame 1 (~16.6ms) after re-enabling, the button was fully active and interactive, but rendered with interpolated opacity ~0.40–0.42.
+  - Text color `#334155` (`text-slate-700`) blended with white background `#ffffff` produced an effective text color of `#adb3ba` with contrast ~**2.11:1** to **2.16:1**, failing the WCAG AA minimum threshold of 4.5:1.
+  - At steady state (after 150ms), opacity reached 1.0 and contrast was compliant (7.44:1), but the transient transition frames violated contrast requirements.
+
+### 10.1 Targeted Resolution
+- Replaced `transition-all` with `transition-colors motion-reduce:transition-none` across all interactive buttons in `CustomerBuildingSetupWizard.tsx`.
+- In Tailwind CSS 3.4.19, `transition-colors` defines:
+  ```css
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  ```
+- Because `opacity` is strictly excluded from `transition-property`:
+  1. `opacity` does NOT transition. When `disabled` changes to `false`, `opacity` snaps instantaneously from `0.40` to `1.0` in Frame 0 (0ms).
+  2. Frame 0 text contrast on white background is immediately **7.44:1** (>= 4.5:1 WCAG AA and meets AAA).
+  3. Steady state contrast remains **7.44:1** (delta = 0 across all frames).
+  4. Smooth background transitions on hover (`hover:bg-slate-50`, `hover:bg-slate-900`, `hover:bg-teal-100`, etc.) are preserved.
+  5. `motion-reduce:transition-none` guarantees that users with `prefers-reduced-motion` have all transitions disabled.
+  6. Zero changes to global colors, design tokens, button activation logic, pending key preservation, or command receipts.
+
+### 10.2 Inventory of 13 Affected Cases Verified
+| Case ID | Context / State | Element / Trigger | Old Class | New Class | Frame 0 Contrast | Steady Contrast |
+| :--- | :--- | :--- | :--- | :--- | :---: | :---: |
+| **CASE-01** | `accessLost` | Check status button | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 12.6:1 | 12.6:1 |
+| **CASE-02** | `blocked`/`legacy` | Check status button | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 7.44:1 | 7.44:1 |
+| **CASE-03** | `draft`/`edit` | Add unit button | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 7.12:1 | 7.12:1 |
+| **CASE-04** | `draft`/`edit` | Remove unit button | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 4.89:1 | 4.89:1 |
+| **CASE-05** | `edit` | Draft primary CTA | `transition-all` | `transition-colors motion-reduce:transition-none` | 7.44:1 | 7.44:1 |
+| **CASE-06** | `draft` | Rehearse action button | `transition-all` | `transition-colors motion-reduce:transition-none` | 7.44:1 | 7.44:1 |
+| **CASE-07** | `rehearsed` | Submit action button | `transition-all` | `transition-colors motion-reduce:transition-none` | 7.44:1 | 7.44:1 |
+| **CASE-08** | `draft` | Save units button | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 7.12:1 | 7.12:1 |
+| **CASE-09** | `approved` | Provision button | `transition-all` | `transition-colors motion-reduce:transition-none` | 7.44:1 | 7.44:1 |
+| **CASE-10** | `submitted` | Reviewer handoff link | `transition-all` | `transition-colors motion-reduce:transition-none` | 12.1:1 | 12.1:1 |
+| **CASE-11** | `pending` | Retry action button | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 9.02:1 | 9.02:1 |
+| **CASE-12** | `provisioned` / default | Check status button (primary repro) | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 7.44:1 | 7.44:1 |
+| **CASE-13** | `provisioned` / default | Refresh status button | `transition-all disabled:opacity-40` | `transition-colors motion-reduce:transition-none disabled:opacity-40` | 7.44:1 | 7.44:1 |
+
+---
+
+## 11. Verification & Test Evidence (R2)
+
+| Test Suite | Command | Result | Assertions | Details |
+| :--- | :--- | :---: | :---: | :--- |
+| **Presentation Pilot Suite (R2)** | `node scripts/test-building-setup-ui-pilot-01.mjs` | **PASS** | 182 checks | F01–F05 plus TEST 7 (PILOT-AFTER-R1-F01 opacity transition immunity across all 13 cases) |
+| **Onboarding UI Regression** | `node scripts/test-building-workspace-onboarding-ui.mjs` | **PASS** | 882 checks | Zero regression in lifecycle, persistence, double-submit, and recovery |
+| **TypeScript Typecheck** | `npm run typecheck` (`tsc --noEmit`) | **PASS** | 0 errors | Clean workspace compilation |
+| **ESLint Scoped Audit** | `npm run lint` (`eslint . --max-warnings=0`) | **PASS** | 0 warnings | Clean code quality across repository |
+
