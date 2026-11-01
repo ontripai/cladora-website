@@ -87,7 +87,8 @@ const sensitiveAuthRoutes = [
   '/:lang(ro|en|fa)/forgot-password',
   '/:lang(ro|en|fa)/reset-password',
   '/:lang(ro|en|fa)/password-recovery-result',
-  '/:lang(ro|en|fa)/auth/callback',
+  // Callback rejects unsupported locales too; keep those replies private.
+  '/:lang/auth/callback',
   '/:lang(ro|en|fa)/auth-result',
   '/:lang(ro|en|fa)/invitation-continuation',
   '/:lang(ro|en|fa)/set-password',
