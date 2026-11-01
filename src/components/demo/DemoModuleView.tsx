@@ -66,8 +66,8 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
   const bookItem = Array.isArray(workspace.navigation)
     ? workspace.navigation.find((i) => i.key === 'bookings')
     : undefined;
-  const commPermitted = Boolean(commItem && commItem.access !== 'locked');
-  const bookPermitted = Boolean(bookItem && bookItem.access !== 'locked');
+  const commPermitted = Boolean(commItem && commItem.access === 'read_only');
+  const bookPermitted = Boolean(bookItem && bookItem.access === 'read_only');
   const isCePermitted = Boolean(commPermitted || bookPermitted);
 
   // CE-specific subview tab: default to first permitted capability or unseeded guides
@@ -101,9 +101,18 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
 
   // Determine view mode
   const isReportDriven = moduleKey === 'finance' || moduleKey === 'reports' || moduleKey === 'activity';
-  const isLockedModule = moduleKey === 'payments' || moduleKey === 'role_administration';
-  const isModuleLocked = isLockedModule || (isCeModule && !isCePermitted);
   const isSettingsModule = moduleKey === 'settings';
+
+  // Target preview-only contract: strictly verify read_only access for module execution
+  const currentNavItem = Array.isArray(workspace.navigation)
+    ? workspace.navigation.find((i) => i.key === moduleKey || i.key === moduleKey.replace('-', '_') || i.key === moduleKey.replace('_', '-'))
+    : undefined;
+  const isCurrentModulePermitted = isCeModule
+    ? isCePermitted
+    : isSettingsModule
+    ? true
+    : Boolean(currentNavItem && currentNavItem.access === 'read_only');
+  const isModuleLocked = !isCurrentModulePermitted;
 
   // Reset pagination & search during render when module or workspace changes (official React pattern)
   const [prevModuleKey, setPrevModuleKey] = useState(moduleKey);
@@ -926,15 +935,15 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                 <p className="text-xs text-[#52667A] leading-relaxed">
                   {ceSubView === 'guides'
                     ? (lang === 'ro'
-                      ? 'Ghidurile de spațiu documentează regulamentele și instrucțiunile de utilizare specifice proprietății. Acest spațiu demonstrativ nu include ghiduri preîncărcate.'
+                      ? 'Pentru acest demo nu a fost furnizat conținut eligibil de ghid; este afișată doar structura inițială.'
                       : lang === 'fa'
-                      ? 'راهنماهای فضا برای مستندسازی مقررات و دستورالعمل‌های بهره‌برداری از مشاعات ساختمان به کار می‌روند. در این پیش‌نمایش، راهنمای پیش‌فرضی بارگذاری نشده است.'
-                      : 'Space guides document property-specific rules and operational instructions. This demo workspace does not include preloaded guides.')
+                      ? 'برای این دمو راهنمای معتبر قابل‌نمایش ارائه نشده است؛ فقط ساختار اولیه را می‌بینید.'
+                      : 'No eligible guide content has been provided for this demo; only the initial structure is shown.')
                     : (lang === 'ro'
-                      ? 'Secțiunea de evenimente reflectă activitățile și inițiativele organizate la nivelul comunității. În prezent, nu sunt înregistrate evenimente în acest spațiu demonstrativ.'
+                      ? 'Pentru acest demo nu a fost furnizat niciun eveniment eligibil; această secțiune este doar o previzualizare.'
                       : lang === 'fa'
-                      ? 'بخش رویدادها فعالیت‌ها و برنامه‌های جامعهٔ ساکنان را نمایش می‌دهد. در حال حاضر هیچ رویدادی در این محیط نمونه ثبت نشده است.'
-                      : 'The community events section reflects activities and initiatives organized for residents. Currently, no events are recorded in this demo workspace.')}
+                      ? 'برای این دمو رویداد معتبری برای نمایش ارائه نشده است؛ این بخش فقط پیش‌نمایش است.'
+                      : 'No eligible event has been provided for this demo; this section is a preview only.')}
                 </p>
               </div>
               <div className="pt-2">

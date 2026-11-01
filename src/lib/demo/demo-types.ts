@@ -1,7 +1,7 @@
 export interface DemoNavigationItem {
   key: string;
   title?: string;
-  access: 'read' | 'interactive' | 'metadata_only' | 'read_only' | 'locked';
+  access: 'read_only' | 'locked';
   path?: string;
   icon?: string;
 }

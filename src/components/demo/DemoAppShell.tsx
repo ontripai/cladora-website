@@ -31,7 +31,9 @@ import {
   ArrowRight,
   CreditCard,
   UserCheck,
-  Loader2
+  Loader2,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -39,6 +41,7 @@ import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 interface DemoAppShellProps {
   workspace: DemoWorkspaceDescriptor;
   lang: Language;
+  authenticatedUserId?: string;
   children: React.ReactNode;
 }
 
@@ -89,6 +92,7 @@ const navLabels: Record<string, Record<Language, string>> = {
 export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   workspace,
   lang,
+  authenticatedUserId,
   children,
 }) => {
   const pathname = usePathname();
@@ -96,6 +100,10 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
 
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
+
+  // Synchronously bind to the authenticated UID from descriptor claims before async bootstrap
+  const activeUidRef = useRef<string | null>(authenticatedUserId || null);
 
   // Keyboard accessibility and scroll locking for mobile drawer
   useEffect(() => {
@@ -117,52 +125,69 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
     };
   }, [mobileDrawerOpen]);
 
-  const activeUidRef = useRef<string | null>(null);
-
   // Auth state listener: immediately protect against UID switch and sign-out
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user?.id) {
-        activeUidRef.current = session.user.id;
-      }
-    });
+    // Fallback read ONLY if authenticatedUserId was not provided initially
+    if (!activeUidRef.current) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        // Guard against overwriting if activeUidRef was already set
+        if (!activeUidRef.current && session?.user?.id) {
+          activeUidRef.current = session.user.id;
+        }
+      });
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const sessionUser = session?.user;
       if (event === 'SIGNED_OUT' || !session || !sessionUser) {
         setIsSigningOut(true);
+        setSignOutError(null);
         router.push(`/${lang}/demo`);
         return;
       }
 
-      if (activeUidRef.current && sessionUser.id !== activeUidRef.current) {
+      const expectedUid = activeUidRef.current || authenticatedUserId;
+      if (expectedUid && sessionUser.id !== expectedUid) {
+        // Immediate protection against UID switch: mask entire shell and redirect
         setIsSigningOut(true);
+        setSignOutError(null);
         router.push(`/${lang}/demo`);
         return;
       }
 
-      activeUidRef.current = sessionUser.id;
+      if (!activeUidRef.current) {
+        activeUidRef.current = sessionUser.id;
+      }
     });
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [lang, router]);
+  }, [authenticatedUserId, lang, router]);
 
   const handleSignOut = async () => {
+    // Immediately mask all of A's information before awaiting network
     setIsSigningOut(true);
-    router.push(`/${lang}/demo`);
+    setSignOutError(null);
+
     if (isSupabaseConfigured()) {
       try {
         const supabase = createClient();
-        await supabase.auth.signOut();
-      } catch (err) {
-        console.warn('Sign out error:', err);
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          setSignOutError(error.message || 'Sign out failed');
+          return;
+        }
+      } catch (err: any) {
+        setSignOutError(err?.message || 'Sign out failed');
+        return;
       }
     }
+    // Only redirect once sign-out is successfully confirmed
+    router.push(`/${lang}/demo`);
   };
 
   const appBase = `/${lang}/demo/app`;
@@ -176,11 +201,11 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   }
 
   // Derive Community Experience (CE) access ONLY from permitted existing capabilities
-  // (communications and bookings). If neither is authorized, CE cannot invent access and must be locked.
+  // Target preview-only contract: strictly 'read_only' or 'locked'
   const commItem = backendNavMap.get('communications');
   const bookItem = backendNavMap.get('bookings');
-  const commPermitted = commItem && commItem.access !== 'locked';
-  const bookPermitted = bookItem && bookItem.access !== 'locked';
+  const commPermitted = Boolean(commItem && commItem.access === 'read_only');
+  const bookPermitted = Boolean(bookItem && bookItem.access === 'read_only');
   const isCePermitted = Boolean(commPermitted || bookPermitted);
   const derivedCeAccess: 'read_only' | 'locked' = isCePermitted ? 'read_only' : 'locked';
 
@@ -227,22 +252,19 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   const navItems = finalKeys.map((key) => {
     const isCe = key === 'community_experience' || key === 'community-experience';
     const isSettings = key === 'settings';
-    const isDashboard = key === 'dashboard';
 
     const backendItem = backendNavMap.get(key) || backendNavMap.get(key.replace('_', '-')) || backendNavMap.get(key.replace('-', '_'));
 
-    // Determine access without inventing fake read_only capabilities for missing/corrupted descriptor
-    let access: 'read' | 'interactive' | 'metadata_only' | 'read_only' | 'locked';
+    // Determine access: strictly 'read_only' or 'locked' for preview-only contract
+    let access: 'read_only' | 'locked';
     if (isCe) {
       access = derivedCeAccess;
     } else if (isSettings) {
       access = 'read_only';
-    } else if (isDashboard) {
-      access = backendItem ? backendItem.access : 'read';
-    } else if (backendItem) {
-      access = backendItem.access;
+    } else if (backendItem && backendItem.access === 'read_only') {
+      access = 'read_only';
     } else {
-      // Missing or corrupt descriptor items must NEVER invent read_only capability access
+      // Missing, unknown, corrupt, or locked items must remain locked
       access = 'locked';
     }
 
@@ -259,6 +281,45 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
       Icon,
     };
   });
+
+  if (signOutError) {
+    return (
+      <div className="min-h-screen bg-[#F6F9FC] flex flex-col items-center justify-center p-6 text-center space-y-5 animate-in fade-in duration-150">
+        <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto border border-red-200">
+          <AlertCircle className="w-7 h-7" />
+        </div>
+        <div className="space-y-1.5 max-w-sm mx-auto">
+          <h2 className="text-lg font-bold text-[#102A43]">
+            {lang === 'ro'
+              ? 'Deconectarea nu a reușit'
+              : lang === 'fa'
+              ? 'خروج از حساب با خطا مواجه شد'
+              : 'Sign Out Failed'}
+          </h2>
+          <p className="text-xs text-[#52667A] leading-relaxed">
+            {lang === 'ro'
+              ? 'A apărut o eroare la deconectarea din spațiul demonstrativ. Vă rugăm să reîncercați.'
+              : lang === 'fa'
+              ? 'در برقراری ارتباط برای خروج از محیط دمو خطایی رخ داد. لطفاً مجدداً تلاش فرمایید.'
+              : 'An error occurred while signing out of the demo workspace. Please try again.'}
+          </p>
+          <div className="p-2.5 bg-red-50/70 border border-red-200 rounded-xl text-[11px] font-mono text-red-700">
+            {signOutError}
+          </div>
+        </div>
+        <div className="flex items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="px-5 py-2.5 text-xs font-bold text-white bg-[#0E9F8E] hover:bg-[#0A7E71] rounded-xl transition-all shadow-sm flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            <span>{lang === 'ro' ? 'Reîncearcă deconectarea' : lang === 'fa' ? 'تلاش مجدد برای خروج' : 'Retry Sign Out'}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isSigningOut) {
     return (

@@ -38,8 +38,14 @@ export default async function DemoAppLayout({
     redirect(`/${lang}/demo`);
   }
 
+  const authenticatedUserId = typeof claimsData.claims.sub === 'string' ? claimsData.claims.sub : undefined;
+
   return (
-    <DemoAppShell workspace={(workspace as unknown) as DemoWorkspaceDescriptor} lang={lang as Language}>
+    <DemoAppShell
+      workspace={(workspace as unknown) as DemoWorkspaceDescriptor}
+      lang={lang as Language}
+      authenticatedUserId={authenticatedUserId}
+    >
       {children}
     </DemoAppShell>
   );

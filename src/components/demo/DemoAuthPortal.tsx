@@ -200,6 +200,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         // Invalidate prior request generation first
         ++authRequestIdRef.current;
         isLookupPendingRef.current = false;
+        setIsRetryingLookup(false);
         activeUserIdRef.current = null;
         setCurrentUser(null);
         setExistingWorkspace(null);
@@ -225,6 +226,8 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
 
       if (!isSameUser) {
         // UID switch or initial login: clear previous identity data synchronously before awaiting network
+        setIsRetryingLookup(false);
+        isLookupPendingRef.current = false;
         setExistingWorkspace(null);
         setNeedsWorkspaceSetup(false);
         setWorkspaceLookupError(null);
@@ -267,7 +270,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
   const handleRetryLookup = async () => {
     if (!currentUser || isRetryingLookup) return;
     setIsRetryingLookup(true);
-    setWorkspaceLookupError(null);
+    isLookupPendingRef.current = true;
     const reqId = ++authRequestIdRef.current;
     try {
       const client = createClient();
@@ -282,7 +285,9 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       if (ws) {
         setExistingWorkspace(ws);
         setNeedsWorkspaceSetup(false);
+        setWorkspaceLookupError(null);
       } else {
+        setWorkspaceLookupError(null);
         setNeedsWorkspaceSetup(true);
       }
     } catch (err: any) {
@@ -291,6 +296,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       }
     } finally {
       if (reqId === authRequestIdRef.current) {
+        isLookupPendingRef.current = false;
         setIsRetryingLookup(false);
       }
     }
@@ -299,6 +305,8 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
   const handleSignOut = async () => {
     // Invalidate any in-flight requests immediately
     authRequestIdRef.current++;
+    isLookupPendingRef.current = false;
+    setIsRetryingLookup(false);
     activeUserIdRef.current = null;
     setIsSubmitting(true);
 
@@ -812,7 +820,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
   }
 
   // State 2.5: Workspace Lookup Error (Retryable without falling back to signup/password)
-  if (currentUser && workspaceLookupError && !existingWorkspace) {
+  if (currentUser && (workspaceLookupError || isRetryingLookup) && !existingWorkspace) {
     return (
       <div className="max-w-md mx-auto p-8 sm:p-10 bg-white rounded-3xl border border-red-200 shadow-card text-center space-y-6 animate-in fade-in duration-200">
         <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto border border-red-100">
@@ -835,9 +843,11 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
           </p>
         </div>
 
-        <div className="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-700 text-center font-mono">
-          {workspaceLookupError}
-        </div>
+        {workspaceLookupError && (
+          <div className="p-3 bg-red-50 rounded-2xl border border-red-200 text-xs text-red-700 text-center font-mono">
+            {workspaceLookupError}
+          </div>
+        )}
 
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button

@@ -53,6 +53,8 @@ export default async function CommunityExperiencePage(props: {
         title: 'Experiență Conectată la Contextul Proprietății',
         subtitle:
           'Domeniul Comunitate & Experiență (CE) din CLADORA este proiectat să compună viața comunitară, ghidurile de spațiu, evenimentele și călătoriile contextuale în jurul aceleiași identități de proprietate, acelorași granițe de workspace și aceluiași model de autoritate utilizate în întreaga platformă.',
+        accessCondition:
+          'Accesul operațional depinde de stadiul lansării, configurarea proiectului și permisiuni valide.',
         ctaPrimary: 'Explorează Arhitectura de Experiență',
         ctaSecondary: 'Arhitectura Platformei',
       },
@@ -362,6 +364,8 @@ export default async function CommunityExperiencePage(props: {
         title: 'Experience Connected to the Property Context',
         subtitle:
           'CLADORA Community & Experience is designed to compose community, guides, events, and contextual journeys around the same property identity, workspace boundaries, and contextual authority used across the entire platform.',
+        accessCondition:
+          'Operational access depends on release status, project setup and valid permissions.',
         ctaPrimary: 'Explore Experience Architecture',
         ctaSecondary: 'Platform Architecture',
       },
@@ -671,6 +675,8 @@ export default async function CommunityExperiencePage(props: {
         title: 'تجربهٔ کاربری متصل به بستر و بافت ملک',
         subtitle:
           'دامنهٔ جامعه و تجربه کاربری (CE) در کلادورا طوری طراحی شده است که تعاملات جمعی، راهنمای اماکن، رویدادها و مسیرهای کاربری را بر پایه همان هویت پایدار ملک، تفکیک فضاهای کاری و حدود اختیارات سراسری پلتفرم ترکیب نماید.',
+        accessCondition:
+          'دسترسی عملیاتی به وضعیت انتشار، راه‌اندازی پروژه و مجوز معتبر وابسته است.',
         ctaPrimary: 'بررسی معماری لایه تجربه کاربری',
         ctaSecondary: 'مشاهده معماری جامع پلتفرم',
       },
@@ -975,7 +981,7 @@ export default async function CommunityExperiencePage(props: {
     },
   }[lang] || {
     breadcrumb: { home: 'Home', current: 'Community & Experience' },
-    hero: { badge: '', title: '', subtitle: '', ctaPrimary: '', ctaSecondary: '' },
+    hero: { badge: '', title: '', subtitle: '', accessCondition: '', ctaPrimary: '', ctaSecondary: '' },
     peerDomain: { badge: '', title: '', desc: '', points: [] },
     flowSection: { badge: '', title: '', desc: '', steps: [], principle: '' },
     communityLayer: { badge: '', title: '', desc: '', items: [] },
@@ -1016,6 +1022,12 @@ export default async function CommunityExperiencePage(props: {
             <p className="text-base sm:text-lg text-[#52667A] leading-relaxed max-w-3xl">
               {content.hero.subtitle}
             </p>
+            {content.hero.accessCondition && (
+              <div className="p-3 bg-white/80 rounded-xl border border-[#CBD5E1] text-xs text-[#52667A] flex items-center gap-2 max-w-3xl">
+                <ShieldCheck className="w-4 h-4 text-[#0E9F8E] shrink-0" />
+                <span>{content.hero.accessCondition}</span>
+              </div>
+            )}
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <Link
                 href="#peer-domain"
