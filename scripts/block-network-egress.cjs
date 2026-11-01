@@ -2,8 +2,8 @@
 // Enforces strict fail-closed network egress blocking for test processes.
 // Only loopback connections (127.0.0.1, localhost, ::1) are permitted.
 
-const net = require('node:net');
-const tls = require('node:tls');
+// Keep the synchronous CommonJS preloader compatible with the Node 22 CI runtime.
+const net = process.getBuiltinModule('node:net');
 
 const ALLOWED_HOSTS = new Set(['127.0.0.1', 'localhost', '::1']);
 
