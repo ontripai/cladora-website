@@ -53,14 +53,14 @@ export function CustomerBuildingSetupProgress({lang, saved, dirty, condition, ca
     <section
       aria-label={t.title}
       dir={lang === 'fa' ? 'rtl' : 'ltr'}
-      className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 sm:p-5 shadow-xs"
+      className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 sm:p-5 shadow-sm"
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <h2 className="text-base sm:text-lg font-bold text-[#102A43] tracking-tight">{t.title}</h2>
-        {saved && (
+        {!condition && saved && (
           <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-1 text-xs font-semibold text-teal-800">
-            <span className="h-1.5 w-1.5 rounded-full bg-teal-600 animate-pulse" />
-            <span>{saved.status}</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-teal-600 motion-reduce:animate-none" />
+            <span>{t.stages[saved.status]}</span>
           </span>
         )}
       </div>
@@ -91,19 +91,19 @@ export function CustomerBuildingSetupProgress({lang, saved, dirty, condition, ca
               </div>
 
               <dl className="grid min-w-0 gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-sm">
-                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm">
                   <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.saved}</dt>
                   <dd className="mt-1 break-words font-bold text-[#102A43]">{saved.building}</dd>
                 </div>
-                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm">
                   <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.units}</dt>
                   <dd className="mt-1 font-bold text-[#102A43]">{saved.units}</dd>
                 </div>
-                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm">
                   <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.version}</dt>
                   <dd className="mt-1 font-bold text-[#102A43]">{saved.revision}</dd>
                 </div>
-                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-sm">
                   <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.reference}</dt>
                   <dd className="mt-1 break-all font-mono text-xs font-semibold text-[#334E68]"><bdi dir="ltr">{saved.reference}</bdi></dd>
                 </div>
@@ -121,7 +121,7 @@ export function CustomerBuildingSetupProgress({lang, saved, dirty, condition, ca
                 <div className="pt-2">
                   <a
                     href={`/${lang}/app/dashboard`}
-                    className="inline-flex min-h-[44px] max-w-full items-center justify-center rounded-xl bg-[#0E9F8E] hover:bg-[#0A7E71] text-white px-5 py-2.5 text-sm font-bold shadow-xs transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E]"
+                    className="inline-flex min-h-[44px] max-w-full items-center justify-center rounded-xl bg-teal-800 hover:bg-teal-900 text-white px-5 py-2.5 text-sm font-bold shadow-sm transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-800"
                   >
                     {t.dashboard}
                   </a>

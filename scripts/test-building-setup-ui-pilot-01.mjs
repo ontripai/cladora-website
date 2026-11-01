@@ -1,13 +1,14 @@
 /**
- * Target Presentation & A11y Test Suite for ANTIGRAVITY-BUILDING-SETUP-UI-PILOT-01
+ * Target Presentation & A11y Test Suite for ANTIGRAVITY-BUILDING-SETUP-UI-PILOT-01 / R1
  * 
- * Verifies presentation-only enhancements for Building Setup components:
- * 1. Visual segmentation, typography hierarchy, and card layouts
- * 2. Visual & programmatic accessible labels in FA, EN, RO (period start/end, localized EDIT state)
- * 3. Mobile touch targets (44px min-height), focus rings, and RTL direction
- * 4. Distinct states: error, loading, disabled, denied, unknown, conflict, and empty
- * 5. Focus management after unit deletion
- * 6. Zero operational mutations / controlled mock transport
+ * Verifies presentation-only enhancements and findings closure:
+ * 1. PILOT-F01: Accessible localized date names via aria-labelledby and stable id/name locators (no English overrides in FA/RO)
+ * 2. PILOT-F02: High-contrast CTAs (bg-teal-800 text-white >= 4.5:1) and 44px touch targets across Wizard & Progress
+ * 3. PILOT-F03: Fully localized status badge copy in FA, RO, EN; conditioned gating so old results do not appear active during checking/blocked/unknown
+ * 4. PILOT-F04: Reduced motion compliance; removal of misleading animate-pulse on confirmed/saved statuses
+ * 5. PILOT-F05: Valid Tailwind 3.4.19 CSS tokens (shadow-sm, zero invalid shadow-xs / shadow-2xs)
+ * 6. Focus management after unit row deletion
+ * 7. Zero operational mutations / controlled mock transport
  */
 
 import assert from 'node:assert/strict';
@@ -65,7 +66,6 @@ const { CustomerBuildingSetupProgress: Progress } = loadModule(
 const ctx = '80000000-0000-0000-0000-000000000004';
 const membership = '80000000-0000-0000-0000-000000000007';
 const workspace = '90000000-0000-0000-0000-000000000001';
-const run = '80000000-0000-0000-0000-000000000005';
 
 let activeContext = { context_id: ctx, membership_id: membership };
 let registeredGuards = new Map();
@@ -115,12 +115,12 @@ async function renderProgress(props) {
   });
 }
 
-console.log('=== RUNNING ANTIGRAVITY-BUILDING-SETUP-UI-PILOT-01 PRESENTATION TESTS ===\n');
+console.log('=== RUNNING ANTIGRAVITY-BUILDING-SETUP-UI-PILOT-01 / R1 VERIFICATION TESTS ===\n');
 
 // -----------------------------------------------------------------------------
-// TEST 1: Visual Segmentation, Spacing, and Card Architecture
+// TEST 1: Visual Segmentation, Spacing, and Valid CSS Tokens (PILOT-F05)
 // -----------------------------------------------------------------------------
-console.log('--- TEST 1: Visual Segmentation & Card Architecture ---');
+console.log('--- TEST 1: Visual Segmentation & Valid CSS Tokens (PILOT-F05) ---');
 sessionStorage.clear();
 await renderWizard('en', 'test-segmentation');
 
@@ -139,19 +139,34 @@ for (const fs of fieldsets) {
 
 const legends = document.querySelectorAll('legend');
 check(legends.length >= 3, 'Semantic legend headings present for each fieldset');
-console.log('✓ TEST 1: Visual segmentation and card architecture passed.\n');
+
+// PILOT-F05: Assert absence of ungenerated Tailwind v4 classes in Tailwind 3.4.19
+check(document.querySelectorAll('.shadow-xs').length === 0, 'PILOT-F05: Zero occurrences of ungenerated shadow-xs in wizard');
+check(document.querySelectorAll('.shadow-2xs').length === 0, 'PILOT-F05: Zero occurrences of ungenerated shadow-2xs in wizard');
+check(document.querySelectorAll('.shadow-sm').length > 0, 'PILOT-F05: Uses valid Tailwind 3.4.19 shadow-sm token');
+console.log('✓ TEST 1: Visual segmentation and valid CSS tokens passed.\n');
 
 // -----------------------------------------------------------------------------
-// TEST 2: Visual & Accessible Labels in FA, RO, EN (Period & Localized EDIT)
+// TEST 2: Multilingual Labels & Accessible Date Names (PILOT-F01)
 // -----------------------------------------------------------------------------
-console.log('--- TEST 2: Multilingual Labels & Localized State Text ---');
+console.log('--- TEST 2: Multilingual Accessible Date Labels (PILOT-F01) ---');
 
 // EN assertions
 await renderWizard('en', 'test-lang-en');
 check(document.body.textContent.includes('Accounting period start'), 'EN visible label for period start exists');
 check(document.body.textContent.includes('Accounting period end'), 'EN visible label for period end exists');
-check(document.querySelector('input[aria-label="period start"]') !== null, 'EN period start aria-label preserved');
-check(document.querySelector('input[aria-label="period end"]') !== null, 'EN period end aria-label preserved');
+
+const enStartInput = document.getElementById('period-start-input');
+const enEndInput = document.getElementById('period-end-input');
+check(enStartInput !== null, 'PILOT-F01: Stable id #period-start-input exists');
+check(enEndInput !== null, 'PILOT-F01: Stable id #period-end-input exists');
+check(enStartInput.getAttribute('name') === 'period_start', 'PILOT-F01: name="period_start" locator exists');
+check(enEndInput.getAttribute('name') === 'period_end', 'PILOT-F01: name="period_end" locator exists');
+check(enStartInput.getAttribute('aria-labelledby') === 'period-start-label', 'PILOT-F01: aria-labelledby links to period-start-label');
+check(enEndInput.getAttribute('aria-labelledby') === 'period-end-label', 'PILOT-F01: aria-labelledby links to period-end-label');
+check(document.getElementById('period-start-label')?.textContent === 'Accounting period start', 'EN label span matches period start text');
+check(document.getElementById('period-end-label')?.textContent === 'Accounting period end', 'EN label span matches period end text');
+
 check(document.body.textContent.includes('Drafting building details'), 'EN internal EDIT state converted to human-readable label');
 check(!document.body.textContent.includes('EDIT ·') && !document.querySelector('p[aria-live="polite"]').textContent.trim().startsWith('EDIT'), 'Raw internal uppercase EDIT string avoided in UI display');
 
@@ -159,6 +174,11 @@ check(!document.body.textContent.includes('EDIT ·') && !document.querySelector(
 await renderWizard('ro', 'test-lang-ro');
 check(document.body.textContent.includes('Data de început a perioadei contabile'), 'RO visible label for period start exists');
 check(document.body.textContent.includes('Data de sfârșit a perioadei contabile'), 'RO visible label for period end exists');
+const roStartInput = document.getElementById('period-start-input');
+check(roStartInput !== null, 'RO period start input exists');
+check(roStartInput.getAttribute('aria-labelledby') === 'period-start-label', 'RO period start has aria-labelledby');
+check(document.getElementById('period-start-label')?.textContent === 'Data de început a perioadei contabile', 'RO label span matches Romanian text');
+check(roStartInput.getAttribute('aria-label') === null, 'PILOT-F01: English aria-label removed to prevent overriding Romanian label');
 check(document.body.textContent.includes('Editare detalii clădire'), 'RO internal EDIT state converted to human-readable label');
 check(document.querySelector('section').getAttribute('dir') === 'ltr', 'RO layout uses LTR direction');
 
@@ -166,14 +186,19 @@ check(document.querySelector('section').getAttribute('dir') === 'ltr', 'RO layou
 await renderWizard('fa', 'test-lang-fa');
 check(document.body.textContent.includes('تاریخ شروع دورهٔ حسابداری'), 'FA visible label for period start exists');
 check(document.body.textContent.includes('تاریخ پایان دورهٔ حسابداری'), 'FA visible label for period end exists');
+const faStartInput = document.getElementById('period-start-input');
+check(faStartInput !== null, 'FA period start input exists');
+check(faStartInput.getAttribute('aria-labelledby') === 'period-start-label', 'FA period start has aria-labelledby');
+check(document.getElementById('period-start-label')?.textContent === 'تاریخ شروع دورهٔ حسابداری', 'FA label span matches Persian text');
+check(faStartInput.getAttribute('aria-label') === null, 'PILOT-F01: English aria-label removed to prevent overriding Persian label');
 check(document.body.textContent.includes('در حال تنظیم اطلاعات ساختمان'), 'FA internal EDIT state converted to human-readable label');
 check(document.querySelector('section').getAttribute('dir') === 'rtl', 'FA layout strictly uses RTL direction');
-console.log('✓ TEST 2: Multilingual labels and localized state text passed.\n');
+console.log('✓ TEST 2: Multilingual accessible date labels passed.\n');
 
 // -----------------------------------------------------------------------------
-// TEST 3: Mobile Touch Targets (44px) & High-Contrast Focus Rings
+// TEST 3: Mobile Touch Targets & High-Contrast CTAs (PILOT-F02)
 // -----------------------------------------------------------------------------
-console.log('--- TEST 3: Mobile Touch Targets & Focus Styling ---');
+console.log('--- TEST 3: Mobile Touch Targets & High-Contrast CTAs (PILOT-F02) ---');
 await renderWizard('en', 'test-mobile-a11y');
 
 const allButtons = Array.from(document.querySelectorAll('button'));
@@ -188,22 +213,19 @@ for (const inp of allInputs) {
   check(inp.classList.contains('min-h-[44px]'), 'Input implements min-h-[44px] touch target');
   check(inp.classList.contains('focus-visible:ring-[#0E9F8E]'), 'Input uses CLADORA teal focus ring token');
 }
-console.log('✓ TEST 3: Mobile touch targets and focus styling passed.\n');
+
+// PILOT-F02: Primary CTA buttons must use high-contrast bg-teal-800 text-white (7.44:1 contrast >= 4.5:1)
+const primaryCTA = Array.from(document.querySelectorAll('button')).find(b => b.textContent === 'Create draft');
+check(primaryCTA !== undefined, 'Primary Create draft CTA exists');
+check(primaryCTA.className.includes('bg-teal-800') && primaryCTA.className.includes('text-white'), 'PILOT-F02: Active CTA uses high-contrast bg-teal-800 text-white (7.44:1 >= 4.5:1)');
+check(!primaryCTA.className.includes('bg-[#0E9F8E]'), 'PILOT-F02: Low-contrast bg-[#0E9F8E] replaced on active primary button');
+console.log('✓ TEST 3: Mobile touch targets and high-contrast CTAs passed.\n');
 
 // -----------------------------------------------------------------------------
-// TEST 4: Distinct States (Progress Component)
+// TEST 4: Distinct Progress States, Localized Badges & Reduced Motion (PILOT-F03 & PILOT-F04)
 // -----------------------------------------------------------------------------
-console.log('--- TEST 4: Distinct Progress Component States ---');
+console.log('--- TEST 4: Progress Component States, Localized Badges & Reduced Motion (PILOT-F03, F04, F05) ---');
 
-// Checking state
-await renderProgress({ lang: 'en', saved: null, dirty: false, condition: 'checking', canContinue: false });
-check(document.querySelector('[role="status"]').textContent.includes('Checking the current status'), 'Progress checking status displayed');
-
-// Dirty state
-await renderProgress({ lang: 'en', saved: null, dirty: true, condition: null, canContinue: false });
-check(document.querySelector('[role="status"]').textContent.includes('Changes on this form are not saved yet'), 'Progress dirty alert displayed');
-
-// Saved draft state
 const savedMock = {
   status: 'draft',
   revision: 1,
@@ -211,27 +233,72 @@ const savedMock = {
   building: 'Bloc 14 Pipera',
   units: 12
 };
+
+// Checking state: status badge MUST NOT be rendered even if saved is passed
+await renderProgress({ lang: 'en', saved: savedMock, dirty: false, condition: 'checking', canContinue: false });
+check(document.querySelector('[role="status"]').textContent.includes('Checking the current status'), 'Progress checking status displayed');
+check(document.querySelector('.rounded-full.bg-teal-50') === null, 'PILOT-F03: Status badge suppressed during checking condition');
+
+// Blocked state: status badge MUST NOT be rendered even if saved is passed
+await renderProgress({ lang: 'ro', saved: savedMock, dirty: false, condition: 'blocked', canContinue: false });
+check(document.querySelector('[role="status"]').textContent.includes('Starea salvată nu poate fi confirmată'), 'Romanian blocked condition displayed');
+check(document.querySelector('.rounded-full.bg-teal-50') === null, 'PILOT-F03: Status badge suppressed during blocked condition');
+
+// Unknown state: status badge MUST NOT be rendered
+await renderProgress({ lang: 'fa', saved: savedMock, dirty: false, condition: 'unknown', canContinue: false });
+check(document.querySelector('[role="status"]').textContent.includes('نتیجهٔ درخواست هنوز مشخص نیست'), 'Persian unknown condition displayed');
+check(document.querySelector('.rounded-full.bg-teal-50') === null, 'PILOT-F03: Status badge suppressed during unknown condition');
+
+// Dirty state without condition
+await renderProgress({ lang: 'en', saved: null, dirty: true, condition: null, canContinue: false });
+check(document.querySelector('[role="status"]').textContent.includes('Changes on this form are not saved yet'), 'Progress dirty alert displayed');
+
+// Confirmed saved draft state (EN): localized badge rendered
 await renderProgress({ lang: 'en', saved: savedMock, dirty: false, condition: null, canContinue: false });
 check(document.querySelector('dl') !== null, 'Progress definition list rendered when saved');
 check(document.body.textContent.includes('Bloc 14 Pipera'), 'Saved building name displayed');
 check(document.body.textContent.includes('Draft saved'), 'Saved draft stage displayed');
 
-// Provisioned state with dashboard handoff
+const enBadge = document.querySelector('.rounded-full.bg-teal-50');
+check(enBadge !== null, 'Status badge rendered when condition is null and saved is present');
+check(enBadge.textContent.includes('Draft saved'), 'PILOT-F03: Status badge displays localized "Draft saved"');
+
+// Confirmed saved draft state (RO): localized badge rendered without raw English
+await renderProgress({ lang: 'ro', saved: savedMock, dirty: false, condition: null, canContinue: false });
+const roBadge = document.querySelector('.rounded-full.bg-teal-50');
+check(roBadge !== null, 'RO status badge rendered');
+check(roBadge.textContent.includes('Ciornă salvată'), 'PILOT-F03: RO status badge displays localized "Ciornă salvată"');
+
+// Confirmed saved draft state (FA): localized badge rendered without raw English
+await renderProgress({ lang: 'fa', saved: savedMock, dirty: false, condition: null, canContinue: false });
+const faBadge = document.querySelector('.rounded-full.bg-teal-50');
+check(faBadge !== null, 'FA status badge rendered');
+check(faBadge.textContent.includes('پیش‌نویس ذخیره شد'), 'PILOT-F03: FA status badge displays localized "پیش‌نویس ذخیره شد"');
+
+// Confirmed provisioned state (FA): localized badge and dashboard link contrast
 const provisionedMock = { ...savedMock, status: 'provisioned', revision: 5 };
-await renderProgress({ lang: 'en', saved: provisionedMock, dirty: false, condition: null, canContinue: true });
+await renderProgress({ lang: 'fa', saved: provisionedMock, dirty: false, condition: null, canContinue: true });
+const faProvBadge = document.querySelector('.rounded-full.bg-teal-50');
+check(faProvBadge.textContent.includes('ساختار ساختمان ایجاد شد'), 'PILOT-F03: FA provisioned status badge displays localized text');
+
+// PILOT-F04: Status badge dot must NOT contain animate-pulse and must have motion-reduce support
+const badgeDot = faProvBadge.querySelector('span.rounded-full');
+check(badgeDot !== null, 'Status badge dot exists');
+check(!badgeDot.classList.contains('animate-pulse'), 'PILOT-F04: Misleading animate-pulse removed from confirmed status dot');
+check(badgeDot.classList.contains('motion-reduce:animate-none'), 'PILOT-F04: motion-reduce:animate-none present for reduced-motion safety');
+
+// PILOT-F02: Dashboard CTA button contrast in Progress
 const dashLink = document.querySelector('a');
 check(dashLink !== null, 'Dashboard handoff link rendered for provisioned setup');
-check(dashLink.getAttribute('href') === '/en/app/dashboard', 'Dashboard handoff points to /en/app/dashboard');
+check(dashLink.getAttribute('href') === '/fa/app/dashboard', 'Dashboard handoff points to /fa/app/dashboard');
 check(dashLink.classList.contains('min-h-[44px]'), 'Dashboard handoff meets 44px min-height');
+check(dashLink.className.includes('bg-teal-800') && dashLink.className.includes('text-white'), 'PILOT-F02: Dashboard link uses high-contrast bg-teal-800 text-white (7.44:1 >= 4.5:1)');
 
-// Blocked condition
-await renderProgress({ lang: 'ro', saved: null, dirty: false, condition: 'blocked', canContinue: false });
-check(document.querySelector('[role="status"]').textContent.includes('Starea salvată nu poate fi confirmată'), 'Romanian blocked condition displayed');
-
-// Unknown condition
-await renderProgress({ lang: 'fa', saved: null, dirty: false, condition: 'unknown', canContinue: false });
-check(document.querySelector('[role="status"]').textContent.includes('نتیجهٔ درخواست هنوز مشخص نیست'), 'Persian unknown condition displayed');
-console.log('✓ TEST 4: Distinct progress component states passed.\n');
+// PILOT-F05: Valid CSS tokens in Progress
+check(document.querySelectorAll('.shadow-xs').length === 0, 'PILOT-F05: Zero shadow-xs in Progress');
+check(document.querySelectorAll('.shadow-2xs').length === 0, 'PILOT-F05: Zero shadow-2xs in Progress');
+check(document.querySelectorAll('.shadow-sm').length > 0, 'PILOT-F05: Uses valid shadow-sm in Progress cards');
+console.log('✓ TEST 4: Distinct progress states, localized badges, and reduced motion passed.\n');
 
 // -----------------------------------------------------------------------------
 // TEST 5: Focus Management and Unit Deletion

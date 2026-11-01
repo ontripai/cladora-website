@@ -118,26 +118,64 @@ The following architectural invariants were verified untouched:
 
 ---
 
-## 5. Verification & Test Evidence
+---
 
-### 5.1 Test Execution Results
+## 7. R1 Finding Closure & Resolution (PILOT-F01 through PILOT-F05)
 
-| Test Suite | Command | Result | Assertions | Details |
-| :--- | :--- | :---: | :---: | :--- |
-| **Presentation Pilot Suite** | `node scripts/test-building-setup-ui-pilot-01.mjs` | **PASS** | 82 checks | Verified cards, 44px targets, labels, states, and focus |
-| **Onboarding UI Regression** | `node scripts/test-building-workspace-onboarding-ui.mjs` | **PASS** | 882 checks | Full lifecycle, persistence, double-click, denial, recovery |
-| **Setup Contract 001** | `node scripts/test-building-setup-001.mjs` | **PASS** | Static | Contract & migration parity |
-| **Setup Hardening 001** | `node scripts/test-building-setup-hardening-001.mjs` | **PASS** | Static | Closure report & hardening |
-| **Workspace Onboarding 001** | `node scripts/test-workspace-onboarding-001.mjs` | **PASS** | Static | RO/EN/FA + RTL + rollback |
-| **TypeScript Typecheck** | `npm run typecheck` (`tsc --noEmit`) | **PASS** | 0 errors | Full workspace typecheck |
-| **ESLint Scoped Audit** | `npx eslint <affected_files>` | **PASS** | 0 warnings | Clean code quality |
-| **Git Diff Whitespace Check** | `git diff --check` | **PASS** | 0 warnings | Clean whitespace, no EOF trailing lines |
+Following coordinator and independent browser review of Base `158ff01`, the following 5 targeted findings were resolved in R1:
+
+### 7.1 PILOT-F01: Accessible Localized Period Date Names
+- **Finding:** Visual label was localized, but hardcoded English `aria-label="period start"` and `aria-label="period end"` overrode the visible name in assistive tech.
+- **Resolution:**
+  - Added explicit programmatic binding via `aria-labelledby="period-start-label"` and `aria-labelledby="period-end-label"`.
+  - Added stable identifiers: `id="period-start-input"` with `name="period_start"`, and `id="period-end-input"` with `name="period_end"`.
+  - Overriding English `aria-label` attributes removed from non-English renders; accessible name resolves strictly to the localized label text in FA (`تاریخ شروع دورهٔ حسابداری`), RO (`Data de început a perioadei contabile`), and EN (`Accounting period start`).
+  - Updated locator in `test-building-workspace-onboarding-ui.mjs` (line 66) to use stable `#period-start-input, [name="period_start"]`. All 882 business and receipt assertions remain 100% stable.
+
+### 7.2 PILOT-F02: CTA Contrast Compliance (>= 4.5:1)
+- **Finding:** Primary active CTA button with white text on `#0E9F8E` achieved ~3.3:1 contrast ratio, failing WCAG AA (4.5:1 required for 14px bold text).
+- **Resolution:**
+  - Updated primary active buttons in `CustomerBuildingSetupWizard.tsx` (stage action trigger, provision button) to `bg-teal-800 hover:bg-teal-900 text-white`.
+  - Updated dashboard handoff link in `CustomerBuildingSetupProgress.tsx` to `bg-teal-800 hover:bg-teal-900 text-white`.
+  - Contrast ratio of `#ffffff` text on `bg-teal-800` (`#115E59`) is **7.44:1** (exceeds WCAG AA 4.5:1 and meets WCAG AAA).
+  - Maintained `min-h-[44px]` touch target compliance and high-contrast focus rings (`focus-visible:ring-teal-700`).
+
+### 7.3 PILOT-F03: Localized & Conditioned Status Badge
+- **Finding:** Progress status badge displayed raw wire strings (`saved.status`, e.g. `'provisioned'`, `'draft'`) in English across all locales, and was displayed even when `condition` was `'checking'`, `'unknown'`, or `'blocked'`.
+- **Resolution:**
+  - Conditioned badge rendering with `!condition && saved`: badge is suppressed during `'checking'`, `'unknown'`, or `'blocked'` conditions so that stale past results do not misleadingly indicate active confirmation.
+  - Replaced raw wire status with localized copy from `t.stages[saved.status]`:
+    - **FA:** `'پیش‌نویس ذخیره شد'` / `'ساختار ساختمان ایجاد شد'`
+    - **RO:** `'Ciornă salvată'` / `'Structura clădirii a fost creată'`
+    - **EN:** `'Draft saved'` / `'Building structure created'`
+
+### 7.4 PILOT-F04: Reduced Motion Compliance
+- **Finding:** Status badge indicator used `animate-pulse` without `reduced-motion` override, causing confirmed/saved records to falsely appear as active in-flight processing.
+- **Resolution:**
+  - Removed misleading `animate-pulse` from the confirmed status dot.
+  - Added `motion-reduce:animate-none` to guarantee compliance with user motion preferences.
+
+### 7.5 PILOT-F05: Valid Tailwind 3.4.19 CSS Tokens
+- **Finding:** `shadow-xs` and `shadow-2xs` are Tailwind v4 classes that do not generate valid CSS in Tailwind v3.4.19.
+- **Resolution:**
+  - Replaced all occurrences of `shadow-xs` and `shadow-2xs` in `CustomerBuildingSetupWizard.tsx` and `CustomerBuildingSetupProgress.tsx` with valid Tailwind 3.4.19 `shadow-sm`.
+  - Added test assertions verifying zero occurrences of `shadow-xs` or `shadow-2xs` in rendered output.
 
 ---
 
-## 6. Explicit NOT_RUN Tests
+## 8. Verification & Test Evidence (R1)
 
-Per test governance directives ("تست‌های موفق نامرتبط و ۵۵ آزمون تاریخی از ابتدا تکرار نشوند"):
-- Unrelated 55 unit test suites (`test:unit` aggregate) and concurrent finance tests (`test:statutory-funds:concurrency`, `test:cash-discipline:concurrency`) were **NOT_RUN** to avoid non-deterministic concurrency interference.
-- Zero live Auth/DB network requests were made; all verification executed against controlled mock transport.
-- Zero manual deployments, hosted installations, or config changes.
+| Test Suite | Command | Result | Assertions | Details |
+| :--- | :--- | :---: | :---: | :--- |
+| **Presentation Pilot Suite (R1)** | `node scripts/test-building-setup-ui-pilot-01.mjs` | **PASS** | 119 checks | F01 accessible labels, F02 CTA contrast, F03 localized badges, F04 reduced motion, F05 CSS tokens |
+| **Onboarding UI Regression** | `node scripts/test-building-workspace-onboarding-ui.mjs` | **PASS** | 882 checks | Full lifecycle, persistence, double-click, denial, recovery |
+| **TypeScript Typecheck** | `npm run typecheck` (`tsc --noEmit`) | **PASS** | 0 errors | Full workspace typecheck |
+| **ESLint Scoped Audit** | `npm run lint` (`eslint . --max-warnings=0`) | **PASS** | 0 warnings | Clean code quality across repository |
+
+---
+
+## 9. Explicit NOT_RUN Tests & Browser Limits
+
+- **Browser / Socket Restrictions:** Browser evaluation in seat encountered socket restrictions and SIGTRAP during headless browser startup; therefore, artificial 100% browser PASS is explicitly **NOT claimed** for the local environment. Component rendering, DOM tree, focus tracking, and CSS classes were verified authoritatively via JSDOM and strict AST tests.
+- **Regression Isolation:** Unrelated 55 unit test suites (`test:unit` aggregate) and concurrent finance tests (`test:statutory-funds:concurrency`, `test:cash-discipline:concurrency`) were **NOT_RUN** to avoid non-deterministic concurrency interference.
+- **Zero Network Mutations:** Zero live Auth/DB network requests were made; all verification executed against controlled mock transport.
