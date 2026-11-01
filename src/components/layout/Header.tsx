@@ -16,7 +16,8 @@ import {
   Sparkles,
   Briefcase,
   Wrench,
-  Building
+  Building,
+  Users
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
@@ -168,6 +169,18 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       href: `/${lang}/operations`,
       icon: Wrench,
       color: 'text-blue-600 bg-blue-50 border-blue-200'
+    },
+    {
+      title: 'CE',
+      subtitle: lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience',
+      desc: lang === 'ro'
+        ? 'Experiență de locuire, viață comunitară, ghiduri de spațiu, facilități și comunicare contextuală ancorată în identitatea proprietății.'
+        : lang === 'fa'
+        ? 'تجربه سکونت، زندگی اجتماعی، راهنمای فضاها و مشاعات، امکانات رفاهی و ارتباطات مستقیم با ساکنان بر پایگاه امن ملک.'
+        : 'Resident living experience, community life, amenity booking, localized space guides, and contextual property communications.',
+      href: `/${lang}/community-experience`,
+      icon: Users,
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200'
     }
   ];
 
@@ -282,7 +295,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                 aria-expanded={activeDropdown === 'services'}
                 aria-haspopup="true"
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
-                  activeDropdown === 'services' || pathname?.includes(`/${lang}/airprop`) || pathname?.includes(`/${lang}/service`) || pathname?.includes(`/${lang}/operations`)
+                  activeDropdown === 'services' || pathname?.includes(`/${lang}/airprop`) || pathname?.includes(`/${lang}/service`) || pathname?.includes(`/${lang}/operations`) || pathname?.includes(`/${lang}/community-experience`)
                     ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]'
                     : ''
                 }`}
@@ -445,6 +458,15 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
               className="px-4 py-2 rounded-xl text-xs font-semibold text-[#334E68] hover:bg-[#F8FAFC] flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
             >
               <span>{lang === 'ro' ? 'Operațiuni & Mentenanță' : lang === 'fa' ? 'عملیات فنی و نگهداری' : 'Operations & Maintenance'}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#627D98] rtl:rotate-180" aria-hidden="true" />
+            </Link>
+
+            <Link
+              href={`/${lang}/community-experience`}
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#334E68] hover:bg-[#F8FAFC] flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
+            >
+              <span>CE — {lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience'}</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#627D98] rtl:rotate-180" aria-hidden="true" />
             </Link>
 

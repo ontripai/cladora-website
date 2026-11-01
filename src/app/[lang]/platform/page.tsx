@@ -148,24 +148,28 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
             role: 'Ciclul Comercial & Pre-vânzări',
             desc: 'Conectează conceptele ciclului de viață comercial din faza de proiect, oportunități calificate, antecontracte și gestiune a închirierilor către predare.',
             tag: 'Peer Domain',
+            href: `/${lang}/airprop`,
           },
           {
             name: 'SERVICE',
             role: 'Intenție, Cereri & Coordonare Furnizori',
             desc: 'Guvernează cererile structurate de servicii, compararea devizelor concurențiale, comenzile de lucru și coordonarea recepției tehnice.',
             tag: 'Peer Domain',
+            href: `/${lang}/service`,
           },
           {
             name: 'OPERAȚIUNI',
             role: 'Mentenanță & Comenzi de Lucru',
             desc: 'Registru digital de echipamente tehnice, planuri de revizie periodică, dispecerat de tichete și execuția comenzilor de intervenție.',
             tag: 'Peer Domain',
+            href: `/${lang}/operations`,
           },
           {
             name: 'COMUNITATE & EXPERIENȚĂ',
             role: 'Viață Zilnică, Ghiduri & Interacțiuni',
             desc: 'Compoziția experienței locatarilor, informări statutare, adunări generale, acces la facilități și asistență zilnică.',
             tag: 'Peer Domain',
+            href: `/${lang}/community-experience`,
           },
         ],
       },
@@ -336,24 +340,28 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
             role: 'Commercial Lifecycle & Pre-Sales',
             desc: 'Connects commercial property lifecycle concepts from pre-sale and transaction contexts toward handover, leads, and tenancy agreements.',
             tag: 'Peer Domain',
+            href: `/${lang}/airprop`,
           },
           {
             name: 'SERVICE',
             role: 'Service Intent, Requests & Delivery',
             desc: 'Governs service intent, structured briefs, quote comparisons, agreed work scopes, and milestone delivery coordination.',
             tag: 'Peer Domain',
+            href: `/${lang}/service`,
           },
           {
             name: 'OPERATIONS',
             role: 'Facility Maintenance & Work Orders',
             desc: 'Technical equipment registries, scheduled preventative maintenance plans, fault ticket triage, and on-site work order dispatch.',
             tag: 'Peer Domain',
+            href: `/${lang}/operations`,
           },
           {
             name: 'COMMUNITY & EXPERIENCE',
             role: 'Daily Living, Guides & Community',
             desc: 'Tenant and resident experience composition, statutory notice boards, general meeting ballots, and daily living requests.',
             tag: 'Peer Domain',
+            href: `/${lang}/community-experience`,
           },
         ],
       },
@@ -524,24 +532,28 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
             role: 'چرخهٔ عمر تجاری و پیش‌فروش',
             desc: 'اتصال مفاهیم چرخه تجاری ملک از پیش‌فروش و تعریف پروژه تا قراردادهای اجاره و تحویل رسمی به مالکان.',
             tag: 'دامنه هم‌تراز',
+            href: `/${lang}/airprop`,
           },
           {
             name: 'SERVICE',
             role: 'اعلام نیاز، سفارش و تحویل خدمات',
             desc: 'مدیریت نیازهای فنی، درخواست‌های ساختاریافته، مقایسه پیشنهادها، توافق بر شرح کار و هماهنگی تحویل.',
             tag: 'دامنه هم‌تراز',
+            href: `/${lang}/service`,
           },
           {
             name: 'عملیات فنی',
             role: 'نگهداری تأسیسات و دستورکارها',
             desc: 'شناسنامه دیجیتال تجهیزات، برنامه‌های نگهداری دوره‌ای، ارجاع تیکت‌ها و اعزام تکنسین‌ها به محل.',
             tag: 'دامنه هم‌تراز',
+            href: `/${lang}/operations`,
           },
           {
             name: 'جامعه و تجربه',
             role: 'زندگی روزمره، اعلانات و تعاملات',
             desc: 'سامانه تعاملی ساکنان، تابلوی اعلانات رسمی، مجامع و رای‌گیری‌ها و درخواست‌های سکونتی.',
             tag: 'دامنه هم‌تراز',
+            href: `/${lang}/community-experience`,
           },
         ],
       },
@@ -858,6 +870,17 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
                   <h3 className="text-lg font-bold text-[#102A43] mb-1">{dom.name}</h3>
                   <div className="text-xs font-semibold text-[#0E9F8E] mb-3">{dom.role}</div>
                   <p className="text-xs text-[#52667A] leading-relaxed">{dom.desc}</p>
+                </div>
+                <div className="pt-4 mt-4 border-t border-[#F0F4F8]">
+                  <Link
+                    href={dom.href}
+                    className="text-xs font-bold text-[#0E9F8E] hover:text-[#0A7E71] flex items-center justify-between w-full"
+                  >
+                    <span>
+                      {lang === 'ro' ? 'Explorează domeniul' : lang === 'fa' ? 'مشاهده جزئیات دامنه' : 'Explore domain'}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" aria-hidden="true" />
+                  </Link>
                 </div>
               </div>
             ))}
