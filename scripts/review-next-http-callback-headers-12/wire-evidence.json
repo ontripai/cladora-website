@@ -1,0 +1,4014 @@
+{
+  "before": {
+    "build_id": "2m9BZDdxd4qVOlVtB6GTz",
+    "cases": [
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": false,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?",
+          "/fa/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": false,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?",
+          "/en/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": false,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?",
+          "/ro/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?",
+          "/xx/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": false,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?",
+          "/fa/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": false,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?",
+          "/en/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": false,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?",
+          "/ro/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?",
+          "/xx/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": false,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "strict-origin-when-cross-origin"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "cache-control",
+            "no-store, private"
+          ],
+          [
+            "cdn-cache-control",
+            "no-store"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ],
+          [
+            "surrogate-control",
+            "no-store"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      }
+    ],
+    "original_results_sha256": "ccfd14d480c6e0f21e188a709ad8fd2c23ce804a2ea9ffcb064acf1332e9fc38"
+  },
+  "after": {
+    "build_id": "BUWovPXtVF-I0TBy5FJWa",
+    "cases": [
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?",
+          "/fa/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?",
+          "/en/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?",
+          "/ro/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?",
+          "/xx/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "unconfigured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?",
+          "/fa/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "fa",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/fa/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/fa/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?",
+          "/en/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "en",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/en/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/en/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=missing"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?",
+          "/ro/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "ro",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=unsafe"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/ro/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "document",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "document",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "missing",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?",
+          "/xx/auth/callback?_rsc"
+        ]
+      },
+      {
+        "mode": "configured",
+        "lang": "xx",
+        "format": "rsc",
+        "case": "duplicate",
+        "checks": {
+          "internal_rejection": true,
+          "status": true,
+          "clear_recovery_cookie": true,
+          "no_success_auth_cookie": true,
+          "private_no_store": true,
+          "cdn_no_store": true,
+          "surrogate_no_store": true,
+          "no_referrer": true,
+          "vary_cookie": true,
+          "vary_rsc": true
+        },
+        "vary_set": [
+          "cookie",
+          "next-router-prefetch",
+          "next-router-segment-prefetch",
+          "next-router-state-tree",
+          "rsc"
+        ],
+        "response_headers": [
+          [
+            "Referrer-Policy",
+            "no-referrer"
+          ],
+          [
+            "Cache-Control",
+            "no-store, private"
+          ],
+          [
+            "CDN-Cache-Control",
+            "no-store"
+          ],
+          [
+            "Surrogate-Control",
+            "no-store"
+          ],
+          [
+            "vary",
+            "Cookie"
+          ],
+          [
+            "vary",
+            "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch"
+          ],
+          [
+            "location",
+            "http://localhost:31212/ro/auth-result?status=invalid_locale"
+          ],
+          [
+            "set-cookie",
+            "cladora_recovery_session=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+          ]
+        ],
+        "request_hops": [
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000",
+          "/xx/auth/callback?code=SYNTHETIC_INVALID_CODE_000000000&code=SYNTHETIC_INVALID_CODE_000000000&_rsc"
+        ]
+      }
+    ],
+    "original_results_sha256": "f3f785630b5e3d3c565d026e487599ee04783dde136cfe919072a6144befc10f"
+  }
+}
