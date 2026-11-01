@@ -105,13 +105,74 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   // Synchronously bind to the authenticated UID from descriptor claims before async bootstrap
   const activeUidRef = useRef<string | null>(authenticatedUserId || null);
 
-  // Keyboard accessibility and scroll locking for mobile drawer
+  // Mobile drawer focus lifecycle refs
+  const drawerOpenerRef = useRef<HTMLButtonElement | null>(null);
+  const drawerRef = useRef<HTMLDivElement | null>(null);
+  const prevMobileDrawerOpenRef = useRef(false);
+
+  // Return focus to opener on normal close (not during sign out or UID switch)
+  useEffect(() => {
+    if (prevMobileDrawerOpenRef.current && !mobileDrawerOpen) {
+      if (!isSigningOut && drawerOpenerRef.current && typeof drawerOpenerRef.current.focus === 'function') {
+        if (typeof document !== 'undefined' && document.contains(drawerOpenerRef.current)) {
+          drawerOpenerRef.current.focus();
+        }
+      }
+    }
+    prevMobileDrawerOpenRef.current = mobileDrawerOpen;
+  }, [mobileDrawerOpen, isSigningOut]);
+
+  // Keyboard accessibility (focus entry, focus trap, Escape) and scroll locking for mobile drawer
   useEffect(() => {
     if (!mobileDrawerOpen) return;
 
+    // Move focus into dialog on open (to first focusable element)
+    const focusTimer = requestAnimationFrame(() => {
+      if (!drawerRef.current) return;
+      const focusables = drawerRef.current.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusables.length > 0) {
+        focusables[0].focus();
+      }
+    });
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        e.preventDefault();
         setMobileDrawerOpen(false);
+        return;
+      }
+
+      if (e.key === 'Tab') {
+        if (!drawerRef.current) return;
+        const focusables = Array.from(
+          drawerRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        ).filter((el) => {
+          return el.offsetParent !== null || el.getClientRects().length > 0 || !el.hasAttribute('hidden');
+        });
+
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first || !drawerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last || !drawerRef.current.contains(document.activeElement)) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
 
@@ -120,6 +181,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
     document.body.style.overflow = 'hidden';
 
     return () => {
+      cancelAnimationFrame(focusTimer);
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
@@ -143,6 +205,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const sessionUser = session?.user;
       if (event === 'SIGNED_OUT' || !session || !sessionUser) {
+        setMobileDrawerOpen(false);
         setIsSigningOut(true);
         setSignOutError(null);
         router.push(`/${lang}/demo`);
@@ -152,6 +215,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
       const expectedUid = activeUidRef.current || authenticatedUserId;
       if (expectedUid && sessionUser.id !== expectedUid) {
         // Immediate protection against UID switch: mask entire shell and redirect
+        setMobileDrawerOpen(false);
         setIsSigningOut(true);
         setSignOutError(null);
         router.push(`/${lang}/demo`);
@@ -169,7 +233,8 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   }, [authenticatedUserId, lang, router]);
 
   const handleSignOut = async () => {
-    // Immediately mask all of A's information before awaiting network
+    // Immediately close drawer and mask all of A's information before awaiting network
+    setMobileDrawerOpen(false);
     setIsSigningOut(true);
     setSignOutError(null);
 
@@ -339,7 +404,10 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
   return (
     <div className="min-h-screen bg-[#F6F9FC] flex flex-col">
       {/* Top Disclaimer Banner */}
-      <div className="bg-[#102A43] text-white px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 border-b border-[#243B53]">
+      <div
+        aria-hidden={mobileDrawerOpen ? 'true' : undefined}
+        className="bg-[#102A43] text-white px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 border-b border-[#243B53]"
+      >
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-[#0E9F8E] shrink-0" />
           <span className="font-medium">
@@ -362,12 +430,16 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
       </div>
 
       {/* Main Header */}
-      <header className="bg-white border-b border-[#E2E8F0] sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xs">
+      <header
+        aria-hidden={mobileDrawerOpen ? 'true' : undefined}
+        className="bg-white border-b border-[#E2E8F0] sticky top-0 z-40 px-4 sm:px-6 py-3 flex items-center justify-between shadow-2xs"
+      >
         <div className="flex items-center gap-4">
           <button
+            ref={drawerOpenerRef}
             type="button"
             onClick={() => setMobileDrawerOpen(!mobileDrawerOpen)}
-            className="p-1.5 rounded-lg text-[#334E68] hover:bg-[#F0F4F8] lg:hidden"
+            className="p-1.5 rounded-lg text-[#334E68] hover:bg-[#F0F4F8] lg:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
             aria-label={mobileDrawerOpen ? 'Închide meniul' : 'Deschide meniul'}
             aria-expanded={mobileDrawerOpen}
             aria-controls="mobile-navigation-drawer"
@@ -410,7 +482,10 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
       {/* Main Container */}
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop Sidebar Navigation */}
-        <aside className="hidden lg:flex w-64 flex-col bg-white border-r rtl:border-l rtl:border-r-0 border-[#E2E8F0] overflow-y-auto">
+        <aside
+          aria-hidden={mobileDrawerOpen ? 'true' : undefined}
+          className="hidden lg:flex w-64 flex-col bg-white border-r rtl:border-l rtl:border-r-0 border-[#E2E8F0] overflow-y-auto"
+        >
           <div className="p-4 space-y-1">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#9FB3C8] px-3 pb-2 block">
               {lang === 'ro' ? 'Module & Resurse Demo' : lang === 'fa' ? 'ماژول‌های محیط دمو' : 'Demo Modules & Records'}
@@ -474,6 +549,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
         {mobileDrawerOpen && (
           <div
             id="mobile-navigation-drawer"
+            ref={drawerRef}
             role="dialog"
             aria-modal="true"
             aria-label={lang === 'ro' ? 'Meniu de navigare mobil' : lang === 'fa' ? 'منوی ناوبری موبایل' : 'Mobile navigation menu'}
@@ -492,7 +568,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
                 <button
                   type="button"
                   onClick={() => setMobileDrawerOpen(false)}
-                  className="p-1 rounded-lg text-[#627D98] hover:bg-[#F0F4F8]"
+                  className="p-1 rounded-lg text-[#627D98] hover:bg-[#F0F4F8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
                   aria-label="Close menu"
                 >
                   <X className="w-5 h-5" />
@@ -540,7 +616,7 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="w-full py-2.5 px-3 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-2.5 px-3 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
                 >
                   <LogOut className="w-4 h-4" />
                   <span>{lang === 'ro' ? 'Deconectare din Demo' : lang === 'fa' ? 'خروج از حساب دمو' : 'Sign Out of Demo'}</span>
@@ -551,7 +627,10 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
         )}
 
         {/* Main Content Viewport */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main
+          aria-hidden={mobileDrawerOpen ? 'true' : undefined}
+          className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8"
+        >
           <div className="max-w-7xl mx-auto">
             {isSigningOut ? (
               <div className="py-24 text-center space-y-4 animate-in fade-in duration-150">

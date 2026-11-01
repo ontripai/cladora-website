@@ -91,9 +91,21 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
 
   // Transient Form Inputs (In-memory only, no localStorage, zero backend mutation)
   const [formFields, setFormFields] = useState<Record<string, string>>({});
+  const [propertiesFormType, setPropertiesFormType] = useState<'building' | 'unit'>('building');
+  const [residentsFormType, setResidentsFormType] = useState<'owner' | 'tenant'>('owner');
 
   const handleFieldChange = (key: string, value: string) => {
     setFormFields((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handlePropertiesTypeChange = (type: 'building' | 'unit') => {
+    setPropertiesFormType(type);
+    setFormFields({});
+  };
+
+  const handleResidentsTypeChange = (type: 'owner' | 'tenant') => {
+    setResidentsFormType(type);
+    setFormFields({});
   };
 
   // Stale request invalidation ref
@@ -123,6 +135,8 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
     setPage(1);
     setSearchTerm('');
     setFormFields({});
+    setPropertiesFormType('building');
+    setResidentsFormType('owner');
     setActiveTab('records');
     setItems([]);
     setTotal(0);
@@ -1119,13 +1133,87 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
                 {lang === 'ro' ? 'Formular Demonstrativ' : lang === 'fa' ? 'پیش‌نمایش فرم اولیه' : 'Demo Preview Form'}
               </span>
             </div>
-            <h2 className="text-lg sm:text-xl font-bold text-[#102A43]">
-              {lang === 'ro'
-                ? `Formular inițial: ${currentMeta.title.ro}`
-                : lang === 'fa'
-                ? `فرم پیش‌نمایش: ${currentMeta.title.fa}`
-                : `Initial Form: ${currentMeta.title.en}`}
-            </h2>
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h2 className="text-lg sm:text-xl font-bold text-[#102A43]">
+                {moduleKey === 'properties'
+                  ? (propertiesFormType === 'building'
+                      ? (lang === 'ro' ? 'Formular inițial: Clădire Nouă' : lang === 'fa' ? 'فرم پیش‌نمایش: ثبت ساختمان' : 'Initial Form: New Building')
+                      : (lang === 'ro' ? 'Formular inițial: Unitate Nouă' : lang === 'fa' ? 'فرم پیش‌نمایش: ثبت واحد' : 'Initial Form: New Unit'))
+                  : moduleKey === 'residents'
+                  ? (residentsFormType === 'owner'
+                      ? (lang === 'ro' ? 'Formular inițial: Proprietar Nou' : lang === 'fa' ? 'فرم پیش‌نمایش: ثبت مالک' : 'Initial Form: New Owner')
+                      : (lang === 'ro' ? 'Formular inițial: Chiriaș / Rezident Nou' : lang === 'fa' ? 'فرم پیش‌نمایش: ثبت مستأجر' : 'Initial Form: New Tenant'))
+                  : (lang === 'ro'
+                      ? `Formular inițial: ${currentMeta.title.ro}`
+                      : lang === 'fa'
+                      ? `فرم پیش‌نمایش: ${currentMeta.title.fa}`
+                      : `Initial Form: ${currentMeta.title.en}`)}
+              </h2>
+
+              {moduleKey === 'properties' && (
+                <div className="flex items-center gap-1.5 p-1 bg-[#F0F4F8] rounded-xl w-fit border border-[#E2E8F0]">
+                  <button
+                    type="button"
+                    id="sub-type-building"
+                    onClick={() => handlePropertiesTypeChange('building')}
+                    aria-pressed={propertiesFormType === 'building'}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
+                      propertiesFormType === 'building'
+                        ? 'bg-white text-[#0E9F8E] shadow-2xs'
+                        : 'text-[#627D98] hover:text-[#102A43]'
+                    }`}
+                  >
+                    {lang === 'ro' ? 'Clădire / Imobil' : lang === 'fa' ? 'ساختمان' : 'Building'}
+                  </button>
+                  <button
+                    type="button"
+                    id="sub-type-unit"
+                    onClick={() => handlePropertiesTypeChange('unit')}
+                    aria-pressed={propertiesFormType === 'unit'}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
+                      propertiesFormType === 'unit'
+                        ? 'bg-white text-[#0E9F8E] shadow-2xs'
+                        : 'text-[#627D98] hover:text-[#102A43]'
+                    }`}
+                  >
+                    {lang === 'ro' ? 'Unitate / Spațiu' : lang === 'fa' ? 'واحد' : 'Unit'}
+                  </button>
+                </div>
+              )}
+
+              {moduleKey === 'residents' && (
+                <div className="flex items-center gap-1.5 p-1 bg-[#F0F4F8] rounded-xl w-fit border border-[#E2E8F0]">
+                  <button
+                    type="button"
+                    id="sub-type-owner"
+                    onClick={() => handleResidentsTypeChange('owner')}
+                    aria-pressed={residentsFormType === 'owner'}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
+                      residentsFormType === 'owner'
+                        ? 'bg-white text-[#0E9F8E] shadow-2xs'
+                        : 'text-[#627D98] hover:text-[#102A43]'
+                    }`}
+                  >
+                    {lang === 'ro' ? 'Proprietar' : lang === 'fa' ? 'مالک' : 'Owner'}
+                  </button>
+                  <button
+                    type="button"
+                    id="sub-type-tenant"
+                    onClick={() => handleResidentsTypeChange('tenant')}
+                    aria-pressed={residentsFormType === 'tenant'}
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
+                      residentsFormType === 'tenant'
+                        ? 'bg-white text-[#0E9F8E] shadow-2xs'
+                        : 'text-[#627D98] hover:text-[#102A43]'
+                    }`}
+                  >
+                    {lang === 'ro' ? 'Chiriaș / Rezident' : lang === 'fa' ? 'مستأجر' : 'Tenant'}
+                  </button>
+                </div>
+              )}
+            </div>
+
             <div className="p-3 bg-[#EAF8F5] border border-[#B2E5DF] rounded-xl text-xs text-[#0F5147] flex items-center gap-2">
               <Info className="w-4 h-4 shrink-0 text-[#0E9F8E]" />
               <span className="font-semibold">
@@ -1140,79 +1228,354 @@ export const DemoModuleView: React.FC<DemoModuleViewProps> = ({
 
           {/* Interactive Preview Fields (transient local state only) */}
           <form onSubmit={(e) => e.preventDefault()} className="p-6 sm:p-8 space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="form-title" className="text-xs font-bold text-[#102A43] block mb-1">
-                  {lang === 'ro' ? 'Titlu / Denumire Înregistrare' : lang === 'fa' ? 'عنوان یا نام قلم' : 'Record Title'}
-                </label>
-                <input
-                  id="form-title"
-                  type="text"
-                  value={formFields.title || ''}
-                  onChange={(e) => handleFieldChange('title', e.target.value)}
-                  placeholder={lang === 'ro' ? 'ex. Revizie tehnică centrală termică' : lang === 'fa' ? 'مثال: سرویس دوره‌ای آسانسور بلوک A' : 'e.g. Lift quarterly inspection'}
-                  className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none"
-                />
-              </div>
+            {/* 1. PROPERTIES: Building Sub-Type */}
+            {moduleKey === 'properties' && propertiesFormType === 'building' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-building-name" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Nume Clădire / Denumire Proprietate' : lang === 'fa' ? 'نام ساختمان یا مجتمع' : 'Building / Property Name'}
+                  </label>
+                  <input
+                    id="form-building-name"
+                    type="text"
+                    value={formFields['building-name'] || ''}
+                    onChange={(e) => handleFieldChange('building-name', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Rezidențial Aviatorilor Corp A' : lang === 'fa' ? 'مثال: مجتمع مسکونی نیلوفر بلوک ۱' : 'e.g. Aviatorilor Residence Block A'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="form-priority" className="text-xs font-bold text-[#102A43] block mb-1">
-                  {lang === 'ro' ? 'Prioritate / Categorie' : lang === 'fa' ? 'اولویت یا دسته‌بندی' : 'Priority / Category'}
-                </label>
-                <select
-                  id="form-priority"
-                  value={formFields.priority || 'standard'}
-                  onChange={(e) => handleFieldChange('priority', e.target.value)}
-                  className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl bg-white text-[#102A43] outline-none"
-                >
-                  <option value="standard">{lang === 'ro' ? 'Standard / Rutină' : lang === 'fa' ? 'عادی / روتین' : 'Standard / Routine'}</option>
-                  <option value="urgent">{lang === 'ro' ? 'Urgent / Avarie' : lang === 'fa' ? 'فوری / نیازمند اقدام' : 'Urgent / High'}</option>
-                  <option value="scheduled">{lang === 'ro' ? 'Programat preventiv' : lang === 'fa' ? 'برنامه‌ریزی دوره‌ای' : 'Scheduled'}</option>
-                </select>
-              </div>
+                <div>
+                  <label htmlFor="form-building-address" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Adresă / Locație' : lang === 'fa' ? 'نشانی یا آدرس دقیق' : 'Address / Location'}
+                  </label>
+                  <input
+                    id="form-building-address"
+                    type="text"
+                    value={formFields['building-address'] || ''}
+                    onChange={(e) => handleFieldChange('building-address', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Str. Primăverii nr. 12, București' : lang === 'fa' ? 'مثال: تهران، خیابان آزادی، پلاک ۱۲' : 'e.g. 12 Primaverii St, Bucharest'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="form-unit" className="text-xs font-bold text-[#102A43] block mb-1">
-                  {lang === 'ro' ? 'Spațiu / Unitate asociată' : lang === 'fa' ? 'فضا یا واحد مرتبط' : 'Associated Unit / Space'}
-                </label>
-                <input
-                  id="form-unit"
-                  type="text"
-                  value={formFields.unit || ''}
-                  onChange={(e) => handleFieldChange('unit', e.target.value)}
-                  placeholder={lang === 'ro' ? 'ex. Apartament 14 sau Spațiu Comun' : lang === 'fa' ? 'مثال: واحد ۱۴ یا مشاعات لابی' : 'e.g. Unit 14 or Common Area'}
-                  className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none"
-                />
-              </div>
+                <div>
+                  <label htmlFor="form-building-floors" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Număr Etaje / Niveluri' : lang === 'fa' ? 'تعداد طبقات' : 'Number of Floors'}
+                  </label>
+                  <input
+                    id="form-building-floors"
+                    type="text"
+                    value={formFields['building-floors'] || ''}
+                    onChange={(e) => handleFieldChange('building-floors', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. 8 etaje + 2 subsoluri' : lang === 'fa' ? 'مثال: ۸ طبقه' : 'e.g. 8 floors'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
 
-              <div>
-                <label htmlFor="form-assignee" className="text-xs font-bold text-[#102A43] block mb-1">
-                  {lang === 'ro' ? 'Responsabil / Contractor' : lang === 'fa' ? 'مسئول پیگیری یا پیمانکار' : 'Assigned Vendor / Staff'}
-                </label>
-                <input
-                  id="form-assignee"
-                  type="text"
-                  value={formFields.assignee || ''}
-                  onChange={(e) => handleFieldChange('assignee', e.target.value)}
-                  placeholder={lang === 'ro' ? 'ex. SC Tehnic Lift SRL' : lang === 'fa' ? 'مثال: شرکت فنی آسانسور پارس' : 'e.g. Elevator Tech Services'}
-                  className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none"
-                />
+                <div className="sm:col-span-2">
+                  <label htmlFor="form-building-notes" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Detalii & Instrucțiuni de Acces' : lang === 'fa' ? 'توضیحات و دستورالعمل دسترسی' : 'Building Details & Access'}
+                  </label>
+                  <textarea
+                    id="form-building-notes"
+                    rows={3}
+                    value={formFields['building-notes'] || ''}
+                    onChange={(e) => handleFieldChange('building-notes', e.target.value)}
+                    placeholder={lang === 'ro' ? 'Note demonstrative clădire... (nu vor fi salvate pe server)' : lang === 'fa' ? 'یادداشت‌های تستی ساختمان... (در سرور ذخیره نمی‌شود)' : 'Sample building notes... (will not be saved to backend)'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
               </div>
+            )}
 
-              <div className="sm:col-span-2">
-                <label htmlFor="form-notes" className="text-xs font-bold text-[#102A43] block mb-1">
-                  {lang === 'ro' ? 'Instrucțiuni & Detalii de Execuție' : lang === 'fa' ? 'دستورالعمل و توضیحات اجرایی' : 'Instructions & Details'}
-                </label>
-                <textarea
-                  id="form-notes"
-                  rows={3}
-                  value={formFields.notes || ''}
-                  onChange={(e) => handleFieldChange('notes', e.target.value)}
-                  placeholder={lang === 'ro' ? 'Note demonstrative... (nu vor fi salvate pe server)' : lang === 'fa' ? 'یادداشت‌های تستی... (این اطلاعات موقت بوده و در سرور ذخیره نمی‌شود)' : 'Sample notes... (will not be saved to backend)'}
-                  className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-1 focus:ring-[#0E9F8E] outline-none"
-                />
+            {/* 2. PROPERTIES: Unit Sub-Type */}
+            {moduleKey === 'properties' && propertiesFormType === 'unit' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-unit-code" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Cod / Număr Unitate' : lang === 'fa' ? 'کد یا شماره واحد' : 'Unit Code / Number'}
+                  </label>
+                  <input
+                    id="form-unit-code"
+                    type="text"
+                    value={formFields['unit-code'] || ''}
+                    onChange={(e) => handleFieldChange('unit-code', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Ap. 14 / Corp B' : lang === 'fa' ? 'مثال: واحد ۱۴، بلوک B' : 'e.g. Unit 14, Block B'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-unit-floor" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Etaj' : lang === 'fa' ? 'طبقه' : 'Floor'}
+                  </label>
+                  <input
+                    id="form-unit-floor"
+                    type="text"
+                    value={formFields['unit-floor'] || ''}
+                    onChange={(e) => handleFieldChange('unit-floor', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. 3' : lang === 'fa' ? 'مثال: ۳' : 'e.g. 3'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-unit-area" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Suprafață Utilă (m²)' : lang === 'fa' ? 'مساحت / متراژ (مترمربع)' : 'Floor Area (sqm)'}
+                  </label>
+                  <input
+                    id="form-unit-area"
+                    type="text"
+                    value={formFields['unit-area'] || ''}
+                    onChange={(e) => handleFieldChange('unit-area', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. 78.5' : lang === 'fa' ? 'مثال: ۷۸.۵' : 'e.g. 78.5'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-unit-building" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Clădire Asociată (ex. Bloc A)' : lang === 'fa' ? 'ساختمان مرتبط (مثال: بلوک ۱)' : 'Associated Building (e.g. Block A)'}
+                  </label>
+                  <input
+                    id="form-unit-building"
+                    type="text"
+                    value={formFields['unit-building'] || ''}
+                    onChange={(e) => handleFieldChange('unit-building', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Rezidențial Aviatorilor Corp A' : lang === 'fa' ? 'مثال: مجتمع مسکونی نیلوفر' : 'e.g. Aviatorilor Block A'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="form-unit-notes" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Detalii & Destinație Unitate' : lang === 'fa' ? 'توضیحات و کاربری واحد' : 'Unit Details & Notes'}
+                  </label>
+                  <textarea
+                    id="form-unit-notes"
+                    rows={3}
+                    value={formFields['unit-notes'] || ''}
+                    onChange={(e) => handleFieldChange('unit-notes', e.target.value)}
+                    placeholder={lang === 'ro' ? 'Note demonstrative unitate... (nu vor fi salvate pe server)' : lang === 'fa' ? 'یادداشت‌های تستی واحد... (در سرور ذخیره نمی‌شود)' : 'Sample unit notes... (will not be saved to backend)'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* 3. RESIDENTS: Owner Sub-Type */}
+            {moduleKey === 'residents' && residentsFormType === 'owner' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-owner-name" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Nume & Prenume Proprietar' : lang === 'fa' ? 'نام و نام خانوادگی مالک' : 'Owner Full Name'}
+                  </label>
+                  <input
+                    id="form-owner-name"
+                    type="text"
+                    value={formFields['owner-name'] || ''}
+                    onChange={(e) => handleFieldChange('owner-name', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Alexandru Popescu' : lang === 'fa' ? 'مثال: علی رضایی' : 'e.g. Alex Popescu'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-owner-contact" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Date Contact (Telefon / Email)' : lang === 'fa' ? 'اطلاعات تماس (تلفن / ایمیل)' : 'Contact (Phone / Email)'}
+                  </label>
+                  <input
+                    id="form-owner-contact"
+                    type="text"
+                    value={formFields['owner-contact'] || ''}
+                    onChange={(e) => handleFieldChange('owner-contact', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. +40 722 000 000 / alex@example.ro' : lang === 'fa' ? 'مثال: ۰۹۱۲۳۴۵۶۷۸۹ / ali@example.com' : 'e.g. +40 722 000 000 / alex@example.com'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-owner-unit" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Unitate Asociată (ex. Apartament 14)' : lang === 'fa' ? 'واحد مرتبط (مثال: واحد ۱۴)' : 'Associated Unit (e.g. Unit 14)'}
+                  </label>
+                  <input
+                    id="form-owner-unit"
+                    type="text"
+                    value={formFields['owner-unit'] || ''}
+                    onChange={(e) => handleFieldChange('owner-unit', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Apartament 14, Etaj 3' : lang === 'fa' ? 'مثال: واحد ۱۴، طبقه ۳' : 'e.g. Unit 14, Floor 3'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="form-owner-notes" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Cotă Parte & Mențiuni Proprietate' : lang === 'fa' ? 'سهم مالکیت و یادداشت‌ها' : 'Ownership Share & Details'}
+                  </label>
+                  <textarea
+                    id="form-owner-notes"
+                    rows={3}
+                    value={formFields['owner-notes'] || ''}
+                    onChange={(e) => handleFieldChange('owner-notes', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Cotă 100%, rezident la adresă' : lang === 'fa' ? 'مثال: مالک شش دانگ، ساکن در واحد' : 'e.g. 100% ownership, resident'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 4. RESIDENTS: Tenant Sub-Type */}
+            {moduleKey === 'residents' && residentsFormType === 'tenant' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-tenant-name" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Nume & Prenume Chiriaș' : lang === 'fa' ? 'نام و نام خانوادگی مستأجر' : 'Tenant Full Name'}
+                  </label>
+                  <input
+                    id="form-tenant-name"
+                    type="text"
+                    value={formFields['tenant-name'] || ''}
+                    onChange={(e) => handleFieldChange('tenant-name', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Elena Ionescu' : lang === 'fa' ? 'مثال: سارا محمدی' : 'e.g. Elena Ionescu'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-tenant-contact" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Date Contact (Telefon / Email)' : lang === 'fa' ? 'اطلاعات تماس (تلفن / ایمیل)' : 'Contact (Phone / Email)'}
+                  </label>
+                  <input
+                    id="form-tenant-contact"
+                    type="text"
+                    value={formFields['tenant-contact'] || ''}
+                    onChange={(e) => handleFieldChange('tenant-contact', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. +40 733 111 222 / elena@example.ro' : lang === 'fa' ? 'مثال: ۰۹۱۲۹۸۷۶۵۴۳ / sara@example.com' : 'e.g. +40 733 111 222 / elena@example.com'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-tenant-unit" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Unitate Închiriată (ex. Apartament 14)' : lang === 'fa' ? 'واحد استیجاری (مثال: واحد ۱۴)' : 'Leased Unit (e.g. Unit 14)'}
+                  </label>
+                  <input
+                    id="form-tenant-unit"
+                    type="text"
+                    value={formFields['tenant-unit'] || ''}
+                    onChange={(e) => handleFieldChange('tenant-unit', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Apartament 14, Etaj 3' : lang === 'fa' ? 'مثال: واحد ۱۴، طبقه ۳' : 'e.g. Unit 14, Floor 3'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-tenant-lease" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Perioadă Contract Închiriere' : lang === 'fa' ? 'مدت قرارداد اجاره' : 'Lease Term / Dates'}
+                  </label>
+                  <input
+                    id="form-tenant-lease"
+                    type="text"
+                    value={formFields['tenant-lease'] || ''}
+                    onChange={(e) => handleFieldChange('tenant-lease', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. 01.01.2025 - 31.12.2025' : lang === 'fa' ? 'مثال: ۱۲ ماهه (تا ۱۴۰۴/۱۰/۰۱)' : 'e.g. 2025-01-01 to 2025-12-31'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="form-tenant-notes" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Condiții Speciale & Note' : lang === 'fa' ? 'شرایط و توضیحات قرارداد' : 'Special Terms & Notes'}
+                  </label>
+                  <textarea
+                    id="form-tenant-notes"
+                    rows={3}
+                    value={formFields['tenant-notes'] || ''}
+                    onChange={(e) => handleFieldChange('tenant-notes', e.target.value)}
+                    placeholder={lang === 'ro' ? 'Note demonstrative contract... (nu vor fi salvate pe server)' : lang === 'fa' ? 'یادداشت‌های تستی قرارداد... (در سرور ذخیره نمی‌شود)' : 'Sample lease notes... (will not be saved to backend)'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* 5. GENERIC PREVIEW FORM: All Other Modules */}
+            {moduleKey !== 'properties' && moduleKey !== 'residents' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="form-title" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Titlu / Denumire Înregistrare' : lang === 'fa' ? 'عنوان یا نام قلم' : 'Record Title'}
+                  </label>
+                  <input
+                    id="form-title"
+                    type="text"
+                    value={formFields.title || ''}
+                    onChange={(e) => handleFieldChange('title', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Revizie tehnică centrală termică' : lang === 'fa' ? 'مثال: سرویس دوره‌ای آسانسور بلوک A' : 'e.g. Lift quarterly inspection'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-priority" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Prioritate / Categorie' : lang === 'fa' ? 'اولویت یا دسته‌بندی' : 'Priority / Category'}
+                  </label>
+                  <select
+                    id="form-priority"
+                    value={formFields.priority || 'standard'}
+                    onChange={(e) => handleFieldChange('priority', e.target.value)}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl bg-white text-[#102A43] focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  >
+                    <option value="standard">{lang === 'ro' ? 'Standard / Rutină' : lang === 'fa' ? 'عادی / روتین' : 'Standard / Routine'}</option>
+                    <option value="urgent">{lang === 'ro' ? 'Urgent / Avarie' : lang === 'fa' ? 'فوری / نیازمند اقدام' : 'Urgent / High'}</option>
+                    <option value="scheduled">{lang === 'ro' ? 'Programat preventiv' : lang === 'fa' ? 'برنامه‌ریزی دوره‌ای' : 'Scheduled'}</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="form-unit" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Spațiu / Unitate asociată' : lang === 'fa' ? 'فضا یا واحد مرتبط' : 'Associated Unit / Space'}
+                  </label>
+                  <input
+                    id="form-unit"
+                    type="text"
+                    value={formFields.unit || ''}
+                    onChange={(e) => handleFieldChange('unit', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. Apartament 14 sau Spațiu Comun' : lang === 'fa' ? 'مثال: واحد ۱۴ یا مشاعات لابی' : 'e.g. Unit 14 or Common Area'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="form-assignee" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Responsabil / Contractor' : lang === 'fa' ? 'مسئول پیگیری یا پیمانکار' : 'Assigned Vendor / Staff'}
+                  </label>
+                  <input
+                    id="form-assignee"
+                    type="text"
+                    value={formFields.assignee || ''}
+                    onChange={(e) => handleFieldChange('assignee', e.target.value)}
+                    placeholder={lang === 'ro' ? 'ex. SC Tehnic Lift SRL' : lang === 'fa' ? 'مثال: شرکت فنی آسانسور پارس' : 'e.g. Elevator Tech Services'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label htmlFor="form-notes" className="text-xs font-bold text-[#102A43] block mb-1">
+                    {lang === 'ro' ? 'Instrucțiuni & Detalii de Execuție' : lang === 'fa' ? 'دستورالعمل و توضیحات اجرایی' : 'Instructions & Details'}
+                  </label>
+                  <textarea
+                    id="form-notes"
+                    rows={3}
+                    value={formFields.notes || ''}
+                    onChange={(e) => handleFieldChange('notes', e.target.value)}
+                    placeholder={lang === 'ro' ? 'Note demonstrative... (nu vor fi salvate pe server)' : lang === 'fa' ? 'یادداشت‌های تستی... (این اطلاعات موقت بوده و در سرور ذخیره نمی‌شود)' : 'Sample notes... (will not be saved to backend)'}
+                    className="w-full p-2.5 text-xs sm:text-sm border border-[#CBD5E1] rounded-xl focus:border-[#0E9F8E] focus:ring-2 focus:ring-[#0E9F8E]/20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E] transition-all"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Action Buttons: Strictly disabled per contract */}
             <div className="pt-4 border-t border-[#F0F4F8] flex flex-col sm:flex-row items-center justify-between gap-3">
