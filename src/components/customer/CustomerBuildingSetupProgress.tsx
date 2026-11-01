@@ -48,22 +48,94 @@ export function CustomerBuildingSetupProgress({lang, saved, dirty, condition, ca
   canContinue: boolean;
 }) {
   const t = copy[lang];
-  return <section aria-label={t.title} dir={lang === 'fa' ? 'rtl' : 'ltr'} className="min-w-0 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
-    <h2 className="text-lg font-semibold">{t.title}</h2>
-    {condition ? <p role="status" className="break-words">{t[condition]}</p> : <>
-      {dirty && <p role="status" className="break-words font-semibold text-amber-800">{t.dirty}</p>}
-      {saved ? <>
-        <p role="status" className="break-words font-semibold">{t.stages[saved.status]}</p>
-        <dl className="grid min-w-0 gap-2 text-sm sm:grid-cols-2">
-          <div className="min-w-0"><dt>{t.saved}</dt><dd className="break-words font-semibold">{saved.building}</dd></div>
-          <div><dt>{t.units}</dt><dd>{saved.units}</dd></div>
-          <div><dt>{t.version}</dt><dd>{saved.revision}</dd></div>
-          <div className="min-w-0"><dt>{t.reference}</dt><dd className="break-all"><bdi dir="ltr">{saved.reference}</bdi></dd></div>
-        </dl>
-        <p className="break-words">{t.next[dirty && saved.status === 'draft' ? 'dirty' : saved.status]}</p>
-        {(saved.status === 'rehearsed' || saved.status === 'submitted' || saved.status === 'approved' || saved.status === 'provisioned') && <p className="break-words text-sm text-slate-600">{t.rehearsal}</p>}
-        {saved.status === 'provisioned' && canContinue && <a href={`/${lang}/app/dashboard`} className="inline-flex min-h-11 max-w-full items-center rounded-lg border border-teal-700 px-3 py-2 text-sm font-semibold text-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2">{t.dashboard}</a>}
-      </> : <><p role="status">{t.local}</p><p className="break-words">{t.next.edit}</p></>}
-    </>}
-  </section>;
+
+  return (
+    <section
+      aria-label={t.title}
+      dir={lang === 'fa' ? 'rtl' : 'ltr'}
+      className="min-w-0 space-y-4 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-slate-50/70 p-4 sm:p-5 shadow-xs"
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <h2 className="text-base sm:text-lg font-bold text-[#102A43] tracking-tight">{t.title}</h2>
+        {saved && (
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 border border-teal-200/80 px-2.5 py-1 text-xs font-semibold text-teal-800">
+            <span className="h-1.5 w-1.5 rounded-full bg-teal-600 animate-pulse" />
+            <span>{saved.status}</span>
+          </span>
+        )}
+      </div>
+
+      {condition ? (
+        <div className={`p-3.5 rounded-xl border text-xs sm:text-sm leading-relaxed ${
+          condition === 'checking'
+            ? 'bg-slate-50 border-slate-200 text-slate-700'
+            : condition === 'blocked'
+            ? 'bg-red-50 border-red-200 text-red-800'
+            : 'bg-amber-50 border-amber-200 text-amber-900'
+        }`}>
+          <p role="status" className="break-words font-medium">{t[condition]}</p>
+        </div>
+      ) : (
+        <>
+          {dirty && (
+            <div className="p-3 rounded-xl border border-amber-200 bg-amber-50/80 text-xs sm:text-sm text-amber-900 font-semibold flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-amber-500 shrink-0" />
+              <p role="status" className="break-words">{t.dirty}</p>
+            </div>
+          )}
+
+          {saved ? (
+            <>
+              <div className="p-3 rounded-xl bg-teal-50/60 border border-teal-100 text-xs sm:text-sm text-teal-900">
+                <p role="status" className="break-words font-bold">{t.stages[saved.status]}</p>
+              </div>
+
+              <dl className="grid min-w-0 gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-sm">
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.saved}</dt>
+                  <dd className="mt-1 break-words font-bold text-[#102A43]">{saved.building}</dd>
+                </div>
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.units}</dt>
+                  <dd className="mt-1 font-bold text-[#102A43]">{saved.units}</dd>
+                </div>
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.version}</dt>
+                  <dd className="mt-1 font-bold text-[#102A43]">{saved.revision}</dd>
+                </div>
+                <div className="min-w-0 rounded-xl border border-slate-200/80 bg-white p-3 shadow-2xs">
+                  <dt className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 truncate">{t.reference}</dt>
+                  <dd className="mt-1 break-all font-mono text-xs font-semibold text-[#334E68]"><bdi dir="ltr">{saved.reference}</bdi></dd>
+                </div>
+              </dl>
+
+              <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs sm:text-sm text-slate-700 leading-relaxed">
+                <p className="break-words">{t.next[dirty && saved.status === 'draft' ? 'dirty' : saved.status]}</p>
+              </div>
+
+              {(saved.status === 'rehearsed' || saved.status === 'submitted' || saved.status === 'approved' || saved.status === 'provisioned') && (
+                <p className="break-words text-xs text-slate-500 leading-relaxed px-1">{t.rehearsal}</p>
+              )}
+
+              {saved.status === 'provisioned' && canContinue && (
+                <div className="pt-2">
+                  <a
+                    href={`/${lang}/app/dashboard`}
+                    className="inline-flex min-h-[44px] max-w-full items-center justify-center rounded-xl bg-[#0E9F8E] hover:bg-[#0A7E71] text-white px-5 py-2.5 text-sm font-bold shadow-xs transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0E9F8E]"
+                  >
+                    {t.dashboard}
+                  </a>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="space-y-2 p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 text-xs sm:text-sm text-slate-700">
+              <p role="status" className="font-semibold text-slate-900">{t.local}</p>
+              <p className="break-words text-slate-600">{t.next.edit}</p>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  );
 }
