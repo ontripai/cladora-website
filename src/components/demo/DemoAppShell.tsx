@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Language } from '@/types';
@@ -117,15 +117,34 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
     };
   }, [mobileDrawerOpen]);
 
-  // Auth state listener: immediately hide children and redirect on SIGNED_OUT
+  const activeUidRef = useRef<string | null>(null);
+
+  // Auth state listener: immediately protect against UID switch and sign-out
   useEffect(() => {
     if (!isSupabaseConfigured()) return;
     const supabase = createClient();
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.id) {
+        activeUidRef.current = session.user.id;
+      }
+    });
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT' || !session) {
+      const sessionUser = session?.user;
+      if (event === 'SIGNED_OUT' || !session || !sessionUser) {
         setIsSigningOut(true);
         router.push(`/${lang}/demo`);
+        return;
       }
+
+      if (activeUidRef.current && sessionUser.id !== activeUidRef.current) {
+        setIsSigningOut(true);
+        router.push(`/${lang}/demo`);
+        return;
+      }
+
+      activeUidRef.current = sessionUser.id;
     });
 
     return () => {
@@ -240,6 +259,21 @@ export const DemoAppShell: React.FC<DemoAppShellProps> = ({
       Icon,
     };
   });
+
+  if (isSigningOut) {
+    return (
+      <div className="min-h-screen bg-[#F6F9FC] flex flex-col items-center justify-center p-6 text-center space-y-4 animate-in fade-in duration-150">
+        <Loader2 className="w-10 h-10 text-[#0E9F8E] animate-spin mx-auto" />
+        <p className="text-sm font-semibold text-[#627D98]">
+          {lang === 'ro'
+            ? 'Se deconectează din spațiul demo...'
+            : lang === 'fa'
+            ? 'در حال خروج از محیط دمو...'
+            : 'Signing out of demo workspace...'}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F6F9FC] flex flex-col">

@@ -69,6 +69,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
   // Request ID ref for stale/out-of-order response invalidation
   const authRequestIdRef = useRef(0);
   const activeUserIdRef = useRef<string | null>(null);
+  const isLookupPendingRef = useRef(false);
 
   // Check current session and listen to auth changes
   useEffect(() => {
@@ -77,6 +78,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
     const client = createClient();
 
     const checkSessionAndWorkspace = async (user: any, reqId: number) => {
+      isLookupPendingRef.current = true;
       if (!user) {
         if (!isMounted || reqId !== authRequestIdRef.current) return;
         activeUserIdRef.current = null;
@@ -151,6 +153,10 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       } catch (err: any) {
         if (!isMounted || reqId !== authRequestIdRef.current) return;
         setWorkspaceLookupError(err.message || 'Authentication check failed');
+      } finally {
+        if (reqId === authRequestIdRef.current) {
+          isLookupPendingRef.current = false;
+        }
       }
     };
 
@@ -172,7 +178,9 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
             }
           });
         } else {
-          setIsLoadingSession(false);
+          if (!isLookupPendingRef.current) {
+            setIsLoadingSession(false);
+          }
         }
       } else {
         setIsLoadingSession(false);
@@ -189,6 +197,9 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
       const newUser = session?.user || null;
 
       if (event === 'SIGNED_OUT' || !newUser) {
+        // Invalidate prior request generation first
+        ++authRequestIdRef.current;
+        isLookupPendingRef.current = false;
         activeUserIdRef.current = null;
         setCurrentUser(null);
         setExistingWorkspace(null);
@@ -230,6 +241,7 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         setIsSubmitting(false);
 
         activeUserIdRef.current = newUser.id;
+        setIsLoadingSession(true);
         const nextReqId = ++authRequestIdRef.current;
         void checkSessionAndWorkspace(newUser, nextReqId).finally(() => {
           if (isMounted && nextReqId === authRequestIdRef.current) {
@@ -238,8 +250,11 @@ export const DemoAuthPortal: React.FC<DemoAuthPortalProps> = ({ lang }) => {
         });
       } else {
         // Same UID event (TOKEN_REFRESHED, USER_UPDATED, duplicate INITIAL_SESSION / SIGNED_IN)
-        // Keep existing user and workspace intact; simply terminate session loading
-        setIsLoadingSession(false);
+        // Keep existing user and workspace intact.
+        // DO NOT terminate loading if a lookup is currently pending!
+        if (!isLookupPendingRef.current) {
+          setIsLoadingSession(false);
+        }
       }
     });
 
