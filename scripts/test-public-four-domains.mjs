@@ -317,6 +317,12 @@ async function runSuite() {
     const opsLink = container.querySelector(`a[href="/${lang}/operations"]`);
     check(opsLink, `Platform (${lang}): Link to /${lang}/operations present`);
 
+    // Contrast & accessible link styling check (PUBLIC-F01: >= 4.5:1 contrast against white)
+    check(
+      ceLink.className.includes('text-teal-700') && ceLink.className.includes('hover:text-teal-800'),
+      `Platform (${lang}): Link uses text-teal-700/hover:text-teal-800 meeting WCAG AA contrast (5.56:1 / 7.32:1 >= 4.5:1)`
+    );
+
     // Peer framing check: not subordinate
     const ceCardText = ceLink.closest('div.bg-white')?.textContent || '';
     check(
@@ -381,10 +387,12 @@ async function runSuite() {
   }
 
   // =========================================================================
-  // 6. ENVIRONMENTAL RECORD
+  // 6. ENVIRONMENTAL RECORD (PUBLIC-E01)
   // =========================================================================
-  console.log('\n--- ENVIRONMENTAL EXECUTION STATUS ---');
-  console.log('NOTE: Physical hardware browser / GPU window resizing: NOT_RUN (Headless server seat execution; full DOM geometry, viewport media boundaries, and keyboard event lifecycles verified via JSDOM and React Testing).');
+  console.log('\n--- ENVIRONMENTAL EXECUTION STATUS (PUBLIC-E01) ---');
+  console.log('NOTE: Native hardware browser / GPU window execution: NOT_RUN (Headless server seat execution environment without live display server).');
+  console.log('SCOPE DELIMITATION: Current automated suite operates within JSDOM (evaluating React tree rendering, DOM hierarchy, synthetic click events, class bindings, and analytical WCAG contrast).');
+  console.log('LIMITATION NOTICE: JSDOM innerWidth and CSS class assertions do not constitute live browser proof of physical Tab focus ring rendering, layout overflow, physical geometry, or complete visual viewport rendering of CE; those criteria require native browser execution and remain officially NOT_RUN.');
 
   console.log('\n=======================================================');
   console.log(`ALL PUBLIC FOUR DOMAINS VERIFICATION CHECKS PASSED! (${checks} checks)`);
