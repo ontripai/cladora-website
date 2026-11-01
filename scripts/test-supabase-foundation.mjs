@@ -39,6 +39,9 @@ const platformAuthContextTest = read('supabase/tests/102_platform_auth_context_g
 const platformAuth = read('src/lib/platform/auth.ts');
 const demoSelector = read('src/components/demo/DemoRoleSelector.tsx');
 const demoRouter = read('src/app/[lang]/demo/app/[...slug]/page.tsx');
+const demoEntry = read('src/app/[lang]/demo/page.tsx');
+const demoLayout = read('src/app/[lang]/demo/app/layout.tsx');
+const demoIndex = read('src/app/[lang]/demo/app/page.tsx');
 const dashboardPage = read('src/components/demo/DemoDashboardPage.tsx');
 const accountingPage = read('src/components/demo/DemoAccountingPage.tsx');
 const admin = read('src/lib/supabase/admin.ts');
@@ -279,9 +282,17 @@ check(platformAuthRoutingHardeningMigration.includes('set search_path = pg_catal
 check(platformAuthRoutingTest.includes('active Platform user is recognized at AAL1') && platformAuthRoutingTest.includes('revoked Platform role is not accepted'), 'pgTAP covers pre-MFA routing and revoked-role denial');
 check(demoSelector.includes('`/${lang}/demo/app/dashboard`'), 'demo role selection stays in the public demo data plane');
 check(!demoSelector.includes('`/${lang}/app/dashboard`'), 'demo role selection never enters the protected customer app');
-check(demoRouter.includes('DashboardPage'), 'public demo router renders the interactive dashboard without Auth');
-check(demoRouter.includes('<DashboardPage params={pageParams} demoMode />'), 'demo router enables isolated dashboard links');
-check(demoRouter.includes('<AccountingPage params={pageParams} demoMode />'), 'demo router enables isolated accounting links');
+// The public entry is a signup/login portal; workspace views require verified
+// caller claims and a caller-scoped demo descriptor (the approved public-demo contract).
+check(demoEntry.includes('<DemoAuthPortal') && !demoEntry.includes('<DemoDashboardView'), 'public demo entry exposes authentication rather than an anonymous workspace');
+check(demoLayout.includes('supabase.auth.getClaims()') && demoLayout.includes('authError || !claimsData?.claims') && demoLayout.includes('redirect(`/${lang}/demo`)'), 'demo layout denies missing or invalid verified claims');
+check(demoLayout.indexOf('authError || !claimsData?.claims') < demoLayout.indexOf(".rpc('demo_get_my_workspace_v1')"), 'demo layout checks verified claims before requesting a workspace');
+check(demoLayout.includes(".schema('customer_api')") && demoLayout.includes(".rpc('demo_get_my_workspace_v1')") && demoLayout.includes('wsError || !workspace'), 'demo layout requires the caller-scoped workspace and denies failed or absent descriptors');
+check(demoLayout.includes('authenticatedUserId={authenticatedUserId}') && demoLayout.includes('claimsData.claims.sub'), 'demo shell binds its identity to the verified claims subject');
+check(demoRouter.includes('DemoDashboardView') && demoRouter.includes('DemoModuleView') && !demoRouter.includes('<DashboardPage ') && !demoRouter.includes('<AccountingPage '), 'authenticated demo views use the dedicated preview components, not native operational pages');
+check(demoRouter.includes("route === 'accounting'") && demoRouter.includes("? 'finance'"), 'legacy demo accounting links resolve to the dedicated finance preview');
+check(demoIndex.includes('supabase.auth.getClaims()') && demoIndex.includes(".rpc('demo_get_my_workspace_v1')") && demoIndex.includes('redirect(`/${lang}/demo/app/dashboard`)'), 'demo root resolves to its canonical dashboard only behind claims and workspace checks');
+check(!demoRouter.includes('createAdminClient') && !demoLayout.includes('createAdminClient') && !demoIndex.includes('createAdminClient'), 'demo routing does not use a privileged client to bypass caller authentication');
 check(dashboardPage.includes("props.demoMode ? 'demo/app' : 'app'"), 'dashboard links respect the active data plane');
 check(accountingPage.includes("props.demoMode ? 'demo/app' : 'app'"), 'accounting links respect the active data plane');
 check(customerBillingPage.includes('CustomerBillingDashboard'), 'protected billing page renders the live customer projection');
