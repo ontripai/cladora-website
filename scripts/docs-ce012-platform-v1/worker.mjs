@@ -6,6 +6,7 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { ROOT, DIR, ENTRY, CASES, need, Hold, sha, canonical, seal, admit, pin, safeRead, verifyMaterials, keys } from './contract.mjs';
 import { Custody, Ledger, readPrivate, DOCKER } from './custody.mjs';
+import { RuntimeRoutes } from './runtime-routes.mjs';
 import { bindPg, authFetch, verifyIssuedSession, fenceExternalNetwork } from './transport.mjs';
 
 export function runtimeFiles(root,binding) {
@@ -24,7 +25,7 @@ export function runtimeFiles(root,binding) {
   pins.sourceFiles=new Map((binding.artifacts??[]).map(f=>[path.join(realpathSync(root),f.path),f]));
   return pins;
 }
-export function lockModules(root,pins) {
+export function lockModules(root,pins,{routes=null}={}) {
   const base=realpathSync(root),original=Module._resolveFilename,oldNative=Module._extensions['.node'],oldDlopen=process.dlopen;
   need(typeof Module.registerHooks==='function','BLOCKED_NODE_LOADER_HOOK_UNAVAILABLE');
   const edges=new Set(pins.graph.edges.map(e=>canonical([e.parent,e.specifier,e.target])));
@@ -41,10 +42,13 @@ export function lockModules(root,pins) {
     return resolved;
   }
   Module._resolveFilename=function(name,parent,...args){
+    if(routes?.owns(parent?.filename))return routes.resolve(name,parent.filename);
     const resolved=original.call(this,name,parent,...args);
     return verifyResolved(name,parent?.filename,resolved);
   };
   const hook=Module.registerHooks({resolve(specifier,context,nextResolve){
+    const parentFile=context.parentURL?.startsWith('file:')?fileURLToPath(context.parentURL):null;
+    if(routes?.owns(parentFile))return routes.deny('DENIED_RUNTIME_DYNAMIC_IMPORT');
     const result=nextResolve(specifier,context);
     if(result.url.startsWith('node:'))return result;
     need(result.url.startsWith('file:'),'BLOCKED_NON_FILE_MODULE_URL');
@@ -93,7 +97,9 @@ export async function run(privateRoot,packet) {
   // Prerequisite receipts are independently approved and bound to this run by admit;
   // no installer, seed, role/session setup or receipt fabrication exists in this path.
   const runtime=runtimeFiles(root,admitted.binding);
-  need(admitted.binding.runtime.graph.blocked.length===0 && admitted.binding.runtime.execution_admissible===true,'BLOCKED_UNRESOLVED_RUNTIME_ROUTES');
+  const routes=new RuntimeRoutes(root,admitted.binding.runtime,{mode:'consumer-candidate',descriptor:input.descriptor});
+  routes.requireResolved();
+  need(admitted.binding.runtime.execution_admissible===true,'BLOCKED_RUNTIME_CANDIDATE');
   const ledger=new Ledger(path.join(privateRoot,'docs-ce012.platform.private.jsonl'));
   const materialCheck=()=>{
     pin(root,`${DIR}consumer-request.json`,input.request);
@@ -105,7 +111,7 @@ export async function run(privateRoot,packet) {
     need(canonical(JSON.parse(safeRead(privateRoot,'inputs/coordinator-review.json')))===canonical(review),'CONSUMER_REVIEW_CHANGED');
     for(const entry of admitted.binding.artifacts)pin(root,entry.path,{bytes:entry.bytes,sha256:entry.sha256});
   };
-  const guard=new Custody(admitted,{ledger,materialCheck});let facade,prePool,preClient,closed=false;
+  const guard=new Custody(admitted,{ledger,materialCheck});let facade,prePool,preClient,closed=false,restoreModules,restoreRoutes;
   const outcome={status:'NOT_RUN',first_error:null,transport_cleanup:'NOT_RUN',session:'NOT_RUN',consumer:'NOT_RUN'};
   let originalLog=console.log;
   try {
@@ -124,7 +130,7 @@ export async function run(privateRoot,packet) {
       && producer.review.target.observer_role===input.descriptor.observer_role
       && producer.review.target.conflict_role===input.descriptor.conflict_role,'PRODUCER_PLATFORM_TARGET_DIVERGENCE');
     const require=createRequire(path.join(root,'package.json'));
-    lockModules(root,runtime);
+    restoreRoutes=routes.install();restoreModules=lockModules(root,runtime,{routes});
     const pg=require('pg');
     facade=bindPg(pg,guard);
     fenceExternalNetwork();
@@ -180,6 +186,7 @@ export async function run(privateRoot,packet) {
     catch(e){outcome.transport_cleanup='UNKNOWN';outcome.first_error??=e.code??'UNKNOWN_RELAY_CLOSE';}
     for(const key of Object.keys(process.env))if(key.startsWith('DOCS_CE012_'))delete process.env[key];
     packet.token='';
+    try{restoreModules?.();restoreRoutes?.();}catch{outcome.first_error??='UNKNOWN_ROUTE_GUARD_SETTLEMENT';}
     if(outcome.first_error||!closed){outcome.status='FAILED_OR_UNKNOWN';outcome.zero_write='UNKNOWN';}
     try{guard.terminal({phase:'consumer-final',status:outcome.status,first_error:outcome.first_error,
       transport_cleanup:outcome.transport_cleanup});ledger.close();}
