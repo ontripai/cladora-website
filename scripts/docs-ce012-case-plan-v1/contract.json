@@ -1,0 +1,987 @@
+{
+  "contract": "documents-ce012-case-plan-compiler-abi.v1",
+  "dependency": "DOCS-CE012-CASE-PLAN-01",
+  "consumer": "PLATFORM-DOCS-CE012-PGAUTH-BIND-05",
+  "base": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+  "entrypoint": "scripts/docs-ce012-case-plan-v1/compiler.ts",
+  "exports": [
+    "compileCasePlan",
+    "compileCasePlanJson",
+    "validateCompiledPlan",
+    "validateCompiledPlanJson",
+    "contentHash",
+    "canonicalJson"
+  ],
+  "validation": "executable compiler is mandatory; JSON structure alone never proves bindings or provenance",
+  "ownership": {
+    "Platform": [
+      "run/custody",
+      "physical DB/Auth provenance",
+      "current authenticated actor/session source"
+    ],
+    "Documents": [
+      "tenant/Workspace/Guide/document/immutable-version references",
+      "permission/scan row bindings",
+      "nine-case semantics"
+    ],
+    "Core/CE": [
+      "canonical command/authority schemas and saved receipt relation/verifier"
+    ]
+  },
+  "schemas": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "custody": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "run_id",
+          "custody_nonce",
+          "database",
+          "database_oid",
+          "system_identifier"
+        ],
+        "properties": {
+          "run_id": {
+            "type": "string",
+            "pattern": "^cladora-lane-[a-f0-9]{12}$"
+          },
+          "custody_nonce": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "database": {
+            "type": "string",
+            "pattern": "^docs_ce012_[a-f0-9]{16}$"
+          },
+          "database_oid": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          },
+          "system_identifier": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*$"
+          }
+        }
+      },
+      "platform_input": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contract",
+          "consumer",
+          "custody",
+          "database_provenance_sha256",
+          "auth_provenance",
+          "observed_at",
+          "harness"
+        ],
+        "properties": {
+          "contract": {
+            "const": "documents-ce012-platform-provenance-input.v1"
+          },
+          "consumer": {
+            "const": "PLATFORM-DOCS-CE012-PGAUTH-BIND-05"
+          },
+          "custody": {
+            "$ref": "#/$defs/custody"
+          },
+          "database_provenance_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "auth_provenance": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "origin",
+              "actor_id",
+              "session_id",
+              "assurance_level",
+              "source_evidence_sha256"
+            ],
+            "properties": {
+              "origin": {
+                "type": "string",
+                "format": "uri"
+              },
+              "actor_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "session_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "assurance_level": {
+                "const": "aal2"
+              },
+              "source_evidence_sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "harness": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_commit",
+              "request_sha256",
+              "runtime_closure_sha256"
+            ],
+            "properties": {
+              "source_commit": {
+                "const": "c0caf3e70d97c3d09b16cbff91188367804cba6b"
+              },
+              "request_sha256": {
+                "const": "3ca7a18b4789d262565dc3289cf029d633b36a0fa155c5f3a575dfeedc619873"
+              },
+              "runtime_closure_sha256": {
+                "const": "55093d835a860ceeb414fbd097d3b62af2520e60cee5b093763ff7f983f928ee"
+              }
+            }
+          }
+        }
+      },
+      "documents_input": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contract",
+          "platform_input_sha256",
+          "custody",
+          "tenant_id",
+          "cases"
+        ],
+        "properties": {
+          "contract": {
+            "const": "documents-ce012-documents-case-input.v1"
+          },
+          "platform_input_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "custody": {
+            "$ref": "#/$defs/custody"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cases": {
+            "type": "array",
+            "maxItems": 9,
+            "items": true,
+            "x-per-case-validator": "case_input; malformed entries BLOCKED, unknown/duplicate names INVALID"
+          }
+        }
+      },
+      "case_input": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "source_artifact_sha256",
+          "command",
+          "guide_command",
+          "documents_authority_request",
+          "core_fixture_source_sha256",
+          "context_membership_id",
+          "guide",
+          "document",
+          "document_version",
+          "permissions",
+          "scan_attestation",
+          "receipt_id",
+          "receipt_hash",
+          "historical_reference"
+        ],
+        "properties": {
+          "name": {
+            "enum": [
+              "current_positive",
+              "documents_denied",
+              "replaced_fresh",
+              "historical_disclosure",
+              "historical_revoked",
+              "cross_workspace",
+              "quarantined",
+              "shared_lock",
+              "serialization_retry"
+            ]
+          },
+          "source_artifact_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "command": {
+            "anyOf": [
+              {
+                "$ref": "urn:cladora:core-transaction-command.v2"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "guide_command": {
+            "anyOf": [
+              {
+                "$ref": "urn:cladora:ce012-guide-command.v1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "documents_authority_request": {
+            "anyOf": [
+              {
+                "$ref": "urn:cladora:core-current-authority-transaction-port-request.v1"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "core_fixture_source_sha256": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "context_membership_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "guide": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "tenant_id",
+              "workspace_id",
+              "version",
+              "status"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "tenant_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "workspace_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "status": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              }
+            }
+          },
+          "document": {
+            "$ref": "#/$defs/document"
+          },
+          "document_version": {
+            "$ref": "#/$defs/document_version"
+          },
+          "permissions": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "$ref": "#/$defs/permission"
+            }
+          },
+          "scan_attestation": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/scan"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receipt_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "receipt_hash": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "historical_reference": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/historical_reference"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "document": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tenant_id",
+          "workspace_id",
+          "current_version",
+          "status",
+          "deleted_at",
+          "archived_at",
+          "disposition_status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workspace_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "current_version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "status": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "archived_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "disposition_status": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          }
+        }
+      },
+      "document_version": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tenant_id",
+          "document_id",
+          "version",
+          "scanning_status",
+          "checksum_status",
+          "sha256"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "scanning_status": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "checksum_status": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        }
+      },
+      "permission": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "tenant_id",
+          "document_id",
+          "membership_id",
+          "permission",
+          "valid_from",
+          "valid_until"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "document_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "membership_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "permission": {
+            "const": "view"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "valid_until": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        }
+      },
+      "scan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "version_id",
+          "tenant_id",
+          "provider",
+          "verdict",
+          "content_sha256",
+          "scanned_at",
+          "recorded_at"
+        ],
+        "properties": {
+          "version_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider": {
+            "const": "clamav"
+          },
+          "verdict": {
+            "enum": [
+              "clean",
+              "quarantined"
+            ]
+          },
+          "content_sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "scanned_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recorded_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "historical_reference": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source_contract",
+          "source_store",
+          "ce_contract",
+          "core_receipt_id",
+          "core_receipt_hash",
+          "ce_save_receipt_id",
+          "binding"
+        ],
+        "properties": {
+          "source_contract": {
+            "const": "core-transaction-receipt.v2"
+          },
+          "source_store": {
+            "const": "platform.idempotency_keys.response_ref"
+          },
+          "ce_contract": {
+            "const": "ce012-guide-command.v1"
+          },
+          "core_receipt_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "core_receipt_hash": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "ce_save_receipt_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "binding": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "command_id",
+              "context_id",
+              "workspace_id",
+              "guide_id",
+              "document_id",
+              "document_version_id",
+              "document_version",
+              "expected_guide_version",
+              "payload_fingerprint",
+              "idempotency_key"
+            ],
+            "properties": {
+              "command_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "context_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "workspace_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "guide_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "document_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "document_version_id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "document_version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "expected_guide_version": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "payload_fingerprint": {
+                "type": "string",
+                "pattern": "^sha256:[a-f0-9]{64}$"
+              },
+              "idempotency_key": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 128
+              }
+            }
+          }
+        }
+      },
+      "plan": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contract",
+          "tenant_id",
+          "cases"
+        ],
+        "properties": {
+          "contract": {
+            "const": "documents-ce012-synthetic-fixture-plan.v1"
+          },
+          "tenant_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cases": {
+            "type": "array",
+            "minItems": 9,
+            "maxItems": 9,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "command",
+                "guide_command",
+                "receipt_id",
+                "receipt_hash"
+              ],
+              "properties": {
+                "name": {
+                  "enum": [
+                    "current_positive",
+                    "documents_denied",
+                    "replaced_fresh",
+                    "historical_disclosure",
+                    "historical_revoked",
+                    "cross_workspace",
+                    "quarantined",
+                    "shared_lock",
+                    "serialization_retry"
+                  ]
+                },
+                "command": {
+                  "anyOf": [
+                    {
+                      "$ref": "urn:cladora:core-transaction-command.v2"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "guide_command": {
+                  "anyOf": [
+                    {
+                      "$ref": "urn:cladora:ce012-guide-command.v1"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receipt_id": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "receipt_hash": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "canonical_schema_references": [
+    {
+      "uri": "urn:cladora:core-transaction-command.v2",
+      "module": "src/lib/core/postgres-transaction-host-v1.ts",
+      "export": "coreTransactionCommandV2Schema",
+      "source_sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06"
+    },
+    {
+      "uri": "urn:cladora:ce012-guide-command.v1",
+      "module": "src/lib/community/experience-guide-command-contract.ts",
+      "export": "ce012GuideSaveCommandV1Schema",
+      "source_sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6"
+    },
+    {
+      "uri": "urn:cladora:core-current-authority-transaction-port-request.v1",
+      "module": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "export": "currentAuthorityTransactionRequestV1Schema",
+      "source_sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f"
+    }
+  ],
+  "case_semantics": [
+    {
+      "name": "current_positive",
+      "evaluation_mode": "new_command",
+      "expected_documents_decision": "current_authorized",
+      "required_native_documents_read": true,
+      "document_relation": "exact_workspace",
+      "version_relation": "current_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": null,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "documents_denied",
+      "evaluation_mode": "new_command",
+      "expected_documents_decision": "denied",
+      "required_native_documents_read": false,
+      "document_relation": "exact_workspace",
+      "version_relation": "current_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": null,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "replaced_fresh",
+      "evaluation_mode": "new_command",
+      "expected_documents_decision": "stale",
+      "required_native_documents_read": true,
+      "document_relation": "exact_workspace",
+      "version_relation": "replaced_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": null,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "historical_disclosure",
+      "evaluation_mode": "replay",
+      "expected_documents_decision": "historical_authorized",
+      "required_native_documents_read": true,
+      "document_relation": "exact_workspace",
+      "version_relation": "replaced_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": null,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "historical_revoked",
+      "evaluation_mode": "replay",
+      "expected_documents_decision": "denied",
+      "required_native_documents_read": false,
+      "document_relation": "exact_workspace",
+      "version_relation": "replaced_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": null,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "cross_workspace",
+      "evaluation_mode": "new_command",
+      "expected_documents_decision": "denied",
+      "required_native_documents_read": true,
+      "document_relation": "same_tenant_other_explicit_workspace",
+      "version_relation": "current_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": null,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "quarantined",
+      "evaluation_mode": "new_command",
+      "expected_documents_decision": "denied",
+      "required_native_documents_read": true,
+      "document_relation": "exact_workspace",
+      "version_relation": "current_exact_immutable_version",
+      "scan": "quarantined",
+      "conflict_permission_rows": null,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "shared_lock",
+      "evaluation_mode": "new_command",
+      "expected_documents_decision": "current_authorized",
+      "required_native_documents_read": true,
+      "document_relation": "exact_workspace",
+      "version_relation": "current_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": 1,
+      "historical_completion_in_this_base": false
+    },
+    {
+      "name": "serialization_retry",
+      "evaluation_mode": "new_command",
+      "expected_documents_decision": "current_authorized",
+      "required_native_documents_read": true,
+      "document_relation": "exact_workspace",
+      "version_relation": "current_exact_immutable_version",
+      "scan": "clean_verified_exact_attestation",
+      "conflict_permission_rows": 1,
+      "historical_completion_in_this_base": false
+    }
+  ],
+  "hashing": {
+    "algorithm": "SHA-256",
+    "encoding": "UTF-8",
+    "object_keys": "ascending UTF-16 code-unit order recursively",
+    "array_order": "preserved",
+    "canonical_json": "JSON.stringify sorted plain JSON; finite numbers only; max1MiB/depth64; duplicate keys rejected for JSON text",
+    "raw_input_hashes": "exact UTF-8 input text; formatting changes remain distinguishable",
+    "plan_bytes": "canonical JSON, no newline",
+    "plan_hash": "exact plan_bytes SHA-256; matches existing harness private-plan hash boundary",
+    "input_source_binding_sha256": "canonical hash of compiler contract + accepted harness source/request/closure + canonical Platform/Documents input hashes + plan hash",
+    "raw_input_binding_sha256": "canonical hash of input_source_binding_sha256 + exact raw Platform/Documents UTF-8 hashes; validation requires the original seals",
+    "source_hashes": "source-manifest.json binds compiler/loader/CLI/ABI + canonical module/config byte preimages; no self-approval"
+  },
+  "output": {
+    "contract": "documents-ce012-case-plan-compiler.v1",
+    "status": [
+      "INVALID",
+      "BLOCKED",
+      "PARTIAL"
+    ],
+    "case_outcomes": [
+      "COMPILED_SHAPE",
+      "BLOCKED"
+    ],
+    "plan_contract": "documents-ce012-synthetic-fixture-plan.v1",
+    "reusable_as_live_authority": false,
+    "runtime_proof": "NOT_RUN_NOT_PASS",
+    "historical_completion_available": false,
+    "blocked_row": "command/guide_command/receipt_id/receipt_hash all null; no guessed values",
+    "private_output_only": true
+  },
+  "errors": {
+    "global": [
+      "INPUT_NOT_JSON",
+      "INPUT_JSON_INVALID_OR_DUPLICATE",
+      "PLATFORM_INPUT_INVALID",
+      "DOCUMENTS_INPUT_INVALID",
+      "PLATFORM_AUTH_REFERENCE_INVALID",
+      "PLATFORM_INPUT_HASH_MISMATCH",
+      "CUSTODY_BINDING_MISMATCH",
+      "CASE_SET_INVALID"
+    ],
+    "case": [
+      "CASE_INPUT_INVALID",
+      "CASE_SOURCE_MISSING",
+      "CANONICAL_COMMAND_INPUT_MISSING",
+      "CANONICAL_COMMAND_INPUT_INVALID",
+      "NON_CANONICAL_INPUT_REPRESENTATION",
+      "IMMUTABLE_DOCUMENT_TARGET_MISSING",
+      "ACTOR_SESSION_REFERENCE_MISMATCH",
+      "CE_CORE_COMMAND_BINDING_MISMATCH",
+      "CORE_DOCUMENTS_REQUEST_BINDING_MISMATCH",
+      "CORE_NATIVE_FIXTURE_SOURCE_MISSING",
+      "GUIDE_BINDING_MISMATCH",
+      "GUIDE_VERSION_MISMATCH",
+      "DOCUMENT_VERSION_BINDING_MISMATCH",
+      "DOCUMENT_WORKSPACE_BINDING_MISMATCH",
+      "DOCUMENT_LIFECYCLE_MISMATCH",
+      "CASE_VERSION_RELATION_MISMATCH",
+      "CASE_SCAN_BINDING_MISMATCH",
+      "PERMISSION_BINDING_MISMATCH",
+      "CONFLICT_PERMISSION_FIXTURE_MISMATCH",
+      "PERMISSION_FIXTURE_NOT_CURRENT",
+      "FRESH_CASE_HAS_HISTORICAL_EVIDENCE",
+      "CANONICAL_STORED_RELATION_MISSING",
+      "CANONICAL_PERSISTED_RELATION_VERIFIER_UNAVAILABLE",
+      "HISTORICAL_RECEIPT_REFERENCE_MISMATCH",
+      "HISTORICAL_RELATION_BINDING_MISMATCH"
+    ],
+    "validator": [
+      "PLAN_OR_INPUT_INVALID",
+      "PLAN_HASH_OR_INPUT_MISMATCH",
+      "VALID_NON_AUTHORIZING_PLAN",
+      "RAW_INPUT_HASH_MISMATCH",
+      "PLAN_BYTE_HASH_MISMATCH"
+    ]
+  },
+  "historical_dependency": {
+    "producer": "Core/CE",
+    "output": "canonical verified persisted CE-save/Core receipt relation bound to exact command/target/custody",
+    "existing_live_verifier": "existing Core host validateReplay after persisted response/receipt matching; requires actual transaction/session",
+    "pure_persisted_relation_verifier_at_base": "UNAVAILABLE",
+    "not_proof": [
+      "current GET",
+      "committed:true",
+      "receipt-shaped JSON",
+      "schema-valid receipt alone",
+      "hash alone",
+      "caller verifier callback"
+    ]
+  },
+  "cli": {
+    "entrypoint": "scripts/docs-ce012-case-plan-v1/compile-private-plan.mjs",
+    "arguments": [
+      "--platform-input",
+      "--documents-input",
+      "--private-plan-output"
+    ],
+    "outputs": "one explicitly named new0600 plan file, stdout empty; no overwrite/default output",
+    "exit_codes": {
+      "2": "invalid/source/input/output error; no new plan written",
+      "3": "private non-authorizing partial/blocked plan written; never all-cases/live readiness"
+    }
+  },
+  "purity": [
+    "no network/SQL/secret read in compiler",
+    "no installer/seed/role/receipt generator",
+    "no UUID/version inference",
+    "no clocks/randomness or verifier callbacks",
+    "dispatch must reverify source/custody/session/native authority/stored receipt"
+  ]
+}
