@@ -14,6 +14,7 @@ import {
   serviceEligibilityPolicySchema,
   serviceOfferingCoverageSchema,
 } from './service-offering-v14-schema';
+import { serviceOfferingTimeWindowAvailableV1 } from './service-offering-time-precision-v1';
 import { uuidSchema } from './workspace-composition-schema';
 
 export const SERVICE_OFFERING_DISCLOSURE_SOURCE_V1 =
@@ -192,18 +193,13 @@ function sourceMatchesBinding(
     && row.provider_agreement_version === binding.provider_agreement_version;
 }
 
-function sourceIsUnavailable(row: z.infer<typeof sourceRowSchema>, now: number) {
-  const start = Date.parse(row.valid_from);
-  const end = row.valid_until === null ? null : Date.parse(row.valid_until);
+function sourceIsUnavailable(row: z.infer<typeof sourceRowSchema>, observedAt: string) {
   return row.revision_status !== 'published'
     || row.acquisition_mode === 'reservation'
     || row.coverage.kind !== 'workspace'
     || !row.definition_current
     || !row.provider_current
-    || !Number.isFinite(now)
-    || !Number.isFinite(start)
-    || now < start
-    || (end !== null && (!Number.isFinite(end) || end <= start || now >= end));
+    || !serviceOfferingTimeWindowAvailableV1(observedAt, row.valid_from, row.valid_until);
 }
 
 function sourceRequiresAnotherDomain(row: z.infer<typeof sourceRowSchema>) {
@@ -353,7 +349,7 @@ export async function projectServiceOfferingDisclosureSourceV1(
     if (sourceRequiresAnotherDomain(current)) {
       return { status: 'not_ready', code: 'SOURCE_NOT_READY' };
     }
-    if (sourceIsUnavailable(current, Date.parse(clock.evaluated_at))) {
+    if (sourceIsUnavailable(current, clock.evaluated_at)) {
       return { status: 'withheld', code: 'SOURCE_DENIED' };
     }
     // Keep the successful variant structurally narrower than the source row.

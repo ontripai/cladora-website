@@ -44,7 +44,7 @@ function publicPorts(error){return{async loadOffering(){return structuredClone(s
   async resolvePrincipal(){return{actor_id:ids.actor,authority_version:7};},
   async resolveProviderAgreement(){throw error;},async resolveCanonicalResource(){throw ordinary;},
   transactionalReaders:{},host:{async execute(){throw new Error('not called');}},
-  now(){return Date.parse('2026-11-02T10:00:00Z');}};}
+  now(){return '2026-11-02T10:00:00.000000Z';}};}
 function request(){return{actor_id:ids.actor,authority_version:7,transaction_id:ids.transaction,
   command_id:ids.command,request_id:ids.request,expected_offering_version:4,published_revision_version:2,
   provider_party_id:ids.provider,input:{...input,provider_agreement:{agreement_id:ids.agreement,

@@ -1,7 +1,7 @@
 {
   "contract": "cladora-source-delivery-manifest.v1",
-  "task_id": "V14-SERVICE-01 / REQUEST-PREFLIGHT-SOURCE-PORTS-06",
-  "base": "e6e33a57555b42d145ed39be0b3d45380ab6e35c",
+  "task_id": "V14-SERVICE-01 / OFFERING-TIME-PRECISION-07",
+  "base": "a88a12b4e5eb6a8dd064993ae13bf356a8ccd8b2",
   "branch": "codex/program-service-offering-request-02",
   "runtime_state": "INACTIVE_FAIL_CLOSED",
   "dependencies": {
@@ -9,7 +9,8 @@
     "S02": "canonical-resource-reference.v1 implementation required for named-resource actions",
     "S03": "geographic-coverage-resolution.v1 implementation required only for geographic actions",
     "FIN01": "required only before financial Order creation; this package creates no Order",
-    "CORE_REQUEST_PREFLIGHT_HOST": "Core-owned serializable transaction scope, Workspace/service_request Offering lock and authorityRequestFor producer are required; not present or activated here"
+    "CORE_REQUEST_PREFLIGHT_HOST": "Core-owned serializable transaction scope, Workspace/service_request Offering lock and authorityRequestFor producer are required; not present or activated here",
+    "SERVICE_TIME_PRECISION": "service-offering-time-precision.v1 internal exact PostgreSQL microsecond facet; no shared Core contract change"
   },
   "evidence": {
     "source_tests": "PREVIOUS_CONTROLLED_OFFERING_DISCLOSURE_SOURCE_18_OF_18_COORDINATOR_CONFIRMED_NOT_RERUN",
@@ -19,24 +20,26 @@
     "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS",
     "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY",
     "sqlstate_boundary": "PREVIOUS_TARGETED_6_OF_6_CONFIRMED_NOT_RERUN",
-    "request_source_ports": "PASS_TARGETED_OFFLINE_13_OF_13",
+    "request_source_ports": "PREVIOUS_13_OF_13_CONFIRMED_NOT_RERUN_FULL_SUITE",
     "request_flow_regression": "PASS_AFFECTED_OFFLINE_12_OF_12",
     "s01_consumer_sqlstate": "PASS_TARGETED_OFFLINE_4_OF_4_WITH_EXISTING_CORE_HOST_THREE_BOUNDED_ROLLBACKS",
-    "final_clock_boundary": "PASS_POSITIVE_FINAL_CLOCK_AND_NEGATIVE_EXPIRY_DURING_FINAL_AUTHORITY_WAIT"
+    "final_clock_boundary": "PASS_POSITIVE_FINAL_CLOCK_AND_NEGATIVE_EXPIRY_DURING_FINAL_AUTHORITY_WAIT",
+    "time_precision_projector": "PASS_TARGETED_7_OF_7_TIME_PRECISION_ONLY",
+    "time_precision_preflight": "PASS_TARGETED_7_OF_7_TIME_PRECISION_ONLY"
   },
   "outputs": [
     {
       "path": "docs/architecture/CLADORA-SERVICE-V14-EXEC-01.md",
-      "bytes": 8579,
-      "sha256": "54efb1c9536cdabba29008625806a85d95bfc2eef4f12b0e9534482e2b04ef88",
+      "bytes": 9139,
+      "sha256": "2a8dee73ec78407ab195ddb45a49708acb356a9b379ed5862ec0858703d087ec",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "scripts/test-service-offering-request-flow-02.mjs",
-      "bytes": 12319,
-      "sha256": "8f5106f617e977523cd8ccc272313e855224d07fb5d12b3eaff9deee281c4e08",
+      "bytes": 12314,
+      "sha256": "b2ada06612d002261f925e436b27326eeee7c052ce3967692da9253fd938dbae",
       "preimage": {
         "state": "absent"
       }
@@ -99,8 +102,8 @@
     },
     {
       "path": "src/lib/customer/service-v14-execution/application-flow.ts",
-      "bytes": 16661,
-      "sha256": "4a5ff6ba8fcdf192c07aaf59aa120f2934ecdd9ef2186fbac273ffe0c9fdd39c",
+      "bytes": 16690,
+      "sha256": "1ddd67defe807989cf62ba69f8f9f5cbc7a1219ae3b573d7284700a02c916dcb",
       "preimage": {
         "state": "absent"
       }
@@ -163,56 +166,64 @@
     },
     {
       "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
-      "bytes": 18448,
-      "sha256": "b450d50f1dcac9bb83b5d29c9984cc2646b20093485e93252d6bacca1297cbaf",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "scripts/test-service-offering-disclosure-source-v1.mjs",
-      "bytes": 15708,
-      "sha256": "7dc2ba5276596e3e3beeaa5b517cd21c7d6af928c9636fc386a9e56371853c8e",
+      "bytes": 17214,
+      "sha256": "4c3a5166df4a194a0cae5636beac442042639d786ccb8a4632c42046fb4731b1",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "supabase/hosted-service-v14-execution/s01-offering-source-native-proof.json",
-      "bytes": 1896,
-      "sha256": "839c055ec4c4b84ab869bdd0a2429276a188bbab73e2aa9b7fc61cb08f2f91bd",
+      "bytes": 2153,
+      "sha256": "f67e239dbe55940a2aa63eac1d1a181027c956453165f58801398db230633776",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "src/lib/customer/service-v14-execution/request-source-ports.ts",
-      "bytes": 13438,
-      "sha256": "3f28f0b8a6384b8636500f2b5da7c0afd8b6d3c71e093785e492ad1cbbf71627",
+      "bytes": 13426,
+      "sha256": "9fb767911503ce7fb5db832b05e317ef61298506fab9db64068d140c97cb27cd",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "scripts/test-service-request-preflight-source-ports-v1.mjs",
-      "bytes": 14069,
-      "sha256": "90a6b70acf74c8d92b2303192a1d59b352e3fb5687c601299c62021f72beb430",
+      "bytes": 15426,
+      "sha256": "823404e0a40633166866890fc0757583e8def4b530de1385f47ef97547db61e9",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "supabase/hosted-service-v14-execution/request-preflight-source-ports-native-proof.json",
-      "bytes": 2487,
-      "sha256": "e22f8f945ece6eea4f8d339dc283e9cb83e984ef44adb2781801d9b43d1eb1d6",
+      "bytes": 2756,
+      "sha256": "1b55832980a7f5e1fff27948521e194d8e6c5e20eac704e66df974710fe09826",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "scripts/test-service-s01-consumer-sqlstate-v1.mjs",
-      "bytes": 9398,
-      "sha256": "e1b2646472034cb70f96fe56d170cbb783b0e658ab0083140fe3969338adcfd5",
+      "bytes": 9393,
+      "sha256": "c7a7be12b6097186f529069ad8f017c411f78a0d34f9f4ff9c1a2cd361c07eea",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
       "preimage": {
         "state": "absent"
       }
@@ -226,6 +237,5 @@
       },
       "integrity": "self-reference excluded"
     }
-  ],
-  "successor_parent": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f"
+  ]
 }

@@ -53,6 +53,7 @@ const input = {
 function setup() {
   const state = {
     allowed:true, sourceCalls:0, afterSource:()=>{}, calls:[], failAt:null, failure:null,
+    clock:now,
     row:{ tenant_id:ids.tenant, workspace_id:ids.workspace, offering_id:ids.offering,
       offering_version:'4', published_revision_id:ids.revision,
       published_revision_version:'2', provider_party_id:ids.provider,
@@ -103,7 +104,7 @@ function setup() {
         state.afterSource(state.sourceCalls);return result;
       }
       if (sql === SERVICE_OFFERING_DISCLOSURE_SQL.clock) {
-        return rows([{ database_transaction_id:'55', actor_id:ids.actor, evaluated_at:now }]);
+        return rows([{ database_transaction_id:'55', actor_id:ids.actor, evaluated_at:state.clock }]);
       }
       if (sql.includes('select txid_current()')) return rows([{ transaction_id:'55',
         actor_id:ids.actor, isolation:'serializable', evaluated_at:now }]);
@@ -133,9 +134,13 @@ function setup() {
 }
 
 const sqlstateOnly=process.argv.includes('--sqlstate');
+const timePrecisionOnly=process.argv.includes('--time-precision');
 let passed = 0;
-const check = async (name, fn, sqlstate=false) => {
-  if(sqlstateOnly&&!sqlstate)return;
+const check = async (name, fn, mode='default') => {
+  if(mode===true)mode='sqlstate';
+  if(sqlstateOnly&&mode!=='sqlstate')return;
+  if(timePrecisionOnly&&mode!=='time')return;
+  if(!sqlstateOnly&&!timePrecisionOnly&&mode!=='default')return;
   await fn();passed += 1;console.log(`PASS ${name}`);
 };
 
@@ -264,5 +269,26 @@ await check('ordinary source failure stays bounded and redacted',async()=>{
   assert.equal(await createServiceOfferingDisclosureCanDiscloseV1(binding,x.ports)(x.scope,input),
     'withhold');
 },true);
+
+for(const [name,clock,start,end,expected] of [
+  ['before microsecond start is unavailable','2026-11-02T10:00:00.000100Z',
+    '2026-11-02T10:00:00.000900Z',null,'withheld'],
+  ['exact microsecond start is available','2026-11-02T10:00:00.000900Z',
+    '2026-11-02T10:00:00.000900Z',null,'disclosed'],
+  ['after microsecond start remains available','2026-11-02T10:00:00.000901Z',
+    '2026-11-02T10:00:00.000900Z',null,'disclosed'],
+  ['sub-millisecond interval interior is available','2026-11-02T10:00:00.000500Z',
+    '2026-11-02T10:00:00.000100Z','2026-11-02T10:00:00.000900Z','disclosed'],
+  ['end boundary is exclusive','2026-11-02T10:00:00.000900Z',
+    '2026-11-02T10:00:00.000100Z','2026-11-02T10:00:00.000900Z','withheld'],
+  ['equivalent offset preserves the instant','2026-11-02T10:00:00.000100Z',
+    '2026-11-02T13:30:00.000100+03:30',null,'disclosed'],
+  ['invalid over-precision fails closed','2026-11-02T10:00:00.000100Z',
+    '2026-11-02T10:00:00.0000001Z',null,'withheld'],
+])await check(name,async()=>{
+  const x=setup();x.state.clock=clock;x.state.row.valid_from=start;x.state.row.valid_until=end;
+  const result=await projectServiceOfferingDisclosureSourceV1(x.scope,input,binding,x.ports);
+  assert.equal(result.status,expected);
+},'time');
 
 console.log(`PASS ${passed}/${passed} SERVICE Offering disclosure source checks`);

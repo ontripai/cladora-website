@@ -2,6 +2,7 @@
   "contract": "cladora-native-proof-request.v1",
   "task_id": "V14-SERVICE-01 / S01-OFFERING-SOURCE-WITNESS-04",
   "source_contract": "service-offering-disclosure-source.v1",
+  "time_precision_contract": "service-offering-time-precision.v1",
   "consumer_abi": "CoreS01BindingsV1.canDisclose(scope,input)->Promise<disclose|withhold>",
   "consumer_integration": "CORE_S01_CLOSEOUT_REQUIRED_NOT_PRESENT_IN_THIS_BRANCH",
   "state": "REQUEST_ONLY_NOT_EXECUTED",
@@ -29,6 +30,8 @@
     "expired unpublished suspended archived reservation foreign and stale sources do not disclose",
     "canonical services.orders.request denial and revoke after lock wait do not disclose",
     "source drift between locked observations conflicts",
+    "microsecond start is inclusive and microsecond end is exclusive without Date.parse truncation",
+    "equivalent offsets compare as the same instant and invalid timestamps fail closed",
     "provider agreement validity and command authorization remain not_evaluated"
   ],
   "lock_contract": [

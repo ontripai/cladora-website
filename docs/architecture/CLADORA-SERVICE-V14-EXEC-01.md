@@ -96,6 +96,15 @@ and expiry or revoked authority denies instead of returning stale readiness.
 The exact PostgreSQL `40001` object is preserved for the trusted transaction
 caller. Other source failures are reduced to bounded public codes.
 
+`service-offering-time-precision.v1` is the internal SERVICE time facet for
+these source decisions. It converts the exact PostgreSQL timestamp text to
+epoch microseconds without using `Date.parse`, keeps the inclusive start and
+exclusive end boundaries, and treats malformed, over-precision or inverted
+intervals as unavailable. Equivalent timezone offsets resolve to the same
+instant. The request-source clock port now publishes the exact database string;
+numeric/client clocks are incompatible and fail closed rather than silently
+rounding to milliseconds.
+
 The S01 dependency is injected as an accepted reader bound to the same scope.
 This package does not implement Core's S01 store/final-wait closeout. If that
 reader is absent, only the Request preflight returns `SERVICE_S01_NOT_READY`.

@@ -2,6 +2,7 @@
   "contract": "cladora-native-proof-request.v1",
   "task_id": "V14-SERVICE-01 / REQUEST-PREFLIGHT-SOURCE-PORTS-06",
   "source_contract": "service-request-source-ports.v1",
+  "time_precision_contract": "service-offering-time-precision.v1",
   "state": "REQUEST_ONLY_NOT_EXECUTED",
   "target": "disposable-owned-local-postgresql",
   "required_runtime_producer": {
@@ -34,6 +35,8 @@
     "missing unpublished expired foreign revoked and malformed sources fail closed",
     "provider agreement provider revision and Workspace mismatches do not become ready",
     "source or authority drift and expiry while S01 waits do not produce stale ready",
+    "fresh post-authority database clock preserves microseconds at inclusive start and exclusive end",
+    "equivalent offsets compare as one instant and malformed or over-precision time fails closed",
     "exact SQLSTATE 40001 reaches the trusted transaction caller unchanged",
     "ordinary source failures expose only bounded codes",
     "same-scope principal contains canonical actor and authority revision only",

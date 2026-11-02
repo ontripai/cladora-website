@@ -14,6 +14,7 @@ import {
   serviceEligibilityPolicySchema,
   serviceOfferingCoverageSchema,
 } from '../service-offering-v14-schema';
+import { serviceOfferingTimeWindowAvailableV1 } from '../service-offering-time-precision-v1';
 import {
   SERVICE_OFFERING_REQUEST_FLOW_CONTRACT,
   namedServiceResourceV1Schema,
@@ -84,7 +85,8 @@ export type ServiceOfferingRequestFlowPortsV1 = {
   ): Promise<CanonicalResourceReferenceV1>;
   transactionalReaders: ServiceV14CanonicalReaders;
   host: CoreTransactionHostV1;
-  now(): number;
+  /** Exact database timestamp. Numeric/client clocks are intentionally incompatible. */
+  now(): string;
 };
 
 export type ServiceOfferingRequestSubmissionV1 =
@@ -105,12 +107,13 @@ function identitySeed(principal: ServiceOfferingRequestPrincipalV1, input: Servi
   return [principal.actor_id.toLowerCase(), input.workspace_id.toLowerCase(), input.idempotency_key].join(':');
 }
 
-function offeringUnavailable(snapshot: ServiceOfferingRequestSnapshotV1, now: number) {
-  const start = Date.parse(snapshot.valid_from);
-  const end = snapshot.valid_until === null ? null : Date.parse(snapshot.valid_until);
+function offeringUnavailable(snapshot: ServiceOfferingRequestSnapshotV1, observedAt: string) {
   return snapshot.status !== 'published' || snapshot.acquisition_mode === 'reservation'
-    || !Number.isFinite(now) || !Number.isFinite(start) || now < start
-    || (end !== null && (!Number.isFinite(end) || end <= start || now >= end));
+    || !serviceOfferingTimeWindowAvailableV1(
+      observedAt,
+      snapshot.valid_from,
+      snapshot.valid_until,
+    );
 }
 
 function sqlState(error: unknown) {

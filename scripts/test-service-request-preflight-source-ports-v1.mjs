@@ -134,8 +134,11 @@ function setup(overrides={}) {
 const one = row => ({rowCount:1,rows:[row]});
 const none = () => ({rowCount:0,rows:[]});
 
+const precisionOnly=process.argv.includes('--time-precision');
 const cases=[];
-async function check(name,fn){try{await fn();cases.push({name,ok:true});}catch(error){cases.push({name,ok:false,error});}}
+async function check(name,fn,precision=false){if(precisionOnly&&!precision)return;
+  if(!precisionOnly&&precision)return;
+  try{await fn();cases.push({name,ok:true});}catch(error){cases.push({name,ok:false,error});}}
 
 await check('allowed workspace source consumes S01 and is ready with SELECT-only queries',async()=>{
   const x=setup();
@@ -192,7 +195,7 @@ await check('final authority wait is followed by a fresh same-scope clock on the
   assert.equal((await preflightServiceOfferingRequestV1(input,x.ports)).status,'ready');
   assert.equal(x.state.events.at(-1),'clock');
   assert.ok(x.state.events.lastIndexOf('clock')>x.state.events.lastIndexOf('authority'));
-  assert.equal(x.ports.now(),Date.parse('2026-11-02T10:00:00.000000Z'));
+  assert.equal(x.ports.now(),'2026-11-02T10:00:00.000000Z');
 });
 
 await check('expiry during the final authority wait cannot return stale ready',async()=>{
@@ -208,7 +211,7 @@ await check('resolvePrincipal publishes only its post-authority clock',async()=>
     state.clock='2026-11-02T10:00:02.000000Z';}});
   assert.deepEqual(await x.partial.resolvePrincipal({...input}),
     {actor_id:ids.actor,authority_version:7});
-  assert.equal(x.partial.now(),Date.parse('2026-11-02T10:00:02.000000Z'));
+  assert.equal(x.partial.now(),'2026-11-02T10:00:02.000000Z');
   assert.equal(x.state.events.at(-1),'clock');
 });
 
@@ -242,6 +245,27 @@ await check('source adapter contains no write, service-role, receipt or fallback
   assert.match(source,/resolveAuthority\(scope, request\)/);
   assert.match(source,/dependencies\.resolveProviderAgreement\(scope, input\)/);
 });
+
+for(const [name,clock,start,end,expected] of [
+  ['preflight rejects before exact microsecond start','2026-11-02T10:00:00.000100Z',
+    '2026-11-02T10:00:00.000900Z',null,'denied'],
+  ['preflight permits exact microsecond start','2026-11-02T10:00:00.000900Z',
+    '2026-11-02T10:00:00.000900Z',null,'ready'],
+  ['preflight permits after exact start','2026-11-02T10:00:00.000901Z',
+    '2026-11-02T10:00:00.000900Z',null,'ready'],
+  ['sub-millisecond interval interior remains ready','2026-11-02T10:00:00.000500Z',
+    '2026-11-02T10:00:00.000100Z','2026-11-02T10:00:00.000900Z','ready'],
+  ['sub-millisecond end remains exclusive','2026-11-02T10:00:00.000900Z',
+    '2026-11-02T10:00:00.000100Z','2026-11-02T10:00:00.000900Z','denied'],
+  ['equivalent offset start is ready','2026-11-02T10:00:00.000100Z',
+    '2026-11-02T13:30:00.000100+03:30',null,'ready'],
+  ['invalid precision fails closed','2026-11-02T10:00:00.000100Z',
+    '2026-11-02T10:00:00.0000001Z',null,'denied'],
+])await check(name,async()=>{
+  const x=setup({clock,validFrom:start,validUntil:end});
+  assert.equal((await preflightServiceOfferingRequestV1(input,x.ports)).status,expected);
+  if(expected==='ready')assert.equal(x.ports.now(),clock);
+},true);
 
 const failed=cases.filter(item=>!item.ok);
 for(const item of cases) console.log(`${item.ok?'PASS':'FAIL'} ${item.name}${item.ok?'':`\n${item.error?.stack??item.error}`}`);

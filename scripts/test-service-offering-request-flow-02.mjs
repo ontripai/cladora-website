@@ -37,7 +37,7 @@ const { NextRequest } = require('next/server');
 const id = n => `${String(n).padStart(8, '0')}-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const ids = { context:id(1), workspace:id(2), otherWorkspace:id(3), offering:id(4), revision:id(5),
   provider:id(6), agreement:id(7), resource:id(8), beneficiary:id(9), actor:id(10) };
-const now = Date.parse('2026-11-02T12:00:00Z');
+const now = '2026-11-02T12:00:00.000000Z';
 const baseInput = { context_id:ids.context, workspace_id:ids.workspace, offering_id:ids.offering,
   published_revision_id:ids.revision };
 const publicInput = { ...baseInput, beneficiary_party_id:ids.beneficiary, resource:null,

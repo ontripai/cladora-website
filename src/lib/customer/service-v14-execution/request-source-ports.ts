@@ -140,7 +140,7 @@ export function createServiceOfferingRequestSourcePortsV1(
   });
   const scopeUnchanged = () => Object.entries(identity)
     .every(([key, value]) => scope[key as keyof typeof identity] === value);
-  let lastEvaluatedAt = Number.NaN;
+  let lastEvaluatedAt: string | null = null;
 
   const authority = async (
     input: RequestSourceAuthorityInputV1,
@@ -182,7 +182,7 @@ export function createServiceOfferingRequestSourcePortsV1(
       || row.actor_id !== identity.actor_id) {
       throw new ServiceOfferingRequestSourceUnavailableV1('INVALID_SCOPE');
     }
-    lastEvaluatedAt = Date.parse(row.evaluated_at);
+    lastEvaluatedAt = row.evaluated_at;
     return row;
   };
 
@@ -309,7 +309,7 @@ export function createServiceOfferingRequestSourcePortsV1(
       }
     },
     now() {
-      if (!Number.isFinite(lastEvaluatedAt)) {
+      if (lastEvaluatedAt === null) {
         throw new ServiceOfferingRequestSourceUnavailableV1('SOURCE_UNAVAILABLE');
       }
       return lastEvaluatedAt;
