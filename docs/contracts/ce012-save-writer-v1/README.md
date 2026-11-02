@@ -135,3 +135,88 @@ save command, possible automation is draft preparation only, human editor saves,
 execution requires accepted current authority/Docs/custody, UNKNOWN/mismatch goes
 to the responsible editor and Core/Docs integration owner, dependencies above,
 value not measured. Classification grants no execution authority.
+
+## R1 — CE-WR09-F01/F02 owner delta (current candidate)
+
+Direct parent: `d767e84a6d8489ee731f64eb5c8b38f29d35a7fe`.
+Review: Core `ae8107ad170139b650e884863f83ccb0db63edf2`,
+`docs/contracts/core-ce012-writer-joint-review-v1/README.md`.
+The original implementation/evidence above is retained as history; these two
+findings and the following checkpoint/caller changes supersede its open gaps.
+Source acceptance remains with the coordinator/Core/Docs, not this owner report.
+
+| Finding | Owner delta | New controlled evidence |
+| --- | --- | --- |
+| CE-WR09-F01 HIGH | Official Core resolveAuthority + bindCanonicalCurrentAuthorityObservationV1 after the last Docs/executor waits; private plan hash, canonical command hash, scope/attempt and checkpoint authority retained together. Same primitive again after Core C03 reservation, immediately before first domain-effect dispatch. Post-effect checkpoint after CE receipt insertion rolls back all staged effects on failure. Replay also has the post-Docs checkpoint. | Base commits after modeled membership expiry at Docs barrier and C03 reservation; R1 denies/rolls back both with no Guide effect. Metadata actor/transaction/isolation mismatches deny. Expiry across a CE write wait rolls back. Same original40001 at all3 added checkpoints reaches Core's existing retry unchanged. |
+| CE-WR09-F02 | buildCe012NewSaveCommandV1 accepts a strict new-command input WITHOUT step_id or payload_fingerprint. It allocates one fresh UUID for the next content-version storage row, then computes the existing fingerprint, then returns the parsed command for Core mapping/editor retention. The writer never changes an already submitted body/key/step ID; existing global PK stays intact. | Two new saves advance1→2→3 with different step IDs and preserve first CE/C03 receipts. Deliberately reusing an existing ID remains a negative collision with full rollback/history unchanged. Actual unchanged editor calls builder once through lost COMMIT ACK, later denial, and explicit successful replay; exact body/step/key/hash retained. |
+
+### Checkpoint binding / limits
+
+Checkpoints consume the existing Core capability in the SAME scope; there is no
+client allow/session callback, new evaluator/host or retry loop. Each invocation
+validates transaction/session actor/isolation, scope identity before/after await,
+canonical revision, membership/Context elapsed expiry and current evaluator /
+entitlement binding via Core. Command, full private plan/typed receipt hash,
+checkpoint authority and scope/attempt are retained in one WeakMap record.
+The returned evidence uses the same canonical decision/authority/attempt binding;
+mutation verifies plan/command/scope again and rechecks that authority. No new
+wire/receipt/evidence field or arbitrary client deadline is introduced.
+
+This is an observation at an explicit checkpoint, NOT a time lease. The existing
+Core primitive itself has awaited reads; membership/Context clock semantics and
+native participation/evaluator/driver behavior remain Core/native proof gates.
+The post-effect checkpoint catches expiry across CE mutation waits and aborts
+through the existing host; later Core audit/outbox/COMMIT awaits remain the
+unchanged Core checkpoint/rollback contract and are NOT claimed drained or
+covered until ACK. JWT/session policies not present in that official primitive
+are not invented in CE. No native COMMIT/revoke/expiry guarantee is claimed.
+
+### Storage identity contract
+
+step_id denotes the immutable globally unique physical guide_steps row for ONE
+content version. It is not a reusable logical step ID. Build only a genuinely new
+command after resolving any prior one. Allocation precedes fingerprint, Core
+input_fingerprint mapping, serialization and editor command retention. Subsequent
+UNKNOWN or explicit replay consumes the retained command; no new UUID, body or key
+is allocated. Changing an unresolved command or attempting to adopt historical
+rows/receipts is prohibited. A future stable logical step identity would need a
+separate versioned contract; no such storage/API change is made here.
+
+Raw prebuilt commands remain schema-compatible and never get silently rekeyed;
+if their storage ID collides, the existing PK rejects and Core rolls back. The
+strict builder makes the canonical caller precondition executable, while the PK
+remains the final concurrency barrier; UUID generation is not proof of native
+uniqueness or successful persistence. No route/UI caller has been activated.
+
+### R1 verification
+
+New `scripts/test-ce012-save-writer-r1.mjs` consumes ONLY the reviewed Git-pinned
+fixture/loader prefix from Core09 (SHA256 recorded in manifest), not its23 test
+cases. The loader reads actual Core09/Docs source from Git and actual local CE;
+--before reads the exact CE Base instead. The SQL pool/clock/PK/transaction are
+controlled transport models, never a PostgreSQL implementation/constraint proof.
+No Core/Docs/Platform source is copied into owner files or edited.
+
+- --before:3 diagnostic groups, BEFORE_COUNTEREXAMPLES_NOT_PASS.
+- Current source:10 new groups PASS; includes3 session metadata negatives and
+  original40001 checks at3 checkpoint boundaries.
+- Refined UNKNOWN/editor case run alone after test refinement:PASS, actual editor
+  allocates through builder once; denial preserves UNKNOWN before explicit replay.
+- Full TypeScript existing config, scoped lint, syntax and inventory/diff checks.
+- Original CE27/Core23/CE010/CE011/G1/G2/Docs suites NOT_RERUN.
+
+Proposal SQL is byte-identical to the parent. No SQL/Auth/DB/Storage/install/grant/
+activation/merge/deploy occurred. runtime=NULL, current authority/disclosure/custody
+native evidence NOT_RUN_NOT_PASS; both historical compiler slots remain BLOCKED.
+Exact target Next16.4.1/Zod4.6.6 unavailable locally; no install/repair. Automation
+classification remains نیازمند بررسی; dependency/authority/value gates unchanged.
+
+Latest related coordination observed before delivery: Core D06 successor
+`acea0d067099dffe8cecacc36b78e2755f51ee13`, report
+https://github.com/ontripai/cladora-website/issues/463#issuecomment-6585604856.
+Its OPEN D06-C02 joint terminal authority/Docs disclosure port is NOT supplied or
+closed by this R1. This task still targets the explicitly pinned Core09 F01/F02
+review and original Base; no silent rebind/adoption to the newer composition.
+R1's canonical checkpoints address the reproduced writer boundaries only; they
+are not that missing joint terminal disclosure capability. runtime=NULL and both
+historical slots remain BLOCKED pending the separate official joint/native gate.

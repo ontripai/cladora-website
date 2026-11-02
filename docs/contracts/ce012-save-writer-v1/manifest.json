@@ -1,15 +1,15 @@
 {
   "task_id": "V14-CE-01 / CE012-SAVE-WRITER-BRIDGE-07",
   "worker": "CLADORA-CE-WORKER-01",
-  "base_parent": "df73961fc9d9fbf5d90a5241bfbdfee2fb47eafc",
+  "base_parent": "d767e84a6d8489ee731f64eb5c8b38f29d35a7fe",
   "branch": "codex/program-ce-independent-base-02",
   "runtime_binding": null,
   "source": [
     {
       "path": "src/lib/community/experience-guide-save-writer-v1.ts",
-      "bytes": 23502,
-      "sha256": "a1253414c58c1191690f9c62aab6a35098a1d69b1cf003b25aa256d2ed2f8438",
-      "git_blob": "6dfbb8dbb249ab6cea80ca9a6b37ca6ab3e071c2"
+      "bytes": 27199,
+      "sha256": "311cddeb5a8e87de7943a5363fc84bbe8811ec5e8295b9a0305bfb0ecc1580de",
+      "git_blob": "34da983f3f9e4f7e714bbb544e5ef686dc981e5d"
     },
     {
       "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
@@ -25,9 +25,15 @@
     },
     {
       "path": "docs/contracts/ce012-save-writer-v1/README.md",
-      "bytes": 8751,
-      "sha256": "a06f8d0b08ad3c44fc9e070945a3ec5d3a9ea880d4440de544d0b597a4edd75a",
-      "git_blob": "b9ebc5c5d92789d8f44765fa583bbb2a76b6ac30"
+      "bytes": 15355,
+      "sha256": "846bef5ced93b51800580bcfbb546a2173c2eaed7b2d3fae4adbafe0bfa1211f",
+      "git_blob": "16a11df0a8d09f1cc1d5a05f812f273a359e3f04"
+    },
+    {
+      "path": "scripts/test-ce012-save-writer-r1.mjs",
+      "bytes": 12899,
+      "sha256": "6eb3d3695634a5002c112dacb3e9d30eff7e0988bf70b2ae268a37de2ada075d",
+      "git_blob": "c5cc4ba40f3b83761deab5d8b473e7919638bbb5"
     }
   ],
   "manifest_self": "bound externally by final commit tree/report; excluded from own inventory seal",
@@ -119,9 +125,26 @@
       "sha256": "45195982da27452c1a46cfe248b2034ebfc389063af9a1748678430f41cd725f",
       "git_blob": "12fdffa458501db3a940434da2482116abda766c",
       "in_ce_base": "MISSING"
+    },
+    {
+      "head": "ae8107ad170139b650e884863f83ccb0db63edf2",
+      "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+      "bytes": 18956,
+      "sha256": "a4283de7b0c7f6e9503520898aeedb81af730222f6502755e5d5c2a47bd4aedc",
+      "git_blob": "7983d3f890800cbdf79dd3cfd19afcfa4f635db2",
+      "use": "official review; harness prefix only for NEW targeted cases; no Core test suite replay"
+    },
+    {
+      "head": "ae8107ad170139b650e884863f83ccb0db63edf2",
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/README.md",
+      "bytes": 11142,
+      "sha256": "a481ca2bbd58937f4319f6ae4154beb5255ec205d6c9956b1980e95664b4989a",
+      "git_blob": "55609633a4f672c4a262e63ec323ed4712184613",
+      "use": "official review; harness prefix only for NEW targeted cases; no Core test suite replay"
     }
   ],
   "abi": [
+    "buildCe012NewSaveCommandV1(strict input without step_id/payload_fingerprint):Ce012GuideSaveCommandV1; fresh per-content-version row ID before accepted fingerprint",
     "createCe012SaveWriterProviderV1(guideCommand,officialDocumentsModule|null):CoreTransactionProvidersV2",
     "createCe012SaveWriterExecutorV1(existingCoreHost,retainedCoreCommand,officialDocumentsModule|null):existingEditorExecutorPort",
     "readCe012SaveWriterRelationV1(scope,command,guideCommand,expectedCoreReceipt):privateHistoricalRelation/runtimeBindingNULL/actionAuthorizationNotEvaluated"
@@ -141,26 +164,31 @@
     "retention": "C03 expiry/cleanup authoritative; no availability promised beyond C03; retention decision remains open"
   },
   "evidence": {
-    "new_controlled_cases": 27,
-    "result": "PASS_CONTROLLED_TRANSPORT_ONLY",
-    "after_proposal_source_checks": "11 affected relation/proposal checks PASS",
-    "typecheck": "PASS existing tsconfig/TS5.9.3",
-    "lint": "PASS scoped TS+MJS",
+    "before": "3 new diagnostic counterexamples: Docs/C03 wait expiry still committed; second save reused step ID and denied; BEFORE_COUNTEREXAMPLES_NOT_PASS",
+    "current": "10 new R1 controlled groups PASS; actual Core09 host/provider and Docs official source; no23 Core review or27 original CE tests executed",
+    "after_refinement": "1 changed UNKNOWN/editor case PASS alone: actual builder invoked once, denial retains UNKNOWN, explicit recovery same wire",
+    "typecheck": "PASS full unchanged config TS5.9.3",
+    "lint": "PASS scoped changed TS/new MJS",
     "syntax": "PASS new MJS",
-    "old_suites": "NOT_RERUN: CE010126/CE011/G1/G2/Docs compiler",
     "native_sql_pg_driver_auth_storage": "NOT_RUN_NOT_PASS",
-    "next_target_16_4_1_zod_4_6_6": "NOT_RUN_NOT_PASS; local Next16.3.8/Zod4.4.3; no installation"
+    "target_next16_4_1_zod4_6_6": "NOT_RUN_NOT_PASS; existing cached Next16.3.8/Zod4.4.3; no install",
+    "old_suites": "NOT_RERUN CE27/Core23/CE010126/CE011/G1/G2/Docs compiler"
   },
   "evidence_hashes": {
-    "test-final.txt": {
-      "bytes": 2127,
-      "sha256": "aa0a76f4bfa8604b2bad085f8e24c0f670db7b1ebed80f65649a80d6555e3bc4",
-      "git_blob": "0eef9e05c161d28617d420d51bc2182b99430686"
+    "before.txt": {
+      "bytes": 1161,
+      "sha256": "20485b844057732866c6385026d829063028ac02f0b9e6be08c25b0b47ea5fc2",
+      "git_blob": "326da7d7d849215b9c8c2fb5383abc3d4e019672"
     },
-    "test-relation.txt": {
-      "bytes": 1092,
-      "sha256": "517d653f19b249d20dada5479a18de24f565b3fb14ec62296324ba2768ecc976",
-      "git_blob": "cf849352a741f2a3dce6bc17c809bf1ba2fdc1e4"
+    "after.txt": {
+      "bytes": 2621,
+      "sha256": "c7bb0719096dd3b521133e08bcda966aa6674c52307ec5afde2f6de63786a2bd",
+      "git_blob": "2bca90bd591fa59665f2b71ada33c7a67d059e37"
+    },
+    "unknown-final.txt": {
+      "bytes": 733,
+      "sha256": "6dc7491f08eaef9142774f7c0d161c9b6bd708453fb414e61d5c943326020296",
+      "git_blob": "8972575e8a80ddb03950b7dff64feae0005ffa2a"
     },
     "tsc.txt": {
       "bytes": 0,
@@ -173,7 +201,7 @@
       "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
     }
   },
-  "preservation": "All existing tracked source unchanged from Base. New CE source/proposal/test/docs only. No Core/Docs/Platform copy or edit.",
+  "preservation": "Only4 CE delta paths. SQL proposal, old harness, Core/Docs/Platform source, CE010/CE011/G1/G2/Context/schema/codec/package/lock unchanged from parent.",
   "gates": [
     {
       "owner": "Core",
@@ -214,5 +242,80 @@
     "value": "not measured; needs review",
     "authority_expanded": false
   },
-  "inventory_seal": "bbc99fbbcf3f6b21d9f4bb1d8d9abb52e9747467179fc73c40d150aed27233fc"
+  "inventory_seal": "6c7278800bbee6e20ec428d4bcc8943df61c4073b7655b31b0cf7026872b96fb",
+  "history": {
+    "initial_delivery": {
+      "base_parent": "df73961fc9d9fbf5d90a5241bfbdfee2fb47eafc",
+      "head": "d767e84a6d8489ee731f64eb5c8b38f29d35a7fe",
+      "source": [
+        {
+          "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+          "bytes": 23502,
+          "sha256": "a1253414c58c1191690f9c62aab6a35098a1d69b1cf003b25aa256d2ed2f8438",
+          "git_blob": "6dfbb8dbb249ab6cea80ca9a6b37ca6ab3e071c2"
+        },
+        {
+          "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
+          "bytes": 10405,
+          "sha256": "b5edb0d313d28d9cea3e6e188ad98f97002f93de914bf18f8ba9dcb2e0d12909",
+          "git_blob": "d81bfccb996736c45690c4f861f7222d5baf329b"
+        },
+        {
+          "path": "scripts/test-ce012-save-writer-v1.mjs",
+          "bytes": 17282,
+          "sha256": "312d35da4544436855eaccfb44ef1a25270686527132b04e64a35e963088c3b1",
+          "git_blob": "d5de348f1248f78d80205993b5c0211689534ed1"
+        },
+        {
+          "path": "docs/contracts/ce012-save-writer-v1/README.md",
+          "bytes": 8751,
+          "sha256": "a06f8d0b08ad3c44fc9e070945a3ec5d3a9ea880d4440de544d0b597a4edd75a",
+          "git_blob": "b9ebc5c5d92789d8f44765fa583bbb2a76b6ac30"
+        }
+      ],
+      "evidence": {
+        "new_controlled_cases": 27,
+        "result": "PASS_CONTROLLED_TRANSPORT_ONLY",
+        "after_proposal_source_checks": "11 affected relation/proposal checks PASS",
+        "typecheck": "PASS existing tsconfig/TS5.9.3",
+        "lint": "PASS scoped TS+MJS",
+        "syntax": "PASS new MJS",
+        "old_suites": "NOT_RERUN: CE010126/CE011/G1/G2/Docs compiler",
+        "native_sql_pg_driver_auth_storage": "NOT_RUN_NOT_PASS",
+        "next_target_16_4_1_zod_4_6_6": "NOT_RUN_NOT_PASS; local Next16.3.8/Zod4.4.3; no installation"
+      },
+      "inventory_seal": "bbc99fbbcf3f6b21d9f4bb1d8d9abb52e9747467179fc73c40d150aed27233fc",
+      "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6583550929"
+    }
+  },
+  "task_revision": "R1 / CE-WR09-F01 + CE-WR09-F02",
+  "review": "ae8107ad170139b650e884863f83ccb0db63edf2",
+  "changed_paths": [
+    "src/lib/community/experience-guide-save-writer-v1.ts",
+    "scripts/test-ce012-save-writer-r1.mjs",
+    "docs/contracts/ce012-save-writer-v1/README.md",
+    "docs/contracts/ce012-save-writer-v1/manifest.json"
+  ],
+  "r1_findings": [
+    {
+      "id": "CE-WR09-F01",
+      "reported_fix": "official Core checkpoint post-Docs + pre-mutation + post-effect; plan/command hash, scope/attempt/authority privately bound; replay post-Docs recheck",
+      "status": "OWNER_FIXED_REVIEW_REQUIRED",
+      "native_status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "id": "CE-WR09-F02",
+      "reported_fix": "strict new-command builder allocates per-content-version storage UUID before hash/retention; existing editor retains unresolved command; collision never rekeys or changes PK/history",
+      "status": "OWNER_FIXED_REVIEW_REQUIRED",
+      "native_status": "NOT_RUN_NOT_PASS"
+    }
+  ],
+  "checkpoint_limits": "Existing canonical Core primitive is an observation, not an elapsed-time lease. No claim implicit waits drained. CE post-effect denial rolls back through same Core host; later Core audit/outbox/COMMIT/native authority/session/currentness remain original Core participation/checkpoint/rollback proof gates.",
+  "historical_slots": "BOTH BLOCKED; no compiler/fixture/adoption or runtime activation",
+  "latest_related_gate": {
+    "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6585604856",
+    "source": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+    "D06-C02": "OPEN joint terminal authority/Docs disclosure port; NOT implemented/closed by writer R1 canonical checkpoint",
+    "adoption": "NOT_ADOPTED; no silent Base/dependency change"
+  }
 }

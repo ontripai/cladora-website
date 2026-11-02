@@ -8,7 +8,7 @@ import {
 } from '../core/postgres-transaction-host-v1';
 import { resolveAuthority } from '../core/current-authority-postgres-provider-v1';
 import {
-  bindCanonicalCurrentAuthorityObservationV1,
+  bindCanonicalCurrentAuthorityObservationV1, currentAuthorityTransactionRequestV1Schema,
   type CurrentAuthorityTransactionDecisionReceiptV1,
 } from '../core/current-authority-transaction-port-v1';
 import {
@@ -18,7 +18,7 @@ import { coreSubjectReferencesMatch } from '../core/transaction-provider-evidenc
 import { createCe012GuideProviderBridge } from './experience-guide-provider-bridge';
 import { createCe012GuideCommandExecutor } from './experience-guide-editor-adapter';
 import {
-  ce012GuideSaveCommandV1Schema, ce012GuideCommandReceiptV1Schema,
+  ce012GuideSaveCommandV1Schema, ce012GuideCommandReceiptV1Schema, ce012GuideSavePayloadV1Schema,
   coreCe012MapDecisionV1Schema, fingerprintCe012GuideSavePayload,
   type Ce012GuideSaveCommandV1, type Ce012GuideMutationPlanV1, type Ce012GuideCommandEvaluationV1,
   type DocsCe012ReferenceRequestV1,
@@ -108,6 +108,41 @@ function authorityMatches(s: CoreTransactionScopeV1, c: CoreTransactionCommandV2
 const scopeIdentity = (s: CoreTransactionScopeV1) => [s.transaction_id, s.database_transaction_id,
   s.tenant_id, s.workspace_id, s.actor_id, s.attempt].join(':');
 
+/** step_id is a globally unique STORAGE ROW identity per content version, not
+ * a stable logical step ID. Allocate BEFORE fingerprint/Core mapping/retention.
+ * Call once from the editor buildCommand port for a NEW resolved command only;
+ * never call this builder to rekey UNKNOWN/retry or to adopt an old receipt.
+ */
+const newSaveInputSchema = ce012GuideSaveCommandV1Schema.omit({ payload_fingerprint: true, payload: true })
+  .extend({ payload: ce012GuideSavePayloadV1Schema.omit({ step_id: true }) });
+export function buildCe012NewSaveCommandV1(value: unknown): Ce012GuideSaveCommandV1 {
+  const input = newSaveInputSchema.parse(value); // strict: caller step_id/fingerprint rejected
+  const candidate = { ...input, payload: { ...input.payload, step_id: randomUUID() } };
+  return ce012GuideSaveCommandV1Schema.parse({ ...candidate,
+    payload_fingerprint: fingerprintCe012GuideSavePayload(candidate) });
+}
+
+/** Consume Core's real session/tx/scope, revision, membership/Context expiry and
+ * evaluator primitive. This is not a second evaluator or an elapsed-time lease.
+ * Scope is checked around this canonical call; original40001 escapes intact.
+ */
+async function checkpoint(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV2,
+  previous: CurrentAuthorityTransactionDecisionReceiptV1) {
+  const bound = scopeIdentity(scope);
+  must(authorityMatches(scope, command, previous));
+  const request = currentAuthorityTransactionRequestV1Schema.parse({
+    contract_version: 'core-current-authority-transaction-port-request.v1',
+    decision_id: previous.decision_id, context_id: command.context_id, workspace_id: command.workspace_id,
+    actor_id: command.actor_id, authority_version: command.authority_version,
+    permission_code: command.permission_code, module_code: command.module_code,
+    evaluation_purpose: command.evaluation_purpose, transaction_context: previous.transaction_context,
+  });
+  const fresh = bindCanonicalCurrentAuthorityObservationV1(request, await resolveAuthority(scope, request));
+  must(scopeIdentity(scope) === bound && authorityMatches(scope, command, fresh)
+    && stable(fresh.entitlement) === stable(previous.entitlement));
+  return fresh;
+}
+
 /** New factory per retained command; inputs are private parsed copies. No transport dispatch. */
 export function createCe012SaveWriterProviderV1(guideValue: unknown,
   documents: Ce012SaveDocumentsModuleV1 | null = null): CoreTransactionProvidersV2 & {
@@ -117,6 +152,7 @@ export function createCe012SaveWriterProviderV1(guideValue: unknown,
   const guide = ce012GuideSaveCommandV1Schema.parse(guideValue);
   const plans = new WeakMap<CoreTransactionScopeV1, {
     command: string; scope: string; plan: Ce012GuideMutationPlanV1; membership: string;
+    planHash: string; checkpoint: CurrentAuthorityTransactionDecisionReceiptV1;
   }>();
   async function evaluate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV2,
     authority: CurrentAuthorityTransactionDecisionReceiptV1, replay: z.infer<typeof ce012GuideCommandReceiptV1Schema> | null) {
@@ -168,7 +204,11 @@ export function createCe012SaveWriterProviderV1(guideValue: unknown,
     const result = await executor.execute(guide);
     must(scopeIdentity(scope) === bound && result.result_code === 'OK' && result.receipt !== null);
     if (replay === null) must(plan !== null);
-    return { result, plan, membership, bound, linked };
+    // No further Docs read after this checkpoint. Bind the entire evaluated
+    // plan/receipt to this command, attempt/scope and canonical authority.
+    const fresh = await checkpoint(scope, command, authority);
+    must(scopeIdentity(scope) === bound);
+    return { result, plan, membership, bound, linked, checkpoint: fresh };
   }
   return {
     localReceipt() { return completed === null ? null : ce012GuideCommandReceiptV1Schema.parse(completed); },
@@ -177,19 +217,27 @@ export function createCe012SaveWriterProviderV1(guideValue: unknown,
     async validateProviders(scope, command, authority) {
       completed = null; plans.delete(scope);
       const ev = await evaluate(scope, command, authority, null);
-      plans.set(scope, { command: hash(command), scope: ev.bound, plan: ev.plan!, membership: ev.membership });
+      plans.set(scope, { command: hash(command), scope: ev.bound, plan: ev.plan!, membership: ev.membership,
+        planHash: hash(stable(ev.plan)), checkpoint: ev.checkpoint });
       return { contract_version: 'core-transaction-provider-evidence.v1', evidence_id: randomUUID(),
         provider_code: CE012_SAVE_PROVIDER_CODE, transaction_id: command.transaction_id,
         command_id: command.command_id, workspace_id: command.workspace_id, actor_id: command.actor_id,
         context_id: command.context_id, authority_decision_id: authority.decision_id,
         authority_version: authority.authority_version, attempt: scope.attempt, subject_reference: command.subject_reference,
-        evaluated_at: ev.linked.binding.evaluated_at, source_disclosure: 'status_only', source_reference: null,
+        evaluated_at: Date.parse(ev.checkpoint.evaluated_at) > Date.parse(ev.linked.binding.evaluated_at)
+          ? ev.checkpoint.evaluated_at : ev.linked.binding.evaluated_at, source_disclosure: 'status_only', source_reference: null,
         decision: 'accepted', denial_reason: null, reference_state: 'available', current_actor_can_read: true };
     },
     async mutate(scope, command) {
       const staged = plans.get(scope); plans.delete(scope);
       must(staged && staged.command === hash(command) && staged.scope === scopeIdentity(scope));
       const { plan, membership } = staged!;
+      must(hash(stable(plan)) === staged!.planHash);
+      // Core may have awaited C03 reservation since validation. This last
+      // canonical checkpoint precedes the first domain-effect dispatch.
+      const mutationCheckpoint = await checkpoint(scope, command, staged!.checkpoint);
+      must(staged!.scope === scopeIdentity(scope) && staged!.command === hash(command)
+        && hash(stable(plan)) === staged!.planHash);
       const updated = await scope.query(`update experience.guides set title=$4,version=$5,content_version=$5
         where tenant_id=$1 and workspace_id=$2 and id=$3 and status='draft' and version=$6 returning id`,
       [scope.tenant_id, scope.workspace_id, guide.guide_id, plan.payload.title, plan.resulting_guide_version, plan.expected_guide_version]);
@@ -212,6 +260,10 @@ export function createCe012SaveWriterProviderV1(guideValue: unknown,
       must(saved.rowCount === 1 && saved.rows.length === 1
         && stable(ce012GuideCommandReceiptV1Schema.parse(saved.rows[0].ce_receipt)) === stable(plan.receipt)
         && scopeIdentity(scope) === staged!.scope);
+      // Domain writes can themselves wait. A failed post-effect checkpoint
+      // throws into the SAME Core host rollback; it never repairs after COMMIT.
+      await checkpoint(scope, command, mutationCheckpoint);
+      must(staged!.scope === scopeIdentity(scope) && hash(stable(plan)) === staged!.planHash);
       completed = plan.receipt;
       return { mutation_id: mutationId };
     },
@@ -235,7 +287,9 @@ export function createCe012SaveWriterProviderV1(guideValue: unknown,
         actor_id: command.actor_id, context_id: command.context_id, authority_decision_id: authority.decision_id,
         authority_version: authority.authority_version, attempt: scope.attempt, receipt_id: coreReceipt.receipt_id,
         receipt_contract_version: coreReceipt.contract_version, command_hash: coreTransactionReplayCommandHashV1(command),
-        receipt_hash: coreTransactionReplayReceiptHashV1(coreReceipt), evaluated_at: ev.linked.binding.evaluated_at,
+        receipt_hash: coreTransactionReplayReceiptHashV1(coreReceipt),
+        evaluated_at: Date.parse(ev.checkpoint.evaluated_at) > Date.parse(ev.linked.binding.evaluated_at)
+          ? ev.checkpoint.evaluated_at : ev.linked.binding.evaluated_at,
         read_only: true, decision: 'accepted', denial_reason: null };
     },
   };
