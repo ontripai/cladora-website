@@ -141,7 +141,7 @@ function CommunityWorkspace({ lang, contextId, workspaceId, membershipId, slots,
   const retryRefresh = failure === 'session' ? undefined : () => { void load(); };
   if (failure && communities === null) return <Notice lang={lang} text={failureMessage} retry={retryInitialLoad} retryLabel={t.again} />;
   if (communities === null || readViewOwner!==scopeOwner) return <Notice lang={lang} text={t.loading} />;
-  return <section tabIndex={-1} dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5">
+  return <section tabIndex={-1} dir={lang === 'fa' ? 'rtl' : 'ltr'} className="min-w-0 max-w-full space-y-5">
     <header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>
     {failure ? <Notice lang={lang} text={failureMessage} retry={retryRefresh} retryLabel={t.again} alert /> : null}
     {!communities.length ? <Notice lang={lang} text={t.empty} /> : <>
@@ -164,7 +164,7 @@ function CommunityWorkspace({ lang, contextId, workspaceId, membershipId, slots,
         });
       }}>{lang==='fa'?'ارسال صریح همان درخواست':lang==='ro'?'Retrimite explicit aceeași cerere':'Explicitly resend the same request'}</button> : null}
       {execution.phase==='rejected' ? <button data-community-reset type="button" onClick={()=>slot.session.resetRejected()}>{lang==='fa'?'ویرایش پس از رد':lang==='ro'?'Editează după respingere':'Edit after rejection'}</button> : null}
-      <fieldset disabled={reading || suspended || Boolean(failure) || Boolean(execution.pending)}>
+      <fieldset className="min-w-0 max-w-full" disabled={reading || suspended || Boolean(failure) || Boolean(execution.pending)}>
       {selected ? <CustomerCommunityBase key={`${workspaceId}:${selectedId}:${lang}:${slot.formRevision}`} lang={lang} view={selected} commands={commands} registerDraftGuard={registerDraftGuard} draftStore={slot.drafts} onChanged={() => { void load(); }} />
         : <Notice lang={lang} text={t.unavailable} />}
       </fieldset>
