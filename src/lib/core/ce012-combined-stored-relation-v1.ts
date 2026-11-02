@@ -97,3 +97,29 @@ export async function readCoreCe012CombinedRelationV1(scope:CoreTransactionScope
     return result('unavailable');
   }
 }
+
+/** Explicit disclosure-fenced revision. V1 remains byte-for-byte compatible:
+ * matching the private readers is integrity evidence, never terminal authority.
+ * No official joint Core/Docs post-wait checkpoint exists in the pinned inputs;
+ * there is deliberately no callback/allow flag or stored-label fallback here.
+ */
+export const CORE_CE012_COMBINED_DISCLOSURE_V2='core-ce012-combined-stored-relation.v2' as const;
+export interface CoreCe012CombinedDisclosureV2 extends Omit<CoreCe012CombinedRelationV1,'contract'> {
+  contract:typeof CORE_CE012_COMBINED_DISCLOSURE_V2;
+  reader_policy:'original_actor_only';
+  checkpoint_scope:'stored_integrity_and_receipt_expiry_only';
+  terminal_authority_checkpoint:'not_ready';
+  documents_disclosure_projection:null;
+  disclosure_status:'not_ready';
+  disclosure_dependency:'joint_core_documents_terminal_checkpoint';
+}
+export async function readCoreCe012CombinedDisclosureV2(scope:CoreTransactionScopeV1,value:unknown):Promise<CoreCe012CombinedDisclosureV2>{
+  const integrity=await readCoreCe012CombinedRelationV1(scope,value);
+  // No later CE/Docs wait is treated as covered by V1's earlier expiry sample.
+  // The only outward projection is null until the official joint gate is supplied
+  // and independently accepted. Historical receipt/fingerprint are never rewritten.
+  return {...integrity,contract:CORE_CE012_COMBINED_DISCLOSURE_V2,reader_policy:'original_actor_only',
+    checkpoint_scope:'stored_integrity_and_receipt_expiry_only',terminal_authority_checkpoint:'not_ready',
+    documents_disclosure_projection:null,disclosure_status:'not_ready',
+    disclosure_dependency:'joint_core_documents_terminal_checkpoint'};
+}
