@@ -60,7 +60,7 @@ class MapperTests(unittest.TestCase):
             ('missing', lambda p,s,r:s['objects'].pop(), 'DEPENDENCY_MISSING'),
             ('extra', lambda p,s,r:s['objects'].append(dict(id='private.extra',kind='relation',in_affected_boundary=True)), 'EXTRA_UNMAPPED_OBJECT'),
             ('duplicate', lambda p,s,r:s['objects'].append(copy.deepcopy(s['objects'][0])), 'DUPLICATE_OBJECT'),
-            ('partial structural projection', lambda p,s,r:(s['objects'][0].pop('arguments'),r['dependencies'][0].pop('arguments')), 'STRUCTURAL_PROJECTION_INCOMPLETE'),
+            ('partial structural projection', lambda p,s,r:(s['objects'][0].pop('columns'),r['dependencies'][0].pop('columns')), 'STRUCTURAL_PROJECTION_INCOMPLETE'),
             ('definition', lambda p,s,r:object_change(s,'definition_sha256','0'*64), 'DEFINITION_OWNER_ACL_OR_EDGE_DRIFT'),
             ('bad digest', lambda p,s,r:object_change(s,'definition_sha256','catalog-md5'), 'INVALID_DEFINITION_IDENTITY'),
             ('owner', lambda p,s,r:object_change(s,'owner','other'), 'DEFINITION_OWNER_ACL_OR_EDGE_DRIFT'),
