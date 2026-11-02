@@ -1,12 +1,16 @@
 /** Inactive trusted-server candidate port. No route, pool or disclosure permit. */
 import { createHash, randomUUID } from 'node:crypto';
 import type { QueryResultRow } from 'pg';
-import type { CoreTransactionScopeV1 } from '../core/postgres-transaction-host-v1';
+import {
+  coreHostTerminalLifecycleV1, coreHostTerminalResponseMatchesV1, coreTransactionReceiptV2Schema,
+  type CoreTransactionScopeV1,
+} from '../core/postgres-transaction-host-v1';
 import {
   createCoreCe012TerminalAuthorityPortV1,
   type CoreCe012TerminalBindingV1,
   type CoreCe012TerminalObservationV1,
 } from '../core/ce012-terminal-authority-port-v1';
+import { coreTransactionReplayReceiptHashV1 } from '../core/transaction-replay-provider-hook-v1';
 import { coreCe012StoredRelationRequestV1Schema } from '../core/ce012-stored-relation-v1';
 import { resolveAuthority } from '../core/current-authority-postgres-provider-v1';
 import {
@@ -164,6 +168,67 @@ export function createDocumentsCe012TargetDisclosurePortV1(scope: CoreTransactio
       return Object.freeze({ status: 'private_candidate_not_ready' as const, private_projection: item.projection,
         projection: null, host_binding: 'UNBOUND' as const, action_authorization: 'not_evaluated' as const,
         terminal_wait_coverage: 'not_ready' as const, settlement: 'not_observed' as const });
+    },
+    /** Read-only Core11 result adoption. No execute/query/reservation, no permit.
+     * Closed Core metadata is not live Docs authority or shared registration.
+     */
+    reconcileCore11Replay(observation: DocumentsCe012TargetObservationV1, hostResult: unknown, responseBytes: Uint8Array) {
+      const answer = (code: 'INVALIDATED_CANDIDATE' | 'HOST_RESULT_UNRECOGNIZED' | 'REPLAY_SETTLEMENT_REQUIRED'
+        | 'RESPONSE_BYTES_MISMATCH' | 'BINDING_MISMATCH' | 'JOINT_REGISTRATION_REQUIRED') => Object.freeze({
+        contract: 'documents-ce012-core11-adoption.v1' as const, status: 'not_ready' as const,
+        projection: null, action_authorization: 'not_evaluated' as const, host_binding: 'UNBOUND' as const, code,
+      });
+      const item = observations.get(observation);
+      if (!item || busy || pending || closed || failed || !unchanged() || item.generation !== generation || !input) {
+        return answer('INVALIDATED_CANDIDATE');
+      }
+      const candidate = core.inspect(item.core);
+      if (candidate.status !== 'core_observed_not_ready' || candidate.binding !== item.binding || !bindingMatches(item.binding)) {
+        return answer('INVALIDATED_CANDIDATE');
+      }
+      // Only the actual host module can issue this identity-bound metadata.
+      const info = coreHostTerminalLifecycleV1(hostResult);
+      if (!info) return answer('HOST_RESULT_UNRECOGNIZED');
+      if (typeof hostResult !== 'object' || hostResult === null || !('status' in hostResult)
+        || hostResult.status !== 'exact_replay' || !('receipt' in hostResult)
+        || info.settlement !== 'replay_rolled_back' || info.observation !== 'sealed_and_closed'
+        || info.disclosure_authorization !== 'not_ready' || info.live_observation !== false
+        || info.reusable_in_other_attempt !== false || info.first_error_code !== null) {
+        return answer('REPLAY_SETTLEMENT_REQUIRED');
+      }
+      try {
+        if (!(responseBytes instanceof Uint8Array)
+          || !coreHostTerminalResponseMatchesV1(hostResult, responseBytes)
+          || info.response_encoding !== 'core-host-result-json-utf8.v1'
+          || createHash('sha256').update(responseBytes).digest('hex') !== info.response_sha256) {
+          return answer('RESPONSE_BYTES_MISMATCH');
+        }
+      } catch { return answer('RESPONSE_BYTES_MISMATCH'); }
+      const receipt = coreTransactionReceiptV2Schema.safeParse(hostResult.receipt);
+      const b = item.binding, c = input.command, g = input.guide_command;
+      if (!receipt.success || !bindingMatches(b)
+        || info.attempt !== b.attempt || info.backend_pid !== b.backend_pid
+        || info.database_transaction_id !== b.database_transaction_id
+        || !info.observation_sha256 || !/^[a-f0-9]{64}$/.test(info.observation_sha256)
+        || !info.seal_sha256 || !/^[a-f0-9]{64}$/.test(info.seal_sha256)) return answer('BINDING_MISMATCH');
+      const r = receipt.data;
+      // Exact expected receipt hashing is the existing Core replay contract, not
+      // JSON receipt shape or this module's parsed-command fingerprint.
+      if (coreTransactionReplayReceiptHashV1(r) !== b.core_receipt_hash
+        || r.receipt_id !== b.core_receipt_id || r.mutation_id !== b.mutation_id
+        || r.transaction_id !== b.transaction_id || r.command_id !== b.command_id
+        || r.actor_id !== b.actor_id || r.workspace_id !== b.workspace_id
+        || r.idempotency_key !== c.idempotency_key || r.input_fingerprint !== g.payload_fingerprint
+        || r.aggregate_id !== g.guide_id || r.aggregate_type !== c.aggregate_type
+        || r.aggregate_version !== c.aggregate_version || r.authority.context_id !== b.context_id
+        || r.authority.authority_version !== b.authority_revision
+        || item.projection.target.document_id !== b.target.document_id
+        || item.projection.target.document_version_id !== b.target.document_version_id
+        || item.projection.target.document_version !== b.target.document_version) return answer('BINDING_MISMATCH');
+      // Core11 exposes no actual sealed owner-candidate/target registration.
+      // Its observation hash is opaque; do not invent its preimage or call these
+      // matching closed fields a joint binding or current disclosure authority.
+      return answer('JOINT_REGISTRATION_REQUIRED');
     },
     close() { closed = true; invalidate(); core.close(); },
   });
