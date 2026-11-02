@@ -46,7 +46,7 @@ function setup(overrides={}) {
     publishedRevisionId:ids.revision, workspaceId:ids.workspace, providerId:ids.provider,
     agreementId:ids.agreement, agreementVersion:3, definitionCurrent:true, providerCurrent:true,
     validFrom:'2026-11-01T00:00:00.000000Z', validUntil:null, failAt:null,
-    onS01:null, queries:[], s01Calls:0, ...overrides,
+    onS01:null, onAuthority:null, queries:[], events:[], s01Calls:0, authorityCalls:0, ...overrides,
   };
   const scope = {
     transaction_id:id(20), database_transaction_id:'900', workspace_id:ids.workspace,
@@ -68,7 +68,9 @@ function setup(overrides={}) {
         fail('authority-workspace'); return one({tenant_id:ids.tenant});
       }
       if (text.includes('check_workspace_native_permission_v2')) {
-        fail('authority-evaluator'); return one({allowed:state.authorityAllowed,
+        fail('authority-evaluator'); state.authorityCalls+=1; state.events.push('authority');
+        if(state.onAuthority)await state.onAuthority(state,scope);
+        return one({allowed:state.authorityAllowed,
           evaluated_at:'2026-11-02T09:40:00.000Z',module_definition_id:id(30),entitlement_key:'module.services_orders'});
       }
       if (text.includes('from service_catalog.offerings o')) {
@@ -97,7 +99,8 @@ function setup(overrides={}) {
           provider_current:state.providerCurrent});
       }
       if (text.includes('txid_current()::text as database_transaction_id')) {
-        fail('clock'); return one({database_transaction_id:'900',actor_id:ids.actor,evaluated_at:state.clock});
+        fail('clock'); state.events.push('clock');
+        return one({database_transaction_id:'900',actor_id:ids.actor,evaluated_at:state.clock});
       }
       throw new Error(`unexpected_query:${text}`);
     },
@@ -184,6 +187,31 @@ await check('expiry while S01 waits returns denial instead of stale ready',async
     {status:'denied',code:'OFFERING_UNAVAILABLE'});
 });
 
+await check('final authority wait is followed by a fresh same-scope clock on the ready path',async()=>{
+  const x=setup();
+  assert.equal((await preflightServiceOfferingRequestV1(input,x.ports)).status,'ready');
+  assert.equal(x.state.events.at(-1),'clock');
+  assert.ok(x.state.events.lastIndexOf('clock')>x.state.events.lastIndexOf('authority'));
+  assert.equal(x.ports.now(),Date.parse('2026-11-02T10:00:00.000000Z'));
+});
+
+await check('expiry during the final authority wait cannot return stale ready',async()=>{
+  const x=setup({validUntil:'2026-11-02T10:00:01.000000Z',
+    onAuthority:state=>{if(state.authorityCalls===6)state.clock='2026-11-02T10:00:02.000000Z';}});
+  assert.deepEqual(await preflightServiceOfferingRequestV1(input,x.ports),
+    {status:'denied',code:'OFFERING_UNAVAILABLE'});
+  assert.equal(x.state.events.at(-1),'clock');
+});
+
+await check('resolvePrincipal publishes only its post-authority clock',async()=>{
+  const x=setup({onAuthority:state=>{if(state.authorityCalls===2)
+    state.clock='2026-11-02T10:00:02.000000Z';}});
+  assert.deepEqual(await x.partial.resolvePrincipal({...input}),
+    {actor_id:ids.actor,authority_version:7});
+  assert.equal(x.partial.now(),Date.parse('2026-11-02T10:00:02.000000Z'));
+  assert.equal(x.state.events.at(-1),'clock');
+});
+
 await check('missing accepted S01 blocks only this preflight',async()=>{
   const x=setup({s01Absent:true});
   assert.deepEqual(await preflightServiceOfferingRequestV1(input,x.ports),
@@ -191,7 +219,8 @@ await check('missing accepted S01 blocks only this preflight',async()=>{
 });
 
 await check('exact SQLSTATE 40001 survives source and S01 boundaries',async()=>{
-  for(const x of [setup({failAt:'offering'}),setup({s01Error:Object.assign(new Error('retry'),{code:'40001'})})]){
+  for(const x of [setup({failAt:'offering'}),setup({failAt:'clock'}),
+    setup({s01Error:Object.assign(new Error('retry'),{code:'40001'})})]){
     const failure=x.state.s01Error??Object.assign(new Error('retry'),{code:'40001'});
     if(x.state.failAt)x.state.failure=failure;
     await assert.rejects(()=>preflightServiceOfferingRequestV1(input,x.ports),error=>error===failure);

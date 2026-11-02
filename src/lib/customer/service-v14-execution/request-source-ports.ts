@@ -240,6 +240,9 @@ export function createServiceOfferingRequestSourcePortsV1(
       if ((await authority(authorityInput)).decision !== 'allowed') return null;
       await clock();
       if ((await authority(authorityInput)).decision !== 'allowed') return null;
+      // The final authority observation can itself wait on the canonical
+      // revision barrier. Publish a clock sampled only after that wait.
+      await clock();
       if (!definition.definition_current || !provider.provider_current
         || revision.revision_status !== 'published') return null;
       return {
@@ -281,6 +284,8 @@ export function createServiceOfferingRequestSourcePortsV1(
       if (current.decision !== 'allowed'
         || current.actor_id !== first.actor_id
         || current.authority_version !== first.authority_version) return null;
+      // Principal consumers must not inherit the pre-wait clock sample.
+      await clock();
       return { actor_id: current.actor_id, authority_version: current.authority_version };
     } catch (error) {
       sanitize(error);

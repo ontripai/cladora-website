@@ -19,9 +19,10 @@
     "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS",
     "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY",
     "sqlstate_boundary": "PREVIOUS_TARGETED_6_OF_6_CONFIRMED_NOT_RERUN",
-    "request_source_ports": "PASS_TARGETED_OFFLINE_10_OF_10",
+    "request_source_ports": "PASS_TARGETED_OFFLINE_13_OF_13",
     "request_flow_regression": "PASS_AFFECTED_OFFLINE_12_OF_12",
-    "s01_consumer_sqlstate": "PASS_TARGETED_OFFLINE_4_OF_4_WITH_EXISTING_CORE_HOST_THREE_BOUNDED_ROLLBACKS"
+    "s01_consumer_sqlstate": "PASS_TARGETED_OFFLINE_4_OF_4_WITH_EXISTING_CORE_HOST_THREE_BOUNDED_ROLLBACKS",
+    "final_clock_boundary": "PASS_POSITIVE_FINAL_CLOCK_AND_NEGATIVE_EXPIRY_DURING_FINAL_AUTHORITY_WAIT"
   },
   "outputs": [
     {
@@ -186,16 +187,16 @@
     },
     {
       "path": "src/lib/customer/service-v14-execution/request-source-ports.ts",
-      "bytes": 13176,
-      "sha256": "c2d260e1b1973aa30b274deb8392dd608c16424e4855909195d73f16e302c36a",
+      "bytes": 13438,
+      "sha256": "3f28f0b8a6384b8636500f2b5da7c0afd8b6d3c71e093785e492ad1cbbf71627",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "scripts/test-service-request-preflight-source-ports-v1.mjs",
-      "bytes": 12533,
-      "sha256": "27c0ad121782dbc8e95a8145f3d0d17c26de99e63b9d3e2591ab26fc0511a59b",
+      "bytes": 14069,
+      "sha256": "90a6b70acf74c8d92b2303192a1d59b352e3fb5687c601299c62021f72beb430",
       "preimage": {
         "state": "absent"
       }
@@ -226,5 +227,5 @@
       "integrity": "self-reference excluded"
     }
   ],
-  "successor_parent": "a78000f4e8705ddcc8b46cb12074f6df5c0380cb"
+  "successor_parent": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f"
 }
