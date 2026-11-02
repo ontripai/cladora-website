@@ -1,7 +1,7 @@
 {
   "task": "CORE-CANONICAL-SQLSTATE-BOUNDARY-12",
-  "base": "847fa09039578eace8361ed00a4eedf815e03ded",
-  "parent": "847fa09039578eace8361ed00a4eedf815e03ded",
+  "base": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+  "parent": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
   "branch": "codex/program-core-service-s01-producer-01",
   "scope": "T10-D04 only",
   "source_status": "PROPOSED_GUARDED_DELTA_SOURCE_REVIEW_REQUIRED",
@@ -203,9 +203,9 @@
         "git_blob": "1eaa4a985094451d088d1dda6fe23873ff21e419"
       },
       "after": {
-        "bytes": 11574,
-        "sha256": "2ce464b1c691ccabd16156a31a5e3fb2c9e396c8a25244823ff0240f53c8ca87",
-        "git_blob": "92217c4d12d294f6d4b27122be493cab985496df"
+        "bytes": 11576,
+        "sha256": "6e06bf6d505488865c1c578e68afcf809a8ceca5cb7f9a17877dab6bc73016db",
+        "git_blob": "16f4b533c8ce41637d27d4224e014d101b68e420"
       },
       "before_body": {
         "bytes": 11223,
@@ -218,7 +218,8 @@
         "git_blob": "fc558ece398ea3a179baad64ce0040a4cf02fa21"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.check_effective_permission_v2_at_v1(uuid,text,text,text,uuid,uuid,timestamptz)",
@@ -247,7 +248,8 @@
         "git_blob": "2fbef18079d59f1db441c7b2d3b6745369da2c07"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_context_covers_role_scope_v1(uuid,uuid,text,uuid)",
@@ -261,9 +263,9 @@
         "git_blob": "5d1763be64e0c6d29ad1f252fc920bbfb7f639de"
       },
       "after": {
-        "bytes": 1950,
-        "sha256": "701f72e927639c4acbe037b16312c39c8e8b44bf67f539ea2f149eedda976052",
-        "git_blob": "d3cc8daec620065de8eb1da869783d853c948a70"
+        "bytes": 1952,
+        "sha256": "f430b5fae2816a9c1af7b0836437c5a184052ff284a6ebe4b3507f9db4523a62",
+        "git_blob": "3f8485ea22f0ae8edbc1cc5c6ceb250d78c164a9"
       },
       "before_body": {
         "bytes": 1644,
@@ -276,7 +278,8 @@
         "git_blob": "a5fe6f39b7baa6c1ac35c3a7fadfa6858320b471"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_context_covers_role_scope_v1_at_v1(uuid,uuid,text,uuid,timestamptz)",
@@ -305,7 +308,8 @@
         "git_blob": "c2d5138852e6a63d5642407bbdf1f981aa0f25ee"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_member_role_authority_active_v1(uuid,uuid,uuid,text,uuid,uuid[])",
@@ -319,9 +323,9 @@
         "git_blob": "62106799e029cbdd04fe7c107a92c425b5b344ee"
       },
       "after": {
-        "bytes": 6310,
-        "sha256": "8779707d31be3ab45a89036b86e959537f018330f5e901b4a8ddf51161e128d2",
-        "git_blob": "79660e0c411b9d7867ff460985df35b6303a9036"
+        "bytes": 6312,
+        "sha256": "438194470fdc319d816a33ab00f2d08505a1fe746aab0c83635a633999fe7343",
+        "git_blob": "fbf17d4cc5fd9f3f99b80b6db524b6acf300c786"
       },
       "before_body": {
         "bytes": 5917,
@@ -334,7 +338,8 @@
         "git_blob": "9d0770d2e74acb68f92774576869edb7045720c2"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_member_role_authority_active_v1_at_v1(uuid,uuid,uuid,text,uuid,uuid[],timestamptz)",
@@ -363,7 +368,8 @@
         "git_blob": "77fbf9fe36b315da6f017e20874c2d086eb830cc"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_role_identity_source_current_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid)",
@@ -377,9 +383,9 @@
         "git_blob": "cfc2580e95c07864b2c3d3ced1b3c14714ad1902"
       },
       "after": {
-        "bytes": 4335,
-        "sha256": "7f00afee05791692bff140fcbf0acd0093b76d5acd7b2d16555fe9fa0880e241",
-        "git_blob": "c17713235aff16c4db3bb2987fb85922c7bd455a"
+        "bytes": 4337,
+        "sha256": "356d51b464284c5dc705344a63811ddbcd3e09871ea54293978eb9837848311f",
+        "git_blob": "8e07c687fe544360d82e30fd9ff8df0d5b8501e2"
       },
       "before_body": {
         "bytes": 3902,
@@ -392,7 +398,8 @@
         "git_blob": "dd26278592ad0b9d09e2da8a46b8afd2de49a9e4"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_role_identity_source_current_v1_at_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid,timestamptz)",
@@ -421,7 +428,8 @@
         "git_blob": "c97ec6fbc444933d259795dd5cdd04f30fb96c0a"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     }
   ],
   "minimal_body_edit": "insert WHEN SQLSTATE '40001' THEN bare RAISE at each of8 existing handlers; remove that clause => exact original prosrc",
@@ -534,7 +542,7 @@
   "harness_execution_status": "NOT_RUN;176planned boundary calls are not test results; native RAISE witness distinct from genuine SSI or full canonical evaluation",
   "verification": {
     "generator": "node scripts/generate-core-canonical-sqlstate-boundary-12.mjs; PASS deterministic source check",
-    "new_tests": "node scripts/test-core-canonical-sqlstate-boundary-12.mjs;25 groups PASS_SOURCE_BYTES_AND_MODEL_ONLY",
+    "new_tests": "node scripts/test-core-canonical-sqlstate-boundary-12.mjs;39 groups PASS_SOURCE_BYTES_AND_MODEL_ONLY",
     "model_proof_boundary": "JavaScript counterexample/condition model only, no actual SQLSTATE native claim",
     "negative_tests": "coherent recomputed identities fail actual source invariants for catch/policy/guard/target/preimage/activation/default-ACL/grant/extra SQL/authorization/oracle mutation",
     "limited_lint": "PASS both new MJS --max-warnings=0",
@@ -551,7 +559,9 @@
       "installation/activation",
       "Core11 native settlement proof",
       "typecheck/full Release suites not repeated; no TS change"
-    ]
+    ],
+    "full_definition_round_trip": "8 independent tests: remove added clause + CREATE prefix normalization only restores entire original definition including header/delimiters/suffix",
+    "new_negatives": "actual old dollar collapse on4 definitions, header security/search_path/closing delimiter/suffix, packet rendered definition rejected independently of resealed hashes"
   },
   "protected_source_pins": [
     {
@@ -903,29 +913,36 @@
       "bytes": 262457,
       "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
       "git_blob": "45737a8100b3542ad787ea4414090d0f304fc123"
+    },
+    {
+      "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+      "ref": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+      "bytes": 20744,
+      "sha256": "07072fdae234825786709260befa0b2c5337b0379ce852f072fdbfb9d17a9158",
+      "git_blob": "0a187e6d8d8025108578583b5401c78114883c64"
     }
   ],
   "inventory": [
     {
       "path": "scripts/generate-core-canonical-sqlstate-boundary-12.mjs",
       "ref": null,
-      "bytes": 16497,
-      "sha256": "58230ce6ac00ae920cd54c93866b4d4f2ce50ca39612ef8cad33d7c3f3b69e6e",
-      "git_blob": "05bceb01e259eabe1c7474d3b8446240ff20783f"
+      "bytes": 18042,
+      "sha256": "acb1a891bb065decd2aab514cc23746f0e09d7b604fcc66b79809b8b0af5482e",
+      "git_blob": "792e60b791f9669ba9fd46b7336127c0182c8f43"
     },
     {
       "path": "scripts/test-core-canonical-sqlstate-boundary-12.mjs",
       "ref": null,
-      "bytes": 7030,
-      "sha256": "0bbcb9a17a581d945a3a578f49cb1ed3c4d059ebff3479113314d0dd9ea4b94d",
-      "git_blob": "0d1e368ba602a1e323479092776e2699c29926a1"
+      "bytes": 8870,
+      "sha256": "8512384c998bb2821842cff6c23d20314b89e5abbebcc4f673ec1fa6d11ef46d",
+      "git_blob": "2642ff108d4e64312a350fb318c07f4bfbd1a28f"
     },
     {
       "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/delta.sql",
       "ref": null,
-      "bytes": 56733,
-      "sha256": "72e4db296e18e1816ef217279317df0ad1b72b5d9070452cbc7a39641383babf",
-      "git_blob": "8bae9490d52cba9b68122f935e2ceb2ad8bcd0ae"
+      "bytes": 56741,
+      "sha256": "2e9edd7e196c54b046f4a7dd71944473bffa2a8b24f2f8ec7f09f6318a4eb8ae",
+      "git_blob": "142504617e2651680f8f814649f300a2940dd365"
     },
     {
       "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
@@ -937,24 +954,45 @@
     {
       "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/caseplan.json",
       "ref": null,
-      "bytes": 22021,
-      "sha256": "92869c283ca08fafbcb66c24439064d954b9a56ad78c23bf09a3ee77a621d6df",
-      "git_blob": "af46585b2070bd4c4cadd6acc3a0e91b51f69f1f"
+      "bytes": 23570,
+      "sha256": "121182e246feb5c062b1b3049f99b6f4420dbaa0aa73716cdee21f8802253200",
+      "git_blob": "97361375838b604d9ad11a5dc6bdb20ac6deda71"
     },
     {
       "path": "docs/contracts/core-canonical-sqlstate-boundary-v1/README.md",
       "ref": null,
-      "bytes": 10127,
-      "sha256": "32f56c3a2c26ecdd41a3cda2c4a60ae1adc808b34f9e79ed0ce1a0cee0057c76",
-      "git_blob": "0b086dddc45f7e05be945301618e9a632badcd7f"
+      "bytes": 12585,
+      "sha256": "5f0363f718871ab752ea4a276c13cf2be82c4cd443066ad9b04c63e24cdc699d",
+      "git_blob": "09193eead5c9f3c8f9d568152bace65edbbcda27"
     }
   ],
   "inventory_seal": {
     "algorithm": "SHA256 sorted-key compact JSON UTF8 inventory; manifest self excluded",
-    "sha256": "5ed7724ef6f7f06077e855940ed6d117cf14ad8ce5b65e0dd80f4d97d06caf72"
+    "sha256": "27350e4137198140ed953e2984909f4cd08c21522923ea89ac6a13b7041bfb19"
   },
   "automation": {
     "classification": "نیازمند بررسی",
     "record": "README normal process only; no execution authority"
+  },
+  "canonical_source_base": "847fa09039578eace8361ed00a4eedf815e03ded",
+  "iteration": "R1 / CORE12-F01",
+  "previous_delivery": {
+    "head": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+    "source_manifest": {
+      "bytes": 41129,
+      "sha256": "1e4b524602969871d5bb6d1343f46693e4bd447591fb00fa8b275588a63c0b17"
+    },
+    "verification": "25 predecessor checks retained historically; did not validate rendered complete definitions"
+  },
+  "correction": {
+    "finding": "CORE12-F01",
+    "replacement": "callback returns literal replacement text; no JS replacement-dollar interpolation",
+    "independent_definition_checks": 8,
+    "affected_dollar_definitions": 4,
+    "delta_bytes_change": 8,
+    "whole_delta_other_bytes": "EXACT_MATCH predecessor after reproducing old renderer on4 definitions",
+    "prosrc_before_after_hashes": "all8 unchanged",
+    "harness_policy_cancellation_guards": "BYTE_IDENTICAL",
+    "Core13": "NOT_STARTED"
   }
 }

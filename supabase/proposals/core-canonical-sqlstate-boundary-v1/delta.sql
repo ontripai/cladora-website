@@ -47,7 +47,7 @@ language plpgsql
 stable
 security definer
 set search_path =pg_catalog
-as $
+as $$
 declare
   v_res record;
   v_perm identity.permissions%rowtype;
@@ -324,7 +324,7 @@ begin
 
   return v_has_allow;
 end;
-$;
+$$;
 
 -- supabase/install/v14-operations/building-provisioning.sql:1491; app_private.check_effective_permission_v2_at_v1(uuid,text,text,text,uuid,uuid,timestamptz)
 -- before-prosrc c24b1a4d049d3466d86d693f0d9a19ded0bdd85296384e17fc44fca0ff0b4d63; after-prosrc e82983f82b06ca498015ddf2821ab43fa40e2b0eb04dc36cbaa1057151227528
@@ -611,7 +611,7 @@ $function$;
 create or replace function app_private.workspace_context_covers_role_scope_v1(
  p_context_id uuid,p_tenant_id uuid,p_scope_type text,p_scope_id uuid
 ) returns boolean language plpgsql stable security definer
-set search_path=pg_catalog,identity,portfolio,app_private as $
+set search_path=pg_catalog,identity,portfolio,app_private as $$
 declare c record; v_property uuid; v_building uuid; v_unit uuid;
 begin
  select * into c from identity.context_grants g
@@ -647,7 +647,7 @@ begin
  return false;
 exception when sqlstate '40001' then raise; when others then return false;
 end;
-$;
+$$;
 
 -- supabase/install/v14-operations/building-provisioning.sql:695; app_private.workspace_context_covers_role_scope_v1_at_v1(uuid,uuid,text,uuid,timestamptz)
 -- before-prosrc 5f60bb3c24d48a03c679bd7224696feb2c2f5040158b9d2e3333987954fe662e; after-prosrc c85ef4ec54a679dffd982f4252557a9b784fbb125cab37ef8050706f67ccbcf3
@@ -702,7 +702,7 @@ create or replace function app_private.workspace_member_role_authority_active_v1
  p_assignment_id uuid,p_permission_id uuid,p_module_id uuid,
  p_target_scope_type text,p_target_scope_id uuid,p_path uuid[] default '{}'::uuid[]
 ) returns boolean language plpgsql stable security definer
-set search_path=pg_catalog,platform,identity,portfolio,app_private as $
+set search_path=pg_catalog,platform,identity,portfolio,app_private as $$
 declare
  a record; s record; grantor_rec record; wr record; v_code text; v_module text;
  v_prop uuid; v_bld uuid; v_unit uuid; v_workspace_id uuid;
@@ -788,7 +788,7 @@ begin
  return false;
 exception when sqlstate '40001' then raise; when others then return false;
 end;
-$;
+$$;
 
 -- supabase/install/v14-operations/building-provisioning.sql:804; app_private.workspace_member_role_authority_active_v1_at_v1(uuid,uuid,uuid,text,uuid,uuid[],timestamptz)
 -- before-prosrc 8b50fb008031e95bd99d5660777c5868b90fee7e5e69c445bded6c7328676c38; after-prosrc a69b967e373ffc99a8c2a5992ce73c0c15b6ae7cf5ee90107d4fb096cf370e9c
@@ -888,7 +888,7 @@ create or replace function app_private.workspace_role_identity_source_current_v1
  p_tenant_id uuid,p_workspace_id uuid,p_permission_id uuid,p_module_id uuid,
  p_scope_type text,p_scope_id uuid
 ) returns boolean language plpgsql stable security definer
-set search_path=pg_catalog,platform,identity,portfolio,app_private as $
+set search_path=pg_catalog,platform,identity,portfolio,app_private as $$
 declare v_member record; v_module record;
 begin
  select m.* into v_member from identity.memberships m
@@ -943,7 +943,7 @@ begin
  return true;
 exception when sqlstate '40001' then raise; when others then return false;
 end;
-$;
+$$;
 
 -- supabase/install/v14-operations/building-provisioning.sql:740; app_private.workspace_role_identity_source_current_v1_at_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid,timestamptz)
 -- before-prosrc 01f6a216814ad9902a68e9c922574ccbb61c26b01db9a2e159d813cae035a886; after-prosrc 5216f63f910d921463447dc72b85ac7763b5d29cd8f2996beefdfa0e26865045

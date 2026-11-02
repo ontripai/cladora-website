@@ -1,6 +1,9 @@
 {
   "task": "CORE-CANONICAL-SQLSTATE-BOUNDARY-12",
-  "base": "847fa09039578eace8361ed00a4eedf815e03ded",
+  "base": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+  "canonical_source_base": "847fa09039578eace8361ed00a4eedf815e03ded",
+  "iteration_parent": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+  "correction": "CORE12-F01/R1; literal replacement plus full-definition round-trip on8 functions",
   "scope": "T10-D04 only",
   "execution_authorization": null,
   "execution_target": null,
@@ -204,9 +207,9 @@
         "git_blob": "1eaa4a985094451d088d1dda6fe23873ff21e419"
       },
       "after": {
-        "bytes": 11574,
-        "sha256": "2ce464b1c691ccabd16156a31a5e3fb2c9e396c8a25244823ff0240f53c8ca87",
-        "git_blob": "92217c4d12d294f6d4b27122be493cab985496df"
+        "bytes": 11576,
+        "sha256": "6e06bf6d505488865c1c578e68afcf809a8ceca5cb7f9a17877dab6bc73016db",
+        "git_blob": "16f4b533c8ce41637d27d4224e014d101b68e420"
       },
       "before_body": {
         "bytes": 11223,
@@ -219,7 +222,8 @@
         "git_blob": "fc558ece398ea3a179baad64ce0040a4cf02fa21"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.check_effective_permission_v2_at_v1(uuid,text,text,text,uuid,uuid,timestamptz)",
@@ -248,7 +252,8 @@
         "git_blob": "2fbef18079d59f1db441c7b2d3b6745369da2c07"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_context_covers_role_scope_v1(uuid,uuid,text,uuid)",
@@ -262,9 +267,9 @@
         "git_blob": "5d1763be64e0c6d29ad1f252fc920bbfb7f639de"
       },
       "after": {
-        "bytes": 1950,
-        "sha256": "701f72e927639c4acbe037b16312c39c8e8b44bf67f539ea2f149eedda976052",
-        "git_blob": "d3cc8daec620065de8eb1da869783d853c948a70"
+        "bytes": 1952,
+        "sha256": "f430b5fae2816a9c1af7b0836437c5a184052ff284a6ebe4b3507f9db4523a62",
+        "git_blob": "3f8485ea22f0ae8edbc1cc5c6ceb250d78c164a9"
       },
       "before_body": {
         "bytes": 1644,
@@ -277,7 +282,8 @@
         "git_blob": "a5fe6f39b7baa6c1ac35c3a7fadfa6858320b471"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_context_covers_role_scope_v1_at_v1(uuid,uuid,text,uuid,timestamptz)",
@@ -306,7 +312,8 @@
         "git_blob": "c2d5138852e6a63d5642407bbdf1f981aa0f25ee"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_member_role_authority_active_v1(uuid,uuid,uuid,text,uuid,uuid[])",
@@ -320,9 +327,9 @@
         "git_blob": "62106799e029cbdd04fe7c107a92c425b5b344ee"
       },
       "after": {
-        "bytes": 6310,
-        "sha256": "8779707d31be3ab45a89036b86e959537f018330f5e901b4a8ddf51161e128d2",
-        "git_blob": "79660e0c411b9d7867ff460985df35b6303a9036"
+        "bytes": 6312,
+        "sha256": "438194470fdc319d816a33ab00f2d08505a1fe746aab0c83635a633999fe7343",
+        "git_blob": "fbf17d4cc5fd9f3f99b80b6db524b6acf300c786"
       },
       "before_body": {
         "bytes": 5917,
@@ -335,7 +342,8 @@
         "git_blob": "9d0770d2e74acb68f92774576869edb7045720c2"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_member_role_authority_active_v1_at_v1(uuid,uuid,uuid,text,uuid,uuid[],timestamptz)",
@@ -364,7 +372,8 @@
         "git_blob": "77fbf9fe36b315da6f017e20874c2d086eb830cc"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_role_identity_source_current_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid)",
@@ -378,9 +387,9 @@
         "git_blob": "cfc2580e95c07864b2c3d3ced1b3c14714ad1902"
       },
       "after": {
-        "bytes": 4335,
-        "sha256": "7f00afee05791692bff140fcbf0acd0093b76d5acd7b2d16555fe9fa0880e241",
-        "git_blob": "c17713235aff16c4db3bb2987fb85922c7bd455a"
+        "bytes": 4337,
+        "sha256": "356d51b464284c5dc705344a63811ddbcd3e09871ea54293978eb9837848311f",
+        "git_blob": "8e07c687fe544360d82e30fd9ff8df0d5b8501e2"
       },
       "before_body": {
         "bytes": 3902,
@@ -393,7 +402,8 @@
         "git_blob": "dd26278592ad0b9d09e2da8a46b8afd2de49a9e4"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     },
     {
       "signature": "app_private.workspace_role_identity_source_current_v1_at_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid,timestamptz)",
@@ -422,7 +432,8 @@
         "git_blob": "c97ec6fbc444933d259795dd5cdd04f30fb96c0a"
       },
       "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
-      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged"
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
     }
   ],
   "pg_only": {

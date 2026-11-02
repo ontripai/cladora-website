@@ -2,11 +2,36 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
-import {build,validateBody,validatePacket,transformBody,identity,BASE,ROOT,PATH,INSERT} from './generate-core-canonical-sqlstate-boundary-12.mjs';
+import {build,validateBody,validateDefinition,validatePacket,transformBody,identity,BASE,ROOT,PATH,INSERT} from './generate-core-canonical-sqlstate-boundary-12.mjs';
 const p=build();let checks=0;
 const check=(name,fn)=>{fn();console.log(`PASS ${++checks} ${name}`);};
 check('exact canonical eight-boundary family on22 lexical routines, zero unmapped app_private edges',()=>{assert.equal(p.records.length,8);assert.equal(p.plan.closure.named_routines.length,22);assert.deepEqual(p.plan.closure.unmapped,[]);assert.equal(new Set(p.records.map(f=>f.signature)).size,8);});
 check('every body is restored byte-identically by removing only the added40001 bare-RAISE clause',()=>{for(const f of p.records){assert.equal(f.afterBody.replace(INSERT,''),f.body);validateBody(f.body,f.afterBody);assert.equal(f.afterClause.replace(INSERT,''),f.beforeClause);assert.equal(f.before_body.sha256,identity(f.body).sha256);assert.equal(f.after_body.sha256,identity(f.afterBody).sha256);}});
+for(const f of p.records)check(`independent FULL definition round-trip: ${f.signature}`,()=>{
+ const opening=/\bas\s+(\$[a-z0-9_]*\$)/i.exec(f.afterDefinition);
+ assert.equal(opening?.[1],f.delimiter);assert.equal(f.afterDefinition.split(f.delimiter).length,3);
+ const stripped=f.afterDefinition.replace(INSERT,'');
+ const normalizedBefore=f.definition.replace(/^create\s+(?:or\s+replace\s+)?function/i,'create or replace function');
+ assert.equal(stripped,normalizedBefore);validateDefinition(f.definition,f.afterDefinition);
+});
+check('CORE12-F01 reproduces actual predecessor replacement-dollar corruption and rejects each broken definition',()=>{
+ let broken=0;
+ for(const f of p.records){
+  const bad=f.definition.replace(f.delimiter+f.body+f.delimiter,f.delimiter+f.afterBody+f.delimiter).replace(/^create\s+(?:or\s+replace\s+)?function/i,'create or replace function');
+  if(f.delimiter==='$$'){broken++;assert.notEqual(bad,f.afterDefinition);assert.throws(()=>validateDefinition(f.definition,bad),/DEFINITION_DELIMITER/);}
+  else assert.equal(bad,f.afterDefinition);
+ }
+ assert.equal(broken,4);
+});
+for(const [name,mutate] of [
+ ['header security',s=>s.replace(/security definer/i,'security invoker')],
+ ['header search_path',s=>s.replace(/search_path\s*=\s*pg_catalog/i,'search_path=public')],
+ ['closing dollar delimiter',s=>s.slice(0,s.lastIndexOf('$$'))+'$'+s.slice(s.lastIndexOf('$$')+2)],
+ ['definition suffix',s=>s+' '],
+])check(`coherently resealed full-definition ${name} rejected`,()=>{
+ const f=p.records.find(x=>x.delimiter==='$$'),bad=mutate(f.afterDefinition);identity(bad);
+ assert.throws(()=>validateDefinition(f.definition,bad),/DEFINITION_/);
+});
 check('non-Core qualified callees closed to existing Auth/system primitives, not invented evaluator',()=>{assert.deepEqual(p.plan.closure.external_qualified_calls,['auth.jwt','auth.uid','pg_catalog.isfinite']);});
 check('guards preimages/catalog attributes/owner/ACL/default/dependency and final ROLLBACK present',()=>{validatePacket(p);assert.ok(p.sql.indexOf('core12_review_only_execution_hold')<p.sql.indexOf('CREATE TEMP TABLE'));for(const text of ['core12_preimage_mismatch','core12_exact_owner_create_required','core12_postimage_mismatch','core12_catalog_owner_acl_attribute_delta','core12_default_acl_delta','core12_dependency_delta'])assert.ok(p.sql.includes(text));assert.ok(p.sql.endsWith('ROLLBACK;\n'));});
 for(const [name,change,reason] of [
@@ -21,6 +46,7 @@ for(const [name,change,reason] of [
 ])check(`coherently resealed ${name} rejected by body invariant, not hash`,()=>{const f=p.records[0],after=change(f.afterBody);assert.equal(identity(after).sha256.length,64);assert.throws(()=>validateBody(f.body,after),new RegExp(reason));});
 for(const [name,mutate,reason] of [
  ['target omitted',q=>q.records.pop(),'TARGET_FAMILY_DRIFT'],
+ ['corrupted rendered delimiter',q=>{q.records[0].afterDefinition=q.records[0].afterDefinition.replace('$$','$');},'DEFINITION_DELIMITER_MISMATCH'],
  ['wrong preimage',q=>{q.records[0].body+=' ';q.records[0].afterBody=transformBody(q.records[0].body);},'CANONICAL_PREIMAGE_DRIFT'],
  ['guard removed',q=>{q.sql=q.sql.replace('core12_review_only_execution_hold','removed');},'GUARD_MISSING'],
  ['commit activation',q=>{q.sql=q.sql.replace(/ROLLBACK;\n$/,'COMMIT;\n');},'NO_FINAL_ROLLBACK'],

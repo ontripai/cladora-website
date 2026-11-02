@@ -1,6 +1,7 @@
 # CORE-CANONICAL-SQLSTATE-BOUNDARY-12
 
-Base/direct parent: `847fa09039578eace8361ed00a4eedf815e03ded`.
+Original Core12 delivery Base/direct parent: `847fa09039578eace8361ed00a4eedf815e03ded`.
+Current R1 parent is6110229; see the R1 history section below.
 Branch: `codex/program-core-service-s01-producer-01`. Scope: T10-D04 only.
 
 ## Worklog — paths recorded before implementation
@@ -162,3 +163,41 @@ source delta for review; runtime acceptance is not closed. D01/Core11 and D02/D0
 are unchanged; runtime=NULL and both historical Docs slots remain BLOCKED.
 
 قابل خودکارسازی: نیازمند بررسی؛ ورودی source پین‌شده و clause دقیق، فرصت استخراج و کنترل byte/hash؛ تصمیم انسانی Core/coordinator/Platform برای پذیرش و proof؛ اجرا فقط با binding و اختیار مستقل؛ mismatch/UNKNOWN به همان مالکان؛ وابستگی رسمی PG-only و native authority/host proof؛ ارزش سنجیده نشده. این ثبت مجوز اجرا نیست.
+
+## R1 / CORE12-F01 — literal dollar preservation
+
+Iteration parent/Base: `6110229e72f5a81b2d3c3a1ff7090aa93741a2bc`.
+Canonical extraction Base remains847fa090; its immutable installer bytes are also
+identical at6110229. This is a normal direct child, not a rewrite of earlier source
+or reports. Core13 is not started.
+
+The predecessor generator passed replacement TEXT to String.replace. JavaScript
+interpreted each `$$` in that replacement as one literal `$`. Four ordinary-family
+function definitions were corrupted at both delimiters. The four tagged
+`$function$` definitions were unaffected. Separate afterBody checks missed the
+rendered full-definition error; the predecessor's emitted SQL is not valid proof.
+
+The replacement now uses a callback returning literal bytes. A new independently
+implemented `validateDefinition` reconstructs each of all8 full definitions,
+verifies both original dollar delimiters, and permits only removal of the added
+40001 clause plus CREATE/CREATE OR REPLACE prefix normalization. Header/security/
+search_path, body and closing suffix otherwise compare byte-for-byte. The generator
+runs this check immediately after rendering AND the packet validator checks rendered
+definitions rather than trusting a separate afterBody field.
+
+The new regression reproduces the exact old String.replace call:4 corrupted
+untagged definitions are rejected;4 tagged ones serve as unchanged controls.
+Eight separate round-trip tests and coherent header/search_path/closing-delimiter/
+suffix/packet-definition negatives are added.39 source/byte/model groups PASS;
+these are not SQL parser/compile/PG results. Prior25 checks remain predecessor
+history; the new count includes them as affected packet invariants.
+
+Affected paths recorded for this correction: generator, test, delta.sql,
+caseplan.json, this README, manifest.json. delta.sql and four complete-definition
+hashes change; all8 prosrc before/after hashes remain unchanged. The PG-only harness,
+its guard,176 planned native calls, all accepted installers/guards, Core11, policy
+and cancellation remain byte-identical. Source manifest/seal are regenerated;
+previous delivery and its identities remain historical, not relabeled.
+
+Runtime/executor/authorization/target stay NULL, slots BLOCKED, native proof
+NOT_RUN_NOT_PASS. No SQL/PG/Auth/activation or Core13 work occurs in this correction.
