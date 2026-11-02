@@ -10,23 +10,54 @@ import { bindPg, authFetch, verifyIssuedSession, fenceExternalNetwork } from './
 
 export function runtimeFiles(root,binding) {
   const runtime=binding.runtime;
-  need(runtime && Array.isArray(runtime.files) && runtime.files.length>0 && runtime.tools,'NOT_READY_PLATFORM_RUNTIME_CLOSURE');
+  need(runtime && runtime.format==='docs-ce012-runtime-pins.v1' && runtime.consumer_source==='c0caf3e70d97c3d09b16cbff91188367804cba6b'
+    && Array.isArray(runtime.files) && runtime.files.length>0 && runtime.tools,'NOT_READY_PLATFORM_RUNTIME_CLOSURE');
   need(sha(readFileSync(process.execPath))===runtime.tools.node_sha256
     && sha(readFileSync(DOCKER))===runtime.tools.docker_sha256,'RUNTIME_EXECUTABLE_DRIFT');
+  need(runtime.graph && Array.isArray(runtime.graph.edges) && Array.isArray(runtime.graph.blocked)
+    && sha(Buffer.from(canonical(runtime.graph)))===runtime.graph_sha256,'RUNTIME_GRAPH_SEAL');
   const pins=new Map();
   for(const f of runtime.files){need(typeof f.path==='string' && f.path.startsWith('node_modules/') && !pins.has(f.path),'RUNTIME_PIN_PATH');
+    need(!/\.(?:node|wasm)$/.test(f.path),'BLOCKED_NATIVE_RUNTIME_FILE');
     pin(root,f.path,{bytes:f.bytes,sha256:f.sha256});pins.set(path.join(realpathSync(root),f.path),f);}
+  pins.graph=runtime.graph;
+  pins.sourceFiles=new Map((binding.artifacts??[]).map(f=>[path.join(realpathSync(root),f.path),f]));
   return pins;
 }
 export function lockModules(root,pins) {
-  const original=Module._resolveFilename;
+  const base=realpathSync(root),original=Module._resolveFilename,oldNative=Module._extensions['.node'],oldDlopen=process.dlopen;
+  need(typeof Module.registerHooks==='function','BLOCKED_NODE_LOADER_HOOK_UNAVAILABLE');
+  const edges=new Set(pins.graph.edges.map(e=>canonical([e.parent,e.specifier,e.target])));
+  const builtins=name=>builtinModules.includes(name)||name.startsWith('node:');
+  function verifyResolved(name,parent,resolved) {
+    if(builtins(resolved))return resolved;
+    need(typeof resolved==='string' && path.isAbsolute(resolved) && resolved.startsWith(base+'/'),'EXTERNAL_OR_UNPINNED_RUNTIME_RESOLUTION');
+    need(!/\.(?:node|wasm)$/.test(resolved),'BLOCKED_NATIVE_RUNTIME_FILE');
+    const relative=path.relative(base,resolved).split(path.sep).join('/');
+    const from=typeof parent==='string'&&parent.startsWith(base+'/')?path.relative(base,parent).split(path.sep).join('/'):'<outside>';
+    need(edges.has(canonical([from,name,relative])),'BLOCKED_UNREVIEWED_RUNTIME_EDGE');
+    need(pins.has(resolved),'EXTERNAL_OR_UNPINNED_RUNTIME_RESOLUTION');
+    const expected=pins.get(resolved);pin(base,expected.path,{bytes:expected.bytes,sha256:expected.sha256});
+    return resolved;
+  }
   Module._resolveFilename=function(name,parent,...args){
     const resolved=original.call(this,name,parent,...args);
-    if(builtinModules.includes(resolved)||resolved.startsWith('node:'))return resolved;
-    need(pins.has(resolved),'EXTERNAL_OR_UNPINNED_RUNTIME_RESOLUTION');
-    const pin=pins.get(resolved),b=readFileSync(resolved);need(b.length===pin.bytes && sha(b)===pin.sha256,'RUNTIME_MODULE_CHANGED');
-    return resolved;
+    return verifyResolved(name,parent?.filename,resolved);
   };
+  const hook=Module.registerHooks({resolve(specifier,context,nextResolve){
+    const result=nextResolve(specifier,context);
+    if(result.url.startsWith('node:'))return result;
+    need(result.url.startsWith('file:'),'BLOCKED_NON_FILE_MODULE_URL');
+    const target=fileURLToPath(result.url);
+    // Only the five already source-reviewed producer ESM files have this exception.
+    if(pins.sourceFiles?.has(target)){
+      const f=pins.sourceFiles.get(target);pin(base,f.path,{bytes:f.bytes,sha256:f.sha256});return result;
+    }
+    const parent=context.parentURL?.startsWith('file:')?fileURLToPath(context.parentURL):undefined;
+    verifyResolved(specifier,parent,target);return result;
+  }});
+  const noNative=()=>{throw new Hold('BLOCKED_NATIVE_ADDON');};Module._extensions['.node']=noNative;process.dlopen=noNative;
+  return ()=>{hook.deregister();Module._resolveFilename=original;Module._extensions['.node']=oldNative;process.dlopen=oldDlopen;};
 }
 export function admitProducer(module,materials,inputs,root) {
   need(typeof module.admit==='function','NOT_READY_CONSUMER_ADMISSION_ABI');
@@ -62,6 +93,7 @@ export async function run(privateRoot,packet) {
   // Prerequisite receipts are independently approved and bound to this run by admit;
   // no installer, seed, role/session setup or receipt fabrication exists in this path.
   const runtime=runtimeFiles(root,admitted.binding);
+  need(admitted.binding.runtime.graph.blocked.length===0 && admitted.binding.runtime.execution_admissible===true,'BLOCKED_UNRESOLVED_RUNTIME_ROUTES');
   const ledger=new Ledger(path.join(privateRoot,'docs-ce012.platform.private.jsonl'));
   const materialCheck=()=>{
     pin(root,`${DIR}consumer-request.json`,input.request);
