@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAirpropB2Api } from '@/lib/airprop/artifact-b2-api';
+import type { NextRequest } from 'next/server';
 
 // Explicitly unwired. This candidate neither creates a connection nor activates a command consumer.
 const api = createAirpropB2Api({
@@ -13,5 +14,7 @@ const api = createAirpropB2Api({
     return { actor_id: data.claims.sub, aal: String(data.claims.aal ?? '') };
   },
 });
-export const GET = api.GET;
+export function GET(request: NextRequest) {
+  return api.GET(request);
+}
 export const POST = api.POST;
