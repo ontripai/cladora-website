@@ -1,21 +1,22 @@
 {
   "contract": "cladora-source-delivery-manifest.v1",
-  "task_id": "V14-SERVICE-01 / FLOW-RETRY-TOOLCHAIN-03",
-  "base": "ac3d7aee470eb47bcc3a31a14b64fe17fceb1590",
+  "task_id": "V14-SERVICE-01 / S01-OFFERING-SOURCE-WITNESS-04",
+  "base": "37af00f76390d8973bbc7eb529a76aa27fe1f254",
   "branch": "codex/program-service-offering-request-02",
   "runtime_state": "INACTIVE_FAIL_CLOSED",
   "dependencies": {
-    "S01": "provider-agreement-verification.v1 implementation required before activation",
+    "S01": "Core S01 reader/store/final-wait closeout consumes this read-only source witness; not activated here",
     "S02": "canonical-resource-reference.v1 implementation required for named-resource actions",
     "S03": "geographic-coverage-resolution.v1 implementation required only for geographic actions",
     "FIN01": "required only before financial Order creation; this package creates no Order"
   },
   "evidence": {
-    "source_tests": "PASS_LOCAL_SYNTHETIC_AFFECTED_27_PLUS_12",
+    "source_tests": "PASS_CONTROLLED_OFFERING_DISCLOSURE_SOURCE_18_OF_18",
     "postgresql": "NOT_RUN_NOT_PASS",
     "connected_http_auth": "NOT_RUN_NOT_PASS",
     "browser": "PASS_REAL_CHROMIUM_ACTUAL_COMPONENT_SYNTHETIC_LOOPBACK_9_OF_9",
-    "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS"
+    "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS",
+    "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY"
   },
   "outputs": [
     {
@@ -155,11 +156,35 @@
       }
     },
     {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "bytes": 18064,
+      "sha256": "0b4b240fab081e5f31953c39d9539996174808da095056eb70ec97685f8d78b4",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-offering-disclosure-source-v1.mjs",
+      "bytes": 13712,
+      "sha256": "1bc5c233331882a3361d60859786907846724575ce36ad450db3e2d90a06a202",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/s01-offering-source-native-proof.json",
+      "bytes": 1896,
+      "sha256": "839c055ec4c4b84ab869bdd0a2429276a188bbab73e2aa9b7fc61cb08f2f91bd",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
       "path": "supabase/hosted-service-v14-execution/manifest.json",
       "bytes": null,
       "sha256": null,
       "preimage": {
-        "state": "absent"
+        "state": "present"
       },
       "integrity": "self-reference excluded"
     }
