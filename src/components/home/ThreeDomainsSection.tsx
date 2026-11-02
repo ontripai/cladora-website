@@ -41,10 +41,10 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'CLADORA adună totul la un loc: datele clădirii, plățile și actele sunt păstrate în siguranță, în timp ce domeniile dedicate se ocupă de tranzacții și închirieri, comenzi de servicii, reparații tehnice și experiența comunitară.'
+              ? 'AIRPROP acoperă promovarea și tranzacțiile imobiliare, SERVICE nevoile și comenzile de servicii, Operations mentenanța și ordinele de lucru, iar CE anunțurile, interacțiunile, evenimentele și ghidurile proprietății. Domeniile folosesc informații comune; disponibilitatea fiecărei funcționalități depinde de stadiul lansării și implementării.'
               : lang === 'fa'
-              ? 'کلادورا همه چیز را یکپارچه می‌کند: مشخصات ساختمان، حساب‌ها و اسناد در مکانی امن نگهداری می‌شوند و چهار حوزه مجزا به امور اجاره و فروش، سفارش خدمات، تعمیرات فنی و جامعه و تجربه سکونت اختصاص دارند.'
-              : 'CLADORA brings everything together: building records, payments, and documents stay organized in one place, while dedicated domains handle transactions & leasing, service requests, technical operations, and community experience.'}
+              ? 'AIRPROP برای عرضه و معاملات ملک، SERVICE برای نیازها و سفارش‌های خدمات، Operations برای نگهداری و دستورکارها، و CE برای اعلان‌ها، تعاملات، رویدادها و راهنماهای ملک؛ همه بر اطلاعات مشترک ملک تکیه دارند. دسترسی هر قابلیت با وضعیت انتشار و پروژه مشخص می‌شود.'
+              : "AIRPROP covers property marketing and transactions, SERVICE covers service needs and orders, Operations covers maintenance and work orders, and CE covers property notices, interactions, events and guides. They share property information; each capability's availability depends on its release and implementation status."}
           </p>
         </div>
 
@@ -63,10 +63,10 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
               </h3>
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Datele clădirii și ale apartamentelor, spațiile fiecărei asociații, dosarele locatarilor, arhiva de documente, calculul clar al cotelor de întreținere și istoricul verificabil al tuturor plăților.'
+                  ? 'Identitatea imobilului și a spațiilor, granițele Workspace, dosarele persoanelor, seiful de documente, jurnalul contabil cu dublă înregistrare, mesageria oficială și pistele de audit securizate.'
                   : lang === 'fa'
-                  ? 'مشخصات ساختمان و واحدها، تفکیک اطلاعات هر مجتمع، پرونده ساکنان، بایگانی اسناد، محاسبه شفاف شارژ و تاریخچهٔ مستند و قابل بررسی پرداخت‌ها.'
-                  : 'Building and unit records, dedicated association spaces, resident profiles, document vault, clear fee calculations, and an auditable payment history.'}
+                  ? 'هویت ملک، واحدها و تجهیزات؛ مرزهای Workspace و حدود اختیار اعضا؛ اسناد و نسخه‌ها؛ دفاتر مالی و تسهیم هزینه‌ها؛ مکاتبات رسمی و ثبت امن و ساختاریافته سوابق.'
+                  : 'Property and unit registry, workspace boundaries, document vault, double-entry analytical ledger, official notices, and tamper-evident audit history.'}
               </p>
             </div>
 
@@ -78,7 +78,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 {lang === 'ro' ? 'Arhivă Documente & Contracte' : lang === 'fa' ? 'بایگانی اسناد و قراردادها' : 'Document & Contract Vault'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
-                {lang === 'ro' ? 'Evidență Plăți & Întreținere' : lang === 'fa' ? 'دفاتر هزینه‌ها و شارژ' : 'Fee & Ledger Tracking'}
+                {lang === 'ro' ? 'Contabilitate & Alocări' : lang === 'fa' ? 'دفاتر مالی و تسهیم' : 'Double-entry Ledger'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
                 {lang === 'ro' ? 'Istoric Verificabil' : lang === 'fa' ? 'سوابق قابل استناد' : 'Verifiable History'}
@@ -275,16 +275,16 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                   {lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience'}
                 </h3>
                 <p className="text-xs text-[#627D98] font-medium mt-0.5">
-                  {lang === 'ro' ? 'Ghiduri de spațiu, facilități & comunicare' : lang === 'fa' ? 'راهنمای فضاها، امکانات رفاهی و ارتباط مستقیم' : 'Space guides, amenities & resident updates'}
+                  {lang === 'ro' ? 'Anunțuri, evenimente și ghiduri pentru proprietate' : lang === 'fa' ? 'اعلان‌ها، رویدادها و راهنماهای ملک' : 'Property notices, events and guides'}
                 </p>
               </div>
 
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Conectează rezidenții și utilizatorii clădirii la facilități, evenimente și ghiduri utile de utilizare a spațiului, păstrând comunicarea directă și sigură fără a amesteca rolurile de administrare.'
+                  ? 'Anunțuri, interacțiuni comunitare, evenimente și ghiduri legate de proprietate, cu starea fiecărei funcționalități explicată clar.'
                   : lang === 'fa'
-                  ? 'ساکنان و بهره‌برداران را به امکانات رفاهی، رویدادها و راهنمای فضاهای ساختمان متصل می‌کند؛ با برقراری ارتباط مستقیم و امن، بدون تداخل با اختیارات مدیریتی یا دسترسی‌های محرمانه.'
-                  : 'Connects residents and occupants to amenities, local events, and practical space guides, maintaining direct and secure communication without conflating administrative roles.'}
+                  ? 'اعلان‌ها و تعاملات جامعه، رویدادها و راهنماهای مرتبط با ملک؛ با توضیح روشن وضعیت هر قابلیت.'
+                  : 'Property-related notices, community interactions, events and guides, with a clear status for each capability.'}
               </p>
 
               <ul className="space-y-2 text-xs text-[#334E68] pt-2 border-t border-[#F0F4F8]">
@@ -294,7 +294,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Canale clare de anunțuri și consultare a comunității' : lang === 'fa' ? 'کانال‌های اطلاع‌رسانی رسمی و نظرسنجی از ساکنان' : 'Structured announcements and community notice channels'}</span>
+                  <span>{lang === 'ro' ? 'Anunțuri și interacțiuni pentru comunitatea proprietății' : lang === 'fa' ? 'اعلان‌ها و تعاملات مرتبط با جامعهٔ ملک' : 'Notices and interactions for the property community'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
