@@ -1,0 +1,56 @@
+{
+  "contract": "cladora-native-proof-request.v1",
+  "task_id": "V14-SERVICE-01 / REQUEST-PREFLIGHT-SOURCE-PORTS-06",
+  "source_contract": "service-request-source-ports.v1",
+  "state": "REQUEST_ONLY_NOT_EXECUTED",
+  "target": "disposable-owned-local-postgresql",
+  "required_runtime_producer": {
+    "owner": "Core",
+    "status": "MISSING_NOT_READY",
+    "contract": "caller-owned serializable CoreTransactionScopeV1 with Workspace and service_request Offering lock, authorityRequestFor identity, and accepted S01 reader"
+  },
+  "source_prerequisites": [
+    "service_catalog.offerings",
+    "service_catalog.revisions with inactive V14 metadata columns",
+    "service_catalog.definitions",
+    "portfolio.parties",
+    "app_private.canonical_authority_revision_v1",
+    "app_private.check_workspace_native_permission_v2",
+    "accepted provider-agreement-verification.v1 S01 reader"
+  ],
+  "allowed_effects": {
+    "sql_verbs": ["SELECT"],
+    "writes": 0,
+    "request_or_order_mutations": 0,
+    "idempotency_reservations": 0,
+    "receipts": 0,
+    "audit_events": 0,
+    "outbox_events": 0,
+    "grants": 0,
+    "activation": false
+  },
+  "required_cases": [
+    "published current workspace-wide non-reservation Offering returns the exact versioned SnapshotV1",
+    "missing unpublished expired foreign revoked and malformed sources fail closed",
+    "provider agreement provider revision and Workspace mismatches do not become ready",
+    "source or authority drift and expiry while S01 waits do not produce stale ready",
+    "exact SQLSTATE 40001 reaches the trusted transaction caller unchanged",
+    "ordinary source failures expose only bounded codes",
+    "same-scope principal contains canonical actor and authority revision only",
+    "all source operations are SELECT-only and rollback leaves zero residue"
+  ],
+  "lock_contract": [
+    "Core host owns serializable transaction and Workspace/service_request Offering lock",
+    "Offering and definition FOR KEY SHARE",
+    "published revision and provider party FOR SHARE",
+    "canonical authority checked before source reads and after waiting locks",
+    "complete source and authority reloaded after S01 wait before ready"
+  ],
+  "prohibited": [
+    "service_role or legacy fallback",
+    "client actor authority or permission flags",
+    "calling S01 from its Offering disclosure witness",
+    "Request Order Quote idempotency audit outbox or receipt writes",
+    "migration installation or runtime activation"
+  ]
+}

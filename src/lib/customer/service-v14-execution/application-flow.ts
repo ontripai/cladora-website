@@ -74,6 +74,7 @@ export type ServiceOfferingRequestFlowPortsV1 = {
   resolvePrincipal(input: {
     context_id: string;
     workspace_id: string;
+    offering_id: string;
   }): Promise<ServiceOfferingRequestPrincipalV1 | null>;
   resolveProviderAgreement(
     input: ProviderAgreementVerificationV1Input,
@@ -112,6 +113,22 @@ function offeringUnavailable(snapshot: ServiceOfferingRequestSnapshotV1, now: nu
     || (end !== null && (!Number.isFinite(end) || end <= start || now >= end));
 }
 
+function sqlState(error: unknown) {
+  return typeof error === 'object' && error !== null && 'code' in error
+    ? (error as { code?: unknown }).code : undefined;
+}
+
+function preserveSerializationFailure(error: unknown) {
+  if (sqlState(error) === '40001') throw error;
+}
+
+function snapshotsMatch(
+  left: ServiceOfferingRequestSnapshotV1,
+  right: ServiceOfferingRequestSnapshotV1,
+) {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
 async function providerAgreementGate(
   ports: ServiceOfferingRequestFlowPortsV1,
   input: ServiceOfferingRequestPreflightInputV1,
@@ -128,7 +145,8 @@ async function providerAgreementGate(
       requested_service_scope: ['service.request.create'],
       permission_code: 'services.orders.request',
     });
-  } catch {
+  } catch (error) {
+    preserveSerializationFailure(error);
     return { status: 'not_ready', code: 'SERVICE_S01_NOT_READY' };
   }
   const parsed = providerAgreementVerificationV1Schema.safeParse(raw);
@@ -172,7 +190,8 @@ async function resolveNamedResource(
       permission_code: 'services.orders.request',
       purpose: 'service.request.resource',
     });
-  } catch {
+  } catch (error) {
+    preserveSerializationFailure(error);
     return { state: 'not_ready' };
   }
   const parsed = canonicalResourceReferenceV1Schema.safeParse(raw);
@@ -207,7 +226,8 @@ export async function preflightServiceOfferingRequestV1(
   let snapshot: ServiceOfferingRequestSnapshotV1 | null;
   try {
     snapshot = serviceOfferingRequestSnapshotV1Schema.nullable().parse(await ports.loadOffering(input));
-  } catch {
+  } catch (error) {
+    preserveSerializationFailure(error);
     return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
   }
   if (snapshot === null || !sameId(snapshot.workspace_id, input.workspace_id)
@@ -221,6 +241,28 @@ export async function preflightServiceOfferingRequestV1(
   if (offeringUnavailable(snapshot, ports.now())) return { status: 'denied', code: 'OFFERING_UNAVAILABLE' };
   const agreementFailure = await providerAgreementGate(ports, input, snapshot);
   if (agreementFailure) return agreementFailure;
+  let current: ServiceOfferingRequestSnapshotV1 | null;
+  try {
+    current = serviceOfferingRequestSnapshotV1Schema.nullable().parse(await ports.loadOffering(input));
+  } catch (error) {
+    preserveSerializationFailure(error);
+    return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
+  }
+  if (current === null || !sameId(current.workspace_id, input.workspace_id)
+    || !sameId(current.offering_id, input.offering_id)) {
+    return { status: 'denied', code: 'OFFERING_UNAVAILABLE' };
+  }
+  if (!sameId(current.published_revision_id, input.published_revision_id)
+    || !snapshotsMatch(snapshot, current)) {
+    return { status: 'conflict', code: 'OFFERING_CHANGED' };
+  }
+  if (!current.current_actor_can_request) {
+    return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };
+  }
+  if (offeringUnavailable(current, ports.now())) {
+    return { status: 'denied', code: 'OFFERING_UNAVAILABLE' };
+  }
+  snapshot = current;
   if (snapshot.eligibility.required_capabilities.length > 0
     || snapshot.eligibility.required_policy_codes.length > 0) {
     return { status: 'not_ready', code: 'ELIGIBILITY_SOURCE_NOT_READY' };
@@ -282,7 +324,8 @@ export async function submitServiceOfferingRequestV1(
   try {
     const current = await ports.loadOffering(preflightInput);
     snapshot = serviceOfferingRequestSnapshotV1Schema.parse(current);
-  } catch {
+  } catch (error) {
+    preserveSerializationFailure(error);
     return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
   }
   if (!sameId(snapshot.workspace_id, input.workspace_id)
@@ -308,8 +351,10 @@ export async function submitServiceOfferingRequestV1(
     principal = await ports.resolvePrincipal({
       context_id: input.context_id,
       workspace_id: input.workspace_id,
+      offering_id: input.offering_id,
     });
-  } catch {
+  } catch (error) {
+    preserveSerializationFailure(error);
     return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
   }
   if (principal === null) return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };

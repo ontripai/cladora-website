@@ -75,6 +75,39 @@ are installed. It returns `RUNTIME_BINDING_INACTIVE` and never falls back to
 the legacy request RPC, `service_role`, or a client decision. The injectable
 handler/port boundary is exercised with synthetic local data.
 
+### Request preflight source ports
+
+`service-request-source-ports.v1` implements the existing `loadOffering` and
+`resolvePrincipal` ports for one caller-owned `CoreTransactionScopeV1`. It
+reuses the accepted Offering/revision/definition/provider SELECTs and Core's
+canonical `resolveAuthority` evaluator. The trusted caller must provide the
+authority request identity for the already-open serializable transaction,
+Workspace lock and exact Offering aggregate. The adapter cannot create a
+transaction, synthesize an actor or authority version, or fall back to AAL,
+user metadata, `service_role`, or a client flag.
+
+The source read locks the Offering `FOR KEY SHARE`, the exact published
+revision `FOR SHARE`, the definition `FOR KEY SHARE`, and the provider party
+`FOR SHARE`. Canonical `services.orders.request` authority is checked before
+the reads and again after their possible waits. The application calls the
+versioned S01 reader and then reloads the complete snapshot; a changed
+Offering/revision/provider/agreement/coverage/eligibility binding conflicts,
+and expiry or revoked authority denies instead of returning stale readiness.
+The exact PostgreSQL `40001` object is preserved for the trusted transaction
+caller. Other source failures are reduced to bounded public codes.
+
+The S01 dependency is injected as an accepted reader bound to the same scope.
+This package does not implement Core's S01 store/final-wait closeout. If that
+reader is absent, only the Request preflight returns `SERVICE_S01_NOT_READY`.
+The Offering disclosure witness remains independent and never calls S01, so
+there is no witness/consumer cycle.
+
+The default product binding remains `null`. Runtime composition still needs a
+Core-owned host that opens the exact serializable scope, acquires its Workspace
+and Offering lock, produces the authority request identity, and supplies the
+accepted S01 implementation. The native-proof request records this missing
+composition precisely; it does not require installing unrelated migrations.
+
 ## Persistence and replay
 
 `forward.sql` is a source module, not an applied migration. It adds nullable,

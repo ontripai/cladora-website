@@ -1,29 +1,32 @@
 {
   "contract": "cladora-source-delivery-manifest.v1",
-  "task_id": "V14-SERVICE-01 / S01-SQLSTATE-REPAIR-05",
-  "base": "fd8d0a114b3ffd0f4a5f2f56138119c7296997bb",
+  "task_id": "V14-SERVICE-01 / REQUEST-PREFLIGHT-SOURCE-PORTS-06",
+  "base": "e6e33a57555b42d145ed39be0b3d45380ab6e35c",
   "branch": "codex/program-service-offering-request-02",
   "runtime_state": "INACTIVE_FAIL_CLOSED",
   "dependencies": {
-    "S01": "Core S01 reader/store/final-wait closeout consumes this read-only source witness; not activated here",
+    "S01": "accepted provider-agreement-verification.v1 reader must be bound to the same trusted transaction scope; absent reader blocks only Request preflight",
     "S02": "canonical-resource-reference.v1 implementation required for named-resource actions",
     "S03": "geographic-coverage-resolution.v1 implementation required only for geographic actions",
-    "FIN01": "required only before financial Order creation; this package creates no Order"
+    "FIN01": "required only before financial Order creation; this package creates no Order",
+    "CORE_REQUEST_PREFLIGHT_HOST": "Core-owned serializable transaction scope, Workspace/service_request Offering lock and authorityRequestFor producer are required; not present or activated here"
   },
   "evidence": {
     "source_tests": "PREVIOUS_CONTROLLED_OFFERING_DISCLOSURE_SOURCE_18_OF_18_COORDINATOR_CONFIRMED_NOT_RERUN",
-    "postgresql": "NOT_RUN_NOT_PASS",
+    "postgresql": "NOT_RUN_NOT_PASS_NATIVE_PROOF_REQUEST_ONLY",
     "connected_http_auth": "NOT_RUN_NOT_PASS",
     "browser": "PASS_REAL_CHROMIUM_ACTUAL_COMPONENT_SYNTHETIC_LOOPBACK_9_OF_9",
     "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS",
     "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY",
-    "sqlstate_boundary": "PASS_TARGETED_6_OF_6"
+    "sqlstate_boundary": "PREVIOUS_TARGETED_6_OF_6_CONFIRMED_NOT_RERUN",
+    "request_source_ports": "PASS_TARGETED_OFFLINE_10_OF_10",
+    "request_flow_regression": "PASS_AFFECTED_OFFLINE_12_OF_12"
   },
   "outputs": [
     {
       "path": "docs/architecture/CLADORA-SERVICE-V14-EXEC-01.md",
-      "bytes": 6561,
-      "sha256": "477605561c97e06cfdc1946b7a73d503ded2623af4f66a0cc0db2cd0bd871727",
+      "bytes": 8579,
+      "sha256": "54efb1c9536cdabba29008625806a85d95bfc2eef4f12b0e9534482e2b04ef88",
       "preimage": {
         "state": "absent"
       }
@@ -94,8 +97,8 @@
     },
     {
       "path": "src/lib/customer/service-v14-execution/application-flow.ts",
-      "bytes": 14967,
-      "sha256": "12a7a684db2fbe1dce4d9a24e8b1e13475a80daefc79e9f1bd1e9f14217397bd",
+      "bytes": 16661,
+      "sha256": "4a5ff6ba8fcdf192c07aaf59aa120f2934ecdd9ef2186fbac273ffe0c9fdd39c",
       "preimage": {
         "state": "absent"
       }
@@ -176,6 +179,30 @@
       "path": "supabase/hosted-service-v14-execution/s01-offering-source-native-proof.json",
       "bytes": 1896,
       "sha256": "839c055ec4c4b84ab869bdd0a2429276a188bbab73e2aa9b7fc61cb08f2f91bd",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-source-ports.ts",
+      "bytes": 13176,
+      "sha256": "c2d260e1b1973aa30b274deb8392dd608c16424e4855909195d73f16e302c36a",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-request-preflight-source-ports-v1.mjs",
+      "bytes": 12533,
+      "sha256": "27c0ad121782dbc8e95a8145f3d0d17c26de99e63b9d3e2591ab26fc0511a59b",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/request-preflight-source-ports-native-proof.json",
+      "bytes": 2487,
+      "sha256": "e22f8f945ece6eea4f8d339dc283e9cb83e984ef44adb2781801d9b43d1eb1d6",
       "preimage": {
         "state": "absent"
       }
