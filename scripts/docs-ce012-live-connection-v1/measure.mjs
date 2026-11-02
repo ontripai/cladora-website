@@ -1,49 +1,8 @@
 import { TABLES, SEQUENCES, must, canonical } from './admission.mjs';
 
 const names = TABLES.map(t => `'${t}'`).join(',');
-const namespaces = "'auth','app_private','platform','identity','experience','documents','communications','portfolio','audit'";
-// Fixed catalog projection; no request-supplied SQL, identifier or function body.
-// Full definitions stay in the local server-side hash, never in a public receipt.
-export const CATALOG_SQL = `select encode(sha256(convert_to(jsonb_build_object(
- 'schemas',(select jsonb_agg(jsonb_build_object('name',nspname,'owner',pg_get_userbyid(nspowner),
-  'acl',nspacl) order by nspname) from pg_namespace where nspname in (${namespaces})),
- 'functions',(select jsonb_agg(jsonb_build_object('identity',p.oid::regprocedure::text,
-  'definition',pg_get_functiondef(p.oid),'owner',pg_get_userbyid(p.proowner),
-  'acl',p.proacl,'config',p.proconfig) order by p.oid::regprocedure::text)
-  from pg_proc p join pg_namespace n on n.oid=p.pronamespace
-  where n.nspname in (${namespaces}) and p.prokind='f'),
- 'tables',(select jsonb_agg(jsonb_build_object('name',c.oid::regclass::text,
-  'owner',pg_get_userbyid(c.relowner),'acl',c.relacl,'rls',c.relrowsecurity,'force',c.relforcerowsecurity)
-  order by c.oid::regclass::text) from pg_class c join pg_namespace n on n.oid=c.relnamespace
-  where n.nspname in (${namespaces}) and c.relkind in ('r','p','v','S')),
- 'columns',(select jsonb_agg(jsonb_build_object('table',a.attrelid::regclass::text,
-  'column',a.attname,'type',format_type(a.atttypid,a.atttypmod),'notnull',a.attnotnull,
-  'default',pg_get_expr(d.adbin,d.adrelid),'acl',a.attacl) order by a.attrelid::regclass::text,a.attnum)
-  from pg_attribute a join pg_class c on c.oid=a.attrelid join pg_namespace n on n.oid=c.relnamespace
-  left join pg_attrdef d on d.adrelid=a.attrelid and d.adnum=a.attnum
-  where n.nspname in (${namespaces}) and a.attnum>0 and not a.attisdropped and c.relkind in ('r','p')),
- 'constraints',(select jsonb_agg(jsonb_build_object('table',c.conrelid::regclass::text,
-  'name',c.conname,'definition',pg_get_constraintdef(c.oid),'validated',c.convalidated)
-  order by c.conrelid::regclass::text,c.conname) from pg_constraint c
-  join pg_namespace n on n.oid=c.connamespace where n.nspname in (${namespaces})),
- 'triggers',(select jsonb_agg(jsonb_build_object('table',t.tgrelid::regclass::text,
-  'name',t.tgname,'definition',pg_get_triggerdef(t.oid),'enabled',t.tgenabled)
-  order by t.tgrelid::regclass::text,t.tgname) from pg_trigger t
-  join pg_class c on c.oid=t.tgrelid join pg_namespace n on n.oid=c.relnamespace
-  where n.nspname in (${namespaces}) and not t.tgisinternal),
- 'policies',(select jsonb_agg(to_jsonb(p) order by schemaname,tablename,policyname)
-  from pg_policies p where schemaname in (${namespaces})),
- 'roles',(select jsonb_agg(jsonb_build_object('name',rolname,'super',rolsuper,'inherit',rolinherit,
-  'createrole',rolcreaterole,'createdb',rolcreatedb,'login',rolcanlogin,'replication',rolreplication,
-  'bypass',rolbypassrls,'validuntil',rolvaliduntil,'config',rolconfig) order by rolname) from pg_roles),
- 'memberships',(select jsonb_agg(jsonb_build_object('role',pg_get_userbyid(roleid),
-  'member',pg_get_userbyid(member),'grantor',pg_get_userbyid(grantor),
-  'admin',admin_option,'inherit',inherit_option,'set',set_option)
-  order by roleid,member,grantor) from pg_auth_members),
- 'defaults',(select jsonb_agg(to_jsonb(d) order by defaclrole,defaclnamespace,defaclobjtype) from pg_default_acl d)
- )::text,'UTF8')),'hex') as catalog_sha256`;
-
-export async function preflight(observer, review) {
+import { verifyScopedCatalog } from './closure.mjs';
+export async function preflight(observer, review, closure) {
   const identity = await observer.query(`select current_database() as database,
     (select oid::text from pg_database where datname=current_database()) as database_oid,
     (select system_identifier::text from pg_control_system()) as system_identifier,
@@ -63,11 +22,8 @@ export async function preflight(observer, review) {
     to_regclass('experience.guides') is not null as guides`);
   must(Object.values(native.rows[0] ?? {}).length === 4
     && Object.values(native.rows[0]).every(x => x === true), 'NATIVE_INSTALLATION_MISSING');
-  const versions = await observer.query('select version from supabase_migrations.schema_migrations order by version');
-  must(canonical(versions.rows.map(r => r.version)) === canonical(review.installation.migration_versions), 'INSTALLED_MIGRATION_SET_MISMATCH');
-  // Presence/digests in schema_migrations never substitute for source file hashes.
-  const catalog = await observer.query(CATALOG_SQL);
-  must(catalog.rows[0]?.catalog_sha256 === review.installation.catalog_sha256, 'INSTALLED_CATALOG_UNREVIEWED');
+  await verifyScopedCatalog(observer, review.installation, closure,
+    [review.target.observer_role, review.target.conflict_role].filter(Boolean));
   const role = await observer.query(`select rolsuper,rolcreaterole,rolcreatedb,rolreplication
     from pg_roles where rolname=current_user`);
   must(role.rowCount === 1 && Object.values(role.rows[0]).every(v => v === false), 'OBSERVER_POWERFUL_ROLE');

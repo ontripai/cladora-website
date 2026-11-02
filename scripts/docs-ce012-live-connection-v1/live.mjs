@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
+import { ScopeError } from './closure.mjs';
 import { Gate, must, localUrl, sha256, canonical } from './admission.mjs';
 import { preflight, snapshot, measure, sharedLockProbe, createSerializationConflict } from './measure.mjs';
 
@@ -94,7 +95,7 @@ async function casePrestate(observer, c, guide, command, tenant, ce) {
  * This module owns only fixed read probes and the one no-value-change conflict.
  */
 export async function executeLive(admitted, root, selectors) {
-  const { request, inventory, review, plan } = admitted;
+  const { request, inventory, runtimeClosure, review, plan } = admitted;
   const runtimeUrl = localUrl(selectors.runtime, 'db');
   const observerUrl = localUrl(selectors.observer, 'db');
   must(runtimeUrl.pathname.slice(1) === review.target.database && observerUrl.pathname === runtimeUrl.pathname
@@ -129,7 +130,7 @@ export async function executeLive(admitted, root, selectors) {
   try {
     observer = await observerPool.connect();
     observer.on('error', () => { connectionLost = true; });
-    await preflight(observer, review);
+    await preflight(observer, review, runtimeClosure);
     const session = await verifySession(review.target, selectors.token, observer);
     if (selectors.conflict && review.target.conflict_role) {
       const url = localUrl(selectors.conflict, 'db');
@@ -309,8 +310,8 @@ export async function executeLive(admitted, root, selectors) {
           zero_durable_write: 'INDEPENDENT_OBSERVER_AND_XACT_COUNTERS',
           historical_receipt: historical(c.name) ? 'CORE_MATCHED_STORED_RECEIPT' : 'NOT_USED' });
       } catch (error) {
-        results.push({ case: c.name, status: error instanceof Gate ? 'BLOCKED' : 'FAILED',
-          code: error instanceof Gate ? error.code : 'LIVE_PROOF_FAILED_NO_PRIVATE_DETAIL' });
+        results.push({ case: c.name, status: error instanceof Gate || error instanceof ScopeError ? 'BLOCKED' : 'FAILED',
+          code: error instanceof Gate || error instanceof ScopeError ? error.code : 'LIVE_PROOF_FAILED_NO_PRIVATE_DETAIL' });
       } finally {
         clearTimeout(timer);
         for (const client of activeClients) client.release(true);

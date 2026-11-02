@@ -1,9 +1,11 @@
+import { validateClosure, validateScopedInstallation } from './closure.mjs';
 import { createHash, createPublicKey, verify } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
-export const CONTRACT = 'documents-ce012-live-connection-request.v1';
-export const BASE = 'd10d8b9dddee3055a75304cc29f9b16cea68702f';
+export const CONTRACT = 'documents-ce012-live-connection-request.v2';
+export const BASE = 'f3b0a7626de1ffcbbe1b01350a252b92c3e841dc';
+export const OFFLINE_BASE = 'd10d8b9dddee3055a75304cc29f9b16cea68702f';
 export const CASES = Object.freeze(['current_positive', 'documents_denied', 'replaced_fresh',
   'historical_disclosure', 'historical_revoked', 'cross_workspace', 'quarantined',
   'shared_lock', 'serialization_retry']);
@@ -57,19 +59,21 @@ export function verifyFiles(root, inventory) {
 }
 export function validateRequest(request) {
   exactKeys(request, ['contract', 'base', 'entrypoint', 'source_inventory', 'source_inventory_sha256',
-    'artifacts', 'cases', 'effects', 'measurement_tables', 'measurement_sequences', 'limits', 'live_default'], 'REQUEST_SHAPE');
+    'runtime_closure', 'runtime_closure_sha256', 'artifacts', 'cases', 'effects', 'measurement_tables', 'measurement_sequences', 'limits', 'live_default'], 'REQUEST_SHAPE');
   must(request.contract === CONTRACT && request.base === BASE && request.live_default === 'CLOSED', 'REQUEST_VERSION');
   must(request.entrypoint === 'scripts/docs-ce012-live-connection-v1/run.mjs'
     && request.source_inventory === 'scripts/docs-ce012-live-connection-v1/source-inventory.json'
-    && digest(request.source_inventory_sha256), 'ENTRYPOINT_PIN_REQUIRED');
+    && digest(request.source_inventory_sha256)
+    && request.runtime_closure === 'scripts/docs-ce012-live-connection-v1/runtime-closure.json'
+    && digest(request.runtime_closure_sha256), 'ENTRYPOINT_PIN_REQUIRED');
   must(canonical(request.cases) === canonical(CASES) && canonical(request.effects) === canonical(EFFECTS)
     && canonical(request.measurement_tables) === canonical(TABLES)
     && canonical(request.measurement_sequences) === canonical(SEQUENCES), 'EFFECT_OR_CASE_EXPANSION');
   must(canonical(request.limits) === canonical({ max_cases: 9, max_connections: 5,
     case_timeout_ms: 15000, total_timeout_ms: 180000, lock_probe_ms: 800 }), 'LIMIT_EXPANSION');
-  must(Array.isArray(request.artifacts) && request.artifacts.length === 4
+  must(Array.isArray(request.artifacts) && request.artifacts.length === 5
     && canonical(request.artifacts.map(a => a.path).sort()) === canonical([
-      'admission.mjs', 'measure.mjs', 'run.mjs', 'live.mjs',
+      'admission.mjs', 'measure.mjs', 'run.mjs', 'live.mjs', 'closure.mjs',
     ].map(p => `scripts/docs-ce012-live-connection-v1/${p}`).sort()), 'EXECUTION_ARTIFACT_SET');
   return request;
 }
@@ -78,17 +82,18 @@ export function validateRequest(request) {
  * public-key fingerprint supplied by Platform custody, not a key/approved flag
  * inside the request. No key generation, DB construction or network occurs here.
  */
-export function admit({ requestBytes, inventoryBytes, planBytes, envelope, trustedPublicKey,
+export function admit({ requestBytes, inventoryBytes, closureBytes, planBytes, envelope, trustedPublicKey,
   trustedKeySha256, now = Date.now(), root }) {
   const request = validateRequest(JSON.parse(requestBytes));
   must(sha256(inventoryBytes) === request.source_inventory_sha256, 'INVENTORY_BYTES_MISMATCH');
+  must(closureBytes && sha256(closureBytes) === request.runtime_closure_sha256, 'RUNTIME_CLOSURE_BYTES_MISMATCH');
   must(typeof trustedPublicKey === 'string' && digest(trustedKeySha256)
     && sha256(trustedPublicKey) === trustedKeySha256, 'COORDINATOR_TRUST_ANCHOR_MISSING');
   exactKeys(envelope, ['payload', 'signature'], 'REVIEW_ENVELOPE_SHAPE');
   const r = envelope.payload;
   exactKeys(r, ['contract', 'request_sha256', 'inventory_sha256', 'plan_sha256', 'expires_at',
     'target', 'installation', 'decisions'], 'REVIEW_PAYLOAD_SHAPE');
-  must(r.contract === 'documents-ce012-coordinator-admission.v1'
+  must(r.contract === 'documents-ce012-coordinator-admission.v2'
     && r.request_sha256 === sha256(requestBytes) && r.inventory_sha256 === sha256(inventoryBytes)
     && r.plan_sha256 === sha256(planBytes), 'REVIEW_BINDING_MISMATCH');
   const key = createPublicKey(trustedPublicKey);
@@ -112,16 +117,10 @@ export function admit({ requestBytes, inventoryBytes, planBytes, envelope, trust
   must(r.target.conflict_role === null || (typeof r.target.conflict_role === 'string'
     && /^[a-z][a-z0-9_]{2,62}$/.test(r.target.conflict_role)
     && !['postgres', 'supabase_admin', 'service_role', 'authenticated', 'anon', 'cladora_ce_guide_runtime'].includes(r.target.conflict_role)), 'CONFLICT_IDENTITY_UNREVIEWED');
-  exactKeys(r.installation, ['source_inventory_sha256', 'catalog_sha256', 'migration_versions', 'fixture_source_sha256', 'platform_lifecycle_source_sha256', 'platform_profile_sha256'], 'INSTALLATION_SHAPE');
   const inventory = JSON.parse(inventoryBytes);
-  must(inventory.base === BASE && Array.isArray(inventory.files), 'INVENTORY_VERSION');
-  const versions = inventory.files.filter(a => a.path.startsWith('supabase/migrations/'))
-    .map(a => a.path.split('/').at(-1).split('_')[0]);
-  must(r.installation.source_inventory_sha256 === sha256(inventoryBytes)
-    && digest(r.installation.catalog_sha256) && digest(r.installation.fixture_source_sha256)
-    && digest(r.installation.platform_lifecycle_source_sha256) && digest(r.installation.platform_profile_sha256)
-    && versions.length > 0
-    && canonical(r.installation.migration_versions) === canonical(versions), 'ACCEPTED_INSTALLATION_MISSING');
+  must(inventory.base === OFFLINE_BASE && Array.isArray(inventory.files), 'INVENTORY_VERSION');
+  const runtimeClosure = validateClosure(JSON.parse(closureBytes), inventory);
+  validateScopedInstallation(r.installation, runtimeClosure, closureBytes, inventoryBytes, inventory);
   exactKeys(r.decisions, ['source_request_accepted', 'save_host_mapping', 'neutral_label', 'live_dispatch_authorized'], 'DECISION_SHAPE');
   must(Object.values(r.decisions).every(v => v === true), 'JOINT_REVIEW_OR_DISPATCH_GATE_OPEN');
   if (root) { verifyFiles(root, inventory.files); verifyFiles(root, request.artifacts); }
@@ -132,5 +131,5 @@ export function admit({ requestBytes, inventoryBytes, planBytes, envelope, trust
     && canonical(plan.cases.map(c => c.name).sort()) === canonical([...CASES].sort()), 'CASE_PLAN_MISSING');
   // Per-case command/receipt absence blocks just that dispatch in live.mjs.
   for (const c of plan.cases) exactKeys(c, ['name', 'command', 'guide_command', 'receipt_id', 'receipt_hash'], 'CASE_PLAN_SHAPE');
-  return { request, inventory, review: r, plan };
+  return { request, inventory, runtimeClosure, review: r, plan };
 }
