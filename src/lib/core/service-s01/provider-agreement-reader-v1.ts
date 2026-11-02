@@ -79,6 +79,28 @@ const withheld = (evaluated_at: string): ProviderAgreementVerificationV1 => ({
   workspace_id:null,provider_party_id:null,provider_agreement_id:null,provider_agreement_version:null,
   valid_from:null,valid_until:null,allowed_service_scope:[],evaluated_at,action_authorization:'not_evaluated',
 });
+/** ISO instants: exact whole seconds plus unrounded decimal fraction. No Date
+ * millisecond conversion. The existing strict ISO validator owns calendar validity.
+ */
+function offeringInstant(value: string) {
+  const parts=/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!timestamp.safeParse(value).success||!parts) throw new CoreS01UnavailableV1('SOURCE_INVARIANT');
+  const [,year,month,day,hour,minute,second,fraction='',zone]=parts;
+  const y=Number(year),m=Number(month);
+  const leap=y%4===0&&(y%100!==0||y%400===0);
+  const months=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+  // Gregorian day ordinal; all arithmetic here is exact bounded integer arithmetic.
+  const days=365*y+Math.floor((y-1)/4)-Math.floor((y-1)/100)+Math.floor((y-1)/400)
+    +months.slice(0,m-1).reduce((a,b)=>a+b,0)+Number(day)-1;
+  const offset=zone==='Z'?0:(Number(zone.slice(1,3))*60+Number(zone.slice(4,6)))*60*(zone[0]==='+'?1:-1);
+  return {seconds:BigInt(days)*86400n+BigInt(Number(hour)*3600+Number(minute)*60+Number(second)-offset),fraction};
+}
+function compareOfferingInstants(left: ReturnType<typeof offeringInstant>, right: ReturnType<typeof offeringInstant>) {
+  if(left.seconds!==right.seconds)return left.seconds<right.seconds?-1:1;
+  const width=Math.max(left.fraction.length,right.fraction.length);
+  const a=left.fraction.padEnd(width,'0'),b=right.fraction.padEnd(width,'0');
+  return a===b?0:a<b?-1:1;
+}
 function sqlState(error: unknown) {
   return typeof error==='object'&&error!==null&&'code' in error ? error.code : undefined;
 }
@@ -191,9 +213,9 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
         clock=observed;
       } catch (error) { if (sqlState(error)==='42501') return withheld(clock.evaluated_at); throw error; }
       if (clock.actor_id!==bound.actor_id||!unchanged()) return withheld(clock.evaluated_at);
-      const finalTime=Date.parse(clock.evaluated_at);
-      if(finalTime<Date.parse(currentDisclosure.valid_from)
-        ||(currentDisclosure.valid_until!==null&&finalTime>=Date.parse(currentDisclosure.valid_until))) return withheld(clock.evaluated_at);
+      const finalTime=offeringInstant(clock.evaluated_at);
+      if(compareOfferingInstants(finalTime,offeringInstant(currentDisclosure.valid_from))<0
+        ||(currentDisclosure.valid_until!==null&&compareOfferingInstants(finalTime,offeringInstant(currentDisclosure.valid_until))>=0)) return withheld(clock.evaluated_at);
       const today=clock.evaluated_at.slice(0,10);
       const status=head.status==='revoked'?'revoked':head.status!=='effective'||row.version!==input.provider_agreement_version
         ||today<row.valid_from||!input.requested_service_scope.every(x=>row.allowed_service_scope.includes(x))?'not_effective'

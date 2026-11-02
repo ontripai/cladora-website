@@ -102,8 +102,8 @@
       "path": "docs/contracts/core-service-s01/platform-proof-request.json",
       "ref": null,
       "bytes": 10091,
-      "sha256": "311a216caa06632ab6a68264144dc37f4ee10aa996417a23cbc10752d47bf667",
-      "git_blob": "3a457d437575d966fbe0441323c505ec9c6709cb"
+      "sha256": "5753afd6c194a1a036cbef94701c814d869fb602a94ef0642c560493d6e0438e",
+      "git_blob": "1613a9a6dd4550bcdbd53c179e584437525078af"
     },
     "send_image": {
       "bytes": 22101,
@@ -193,8 +193,8 @@
     {
       "path": "docs/contracts/core-service-s01/platform-proof-request.json",
       "bytes": 10091,
-      "sha256": "311a216caa06632ab6a68264144dc37f4ee10aa996417a23cbc10752d47bf667",
-      "git_blob": "3a457d437575d966fbe0441323c505ec9c6709cb"
+      "sha256": "5753afd6c194a1a036cbef94701c814d869fb602a94ef0642c560493d6e0438e",
+      "git_blob": "1613a9a6dd4550bcdbd53c179e584437525078af"
     },
     {
       "path": "docs/contracts/core-service-s01/provenance.json",
@@ -222,9 +222,9 @@
     },
     {
       "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
-      "bytes": 31928,
-      "sha256": "4108fa6411747d2f2dd838217739f926c7ded575e6407e37ec68588c28dd61e0",
-      "git_blob": "a622a86948b35924ba8231a2c245813b62be490f"
+      "bytes": 36258,
+      "sha256": "e8b2b23e68866b7734216687efd7be3d6ef7972d3e18e89550735b7dd36ec1cb",
+      "git_blob": "8413b5bed63ddcc8e4eb06551d2f049365e97224"
     },
     {
       "path": "src/lib/core/service-s01/errors-v1.ts",
@@ -240,9 +240,9 @@
     },
     {
       "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
-      "bytes": 17709,
-      "sha256": "9ef53f0b20360d6537373a3ca55606b231ee820d67a561e73d1c7847ad4a6880",
-      "git_blob": "2d90304dd0735d373268f1dcf3e3c5bfa419f011"
+      "bytes": 19239,
+      "sha256": "a51c3bc9e889defd323d159392566303dedeba5fcec394d57bdb27a2f238ed26",
+      "git_blob": "30d265236c85b3a1696115a01d9dd14e06b76bd3"
     },
     {
       "path": "supabase/proposals/core-service-s01/store-proof-v1.sql",
@@ -265,8 +265,89 @@
   ],
   "inventory_seal": {
     "algorithm": "SHA256 sorted-key compact JSON UTF-8 of inventory array",
-    "sha256": "b6298baa1a7b60f1ca9e6a61783aef4b0d3620d47fc5fadc41826010bb338a65",
+    "sha256": "fb36983d2f8e669901093d8648fef5fbfb113b089a63c3ec38a77f968a332837",
     "self_exclusion": "docs/contracts/core-service-s01/closeout-manifest.json",
     "self_identity": "committed Git tree and external delivery manifest"
+  },
+  "time_precision_03": {
+    "task": "CORE-SERVICE-S01-SOURCE-CLOSEOUT-02 / TIME-PRECISION-03",
+    "base": "d13437a81d854ef0c7603cb4aeca97fcdd4999ed",
+    "finding": "TEMPORAL-PRECISION-01 / CORE_FINAL_GUARD",
+    "status": "SOURCE_FIXED_INDEPENDENT_REVIEW_REQUIRED",
+    "scope": "Only final Offering instant guard; exact Gregorian whole seconds and decimal fractions including offsets. No rounding/tolerance/Date conversion. Provider Agreement date-only unchanged.",
+    "service_pin_unchanged": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+    "before": {
+      "clock": "2026-11-02T12:00:00.000100Z",
+      "valid_from": "2026-11-02T12:00:00.000900Z",
+      "actual": "effective",
+      "expected": "withheld",
+      "exact_base_counterexample": "PASS reproduced; exact-start effective control preserved"
+    },
+    "tests": {
+      "predecessor_command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --prove-time-predecessor",
+      "predecessor_controls": 2,
+      "new_precision_command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --time-precision-only",
+      "new_precision_checks": 17,
+      "new_invariant_command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --case 'time: final microsecond path preserves session authority revision and 40001'",
+      "new_invariant_checks": 1,
+      "result": "PASS18/18 new controlled checks; predecessor2/2; limited typecheck/lint/syntax/diff PASS",
+      "old_suites_17_4_9": "NOT_RERUN; previous evidence retained",
+      "real_pg_driver_sql_auth": "NOT_RUN"
+    },
+    "source_delta": [
+      {
+        "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+        "before": {
+          "bytes": 17709,
+          "sha256": "9ef53f0b20360d6537373a3ca55606b231ee820d67a561e73d1c7847ad4a6880",
+          "git_blob": "2d90304dd0735d373268f1dcf3e3c5bfa419f011"
+        },
+        "after": {
+          "bytes": 19239,
+          "sha256": "a51c3bc9e889defd323d159392566303dedeba5fcec394d57bdb27a2f238ed26",
+          "git_blob": "30d265236c85b3a1696115a01d9dd14e06b76bd3"
+        }
+      },
+      {
+        "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+        "before": {
+          "bytes": 31928,
+          "sha256": "4108fa6411747d2f2dd838217739f926c7ded575e6407e37ec68588c28dd61e0",
+          "git_blob": "a622a86948b35924ba8231a2c245813b62be490f"
+        },
+        "after": {
+          "bytes": 36258,
+          "sha256": "e8b2b23e68866b7734216687efd7be3d6ef7972d3e18e89550735b7dd36ec1cb",
+          "git_blob": "8413b5bed63ddcc8e4eb06551d2f049365e97224"
+        }
+      },
+      {
+        "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+        "before": {
+          "bytes": 10091,
+          "sha256": "311a216caa06632ab6a68264144dc37f4ee10aa996417a23cbc10752d47bf667",
+          "git_blob": "3a457d437575d966fbe0441323c505ec9c6709cb"
+        },
+        "after": {
+          "bytes": 10091,
+          "sha256": "5753afd6c194a1a036cbef94701c814d869fb602a94ef0642c560493d6e0438e",
+          "git_blob": "1613a9a6dd4550bcdbd53c179e584437525078af"
+        }
+      },
+      {
+        "path": "docs/contracts/core-service-s01/closeout-manifest.json",
+        "before": {
+          "bytes": 9342,
+          "sha256": "3431720874d973f29d5d1d2d8b5e3c2409c7e1744e03bc7651d668791a2a62c0",
+          "git_blob": "c070c42ab91183bf2ba56d6380c3ba1213705cbf"
+        },
+        "after": "SELF_EXCLUDED: exact identity bound by commit and external delivery manifest"
+      }
+    ],
+    "runtime_binding": null,
+    "not_run": [
+      "SQL/Auth/PG/driver",
+      "install/grant/activation/merge/deploy"
+    ]
   }
 }

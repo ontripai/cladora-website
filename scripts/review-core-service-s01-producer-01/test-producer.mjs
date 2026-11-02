@@ -8,6 +8,8 @@ import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const selectedCase=process.argv.includes('--case')?process.argv[process.argv.indexOf('--case')+1]:null;
+const timeOnly=process.argv.includes('--time-precision-only')||process.argv.includes('--prove-time-predecessor');
+const timePredecessor=process.argv.includes('--prove-time-predecessor');
 const predecessorMode=process.argv.includes('--prove-predecessor');
 const serializationOnly=process.argv.includes('--serialization-integration-only');
 const closeoutOnly=predecessorMode||process.argv.includes('--closeout-only');
@@ -22,7 +24,7 @@ function load(path) {
  path=extname(path)?path:`${path}.ts`;path=resolve(root,path);
  if(cache.has(path))return cache.get(path).exports;
  const relative=path.slice(root.length+1);
- const source=relative==='src/lib/customer/service-offering-disclosure-source-v1.ts'?execFileSync('git',['show',`4c0dcc075797ce8fc08d0e80ddb531370ebfc46f:${relative}`],{cwd:root,encoding:'utf8'}):predecessorMode&&relative==='src/lib/core/service-s01/provider-agreement-reader-v1.ts'?execFileSync('git',['show',`681a3743ff49c48adc00a737d59d2b5a4c848c04:${relative}`],{cwd:root,encoding:'utf8'}):relative.startsWith('src/lib/customer/')?show(relative):readFileSync(path,'utf8');
+ const source=relative==='src/lib/customer/service-offering-disclosure-source-v1.ts'?execFileSync('git',['show',`4c0dcc075797ce8fc08d0e80ddb531370ebfc46f:${relative}`],{cwd:root,encoding:'utf8'}):timePredecessor&&relative==='src/lib/core/service-s01/provider-agreement-reader-v1.ts'?execFileSync('git',['show',`d13437a81d854ef0c7603cb4aeca97fcdd4999ed:${relative}`],{cwd:root,encoding:'utf8'}):predecessorMode&&relative==='src/lib/core/service-s01/provider-agreement-reader-v1.ts'?execFileSync('git',['show',`681a3743ff49c48adc00a737d59d2b5a4c848c04:${relative}`],{cwd:root,encoding:'utf8'}):relative.startsWith('src/lib/customer/')?show(relative):readFileSync(path,'utf8');
  const mod={exports:{}};cache.set(path,mod);
  const compiled=ts.transpileModule(source,{fileName:path,compilerOptions:{module:ts.ModuleKind.CommonJS,
   target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
@@ -94,8 +96,45 @@ function setup() {
   projectServiceOfferingDisclosureSourceV1});
  return {state,scope,authorityRequest,bindings,reader:createCoreS01ProviderAgreementReaderV1(bindings)};
 }
-let count=0;async function check(name,fn){if(selectedCase&&name!==selectedCase)return;if(serializationOnly&&!name.startsWith('serialization:'))return;if(closeoutOnly&&!name.startsWith('closeout:'))return;if(predecessorMode&&!name.startsWith('closeout: last disclosure')&&name!=='closeout: final disclosure allowed control')return;await fn();count++;console.log(`PASS ${name}`);}
+let count=0;async function check(name,fn){if(selectedCase&&name!==selectedCase)return;if(timeOnly&&!name.startsWith('time:'))return;if(timePredecessor&&name!=='time: original microsecond counterexample'&&name!=='time: exact start control')return;if(serializationOnly&&!name.startsWith('serialization:'))return;if(closeoutOnly&&!name.startsWith('closeout:'))return;if(predecessorMode&&!name.startsWith('closeout: last disclosure')&&name!=='closeout: final disclosure allowed control')return;await fn();count++;console.log(`PASS ${name}`);}
 function redacted(answer){assert.equal(answer.agreement_status,'withheld');for(const key of ['tenant_id','workspace_id','provider_party_id','provider_agreement_id','provider_agreement_version','valid_from','valid_until'])assert.equal(answer[key],null);assert.deepEqual(answer.allowed_service_scope,[]);assert.equal(answer.action_authorization,'not_evaluated');}
+async function temporalAnswer(finalTime,from,until=null) {
+ const x=setup();x.state.clock=from==='2026-11-02T12:00:00.000900Z'?'2026-11-02T12:00:00.000100Z':from==='2026-11-02T11:59:58Z'?'2026-11-02T11:59:59.000000Z':'2026-11-02T12:00:01.000000Z';
+ x.state.sourceFault=rows=>{rows.revision.valid_from=from;rows.revision.valid_until=until;};
+ const query=x.scope.query.bind(x.scope);
+ x.scope.query=async(sql,params)=>{const r=await query(sql,params);if(sql===CORE_S01_SQL.final)r.rows[0].evaluated_at=finalTime;return r;};
+ return x.reader(x.scope,input);
+}
+await check('time: original microsecond counterexample',async()=>{
+ const answer=await temporalAnswer('2026-11-02T12:00:00.000100Z','2026-11-02T12:00:00.000900Z');
+ if(timePredecessor){assert.equal(answer.agreement_status,'effective');console.log('COUNTEREXAMPLE exact Base: before start incorrectly effective');}else redacted(answer);
+});
+await check('time: exact start control',async()=>{assert.equal((await temporalAnswer('2026-11-02T12:00:00.000900Z','2026-11-02T12:00:00.000900Z')).agreement_status,'effective');});
+for(const [label,instant,from,until,status] of [
+ ['after start','2026-11-02T12:00:00.000901Z','2026-11-02T12:00:00.000900Z',null,'effective'],
+ ['before exclusive end','2026-11-02T12:00:00.000899Z','2026-11-02T11:59:58Z','2026-11-02T12:00:00.000900Z','effective'],
+ ['exact exclusive end','2026-11-02T12:00:00.000900Z','2026-11-02T11:59:58Z','2026-11-02T12:00:00.000900Z','withheld'],
+ ['after exclusive end','2026-11-02T12:00:00.000901Z','2026-11-02T11:59:58Z','2026-11-02T12:00:00.000900Z','withheld'],
+ ['equivalent positive offset start','2026-11-02T12:00:00.000900Z','2026-11-02T15:30:00.000900+03:30',null,'effective'],
+ ['before offset start','2026-11-02T12:00:00.000100Z','2026-11-02T15:30:00.000900+03:30',null,'withheld'],
+ ['equivalent negative offset end','2026-11-02T12:00:00.000900Z','2026-11-02T11:59:58Z','2026-11-02T08:00:00.000900-04:00','withheld'],
+ ['before offset end','2026-11-02T12:00:00.000899Z','2026-11-02T11:59:58Z','2026-11-02T08:00:00.000900-04:00','effective'],
+ ['equivalent fractional zeros','2026-11-02T12:00:00.000900Z','2026-11-02T12:00:00.0009Z',null,'effective'],
+ ['fraction beyond microseconds preserved','2026-11-02T12:00:00.0009001Z','2026-11-02T12:00:00.0009002Z',null,'withheld'],
+ ['date rollover offset','2026-11-02T12:00:00Z','2026-11-03T01:00:00+13:00',null,'effective'],
+])await check(`time: ${label}`,async()=>{const answer=await temporalAnswer(instant,from,until);if(status==='withheld')redacted(answer);else assert.equal(answer.agreement_status,status);});
+for(const invalid of ['not-a-time','2026-02-30T12:00:00.000100Z','2026-11-02T12:00:00.000100','2026-11-02T12:00:00.000100+00:00'])await check(`time: invalid final clock ${invalid}`,async()=>{await assert.rejects(temporalAnswer(invalid,'2026-11-02T11:59:58Z'),error=>error.code==='SOURCE_UNAVAILABLE');});
+await check('time: final microsecond path preserves session authority revision and 40001',async()=>{
+ for(const fault of ['session','authority','revision','40001']){
+  const x=setup();const query=x.scope.query.bind(x.scope);const driver=Object.assign(Error('controlled serialization'),{code:'40001'});
+  x.scope.query=async(sql,params)=>{
+   if(sql===CORE_S01_SQL.final&&fault==='40001')throw driver;
+   if(sql===CORE_S01_SQL.final&&fault==='session')throw Object.assign(Error('private session'),{code:'42501'});
+   const r=await query(sql,params);if(sql===CORE_S01_SQL.final){r.rows[0].evaluated_at='2026-11-02T12:00:00.000100Z';if(fault==='authority')r.rows[0].allowed=false;if(fault==='revision')r.rows[0].authority_revision='10';}return r;
+  };
+  if(fault==='40001')await assert.rejects(x.reader(x.scope,input),error=>error===driver);else redacted(await x.reader(x.scope,input));
+ }
+});
 await check('default source is inactive',async()=>{assert.equal(CORE_S01_RUNTIME_BINDING,null);const x=setup();x.bindings.source=null;await assert.rejects(createCoreS01ProviderAgreementReaderV1(x.bindings)(x.scope,input),e=>e.code==='SOURCE_NOT_READY');assert.equal(x.state.calls.length,0);});
 await check('real producer reads locked rows, exact tuple and disclosure-only output',async()=>{const x=setup();const result=await x.reader(x.scope,input);assert.equal(result.agreement_status,'effective');assert.equal(result.provider_party_id,ids.party);assert.equal(result.provider_agreement_version,3);assert.equal(result.action_authorization,'not_evaluated');assert.equal(x.state.calls.filter(x=>x.sql===CORE_S01_SQL.head).length,2);assert.ok(x.state.calls.filter(x=>x.sql===CORE_S01_SQL.session).length>=2);});
 for (const [name,mutate,status] of [

@@ -147,9 +147,9 @@
     "producer": {
       "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
       "ref": null,
-      "bytes": 17709,
-      "sha256": "9ef53f0b20360d6537373a3ca55606b231ee820d67a561e73d1c7847ad4a6880",
-      "git_blob": "2d90304dd0735d373268f1dcf3e3c5bfa419f011"
+      "bytes": 19239,
+      "sha256": "a51c3bc9e889defd323d159392566303dedeba5fcec394d57bdb27a2f238ed26",
+      "git_blob": "30d265236c85b3a1696115a01d9dd14e06b76bd3"
     },
     "offering_adapter": {
       "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
@@ -161,9 +161,9 @@
     "controlled_test": {
       "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
       "ref": null,
-      "bytes": 31928,
-      "sha256": "4108fa6411747d2f2dd838217739f926c7ded575e6407e37ec68588c28dd61e0",
-      "git_blob": "a622a86948b35924ba8231a2c245813b62be490f"
+      "bytes": 36258,
+      "sha256": "e8b2b23e68866b7734216687efd7be3d6ef7972d3e18e89550735b7dd36ec1cb",
+      "git_blob": "8413b5bed63ddcc8e4eb06551d2f049365e97224"
     },
     "static_test": {
       "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
