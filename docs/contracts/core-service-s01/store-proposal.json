@@ -1,34 +1,85 @@
 {
-  "contract": "core-provider-agreement-store-proposal.v1",
-  "status": "PROPOSAL_ONLY_NOT_ACCEPTED_NOT_INSTALLED",
+  "contract": "core-provider-agreement-store.v1",
+  "status": "INACTIVE_DESIGN_ACCEPTED_SOURCE_IMPLEMENTED_NOT_INSTALLED",
   "owner": "Core",
   "runtime_binding": null,
   "execution_authorized": false,
-  "existing_sources": ["portfolio.parties", "platform.customer_workspaces", "platform.tenants"],
+  "existing_sources": [
+    "portfolio.parties",
+    "platform.customer_workspaces",
+    "platform.tenants"
+  ],
   "proposed_objects": {
     "platform.provider_agreement_heads_v1": {
-      "columns": {"id": "uuid primary key", "tenant_id": "uuid not null -> platform.tenants(id) RESTRICT", "workspace_id": "uuid not null -> platform.customer_workspaces(id) RESTRICT", "provider_party_id": "uuid not null -> portfolio.parties(id) RESTRICT", "current_version": "integer positive", "revision": "bigint positive safe-integer at TS boundary", "status": "effective | revoked | suspended"},
-      "unique": ["id,tenant_id,workspace_id,provider_party_id"],
+      "columns": {
+        "id": "uuid primary key",
+        "tenant_id": "uuid not null -> platform.tenants(id) RESTRICT",
+        "workspace_id": "uuid not null -> platform.customer_workspaces(id) RESTRICT",
+        "provider_party_id": "uuid not null -> portfolio.parties(id) RESTRICT",
+        "current_version": "integer positive",
+        "revision": "bigint positive safe-integer at TS boundary",
+        "status": "effective | revoked | suspended"
+      },
+      "unique": [
+        "id,tenant_id,workspace_id,provider_party_id"
+      ],
       "current_version_fk": "(id,current_version) -> provider_agreement_versions_v1(agreement_id,version); DEFERRABLE INITIALLY DEFERRED; proposal only"
     },
     "platform.provider_agreement_versions_v1": {
-      "columns": {"agreement_id": "uuid not null", "tenant_id": "uuid not null", "workspace_id": "uuid not null", "provider_party_id": "uuid not null", "version": "integer positive", "valid_from": "date not null", "valid_until": "date nullable", "allowed_service_scope": "text[] nonempty unique bounded64 canonical codes"},
+      "columns": {
+        "agreement_id": "uuid not null",
+        "tenant_id": "uuid not null",
+        "workspace_id": "uuid not null",
+        "provider_party_id": "uuid not null",
+        "version": "integer positive",
+        "valid_from": "date not null",
+        "valid_until": "date nullable",
+        "allowed_service_scope": "text[] nonempty unique bounded64 canonical codes"
+      },
       "primary_key": "agreement_id,version",
       "head_fk": "(agreement_id,tenant_id,workspace_id,provider_party_id) -> heads(id,tenant_id,workspace_id,provider_party_id) RESTRICT",
       "immutable": "No UPDATE/DELETE; corrections append a new version and atomically move head under writer lock",
       "date_constraint": "valid_until is null or valid_until > valid_from"
     }
   },
-  "tenant_guard_requirement": "Existing parent PKs alone do not prove matching tenant. Before acceptance, an actual Core-owned constraint-trigger/writer must verify Workspace and party tenant against canonical parents, lock them, and reject mismatch; no placeholder function is supplied or claimed installed.",
-  "writer_protocol_requirement": "All agreement/version/scope/date/status/revoke writers must lock the same agreement head FOR UPDATE, preserve immutable version rows and bump head revision atomically. Party/Workspace invalidators must participate in the same canonical lock/revision protocol. Writer implementation and lock-order/admission proof remain separate gates; no reader-created or repaired rows.",
-  "reader_lock_order_proposal": ["existing Core host locks and authority revision SHARE", "agreement head SHARE", "current immutable agreement version SHARE", "canonical provider party SHARE", "canonical Workspace SHARE", "head equality reread", "fresh canonical session/authority/disclosure recheck", "fresh server clock and response"],
-  "lock_order_status": "NOT_FROZEN_PENDING_ALL_WRITER_REVIEW",
-  "date_policy_proposal": "UTC calendar date; start inclusive, end exclusive; read clock from server after waits. This is a new proposal because the existing date ABI does not specify timezone/end-day semantics; do not silently import Maintenance inclusive ends_on or subscription policies.",
-  "version_policy": "Reader compares requested version to canonical head current version. Disclosable mismatch returns not_effective with actual current version; SERVICE maps version mismatch to conflict. Withheld never reveals a version. Head revision tracks revoke/scope/status currentness and is not substituted for agreement content version.",
-  "acl_proposal": "Closed new objects, no public/anon/authenticated/service_role positive rights or schema exposure. Explicit OC1 closure in creation transaction; no default privileges mutation. Reviewed Core server reader principal/owner needed before any installation; no assumed postgres/superuser/provider grant.",
-  "rls_proposal": "New tables require enabled+forced RLS and reviewed exact reader/writer policies. None is installed or replaced by an always-allow policy. No product evaluator changes.",
+  "tenant_guard_requirement": "IMPLEMENTED: additive UNIQUE(id,tenant_id) on actual canonical party/Workspace parents, enforced composite FKs with RESTRICT; no placeholder or PK-only tenant inference.",
+  "writer_protocol_requirement": "IMPLEMENTED: private invoker writer create/append_version/suspend/revoke; expected revision, same head FOR UPDATE, immutable version row/truncate guards and deferred publication-link constraint. No public writer grant/endpoint. Actual all-writer/native profile proof still NOT_RUN.",
+  "reader_lock_order_proposal": [
+    "existing Core host/canonical authority revision barrier",
+    "SERVICE Offering/revision/definition/provider source locks by exact pinned owner projector",
+    "canonical party SHARE",
+    "canonical Workspace SHARE",
+    "agreement head SHARE (writer UPDATE)",
+    "immutable current version SHARE",
+    "head identity reread",
+    "same pinned SERVICE source refresh",
+    "fresh canonical/session/transaction/date observation"
+  ],
+  "lock_order_status": "S01_SCOPED_SOURCE_ORDER_DEFINED_NATIVE_PARTICIPATION_PROOF_OPEN",
+  "date_policy_proposal": "CLOSED_OWNER_DESIGN: operational-v1 UTC date start-inclusive/end-exclusive, null=no end; no existing legal/financial date reinterpretation.",
+  "version_policy": "Disclosure requires exact Offering-bound requested/current agreement version. A different head version is withheld; never reveal a new version outside the source-bound disclosure grant. Historical Base behavior is superseded by decision49.",
+  "acl_proposal": "IMPLEMENTED closed explicit table/function revokes, forced RLS/default deny, owner/path/effective ACL/default snapshot assertions; no policies/positive runtime grants/default ACL mutation. Owner/profile/native proof open.",
+  "rls_proposal": "IMPLEMENTED ENABLE+FORCE on both tables, zero policies (deny-default). Privileged isolated store proof is not hosted-principal acceptance; no RLS escape introduced.",
   "decisions": [
-    {"id": "S01-D01", "owner": "coordinator + Core", "topic": "Accept minimum canonical store/version/revoke/writer protocol and its future inactive DDL review; canonical persistence currently absent"},
-    {"id": "S01-D02", "owner": "product/coordinator + Core/SERVICE security", "topic": "Exact disclosure policy for provider agreement metadata under services.orders.request, plus UTC/exclusive date semantics or explicit alternative. Request action permission alone does not authorize this disclosure."}
-  ]
+    {
+      "id": "S01-D01",
+      "status": "CLOSED_OWNER_DESIGN",
+      "runtime_status": "NOT_INSTALLED_NOT_PROVEN"
+    },
+    {
+      "id": "S01-D02",
+      "status": "CLOSED_OWNER_DESIGN",
+      "source_contract": "service-offering-disclosure-source.v1",
+      "source_commit": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+      "runtime_status": "NULL_BINDING_NATIVE_PROOF_OPEN"
+    }
+  ],
+  "decision_reference": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6574525414",
+  "implementation": {
+    "path": "supabase/proposals/core-service-s01/store-v1.sql",
+    "ref": null,
+    "bytes": 16397,
+    "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+    "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
+  }
 }

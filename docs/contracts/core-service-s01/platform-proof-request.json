@@ -1,97 +1,231 @@
 {
-  "format": "CORE_SERVICE_S01_PROOF_REQUEST_01",
-  "task": "CORE-SERVICE-S01-PRODUCER-01",
-  "stage": "controlled_source_connection_only",
-  "status": "SOURCE_REVIEW_REQUIRED_EXECUTION_HOLD",
+  "format": "CORE_SERVICE_S01_CLOSEOUT_PROOF_REQUEST_02",
+  "task": "CORE-SERVICE-S01-SOURCE-CLOSEOUT-02",
+  "base": "681a3743ff49c48adc00a737d59d2b5a4c848c04",
+  "status": "SOURCE_REQUEST_REVIEW_REQUIRED_EXECUTION_HOLD",
   "execution_authorized": false,
+  "target": "new owned disposable PG17 canonical-parent-definition profile ONLY; never hosted/staging/Production",
   "bindings": {
     "coordinator_review": null,
-    "platform_profile_sha256": null,
-    "core_commit": null,
-    "disposable_attempt": null
+    "platform_adapter": null,
+    "profile_hash": null,
+    "source_child": null,
+    "run_attempt": null,
+    "database_system_id": null
   },
-  "source_refs": {
-    "base": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
-    "consumer": "37af00f76390d8973bbc7eb529a76aa27fe1f254"
-  },
-  "entrypoint": {
-    "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+  "definition": {
+    "path": "supabase/proposals/core-service-s01/store-v1.sql",
     "ref": null,
-    "bytes": 16371,
-    "sha256": "fc3f26bfc9492f6837eaa569052aff26266b5e659648b82dacb0b72fc35e5899",
-    "git_blob": "ec70ce66ecbefb43a732f8e0e16a57e2b5e8788c"
+    "bytes": 16397,
+    "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+    "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
   },
-  "producer": {
-    "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+  "fixture": {
+    "path": "supabase/proposals/core-service-s01/store-proof-v1.sql",
     "ref": null,
-    "bytes": 13883,
-    "sha256": "1df58000cf0b169e138e39e453ad435b8829c9184e2e1bfc9f46a3531dc41979",
-    "git_blob": "136b35388d8ffc3d33621444853d82f9b84a7f5a"
+    "bytes": 5703,
+    "sha256": "420cf84d33e2d6129158db90a225d92bd8b10bc6d2da9815d5f1a2b71a77e286",
+    "git_blob": "f81ab8c310e47f79d3a46dbac7bdf23477ce3cf5"
   },
-  "store_proposal": {
-    "path": "docs/contracts/core-service-s01/store-proposal.json",
+  "observer": {
+    "path": "supabase/proposals/core-service-s01/verify-clean-v1.sql",
     "ref": null,
-    "bytes": 4547,
-    "sha256": "1ca1d67e8ae6fe0f81958a8bd0bf7afb65b6ef68e2464ed22e1b2cc6ffd267c6",
-    "git_blob": "59bdbd5fa51bcd8b6ebdfdb6349882726b70e85d"
+    "bytes": 1783,
+    "sha256": "2615d7c526110b97b881279951dfc05e2395abf0bf240027c5ee090d18e05ac4",
+    "git_blob": "027bfd3309a71f45404f539a440ff1b2aa547c30"
   },
-  "toolchain": {
-    "lock": {
-      "path": "package-lock.json",
-      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
-      "bytes": 285183,
-      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
-      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
-    },
-    "next": "16.4.1",
-    "zod": "4.6.6",
-    "typescript": "5.9.3",
-    "node": "22+ (reported local24.19.0)"
+  "composer": {
+    "path": "scripts/review-core-service-s01-producer-01/compose-proof.mjs",
+    "ref": null,
+    "bytes": 1481,
+    "sha256": "fa7f29926d8c5240ae8d386561e0d748dab3f95bbfd3f5f5ece69b4c8cbda720",
+    "git_blob": "6f413d553d86bc34eabc2a1dd147bdaf314fe01d"
   },
-  "invocation": {
-    "executable": "node",
-    "argv": [
-      "scripts/review-core-service-s01-producer-01/test-producer.mjs"
+  "send_image": {
+    "bytes": 22101,
+    "sha256": "8cad2dcbcbfeaf9556606a5088ed4d1304dd692f0578b410393219500b18bbaf",
+    "git_blob": "250580f0eb99c4590e0908ac6fcbae59f9246e94",
+    "rebuild": "compose-proof.mjs: insert fixture at unique explicit marker; remove no statement or guard; one final ROLLBACK"
+  },
+  "baseline": {
+    "canonical_parent_statements": [
+      {
+        "object": "platform.tenants",
+        "source": {
+          "path": "supabase/migrations/20260825000100_platform_tenants_settings_outbox.sql",
+          "ref": "681a3743ff49c48adc00a737d59d2b5a4c848c04",
+          "bytes": 3577,
+          "sha256": "3b319718248d45960d4cf3500a4cd47adf01a18daad5156ed5412e3138fc5c8e",
+          "git_blob": "25a71f79f7c6bb47306d9e301989f5c82c3f2963"
+        },
+        "statement": {
+          "offset": 8,
+          "bytes": 526,
+          "sha256": "b7e5731ce9e8189f3094e24d6b2aa700c4cdaf4b7cf6c68affceee77c13642ac",
+          "git_blob": "c1a58e992844cc0c4c6e74a2a99d055bc20f2039"
+        }
+      },
+      {
+        "object": "platform.customer_workspaces",
+        "source": {
+          "path": "supabase/migrations/20260825002300_customer_workspaces_assignments_lifecycle.sql",
+          "ref": "681a3743ff49c48adc00a737d59d2b5a4c848c04",
+          "bytes": 20867,
+          "sha256": "63f5e2d9aeecaf8f7e2ea062fe725eaa8c6ceb91c03dbd18ad11968cf9662d10",
+          "git_blob": "87bab7dbc54298b1548161b0d9fd984df24a2101"
+        },
+        "statement": {
+          "offset": 429,
+          "bytes": 708,
+          "sha256": "9d43632ab9bd40ac1f3e7b1ddc81f6ceacde60be76e79395983157849fe9d0e5",
+          "git_blob": "eec8e77520a8beac4f12fcd180a98123161598de"
+        }
+      },
+      {
+        "object": "portfolio.parties",
+        "source": {
+          "path": "supabase/migrations/20260825000300_portfolio_properties_buildings_units.sql",
+          "ref": "681a3743ff49c48adc00a737d59d2b5a4c848c04",
+          "bytes": 7862,
+          "sha256": "53e3f36a9656a2a16b686ee8eb830cfae49f6297f14820b5199630db97cf65a4",
+          "git_blob": "e4ab67394613f0be3d645b27f71bbd8807ff12ca"
+        },
+        "statement": {
+          "offset": 2867,
+          "bytes": 444,
+          "sha256": "e3d2f110b075a396f6c4bd26f9b268882e3c632cf18577c812eda1c66484100d",
+          "git_blob": "97274a4cd31930546bf5a259f72df4819a36410e"
+        }
+      }
     ],
-    "working_directory": "exact Core child tree, with the official consumer commit available as a local read-only Git object"
+    "requirements": [
+      "PG17, existing platform/portfolio/app_private schemas and actual parent types/defaults/constraints matching official pins",
+      "ordinary anon/authenticated/service_role exist with reviewed attributes; no role creation by capsule",
+      "postgres bootstrap owns parents and has schema CREATE/parent ALTER; no SET or role graph change",
+      "lab fixture principal explicitly superuser or BYPASSRLS to exercise forced-RLS closed metadata; not a target-role inference",
+      "no preexisting S01 objects, source name/type/index collisions or fixture IDs; fail if parents have non-FK user triggers",
+      "no stub parent/provider/Auth/evaluator functions; no baseline/all-migration replay"
+    ]
   },
-  "allowed_effects": {
-    "sql": false,
-    "auth": false,
-    "network": false,
-    "domain_writes": false,
-    "grants": false,
-    "activation": false,
-    "source_changes": false
-  },
-  "expected": {
-    "controlled_cases": 30,
-    "status": "CONTROLLED_SOURCE_CONNECTION_PASS",
-    "consumer": "37af00f76390d8973bbc7eb529a76aa27fe1f254",
-    "sql": "NOT_RUN",
-    "runtime_binding": null
-  },
-  "proof_boundaries": [
-    "Real Core producer + unchanged actual SERVICE preflight/transactional provider code, controlled query transport and rows only",
-    "No real SQL/session/currentness/concurrency/COMMIT proof",
-    "No arbitrary --exec; external exact-source/request/profile admission is mandatory"
+  "order": [
+    "review exact source/profile/admission",
+    "private same-instance baseline/protected/default snapshot",
+    "single composed definition+fixture send image",
+    "validate assertion marker then same-backend ROLLBACK CommandComplete+ReadyForQuery I",
+    "observer exact zero fixture/new-object/support-constraint residue and baseline equality",
+    "Platform owned-resource cleanup acknowledgement"
   ],
-  "native_pg_request": {
-    "status": "BLOCKED_NOT_GENERATED",
-    "payload": null,
-    "reason": "Canonical store and disclosure/date policy not accepted; do not invent a SQL fixture/installed provider or borrow a domain registry",
-    "required": [
-      "Accepted Core store DDL/tenant/immutability/ACL/RLS/writer lock protocol",
-      "Accepted exact disclosure mapping and date policy",
-      "Accepted host/session helper installed identity and real server scope binding",
-      "Bounded new synthetic fixture with actual consumed rows under one final-ROLLBACK transaction; two-connection revoke/wait/expiry/40001 lane separately admitted"
+  "allowed_effects": {
+    "new_tables": [
+      "platform.provider_agreement_heads_v1",
+      "platform.provider_agreement_versions_v1"
     ],
-    "future_cases": [
-      "after-lock membership/session revoke, agreement head revoke/version/scope drift",
-      "cross-tenant/Workspace/party and no identifier disclosure",
-      "exact day boundary and wait-crossing expiry",
-      "source privilege/cardinality failure remains unavailable",
-      "no mutation/audit/outbox/receipt by reader; positive backend settlement before any consumer publication"
+    "canonical_parent_support_constraints": [
+      "portfolio.parties.core_s01_party_tenant_key_v1",
+      "platform.customer_workspaces.core_s01_workspace_tenant_key_v1"
+    ],
+    "synthetic_parent_rows": {
+      "tenants": 2,
+      "workspaces": 2,
+      "parties": 2
+    },
+    "fixture_agreements": 1,
+    "fixture_versions": 2,
+    "new_functions": 4,
+    "new_triggers": 5,
+    "generated_indexes_types_toast": "derived from new exact table definitions; resolve ownership/identity from admitted PG catalog, not guessed OIDs",
+    "grants": 0,
+    "roles": 0,
+    "auth_sessions": 0,
+    "domain_commands_receipts_audit_outbox": 0,
+    "default_acl_delta": 0,
+    "activation": false,
+    "commit": false,
+    "all_effects_rollback_local": true
+  },
+  "required_source_checks": {
+    "producer": {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "ref": null,
+      "bytes": 17709,
+      "sha256": "9ef53f0b20360d6537373a3ca55606b231ee820d67a561e73d1c7847ad4a6880",
+      "git_blob": "2d90304dd0735d373268f1dcf3e3c5bfa419f011"
+    },
+    "offering_adapter": {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "ref": null,
+      "bytes": 7031,
+      "sha256": "70b751253b64d9571b98e44cfaeee63ba8bce9769d5b82fa100a014f4c870e27",
+      "git_blob": "3147810b2325e8d58e2be1b1933acd3bceda9b19"
+    },
+    "controlled_test": {
+      "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+      "ref": null,
+      "bytes": 31928,
+      "sha256": "4108fa6411747d2f2dd838217739f926c7ded575e6407e37ec68588c28dd61e0",
+      "git_blob": "a622a86948b35924ba8231a2c245813b62be490f"
+    },
+    "static_test": {
+      "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
+      "ref": null,
+      "bytes": 5493,
+      "sha256": "c352b6e2a948633c18710cba04bd620b946c5f45eb39d4dfea1911fbcf6b64d2",
+      "git_blob": "44dadb6a7fcfcff49318601c51073a3ac407075a"
+    },
+    "offering_dependency": {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "ref": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+      "bytes": 18448,
+      "sha256": "b450d50f1dcac9bb83b5d29c9984cc2646b20093485e93252d6bacca1297cbaf",
+      "git_blob": "894aa9ce5428d7c4215acb959ff18851dcca721d"
+    },
+    "exact_lock_sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc"
+  },
+  "expected": [
+    "actual composite tenant FKs reject parent tenant retarget with23503",
+    "create+append versions and monotone revision; stale revision40001; immutable update/delete/truncate55000",
+    "unpublished version deferred link55000; revoke blocks further append42501",
+    "no RLS policy or runtime grant/default mutation; source owner/path assertions",
+    "exact marker is not settlement; positive rollback ACK+observer residue+protected baseline+cleanup all required"
+  ],
+  "unknown": "STOP UNKNOWN on timeout/cancel/loss/mismatch; preserve first error; no blind retry or alternate target",
+  "source_successor_requirement": {
+    "finding": "SVS01-SQLSTATE-01",
+    "reviewed_fullsha": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+    "required_paths": [
+      "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "src/lib/customer/service-v14-execution/application-flow.ts",
+      "src/lib/customer/service-v14-execution/provider-binding.ts"
+    ],
+    "rule": "preserve original40001 to the existing Core host; preflight and transactional catches must not retag it; no new retry engine",
+    "status": "CLOSED_SOURCE_COUPLING_NOT_NATIVE",
+    "controlled_coupling": {
+      "checks": 4,
+      "result": "PASS",
+      "lanes": [
+        "preflight",
+        "transactional",
+        "replay",
+        "existing host bounded attempts"
+      ],
+      "sql": "NOT_RUN"
+    }
+  },
+  "proof_scope": "store DDL/writer constraints only; no SQL/Auth executed now; does not prove live SERVICE metadata, managed session currentness, host COMMIT, all writer concurrency, native install or S3/S4/G2",
+  "native_reader_source_request": {
+    "offering_proof_owner": "SERVICE",
+    "source_request": {
+      "path": "supabase/hosted-service-v14-execution/s01-offering-source-native-proof.json",
+      "ref": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+      "bytes": 1896,
+      "sha256": "839c055ec4c4b84ab869bdd0a2429276a188bbab73e2aa9b7fc61cb08f2f91bd",
+      "git_blob": "3710980ab4b458d15612f4e0e518029595c28ce9"
+    },
+    "runtime_binding": null,
+    "remaining": [
+      "actual installed SOURCE schema/rights for existing Core session/authority and SERVICE V14 metadata",
+      "live server scope/request capture without a synthesized lock receipt",
+      "two-connection session/revoke/expiry/40001 and all-writer barrier/lock-order review; no claim from controlled rows"
     ]
   }
 }

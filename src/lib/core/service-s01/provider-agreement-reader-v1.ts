@@ -1,5 +1,8 @@
 /** Inactive Core-owned source proposal. No route, RPC, grant or runtime binding. */
 import {z} from 'zod';
+import {CoreS01UnavailableV1} from './errors-v1.ts';
+import type {CoreS01OfferingDisclosurePolicyV1} from './offering-disclosure-policy-v1.ts';
+export {CoreS01UnavailableV1} from './errors-v1.ts';
 import {
   providerAgreementVerificationV1InputSchema,
   providerAgreementVerificationV1Schema,
@@ -21,6 +24,18 @@ export const CORE_S01_SQL = Object.freeze({
     current_setting('transaction_isolation') as isolation,
     to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as evaluated_at`,
   session: 'select app_private.require_request_session_current_at_v1(clock_timestamp())',
+  final: `select * from (with allowed as materialized (select
+      app_private.check_workspace_native_permission_v2($1::uuid,$2::uuid,$3::text,$4::text) as allowed),
+    checked as materialized (select allowed,
+      app_private.require_request_session_current_at_v1(clock_timestamp()) as session_guard from allowed)
+    select txid_current()::text as database_transaction_id,auth.uid()::text as actor_id,
+      current_setting('transaction_isolation') as isolation,
+      to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as evaluated_at,
+      allowed,session_guard,(select revision::text from app_private.canonical_authority_revision_v1 where singleton) as authority_revision
+    from checked) as final_observation`,
+  discover: `select id::text,tenant_id::text,workspace_id::text,provider_party_id::text,
+    current_version,revision,status from platform.provider_agreement_heads_v1
+    where id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid`,
   head: `select id::text,tenant_id::text,workspace_id::text,provider_party_id::text,
     current_version,revision,status from platform.provider_agreement_heads_v1
     where id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid for share`,
@@ -53,17 +68,11 @@ const clockSchema = z.strictObject({database_transaction_id: z.string().regex(/^
  * The proposed date/disclosure policies require independent acceptance, not this type.
  */
 export interface CoreS01BindingsV1 {
-  source: null | {contract: 'core-provider-agreement-store-proposal.v1';
-    date_policy: 'utc_start_inclusive_end_exclusive.proposal.v1'};
+  source: null | {contract: 'core-provider-agreement-store.v1';
+    date_policy: 'utc_start_inclusive_end_exclusive.operational.v1'};
   authorityRequestFor(scope: CoreTransactionScopeV1, input: ProviderAgreementVerificationV1Input):
     CurrentAuthorityTransactionRequestV1;
-  canDisclose(scope: CoreTransactionScopeV1, input: ProviderAgreementVerificationV1Input):
-    Promise<'disclose'|'withhold'>;
-}
-export class CoreS01UnavailableV1 extends Error {
-  constructor(readonly code: 'SOURCE_NOT_READY'|'INVALID_INPUT'|'SOURCE_UNAVAILABLE'|'SOURCE_INVARIANT') {
-    super(code);this.name='CoreS01UnavailableV1';
-  }
+  offeringPolicy: CoreS01OfferingDisclosurePolicyV1;
 }
 const withheld = (evaluated_at: string): ProviderAgreementVerificationV1 => ({
   contract_version:'provider-agreement-verification.v1',agreement_status:'withheld',tenant_id:null,
@@ -88,8 +97,8 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
     }
     const input=structuredClone(parsed.data);
     Object.freeze(input.requested_service_scope);Object.freeze(input);
-    if (source?.contract!=='core-provider-agreement-store-proposal.v1'
-      ||source.date_policy!=='utc_start_inclusive_end_exclusive.proposal.v1') {
+    if (source?.contract!=='core-provider-agreement-store.v1'
+      ||source.date_policy!=='utc_start_inclusive_end_exclusive.operational.v1') {
       throw new CoreS01UnavailableV1('SOURCE_NOT_READY');
     }
     // S01 only: no publication, Finance, booking or resource-specific authority.
@@ -124,18 +133,28 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
       };
       try { if (!await authority()) return withheld(clock.evaluated_at); }
       catch (error) { if (sqlState(error)==='42501'||(error instanceof CoreAuthorityProviderUnavailableV1 && ['ACTOR_REVOKED','ACTOR_BINDING_MISMATCH','AUTHORITY_NOT_FOUND','AUTHORITY_DENIED','CROSS_WORKSPACE'].includes(error.code))) return withheld(clock.evaluated_at); throw error; }
-      if (await bindings.canDisclose(scope,input)!=='disclose') return withheld(clock.evaluated_at);
+      const disclosure=await bindings.offeringPolicy.readAndCheck(scope,input);
+      if (disclosure.status!=='disclose') return withheld(clock.evaluated_at);
       const params=[input.provider_agreement_id,bound.tenant_id,bound.workspace_id];
+      const discovery=await scope.query(CORE_S01_SQL.discover,params);
+      if (discovery.rowCount===0&&discovery.rows.length===0) return withheld((await readClock()).evaluated_at);
+      if (discovery.rowCount!==1||discovery.rows.length!==1) throw new CoreS01UnavailableV1('SOURCE_INVARIANT');
+      const candidate=headSchema.parse(discovery.rows[0]);
+      if(candidate.current_version!==input.provider_agreement_version)return withheld((await readClock()).evaluated_at);
+      if (candidate.id!==input.provider_agreement_id||candidate.tenant_id!==bound.tenant_id||candidate.workspace_id!==bound.workspace_id) return withheld((await readClock()).evaluated_at);
+      // Global order within S01: canonical party -> Workspace -> head -> version.
+      const parties=await scope.query(CORE_S01_SQL.party,[candidate.provider_party_id,bound.tenant_id]);
+      const workspaces=await scope.query(CORE_S01_SQL.workspace,[bound.workspace_id,bound.tenant_id]);
       const heads=await scope.query(CORE_S01_SQL.head,params);
       if (heads.rowCount===0&&heads.rows.length===0) return withheld((await readClock()).evaluated_at);
       if (heads.rowCount!==1||heads.rows.length!==1) throw new CoreS01UnavailableV1('SOURCE_INVARIANT');
       const head=headSchema.parse(heads.rows[0]);
+      if(head.provider_party_id!==disclosure.provider_party_id)return withheld((await readClock()).evaluated_at);
+      if (JSON.stringify(head)!==JSON.stringify(candidate)) return withheld((await readClock()).evaluated_at);
       if (head.id!==input.provider_agreement_id||head.tenant_id!==bound.tenant_id||head.workspace_id!==bound.workspace_id) {
         return withheld((await readClock()).evaluated_at);
       }
       const versions=await scope.query(CORE_S01_SQL.version,[...params,head.current_version]);
-      const parties=await scope.query(CORE_S01_SQL.party,[head.provider_party_id,bound.tenant_id]);
-      const workspaces=await scope.query(CORE_S01_SQL.workspace,[bound.workspace_id,bound.tenant_id]);
       if ([versions,parties,workspaces].some(x=>x.rowCount!==1||x.rows.length!==1)) throw new CoreS01UnavailableV1('SOURCE_INVARIANT');
       const row=rowSchema.parse(versions.rows[0]);const party=identitySchema.parse(parties.rows[0]);
       const workspace=identitySchema.parse(workspaces.rows[0]);
@@ -148,16 +167,33 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
       clock=await readClock();
       try { if (!await authority()) return withheld(clock.evaluated_at); }
       catch (error) { if (sqlState(error)==='42501'||(error instanceof CoreAuthorityProviderUnavailableV1 && ['ACTOR_REVOKED','ACTOR_BINDING_MISMATCH','AUTHORITY_NOT_FOUND','AUTHORITY_DENIED','CROSS_WORKSPACE'].includes(error.code))) return withheld(clock.evaluated_at); throw error; }
-      if (clock.actor_id!==bound.actor_id||!unchanged()||await bindings.canDisclose(scope,input)!=='disclose') {
+      const currentDisclosure=await bindings.offeringPolicy.readAndCheck(scope,input);
+      if (clock.actor_id!==bound.actor_id||!unchanged()||currentDisclosure.status!=='disclose'
+        ||currentDisclosure.provider_party_id!==disclosure.provider_party_id
+        ||currentDisclosure.offering_id!==disclosure.offering_id||currentDisclosure.revision_id!==disclosure.revision_id) {
         return withheld(clock.evaluated_at);
       }
       if (row.agreement_id!==head.id||row.tenant_id!==bound.tenant_id||row.workspace_id!==bound.workspace_id
         ||row.provider_party_id!==head.provider_party_id||row.version!==head.current_version
         ||party.id!==head.provider_party_id||party.tenant_id!==bound.tenant_id||!party.current
         ||workspace.id!==bound.workspace_id||workspace.tenant_id!==bound.tenant_id||!workspace.current) return withheld(clock.evaluated_at);
-      // Authority/disclosure calls may themselves wait: evaluate dates on a later server clock.
-      clock=await readClock();
+      // The final disclosure/source wait invalidates all earlier allows. Reuse the
+      // canonical provider+binding, then one same-scope canonical/session/date observation.
+      try { if (!await authority()) return withheld(clock.evaluated_at); }
+      catch (error) { if (sqlState(error)==='42501'||(error instanceof CoreAuthorityProviderUnavailableV1 && ['ACTOR_REVOKED','ACTOR_BINDING_MISMATCH','AUTHORITY_NOT_FOUND','AUTHORITY_DENIED','CROSS_WORKSPACE'].includes(error.code))) return withheld(clock.evaluated_at); throw error; }
+      try {
+        const final=await scope.query(CORE_S01_SQL.final,[input.context_id,bound.workspace_id,input.permission_code,'services_orders']);
+        if (final.rowCount!==1||final.rows.length!==1) throw new CoreS01UnavailableV1('SOURCE_INVARIANT');
+        const observed=clockSchema.extend({allowed:z.boolean(),session_guard:z.unknown(),authority_revision:z.string().regex(/^\d+$/)}).parse(final.rows[0]);
+        if (!Object.hasOwn(final.rows[0],'session_guard')||observed.allowed!==true
+          ||observed.authority_revision!==String(request.authority_version)
+          ||observed.database_transaction_id!==bound.database_transaction_id) return withheld(observed.evaluated_at);
+        clock=observed;
+      } catch (error) { if (sqlState(error)==='42501') return withheld(clock.evaluated_at); throw error; }
       if (clock.actor_id!==bound.actor_id||!unchanged()) return withheld(clock.evaluated_at);
+      const finalTime=Date.parse(clock.evaluated_at);
+      if(finalTime<Date.parse(currentDisclosure.valid_from)
+        ||(currentDisclosure.valid_until!==null&&finalTime>=Date.parse(currentDisclosure.valid_until))) return withheld(clock.evaluated_at);
       const today=clock.evaluated_at.slice(0,10);
       const status=head.status==='revoked'?'revoked':head.status!=='effective'||row.version!==input.provider_agreement_version
         ||today<row.valid_from||!input.requested_service_scope.every(x=>row.allowed_service_scope.includes(x))?'not_effective'
@@ -166,9 +202,10 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
         contract_version:'provider-agreement-verification.v1',agreement_status:status,tenant_id:bound.tenant_id,
         workspace_id:bound.workspace_id,provider_party_id:row.provider_party_id,provider_agreement_id:row.agreement_id,
         provider_agreement_version:row.version,valid_from:row.valid_from,valid_until:row.valid_until,
-        allowed_service_scope:row.allowed_service_scope,evaluated_at:clock.evaluated_at,action_authorization:'not_evaluated',
+        allowed_service_scope:row.allowed_service_scope.filter(x=>input.requested_service_scope.includes(x)),evaluated_at:clock.evaluated_at,action_authorization:'not_evaluated',
       });
     } catch (error) {
+      if (sqlState(error)==='40001') throw error; // Existing host owns fresh-attempt retry.
       if (error instanceof CoreS01UnavailableV1) throw error;
       // No exception detail/SQL/row leakage; timeout/cancel is never successful data.
       throw new CoreS01UnavailableV1('SOURCE_UNAVAILABLE');

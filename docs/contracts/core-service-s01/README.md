@@ -1,3 +1,5 @@
+> Historical predecessor report below. Current closeout and approved design decisions: [SOURCE-CLOSEOUT-02.md](SOURCE-CLOSEOUT-02.md). Runtime remains NULL; use its affected-only test commands.
+
 # CORE-SERVICE-S01-PRODUCER-01
 
 Status: **MINIMUM_INACTIVE_SOURCE_PROPOSAL_DELIVERED / S01_NATIVE_NOT_READY**.
