@@ -33,6 +33,26 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
   const [activeDropdown, setActiveDropdown] = useState<'solutions' | 'services' | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const solutionsBtnRef = useRef<HTMLButtonElement>(null);
+  const servicesBtnRef = useRef<HTMLButtonElement>(null);
+  const mobileToggleBtnRef = useRef<HTMLButtonElement>(null);
+
+  // Helper to determine whether an element is connected and visible in the layout (PUBLIC-BR-01)
+  const isElementVisible = (el: HTMLElement | null): boolean => {
+    if (!el || !el.isConnected) return false;
+    if (el.hasAttribute('hidden')) return false;
+    // Check responsive breakpoint visibility
+    if (typeof window !== 'undefined') {
+      const isDesktop = window.innerWidth >= 1024;
+      if (isDesktop && el.closest('.lg\\:hidden')) return false;
+      if (!isDesktop && el.closest('.hidden.lg\\:flex')) return false;
+    }
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -53,16 +73,56 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close on Escape key
+  // Close on Escape key and return focus to visible opener (PUBLIC-BR-01)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setActiveDropdown(null);
-        setMobileMenuOpen(false);
+        if (activeDropdown === 'solutions') {
+          setActiveDropdown(null);
+          if (solutionsBtnRef.current && isElementVisible(solutionsBtnRef.current)) {
+            solutionsBtnRef.current.focus();
+          }
+        } else if (activeDropdown === 'services') {
+          setActiveDropdown(null);
+          if (servicesBtnRef.current && isElementVisible(servicesBtnRef.current)) {
+            servicesBtnRef.current.focus();
+          }
+        } else if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+          if (mobileToggleBtnRef.current && isElementVisible(mobileToggleBtnRef.current)) {
+            mobileToggleBtnRef.current.focus();
+          }
+        }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeDropdown, mobileMenuOpen]);
+
+  // Handle viewport resize: release mobile drawer on desktop, close desktop dropdown on mobile
+  // Never move focus to hidden or detached elements during resize (PUBLIC-BR-01)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileMenuOpen(false);
+        // Clear focus if active element became hidden on desktop (e.g. mobile toggle button)
+        if (typeof document !== 'undefined' && document.activeElement) {
+          if (!isElementVisible(document.activeElement as HTMLElement) || document.activeElement === mobileToggleBtnRef.current) {
+            (document.activeElement as HTMLElement).blur?.();
+          }
+        }
+      } else {
+        setActiveDropdown(null);
+        // Clear focus if active element became hidden on mobile (e.g. desktop nav buttons)
+        if (typeof document !== 'undefined' && document.activeElement) {
+          if (!isElementVisible(document.activeElement as HTMLElement) || document.activeElement === servicesBtnRef.current || document.activeElement === solutionsBtnRef.current) {
+            (document.activeElement as HTMLElement).blur?.();
+          }
+        }
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Prevent background scroll when mobile menu is open
@@ -82,6 +142,11 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     setPrevPathname(pathname);
     setMobileMenuOpen(false);
     setActiveDropdown(null);
+    if (typeof document !== 'undefined' && document.activeElement) {
+      if (!isElementVisible(document.activeElement as HTMLElement)) {
+        (document.activeElement as HTMLElement).blur?.();
+      }
+    }
   }
 
   const toggleDropdown = (name: 'solutions' | 'services') => {
@@ -226,6 +291,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             {/* 2. Solutions Dropdown */}
             <div className="relative">
               <button
+                ref={solutionsBtnRef}
                 type="button"
                 onClick={() => toggleDropdown('solutions')}
                 aria-expanded={activeDropdown === 'solutions'}
@@ -246,14 +312,14 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                   className={`absolute top-full mt-2 w-[540px] p-4 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] grid grid-cols-2 gap-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${lang === 'fa' ? 'right-0' : 'left-0'}`}
                 >
                   <div className="col-span-2 pb-2 mb-1 border-b border-[#F0F4F8] flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#627D98]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#52667A]">
                       {lang === 'ro' ? 'Pe roluri & tipuri de proprietate' : lang === 'fa' ? 'بر اساس مخاطب و نوع ملک' : 'By Audience & Property Type'}
                     </span>
                     <Link
                       href={`/${lang}/solutions`}
                       role="menuitem"
                       onClick={() => setActiveDropdown(null)}
-                      className="text-xs font-bold text-[#0E9F8E] hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0E9F8E] rounded"
+                      className="text-xs font-bold text-teal-700 hover:text-teal-800 hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-700 rounded"
                     >
                       <span>{lang === 'ro' ? 'Vezi toate soluțiile' : lang === 'fa' ? 'نمای کلی راهکارها' : 'View all solutions'}</span>
                       <ArrowRight className="w-3 h-3 rtl:rotate-180" aria-hidden="true" />
@@ -273,11 +339,11 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                           <div className="w-7 h-7 rounded-lg bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center group-hover:bg-[#0E9F8E] group-hover:text-white transition-colors">
                             <Icon className="w-4 h-4" aria-hidden="true" />
                           </div>
-                          <span className="font-bold text-xs text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                          <span className="font-bold text-xs text-[#102A43] group-hover:text-teal-700 transition-colors">
                             {item.title}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#627D98] line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] text-[#52667A] line-clamp-2 leading-relaxed">
                           {item.desc}
                         </p>
                       </Link>
@@ -290,6 +356,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             {/* 3. Services Dropdown */}
             <div className="relative">
               <button
+                ref={servicesBtnRef}
                 type="button"
                 onClick={() => toggleDropdown('services')}
                 aria-expanded={activeDropdown === 'services'}
@@ -310,7 +377,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                   className={`absolute top-full mt-2 w-[440px] p-3 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] space-y-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${lang === 'fa' ? 'right-0' : 'left-0'}`}
                 >
                   <div className="pb-1.5 px-2 border-b border-[#F0F4F8]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#627D98]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#52667A]">
                       {lang === 'ro' ? 'Domenii Operaționale Integrate' : lang === 'fa' ? 'حوزه‌های عملیاتی متصل' : 'Connected Operational Domains'}
                     </span>
                   </div>
@@ -329,14 +396,14 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-xs text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                            <span className="font-bold text-xs text-[#102A43] group-hover:text-teal-700 transition-colors">
                               {svc.title}
                             </span>
-                            <span className="text-[10px] text-[#627D98] font-medium">
+                            <span className="text-[10px] text-[#52667A] font-medium">
                               {svc.subtitle}
                             </span>
                           </div>
-                          <p className="text-[11px] text-[#627D98] mt-0.5 line-clamp-2 leading-relaxed">
+                          <p className="text-[11px] text-[#52667A] mt-0.5 line-clamp-2 leading-relaxed">
                             {svc.desc}
                           </p>
                         </div>
@@ -395,6 +462,7 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
           <div className="flex items-center gap-2 lg:hidden">
             <LanguageSwitcher currentLang={lang} variant="header" />
             <button
+              ref={mobileToggleBtnRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-[#334E68] hover:text-[#102A43] hover:bg-[#F0F4F8] rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"

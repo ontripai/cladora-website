@@ -1031,7 +1031,7 @@ export default async function CommunityExperiencePage(props: {
             <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <Link
                 href="#peer-domain"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0E9F8E] text-white text-xs font-bold hover:bg-[#0C8778] transition shadow-card"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-teal-700 text-white text-xs font-bold hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 transition shadow-card"
               >
                 <span>{content.hero.ctaPrimary}</span>
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" />
@@ -1075,17 +1075,19 @@ export default async function CommunityExperiencePage(props: {
             ))}
           </div>
 
-          <div className="p-4 rounded-xl bg-teal-50/60 border border-teal-100 flex items-center justify-between flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-2 text-[#0E9F8E] font-medium">
+          <div className="p-4 rounded-xl bg-teal-50/60 border border-teal-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center flex-wrap gap-2 text-teal-800 font-medium">
               <span className="font-bold">Connected Peer Domains:</span>
-              <span className="font-mono bg-white px-2 py-0.5 rounded border border-teal-200 text-[#102A43]">AIRPROP</span>
-              <span className="font-mono bg-white px-2 py-0.5 rounded border border-teal-200 text-[#102A43]">SERVICE</span>
-              <span className="font-mono bg-white px-2 py-0.5 rounded border border-teal-200 text-[#102A43]">OPERATIONS</span>
-              <span className="font-mono bg-teal-600 px-2 py-0.5 rounded text-white font-bold">C&amp;E</span>
+              <div className="flex items-center flex-wrap gap-1.5">
+                <span className="font-mono bg-white px-2 py-0.5 rounded border border-teal-200 text-[#102A43]">AIRPROP</span>
+                <span className="font-mono bg-white px-2 py-0.5 rounded border border-teal-200 text-[#102A43]">SERVICE</span>
+                <span className="font-mono bg-white px-2 py-0.5 rounded border border-teal-200 text-[#102A43]">OPERATIONS</span>
+                <span className="font-mono bg-teal-700 px-2 py-0.5 rounded text-white font-bold">C&amp;E</span>
+              </div>
             </div>
             <Link
               href={`/${lang}/capabilities`}
-              className="font-bold text-[#0E9F8E] hover:underline inline-flex items-center gap-1"
+              className="font-bold text-teal-700 hover:text-teal-800 hover:underline inline-flex items-center gap-1 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 rounded"
             >
               <span>Explore Capability Matrix</span>
               <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
@@ -1346,7 +1348,7 @@ export default async function CommunityExperiencePage(props: {
             </span>
             <Link
               href={`/${lang}/industries`}
-              className="font-bold text-[#0E9F8E] hover:underline inline-flex items-center gap-1"
+              className="font-bold text-teal-700 hover:text-teal-800 hover:underline inline-flex items-center gap-1 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 rounded"
             >
               <span>View Industries Architecture</span>
               <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
@@ -1423,7 +1425,7 @@ export default async function CommunityExperiencePage(props: {
           <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">
             <Link
               href={`/${lang}/platform/architecture`}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#0E9F8E] text-white text-xs font-bold hover:bg-[#0C8778] transition shadow-card"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-teal-700 text-white text-xs font-bold hover:bg-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 transition shadow-card"
             >
               <span>{content.cta.primary}</span>
               <ArrowRight className="w-4 h-4 rtl:rotate-180" />
