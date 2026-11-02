@@ -148,6 +148,11 @@ type ProviderCheck = { accepted: true } | {
   reason: 'SUBJECT_NOT_FOUND' | 'STALE_SUBJECT' | 'RELATION_MISMATCH' | 'SUBJECT_DENIED' | 'PROVIDER_UNAVAILABLE';
 };
 
+function preserveSerializationFailure(error: unknown) {
+  if (typeof error === 'object' && error !== null && 'code' in error
+    && (error as { code?: unknown }).code === '40001') throw error;
+}
+
 async function validateCurrentState(
   scope: CoreTransactionScopeV1,
   plan: ServiceV14ExecutionPlan,
@@ -167,7 +172,8 @@ async function validateCurrentState(
     agreement = providerAgreementVerificationV1Schema.parse(
       await readers.resolveProviderAgreement(scope, agreementInput),
     );
-  } catch {
+  } catch (error) {
+    preserveSerializationFailure(error);
     return { accepted: false, reason: 'PROVIDER_UNAVAILABLE' };
   }
   if (agreement.agreement_status === 'withheld') return { accepted: false, reason: 'SUBJECT_DENIED' };

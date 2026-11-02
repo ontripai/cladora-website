@@ -20,7 +20,8 @@
     "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY",
     "sqlstate_boundary": "PREVIOUS_TARGETED_6_OF_6_CONFIRMED_NOT_RERUN",
     "request_source_ports": "PASS_TARGETED_OFFLINE_10_OF_10",
-    "request_flow_regression": "PASS_AFFECTED_OFFLINE_12_OF_12"
+    "request_flow_regression": "PASS_AFFECTED_OFFLINE_12_OF_12",
+    "s01_consumer_sqlstate": "PASS_TARGETED_OFFLINE_4_OF_4_WITH_EXISTING_CORE_HOST_THREE_BOUNDED_ROLLBACKS"
   },
   "outputs": [
     {
@@ -121,8 +122,8 @@
     },
     {
       "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
-      "bytes": 17018,
-      "sha256": "e923ee48e3987fcf7ca7a88780f3256495aee5dbb18a69e37b70eeea0c8e3972",
+      "bytes": 17263,
+      "sha256": "3bc5ff891b72c9001b13086d8c9cd9b1882118af99e92281ab70249559f72b25",
       "preimage": {
         "state": "absent"
       }
@@ -208,6 +209,14 @@
       }
     },
     {
+      "path": "scripts/test-service-s01-consumer-sqlstate-v1.mjs",
+      "bytes": 9398,
+      "sha256": "e1b2646472034cb70f96fe56d170cbb783b0e658ab0083140fe3969338adcfd5",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
       "path": "supabase/hosted-service-v14-execution/manifest.json",
       "bytes": null,
       "sha256": null,
@@ -216,5 +225,6 @@
       },
       "integrity": "self-reference excluded"
     }
-  ]
+  ],
+  "successor_parent": "a78000f4e8705ddcc8b46cb12074f6df5c0380cb"
 }
