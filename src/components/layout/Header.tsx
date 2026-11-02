@@ -174,10 +174,10 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       title: 'CE',
       subtitle: lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience',
       desc: lang === 'ro'
-        ? 'Experiență de locuire, viață comunitară, ghiduri de spațiu, facilități și comunicare contextuală ancorată în identitatea proprietății.'
+        ? 'Anunțuri, interacțiuni comunitare, evenimente și ghiduri legate de proprietate, cu starea fiecărei funcționalități explicată clar.'
         : lang === 'fa'
-        ? 'تجربه سکونت، زندگی اجتماعی، راهنمای فضاها و مشاعات، امکانات رفاهی و ارتباطات مستقیم با ساکنان بر پایگاه امن ملک.'
-        : 'Resident living experience, community life, amenity booking, localized space guides, and contextual property communications.',
+        ? 'اعلان‌ها و تعاملات جامعه، رویدادها و راهنماهای مرتبط با ملک؛ با توضیح روشن وضعیت هر قابلیت.'
+        : 'Property-related notices, community interactions, events and guides, with a clear status for each capability.',
       href: `/${lang}/community-experience`,
       icon: Users,
       color: 'text-indigo-600 bg-indigo-50 border-indigo-200'

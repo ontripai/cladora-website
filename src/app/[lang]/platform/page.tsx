@@ -874,7 +874,7 @@ export default async function PlatformPage(props: { params: Promise<{ lang: Lang
                 <div className="pt-4 mt-4 border-t border-[#F0F4F8]">
                   <Link
                     href={dom.href}
-                    className="text-xs font-bold text-[#0E9F8E] hover:text-[#0A7E71] flex items-center justify-between w-full"
+                    className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center justify-between w-full"
                   >
                     <span>
                       {lang === 'ro' ? 'Explorează domeniul' : lang === 'fa' ? 'مشاهده جزئیات دامنه' : 'Explore domain'}
