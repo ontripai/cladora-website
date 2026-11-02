@@ -5,6 +5,7 @@ import type { Language } from '@/types';
 import { useDashboardFetch } from '@/components/dashboard-lab/DashboardTransport';
 import { useCustomerContext } from './CustomerContextProvider';
 import { CustomerEventInterest, type EventInterestCommands } from './CustomerEventInterest';
+import { CustomerEventAttendanceTargets } from './CustomerEventAttendanceTargets';
 import {
   classifyEventResponse, eventReadResponseSchema, eventUuidKey, sameEventUuid, newEventCommandIdentity, toEventInterestView,
   createEventCommandSession, type EventExecutionState, type EventCommand, type EventReadItem,
@@ -93,8 +94,11 @@ function EventWorkspace({ lang, contextId, workspaceId, permissions, suspended, 
         onState: state => relay.publish(state),
         denied: () => relay.denied(),
         accepted(command, result) {
-          if (command.type === 'record_attendance' || command.type === 'correct_attendance') {
-            attendance.set(eventUuidKey(command.event_id)!, { eventId: command.event_id, id: result.entity_id, version: result.version, timezone: command.timezone, membershipId: command.type === 'record_attendance' ? command.target_membership_id : attendance.get(eventUuidKey(command.event_id)!)!.membershipId });
+          const prior = attendance.get(eventUuidKey(command.event_id)!);
+          if (command.type === 'record_attendance' || (command.type === 'correct_attendance' && prior && sameEventUuid(prior.id, result.entity_id))) {
+            // A G1 target may predate this page. It is read again from the projection;
+            // do not invent a same-page membership binding from a correction receipt.
+            attendance.set(eventUuidKey(command.event_id)!, { eventId: command.event_id, id: result.entity_id, version: result.version, timezone: command.timezone, membershipId: command.type === 'record_attendance' ? command.target_membership_id : prior!.membershipId });
           }
           relay.accepted(command);
         },
@@ -167,10 +171,20 @@ function EventWorkspace({ lang, contextId, workspaceId, permissions, suspended, 
       {permissions.includes('events.event.publish') ? <CreateEventForm lang={lang} draft={slot?.drafts.get('create')} onDraft={draft => getSlot().drafts.set('create', draft)} locked={locked} canEdit={() => !getSlot().session.getState().pending && readAdmission.current && current()} submit={fields => send('create_event', fields)} /> : null}
       {events?.length === 0 ? <p>{t.empty}</p> : null}
       <label>{t.choose}<select data-event-select disabled={Boolean(state.pending)} value={selectedId} onChange={e => { if (!getSlot().session.getState().pending && readAdmission.current && current()) setSelectedId(e.target.value); }}>{events?.map(item => <option key={item.event_id} value={item.event_id}>{item.title}</option>)}</select></label>
-      <CustomerEventInterest lang={lang} event={selected ? toEventInterestView(selected, lang) : null} commands={commands}
-        eligibleAttendanceMembers={selected?.eligible_attendance_members ?? []} draft={slot?.drafts.get(eventUuidKey(selectedId) ?? selectedId)} onDraft={draft => getSlot().drafts.set(eventUuidKey(selectedId) ?? selectedId, draft)} execution={state} canEdit={() => !getSlot().session.getState().pending && readAdmission.current && current()}
-        correction={correction} />
-      {permissions.includes('events.attendance.correct') && !correction ? <p data-correction-not-ready>{t.correctionGap}</p> : null}
+      <CustomerEventAttendanceTargets lang={lang} contextId={contextId} event={selected} scopeOwner={viewToken}
+        enabled={permissions.includes('events.event.read') && permissions.includes('events.attendance.correct')}
+        locked={locked} fetch={fetch} current={() => readAdmission.current && current() && !suspended}
+        denied={() => callbacks.current.denied()}>
+        {projection => {
+          const draftKey = projection ? `correction:${eventUuidKey(projection.correction.id)}` : eventUuidKey(selectedId) ?? selectedId;
+          return <CustomerEventInterest key={draftKey} lang={lang} event={selected ? toEventInterestView(selected, lang) : null}
+            commands={projection ? { ...commands, correctAttendance: input => projection.run(input, commands.correctAttendance!) } : commands}
+            eligibleAttendanceMembers={selected?.eligible_attendance_members ?? []} draft={sessions.get(binding)?.drafts.get(draftKey)}
+            onDraft={draft => getSlot().drafts.set(draftKey, draft)} execution={state}
+            canEdit={() => !getSlot().session.getState().pending && readAdmission.current && current()}
+            correction={projection?.correction ?? correction} />;
+        }}
+      </CustomerEventAttendanceTargets>
     </div>
   </section>;
 }
