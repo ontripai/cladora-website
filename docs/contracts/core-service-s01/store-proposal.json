@@ -70,8 +70,24 @@
       "id": "S01-D02",
       "status": "CLOSED_OWNER_DESIGN",
       "source_contract": "service-offering-disclosure-source.v1",
-      "source_commit": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
-      "runtime_status": "NULL_BINDING_NATIVE_PROOF_OPEN"
+      "source_commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "runtime_status": "NULL_BINDING_NATIVE_PROOF_OPEN",
+      "source_closure": [
+        {
+          "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+          "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+          "bytes": 18347,
+          "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+          "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+        },
+        {
+          "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+          "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+          "bytes": 2332,
+          "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+          "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+        }
+      ]
     }
   ],
   "decision_reference": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6574525414",

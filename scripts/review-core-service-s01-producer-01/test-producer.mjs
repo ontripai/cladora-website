@@ -8,12 +8,13 @@ import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
 const selectedCase=process.argv.includes('--case')?process.argv[process.argv.indexOf('--case')+1]:null;
+const successorOnly=process.argv.includes('--successor-coupling-only');
 const timeOnly=process.argv.includes('--time-precision-only')||process.argv.includes('--prove-time-predecessor');
 const timePredecessor=process.argv.includes('--prove-time-predecessor');
 const predecessorMode=process.argv.includes('--prove-predecessor');
 const serializationOnly=process.argv.includes('--serialization-integration-only');
 const closeoutOnly=predecessorMode||process.argv.includes('--closeout-only');
-const consumer='4c0dcc075797ce8fc08d0e80ddb531370ebfc46f';
+const consumer='f4e03100c6145c8fcac7f105eb5da4c30a37abb8';
 const require=createRequire(import.meta.url);const cache=new Map();
 const show=path=>execFileSync('git',['show',`${consumer}:${path}`],{cwd:root,encoding:'utf8'});
 for (const path of ['src/lib/core/resource-contracts-v1.ts','src/lib/core/current-authority-transaction-port-v1.ts',
@@ -24,7 +25,7 @@ function load(path) {
  path=extname(path)?path:`${path}.ts`;path=resolve(root,path);
  if(cache.has(path))return cache.get(path).exports;
  const relative=path.slice(root.length+1);
- const source=relative==='src/lib/customer/service-offering-disclosure-source-v1.ts'?execFileSync('git',['show',`4c0dcc075797ce8fc08d0e80ddb531370ebfc46f:${relative}`],{cwd:root,encoding:'utf8'}):timePredecessor&&relative==='src/lib/core/service-s01/provider-agreement-reader-v1.ts'?execFileSync('git',['show',`d13437a81d854ef0c7603cb4aeca97fcdd4999ed:${relative}`],{cwd:root,encoding:'utf8'}):predecessorMode&&relative==='src/lib/core/service-s01/provider-agreement-reader-v1.ts'?execFileSync('git',['show',`681a3743ff49c48adc00a737d59d2b5a4c848c04:${relative}`],{cwd:root,encoding:'utf8'}):relative.startsWith('src/lib/customer/')?show(relative):readFileSync(path,'utf8');
+ const source=relative==='src/lib/customer/service-offering-disclosure-source-v1.ts'?execFileSync('git',['show',`f4e03100c6145c8fcac7f105eb5da4c30a37abb8:${relative}`],{cwd:root,encoding:'utf8'}):timePredecessor&&relative==='src/lib/core/service-s01/provider-agreement-reader-v1.ts'?execFileSync('git',['show',`d13437a81d854ef0c7603cb4aeca97fcdd4999ed:${relative}`],{cwd:root,encoding:'utf8'}):predecessorMode&&relative==='src/lib/core/service-s01/provider-agreement-reader-v1.ts'?execFileSync('git',['show',`681a3743ff49c48adc00a737d59d2b5a4c848c04:${relative}`],{cwd:root,encoding:'utf8'}):relative.startsWith('src/lib/customer/')?show(relative):readFileSync(path,'utf8');
  const mod={exports:{}};cache.set(path,mod);
  const compiled=ts.transpileModule(source,{fileName:path,compilerOptions:{module:ts.ModuleKind.CommonJS,
   target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
@@ -35,9 +36,14 @@ function load(path) {
 globalThis.fetch=async()=>{throw Error('OUTBOUND_FORBIDDEN');};
 const {createCoreS01ProviderAgreementReaderV1,bindCoreS01PreflightReaderV1,CORE_S01_SQL,CORE_S01_RUNTIME_BINDING,createCoreS01AuthorityCaptureV1}=load('src/lib/core/service-s01/provider-agreement-reader-v1.ts');
 const {CORE_S01_OFFERING_SOURCE_PIN,createCoreS01OfferingDisclosurePolicyV1}=load('src/lib/core/service-s01/offering-disclosure-policy-v1.ts');
-const sourceBytes=execFileSync('git',['show',`${CORE_S01_OFFERING_SOURCE_PIN.commit}:${CORE_S01_OFFERING_SOURCE_PIN.path}`],{cwd:root});
-assert.equal(require('node:crypto').createHash('sha256').update(sourceBytes).digest('hex'),CORE_S01_OFFERING_SOURCE_PIN.sha256);
-assert.equal(execFileSync('git',['rev-parse',`${CORE_S01_OFFERING_SOURCE_PIN.commit}:${CORE_S01_OFFERING_SOURCE_PIN.path}`],{cwd:root,encoding:'utf8'}).trim(),CORE_S01_OFFERING_SOURCE_PIN.git_blob);
+for(const file of [
+ {path:CORE_S01_OFFERING_SOURCE_PIN.path,bytes:CORE_S01_OFFERING_SOURCE_PIN.bytes,sha256:CORE_S01_OFFERING_SOURCE_PIN.sha256,git_blob:CORE_S01_OFFERING_SOURCE_PIN.git_blob},
+ {path:CORE_S01_OFFERING_SOURCE_PIN.transitive_helper_path,bytes:CORE_S01_OFFERING_SOURCE_PIN.transitive_helper_bytes,sha256:CORE_S01_OFFERING_SOURCE_PIN.transitive_helper_sha256,git_blob:CORE_S01_OFFERING_SOURCE_PIN.transitive_helper_git_blob},
+]){
+ const bytes=execFileSync('git',['show',`${consumer}:${file.path}`],{cwd:root});
+ assert.equal(bytes.length,file.bytes);assert.equal(require('node:crypto').createHash('sha256').update(bytes).digest('hex'),file.sha256);
+ assert.equal(execFileSync('git',['rev-parse',`${consumer}:${file.path}`],{cwd:root,encoding:'utf8'}).trim(),file.git_blob);
+}
 const {projectServiceOfferingDisclosureSourceV1,createServiceOfferingDisclosureCanDiscloseV1,SERVICE_OFFERING_DISCLOSURE_SQL}=load('src/lib/customer/service-offering-disclosure-source-v1.ts');
 const {preflightServiceOfferingRequestV1}=load('src/lib/customer/service-v14-execution/application-flow.ts');
 const {createCorePostgresTransactionHostV1}=load('src/lib/core/postgres-transaction-host-v1.ts');
@@ -96,10 +102,12 @@ function setup() {
   projectServiceOfferingDisclosureSourceV1});
  return {state,scope,authorityRequest,bindings,reader:createCoreS01ProviderAgreementReaderV1(bindings)};
 }
-let count=0;async function check(name,fn){if(selectedCase&&name!==selectedCase)return;if(timeOnly&&!name.startsWith('time:'))return;if(timePredecessor&&name!=='time: original microsecond counterexample'&&name!=='time: exact start control')return;if(serializationOnly&&!name.startsWith('serialization:'))return;if(closeoutOnly&&!name.startsWith('closeout:'))return;if(predecessorMode&&!name.startsWith('closeout: last disclosure')&&name!=='closeout: final disclosure allowed control')return;await fn();count++;console.log(`PASS ${name}`);}
+let count=0;async function check(name,fn){if(selectedCase&&name!==selectedCase)return;if(successorOnly&&!name.startsWith('successor:'))return;if(timeOnly&&!name.startsWith('time:'))return;if(timePredecessor&&name!=='time: original microsecond counterexample'&&name!=='time: exact start control')return;if(serializationOnly&&!name.startsWith('serialization:'))return;if(closeoutOnly&&!name.startsWith('closeout:'))return;if(predecessorMode&&!name.startsWith('closeout: last disclosure')&&name!=='closeout: final disclosure allowed control')return;await fn();count++;console.log(`PASS ${name}`);}
 function redacted(answer){assert.equal(answer.agreement_status,'withheld');for(const key of ['tenant_id','workspace_id','provider_party_id','provider_agreement_id','provider_agreement_version','valid_from','valid_until'])assert.equal(answer[key],null);assert.deepEqual(answer.allowed_service_scope,[]);assert.equal(answer.action_authorization,'not_evaluated');}
+// Isolated Core guard fixture: source admission uses an inside-window clock;
+// only final observation is injected. These are not end-to-end source couplings.
 async function temporalAnswer(finalTime,from,until=null) {
- const x=setup();x.state.clock=from==='2026-11-02T12:00:00.000900Z'?'2026-11-02T12:00:00.000100Z':from==='2026-11-02T11:59:58Z'?'2026-11-02T11:59:59.000000Z':'2026-11-02T12:00:01.000000Z';
+ const x=setup();x.state.clock=from==='2026-11-02T11:59:58Z'?'2026-11-02T11:59:59.000000Z':'2026-11-02T12:00:01.000000Z';
  x.state.sourceFault=rows=>{rows.revision.valid_from=from;rows.revision.valid_until=until;};
  const query=x.scope.query.bind(x.scope);
  x.scope.query=async(sql,params)=>{const r=await query(sql,params);if(sql===CORE_S01_SQL.final)r.rows[0].evaluated_at=finalTime;return r;};
@@ -165,7 +173,37 @@ const snapshot={workspace_id:ids.workspace,offering_id:ids.offering,offering_ver
  coverage:{kind:'workspace'},eligibility:{policy_version:1,required_resource_types:[],required_capabilities:[],required_policy_codes:[]},current_actor_can_request:true};
 function errorPlan(){return{operation:'create_request',context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,authority_version:9,transaction_id:ids.tx,command_id:ids.command,request_id:ids.request,offering_id:ids.offering,expected_offering_version:2,published_revision_id:ids.revision,published_revision_version:1,provider_party_id:ids.party,provider_agreement_id:ids.agreement,provider_agreement_version:3,requested_service_scope:'service.request.create',resource:null,beneficiary_party_id:id(50),description:'Synthetic nonfinancial source',idempotency_key:'s01-error-boundary-0001'};}
 const preflightInput={context_id:ids.context,workspace_id:ids.workspace,offering_id:ids.offering,published_revision_id:ids.revision};
-await check('closeout: actual SERVICE preflight consumes source-bound Core policy',async()=>{const x=setup();const ports={loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(x.reader,x.scope),now:()=>Date.parse(now)};
+// Successor integration uses the actual pinned projector + its imported helper,
+// actual canDisclose, the Core producer, and actual SERVICE preflight. All clocks
+// describe the same instant throughout each case; no final-guard-only injection.
+for(const [label,observed,from,until,status] of [
+ ['before start','2026-11-02T12:00:00.000100Z','2026-11-02T12:00:00.000900Z',null,'withheld'],
+ ['exact start','2026-11-02T12:00:00.000900Z','2026-11-02T12:00:00.000900Z',null,'effective'],
+ ['inside 50us window','2026-11-02T12:00:00.000925Z','2026-11-02T12:00:00.000900Z','2026-11-02T12:00:00.000950Z','effective'],
+ ['before narrow end','2026-11-02T12:00:00.000949Z','2026-11-02T12:00:00.000900Z','2026-11-02T12:00:00.000950Z','effective'],
+ ['exclusive end','2026-11-02T12:00:00.000950Z','2026-11-02T12:00:00.000900Z','2026-11-02T12:00:00.000950Z','withheld'],
+ ['after end','2026-11-02T12:00:00.000951Z','2026-11-02T12:00:00.000900Z','2026-11-02T12:00:00.000950Z','withheld'],
+ ['equivalent offsets inside','2026-11-02T12:00:00.000925Z','2026-11-02T15:30:00.000900+03:30','2026-11-02T08:00:00.000950-04:00','effective'],
+ ['equivalent offset end','2026-11-02T12:00:00.000950Z','2026-11-02T15:30:00.000900+03:30','2026-11-02T08:00:00.000950-04:00','withheld'],
+])await check(`successor: real producer/projector/preflight ${label}`,async()=>{
+ const x=setup();x.state.clock=observed;x.state.sourceFault=rows=>{rows.revision.valid_from=from;rows.revision.valid_until=until;};
+ const answer=await x.reader(x.scope,input);if(status==='withheld')redacted(answer);else assert.equal(answer.agreement_status,status);
+ assert.ok(x.state.calls.some(({sql})=>sql===SERVICE_OFFERING_DISCLOSURE_SQL.clock));
+ if(status==='withheld')assert.equal(x.state.calls.some(({sql})=>sql===CORE_S01_SQL.discover),false);
+ else assert.ok(x.state.calls.some(({sql})=>sql===CORE_S01_SQL.final));
+ const ports={loadOffering:async()=>({...snapshot,valid_from:from,valid_until:until}),resolveProviderAgreement:bindCoreS01PreflightReaderV1(x.reader,x.scope),now:()=>observed};
+ const result=await preflightServiceOfferingRequestV1(preflightInput,ports);
+ assert.equal(result.status,status==='effective'?'ready':'denied');
+ assert.ok(x.state.calls.every(({sql})=>!/^\s*(insert|update|delete|commit)\b/i.test(sql)));
+});
+await check('successor: changed/missing helper pin fails closed',async()=>{
+ assert.ok(cache.has(resolve(root,CORE_S01_OFFERING_SOURCE_PIN.transitive_helper_path)));
+ assert.equal(load(CORE_S01_OFFERING_SOURCE_PIN.transitive_helper_path).SERVICE_OFFERING_TIME_PRECISION_V1,CORE_S01_OFFERING_SOURCE_PIN.transitive_helper_contract);
+ const x=setup();assert.throws(()=>createCoreS01OfferingDisclosurePolicyV1({pin:{...CORE_S01_OFFERING_SOURCE_PIN,transitive_helper_sha256:'0'.repeat(64)}}),e=>e.code==='SOURCE_NOT_READY');
+ const pin={...CORE_S01_OFFERING_SOURCE_PIN};delete pin.transitive_helper_git_blob;
+ assert.throws(()=>createCoreS01OfferingDisclosurePolicyV1({pin}),e=>e.code==='SOURCE_NOT_READY');assert.equal(x.state.calls.length,0);
+});
+await check('closeout: actual SERVICE preflight consumes source-bound Core policy',async()=>{const x=setup();const ports={loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(x.reader,x.scope),now:()=>now};
  assert.equal((await preflightServiceOfferingRequestV1(preflightInput,ports)).status,'ready');x.state.head.status='revoked';assert.equal((await preflightServiceOfferingRequestV1(preflightInput,ports)).status,'denied');});
 await check('closeout: actual SERVICE transactional interface source-bound policy',async()=>{const x=setup();const plan={operation:'create_request',context_id:ids.context,workspace_id:ids.workspace,actor_id:ids.actor,
  authority_version:9,transaction_id:ids.tx,command_id:ids.command,request_id:ids.request,offering_id:ids.offering,expected_offering_version:2,published_revision_id:ids.revision,published_revision_version:1,
@@ -175,8 +213,8 @@ await check('closeout: actual SERVICE transactional interface source-bound polic
  assert.equal((await dispatch.providers.validateProviders(x.scope,dispatch.command,authority)).decision,'accepted');
  x.state.postLock=()=>{x.state.allowed=false;};assert.equal((await dispatch.providers.validateProviders(x.scope,dispatch.command,authority)).decision,'denied');
  assert.equal(x.state.calls.some(c=>c.sql.includes('apply_service_v14_execution_v1')),false);});
-await check('actual SERVICE preflight stays not_ready without source binding',async()=>{const x=setup();x.bindings.source=null;const reader=createCoreS01ProviderAgreementReaderV1(x.bindings);const result=await preflightServiceOfferingRequestV1(preflightInput,{loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(reader,x.scope),now:()=>Date.parse(now)});assert.deepEqual(result,{status:'not_ready',code:'SERVICE_S01_NOT_READY'});assert.equal(x.state.calls.length,0);});
-await check('actual SERVICE preflight withholds version outside Offering binding',async()=>{const x=setup();x.state.head.current_version=4;x.state.row.version=4;const result=await preflightServiceOfferingRequestV1(preflightInput,{loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(x.reader,x.scope),now:()=>Date.parse(now)});assert.deepEqual(result,{status:'denied',code:'SOURCE_ACCESS_DENIED'});});
+await check('actual SERVICE preflight stays not_ready without source binding',async()=>{const x=setup();x.bindings.source=null;const reader=createCoreS01ProviderAgreementReaderV1(x.bindings);const result=await preflightServiceOfferingRequestV1(preflightInput,{loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(reader,x.scope),now:()=>now});assert.deepEqual(result,{status:'not_ready',code:'SERVICE_S01_NOT_READY'});assert.equal(x.state.calls.length,0);});
+await check('actual SERVICE preflight withholds version outside Offering binding',async()=>{const x=setup();x.state.head.current_version=4;x.state.row.version=4;const result=await preflightServiceOfferingRequestV1(preflightInput,{loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(x.reader,x.scope),now:()=>now});assert.deepEqual(result,{status:'denied',code:'SOURCE_ACCESS_DENIED'});});
 await check('reader never dispatches mutation or new receipt',async()=>{const x=setup();await x.reader(x.scope,input);assert.ok(x.state.calls.every(c=>/^select\b/i.test(c.sql.trim())));});
 await check('Core capture binds exact accepted server scope, not request metadata',async()=>{const x=setup();const capture=createCoreS01AuthorityCaptureV1();const reader=createCoreS01ProviderAgreementReaderV1({...x.bindings,authorityRequestFor:capture.authorityRequestFor});await assert.rejects(reader(x.scope,input),e=>e.code==='SOURCE_NOT_READY');await capture.resolveAuthority(x.scope,x.authorityRequest);assert.equal((await reader(x.scope,input)).agreement_status,'effective');assert.throws(()=>capture.authorityRequestFor({...x.scope}),e=>e.code==='SOURCE_NOT_READY');x.state.allowed=false;await capture.resolveAuthority(x.scope,x.authorityRequest);assert.throws(()=>capture.authorityRequestFor(x.scope),e=>e.code==='SOURCE_NOT_READY');});
 await check('private read privilege failure is unavailable, not user denial',async()=>{const x=setup();assert.equal((await x.reader(x.scope,input)).agreement_status,'effective');const query=x.scope.query.bind(x.scope);x.scope.query=async(sql,params)=>{if(sql===CORE_S01_SQL.head)throw Object.assign(Error('PRIVATE_TABLE_DIAGNOSTIC'),{code:'42501'});return query(sql,params);};await assert.rejects(x.reader(x.scope,input),e=>e.code==='SOURCE_UNAVAILABLE'&&!e.message.includes('PRIVATE_TABLE_DIAGNOSTIC'));});
@@ -199,7 +237,7 @@ for (const boundary of ['preflight','transactional','replay']) await check(`seri
  const x=setup();const driver=Object.assign(Error('synthetic serialization'),{code:'40001'});
  const query=x.scope.query.bind(x.scope);let faults=0;
  x.scope.query=async(sql,params)=>{if(sql===CORE_S01_SQL.final){faults++;throw driver;}return query(sql,params);};
- if(boundary==='preflight')await assert.rejects(preflightServiceOfferingRequestV1(preflightInput,{loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(x.reader,x.scope),now:()=>Date.parse(now)}),error=>error===driver);
+ if(boundary==='preflight')await assert.rejects(preflightServiceOfferingRequestV1(preflightInput,{loadOffering:async()=>snapshot,resolveProviderAgreement:bindCoreS01PreflightReaderV1(x.reader,x.scope),now:()=>now}),error=>error===driver);
  else {
   const dispatch=prepareServiceV14Execution(errorPlan(),{resolveProviderAgreement:x.reader,async resolveCanonicalResource(){throw Error('OUT_OF_SCOPE');}});
   const authority={decision_id:ids.decision,authority_version:9};

@@ -147,44 +147,67 @@
     "base": "681a3743ff49c48adc00a737d59d2b5a4c848c04",
     "offering_source": {
       "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
-      "ref": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
-      "bytes": 18448,
-      "sha256": "b450d50f1dcac9bb83b5d29c9984cc2646b20093485e93252d6bacca1297cbaf",
-      "git_blob": "894aa9ce5428d7c4215acb959ff18851dcca721d"
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
     },
     "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6575155343",
     "source_only": true,
     "historical_source_absence_not_live_schema_absence": true,
-    "accepted_consumer": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
-    "acceptance_provenance": "Explicit coordinator update in this conversation; historical delivery report is not the final acceptance permalink",
+    "accepted_consumer": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+    "acceptance_provenance": "Explicit accepted SERVICE FullSHA in CORE-SERVICE-S01-SERVICE-SUCCESSOR-BIND-04; source acceptance only",
     "consumer_modules": [
       {
         "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
-        "commit": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
-        "bytes": 18448,
-        "sha256": "b450d50f1dcac9bb83b5d29c9984cc2646b20093485e93252d6bacca1297cbaf",
-        "git_blob": "894aa9ce5428d7c4215acb959ff18851dcca721d"
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 18347,
+        "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+        "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
       },
       {
         "path": "src/lib/customer/service-v14-execution/application-flow.ts",
-        "commit": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
-        "bytes": 16661,
-        "sha256": "4a5ff6ba8fcdf192c07aaf59aa120f2934ecdd9ef2186fbac273ffe0c9fdd39c",
-        "git_blob": "6db0706ec9b0db859833f0062c0d5417bee30e1f"
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 16690,
+        "sha256": "1ddd67defe807989cf62ba69f8f9f5cbc7a1219ae3b573d7284700a02c916dcb",
+        "git_blob": "b2440744dbdcdadeaaf6e6c5e36edd7718d968c2"
       },
       {
         "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
-        "commit": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
         "bytes": 17263,
         "sha256": "3bc5ff891b72c9001b13086d8c9cd9b1882118af99e92281ab70249559f72b25",
         "git_blob": "aae01e7e3628631fadaa5f965f3f5dc8ae8d8efe"
       },
       {
         "path": "src/lib/customer/service-v14-execution/request-command.ts",
-        "commit": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
         "bytes": 2872,
         "sha256": "bf64d03fd5d52d2cef4b72ef010738efd84b98ad2b8d722ec62172c82353f10a",
         "git_blob": "6293c49b65481df820e9157bbd87f836938f878d"
+      }
+    ],
+    "source_closure": [
+      {
+        "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 18347,
+        "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+        "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
       }
     ]
   }

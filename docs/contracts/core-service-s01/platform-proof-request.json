@@ -147,23 +147,23 @@
     "producer": {
       "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
       "ref": null,
-      "bytes": 19239,
-      "sha256": "a51c3bc9e889defd323d159392566303dedeba5fcec394d57bdb27a2f238ed26",
-      "git_blob": "30d265236c85b3a1696115a01d9dd14e06b76bd3"
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
     },
     "offering_adapter": {
       "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
       "ref": null,
-      "bytes": 7031,
-      "sha256": "70b751253b64d9571b98e44cfaeee63ba8bce9769d5b82fa100a014f4c870e27",
-      "git_blob": "3147810b2325e8d58e2be1b1933acd3bceda9b19"
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
     },
     "controlled_test": {
       "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
       "ref": null,
-      "bytes": 36258,
-      "sha256": "e8b2b23e68866b7734216687efd7be3d6ef7972d3e18e89550735b7dd36ec1cb",
-      "git_blob": "8413b5bed63ddcc8e4eb06551d2f049365e97224"
+      "bytes": 39787,
+      "sha256": "9eb7b3b128306e300db0ef12875389127a56f4d58ae74c936c5b4353ffccd2eb",
+      "git_blob": "6d8bdcff5413c85c8e77c048566fba2c8457408a"
     },
     "static_test": {
       "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
@@ -174,12 +174,19 @@
     },
     "offering_dependency": {
       "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
-      "ref": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
-      "bytes": 18448,
-      "sha256": "b450d50f1dcac9bb83b5d29c9984cc2646b20093485e93252d6bacca1297cbaf",
-      "git_blob": "894aa9ce5428d7c4215acb959ff18851dcca721d"
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
     },
-    "exact_lock_sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc"
+    "exact_lock_sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+    "offering_transitive_helper": {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+    }
   },
   "expected": [
     "actual composite tenant FKs reject parent tenant retarget with23503",
@@ -191,11 +198,13 @@
   "unknown": "STOP UNKNOWN on timeout/cancel/loss/mismatch; preserve first error; no blind retry or alternate target",
   "source_successor_requirement": {
     "finding": "SVS01-SQLSTATE-01",
-    "reviewed_fullsha": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+    "reviewed_fullsha": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
     "required_paths": [
       "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "src/lib/customer/service-offering-time-precision-v1.ts",
       "src/lib/customer/service-v14-execution/application-flow.ts",
-      "src/lib/customer/service-v14-execution/provider-binding.ts"
+      "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "src/lib/customer/service-v14-execution/request-command.ts"
     ],
     "rule": "preserve original40001 to the existing Core host; preflight and transactional catches must not retag it; no new retry engine",
     "status": "CLOSED_SOURCE_COUPLING_NOT_NATIVE",
@@ -208,24 +217,58 @@
         "replay",
         "existing host bounded attempts"
       ],
-      "sql": "NOT_RUN"
-    }
+      "sql": "NOT_RUN",
+      "consumer": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8"
+    },
+    "source_closure": [
+      {
+        "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 18347,
+        "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+        "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+      }
+    ],
+    "precise_clock_facet": "SERVICE.now(): exact timestamp string; no numeric/millisecond fallback"
   },
   "proof_scope": "store DDL/writer constraints only; no SQL/Auth executed now; does not prove live SERVICE metadata, managed session currentness, host COMMIT, all writer concurrency, native install or S3/S4/G2",
   "native_reader_source_request": {
     "offering_proof_owner": "SERVICE",
     "source_request": {
       "path": "supabase/hosted-service-v14-execution/s01-offering-source-native-proof.json",
-      "ref": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
-      "bytes": 1896,
-      "sha256": "839c055ec4c4b84ab869bdd0a2429276a188bbab73e2aa9b7fc61cb08f2f91bd",
-      "git_blob": "3710980ab4b458d15612f4e0e518029595c28ce9"
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 2153,
+      "sha256": "f67e239dbe55940a2aa63eac1d1a181027c956453165f58801398db230633776",
+      "git_blob": "6e3933dc6ca442d75c07a0d29784a3bb083ef79a"
     },
     "runtime_binding": null,
     "remaining": [
       "actual installed SOURCE schema/rights for existing Core session/authority and SERVICE V14 metadata",
       "live server scope/request capture without a synthesized lock receipt",
       "two-connection session/revoke/expiry/40001 and all-writer barrier/lock-order review; no claim from controlled rows"
+    ],
+    "source_closure": [
+      {
+        "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 18347,
+        "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+        "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+      }
     ]
   }
 }

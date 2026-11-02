@@ -6,11 +6,17 @@ import type {CurrentAuthorityTransactionRequestV1} from '../current-authority-tr
 import {CoreS01UnavailableV1} from './errors-v1.ts';
 
 export const CORE_S01_OFFERING_SOURCE_PIN=Object.freeze({
-  commit:'4c0dcc075797ce8fc08d0e80ddb531370ebfc46f',
-  git_blob:'894aa9ce5428d7c4215acb959ff18851dcca721d',
-  sha256:'b450d50f1dcac9bb83b5d29c9984cc2646b20093485e93252d6bacca1297cbaf',
+  commit:'f4e03100c6145c8fcac7f105eb5da4c30a37abb8',
+  git_blob:'89e771414eb3193fb93d2df6c2178a95ffa48b6f',
+  sha256:'f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b',
   path:'src/lib/customer/service-offering-disclosure-source-v1.ts',
   contract:'service-offering-disclosure-source.v1',
+  bytes:18347,
+  transitive_helper_path:'src/lib/customer/service-offering-time-precision-v1.ts',
+  transitive_helper_contract:'service-offering-time-precision.v1',
+  transitive_helper_bytes:2332,
+  transitive_helper_git_blob:'bd758c5f53cb26dbc266f54672cef979549ccc8f',
+  transitive_helper_sha256:'a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2',
 });
 export const CORE_S01_OFFERING_SOURCE_BINDING=null;
 const version=z.number().int().positive().safe();

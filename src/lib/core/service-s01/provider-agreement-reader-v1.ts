@@ -93,7 +93,7 @@ function offeringInstant(value: string) {
   const days=365*y+Math.floor((y-1)/4)-Math.floor((y-1)/100)+Math.floor((y-1)/400)
     +months.slice(0,m-1).reduce((a,b)=>a+b,0)+Number(day)-1;
   const offset=zone==='Z'?0:(Number(zone.slice(1,3))*60+Number(zone.slice(4,6)))*60*(zone[0]==='+'?1:-1);
-  return {seconds:BigInt(days)*86400n+BigInt(Number(hour)*3600+Number(minute)*60+Number(second)-offset),fraction};
+  return {seconds:BigInt(days)*BigInt(86400)+BigInt(Number(hour)*3600+Number(minute)*60+Number(second)-offset),fraction};
 }
 function compareOfferingInstants(left: ReturnType<typeof offeringInstant>, right: ReturnType<typeof offeringInstant>) {
   if(left.seconds!==right.seconds)return left.seconds<right.seconds?-1:1;
