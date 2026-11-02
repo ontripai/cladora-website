@@ -14,6 +14,7 @@ const party=uuid(1),offering=uuid(2),revision=uuid(3),context=uuid(4),workspace=
 let writes=[],lose=false,deferred=null,deny=false,noParty=false,historyFail=false,readOffline=false,readUnauthorized=false,conflictOnce=false,writeStatus=0;
 const fetch=async(url,options)=>{
  if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(writeStatus)return Response.json({error:{code:'DENIED'}},{status:writeStatus});if(conflictOnce){conflictOnce=false;return Response.json({error:{code:'CONFLICT'}},{status:409});}if(lose){lose=false;throw new Error('Lost reply');}return Response.json({request_id:uuid(6),status:'submitted'});}
+ if(String(url).includes('/services/offering-request-flow?'))return Response.json({status:'ready',contract:'service-offering-request-flow.v1',source_kind:'workspace',resources:[]});
  if(historyFail&&writes.length)throw new Error('History unavailable');
  if(readOffline)throw new Error('Offline');
  if(readUnauthorized)return Response.json({error:{code:'SESSION'}},{status:401});

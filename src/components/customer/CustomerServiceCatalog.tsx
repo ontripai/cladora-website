@@ -12,6 +12,7 @@ import { CustomerServiceRequests } from './CustomerServiceRequests';
 import { CustomerServiceQuotes, serviceQuoteCopy } from './CustomerServiceQuotes';
 import { CustomerServiceQuotePublications, quotePublicationCopy } from './CustomerServiceQuotePublications';
 import { serviceManagementCopy } from '@/lib/customer/service-catalog-management-copy';
+import { SERVICE_OFFERING_REQUEST_FLOW_CONTRACT } from '@/lib/customer/service-offering-request-flow-contract';
 
 const copy = {
   fa: { title: 'خدمات فضای کاری', subtitle: 'خدمات قابل استفاده و شرایط هر خدمت را در فضای کاری خود ببینید.', choose: 'فضای کاری را انتخاب کنید', workspace: 'فضای کاری', loading: 'در حال دریافت خدمات…', noContext: 'ابتدا زمینهٔ کاری خود را انتخاب کنید.', noTargets: 'فضای کاری قابل انتخابی در این زمینه وجود ندارد.', empty: 'در این فضای کاری هنوز خدمت منتشرشده‌ای وجود ندارد.', denied: 'دسترسی به خدمات این فضای کاری برای حساب شما فعال نیست.', error: 'دریافت خدمات ناموفق بود.', retry: 'تلاش دوباره', terms: 'شرایط لغو و پذیرش', cancellation: 'شرایط لغو', acceptance: 'معیار پذیرش', quote: 'قیمت پس از بررسی درخواست', included: 'مالیات در قیمت لحاظ شده', excluded: 'مالیات جدا محاسبه می‌شود', not_applicable: 'مالیات اعمال نمی‌شود', direct: 'قیمت مشخص', pre_quote: 'استعلام قیمت', on_site: 'بازدید در محل', project: 'پروژه', reservation: 'رزرو' },
@@ -30,7 +31,10 @@ const targetsSchema = z.strictObject({ workspaces: z.array(z.strictObject({ work
 const shape = serviceOfferingRevisionSchema.shape;
 const offeringsSchema = z.strictObject({ offerings: z.array(z.strictObject({ offering_id: uuidSchema, revision_id: uuidSchema,
   labels: shape.labels, description: shape.description, acquisition_mode: shape.acquisition_mode, price: shape.price,
-  valid_from: shape.valid_from, valid_until: shape.valid_until, cancellation_terms: shape.cancellation_terms, acceptance_criteria: shape.acceptance_criteria })) });
+  valid_from: shape.valid_from, valid_until: shape.valid_until, cancellation_terms: shape.cancellation_terms,
+  acceptance_criteria: shape.acceptance_criteria,
+  request_flow_contract: z.literal(SERVICE_OFFERING_REQUEST_FLOW_CONTRACT).optional(),
+})) });
 type Item = z.infer<typeof offeringsSchema>['offerings'][number];
 type Target = z.infer<typeof targetsSchema>['workspaces'][number];
 
