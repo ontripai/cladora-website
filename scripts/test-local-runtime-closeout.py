@@ -173,6 +173,13 @@ raise SystemExit(m.main(sys.argv[3:]))
         self.assertNotEqual(code, 0)
         self.assertTrue(r['health_result'].startswith('PG17_AND_'))
 
+    def test_terminal_cleanup_exception_preserves_health_and_first_error(self):
+        code, r = self.run_case('success', "raise RuntimeError('synthetic-cleanup-terminal-failure')")
+        self.assertNotEqual(code, 0)
+        self.assertTrue(r['health_result'].startswith('PG17_AND_'))
+        self.assertEqual(r['primary_error'], 'cleanup:synthetic-cleanup-terminal-failure')
+        self.assertEqual(r['overall_result'], 'FAILED')
+
 
 if __name__ == '__main__':
     unittest.main()

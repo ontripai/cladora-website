@@ -5,7 +5,7 @@
   "finding": "PFL-CLEANUP-F01",
   "source_result": "FIXED_PENDING_COORDINATOR_REVIEW",
   "tests": {
-    "cli_receipt_cases": 13,
+    "cli_receipt_cases": 14,
     "admission_cases": 12,
     "all_pass": true,
     "execution_model": "offline actual CLI subprocess with fake Docker; no socket/network/SQL",
@@ -25,8 +25,8 @@
   "inventory_excluding_this_receipt": [
     {
       "path": "scripts/run-local-runtime-lane.py",
-      "bytes": 20349,
-      "sha256": "469f27b7f54c153661e3d3531965bcb78cff61ab98c47bfa5f702d5124f193b6"
+      "bytes": 20536,
+      "sha256": "ff2320bba53ad50be2f5bb3b1a09feaa1a2b791ced59181dcd0f3c14ef1717f8"
     },
     {
       "path": "scripts/local_runtime_consumer.py",
@@ -35,8 +35,8 @@
     },
     {
       "path": "scripts/test-local-runtime-closeout.py",
-      "bytes": 8224,
-      "sha256": "abee40f30e67b13af5aacb2d6fed3e4322a70c14a10e5d3f2ed49cd8a97ce714"
+      "bytes": 8660,
+      "sha256": "ce0ecf6e7b068fb8b5db83bd441f9eb94e4e70e02132e7a05884968f652ae1ff"
     },
     {
       "path": "scripts/test-local-runtime-admission.py",

@@ -285,6 +285,8 @@ class Lane:
                 self.cleanup()
             except Exception as error:
                 self.r.setdefault('cleanup_errors', []).append(type(error).__name__)
+                detail = str(error) if isinstance(error, (RuntimeError, AssertionError)) else type(error).__name__
+                self.r.setdefault('primary_error', 'cleanup:' + detail)
             finalize_lifecycle(self.r, self.owned, self.images)
             self.r['ended_utc'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
             self.save()
