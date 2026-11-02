@@ -159,7 +159,7 @@ function EventWorkspace({ lang, contextId, workspaceId, permissions, suspended, 
   const message = state.phase === 'sending' ? t.sending : state.phase === 'unknown' || state.phase === 'blocked' ? t.unknown
     : state.phase === 'rejected' ? t.rejected : state.phase === 'done' ? t.done : '';
   const canReplay = events !== null && !suspended && state.phase === 'unknown';
-  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5">
+  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="min-w-0 max-w-full space-y-5">
     <header><h1>{t.title}</h1><p>{t.subtitle}</p></header>
     <p role="status" aria-live="polite" data-command-status>{message}</p>
     {state.pending ? <p>{t.lookup}</p> : null}

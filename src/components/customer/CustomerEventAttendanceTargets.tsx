@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Language } from '@/types';
 import type { EventInterestCommands } from './CustomerEventInterest';
 import { sameEventUuid, type EventReadItem } from '@/lib/community/event-interest-client';
@@ -23,7 +23,7 @@ export function CustomerEventAttendanceTargets({ lang, contextId, event, enabled
   scopeOwner: object; current: () => boolean; fetch: typeof globalThis.fetch; denied: () => void;
   children: (projection: ProjectedAttendanceCorrection | null) => ReactNode;
 }) {
-  const t = copy[lang];
+  const t = copy[lang], snapshotId = useId();
   const token = useMemo(() => ({ scopeOwner, contextId, event, enabled, lang, fetch }), [scopeOwner, contextId, event, enabled, lang, fetch]);
   const owner = useRef<object | null>(null), generation = useRef(0), admitted = useRef(false), selection = useRef('');
   const callbacks = useRef({ current, denied, locked });
@@ -90,7 +90,7 @@ export function CustomerEventAttendanceTargets({ lang, contextId, event, enabled
     },
   } : null;
   return <>
-    {enabled && event && event.status !== 'draft' ? <section data-attendance-projection dir={lang === 'fa' ? 'rtl' : 'ltr'} aria-label={t.title}>
+    {enabled && event && event.status !== 'draft' ? <section className="min-w-0 w-full max-w-full [overflow-wrap:anywhere]" data-attendance-projection dir={lang === 'fa' ? 'rtl' : 'ltr'} aria-label={t.title}>
       <h3>{t.title}</h3>
       <p role="status" aria-live="polite" data-correction-not-ready={!response ? true : undefined}>{visible?.failure ? t[visible.failure as 'not_ready' | 'stale' | 'denied' | 'retry' | 'reason' | 'cancel_reason'] : !response ? t.loading : response.targets.length === 0 ? t.empty : ''}</p>
       <button data-attendance-refresh type="button" disabled={locked} onClick={() => {
@@ -98,12 +98,12 @@ export function CustomerEventAttendanceTargets({ lang, contextId, event, enabled
         invalidate(); setView(null); setCursor(null); setAttempt(n => n + 1);
       }}>{t.refresh}</button>
       {response ? <>
-        <label>{t.choose}<select data-attendance-target disabled={locked} value={visible?.selected ?? ''} onChange={e => {
+        <label className="block min-w-0 max-w-full">{t.choose}<select className="block min-w-0 w-full max-w-full focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-current" aria-describedby={target ? snapshotId : undefined} data-attendance-target disabled={locked} value={visible?.selected ?? ''} onChange={e => {
           if (!isCurrent()) return;
           const id = response.targets.find(row => sameEventUuid(row.attendance_id, e.target.value))?.attendance_id ?? '';
           selection.current = id; setView(previous => previous?.token === token && previous.generation === visible?.generation ? { ...previous, selected: id, failure: '' } : previous);
         }}><option value="">{t.choose}</option>{response.targets.map(row => <option key={row.attendance_id} value={row.attendance_id}>{row.display_name}</option>)}</select></label>
-        {target ? <p data-attendance-snapshot>{target.display_name} · {target.attended ? t.present : t.absent} · {t.snapshot}: {target.observed_local} · {response.timezone}</p> : null}
+        {target ? <p id={snapshotId} className="min-w-0 max-w-full [overflow-wrap:anywhere]" data-attendance-snapshot>{target.display_name} · {target.attended ? t.present : t.absent} · {t.snapshot}: {target.observed_local} · {response.timezone}</p> : null}
         {response.next_cursor ? <button data-attendance-next type="button" disabled={locked} onClick={() => {
           if (!isCurrent()) return;
           invalidate(); setView(null); setCursor({ token, after: response.next_cursor });
