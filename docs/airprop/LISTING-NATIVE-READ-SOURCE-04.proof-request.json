@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "task": "V14-AIRPROP-01 / LISTING-NATIVE-READ-SOURCE-04",
+  "base": "a4cf2a468977e97e8900e32119e46a933fde6f96",
+  "status": "INACTIVE_REQUEST_NOT_ADMITTED",
+  "source": "airprop.market_listings.read.v1",
+  "pins": [
+    {
+      "path": "src/lib/airprop/listing-native-read-v1.ts",
+      "bytes": 11498,
+      "sha256": "dd38454f193a0ad54ac397e41a065254871d97527a64fe8e9951b0d03279a580",
+      "git_blob": "1cfc17a0894a705452ede9fa0c6909798880a531"
+    },
+    {
+      "path": "scripts/test-airprop-listing-native-read-04.mjs",
+      "bytes": 11077,
+      "sha256": "530a3c3f63661531a5af789c84c89a1d94105bad2cc793ae3cb2dd224392aede",
+      "git_blob": "687e2607a53f16c6f76f446af7eb80617de79029"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    },
+    {
+      "path": "src/lib/core/airprop-companion-mapping-v1.ts",
+      "bytes": 2931,
+      "sha256": "9049c94a462c6e3955a5e7bb1ef3f9f21ffb572ce45aad59690f878d08c88e08",
+      "git_blob": "29da91ea442a758b046b8868747e5418bba37687"
+    },
+    {
+      "path": "src/lib/core/resource-authority-contract-v1.ts",
+      "bytes": 12058,
+      "sha256": "435841041ee5bc14e62eac44b2875ab7b700e2636ae3d580071db96932607eaf",
+      "git_blob": "455725edc026e20bccffed2c05ed3b675ad9f777"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918"
+    },
+    {
+      "path": "supabase/migrations/20261007112219_airprop_commercial_lifecycle_v1.sql",
+      "bytes": 25183,
+      "sha256": "caff6c0d695767a7e61b6c9a3cf9470d8c3dbea814490e5593238f3349bc3231",
+      "git_blob": "22311e3b9f5647d1c7d0e9282381c65ed7167dfb"
+    },
+    {
+      "path": "supabase/migrations/20261008135433_airprop_listing_controls_v1.sql",
+      "bytes": 7042,
+      "sha256": "9dd60f3f428e25a8194ea09b21c944c19e891b1cd8a649758765026984b75c79",
+      "git_blob": "2a4795449939cf4a957112113ee6024aa2f9222b"
+    }
+  ],
+  "prerequisites": [
+    "Core-approved SELECT-only lock-capable serializable authenticated read host, no C03 command reservation/mutation/audit",
+    "Real same-scope post-lock authority receipt and selector request/identity; no fabricated command lock",
+    "Official current canonical Unit/spec/party/relationship/label producer and real all-gate expiry bound",
+    "Exact installed schema/role/ACL/RLS and participating canonical revision/writer lock protocol; disposable synthetic-only native fixture",
+    "Bounded lock waits and error/rollback/commit-disclosure behavior approved by host owner",
+    "Host post-commit trusted database-clock completion observation; no fabricated time or lease"
+  ],
+  "cases": [
+    "current allowed read, max100 fixed UUID order and scoped keyset",
+    "foreign actor/Context/tenant/Workspace and no existence leak",
+    "wrong Unit/Property/party/relationship, stale spec/version and revoked membership/authority",
+    "coherent Listing/relationship/spec drift between collection and final observation",
+    "expiry/revoke during real waits; temporal equality and microsecond backdate fail closed",
+    "same-row real AP01 writer contention -> correct lock behavior/40001, no partial disclosure or auto-retry",
+    "independent durable before/after census: no command/idempotency/audit/outbox or business row writes",
+    "read does not grant management; absent action projection remains unavailable"
+  ],
+  "not_run": [
+    "SQL",
+    "PostgreSQL",
+    "Auth",
+    "C03",
+    "native writer contention/currentness",
+    "real ACL/RLS/disclosure",
+    "target-lock behavioral suite"
+  ],
+  "runtime_read": null,
+  "runtime_control": null,
+  "activation_authorized": false
+}
