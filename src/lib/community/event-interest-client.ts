@@ -1,3 +1,4 @@
+import { eventLookupResponseSchema } from './event-receipt-lookup.ts';
 import { z } from 'zod';
 import type { Language } from '@/types';
 import { timezoneSchema } from './event-interest-schema.ts';
@@ -209,6 +210,35 @@ export function createEventCommandSession(options: {
       return dispatch();
     },
     replay() { return state.pending && ['unknown', 'blocked'].includes(state.phase) ? dispatch() : Promise.resolve(false); },
+    async lookup() {
+      if (flight || !state.pending || !['unknown', 'blocked'].includes(state.phase)) return false;
+      const pending = state.pending, owner = options.owner();
+      if (!owner) return false;
+      const controller = new AbortController();
+      let cancel!: () => void;
+      const cancelled = new Promise<never>((_, reject) => { cancel = () => { controller.abort(); reject(new Error('cancelled')); }; });
+      const operation = { cancel }; flight = operation;
+      const timer = setTimeout(cancel, options.timeoutMs ?? 15000);
+      const current = () => options.owner() === owner && state.pending === pending && !controller.signal.aborted;
+      try {
+        const response = await Promise.race([options.fetch('/api/customer/v1/community/events/receipt', {
+          method: 'POST', credentials: 'same-origin', cache: 'no-store', headers: { 'Content-Type': 'application/json' },
+          body: pending.wire, signal: controller.signal,
+        }), cancelled]);
+        if (!current()) return false;
+        if (!response.ok) {
+          if (response.status === 503) { state = { ...state, failure: 'not_ready' }; notify(); }
+          if ([401, 403].includes(response.status)) options.denied();
+          return false;
+        }
+        const value = eventLookupResponseSchema.parse(await Promise.race([response.json(), cancelled]));
+        if (!current() || value.status !== 'matched') return false;
+        const receipt = parseEventCommandResult(value.result, pending.command);
+        state = { phase: 'done', pending: null, receipt, uncertain: false }; notify();
+        options.accepted(pending.command, receipt); return true;
+      } catch { return false; }
+      finally { clearTimeout(timer); if (flight === operation) flight = null; }
+    },
     resetRejected() {
       if (flight || !options.owner() || state.phase !== 'rejected' || state.uncertain) return false;
       state = { phase: 'ready', pending: null, receipt: null, uncertain: false }; notify(); return true;
