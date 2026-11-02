@@ -19,7 +19,14 @@ const root = process.cwd();
 const localRequire = createRequire(path.join(root, 'package.json'));
 let checks = 0;
 const check = (v, m) => { assert.ok(v, m); checks++; };
-const equal = (a, b, m) => { assert.deepEqual(a, b, m); checks++; };
+const equal = (a, b, m) => {
+  if (a && typeof a === 'object' && a.nodeType) {
+    assert.ok(a === b, `${m}: Expected node [${b?.tagName || b}] but got [${a?.tagName || a}]`);
+  } else {
+    assert.deepEqual(a, b, m);
+  }
+  checks++;
+};
 
 // Global JSDOM setup
 let currentViewportWidth = 1365;
@@ -200,6 +207,7 @@ async function runBrowserFixSuite() {
     check(servicesBtn, `Desktop (${lang}): Services opener button found`);
 
     // Open Services dropdown
+    servicesBtn.focus();
     await act(async () => {
       servicesBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     });
@@ -220,6 +228,7 @@ async function runBrowserFixSuite() {
     check(solutionsBtn, `Desktop (${lang}): Solutions opener button found`);
 
     // Open Solutions dropdown
+    solutionsBtn.focus();
     await act(async () => {
       solutionsBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     });
@@ -233,7 +242,68 @@ async function runBrowserFixSuite() {
     equal(dom.window.document.activeElement, solutionsBtn, `Desktop (${lang}): Focus returned to Solutions opener button (not BODY)`);
     check(solutionsBtn.offsetParent !== null || dom.window.getComputedStyle(solutionsBtn).display !== 'none', `Desktop (${lang}): Solutions opener is visible`);
 
-    // 1C. Inactive Escape Guard: When no dropdown is open, Escape does NOT redirect focus
+    // 1C. Desktop: Services open -> Focus & Activate real LanguageSwitcher -> Escape preserves focus on LanguageSwitcher (PUBLIC-BR-01-LANGUAGE)
+    await act(async () => {
+      servicesBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    });
+    equal(servicesBtn.getAttribute('aria-expanded'), 'true', `Desktop (${lang}): Services dropdown reopened`);
+
+    const desktopLangBtn = container.querySelector('.hidden.lg\\:flex button[aria-haspopup="true"]');
+    check(desktopLangBtn, `Desktop (${lang}): Real LanguageSwitcher button found in header`);
+
+    // Focus LanguageSwitcher button
+    desktopLangBtn.focus();
+    equal(dom.window.document.activeElement, desktopLangBtn, `Desktop (${lang}): Focus moved to LanguageSwitcher button`);
+
+    // Activate LanguageSwitcher dropdown
+    await act(async () => {
+      desktopLangBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    });
+    equal(desktopLangBtn.getAttribute('aria-expanded'), 'true', `Desktop (${lang}): LanguageSwitcher dropdown opened`);
+
+    // Dispatch Escape key
+    await act(async () => {
+      dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+
+    equal(servicesBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): Services dropdown closed on Escape`);
+    equal(desktopLangBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): LanguageSwitcher closed on Escape`);
+    equal(dom.window.document.activeElement, desktopLangBtn, `Desktop (${lang}): Focus PRESERVED on LanguageSwitcher (NOT stolen to Services opener)`);
+    check(dom.window.document.activeElement !== servicesBtn, `Desktop (${lang}): Focus was NOT moved to Services button`);
+
+    // 1D. Desktop: Services open -> Focus external control (Sign In link) -> Escape preserves focus on external control
+    await act(async () => {
+      servicesBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    });
+    equal(servicesBtn.getAttribute('aria-expanded'), 'true', `Desktop (${lang}): Services dropdown opened for external control test`);
+
+    const signInLink = container.querySelector('a[href$="/login"]');
+    check(signInLink, `Desktop (${lang}): Sign In link found`);
+    signInLink.focus();
+    equal(dom.window.document.activeElement, signInLink, `Desktop (${lang}): Focus moved to Sign In external control`);
+
+    await act(async () => {
+      dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    equal(servicesBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): Services dropdown closed on Escape`);
+    equal(dom.window.document.activeElement, signInLink, `Desktop (${lang}): Focus PRESERVED on Sign In link (NOT stolen to Services)`);
+
+    // 1E. Desktop: Services open -> Focus item inside Services menu -> Escape returns focus to Services opener
+    await act(async () => {
+      servicesBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    });
+    const servicesMenuItem = container.querySelector('div[role="menu"] a[href$="/airprop"]');
+    check(servicesMenuItem, `Desktop (${lang}): Services menuitem found`);
+    servicesMenuItem.focus();
+    equal(dom.window.document.activeElement, servicesMenuItem, `Desktop (${lang}): Focus inside Services menuitem`);
+
+    await act(async () => {
+      dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+    equal(servicesBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): Services dropdown closed on Escape`);
+    equal(dom.window.document.activeElement, servicesBtn, `Desktop (${lang}): Focus returned to Services opener when focus belonged to Services menu`);
+
+    // 1F. Inactive Escape Guard: When no dropdown is open, Escape does NOT redirect focus
     const dummyElement = dom.window.document.createElement('input');
     dom.window.document.body.appendChild(dummyElement);
     dummyElement.focus();
@@ -247,7 +317,7 @@ async function runBrowserFixSuite() {
 
     await unmount();
 
-    // 1D. Mobile (390px & 375px): Mobile Toggle Opener
+    // 1G. Mobile (390px & 375px): Mobile Toggle Opener & LanguageSwitcher Focus
     for (const width of [390, 375]) {
       updateViewport(width);
       const mobView = await renderComponent(React.createElement(Header, { lang }));
@@ -275,7 +345,39 @@ async function runBrowserFixSuite() {
       equal(dom.window.document.activeElement, toggleBtn, `Mobile (${width}px, ${lang}): Focus returned to Mobile toggle button (not BODY)`);
       check(toggleBtn.offsetParent !== null || dom.window.getComputedStyle(toggleBtn).display !== 'none', `Mobile (${width}px, ${lang}): Mobile toggle is visible`);
 
-      // 1E. Resize Transition: Mobile open -> resize to desktop (1365px)
+      // Mobile drawer open -> focus mobile header LanguageSwitcher -> Escape preserves focus on LanguageSwitcher
+      await act(async () => {
+        toggleBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+      });
+      equal(dom.window.document.body.style.overflow, 'hidden', `Mobile (${width}px, ${lang}): Drawer opened for LanguageSwitcher test`);
+
+      const mobLangBtn = mobContainer.querySelector('.lg\\:hidden button[aria-haspopup="true"]');
+      check(mobLangBtn, `Mobile (${width}px, ${lang}): Mobile header LanguageSwitcher found`);
+      mobLangBtn.focus();
+      equal(dom.window.document.activeElement, mobLangBtn, `Mobile (${width}px, ${lang}): Focus on mobile LanguageSwitcher`);
+
+      await act(async () => {
+        dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      });
+      equal(dom.window.document.body.style.overflow, '', `Mobile (${width}px, ${lang}): Drawer closed on Escape`);
+      equal(dom.window.document.activeElement, mobLangBtn, `Mobile (${width}px, ${lang}): Focus PRESERVED on mobile LanguageSwitcher (NOT stolen to toggleBtn)`);
+
+      // Mobile drawer open -> focus item inside drawer -> Escape returns focus to toggleBtn
+      await act(async () => {
+        toggleBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+      });
+      const drawerLink = mobContainer.querySelector('nav[aria-label] a[href$="/platform"]');
+      check(drawerLink, `Mobile (${width}px, ${lang}): Drawer nav link found`);
+      drawerLink.focus();
+      equal(dom.window.document.activeElement, drawerLink, `Mobile (${width}px, ${lang}): Focus inside drawer link`);
+
+      await act(async () => {
+        dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      });
+      equal(dom.window.document.body.style.overflow, '', `Mobile (${width}px, ${lang}): Drawer closed on Escape`);
+      equal(dom.window.document.activeElement, toggleBtn, `Mobile (${width}px, ${lang}): Focus returned to toggleBtn when focus belonged to drawer`);
+
+      // 1H. Resize Transition: Mobile open -> resize to desktop (1365px)
       await act(async () => {
         toggleBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
       });
