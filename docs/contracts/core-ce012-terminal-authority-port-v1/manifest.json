@@ -1,0 +1,575 @@
+{
+  "task": "CORE-CE012-TERMINAL-AUTHORITY-PORT-10",
+  "base": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+  "parent": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+  "branch": "codex/program-core-service-s01-producer-01",
+  "source_status": "CORE_EXECUTABLE_SUBSET_DELIVERED_REVIEW_REQUIRED",
+  "joint_terminal_status": "NOT_READY",
+  "runtime_binding": null,
+  "historical_docs_slots": "BLOCKED",
+  "worklog_recorded_before_implementation": [
+    "src/lib/core/ce012-terminal-authority-port-v1.ts",
+    "scripts/test-core-ce012-terminal-authority-port-10.mjs",
+    "docs/contracts/core-ce012-terminal-authority-port-v1/README.md",
+    "docs/contracts/core-ce012-terminal-authority-port-v1/manifest.json"
+  ],
+  "contract": {
+    "version": "core-ce012-terminal-authority-port.v1",
+    "factory": "createCoreCe012TerminalAuthorityPortV1(scope,value)",
+    "input": "existing strict coreCe012StoredRelationRequestV1Schema and trusted existing scope, no caller allow/time/provider/verifier",
+    "methods": [
+      "scope.query",
+      "checkpoint()",
+      "inspect(opaqueObservation)",
+      "close()"
+    ],
+    "result_status": "not_ready only",
+    "core_status": [
+      "observed",
+      "denied",
+      "mismatch",
+      "expired",
+      "unavailable"
+    ],
+    "observation": "WeakMap identity per exact port, not JSON/receipt/authority; immutable private binding",
+    "binding_fields": [
+      "actor_id",
+      "tenant_id",
+      "context_id",
+      "workspace_id",
+      "membership_id",
+      "command_id",
+      "canonical_key",
+      "command_hash",
+      "ce_receipt_id",
+      "core_receipt_id",
+      "core_receipt_hash",
+      "mutation_id",
+      "target.document_id",
+      "target.document_version_id",
+      "target.document_version",
+      "transaction_id",
+      "database_transaction_id",
+      "backend_pid",
+      "attempt",
+      "authority_revision"
+    ],
+    "documents_projection": null,
+    "action_authorization": "not_evaluated",
+    "settlement": "not_observed",
+    "driver_visible_40001": "same object, existing host only; old wrapper normalization unmasked by tracked query first error"
+  },
+  "ordering": [
+    "strict original scope/request",
+    "initial official session check",
+    "unchanged Core09 locked C03/CE/full relation and Core expiry",
+    "rebind actual locked C03/CE IDs/expiry",
+    "Context/member/Workspace SHARE",
+    "server transaction/actor/backend/post-lock clock",
+    "official resolveAuthority+binder CE then Docs, canonical revision SHARE",
+    "fresh shared server sample/native _at session/resolver/CE-Docs evaluator/strict expiry, binding checks",
+    "opaque Core subset observation, no later await before issuance"
+  ],
+  "wait_policy": "all later tracked scope queries invalidate before waiting; pending/busy blocks checkpoint; renewed checkpoint observes Core subset only; close poisons local capability. Raw scope/lifecycle bypass not sealed by old host, NOT_READY.",
+  "dependencies": [
+    {
+      "id": "T10-D01",
+      "owner": [
+        "Core existing host",
+        "CE composition"
+      ],
+      "status": "NOT_READY",
+      "reason": "scope lacks complete lifecycle/wait seal and authentic final settlement/response correlation",
+      "minimum_abi": "host-owned internal terminal registration/seal/invalidation and same attempt/backend settlement, never caller success callback"
+    },
+    {
+      "id": "T10-D02",
+      "owner": [
+        "Core canonical authority/session",
+        "managed Auth coordination"
+      ],
+      "status": "NOT_READY",
+      "reason": "snapshot + _at sample has no all-rule validity frontier or proven session/writer barrier participation; internal waits may follow sample",
+      "minimum_abi": "reviewed post-wait/barrier or exhaustive validity frontier with native participation and linearization contract; no policy waiver"
+    },
+    {
+      "id": "T10-D03",
+      "owner": [
+        "Documents official provider/selector",
+        "CE composition"
+      ],
+      "status": "NOT_READY",
+      "reason": "module permission is not current target/scan/lifecycle/disclosure; Docs can wait after Core",
+      "minimum_abi": "official target-bound opaque current projection with own canonical gate and joint host boundary; no private-label fallback"
+    },
+    {
+      "id": "T10-D04",
+      "owner": [
+        "Core canonical evaluator"
+      ],
+      "status": "NOT_READY_NATIVE_SQLSTATE",
+      "reason": "internal exception when others then return false can consume errors before TS; driver-visible error propagation alone cannot certify internal SQLSTATE",
+      "source": "supabase/hosted-building-slice/building-setup-command-receipts-v1.sql:7833",
+      "minimum_abi": "separate reviewed error-boundary source delta preserving serialization/cancellation without changing authority policy; no SQL change here"
+    }
+  ],
+  "source_evidence": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "line": 61,
+      "meaning": "existing scope identifiers/query, no lifecycle seal hook"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "line": 433,
+      "meaning": "owner replay validation followed by clock/rollback; observation is not backend settlement"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "line": 628,
+      "meaning": "existing new-write commit uncertainty / retry host unchanged"
+    },
+    {
+      "path": "supabase/hosted-building-slice/building-setup-command-receipts-v1.sql",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "line": 7890,
+      "meaning": "canonical evaluator entitlement policy, not reconstructed in TS"
+    },
+    {
+      "path": "supabase/hosted-building-slice/building-setup-command-receipts-v1.sql",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "line": 8083,
+      "meaning": "official request session helper and native auth.sessions dependency"
+    }
+  ],
+  "verification": {
+    "new_command": "node scripts/test-core-ce012-terminal-authority-port-10.mjs",
+    "new_groups": 31,
+    "result": "PASS_CONTROLLED_TRANSPORT_ONLY",
+    "fixture": "Core09 fixture definitions only, no previous test invocation; real pinned CE/Docs/current Core source with synthetic memory transport",
+    "zero_delta_writes": "all port/replay groups assert unchanged synthetic domain/C03/audit/outbox census; original40001 case 3 rollback/0 extra commit",
+    "time_precision": "DB strict expiry + UTC six digit server wire; 1us/equality model, no JS clock",
+    "full_typecheck": "tsc --noEmit --incremental false; unchanged ES5",
+    "lint": "limited to new TS/MJS --max-warnings=0",
+    "syntax": "node --check new MJS",
+    "old_suites": "NOT_RERUN",
+    "not_run": [
+      "SQL parser/compile/query/execute",
+      "PG/Auth/RLS/trigger/ACL/native custody/retention",
+      "real server/driver time precision",
+      "all writer/session barrier and internal SQLSTATE proof",
+      "install/grant/activation",
+      "merge/deploy/full Release acceptance"
+    ]
+  },
+  "protected_source_pins": [
+    {
+      "path": "docs/contracts/core-airprop-read-host-minimum-v1/README.md",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 12883,
+      "sha256": "09501bb4f77454220cd1358a6caefd8299a4ef04bb4dae5bfd54c90d24b19ab8",
+      "git_blob": "783e0fdbc6beaac776dad11b78a894769bdccde5"
+    },
+    {
+      "path": "docs/contracts/core-airprop-read-host-minimum-v1/manifest.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 27623,
+      "sha256": "06257de33cc4ce2851bebc051edf9fa349e0e698b936ae3c08c28fddecf67ca2",
+      "git_blob": "b7e59838db358a55e2c463c2ce35ccd6beb08577"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/README.md",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 11272,
+      "sha256": "2a149c633d38a268756a242ee9148c6c437fd512b957c47e0461e917285de515",
+      "git_blob": "bd86b0c5e272c2230352c56f9c998049e350a4e5"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/manifest.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 19548,
+      "sha256": "ae1b70ac7eff5d1b62f04fbbe91d6406365d4bbccbb33d02001425c34472a92c",
+      "git_blob": "e00f1c04ad5a81ebc5433703792708ce0bd5ae1e"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/README.md",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 13308,
+      "sha256": "1a60a1f926e2af54bfa075ce5fab4e9bc6796360b3fbf990d793b935c0b61c7c",
+      "git_blob": "b33846d3182297293bd3e0da417277e22e8d8efe"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/SOURCE-CLOSEOUT-02.md",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 17016,
+      "sha256": "0d8581b9eaca7969d7a2851810d7a2ebeaaf9d31403a5fd150f3ff142e1c9295",
+      "git_blob": "8e0312176b8212d3e052c34fc9d40a01c0e60bfa"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/closeout-manifest.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 18848,
+      "sha256": "78c94ae90f24dbda4908ea36294a72cc178e9839141a166be5317078391f0bf9",
+      "git_blob": "e1a77bac28649fb6197303d50cf881d8bf086a02"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 12079,
+      "sha256": "ff7fe7c564722cb07fcd1460d0b93071d44ea417b737ac09cb63869ead2c0b99",
+      "git_blob": "088a71ab389cee6882a41046e4e6059edde8ab6c"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/provenance.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 9536,
+      "sha256": "a41b79038cf69e5143dadd9d282235cd4827a664d4ff1280b0e6b478dba4e3ad",
+      "git_blob": "c211ba1043c17b945e52cfa108ed76532a6987af"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/store-proposal.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 5368,
+      "sha256": "1058ecb4e3e61f4ede6d8e5329b8fe17c0bb899a838eacd1e6bf5a4093ef890f",
+      "git_blob": "048079ba656864bc79e831fe8aede3da2c7d6163"
+    },
+    {
+      "path": "package-lock.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    },
+    {
+      "path": "package.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 5493,
+      "sha256": "c352b6e2a948633c18710cba04bd620b946c5f45eb39d4dfea1911fbcf6b64d2",
+      "git_blob": "44dadb6a7fcfcff49318601c51073a3ac407075a"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/compose-proof.mjs",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 1481,
+      "sha256": "fa7f29926d8c5240ae8d386561e0d748dab3f95bbfd3f5f5ece69b4c8cbda720",
+      "git_blob": "6f413d553d86bc34eabc2a1dd147bdaf314fe01d"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 39787,
+      "sha256": "9eb7b3b128306e300db0ef12875389127a56f4d58ae74c936c5b4353ffccd2eb",
+      "git_blob": "6d8bdcff5413c85c8e77c048566fba2c8457408a"
+    },
+    {
+      "path": "scripts/test-core-airprop-read-host-minimum-08.mjs",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 18031,
+      "sha256": "430decbd301f8d9a8161872d164013617ffe039a68518224716da5213009d98d",
+      "git_blob": "69f4a03f69ada7322e1a3f8b8806691cbb880b16"
+    },
+    {
+      "path": "scripts/test-core-ce012-stored-relation-v1.mjs",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 18002,
+      "sha256": "5e977c2064c15efd57732d4bf605c1ceabf72e3b65ccfa2afece6b1a426c0489",
+      "git_blob": "b628e0491d330a2ed6bb0831d251f8eade4ec7ee"
+    },
+    {
+      "path": "src/lib/community/experience-guide-command-contract.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 14414,
+      "sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6",
+      "git_blob": "f423e40d9ebda19216d184ed72c8bdd09f27e353"
+    },
+    {
+      "path": "src/lib/community/experience-guide-editor-adapter.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 7826,
+      "sha256": "57b04afd9ac99616d69e45f2c645f9fc0927861b24a0e9c92b7cf6f1bde9395c",
+      "git_blob": "95324958399881fc1b35596133f00db570be978f"
+    },
+    {
+      "path": "src/lib/community/experience-guide-provider-bridge.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 9983,
+      "sha256": "ddeda87fc4d19fb9516198fbcb1290240b1d3e152a5e85a936d513a7994b52ca",
+      "git_blob": "8e61503042837522fbe6f9643e6d90bda435b2de"
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 16793,
+      "sha256": "4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c",
+      "git_blob": "47fde404a10ef6bfcf507fd01069b754eff4bbe8"
+    },
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918"
+    },
+    {
+      "path": "src/lib/core/service-s01/errors-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 301,
+      "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+      "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+    },
+    {
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a"
+    },
+    {
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-proof-v1.sql",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 5703,
+      "sha256": "420cf84d33e2d6129158db90a225d92bd8b10bc6d2da9815d5f1a2b71a77e286",
+      "git_blob": "f81ab8c310e47f79d3a46dbac7bdf23477ce3cf5"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-v1.sql",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 16397,
+      "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+      "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/verify-clean-v1.sql",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 1783,
+      "sha256": "2615d7c526110b97b881279951dfc05e2395abf0bf240027c5ee090d18e05ac4",
+      "git_blob": "027bfd3309a71f45404f539a440ff1b2aa547c30"
+    },
+    {
+      "path": "tsconfig.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    },
+    {
+      "path": "src/lib/core/ce012-combined-stored-relation-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 9177,
+      "sha256": "2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938",
+      "git_blob": "db79cc649189c73d00692c023cbe59e9f21090cc"
+    },
+    {
+      "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 24467,
+      "sha256": "1052251ecf779ce2d2af221488a5d04945f72d5f3262a2825fb62c76768930ff",
+      "git_blob": "78562d798b9375af6865fc0bc48d85207e38acbc"
+    },
+    {
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/README.md",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 18646,
+      "sha256": "aa2da912fa0494e65401b394738cc9f89c6a95cff7b02d472d772d52ffd602a9",
+      "git_blob": "d140e062b7b0a946d712e0d594146f2f8983ca8c"
+    },
+    {
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/manifest.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 41106,
+      "sha256": "e1ae7944199dd6cd67456bef38aa3558ca28c4d97244b8353ceef9750d2bf6d6",
+      "git_blob": "efc9589528fe26029d73eaf66ac4d9680bf8f700"
+    }
+  ],
+  "consumed_source_pins": [
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918"
+    },
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+    },
+    {
+      "path": "src/lib/core/ce012-combined-stored-relation-v1.ts",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 9177,
+      "sha256": "2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938",
+      "git_blob": "db79cc649189c73d00692c023cbe59e9f21090cc"
+    },
+    {
+      "path": "supabase/hosted-building-slice/building-setup-command-receipts-v1.sql",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 732202,
+      "sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3",
+      "git_blob": "f365539237f6799311e5a2a824837987fd4e8fea"
+    },
+    {
+      "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 24467,
+      "sha256": "1052251ecf779ce2d2af221488a5d04945f72d5f3262a2825fb62c76768930ff",
+      "git_blob": "78562d798b9375af6865fc0bc48d85207e38acbc"
+    },
+    {
+      "path": "package-lock.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    },
+    {
+      "path": "tsconfig.json",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    },
+    {
+      "path": "AGENTS.md",
+      "ref": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+      "bytes": 678,
+      "sha256": "63f2c50380ed6303237cce215ce27af1d620d094c215e28d1b1538a3c070e3bb",
+      "git_blob": "643577dfaef36ee8032915ef80a0f0638f7beda0"
+    },
+    {
+      "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+      "ref": "d767e84a6d8489ee731f64eb5c8b38f29d35a7fe",
+      "bytes": 23502,
+      "sha256": "a1253414c58c1191690f9c62aab6a35098a1d69b1cf003b25aa256d2ed2f8438",
+      "git_blob": "6dfbb8dbb249ab6cea80ca9a6b37ca6ab3e071c2"
+    },
+    {
+      "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+      "ref": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "bytes": 6458,
+      "sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3",
+      "git_blob": "daa1c030eb8b7a46c934c84e776c4464a8811c06"
+    },
+    {
+      "path": "src/lib/customer/documents-reference-authority-v1.ts",
+      "ref": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "bytes": 14569,
+      "sha256": "444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81",
+      "git_blob": "35bc69dd8d0e7156b5688c9e4b52def9c6c3729d"
+    },
+    {
+      "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+      "ref": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "bytes": 10550,
+      "sha256": "dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca",
+      "git_blob": "ed1c27b998cb2c3122b5e946d041cc84f590bbe4"
+    }
+  ],
+  "inventory": [
+    {
+      "path": "src/lib/core/ce012-terminal-authority-port-v1.ts",
+      "ref": null,
+      "bytes": 16620,
+      "sha256": "c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a",
+      "git_blob": "1e89805d8b8565c0b0a5ea1e0857c6553d057a82"
+    },
+    {
+      "path": "scripts/test-core-ce012-terminal-authority-port-10.mjs",
+      "ref": null,
+      "bytes": 14481,
+      "sha256": "487b9a54a6000f2c5a34c0d73b0d6a4142fa7ee1d18b916ee50b7cabd023a0a1",
+      "git_blob": "b8ffec46cc4597c1908c28001fec4e5d5c5d49f8"
+    },
+    {
+      "path": "docs/contracts/core-ce012-terminal-authority-port-v1/README.md",
+      "ref": null,
+      "bytes": 13190,
+      "sha256": "c2267ee14713925a93e2097c8873a34e8f5aeb7dbfe7a2a8d05fb670820d6715",
+      "git_blob": "9ee413c607f5188c7e2d3d7efb9600b1436d7a3f"
+    }
+  ],
+  "inventory_seal": {
+    "algorithm": "SHA256 sorted-key compact JSON UTF-8 inventory; self excluded",
+    "sha256": "a66ab62bcf361edc4a8ac946a4210dc76c54200924fff2a780ad1ef86100acda"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "source": "normal README process record only",
+    "new_authority": false
+  }
+}
