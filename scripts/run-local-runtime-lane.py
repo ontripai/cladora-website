@@ -24,7 +24,7 @@ def source_binding():
             'profile_sha256': digest(PROFILE.read_bytes())}
 
 
-def finalize_lifecycle(receipt, owned, images):
+def finalize_lifecycle(receipt, owned, images, *, pg_only=False):
     """Evidence-based closeout, distinct from immutable historical health."""
     expected = {}
     gaps = []
@@ -49,10 +49,10 @@ def finalize_lifecycle(receipt, owned, images):
         if entry.get('identity') != identity or entry.get('state') != required:
             gaps.append('cleanup-unconfirmed:' + str(key))
     gaps.extend('cleanup-missing:' + str(key) for key in expected.keys() - seen)
-    health_ok = receipt.get('health_result') == 'PG17_AND_REAL_AUTH_HEALTH_PROVED_NO_DOMAIN_INSTALL'
-    if health_ok and {e['role'] for e in owned} != {'pg', 'auth'}:
+    health_ok = receipt.get('health_result') == ('PG17_ONLY_HEALTH_PROVED_NO_DOMAIN_INSTALL' if pg_only else 'PG17_AND_REAL_AUTH_HEALTH_PROVED_NO_DOMAIN_INSTALL')
+    if health_ok and {e['role'] for e in owned} != ({'pg'} if pg_only else {'pg', 'auth'}):
         gaps.append('healthy-fixture-custody-missing')
-    if health_ok and len(images) != 2:
+    if health_ok and len(images) != (1 if pg_only else 2):
         gaps.append('healthy-image-custody-missing')
     receipt['cleanup_completeness'] = 'UNKNOWN' if gaps else 'ACKNOWLEDGED_FOR_ALL_TRACKED_RESOURCES'
     receipt['cleanup_gaps'] = gaps
@@ -106,11 +106,24 @@ def inspect_config(c, role, pgcid=None):
 
 
 class Lane:
+    profile_path = PROFILE
+    @staticmethod
+    def validate_profile(profile):
+        return validate(profile)
+
+    @staticmethod
+    def binding():
+        return source_binding()
+
+    @staticmethod
+    def check_container(container, role, pgcid=None):
+        return inspect_config(container, role, pgcid)
+
     def __init__(self, output, consumer_raw=None):
-        profile_bytes = PROFILE.read_bytes()
+        profile_bytes = self.profile_path.read_bytes()
         self.p = json.loads(profile_bytes)
-        validate(self.p)
-        binding = source_binding()
+        self.validate_profile(self.p)
+        binding = self.binding()
         if digest(profile_bytes) != binding['profile_sha256']:
             raise AdmissionError('PROFILE_CHANGED_DURING_ADMISSION')
         self.consumer_raw = consumer_raw
@@ -200,11 +213,11 @@ class Lane:
         self.owned[-1]['cid'] = cid
         self.save()
         obj = json.loads(self.cmd(role + '-prestart', ['inspect', cid]))[0]
-        inspect_config(obj, role, pgcid)
+        self.check_container(obj, role, pgcid)
         assert obj['Config']['Labels']['cladora.runtime.run'] == self.run
         self.cmd(role + '-start', ['start', cid])
         obj = json.loads(self.cmd(role + '-live', ['inspect', cid]))[0]
-        inspect_config(obj, role, pgcid)
+        self.check_container(obj, role, pgcid)
         assert obj['State']['Running'], role + ':PROCESS_NOT_RUNNING'
         return cid
 

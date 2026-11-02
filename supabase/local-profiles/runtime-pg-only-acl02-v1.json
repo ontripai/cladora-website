@@ -1,0 +1,32 @@
+{
+  "profile": "runtime-pg-only-acl02-v1",
+  "target": "owned-disposable-pg17-only",
+  "pg": {
+    "image": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+    "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+    "major": 17
+  },
+  "auth": null,
+  "isolation": {
+    "network": "none",
+    "user": "999:999",
+    "rootfs_readonly": true,
+    "cap_drop": ["ALL"],
+    "security_opt": ["no-new-privileges:true"],
+    "published_ports": [],
+    "bind_mounts": [],
+    "named_volumes": [],
+    "memory": 536870912,
+    "nano_cpus": 500000000,
+    "pids": 128,
+    "tmpfs": {
+      "/tmp": "rw,noexec,nosuid,nodev,size=16m,uid=999,gid=999,mode=1770",
+      "/var/lib/postgresql/data": "rw,noexec,nosuid,nodev,size=512m,uid=999,gid=999,mode=0700",
+      "/var/run/postgresql": "rw,noexec,nosuid,nodev,size=8m,uid=999,gid=999,mode=0770"
+    }
+  },
+  "deadlines_seconds": {"pull": 180, "command": 20, "health": 65, "wire_startup": 35, "witness": 30, "observer": 15, "settlement": 5, "relay_close": 2, "cleanup_each": 20},
+  "wire_limits": {"bytes_per_connection": 1048576, "frames_per_connection": 4096},
+  "core_dispatch": "HOLD_UNTIL_EXACT_COORDINATOR_BINDING",
+  "lifecycle": "one attempt per fresh directory; preserve first error; cleanup owned CID and newly acquired unused image only"
+}
