@@ -44,12 +44,28 @@ const answer=(core_status:CoreCe012StoredRelationResultV1['core_status'],code:Co
  * receipt, public GET, committed flag or caller callback cannot substitute for it.
  */
 export const CORE_CE012_STORED_RELATION_SQL=`select tenant_id::text,actor_id::text,key,
-  request_hash,response_ref,(expires_at>clock_timestamp()) as unexpired,
+  request_hash,response_ref,
+  to_char(expires_at at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as expires_at,
   txid_current()::text as database_transaction_id,auth.uid()::text as observed_actor_id,
   current_setting('transaction_isolation') as isolation
   from platform.idempotency_keys where tenant_id=$1::uuid and key=$2::text for share`;
 const storedRow=z.strictObject({
   tenant_id:uuid,actor_id:uuid,key:z.string(),request_hash:digest,response_ref:z.unknown(),
+  expires_at:z.iso.datetime({offset:true}).refine(x=>x.endsWith('Z')),database_transaction_id:z.string().regex(/^[1-9][0-9]*$/),
+  observed_actor_id:uuid,isolation:z.literal('serializable'),
+});
+
+/** Separate awaited statement: the ledger row lock has already been granted.
+ * This scalar statement acquires no new application row locks. Materializing
+ * transaction/actor metadata orders those reads before the fresh clock expression.
+ * No further SQL/await occurs after this observation on the matched path.
+ */
+export const CORE_CE012_STORED_EXPIRY_SQL=`select * from (with observed as materialized (
+  select txid_current()::text as database_transaction_id,auth.uid()::text as observed_actor_id,
+    current_setting('transaction_isolation') as isolation)
+  select ($1::timestamptz>clock_timestamp()) as unexpired,
+    database_transaction_id,observed_actor_id,isolation from observed) as expiry_observation`;
+const expiryObservation=z.strictObject({
   unexpired:z.boolean(),database_transaction_id:z.string().regex(/^[1-9][0-9]*$/),
   observed_actor_id:uuid,isolation:z.literal('serializable'),
 });
@@ -98,7 +114,6 @@ export async function readCoreCe012StoredRelationV1(
       ||r.database_transaction_id!==bound.database_transaction_id||r.key!==key||r.request_hash!==requestHash){
       return answer('mismatch','BINDING_MISMATCH');
     }
-    if(!r.unexpired)return answer('expired','CORE_RECORD_EXPIRED');
     const receipt=coreTransactionReceiptV2Schema.safeParse(r.response_ref);
     if(!receipt.success)return answer('unavailable','SOURCE_UNAVAILABLE');
     const p=receipt.data;
@@ -113,6 +128,18 @@ export async function readCoreCe012StoredRelationV1(
       ||!coreSubjectReferencesMatch(p.subject_reference,command.subject_reference)){
       return answer('mismatch','BINDING_MISMATCH');
     }
+    // Awaiting the first SELECT is the ordering boundary: PostgreSQL has granted
+    // FOR SHARE before the second statement can evaluate its fresh server clock.
+    // Bind the exact locked timestamp, not a pre-lock boolean or a JS clock.
+    const fresh=await scope.query(CORE_CE012_STORED_EXPIRY_SQL,[r.expires_at]);
+    if(!unchanged())return answer('mismatch','BINDING_MISMATCH');
+    if(fresh.rowCount!==1||fresh.rows.length!==1)return answer('unavailable','SOURCE_UNAVAILABLE');
+    const expiry=expiryObservation.safeParse(fresh.rows[0]);
+    if(!expiry.success)return answer('unavailable','SOURCE_UNAVAILABLE');
+    if(expiry.data.database_transaction_id!==bound.database_transaction_id||expiry.data.observed_actor_id!==bound.actor_id){
+      return answer('mismatch','BINDING_MISMATCH');
+    }
+    if(!expiry.data.unexpired)return answer('expired','CORE_RECORD_EXPIRED');
     // No canonical CE save writer binds mutation_id to expected.ce_save_receipt_id
     // or persists its immutable target relation. Equality must never imply one.
     return answer('matched','CE_SAVE_WRITER_BRIDGE_MISSING');

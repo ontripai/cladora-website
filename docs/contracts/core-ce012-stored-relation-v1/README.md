@@ -1,6 +1,7 @@
 # CORE-CE012-STORED-RELATION-05
 
-Base/direct parent: `5437a97e97f422219b064197c06c3f17b244ebf4`.
+Original05 Base: `5437a97e97f422219b064197c06c3f17b244ebf4`.
+Current expiry06 direct parent: `ddd96badd5eda0993ec19a609292b3bdbe3b1c02`.
 Consumer source: Documents compiler `5f6b671d2ea1b1a7341d1ed0352fe2ae2713bdaa`.
 ABI: `core-ce012-stored-relation.v1`.
 Dependency: `DOCS-CE012-CASE-PLAN-01/CE_SAVE_CORE_STORED_RELATION`.
@@ -35,13 +36,38 @@ hash. A future consumer must explicitly bind this hash algorithm; these hash
 names/bytes are not silently interchangeable. Input object key order is normalized
 by the same parser used by the host. Array order keeps its existing meaning.
 
-One fixed SELECT reads the row FOR SHARE. It also observes transaction ID,
-canonical auth.uid(), isolation and expiry using the server clock in that same
-statement. The row tenant, actor, key and request hash, transaction scope identity,
-strict persisted receipt, expected hash/ID, full command/effect/authority and
-subject bindings must match. Expiry is strictly `expires_at > clock_timestamp()`;
-missing/null/malformed/ambiguous rows fail closed. Query/clock results supplied
-through an untrusted transport are not admitted evidence.
+The original05 locking SELECT projected an expiry boolean. CORE-STORED-EXPIRY-01
+supersedes that mechanism: PostgreSQL may evaluate that expression before the
+FOR SHARE wait. The exact Base reader reproduces stale matched in a controlled
+awaited-lock model; no native PostgreSQL reproduction is claimed.
+
+Current order is two **awaited fixed SELECTs** in the SAME existing transaction:
+
+1. `CORE_CE012_STORED_RELATION_SQL` reads the tenant/key row FOR SHARE, returns its
+   exact expires_at as UTC microsecond timestamp and transaction/actor/isolation,
+   and completes. It computes NO expiry boolean and invokes no clock function.
+   Missing/malformed/ambiguous/foreign rows stop before any match. Existing
+   command, body, receipt/hash, subject and target binding checks then run purely.
+2. `CORE_CE012_STORED_EXPIRY_SQL` binds THAT locked timestamp as $1::timestamptz,
+   materializes current transaction/actor/isolation metadata, then evaluates
+   `$1::timestamptz > clock_timestamp()` as a fresh scalar observation. It acquires
+   no additional application row locks or table reads. The materialized source
+   orders metadata evaluation before the outer clock expression. The first query
+   has returned before this statement can be submitted; a pre-lock true boolean
+   cannot survive into this decision. FOR SHARE remains held until the existing
+   owner transaction settles, so the observed expiry cannot be retargeted by a
+   concurrent ledger update/cleanup while this read is in progress.
+3. Scope identity is revalidated after EACH await; second-statement transaction,
+   actor, isolation, cardinality and strict boolean must be valid. Equality is
+   expired. No SQL/await follows this final observation on the matched path.
+
+No JS clock/date comparison, TTL extension, additional transaction/connection or
+host is used. Parameter formatting preserves the stored PostgreSQL microseconds;
+comparison occurs on the server. Query/clock results supplied through an
+untrusted transport are not admitted evidence. This reasoning and the controlled
+model are source evidence; native PG planning/evaluation/locking/concurrency
+remain NOT_RUN, not a compiler/runtime proof. No guarantee through future COMMIT,
+ACK, response delivery or client display is introduced.
 
 This observation is protected from concurrent row modification/cleanup by the
 existing transaction until it settles. It is neither backend COMMIT proof nor a
@@ -114,14 +140,26 @@ requested by this bounded Core delivery.
 
 ## Verification and limits
 
-`node scripts/test-core-ce012-stored-relation-v1.mjs` exercises the actual new
-reader and existing canonical parsers/hashes with a controlled synthetic scope:
-30 targeted controls, including coherent changed-body/target hashes, row/key/
-actor/tenant/Context/Workspace/transaction mismatches, receipt/hash/subject,
-expiry, missing/ambiguous/malformed sources, scope drift, original40001,
-zero DML and rejection of committed/callback shortcuts. A valid synthetic Core
-row still yields NOT_READY for the CE relation. It is not a fake CE writer or a
-native/hosted receipt claim. No S01 tests or accepted chains are rerun.
+Historical05 evidence:30 targeted controls and coordinator acceptance at the
+exact predecessor remain preserved; that suite is NOT_RERUN for expiry06. Its
+fixture is adapted to the two-statement read ABI so future owner invocation stays
+coherent, without treating its previous PASS as fresh source execution.
+
+New targeted invocation:
+`node scripts/test-core-ce012-stored-relation-v1.mjs --expiry-only`
+15 controls PASS: source lock/fresh-clock ordering, positive post-lock match,
+expiry crossing during an actual awaited synthetic barrier, equality boundary,
+last microsecond before expiry, scope drift after either await, fresh actor/
+transaction/isolation mismatch, original40001 at either statement, fresh
+cardinality0/2 and malformed boolean. All model responses assert NOT_READY/null/
+not_evaluated. Scope assertions reject any non-SELECT/DML attempt; runtime=NULL.
+The positive is only a controlled Core-row match, never a CE relation/native proof.
+
+`--prove-expiry-predecessor` loads the exact ddd96bad reader Git object and runs
+one counterexample: true projected before the simulated lock wait survives an
+expiry crossing and incorrectly yields matched. That reproduction was made before
+the source correction. Neither this model nor its synthetic server clock is a
+PostgreSQL/driver/Auth execution. No S01 or unrelated accepted suite is rerun.
 
 Full ES5 typecheck, limited lint, syntax/diff and immutable accepted-source pins
 are checked. NOT_RUN: PostgreSQL/SQL parser/compile/query, real Auth/DB/custody,

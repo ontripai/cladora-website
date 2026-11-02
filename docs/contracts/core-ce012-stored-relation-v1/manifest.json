@@ -1,7 +1,7 @@
 {
   "format": "CORE_CE012_STORED_RELATION_SOURCE_05",
-  "task": "CORE-CE012-STORED-RELATION-05",
-  "base": "5437a97e97f422219b064197c06c3f17b244ebf4",
+  "task": "CORE-CE012-STORED-EXPIRY-06",
+  "base": "ddd96badd5eda0993ec19a609292b3bdbe3b1c02",
   "branch": "codex/program-core-service-s01-producer-01",
   "consumer": "5f6b671d2ea1b1a7341d1ed0352fe2ae2713bdaa",
   "dependency": "DOCS-CE012-CASE-PLAN-01/CE_SAVE_CORE_STORED_RELATION",
@@ -26,7 +26,7 @@
     "key": "core-tx.v1:${parsed.command.workspace_id}:${parsed.command.idempotency_key}",
     "request_hash": "SHA256(JSON.stringify(existing Core schema-parsed command))",
     "receipt_hash": "coreTransactionReplayReceiptHashV1(existing strict V2 parsed receipt); core-transaction-replay-provider-receipt.v1 domain",
-    "expiry": "server statement observation: expires_at > clock_timestamp()",
+    "expiry": "Await canonical row FOR SHARE; then fresh same-scope scalar SELECT compares the exact locked expires_at to clock_timestamp(); strict >; no later await",
     "scope": "trusted existing Core transaction capability only; never route/request supplied query transport",
     "current_authority": "not evaluated here; required independently by trusted caller before historical disclosure",
     "custody_and_settlement": "NOT_PROVEN; full relation blocked; profile/database/run custody and committed-writer relation require admitted native proof"
@@ -218,14 +218,25 @@
     "closure": "separately accepted CE writer/storage contract and Core/Documents coupling; neither historical slot can be lifted by this component"
   },
   "verification": {
-    "targeted_command": "node scripts/test-core-ce012-stored-relation-v1.mjs",
-    "targeted_checks": 30,
+    "targeted_command": "node scripts/test-core-ce012-stored-relation-v1.mjs --expiry-only",
+    "targeted_checks": 15,
     "result": "PASS",
-    "transport": "controlled synthetic memory, not native persistence/DB/Auth",
+    "transport": "controlled synthetic memory with awaited lock barrier; not native PG",
+    "counterexample": {
+      "command": "node scripts/test-core-ce012-stored-relation-v1.mjs --prove-expiry-predecessor",
+      "source": "ddd96badd5eda0993ec19a609292b3bdbe3b1c02",
+      "checks": 1,
+      "result": "REPRODUCED stale matched after expiry crossed while locking statement waited"
+    },
     "dml_attempts": 0,
-    "full_typecheck": "PASS with existing ES5 tsconfig (no config/dependency change)",
+    "full_typecheck": "PASS unchanged ES5 tsconfig",
     "limited_lint_syntax_diff": "PASS",
-    "S01_suites": "NOT_RERUN; every accepted postimage byte-identical",
+    "previous_05_evidence": {
+      "source": "ddd96badd5eda0993ec19a609292b3bdbe3b1c02",
+      "checks": 30,
+      "result": "coordinator accepted; retained NOT_RERUN"
+    },
+    "S01_SERVICE_SQL_schema_policy": "all accepted bytes preserved; suites NOT_RERUN",
     "not_run": [
       "SQL parser/compile/query/execute",
       "PG/Auth/DB/native custody",
@@ -344,26 +355,85 @@
   "inventory": [
     {
       "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+    },
+    {
+      "path": "scripts/test-core-ce012-stored-relation-v1.mjs",
+      "bytes": 18002,
+      "sha256": "5e977c2064c15efd57732d4bf605c1ceabf72e3b65ccfa2afece6b1a426c0489",
+      "git_blob": "b628e0491d330a2ed6bb0831d251f8eade4ec7ee"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/README.md",
+      "bytes": 11272,
+      "sha256": "2a149c633d38a268756a242ee9148c6c437fd512b957c47e0461e917285de515",
+      "git_blob": "bd86b0c5e272c2230352c56f9c998049e350a4e5"
+    }
+  ],
+  "inventory_seal": {
+    "algorithm": "SHA256 of sorted-key compact JSON UTF-8 inventory array; manifest self excluded",
+    "sha256": "637345e6b6958b089528e9dcbf2614fdec81040dcf4fc8ffa40985cea0c96e22",
+    "self_identity": "committed Git tree and external delivery receipt"
+  },
+  "origin_task": "CORE-CE012-STORED-RELATION-05",
+  "origin_base": "5437a97e97f422219b064197c06c3f17b244ebf4",
+  "finding": "CORE-STORED-EXPIRY-01",
+  "previous_manifest": {
+    "ref": "ddd96badd5eda0993ec19a609292b3bdbe3b1c02",
+    "path": "docs/contracts/core-ce012-stored-relation-v1/manifest.json",
+    "bytes": 16340,
+    "sha256": "f09e34ad815301a71522637bc0b29093f60380d052fafe5f510882eb148adfef",
+    "git_blob": "a4f3525cb59aebe0c2dc3be7d9797b0ab2d7ddad"
+  },
+  "expiry_order": {
+    "statements": [
+      {
+        "constant": "CORE_CE012_STORED_RELATION_SQL",
+        "line": 46,
+        "bytes": 389,
+        "sha256": "335a9e19c8987a2df189650819d1181327f51baa2c1fc2698c22b8ec965307ea",
+        "git_blob": "8ea7c25259696bdb8e56743a590560a3456696d1"
+      },
+      {
+        "constant": "CORE_CE012_STORED_EXPIRY_SQL",
+        "line": 63,
+        "bytes": 353,
+        "sha256": "4ed4fa13168fb97cd136422b7cd5e129144aaf3b1545433881c9e13fd9412447",
+        "git_blob": "93beace9c4b9ca6eb826afd6595ca5fc5a9c8066"
+      }
+    ],
+    "order": [
+      "first same-scope SELECT resolves FOR SHARE and returns locked row expiry",
+      "pure canonical command/body/receipt checks",
+      "second scalar SELECT materializes tx/actor metadata, then fresh server comparison bound to locked expiry",
+      "revalidate same scope/transaction/actor/isolation/cardinality and boolean; no SQL or await before return"
+    ],
+    "scope_binding": "same private CoreTransactionScopeV1; unchanged logical/db transaction, tenant, Workspace, actor and attempt after both awaits",
+    "claim_limit": "source/control model only; native PG execution/plan/lock/concurrency NOT_RUN; no COMMIT/ACK/delivery guarantee"
+  },
+  "delta_before": [
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "ref": "ddd96badd5eda0993ec19a609292b3bdbe3b1c02",
       "bytes": 8217,
       "sha256": "2fd5795b4aa8f2115b6834e933b74f96ccba45f49222190bd1d2e7742f6d544e",
       "git_blob": "9f564780eda4047586681d6bde2f1749a8d93508"
     },
     {
       "path": "scripts/test-core-ce012-stored-relation-v1.mjs",
+      "ref": "ddd96badd5eda0993ec19a609292b3bdbe3b1c02",
       "bytes": 11502,
       "sha256": "47d907187968b37ac619d3acd08058b97f7203dd796673b33eb5c78f83b30ae0",
       "git_blob": "6c1b87dd5c16bc5b5f2b816f94ea644a4f8e9310"
     },
     {
       "path": "docs/contracts/core-ce012-stored-relation-v1/README.md",
+      "ref": "ddd96badd5eda0993ec19a609292b3bdbe3b1c02",
       "bytes": 8728,
       "sha256": "08c75ef5bfe68a96a941612bc5c5588fe53f9e16ad086f6c43d1b42492cb2912",
       "git_blob": "617e9439fafbb30b7662aa437492768f61986fbb"
     }
-  ],
-  "inventory_seal": {
-    "algorithm": "SHA256 of sorted-key compact JSON UTF-8 inventory array; manifest self excluded",
-    "sha256": "17e181b4668463643304ed8d33718e0b31d3f2c83c50478a97b59fba54a70f13",
-    "self_identity": "committed Git tree and external delivery receipt"
-  }
+  ]
 }
