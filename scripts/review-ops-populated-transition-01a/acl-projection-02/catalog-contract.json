@@ -1,0 +1,80 @@
+{
+  "format": "OPS_CATALOG_PROJECTION_CONTRACT_02",
+  "base": "91a8c05a13ef890f386997f29230a352e235e79c",
+  "source": {
+    "path": "scripts/review-ops-populated-transition-01a/acl-projection-02/catalog-projection.sql",
+    "bytes": 15670,
+    "sha256": "9e1136a8f9705e93092344695c3ad985f87cddb22b7696488647c7624970de86",
+    "git_blob": "c05ec2a1552a4afc66e17b481a46f327c0dc631d"
+  },
+  "execution_authorized": false,
+  "target_project_ref": "ryygcqiunqqtfkpkflzf",
+  "reuse_existing_first": true,
+  "existing_private_snapshot_local": "NOT_AVAILABLE",
+  "historical_metadata_not_refreshed": true,
+  "raw_output_private": true,
+  "raw_format": "OPS_PRIVATE_CATALOG_RAW_02",
+  "required_sections": [
+    "namespaces",
+    "routines",
+    "routine_acl",
+    "routine_effective_acl",
+    "relations",
+    "columns",
+    "column_effective_acl",
+    "constraints",
+    "indexes",
+    "triggers",
+    "policies",
+    "rules",
+    "views",
+    "types",
+    "dependency_nodes",
+    "dependency_edges",
+    "roles",
+    "role_edges",
+    "default_acl",
+    "schema_acl",
+    "schema_effective_acl",
+    "relation_acl",
+    "column_acl",
+    "relation_effective_acl",
+    "sequences",
+    "sequence_effective_acl",
+    "extensions",
+    "event_triggers"
+  ],
+  "per_section_max": 5000,
+  "sentinel_limit": 5001,
+  "semantics": {
+    "routine_identity": "regprocedure plus namespace/name/prokind/arg types+modes+names/defaults/result; preserve all overloads including procedures, never name-only selection",
+    "dependencies": "pg_depend transitive forward edges plus relation-attached triggers/constraints/rules/defaults/policies; both FK endpoints and TOAST/index/type identities; cannot see all PLpgSQL string-body/dynamic calls",
+    "acl": "raw grantor/grantee/is_grantable plus effective privileges for runtime principals and owners; membership ADMIN/INHERIT/SET and grantor retained; effective privilege is not grantability",
+    "namespace": "all selected schema relation kinds, generated objects and routine kinds, relation-scoped constraint/trigger identity; no inferred equal definitions",
+    "writers": "all app function/procedure definitions, triggers including internal/deferred and incoming FK triggers, rewrite rules and DML privileges; externally issued SQL/dynamic calls require separately reviewed writer census",
+    "lineage": "existing safe receipts/ledger source identities needed; no application row query, invented ledger contents or applied marker",
+    "managed": "Auth helper descriptor/ACL only, body withheld; other managed definitions/ACL require separately reviewed protected reference; never mutate"
+  },
+  "required_external_reviews": [
+    "project/run/attempt/source receipt binding",
+    "OID-to-portable-qualified-identity mapping and hash normalization review",
+    "transitive source edges for SQL/PLpgSQL/dynamic/generated dependencies beyond pg_depend",
+    "trigger/writer scope including external callers and pending C03",
+    "currentness and protected managed-object reference",
+    "lineage records and exact source equivalence"
+  ],
+  "mapper_bridge": {
+    "automatic_ready": false,
+    "requires": "All complete mapper sections plus reviewed external evidence; raw export cannot become reference oracle",
+    "output_format": "OPS_TARGET_CATALOG_01A",
+    "missing_or_unknown": "BLOCKED",
+    "counts_are_equivalence": false,
+    "catalog_hash_is_source_hash": false
+  },
+  "deadlines": {
+    "lock_timeout": "3s",
+    "statement_timeout": "30s",
+    "idle_in_transaction_session_timeout": "30s"
+  },
+  "not_authorized": "No catalog extraction execution or historical query replay by Core; coordinator must review any narrow missing-field request."
+}
