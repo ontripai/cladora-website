@@ -20,9 +20,11 @@
       "offset_utf16": 1086351,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "73459e2f4c09b695fa4e9882282f87b4a333c2924642e2ecac2da30ed82b8d60",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 2,
@@ -33,9 +35,11 @@
       "offset_utf16": 1316614,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "421b4220c5ed56c31e91f8b2ee16e40ee0e6300900af7f5ccae89adce3126ea4",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 3,
@@ -46,9 +50,11 @@
       "offset_utf16": 2186739,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "4acc38ae4b9626962e2ad3a263db6e30460859e389d761cd59ae9c7870379b77",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 4,
@@ -59,9 +65,11 @@
       "offset_utf16": 2192979,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "97f60a1a185351904bf35cf9559f9d6de88a650e5011df46699e5e38b9055380",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 5,
@@ -72,9 +80,11 @@
       "offset_utf16": 2241021,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "fa3536a47880d17344a5b7009826d4e2f8e2c90a570680e78fab4ad99fcf13b0",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 6,
@@ -85,9 +95,11 @@
       "offset_utf16": 2544714,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "ee560d41e731e31080249022b35f3af02bcf8d5f9fd8a98e936da5f3d2c3c287",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 7,
@@ -98,9 +110,11 @@
       "offset_utf16": 2549361,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "5f593e5c0b25d0bdb28b37dfe6be628c48cee446035f60308f8af58416d3df22",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 8,
@@ -176,9 +190,11 @@
       "offset_utf16": 4668778,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "e2f3c851afa8175910b18a075e22dc45d46512842644d949ee38e0673960c0d9",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 14,
@@ -189,9 +205,11 @@
       "offset_utf16": 5876241,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "feacf62fb19ae21603ec24cf2b4459901fc73cd5b719c500e0b34ea66af2864c",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 15,
@@ -202,9 +220,11 @@
       "offset_utf16": 5900216,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "d9b9ce946f41db2d6aa3c3ac0952f8f0daea0c6d8052c908af87c22b7a568fdb",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 16,
@@ -215,9 +235,11 @@
       "offset_utf16": 5900951,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "9151956d3154a6694245318fc4e9370165a05ea3f0b2c6fc049f899fa68daeb2",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 17,
@@ -228,9 +250,11 @@
       "offset_utf16": 5977250,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "35c0413b4ce29efae75de3fb69b067be54d8cabad90ecac4c4e306966203a7d7",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 18,
@@ -241,9 +265,11 @@
       "offset_utf16": 6075937,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "ca3fda94536440f3cc22addaf83bac8a315b929a488fd03c30638b3dd5eb0353",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 19,
@@ -254,9 +280,11 @@
       "offset_utf16": 6260340,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "9b36b12f69252e11de4b4fb6e5453386ece9a65adaaf5153673fc9ab7bbce5d4",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 20,
@@ -267,9 +295,11 @@
       "offset_utf16": 6260374,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "349953c2459ddc1c317e721773da34b5ab9bf0ccccf4941bb26b0ac3b766cc5b",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 21,
@@ -280,9 +310,11 @@
       "offset_utf16": 6261174,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "1cb7c6b84719afc72e8604ee10d0de86ba1f3e0698f92720cba316beb44ab680",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 22,
@@ -293,9 +325,11 @@
       "offset_utf16": 6263756,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "9086e796d3600add28050139cd8672f2350f98bbc52c26d237d36a8cc184a684",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 23,
@@ -306,9 +340,11 @@
       "offset_utf16": 6267957,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "0877404fc401e74b315b16504f1f89ee2f08aa8688af7f625db68f9acac07d70",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 24,
@@ -319,9 +355,11 @@
       "offset_utf16": 6311072,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "635c6cbf3dea2fbb1d4e91e3a03ed94386e2e7c24a3eb4173b4514e52c8bf281",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 25,
@@ -332,9 +370,11 @@
       "offset_utf16": 6399736,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "440529ba0f0df831a5bcd371ba1c19368e60799a1029eedf2649093887679beb",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 26,
@@ -345,9 +385,11 @@
       "offset_utf16": 6470202,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "728839fbffaf468ca914f79ba77ed62279d0a55c4c4cefdaaf9d9f12b5fcce42",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 27,
@@ -358,9 +400,11 @@
       "offset_utf16": 6470385,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "0ab559dcdb80f1e2f1590fe6a2ed324ec5408760ca442b981d9509925ec9ad39",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 28,
@@ -371,9 +415,11 @@
       "offset_utf16": 6473583,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "4801f636fe0f064aae65e080564d8db5ed36f1c131769d4971ae4e2201b68f10",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 29,
@@ -384,9 +430,11 @@
       "offset_utf16": 6475273,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "d822b53abb20747550f8f1783505044e0260b2b84a89136f156f594012ffbff8",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 30,
@@ -397,9 +445,11 @@
       "offset_utf16": 6588697,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "9b2e8abc350882adbb09e607987553fe89eac28ca4bf31301b28942bb33e149c",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 31,
@@ -410,9 +460,11 @@
       "offset_utf16": 6721229,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "ffc8fcadeb4d2e014f3c007a475aa817a928ec9d0eff733d7907e9bd297f7f08",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 32,
@@ -423,9 +475,11 @@
       "offset_utf16": 6723207,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "062b6ee344bfce6c89255bd73c2a2fa67c2a09570eab4ebb44df0ff1b4d0030c",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 33,
@@ -436,9 +490,11 @@
       "offset_utf16": 7049312,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "c558c1c1b0170794321d2d27625da3fb67bd74f8c1109fa39fc55a8416af8a84",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 34,
@@ -449,9 +505,11 @@
       "offset_utf16": 7051649,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "04ad1793f7714353553d4e3502f8f56aa44bba175809a099a94a671ffcc38852",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 35,
@@ -462,9 +520,11 @@
       "offset_utf16": 8562571,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "dc97ca26adeea9521675d4a169a3567503292baa6fb3a622063bc2ec42329287",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 36,
@@ -475,9 +535,11 @@
       "offset_utf16": 8562651,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "a3d3801be9a4c1ae31b0846f3b019c88bc5b0ab8dee3aa079e813ac27cc712ea",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 37,
@@ -488,9 +550,11 @@
       "offset_utf16": 8593355,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "6d3a8e4646416446147e3d94d684297c1f5a9e8e59761f64881fb318ddded8de",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 38,
@@ -501,9 +565,11 @@
       "offset_utf16": 8619319,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "a53f1ad772867dd8c66c47ed233e9f27aac9377d4edb5939e014089338ef8f4b",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 39,
@@ -514,9 +580,11 @@
       "offset_utf16": 8727011,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "3e230c4a125c9d8f879c630a2839017f50470f1ec5711f1ec2c2b99c9dffcef1",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 40,
@@ -527,9 +595,11 @@
       "offset_utf16": 8776993,
       "original_code": "BLOCKED_DYNAMIC_DATA_ACCESS",
       "original_entry_sha256": "0af513cfa1c4639b5da6411cc7811a76425bfa65b459fc464195380af5f59d92",
-      "status": "STILL_UNRESOLVED",
-      "enforcement": "UNRESOLVED_HOST_CALLBACK_RUNTIME_HOLD",
-      "reason": "Opaque host callback callsite/effect is not closed by absence in trace; normal runtime remains held"
+      "status": "DENIED_AT_RUNTIME",
+      "enforcement": "NO_EXTERNAL_CALLBACK_CAPABILITY_IN_FIXED_TRANSPILE_REALM",
+      "reason": "The only operation accepts a hash-pinned primitive source string; options/hosts/callbacks are created inside the no-Node realm. No caller object/callback enters; only primitive JSON exits. A library-owned read callback may be reached but cannot acquire host I/O capability. This is effect denial, not callsite unreachability or native-consumer acceptance.",
+      "previous_status": "STILL_UNRESOLVED",
+      "proof_contract": "documents-ce012-typescript-capability.v1"
     },
     {
       "ordinal": 41,
@@ -689,7 +759,9 @@
       "ScriptTarget.ES2022",
       "transpileModule"
     ],
-    "sandbox": "no Node process, filesystem, runtime require, timers or code generation from strings; bounded VM execution"
+    "sandbox": "no Node process, filesystem, runtime require, timers or code generation from strings; bounded VM execution",
+    "input_boundary": "Primitive string only. Reject proxies/accessors/inherited/custom options before invocation; caller objects are never passed into realm.",
+    "output_boundary": "Only primitive JSON crosses outward; reconstructed frozen host data, no VM object/function/error/prototype."
   },
   "connection": {
     "protocol": "postgresql:",
@@ -703,10 +775,13 @@
   "limits": {
     "transpile_timeout_ms": 2000,
     "transpile_source_bytes": 1048576,
-    "total_compilations": 32
+    "total_compilations": 32,
+    "transpile_output_bytes": 4194304
   },
   "execution_authorized": false,
   "runtime_binding": null,
-  "meaning": "DENIED rows identify enforced effect/API denial; STILL_UNRESOLVED rows do not claim callsite unreachability. Neither mapping nor source smoke is harness/native acceptance.",
-  "offset_semantics": "TypeScript 5.9.3 CallExpression.pos: UTF-16 offset before leading trivia, not getStart; literal require entries retain the argument specifier"
+  "meaning": "All43 rows have explicit effect-denial guards in the fixed source operation. The original graph still retains43 BLOCKED records. This is not trace-based unreachability or native harness acceptance; runtime binding is NULL and live capability remains HOLD.",
+  "offset_semantics": "TypeScript 5.9.3 CallExpression.pos: UTF-16 offset before leading trivia, not getStart; literal require entries retain the argument specifier",
+  "predecessor_policy_sha256": "fd0ef9f882452887a6abedd7ba75acf3cbdd021efb11813ec0409a6d0ae77400",
+  "native_consumer_verified": false
 }

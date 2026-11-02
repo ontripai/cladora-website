@@ -99,6 +99,7 @@ export async function run(privateRoot,packet) {
   const runtime=runtimeFiles(root,admitted.binding);
   const routes=new RuntimeRoutes(root,admitted.binding.runtime,{mode:'consumer-candidate',descriptor:input.descriptor});
   routes.requireResolved();
+  routes.requireLiveCapability();
   need(admitted.binding.runtime.execution_admissible===true,'BLOCKED_RUNTIME_CANDIDATE');
   const ledger=new Ledger(path.join(privateRoot,'docs-ce012.platform.private.jsonl'));
   const materialCheck=()=>{

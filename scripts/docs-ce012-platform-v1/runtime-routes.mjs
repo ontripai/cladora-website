@@ -1,12 +1,12 @@
 /** Exact occurrence policy + closed library capabilities. Not an execution grant. */
 import fs from 'node:fs';
 import path from 'node:path';
-import vm from 'node:vm';
 import Module, {isBuiltin} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {ROOT,canonical,sha,need,Hold} from './contract.mjs';
+import {PinnedTypeScriptOperation} from './typescript-operation.mjs';
 const POLICY='scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json';
-export const POLICY_SHA256='fd0ef9f882452887a6abedd7ba75acf3cbdd021efb11813ec0409a6d0ae77400';
+export const POLICY_SHA256='f1d11d2058c3d7fcade19dd972d7fad2e4a65da9e4ee318ae2742283b6f8b5a1';
 const read=fs.readFileSync,open=fs.openSync,close=fs.closeSync,lstat=fs.lstatSync,fstat=fs.fstatSync,realpath=fs.realpathSync;
 const ACTIVE=Symbol.for('cladora.docs-ce012.route-guard');
 const freeze=v=>{if(v&&typeof v==='object'){Object.values(v).forEach(freeze);Object.freeze(v);}return v;};
@@ -30,7 +30,7 @@ export function validatePolicy(policy,runtime){
     unresolved:policy.occurrences.filter(r=>r.status==='STILL_UNRESOLVED').length};
 }
 export class RuntimeRoutes {
-  #root;#runtime;#policy;#pins;#edges;#sources;#modules=new Map();#facades=new Map();#context;#first=null;#compiled=0;#restore;#mode;#descriptor;#status;
+  #root;#runtime;#policy;#pins;#edges;#sources;#modules=new Map();#facades=new Map();#operation;#first=null;#restore;#mode;#descriptor;#status;
   constructor(root,runtime,{mode='source-smoke',descriptor=null}={}){
     need(['source-smoke','consumer-candidate'].includes(mode),'ROUTE_MODE');
     const stat=lstat(root);need(stat.isDirectory()&&!stat.isSymbolicLink()&&realpath(root)===path.resolve(root),'CANONICAL_ROUTE_ROOT');
@@ -47,6 +47,7 @@ export class RuntimeRoutes {
   get policy(){return this.#policy;}
   unresolved(){return this.status.unresolved;}
   requireResolved(){need(this.status.unresolved===0,'STILL_UNRESOLVED_RUNTIME_OCCURRENCES');}
+  requireLiveCapability(){this.requireResolved();need(this.#policy.native_consumer_verified===true,'NOT_READY_NATIVE_CONSUMER_CAPABILITY');}
   healthy(){need(!this.#first,'ROUTE_GUARD_QUARANTINED');}
   deny(code,detail){this.#first??={code,detail:detail??null};throw new Hold(code);}
   #bytes(relative,pin){
@@ -109,10 +110,7 @@ export class RuntimeRoutes {
   }
   #typescript(raw){
     if(this.#facades.has('typescript'))return this.#facades.get('typescript');
-    const context=vm.createContext(Object.create(null),{codeGeneration:{strings:false,wasm:false}});
-    new vm.Script('var module={exports:{}};var exports=module.exports;').runInContext(context,{timeout:2000});
-    new vm.Script(raw.toString('utf8'),{filename:'pinned-typescript-5.9.3.js'}).runInContext(context,{timeout:2000});
-    need(context.module.exports.version==='5.9.3','PINNED_TYPESCRIPT_VERSION');this.#context=context;
+    this.#operation=new PinnedTypeScriptOperation(raw,[...this.#sources.values()],this.#policy.limits,code=>this.deny(code));
     const base=Object.assign(Object.create(null),{version:'5.9.3',ModuleKind:Object.freeze({CommonJS:1}),ScriptTarget:Object.freeze({ES2022:9}),
       transpileModule:(input,options)=>this.transpile(input,options)});
     Object.freeze(base);
@@ -122,18 +120,10 @@ export class RuntimeRoutes {
     }});this.#facades.set('typescript',facade);return facade;
   }
   transpile(input,options){
-    this.assertCurrent();need(typeof input==='string'&&Buffer.byteLength(input)<=this.#policy.limits.transpile_source_bytes,'FIXED_TRANSPILE_INPUT_BOUND');
-    need([...this.#sources.values()].some(p=>p.bytes===Buffer.byteLength(input)&&p.sha256===sha(Buffer.from(input))),'UNPINNED_TRANSPILE_SOURCE');
-    need(canonical(options)===canonical(this.#policy.typescript.options),'FIXED_TRANSPILE_OPTIONS');
-    need(++this.#compiled<=this.#policy.limits.total_compilations,'TRANSPILE_COUNT');
-    if(!this.#context)this.require('typescript');
-    const context=this.#context;context.__input=input;
-    try{
-      const result=new vm.Script('module.exports.transpileModule(__input,{compilerOptions:{module:1,target:9}})').runInContext(context,{timeout:this.#policy.limits.transpile_timeout_ms});
-      this.healthy();this.assertCurrent();need(typeof result.outputText==='string','TRANSPILE_OUTPUT');
-      return {outputText:result.outputText,diagnostics:Array.from(result.diagnostics??[],d=>({code:d.code,category:d.category}))};
-    }finally{delete context.__input;}
+    this.assertCurrent();if(!this.#operation)this.require('typescript');
+    const result=this.#operation.transpile(input,options);this.assertCurrent();return result;
   }
+  capabilityEvidence(){this.assertCurrent();if(!this.#operation)this.require('typescript');return this.#operation.evidence();}
   #connectionString(original){
     const validate=(str,options)=>{
       this.assertCurrent();need(typeof str==='string'&&(!options||Object.keys(options).length===0),'FIXED_CONNECTION_PARSE');
@@ -155,8 +145,8 @@ export class RuntimeRoutes {
   install(){
     need(!globalThis[ACTIVE],'ROUTE_GUARD_ALREADY_INSTALLED');this.assertCurrent();
     const original=Module._load,dlopen=process.dlopen,binding=process.binding,getBuiltin=process.getBuiltinModule;
-    const self=this;globalThis[ACTIVE]=this;
-    Module._load=function(name,parent,isMain){return self.owns(parent?.filename)?self.require(name,parent.filename):original.call(this,name,parent,isMain);};
+    const owns=filename=>this.owns(filename),load=(name,filename)=>this.require(name,filename);globalThis[ACTIVE]=this;
+    Module._load=function(name,parent,isMain){return owns(parent?.filename)?load(name,parent.filename):original.call(this,name,parent,isMain);};
     process.dlopen=()=>this.deny('DENIED_NATIVE_ADDON');
     process.binding=name=>['fs','spawn_sync','tcp_wrap','pipe_wrap'].includes(name)?this.deny('DENIED_RAW_RUNTIME_BINDING'):binding.call(process,name);
     if(getBuiltin)process.getBuiltinModule=name=>['fs','fs/promises','module','vm'].includes(name.replace(/^node:/,''))?this.#builtin(name):getBuiltin.call(process,name);

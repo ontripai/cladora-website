@@ -1,0 +1,922 @@
+{
+  "format": "documents-ce012-materialization-capability-delivery.v1",
+  "task": "PLATFORM-DOCS-CE012-MATERIALIZATION-CAPABILITY-08",
+  "base": "357e3e620cf8374ad0f836ddde0db449cdca7b4b",
+  "branch": "codex/program-local-runtime-lane-01",
+  "observed_utc": "2026-11-02T16:37:03.623728+00:00",
+  "status": "SOURCE_OPERATION_CAPABILITY_VERIFIED_NATIVE_LIVE_HOLD",
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "supabase/local-profiles/runtime-lane-v1.json": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+      "scripts/run-docs-ce012-pgauth.py": "00e983f53e77e4dd30cd1a102cee7d086f8a3eca06c6b9604c1ff5fcb0aea58d",
+      "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json": "8fa3b78ffc5a78732d9494a6533ae5d134433da9a107d58265f15562e64ec5bd",
+      "scripts/docs-ce012-platform-v1/contract.mjs": "c6ff3461b024f44476e4f319021f0f0f49b161a8b9066668cf195eb7aa29530c",
+      "scripts/docs-ce012-platform-v1/custody.mjs": "9c3d9bea4c9bc2f7061bd6770f162255b0d97cebb608c9ea2afe9c5293e1516e",
+      "scripts/docs-ce012-platform-v1/transport.mjs": "25c9edf54030196a753c2c71309400099aabb08697b3807ddde695c50f8370d3",
+      "scripts/docs-ce012-platform-v1/worker.mjs": "bf727b35393006179d07c367f48a43bbf86f3f5c308cdcfb1d75db03a0066f1f",
+      "scripts/docs-ce012-platform-v1/runtime-collector.mjs": "e3d65d7e946310b99fa2b42ce1e4461aa1671443c3541cac108164bd44012e41",
+      "scripts/docs-ce012-platform-v1/runtime-smoke.mjs": "f7e0fab3389e83d88fd48289906078ef6ec8a3021f92d79d7029c77635c0d473",
+      "scripts/docs-ce012-platform-v1/runtime-routes.mjs": "0573500ce40156a2c40f5370d850695e52bc74093343685dc37928bad1709d8e",
+      "scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json": "f1d11d2058c3d7fcade19dd972d7fad2e4a65da9e4ee318ae2742283b6f8b5a1",
+      "scripts/docs-ce012-platform-v1/runtime-routes-smoke.mjs": "21a1cff178cb9168c18e3b7112900b360146ba3db9bfa0ccbc6aca5b145a57d0",
+      "scripts/docs-ce012-platform-v1/typescript-operation.mjs": "af12e1fa0d3f7a57add216abe97e7812f33ca21b0fe5ee17d1f218792104c7ef",
+      "scripts/docs-ce012-platform-v1/runtime-materialization.mjs": "79d5bc996c747e7102f540911f4e6e2d1044b180fca084d2e9d6b7804f8cf83b",
+      "scripts/docs-ce012-platform-v1/runtime-cold-smoke.mjs": "c1a25715452c82c988d0c1df652d618b2fc9db2a17b5894c782d25c27fdba0e5"
+    },
+    "sha256": "fa08ef0ba39b2dda655eed857eb38bdd9d0ac2b54ed3fce721bc85cf6bae3db5"
+  },
+  "policy": {
+    "path": "scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json",
+    "bytes": 50131,
+    "sha256": "f1d11d2058c3d7fcade19dd972d7fad2e4a65da9e4ee318ae2742283b6f8b5a1",
+    "git_blob": "ee0975e8ce0c05a706587c73342d635d300cbae1",
+    "previous_sha256": "fd0ef9f882452887a6abedd7ba75acf3cbdd021efb11813ec0409a6d0ae77400",
+    "occurrences": 43,
+    "required_pinned_data": 0,
+    "denied_at_runtime": 43,
+    "still_unresolved": 0,
+    "native_consumer_verified": false,
+    "original_graph_still_blocked_records": 43,
+    "trace_absence_used_as_proof": false
+  },
+  "inventory": {
+    "before": {
+      "tracked_paths": 2414,
+      "sealed_paths": 14,
+      "historical06_runtime_files": 271,
+      "historical07_added_source_files": 4
+    },
+    "after": {
+      "tracked_paths_expected": 2420,
+      "changed_paths": 11,
+      "sealed_paths": 17,
+      "materialized_files": 601,
+      "materialized_bytes": 18407664,
+      "inventory_entries": 322,
+      "sql_source_data_only": 300,
+      "source_ts": 20,
+      "producer_esm": 5,
+      "request_inventory_closure": 3,
+      "runtime_files": 271
+    },
+    "changed_files_excluding_this_manifest": [
+      {
+        "path": "scripts/docs-ce012-platform-v1/contract.mjs",
+        "before": {
+          "bytes": 12279,
+          "sha256": "08182b51d7c5e5f2a0c0fc9386890095da8a51d36af07c0f4b465a9d0816dd96",
+          "git_blob": "00d70b7d86ddec4b8aabb5cecdfe96b273fc7303"
+        },
+        "after": {
+          "bytes": 12364,
+          "sha256": "c6ff3461b024f44476e4f319021f0f0f49b161a8b9066668cf195eb7aa29530c",
+          "git_blob": "816bb40119e51ba9ec8288f33a84807eec398909"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json",
+        "before": {
+          "bytes": 35962,
+          "sha256": "fd0ef9f882452887a6abedd7ba75acf3cbdd021efb11813ec0409a6d0ae77400",
+          "git_blob": "c84e48cc65012fd2d06d181fdf7898c385969a68"
+        },
+        "after": {
+          "bytes": 50131,
+          "sha256": "f1d11d2058c3d7fcade19dd972d7fad2e4a65da9e4ee318ae2742283b6f8b5a1",
+          "git_blob": "ee0975e8ce0c05a706587c73342d635d300cbae1"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/runtime-routes.mjs",
+        "before": {
+          "bytes": 13063,
+          "sha256": "13fe200fe672b224b527358ade89451c992aeb3ceafc99e0091b5ed8f1ae8100",
+          "git_blob": "9ccc0e754803559babe399dac25bacdfbaf8a952"
+        },
+        "after": {
+          "bytes": 12223,
+          "sha256": "0573500ce40156a2c40f5370d850695e52bc74093343685dc37928bad1709d8e",
+          "git_blob": "5393e0a9010c8d6748cb0136932954722dc71204"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/worker.mjs",
+        "before": {
+          "bytes": 16095,
+          "sha256": "8b69c38afc37ac6abbabe8a5eb52912636eaa9f6abfb3d9456cbfb348b6fa345",
+          "git_blob": "d1cb20d19139494d09c74a85ddacedbb174e0eba"
+        },
+        "after": {
+          "bytes": 16129,
+          "sha256": "bf727b35393006179d07c367f48a43bbf86f3f5c308cdcfb1d75db03a0066f1f",
+          "git_blob": "cc4554aba50935875766113d519412a8027314cd"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/runtime-materialization.mjs",
+        "before": null,
+        "after": {
+          "bytes": 7903,
+          "sha256": "79d5bc996c747e7102f540911f4e6e2d1044b180fca084d2e9d6b7804f8cf83b",
+          "git_blob": "15814fa926349be326062b5f4ccd45a04b49eb83"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/typescript-operation.mjs",
+        "before": null,
+        "after": {
+          "bytes": 5737,
+          "sha256": "af12e1fa0d3f7a57add216abe97e7812f33ca21b0fe5ee17d1f218792104c7ef",
+          "git_blob": "b53fb1452968f5c76b22d9576ca8738c4debfcf8"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/runtime-cold-smoke.mjs",
+        "before": null,
+        "after": {
+          "bytes": 2774,
+          "sha256": "c1a25715452c82c988d0c1df652d618b2fc9db2a17b5894c782d25c27fdba0e5",
+          "git_blob": "db9a2d03f09f23867449276622588427e045cb58"
+        }
+      },
+      {
+        "path": "scripts/test-docs-ce012-runtime-routes-v1.mjs",
+        "before": {
+          "bytes": 12652,
+          "sha256": "ea9205222f28e9171b1b737a45074b4b06fd36417e21f20f2602c2abb4166bc0",
+          "git_blob": "cebcfd3f80cff5d742b3c337adc0957669bb6c66"
+        },
+        "after": {
+          "bytes": 12705,
+          "sha256": "1c64c27e06249ecff6915dfde1f351246fc39f883f54bc73caf9bb0cfcde4bf8",
+          "git_blob": "cd18393fae81cfa7c01c4283812ff7b03394cb65"
+        }
+      },
+      {
+        "path": "scripts/test-docs-ce012-materialization-capability-v1.mjs",
+        "before": null,
+        "after": {
+          "bytes": 10148,
+          "sha256": "fd9d3dd2a29d60d490bbe950ef0b3394e4453b5f89e944303935fdf821d7d99a",
+          "git_blob": "044ddcda2460749f871ab3aeb0eda8972dfd9167"
+        }
+      },
+      {
+        "path": "docs/testing/PLATFORM-DOCS-CE012-MATERIALIZATION-CAPABILITY-08.md",
+        "before": null,
+        "after": {
+          "bytes": 11859,
+          "sha256": "d67d4be6b5356d69f2d494e8e69f68c910f1ea8f2daab8ca80f153cd963582ca",
+          "git_blob": "891f92cd9587e182a6c1202ba26569a052af2f4e"
+        }
+      }
+    ],
+    "self_identity": "OUTER_DELIVERY_RECEIPT_ONLY"
+  },
+  "consumer": {
+    "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+    "contract": "documents-ce012-live-connection-request.v2",
+    "request": {
+      "bytes": 2819,
+      "sha256": "3ca7a18b4789d262565dc3289cf029d633b36a0fa155c5f3a575dfeedc619873"
+    },
+    "inventory": {
+      "bytes": 67039,
+      "sha256": "6388b257096dbc094f9513e40a06cebaf9042f55720b89c93cfd89b68b717a11"
+    },
+    "native_closure": {
+      "bytes": 49022,
+      "sha256": "55093d835a860ceeb414fbd097d3b62af2520e60cee5b093763ff7f983f928ee"
+    },
+    "artifacts": [
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/admission.mjs",
+        "bytes": 9648,
+        "sha256": "70f0c9d5a854d53593327d73ae8fa7e0f2067c34c9f601fee68ce9916743c582"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/measure.mjs",
+        "bytes": 8526,
+        "sha256": "663e47a0bc08a12eadafca691d47b0ee541cf94e0b5db4cc36e359a41fc2dfb3"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/run.mjs",
+        "bytes": 3432,
+        "sha256": "2a9cfc8118dbcdc03597e4434442eae1a3ce3bcc6cb73f404f7a422ef7289384"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/live.mjs",
+        "bytes": 22384,
+        "sha256": "6ae436256a6b1588baec578db1eeef5d52f44732297ac05f25599e12ad88b032"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/closure.mjs",
+        "bytes": 18846,
+        "sha256": "4d5c78dd551369a4a4b39c0208ba7357bbe18eccbd21686a4b3f09de9b2b28c1"
+      }
+    ],
+    "runtime_binding": null,
+    "registry": "EMPTY"
+  },
+  "materialization": {
+    "seal": "d3fb7a9c98c05e8701ae934d9934fee8769cb29be617b277b673b17b43086d33",
+    "seal_definition": "SHA256(canonical sorted path/bytes/SHA256 list), 601files only; excludes receipts and Platform source",
+    "verifyMaterials": "PASS_UNCHANGED_ORIGINAL_FUNCTION",
+    "verifyMaterials_source_sha256": "ce11f9077a810ba067058497f6abe386c051301ab00367bc9d5d0b9e4d875b44",
+    "cache_origins": {
+      "matching_checkout": 319,
+      "official_exact_head_fetch": 3
+    },
+    "official_fetched_files": [
+      {
+        "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+        "bytes": 6458,
+        "sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3",
+        "git_blob": "daa1c030eb8b7a46c934c84e776c4464a8811c06",
+        "source_commit": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+        "method": "OFFICIAL_GITHUB_FETCH_FILE"
+      },
+      {
+        "path": "src/lib/customer/documents-reference-authority-v1.ts",
+        "bytes": 14569,
+        "sha256": "444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81",
+        "git_blob": "35bc69dd8d0e7156b5688c9e4b52def9c6c3729d",
+        "source_commit": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+        "method": "OFFICIAL_GITHUB_FETCH_FILE"
+      },
+      {
+        "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+        "bytes": 10550,
+        "sha256": "dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca",
+        "git_blob": "ed1c27b998cb2c3122b5e946d041cc84f590bbe4",
+        "source_commit": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+        "method": "OFFICIAL_GITHUB_FETCH_FILE"
+      }
+    ],
+    "original_graph_sha256": "c9e7635b9009d2898be3115af36de6f2c0140bce142510eccbc680c996dba3ab",
+    "original_file_pins_sha256": "b7c0f3435b670dccb172a7fa673dd5397b6269a138c04b983c71d3d83f5518d1",
+    "runtime_input_bytes_preserved": true,
+    "runtime_inputs": {
+      "bytes": 187363,
+      "sha256": "7df062450cbd4bac61acf9a71137ee51423e23ab3a49d74d2752cc329da577de",
+      "git_blob": "bc630872efd39a3858c3c56ab9ab4b57d4b64714"
+    },
+    "aliases_symlinks": 0,
+    "inode_aliases": 0,
+    "file_mode": "0400",
+    "directory_mode": "0700",
+    "drift_before_after_readback": "MATCH",
+    "copy_time_source_seal_historical": "bc2147d9200a45d6b86050bcd108769dbbce05bb15211a29ab58020f971aca75",
+    "final_validation_source_seal": "fa08ef0ba39b2dda655eed857eb38bdd9d0ac2b54ed3fce721bc85cf6bae3db5",
+    "copy_receipt_preserved": "earlier_source_revision_not_relabelled_as_final_source",
+    "raw_file_list": "PRIVATE_NOT_PUBLISHED_RECONSTRUCT_FROM_ORIGINAL_ACCEPTED_REFERENCES"
+  },
+  "capability": {
+    "abi": "documents-ce012-typescript-capability.v1",
+    "proof_module": {
+      "path": "scripts/docs-ce012-platform-v1/typescript-operation.mjs",
+      "bytes": 5737,
+      "sha256": "af12e1fa0d3f7a57add216abe97e7812f33ca21b0fe5ee17d1f218792104c7ef",
+      "git_blob": "b53fb1452968f5c76b22d9576ca8738c4debfcf8"
+    },
+    "actual_realm_probe_all20": {
+      "version": "5.9.3",
+      "sys_absent": true,
+      "ambient_absent": true,
+      "exports_in_local_realm": true,
+      "literal_options_in_local_realm": true,
+      "code_generation_denied": true,
+      "typescript_sha256": "3ae902c92cc44dace175c0e69e13a4b0899f6983c6121d76b9ab8dd5795e7675",
+      "bootstrap_sha256": "28fff1ff5e2d0e75b41d8ddcac77a8deb8f466627dd9bbda12fec067dd2e84a2",
+      "probe_sha256": "f7fc400e4f75d4fa26798094559bfb8e0382f69c09be7389bdd617142cbfeb27",
+      "operation_sha256": "4256a3baa35f129bf818ffae8e60a2e9b0725f064d876f6ce645efb02967b6b9",
+      "input": "HASH_PINNED_PRIMITIVE_STRING",
+      "options": "FIXED_LITERAL_CREATED_IN_REALM",
+      "output": "PRIMITIVE_JSON_THEN_HOST_DATA_ONLY",
+      "caller_callbacks": "NO_CHANNEL",
+      "dynamic_import": "NO_IMPORT_CALLBACK",
+      "source_execution": "NONE",
+      "native_harness": "NOT_RUN"
+    },
+    "transition_count": 35,
+    "transitions": [
+      {
+        "id": "35da7ee31df2fdbfe8646aa505488085f41c36e672a1a1b8910d32c28fedfb45",
+        "ordinal": 1,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "0a00ac2b3af9618bf8f730f52ab74ea5a04bfa7405915f70632c87cd2be5547b",
+        "ordinal": 2,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "f1e187634bad0e6b24ee271104693659aeef8f894da79a58c5f9e05c58d08386",
+        "ordinal": 3,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "0a7ad4f76a92a3ecf18112d636c72fcfe13b893f93c05a604c9d09f9fb0dd728",
+        "ordinal": 4,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "ea440d44cfddf73d10b2f089b318b2c0e89f73f17caa6f909126bf6ed5880e08",
+        "ordinal": 5,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "b73321fb07d37c56a83734fa03f07c4c979086821fd1974c1dced9158a901630",
+        "ordinal": 6,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "195ccd819742a9ea83ae34a41fe125a3099f5f98eb1cf66adc2f9e75cf999464",
+        "ordinal": 7,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "7ecdbfdea3be279f4fa5de15f704dbfc8d4bbac27a0b685c32b4d749ff75805a",
+        "ordinal": 13,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "9845198adfa477aaa72fba4396430b5c57ba066cab4574bbc81028f71ae696ea",
+        "ordinal": 14,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "18d51f2d0ad1e83ea09e68f7d7a623b199c005f9bbfc9b17c0961690de1cebdf",
+        "ordinal": 15,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "60d0059c20eb03a0954610c41eb559fbebb40d4d37833024efd724b35a1f222f",
+        "ordinal": 16,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "3fbf07e166ea3a5a12cdbf1ff4bcdc2896c3bf7958434e9cf63b28f2a3dc864e",
+        "ordinal": 17,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "1c4f90ce233b1616a58cd213c54ca7e66f285ada1d47fb62ecf6138b85833b16",
+        "ordinal": 18,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "a0b5950c7b7500aeff09422a138dbae92700e2d7ef12916b883d411989426f3d",
+        "ordinal": 19,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "6535ec20d8f1d30f191245498a15f6d9dd67f77728db607615d4b5598385f8e4",
+        "ordinal": 20,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "541b4ecfc378f7c2b11e9083c4d0ff0eb6bd75c93826ca6b395f2867e948c59b",
+        "ordinal": 21,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "4b350cb01356a5f9c653cd18459116a6612dafc5b5ddb7f6cde1f93736fe26d6",
+        "ordinal": 22,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "4a430645f7a77e66502c865394a654e9110958001283215d1c62e4835ac61665",
+        "ordinal": 23,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "9b0ee336b4ed8a271e03adea956bbe57fc06139b8da132809b3065f39a45f797",
+        "ordinal": 24,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "f8d37aa6c7ddf49b72a6ced10e31e5b25f305c97001d6cf45fafcd80e266e58c",
+        "ordinal": 25,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "e2a6ef0b98988bc81969a07275a6f9ad97e2e74c94cd276572e3062e81b3a0f8",
+        "ordinal": 26,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "3fad4b09eefdd72914cec5690ea29d1fba07ebc153e9a7ce404ccb6f0d7b3d4f",
+        "ordinal": 27,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "eb3ae086be168591b02bad32da17f53d783e73e64479be1cb210f244d0d97e1c",
+        "ordinal": 28,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "d08517114659edfed28f9a917d71110f792f1851d6a2336b0a99bac8450053b4",
+        "ordinal": 29,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "9fb1373a624531ab7699d26a92067eaaf509443ee6f5a2b8a89b57d5f5871712",
+        "ordinal": 30,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "69b121cb1da57fee5519cbe6711942fdb288dd57ffdb5e2a0b53f0762dc05f2c",
+        "ordinal": 31,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "c630fd1bec08d30b7959651632a57c9bbbda95b0b6ac2b64c1ce35e1163ae8b5",
+        "ordinal": 32,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "d9395d0e6e8344d112a357d4f3ea6b0274c4ff2d978390094743afe89fb4721d",
+        "ordinal": 33,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "61f27f27197260555ae10e5217386fbe7c02c09a79141132f9371baba9ffb84a",
+        "ordinal": 34,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "4dc6e3171d0faefc9f2b449f7579312e4e72bee9cb3262fc9930ea1d074260d0",
+        "ordinal": 35,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "5067758ab7ce9ffcbbb247ed855b2c0fea78c4226d08ee0980597749d30f5d20",
+        "ordinal": 36,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "d048376ae8f41f5bc4a2946735c30d60045e7f22619a76df837fa59ed0af208a",
+        "ordinal": 37,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "b9ddd2ff9da70e6ce27675e3dd6f1c7bbe2630d3bfd83cde12da4e70e3f832e5",
+        "ordinal": 38,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "c94156c520491e44bd06ec92b6d61097ec4c126ab48349c5156ee9d97fdc6a32",
+        "ordinal": 39,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      },
+      {
+        "id": "730c56c9b72ff2d89bf6965b1cca4f7df6d4f29d5f090271a470c297a756f706",
+        "ordinal": 40,
+        "previous_status": "STILL_UNRESOLVED",
+        "status": "DENIED_AT_RUNTIME",
+        "guard": "PinnedTypeScriptOperation.transpile; RuntimeRoutes closed API and first-denial latch",
+        "proof_contract": "documents-ce012-typescript-capability.v1"
+      }
+    ],
+    "closure_claim": "EXTERNAL_CAPABILITY_DENIAL_WITHIN_EXACT_FIXED_OPERATION_NOT_CALLSITE_UNREACHABILITY",
+    "native_live_guard": "requireLiveCapability -> NOT_READY_NATIVE_CONSUMER_CAPABILITY"
+  },
+  "tests": {
+    "new_groups": 13,
+    "new_result": "PASS",
+    "changed_material_input_retests": 6,
+    "affected07_groups": 6,
+    "unaffected_suites": "NOT_REPEATED",
+    "real_eslint": {
+      "exit": 0,
+      "files": [
+        "scripts/docs-ce012-platform-v1/runtime-routes.mjs",
+        "scripts/docs-ce012-platform-v1/typescript-operation.mjs",
+        "scripts/docs-ce012-platform-v1/runtime-materialization.mjs",
+        "scripts/docs-ce012-platform-v1/runtime-cold-smoke.mjs",
+        "scripts/docs-ce012-platform-v1/worker.mjs",
+        "scripts/docs-ce012-platform-v1/contract.mjs",
+        "scripts/test-docs-ce012-materialization-capability-v1.mjs",
+        "scripts/test-docs-ce012-runtime-routes-v1.mjs"
+      ],
+      "config_sha256": "b8e19062ff97ec73e56b47e37c4d66ed5b0f51a53a21f91c9d27ca2645185ba9",
+      "no_this_alias": [
+        2
+      ],
+      "log_bytes": 161,
+      "log_sha256": "272e4c2b0e16e307699713ad6b529510bfa6a765ef48eba689f6f501a403e27f",
+      "notice": "React detect message only; max-warnings=0 unchanged",
+      "syntax_pass": [
+        "scripts/docs-ce012-platform-v1/runtime-routes.mjs",
+        "scripts/docs-ce012-platform-v1/typescript-operation.mjs",
+        "scripts/docs-ce012-platform-v1/runtime-materialization.mjs",
+        "scripts/docs-ce012-platform-v1/runtime-cold-smoke.mjs",
+        "scripts/docs-ce012-platform-v1/worker.mjs",
+        "scripts/docs-ce012-platform-v1/contract.mjs",
+        "scripts/test-docs-ce012-materialization-capability-v1.mjs",
+        "scripts/test-docs-ce012-runtime-routes-v1.mjs"
+      ]
+    },
+    "cold": {
+      "result": "PASS_SOURCE_OPERATION_ONLY",
+      "operations": 20,
+      "fresh_realm_per_source": true,
+      "diagnostics": 0,
+      "output_execution": "NOT_RUN",
+      "producer_import": "NOT_RUN",
+      "client_pool_construction": "NOT_RUN",
+      "policy_sha256": "f1d11d2058c3d7fcade19dd972d7fad2e4a65da9e4ee318ae2742283b6f8b5a1",
+      "operations_output_identities": [
+        {
+          "path": "src/lib/community/experience-guide-command-contract.ts",
+          "input_sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6",
+          "output_bytes": 15555,
+          "output_sha256": "2fb3ceac6912e78e77635b46020f5baf4813d4d8e5147d214d0dd55c75d4886d"
+        },
+        {
+          "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+          "input_sha256": "22c9816a557445bc19e133015f416598e702c90fb9b26a89cc8110bc69142481",
+          "output_bytes": 18444,
+          "output_sha256": "4427209a3b8822a8a2880f94961d4b47a6bb57a475b8c56321212c3a472f4986"
+        },
+        {
+          "path": "src/lib/community/experience-guide-lifecycle-provider-v1.ts",
+          "input_sha256": "0656476203b0cbefaa0852848f84221924fb2c9c01ff2b83e4bb36dac264822e",
+          "output_bytes": 19208,
+          "output_sha256": "9b5bc77c840e34716332e9c879514af2300c09665a34d843672d2911ac526766"
+        },
+        {
+          "path": "src/lib/community/experience-guide-provider-bridge.ts",
+          "input_sha256": "ddeda87fc4d19fb9516198fbcb1290240b1d3e152a5e85a936d513a7994b52ca",
+          "output_bytes": 8520,
+          "output_sha256": "45e342df4fdcf05093923972da4f37ed65ed2cf137bf81343555121112293c70"
+        },
+        {
+          "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+          "input_sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+          "output_bytes": 7592,
+          "output_sha256": "2346820fd2705d61e997319b78751bdbb049a97116880a954043ec69f8ceff49"
+        },
+        {
+          "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+          "input_sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+          "output_bytes": 9884,
+          "output_sha256": "795841f07d544667ea2aa6fc3f28637a7fd7f09531b9ecf09ae80fe568463b5a"
+        },
+        {
+          "path": "src/lib/core/jurisdiction-domain-artifact-transaction-evidence-v1.ts",
+          "input_sha256": "e30ced9821eb8f8cc99dac45b1ae1461d46d53e34f1a7cdae774c55d54281981",
+          "output_bytes": 2257,
+          "output_sha256": "91a63a0b38784e6de86546d124e61b03138c650ec5e6830967d67b9684c32e89"
+        },
+        {
+          "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+          "input_sha256": "d31f3b31a1302686d8022627475b2e14057cd36fff219a8b4441ff052798fc79",
+          "output_bytes": 9512,
+          "output_sha256": "62a9ec0302a19dddea96ec2444bc9d5845f25d2cc0b0940a11f273f7c5b6c0fb"
+        },
+        {
+          "path": "src/lib/core/postgres-transaction-host-v1.ts",
+          "input_sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+          "output_bytes": 37279,
+          "output_sha256": "83b00b92ed2853cfafaa69d2025bb3ae47bb79842119e9e3baa5bba012147f2b"
+        },
+        {
+          "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+          "input_sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+          "output_bytes": 2308,
+          "output_sha256": "99f5729fe7e462fff355956e62f5a6962bdda6ba9b1fdf0bcc88a2505ae2c951"
+        },
+        {
+          "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+          "input_sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+          "output_bytes": 2921,
+          "output_sha256": "f2dd289e7eaa46649d972d1c90b21f1128b36741da818b5829993ed987a6356e"
+        },
+        {
+          "path": "src/lib/customer/documents-ce012-reference-contract.ts",
+          "input_sha256": "1c6cae9052fb8bb1910f88af4ef264dbd973c52fe81e5394e1527db4aa2d4b93",
+          "output_bytes": 2226,
+          "output_sha256": "66c9ef9f327ad3bfe1570b6f09659f460a53d6b1ff5c67f81f57a14d1e826f48"
+        },
+        {
+          "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+          "input_sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3",
+          "output_bytes": 6808,
+          "output_sha256": "0488f423498333445b4b86478b2bc05fe0e3df1b98be9071eea547bfdb7a51d9"
+        },
+        {
+          "path": "src/lib/customer/documents-reference-authority-v1.ts",
+          "input_sha256": "444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81",
+          "output_bytes": 13538,
+          "output_sha256": "55d6d3a90438710bc117125f010498ea9d606eed620248fdc8d29d184e7d5df0"
+        },
+        {
+          "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+          "input_sha256": "dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca",
+          "output_bytes": 10407,
+          "output_sha256": "d9a7f9164515be79cf17388d6b442e577063832eefa67ce9af57dbc16d373b40"
+        },
+        {
+          "path": "src/lib/customer/workspace-composition-schema.ts",
+          "input_sha256": "d9888aa61cdf42618597b0984c75a922e83cdea6b3ba52d4f30a6f68cdb2da9f",
+          "output_bytes": 4467,
+          "output_sha256": "629b6aefd9e298c84dc7d87439434a2e4d7d124afc4324fc9e48170b23c39d6f"
+        },
+        {
+          "path": "src/lib/security/same-origin.ts",
+          "input_sha256": "b00a95fb384e286fd116c979847693d0e286283c19750e254f934576a55f96cc",
+          "output_bytes": 667,
+          "output_sha256": "2dd3f381061ee995d00afd39dd11ceb1729e1baa50ac70f0a65e449d05a762c4"
+        },
+        {
+          "path": "src/lib/supabase/env.ts",
+          "input_sha256": "5e1a8f1b1058b27fdcbf2e8ba9b9d737883fd9c7de292da07d336ef65f9be7b6",
+          "output_bytes": 2790,
+          "output_sha256": "ab8db499895c25b696a46bfe2cbd4b8646f6450423f51c91e5c879dbf50a28b2"
+        },
+        {
+          "path": "src/lib/supabase/server.ts",
+          "input_sha256": "5eb2bc418fbd3933ab2c45b2426f70f43cf1d392392788069b7832d5d6adffdc",
+          "output_bytes": 975,
+          "output_sha256": "22554314c1222495fac67fec9cabf58a6fa6fddedc4fd3e5f70625d5e5a7925d"
+        },
+        {
+          "path": "src/types/database.generated.ts",
+          "input_sha256": "9cb636b174782c9333afdf2775cb56bfca071cad5d79ccb48d9858cdc48fd6d2",
+          "output_bytes": 77,
+          "output_sha256": "d43aa81f5bc89faa359e0f97c814ba25155591ff078fbb9bfd40f8c7c9683230"
+        }
+      ]
+    },
+    "initial_cold_metadata_access_gap": {
+      "result": "BLOCKED",
+      "operations": 0,
+      "preserved": true,
+      "remediation": "read exact fixed config files; no repo-wide permission expansion"
+    },
+    "private_evidence_digests": [
+      {
+        "role": "tests-01.tap",
+        "identity": {
+          "bytes": 1285,
+          "sha256": "d9352d3589e7b3969aa1d2f0ebaa92bea8661394438e1bb99d98a793d3a2186a",
+          "git_blob": "c13135537109490f79f3637429846712c337d9fa"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      },
+      {
+        "role": "tests-material-02.tap",
+        "identity": {
+          "bytes": 677,
+          "sha256": "5681cd47c682c000d2884dddf273baf510839b1246d69512eeaeea249d11d927",
+          "git_blob": "2f05b395a724c7837f6b3e980ccc7010f3a77884"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      },
+      {
+        "role": "routes-affected-01.tap",
+        "identity": {
+          "bytes": 689,
+          "sha256": "3cfcbc0028f39b2e77d748a45ac8685e13ec6b00c75dc2d8d365983ca2234d08",
+          "git_blob": "6e1c3babcd728eab7abe446f8fcf6057dde4fc55"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      },
+      {
+        "role": "cold-01.stdout",
+        "identity": {
+          "bytes": 62,
+          "sha256": "68fbbd6281f952ff0a2f225bedd24b926368b27b918276e472ce21be5bc0bff6",
+          "git_blob": "efac03fa958eb472d9f60aa5a9da14bd2012bd50"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      },
+      {
+        "role": "cold-02.stdout",
+        "identity": {
+          "bytes": 22262,
+          "sha256": "059954f386467990abd2b623e34e919840e2e3b1601983f5a013065b2706cc45",
+          "git_blob": "5b572e906990e22a812abd722bb8d600f2a8fda6"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      },
+      {
+        "role": "cold-02.receipt.json",
+        "identity": {
+          "bytes": 357,
+          "sha256": "3dc69f2bd2e3d0bc543f6e9595c0fe849358051d0890c98fbb362fbac743a462",
+          "git_blob": "2a5f34629f41487397898138fe255be42342ca63"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      },
+      {
+        "role": "lint-final.receipt.json",
+        "identity": {
+          "bytes": 1276,
+          "sha256": "da88ca41cfd81b39242177379a674fb8d208781882d71b240e01ff0c5c2da66f",
+          "git_blob": "ce889d3369dabdcd96e7e3c615a2e65cce29482a"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      },
+      {
+        "role": "tests-timeout-01.tap",
+        "identity": {
+          "bytes": 226,
+          "sha256": "367cbd6d4d38640d6d5b02255d730b2da6cf43a5ec279a8a2bc431b17d09f536",
+          "git_blob": "86e10b4274c9dd1257b7b460e21c33b3528180f7"
+        },
+        "custody": "PRIVATE_NOT_PUBLISHED"
+      }
+    ],
+    "incremental_fault_check": {
+      "groups": 1,
+      "result": "PASS",
+      "case": "1ms VM timeout -> sanitized owner denial/quarantine; no VM error or output returned",
+      "runtime_implementation_changed": false,
+      "targeted_test_file_lint_syntax": "PASS"
+    }
+  },
+  "preservation": {
+    "unchanged": [
+      "supabase/local-profiles/runtime-lane-v1.json",
+      "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json",
+      "supabase/local-profiles/docs-ce012-pgauth-reviews-v1.json",
+      "scripts/docs-ce012-platform-v1/custody.mjs",
+      "scripts/docs-ce012-platform-v1/transport.mjs",
+      "scripts/docs-ce012-platform-v1/runtime-collector.mjs",
+      "scripts/docs-ce012-platform-v1/runtime-smoke.mjs",
+      "scripts/docs-ce012-platform-v1/runtime-routes-smoke.mjs",
+      "scripts/run-local-runtime-lane.py",
+      "scripts/local_runtime_consumer.py",
+      "scripts/run-docs-ce012-pgauth.py",
+      "package.json",
+      "package-lock.json"
+    ],
+    "original_graph_occurrences_source_identity_fields": "ALL43_MATCH_BASE",
+    "old_materializations": "PRESERVED_UNCHANGED",
+    "owner_source_and_other_lanes": "UNCHANGED",
+    "package_lock_runtime_bytes": "UNCHANGED_NO_INSTALL",
+    "approved_signatures_fixtures_receipts_sessions": "NONE_CREATED"
+  },
+  "reconstruction": {
+    "method": "apply direct child delta once to exact Base; do not replace historical materials",
+    "materializer": "scripts/docs-ce012-platform-v1/runtime-materialization.mjs",
+    "source_inputs": "fixed c0 v2 inventory322 and5 artifacts plus3 exact metadata; original06 runtime271",
+    "runtime_inputs": "retain original bytes; no graph recollection",
+    "sql_handling": "COPY_ONLY_NOT_INTERPRETED_OR_EXECUTED",
+    "materialization_seal_has_no_source_hash_dependency": true,
+    "source_seal_has_no_output_receipt_dependency": true,
+    "policy_seal": "raw policy bytes; no self-hash; guard carries policy hash"
+  },
+  "execution": {
+    "runtime_binding": null,
+    "registry": "EMPTY",
+    "live": "HOLD",
+    "docker": "NOT_RUN",
+    "pg": "NOT_RUN",
+    "sql": "NOT_RUN",
+    "auth": "NOT_RUN",
+    "session": "NOT_RUN",
+    "consumer_run": "NOT_RUN",
+    "install": "NOT_RUN"
+  },
+  "remaining_gates": [
+    "coordinator_review_of_this_source_delta",
+    "native_harness_and_target_compatibility",
+    "actual_owner_raw_canonical_plan_input_and_provenance",
+    "exclusive_fixture_custody",
+    "genuine_current_session_and_assurance",
+    "official_full_Core_CE_stored_receipt_relationship_verifier_two_historical_slots",
+    "separate_runtime_binding_and_execution_authorization"
+  ],
+  "skills": {
+    "policy_url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482",
+    "policy_version": "CLADORA-SKILLS-USAGE v1.1.0",
+    "applied": [
+      "cloud-environment:cloud-environment-runtime",
+      "cloud-environment-runtime/references/networking.md"
+    ],
+    "visible_version": "UNKNOWN",
+    "impact": "offline permissions/current network checks; no runtime authority expansion"
+  },
+  "automation": {
+    "policy": "CLADORA-AUTOMATION-DIRECTION v1.0.0",
+    "reference": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6582412814",
+    "process": "Platform CE012 materials and bounded capability preparation only",
+    "قابل خودکارسازی": "نیازمند بررسی",
+    "input": "exact c0 v2 inventory/request/runtime pins",
+    "automatable_part": "byte/seal verification, private copy and bounded readback",
+    "human_decision_role": "coordinator source review; owner exact-version execution authorization",
+    "conditions": "exact binding, current authority and native/custody prerequisites without UNKNOWN",
+    "exceptions_owner": "drift/failure/UNKNOWN to Platform and coordinator; no automatic retry",
+    "official_dependencies": "accepted consumer and full stored receipt relationship / approved target and session",
+    "value_metric": "preparation time and error rate; NEEDS_REVIEW_NOT_MEASURED",
+    "execution_authority_change": false
+  }
+}

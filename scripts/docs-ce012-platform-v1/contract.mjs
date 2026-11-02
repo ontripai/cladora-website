@@ -16,7 +16,7 @@ export const FILES = Object.freeze([
   'supabase/local-profiles/runtime-lane-v1.json',
   'scripts/run-docs-ce012-pgauth.py',
   'supabase/local-profiles/docs-ce012-pgauth-binding-v1.json',
-  ...['contract.mjs', 'custody.mjs', 'transport.mjs', 'worker.mjs', 'runtime-collector.mjs', 'runtime-smoke.mjs', 'runtime-routes.mjs', 'runtime-route-policy.v1.json', 'runtime-routes-smoke.mjs'].map(p => `scripts/docs-ce012-platform-v1/${p}`),
+  ...['contract.mjs', 'custody.mjs', 'transport.mjs', 'worker.mjs', 'runtime-collector.mjs', 'runtime-smoke.mjs', 'runtime-routes.mjs', 'runtime-route-policy.v1.json', 'runtime-routes-smoke.mjs', 'typescript-operation.mjs', 'runtime-materialization.mjs', 'runtime-cold-smoke.mjs'].map(p => `scripts/docs-ce012-platform-v1/${p}`),
 ]);
 export const CASES = Object.freeze(['current_positive', 'documents_denied', 'replaced_fresh',
   'historical_disclosure', 'historical_revoked', 'cross_workspace', 'quarantined', 'shared_lock', 'serialization_retry']);

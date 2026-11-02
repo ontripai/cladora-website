@@ -21,7 +21,7 @@ function parser(g){return g.require('pg-connection-string',parent('node_modules/
 const uri='postgresql://cladora_ce_guide_runtime@127.0.0.1:5432/docs_ce012_0000000000000000';
 
 test('43 occurrence bijection, exact source bytes and AST offsets (including trivia)',()=>{
-  assert.deepEqual(validatePolicy(policy,runtime),{required:0,denied:8,unresolved:35});
+  assert.deepEqual(validatePolicy(policy,runtime),{required:0,denied:43,unresolved:0});
   assert.equal(sha(fs.readFileSync(path.join(ROOT,'scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json'))),POLICY_SHA256);
   const ts=createRequire(path.join(root,'package.json'))('typescript');const nodes=new Map();
   for(const file of new Set(policy.occurrences.map(r=>r.parent))){const b=fs.readFileSync(parent(file));
@@ -41,12 +41,12 @@ test('source/hash/offset/specifier mismatch and new graph edge rejected',()=>{
   const r=structuredClone(runtime);r.graph.edges.push({parent:'package.json',specifier:'unexpected',target:'node:fs'});r.graph_sha256=sha(Buffer.from(canonical(r.graph)));
   code(()=>new RuntimeRoutes(root,r),'ORIGINAL_GRAPH_CHANGED');
 });
-test('35 unresolved callbacks remain HOLD, immutable and independent of a trace',()=>{
-  const g=guard();code(()=>g.requireResolved(),'STILL_UNRESOLVED_RUNTIME_OCCURRENCES');
+test('35 callback effect denials do not grant native capability or derive from trace absence',()=>{
+  const g=guard();g.requireResolved();code(()=>g.requireLiveCapability(),'NOT_READY_NATIVE_CONSUMER_CAPABILITY');
   assert.throws(()=>{g.status.unresolved=0;},TypeError);assert.throws(()=>{g.status={unresolved:0};},TypeError);
   const r=structuredClone(runtime),other=new RuntimeRoutes(root,r);r.graph.blocked=[];r.files[0].sha256='0'.repeat(64);
-  code(()=>other.requireResolved(),'STILL_UNRESOLVED_RUNTIME_OCCURRENCES');
-  assert.equal(other.policy.occurrences.filter(v=>v.status==='STILL_UNRESOLVED').length,35);
+  code(()=>other.requireLiveCapability(),'NOT_READY_NATIVE_CONSUMER_CAPABILITY');
+  assert.equal(other.policy.occurrences.filter(v=>v.previous_status==='STILL_UNRESOLVED').length,35);
 });
 test('real TypeScript accepts only pinned source + fixed in-memory options',()=>{
   const g=guard(),ts=g.require('typescript'),input=g.readSource(SOURCES[0]);
@@ -120,7 +120,7 @@ test('installed guards deny builtin fs and dynamic import then restore correctly
 test('expanded read-only fixed-source/library smoke: real effects fenced, no consumer run',()=>{
   const dir=path.join(ROOT,'scripts/docs-ce012-platform-v1'),cmd=['--permission','--no-addons','--allow-fs-read='+scope,'--allow-fs-read='+dir,'--allow-fs-read=/usr/local/bin/docker','--allow-fs-read='+process.execPath,path.join(dir,'runtime-routes-smoke.mjs'),'--root',root,'--pins',path.join(scope,'runtime-inputs.json')];
   const result=spawnSync(process.execPath,cmd,{env:{PATH:path.dirname(process.execPath)+':/usr/bin:/bin',NODE_ENV:'production',NO_COLOR:'1'},encoding:'utf8',timeout:30000,maxBuffer:128*1024});
-  assert.equal(result.status,0,result.stdout+result.stderr);const output=JSON.parse(result.stdout);assert.equal(output.result,'PASS_EXPANDED_SOURCE_SMOKE');assert.equal(output.operations.length,8);assert.equal(output.policy_sha256,POLICY_SHA256);assert.equal(output.policy_status.unresolved,35);
+  assert.equal(result.status,0,result.stdout+result.stderr);const output=JSON.parse(result.stdout);assert.equal(output.result,'PASS_EXPANDED_SOURCE_SMOKE');assert.equal(output.operations.length,8);assert.equal(output.policy_sha256,POLICY_SHA256);assert.equal(output.policy_status.unresolved,0);
   for(const key of ['consumer_run','connection','auth'])assert.equal(output[key],'NOT_RUN');assert.equal(output.runtime_ready,false);
 });
 test('registry remains empty, accepted runtime NULL, c0 harness exact and no test-input fixture',()=>{
