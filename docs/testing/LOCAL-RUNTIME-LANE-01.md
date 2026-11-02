@@ -119,3 +119,92 @@ attempts, image/source pins and private receipt hashes. Raw process logs, Docker
 inspect payloads, generated material and any catalog remain private with Platform.
 The public source/profile/test/docs are the only branch changes; no app, workflow,
 native installer, package/lock, Production or staging setting changed.
+
+## CLEANUP-CONSUMER-02 successor (parent61a05b5)
+
+PFL-CLEANUP-F01 is fixed in the CLI/result path. The original real attempts above
+and `local-runtime-lane-01.receipt.json` remain immutable historical evidence;
+they were not rerun or reclassified. The original health-only exit expression
+could return0 with unknown cleanup. The successor stores separate fields:
+
+- `health_result`: historical observation; later consumer/cleanup errors never
+  rewrite a successful PG/Auth health observation as an unexecuted/failed health.
+- `primary_error`: earliest error retained. Later cleanup errors are separate.
+- `cleanup_completeness` and `cleanup_gaps`: exact per-resource identity and
+  outcome, derived from owned container and image custody, not a caller boolean.
+- `overall_result`: PASSED/FAILED/UNKNOWN/INCOMPLETE. CLI exit0 requires PASSED.
+  Unknown, missing, duplicate, wrong-identity or unacceptable cleanup is nonzero.
+
+An owned container requires acknowledged exact-name/label/CID destruction and
+absence. Preexisting-image skip is valid only for a tracked preexisting image;
+it never satisfies owned-container cleanup. Acquired images require removal ACK
+and observed absence. Empty/partial receipts do not prove deletion. Lost-create
+ACKs may only acquire a CID through subsequent exact name/label observation;
+unresolved custody is UNKNOWN. Image custody now precedes pull dispatch too.
+
+The successor test file runs the real CLI in child Python processes with a fake
+Docker executable (no daemon/socket/network/SQL). It compares process exit,
+stdout and persisted receipt for success, PG/Auth unknown, empty/partial/image
+missing, duplicate/wrong identity, invalid container skip, allowed preexisting
+image skip, failed image cleanup, and health failure with successful/failed
+cleanup. Tests that inject omitted receipt entries invoke the actual CLI `main`
+in an external test driver; no production flag enables these injections.
+
+### Typed consumer stage: CLOSED pending exact Core admission
+
+`--consumer-request` reads at most32768bytes of a strict duplicate-free JSON
+object; no arbitrary command, SQL, file/import path, environment or `--exec`.
+Invalid/unreviewed input returns exit2/HOLD/NOT_RUN before creating a run directory
+or calling Docker. Reusing an already consumed run directory remains forbidden.
+
+Required fields (no others): format=`cladora-local-consumer-v1`,
+consumer_id=`Core/ACL-PROJECTION-02`, exact source_commit, stage=
+`after-health-before-cleanup`, target=`owned-disposable-pg17-auth`,
+adapter_id=`core-acl-projection-v1`, runner_sha256, profile_sha256, effects,
+payloads. Effects must be exactly `fixture_catalog_read` and
+`fixture_synthetic_privilege_witness`. Each of1..8 payloads has a unique bounded
+id, bytes(1..1048576), and SHA256; payload text/path is not accepted in the request.
+
+`runner_sha256` is the source seal over an ordered compact-JSON list of the runner
+and admission module names/SHA256, produced by `source_binding()`. `profile_sha256`
+is SHA256 of the actual unchanged runtime profile. Request SHA256 is over exact
+raw bytes and is **external to the request**, avoiding self-hash recursion.
+
+The fixed repository `runtime-consumer-reviews-v1.json` maps exact request hashes
+to coordinator-admitted review records. It is currently EMPTY. Request-approved
+flags and merely nonempty review strings do not grant authority. Only an actual
+coordinator review of exact producer/source/request, then a reviewed source/data
+successor and separately bound invocation, can populate this registry. The
+record must bind the source, executable/profile hashes, exact payload identities,
+effects and canonical #463 review identity. No CLI/env selects a review file.
+
+Review records are separate fixed-path data, not executable source, so recording
+a request hash cannot change the executable seal that the same request pins.
+The request cannot import code. The compiled adapter registry is also EMPTY;
+even a synthetic valid review has no production execution handler. Future
+adapters must carry reviewed immutable source/payload bytes and enforce the
+exact bounds; code-added adapters change the executable seal before request
+generation. Admission checks actual payload bytes/hash/length/source identity.
+
+After successful health, the runner records consumer DISPATCHED, then re-admits
+the exact in-memory request against the current reviewed record and fresh source/
+profile binding immediately before effect. The admission object pins the review
+record hash; revocation/change cannot retain an old admission. The typed fixture
+argument contains only this run's distinct actual PG/Auth CIDs and run ID, not a
+hosted URL, inherited credentials, a general command method or supplied SQL.
+Consumer failure still enters finally-cleanup, preserves successful health and
+the first error, and cannot produce lifecycle PASS.
+
+No actual Core request/payload or adapter is accepted by this delivery.
+ACL-PROJECTION-02 remains NOT_RUN and NOT_CONNECTED_TESTED. Synthetic positive
+admission tests are only validator checks. No domain install, managed-role grant,
+session/email, staging/Production or real network operation was performed.
+
+New checks only:
+```sh
+python -B scripts/test-local-runtime-closeout.py
+python -B scripts/test-local-runtime-admission.py
+```
+Prior seven tests and the real health lifecycle were not replayed. The new safe
+receipt `local-runtime-cleanup-consumer-02.receipt.json` records successor results
+and preservation pins; it contains no raw environment/private receipt metadata.

@@ -9,10 +9,66 @@ import secrets
 import subprocess
 import time
 import uuid
+from local_runtime_consumer import AdmissionError, Fixture, admit, digest, dispatch
 
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE = ROOT / 'supabase/local-profiles/runtime-lane-v1.json'
 DOCKER = ['docker', '--host=unix:///var/run/docker.sock']
+
+
+def source_binding():
+    # Seal both executable runner and admission implementation; no self-hash file.
+    source = [(name, digest(Path(__file__).with_name(name).read_bytes())) for name in
+              ('run-local-runtime-lane.py', 'local_runtime_consumer.py')]
+    return {'runner_sha256': digest(json.dumps(source, separators=(',', ':')).encode()),
+            'profile_sha256': digest(PROFILE.read_bytes())}
+
+
+def finalize_lifecycle(receipt, owned, images):
+    """Evidence-based closeout, distinct from immutable historical health."""
+    expected = {}
+    gaps = []
+    for entry in owned:
+        key = ('container', entry['name'])
+        if key in expected:
+            gaps.append('duplicate-owned-container')
+        expected[key] = (entry.get('cid'), 'acknowledged-absent')
+    for image, identity, acquired in images:
+        key = ('image', identity)
+        if key in expected:
+            gaps.append('duplicate-owned-image')
+        expected[key] = (identity, 'removal-acknowledged' if acquired else 'skipped-preexisting')
+    seen = set()
+    for entry in receipt['cleanup']:
+        key = (entry.get('kind'), entry.get('resource_id'))
+        if key not in expected or key in seen:
+            gaps.append('unexpected-or-duplicate-cleanup')
+            continue
+        seen.add(key)
+        identity, required = expected[key]
+        if entry.get('identity') != identity or entry.get('state') != required:
+            gaps.append('cleanup-unconfirmed:' + str(key))
+    gaps.extend('cleanup-missing:' + str(key) for key in expected.keys() - seen)
+    health_ok = receipt.get('health_result') == 'PG17_AND_REAL_AUTH_HEALTH_PROVED_NO_DOMAIN_INSTALL'
+    if health_ok and {e['role'] for e in owned} != {'pg', 'auth'}:
+        gaps.append('healthy-fixture-custody-missing')
+    if health_ok and len(images) != 2:
+        gaps.append('healthy-image-custody-missing')
+    receipt['cleanup_completeness'] = 'UNKNOWN' if gaps else 'ACKNOWLEDGED_FOR_ALL_TRACKED_RESOURCES'
+    receipt['cleanup_gaps'] = gaps
+    primary = receipt.get('primary_error')
+    consumer_ok = receipt.get('consumer', {}).get('status') in ('NOT_REQUESTED', 'PASSED')
+    if gaps or (primary and 'UNKNOWN' in primary):
+        status = 'UNKNOWN'
+    elif primary or not consumer_ok or receipt.get('cleanup_errors'):
+        status = 'FAILED'
+    elif not health_ok:
+        status = 'INCOMPLETE'
+    else:
+        status = 'PASSED'
+    receipt['overall_result'] = status
+    receipt['exit_code'] = 0 if status == 'PASSED' else 1
+    return receipt['exit_code']
 
 
 def environment():
@@ -50,9 +106,15 @@ def inspect_config(c, role, pgcid=None):
 
 
 class Lane:
-    def __init__(self, output):
-        self.p = json.loads(PROFILE.read_text())
+    def __init__(self, output, consumer_raw=None):
+        profile_bytes = PROFILE.read_bytes()
+        self.p = json.loads(profile_bytes)
         validate(self.p)
+        binding = source_binding()
+        if digest(profile_bytes) != binding['profile_sha256']:
+            raise AdmissionError('PROFILE_CHANGED_DURING_ADMISSION')
+        self.consumer_raw = consumer_raw
+        self.admission = admit(consumer_raw, binding) if consumer_raw is not None else None
         self.out = Path(output).resolve()
         self.out.mkdir(mode=0o700, parents=True, exist_ok=False)
         self.run = 'cladora-lane-' + uuid.uuid4().hex[:12]
@@ -60,11 +122,14 @@ class Lane:
         self.images = []
         self.sensitive = []
         self.r = {'profile': self.p['profile'], 'run_id': self.run,
-                  'profile_sha256': hashlib.sha256(PROFILE.read_bytes()).hexdigest(),
+                  'profile_sha256': digest(profile_bytes),
                   'started_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
                   'stages': {}, 'cleanup': [], 'domain_installation': 'NOT_RUN',
                   'auth_session': 'NOT_RUN', 'hosted_email': 'NOT_RUN',
                   'raw_logs': 'PRIVATE_NOT_PUBLISHED'}
+        self.r.update(health_result='NOT_RUN', overall_result='INCOMPLETE',
+                      source_binding=binding,
+                      consumer={'status': 'NOT_RUN' if self.admission else 'NOT_REQUESTED'})
         self.save()
 
     def save(self):
@@ -103,8 +168,12 @@ class Lane:
         pin = self.p[role]
         # Capture pre-existing image IDs; only newly acquired, unused images eligible for cleanup.
         before = self.cmd(role + '-image-inventory', ['image', 'ls', '--no-trunc', '-q']).split()
-        self.cmd(role + '-pull', ['pull', '--platform=linux/amd64', pin['image']], 180)
+        # Custody precedes pull: a lost ACK can leave a daemon-side image.
         self.images.append((pin['image'], pin['image_id'], pin['image_id'] not in before))
+        self.r['image_custody'] = [{'image': image, 'identity': identity, 'acquired': acquired}
+                                   for image, identity, acquired in self.images]
+        self.save()
+        self.cmd(role + '-pull', ['pull', '--platform=linux/amd64', pin['image']], 180)
         image = json.loads(self.cmd(role + '-image-inspect', ['image', 'inspect', pin['image']]))[0]
         assert image['Id'] == pin['image_id'] and image['Architecture'] == 'amd64' and image['Os'] == 'linux'
         self.r['stages'][role + '-image-inspect']['identity'] = pin['image_id']
@@ -196,23 +265,45 @@ class Lane:
                 'test "$(ls /sys/class/net)" = lo; test "$(wc -l </proc/net/route)" -eq 1; '
                 'test "$(id -u)" = 999; test "$(id -g)" = 999'])
             self.r['health_result'] = 'PG17_AND_REAL_AUTH_HEALTH_PROVED_NO_DOMAIN_INSTALL'
+            self.save()
+            if self.admission is not None:
+                self.r['consumer'] = {'status': 'DISPATCHED', 'request_sha256': self.admission.request_sha256,
+                                      'review_id': self.admission.review_id}
+                self.save()
+                result = dispatch(self.admission, self.consumer_raw, source_binding(), Fixture(self.run, pg, auth))
+                if result != {'status': 'PASSED'}:
+                    raise RuntimeError('consumer:FAILED_OR_UNKNOWN')
+                self.r['consumer']['status'] = 'PASSED'
         except Exception as error:
-            self.r['primary_error'] = str(error) if isinstance(error, (RuntimeError, AssertionError)) else type(error).__name__
-            self.r['health_result'] = 'FAILED_OR_UNKNOWN'
+            self.r.setdefault('primary_error', str(error) if isinstance(error, (RuntimeError, AssertionError)) else type(error).__name__)
+            if self.r['health_result'] != 'PG17_AND_REAL_AUTH_HEALTH_PROVED_NO_DOMAIN_INSTALL':
+                self.r['health_result'] = 'FAILED_OR_UNKNOWN'
+            if self.r['consumer']['status'] == 'DISPATCHED':
+                self.r['consumer']['status'] = 'FAILED_OR_UNKNOWN'
         finally:
-            self.cleanup()
+            try:
+                self.cleanup()
+            except Exception as error:
+                self.r.setdefault('cleanup_errors', []).append(type(error).__name__)
+            finalize_lifecycle(self.r, self.owned, self.images)
             self.r['ended_utc'] = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
             self.save()
         return self.r
 
     def cleanup(self):
         for entry in reversed(self.owned):
-            result = {'resource': entry['role'], 'state': 'unknown'}
+            result = {'kind': 'container', 'resource': entry['role'], 'resource_id': entry['name'],
+                      'identity': entry['cid'], 'state': 'unknown'}
             try:
                 obj = json.loads(self.cmd(entry['role'] + '-cleanup-inspect', ['inspect', entry['cid'] or entry['name']]))[0]
                 assert obj['Config']['Labels']['cladora.runtime.run'] == self.run
+                assert obj['Name'] == '/' + entry['name']
                 if entry['cid']:
                     assert obj['Id'] == entry['cid']
+                else:
+                    # Lost create ACK: a later exact name/label observation may bind custody.
+                    entry['cid'] = obj['Id']
+                    result['identity'] = obj['Id']
                 # Diagnostic failure must not suppress destruction or replace primary error.
                 try:
                     self.cmd(entry['role'] + '-private-process-log', ['logs', '--tail', '100', obj['Id']])
@@ -224,27 +315,50 @@ class Lane:
                 result['state'] = 'acknowledged-absent'
             except Exception as error:
                 result['detail'] = type(error).__name__
+                self.r.setdefault('cleanup_errors', []).append(entry['role'] + ':' + type(error).__name__)
+                self.r.setdefault('primary_error', entry['role'] + ':cleanup:' + type(error).__name__)
             self.r['cleanup'].append(result)
             self.save()
         for index, (image, identity, acquired) in enumerate(reversed(self.images)):
-            result = {'image_id': identity, 'state': 'skipped-preexisting'}
+            result = {'kind': 'image', 'image_id': identity, 'resource_id': identity,
+                      'identity': identity, 'state': 'skipped-preexisting'}
             try:
                 if acquired:
                     used = self.cmd('image-users-' + str(index), ['ps', '-a', '-q', '--filter', 'ancestor=' + identity])
                     assert not used.strip()
                     self.cmd('image-remove-' + str(index), ['image', 'rm', image])
+                    remaining = self.cmd('image-absence-' + str(index), ['image', 'ls', '--no-trunc', '-q'])
+                    assert identity not in remaining.split()
                     result['state'] = 'removal-acknowledged'
             except Exception as error:
                 result.update(state='unknown', detail=type(error).__name__)
+                self.r.setdefault('cleanup_errors', []).append('image:' + type(error).__name__)
+                self.r.setdefault('primary_error', 'image:cleanup:' + type(error).__name__)
             self.r['cleanup'].append(result)
             self.save()
 
 
-if __name__ == '__main__':
+def main(argv=None):
     a = argparse.ArgumentParser()
     a.add_argument('--run-directory', required=True)
-    args = a.parse_args()
-    result = Lane(args.run_directory).execute()
+    a.add_argument('--consumer-request', help='typed request only; no external approval or executable code')
+    args = a.parse_args(argv)
+    raw = None
+    if args.consumer_request:
+        with open(args.consumer_request, 'rb') as request:
+            raw = request.read(32769)
+    try:
+        runner = Lane(args.run_directory, raw)
+    except AdmissionError as error:
+        print(json.dumps({'overall_result': 'HOLD', 'consumer': 'NOT_RUN', 'reason': str(error)}))
+        return 2
+    result = runner.execute()
     print(json.dumps({'health_result': result['health_result'], 'primary_error': result.get('primary_error'),
-                      'cleanup': result['cleanup'], 'receipt': str(Path(args.run_directory) / 'receipt.json')}))
-    raise SystemExit(0 if result['health_result'].startswith('PG17_AND_') else 1)
+                      'overall_result': result['overall_result'], 'cleanup_completeness': result['cleanup_completeness'],
+                      'consumer': result['consumer'], 'cleanup': result['cleanup'],
+                      'receipt': str(Path(args.run_directory) / 'receipt.json')}))
+    return result['exit_code']
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())
