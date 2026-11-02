@@ -1,0 +1,218 @@
+{
+  "task_id": "V14-CE-01 / CE012-SAVE-WRITER-BRIDGE-07",
+  "worker": "CLADORA-CE-WORKER-01",
+  "base_parent": "df73961fc9d9fbf5d90a5241bfbdfee2fb47eafc",
+  "branch": "codex/program-ce-independent-base-02",
+  "runtime_binding": null,
+  "source": [
+    {
+      "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+      "bytes": 23502,
+      "sha256": "a1253414c58c1191690f9c62aab6a35098a1d69b1cf003b25aa256d2ed2f8438",
+      "git_blob": "6dfbb8dbb249ab6cea80ca9a6b37ca6ab3e071c2"
+    },
+    {
+      "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
+      "bytes": 10405,
+      "sha256": "b5edb0d313d28d9cea3e6e188ad98f97002f93de914bf18f8ba9dcb2e0d12909",
+      "git_blob": "d81bfccb996736c45690c4f861f7222d5baf329b"
+    },
+    {
+      "path": "scripts/test-ce012-save-writer-v1.mjs",
+      "bytes": 17282,
+      "sha256": "312d35da4544436855eaccfb44ef1a25270686527132b04e64a35e963088c3b1",
+      "git_blob": "d5de348f1248f78d80205993b5c0211689534ed1"
+    },
+    {
+      "path": "docs/contracts/ce012-save-writer-v1/README.md",
+      "bytes": 8751,
+      "sha256": "a06f8d0b08ad3c44fc9e070945a3ec5d3a9ea880d4440de544d0b597a4edd75a",
+      "git_blob": "b9ebc5c5d92789d8f44765fa583bbb2a76b6ac30"
+    }
+  ],
+  "manifest_self": "bound externally by final commit tree/report; excluded from own inventory seal",
+  "dependencies": [
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab",
+      "in_ce_base": "MISSING"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+      "bytes": 6458,
+      "sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3",
+      "git_blob": "daa1c030eb8b7a46c934c84e776c4464a8811c06",
+      "in_ce_base": "MISSING"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+      "bytes": 10550,
+      "sha256": "dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca",
+      "git_blob": "ed1c27b998cb2c3122b5e946d041cc84f590bbe4",
+      "in_ce_base": "DIFFERENT_NO_EDIT_OR_FALLBACK"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "src/lib/customer/documents-reference-authority-v1.ts",
+      "bytes": 14569,
+      "sha256": "444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81",
+      "git_blob": "35bc69dd8d0e7156b5688c9e4b52def9c6c3729d",
+      "in_ce_base": "DIFFERENT_NO_EDIT_OR_FALLBACK"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "scripts/docs-ce012-live-connection-v1/consumer-request.json",
+      "bytes": 2819,
+      "sha256": "3ca7a18b4789d262565dc3289cf029d633b36a0fa155c5f3a575dfeedc619873",
+      "git_blob": "418d7ed92ea20e0a40bdedd7b753082a6eb12232",
+      "in_ce_base": "MISSING"
+    },
+    {
+      "head": "5f6b671d2ea1b1a7341d1ed0352fe2ae2713bdaa",
+      "path": "scripts/docs-ce012-case-plan-v1/compiler.ts",
+      "bytes": 25570,
+      "sha256": "45195982da27452c1a46cfe248b2034ebfc389063af9a1748678430f41cd725f",
+      "git_blob": "12fdffa458501db3a940434da2482116abda766c",
+      "in_ce_base": "MISSING"
+    }
+  ],
+  "abi": [
+    "createCe012SaveWriterProviderV1(guideCommand,officialDocumentsModule|null):CoreTransactionProvidersV2",
+    "createCe012SaveWriterExecutorV1(existingCoreHost,retainedCoreCommand,officialDocumentsModule|null):existingEditorExecutorPort",
+    "readCe012SaveWriterRelationV1(scope,command,guideCommand,expectedCoreReceipt):privateHistoricalRelation/runtimeBindingNULL/actionAuthorizationNotEvaluated"
+  ],
+  "provider_code": "documents-ce012-reference-provider.v1",
+  "replay_policy": "provider_current_state_required",
+  "storage": {
+    "reuse": [
+      "experience.guides",
+      "experience.guide_steps",
+      "experience.guide_references",
+      "platform.idempotency_keys"
+    ],
+    "review_only_addition": "experience.guide_save_receipts_v1",
+    "settlement": "deferred security-invoker constraint check of C03 response_ref in original tx; independent mutation/CE/Core receipt IDs",
+    "no_second_commit_or_repair": true,
+    "retention": "C03 expiry/cleanup authoritative; no availability promised beyond C03; retention decision remains open"
+  },
+  "evidence": {
+    "new_controlled_cases": 27,
+    "result": "PASS_CONTROLLED_TRANSPORT_ONLY",
+    "after_proposal_source_checks": "11 affected relation/proposal checks PASS",
+    "typecheck": "PASS existing tsconfig/TS5.9.3",
+    "lint": "PASS scoped TS+MJS",
+    "syntax": "PASS new MJS",
+    "old_suites": "NOT_RERUN: CE010126/CE011/G1/G2/Docs compiler",
+    "native_sql_pg_driver_auth_storage": "NOT_RUN_NOT_PASS",
+    "next_target_16_4_1_zod_4_6_6": "NOT_RUN_NOT_PASS; local Next16.3.8/Zod4.4.3; no installation"
+  },
+  "evidence_hashes": {
+    "test-final.txt": {
+      "bytes": 2127,
+      "sha256": "aa0a76f4bfa8604b2bad085f8e24c0f670db7b1ebed80f65649a80d6555e3bc4",
+      "git_blob": "0eef9e05c161d28617d420d51bc2182b99430686"
+    },
+    "test-relation.txt": {
+      "bytes": 1092,
+      "sha256": "517d653f19b249d20dada5479a18de24f565b3fb14ec62296324ba2768ecc976",
+      "git_blob": "cf849352a741f2a3dce6bc17c809bf1ba2fdc1e4"
+    },
+    "tsc.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "lint.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    }
+  },
+  "preservation": "All existing tracked source unchanged from Base. New CE source/proposal/test/docs only. No Core/Docs/Platform copy or edit.",
+  "gates": [
+    {
+      "owner": "Core",
+      "closure": "review same-transaction deferred binding, C03 key/hash/receipt/retention; official combined CE+Core reader ABI acceptance; no Core host edits in CE"
+    },
+    {
+      "owner": "Documents",
+      "closure": "review immutable target/lineage and historical/current disclosure composition; genuine provenance/custody required; both compiler historical slots BLOCKED"
+    },
+    {
+      "owner": "Core/Documents/Platform",
+      "closure": "separate minimal proposal/owner/RLS/ACL/capability/install authorization, no positive grant inferred"
+    },
+    {
+      "owner": "Platform/coordinator",
+      "closure": "after source acceptance/separate authority, exact target toolchain and native serializable PG/trigger/rollback/40001/unknown-COMMIT/currentness evidence; not requested/run here"
+    }
+  ],
+  "skills": {
+    "policy": "CLADORA-SKILLS-USAGE v1.1.0",
+    "url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482",
+    "applied": [
+      "cloud-environment-runtime",
+      "supabase source-only security checklist",
+      "supabase-postgres-best-practices RLS basics",
+      "installed Next TypeScript guidance"
+    ],
+    "limits": "No SQL/query/advisor execution per explicit task; no docs network expansion/install. Native behavior not verified."
+  },
+  "automation": {
+    "classification": "needs review",
+    "input": "version-bound accepted save command",
+    "opportunity": "draft preparation only",
+    "human_role": "authorized editor explicit save",
+    "conditions": "accepted current authority, Documents disclosure and custody",
+    "exceptions": "UNKNOWN/mismatch to editor and Core/Docs integration owners",
+    "dependency": "official Core/Docs versions above",
+    "value": "not measured; needs review",
+    "authority_expanded": false
+  },
+  "inventory_seal": "bbc99fbbcf3f6b21d9f4bb1d8d9abb52e9747467179fc73c40d150aed27233fc"
+}
