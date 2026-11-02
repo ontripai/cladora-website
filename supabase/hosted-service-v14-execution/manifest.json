@@ -1,7 +1,7 @@
 {
   "contract": "cladora-source-delivery-manifest.v1",
-  "task_id": "V14-SERVICE-01 / S01-OFFERING-SOURCE-WITNESS-04",
-  "base": "37af00f76390d8973bbc7eb529a76aa27fe1f254",
+  "task_id": "V14-SERVICE-01 / S01-SQLSTATE-REPAIR-05",
+  "base": "fd8d0a114b3ffd0f4a5f2f56138119c7296997bb",
   "branch": "codex/program-service-offering-request-02",
   "runtime_state": "INACTIVE_FAIL_CLOSED",
   "dependencies": {
@@ -11,12 +11,13 @@
     "FIN01": "required only before financial Order creation; this package creates no Order"
   },
   "evidence": {
-    "source_tests": "PASS_CONTROLLED_OFFERING_DISCLOSURE_SOURCE_18_OF_18",
+    "source_tests": "PREVIOUS_CONTROLLED_OFFERING_DISCLOSURE_SOURCE_18_OF_18_COORDINATOR_CONFIRMED_NOT_RERUN",
     "postgresql": "NOT_RUN_NOT_PASS",
     "connected_http_auth": "NOT_RUN_NOT_PASS",
     "browser": "PASS_REAL_CHROMIUM_ACTUAL_COMPONENT_SYNTHETIC_LOOPBACK_9_OF_9",
     "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS",
-    "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY"
+    "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY",
+    "sqlstate_boundary": "PASS_TARGETED_6_OF_6"
   },
   "outputs": [
     {
@@ -157,16 +158,16 @@
     },
     {
       "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
-      "bytes": 18064,
-      "sha256": "0b4b240fab081e5f31953c39d9539996174808da095056eb70ec97685f8d78b4",
+      "bytes": 18448,
+      "sha256": "b450d50f1dcac9bb83b5d29c9984cc2646b20093485e93252d6bacca1297cbaf",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "scripts/test-service-offering-disclosure-source-v1.mjs",
-      "bytes": 13712,
-      "sha256": "1bc5c233331882a3361d60859786907846724575ce36ad450db3e2d90a06a202",
+      "bytes": 15708,
+      "sha256": "7dc2ba5276596e3e3beeaa5b517cd21c7d6af928c9636fc386a9e56371853c8e",
       "preimage": {
         "state": "absent"
       }

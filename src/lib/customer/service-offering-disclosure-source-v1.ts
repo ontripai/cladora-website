@@ -212,6 +212,11 @@ function sourceRequiresAnotherDomain(row: z.infer<typeof sourceRowSchema>) {
     || row.eligibility.required_policy_codes.length > 0;
 }
 
+function sqlState(error: unknown) {
+  return typeof error === 'object' && error !== null && 'code' in error
+    ? (error as { code?: unknown }).code : undefined;
+}
+
 export async function projectServiceOfferingDisclosureSourceV1(
   scope: CoreTransactionScopeV1,
   inputValue: ProviderAgreementVerificationV1Input,
@@ -378,7 +383,10 @@ export async function projectServiceOfferingDisclosureSourceV1(
       agreement_verification: 'not_evaluated',
       action_authorization: 'not_evaluated',
     };
-  } catch {
+  } catch (error) {
+    // The trusted transaction host owns bounded serialization retries. Preserve
+    // the exact PostgreSQL error object; every other failure remains redacted.
+    if (sqlState(error) === '40001') throw error;
     return { status: 'not_ready', code: 'SOURCE_UNAVAILABLE' };
   }
 }

@@ -52,7 +52,7 @@ const input = {
 
 function setup() {
   const state = {
-    allowed:true, sourceCalls:0, afterSource:()=>{}, calls:[],
+    allowed:true, sourceCalls:0, afterSource:()=>{}, calls:[], failAt:null, failure:null,
     row:{ tenant_id:ids.tenant, workspace_id:ids.workspace, offering_id:ids.offering,
       offering_version:'4', published_revision_id:ids.revision,
       published_revision_version:'2', provider_party_id:ids.provider,
@@ -67,6 +67,11 @@ function setup() {
     workspace_id:ids.workspace, tenant_id:ids.tenant, actor_id:ids.actor, attempt:1,
     async query(sql, params=[]) {
       state.calls.push({ sql, params:structuredClone(params) });
+      const point=sql===SERVICE_OFFERING_DISCLOSURE_SQL.offering?'offering'
+        :sql===SERVICE_OFFERING_DISCLOSURE_SQL.revision?'revision'
+          :sql===SERVICE_OFFERING_DISCLOSURE_SQL.clock?'clock'
+            :sql.includes('canonical_authority_revision_v1')?'authority':null;
+      if(point!==null&&state.failAt===point)throw state.failure;
       if (sql === SERVICE_OFFERING_DISCLOSURE_SQL.offering) {
         assert.deepEqual(params, [ids.tenant, ids.workspace, ids.offering]);
         state.sourceCalls += 1;
@@ -127,8 +132,12 @@ function setup() {
   return { state, scope, ports, authorityRequest };
 }
 
+const sqlstateOnly=process.argv.includes('--sqlstate');
 let passed = 0;
-const check = async (name, fn) => { await fn(); passed += 1; console.log(`PASS ${name}`); };
+const check = async (name, fn, sqlstate=false) => {
+  if(sqlstateOnly&&!sqlstate)return;
+  await fn();passed += 1;console.log(`PASS ${name}`);
+};
 
 await check('actual source binds exact Offering tuple and exposes no agreement validity', async () => {
   const x=setup(); const result=await projectServiceOfferingDisclosureSourceV1(x.scope,input,binding,x.ports);
@@ -226,5 +235,34 @@ await check('all projection operations are SELECT-only and S01 is never invoked'
   assert.match(SERVICE_OFFERING_DISCLOSURE_SQL.revision,/for share of r/);
   assert.match(SERVICE_OFFERING_DISCLOSURE_SQL.provider,/for share of p/);
 });
+
+await check('positive control still discloses through projection and adapter',async()=>{
+  const x=setup();
+  assert.equal((await projectServiceOfferingDisclosureSourceV1(x.scope,input,binding,x.ports)).status,
+    'disclosed');
+  assert.equal(await createServiceOfferingDisclosureCanDiscloseV1(binding,x.ports)(x.scope,input),
+    'disclose');
+},true);
+
+for(const point of ['authority','offering','revision','clock'])await check(
+  `SQLSTATE 40001 from ${point} reaches the trusted caller unchanged`,async()=>{
+    const x=setup();const failure=Object.assign(new Error(`PRIVATE_${point.toUpperCase()}_DETAIL`),
+      {code:'40001'});x.state.failAt=point;x.state.failure=failure;
+    await assert.rejects(
+      ()=>projectServiceOfferingDisclosureSourceV1(x.scope,input,binding,x.ports),
+      error=>error===failure&&error.code==='40001');
+    await assert.rejects(
+      ()=>createServiceOfferingDisclosureCanDiscloseV1(binding,x.ports)(x.scope,input),
+      error=>error===failure&&error.code==='40001');
+  },true);
+
+await check('ordinary source failure stays bounded and redacted',async()=>{
+  const x=setup();x.state.failAt='offering';
+  x.state.failure=Object.assign(new Error('PRIVATE_TABLE_AND_SQL_DETAIL'),{code:'57014'});
+  assert.deepEqual(await projectServiceOfferingDisclosureSourceV1(x.scope,input,binding,x.ports),
+    {status:'not_ready',code:'SOURCE_UNAVAILABLE'});
+  assert.equal(await createServiceOfferingDisclosureCanDiscloseV1(binding,x.ports)(x.scope,input),
+    'withhold');
+},true);
 
 console.log(`PASS ${passed}/${passed} SERVICE Offering disclosure source checks`);
