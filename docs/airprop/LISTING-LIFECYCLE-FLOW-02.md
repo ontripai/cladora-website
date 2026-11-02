@@ -98,3 +98,48 @@ source security guidance, React Best Practices. Source-only task restrictions
 supersede skill examples suggesting queries/install. No separate GitHub skill was
 available; official GitHub connector and normal Git were used. Network remained
 restricted/enforced; no proxy bypass or credential read was used.
+
+
+## AFFORDANCE-03 correction (Base 4ef285731c3fb7f02877eb9c2316220990d64d63)
+
+Read transport is now explicitly version **2**. Command transport and local recovery
+remain v1, with the original immutable body/key/selection and journal CAS unchanged.
+Each Listing carries `actions.edit_listing`, `actions.withdraw_listing` and
+`actions.republish_listing`: `allowed`, `denied` or `unavailable`. These describe
+current authority only; published/withdrawn/reserved lifecycle eligibility remains
+separate. Aggregate `can_edit` is only a compatibility summary of allowed actions,
+never a row-level grant. `connection` describes bridge/AAL2 availability, not authority.
+
+The server-only ListingSourceRead proposal accepts optional `action_projections`.
+The trusted canonical producer must obtain read and action evidence for the current
+session actor and the same current read observation; it must not replay cached
+permissions. Each projection names its actor, Context, Workspace, action and full
+Listing/resource/party/relationship/version selection. Its separate Core request,
+companion and authority evidence are consumed by the **existing Core mapper** using
+`airprop.opportunity.manage`, module `airprop_commercial`, purpose `airprop.b2`.
+The action evidence evaluation instant must match the authorized read observation.
+Core still validates current permission, exact resource/relationship versions and
+relationship effectiveness. Identity and actor binding at the canonical producer
+are an integration requirement, not a new accepted Core ABI or installed evaluator.
+DW02 `action_authorization=not_evaluated` and read permission grant no action.
+Missing projection yields unavailable actions while independent read succeeds.
+Bridge absence/AAL1 masks actions. Per-action evidence never spills to another row.
+No tenant, raw evidence or evaluator receipt is disclosed to the browser.
+
+UI uses the current row/action projection, including when a dirty selection retains
+old input. Resource/selection drift disables a new command. For an already uncertain
+journal command, explicit exact retry uses current authority for that same Listing,
+resource version, party and relationship; only the historical expected Listing
+revision can differ to reconcile a previously committed command. It does not issue
+a new key, change the original wire, infer a receipt or admit a new command.
+POST still independently checks session/AAL2 and the existing bridge contract requires
+fresh transactional authority, full binding and native replay/CAS checks. Affordance
+is not reusable command authorization. Revocation observed on refresh disables retry
+and retains the journal; revocation after the read is enforced by POST/bridge.
+
+The product route retains `read:null` and `control:null`. Canonical producer and C03
+bridge adoption remain NOT_READY. No runtime authority, native transaction, real
+Auth/DB or Production evidence is claimed by synthetic tests. The dedicated new
+suite and affected mounted suite check installed dependency versions against the
+unchanged lock and refuse a mismatching cache; no dependency installation is part
+of this correction.

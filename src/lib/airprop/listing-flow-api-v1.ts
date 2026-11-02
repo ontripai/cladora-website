@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listingCommandSchema, listingReadResponseSchema, listingScopeSchema, matchesListingReceipt, type ListingCommand } from './listing-flow-contract-v1';
+import { listingCommandSchema, listingReadResponseSchema, listingScopeSchema, matchesListingReceipt, listingActions, unavailableListingActions, type ListingCommand } from './listing-flow-contract-v1';
 import { readListingFlow, type ListingSourceRead } from './listing-flow-read-v1';
 import { diligenceFailure, diligenceHeaders } from './diligence-route-response';
 import { hasTrustedMutationOrigin } from '../security/same-origin';
@@ -27,9 +27,11 @@ export function createListingFlowApi(composition: {
         if (!session) return diligenceFailure('UNAUTHORIZED', 401);
         if (!composition.read) return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
         const listings = await readListingFlow(composition.read, session.actor_id, scope.data);
-        const canEdit = composition.control !== null && session.aal === 'aal2';
-        const value = listingReadResponseSchema.parse({ version: 1, ...scope.data, listings,
-          can_edit: canEdit, connection: canEdit ? 'command_bridge' : 'read_only' });
+        const connected = composition.control !== null && session.aal === 'aal2';
+        if (!connected) for (const listing of listings) listing.actions = unavailableListingActions();
+        const canEdit = listings.some(row => listingActions.some(action => row.actions[action] === 'allowed'));
+        const value = listingReadResponseSchema.parse({ version: 2, ...scope.data, listings,
+          can_edit: canEdit, connection: connected ? 'command_bridge' : 'read_only' });
         return NextResponse.json(value, { headers: diligenceHeaders });
       } catch { return diligenceFailure('LISTING_READ_UNAVAILABLE', 403); }
     },

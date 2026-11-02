@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import React, { act } from 'react';
 import { JSDOM } from 'jsdom';
-import { fixture, scope, id, loader } from './lib/airprop-listing-flow-test-fixture.mjs';
-const { NextRequest } = createRequire(import.meta.url)('next/server');
+import { fixture, scope, id, loader, actionProjection } from './lib/airprop-listing-flow-test-fixture.mjs';
+const require = createRequire(import.meta.url);
+const lock = JSON.parse(require('node:fs').readFileSync(new URL('../package-lock.json', import.meta.url), 'utf8'));
+for (const name of ['next', 'zod', 'react', 'typescript']) assert.equal(require(name + '/package.json').version, lock.packages['node_modules/' + name].version, 'EXACT_LOCK_REQUIRED: ' + name);
+const { NextRequest } = require('next/server');
 const dom = new JSDOM('<div id="root"></div>', { url: 'https://cladora.test' });
 const saved = new Map(), nativeFetch = globalThis.fetch;
 for (const [key, value] of Object.entries({ window: dom.window, document: dom.window.document, sessionStorage: dom.window.sessionStorage, IS_REACT_ACT_ENVIRONMENT: true })) {
@@ -45,6 +48,35 @@ const assertHidden = () => assert.doesNotMatch(document.body.textContent, /[0-9a
 const check = async (name, fn) => { await fn(); assertHidden(); console.log('PASS', ++cases, name); };
 const deferred = () => { let resolve; const promise = new Promise(r => { resolve = r; }); return { promise, resolve }; };
 try {
+  await check('affordance read-only principal with bridge has disabled controls and zero POST', async () => {
+    await reset(); f.state.manage = false; await render('manage-denied'); await select(id(30));
+    assert.equal(button('Salvează perioada').disabled, true); assert.equal(button('Retrage anunțul').disabled, true);
+    await editReason(); await click(button('Salvează perioada')); assert.equal(postCalls().length, 0); assert.equal(f.state.writes, 0);
+  });
+  for (const [lang, label] of [['ro', 'Salvează perioada'], ['en', 'Save availability'], ['fa', 'ذخیره بازه']]) {
+    for (const kind of ['missing', 'aal1']) await check('affordance ' + kind + ' disabled in ' + lang, async () => {
+      await reset();
+      if (kind === 'missing') f.state.row.action_projections = []; else f.state.aal = 'aal1';
+      await render('disabled-' + kind + lang, { lang }); await select(id(30));
+      assert.equal(button(label).disabled, true); await click(button(label)); assert.equal(postCalls().length, 0);
+      assert.equal(document.querySelector('section').dir, lang === 'fa' ? 'rtl' : 'ltr');
+    });
+  }
+  await check('affordance missing projection and mixed rows/actions remain independent', async () => {
+    await reset(); const command = await f.command();
+    f.state.row.action_projections = [actionProjection(f.state.row, f.state.actor, command.selection, 'withdraw_listing')];
+    const other = structuredClone(f.state.row); other.listing_id = id(31); other.action_projections = [];
+    other.core.companion.canonical_reference.display_name = 'Alt anunț sintetic';
+    currentApi = f.createListingFlowApi({ session: f.session, read: async (...args) => [...await f.read(...args), other], control: f.control });
+    await render('mixed-rights'); await select(id(30));
+    assert.equal(button('Salvează perioada').disabled, true); assert.equal(button('Retrage anunțul').disabled, false);
+    await select(id(31)); assert.equal(button('Retrage anunțul').disabled, true); assert.equal(postCalls().length, 0);
+  });
+  await check('affordance refresh revocation disables dirty row without losing draft', async () => {
+    await begin('refresh-revoke'); await editReason(); f.state.manage = false;
+    await click(button('Verifică din nou')); assert.equal(button('Salvează perioada').disabled, true);
+    assert.equal(document.querySelectorAll('input')[2].value, reason); assert.equal(postCalls().length, 0);
+  });
   for (const [lang, edit, withdraw, republish] of [['ro', 'Salvează perioada', 'Retrage anunțul', 'Publică din nou'], ['en', 'Save availability', 'Withdraw listing', 'Publish again'], ['fa', 'ذخیره بازه', 'توقف آگهی', 'انتشار دوباره']]) await check('mounted full edit/pause/republish ' + lang, async () => {
     await begin('flow-' + lang, lang); assert.equal(document.querySelector('section').dir, lang === 'fa' ? 'rtl' : 'ltr');
     assert.match(document.body.textContent, /Apartament sintetic Unirii/);

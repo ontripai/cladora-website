@@ -49,6 +49,15 @@ export function sourceRow() {
       authority,
     } };
 }
+// The synthetic producer supplies separate manage evidence; read's not_evaluated is never promoted.
+export function actionProjection(row, actor, selection, action, allowed = true) {
+  const core = structuredClone(row.core);
+  core.request.resource.permission_code = core.request.authority.permission_code = core.authority.permission_code = 'airprop.opportunity.manage';
+  core.request.resource.purpose = core.request.authority.evaluation_purpose = 'airprop.b2';
+  core.authority.decision = allowed ? 'allowed' : 'denied';
+  core.authority.reason_codes = [allowed ? 'current_effective_permission_allowed' : 'current_effective_permission_denied'];
+  return { actor_id: actor, context_id: row.context_id, workspace_id: row.workspace_id, selection, action, core };
+}
 export function fixture() {
   const load = loader(), contract = load('src/lib/airprop/listing-flow-contract-v1.ts');
   const { readListingFlow } = load('src/lib/airprop/listing-flow-read-v1.ts');
@@ -58,7 +67,12 @@ export function fixture() {
   const read = async (actor, selectedScope) => {
     assert.equal(actor, state.actor);
     if (state.readDenied || selectedScope.context_id !== state.row.context_id || selectedScope.workspace_id !== state.row.workspace_id) throw Error('SYNTHETIC_DENIAL');
-    return [structuredClone(state.row)];
+    const row = structuredClone(state.row);
+    if (!Object.hasOwn(row, 'action_projections')) {
+      const selection = (await readListingFlow(async () => [row], actor, selectedScope))[0].selection;
+      row.action_projections = contract.listingActions.map(action => actionProjection(row, actor, selection, action, state.manage));
+    }
+    return [row];
   };
   const control = async (actor, request) => {
     state.bridgeCalls++;
