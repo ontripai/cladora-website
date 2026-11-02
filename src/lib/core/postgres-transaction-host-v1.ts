@@ -1,5 +1,6 @@
 import { randomUUID, createHash } from 'node:crypto';
 import type { Pool, PoolClient, QueryResultRow } from 'pg';
+import type { CoreCe012TerminalBindingV1 } from './ce012-terminal-authority-port-v1';
 import { z } from 'zod';
 import {
   bindCanonicalCurrentAuthorityObservationV1,
@@ -72,6 +73,8 @@ export interface CoreTransactionScopeV1 {
   ): Promise<{ rows: Row[]; rowCount: number | null }>;
 }
 interface CoreTransactionProvidersV1Base {
+  /** Inactive opt-in. Only the fixed Core checkpoint executes, never caller code. */
+  readonly terminal_checkpoint?: 'core-ce012-host-terminal.v1';
   /** Core-owned resolution of version-bearing authority, in this exact SQL scope. */
   resolveAuthority(scope: CoreTransactionScopeV1, request: CurrentAuthorityTransactionRequestV1):
     Promise<CanonicalCurrentAuthorityObservationV1>;
@@ -112,6 +115,7 @@ export type CoreTransactionProvidersV1 = CoreTransactionProvidersV1Base
   & CoreTransactionJurisdictionArtifactCapabilityV1<CoreTransactionCommandV1>;
 
 interface CoreTransactionProvidersV2Base {
+  readonly terminal_checkpoint?: 'core-ce012-host-terminal.v1';
   readonly provider_code: string;
   resolveAuthority(scope: CoreTransactionScopeV1, request: CurrentAuthorityTransactionRequestV1):
     Promise<CanonicalCurrentAuthorityObservationV1>;
@@ -218,6 +222,86 @@ export interface CoreTransactionHostV1 {
   execute(command: unknown, providers: CoreTransactionProvidersV2): Promise<CoreTransactionResultV2>;
 }
 
+/** Private identity-bound lifecycle evidence, NOT authority/disclosure. */
+export const CORE_HOST_TERMINAL_LIFECYCLE_V1 = 'core-host-terminal-lifecycle.v1' as const;
+export const CORE_HOST_TERMINAL_RUNTIME_BINDING = null;
+export type CoreHostTerminalLifecycleInfoV1 = Readonly<{
+  contract: typeof CORE_HOST_TERMINAL_LIFECYCLE_V1;
+  settlement: 'committed' | 'replay_rolled_back' | 'rolled_back' | 'unknown' | 'not_started';
+  observation: 'sealed_and_closed' | 'invalidated';
+  attempt: number;
+  backend_pid: number | null;
+  database_transaction_id: string | null;
+  response_sha256: string;
+  observation_sha256: string | null;
+  seal_sha256: string | null;
+  response_encoding: 'core-host-result-json-utf8.v1';
+  disclosure_authorization: 'not_ready';
+  live_observation: false;
+  reusable_in_other_attempt: false;
+  first_error_code: string | null;
+}>;
+const terminalResults = new WeakMap<object, {info: CoreHostTerminalLifecycleInfoV1; bytes: Buffer}>();
+/** Only the EXACT result object issued by this host is recognized. JSON is not a proof. */
+export function coreHostTerminalLifecycleV1(result: unknown): CoreHostTerminalLifecycleInfoV1 | null {
+  return typeof result === 'object' && result !== null ? terminalResults.get(result)?.info ?? null : null;
+}
+/** Exact host-result bytes only; not HTTP headers, a Docs projection or delivery ACK. */
+export function coreHostTerminalResponseMatchesV1(result: unknown, bytes: Uint8Array): boolean {
+  if (typeof result !== 'object' || result === null) return false;
+  const record = terminalResults.get(result);
+  return record !== undefined && record.bytes.equals(Buffer.from(bytes));
+}
+function freezeTerminalResponse<T>(value: T): T {
+  if (typeof value === 'object' && value !== null) {
+    for (const item of Object.values(value)) freezeTerminalResponse(item);
+    Object.freeze(value);
+  }
+  return value;
+}
+class TerminalAttemptV1 {
+  generation = 0;
+  inFlight = 0;
+  failed = false;
+  first: unknown;
+  closed = false;
+  commitSerializationAbort = false;
+  backendPid: number | null = null;
+  databaseTransactionId: string | null = null;
+  settlement: CoreHostTerminalLifecycleInfoV1['settlement'] = 'not_started';
+  seal: {generation: number; response: CoreTransactionResult; bytes: Buffer;
+    observation: Readonly<{binding: CoreCe012TerminalBindingV1; evaluated_at: string}>;
+    observationHash: string; sealHash: string} | null = null;
+  publishedResult: CoreTransactionResult | null = null;
+  constructor(readonly attempt: number) {}
+  invalidate() { this.generation += 1; this.seal = null; }
+  fail(error: unknown) { if (!this.failed) { this.failed = true; this.first = error; } this.invalidate(); }
+  assertSealed() {
+    if (this.failed) throw this.first;
+    if (this.closed || !this.seal || this.inFlight !== 0 || this.seal.generation !== this.generation) {
+      throw new Error('core_terminal_seal_invalid');
+    }
+  }
+  record(result: CoreTransactionResult, sealed: boolean) {
+    const bytes = Buffer.from(JSON.stringify(result), 'utf8');
+    const code = (this.first as {code?: unknown})?.code;
+    const info: CoreHostTerminalLifecycleInfoV1 = Object.freeze({
+      contract: CORE_HOST_TERMINAL_LIFECYCLE_V1, settlement: this.settlement,
+      observation: sealed ? 'sealed_and_closed' : 'invalidated', attempt: this.attempt,
+      backend_pid: this.backendPid, database_transaction_id: this.databaseTransactionId,
+      response_sha256: createHash('sha256').update(bytes).digest('hex'),
+      observation_sha256: sealed ? this.seal!.observationHash : null,
+      seal_sha256: sealed ? this.seal!.sealHash : null,
+      response_encoding: 'core-host-result-json-utf8.v1', disclosure_authorization: 'not_ready',
+      live_observation: false, reusable_in_other_attempt: false,
+      first_error_code: typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code) ? code : null,
+    });
+    this.publishedResult = result;
+    terminalResults.set(result, {info, bytes});
+    return result;
+  }
+}
+
 function entitlementBindingsMatch(
   stored: CurrentAuthorityTransactionDecisionReceiptV1['entitlement'],
   current: CurrentAuthorityTransactionDecisionReceiptV1['entitlement'],
@@ -256,6 +340,13 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
       const replayProviderCode = command.contract_version === 'core-transaction-command.v2'
         ? providerCode
         : (providers as CoreTransactionProvidersV1).replay_provider_code;
+      const terminalPolicy = providers.terminal_checkpoint;
+      if (terminalPolicy !== undefined && (terminalPolicy !== 'core-ce012-host-terminal.v1'
+        || command.contract_version !== 'core-transaction-command.v2'
+        || providerCode !== 'documents-ce012-reference-provider.v1'
+        || command.aggregate_type !== 'experience_guide')) {
+        return {status: 'denied', code: 'PROVIDER_UNAVAILABLE'};
+      }
       const artifactProjection = providers.jurisdiction_artifact_projection ?? 'none';
       const resolveJurisdictionArtifacts = providers.resolveJurisdictionArtifacts as ((
         artifactScope: CoreTransactionScopeV1,
@@ -294,19 +385,51 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
         let live = true;
         let commitAttempted = false;
         let rollbackFailed = false;
+        const terminal = terminalPolicy ? new TerminalAttemptV1(attempt) : null;
+        let backendError: ((error: Error) => void) | undefined;
+        const wire = async function<Row extends QueryResultRow = QueryResultRow>(text: string, values: unknown[] = [], settlement = false) {
+          if (terminal) {
+            if (settlement) terminal.assertSealed();
+            else terminal.invalidate();
+            terminal.inFlight += 1;
+          }
+          try { return await client!.query<Row>(text, values); }
+          catch (error) {
+            if (terminal && settlement && text === 'commit' && (error as {code?: string})?.code === '40001') terminal.commitSerializationAbort = true;
+            terminal?.fail(error); throw error;
+          }
+          finally { if (terminal) terminal.inFlight -= 1; }
+        }
+        const failedResult = function(value: CoreTransactionResult): CoreTransactionResult {
+          return terminal ? terminal.record(freezeTerminalResponse(value), false) : value;
+        }
         try {
           client = await pool.connect();
-          await client.query('begin isolation level serializable');
-          await client.query("set local search_path = pg_catalog");
-          await client.query("set local lock_timeout = '5s'");
-          await client.query("set local statement_timeout = '10s'");
+          if (terminal) {
+            backendError = error => terminal.fail(error);
+            client.on('error', backendError);
+          }
+          const begun = await wire('begin isolation level serializable');
+          if (terminal) {
+            terminal.settlement = 'unknown';
+            if (begun.command !== 'BEGIN') throw new Error('core_terminal_begin_ack_invalid');
+            const backend = await wire<{backend_pid: number; database_transaction_id: string; isolation: string}>(
+              "select pg_backend_pid() as backend_pid,txid_current()::text as database_transaction_id,current_setting('transaction_isolation') as isolation");
+            const b = backend.rows[0];
+            if (backend.rowCount !== 1 || backend.rows.length !== 1 || !b || !Number.isSafeInteger(b.backend_pid) || b.backend_pid < 1
+              || !/^[1-9][0-9]*$/.test(b.database_transaction_id) || b.isolation !== 'serializable') throw new Error('core_terminal_backend_invalid');
+            terminal.backendPid = b.backend_pid; terminal.databaseTransactionId = b.database_transaction_id;
+          }
+          await wire("set local search_path = pg_catalog");
+          await wire("set local lock_timeout = '5s'");
+          await wire("set local statement_timeout = '10s'");
           // Advisory locks create no idempotency/ledger rows, even on a denied command.
           const key = `core-tx.v1:${command.workspace_id}:${command.idempotency_key}`;
           const lock = async (label: string) => {
-            await client!.query('select pg_advisory_xact_lock(hashtextextended($1,0))', [label]);
+            await wire('select pg_advisory_xact_lock(hashtextextended($1,0))', [label]);
           };
           await lock(`idempotency:${key}`);
-          const workspace = await client.query<{ tenant_id: string }>(
+          const workspace = await wire<{ tenant_id: string }>(
             `select tenant_id from platform.customer_workspaces
               where id=$1 and archived_at is null and lifecycle_status='ACTIVE' for update`,
             [command.workspace_id],
@@ -319,7 +442,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
           for (const sourceId of Array.from(new Set(command.provider_source_ids)).sort()) {
             await lock(`provider:${command.workspace_id}:${sourceId}`);
           }
-          const transaction = await client.query<{ id: string; now: string }>(
+          const transaction = await wire<{ id: string; now: string }>(
             "select txid_current()::text as id, clock_timestamp()::text as now",
           );
           const pending = new Set<Promise<unknown>>();
@@ -335,23 +458,74 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             async query<Row extends QueryResultRow>(text: string, values: unknown[] = []) {
               // Transaction/session control and multi-statements belong exclusively to the host.
               // This is a trusted-provider boundary, not a SQL sandbox.
+              terminal?.invalidate();
               if (!live || !/^\s*(select|insert|update|delete|with)\b/i.test(text) || text.includes(';')
                 || (phase === 'read' && !/^\s*select\b/i.test(text))) {
                 queryFailed = true;
-                throw new Error('transaction_scope_unavailable');
+                const error = new Error('transaction_scope_unavailable');
+                terminal?.fail(error);
+                throw error;
               }
-              const query = client!.query<Row>(text, values);
+              const query = wire<Row>(text, values);
               pending.add(query);
               query.catch(() => { queryFailed = true; }).finally(() => pending.delete(query));
               return query;
             },
           });
           const invoke = async <T>(operation: () => Promise<T>) => {
-            const value = await operation();
-            await Promise.all(Array.from(pending));
-            if (queryFailed) throw new Error('provider_query_failed');
-            return value;
+            terminal?.invalidate();
+            try {
+              const value = await operation();
+              await Promise.all(Array.from(pending));
+              if (terminal?.failed) throw terminal.first;
+              if (queryFailed) throw new Error('provider_query_failed');
+              return value;
+            } finally { terminal?.invalidate(); }
           };
+          const sealResponse = async function(receipt: CoreTransactionReceiptV1 | CoreTransactionReceiptV2, status: 'committed' | 'exact_replay') {
+            if (!terminal || command.contract_version !== 'core-transaction-command.v2' || receipt.contract_version !== 'core-transaction-receipt.v2') throw new Error('core_terminal_policy_invalid');
+            // Consumer raw scope closes permanently before imports/checkpoint waits.
+            live = false;
+            await Promise.all(Array.from(pending));
+            if (queryFailed || terminal.failed) throw terminal.failed ? terminal.first : new Error('provider_query_failed');
+            const checkpoint = await import('./ce012-host-terminal-checkpoint-v1');
+            terminal.invalidate();
+            const terminalScope: CoreTransactionScopeV1 = Object.freeze({...scope,
+              async query<Row extends QueryResultRow = QueryResultRow>(text: string, values: unknown[] = []) {
+                if (terminal.closed || !/^\s*select\b/i.test(text) || text.includes(';')) throw new Error('core_terminal_query_invalid');
+                return wire<Row>(text, values);
+              },
+            });
+            const observation = await checkpoint.runCoreCe012HostTerminalCheckpointV1(terminalScope, command, receipt);
+            terminal.invalidate();
+            if (terminal.failed) throw terminal.first;
+            const b = observation.binding;
+            if (terminal.inFlight !== 0 || pending.size !== 0 || b.backend_pid !== terminal.backendPid
+              || b.database_transaction_id !== terminal.databaseTransactionId || b.attempt !== attempt
+              || b.transaction_id !== command.transaction_id || b.command_id !== command.command_id
+              || b.actor_id !== scope.actor_id || b.tenant_id !== scope.tenant_id
+              || b.context_id !== command.context_id || b.workspace_id !== scope.workspace_id
+              || b.command_hash !== requestHash || b.canonical_key !== key
+              || b.authority_revision !== command.authority_version || b.core_receipt_id !== receipt.receipt_id
+              || b.core_receipt_hash !== coreTransactionReplayReceiptHashV1(receipt) || b.mutation_id !== receipt.mutation_id
+              || !command.provider_source_ids.includes(b.target.document_id)
+              || !command.provider_source_ids.includes(b.target.document_version_id)) throw new Error('core_terminal_binding_invalid');
+            const response = freezeTerminalResponse(structuredClone({status, receipt})) as CoreTransactionResult;
+            const bytes = Buffer.from(JSON.stringify(response), 'utf8');
+            const observationHash = createHash('sha256').update(JSON.stringify(observation)).digest('hex');
+            const sealHash = createHash('sha256').update(JSON.stringify({contract: CORE_HOST_TERMINAL_LIFECYCLE_V1,
+              response_sha256: createHash('sha256').update(bytes).digest('hex'), observation_sha256: observationHash,
+              backend_pid: terminal.backendPid, database_transaction_id: terminal.databaseTransactionId, attempt, status})).digest('hex');
+            terminal.seal = {generation: terminal.generation, response, bytes, observation, observationHash, sealHash};
+            terminal.assertSealed();
+            return response;
+          }
+          const settledResponse = function(response: CoreTransactionResult) {
+            terminal!.assertSealed();
+            if (terminal!.seal!.response !== response
+              || !terminal!.seal!.bytes.equals(Buffer.from(JSON.stringify(response), 'utf8'))) throw new Error('core_terminal_response_invalid');
+            return terminal!.record(response, true);
+          }
           const request = currentAuthorityTransactionRequestV1Schema.parse({
             contract_version: 'core-current-authority-transaction-port-request.v1',
             decision_id: randomUUID(), context_id: command.context_id,
@@ -369,7 +543,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
           });
           const observation = await invoke(() => providers.resolveAuthority(scope, structuredClone(request)));
           // An injected observation cannot grant permission in place of the Core engine.
-          const canonical = await client.query<{ actor_bound: boolean; allowed: boolean }>(
+          const canonical = await wire<{ actor_bound: boolean; allowed: boolean }>(
             `select auth.uid()=$1::uuid as actor_bound,
               app_private.check_workspace_native_permission_v2($2,$3,$4,$5) as allowed`,
             [command.actor_id, command.context_id, command.workspace_id,
@@ -387,7 +561,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
           }
           // Fingerprint also covers every host identity/effect binding. Key is Workspace-scoped.
           const requestHash = createHash('sha256').update(JSON.stringify(command)).digest('hex');
-          const previous = await client.query<{ actor_id: string; request_hash: string;
+          const previous = await wire<{ actor_id: string; request_hash: string;
             response_ref: unknown; expires_at: Date }>(
             `select actor_id,request_hash,response_ref,expires_at from platform.idempotency_keys
               where tenant_id=$1 and key=$2 for update`, [tenantId, key],
@@ -436,7 +610,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
                 structuredClone(prior.data),
               ));
               const replay = coreTransactionReplayProviderDecisionV1Schema.safeParse(replayValue);
-              const replayNow = await client.query<{ now: string }>('select clock_timestamp()::text as now');
+              const replayNow = await wire<{ now: string }>('select clock_timestamp()::text as now');
               if (!replay.success
                 || replay.data.provider_code !== currentReplayRequirement.provider_code
                 || replay.data.database_transaction_id !== scope.database_transaction_id
@@ -463,8 +637,15 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
                     : 'REPLAY_CONFLICT' });
               }
             }
+            if (terminal) {
+              const response = await sealResponse(prior.data, 'exact_replay');
+              const ack = await wire('rollback', [], true);
+              if (ack.command !== 'ROLLBACK') throw new Error('core_terminal_replay_ack_invalid');
+              terminal.settlement = 'replay_rolled_back';
+              return settledResponse(response);
+            }
             live = false;
-            await client.query('rollback');
+            await wire('rollback');
             return prior.data.contract_version === 'core-transaction-receipt.v2'
               ? { status: 'exact_replay', receipt: prior.data }
               : { status: 'exact_replay', receipt: prior.data };
@@ -474,7 +655,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             const value = await invoke(() => (providers as CoreTransactionProvidersV2).validateProviders(
               scope, structuredClone(command), structuredClone(authority)));
             const evidence = coreTransactionProviderEvidenceV1Schema.safeParse(value);
-            const now = await client.query<{ now: string }>('select clock_timestamp()::text as now');
+            const now = await wire<{ now: string }>('select clock_timestamp()::text as now');
             if (!evidence.success || evidence.data.decision !== 'accepted'
               || evidence.data.provider_code !== providerCode
               || evidence.data.transaction_id !== command.transaction_id
@@ -510,7 +691,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             }
             const parsedValues = values.map(value =>
               coreJurisdictionDomainArtifactCommitCandidateV1Schema.safeParse(value));
-            const artifactNow = await client.query<{ now: string }>(
+            const artifactNow = await wire<{ now: string }>(
               'select clock_timestamp()::text as now',
             );
             if (parsedValues.some(value => !value.success)
@@ -537,7 +718,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             jurisdictionArtifacts = commitments.data;
           }
           // Only now may any persistent effect be staged.
-          await client.query(`insert into platform.idempotency_keys
+          await wire(`insert into platform.idempotency_keys
             (tenant_id,actor_id,key,request_hash,expires_at) values($1,$2,$3,$4,statement_timestamp()+interval '1 day')`,
           [tenantId, command.actor_id, key, requestHash]);
           phase = 'mutation';
@@ -552,7 +733,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             for (let index = 0; index < jurisdictionArtifacts.length; index += 1) {
               const commitment = jurisdictionArtifacts[index];
               const fingerprint = commitment.fingerprint;
-              const inserted = await client.query(`insert into
+              const inserted = await wire(`insert into
                 platform.jurisdiction_domain_artifact_receipt_evidence(
                   receipt_id,artifact_ordinal,evidence_contract_version,tenant_id,workspace_id,
                   source_property_id,source_actor_id,source_transaction_id,source_command_id,
@@ -583,7 +764,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               if (inserted.rowCount !== 1) throw new Error('artifact_projection_unavailable');
             }
           }
-          const audit = await client.query<{ id: string }>(`insert into audit.events
+          const audit = await wire<{ id: string }>(`insert into audit.events
             (tenant_id,actor_id,action,entity_type,entity_id,request_id,after_snapshot)
             values($1,$2,$3,$4,$5,$6,$7::jsonb) returning id::text`,
           [tenantId, command.actor_id, `core.${command.evaluation_purpose}`, command.aggregate_type,
@@ -592,7 +773,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               authority_decision_id: authority.decision_id, authority_version: authority.authority_version,
               mutation_id: mutationId,
             })]);
-          const outbox = await client.query<{ id: string }>(`insert into platform.outbox_events
+          const outbox = await wire<{ id: string }>(`insert into platform.outbox_events
             (tenant_id,aggregate_type,aggregate_id,aggregate_version,event_type,payload,trace_id)
             values($1,$2,$3,$4,$5,$6::jsonb,$7) returning id::text`,
           [tenantId, command.aggregate_type, command.aggregate_id, command.aggregate_version,
@@ -600,7 +781,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               event_version: 1, receipt_id: receiptId, workspace_id: command.workspace_id,
               transaction_id: command.transaction_id, mutation_id: mutationId,
             }), command.command_id]);
-          const now = await client.query<{ now: string }>('select clock_timestamp()::text as now');
+          const now = await wire<{ now: string }>('select clock_timestamp()::text as now');
           const receipt = persistedReceiptSchema.parse({
             ...(command.contract_version === 'core-transaction-command.v2'
               ? { contract_version: 'core-transaction-receipt.v2', receipt_version: 2,
@@ -618,32 +799,57 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
               ? {} : { jurisdiction_artifacts: jurisdictionArtifacts }),
             committed_at: new Date(now.rows[0].now).toISOString(),
           });
-          await client.query(`update platform.idempotency_keys set response_ref=$3::jsonb,status_code=200
+          await wire(`update platform.idempotency_keys set response_ref=$3::jsonb,status_code=200
             where tenant_id=$1 and key=$2`, [tenantId, key, JSON.stringify(receipt)]);
+          if (terminal) {
+            const response = await sealResponse(receipt, 'committed');
+            commitAttempted = true;
+            const ack = await wire('commit', [], true);
+            if (ack.command === 'ROLLBACK') { terminal.settlement = 'rolled_back'; throw new Error('core_terminal_commit_aborted'); }
+            if (ack.command !== 'COMMIT') throw new Error('core_terminal_commit_ack_invalid');
+            terminal.settlement = 'committed';
+            return settledResponse(response);
+          }
           live = false;
           commitAttempted = true;
-          await client.query('commit');
+          await wire('commit');
           return receipt.contract_version === 'core-transaction-receipt.v2'
             ? { status: 'committed', receipt }
             : { status: 'committed', receipt };
-        } catch (error) {
+        } catch (caught) {
           live = false;
-          if (client) await client.query('rollback').catch(() => { rollbackFailed = true; });
+          const error = terminal?.failed ? terminal.first : caught;
+          terminal?.fail(error);
+          if (client) await wire('rollback').then(ack => {
+            // A cleanup ACK cannot undo an attempted/unknown COMMIT.
+            if (terminal && (!commitAttempted || terminal.commitSerializationAbort) && ack.command === 'ROLLBACK') terminal.settlement = 'rolled_back';
+          }).catch(() => { rollbackFailed = true; });
           // A failed COMMIT is uncertain unless PostgreSQL positively reports serialization abort.
           const sqlCode = (error as { code?: string })?.code;
-          if (sqlCode === '40001' && attempt < 3) continue;
-          if (commitAttempted && sqlCode !== '40001') {
-            return { status: 'unknown_commit', code: 'READBACK_REQUIRED' };
+          if (sqlCode === '40001' && attempt < 3
+            && (!terminal || !commitAttempted || (terminal.commitSerializationAbort && terminal.settlement !== 'committed'))) continue;
+          if (commitAttempted && (sqlCode !== '40001' || (terminal && !terminal.commitSerializationAbort))
+            && terminal?.settlement !== 'rolled_back') {
+            if (terminal) terminal.settlement = 'unknown';
+            return failedResult({ status: 'unknown_commit', code: 'READBACK_REQUIRED' });
           }
-          if (error instanceof AbortTransaction) return error.result;
+          if (error instanceof AbortTransaction) return failedResult(error.result);
           if (error instanceof CoreAuthorityProviderUnavailableV1
             && error.code === 'ACTOR_REVOKED') {
-            return { status: 'denied', code: 'AUTHORITY_DENIED' };
+            return failedResult({ status: 'denied', code: 'AUTHORITY_DENIED' });
           }
-          return { status: 'denied', code: 'TRANSACTION_FAILED' };
+          return failedResult({ status: 'denied', code: 'TRANSACTION_FAILED' });
         } finally {
           live = false;
-          client?.release(rollbackFailed || commitAttempted ? true : undefined);
+          try {
+            if (backendError) client?.removeListener('error', backendError);
+            client?.release(rollbackFailed || commitAttempted ? true : undefined);
+            if (terminal?.failed && terminal.seal) terminal.invalidate();
+          } catch (cleanup) {
+            if (terminal?.publishedResult) terminalResults.delete(terminal.publishedResult);
+            terminal?.fail(cleanup);
+            throw terminal?.failed ? terminal.first : cleanup;
+          } finally { if (terminal) { terminal.closed = true; terminal.invalidate(); } }
         }
       }
       return { status: 'denied', code: 'TRANSACTION_FAILED' };

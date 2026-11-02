@@ -1,0 +1,534 @@
+{
+  "task": "CORE-CE012-HOST-TERMINAL-LIFECYCLE-11",
+  "base": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+  "parent": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+  "branch": "codex/program-core-service-s01-producer-01",
+  "ce_r1": "0191e0415297a76f3073cbeef7396f4799d3a25c",
+  "scope": "T10-D01 ONLY",
+  "status": "HOST_LIFECYCLE_SOURCE_IMPLEMENTED_REVIEW_REQUIRED",
+  "native_status": "NOT_RUN",
+  "runtime_binding": null,
+  "historical_docs_slots": "BLOCKED",
+  "abi": {
+    "contract": "core-host-terminal-lifecycle.v1",
+    "provider_opt_in": "core-ce012-host-terminal.v1",
+    "factory": "existing createCorePostgresTransactionHostV1",
+    "inspection": "coreHostTerminalLifecycleV1(result)",
+    "byte_comparison": "coreHostTerminalResponseMatchesV1(result,bytes)",
+    "evidence_origin": "private WeakMap of exact frozen host result; no public issuer/ACK/register callback",
+    "response_encoding": "core-host-result-json-utf8.v1: JSON.stringify full immutable host result, UTF8 no trailing newline; NOT HTTP/Docs/client delivery",
+    "positive_settlements": [
+      "committed",
+      "replay_rolled_back"
+    ],
+    "negative_settlements": [
+      "rolled_back",
+      "unknown",
+      "not_started"
+    ],
+    "disclosure_authorization": "not_ready",
+    "live_observation": false,
+    "reusable_in_other_attempt": false,
+    "native_protocol_proof": "NOT_RUN; supported pg QueryResult completion plus strict command tag, no invented ReadyForQuery-I telemetry"
+  },
+  "shared_source_delta": {
+    "before": {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918"
+    },
+    "after": {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": null,
+      "bytes": 52364,
+      "sha256": "4c903376e93059eebcaa08a181c26d2f2f1900072ed05abd40c7cb58391f2976",
+      "git_blob": "401c01f566d2d005a8197e2a77ebcf2b93872b95"
+    },
+    "legacy_behavior": "no terminal opt-in means no extra SQL/listener/freeze/metadata; old provider/result contracts remain",
+    "queries": "every existing host client dispatch routes through tracked wire; terminal path opts in to backend identity and fixed final Core checkpoint",
+    "guards": "authority/MFA/idempotency/hash/atomic mutation/audit/outbox/schema unchanged"
+  },
+  "ordering": [
+    "fresh private attempt lifecycle / one existing lease / error listener",
+    "BEGIN positive tag / same backend PID DBtx SERIALIZABLE",
+    "all host and raw-scope queries + provider invoke await boundaries tracked, pending drained",
+    "ordinary provider/CE R1/host effects/receipt/response_ref or replay validation + host clocks",
+    "raw consumer scope permanently closed",
+    "fixed host-owned Core hook performs real Core10 canonical recheck on actual CE/C03 data",
+    "bind complete observation to host local command/receipt/transaction/attempt/backend",
+    "deep immutable host response bytes + actual observation registration and seal",
+    "ONLY same-lease designated settlement wait: new COMMIT or replay ROLLBACK",
+    "strict command tag and seal recheck then private identity-bound metadata",
+    "release/close invalidates live premises; historical non-authority correlation only"
+  ],
+  "invalidation": [
+    "normal query dispatch",
+    "provider await begin/end",
+    "pending provider query",
+    "rejected raw scope dispatch after close including during COMMIT",
+    "first query/lease/callback error",
+    "failed/closed scope",
+    "retry/new attempt",
+    "cleanup failure"
+  ],
+  "unknown_policy": "lost/invalid COMMIT ACK or positive COMMIT with concurrent seal invalidation => UNKNOWN, no blind retry; only actual COMMIT wire40001 abort or precommit40001 uses existing bounded retry; cleanup ROLLBACK cannot prove undo of unknown COMMIT",
+  "remaining_dependencies": [
+    {
+      "id": "T10-D02",
+      "status": "NOT_READY",
+      "owner": "Core canonical authority/session + writer/managed Auth participation",
+      "reason": "authority validity frontier/internal waits/snapshot participation not changed"
+    },
+    {
+      "id": "T10-D03",
+      "status": "NOT_READY",
+      "owner": "Documents + CE joint composition",
+      "reason": "current Documents projection/terminal disclosure/custody not supplied or activated"
+    },
+    {
+      "id": "T10-D04",
+      "status": "NOT_READY",
+      "owner": "Core canonical evaluator",
+      "reason": "internal PostgreSQL SQLSTATE normalization unchanged"
+    }
+  ],
+  "verification": {
+    "new_command": "node scripts/test-core-host-terminal-lifecycle-11.mjs",
+    "new_groups": 22,
+    "regression_command": "node scripts/test-core-host-terminal-regressions-11.mjs",
+    "affected_regressions": 11,
+    "regression_selection": {
+      "legacy_Core_CE": 5,
+      "S01_SERVICE": 6
+    },
+    "regression_pin_adapter": "historical immutable host pin retained against exact Base; new runtime host separately checked against full successor manifest SHA256; other pins and original owner files unchanged; ephemeral adapter deleted",
+    "transport": "actual source modules + synthetic memory driver/ACK only; no native query executed",
+    "full_typecheck": "tsc --noEmit --incremental false; ES5 unchanged",
+    "limited_lint": "new/changed TS/MJS --max-warnings=0",
+    "syntax_diff_json_identity": "required",
+    "not_run": [
+      "SQL/parser/PG/Auth/trigger/ACL/RLS",
+      "native backend/ReadyForQuery protocol proof",
+      "native concurrency/atomicity/session writer participation",
+      "install/grant/activation",
+      "merge/deploy/full Release acceptance"
+    ],
+    "prior_full_suites": "NOT_RERUN; only selected actually affected cases",
+    "new_result": "22/22 PASS_CONTROLLED_TRANSPORT_ONLY",
+    "affected_regressions_result": "11/11 PASS",
+    "full_typecheck_result": "PASS unchanged ES5",
+    "limited_lint_syntax_diff_result": "PASS",
+    "source_identities_inventory_seal_result": "PASS",
+    "protected_postimages": 42
+  },
+  "toolchain": {
+    "next": "16.4.1",
+    "zod": "4.6.6",
+    "typescript": "5.9.3",
+    "pg": "8.23.0",
+    "dependency_change": false
+  },
+  "driver_source_pins": [
+    {
+      "path": "node_modules/pg/lib/query.js",
+      "ref": null,
+      "bytes": 7654,
+      "sha256": "a13377272ad4f842f6f6616d187ef3123cfed90e764cae9a663058ab41a769a0",
+      "git_blob": "6b92141995801206e152053da41944175abf4d56"
+    },
+    {
+      "path": "node_modules/pg/lib/client.js",
+      "ref": null,
+      "bytes": 24930,
+      "sha256": "992c12d10cd42ece06b0b224601fa783a02ed08f3ace8bd8089cc441b6308abf",
+      "git_blob": "7a2fc9a649344855b9fcf7183463cfddec825aeb"
+    }
+  ],
+  "protected_source_pins": [
+    {
+      "path": "docs/contracts/core-airprop-read-host-minimum-v1/README.md",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 12883,
+      "sha256": "09501bb4f77454220cd1358a6caefd8299a4ef04bb4dae5bfd54c90d24b19ab8",
+      "git_blob": "783e0fdbc6beaac776dad11b78a894769bdccde5"
+    },
+    {
+      "path": "docs/contracts/core-airprop-read-host-minimum-v1/manifest.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 27623,
+      "sha256": "06257de33cc4ce2851bebc051edf9fa349e0e698b936ae3c08c28fddecf67ca2",
+      "git_blob": "b7e59838db358a55e2c463c2ce35ccd6beb08577"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/README.md",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 11272,
+      "sha256": "2a149c633d38a268756a242ee9148c6c437fd512b957c47e0461e917285de515",
+      "git_blob": "bd86b0c5e272c2230352c56f9c998049e350a4e5"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/manifest.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 19548,
+      "sha256": "ae1b70ac7eff5d1b62f04fbbe91d6406365d4bbccbb33d02001425c34472a92c",
+      "git_blob": "e00f1c04ad5a81ebc5433703792708ce0bd5ae1e"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/README.md",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 13308,
+      "sha256": "1a60a1f926e2af54bfa075ce5fab4e9bc6796360b3fbf990d793b935c0b61c7c",
+      "git_blob": "b33846d3182297293bd3e0da417277e22e8d8efe"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/SOURCE-CLOSEOUT-02.md",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 17016,
+      "sha256": "0d8581b9eaca7969d7a2851810d7a2ebeaaf9d31403a5fd150f3ff142e1c9295",
+      "git_blob": "8e0312176b8212d3e052c34fc9d40a01c0e60bfa"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/closeout-manifest.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 18848,
+      "sha256": "78c94ae90f24dbda4908ea36294a72cc178e9839141a166be5317078391f0bf9",
+      "git_blob": "e1a77bac28649fb6197303d50cf881d8bf086a02"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 12079,
+      "sha256": "ff7fe7c564722cb07fcd1460d0b93071d44ea417b737ac09cb63869ead2c0b99",
+      "git_blob": "088a71ab389cee6882a41046e4e6059edde8ab6c"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/provenance.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 9536,
+      "sha256": "a41b79038cf69e5143dadd9d282235cd4827a664d4ff1280b0e6b478dba4e3ad",
+      "git_blob": "c211ba1043c17b945e52cfa108ed76532a6987af"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/store-proposal.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 5368,
+      "sha256": "1058ecb4e3e61f4ede6d8e5329b8fe17c0bb899a838eacd1e6bf5a4093ef890f",
+      "git_blob": "048079ba656864bc79e831fe8aede3da2c7d6163"
+    },
+    {
+      "path": "package-lock.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    },
+    {
+      "path": "package.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 5493,
+      "sha256": "c352b6e2a948633c18710cba04bd620b946c5f45eb39d4dfea1911fbcf6b64d2",
+      "git_blob": "44dadb6a7fcfcff49318601c51073a3ac407075a"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/compose-proof.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 1481,
+      "sha256": "fa7f29926d8c5240ae8d386561e0d748dab3f95bbfd3f5f5ece69b4c8cbda720",
+      "git_blob": "6f413d553d86bc34eabc2a1dd147bdaf314fe01d"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 39787,
+      "sha256": "9eb7b3b128306e300db0ef12875389127a56f4d58ae74c936c5b4353ffccd2eb",
+      "git_blob": "6d8bdcff5413c85c8e77c048566fba2c8457408a"
+    },
+    {
+      "path": "scripts/test-core-airprop-read-host-minimum-08.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 18031,
+      "sha256": "430decbd301f8d9a8161872d164013617ffe039a68518224716da5213009d98d",
+      "git_blob": "69f4a03f69ada7322e1a3f8b8806691cbb880b16"
+    },
+    {
+      "path": "scripts/test-core-ce012-stored-relation-v1.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 18002,
+      "sha256": "5e977c2064c15efd57732d4bf605c1ceabf72e3b65ccfa2afece6b1a426c0489",
+      "git_blob": "b628e0491d330a2ed6bb0831d251f8eade4ec7ee"
+    },
+    {
+      "path": "src/lib/community/experience-guide-command-contract.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 14414,
+      "sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6",
+      "git_blob": "f423e40d9ebda19216d184ed72c8bdd09f27e353"
+    },
+    {
+      "path": "src/lib/community/experience-guide-editor-adapter.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 7826,
+      "sha256": "57b04afd9ac99616d69e45f2c645f9fc0927861b24a0e9c92b7cf6f1bde9395c",
+      "git_blob": "95324958399881fc1b35596133f00db570be978f"
+    },
+    {
+      "path": "src/lib/community/experience-guide-provider-bridge.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 9983,
+      "sha256": "ddeda87fc4d19fb9516198fbcb1290240b1d3e152a5e85a936d513a7994b52ca",
+      "git_blob": "8e61503042837522fbe6f9643e6d90bda435b2de"
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 16793,
+      "sha256": "4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c",
+      "git_blob": "47fde404a10ef6bfcf507fd01069b754eff4bbe8"
+    },
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    },
+    {
+      "path": "src/lib/core/service-s01/errors-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 301,
+      "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+      "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+    },
+    {
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a"
+    },
+    {
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-proof-v1.sql",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 5703,
+      "sha256": "420cf84d33e2d6129158db90a225d92bd8b10bc6d2da9815d5f1a2b71a77e286",
+      "git_blob": "f81ab8c310e47f79d3a46dbac7bdf23477ce3cf5"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-v1.sql",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 16397,
+      "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+      "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/verify-clean-v1.sql",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 1783,
+      "sha256": "2615d7c526110b97b881279951dfc05e2395abf0bf240027c5ee090d18e05ac4",
+      "git_blob": "027bfd3309a71f45404f539a440ff1b2aa547c30"
+    },
+    {
+      "path": "tsconfig.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    },
+    {
+      "path": "src/lib/core/ce012-combined-stored-relation-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 9177,
+      "sha256": "2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938",
+      "git_blob": "db79cc649189c73d00692c023cbe59e9f21090cc"
+    },
+    {
+      "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 24467,
+      "sha256": "1052251ecf779ce2d2af221488a5d04945f72d5f3262a2825fb62c76768930ff",
+      "git_blob": "78562d798b9375af6865fc0bc48d85207e38acbc"
+    },
+    {
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/README.md",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 18646,
+      "sha256": "aa2da912fa0494e65401b394738cc9f89c6a95cff7b02d472d772d52ffd602a9",
+      "git_blob": "d140e062b7b0a946d712e0d594146f2f8983ca8c"
+    },
+    {
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/manifest.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 41106,
+      "sha256": "e1ae7944199dd6cd67456bef38aa3558ca28c4d97244b8353ceef9750d2bf6d6",
+      "git_blob": "efc9589528fe26029d73eaf66ac4d9680bf8f700"
+    },
+    {
+      "path": "src/lib/core/ce012-terminal-authority-port-v1.ts",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 16620,
+      "sha256": "c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a",
+      "git_blob": "1e89805d8b8565c0b0a5ea1e0857c6553d057a82"
+    },
+    {
+      "path": "scripts/test-core-ce012-terminal-authority-port-10.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 14481,
+      "sha256": "487b9a54a6000f2c5a34c0d73b0d6a4142fa7ee1d18b916ee50b7cabd023a0a1",
+      "git_blob": "b8ffec46cc4597c1908c28001fec4e5d5c5d49f8"
+    },
+    {
+      "path": "docs/contracts/core-ce012-terminal-authority-port-v1/README.md",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 13190,
+      "sha256": "c2267ee14713925a93e2097c8873a34e8f5aeb7dbfe7a2a8d05fb670820d6715",
+      "git_blob": "9ee413c607f5188c7e2d3d7efb9600b1436d7a3f"
+    },
+    {
+      "path": "docs/contracts/core-ce012-terminal-authority-port-v1/manifest.json",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 24469,
+      "sha256": "e8b7a38f806e2fe9cde0ce3f15904d1887fb209887ebbd98768c482a4ebfaa76",
+      "git_blob": "7174135f86565e49f130aa96aafa00d79ac402dc"
+    }
+  ],
+  "consumed_source_pins": [
+    {
+      "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+      "ref": "0191e0415297a76f3073cbeef7396f4799d3a25c",
+      "bytes": 27199,
+      "sha256": "311cddeb5a8e87de7943a5363fc84bbe8811ec5e8295b9a0305bfb0ecc1580de",
+      "git_blob": "34da983f3f9e4f7e714bbb544e5ef686dc981e5d"
+    },
+    {
+      "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+      "ref": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "bytes": 6458,
+      "sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3",
+      "git_blob": "daa1c030eb8b7a46c934c84e776c4464a8811c06"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 39787,
+      "sha256": "9eb7b3b128306e300db0ef12875389127a56f4d58ae74c936c5b4353ffccd2eb",
+      "git_blob": "6d8bdcff5413c85c8e77c048566fba2c8457408a"
+    },
+    {
+      "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+      "ref": "534be1a3d69a3b36d0f04edc555bf01c3d666842",
+      "bytes": 24467,
+      "sha256": "1052251ecf779ce2d2af221488a5d04945f72d5f3262a2825fb62c76768930ff",
+      "git_blob": "78562d798b9375af6865fc0bc48d85207e38acbc"
+    },
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+    }
+  ],
+  "inventory": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": null,
+      "bytes": 52364,
+      "sha256": "4c903376e93059eebcaa08a181c26d2f2f1900072ed05abd40c7cb58391f2976",
+      "git_blob": "401c01f566d2d005a8197e2a77ebcf2b93872b95"
+    },
+    {
+      "path": "src/lib/core/ce012-host-terminal-checkpoint-v1.ts",
+      "ref": null,
+      "bytes": 2403,
+      "sha256": "7be643f96481b0283058e13cdc1e8894ecc90be4effdce4bd5db650385e0eb6e",
+      "git_blob": "f4dc24f850c84ae8207b1829f38c32a003d65b42"
+    },
+    {
+      "path": "scripts/test-core-host-terminal-lifecycle-11.mjs",
+      "ref": null,
+      "bytes": 15092,
+      "sha256": "e65e7deeca8b3f2f073de08665bd11e99cad030e64fdab934bc38cff768fb0b0",
+      "git_blob": "26889d07c58c6b063934c670706b9f17cd3f544c"
+    },
+    {
+      "path": "scripts/test-core-host-terminal-regressions-11.mjs",
+      "ref": null,
+      "bytes": 3747,
+      "sha256": "44864a49b0fcf01b2d1f824290e13f1719d94707dd9f566b631bd66cad7e8309",
+      "git_blob": "2948b7f47a5db3dd695544113f9acec1427c6f88"
+    },
+    {
+      "path": "docs/contracts/core-host-terminal-lifecycle-v1/README.md",
+      "ref": null,
+      "bytes": 11257,
+      "sha256": "3aa34dd4d7947c39b9db7f5ff4580e443e7e1295fd12d50f548951015b3ff2f3",
+      "git_blob": "df98bee80f456b55f790ef8ded1341ad350bb7a9"
+    }
+  ],
+  "inventory_seal": {
+    "algorithm": "SHA256 sorted-key compact JSON UTF8 inventory; manifest self excluded",
+    "sha256": "e26ec2b6739167f46589fc8e246738299d1c87187118de03ab31e8064ec38317"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "process": "normal README record, no new execution authority"
+  }
+}
