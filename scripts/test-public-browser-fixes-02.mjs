@@ -674,42 +674,27 @@ async function runBrowserFixSuite() {
   console.log(`Witness CSS Proof Hash (SHA256): ${declarationHash}`);
 
   // =========================================================================
-  // 4. VAZIRMATN-DETERMINISTIC-BUILD-04: LOCAL FONT ASSETS & LICENSE
+  // 4. VAZIRMATN-DETERMINISTIC-BUILD-04 / FONT-PERFORMANCE-05: LOCAL ASSETS & LICENSE
   // =========================================================================
-  console.log('\n--- VAZIRMATN-DETERMINISTIC-BUILD-04: Local Font Assets, License & Weights ---');
+  console.log('\n--- VAZIRMATN-DETERMINISTIC-BUILD-04 / FONT-PERFORMANCE-05: Local Font Assets, License & Weights ---');
 
   const vazirmatnAssetDir = path.join(root, 'src', 'fonts', 'vazirmatn');
   check(existsSync(vazirmatnAssetDir), 'Vazirmatn asset directory src/fonts/vazirmatn exists');
 
   const expectedVazirmatnFiles = [
     {
-      name: 'Vazirmatn-Regular.woff2',
-      weight: '400',
-      expectedSize: 50684,
-      sha256: 'e382101336c6eb32cfb31381c027d02d2e0354bad08f6a395d4088beb3db3d91'
-    },
-    {
-      name: 'Vazirmatn-SemiBold.woff2',
-      weight: '600',
-      expectedSize: 51032,
-      sha256: '6a39a3c25eb18503cad590527b95bb5d4062b889a7ebbd3f01b0488d239e0499'
-    },
-    {
-      name: 'Vazirmatn-Bold.woff2',
-      weight: '700',
-      expectedSize: 51020,
-      sha256: '836fae7d42d83faa249bc00e0099592be98a1fa260d22d82f269b6091e585627'
-    },
-    {
-      name: 'Vazirmatn-ExtraBold.woff2',
-      weight: '800',
-      expectedSize: 51120,
-      sha256: 'cd67558bbca0ad319b89e3b2edb8a914f87f864951d7a9d24e1404cbf3b45b02'
+      name: 'Vazirmatn[wght].woff2',
+      expectedSize: 111152,
+      sha256: '4e3fa217d38fdafc1fea4414ceb58ca5e662cf0ab5fa735a8c8c20e8b42cad92'
     },
     {
       name: 'OFL.txt',
       expectedSize: 4391,
       sha256: '17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31'
+    },
+    {
+      name: 'README.md',
+      minSize: 1000
     }
   ];
 
@@ -717,9 +702,15 @@ async function runBrowserFixSuite() {
     const fullPath = path.join(vazirmatnAssetDir, item.name);
     check(existsSync(fullPath), `Font asset ${item.name} exists in src/fonts/vazirmatn`);
     const content = readFileSync(fullPath);
-    equal(content.length, item.expectedSize, `Asset ${item.name} matches byte size ${item.expectedSize}`);
-    const hash = crypto.createHash('sha256').update(content).digest('hex');
-    equal(hash, item.sha256, `Asset ${item.name} matches exact SHA256 hash`);
+    if (item.expectedSize) {
+      equal(content.length, item.expectedSize, `Asset ${item.name} matches byte size ${item.expectedSize}`);
+    } else if (item.minSize) {
+      check(content.length >= item.minSize, `Asset ${item.name} has non-empty documentation`);
+    }
+    if (item.sha256) {
+      const hash = crypto.createHash('sha256').update(content).digest('hex');
+      equal(hash, item.sha256, `Asset ${item.name} matches exact SHA256 hash`);
+    }
 
     if (item.name.endsWith('.woff2')) {
       const magic = content.toString('ascii', 0, 4);
@@ -727,15 +718,16 @@ async function runBrowserFixSuite() {
     }
   }
 
-  // Verify layout.tsx configuration
+  // Verify layout.tsx configuration for single shared variable woff2 with 4 explicit weight descriptors
   const layoutCode = readFileSync(path.join(root, 'src', 'app', '[lang]', 'layout.tsx'), 'utf8');
   check(layoutCode.includes("import localFont from 'next/font/local'"), 'layout.tsx imports localFont from next/font/local');
   check(layoutCode.includes("variable: '--font-vazirmatn'"), "layout.tsx preserves variable: '--font-vazirmatn'");
   check(layoutCode.includes("display: 'swap'"), "layout.tsx preserves display: 'swap'");
-  check(layoutCode.includes("weight: '400'"), "layout.tsx configures weight 400");
-  check(layoutCode.includes("weight: '600'"), "layout.tsx configures weight 600");
-  check(layoutCode.includes("weight: '700'"), "layout.tsx configures weight 700");
-  check(layoutCode.includes("weight: '800'"), "layout.tsx configures weight 800");
+  check(layoutCode.includes("path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2'"), "layout.tsx references Vazirmatn[wght].woff2");
+  check(layoutCode.includes("weight: '400'"), "layout.tsx configures explicit weight descriptor 400");
+  check(layoutCode.includes("weight: '600'"), "layout.tsx configures explicit weight descriptor 600");
+  check(layoutCode.includes("weight: '700'"), "layout.tsx configures explicit weight descriptor 700");
+  check(layoutCode.includes("weight: '800'"), "layout.tsx configures explicit weight descriptor 800");
 
   // Verify Inter and Manrope from next/font/google preserved
   check(layoutCode.includes("import { Inter, Manrope } from 'next/font/google'"), 'Inter and Manrope remain from next/font/google');

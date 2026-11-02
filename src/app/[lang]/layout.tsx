@@ -24,22 +24,22 @@ const manrope = Manrope({
 const vazirmatn = localFont({
   src: [
     {
-      path: '../../fonts/vazirmatn/Vazirmatn-Regular.woff2',
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
       weight: '400',
       style: 'normal',
     },
     {
-      path: '../../fonts/vazirmatn/Vazirmatn-SemiBold.woff2',
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
       weight: '600',
       style: 'normal',
     },
     {
-      path: '../../fonts/vazirmatn/Vazirmatn-Bold.woff2',
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
       weight: '700',
       style: 'normal',
     },
     {
-      path: '../../fonts/vazirmatn/Vazirmatn-ExtraBold.woff2',
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
       weight: '800',
       style: 'normal',
     },
