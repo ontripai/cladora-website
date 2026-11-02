@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
-import { Inter, Manrope, Vazirmatn } from 'next/font/google';
+import localFont from 'next/font/local';
+import { Inter, Manrope } from 'next/font/google';
 import { SUPPORTED_LOCALES, getLocaleConfig, getIntlLocale, isSupportedLocale } from '@/types';
 import { notFound } from 'next/navigation';
 import { AppOrMarketingLayout } from '@/components/layout/AppOrMarketingLayout';
@@ -20,9 +21,29 @@ const manrope = Manrope({
   display: 'swap',
 });
 
-const vazirmatn = Vazirmatn({
-  subsets: ['arabic', 'latin'],
-  weight: ['400', '600', '700', '800'],
+const vazirmatn = localFont({
+  src: [
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn-Regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn-SemiBold.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn-Bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn-ExtraBold.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
   variable: '--font-vazirmatn',
   display: 'swap',
 });
