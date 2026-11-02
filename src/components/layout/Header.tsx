@@ -78,41 +78,74 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close on Escape key and return focus to visible opener only if focus belongs to that menu (PUBLIC-BR-01, PUBLIC-BR-01-LANGUAGE)
-  // Close on Escape key and return focus to visible opener only if focus belongs to that menu (PUBLIC-BR-01, PUBLIC-BR-01-LANGUAGE)
+  // Close on Escape key and return focus to visible opener only if focus belongs to that menu (PUBLIC-BR-01, PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         const activeEl = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;
+        const targetEl = (typeof HTMLElement !== 'undefined' && event.target instanceof HTMLElement ? event.target : null) as HTMLElement | null;
+        const triggerFromEvent = ((typeof HTMLElement !== 'undefined' && (event as any).__cladoraLangTrigger instanceof HTMLElement)
+          ? (event as any).__cladoraLangTrigger
+          : null) as HTMLElement | null;
 
-        // Determine focus ownership BEFORE closing (unmounting menu elements resets activeElement)
-        const isLangSwitcherFocus = Boolean(
-          activeEl && (
+        // Determine focus and event ownership BEFORE closing (unmounting menu elements resets activeElement)
+        const isLangSwitcherOwner = Boolean(
+          (event as any).__cladoraLangFocusPreserved ||
+          triggerFromEvent ||
+          (activeEl && (
             desktopLangRef.current?.contains(activeEl) ||
             mobileLangRef.current?.contains(activeEl) ||
             Boolean(activeEl.closest?.('.relative.inline-block.text-start'))
+          )) ||
+          (targetEl && (
+            desktopLangRef.current?.contains(targetEl) ||
+            mobileLangRef.current?.contains(targetEl) ||
+            Boolean(targetEl.closest?.('.relative.inline-block.text-start')) ||
+            (targetEl.getAttribute?.('role') === 'menuitem' && Boolean(targetEl.closest?.('div[role="menu"]')?.parentElement?.classList.contains('text-start')))
+          ))
+        );
+
+        const isInsideMobileDrawer = !isLangSwitcherOwner && (
+          Boolean(
+            activeEl && (
+              mobileDrawerRef.current?.contains(activeEl) ||
+              Boolean(activeEl.closest?.('nav[aria-label]')) ||
+              Boolean(activeEl.closest?.('.max-h-\\[85vh\\]'))
+            )
+          ) || Boolean(
+            targetEl && (
+              mobileDrawerRef.current?.contains(targetEl) ||
+              Boolean(targetEl.closest?.('nav[aria-label]')) ||
+              Boolean(targetEl.closest?.('.max-h-\\[85vh\\]'))
+            )
           )
         );
 
-        const isInsideMobileDrawer = Boolean(
-          activeEl && (
-            mobileDrawerRef.current?.contains(activeEl) ||
-            Boolean(activeEl.closest?.('nav[aria-label]')) ||
-            Boolean(activeEl.closest?.('.max-h-\\[85vh\\]'))
+        const isInsideSolutionsMenu = !isLangSwitcherOwner && (
+          Boolean(
+            activeEl && (
+              solutionsMenuRef.current?.contains(activeEl) ||
+              (activeDropdown === 'solutions' && Boolean(activeEl.closest?.('div[role="menu"]')))
+            )
+          ) || Boolean(
+            targetEl && (
+              solutionsMenuRef.current?.contains(targetEl) ||
+              (activeDropdown === 'solutions' && Boolean(targetEl.closest?.('div[role="menu"]')))
+            )
           )
         );
 
-        const isInsideSolutionsMenu = Boolean(
-          activeEl && (
-            solutionsMenuRef.current?.contains(activeEl) ||
-            (activeDropdown === 'solutions' && Boolean(activeEl.closest?.('div[role="menu"]')))
-          )
-        );
-
-        const isInsideServicesMenu = Boolean(
-          activeEl && (
-            servicesMenuRef.current?.contains(activeEl) ||
-            (activeDropdown === 'services' && Boolean(activeEl.closest?.('div[role="menu"]')))
+        const isInsideServicesMenu = !isLangSwitcherOwner && (
+          Boolean(
+            activeEl && (
+              servicesMenuRef.current?.contains(activeEl) ||
+              (activeDropdown === 'services' && Boolean(activeEl.closest?.('div[role="menu"]')))
+            )
+          ) || Boolean(
+            targetEl && (
+              servicesMenuRef.current?.contains(targetEl) ||
+              (activeDropdown === 'services' && Boolean(targetEl.closest?.('div[role="menu"]')))
+            )
           )
         );
 
@@ -126,16 +159,30 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
           !isInsideServicesMenu &&
           !mobileToggleBtnRef.current?.contains(activeEl) &&
           !isInsideMobileDrawer &&
-          !isLangSwitcherFocus
+          !isLangSwitcherOwner
         );
+
+        const getVisibleLangTrigger = (): HTMLElement | null => {
+          if (triggerFromEvent && isElementVisible(triggerFromEvent)) {
+            return triggerFromEvent;
+          }
+          if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            const btn = mobileLangRef.current?.querySelector('button');
+            if (btn && isElementVisible(btn)) return btn;
+          }
+          const desktopBtn = desktopLangRef.current?.querySelector('button');
+          if (desktopBtn && isElementVisible(desktopBtn)) return desktopBtn;
+          const fallbackBtn = (activeEl?.closest?.('.relative.inline-block.text-start') || targetEl?.closest?.('.relative.inline-block.text-start'))?.querySelector?.('button');
+          if (fallbackBtn && isElementVisible(fallbackBtn)) return fallbackBtn;
+          return null;
+        };
 
         if (activeDropdown === 'solutions') {
           setActiveDropdown(null);
-          if (isLangSwitcherFocus) {
-            // Retain focus on LanguageSwitcher; if dropdown menuitem unmounts, retain focus on its trigger button
-            const langContainer = desktopLangRef.current || mobileLangRef.current || activeEl?.closest?.('.relative.inline-block.text-start');
-            const langBtn = langContainer?.querySelector?.('button');
-            if (langBtn && isElementVisible(langBtn)) {
+          if (isLangSwitcherOwner) {
+            // Retain focus on LanguageSwitcher trigger button (PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
+            const langBtn = getVisibleLangTrigger();
+            if (langBtn) {
               langBtn.focus();
             }
           } else if (!isExternalControlFocus) {
@@ -147,11 +194,10 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
           // If focus belongs to an external control, do not move focus!
         } else if (activeDropdown === 'services') {
           setActiveDropdown(null);
-          if (isLangSwitcherFocus) {
-            // Retain focus on LanguageSwitcher; if dropdown menuitem unmounts, retain focus on its trigger button
-            const langContainer = desktopLangRef.current || mobileLangRef.current || activeEl?.closest?.('.relative.inline-block.text-start');
-            const langBtn = langContainer?.querySelector?.('button');
-            if (langBtn && isElementVisible(langBtn)) {
+          if (isLangSwitcherOwner) {
+            // Retain focus on LanguageSwitcher trigger button (PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
+            const langBtn = getVisibleLangTrigger();
+            if (langBtn) {
               langBtn.focus();
             }
           } else if (!isExternalControlFocus) {
@@ -163,10 +209,13 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
           // If focus belongs to an external control, do not move focus!
         } else if (mobileMenuOpen) {
           setMobileMenuOpen(false);
-          if (isLangSwitcherFocus) {
-            const langContainer = mobileLangRef.current || desktopLangRef.current || activeEl?.closest?.('.relative.inline-block.text-start');
-            const langBtn = langContainer?.querySelector?.('button');
-            if (langBtn && isElementVisible(langBtn)) {
+          if (typeof document !== 'undefined') {
+            document.body.style.overflow = '';
+          }
+          if (isLangSwitcherOwner) {
+            // Retain focus on visible mobile LanguageSwitcher trigger button (PUBLIC-BR-04)
+            const langBtn = getVisibleLangTrigger();
+            if (langBtn) {
               langBtn.focus();
             }
           } else if (!isExternalControlFocus) {

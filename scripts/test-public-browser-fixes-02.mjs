@@ -65,6 +65,11 @@ dom.window.innerWidth = currentViewportWidth;
 for (const [key, value] of Object.entries({
   window: dom.window,
   document: dom.window.document,
+  HTMLElement: dom.window.HTMLElement,
+  Node: dom.window.Node,
+  KeyboardEvent: dom.window.KeyboardEvent,
+  MouseEvent: dom.window.MouseEvent,
+  Event: dom.window.Event,
   navigator: dom.window.navigator,
   sessionStorage: dom.window.sessionStorage,
   matchMedia: dom.window.matchMedia,
@@ -242,13 +247,13 @@ async function runBrowserFixSuite() {
     equal(dom.window.document.activeElement, solutionsBtn, `Desktop (${lang}): Focus returned to Solutions opener button (not BODY)`);
     check(solutionsBtn.offsetParent !== null || dom.window.getComputedStyle(solutionsBtn).display !== 'none', `Desktop (${lang}): Solutions opener is visible`);
 
-    // 1C. Desktop: Services open -> Focus & Activate real LanguageSwitcher -> Escape preserves focus on LanguageSwitcher (PUBLIC-BR-01-LANGUAGE)
+    // 1C. Desktop: Services open -> Focus & Activate real LanguageSwitcher -> Tab to real language option -> Escape (PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
     await act(async () => {
       servicesBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
     });
     equal(servicesBtn.getAttribute('aria-expanded'), 'true', `Desktop (${lang}): Services dropdown reopened`);
 
-    const desktopLangBtn = container.querySelector('.hidden.lg\\:flex button[aria-haspopup="true"]');
+    const desktopLangBtn = container.querySelector('.hidden.lg\\:flex .relative.inline-block.text-start button');
     check(desktopLangBtn, `Desktop (${lang}): Real LanguageSwitcher button found in header`);
 
     // Focus LanguageSwitcher button
@@ -261,15 +266,51 @@ async function runBrowserFixSuite() {
     });
     equal(desktopLangBtn.getAttribute('aria-expanded'), 'true', `Desktop (${lang}): LanguageSwitcher dropdown opened`);
 
-    // Dispatch Escape key
+    // Focus real language option item (PUBLIC-BR-04)
+    const langMenuItems = Array.from(container.querySelectorAll('.hidden.lg\\:flex .relative.inline-block.text-start div[role="menu"] a[role="menuitem"]'));
+    check(langMenuItems.length > 0, `Desktop (${lang}): Real language option items found inside LanguageSwitcher dropdown`);
+    const targetOption = langMenuItems[0];
+    targetOption.focus();
+    equal(dom.window.document.activeElement, targetOption, `Desktop (${lang}): Focus moved to real language option item before Escape`);
+
+    // Dispatch Escape key on real language option item (event bubbles, propagates to Header, unmounts option)
     await act(async () => {
-      dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      targetOption.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
     });
 
-    equal(servicesBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): Services dropdown closed on Escape`);
-    equal(desktopLangBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): LanguageSwitcher closed on Escape`);
-    equal(dom.window.document.activeElement, desktopLangBtn, `Desktop (${lang}): Focus PRESERVED on LanguageSwitcher (NOT stolen to Services opener)`);
+    equal(servicesBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): Services dropdown closed on option Escape`);
+    equal(desktopLangBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): LanguageSwitcher closed on option Escape`);
+    equal(dom.window.document.activeElement, desktopLangBtn, `Desktop (${lang}): Focus PRESERVED on LanguageSwitcher trigger (NOT stolen to Services opener)`);
     check(dom.window.document.activeElement !== servicesBtn, `Desktop (${lang}): Focus was NOT moved to Services button`);
+    check(dom.window.document.activeElement !== dom.window.document.body, `Desktop (${lang}): Focus was NOT reset to BODY`);
+
+    // 1C2. Desktop: Solutions open -> Activate LanguageSwitcher -> Tab to real language option -> Escape (PUBLIC-BR-04)
+    await act(async () => {
+      solutionsBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    });
+    equal(solutionsBtn.getAttribute('aria-expanded'), 'true', `Desktop (${lang}): Solutions dropdown reopened`);
+
+    desktopLangBtn.focus();
+    await act(async () => {
+      desktopLangBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
+    });
+    equal(desktopLangBtn.getAttribute('aria-expanded'), 'true', `Desktop (${lang}): LanguageSwitcher dropdown opened for Solutions test`);
+
+    const solutionsLangMenuItems = Array.from(container.querySelectorAll('.hidden.lg\\:flex .relative.inline-block.text-start div[role="menu"] a[role="menuitem"]'));
+    check(solutionsLangMenuItems.length > 0, `Desktop (${lang}): Real language option items found`);
+    const targetOptionSolutions = solutionsLangMenuItems[solutionsLangMenuItems.length - 1];
+    targetOptionSolutions.focus();
+    equal(dom.window.document.activeElement, targetOptionSolutions, `Desktop (${lang}): Focus moved to real language option item for Solutions`);
+
+    await act(async () => {
+      targetOptionSolutions.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    });
+
+    equal(solutionsBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): Solutions dropdown closed on option Escape`);
+    equal(desktopLangBtn.getAttribute('aria-expanded'), 'false', `Desktop (${lang}): LanguageSwitcher closed on option Escape`);
+    equal(dom.window.document.activeElement, desktopLangBtn, `Desktop (${lang}): Focus PRESERVED on LanguageSwitcher trigger (NOT stolen to Solutions opener)`);
+    check(dom.window.document.activeElement !== solutionsBtn, `Desktop (${lang}): Focus was NOT moved to Solutions button`);
+    check(dom.window.document.activeElement !== dom.window.document.body, `Desktop (${lang}): Focus was NOT reset to BODY`);
 
     // 1D. Desktop: Services open -> Focus external control (Sign In link) -> Escape preserves focus on external control
     await act(async () => {
@@ -345,22 +386,37 @@ async function runBrowserFixSuite() {
       equal(dom.window.document.activeElement, toggleBtn, `Mobile (${width}px, ${lang}): Focus returned to Mobile toggle button (not BODY)`);
       check(toggleBtn.offsetParent !== null || dom.window.getComputedStyle(toggleBtn).display !== 'none', `Mobile (${width}px, ${lang}): Mobile toggle is visible`);
 
-      // Mobile drawer open -> focus mobile header LanguageSwitcher -> Escape preserves focus on LanguageSwitcher
+      // Mobile drawer open -> Shift+Tab to mobile header LanguageSwitcher -> Enter -> Tab to real language option -> Escape (PUBLIC-BR-04)
       await act(async () => {
         toggleBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
       });
-      equal(dom.window.document.body.style.overflow, 'hidden', `Mobile (${width}px, ${lang}): Drawer opened for LanguageSwitcher test`);
+      equal(dom.window.document.body.style.overflow, 'hidden', `Mobile (${width}px, ${lang}): Drawer opened for LanguageSwitcher option test`);
 
       const mobLangBtn = mobContainer.querySelector('.lg\\:hidden button[aria-haspopup="true"]');
       check(mobLangBtn, `Mobile (${width}px, ${lang}): Mobile header LanguageSwitcher found`);
       mobLangBtn.focus();
-      equal(dom.window.document.activeElement, mobLangBtn, `Mobile (${width}px, ${lang}): Focus on mobile LanguageSwitcher`);
+      equal(dom.window.document.activeElement, mobLangBtn, `Mobile (${width}px, ${lang}): Focus on mobile LanguageSwitcher trigger`);
 
       await act(async () => {
-        dom.window.document.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        mobLangBtn.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
       });
-      equal(dom.window.document.body.style.overflow, '', `Mobile (${width}px, ${lang}): Drawer closed on Escape`);
-      equal(dom.window.document.activeElement, mobLangBtn, `Mobile (${width}px, ${lang}): Focus PRESERVED on mobile LanguageSwitcher (NOT stolen to toggleBtn)`);
+      equal(mobLangBtn.getAttribute('aria-expanded'), 'true', `Mobile (${width}px, ${lang}): Mobile LanguageSwitcher opened`);
+
+      const mobLangOptions = Array.from(mobContainer.querySelectorAll('.lg\\:hidden div[role="menu"] a[role="menuitem"]'));
+      check(mobLangOptions.length > 0, `Mobile (${width}px, ${lang}): Mobile real language options found`);
+      const mobTargetOption = mobLangOptions[0];
+      mobTargetOption.focus();
+      equal(dom.window.document.activeElement, mobTargetOption, `Mobile (${width}px, ${lang}): Focus moved to real mobile language option`);
+
+      // Dispatch Escape on real language option item
+      await act(async () => {
+        mobTargetOption.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      });
+      equal(dom.window.document.body.style.overflow, '', `Mobile (${width}px, ${lang}): Drawer closed and scroll released on option Escape`);
+      equal(mobLangBtn.getAttribute('aria-expanded'), 'false', `Mobile (${width}px, ${lang}): Mobile LanguageSwitcher closed on option Escape`);
+      equal(dom.window.document.activeElement, mobLangBtn, `Mobile (${width}px, ${lang}): Focus PRESERVED on mobile LanguageSwitcher trigger (NOT stolen to toggleBtn)`);
+      check(dom.window.document.activeElement !== toggleBtn, `Mobile (${width}px, ${lang}): Focus was NOT moved to mobile toggle button`);
+      check(dom.window.document.activeElement !== dom.window.document.body, `Mobile (${width}px, ${lang}): Focus was NOT reset to BODY`);
 
       // Mobile drawer open -> focus item inside drawer -> Escape returns focus to toggleBtn
       await act(async () => {
