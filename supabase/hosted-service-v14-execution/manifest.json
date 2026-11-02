@@ -1,7 +1,7 @@
 {
   "contract": "cladora-source-delivery-manifest.v1",
-  "task_id": "V14-SERVICE-01 / OFFERING-REQUEST-FLOW-02",
-  "base": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+  "task_id": "V14-SERVICE-01 / FLOW-RETRY-TOOLCHAIN-03",
+  "base": "ac3d7aee470eb47bcc3a31a14b64fe17fceb1590",
   "branch": "codex/program-service-offering-request-02",
   "runtime_state": "INACTIVE_FAIL_CLOSED",
   "dependencies": {
@@ -11,10 +11,11 @@
     "FIN01": "required only before financial Order creation; this package creates no Order"
   },
   "evidence": {
-    "source_tests": "LOCAL_SYNTHETIC",
+    "source_tests": "PASS_LOCAL_SYNTHETIC_AFFECTED_27_PLUS_12",
     "postgresql": "NOT_RUN_NOT_PASS",
     "connected_http_auth": "NOT_RUN_NOT_PASS",
-    "browser": "HARNESS_INCLUDED_LOCAL_RUN_BLOCKED_MISSING_LOCKED_PLAYWRIGHT_DEPENDENCY"
+    "browser": "PASS_REAL_CHROMIUM_ACTUAL_COMPONENT_SYNTHETIC_LOOPBACK_9_OF_9",
+    "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS"
   },
   "outputs": [
     {
@@ -35,16 +36,16 @@
     },
     {
       "path": "scripts/test-service-offering-request-flow-browser-02.mjs",
-      "bytes": 8954,
-      "sha256": "7d7ccf61b02c14272dbb90b019ba50f5b941988bf45ef0cc5de234bcd811a67d",
+      "bytes": 9234,
+      "sha256": "c0f402abd55452540f9ab47cfb92ba0167fbebced2d80edfea36ddb073d4b03c",
       "preimage": {
         "state": "absent"
       }
     },
     {
       "path": "scripts/test-service-request-ui-010.mjs",
-      "bytes": 10675,
-      "sha256": "8a651a0ac1cd1213cf5583b52fa465fb54b4d68f09ed78b3a919b85a416d0c77",
+      "bytes": 12671,
+      "sha256": "8fa0f1794cb191bc0278243cbbd58f0d6972f6acdc17e374ebcd2015abb87c63",
       "preimage": {
         "state": "present"
       }
@@ -75,8 +76,8 @@
     },
     {
       "path": "src/components/customer/CustomerServiceRequests.tsx",
-      "bytes": 21178,
-      "sha256": "b9d155cd5c90cce0001babac78b3582bc67a50f05e476874a8662b96969cbfa6",
+      "bytes": 21975,
+      "sha256": "84bfe5237c2ab138d359b94bdede9f9b76763781c24a3b4e069d88a00154bb6a",
       "preimage": {
         "state": "present"
       }

@@ -22,12 +22,19 @@ const copy = {
 type Read = z.infer<typeof serviceRequestReadSchema>;
 type Offering = { offering_id:string; revision_id:string; labels:Record<Language,string>; acquisition_mode:string;
   request_flow_contract?: typeof SERVICE_OFFERING_REQUEST_FLOW_CONTRACT };
-type PendingCommand = CreateServiceRequest | ServiceOfferingRequestPublicInputV1;
+type PendingCommand =
+  | { protocol:'service-request-command.v1'; endpoint:'/api/customer/v1/services/requests'; body:CreateServiceRequest }
+  | { protocol:typeof SERVICE_OFFERING_REQUEST_FLOW_CONTRACT; endpoint:'/api/customer/v1/services/offering-request-flow'; body:ServiceOfferingRequestPublicInputV1 };
 type ReadyPreflight = Extract<ServiceOfferingRequestPreflightResultV1, { status:'ready' }>;
 type FlowStatus = 'idle'|'loading'|'ready'|'denied'|'conflict'|'not_ready'|'retry';
 type FlowState = { key:string; status:FlowStatus; preflight:ReadyPreflight|null };
-// The parent keys by context/workspace; pending commands cannot cross either scope.
-export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,onRefreshCatalog}:{contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>}) {
+type CustomerServiceRequestsProps = {contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>};
+// Scope identity owns all form and pending-command state even when a caller
+// rerenders this component without supplying its own React key.
+export function CustomerServiceRequests(props:CustomerServiceRequestsProps) {
+  return <CustomerServiceRequestsScope key={`${props.contextId}:${props.workspaceId}`} {...props}/>;
+}
+function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRefreshCatalog}:CustomerServiceRequestsProps) {
   const fetch = useDashboardFetch(); const t=copy[lang];
   const fieldId=useId();
   const [fieldErrors,setFieldErrors]=useState({offering:false,party:false,resource:false,description:false});
@@ -102,9 +109,13 @@ export function CustomerServiceRequests({contextId,workspaceId,lang,offerings,on
         (fields.offering?offeringRef:fields.party?partyRef:descriptionRef).current?.focus();return;
       }
       if(usesV14Flow&&flowPreflight?.source_kind==='resources'&&resource===null){setFieldErrors(old=>({...old,resource:true}));setNotice(t.invalid);return;}
-      setFieldErrors({offering:false,party:false,resource:false,description:false});command=parsed.data;setPending(command);}
+      setFieldErrors({offering:false,party:false,resource:false,description:false});
+      command=usesV14Flow
+        ? {protocol:SERVICE_OFFERING_REQUEST_FLOW_CONTRACT,endpoint:'/api/customer/v1/services/offering-request-flow',body:serviceOfferingRequestPublicInputV1Schema.parse(parsed.data)}
+        : {protocol:'service-request-command.v1',endpoint:'/api/customer/v1/services/requests',body:createServiceRequestSchema.parse(parsed.data)};
+      setPending(command);}
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
-    try {const response=await fetch(usesV14Flow?'/api/customer/v1/services/offering-request-flow':'/api/customer/v1/services/requests',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command),signal:controller.signal});
+    try {const response=await fetch(command.endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command.body),signal:controller.signal});
       if(!response.ok){if(alive.current){
         if(response.status===401||response.status===403){setData(null);setReadStatus(response.status===401?'session':'denied');setNotice('');}
         else if(response.status===503){setNotice(t.sourceNotReady);}
