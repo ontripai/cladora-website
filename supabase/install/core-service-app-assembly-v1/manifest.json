@@ -1,0 +1,616 @@
+{
+  "contract": "core-service-real-app-assembly.delivery.v1",
+  "base": "29ed18541c602dae4e6db5c98a96201250af630b",
+  "FullSHA": "CONTAINING_GIT_COMMIT",
+  "branch": "codex/core-service-real-app-assembly-17",
+  "status": "OWNED_BACKEND_API_READY_BROWSER_E2E_NOT_PROVEN",
+  "consumer_contract": "docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.json",
+  "units": [
+    {
+      "order": 1,
+      "path": "supabase/install/core-service-app-assembly-v1/catalog-compatibility.sql",
+      "bytes": 2260,
+      "sha256": "f62aed9a62d38751195d9add4eecc90d8ebcb52cc230f428ec927c507bf7dbfc",
+      "settlement": "COMMIT_AND_READYFORQUERY_I",
+      "actor": "cladora_core_installer",
+      "scope": "owned development additive only"
+    },
+    {
+      "order": 2,
+      "path": "supabase/install/core-service-app-assembly-v1/read-access.sql",
+      "bytes": 5552,
+      "sha256": "4cfcc66ee261f208f6ec7abca5512582d52e1190ca539ee052f57209d7103539",
+      "settlement": "COMMIT_AND_READYFORQUERY_I",
+      "actor": "cladora_core_installer",
+      "scope": "owned development additive only"
+    }
+  ],
+  "actual_install_order": [
+    "read-access",
+    "catalog-compatibility"
+  ],
+  "corrected_fresh_order": [
+    "supabase/install/core-service-app-assembly-v1/catalog-compatibility.sql",
+    "supabase/install/core-service-app-assembly-v1/read-access.sql"
+  ],
+  "minimum_existing_dependencies": "accepted Core15 C01/C03/S01 + canonical Service catalog/request/version/module registry; no blanket native installers",
+  "not_required": [
+    "Maintenance",
+    "Building",
+    "Storage",
+    "all historical migrations"
+  ],
+  "witnesses": [
+    {
+      "receipt": "core17-install-receipt.json",
+      "bytes": 162,
+      "sha256": "9d052aec52602c20b61bb8ba45cd23fa042b6131393ba709ed7e007e5a1c75a0",
+      "state": "COMMIT_AND_READYFORQUERY_I",
+      "checks": null,
+      "generation": null,
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
+    },
+    {
+      "receipt": "core17-catalog-compatibility-receipt.json",
+      "bytes": 162,
+      "sha256": "8806f7a0b1af3ee4f430e196c3210de7c617d0d0a116c54111b2f63389d94ba5",
+      "state": "COMMIT_AND_READYFORQUERY_I",
+      "checks": null,
+      "generation": null,
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
+    },
+    {
+      "receipt": "core17-installer-binding-native.json",
+      "bytes": 509,
+      "sha256": "5f73b81a5abdb90241c962e316afaaf3ead180982fa472e9ecdbc1e45f11c78d",
+      "state": "PASS_EXPLICIT_BINDING_ACTUAL_OWNED_PRINCIPAL",
+      "checks": null,
+      "generation": "historical-v2",
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
+    },
+    {
+      "receipt": "core17-proof-after-compatibility-private.json",
+      "bytes": 12269,
+      "sha256": "542fe7793a810d09a2bd355959b216c9eee76a30baa0452670d7d30955175928",
+      "state": "PASS_REAL_NEXT_BUILD_START_SERVICE_ASSEMBLY",
+      "checks": {
+        "real_session_to_current_selection": true,
+        "actual_canonical_catalog": true,
+        "actual_read_no_c03_or_domain_write": true,
+        "real_c03_command_canonical_receipt": true,
+        "read_same_request_through_actual_application_route": true,
+        "same_key_body_one_effect": true,
+        "changed_body_conflict_no_write": true,
+        "foreign_scope_actor_denied_no_leak": true,
+        "anonymous_denied": true,
+        "actual_catalog_lock_wait_observed": true,
+        "expired_after_wait_no_catalog_disclosure": true,
+        "revoked_request_read_denied": true,
+        "no_extra_effects_from_reads_or_denials": true
+      },
+      "generation": null,
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
+    },
+    {
+      "receipt": "core17-final-verify-private.json",
+      "bytes": 1393,
+      "sha256": "3ef733f44dfe2af8382998ac16807ff3661b98b1262844d29f034d189b73ecaa",
+      "state": "PASS_FINAL_BUILT_SOURCE_NATIVE_READBACK",
+      "checks": {
+        "final_production_start_reads": true,
+        "same_created_request_still_readable": true,
+        "built_sources_exact": true,
+        "exact_receipt_audit_outbox_readback": true
+      },
+      "generation": null,
+      "sourcePins": {
+        "next.config.mjs": "a426743cadeb5bea53478c579dc31fc40f46f49e26c37f772f76b0a6b7869888",
+        "src/lib/supabase/env.ts": "3d47d750e8b35d29f5a522b04b9b7761d4174c4a39bae1c9e8d097307277ad2d",
+        "src/lib/core/functional-command-runtime-v1.ts": "c1461444af4baae11f40f62c03bcea86538bd6c91fe2846f300fc4511e0fded5",
+        "src/lib/core/private-service-development-binding-v1.ts": "84c5694a8cef523375bf65bfffd1f00417abf7cd789bc39762766163508c15b7",
+        "src/lib/core/service-app-read-v1.ts": "5a7741338c20281473154829632e4d27fa8251b2d5e14913cf524bbc9fca0607",
+        "src/app/api/customer/v1/services/assembly-bootstrap/route.ts": "327790b1cea05beada33529c286cba592bf7872b902527532eb02f69bc451bc6",
+        "src/app/api/customer/v1/services/catalog/route.ts": "212e8773998dcd0581081575549550b9448ea89d692cc05996da6393f236e435",
+        "src/app/api/customer/v1/services/requests/route.ts": "ac228efc2340cf49bc2aa0e1bfe937b847712af6e894cf8dbc861bae068bbea2"
+      },
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
+    }
+  ],
+  "protectedSources": [
+    {
+      "path": "package.json",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "unchanged": true
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "unchanged": true
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/application-flow.ts",
+      "bytes": 16690,
+      "sha256": "1ddd67defe807989cf62ba69f8f9f5cbc7a1219ae3b573d7284700a02c916dcb",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "bytes": 17376,
+      "sha256": "cc758f83ce3f851f7a5e52cd04d5b5936142ca3e6fea1f470f3b2806d21a0ee0",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "bytes": 736073,
+      "sha256": "da5a4e3ac421f71674ddc309feff3c0d03d6ebc6f168911d48f41b799c73ae35",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/install/v14-operations/assets.sql",
+      "bytes": 225315,
+      "sha256": "311f5615008e9de4544b0c51e94533dd825d57294d5205d160c238975112683c",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "bytes": 297448,
+      "sha256": "8eb3d843fb161a5ebdfdbe1d80bc67b8df3bf0aa316a886c8baab20320294652",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "bytes": 262457,
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/migrations/20261004083750_20261004083058_service_catalog_registry_compatibility_v1.sql",
+      "bytes": 1312,
+      "sha256": "82950fd3bafae37ca215f781b6a9e9fab8dfc319a1f7b6de7d602cc373d0060e",
+      "unchanged": true
+    }
+  ],
+  "inventory": [
+    {
+      "path": "docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.json",
+      "before": null,
+      "after": {
+        "bytes": 4421,
+        "sha256": "ba9bf3a9838d203315d705955e4f563cdb25c37c50a91fc05d27f97645d9a7c5",
+        "git_blob": "0ccb8b134572884e4812a5e0b0ffafe83d552fdf"
+      }
+    },
+    {
+      "path": "docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md",
+      "before": null,
+      "after": {
+        "bytes": 15095,
+        "sha256": "e4984a128bdf7163ba912b2fe62b8b5286d4fd5f1462911af7c33a7c93334ee1",
+        "git_blob": "e75955b3533490a330cbce5fbccf95c1c1f17999"
+      }
+    },
+    {
+      "path": "docs/testing/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md",
+      "before": null,
+      "after": {
+        "bytes": 8683,
+        "sha256": "b7b97590c2fe250b74ca73c3f8dd2fca3167d07cbfac3d496f810e6f17612764",
+        "git_blob": "3f03b2ea88bae1e1ba0ba559a474a82e03f993eb"
+      }
+    },
+    {
+      "path": "next.config.mjs",
+      "before": {
+        "bytes": 3643,
+        "sha256": "244fe38e9c868e9aa60dd1d9f8b92ec905ff0038f540c972355c5b7616d9980e",
+        "git_blob": "5fcb93d172d0c3757d9dce8923eef7b719dfca86"
+      },
+      "after": {
+        "bytes": 4052,
+        "sha256": "a426743cadeb5bea53478c579dc31fc40f46f49e26c37f772f76b0a6b7869888",
+        "git_blob": "af9f6a0ecf24131362749300caec11fcb12470cf"
+      }
+    },
+    {
+      "path": "scripts/bind-core-service-installer-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 792,
+        "sha256": "646bf4b8513c16ff8d6064a867bb01785f98bae0e84ef99e153d47927c092b68",
+        "git_blob": "18b3da9351508a89ea86f9b30ac65fbfed8c8ee7"
+      }
+    },
+    {
+      "path": "scripts/check-core-service-assembly-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4318,
+        "sha256": "f5b9a7390e8bcd30f81e297c39224b03c85bbffd713fde49a6dc773a8a578ca1",
+        "git_blob": "1e732d97a16cc27165c02034e3260657a66169c2"
+      }
+    },
+    {
+      "path": "scripts/lib/core-installer-credential-binding-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 5483,
+        "sha256": "6abe79b47b720ee19c8cbd2ac0425ff6a56e958d9df6a33825b202a583491e7d",
+        "git_blob": "f0e16f96bfd47e8d0902bd1f917718127338724d"
+      }
+    },
+    {
+      "path": "scripts/lib/core-service-assembly-environment-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1488,
+        "sha256": "e18225bc814f3a250e661a5f9efa6850bc8716f6d473c08ab85ff10c01f48b13",
+        "git_blob": "4bdad11b7845dc87a0488ea467304f8b1e96ad55"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-service-assembly-17-fixture.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3396,
+        "sha256": "36d6eba5a754d66a863a123812b316856bf0a348c70e57738de9841c41acfefa",
+        "git_blob": "a890404b93365fbad484af40cf13615a58770fe4"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-service-synthetic-fixture-v2.mjs",
+      "before": null,
+      "after": {
+        "bytes": 901,
+        "sha256": "6be8151364e48cb149f406bc689ef5b7a63b987f989bdd2d09c018501674adaa",
+        "git_blob": "788231ea87bf62746f31edcdc233992c66fb92e3"
+      }
+    },
+    {
+      "path": "scripts/prepare-core15-service-synthetic-fixture-v1.mjs",
+      "before": {
+        "bytes": 10733,
+        "sha256": "c6c74c55aee2818fbd5d94a45d53fdafaa426ad027cc7ca4da3d977c3ec19ecb",
+        "git_blob": "b6e152790286252a14c4f3f050dd8e2fef473de7"
+      },
+      "after": {
+        "bytes": 11709,
+        "sha256": "9d786d91072cd16cb0349e9f275d4d8f77eb148395ba4d73c17b611287771d07",
+        "git_blob": "1cf19d264d1a51f5e3567a37fc6930180eceb1a5"
+      }
+    },
+    {
+      "path": "scripts/prove-core-service-app-assembly-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 9300,
+        "sha256": "bb84e89c2cb7a87cdafbc79684ba897eca42018f6d1ebbf92aa24b3f7c398288",
+        "git_blob": "6c725870e4389529b460ba2fef14666847fb248f"
+      }
+    },
+    {
+      "path": "scripts/reauth-core-service-assembly-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3913,
+        "sha256": "aab3ddf27197386ef11f62da500c58c15661e7270e0c786b86a397367045e807",
+        "git_blob": "b1427b5f3cf6ffd0a3a9852337b4894a2eacef41"
+      }
+    },
+    {
+      "path": "scripts/run-core-service-app-assembly-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3743,
+        "sha256": "16c15cccf686f8d775ba27a68cb6809ca3fbaa1b61d4805a88eb8eed1e90a2be",
+        "git_blob": "3ed17741e168feed37461690f5e0ae63c6b1184c"
+      }
+    },
+    {
+      "path": "scripts/run-core-service-assembly-17-install.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3174,
+        "sha256": "db1f136addf506cd3043990a101f8097f537916d6624a6cd7f1b7368dc449c21",
+        "git_blob": "e8ec07872650a2ebfdfab3c116549b00b571e80b"
+      }
+    },
+    {
+      "path": "scripts/run-core15-service-domain-v1.mjs",
+      "before": {
+        "bytes": 5519,
+        "sha256": "17570c6fbbd5077de0d51dec6d0283841f56968f3d8b31cc7fa637a3e6a383d5",
+        "git_blob": "0ba8f102aa785bc2856decf2b51c045fcfa180c1"
+      },
+      "after": {
+        "bytes": 6075,
+        "sha256": "072bd7672b71f6aae4cc3e34eb4712ecf8c8f5c9c1993c18aebdefe4a0715a5f",
+        "git_blob": "f6246da13bf76b9874aecfb8c8777ee8e1eebad1"
+      }
+    },
+    {
+      "path": "scripts/run-core15-service-native-v3.mjs",
+      "before": {
+        "bytes": 10812,
+        "sha256": "19528751be1404cf5d605632356fe746e3f16f8940263051bc346574bd5f3e73",
+        "git_blob": "2c5bcd2743995f183e2487e8bf393361189fd008"
+      },
+      "after": {
+        "bytes": 11525,
+        "sha256": "8ec77569f16e8f899789d55f6f7cc438d1c0198c210dbefa24b400feb52b5e9e",
+        "git_blob": "ce44663ffdeab9bb0f39f2d6281e0ed31d19666d"
+      }
+    },
+    {
+      "path": "scripts/seal-core-service-assembly-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7152,
+        "sha256": "402c52ddf54d8ca8b7eeed77c4ab28142004d7b7ab9b96b403a93a58f5ffd58e",
+        "git_blob": "c37d813114d8ba5d0c843ffe3ab0231bb54fc491"
+      }
+    },
+    {
+      "path": "scripts/test-core-installer-credential-binding-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7964,
+        "sha256": "0cb65f2b68a9e0653ebb1a59a38133df7ef1335619f0caff9c54d06b288dc4ef",
+        "git_blob": "edda1deaa5b4b482faaea9e19207a1c7f9c33815"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-app-assembly-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 9389,
+        "sha256": "424e47d876f7f1c2434ee50778015962cb22a962ad4158e47aa16311e069e4ed",
+        "git_blob": "f38052c062fda412e2b55d2c5002a83276132e11"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-assembly-review-r1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7914,
+        "sha256": "c462e23b52a11fed8e95f3a4316c6a71be3c1432458bd044c66cfa71e7a0bf5f",
+        "git_blob": "adbe2dab75c84f2fa19346a40d98b60b9be8aef2"
+      }
+    },
+    {
+      "path": "scripts/verify-core-service-app-assembly-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4020,
+        "sha256": "8ae02b25d72f3e05f362312351171e12b87963838b5e1819124f4d3c152b7d42",
+        "git_blob": "e07f3fda5375cd0f7de43305a4baf0e4455d8bbf"
+      }
+    },
+    {
+      "path": "scripts/verify-core-service-installer-binding-17.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2623,
+        "sha256": "34e11cd89f4554e2c539fb211d390371c192ffac318bb8e0e147ae93887ddfe8",
+        "git_blob": "1b7c6a5fb066f2b3bce40e5992b88ad08dc2d539"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/assembly-bootstrap/route.ts",
+      "before": null,
+      "after": {
+        "bytes": 373,
+        "sha256": "327790b1cea05beada33529c286cba592bf7872b902527532eb02f69bc451bc6",
+        "git_blob": "fce90f2ca7a0cebd6e695ec1552d50dd2719aeb1"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/catalog/route.ts",
+      "before": {
+        "bytes": 4789,
+        "sha256": "4d7e0e0c0af1700fbb3fcbc29d58e7b45050919f73dc3e28ac58f0cef64ec0b2",
+        "git_blob": "a7ad9629d4abcc31b237360924ec56e9bb6c63c0"
+      },
+      "after": {
+        "bytes": 4950,
+        "sha256": "212e8773998dcd0581081575549550b9448ea89d692cc05996da6393f236e435",
+        "git_blob": "3c3efbb6cd492f05338decbefce54bb6e0b70175"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/requests/route.ts",
+      "before": {
+        "bytes": 3302,
+        "sha256": "29f6a1c44ea06685bc572aa36fb7c22b0fe6fd3de80c4e0b01f1063625ef6c20",
+        "git_blob": "e2f7c3fb0de22d49454e3707e64d7b2a55dee553"
+      },
+      "after": {
+        "bytes": 3464,
+        "sha256": "ac228efc2340cf49bc2aa0e1bfe937b847712af6e894cf8dbc861bae068bbea2",
+        "git_blob": "a91024973104bb2a573788bb7dde2ac84ca67cf5"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 21051,
+        "sha256": "0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75",
+        "git_blob": "751ea25bdae9022acd6b6c126e3726866bcd8d42"
+      },
+      "after": {
+        "bytes": 24353,
+        "sha256": "c1461444af4baae11f40f62c03bcea86538bd6c91fe2846f300fc4511e0fded5",
+        "git_blob": "79c16e9c6e75ea218ab25f1ed19dd89d0a0eabd7"
+      }
+    },
+    {
+      "path": "src/lib/core/private-service-development-binding-v1.ts",
+      "before": {
+        "bytes": 2692,
+        "sha256": "11a10fdca8eaa8c47c80e8730f5af5a1ce283b1f314fdeeef1ec56eabf4cc7ac",
+        "git_blob": "4e5cb615a701e50415f5db8ca395b36d1e53a3d9"
+      },
+      "after": {
+        "bytes": 4060,
+        "sha256": "543e6dbb4120497737d5957f665505529e6100cc09c3969ca01b034347f41253",
+        "git_blob": "55d0f65e7f10cb3db93887aa9d3b92742275bbb7"
+      }
+    },
+    {
+      "path": "src/lib/core/service-app-read-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2925,
+        "sha256": "5a7741338c20281473154829632e4d27fa8251b2d5e14913cf524bbc9fca0607",
+        "git_blob": "25b25bf59fe653fe8055681443e73b08a114d862"
+      }
+    },
+    {
+      "path": "src/lib/supabase/env.ts",
+      "before": {
+        "bytes": 2591,
+        "sha256": "5e1a8f1b1058b27fdcbf2e8ba9b9d737883fd9c7de292da07d336ef65f9be7b6",
+        "git_blob": "66d682b42da54b88e73d68f5840c3f5ff6940727"
+      },
+      "after": {
+        "bytes": 2759,
+        "sha256": "3d47d750e8b35d29f5a522b04b9b7761d4174c4a39bae1c9e8d097307277ad2d",
+        "git_blob": "96fbab76cdc4088c9bd6e933d3b5603bce7101c1"
+      }
+    },
+    {
+      "path": "supabase/install/core-service-app-assembly-v1/catalog-compatibility.sql",
+      "before": null,
+      "after": {
+        "bytes": 2260,
+        "sha256": "f62aed9a62d38751195d9add4eecc90d8ebcb52cc230f428ec927c507bf7dbfc",
+        "git_blob": "cd3fe78ad3df05416ae20626576d9665c2ae2619"
+      }
+    },
+    {
+      "path": "supabase/install/core-service-app-assembly-v1/read-access.sql",
+      "before": null,
+      "after": {
+        "bytes": 5552,
+        "sha256": "4cfcc66ee261f208f6ec7abca5512582d52e1190ca539ee052f57209d7103539",
+        "git_blob": "32974c3f0930fd64d616ff83896d89c6dc801cf5"
+      }
+    }
+  ],
+  "checks": {
+    "review_r1": 26,
+    "ES5_typecheck": "PASS",
+    "limited_lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "production_build_start_native": "PRIOR_REVISION_ONLY_NOT_REPEATED"
+  },
+  "installer_binding": {
+    "contract": "core-installer-credential-binding.v1",
+    "generation_selected": "historical-v2",
+    "fresh_v3": "CONTROLLED_POSITIVE_NEGATIVE_ONLY_NATIVE_FRESH_NOT_RUN",
+    "before_connect_validation": true,
+    "paths_or_versions_guessed": false,
+    "legacy_fixture_domain_body": "BYTE_IDENTICAL",
+    "secret_embedded": false
+  },
+  "scope": {
+    "owned_development_only": true,
+    "staging_production_changed": false,
+    "public_grants_added": false,
+    "default_ACL_changed": false,
+    "shared_host_evaluator_S01_changed": false,
+    "historical_migrations_changed": false,
+    "frontend_changed": false,
+    "package_lock_changed": false,
+    "rejected_report_republished": false
+  },
+  "open_gates": [
+    "consumer browser entry/shared-shell integration",
+    "independent review",
+    "fresh-v3 native full-recipe rehearsal",
+    "clean dependency install",
+    "hosted/staging/Production installation",
+    "resource-specific or Order/payment workflows",
+    "universal deferred/writer currentness proof"
+  ],
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned source + private owned target/binding",
+    "mechanical_part": "identity, order, custody checks",
+    "human_decision_role": "Coordinator/Platform source/target/install approval",
+    "conditions": "owned development, exact generation and target, no UNKNOWN",
+    "exception_owner": "Core/Platform on mismatch or settlement uncertainty",
+    "formal_dependency": "Platform12 + canonical Core/Service ABI",
+    "value": "detect wrong credential lineage before connection; no invented savings"
+  },
+  "review_revision": {
+    "reviewed_parent": "686475cc9606888f41b46ffd7a0ef544484b6b30",
+    "findings": [
+      "F01",
+      "F02"
+    ],
+    "checks": 26,
+    "proof": "synthetic sentinels/controlled private filesystem and Pool; no PG/Auth/network",
+    "typecheck": "PASS_ES5",
+    "lint": "PASS_LIMITED",
+    "native_current_revision": "NOT_RUN_NOT_PASS",
+    "fresh_v3": "NOT_RUN_NOT_PASS",
+    "browser": "NOT_RUN_NOT_PASS"
+  },
+  "historical_checks": {
+    "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30",
+    "checks": {
+      "controlled_runtime_profile": 27,
+      "controlled_installer_binding": 20,
+      "production_next_build": "PASS",
+      "production_next_start_API_native": "PASS",
+      "ES5_typecheck": "PASS",
+      "limited_lint": "PASS_APPLICATION_AND_UPDATED_NEW_OPERATOR_SCOPE",
+      "syntax": "PASS",
+      "diff": "PASS",
+      "native_40001_new": "NOT_RUN_NOT_PASS; original-object propagation controlled; old native proof preserved"
+    }
+  }
+}

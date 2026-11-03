@@ -1,6 +1,10 @@
 import { getNextConfigRedirects } from './src/config/legacy-redirects.mjs';
 
 /** @type {import('next').NextConfig} */
+const ownedServiceAssembly = process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1'
+  && process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1'
+  && process.env.NEXT_PUBLIC_SUPABASE_URL === 'http://127.0.0.1:55421'
+  && !process.env.VERCEL && !process.env.VERCEL_ENV && !process.env.NEXT_PUBLIC_VERCEL_ENV;
 const securityHeaders = [
   {
     key: 'Content-Security-Policy',
@@ -11,7 +15,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com data:",
       "img-src 'self' data: blob: https://images.unsplash.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vitals.vercel-insights.com" + (ownedServiceAssembly ? " http://127.0.0.1:55421" : ""),
       "frame-ancestors 'none'",
       "object-src 'none'",
       "base-uri 'self'",

@@ -1,0 +1,121 @@
+{
+  "contract": "core-service-real-app-assembly.v1",
+  "source_base": "29ed18541c602dae4e6db5c98a96201250af630b",
+  "FullSHA": "CONTAINING_GIT_COMMIT",
+  "branch": "codex/core-service-real-app-assembly-17",
+  "owners": {
+    "Core": "shared producer/read lease/profile and installer credential binding",
+    "SERVICE": "domain Request/preflight/consumer contract",
+    "Antigravity": "browser entry and Context/Workspace integration",
+    "Coordinator": "review/integration",
+    "Platform": "owned backend custody and separately authorized installation"
+  },
+  "profile": {
+    "name": "core-service-real-app-assembly.v1",
+    "application_origin": "http://localhost:3008",
+    "bind_host": "127.0.0.1",
+    "auth_origin": "http://127.0.0.1:55421",
+    "database_host": "127.0.0.1",
+    "database_port": 55422,
+    "database_name": "postgres",
+    "backend_identity": "PRIVATE_DESCRIPTOR_AND_REAL_DB_MARKER_OID_MATCH_REQUIRED",
+    "platform_source": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+    "NODE_ENV": "OFFICIAL_NEXT_PRODUCTION_NOT_SPOOFED",
+    "default_public_activation": false
+  },
+  "abi": {
+    "read_contract": "core-service-app-read.v1",
+    "factory": "getCoreServiceAppRuntimeV1(Request)",
+    "method": "readServiceApp('selections'|'catalog'|'requests', optional exact {context_id,workspace_id})",
+    "bootstrap": "GET /api/customer/v1/services/assembly-bootstrap",
+    "catalog": "GET /api/customer/v1/services/catalog",
+    "requests": "GET /api/customer/v1/services/requests",
+    "command_contract": "service-offering-request-flow.v1",
+    "command": "POST /api/customer/v1/services/offering-request-flow",
+    "command_result_fields": [
+      "request_id",
+      "status"
+    ],
+    "read_settlement": "SERIALIZABLE_LOCK_CAPABLE_POSITIVE_ROLLBACK",
+    "C03_read_writes": false,
+    "selection_is_authority": false,
+    "GET_is_commit_proof": false,
+    "trusted_40001": "SAME_OBJECT_NO_NEW_RETRY_ENGINE",
+    "HTTP_40001": "409_SERVICE_CONFLICT"
+  },
+  "permissions": {
+    "catalog": [
+      "services.catalog.read",
+      "services_catalog"
+    ],
+    "requests": [
+      "services.orders.read",
+      "services_orders"
+    ],
+    "command": [
+      "services.orders.request",
+      "services_orders"
+    ]
+  },
+  "installer_binding": {
+    "contract": "core-installer-credential-binding.v1",
+    "profile": "platform12-owned-development.ordinary-installer.v1",
+    "explicit_generations": [
+      "v3",
+      "historical-v2"
+    ],
+    "fresh_producer": "scripts/run-core15-service-native-v3.mjs prerequisites",
+    "fresh_consumer": "scripts/prepare-core-service-synthetic-fixture-v2.mjs",
+    "fresh_binding": "core15/service-native-v3/installer-binding.json",
+    "historical_binding": "core17-historical-installer-binding.json",
+    "v3_credential": "core15/service-native-v3/installer-secret.json",
+    "historical_v2_credential": "core15/service-native-v2/installer-secret.json",
+    "binding_custody": "PRIVATE_ROOT_ONLY_NOFOLLOW_SAME_UID_SINGLE_LINK_PRIVATE_MODE",
+    "before_connect": [
+      "exact_contract_profile_generation",
+      "accepted_target",
+      "fixed_paths",
+      "credential_identity",
+      "committed_producer_and_session_provenance",
+      "custody"
+    ],
+    "path_search_or_fallback": false,
+    "current_native_lane": "historical-v2",
+    "fresh_v3_native_install": "NOT_RUN_NOT_PASS",
+    "secret_in_manifest": false
+  },
+  "minimum_dependency_order": [
+    "owned_Platform12",
+    "accepted_Core15_session04_05",
+    "accepted_Core300_foundation_ordinary_profile_v3",
+    "selected_Core15_Service_domain_units",
+    "catalog-compatibility.sql",
+    "read-access.sql",
+    "explicit_private_runtime_binding",
+    "owned_synthetic_fixture_if_absent",
+    "named_next_build_start"
+  ],
+  "not_general_prerequisites": [
+    "Maintenance",
+    "Building",
+    "Storage",
+    "all_historical_migrations",
+    "AIRPROP",
+    "Finance_payment_authority"
+  ],
+  "consumer_open_gates": [
+    "browser_entry_uses_actual_bootstrap",
+    "global_dashboard_or_targets_adapter_not_faked",
+    "independent_review",
+    "fresh_v3_full_native_rehearsal",
+    "any_hosted_or_production_installation"
+  ],
+  "execution_limits": {
+    "target": "OWNED_SYNTHETIC_DEVELOPMENT_ONLY",
+    "staging_production_changed": false,
+    "legacy_post_changed": false,
+    "shared_C03_evaluator_S01_changed": false,
+    "new_public_grants": false,
+    "history_rewritten": false
+  }
+}

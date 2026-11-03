@@ -1,0 +1,20 @@
+/** Final built-source readback only. Never resends a command or redoes fixtures. */
+import assert from 'node:assert/strict';
+import {readFileSync,writeFileSync,existsSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import pg from 'pg';
+import {loadInstallerCredentialBindingV1,installerTargetV1,readOwnedInstallerFileV1} from './lib/core-installer-credential-binding-v1.mjs';
+assert.equal(process.argv.length,4);const p='/workspace/private/cladora-functional-dev-v1',read=n=>JSON.parse(readOwnedInstallerFileV1(p+'/'+n,p)),file=p+'/core17-final-verify-private.json';assert.equal(existsSync(file),false,'existing final witness');
+const target=read('core15/service-runtime-binding.json').target,credential=loadInstallerCredentialBindingV1({privateRoot:p,generation:process.argv[2],bindingPath:process.argv[3],expectedTarget:installerTargetV1(target)});
+const records=readFileSync(p+'/core17-build-attempts.private.ndjson','utf8').trim().split('\n').map(JSON.parse),build=records.at(-1);assert.equal(build.state,'EXIT_0');for(const[path,hash]of Object.entries(build.sourcePins))assert.equal(createHash('sha256').update(readFileSync(path)).digest('hex'),hash);
+const proof=read('core17-proof-after-compatibility-private.json');assert.equal(proof.state,'PASS_REAL_NEXT_BUILD_START_SERVICE_ASSEMBLY');const f=read('core15/service-fixture-private.json'),auth=read('core17-auth-private.json');
+const c=new pg.Client({host:target.host,port:target.port,database:target.database_name,user:credential.principal,password:credential.password,connectionTimeoutMillis:5000,query_timeout:10000});
+const e={contract:'core17-final-built-source-verify.v1',state:'DISPATCHED_READ_ONLY',checks:{},sourcePins:build.sourcePins,installer_generation:credential.generation,binding_sha256:credential.binding_sha256};const save=()=>writeFileSync(file,JSON.stringify(e,null,2)+'\n',{mode:0o600});save();
+try{await c.connect();const actual=(await c.query("select (select oid::int from pg_database where datname=current_database()) oid,(select obj_description(oid,'pg_namespace') from pg_namespace where nspname='core_runtime') marker,current_user::text principal")).rows[0];assert.equal(actual.oid,target.database_oid);assert.equal(actual.marker,target.backend_id);assert.equal(actual.principal,credential.principal);
+ const root='http://localhost:3008/api/customer/v1/services/',q=new URLSearchParams({context_id:f.contexts[0],workspace_id:f.workspaces[0]});
+ for(const path of ['assembly-bootstrap','catalog?'+q,'requests?'+q]){const r=await fetch(root+path,{headers:{cookie:auth.users[0].cookie},signal:AbortSignal.timeout(20000)});const data=await r.json();assert.equal(r.status,200);assert.match(r.headers.get('cache-control'),/no-store/);if(path.startsWith('requests'))assert.ok(data.requests.some(x=>x.request_id===proof.created.value.request_id));}
+ e.checks.final_production_start_reads=true;e.checks.same_created_request_still_readable=true;e.checks.built_sources_exact=true;
+ const row=(await c.query('select response_ref from platform.idempotency_keys where tenant_id=$1 and key=$2',[f.tenants[0],'core-tx.v1:'+f.workspaces[0]+':'+proof.body.idempotency_key])).rows;assert.equal(row.length,1);assert.deepEqual(row[0].response_ref,proof.receipt);
+ const receipt=row[0].response_ref;assert.equal((await c.query('select count(*)::int n from audit.events where id=$1',[receipt.audit_event_id])).rows[0].n,1);assert.equal((await c.query('select count(*)::int n from platform.outbox_events where id=$1',[receipt.outbox_event_id])).rows[0].n,1);e.checks.exact_receipt_audit_outbox_readback=true;
+ e.state='PASS_FINAL_BUILT_SOURCE_NATIVE_READBACK';save();console.log(JSON.stringify({state:e.state,checks:e.checks,sha256:createHash('sha256').update(readFileSync(file)).digest('hex')}));
+}catch(error){e.state='FAILED_OR_UNKNOWN_STOP';e.error={code:error.code??error.name,message:error.message};save();console.error(JSON.stringify({state:e.state,code:e.error.code,private_diagnostic:true}));process.exitCode=1;}finally{await c.end();}
