@@ -12,24 +12,25 @@ Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, co
 const { createRoot } = await import('react-dom/client');
 const runtime = path.resolve('work/ce-event-recovery-runtime.mjs');
 fs.mkdirSync(path.dirname(runtime), { recursive: true });
-fs.writeFileSync(runtime, ts.transpileModule(fs.readFileSync('src/components/customer/CustomerEventInterest.tsx', 'utf8'), {
+fs.writeFileSync(runtime, ts.transpileModule(fs.readFileSync('src/components/customer/CustomerEventInterest.tsx', 'utf8').replace("@/lib/community/event-interest-client", "../src/lib/community/event-interest-client.ts"), {
   compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
 }).outputText);
 const { CustomerEventInterest } = await import(runtime);
 const container = document.getElementById('root'); const root = createRoot(container);
-const members = [{ membership_id: 'synthetic-member', display_name: 'Ana Popescu' }];
+const uuid = n => `30200000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const members = [{ membership_id: uuid(1), display_name: 'Ana Popescu' }];
 const kinds = ['publish', 'cancel', 'registerInterest', 'withdrawInterest', 'recordAttendance'];
 const event = (patch = {}) => ({
-  event_id: 'synthetic-event', workspace_id: 'synthetic-workspace', title: 'Named event',
+  event_id: uuid(2), workspace_id: uuid(3), title: 'Named event',
   starts_at: '2026-10-11T12:00:00Z', ends_at: '2026-10-11T13:00:00Z', timezone: 'Europe/Bucharest',
   status: 'published', audience_label: 'Members', version: 3, interest_status: null, interest_version: 2,
   can_publish: true, can_cancel: true, can_register_interest: true, can_withdraw_interest: true, can_record_attendance: true,
   ...patch,
 });
 const copy = {
-  ro: { sending: 'Se trimite…', buttons: ['Publică', 'Anulează evenimentul', 'Sunt interesat(ă)', 'Retrage interesul'], success: ['Evenimentul a fost publicat.', 'Evenimentul a fost anulat.', 'Interesul a fost înregistrat.', 'Interesul a fost retras.', 'Prezența a fost înregistrată.'], error: 'Datele introduse au fost păstrate.', notice: 'Exprimarea interesului nu reprezintă o rezervare și nu garantează accesul.' },
-  en: { sending: 'Sending…', buttons: ['Publish', 'Cancel event', 'Register interest', 'Withdraw interest'], success: ['Event published.', 'Event cancelled.', 'Interest registered.', 'Interest withdrawn.', 'Attendance recorded.'], error: 'Your input has been preserved.', notice: 'Registering interest is not a booking and does not guarantee admission.' },
-  fa: { sending: 'در حال ارسال…', buttons: ['انتشار', 'لغو رویداد', 'ثبت علاقه', 'لغو علاقه'], success: ['رویداد منتشر شد.', 'رویداد لغو شد.', 'علاقه ثبت شد.', 'علاقه لغو شد.', 'حضور ثبت شد.'], error: 'ورودی شما حفظ شده است.', notice: 'ثبت علاقه به معنی رزرو یا تضمین ورود نیست.' },
+  ro: { sending: 'Se trimite…', buttons: ['Publică', 'Anulează evenimentul', 'Sunt interesat(ă)', 'Retrage interesul'], success: ['Evenimentul a fost publicat.', 'Evenimentul a fost anulat.', 'Interesul a fost înregistrat.', 'Interesul a fost retras.', 'Prezența a fost înregistrată.'], error: 'Rezultatul cererii nu este încă cunoscut.', notice: 'Exprimarea interesului nu reprezintă o rezervare și nu garantează accesul.' },
+  en: { sending: 'Sending…', buttons: ['Publish', 'Cancel event', 'Register interest', 'Withdraw interest'], success: ['Event published.', 'Event cancelled.', 'Interest registered.', 'Interest withdrawn.', 'Attendance recorded.'], error: 'The request result is not yet known.', notice: 'Registering interest is not a booking and does not guarantee admission.' },
+  fa: { sending: 'در حال ارسال…', buttons: ['انتشار', 'لغو رویداد', 'ثبت علاقه', 'لغو علاقه'], success: ['رویداد منتشر شد.', 'رویداد لغو شد.', 'علاقه ثبت شد.', 'علاقه لغو شد.', 'حضور ثبت شد.'], error: 'نتیجه درخواست هنوز مشخص نیست.', notice: 'ثبت علاقه به معنی رزرو یا تضمین ورود نیست.' },
 };
 function change(element, value) {
   const prototype = element.tagName === 'SELECT' ? dom.window.HTMLSelectElement.prototype : dom.window.HTMLInputElement.prototype;
@@ -49,31 +50,32 @@ try {
       const render = (patch = {}) => React.createElement(CustomerEventInterest, { key: `${lang}:${index}`, lang, event: event(patch), commands, eligibleAttendanceMembers: members, onChanged: () => { refreshed += 1; } });
       await act(async () => root.render(render()));
       const form = container.querySelector('form'); const select = form.querySelector('select'); const input = form.querySelector('input');
-      assert.ok(document.getElementById(form.getAttribute('aria-labelledby'))?.textContent);
+      assert.ok(form.getAttribute('aria-label'), 'attendance has its real accessible name');
       const status = container.querySelector('[role="status"]');
       assert.equal(status.getAttribute('aria-live'), 'polite');
       assert.equal(status.closest('[aria-busy]'), null);
       assert.equal(container.firstElementChild.getAttribute('dir'), lang === 'fa' ? 'rtl' : 'ltr');
       assert.equal(container.querySelector('[role="note"]').textContent, t.notice);
       assert.match(form.textContent, /Ana Popescu/); assert.match(form.textContent, /Europe\/Bucharest/);
-      assert.doesNotMatch(container.textContent, /synthetic-member|synthetic-event|synthetic-workspace/);
-      await act(async () => { change(select, 'synthetic-member'); change(input, '2026-10-11T15:10'); });
+      for (const raw of [uuid(1), uuid(2), uuid(3)]) assert.equal(container.textContent.includes(raw), false, 'raw identities remain hidden');
+      await act(async () => { change(select, uuid(1)); change(input, '2026-10-11T15:10'); });
       const send = () => index === 4 ? submit(form) : button(t.buttons[index]).dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true }));
       await act(async () => { send(); send(); submit(form); });
       assert.equal(calls.length, 1, 'one synchronous Event lock covers both actions and attendance');
       assert.equal(calls[0].kind, kinds[index]);
-      if (index === 4) assert.deepEqual(calls[0].input, [{ event_id: 'synthetic-event', expected_version: 3, membership_id: 'synthetic-member', observed_local: '2026-10-11T15:10', timezone: 'Europe/Bucharest' }]);
-      else assert.deepEqual(calls[0].input, index < 2 ? ['synthetic-event', 3] : ['synthetic-event', 3, 2]);
+      if (index === 4) assert.deepEqual(calls[0].input, [{ event_id: uuid(2), expected_version: 3, membership_id: uuid(1), observed_local: '2026-10-11T15:10', timezone: 'Europe/Bucharest' }]);
+      else assert.deepEqual(calls[0].input, index < 2 ? [uuid(2), 3] : [uuid(2), 3, 2]);
       assert.equal(status.textContent, t.sending);
       assert.equal(form.querySelector('fieldset').disabled, true);
-      assert.ok([...container.querySelectorAll('button')].every((item) => item.disabled));
+      assert.ok([...container.querySelectorAll('button')].every((item) => item.matches(':disabled')));
       await act(async () => completion.reject(new Error('VERSION_CONFLICT')));
       assert.ok(container.querySelector('[role="alert"]').textContent.includes(t.error));
       assert.equal(document.getElementById(form.getAttribute('aria-describedby')).getAttribute('role'), 'alert');
-      assert.equal(select.value, 'synthetic-member'); assert.equal(input.value, '2026-10-11T15:10');
+      assert.equal(select.value, uuid(1)); assert.equal(input.value, '2026-10-11T15:10');
       assert.equal(status.textContent, ''); assert.equal(refreshed, 0);
+      assert.equal(calls.length, 1, 'an uncertain result does not automatically resend');
       await act(async () => root.render(render({ version: 4, interest_version: 3 })));
-      assert.equal(select.value, 'synthetic-member'); assert.equal(input.value, '2026-10-11T15:10');
+      assert.equal(select.value, uuid(1)); assert.equal(input.value, '2026-10-11T15:10');
       await act(async () => send());
       const retried = calls[1].input;
       assert.equal(index === 4 ? retried[0].expected_version : retried[1], 4);
@@ -82,20 +84,20 @@ try {
       assert.equal(status.textContent, t.success[index]);
       assert.equal(container.querySelector('[role="alert"]'), null);
       assert.equal(refreshed, 1);
-      assert.equal(select.value, index === 4 ? '' : 'synthetic-member');
-      assert.equal(input.value, index === 4 ? '' : '2026-10-11T15:10');
-      await act(async () => root.render(render({ event_id: 'other-event' })));
+      assert.equal(select.value, uuid(1), 'accepted Event form keeps the draft until explicit editing/context reset');
+      assert.equal(input.value, '2026-10-11T15:10', 'accepted Event form retains the current local attendance time');
+      await act(async () => root.render(render({ event_id: uuid(4) })));
       assert.equal(container.querySelector('[role="status"]').textContent, '');
       assert.equal(container.querySelector('input').value, '');
       scenarios += 1;
     }
   }
-  for (const patch of [{ event_id: 'other-event' }, { workspace_id: 'other-workspace' }]) {
+  for (const patch of [{ event_id: uuid(4) }, { workspace_id: uuid(5) }]) {
     let finish; let refreshed = 0;
     const commands = { recordAttendance: () => new Promise((resolve) => { finish = resolve; }) };
     const render = (value) => React.createElement(CustomerEventInterest, { key: 'late', lang: 'en', event: event(value), commands, eligibleAttendanceMembers: members, onChanged: () => { refreshed += 1; } });
     await act(async () => root.render(render()));
-    await act(async () => { change(container.querySelector('select'), 'synthetic-member'); change(container.querySelector('input'), '2026-10-11T15:10'); });
+    await act(async () => { change(container.querySelector('select'), uuid(1)); change(container.querySelector('input'), '2026-10-11T15:10'); });
     await act(async () => submit(container.querySelector('form')));
     await act(async () => root.render(render(patch)));
     await act(async () => finish());

@@ -20,7 +20,7 @@ function load(file) {
       return { rpc: async (rpc, args) => { calls.push({ rpc, args }); return result; } };
     },
   }) } : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
-    : name.startsWith('.') ? load(new URL(`${name}.ts`, file)) : require(name);
+    : name.startsWith('.') ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
   }).outputText, filename);

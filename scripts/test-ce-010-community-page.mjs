@@ -34,7 +34,7 @@ assert.deepEqual(route?.requirement?.modules, ['community_basic']);
 for (const role of CANONICAL_ROLES) assert.equal(isRouteAllowedForPersona(role, '/app/community'), true);
 const pageSource = fs.readFileSync('src/components/customer/CustomerCommunityBasePage.tsx', 'utf8');
 const shellSource = fs.readFileSync('src/components/customer/CustomerAppShell.tsx', 'utf8');
-assert.match(pageSource, /dashboard\.workspace_id/); assert.match(pageSource, /cache: 'no-store'/); assert.match(pageSource, /credentials: 'same-origin'/); assert.match(pageSource, /method: 'POST'/);
+assert.match(pageSource, /dashboard\.workspace_id/); assert.match(pageSource, /cache: 'no-store'/); assert.match(pageSource, /credentials: 'same-origin'/); assert.match(fs.readFileSync('src/lib/community/community-command-session.ts','utf8'), /method:'POST'/);
 assert.match(shellSource, /hasEnt\("module\.community_basic"\) && hasPerm\("community\.community\.read"\)/);
 
 const runtimeFiles = [];
@@ -52,7 +52,7 @@ await import(compile('CustomerCommunityBase.tsx', '.ce010-community-runtime.mjs'
 const contextModule = await import(compile('CustomerContextProvider.tsx', '.ce010-context-runtime.mjs', [["@/components/dashboard-lab/DashboardTransport", './.ce010-dashboard-transport-runtime.mjs']]));
 const pageModule = await import(compile('CustomerCommunityBasePage.tsx', '.ce010-page-runtime.mjs', [
   ["@/components/dashboard-lab/DashboardTransport", './.ce010-dashboard-transport-runtime.mjs'], ['./CustomerContextProvider', './.ce010-context-runtime.mjs'],
-  ['./CustomerCommunityBase', './.ce010-community-runtime.mjs'], ["@/lib/community/community-base-client", '../src/lib/community/community-base-client.ts'],
+  ['./CustomerCommunityBase', './.ce010-community-runtime.mjs'], ["@/lib/community/community-base-client", '../src/lib/community/community-base-client.ts'], ["@/lib/community/community-command-session", '../src/lib/community/community-command-session.ts'],
 ]));
 const { DashboardTransportProvider } = await import('./.ce010-dashboard-transport-runtime.mjs');
 const { CustomerContextProvider, useCustomerContext } = contextModule; const { CustomerCommunityBasePage } = pageModule;
@@ -62,11 +62,12 @@ Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, co
 const { createRoot } = await import('react-dom/client'); const container = document.getElementById('root'); const contextId = id(11);
 let mode = 'ready'; const requests = []; const posts = [];
 const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+const rpcResult = (post) => ({ entity_type: ['report_content','decide_content_report'].includes(post.type) ? 'community_content_report' : 'community_announcement', entity_id: post.announcement_id ?? post.report_id, version: ['create_announcement','report_content'].includes(post.type) ? 1 : post.expected_version + 1, command: post.type, replayed: false });
 const mockFetch = async (input, init = {}) => {
   const url = String(input); requests.push(url);
   if (url === '/api/customer/v1/contexts') return response({ contexts: [{ context_id: contextId, membership_id: id(12), tenant_name: 'Test', role_code: 'association_admin', role_name: 'Administrator', scope_type: 'tenant', context_label: 'Home' }] });
   if (url.startsWith('/api/customer/v1/dashboard')) return response({ contextId, workspace_id: workspaceId, context: { role_code: 'association_admin' }, permissions: ['community.community.read'], entitlements: ['module.community_basic'], modules: ['community_basic'] });
-  if (url.startsWith('/api/customer/v1/community/base') && init.method === 'POST') { posts.push(JSON.parse(init.body)); return response({ ok: true }); }
+  if (url.startsWith('/api/customer/v1/community/base') && init.method === 'POST') { const post=JSON.parse(init.body); posts.push(post); return response(rpcResult(post)); }
   if (url.startsWith('/api/customer/v1/community/base')) {
     if (mode === 'not_ready') return response({ error: { code: 'CE_COMMUNITY_CONNECTION_NOT_READY' } }, 503);
     if (mode === 'refresh_fail') return response({ error: { code: 'CE_COMMUNITY_REFRESH_FAILED' } }, 500);
@@ -141,8 +142,8 @@ const scopedFetch = async (input, init = {}) => {
   if (init.method && !['GET', 'HEAD'].includes(init.method)) {
     assert.equal(url, '/api/customer/v1/community/base');
     guardPosts.push(JSON.parse(init.body));
-    if (deferPost) return new Promise((resolve) => { pendingPost = () => resolve(response({ ok: true })); });
-    return response(postStatus === 200 ? { ok: true } : { error: { code: 'CONFLICT' } }, postStatus);
+    if (deferPost) return new Promise((resolve) => { pendingPost = () => resolve(response(rpcResult(JSON.parse(init.body)))); });
+    return response(postStatus === 200 ? rpcResult(JSON.parse(init.body)) : { error: { code: 'CONFLICT' } }, postStatus);
   }
   if (url === '/api/customer/v1/contexts') return response({ contexts: [contextId, contextB, contextC].map((value) => ({ context_id: value, membership_id: id(12), tenant_name: 'Test', role_code: 'association_admin', role_name: 'Administrator', scope_type: 'tenant', context_label: value === contextId ? 'A' : 'Other' })) });
   const query = new URL(url, 'http://localhost').searchParams;
@@ -197,6 +198,8 @@ async function clearForm(index) {
   });
 }
 async function sendForm(index) {
+  const replay=container.querySelector('[data-community-replay]');if(replay){const original=guardPosts.at(-1);await act(async()=>replay.click());await flush();assert.deepEqual(guardPosts.at(-1),original,'UNKNOWN explicit retry keeps exact identity and body');return;}
+  const reset=container.querySelector('[data-community-reset]');if(reset){await act(async()=>reset.click());await flush();}
   await act(async () => currentForms()[index].dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true })));
   await flush();
 }
@@ -294,7 +297,7 @@ for (const lang of ['ro', 'en', 'fa']) {
     postStatus = 200; readFailure = true;
     await sendForm(1);
     assert.deepEqual(values()[0], before[0]); assert.deepEqual(values()[2], before[2]);
-    assert.deepEqual(values()[1], ['', '']);
+    assert.deepEqual(values()[1], ['', ''], 'only validated same-wire result clears the exact submitted form; unrelated drafts remain');
     assert.ok(container.querySelector('[role="alert"]'), 'failed projection refresh is visible');
     await navigate('context-b'); assert.equal(contextState.pendingContextId, contextB); await navigate('keep');
     readFailure = false;
@@ -310,7 +313,7 @@ for (const lang of ['ro', 'en', 'fa']) {
   await navigate('context-b'); assert.equal(contextState.pendingContextId, contextB); await navigate('keep');
   postStatus = 200; readFailure = false; await discardAndReturn(); contextScenarios += 1;
 
-  // In-flight writes remain user-initiated: navigation never retries/cancels them,
+  // Navigation never resends; cancellation only fences the local observer and does not prove server rollback.
   // and their late success cannot clear a draft in the new scope.
   await dirtyForm(0); deferPost = true;
   const writesBefore = guardPosts.length;
@@ -324,12 +327,15 @@ for (const lang of ['ro', 'en', 'fa']) {
   assert.deepEqual(values(), newScopeDraft, 'late completion does not affect new Context');
   assert.equal(guardPosts.length, writesBefore + 1, 'navigation did not generate another command');
   deferPost = false;
-  await navigate('context-a'); assert.equal(contextState.pendingContextId, contextId); await navigate('discard'); assertClean();
+  await navigate('context-a'); assert.equal(contextState.pendingContextId, contextId); await navigate('discard');
+  assert.equal(values()[0][0],'Unsent 0','return to original scope retains UNKNOWN draft');
+  assert.ok(container.querySelector('[data-community-replay]'));await sendForm(0);await clearForm(0);assertClean();
   contextScenarios += 1;
 
   // Capability refresh can unmount one form or hide others; their hooks still
   // clean up independently and never leave an invisible guard behind.
   for (let index = 0; index < 3; index += 1) await dirtyForm(index);
+  const capabilityDrafts=values();
   const refreshCapabilities = async () => {
     const publish = [...container.querySelectorAll('article button')][0];
     const before = guardPosts.length;
@@ -343,7 +349,7 @@ for (const lang of ['ro', 'en', 'fa']) {
   assert.equal(currentForms().length, 0);
   await navigate('context-b'); assert.equal(contextState.active.context_id, contextB); assert.equal(contextState.pendingContextId, null);
   allowCreate = true; allowReport = true; allowModerate = true;
-  await navigate('context-a'); assertClean(); contextScenarios += 1;
+  await navigate('context-a'); assert.deepEqual(values(),capabilityDrafts,'regrant restores only the same scoped drafts');for(let index=0;index<3;index++)await clearForm(index);assertClean(); contextScenarios += 1;
 
   // Removing the CE consumer must unregister every guard without changing Context.
   for (let index = 0; index < 3; index += 1) await dirtyForm(index);
@@ -497,6 +503,7 @@ for (const [lang, t] of Object.entries(selectionCopy)) {
   // Current-community removal fails closed: no automatic fallback, no old content
   // or authority, and explicit selection is required even if the old community returns.
   for (let index = 0; index < 3; index += 1) await dirtyForm(index);
+  const removedCommunityDrafts=values();
   deferPost = true; await publishAndRefresh(); await chooseCommunity(secondCommunity);
   selectionCommunities = [secondCommunity]; await finishDeferredPost();
   assert.equal(localDialog(), null); assert.equal(selector().value, ''); assert.equal(currentForms().length, 0);
@@ -505,7 +512,7 @@ for (const [lang, t] of Object.entries(selectionCopy)) {
   await chooseCommunity(secondCommunity); assert.equal(localDialog(), null); assertClean();
   selectionCommunities = [communityId, secondCommunity]; await publishAndRefresh();
   assert.equal(selector().value, secondCommunity, 'returning eligibility never restores the old selection or drafts');
-  await chooseCommunity(communityId); assertClean();
+  await chooseCommunity(communityId); assert.deepEqual(values(),removedCommunityDrafts,'explicit eligible return restores only original Community drafts');for(let index=0;index<3;index++)await clearForm(index);assertClean();
   await navigate('context-c'); assert.equal(contextState.pendingContextId, null, 'unavailable forms leave no guard');
   await navigate('context-a'); assertClean(); selectionScenarios += 1;
 
@@ -517,15 +524,17 @@ for (const [lang, t] of Object.entries(selectionCopy)) {
   await dirtyForm(0); const newDraft = values(); await finishDeferredPost();
   assert.deepEqual(values(), newDraft); assert.equal(selector().value, secondCommunity);
   assert.equal(guardPosts.length, beforeLate + 1);
-  await chooseCommunity(communityId); await decideCommunity(1); assertClean(); selectionScenarios += 1;
+  await chooseCommunity(communityId); await decideCommunity(1); assert.equal(values()[0][0],'Unsent 0');assert.ok(container.querySelector('[data-community-replay]'));await sendForm(0);await clearForm(0);assertClean(); selectionScenarios += 1;
 
   // Older projection responses cannot resurrect an already removed target.
   await dirtyForm(0); holdNextProjection = true; await publishAndRefresh();
   await chooseCommunity(secondCommunity);
   selectionCommunities = [communityId];
-  // Keep the draft, then explicitly publish again to obtain a newer projection
-  // without remounting the Page or replacing its actual load implementation.
-  await decideCommunity(0); await publishAndRefresh();
+  // A pending read revokes command admission. Keep the draft and explicitly
+  // refresh the read, rather than issuing a write to manufacture a projection.
+  await decideCommunity(0);const beforeReadRefresh=guardPosts.length;
+  await act(async()=>container.querySelector('[data-community-refresh]').click());await flush();
+  assert.equal(guardPosts.length,beforeReadRefresh,'explicit read refresh sends no command');
   assert.equal(selector().querySelector(`option[value="${secondCommunity}"]`), null);
   await act(async () => finishProjection()); await flush();
   assert.equal(selector().querySelector(`option[value="${secondCommunity}"]`), null);
@@ -536,6 +545,7 @@ for (const [lang, t] of Object.entries(selectionCopy)) {
   // visible. Cleanup must not leave a hidden Context or Community guard.
   selectionCommunities = [communityId, secondCommunity]; await publishAndRefresh();
   for (let index = 0; index < 3; index += 1) await dirtyForm(index);
+  const localCapabilityDrafts=values();
   deferPost = true; await publishAndRefresh(); await chooseCommunity(secondCommunity);
   allowCreate = false; allowReport = false; allowModerate = false; await finishDeferredPost();
   assert.equal(currentForms().length, 0);
@@ -543,7 +553,7 @@ for (const [lang, t] of Object.entries(selectionCopy)) {
   await chooseCommunity(secondCommunity); assert.equal(localDialog(), null, 'no invisible Community guard');
   await navigate('context-b'); assert.equal(contextState.pendingContextId, null, 'no invisible Context guard');
   allowCreate = true; allowReport = true; allowModerate = true;
-  await navigate('context-a'); assertClean(); selectionScenarios += 1;
+  await navigate('context-a'); assert.deepEqual(values(),localCapabilityDrafts,'same scoped drafts return only after explicit eligibility read');for(let index=0;index<3;index++)await clearForm(index);assertClean(); selectionScenarios += 1;
 
   // Every community disappearing closes the modal and restores focus to the
   // remaining Page, without an invisible guard or stale selection after reload.

@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import React, { act } from 'react';
-import { JSDOM } from 'jsdom';
-import ts from 'typescript';
 import {
   classifyEventResponse,
   eventReadResponseSchema,
@@ -59,102 +56,13 @@ assert.match(page, /credentials: 'same-origin'/);
 assert.match(page, /cache: 'no-store'/);
 assert.match(page, /expected_interest_version/);
 assert.match(page, /target_membership_id/);
-assert.match(page, /response\.status === 409/);
+assert.match(fs.readFileSync('src/lib/community/event-interest-client.ts', 'utf8'), /response\.status === 409/);
 assert.match(page, /CE|not a booking|nu crea o rezervare|بدون ایجاد رزرو/);
 assert.match(shell, /hasEnt\("module\.community_events"\) && hasPerm\("events\.event\.read"\)/);
 for (const field of ['workspace_id','audience_kind','can_publish','can_cancel','can_register_interest','can_withdraw_interest','can_record_attendance','eligible_attendance_members']) assert.match(sql, new RegExp(`'${field}'`));
 assert.match(sql, /identity\.profiles/);
 assert.match(sql, /ce_event_audience_eligible_v1\(e\.id,m\.id\)/);
 
-const runtimeFiles = [];
-function compile(sourceName, runtimeName, replacements = []) {
-  let source = fs.readFileSync(path.join('src/components/customer', sourceName), 'utf8');
-  for (const [from, to] of replacements) source = source.replaceAll(from, to);
-  const target = path.join('scripts', runtimeName);
-  fs.writeFileSync(target, ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText);
-  runtimeFiles.push(target);
-  return `./${runtimeName}`;
-}
 
-const transportRuntime = path.join('scripts', '.ce011-dashboard-transport-runtime.mjs');
-fs.writeFileSync(transportRuntime, "import{createContext,useContext}from'react';const C=createContext(globalThis.fetch);export const DashboardTransportProvider=C.Provider;export function useDashboardFetch(){return useContext(C)}export function useDashboardPreview(){return true}");
-runtimeFiles.push(transportRuntime);
-const interestModule = await import(compile('CustomerEventInterest.tsx', '.ce011-interest-page-runtime.mjs'));
-const contextModule = await import(compile('CustomerContextProvider.tsx', '.ce011-context-page-runtime.mjs', [
-  ["@/components/dashboard-lab/DashboardTransport", './.ce011-dashboard-transport-runtime.mjs'],
-]));
-const pageModule = await import(compile('CustomerEventInterestPage.tsx', '.ce011-page-runtime.mjs', [
-  ["@/components/dashboard-lab/DashboardTransport", './.ce011-dashboard-transport-runtime.mjs'],
-  ['./CustomerContextProvider', './.ce011-context-page-runtime.mjs'],
-  ['./CustomerEventInterest', './.ce011-interest-page-runtime.mjs'],
-  ["@/lib/community/event-interest-client", '../src/lib/community/event-interest-client.ts'],
-]));
-const { DashboardTransportProvider } = await import('./.ce011-dashboard-transport-runtime.mjs');
-const { CustomerContextProvider } = contextModule;
-const { CustomerEventInterestPage } = pageModule;
-assert.equal(typeof interestModule.CustomerEventInterest, 'function');
-
-const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { url: 'http://localhost/en/app/community/events' });
-globalThis.window = dom.window; globalThis.document = dom.window.document; globalThis.sessionStorage = dom.window.sessionStorage;
-Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, configurable: true });
-globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-const { createRoot } = await import('react-dom/client');
-const contextId = id(11); const workspaceId = id(3); const membershipId = id(12);
-let mode = 'ready'; const requests = [];
-const response = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-const mockFetch = async (input, init = {}) => {
-  const url = String(input); requests.push({ url, init });
-  if (url === '/api/customer/v1/contexts') return response({ contexts: [{ context_id: contextId, membership_id: membershipId, tenant_name: 'Test', role_code: 'owner', role_name: 'Owner', scope_type: 'tenant', context_label: 'Home' }] });
-  if (url.startsWith('/api/customer/v1/dashboard')) return response({ contextId, workspace_id: workspaceId, context: { role_code: 'owner' }, permissions: ['events.event.read', 'events.interest.manage_self'], entitlements: ['module.community_events'], modules: ['community_events'] });
-  if (url.startsWith('/api/customer/v1/community/events') && (!init.method || init.method === 'GET')) return mode === 'not_ready' ? response({ error: { code: 'CE_EVENT_CONNECTION_NOT_READY' } }, 503) : response({ workspace_id: workspaceId, events: [item] });
-  if (url === '/api/customer/v1/community/events' && init.method === 'POST') {
-    if (mode === 'conflict') { item.version = 3; item.interest_version = 1; mode = 'ready'; return response({ error: { code: 'VERSION_CONFLICT' } }, 409); }
-    return response({ ok: true });
-  }
-  throw new Error(`Unexpected test request: ${url}`);
-};
-const container = document.getElementById('root');
-async function flush() { for (let i = 0; i < 8; i += 1) await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); }); }
-const renderPage = () => React.createElement(
-  DashboardTransportProvider,
-  { value: mockFetch },
-  React.createElement(CustomerContextProvider, null, React.createElement(CustomerEventInterestPage, { lang: 'en' })),
-);
-let root = createRoot(container);
-await act(async () => root.render(renderPage()));
-await flush();
-assert.match(container.textContent, /Community briefing/, `requests: ${requests.map((request) => request.url).join(', ')}`);
-assert.match(container.textContent, /Registering interest is not a booking/);
-assert.doesNotMatch(container.textContent, new RegExp(item.event_id));
-const interestButton = Array.from(container.querySelectorAll('button')).find((button) => button.textContent === 'Register interest');
-assert.ok(interestButton, 'Mounted page exposes the server-authorized interest action');
-await act(async () => { interestButton.dispatchEvent(new dom.window.MouseEvent('click', { bubbles: true })); await Promise.resolve(); });
-await flush();
-const post = requests.find((request) => request.init.method === 'POST');
-assert.ok(post, 'Mounted action reaches the authenticated Event API');
-const posted = JSON.parse(post.init.body);
-assert.equal(posted.context_id, contextId); assert.equal(posted.workspace_id, workspaceId); assert.equal(posted.event_id, item.event_id);
-assert.equal(posted.expected_version, 2); assert.equal(posted.expected_interest_version, 0); assert.equal(posted.type, 'register_interest');
-mode = 'conflict';
-await act(async () => { interestButton.click(); await Promise.resolve(); });
-await flush();
-assert.match(container.querySelector('[role="alert"]').textContent, /input has been preserved/);
-assert.equal(requests.filter((request) => request.init.method === 'POST').length, 2, 'conflict never automatically retries a mutation');
-await act(async () => { container.querySelectorAll('button').forEach((button) => { if (button.textContent === 'Register interest') button.click(); }); await Promise.resolve(); });
-await flush();
-const retry = JSON.parse(requests.filter((request) => request.init.method === 'POST').at(-1).init.body);
-assert.equal(retry.expected_version, 3, 'explicit retry uses the reloaded Event version');
-assert.equal(retry.expected_interest_version, 1, 'explicit retry uses the reloaded interest version');
-assert.notEqual(retry.command_id, posted.command_id);
-assert.equal(container.querySelector('[role="alert"]'), null);
-assert.match(container.querySelector('[role="status"]').textContent, /Interest registered/);
-await act(async () => root.unmount());
-
-mode = 'not_ready'; requests.length = 0; container.innerHTML = ''; root = createRoot(container);
-await act(async () => root.render(renderPage()));
-await flush();
-assert.match(container.textContent, /operational events connection has not been activated yet/);
-await act(async () => root.unmount());
-for (const file of runtimeFiles) fs.rmSync(file, { force: true });
-
-console.log('CE-011 mounted page acceptance passed: strict projection, exact versioned POST, named choices, no UUID display, capability navigation, route guard, actionable 503 state, and RO/EN/FA copy.');
+const { runEventAcceptance } = await import('./test-v14-ce011-seven-commands.mjs');
+console.log(JSON.stringify(await runEventAcceptance({ baselineOnly: true }), null, 2));
