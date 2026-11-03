@@ -5,8 +5,10 @@ import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
 import { createServiceOfferingRequestSchema, reviseServiceOfferingRequestSchema,
   transitionServiceOfferingRequestSchema } from '@/lib/customer/service-catalog-schema';
 import { productCapabilityDecisionV1Schema } from '@/lib/core/product-rights-v1';
+import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
+const MAX_BODY_BYTES = 256 * 1024;
 const commandSchema = z.discriminatedUnion('kind', [
   z.strictObject({ kind: z.literal('create'), request: createServiceOfferingRequestSchema }),
   z.strictObject({ kind: z.literal('revise'), request: reviseServiceOfferingRequestSchema }),
@@ -58,14 +60,14 @@ export async function POST(request: NextRequest) {
   // Same-origin JSON writes; neither actor nor tenant nor a client hash is accepted.
   const origin = request.headers.get('origin');
   if (origin && origin !== request.nextUrl.origin) return failure('INVALID_ORIGIN', 403);
-  if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return failure('INVALID_REQUEST', 400);
+  if (!isApplicationJson(request.headers.get('content-type'))) return failure('INVALID_REQUEST', 400);
   if (request.nextUrl.search) return failure('INVALID_REQUEST', 400);
   const supabase = await createClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return failure('UNAUTHORIZED', 401);
-  let body: unknown;
-  try { body = await request.json(); } catch { return failure('INVALID_REQUEST', 400); }
-  const command = commandSchema.safeParse(body);
+  const body = await parseJsonWithLimit<unknown>(request, MAX_BODY_BYTES);
+  if (body.errorResponse) return failure(body.errorResponse.status === 413 ? 'PAYLOAD_TOO_LARGE' : 'INVALID_REQUEST', body.errorResponse.status);
+  const command = commandSchema.safeParse(body.data);
   if (!command.success) return failure('INVALID_REQUEST', 400);
   if ('revision' in command.data.request && command.data.request.revision.document_version_ids.length > 0) {
     return failure('DOCUMENT_LINK_CONTRACT_REQUIRED', 422);

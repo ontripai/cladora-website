@@ -1,0 +1,144 @@
+{
+  "contract": "cladora-source-delivery-manifest.v1",
+  "task_id": "SERVICE-HTTP-BODY-BOUNDS-10",
+  "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+  "branch": "codex/program-service-offering-request-02",
+  "status": "SOURCE_IMPLEMENTED_OFFLINE_ROUTE_PROOF",
+  "limits": {
+    "self-person": {
+      "bytes": 2048,
+      "basis": "120-character name plus UUIDs, timestamp and 128-character ASCII idempotency key; allows six-byte JSON escaping"
+    },
+    "catalog": {
+      "bytes": 262144,
+      "basis": "33,600 bounded multilingual text characters, worst-case six-byte JSON escaping, 50 UUID document references and envelope overhead"
+    },
+    "catalog/management": {
+      "bytes": 8192,
+      "basis": "three 200-character labels plus 500-character reason, identifiers and envelope under six-byte JSON escaping"
+    },
+    "catalog/definitions": {
+      "bytes": 8192,
+      "basis": "three 200-character labels, bounded ASCII code and identifiers under six-byte JSON escaping"
+    },
+    "requests": {
+      "bytes": 32768,
+      "basis": "5,000-character description plus identifiers and envelope under six-byte JSON escaping"
+    },
+    "quotes": {
+      "bytes": 40960,
+      "basis": "5,000-character scope, 32 payer shares and exact 18-digit minor amounts under six-byte JSON escaping"
+    },
+    "quotes/publications": {
+      "bytes": 2048,
+      "basis": "UUIDs, bounded version and 128-character ASCII idempotency key"
+    }
+  },
+  "evidence": {
+    "route_boundary": "PASS_35_OF_35_REAL_ROUTE_EXPORT_CONTROLLED_RPC",
+    "typescript": "PASS_NPX_TSC_NOEMIT",
+    "eslint_scoped": "PASS",
+    "diff_check": "PASS",
+    "native_database_auth": "NOT_RUN_NOT_PASS",
+    "connected_http": "NOT_RUN_NOT_PASS",
+    "browser": "NOT_RUN_NOT_PASS_NOT_REQUIRED_FOR_BODY_BOUNDARY"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "seven authenticated SERVICE JSON POST routes",
+    "automatable_part": "deterministic UTF-8 byte accounting and rejection before business RPC",
+    "human_decision_role": "SERVICE owner chooses contract-derived limits and reviews schema changes",
+    "execution_conditions": "route schema and RPC envelope remain pinned; focused route suite passes",
+    "exception_owner": "SERVICE for schema growth; security owner for helper semantics",
+    "formal_dependency": "src/lib/security/request-body.ts",
+    "value_criterion": "all oversized or malformed bodies stop before business RPC while valid contract payloads retain exact arguments"
+  },
+  "outputs": [
+    {
+      "path": "src/app/api/customer/v1/services/self-person/route.ts",
+      "bytes": 2250,
+      "sha256": "bef010c6d2fa7824c253521cd3971b3f0e3771fb3d2e44158b2dd82d00fe6cd5",
+      "preimage": {
+        "state": "present",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+        "bytes": 2055,
+        "sha256": "b8d3efc303e871a6873e7304868a52f648d3029f40651ec6c048c83cf7f41f7c"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/catalog/route.ts",
+      "bytes": 4789,
+      "sha256": "4d7e0e0c0af1700fbb3fcbc29d58e7b45050919f73dc3e28ac58f0cef64ec0b2",
+      "preimage": {
+        "state": "present",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+        "bytes": 4592,
+        "sha256": "1dfb17cbb4d789a38b7e3e7f278b8dcf3a5b847934059880b6f0c46a2ad47ceb"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/catalog/management/route.ts",
+      "bytes": 3434,
+      "sha256": "a4db1040eee1b2ca0ec14e460c9e5a56f52bc90721f9d3e1851247a5662fc9f1",
+      "preimage": {
+        "state": "present",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+        "bytes": 3239,
+        "sha256": "f846cbf6c2daf221bfae524bd66773104af643df61c35b8d6e526d96c6b42037"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/catalog/definitions/route.ts",
+      "bytes": 3216,
+      "sha256": "3ebda842cce817fe3524b34ce2d022794c986d303699cd95a161b127362f317c",
+      "preimage": {
+        "state": "present",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+        "bytes": 3021,
+        "sha256": "b2a454e67304c251559aaddc60fb8da2695bd83d03a2e1e3cfb335f29c9b7344"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/requests/route.ts",
+      "bytes": 3302,
+      "sha256": "29f6a1c44ea06685bc572aa36fb7c22b0fe6fd3de80c4e0b01f1063625ef6c20",
+      "preimage": {
+        "state": "present",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+        "bytes": 3106,
+        "sha256": "829e8643e64050f7b658ce9da504705a7a545de3448e2427dc15887b77bd68eb"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/quotes/route.ts",
+      "bytes": 3296,
+      "sha256": "9e77dbc5123ef14a4df76ef031f63135eb981861f3b1c4179f6186c65309805b",
+      "preimage": {
+        "state": "present",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+        "bytes": 3100,
+        "sha256": "7241f9b838e15d1f8c257182a3f608436a02d6adf0e411b47c09e10b48697108"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/quotes/publications/route.ts",
+      "bytes": 3611,
+      "sha256": "7176af81fe3a457e763476dbbcdae891df8482df6d506fa26d19877fc0a3e9bc",
+      "preimage": {
+        "state": "present",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+        "bytes": 3416,
+        "sha256": "f298f1cea22bc37e9d42ee14216607a4c71a87d35c339ae9d5b414662a17088c"
+      }
+    },
+    {
+      "path": "scripts/test-service-http-body-bounds-10.mjs",
+      "bytes": 9215,
+      "sha256": "a08fd9fdeb436eb01e6e1a299693025c9274a0c3c118f026df78574069129355",
+      "preimage": {
+        "state": "absent",
+        "base": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097"
+      }
+    }
+  ]
+}

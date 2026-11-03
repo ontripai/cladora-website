@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
 import { createServiceRequestSchema } from '@/lib/customer/service-request-schema';
+import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
+const MAX_BODY_BYTES = 32 * 1024;
 function failure(code: string, status: number) {
   return NextResponse.json({ error: { code } }, { status, headers: HEADERS });
 }
@@ -33,14 +35,14 @@ export async function POST(request: NextRequest) {
   // Same-origin JSON writes; neither actor nor tenant nor a client hash is accepted.
   const origin = request.headers.get('origin');
   if (origin && origin !== request.nextUrl.origin) return failure('INVALID_ORIGIN', 403);
-  if (request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return failure('INVALID_REQUEST', 400);
+  if (!isApplicationJson(request.headers.get('content-type'))) return failure('INVALID_REQUEST', 400);
   if (request.nextUrl.search) return failure('INVALID_REQUEST', 400);
   const supabase = await createClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return failure('UNAUTHORIZED', 401);
-  let body: unknown;
-  try { body = await request.json(); } catch { return failure('INVALID_REQUEST', 400); }
-  const command = createServiceRequestSchema.safeParse(body);
+  const body = await parseJsonWithLimit<unknown>(request, MAX_BODY_BYTES);
+  if (body.errorResponse) return failure(body.errorResponse.status === 413 ? 'PAYLOAD_TOO_LARGE' : 'INVALID_REQUEST', body.errorResponse.status);
+  const command = createServiceRequestSchema.safeParse(body.data);
   if (!command.success) return failure('INVALID_REQUEST', 400);
   const { data, error } = await supabase.schema('customer_api').rpc('create_service_request_v1' as never,
     { p_request: command.data } as never);
