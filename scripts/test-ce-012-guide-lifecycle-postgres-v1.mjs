@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import pg from 'pg';
 import ts from 'typescript';
+import { assertCeGuideInactiveRuntime } from './lib/ce-guide-inactive-runtime-check.mjs';
 
 const require = createRequire(import.meta.url);
 const moduleCache = new Map();
@@ -14,7 +15,7 @@ function load(url) {
   });
   const loaded = { exports: {} };
   moduleCache.set(url.href, loaded.exports);
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name.startsWith('.')
+  new Function('require', 'module', 'exports', compiled.outputText)(name => name === 'server-only' ? {} : name.startsWith('.')
     ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url))
     : require(name), loaded, loaded.exports);
   return loaded.exports;
@@ -1171,7 +1172,7 @@ try {
       title: 'Private synthetic Guide', audience: { kind: 'workspace' },
     });
   });
-  await check('storage is closed and public editor/runtime activation remains absent', async () => {
+  await check('storage is closed and public commands require the disabled functional runtime', async () => {
     const access = await pool.query(`select c.relname,c.relrowsecurity,
       has_table_privilege('anon',c.oid,'SELECT,INSERT,UPDATE,DELETE') anon,
       has_table_privilege('authenticated',c.oid,'SELECT,INSERT,UPDATE,DELETE') authenticated,
@@ -1191,8 +1192,9 @@ try {
     const client = readFileSync(new URL(
       '../src/lib/community/experience-guide-client.ts', import.meta.url,
     ), 'utf8');
-    assert.match(page, /commands=\{null\}/);
-    assert.match(client, /can_edit:\s*false/);
+    assert.match(page, /commands=\{commands\}/);
+    assert.match(client, /can_edit:\s*item\.can_edit/);
+    await assertCeGuideInactiveRuntime(load);
   });
 } finally {
   await pool.end();

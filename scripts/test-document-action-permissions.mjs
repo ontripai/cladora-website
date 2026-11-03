@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {existsSync, readFileSync} from 'node:fs';
 import {createRequire, Module} from 'node:module';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath, pathToFileURL} from 'node:url';
 import React, {act} from 'react';
 import {createRoot} from 'react-dom/client';
 import {JSDOM} from 'jsdom';
@@ -22,12 +22,29 @@ globalThis.fetch = async () => ({ok: true, json: async () => ({
   total: 1, read_only: false, storage_access: true, signed_urls: true,
 })});
 const filename = fileURLToPath(new URL('../src/components/customer/CustomerDocumentsDashboard.tsx', import.meta.url));
-const compiled = new Module(filename);
-compiled.require = id => id === './CustomerContextProvider' ? {useCustomerContext: () => context} : require(id);
-compiled._compile(ts.transpileModule(readFileSync(filename, 'utf8'), {compilerOptions: {
-  module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
-}}).outputText, filename);
-const {CustomerDocumentsDashboard} = compiled.exports;
+const modules = new Map();
+function load(file) {
+  if (!existsSync(file) && file.pathname.endsWith('.ts')) file = new URL(file.href.replace(/\.ts$/, '.tsx'));
+  if (modules.has(file.href)) return modules.get(file.href).exports;
+  const compiled = new Module(fileURLToPath(file));
+  modules.set(file.href, compiled);
+  compiled.require = id => {
+    if (id === './CustomerContextProvider') return {useCustomerContext: () => context};
+    // Permission-display cases do not authenticate or dispatch upload commands.
+    if (id === '@/lib/supabase/client') return {createClient: () => ({auth: {
+      onAuthStateChange: () => ({data: {subscription: {unsubscribe() {}}}}),
+      getUser: async () => { throw new Error('AUTH_NOT_PART_OF_PERMISSION_DISPLAY_FIXTURE'); },
+    }})};
+    if (id.startsWith('@/')) return load(new URL(`../src/${id.slice(2)}.ts`, import.meta.url));
+    if (id.startsWith('.')) return load(new URL(`${id}.ts`, file));
+    return require(id);
+  };
+  compiled._compile(ts.transpileModule(readFileSync(file, 'utf8'), {compilerOptions: {
+    module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
+  }}).outputText, fileURLToPath(file));
+  return compiled.exports;
+}
+const {CustomerDocumentsDashboard} = load(pathToFileURL(filename));
 const root = createRoot(document.getElementById('root'));
 try {
   let caseId = 0;

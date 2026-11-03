@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import ts from 'typescript';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const BASELINE_COMMIT = '83a18a583fb30b8177246a60e3505e3aac634215';
@@ -46,6 +47,7 @@ const allSourceFiles = sourceFiles('src');
 const technicalFreeAllowlist = new Map([
   ['src/app/[lang]/platform/(control-plane)/retention-operations/page.tsx', ['side-effect-free']],
   ['src/lib/community/experience-guide-lifecycle-http-v1.ts', ['write-free']],
+  ['src/lib/community/experience-guide-create-writer-v1.ts', ['document-free']],
 ]);
 
 for (const file of allSourceFiles) {
@@ -165,7 +167,47 @@ const benefitPresentationFiles = [
   'src/components/customer/CustomerExperienceGuidePage.tsx',
   ...servicePresentationFiles,
 ];
-const benefitPresentation = [...new Set(benefitPresentationFiles)].map(file => read(file)).join('\n');
+function publicPresentationSource(file, source = read(file)) {
+  if (![
+    'src/components/customer/CustomerCommunityBasePage.tsx',
+    'src/components/customer/CustomerEventInterestPage.tsx',
+    'src/components/customer/CustomerExperienceGuidePage.tsx',
+  ].includes(file)) return source;
+  const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const internalBindings = [];
+  const visit = node => {
+    if (ts.isPropertyAccessExpression(node) && [
+      'active.membership_id', 'command.target_membership_id', 'member.membership_id',
+    ].includes(node.getText(ast))) {
+      let attribute = node.parent;
+      while (attribute && !ts.isJsxAttribute(attribute) && !ts.isJsxExpression(attribute)) attribute = attribute.parent;
+      if (attribute && ts.isJsxExpression(attribute)) attribute = attribute.parent;
+      const component = attribute?.parent?.parent;
+      if (!attribute || (ts.isJsxAttribute(attribute) && ['key', 'membershipId'].includes(attribute.name.getText(ast))
+        && component && ts.isJsxSelfClosingElement(component)
+        && component.tagName.getText(ast) === 'CommunityWorkspace')) {
+        internalBindings.push([node.getStart(ast), node.getEnd()]);
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(ast);
+  // Known scope/custody inputs outside JSX and the private Workspace props are
+  // internal. DOM text/attributes and every other membership reference stay checked.
+  return internalBindings.sort((a, b) => b[0] - a[0]).reduce(
+    (text, [start, end]) => text.slice(0, start) + 'internal_scope_binding' + text.slice(end), source,
+  );
+}
+const benefitPresentation = [...new Set(benefitPresentationFiles)].map(file => publicPresentationSource(file)).join('\n');
+
+for (const source of [
+  'const view = <span>{active.membership_id}</span>;',
+  'const view = <div data-private={active.membership_id} />;',
+  'const view = <OtherComponent membershipId={active.membership_id} />;',
+]) {
+  check(publicPresentationSource('src/components/customer/CustomerCommunityBasePage.tsx', source).includes('membership_id'),
+    'scope-binding exception must never hide a displayed or unrelated component membership field');
+}
 
 check(!/(?:localeConfig|getLocaleConfig)/.test(benefitPresentation),
   'CE benefit and SERVICE handoff presentation must not consume locale defaults as evidence');

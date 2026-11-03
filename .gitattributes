@@ -1,0 +1,3 @@
+# Preserve exact upstream SIL license bytes; application source keeps normal checks.
+src/fonts/manrope/OFL.txt -text whitespace=-blank-at-eol
+src/fonts/vazirmatn/OFL.txt -text whitespace=-blank-at-eol

@@ -13,7 +13,8 @@ let checks = 0;
 function load(file) {
   if (cache.has(file.href)) return cache.get(file.href);
   const mod = new Module(fileURLToPath(file));
-  mod.require = (name) => name === '@/lib/supabase/server' ? { createClient: async () => ({
+  // This Node harness executes the server module; the build-only marker is not an SDK mock.
+  mod.require = (name) => name === 'server-only' ? {} : name === '@/lib/supabase/server' ? { createClient: async () => ({
     auth: { getClaims: async () => ({ data: { claims: authenticated ? { sub: id(1) } : {} }, error: null }) },
     schema: (schema) => {
       assert.equal(schema, 'customer_api');

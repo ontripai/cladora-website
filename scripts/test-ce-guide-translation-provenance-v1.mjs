@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertCeGuideInactiveRuntime } from './lib/ce-guide-inactive-runtime-check.mjs';
 import {
   CE_GUIDE_TRANSLATION_PROVENANCE_CONTRACT,
   evaluateGuideTranslationProvenanceV1,
@@ -268,8 +269,9 @@ equal(runtimeConsumers, [], 'the inactive evaluator must have no production runt
 
 const guidePage = read('src/components/customer/CustomerExperienceGuidePage.tsx');
 const guideClient = read('src/lib/community/experience-guide-client.ts');
-check(guidePage.includes('commands={null}'), 'the public Guide page must keep commands=null');
-check(/can_edit:\s*false/.test(guideClient), 'the public Guide projection must keep can_edit=false');
+check(guidePage.includes('commands={commands}'), 'Guide commands must use the conditional session binding');
+check(/can_edit:\s*item\.can_edit/.test(guideClient), 'the projection must retain the explicit server edit decision');
+await assertCeGuideInactiveRuntime();
 
 const lifecycleProvider = read('src/lib/community/experience-guide-lifecycle-provider-v1.ts');
 check(lifecycleProvider.includes("action === 'unpublish' && row.status !== 'published'"),

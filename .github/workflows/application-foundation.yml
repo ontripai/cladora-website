@@ -4,6 +4,10 @@ on:
   pull_request:
     paths:
       - 'src/**'
+      - '.gitattributes'
+      - 'scripts/test-authenticated-app-07.mjs'
+      - 'scripts/lib/load-application-test-module.mjs'
+      - 'scripts/lib/ce-guide-inactive-runtime-check.mjs'
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
@@ -44,6 +48,10 @@ on:
       - main
     paths:
       - 'src/**'
+      - '.gitattributes'
+      - 'scripts/test-authenticated-app-07.mjs'
+      - 'scripts/lib/load-application-test-module.mjs'
+      - 'scripts/lib/ce-guide-inactive-runtime-check.mjs'
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
@@ -99,6 +107,8 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run lint
+      - name: Authenticated shell source and exact local font licenses (static only)
+        run: node scripts/test-authenticated-app-07.mjs
       - run: npm run test:ce:member-benefit-terminology
       - run: npm run test:ce:benefit-ownership-reconciliation
       - run: npm run test:ce:benefit-presentation-handoff

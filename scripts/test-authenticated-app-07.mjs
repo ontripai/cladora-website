@@ -11,6 +11,7 @@
  */
 
 import assert from 'node:assert';
+import { createHash } from 'node:crypto';
 import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +19,13 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
+// Keep the two whitespace-exempt vendor licenses byte-identical to the reviewed assets.
+for (const [font, expected] of Object.entries({
+  manrope: '58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b',
+  vazirmatn: '17e355067c8284f47743a1ee3b1ef7ff684ff0601eda357f9353b10b3016ab31',
+})) {
+  assert.equal(createHash('sha256').update(readFileSync(path.join(root, 'src/fonts', font, 'OFL.txt'))).digest('hex'), expected);
+}
 
 let totalChecks = 0;
 function check(condition, message) {
@@ -197,5 +205,3 @@ check(!loginCode.includes(': reason}'), 'LoginForm never falls back to raw reaso
 console.log('\n=======================================================');
 console.log(`ALL AUTHENTICATED APP SHELL & FONT CHECKS PASSED! (${totalChecks} checks)`);
 console.log('=======================================================\n');
-
-

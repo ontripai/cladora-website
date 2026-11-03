@@ -96,11 +96,13 @@ for (const route of DOC_ROUTES) {
 }
 console.log("  ✓ All 10 Route Handlers conform to the customer_api gateway or an explicit fail-closed maintenance contract.");
 
-// The vault intent owns the exact tenant-scoped path. A user-scoped fallback
-// makes the Storage INSERT fail even when the intent and session are valid.
+// Canonical custody keeps Storage paths on the server. The UI carries the
+// correlated intent and validates the final receipt instead of choosing a path.
 const uploadRoute = fs.readFileSync(path.join(root, "src/app/api/customer/v1/documents/upload/route.ts"), "utf8");
 const dashboard = fs.readFileSync(path.join(root, "src/components/customer/CustomerDocumentsDashboard.tsx"), "utf8");
-assert.match(dashboard, /formData\.append\("object_path", intentData\.object_path\)/);
+assert.doesNotMatch(dashboard, /formData\.append\(["']object_path["']/);
+assert.match(dashboard, /documentsUploadIntentAckV1Schema\.safeParse/);
+assert.match(dashboard, /matchesDocumentsUploadFinalizationAckV1/);
 assert.match(uploadRoute, /CANONICAL_DOCUMENT_WRITER_UNAVAILABLE/);
 assert.doesNotMatch(uploadRoute, /\.upload\(|finalize_upload_v1|already exists/);
 console.log("  ✓ Vault creation routes fail closed before any Storage or legacy RPC effect.");

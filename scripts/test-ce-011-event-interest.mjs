@@ -1,15 +1,11 @@
 import assert from 'node:assert/strict';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import React, { act } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
-import ts from 'typescript';
+import { createApplicationTestModuleLoader } from './lib/load-application-test-module.mjs';
 import { applyEventCommand, canonicalIdempotencyKey, emptyCe011State } from '../src/lib/community/event-interest-domain.ts';
 import { authoritySnapshotSchema, eventCommandSchema, timezoneSchema } from '../src/lib/community/event-interest-schema.ts';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ids = {
   tenant: '00000000-0000-0000-0000-000000000001', context: '00000000-0000-0000-0000-000000000002', audiencePolicy: '00000000-0000-0000-0000-000000000003',
   workspace: '10000000-0000-0000-0000-000000000001', otherWorkspace: '10000000-0000-0000-0000-000000000002',
@@ -94,11 +90,8 @@ assert.equal(state.attendance[attendanceId].version, 2);
 assert.equal(state.audits.at(-1).policy, 'post_cancellation_attendance_correction');
 assert.equal(state.audits.at(-1).reason, correction.reason);
 
-const uiPath = path.join(root, 'src/components/customer/CustomerEventInterest.tsx');
-const uiSource = fs.readFileSync(uiPath, 'utf8');
-const compiledUiPath = path.join(root, 'scripts/.ce011-ui-runtime.mjs');
-fs.writeFileSync(compiledUiPath, ts.transpileModule(uiSource, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText);
-const { CustomerEventInterest } = await import(`./.ce011-ui-runtime.mjs?${Date.now()}`);
+const load = createApplicationTestModuleLoader();
+const { CustomerEventInterest } = load(new URL('../src/components/customer/CustomerEventInterest.tsx', import.meta.url));
 const view = (event_id = ids.event, workspace_id = ids.workspace) => ({ event_id, workspace_id, title: 'Briefing', starts_at: '2026-10-10T12:00:00.000Z', ends_at: '2026-10-10T13:00:00.000Z', timezone: 'Europe/Bucharest', status: 'published', audience_label: 'Residents', version: 2, interest_status: null, interest_version: 0, can_publish: false, can_cancel: true, can_register_interest: true, can_withdraw_interest: false, can_record_attendance: true });
 const members = [{ membership_id: ids.member, display_name: 'Ana Popescu' }];
 for (const lang of ['ro', 'en', 'fa']) {
@@ -117,14 +110,16 @@ globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 const { createRoot } = await import('react-dom/client');
 const container = document.getElementById('root');
 const rootView = createRoot(container);
-const commands = { recordAttendance: async () => { throw new Error('expected test failure'); } };
+let attendanceCalls = 0;
+const commands = { recordAttendance: async () => { attendanceCalls++; throw new Error('expected test failure'); } };
 await act(async () => { rootView.render(React.createElement(CustomerEventInterest, { lang: 'fa', event: view(), commands, eligibleAttendanceMembers: members })); });
 const select = container.querySelector('select'); const timeInput = container.querySelector('input');
 const setValue = (element, value, prototype) => { Object.getOwnPropertyDescriptor(prototype, 'value').set.call(element, value); element.dispatchEvent(new dom.window.Event('change', { bubbles: true })); };
 await act(async () => { setValue(select, ids.member, dom.window.HTMLSelectElement.prototype); setValue(timeInput, '2026-10-10T15:10', dom.window.HTMLInputElement.prototype); });
 await act(async () => { container.querySelector('form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true })); await Promise.resolve(); });
 assert.equal(select.value, ids.member); assert.equal(timeInput.value, '2026-10-10T15:10');
-assert.match(container.querySelector('[role="alert"]').textContent, /ورودی شما حفظ شده است/);
+assert.match(container.querySelector('[role="alert"]').textContent, /نتیجه درخواست هنوز مشخص نیست/);
+assert.equal(attendanceCalls, 1, 'unknown result does not automatically resend attendance');
 
 await act(async () => { rootView.render(React.createElement(CustomerEventInterest, { lang: 'fa', event: view(ids.draftEvent), commands, eligibleAttendanceMembers: members })); });
 assert.equal(container.querySelector('select').value, ''); assert.equal(container.querySelector('input').value, '');
@@ -132,6 +127,6 @@ await act(async () => { setValue(container.querySelector('select'), ids.member, 
 await act(async () => { rootView.render(React.createElement(CustomerEventInterest, { lang: 'fa', event: view(ids.draftEvent, ids.otherWorkspace), commands, eligibleAttendanceMembers: members })); });
 assert.equal(container.querySelector('select').value, ''); assert.equal(container.querySelector('input').value, '');
 await act(async () => rootView.unmount());
-fs.unlinkSync(compiledUiPath);
+assert.equal(attendanceCalls, 1, 'Event/Workspace reset must not resend the unresolved attendance');
 
 console.log('CE-011 domain/UI acceptance passed: scoped replay, interest concurrency, attendance policy, timezone, eligible-member selection, input preservation and context reset.');
