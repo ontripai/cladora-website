@@ -1,9 +1,8 @@
 {
   "format": "platform-functional-dev-stack-delivery.v1",
-  "parent": "ddd4905d1dd43b4587a658063aeba8a99ca00d4c",
+  "parent": "ae71ec36c61d3d9cd8d5bb45076ce59e2d4c3ac8",
   "parent_parents": [
-    "864ffa05eec12f463330c4a21d14640fc6423ac9",
-    "ec639884452cc0cb6dfef520339791a5c20e9b39"
+    "ddd4905d1dd43b4587a658063aeba8a99ca00d4c"
   ],
   "branch": "codex/program-local-runtime-lane-01",
   "source_files": [
@@ -118,13 +117,7 @@
     "tracked_before": 2624,
     "tracked_after_expected": 2624,
     "modified_existing_files": [
-      "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
-      "docs/testing/functional-dev-stack-12.receipt.json",
-      "docs/testing/functional-dev-stack-12.manifest.json",
-      "scripts/functional-dev-stack-v1/profile.json",
-      "scripts/functional-dev-stack-v1/gateway.conf",
-      "scripts/functional-dev-stack-v1/stack.py",
-      "scripts/test-functional-dev-stack-v1.py"
+      "docs/testing/functional-dev-stack-12.manifest.json"
     ],
     "task11": "all 16 delivered files byte-identical",
     "product_package_lock": "unchanged",
@@ -169,7 +162,7 @@
     "value": "durable isolated real development access; estimate UNKNOWN"
   },
   "initial_delivery_parent": "26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1",
-  "relation": "additive Documents20 compatibility successor; initial checkpoint preserved",
+  "relation": "metadata closeout child of the additive Documents20 source successor; native runtime source unchanged",
   "delivered_paths": [
     "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
     "docs/testing/functional-dev-stack-12.receipt.json",
@@ -182,5 +175,21 @@
     "scripts/test-functional-dev-stack-v1.py",
     "docs/testing/functional-dev-stack-12.manifest.json"
   ],
-  "new_paths": []
+  "new_paths": [],
+  "integration_commit": "26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1",
+  "integration_parents": [
+    "864ffa05eec12f463330c4a21d14640fc6423ac9",
+    "ec639884452cc0cb6dfef520339791a5c20e9b39"
+  ],
+  "source_successor_commit": "ae71ec36c61d3d9cd8d5bb45076ce59e2d4c3ac8",
+  "source_successor_parent": "ddd4905d1dd43b4587a658063aeba8a99ca00d4c",
+  "source_delta_paths": [
+    "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+    "docs/testing/functional-dev-stack-12.receipt.json",
+    "docs/testing/functional-dev-stack-12.manifest.json",
+    "scripts/functional-dev-stack-v1/profile.json",
+    "scripts/functional-dev-stack-v1/gateway.conf",
+    "scripts/functional-dev-stack-v1/stack.py",
+    "scripts/test-functional-dev-stack-v1.py"
+  ]
 }
