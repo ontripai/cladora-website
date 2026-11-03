@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Language } from '@/types';
+import { eventUuidKey, sameEventUuid, type EventExecutionState } from '@/lib/community/event-interest-client';
 
 export interface EventInterestView {
   event_id: string;
@@ -32,6 +33,7 @@ export interface EventInterestCommands {
   cancel(eventId: string, expectedVersion: number): Promise<void>;
   registerInterest(eventId: string, expectedVersion: number, expectedInterestVersion: number): Promise<void>;
   withdrawInterest(eventId: string, expectedVersion: number, expectedInterestVersion: number): Promise<void>;
+  correctAttendance?(input: { event_id: string; expected_version: number; attendance_id: string; expected_attendance_version: number; attended: boolean; observed_local: string; timezone: string; reason: string }): Promise<void>;
   recordAttendance(input: { event_id: string; expected_version: number; membership_id: string; observed_local: string; timezone: string }): Promise<void>;
 }
 
@@ -47,97 +49,80 @@ const feedback = {
   fa: { sending: 'در حال ارسال…', attendance: 'حضور ثبت شد.', published: 'رویداد منتشر شد.', cancelled: 'رویداد لغو شد.', registered: 'علاقه ثبت شد.', withdrawn: 'علاقه لغو شد.' },
 } as const;
 
-// UI serialization only; every command still passes the server's live authority/version checks.
-function useEventSubmission(lang: Language) {
-  const id = useId();
-  const pending = useRef(false);
-  const mounted = useRef(true);
-  useEffect(() => {
-    mounted.current = true;
-    return () => { mounted.current = false; };
-  }, []);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  async function run(action: () => Promise<void>, success: string) {
-    if (pending.current) return false;
-    pending.current = true;
-    setBusy(true); setError(''); setMessage('');
+
+export function CustomerEventInterest({ lang, event, commands, eligibleAttendanceMembers = [], onChanged, execution, canEdit = () => true, correction, draft, onDraft }: {
+  lang: Language; event: EventInterestView | null; commands: EventInterestCommands | null;
+  eligibleAttendanceMembers?: EligibleAttendanceMember[]; onChanged?: () => void;
+  execution?: EventExecutionState; canEdit?: () => boolean;
+  correction?: { id: string; version: number; timezone: string; displayName: string };
+  draft?: Record<string, string>; onDraft?: (draft: Record<string, string>) => void;
+}) {
+  if (!event || !commands) return <p role="status">{copy[lang].pending}</p>;
+  return <EventForm key={`${eventUuidKey(event.workspace_id)}:${eventUuidKey(event.event_id)}`} {...{lang, event, commands, eligibleAttendanceMembers, onChanged, execution, canEdit, correction, draft, onDraft}} />;
+}
+
+function EventForm({ lang, event, commands, eligibleAttendanceMembers, onChanged, execution, canEdit, correction, draft, onDraft }: {
+  lang: Language; event: EventInterestView; commands: EventInterestCommands; eligibleAttendanceMembers: EligibleAttendanceMember[];
+  onChanged?: () => void; execution?: EventExecutionState; canEdit: () => boolean;
+  correction?: { id: string; version: number; timezone: string; displayName: string }; draft?: Record<string, string>; onDraft?: (draft: Record<string, string>) => void;
+}) {
+  const t = copy[lang], titleId = useId(), statusId = useId();
+  const [fields, setFields] = useState(draft ?? { member: '', observed: '', attended: 'true', reason: '' });
+  const [local, setLocal] = useState({ busy: false, message: '', error: '' });
+  const flight = useRef(false), owner = useRef<object | null>(null);
+  const token = useMemo(() => ({ eventId: event.event_id, workspaceId: event.workspace_id, version: event.version, canPublish: event.can_publish, canCancel: event.can_cancel, canRecord: event.can_record_attendance, canRegister: event.can_register_interest, canWithdraw: event.can_withdraw_interest, lang }), [event.event_id, event.workspace_id, event.version, event.can_publish, event.can_cancel, event.can_record_attendance, event.can_register_interest, event.can_withdraw_interest, lang]);
+  useLayoutEffect(() => { owner.current = token; return () => { owner.current = null; }; }, [token]);
+  const busy = local.busy || Boolean(execution?.pending);
+  const edit = (name: string, value: string) => {
+    if (flight.current || busy || !canEdit()) return;
+    setFields(before => { const next = { ...before, [name]: value }; onDraft?.(next); return next; });
+  };
+  async function run(action: () => Promise<void>, message: string) {
+    if (flight.current || busy || !canEdit() || owner.current !== token) return;
+    flight.current = true; setLocal({ busy: true, message: '', error: '' });
     try {
       await action();
-      if (!mounted.current) return false;
-      setMessage(success);
-      return true;
+      if (owner.current !== token) return;
+      // Page execution owns actual result/UNKNOWN. A fulfilled Promise<void>
+      // from its wrapper is never interpreted as a receipt by this component.
+      if (!execution) { setLocal({ busy: false, message, error: '' }); onChanged?.(); }
     } catch {
-      if (mounted.current) setError(copy[lang].retry);
-      return false;
+      if (owner.current === token) setLocal({ busy: false, message: '', error: lang === 'ro' ? 'Rezultatul cererii nu este încă cunoscut. Verifică înainte de reîncercare.' : lang === 'fa' ? 'نتیجه درخواست هنوز مشخص نیست. پیش از تلاش دوباره بررسی کنید.' : 'The request result is not yet known. Check before retrying.' });
     } finally {
-      pending.current = false;
-      if (mounted.current) setBusy(false);
+      flight.current = false;
+      if (owner.current === token) setLocal(before => ({ ...before, busy: false }));
     }
   }
-  return { id, busy, error, message, run };
-}
-
-function AttendanceForm({ lang, event, commands, members, submission, onChanged }: { lang: Language; event: EventInterestView; commands: EventInterestCommands; members: EligibleAttendanceMember[]; submission: ReturnType<typeof useEventSubmission>; onChanged?: () => void }) {
-  const t = copy[lang];
-  const titleId = useId();
-  const [membershipId, setMembershipId] = useState('');
-  const [observedAt, setObservedAt] = useState('');
-
-  async function submit() {
-    if (await submission.run(() => commands.recordAttendance({ event_id: event.event_id, expected_version: event.version, membership_id: membershipId, observed_local: observedAt, timezone: event.timezone }), feedback[lang].attendance)) {
-      setMembershipId('');
-      setObservedAt('');
-      onChanged?.();
-    }
-  }
-
-  return <form aria-labelledby={titleId} aria-describedby={submission.error ? `${submission.id}-error` : submission.id} className="space-y-3 rounded-xl border p-4" onSubmit={(submitEvent) => { submitEvent.preventDefault(); void submit(); }}>
-    <h2 id={titleId} className="font-bold">{t.attendance}</h2>
-    <fieldset aria-busy={submission.busy} disabled={submission.busy} className="grid min-w-0 gap-3 sm:grid-cols-2">
-      <label className="space-y-1 text-sm"><span>{t.member}</span><select required value={membershipId} onChange={(change) => setMembershipId(change.target.value)} className="w-full rounded-lg border px-3 py-2"><option value="">{t.chooseMember}</option>{members.map((member) => <option key={member.membership_id} value={member.membership_id}>{member.display_name}</option>)}</select></label>
-      <label className="space-y-1 text-sm"><span>{t.observed} · {event.timezone}</span><input required type="datetime-local" value={observedAt} onChange={(change) => setObservedAt(change.target.value)} className="w-full rounded-lg border px-3 py-2" /></label>
-      <button disabled={submission.busy} type="submit" className="rounded-lg bg-[#102A43] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:col-span-2 sm:w-fit">{t.record}</button>
-    </fieldset>
-  </form>;
-}
-
-export function CustomerEventInterest({ lang, event, commands, eligibleAttendanceMembers = [], onChanged }: { lang: Language; event: EventInterestView | null; commands: EventInterestCommands | null; eligibleAttendanceMembers?: EligibleAttendanceMember[]; onChanged?: () => void }) {
-  if (!event || !commands) return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="rounded-2xl border bg-white p-5"><p role="status" className="text-sm text-[#52667A]">{copy[lang].pending}</p></section>;
-  return <EventInterest key={`${event.workspace_id}:${event.event_id}`} lang={lang} event={event} commands={commands} eligibleAttendanceMembers={eligibleAttendanceMembers} onChanged={onChanged} />;
-}
-
-function EventInterest({ lang, event, commands, eligibleAttendanceMembers, onChanged }: { lang: Language; event: EventInterestView; commands: EventInterestCommands; eligibleAttendanceMembers: EligibleAttendanceMember[]; onChanged?: () => void }) {
-  const t = copy[lang];
-  const titleId = useId();
-  const submission = useEventSubmission(lang);
-  async function run(action: () => Promise<void>, success: string) {
-    if (await submission.run(action, success)) onChanged?.();
-  }
-
+  const correct = { en: 'Correct confirmed attendance', ro: 'Corectează prezența confirmată', fa: 'اصلاح حضور تأییدشده' }[lang];
+  const reason = { en: 'Correction reason', ro: 'Motivul corectării', fa: 'دلیل اصلاح' }[lang];
+  const present = { en: 'Attended', ro: 'Prezent', fa: 'حاضر' }[lang];
+  const absent = { en: 'Did not attend', ro: 'Absent', fa: 'غایب' }[lang];
   const locale = lang === 'fa' ? 'fa-IR' : lang === 'ro' ? 'ro-RO' : 'en-GB';
-
-  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5 rounded-2xl border bg-white p-4 sm:p-6" aria-labelledby={titleId}>
-    <header className="space-y-2">
-      <p className="text-xs font-bold uppercase tracking-wide text-teal-700">{t.title}</p>
-      <h1 id={titleId} className="text-xl font-bold text-[#102A43]">{event.title}</h1>
-      <p className="text-sm text-[#52667A]">{t.when}: <time dateTime={event.starts_at}>{new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: event.timezone }).format(new Date(event.starts_at))}</time> – <time dateTime={event.ends_at}>{new Intl.DateTimeFormat(locale, { timeStyle: 'short', timeZone: event.timezone }).format(new Date(event.ends_at))}</time> · {event.timezone}</p>
-      <p className="text-sm text-[#52667A]">{t.audience}: {event.audience_label}</p>
-      <p className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold">{t[event.status]}</p>
-    </header>
-
-    <div role="note" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm font-semibold text-amber-950">{t.notice}</div>
-    <p id={submission.id} role="status" aria-live="polite" aria-atomic="true" className="text-sm text-teal-800">{submission.busy ? feedback[lang].sending : submission.message}</p>
-    {submission.error ? <p id={`${submission.id}-error`} role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{submission.error}</p> : null}
-
+  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} aria-labelledby={titleId} className="space-y-4 rounded-xl border p-4">
+    <h2 id={titleId}>{event.title}</h2>
+    <p>{t.when}: {new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short', timeZone: event.timezone }).format(new Date(event.starts_at))} · {event.timezone}</p>
+    <p>{t.audience}: {event.audience_label} · {t[event.status]}</p><p role="note">{t.notice}</p>
+    {!execution ? <p id={statusId} role="status" aria-live="polite">{local.busy ? feedback[lang].sending : local.message}</p> : null}
+    {local.error ? <p id={`${statusId}-error`} role="alert">{local.error}</p> : null}
     <div className="flex flex-wrap gap-2">
-      {event.can_publish ? <button disabled={submission.busy} type="button" onClick={() => void run(() => commands.publish(event.event_id, event.version), feedback[lang].published)} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{t.publish}</button> : null}
-      {event.can_cancel ? <button disabled={submission.busy} type="button" onClick={() => void run(() => commands.cancel(event.event_id, event.version), feedback[lang].cancelled)} className="rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-800 disabled:opacity-50">{t.cancel}</button> : null}
-      {event.can_register_interest ? <button disabled={submission.busy} type="button" onClick={() => void run(() => commands.registerInterest(event.event_id, event.version, event.interest_version), feedback[lang].registered)} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{t.interested}</button> : null}
-      {event.can_withdraw_interest ? <button disabled={submission.busy} type="button" onClick={() => void run(() => commands.withdrawInterest(event.event_id, event.version, event.interest_version), feedback[lang].withdrawn)} className="rounded-lg border px-4 py-2 text-sm font-semibold disabled:opacity-50">{t.withdraw}</button> : null}
+      {event.can_publish ? <button data-event-action="publish_event" disabled={busy} onClick={() => void run(() => commands.publish(event.event_id, event.version), feedback[lang].published)}>{t.publish}</button> : null}
+      {event.can_cancel ? <button data-event-action="cancel_event" disabled={busy} onClick={() => void run(() => commands.cancel(event.event_id, event.version), feedback[lang].cancelled)}>{t.cancel}</button> : null}
+      {event.can_register_interest ? <button data-event-action="register_interest" disabled={busy} onClick={() => void run(() => commands.registerInterest(event.event_id, event.version, event.interest_version), feedback[lang].registered)}>{t.interested}</button> : null}
+      {event.can_withdraw_interest ? <button data-event-action="withdraw_interest" disabled={busy} onClick={() => void run(() => commands.withdrawInterest(event.event_id, event.version, event.interest_version), feedback[lang].withdrawn)}>{t.withdraw}</button> : null}
     </div>
-
-    {event.can_record_attendance ? <AttendanceForm key={`${event.workspace_id}:${event.event_id}`} lang={lang} event={event} commands={commands} members={eligibleAttendanceMembers} submission={submission} onChanged={onChanged} /> : null}
+    {event.can_record_attendance ? <form data-record-attendance aria-label={t.attendance} aria-describedby={!execution ? local.error ? `${statusId}-error` : statusId : undefined} onSubmit={e => { e.preventDefault();
+      if (!eligibleAttendanceMembers.some(member => sameEventUuid(member.membership_id, fields.member)) || !fields.observed) return;
+      void run(() => commands.recordAttendance({ event_id: event.event_id, expected_version: event.version, membership_id: fields.member, observed_local: fields.observed, timezone: event.timezone }), feedback[lang].attendance);
+    }}><h3>{t.attendance}</h3><fieldset aria-busy={busy} disabled={busy}>
+      <label>{t.member}<select required value={eligibleAttendanceMembers.find(member => sameEventUuid(member.membership_id, fields.member))?.membership_id ?? fields.member} onChange={e => edit('member', e.target.value)}><option value="">{t.chooseMember}</option>{eligibleAttendanceMembers.map(member => <option key={member.membership_id} value={member.membership_id}>{member.display_name}</option>)}</select></label>
+      <label>{t.observed} · {event.timezone}<input type="datetime-local" required value={fields.observed} onChange={e => edit('observed', e.target.value)} /></label><button type="submit">{t.record}</button>
+    </fieldset></form> : null}
+    {correction && commands.correctAttendance ? <form data-correct-attendance aria-label={correct} onSubmit={e => { e.preventDefault(); if (fields.reason.trim().length < (event.status === 'cancelled' ? 12 : 5) || !fields.observed) return;
+      void run(() => commands.correctAttendance!({ event_id: event.event_id, expected_version: event.version, attendance_id: correction.id, expected_attendance_version: correction.version, attended: fields.attended === 'true', observed_local: fields.observed, timezone: correction.timezone, reason: fields.reason }), correct);
+    }}><h3>{correct}</h3><p>{correction.displayName}</p><fieldset disabled={busy}>
+      <label>{present}<select value={fields.attended} onChange={e => edit('attended', e.target.value)}><option value="true">{present}</option><option value="false">{absent}</option></select></label>
+      <label>{t.observed} · {correction.timezone}<input required type="datetime-local" value={fields.observed} onChange={e => edit('observed', e.target.value)} /></label>
+      <label>{reason}<textarea required minLength={event.status === 'cancelled' ? 12 : 5} value={fields.reason} onChange={e => edit('reason', e.target.value)} /></label><button type="submit">{correct}</button>
+    </fieldset></form> : null}
   </section>;
 }

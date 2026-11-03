@@ -1,0 +1,214 @@
+{
+  "format": "CORE_SERVICE_S01_PROVENANCE_01",
+  "base": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+  "consumer": "37af00f76390d8973bbc7eb529a76aa27fe1f254",
+  "source_pins": [
+    {
+      "path": "src/lib/core/resource-contracts-v1.ts",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 7849,
+      "sha256": "26ef73f7e8e9cc234b7fd2d8aac83ea3e69955f659bea57d5dba9337c821124d",
+      "git_blob": "3eedf8148bf2749621c21b064bd44880f5037cff"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918"
+    },
+    {
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 262457,
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "git_blob": "45737a8100b3542ad787ea4414090d0f304fc123"
+    },
+    {
+      "path": "docs/contracts/CLADORA-CORE-DW-02-RESOURCE-CONTRACTS-v1.0.md",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 7413,
+      "sha256": "c10868f14a76dd25eb64073effe8afc554dc66b7b44e6f648184946fc64c0537",
+      "git_blob": "fa06b97f47bcd1d2ffbc50cd0a7e9e6d6c741d0e"
+    },
+    {
+      "path": "supabase/migrations/20260825001500_maintenance_vendors_procurement_sla.sql",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 9072,
+      "sha256": "c4cde3bc77df5213ea436855a5f2001182d1d9ce40b04354c1424f971c6e1751",
+      "git_blob": "f2e6b79366c70322368bbb774e6323f891d5d4a4"
+    },
+    {
+      "path": "supabase/migrations/20260825002400_subscription_plans_contracts_entitlements.sql",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 20387,
+      "sha256": "3062f48655184dd0b32f7fb9fab93bf493fb8278aca097268f1ab7ce85126c8d",
+      "git_blob": "2aff29757ac3e441c5680e4eb8f571d094be668f"
+    },
+    {
+      "path": "supabase/migrations/20261009115110_airprop_management_mandate_controls_v1.sql",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 13841,
+      "sha256": "48dbfdae294455ec3d0a8901e17ea115b7472365b0533b39fb1f7747ffe78c1d",
+      "git_blob": "62488ded10d0436b81d8234815067454fbe234ff"
+    },
+    {
+      "path": "supabase/migrations/20260825000300_portfolio_properties_buildings_units.sql",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 7862,
+      "sha256": "53e3f36a9656a2a16b686ee8eb830cfae49f6297f14820b5199630db97cf65a4",
+      "git_blob": "e4ab67394613f0be3d645b27f71bbd8807ff12ca"
+    },
+    {
+      "path": "supabase/migrations/20260825002300_customer_workspaces_assignments_lifecycle.sql",
+      "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+      "bytes": 20867,
+      "sha256": "63f5e2d9aeecaf8f7e2ea062fe725eaa8c6ceb91c03dbd18ad11968cf9662d10",
+      "git_blob": "87bab7dbc54298b1548161b0d9fd984df24a2101"
+    }
+  ],
+  "consumer_pins": [
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "ref": "37af00f76390d8973bbc7eb529a76aa27fe1f254",
+      "bytes": 17018,
+      "sha256": "e923ee48e3987fcf7ca7a88780f3256495aee5dbb18a69e37b70eeea0c8e3972",
+      "git_blob": "6b244c417b61d442c50859e47b5ef91cceb2f3d8"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/application-flow.ts",
+      "ref": "37af00f76390d8973bbc7eb529a76aa27fe1f254",
+      "bytes": 14967,
+      "sha256": "12a7a684db2fbe1dce4d9a24e8b1e13475a80daefc79e9f1bd1e9f14217397bd",
+      "git_blob": "1a71bdc4264bebbf6f14dfec497c53d553c90c58"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-command.ts",
+      "ref": "37af00f76390d8973bbc7eb529a76aa27fe1f254",
+      "bytes": 2872,
+      "sha256": "bf64d03fd5d52d2cef4b72ef010738efd84b98ad2b8d722ec62172c82353f10a",
+      "git_blob": "6293c49b65481df820e9157bbd87f836938f878d"
+    }
+  ],
+  "canonical_source_result": "NO_ACCEPTED_PROVIDER_AGREEMENT_STORE_FOUND_IN_PINNED_SOURCE; installed DB unknown",
+  "evidence": [
+    {
+      "path": "docs/contracts/CLADORA-CORE-DW-02-RESOURCE-CONTRACTS-v1.0.md",
+      "range": "provider-agreement-verification.v1 section",
+      "fact": "Explicit no accepted canonical agreement persistence/verifier source"
+    },
+    {
+      "path": "supabase/migrations/20260825001500_maintenance_vendors_procurement_sla.sql",
+      "range": "12-18",
+      "fact": "Maintenance vendor contracts bind vendor/property and financial rates; no canonical agreement version/Workspace/service scope"
+    },
+    {
+      "path": "supabase/migrations/20260825002400_subscription_plans_contracts_entitlements.sql",
+      "range": "17-35",
+      "fact": "Subscription/commercial Workspace plan contract; no provider party/service scope. Not appropriated"
+    },
+    {
+      "path": "supabase/migrations/20261009115110_airprop_management_mandate_controls_v1.sql",
+      "range": "management_mandate_requests declaration",
+      "fact": "AIRPROP management mandate request is a different domain, not a provider service agreement"
+    }
+  ],
+  "searches": [
+    "rg -n -i 'provider.agreement|provider_agreement' src supabase docs/contracts",
+    "rg -n -i 'create table.*(agreement|mandate)|create table.*(contract_version|contract_part)' supabase"
+  ],
+  "not_run": [
+    "No DB/catalog query; source absence is not hosted schema absence",
+    "No historical source chain or accepted suite replay"
+  ],
+  "scope_excluded": [
+    "SERVICE product/runtime binding",
+    "shared Auth/evaluator",
+    "Operations/Foundation/guard300",
+    "S02/S03/Finance/Booking",
+    "UI"
+  ],
+  "closeout": {
+    "task": "CORE-SERVICE-S01-SOURCE-CLOSEOUT-02",
+    "base": "681a3743ff49c48adc00a737d59d2b5a4c848c04",
+    "offering_source": {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+    },
+    "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6575155343",
+    "source_only": true,
+    "historical_source_absence_not_live_schema_absence": true,
+    "accepted_consumer": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+    "acceptance_provenance": "Explicit accepted SERVICE FullSHA in CORE-SERVICE-S01-SERVICE-SUCCESSOR-BIND-04; source acceptance only",
+    "consumer_modules": [
+      {
+        "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 18347,
+        "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+        "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+      },
+      {
+        "path": "src/lib/customer/service-v14-execution/application-flow.ts",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 16690,
+        "sha256": "1ddd67defe807989cf62ba69f8f9f5cbc7a1219ae3b573d7284700a02c916dcb",
+        "git_blob": "b2440744dbdcdadeaaf6e6c5e36edd7718d968c2"
+      },
+      {
+        "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 17263,
+        "sha256": "3bc5ff891b72c9001b13086d8c9cd9b1882118af99e92281ab70249559f72b25",
+        "git_blob": "aae01e7e3628631fadaa5f965f3f5dc8ae8d8efe"
+      },
+      {
+        "path": "src/lib/customer/service-v14-execution/request-command.ts",
+        "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2872,
+        "sha256": "bf64d03fd5d52d2cef4b72ef010738efd84b98ad2b8d722ec62172c82353f10a",
+        "git_blob": "6293c49b65481df820e9157bbd87f836938f878d"
+      }
+    ],
+    "source_closure": [
+      {
+        "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 18347,
+        "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+        "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+      }
+    ]
+  }
+}

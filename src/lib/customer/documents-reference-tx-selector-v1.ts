@@ -16,7 +16,10 @@ import type {
   CoreTransactionScopeV1,
 } from '../core/postgres-transaction-host-v1';
 import { docsCe012ImmutableTargetV1Schema } from './documents-ce012-reference-contract';
-import { selectDocumentsReferenceCurrentStateV1 } from './documents-reference-authority-v1';
+import {
+  selectDocumentsReferenceCurrentStateV1,
+  selectDocumentsReferenceHistoricalStateV1,
+} from './documents-reference-authority-v1';
 
 export const DOCUMENTS_REFERENCE_TX_SELECTOR_CONTRACT_V1 =
   'documents-reference-tx-selector-decision.v1' as const;
@@ -159,11 +162,12 @@ function documentsAuthorityMatches(
  * canonical Vault rows in that same read phase; it opens no transaction and
  * returns no document payload, permission rows or storage metadata.
  */
-export async function selectDocumentsReferenceInCoreTransactionV1(
+async function selectDocumentsReferenceInCoreTransaction(
   scope: CoreTransactionScopeV1,
   command: TransactionCommand,
   transactionAuthority: CurrentAuthorityTransactionDecisionReceiptV1,
   targetValue: unknown,
+  mode: 'current' | 'historical',
 ): Promise<DocumentsReferenceTxSelectorDecisionV1> {
   const target = docsCe012ImmutableTargetV1Schema.safeParse(targetValue);
   const safeTarget = target.success ? target.data : null;
@@ -192,7 +196,9 @@ export async function selectDocumentsReferenceInCoreTransactionV1(
       return denied(command, target.data, documentsAuthority.evaluated_at, 'AUTHORITY_DENIED');
     }
 
-    const state = await selectDocumentsReferenceCurrentStateV1(scope, {
+    const selectState = mode === 'current'
+      ? selectDocumentsReferenceCurrentStateV1 : selectDocumentsReferenceHistoricalStateV1;
+    const state = await selectState(scope, {
       context_id: command.context_id,
       workspace_id: command.workspace_id,
       actor_id: command.actor_id,
@@ -220,4 +226,28 @@ export async function selectDocumentsReferenceInCoreTransactionV1(
     }
     return denied(command, target.data, transactionAuthority.evaluated_at, 'PROVIDER_UNAVAILABLE');
   }
+}
+
+/** Preserve the current-version-only contract for every existing consumer. */
+export function selectDocumentsReferenceInCoreTransactionV1(
+  scope: CoreTransactionScopeV1,
+  command: TransactionCommand,
+  transactionAuthority: CurrentAuthorityTransactionDecisionReceiptV1,
+  targetValue: unknown,
+): Promise<DocumentsReferenceTxSelectorDecisionV1> {
+  return selectDocumentsReferenceInCoreTransaction(
+    scope, command, transactionAuthority, targetValue, 'current',
+  );
+}
+
+/** Disclosure recheck for an exact historical target, never fresh-command authority. */
+export function selectDocumentsHistoricalReferenceInCoreTransactionV1(
+  scope: CoreTransactionScopeV1,
+  command: TransactionCommand,
+  transactionAuthority: CurrentAuthorityTransactionDecisionReceiptV1,
+  targetValue: unknown,
+): Promise<DocumentsReferenceTxSelectorDecisionV1> {
+  return selectDocumentsReferenceInCoreTransaction(
+    scope, command, transactionAuthority, targetValue, 'historical',
+  );
 }

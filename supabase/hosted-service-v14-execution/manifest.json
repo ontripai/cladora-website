@@ -1,0 +1,244 @@
+{
+  "contract": "cladora-source-delivery-manifest.v1",
+  "task_id": "V14-SERVICE-01 / MAX-LABEL-BROWSER-08",
+  "base": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+  "branch": "codex/program-service-offering-request-02",
+  "runtime_state": "INACTIVE_FAIL_CLOSED",
+  "dependencies": {
+    "S01": "accepted provider-agreement-verification.v1 reader must be bound to the same trusted transaction scope; absent reader blocks only Request preflight",
+    "S02": "canonical-resource-reference.v1 implementation required for named-resource actions",
+    "S03": "geographic-coverage-resolution.v1 implementation required only for geographic actions",
+    "FIN01": "required only before financial Order creation; this package creates no Order",
+    "CORE_REQUEST_PREFLIGHT_HOST": "Core-owned serializable transaction scope, Workspace/service_request Offering lock and authorityRequestFor producer are required; not present or activated here",
+    "SERVICE_TIME_PRECISION": "service-offering-time-precision.v1 internal exact PostgreSQL microsecond facet; no shared Core contract change"
+  },
+  "evidence": {
+    "source_tests": "PREVIOUS_CONTROLLED_OFFERING_DISCLOSURE_SOURCE_18_OF_18_COORDINATOR_CONFIRMED_NOT_RERUN",
+    "postgresql": "NOT_RUN_NOT_PASS_NATIVE_PROOF_REQUEST_ONLY",
+    "connected_http_auth": "NOT_RUN_NOT_PASS",
+    "browser": "PREVIOUS_REAL_CHROMIUM_SHORT_9_OF_9_CONFIRMED_NOT_RERUN",
+    "toolchain": "PACKAGE_LOCK_EXACT_NEXT_16.4.1_BUILD_PASS",
+    "native_postgresql": "NOT_RUN_NOT_PASS_REQUEST_ONLY",
+    "sqlstate_boundary": "PREVIOUS_TARGETED_6_OF_6_CONFIRMED_NOT_RERUN",
+    "request_source_ports": "PREVIOUS_13_OF_13_CONFIRMED_NOT_RERUN_FULL_SUITE",
+    "request_flow_regression": "PASS_AFFECTED_OFFLINE_12_OF_12",
+    "s01_consumer_sqlstate": "PASS_TARGETED_OFFLINE_4_OF_4_WITH_EXISTING_CORE_HOST_THREE_BOUNDED_ROLLBACKS",
+    "final_clock_boundary": "PASS_POSITIVE_FINAL_CLOCK_AND_NEGATIVE_EXPIRY_DURING_FINAL_AUTHORITY_WAIT",
+    "time_precision_projector": "PASS_TARGETED_7_OF_7_TIME_PRECISION_ONLY",
+    "time_precision_preflight": "PASS_TARGETED_7_OF_7_TIME_PRECISION_ONLY",
+    "max_label_browser": "PASS_REAL_CHROMIUM_ACTUAL_COMPONENT_SYNTHETIC_LOOPBACK_6_OF_6_FA_EN_RO_AT_375_1365",
+    "max_label_contract": "OFFERING_LABEL_200_RESOURCE_LABEL_DETAIL_240_EACH_REQUEST_DESCRIPTION_5000_ACTUAL_SCHEMAS",
+    "automation": "NEEDS_REVIEW_NO_EXECUTION_AUTHORITY_CHANGE"
+  },
+  "outputs": [
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-V14-EXEC-01.md",
+      "bytes": 9139,
+      "sha256": "2a8dee73ec78407ab195ddb45a49708acb356a9b379ed5862ec0858703d087ec",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-offering-request-flow-02.mjs",
+      "bytes": 12314,
+      "sha256": "b2ada06612d002261f925e436b27326eeee7c052ce3967692da9253fd938dbae",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-offering-request-flow-browser-02.mjs",
+      "bytes": 15284,
+      "sha256": "98142742c0a67b4c2cf5707ea6ffacff7de48f91ff5db27a59fedf42b2549dea",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-request-ui-010.mjs",
+      "bytes": 12671,
+      "sha256": "8fa0f1794cb191bc0278243cbbd58f0d6972f6acdc17e374ebcd2015abb87c63",
+      "preimage": {
+        "state": "present"
+      }
+    },
+    {
+      "path": "scripts/test-service-v14-execution.mjs",
+      "bytes": 22413,
+      "sha256": "715d1225a8e9b300c53a5c77aba5ca5a28d8f7c703ff09d535a6b048191d7cbe",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/services/offering-request-flow/route.ts",
+      "bytes": 391,
+      "sha256": "b8dccc986ee2894eb46fe74ff1aad437b19b67ab517c7a50d14df3592a7bda23",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "bytes": 14479,
+      "sha256": "dbdc5b9f54ab2af5cd076d1b2a88b1164dd9f1c2f76659131f23a3676abee32a",
+      "preimage": {
+        "state": "present"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerServiceRequests.tsx",
+      "bytes": 21975,
+      "sha256": "84bfe5237c2ab138d359b94bdede9f9b76763781c24a3b4e069d88a00154bb6a",
+      "preimage": {
+        "state": "present"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-offering-request-flow-contract.ts",
+      "bytes": 2378,
+      "sha256": "973565a51a2e8189516d890b962890a0d6f2ae849c8a5c0d6b68ffc3f2856cd5",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/application-flow.ts",
+      "bytes": 16690,
+      "sha256": "1ddd67defe807989cf62ba69f8f9f5cbc7a1219ae3b573d7284700a02c916dcb",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/http.ts",
+      "bytes": 3875,
+      "sha256": "fede5c34e9d56511b0e9a342a0afb83e7008a6c8c28583e5014224fc347e48fb",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/offering-command.ts",
+      "bytes": 4762,
+      "sha256": "5e3ffe48f7d3584c171c1064c559557269179ee1857e8fa171e6d017fee65044",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "bytes": 17263,
+      "sha256": "3bc5ff891b72c9001b13086d8c9cd9b1882118af99e92281ab70249559f72b25",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-command.ts",
+      "bytes": 2872,
+      "sha256": "bf64d03fd5d52d2cef4b72ef010738efd84b98ad2b8d722ec62172c82353f10a",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/response-schema.ts",
+      "bytes": 2690,
+      "sha256": "c4ed79b06a06a5bbc1870567f0618da2664a6e19ea39bbb3328bfa66ef71312b",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/runtime-binding.ts",
+      "bytes": 489,
+      "sha256": "74fa54358f1d593d675ea3abe63ab37650c65e984077f521ded5f62991090372",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/forward.sql",
+      "bytes": 15006,
+      "sha256": "b215663375d29ade089e60a1d84e0459919b21add895d8bd5cb2054372e37737",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-offering-disclosure-source-v1.mjs",
+      "bytes": 17214,
+      "sha256": "4c3a5166df4a194a0cae5636beac442042639d786ccb8a4632c42046fb4731b1",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/s01-offering-source-native-proof.json",
+      "bytes": 2153,
+      "sha256": "f67e239dbe55940a2aa63eac1d1a181027c956453165f58801398db230633776",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-source-ports.ts",
+      "bytes": 13426,
+      "sha256": "9fb767911503ce7fb5db832b05e317ef61298506fab9db64068d140c97cb27cd",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-request-preflight-source-ports-v1.mjs",
+      "bytes": 15426,
+      "sha256": "823404e0a40633166866890fc0757583e8def4b530de1385f47ef97547db61e9",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/request-preflight-source-ports-native-proof.json",
+      "bytes": 2756,
+      "sha256": "1b55832980a7f5e1fff27948521e194d8e6c5e20eac704e66df974710fe09826",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "scripts/test-service-s01-consumer-sqlstate-v1.mjs",
+      "bytes": 9393,
+      "sha256": "c7a7be12b6097186f529069ad8f017c411f78a0d34f9f4ff9c1a2cd361c07eea",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "preimage": {
+        "state": "absent"
+      }
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/manifest.json",
+      "bytes": null,
+      "sha256": null,
+      "preimage": {
+        "state": "present"
+      },
+      "integrity": "self-reference excluded"
+    }
+  ]
+}

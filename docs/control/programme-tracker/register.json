@@ -1,0 +1,4669 @@
+{
+  "register": "CLADORA-PROGRAM-REMAINING-AND-DEPENDENCIES-01",
+  "as_of_utc": "2026-11-02T06:27:27.557843+00:00",
+  "authoritative_plan": {
+    "path": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+    "ref": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+    "sha256": "805ed4f31e9d6a7ba2d05c8ca52ca0763557aac92e05c5f92cfd0b32af238db7"
+  },
+  "items": [
+    {
+      "id": "DW01A",
+      "lane": "CORE_OPERATIONS",
+      "scope": "capability disclosure/read contract",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "DW01B",
+      "lane": "CORE_OPERATIONS",
+      "scope": "versioned workspace configuration",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "DW02",
+      "lane": "CORE_OPERATIONS",
+      "scope": "canonical resources and relationships",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "PC01",
+      "lane": "CORE_OPERATIONS",
+      "scope": "typed rights/product composition",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "PF01",
+      "lane": "CORE_OPERATIONS",
+      "scope": "owner portfolio and allowed actions",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AUTH01",
+      "lane": "CORE_OPERATIONS",
+      "scope": "current authority and deny/revoke",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "COM01",
+      "lane": "CORE_OPERATIONS",
+      "scope": "communication request/delivery receipt",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "FIN01",
+      "lane": "CORE_OPERATIONS",
+      "scope": "proposal/posting/reversal receipt",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "OPS01",
+      "lane": "CORE_OPERATIONS",
+      "scope": "execution request/work order adapter",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "BK01",
+      "lane": "CORE_OPERATIONS",
+      "scope": "capacity/time hold lifecycle",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01A",
+      "lane": "SERVICE",
+      "scope": "service definition",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01B",
+      "lane": "SERVICE",
+      "scope": "provider offering",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01C",
+      "lane": "SERVICE",
+      "scope": "eligibility",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01D",
+      "lane": "SERVICE",
+      "scope": "resource-bound request",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01E",
+      "lane": "SERVICE",
+      "scope": "versioned quote",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01F",
+      "lane": "SERVICE",
+      "scope": "quote acceptance/order",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01G",
+      "lane": "SERVICE",
+      "scope": "delivery/acceptance/rework",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01H",
+      "lane": "SERVICE",
+      "scope": "booking",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01I",
+      "lane": "SERVICE",
+      "scope": "portfolio projection",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01J",
+      "lane": "SERVICE",
+      "scope": "technical execution link",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01K",
+      "lane": "SERVICE",
+      "scope": "documents/evidence",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01L",
+      "lane": "SERVICE",
+      "scope": "communications",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01M",
+      "lane": "SERVICE",
+      "scope": "invoice/payment/refund/provider settlement",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01N",
+      "lane": "SERVICE",
+      "scope": "experience composition",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01O",
+      "lane": "SERVICE",
+      "scope": "UX",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01P",
+      "lane": "SERVICE",
+      "scope": "authority",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "SV01Q",
+      "lane": "SERVICE",
+      "scope": "integrated acceptance",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-PF01",
+      "lane": "AIRPROP",
+      "scope": "person/company ownership and representation",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-PF02",
+      "lane": "AIRPROP",
+      "scope": "dynamic resource selection",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP01",
+      "lane": "AIRPROP",
+      "scope": "listing lifecycle",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP02",
+      "lane": "AIRPROP",
+      "scope": "commercial reservation lifecycle",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP03",
+      "lane": "AIRPROP",
+      "scope": "presale obligations/finance",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP04",
+      "lane": "AIRPROP",
+      "scope": "resale/official title link",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP05",
+      "lane": "AIRPROP",
+      "scope": "lease/handover",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP06",
+      "lane": "AIRPROP",
+      "scope": "management mandate",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP07",
+      "lane": "AIRPROP",
+      "scope": "service/maintenance action",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP08",
+      "lane": "AIRPROP",
+      "scope": "portfolio reporting",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP09",
+      "lane": "AIRPROP",
+      "scope": "three-language workflow",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP10",
+      "lane": "AIRPROP",
+      "scope": "multi-owner integrated acceptance",
+      "dependencies": [],
+      "wave": "1-3",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-VAL-01A",
+      "lane": "AIRPROP",
+      "scope": "data/contracts/provenance",
+      "dependencies": [],
+      "wave": "1-5",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-VAL-01B",
+      "lane": "AIRPROP",
+      "scope": "authorized ingestion/quality",
+      "dependencies": [],
+      "wave": "1-5",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-VAL-01C",
+      "lane": "AIRPROP",
+      "scope": "sale/rent baseline",
+      "dependencies": [],
+      "wave": "1-5",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-VAL-01D",
+      "lane": "AIRPROP",
+      "scope": "independent request/result/review UI",
+      "dependencies": [],
+      "wave": "1-5",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-VAL-01E",
+      "lane": "AIRPROP",
+      "scope": "domain integration",
+      "dependencies": [],
+      "wave": "1-5",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "AP-VAL-01F",
+      "lane": "AIRPROP",
+      "scope": "advanced models/drift",
+      "dependencies": [],
+      "wave": "1-5",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "CE010",
+      "lane": "CE",
+      "scope": "community/notices/moderation",
+      "dependencies": [],
+      "wave": "2",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "ترکیبی؛ اجرا با تأیید انسانی",
+      "automation_review": {
+        "reviewed_on": "2026-11-02",
+        "basis": "routine current-process coordinator source/browser review; no new historical sweep",
+        "details": {
+          "ورودی": "فرم‌های موجود جامعه، اعلان و رسیدگی؛ محتوای کاربر داده است، نه اختیار اجرا.",
+          "بخش قابل خودکارسازی": "اعتبارسنجی قطعی، کنترل نسخه و تطبیق نتیجه/replay در مسیر رسمی؛ پیشنهاد طبقه‌بندی/پیگیری فقط فرصت آینده است.",
+          "تصمیم انسانی": "انتشار/لغو اعلان و رأی رسیدگی با نقش مجاز در سیاست جاری؛ اجازهٔ عامل خودکار هنوز تعریف یا صادر نشده است.",
+          "شرایط اجرا": "اختیار جاری C01، scope و نسخهٔ دقیق، expiry/revoke، wire/key ثابت و C03 رسمی؛ شواهد مرورگر کنترل‌شده، اثبات native یا مجوز اجرا نیست.",
+          "استثنا": "UNKNOWN، مغایرت، تغییر زمینه یا denial: حفظ pending و ارجاع به مسئول مجاز همان فرایند؛ نقش عملیاتی نهایی نیازمند بررسی.",
+          "وابستگی": "handler/domain موجود CE010، Core C01/C03 و در صورت ارسال بیرونی COM01؛ اتصال/فعال‌سازی واقعی مطابق گیت فعلی باقی می‌ماند.",
+          "معیار ارزش": "نیازمند بررسی؛ خط مبنای زمان رسیدگی، نرخ اصلاح و تعداد دخالت انسانی هنوز اندازه‌گیری نشده است."
+        },
+        "measured_value": {
+          "handling_time": null,
+          "correction_rate": null,
+          "human_interventions": null
+        },
+        "authorization_granted": false,
+        "acceptance_changed": false
+      }
+    },
+    {
+      "id": "CE011",
+      "lane": "CE",
+      "scope": "basic event/interest/manual attendance",
+      "dependencies": [],
+      "wave": "2",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "CE012",
+      "lane": "CE",
+      "scope": "versioned guide/safe references",
+      "dependencies": [],
+      "wave": "2",
+      "kind": "package",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "قابل خودکارسازی": "نیازمند بررسی",
+      "automation_review": {
+        "reviewed_on": "2026-11-02",
+        "basis": "routine current-process coordinator source/browser review; no new historical sweep",
+        "details": {
+          "ورودی": "فرم فعلی Guide/save_draft و ارجاع نسخهٔ تغییرناپذیر سند؛ فایل/ایمیل آینده نیازمند بررسی است.",
+          "بخش قابل خودکارسازی": "کنترل قطعی نسخه، fingerprint، target و تطبیق receipt؛ استخراج/پیشنهاد محتوا فقط فرصت آینده است.",
+          "تصمیم انسانی": "محتوا و انتخاب ارجاع با نقش مجاز سیاست Guide؛ نام/حدود نقش تأیید اتوماسیون نیازمند بررسی است.",
+          "شرایط اجرا": "رابطهٔ writer رسمی CE save با Core receipt و target، اختیار/افشای جاری و کنترل انقضا پس از انتظار؛ رابطهٔ کامل فعلاً NOT_READY است.",
+          "استثنا": "bridge مفقود، target ناسازگار یا نتیجهٔ مبهم: NOT_READY/UNKNOWN طبق قرارداد موجود؛ ارجاع به مالک فرایند و Core/Documents برای رفع وابستگی.",
+          "وابستگی": "CE012 editor/executor موجود، Core C01/C03 و reader canonical، Documents provider/immutable version؛ writer bridge رسمی و native proof همچنان بازند.",
+          "معیار ارزش": "نیازمند بررسی؛ زمان رسیدگی، نرخ اصلاح و دخالت انسانی هنوز baseline معتبر ندارند."
+        },
+        "measured_value": {
+          "handling_time": null,
+          "correction_rate": null,
+          "human_interventions": null
+        },
+        "authorization_granted": false,
+        "acceptance_changed": false
+      }
+    },
+    {
+      "id": "F001",
+      "lane": "CE / CE010",
+      "scope": "Member profile & privacy",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 706,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F002",
+      "lane": "CE / CE010",
+      "scope": "Directory",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 707,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F003",
+      "lane": "CE / CE010",
+      "scope": "Feed",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 708,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F004",
+      "lane": "CE / CE010",
+      "scope": "Posts/media",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 709,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F005",
+      "lane": "CE / CE010",
+      "scope": "Comments/reactions",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 710,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F006",
+      "lane": "CE / CE010",
+      "scope": "Channels",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 711,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F007",
+      "lane": "CE / CE010",
+      "scope": "Groups",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 712,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F008",
+      "lane": "CE / CE010",
+      "scope": "Clubs",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 713,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F009",
+      "lane": "Communications با CE",
+      "scope": "Direct messaging",
+      "dependencies": [
+        "COM01 و audience"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 714,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F010",
+      "lane": "Communications با CE",
+      "scope": "Group messaging",
+      "dependencies": [
+        "COM01 و audience"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 715,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F011",
+      "lane": "CE / CE010",
+      "scope": "Polls",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 716,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F012",
+      "lane": "CE / CE010",
+      "scope": "Surveys",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 717,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F013",
+      "lane": "CE / CE010",
+      "scope": "Q&A",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 718,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F014",
+      "lane": "CE / CE012",
+      "scope": "Digital guide",
+      "dependencies": [
+        "C01/C02 و reference امن"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 719,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F015",
+      "lane": "CE / CE010",
+      "scope": "Lost & found",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 720,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F016",
+      "lane": "CE / CE010",
+      "scope": "Ideas/voting",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 721,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F017",
+      "lane": "CE / CE010",
+      "scope": "Member marketplace",
+      "dependencies": [
+        "مالک Commerce و policy"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 722,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F018",
+      "lane": "CE / CE010",
+      "scope": "Moderation",
+      "dependencies": [
+        "CE010 و audit"
+      ],
+      "wave": "۲ و ۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 723,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F019",
+      "lane": "CE / CE010",
+      "scope": "Segmentation",
+      "dependencies": [
+        "Core و COM01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 724,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F020",
+      "lane": "CE / CE010",
+      "scope": "Translation/localization",
+      "dependencies": [
+        "پایه سه‌زبانه؛ AI بعدی"
+      ],
+      "wave": "۲ و ۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 725,
+      "family": "Community",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F021",
+      "lane": "CE / CE011",
+      "scope": "Event creation",
+      "dependencies": [
+        "پایه بدون ظرفیت؛ C01–C03"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 733,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F022",
+      "lane": "CE / CE011",
+      "scope": "Recurring events",
+      "dependencies": [
+        "C01–C03"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 734,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F023",
+      "lane": "CE / CE011",
+      "scope": "RSVP",
+      "dependencies": [
+        "پایه بدون ظرفیت؛ C01–C03"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 735,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F024",
+      "lane": "CE / CE011",
+      "scope": "Capacity",
+      "dependencies": [
+        "BK01 برای ثبت‌نام ظرفیت‌دار"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 736,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F025",
+      "lane": "CE / CE011",
+      "scope": "Waitlist",
+      "dependencies": [
+        "BK01 برای ثبت‌نام ظرفیت‌دار"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 737,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F026",
+      "lane": "CE / CE011",
+      "scope": "Paid ticket",
+      "dependencies": [
+        "Finance / SERVICE / BK01 حسب نیاز"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 738,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F027",
+      "lane": "CE / CE011",
+      "scope": "Guest ticket",
+      "dependencies": [
+        "Finance / SERVICE / BK01 حسب نیاز"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 739,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F028",
+      "lane": "CE / CE011",
+      "scope": "QR check-in",
+      "dependencies": [
+        "C01–C03"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 740,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F029",
+      "lane": "CE / CE011",
+      "scope": "Manual check-in",
+      "dependencies": [
+        "پایه بدون ظرفیت؛ C01–C03"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 741,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F030",
+      "lane": "CE / CE011",
+      "scope": "Calendar sync",
+      "dependencies": [
+        "COM01 و connector"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 742,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F031",
+      "lane": "CE / CE011",
+      "scope": "Reminder",
+      "dependencies": [
+        "COM01 و connector"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 743,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F032",
+      "lane": "CE / CE011",
+      "scope": "Event provider marketplace",
+      "dependencies": [
+        "Finance / SERVICE / BK01 حسب نیاز"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 744,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F033",
+      "lane": "CE / CE011",
+      "scope": "Event bundle",
+      "dependencies": [
+        "Finance / SERVICE / BK01 حسب نیاز"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 745,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F034",
+      "lane": "CE / CE011",
+      "scope": "Post-event survey",
+      "dependencies": [
+        "C01–C03"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 746,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F035",
+      "lane": "CE / CE011",
+      "scope": "Attendance reward",
+      "dependencies": [
+        "Loyalty و evidence حضور"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 747,
+      "family": "Events",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F036",
+      "lane": "SERVICE / SV01",
+      "scope": "Dynamic service type",
+      "dependencies": [
+        "SV01A–E و DW02"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 755,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F037",
+      "lane": "SERVICE / SV01",
+      "scope": "Eligibility rule",
+      "dependencies": [
+        "SV01A–E و DW02"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 756,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F038",
+      "lane": "SERVICE / SV01",
+      "scope": "Service area",
+      "dependencies": [
+        "SV01A–E و DW02"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 757,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F039",
+      "lane": "SERVICE / SV01",
+      "scope": "Resource resolution",
+      "dependencies": [
+        "SV01A–E و DW02"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 758,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F040",
+      "lane": "SERVICE / SV01",
+      "scope": "Provider matching",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳ و ۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 759,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F041",
+      "lane": "SERVICE / SV01",
+      "scope": "Availability",
+      "dependencies": [
+        "BK01 فقط برای تخصیص ظرفیت"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 760,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F042",
+      "lane": "SERVICE / SV01",
+      "scope": "Fixed price",
+      "dependencies": [
+        "SV01A–E و DW02"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 761,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F043",
+      "lane": "SERVICE / SV01",
+      "scope": "Quote price",
+      "dependencies": [
+        "SV01A–E و DW02"
+      ],
+      "wave": "۲",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 762,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F044",
+      "lane": "SERVICE / SV01",
+      "scope": "Add-ons",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 763,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F045",
+      "lane": "SERVICE / SV01",
+      "scope": "Recurring service",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 764,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F046",
+      "lane": "SERVICE / SV01",
+      "scope": "Subscription plan",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 765,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F047",
+      "lane": "SERVICE / SV01",
+      "scope": "Service order",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 766,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F048",
+      "lane": "SERVICE / SV01",
+      "scope": "SLA",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 767,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F049",
+      "lane": "SERVICE / SV01",
+      "scope": "Dispatch",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 768,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F050",
+      "lane": "SERVICE / SV01",
+      "scope": "Evidence/checklist",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 769,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F051",
+      "lane": "SERVICE / SV01",
+      "scope": "Acceptance",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 770,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F052",
+      "lane": "SERVICE / SV01",
+      "scope": "Cancellation",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 771,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F053",
+      "lane": "SERVICE / SV01",
+      "scope": "Refund",
+      "dependencies": [
+        "FIN01 و Order معتبر"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 772,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F054",
+      "lane": "SERVICE / SV01",
+      "scope": "Dispute",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 773,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F055",
+      "lane": "SERVICE / SV01",
+      "scope": "Favorite/rebook provider",
+      "dependencies": [
+        "Core و قرارداد مرتبط"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 774,
+      "family": "Services",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F056",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Generic resource booking",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 782,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F057",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Capacity booking",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 783,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F058",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Appointment",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 784,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F059",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Recurring booking",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 785,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F060",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Blackout",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 786,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F061",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Buffer",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 787,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F062",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Quota",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 788,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F063",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Approval",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 789,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F064",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Deposit",
+      "dependencies": [
+        "FIN01 و policy قیمت"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 790,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F065",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Cancellation rule",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 791,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F066",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Dynamic/member pricing",
+      "dependencies": [
+        "FIN01 و policy قیمت"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 792,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F067",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Waitlist",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 793,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F068",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Booking pass",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 794,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F069",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Check-in",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 795,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F070",
+      "lane": "Core و مصرف‌کننده / BK01",
+      "scope": "Access linkage",
+      "dependencies": [
+        "DW02 و AUTH01"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 796,
+      "family": "Booking",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F071",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Merchant directory",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 804,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F072",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Product/catalog",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 805,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F073",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Food order",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 806,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F074",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Grocery order",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 807,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F075",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Pickup",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 808,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F076",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Delivery",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 809,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F077",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Scheduled order",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 810,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F078",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Group order",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 811,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F079",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Offer/coupon",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 812,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F080",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Member price",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 813,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F081",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Gift/voucher",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 814,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F082",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Order tracking",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 815,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F083",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Refund",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 816,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F084",
+      "lane": "Commerce تصمیم باز",
+      "scope": "Merchant review",
+      "dependencies": [
+        "Finance و Core"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 817,
+      "family": "Commerce",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F085",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Digital card",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 825,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F086",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Tier",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 826,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F087",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Point ledger",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 827,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F088",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Earn rules",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 828,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F089",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Burn rules",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 829,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F090",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Expiry",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 830,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F091",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Reward catalog",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 831,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F092",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Partner benefit",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 832,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F093",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "QR validation",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 833,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F094",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Referral",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 834,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F095",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Challenge/milestone",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 835,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F096",
+      "lane": "Loyalty تصمیم باز",
+      "scope": "Credit wallet separation",
+      "dependencies": [
+        "Core و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 836,
+      "family": "Loyalty",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F097",
+      "lane": "Core / Access و Operations",
+      "scope": "Visitor invite",
+      "dependencies": [
+        "AUTH01 و رابط تخصصی"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 844,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F098",
+      "lane": "Core / Access و Operations",
+      "scope": "Temporary credential",
+      "dependencies": [
+        "AUTH01 و رابط تخصصی"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 845,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F099",
+      "lane": "Core / Access و Operations",
+      "scope": "Service access",
+      "dependencies": [
+        "AUTH01 و رابط تخصصی"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 846,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F100",
+      "lane": "Core / Access و Operations",
+      "scope": "Guest parking",
+      "dependencies": [
+        "AUTH01 و رابط تخصصی"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 847,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F101",
+      "lane": "Core / Access و Operations",
+      "scope": "Vendor access",
+      "dependencies": [
+        "AUTH01 و رابط تخصصی"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 848,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F102",
+      "lane": "Core / Access و Operations",
+      "scope": "Mobile key connector",
+      "dependencies": [
+        "AUTH01 و رابط تخصصی"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 849,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F103",
+      "lane": "Core / Access و Operations",
+      "scope": "Emergency revoke",
+      "dependencies": [
+        "AUTH01 و کنترل credential"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 850,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F104",
+      "lane": "Operations / لجستیک",
+      "scope": "Package intake",
+      "dependencies": [
+        "منبع و evidence تحویل"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 851,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F105",
+      "lane": "Operations / لجستیک",
+      "scope": "Locker",
+      "dependencies": [
+        "منبع و evidence تحویل"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 852,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F106",
+      "lane": "Operations / لجستیک",
+      "scope": "Pickup credential",
+      "dependencies": [
+        "منبع و evidence تحویل"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 853,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F107",
+      "lane": "Operations / لجستیک",
+      "scope": "Chain of custody",
+      "dependencies": [
+        "منبع و evidence تحویل"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 854,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F108",
+      "lane": "Core / Access و Operations",
+      "scope": "Courier access",
+      "dependencies": [
+        "AUTH01 و رابط تخصصی"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 855,
+      "family": "Access/Delivery",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F109",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "AI intent",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 863,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F110",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Context resolution",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 864,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F111",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Multi-action orchestration",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 865,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F112",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Recommendation",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 866,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F113",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Conversational change",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 867,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F114",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Proactive opt-in",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 868,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F115",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Ops copilot",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 869,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F116",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Community copilot",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 870,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F117",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Analytics copilot",
+      "dependencies": [
+        "API مجاز دامنه"
+      ],
+      "wave": "۵",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 871,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F118",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Experience dashboard",
+      "dependencies": [
+        "projection مجاز دامنه"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 872,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F119",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Service KPI",
+      "dependencies": [
+        "projection مجاز دامنه"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 873,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F120",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Booking utilization",
+      "dependencies": [
+        "BK01 و مصرف‌کننده"
+      ],
+      "wave": "۳ و ۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 874,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F121",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Provider score",
+      "dependencies": [
+        "projection مجاز دامنه"
+      ],
+      "wave": "۳",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 875,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    },
+    {
+      "id": "F122",
+      "lane": "CE تجربه و مالک دامنه",
+      "scope": "Loyalty analytics",
+      "dependencies": [
+        "Loyalty و Finance"
+      ],
+      "wave": "۴",
+      "kind": "capability_subrow",
+      "state": "LATEST_GATE_EVIDENCE_REQUIRED",
+      "source_status_preserved": true,
+      "new_implementation_inferred": false,
+      "gates": {
+        "G0": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G1": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G2": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G3": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G4": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE",
+        "G5": "PRESERVE_EXISTING_EVIDENCE_BIND_LATEST_SCOPE"
+      },
+      "next_acceptance_evidence": null,
+      "source_line": 876,
+      "family": "AI/Analytics",
+      "default_activation": "NOT_AUTHORIZED_BY_LISTING",
+      "parent_link": "V14_CE_CAPABILITY_MAP",
+      "قابل خودکارسازی": "نیازمند بررسی"
+    }
+  ],
+  "groups": {
+    "Community": {
+      "count": 20,
+      "first": "F001",
+      "last": "F020"
+    },
+    "Events": {
+      "count": 15,
+      "first": "F021",
+      "last": "F035"
+    },
+    "Services": {
+      "count": 20,
+      "first": "F036",
+      "last": "F055"
+    },
+    "Booking": {
+      "count": 15,
+      "first": "F056",
+      "last": "F070"
+    },
+    "Commerce": {
+      "count": 14,
+      "first": "F071",
+      "last": "F084"
+    },
+    "Loyalty": {
+      "count": 12,
+      "first": "F085",
+      "last": "F096"
+    },
+    "Access/Delivery": {
+      "count": 12,
+      "first": "F097",
+      "last": "F108"
+    },
+    "AI/Analytics": {
+      "count": 14,
+      "first": "F109",
+      "last": "F122"
+    }
+  },
+  "dependency_edges": [
+    {
+      "contract": "C01/AUTH01",
+      "producer": "CORE",
+      "consumers": [
+        "AIRPROP",
+        "SERVICE",
+        "CE",
+        "OPERATIONS"
+      ],
+      "blocks": "current-authority reads/actions only"
+    },
+    {
+      "contract": "C02/DW01A",
+      "producer": "CORE",
+      "consumers": [
+        "AIRPROP",
+        "SERVICE",
+        "CE",
+        "menus"
+      ],
+      "blocks": "capability disclosure; never action authorization"
+    },
+    {
+      "contract": "C03",
+      "producer": "CORE shared infrastructure",
+      "consumers": [
+        "AIRPROP",
+        "SERVICE",
+        "CE",
+        "OPERATIONS"
+      ],
+      "blocks": "transactional receipt/audit/outbox/idempotency"
+    },
+    {
+      "contract": "DW02",
+      "producer": "CORE",
+      "consumers": [
+        "AIRPROP resource selection",
+        "SERVICE resource eligibility",
+        "PF01",
+        "resource-linked CE only"
+      ],
+      "blocks": "resource-dependent slice only"
+    },
+    {
+      "contract": "FIN01",
+      "producer": "CORE/FINANCE",
+      "consumers": [
+        "SV01F",
+        "SV01M",
+        "AP03",
+        "financial OPS"
+      ],
+      "blocks": "financial decision/posting only"
+    },
+    {
+      "contract": "OPS01",
+      "producer": "CORE/OPERATIONS",
+      "consumers": [
+        "SV01J",
+        "AP07"
+      ],
+      "blocks": "technical work order connection only"
+    },
+    {
+      "contract": "BK01",
+      "producer": "CORE",
+      "consumers": [
+        "SV01H",
+        "capacity-backed event"
+      ],
+      "blocks": "reservation/capacity; not CE011 basic"
+    },
+    {
+      "contract": "COM01",
+      "producer": "CORE/COMMUNICATIONS",
+      "consumers": [
+        "SERVICE",
+        "AIRPROP",
+        "CE"
+      ],
+      "blocks": "external delivery only"
+    },
+    {
+      "contract": "DOCS-CE012-REF-01A",
+      "producer": "DOCUMENTS",
+      "consumers": [
+        "CE012 linked reference"
+      ],
+      "blocks": "linked immutable reference; not base Guide"
+    },
+    {
+      "contract": "service-delivery-evidence-receipt.v1",
+      "producer": "DOCUMENTS",
+      "consumers": [
+        "SV01G/J"
+      ],
+      "blocks": "versioned evidence attachment"
+    }
+  ],
+  "status_rule": "These are programme scope entries, not a claim all source is missing. Carry accepted historical evidence; bind latest incomplete gate per item before scheduling; no percentage/closure inferred.",
+  "not_blocked_by_website": [
+    "CORE_OPERATIONS",
+    "AIRPROP",
+    "SERVICE",
+    "CE",
+    "DOCUMENTS"
+  ],
+  "existing_current_lanes": {
+    "Antigravity": "public R1 copydelta on96dc99f",
+    "PROCEDURE": "R8-AFTER on1afe40a",
+    "public_candidate": "0fcff1e build accepted/copy-browser gates open",
+    "cleanup": "CLEANUP-F01 closed offline/real run HOLD"
+  },
+  "paused": "PM01 reporting database/runtime remains paused; existing #463 stays coordination register",
+  "automation_direction": {
+    "id": "CLADORA-AUTOMATION-DIRECTION",
+    "version": "1.0.0",
+    "date": "2026-11-02",
+    "purpose": "حرکت تدریجی از ثبت/پیگیری به دریافت و کنترل اطلاعات و پیشبرد کار؛ ارجاع تصمیم و استثنا به مسئول انسانی.",
+    "column": "قابل خودکارسازی",
+    "allowed_values": [
+      "خودکارسازی موجود",
+      "قابل خودکارسازی",
+      "ترکیبی؛ اجرا با تأیید انسانی",
+      "نیازمند تصمیم انسانی",
+      "نیازمند بررسی"
+    ],
+    "default": "نیازمند بررسی",
+    "classification_only": true,
+    "existing_automation_label_requires": "پیاده‌سازی و شواهد واقعی قابل‌ارجاع؛ source یا synthetic PASS به‌تنهایی مجوز/پذیرش runtime نیست.",
+    "details_only_when_process_under_routine_review": true,
+    "review_field_labels": [
+      "ورودی",
+      "بخش قابل خودکارسازی",
+      "تصمیم انسانی",
+      "شرایط اجرا",
+      "استثنا",
+      "وابستگی",
+      "معیار ارزش"
+    ],
+    "design_rules": [
+      "منطق عملیاتی در مسیر رسمی و قابل‌استفادهٔ مجدد سرور باقی بماند؛ UI/تجهیز/اتوماسیون آینده همان قرارداد را مصرف کنند.",
+      "AI می‌تواند استخراج، طبقه‌بندی و پیشنهاد کند؛ محاسبات مالی، مجوز و قواعد ثبت با منطق قطعی اجرا شوند.",
+      "اقدام خودکار همان کنترل اختیار، scope، revoke، expiry و idempotency اقدام انسانی را، با اختیار جاری پس از انتظار، رعایت کند.",
+      "اختیار اجرای خودکار صریح، محدود، قابل‌لغو و قابل‌ردیابی باشد؛ طبقه‌بندی Tracker هیچ اختیار اجرایی ایجاد نمی‌کند.",
+      "تأیید انسانی به نسخهٔ دقیق داده و اقدام متصل باشد؛ تغییر مؤثر مستلزم ارزیابی مجدد است.",
+      "UNKNOWN و retry ثبت، پرداخت، پیام یا دستورکار تکراری نسازند؛ قواعد فعلی pending/replay محفوظ بمانند.",
+      "منبع داده، اصلاح انسانی، تأیید و نتیجهٔ اجرا قابل‌ردیابی باشند؛ محتوای سند و ایمیل داده است و اختیار اجرای دستور ایجاد نمی‌کند.",
+      "تغییر خارج از دامنهٔ بسته فقط پیشنهاد آینده است؛ توسعهٔ فعلی متوقف یا بازطراحی نشود."
+    ],
+    "active_package_priority_scope_parent_sha_acceptance": "UNCHANGED",
+    "baseline_register_sha256": "12df4c9d18103d98ec4f61cdafa143061d54b2fcf5bae1654130d3ef629d6115",
+    "original_as_of_retained": true,
+    "historical_implementation_evidence_and_progress_deltas": "PRESERVED_SEPARATELY; automation classification never replaces existing state/gates/evidence",
+    "canonical_register_path": "docs/control/programme-tracker/register.json",
+    "rendered_view_path": "docs/control/programme-tracker/register.csv",
+    "notification": "#463 common notice plus owner-transfer text; no direct independent-chat receipt inferred",
+    "value_metrics": [
+      "زمان رسیدگی",
+      "نرخ اصلاح",
+      "تعداد دخالت انسانی"
+    ],
+    "authorization_or_schedule_created": false
+  },
+  "automation_future_queue": [
+    {
+      "proposed_order": 1,
+      "process": "دریافت فاکتور تا استخراج، کنترل و پیش‌نویس ثبت حسابداری",
+      "status": "FUTURE_NOT_SCHEDULED",
+      "قابل خودکارسازی": "نیازمند بررسی",
+      "existing_engine_owners": [
+        "Finance/FIN01",
+        "Documents"
+      ],
+      "integration_status": "PLANNING_REFERENCE_ONLY_NOT_CONNECTED_OR_ACCEPTED",
+      "human_boundary": "تولید پیش‌نویس؛ ثبت رسمی/پرداخت بدون سیاست و تأیید معتبر مجاز نیست.",
+      "missing_dependency_review": "مسیر دریافت فاکتور/فاکتور الکترونیکی و قرارداد تبدیل به proposal مالی نیازمند بررسی است.",
+      "measured_value": "نیازمند بررسی",
+      "selected_for_execution": false,
+      "execution_authorized": false,
+      "new_parallel_engine_allowed": false
+    },
+    {
+      "proposed_order": 2,
+      "process": "تطبیق تراکنش بانکی و رسیدگی به مغایرت",
+      "status": "FUTURE_NOT_SCHEDULED",
+      "قابل خودکارسازی": "نیازمند بررسی",
+      "existing_engine_owners": [
+        "Finance/FIN01",
+        "Documents"
+      ],
+      "integration_status": "PLANNING_REFERENCE_ONLY_NOT_CONNECTED_OR_ACCEPTED",
+      "human_boundary": "تطبیق قطعی و پیشنهاد رسیدگی؛ مغایرت و اصلاح مالی ارجاع انسانی.",
+      "missing_dependency_review": "منبع مجاز دادهٔ بانک، قرارداد import و کلید یکتای تراکنش نیازمند بررسی است.",
+      "measured_value": "نیازمند بررسی",
+      "selected_for_execution": false,
+      "execution_authorized": false,
+      "new_parallel_engine_allowed": false
+    },
+    {
+      "proposed_order": 3,
+      "process": "قرائت کنتور و کنترل مصرف غیرعادی",
+      "status": "FUTURE_NOT_SCHEDULED",
+      "قابل خودکارسازی": "نیازمند بررسی",
+      "existing_engine_owners": [
+        "Operations/OPS01",
+        "Finance/FIN01 در صورت اثر مالی",
+        "Documents"
+      ],
+      "integration_status": "PLANNING_REFERENCE_ONLY_NOT_CONNECTED_OR_ACCEPTED",
+      "human_boundary": "کنترل اعتبار قرائت و پیشنهاد هشدار؛ اقدام مالی/فیزیکی تابع اختیار مستقل.",
+      "missing_dependency_review": "قرارداد منبع/تجهیز، calibration، واحد/زمان و کیفیت داده نیازمند بررسی است؛ اتصال تجهیز درخواست نشده است.",
+      "measured_value": "نیازمند بررسی",
+      "selected_for_execution": false,
+      "execution_authorized": false,
+      "new_parallel_engine_allowed": false
+    },
+    {
+      "proposed_order": 4,
+      "process": "نگهداری پیشگیرانه، دستورکار و پیگیری پیمانکار",
+      "status": "FUTURE_NOT_SCHEDULED",
+      "قابل خودکارسازی": "نیازمند بررسی",
+      "existing_engine_owners": [
+        "Operations/OPS01",
+        "Communications/COM01",
+        "Documents"
+      ],
+      "integration_status": "PLANNING_REFERENCE_ONLY_NOT_CONNECTED_OR_ACCEPTED",
+      "human_boundary": "پیشنهاد برنامه/دستورکار روی موتور موجود؛ هزینه، انتخاب و اقدامات حساس تابع سیاست نقش مجاز.",
+      "missing_dependency_review": "برنامهٔ دارایی و contract دستورکار/کانال مجاز؛ حدود تفویض و سقف‌ها نیازمند بررسی است.",
+      "measured_value": "نیازمند بررسی",
+      "selected_for_execution": false,
+      "execution_authorized": false,
+      "new_parallel_engine_allowed": false
+    },
+    {
+      "proposed_order": 5,
+      "process": "آماده‌سازی شارژ، گزارش و کنترل بستن دوره",
+      "status": "FUTURE_NOT_SCHEDULED",
+      "قابل خودکارسازی": "نیازمند بررسی",
+      "existing_engine_owners": [
+        "Finance/FIN01",
+        "Documents",
+        "Communications/COM01"
+      ],
+      "integration_status": "PLANNING_REFERENCE_ONLY_NOT_CONNECTED_OR_ACCEPTED",
+      "human_boundary": "محاسبه و کنترل قطعی و پیش‌نویس؛ تأیید بستن/ثبت دوره تابع سیاست مالی موجود.",
+      "missing_dependency_review": "قواعد تقسیم، دورهٔ باز/بسته و منبع دادهٔ مالی معتبر نیازمند بررسی است.",
+      "measured_value": "نیازمند بررسی",
+      "selected_for_execution": false,
+      "execution_authorized": false,
+      "new_parallel_engine_allowed": false
+    },
+    {
+      "proposed_order": 6,
+      "process": "پیگیری مدارک و اطلاعات ناقص راه‌اندازی ساختمان",
+      "status": "FUTURE_NOT_SCHEDULED",
+      "قابل خودکارسازی": "نیازمند بررسی",
+      "existing_engine_owners": [
+        "Documents",
+        "Operations/OPS01 در مسیر رسمی راه‌اندازی",
+        "Communications/COM01"
+      ],
+      "integration_status": "PLANNING_REFERENCE_ONLY_NOT_CONNECTED_OR_ACCEPTED",
+      "human_boundary": "فهرست نقص و پیشنهاد یادآوری؛ تأیید صحت سند و تکمیل نهایی با نقش مجاز.",
+      "missing_dependency_review": "قرارداد موجود راه‌اندازی/مدارک الزامی، مخاطب و محدودیت یادآوری نیازمند بررسی است.",
+      "measured_value": "نیازمند بررسی",
+      "selected_for_execution": false,
+      "execution_authorized": false,
+      "new_parallel_engine_allowed": false
+    }
+  ]
+}

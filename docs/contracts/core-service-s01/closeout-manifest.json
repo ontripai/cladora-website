@@ -1,0 +1,480 @@
+{
+  "format": "CORE_S01_CLOSEOUT_SOURCE_02",
+  "base": "681a3743ff49c48adc00a737d59d2b5a4c848c04",
+  "status": "SOURCE_LOCAL_DELIVERED_INDEPENDENT_REVIEW_REQUIRED",
+  "decisions": "D01/D02 CLOSED_OWNER_DESIGN; implementation/proof remain review gates",
+  "source_dependency_review": "Accepted f4e031 successor and actual transitive helper verified by bytes/SHA256/Git identity; source-only producer/preflight/40001 coupling PASS; native admission NOT_RUN",
+  "source_dependency": {
+    "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+    "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+    "bytes": 18347,
+    "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+    "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+  },
+  "new_source_effects": {
+    "tables": [
+      "platform.provider_agreement_heads_v1",
+      "platform.provider_agreement_versions_v1"
+    ],
+    "functions": [
+      "app_private.core_s01_head_guard_v1",
+      "app_private.core_s01_version_guard_v1",
+      "app_private.core_s01_version_link_v1",
+      "app_private.write_core_provider_agreement_v1"
+    ],
+    "triggers": [
+      "core_s01_head_guard",
+      "core_s01_head_truncate_guard",
+      "core_s01_version_guard",
+      "core_s01_version_truncate_guard",
+      "core_s01_version_link"
+    ],
+    "constraints": [
+      [
+        "core_s01_party_tenant_key_v1",
+        ""
+      ],
+      [
+        "core_s01_workspace_tenant_key_v1",
+        ""
+      ],
+      [
+        "",
+        "core_s01_heads_pk_v1"
+      ],
+      [
+        "",
+        "core_s01_tenant_fk_v1"
+      ],
+      [
+        "",
+        "core_s01_head_version_positive_v1"
+      ],
+      [
+        "",
+        "core_s01_revision_positive_v1"
+      ],
+      [
+        "",
+        "core_s01_status_v1"
+      ],
+      [
+        "",
+        "core_s01_workspace_tenant_fk_v1"
+      ],
+      [
+        "",
+        "core_s01_party_tenant_fk_v1"
+      ],
+      [
+        "",
+        "core_s01_head_tuple_key_v1"
+      ],
+      [
+        "",
+        "core_s01_version_positive_v1"
+      ],
+      [
+        "",
+        "core_s01_versions_pk_v1"
+      ],
+      [
+        "",
+        "core_s01_version_tuple_fk_v1"
+      ],
+      [
+        "",
+        "core_s01_dates_v1"
+      ],
+      [
+        "",
+        "core_s01_scopes_v1"
+      ],
+      [
+        "core_s01_current_version_fk_v1",
+        ""
+      ]
+    ],
+    "generated": "PK/unique indexes, composite/array types and TOAST families derive only from admitted exact new-table definitions; PG identities unresolved until proof"
+  },
+  "proof": {
+    "request": {
+      "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+      "ref": null,
+      "bytes": 12079,
+      "sha256": "ff7fe7c564722cb07fcd1460d0b93071d44ea417b737ac09cb63869ead2c0b99",
+      "git_blob": "088a71ab389cee6882a41046e4e6059edde8ab6c"
+    },
+    "send_image": {
+      "bytes": 22101,
+      "sha256": "8cad2dcbcbfeaf9556606a5088ed4d1304dd692f0578b410393219500b18bbaf",
+      "git_blob": "250580f0eb99c4590e0908ac6fcbae59f9246e94"
+    }
+  },
+  "runtime_binding": null,
+  "not_run": [
+    "SQL parser/compile/execute",
+    "Auth/DB/native store/fixture",
+    "install/grant/activation",
+    "all-writer concurrency and host settlement",
+    "staging/Production"
+  ],
+  "consumer_modules": [
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/application-flow.ts",
+      "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 16690,
+      "sha256": "1ddd67defe807989cf62ba69f8f9f5cbc7a1219ae3b573d7284700a02c916dcb",
+      "git_blob": "b2440744dbdcdadeaaf6e6c5e36edd7718d968c2"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 17263,
+      "sha256": "3bc5ff891b72c9001b13086d8c9cd9b1882118af99e92281ab70249559f72b25",
+      "git_blob": "aae01e7e3628631fadaa5f965f3f5dc8ae8d8efe"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-command.ts",
+      "commit": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 2872,
+      "sha256": "bf64d03fd5d52d2cef4b72ef010738efd84b98ad2b8d722ec62172c82353f10a",
+      "git_blob": "6293c49b65481df820e9157bbd87f836938f878d"
+    }
+  ],
+  "verification": {
+    "final_affected_coupling": {
+      "command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --serialization-integration-only",
+      "checks": 4,
+      "result": "PASS",
+      "consumer": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "attempts": 3,
+      "rollbacks": 3,
+      "mutations": 0,
+      "commits": 0,
+      "transport": "CONTROLLED_NOT_PG"
+    },
+    "retained_not_rerun": {
+      "original_closeout_controls": 16,
+      "additional_actual_canDisclose_host_control": 1,
+      "source_negative_controls": 9,
+      "predecessor_controls": 3,
+      "narrow_typecheck_lint": "previous PASS; retained"
+    },
+    "scope_exclusions": [
+      "SERVICE source-port clock finding",
+      "SERVICE product source edits",
+      "shared Auth/evaluator/host changes",
+      "Operations300",
+      "SQL parser/compile/execute",
+      "PG/Auth/install/grant/activation"
+    ]
+  },
+  "inventory": [
+    {
+      "path": "docs/contracts/core-service-s01/README.md",
+      "bytes": 13308,
+      "sha256": "1a60a1f926e2af54bfa075ce5fab4e9bc6796360b3fbf990d793b935c0b61c7c",
+      "git_blob": "b33846d3182297293bd3e0da417277e22e8d8efe"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/SOURCE-CLOSEOUT-02.md",
+      "bytes": 17016,
+      "sha256": "0d8581b9eaca7969d7a2851810d7a2ebeaaf9d31403a5fd150f3ff142e1c9295",
+      "git_blob": "8e0312176b8212d3e052c34fc9d40a01c0e60bfa"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+      "bytes": 12079,
+      "sha256": "ff7fe7c564722cb07fcd1460d0b93071d44ea417b737ac09cb63869ead2c0b99",
+      "git_blob": "088a71ab389cee6882a41046e4e6059edde8ab6c"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/provenance.json",
+      "bytes": 9536,
+      "sha256": "a41b79038cf69e5143dadd9d282235cd4827a664d4ff1280b0e6b478dba4e3ad",
+      "git_blob": "c211ba1043c17b945e52cfa108ed76532a6987af"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/store-proposal.json",
+      "bytes": 5368,
+      "sha256": "1058ecb4e3e61f4ede6d8e5329b8fe17c0bb899a838eacd1e6bf5a4093ef890f",
+      "git_blob": "048079ba656864bc79e831fe8aede3da2c7d6163"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
+      "bytes": 5493,
+      "sha256": "c352b6e2a948633c18710cba04bd620b946c5f45eb39d4dfea1911fbcf6b64d2",
+      "git_blob": "44dadb6a7fcfcff49318601c51073a3ac407075a"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/compose-proof.mjs",
+      "bytes": 1481,
+      "sha256": "fa7f29926d8c5240ae8d386561e0d748dab3f95bbfd3f5f5ece69b4c8cbda720",
+      "git_blob": "6f413d553d86bc34eabc2a1dd147bdaf314fe01d"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+      "bytes": 39787,
+      "sha256": "9eb7b3b128306e300db0ef12875389127a56f4d58ae74c936c5b4353ffccd2eb",
+      "git_blob": "6d8bdcff5413c85c8e77c048566fba2c8457408a"
+    },
+    {
+      "path": "src/lib/core/service-s01/errors-v1.ts",
+      "bytes": 301,
+      "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+      "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-proof-v1.sql",
+      "bytes": 5703,
+      "sha256": "420cf84d33e2d6129158db90a225d92bd8b10bc6d2da9815d5f1a2b71a77e286",
+      "git_blob": "f81ab8c310e47f79d3a46dbac7bdf23477ce3cf5"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-v1.sql",
+      "bytes": 16397,
+      "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+      "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/verify-clean-v1.sql",
+      "bytes": 1783,
+      "sha256": "2615d7c526110b97b881279951dfc05e2395abf0bf240027c5ee090d18e05ac4",
+      "git_blob": "027bfd3309a71f45404f539a440ff1b2aa547c30"
+    }
+  ],
+  "inventory_seal": {
+    "algorithm": "SHA256 sorted-key compact JSON UTF-8 of inventory array",
+    "sha256": "29a4c5c4a682c95700a07e45369000fd00c298be8170a12a055eca09defa06fc",
+    "self_exclusion": "docs/contracts/core-service-s01/closeout-manifest.json",
+    "self_identity": "committed Git tree and external delivery manifest"
+  },
+  "time_precision_03": {
+    "task": "CORE-SERVICE-S01-SOURCE-CLOSEOUT-02 / TIME-PRECISION-03",
+    "base": "d13437a81d854ef0c7603cb4aeca97fcdd4999ed",
+    "finding": "TEMPORAL-PRECISION-01 / CORE_FINAL_GUARD",
+    "status": "SOURCE_FIXED_INDEPENDENT_REVIEW_REQUIRED",
+    "scope": "Only final Offering instant guard; exact Gregorian whole seconds and decimal fractions including offsets. No rounding/tolerance/Date conversion. Provider Agreement date-only unchanged.",
+    "service_pin_unchanged": "4c0dcc075797ce8fc08d0e80ddb531370ebfc46f",
+    "before": {
+      "clock": "2026-11-02T12:00:00.000100Z",
+      "valid_from": "2026-11-02T12:00:00.000900Z",
+      "actual": "effective",
+      "expected": "withheld",
+      "exact_base_counterexample": "PASS reproduced; exact-start effective control preserved"
+    },
+    "tests": {
+      "predecessor_command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --prove-time-predecessor",
+      "predecessor_controls": 2,
+      "new_precision_command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --time-precision-only",
+      "new_precision_checks": 17,
+      "new_invariant_command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --case 'time: final microsecond path preserves session authority revision and 40001'",
+      "new_invariant_checks": 1,
+      "result": "PASS18/18 new controlled checks; predecessor2/2; limited typecheck/lint/syntax/diff PASS",
+      "old_suites_17_4_9": "NOT_RERUN; previous evidence retained",
+      "real_pg_driver_sql_auth": "NOT_RUN"
+    },
+    "source_delta": [
+      {
+        "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+        "before": {
+          "bytes": 17709,
+          "sha256": "9ef53f0b20360d6537373a3ca55606b231ee820d67a561e73d1c7847ad4a6880",
+          "git_blob": "2d90304dd0735d373268f1dcf3e3c5bfa419f011"
+        },
+        "after": {
+          "bytes": 19239,
+          "sha256": "a51c3bc9e889defd323d159392566303dedeba5fcec394d57bdb27a2f238ed26",
+          "git_blob": "30d265236c85b3a1696115a01d9dd14e06b76bd3"
+        }
+      },
+      {
+        "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+        "before": {
+          "bytes": 31928,
+          "sha256": "4108fa6411747d2f2dd838217739f926c7ded575e6407e37ec68588c28dd61e0",
+          "git_blob": "a622a86948b35924ba8231a2c245813b62be490f"
+        },
+        "after": {
+          "bytes": 36258,
+          "sha256": "e8b2b23e68866b7734216687efd7be3d6ef7972d3e18e89550735b7dd36ec1cb",
+          "git_blob": "8413b5bed63ddcc8e4eb06551d2f049365e97224"
+        }
+      },
+      {
+        "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+        "before": {
+          "bytes": 10091,
+          "sha256": "311a216caa06632ab6a68264144dc37f4ee10aa996417a23cbc10752d47bf667",
+          "git_blob": "3a457d437575d966fbe0441323c505ec9c6709cb"
+        },
+        "after": {
+          "bytes": 10091,
+          "sha256": "5753afd6c194a1a036cbef94701c814d869fb602a94ef0642c560493d6e0438e",
+          "git_blob": "1613a9a6dd4550bcdbd53c179e584437525078af"
+        }
+      },
+      {
+        "path": "docs/contracts/core-service-s01/closeout-manifest.json",
+        "before": {
+          "bytes": 9342,
+          "sha256": "3431720874d973f29d5d1d2d8b5e3c2409c7e1744e03bc7651d668791a2a62c0",
+          "git_blob": "c070c42ab91183bf2ba56d6380c3ba1213705cbf"
+        },
+        "after": "SELF_EXCLUDED: exact identity bound by commit and external delivery manifest"
+      }
+    ],
+    "runtime_binding": null,
+    "not_run": [
+      "SQL/Auth/PG/driver",
+      "install/grant/activation/merge/deploy"
+    ]
+  },
+  "source_transitive_dependencies": [
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+    }
+  ],
+  "service_successor_bind_04": {
+    "task": "CORE-SERVICE-S01-SERVICE-SUCCESSOR-BIND-04",
+    "base": "6a86556352b667cdc42706f2b1039aceb930120c",
+    "accepted_service": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+    "status": "SOURCE_DELIVERED_INDEPENDENT_REVIEW_REQUIRED",
+    "changes": [
+      "86400n to BigInt(86400); no target/config change or precision change",
+      "pin and validate main SERVICE module plus imported temporal helper; actual code loaded from owner Git objects, not copied",
+      "SERVICE.now fixtures are exact timestamp strings",
+      "keep isolated final-guard fixtures separate from same-instant real producer coupling"
+    ],
+    "source_closure": [
+      {
+        "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 18347,
+        "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+        "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "ref": "f4e03100c6145c8fcac7f105eb5da4c30a37abb8",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+      }
+    ],
+    "new_checks": {
+      "successor_producer_preflight_temporal_and_helper_pin": {
+        "command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --successor-coupling-only",
+        "result": "PASS",
+        "checks": 9,
+        "scope": "8 same-instant real SERVICE projector/helper + Core producer + actual preflight boundary controls; 1 helper pin rejection control; not isolated Core-guard evidence"
+      },
+      "successor_40001_coupling": {
+        "command": "node scripts/review-core-service-s01-producer-01/test-producer.mjs --serialization-integration-only",
+        "result": "PASS",
+        "checks": 4,
+        "host_attempts": 3,
+        "rollbacks": 3,
+        "mutations": 0,
+        "commits": 0,
+        "reason_rerun": "actual SERVICE source and temporal dependency changed"
+      },
+      "full_typecheck": {
+        "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false",
+        "target": "es5 (unchanged tsconfig)",
+        "result": "PASS"
+      },
+      "actual_service_interface_typecheck": "PASS (separate scratch using accepted successor exports including string-valued now)",
+      "limited_lint_syntax_diff": "PASS",
+      "isolated_guard_18_and_old_suites": "NOT_RERUN; historical retained evidence; guard fixture source admission updated for exact successor before final clock injection"
+    },
+    "unchanged_config": {
+      "path": "tsconfig.json",
+      "ref": null,
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    },
+    "source_delta_before": [
+      {
+        "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+        "ref": "6a86556352b667cdc42706f2b1039aceb930120c",
+        "bytes": 10091,
+        "sha256": "5753afd6c194a1a036cbef94701c814d869fb602a94ef0642c560493d6e0438e",
+        "git_blob": "1613a9a6dd4550bcdbd53c179e584437525078af"
+      },
+      {
+        "path": "docs/contracts/core-service-s01/provenance.json",
+        "ref": "6a86556352b667cdc42706f2b1039aceb930120c",
+        "bytes": 8544,
+        "sha256": "f39295abc4eca6dd99694df2022c544ea9c3055d2da52bc553230c78776f84d5",
+        "git_blob": "92526c2df1f72b21feb2557094843d2eaa2baf84"
+      },
+      {
+        "path": "docs/contracts/core-service-s01/store-proposal.json",
+        "ref": "6a86556352b667cdc42706f2b1039aceb930120c",
+        "bytes": 4658,
+        "sha256": "3bbdccda66e8413675708b8b69042964d05154d5b26f403da43f81566002c08c",
+        "git_blob": "ba85371da14df5f83aad9f6d8a3a60d3a473b760"
+      },
+      {
+        "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+        "ref": "6a86556352b667cdc42706f2b1039aceb930120c",
+        "bytes": 36258,
+        "sha256": "e8b2b23e68866b7734216687efd7be3d6ef7972d3e18e89550735b7dd36ec1cb",
+        "git_blob": "8413b5bed63ddcc8e4eb06551d2f049365e97224"
+      },
+      {
+        "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+        "ref": "6a86556352b667cdc42706f2b1039aceb930120c",
+        "bytes": 7031,
+        "sha256": "70b751253b64d9571b98e44cfaeee63ba8bce9769d5b82fa100a014f4c870e27",
+        "git_blob": "3147810b2325e8d58e2be1b1933acd3bceda9b19"
+      },
+      {
+        "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+        "ref": "6a86556352b667cdc42706f2b1039aceb930120c",
+        "bytes": 19239,
+        "sha256": "a51c3bc9e889defd323d159392566303dedeba5fcec394d57bdb27a2f238ed26",
+        "git_blob": "30d265236c85b3a1696115a01d9dd14e06b76bd3"
+      }
+    ],
+    "runtime_binding": null,
+    "not_run": [
+      "SQL parser/compile/execute",
+      "PG/Auth/driver/native store",
+      "install/grant/activation/merge/deploy"
+    ]
+  }
+}
