@@ -1,0 +1,22 @@
+{
+  "owner": "supabase_auth_admin",
+  "config": [
+    "search_path=pg_catalog"
+  ],
+  "signature": "auth.uid()",
+  "owner_bypassrls": false,
+  "owner_superuser": false,
+  "security_definer": false,
+  "authenticated_execute": true,
+  "authenticated_auth_schema_usage": true,
+  "definition_bytes": 281,
+  "definition_sha256": "19bc12806121d6419808aec991e7c32210c7ffb35ce7ac949d937c5720c1808f",
+  "uses_legacy_sub": true,
+  "uses_json_claims": true,
+  "query": {
+    "bytes": 672,
+    "sha256": "2cee5a4374310db628223ac66587cbfd8819020889ee77d358f57def15f5457a",
+    "started_utc": "2026-11-03T15:53:34.290722+00:00",
+    "completed_utc": "2026-11-03T15:53:34.598865+00:00"
+  }
+}

@@ -1,0 +1,186 @@
+{
+  "format": "platform15.acl-r1-source-safe-receipt.v1",
+  "task": "PLATFORM-STORAGE-DOCUMENTS-NATIVE-ABI-15 / ACL-R1-AND-HARNESS",
+  "parent": "b7f61c027e9fd96afc663fc208d869760f14c791",
+  "branch": "codex/program-local-runtime-lane-01",
+  "status": "PER_OBJECT_REVIEW_AND_NATIVE_HARNESS_SOURCE_DELIVERED_EXECUTION_HOLD",
+  "queries": {
+    "per_object": {
+      "query_bytes": 5219,
+      "query_sha256": "7fd7fa678c7166f7abab1d625f35c3a181a2fc22d1f930f97313f747808b627f",
+      "response_bytes": 155932,
+      "response_sha256": "cf7c9f0e39455416d1bd16f9dd00982a7b191fc341d589ca6b3613cc0f6e0c6d",
+      "started_utc": "2026-11-03T15:06:02.417433+00:00",
+      "completed_utc": "2026-11-03T15:06:02.698909+00:00",
+      "relations": 10,
+      "functions": 20,
+      "default_acl_count": 0
+    },
+    "actor_helper": {
+      "bytes": 672,
+      "sha256": "2cee5a4374310db628223ac66587cbfd8819020889ee77d358f57def15f5457a",
+      "started_utc": "2026-11-03T15:53:34.290722+00:00",
+      "completed_utc": "2026-11-03T15:53:34.598865+00:00"
+    },
+    "grant_recipient_pool_principal": {
+      "query_bytes": 393,
+      "query_sha256": "4ccd90c627105a33f5ede5394e81609f4e84ff0381b2848da196c906c195778b",
+      "response_bytes": 343,
+      "response_sha256": "3e38b2c4ba1aad4727940d8925e817fcca5c1fbf1210c45b0e72a2552defc105",
+      "started_utc": "2026-11-03T16:15:27.616241+00:00",
+      "completed_utc": "2026-11-03T16:15:27.814795+00:00"
+    }
+  },
+  "raw_catalog": "PRIVATE_NOT_PUBLISHED",
+  "function_bodies": "PRIVATE_DEFINITION_PINS_ONLY",
+  "counts": {
+    "relations": 10,
+    "client_granted_relations": 9,
+    "functions": 20,
+    "invoker_functions": 20,
+    "definer_functions": 0,
+    "fixed_search_path_functions": 2,
+    "ambient_search_path_functions": 18,
+    "sequences": 0,
+    "custom_default_acls": 0
+  },
+  "source_seal": "25c7181f417248b7bf31b0cfda7492809c11125a937c27a3ab2b9f4d65ff7a5c",
+  "binding": {
+    "format": "platform15-final-local-binding-receipt.v1",
+    "request_bytes": 6177,
+    "request_sha256": "6bdfe4ab4504dd39fd41f1bf434d103ec2c01c0ae0f071d79c4a93def4d2339c",
+    "source_seal": "25c7181f417248b7bf31b0cfda7492809c11125a937c27a3ab2b9f4d65ff7a5c",
+    "deterministic_apply_plan": "MATCH_4_EXACT_PAYLOADS",
+    "sql": {
+      "acl_apply": {
+        "bytes": 10307,
+        "sha256": "f1736abcf35bbe222d703c438d638a33f13d724dc7d607eed6ec29664abbe09c"
+      },
+      "fixture_create": {
+        "bytes": 6188,
+        "sha256": "f56341f09f36022b7c2830027cf120a677028e3812ba2d4d49fa763f3ba1dea7"
+      },
+      "fixture_drop_policies": {
+        "bytes": 4411,
+        "sha256": "e8566fc772f99928be6e7fcbac20daa189ff0eed4f2563127b1d5958ae1c8738"
+      },
+      "acl_recover": {
+        "bytes": 4739,
+        "sha256": "6b28645b8e927a335b984b1147376ee516e2d8d3a2292a8dd895d77d922ec8f8"
+      }
+    },
+    "sdk_pins": "46_FILES_MATCH",
+    "registry": "EMPTY",
+    "authority": null,
+    "execution_binding": null,
+    "CLI_exit": 2,
+    "CLI_result": "HOLD_AS_EXPECTED_NO_NATIVE_DISPATCH",
+    "run_claims": 0,
+    "native": "NOT_RUN",
+    "observed_utc": "2026-11-03T16:45:29.609784+00:00"
+  },
+  "proposed_changes": {
+    "executed": false,
+    "schema_usage": [
+      "authenticated",
+      "service_role"
+    ],
+    "service_non_dml_revoke_relations": [
+      "buckets",
+      "buckets_analytics",
+      "iceberg_namespaces",
+      "iceberg_tables",
+      "objects",
+      "s3_multipart_uploads",
+      "s3_multipart_uploads_parts"
+    ],
+    "non_dml": [
+      "TRUNCATE",
+      "REFERENCES",
+      "TRIGGER",
+      "MAINTAIN"
+    ],
+    "new_table_or_function_grants": false,
+    "new_bucket_or_object_update_policy": false,
+    "policies": 7,
+    "ownership_rls_default_acl_changes": false,
+    "grantor": "supabase_storage_admin",
+    "recovery": "Effective grants/options/grantor restored; raw NULL namespace representation is not restored; explicit acceptance required"
+  },
+  "SDK": {
+    "versions": {
+      "supabase": "2.112.4",
+      "storage": "2.112.4",
+      "auth": "2.112.4"
+    },
+    "pinned_files": 46,
+    "loader_smoke": "PASS_REAL_CACHED_SDK_NEW_LOADER_ONLY_NO_AUTH_OR_STORAGE_REQUEST",
+    "product_package_lock": "UNCHANGED"
+  },
+  "tests": {
+    "unique_current_R1_controls": 23,
+    "python_source_admission_plan_lifecycle": 12,
+    "node_abi_route_error": 7,
+    "filesystem_capture_faults": 4,
+    "result": "PASS",
+    "native_proof": false,
+    "final_interaction_note": "Current-R1 checks only; changed binding/capture interfaces were rechecked. Original accepted preflight6, product/backend/health/restore suites not rerun. Test-fixture overbroad IF NOT EXISTS assertion and missing actor-helper stub were corrected; no runtime guard/assertion was weakened."
+  },
+  "syntax": "PASS_PYTHON_IN_MEMORY_NODE_CHECK",
+  "lint": "PASS_EXISTING_BYTE_IDENTICAL_CACHE_CONFIG_NO_SUPPRESSION",
+  "native_stages": {
+    "SQL_parse_compile": "NOT_RUN",
+    "ACL_apply": "NOT_RUN",
+    "bucket_policy_fixture": "NOT_RUN",
+    "real_Auth_session": "NOT_RUN",
+    "upload_false": "NOT_RUN",
+    "info_mapping": "NOT_RUN",
+    "download_bytes_hash": "NOT_RUN",
+    "duplicate_upsert_update_denials": "NOT_RUN",
+    "foreign_anonymous_public_denials": "NOT_RUN",
+    "exact_cleanup": "NOT_RUN"
+  },
+  "execution_gates": [
+    "Exact shared-schema exposure and seven-relation non-DML hardening review",
+    "Explicit acceptance of semantic/grantor ACL recovery with raw NULL representation difference",
+    "Coordinator exclusive Storage ACL window and exact candidate review/curated single-use registry entry",
+    "Actual SQL/native ABI/denial/cleanup execution still required; no domain/canonical acceptance"
+  ],
+  "historical_unexecuted_candidate": {
+    "bytes": 6177,
+    "sha256": "1e43a024e57a92e993e02af1ca509a372fec7e56ab10fb6ee09798bab64a495d",
+    "source_seal": "6f59befccb1eae83d27cf064eb9302f431ddd6af969bac2984f0fe561d8828b9",
+    "status": "PRESERVED_REPLACED_NOT_RUN; final candidate only, not stacked"
+  },
+  "limits": {
+    "HTTP_capture": "8MiB normal plus1MiB independent cleanup; local ceilings, not approved disk quota/provider response-bound proof",
+    "body_breach": "UNKNOWN/quarantine; no truncation-success",
+    "wire": "existing unchanged Wire;1MiB raw per connection; largest outgoing payload10307+6 framing bytes below12KiB",
+    "cleanup": "metadata AND physical files/directories observer; unknown native terminal never becomes residue proof"
+  },
+  "preservation": {
+    "existing_tracked_files": "UNCHANGED",
+    "sealed_five": "UNCHANGED",
+    "source_Core_Docs": "UNCHANGED",
+    "old_preflight_receipts_restore13": "PRESERVED",
+    "image_config_volumes_existing_users": "UNCHANGED",
+    "ACL_RLS_role_default_acl_mutations": 0,
+    "new_native_sessions_buckets_objects": 0,
+    "run_claims": 0,
+    "registry": "EMPTY",
+    "authority": null,
+    "execution_binding": null
+  },
+  "private_receipt_identities": {
+    "final_binding": {
+      "bytes": 1142,
+      "sha256": "08703a43c43ae3ab478f5d010b3ca65335111f9314bcc902c7f1a1100bb3c53b"
+    },
+    "targeted_tests": {
+      "bytes": 2873,
+      "sha256": "8857780d1a350bd424cec3726240098eabdb5a5b5ea641475f04d73a0c8ca085"
+    }
+  },
+  "automation": "نیازمند بررسی",
+  "generated_utc": "2026-11-03T16:49:54.567726+00:00"
+}
